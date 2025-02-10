@@ -175,11 +175,6 @@ codeunit 7774 "Copilot Capability Impl"
         GlobalLanguage(SavedGlobalLanguageId);
     end;
 
-    procedure OpenPrivacyNotice(Notification: Notification)
-    begin
-        Page.Run(Page::"Privacy Notices");
-    end;
-
     procedure GetAzureOpenAICategory(): Code[50]
     begin
         exit(AzureOpenAiTxt);

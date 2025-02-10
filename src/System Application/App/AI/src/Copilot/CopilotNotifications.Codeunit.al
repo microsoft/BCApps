@@ -5,6 +5,7 @@
 namespace System.AI;
 
 using System;
+using System.Privacy;
 
 codeunit 7757 "Copilot Notifications"
 {
@@ -63,8 +64,13 @@ codeunit 7757 "Copilot Notifications"
         NotificationGuid := NotificationPrivacyNoticeDisagreedLbl;
         Notification.Id(NotificationGuid);
         Notification.Message(PrivacyNoticeDisagreedNotificationMessageLbl);
-        Notification.AddAction(ReviewPrivacyNoticeLbl, Codeunit::"Copilot Capability Impl", 'OpenPrivacyNotice');
+        Notification.AddAction(ReviewPrivacyNoticeLbl, Codeunit::"Copilot Notifications", 'OpenPrivacyNotice');
         Notification.Send();
+    end;
+
+    procedure OpenPrivacyNotice(Notification: Notification)
+    begin
+        Page.Run(Page::"Privacy Notices");
     end;
 
     procedure ShowCapabilitiesNotAvailableOnPremNotification()
