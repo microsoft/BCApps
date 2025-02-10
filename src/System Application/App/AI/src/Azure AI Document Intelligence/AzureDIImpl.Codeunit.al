@@ -62,7 +62,6 @@ codeunit 7779 "Azure DI Impl."
         end;
 
         FeatureTelemetry.LogUsage('0000OLM', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeInvoiceCompletedLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
-
     end;
 
     /// <summary>

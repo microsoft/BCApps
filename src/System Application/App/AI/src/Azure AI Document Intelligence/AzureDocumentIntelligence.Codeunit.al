@@ -64,7 +64,6 @@ codeunit 7780 "Azure Document Intelligence"
     /// Sets the copilot capability that the API is running for.
     /// </summary>
     /// <param name="CopilotCapability">The copilot capability to set.</param>
-    [NonDebuggable]
     procedure SetCopilotCapability(CopilotCapability: Enum "Copilot Capability")
     var
         CallerModuleInfo: ModuleInfo;
