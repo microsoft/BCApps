@@ -248,6 +248,7 @@ page 7775 "Copilot AI Capabilities"
 
     trigger OnOpenPage()
     var
+        CopilotNotifications: Codeunit "Copilot Notifications";
         EnvironmentInformation: Codeunit "Environment Information";
         WithinGeo: Boolean;
         WithinEUDB: Boolean;
@@ -272,10 +273,10 @@ page 7775 "Copilot AI Capabilities"
         CurrPage.EarlyPreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
 
         if not EnvironmentInformation.IsSaaSInfrastructure() then
-            CopilotCapabilityImpl.ShowCapabilitiesNotAvailableOnPremNotification();
+            CopilotNotifications.ShowCapabilitiesNotAvailableOnPremNotification();
 
         if (WithinGeo and not WithinEUDB) and (not AllowDataMovement) then
-            CopilotCapabilityImpl.ShowPrivacyNoticeDisagreedNotification();
+            CopilotNotifications.ShowPrivacyNoticeDisagreedNotification();
 
         CopilotCapabilityImpl.UpdateGuidedExperience(AllowDataMovement);
 
@@ -286,8 +287,8 @@ page 7775 "Copilot AI Capabilities"
         WithinAOAIOutOfRegionArea := (not WithinGeo) and (not WithinEUDB);
 
         if EnvironmentInformation.IsSaaSInfrastructure() then begin
-            CopilotCapabilityImpl.ShowBillingInTheFutureNotification();
-            CopilotCapabilityImpl.CheckAIQuotaAndShowNotification();
+            CopilotNotifications.ShowBillingInTheFutureNotification();
+            CopilotNotifications.CheckAIQuotaAndShowNotification();
         end;
     end;
 
