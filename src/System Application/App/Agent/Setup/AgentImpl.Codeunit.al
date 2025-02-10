@@ -407,11 +407,6 @@ codeunit 4301 "Agent Impl."
         AgentAccessControl.SetFilter("Can Configure Agent", '%1', true);
     end;
 
-    local procedure GetDefaultEncoding(): TextEncoding
-    begin
-        exit(TextEncoding::UTF8);
-    end;
-
     var
         OneOwnerMustBeDefinedForAgentErr: Label 'One owner must be defined for the agent.';
         AgentDoesNotExistErr: Label 'Agent does not exist.';
