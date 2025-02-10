@@ -5,7 +5,7 @@
 namespace System.AI.DocumentIntelligence;
 
 /// <summary>
-/// The supported model types for Azure OpenAI.
+/// The supported model types for Azure Document Intelligence.
 /// </summary>
 enum 7779 "ADI Model Type"
 {

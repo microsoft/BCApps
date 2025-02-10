@@ -7,7 +7,7 @@ namespace System.AI.DocumentIntelligence;
 using System.AI;
 
 /// <summary>
-/// Azure Document Intelligence implementation.
+/// Provides functionality to invoke Azure Document Intelligence services.
 /// </summary>
 codeunit 7780 "Azure Document Intelligence"
 {
