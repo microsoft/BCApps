@@ -90,6 +90,7 @@ codeunit 9871 "Security Group Impl."
 
         FeatureTelemetry.LogUptake('0000JGO', SecurityGroupsTok, Enum::"Feature Uptake Status"::"Set up");
         Session.LogSecurityAudit(SecurityGroupsTok, SecurityOperationResult::Success, StrSubstNo(SecurityGroupAddedLbl, GroupId, SecurityGroupUser."User Security ID"), AuditCategory::UserManagement);
+        Session.LogAuditMessage(StrSubstNo(SecurityGroupAddedLbl, GroupId, SecurityGroupUser."User Security ID"), SecurityOperationResult::Success, AuditCategory::UserManagement, 2, 0);
     end;
 
     procedure Delete(GroupCode: Code[20])

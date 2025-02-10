@@ -28,9 +28,6 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotCategoryLbl: Label 'Copilot', Locked = true;
         AlreadyRegisteredErr: Label 'Capability has already been registered.';
         NotRegisteredErr: Label 'Copilot capability has not been registered by the module.';
-        ReviewPrivacyNoticeLbl: Label 'Review the privacy notice';
-        PrivacyNoticeDisagreedNotificationMessageLbl: Label 'To enable Copilot, please review and accept the privacy notice.';
-        CapabilitiesNotAvailableOnPremNotificationMessageLbl: Label 'Copilot capabilities published by Microsoft are not available on-premises. You can extend Copilot with custom capabilities and use them on-premises for development purposes only.';
         CapabilityNotRegisteredErr: Label 'Copilot capability ''%1'' has not been registered by the module.', Comment = '%1 is the name of the Copilot Capability';
         CapabilityNotEnabledErr: Label 'Copilot capability ''%1'' has not been enabled. Please contact your system administrator.', Comment = '%1 is the name of the Copilot Capability';
         TelemetrySetCapabilityLbl: Label 'Set Capability', Locked = true;
@@ -47,9 +44,6 @@ codeunit 7774 "Copilot Capability Impl"
         TelemetryUnregisteredCopilotCapabilityLbl: Label 'Copilot capability unregistered.', Locked = true;
         TelemetryActivatedCopilotCapabilityLbl: Label 'Copilot capability activated.', Locked = true;
         TelemetryDeactivatedCopilotCapabilityLbl: Label 'Copilot capability deactivated.', Locked = true;
-        NotificationPrivacyNoticeDisagreedLbl: Label 'bd91b436-29ba-4823-824c-fc926c9842c2', Locked = true;
-        NotificationCapabilitiesNotAvailableOnPremLbl: Label 'ada1592d-9728-485c-897e-8d18e8dd7dee', Locked = true;
-
 
     procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     begin
@@ -362,34 +356,6 @@ codeunit 7774 "Copilot Capability Impl"
         Telemetry.LogMessage('0000LDZ', TelemetryDeactivatedCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
 
         GlobalLanguage(SavedGlobalLanguageId);
-    end;
-
-    procedure ShowPrivacyNoticeDisagreedNotification()
-    var
-        Notification: Notification;
-        NotificationGuid: Guid;
-    begin
-        NotificationGuid := NotificationPrivacyNoticeDisagreedLbl;
-        Notification.Id(NotificationGuid);
-        Notification.Message(PrivacyNoticeDisagreedNotificationMessageLbl);
-        Notification.AddAction(ReviewPrivacyNoticeLbl, Codeunit::"Copilot Capability Impl", 'OpenPrivacyNotice');
-        Notification.Send();
-    end;
-
-    procedure ShowCapabilitiesNotAvailableOnPremNotification()
-    var
-        Notification: Notification;
-        NotificationGuid: Guid;
-    begin
-        NotificationGuid := NotificationCapabilitiesNotAvailableOnPremLbl;
-        Notification.Id(NotificationGuid);
-        Notification.Message(CapabilitiesNotAvailableOnPremNotificationMessageLbl);
-        Notification.Send();
-    end;
-
-    procedure OpenPrivacyNotice(Notification: Notification)
-    begin
-        Page.Run(Page::"Privacy Notices");
     end;
 
     procedure GetCopilotCategory(): Code[50]

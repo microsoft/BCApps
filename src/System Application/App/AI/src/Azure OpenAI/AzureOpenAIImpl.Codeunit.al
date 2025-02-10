@@ -436,6 +436,7 @@ codeunit 7772 "Azure OpenAI Impl"
     [NonDebuggable]
     local procedure SendRequest(ModelType: Enum "AOAI Model Type"; AOAIAuthorization: Codeunit "AOAI Authorization"; Payload: Text; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
+        CopilotNotifications: Codeunit "Copilot Notifications";
         ALCopilotAuthorization: DotNet ALCopilotAuthorization;
         ALCopilotCapability: DotNet ALCopilotCapability;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
@@ -470,6 +471,9 @@ codeunit 7772 "Azure OpenAI Impl"
         if Error = '' then
             Error := GetLastErrorText();
         AOAIOperationResponse.SetOperationResponse(ALCopilotOperationResponse.IsSuccess(), ALCopilotOperationResponse.StatusCode(), ALCopilotOperationResponse.Result(), Error);
+
+        if AOAIOperationResponse.GetStatusCode() = 402 then
+            CopilotNotifications.CheckAIQuotaAndShowNotification();
 
         if not ALCopilotOperationResponse.IsSuccess() then
             Error(GenerateRequestFailedErr);
