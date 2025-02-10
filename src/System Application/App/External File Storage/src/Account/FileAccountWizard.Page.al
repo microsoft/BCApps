@@ -17,7 +17,7 @@ page 9451 "File Account Wizard"
     PageType = NavigatePage;
     ApplicationArea = All;
     UsageCategory = Administration;
-    Caption = 'Set Up File Accounts';
+    Caption = 'Set Up External File Accounts';
     SourceTable = "Ext. File Storage Connector";
     SourceTableTemporary = true;
     InsertAllowed = false;
@@ -309,13 +309,15 @@ page 9451 "File Account Wizard"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         DurationAsInt: Integer;
     begin
         DurationAsInt := CurrentDateTime() - StartTime;
-        if Step = Step::Done then
-            Session.LogMessage('0000CTK', StrSubstNo(AccountCreationSuccessfullyCompletedDurationLbl, DurationAsInt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl)
-        else
-            Session.LogMessage('0000CTL', StrSubstNo(AccountCreationFailureDurationLbl, DurationAsInt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl);
+        if Step = Step::Done then begin
+            Session.LogMessage('0000OPM', StrSubstNo(AccountCreationSuccessfullyCompletedDurationLbl, DurationAsInt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl);
+            FeatureTelemetry.LogUptake('0000OPI', 'External File Storage', Enum::"Feature Uptake Status"::"Set up");
+        end else
+            Session.LogMessage('0000OPN', StrSubstNo(AccountCreationFailureDurationLbl, DurationAsInt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl);
     end;
 
     trigger OnInit()
@@ -391,11 +393,11 @@ page 9451 "File Account Wizard"
         CustomDimensions.Add('Category', FileCategoryLbl);
 
         if AccountWasRegistered then begin
-            FeatureTelemetry.LogUptake('0000CTF', 'File Access', Enum::"Feature Uptake Status"::"Set up");
-            Telemetry.LogMessage('0000CTH', StrSubstNo(TelemetryAccountRegisteredLbl, Rec.Connector), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
+            FeatureTelemetry.LogUptake('0000OPJ', 'File Access', Enum::"Feature Uptake Status"::"Set up");
+            Telemetry.LogMessage('0000OPK', StrSubstNo(TelemetryAccountRegisteredLbl, Rec.Connector), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
             NextStep(false);
         end else begin
-            Telemetry.LogMessage('0000CTI', StrSubstNo(TelemetryAccountFailedtoRegisterLbl, Rec.Connector, GetLastErrorCallStack()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
+            Telemetry.LogMessage('0000OPL', StrSubstNo(TelemetryAccountFailedtoRegisterLbl, Rec.Connector, GetLastErrorCallStack()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
             NextStep(true);
         end;
 
