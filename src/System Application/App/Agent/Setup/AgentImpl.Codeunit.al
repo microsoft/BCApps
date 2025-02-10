@@ -55,29 +55,21 @@ codeunit 4301 "Agent Impl."
     internal procedure SetInstructions(AgentUserSecurityID: Guid; Instructions: SecretText)
     var
         Agent: Record Agent;
-        InstructionsOutStream: OutStream;
+        AgentALFunctions: DotNet AgentALFunctions;
     begin
         Agent.Get(AgentUserSecurityID);
-        Clear(Agent.Instructions);
-        Agent.Instructions.CreateOutStream(InstructionsOutStream, GetDefaultEncoding());
-        InstructionsOutStream.Write(Instructions.Unwrap());
-        Agent.Modify(true);
+        AgentALFunctions.SetInstructions(Agent."User Security ID", Instructions.Unwrap());
     end;
 
     internal procedure GetInstructions(var Agent: Record Agent): Text
     var
-        InstructionsInStream: InStream;
+        AgentALFunctions: DotNet AgentALFunctions;
         InstructionsText: Text;
     begin
         if IsNullGuid(Agent."User Security ID") then
             exit;
 
-        Agent.CalcFields(Instructions);
-        if not Agent.Instructions.HasValue() then
-            exit('');
-
-        Agent.Instructions.CreateInStream(InstructionsInStream, GetDefaultEncoding());
-        InstructionsInStream.Read(InstructionsText);
+        InstructionsText := AgentALFunctions.GetInstructions(Agent."User Security ID");
         exit(InstructionsText);
     end;
 
@@ -312,7 +304,6 @@ codeunit 4301 "Agent Impl."
 
     local procedure GetAgent(var Agent: Record Agent; UserSecurityID: Guid)
     begin
-        Agent.SetAutoCalcFields(Instructions);
         if not Agent.Get(UserSecurityID) then
             Error(AgentDoesNotExistErr);
     end;
@@ -415,11 +406,6 @@ codeunit 4301 "Agent Impl."
     local procedure SetOwnerFilters(var AgentAccessControl: Record "Agent Access Control")
     begin
         AgentAccessControl.SetFilter("Can Configure Agent", '%1', true);
-    end;
-
-    local procedure GetDefaultEncoding(): TextEncoding
-    begin
-        exit(TextEncoding::UTF8);
     end;
 
     var

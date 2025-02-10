@@ -57,7 +57,7 @@ page 4306 "Agent Tasks"
                 {
                     Caption = 'Last Step Completed On';
                 }
-                field(TaskStepType; Rec."Current Entry Type")
+                field(TaskStepType; Rec."Current Step Type")
                 {
                     Caption = 'Step Type';
                     ToolTip = 'Specifies the type of the last step.';
@@ -77,7 +77,7 @@ page 4306 "Agent Tasks"
             part(Details; "Agent Task Details")
             {
                 Provider = Timeline;
-                SubPageLink = "Task ID" = field("Task ID"), "Timeline Entry ID" = field(ID);
+                SubPageLink = "Task ID" = field("Task ID"), "Timeline Step ID" = field(ID);
                 Editable = true;
             }
         }
