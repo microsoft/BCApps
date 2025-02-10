@@ -27,7 +27,7 @@ codeunit 7779 "Azure DI Impl."
         TelemetryAnalyzeReceiptCompletedLbl: Label 'Analyze receipt completed.', Locked = true;
         GenerateRequestFailedErr: Label 'The request did not return a success status code.';
         AzureAiDocumentIntelligenceTxt: Label 'Azure AI Document Intelligence', Locked = true;
-
+        CapabilityNotEnabledErr: Label 'Copilot capability ''%1'' has not been enabled. Please contact your system administrator.', Comment = '%1 is the name of the Copilot Capability';
 
     procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo; AzureAIServiceName: Text)
     begin
@@ -50,7 +50,9 @@ codeunit 7779 "Azure DI Impl."
         CustomDimensions: Dictionary of [Text, Text];
     begin
         CopilotCapabilityImpl.CheckCapabilitySet();
-        CopilotCapabilityImpl.IsCapabilityActive(CallerModuleInfo);
+        if not CopilotCapabilityImpl.IsCapabilityActive(CallerModuleInfo) then
+            Error(CapabilityNotEnabledErr, CopilotCapabilityImpl.GetCapabilityName());
+
         CopilotCapabilityImpl.CheckCapabilityServiceType(Enum::"Azure AI Service Type"::"Azure Document Intelligence");
         CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
 
@@ -74,7 +76,9 @@ codeunit 7779 "Azure DI Impl."
         CustomDimensions: Dictionary of [Text, Text];
     begin
         CopilotCapabilityImpl.CheckCapabilitySet();
-        CopilotCapabilityImpl.IsCapabilityActive(CallerModuleInfo);
+        if not CopilotCapabilityImpl.IsCapabilityActive(CallerModuleInfo) then
+            Error(CapabilityNotEnabledErr, CopilotCapabilityImpl.GetCapabilityName());
+
         CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
 
         if not SendRequest(Base64Data, Enum::"ADI Model Type"::Receipt, CallerModuleInfo, Result) then begin
