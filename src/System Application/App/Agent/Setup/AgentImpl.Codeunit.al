@@ -54,23 +54,22 @@ codeunit 4301 "Agent Impl."
     [NonDebuggable]
     internal procedure SetInstructions(AgentUserSecurityID: Guid; Instructions: SecretText)
     var
-        Agent: Record Agent;
         AgentALFunctions: DotNet AgentALFunctions;
     begin
-        Agent.Get(AgentUserSecurityID);
-        AgentALFunctions.SetInstructions(Agent."User Security ID", Instructions.Unwrap());
+        AgentALFunctions.SetInstructions(AgentUserSecurityID, Instructions.Unwrap());
     end;
 
-    internal procedure GetInstructions(var Agent: Record Agent): Text
+    [NonDebuggable]
+    internal procedure GetInstructions(AgentUserSecurityID: Guid): SecretText
     var
         AgentALFunctions: DotNet AgentALFunctions;
-        InstructionsText: Text;
+        InstructionsAsSecretText: SecretText;
     begin
-        if IsNullGuid(Agent."User Security ID") then
+        if IsNullGuid(AgentUserSecurityID) then
             exit;
 
-        InstructionsText := AgentALFunctions.GetInstructions(Agent."User Security ID");
-        exit(InstructionsText);
+        InstructionsAsSecretText := AgentALFunctions.GetInstructions(AgentUserSecurityID);
+        exit(InstructionsAsSecretText);
     end;
 
     internal procedure InsertCurrentOwnerIfNoOwnersDefined(var Agent: Record Agent; var AgentAccessControl: Record "Agent Access Control")

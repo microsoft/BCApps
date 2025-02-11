@@ -9,6 +9,8 @@ dotnet
 {
     assembly("Microsoft.Dynamics.Nav.Ncl")
     {
+        Culture = 'neutral';
+        PublicKeyToken = '31bf3856ad364e35';
         type("Microsoft.Dynamics.Nav.Runtime.Agents.AgentALFunctions"; "AgentALFunctions")
         {
         }
@@ -16,6 +18,8 @@ dotnet
 
     assembly("Microsoft.Dynamics.Nav.Types")
     {
+        Culture = 'neutral';
+        PublicKeyToken = '31bf3856ad364e35';
         type("Microsoft.Dynamics.Nav.Types.AgentTaskUserInterventionDetails"; "AgentTaskUserIntervention")
         {
         }
