@@ -7,7 +7,7 @@ namespace System.AI;
 /// <summary>
 /// Interface for providing naming information for a given AI service.
 /// </summary>
-interface IAIServiceName
+interface "AI Service Name"
 {
 
     /// <summary>

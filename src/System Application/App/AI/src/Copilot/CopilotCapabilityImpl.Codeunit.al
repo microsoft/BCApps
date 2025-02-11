@@ -85,7 +85,7 @@ codeunit 7774 "Copilot Capability Impl"
     var
         CopilotTelemetry: Codeunit "Copilot Telemetry";
         Language: Codeunit Language;
-        IAIServicename: Interface IAIServiceName;
+        IAIServicename: Interface "AI Service Name";
         SavedGlobalLanguageId: Integer;
         CustomDimensions: Dictionary of [Text, Text];
         ErrorMessage: Text;

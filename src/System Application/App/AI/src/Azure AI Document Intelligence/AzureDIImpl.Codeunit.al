@@ -11,7 +11,7 @@ using System.AI;
 /// <summary>
 /// Azure Document Intelligence implementation.
 /// </summary>
-codeunit 7779 "Azure DI Impl." implements IAIServiceName
+codeunit 7779 "Azure DI Impl." implements "AI Service Name"
 {
     Access = Internal;
     InherentEntitlements = X;

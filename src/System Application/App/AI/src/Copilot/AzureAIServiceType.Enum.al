@@ -8,7 +8,7 @@ using System.AI.DocumentIntelligence;
 /// <summary>
 /// The supported service types for Azure AI.
 /// </summary>
-enum 7778 "Azure AI Service Type" implements IAIServiceName
+enum 7778 "Azure AI Service Type" implements "AI Service Name"
 {
     Access = Public;
     Extensible = false;
@@ -19,7 +19,7 @@ enum 7778 "Azure AI Service Type" implements IAIServiceName
     value(0; "Azure OpenAI")
     {
         Caption = 'Azure OpenAI';
-        Implementation = IAIServiceName = "Azure OpenAI Impl";
+        Implementation = "AI Service Name" = "Azure OpenAI Impl";
     }
 
     /// <summary>
@@ -28,6 +28,6 @@ enum 7778 "Azure AI Service Type" implements IAIServiceName
     value(1; "Azure Document Intelligence")
     {
         Caption = 'Azure Document Intelligence';
-        Implementation = IAIServiceName = "Azure DI Impl.";
+        Implementation = "AI Service Name" = "Azure DI Impl.";
     }
 }

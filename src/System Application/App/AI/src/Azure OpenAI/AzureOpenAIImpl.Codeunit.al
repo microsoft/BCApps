@@ -11,7 +11,7 @@ using System.Environment;
 using System.Privacy;
 using System.Telemetry;
 
-codeunit 7772 "Azure OpenAI Impl" implements IAIServiceName
+codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
 {
     Access = Internal;
     InherentEntitlements = X;
