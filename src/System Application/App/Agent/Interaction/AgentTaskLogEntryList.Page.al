@@ -5,6 +5,7 @@
 
 namespace System.Agents;
 
+#pragma warning disable AS0125
 page 4303 "Agent Task Log Entry List"
 {
     PageType = List;
@@ -87,3 +88,4 @@ page 4303 "Agent Task Log Entry List"
     var
         DetailsTxt: Text;
 }
+#pragma warning restore AS0125
