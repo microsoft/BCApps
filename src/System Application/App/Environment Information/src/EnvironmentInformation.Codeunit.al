@@ -127,4 +127,14 @@ codeunit 457 "Environment Information"
         exit(EnvironmentInformationImpl.GetLinkedPowerPlatformEnvironmentId());
     end;
 
+    /// <summary>
+    /// Gets the value of the specified environment setting. This is only callable from Microsoft published apps.
+    /// </summary>
+    /// <param name="SettingName">The name of the setting.</param>
+    /// <returns>The value of the setting.</returns>
+    procedure GetEnvironmentSetting(SettingName: Text): Text
+    begin
+        exit(EnvironmentInformationImpl.GetEnvironmentSetting(SettingName));
+    end;
+
 }
