@@ -13,4 +13,15 @@ dotnet
         {
         }
     }
+
+    assembly("Microsoft.Dynamics.Nav.Types")
+    {
+        type("Microsoft.Dynamics.Nav.Types.AgentTaskUserInterventionDetails"; "AgentTaskUserIntervention")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Types.AgentTaskUserInterventionRequestDetails"; "AgentTaskUserInterventionRequest")
+        {
+        }
+    }
 }

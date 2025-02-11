@@ -117,13 +117,26 @@ codeunit 4300 "Agent Task Impl."
     var
         AgentTask: Record "Agent Task";
         AgentALFunctions: DotNet AgentALFunctions;
+        UserIntervention: DotNet "AgentTaskUserIntervention";
     begin
         AgentTask.Get(UserInterventionRequestEntry."Task ID");
 
+        UserIntervention := UserIntervention.AgentTaskUserInterventionDetails();
+        if UserInput <> '' then
+            UserIntervention.UserInput := UserInput;
         if SelectedSuggestionId >= 0 then
-            AgentALFunctions.CreateAgentTaskUserIntervention(UserInterventionRequestEntry.ID, SelectedSuggestionId)
-        else
-            AgentALFunctions.CreateAgentTaskUserIntervention(UserInterventionRequestEntry.ID, UserInput);
+            UserIntervention.SelectedSuggestionId := SelectedSuggestionId;
+        AgentALFunctions.CreateAgentTaskUserIntervention(AgentTask."Agent User Security ID", AgentTask.ID, UserInterventionRequestEntry.ID, UserIntervention);
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetUserInterventionRequestDetails(UserInterventionRequestEntry: Record "Agent Task Log Entry"; var UserInterventionRequest: DotNet "AgentTaskUserInterventionRequest")
+    var
+        AgentTask: Record "Agent Task";
+        AgentALFunctions: DotNet AgentALFunctions;
+    begin
+        AgentTask.Get(UserInterventionRequestEntry."Task ID");
+        UserInterventionRequest := AgentALFunctions.GetAgentTaskUserInterventionRequest(AgentTask."Agent User Security ID", AgentTask.ID, UserInterventionRequestEntry.ID);
     end;
 
     procedure StopTask(var AgentTask: Record "Agent Task"; AgentTaskStatus: enum "Agent Task Status"; UserConfirm: Boolean)
