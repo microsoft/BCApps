@@ -2143,6 +2143,10 @@ dotnet
         type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotCapability"; ALCopilotCapability)
         {
         }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotQuotaDetails"; ALCopilotQuotaDetails)
+        {
+        }
     }
     assembly("Microsoft.Dynamics.Nav.DataSearch")
     {
