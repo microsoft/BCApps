@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
+using System.AI.DocumentIntelligence;
 
 /// <summary>
 /// The supported service types for Azure AI.
@@ -27,6 +28,6 @@ enum 7778 "Azure AI Service Type" implements IAIServiceName
     value(1; "Azure Document Intelligence")
     {
         Caption = 'Azure Document Intelligence';
-        Implementation = IAIServiceName = "Azure OpenAI Impl";
+        Implementation = IAIServiceName = "Azure DI Impl.";
     }
 }
