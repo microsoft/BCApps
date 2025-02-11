@@ -129,7 +129,6 @@ codeunit 4300 "Agent Task Impl."
         AgentALFunctions.CreateAgentTaskUserIntervention(AgentTask."Agent User Security ID", AgentTask.ID, UserInterventionRequestEntry.ID, UserIntervention);
     end;
 
-    [Scope('OnPrem')]
     procedure GetUserInterventionRequestDetails(UserInterventionRequestEntry: Record "Agent Task Log Entry"; var UserInterventionRequest: DotNet "AgentTaskUserInterventionRequest")
     var
         AgentTask: Record "Agent Task";
