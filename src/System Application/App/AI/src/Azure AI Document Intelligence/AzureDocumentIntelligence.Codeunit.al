@@ -69,7 +69,7 @@ codeunit 7780 "Azure Document Intelligence"
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        AzureDIImpl.SetCopilotCapability(CopilotCapability, CallerModuleInfo, AzureDIImpl.GetAzureAIDocumentIntelligenceCategory());
+        AzureDIImpl.SetCopilotCapability(CopilotCapability, CallerModuleInfo);
     end;
 
 }

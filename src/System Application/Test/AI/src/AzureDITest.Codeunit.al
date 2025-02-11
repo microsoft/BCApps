@@ -71,7 +71,7 @@ codeunit 132685 "Azure DI Test"
         asserterror AzureDI.AnalyzeInvoice('Test');
 
         // [THEN] AnalyzeInvoice returns an error
-        LibraryAssert.ExpectedError('Copilot is not enabled. Please contact your system administrator.');
+        LibraryAssert.ExpectedError('Copilot capability ''Text Capability'' has not been enabled. Please contact your system administrator.');
     end;
 
     local procedure RegisterCapability(Capability: Enum "Copilot Capability")

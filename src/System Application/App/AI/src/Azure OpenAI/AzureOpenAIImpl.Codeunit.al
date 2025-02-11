@@ -11,7 +11,7 @@ using System.Environment;
 using System.Privacy;
 using System.Telemetry;
 
-codeunit 7772 "Azure OpenAI Impl"
+codeunit 7772 "Azure OpenAI Impl" implements IAIServiceName
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -61,9 +61,9 @@ codeunit 7772 "Azure OpenAI Impl"
         CopilotCapabilityImpl.IsCapabilityEnabled(Capability, Silent, CallerModuleInfo);
     end;
 
-    procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo; AzureAIServiceName: Text)
+    procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo)
     begin
-        CopilotCapabilityImpl.SetCopilotCapability(Capability, CallerModuleInfo, AzureAIServiceName);
+        CopilotCapabilityImpl.SetCopilotCapability(Capability, CallerModuleInfo, Enum::"Azure AI Service Type"::"Azure OpenAI");
     end;
 
     procedure IsAuthorizationConfigured(ModelType: Enum "AOAI Model Type"; CallerModule: ModuleInfo): Boolean
@@ -616,12 +616,22 @@ codeunit 7772 "Azure OpenAI Impl"
         exit(AzureOpenAiTxt);
     end;
 
+    procedure GetServiceName(): Text[250];
+    begin
+        exit(AzureOpenAiTxt);
+    end;
+
+    procedure GetServiceId(): Code[50];
+    begin
+        exit(AzureOpenAiTxt);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", 'OnRegisterPrivacyNotices', '', false, false)]
     local procedure CreatePrivacyNoticeRegistrations(var TempPrivacyNotice: Record "Privacy Notice" temporary)
     begin
         TempPrivacyNotice.Init();
         TempPrivacyNotice.ID := GetAzureOpenAICategory();
-        TempPrivacyNotice."Integration Service Name" := AzureOpenAiTxt;
+        TempPrivacyNotice."Integration Service Name" := GetServiceName();
         if not TempPrivacyNotice.Insert() then;
     end;
 

@@ -81,10 +81,11 @@ codeunit 7774 "Copilot Capability Impl"
         Telemetry.LogMessage('0000LDV', TelemetryRegisteredNewCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
     end;
 
-    procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo; AzureAIServiceName: Text)
+    procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo; AIServiceType: Enum "Azure AI Service Type")
     var
         CopilotTelemetry: Codeunit "Copilot Telemetry";
         Language: Codeunit Language;
+        IAIServicename: Interface IAIServiceName;
         SavedGlobalLanguageId: Integer;
         CustomDimensions: Dictionary of [Text, Text];
         ErrorMessage: Text;
@@ -96,7 +97,8 @@ codeunit 7774 "Copilot Capability Impl"
             CustomDimensions.Add('AppId', Format(CallerModuleInfo.Id()));
             GlobalLanguage(SavedGlobalLanguageId);
 
-            FeatureTelemetry.LogError('0000LFN', AzureAIServiceName, TelemetrySetCapabilityLbl, TelemetryCopilotCapabilityNotRegisteredLbl, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
+            IAIServicename := AIServiceType;
+            FeatureTelemetry.LogError('0000LFN', IAIServicename.GetServiceName(), TelemetrySetCapabilityLbl, TelemetryCopilotCapabilityNotRegisteredLbl, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
             ErrorMessage := StrSubstNo(CapabilityNotRegisteredErr, Capability);
             Error(ErrorMessage);
         end;

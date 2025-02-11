@@ -11,7 +11,7 @@ using System.AI;
 /// <summary>
 /// Azure Document Intelligence implementation.
 /// </summary>
-codeunit 7779 "Azure DI Impl."
+codeunit 7779 "Azure DI Impl." implements IAIServiceName
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -29,9 +29,9 @@ codeunit 7779 "Azure DI Impl."
         AzureAiDocumentIntelligenceTxt: Label 'Azure AI Document Intelligence', Locked = true;
         CapabilityNotEnabledErr: Label 'Copilot capability ''%1'' has not been enabled. Please contact your system administrator.', Comment = '%1 is the name of the Copilot Capability';
 
-    procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo; AzureAIServiceName: Text)
+    procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo)
     begin
-        CopilotCapabilityImpl.SetCopilotCapability(Capability, CallerModuleInfo, AzureAIServiceName);
+        CopilotCapabilityImpl.SetCopilotCapability(Capability, CallerModuleInfo, Enum::"Azure AI Service Type"::"Azure Document Intelligence");
     end;
 
     procedure RegisterCopilotCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
@@ -134,7 +134,12 @@ codeunit 7779 "Azure DI Impl."
         exit(JsonText);
     end;
 
-    procedure GetAzureAIDocumentIntelligenceCategory(): Code[50]
+    procedure GetServiceName(): Text[250]
+    begin
+        exit(AzureAiDocumentIntelligenceTxt);
+    end;
+
+    procedure GetServiceId(): Code[50];
     begin
         exit(AzureAiDocumentIntelligenceTxt);
     end;
