@@ -134,8 +134,11 @@ codeunit 457 "Environment Information"
     /// <returns>The value of the setting.</returns>
     [Scope('OnPrem')]
     procedure GetEnvironmentSetting(SettingName: Text): Text
+    var
+        ModuleInfo: ModuleInfo;
     begin
-        exit(EnvironmentInformationImpl.GetEnvironmentSetting(SettingName));
+        NavApp.GetCallerModuleInfo(ModuleInfo);
+        exit(EnvironmentInformationImpl.GetEnvironmentSetting(SettingName, ModuleInfo));
     end;
 
 }
