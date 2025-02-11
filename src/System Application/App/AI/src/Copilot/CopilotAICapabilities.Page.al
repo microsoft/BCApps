@@ -248,6 +248,7 @@ page 7775 "Copilot AI Capabilities"
 
     trigger OnOpenPage()
     var
+        CopilotNotifications: Codeunit "Copilot Notifications";
         EnvironmentInformation: Codeunit "Environment Information";
         WithinGeo: Boolean;
         WithinEUDB: Boolean;
@@ -256,7 +257,7 @@ page 7775 "Copilot AI Capabilities"
 
         CopilotCapabilityImpl.CheckGeoAndEUDB(WithinGeo, WithinEUDB);
 
-        case PrivacyNotice.GetPrivacyNoticeApprovalState(CopilotCapabilityImpl.GetAzureOpenAICategory(), false) of
+        case PrivacyNotice.GetPrivacyNoticeApprovalState(AzureOpenAIImpl.GetAzureOpenAICategory(), false) of
             Enum::"Privacy Notice Approval State"::Agreed:
                 AllowDataMovement := true;
             Enum::"Privacy Notice Approval State"::Disagreed:
@@ -272,10 +273,10 @@ page 7775 "Copilot AI Capabilities"
         CurrPage.EarlyPreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
 
         if not EnvironmentInformation.IsSaaSInfrastructure() then
-            CopilotCapabilityImpl.ShowCapabilitiesNotAvailableOnPremNotification();
+            CopilotNotifications.ShowCapabilitiesNotAvailableOnPremNotification();
 
         if (WithinGeo and not WithinEUDB) and (not AllowDataMovement) then
-            CopilotCapabilityImpl.ShowPrivacyNoticeDisagreedNotification();
+            CopilotNotifications.ShowPrivacyNoticeDisagreedNotification();
 
         CopilotCapabilityImpl.UpdateGuidedExperience(AllowDataMovement);
 
@@ -284,6 +285,11 @@ page 7775 "Copilot AI Capabilities"
         WithinEUDBArea := WithinEUDB;
         WithinAOAIServicesInRegionArea := WithinGeo and (not WithinEUDB);
         WithinAOAIOutOfRegionArea := (not WithinGeo) and (not WithinEUDB);
+
+        if EnvironmentInformation.IsSaaSInfrastructure() then begin
+            CopilotNotifications.ShowBillingInTheFutureNotification();
+            CopilotNotifications.CheckAIQuotaAndShowNotification();
+        end;
     end;
 
     local procedure HasEarlyPreviewCapabilities(): Boolean
@@ -291,15 +297,16 @@ page 7775 "Copilot AI Capabilities"
         CopilotSettings: Record "Copilot Settings";
     begin
         CopilotSettings.SetRange(Availability, Enum::"Copilot Availability"::"Early Preview");
+        CopilotSettings.SetRange("Service Type", Enum::"Azure AI Service Type"::"Azure OpenAI");
         exit(not CopilotSettings.IsEmpty());
     end;
 
     local procedure UpdateAllowDataMovement()
     begin
         if AllowDataMovement then
-            PrivacyNotice.SetApprovalState(CopilotCapabilityImpl.GetAzureOpenAICategory(), Enum::"Privacy Notice Approval State"::Agreed)
+            PrivacyNotice.SetApprovalState(AzureOpenAIImpl.GetAzureOpenAICategory(), Enum::"Privacy Notice Approval State"::Agreed)
         else
-            PrivacyNotice.SetApprovalState(CopilotCapabilityImpl.GetAzureOpenAICategory(), Enum::"Privacy Notice Approval State"::Disagreed);
+            PrivacyNotice.SetApprovalState(AzureOpenAIImpl.GetAzureOpenAICategory(), Enum::"Privacy Notice Approval State"::Disagreed);
 
         CurrPage.GenerallyAvailableCapabilities.Page.SetDataMovement(AllowDataMovement);
         CurrPage.PreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
@@ -313,6 +320,7 @@ page 7775 "Copilot AI Capabilities"
     end;
 
     var
+        AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         PrivacyNotice: Codeunit "Privacy Notice";
         WithinEUDBArea: Boolean;
