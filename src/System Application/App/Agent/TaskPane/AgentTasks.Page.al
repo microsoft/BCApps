@@ -9,7 +9,7 @@ page 4306 "Agent Tasks"
 {
     PageType = ListPlus;
     ApplicationArea = All;
-    SourceTable = "Agent Task Pane Entry";
+    SourceTable = "Agent Task Timeline";
     Caption = 'Agent Tasks';
     Editable = true;
     InsertAllowed = false;
