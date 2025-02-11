@@ -132,6 +132,7 @@ codeunit 457 "Environment Information"
     /// </summary>
     /// <param name="SettingName">The name of the setting.</param>
     /// <returns>The value of the setting.</returns>
+    [Scope('OnPrem')]
     procedure GetEnvironmentSetting(SettingName: Text): Text
     begin
         exit(EnvironmentInformationImpl.GetEnvironmentSetting(SettingName));
