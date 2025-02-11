@@ -38,6 +38,7 @@ codeunit 7774 "Copilot Capability Impl"
         TelemetryUnableToCheckEnvironmentKVTxt: Label 'Unable to check if environment is allowed to run AOAI.', Locked = true;
         TelemetryEnvironmentNotAllowedtoRunCopilotTxt: Label 'Copilot is not allowed on this environment.', Locked = true;
         EnabledKeyTok: Label 'AOAI-Enabled', Locked = true;
+        BlockExpiryDateKeyTok: Label 'AOAIEnabledExpiryDate', Locked = true;
         TelemetryCopilotCapabilityNotRegisteredLbl: Label 'Copilot capability not registered.', Locked = true;
         TelemetryRegisteredNewCopilotCapabilityLbl: Label 'New copilot capability registered.', Locked = true;
         TelemetryModifiedCopilotCapabilityLbl: Label 'Copilot capability modified', Locked = true;
@@ -268,7 +269,6 @@ codeunit 7774 "Copilot Capability Impl"
     var
         EnvironmentInformation: Codeunit "Environment Information";
         AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
-        AzureKeyVault: Codeunit "Azure Key Vault";
         AzureAdTenant: Codeunit "Azure AD Tenant";
         ModuleInfo: ModuleInfo;
         BlockList, TelemtryTok : Text;
@@ -281,7 +281,8 @@ codeunit 7774 "Copilot Capability Impl"
             exit(true);
 
         TelemtryTok := AzureOpenAIImpl.GetAzureOpenAICategory();
-        if (not AzureKeyVault.GetAzureKeyVaultSecret(EnabledKeyTok, BlockList)) or (BlockList.Trim() = '') then begin
+        BlockList := GetBlockList();
+        if BlockList.Trim() = '' then begin
             FeatureTelemetry.LogError('0000KYC', TelemtryTok, TelemetryIsEnabledLbl, TelemetryUnableToCheckEnvironmentKVTxt);
             exit(false);
         end;
@@ -292,6 +293,29 @@ codeunit 7774 "Copilot Capability Impl"
         end;
 
         exit(true);
+    end;
+
+    local procedure GetBlockList(): Text
+    var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        Result: Text;
+        ExpiryDateTime: DateTime;
+    begin
+        // If cached value is available and has not expired, return it
+        if IsolatedStorage.Get(BlockExpiryDateKeyTok, Result) then begin
+            Evaluate(ExpiryDateTime, Result, 9);
+            if ExpiryDateTime > CurrentDateTime() then
+                if IsolatedStorage.Get(EnabledKeyTok, Result) then
+                    exit(Result);
+        end;
+        // If not cached or unable to get cached value, get from KV
+        if AzureKeyVault.GetAzureKeyVaultSecret(EnabledKeyTok, Result) then begin
+            IsolatedStorage.Set(EnabledKeyTok, Result);
+            ExpiryDateTime := CurrentDateTime() + 300000; // Five minutes expiry
+            IsolatedStorage.Set(BlockExpiryDateKeyTok, Format(ExpiryDateTime, 0, 9));
+            exit(Result);
+        end;
+        exit(''); // Default if no cache and KV is unavailable
     end;
 
     local procedure CheckPrivacyNoticeState(Silent: Boolean; Capability: Enum "Copilot Capability"): Boolean
