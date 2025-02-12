@@ -5,6 +5,7 @@
 namespace System.AI;
 
 using System.Upgrade;
+using System.Environment;
 
 codeunit 7781 "Copilot Telemetry Upgrade"
 {
@@ -21,7 +22,11 @@ codeunit 7781 "Copilot Telemetry Upgrade"
     var
         UpgradeTag: Codeunit "Upgrade Tag";
         CopilotTelemetry: Codeunit "Copilot Telemetry";
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
+        if EnvironmentInformation.IsOnPrem() then
+            exit;
+
         if UpgradeTag.HasUpgradeTag(GetSendCopilotDataMovementUpgradeTelemetryTag()) then
             exit;
 

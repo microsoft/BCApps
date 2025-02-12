@@ -232,7 +232,7 @@ codeunit 7774 "Copilot Capability Impl"
         WithinEUDB := ALCopilotFunctions.IsWithinEUDB();
     end;
 
-    procedure CheckDataMovementAllowed(var AllowDataMovement: Boolean)
+    procedure GetDataMovementAllowed(var AllowDataMovement: Boolean)
     var
         PrivacyNotice: Codeunit "Privacy Notice";
     begin

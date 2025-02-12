@@ -54,7 +54,7 @@ codeunit 7775 "Copilot Telemetry"
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         AllowDataMovement: Boolean;
     begin
-        CopilotCapabilityImpl.CheckDataMovementAllowed(AllowDataMovement);
+        CopilotCapabilityImpl.GetDataMovementAllowed(AllowDataMovement);
 
         SendCopilotDataMovementUpdatedTelemetry(AllowDataMovement);
     end;

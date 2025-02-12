@@ -256,7 +256,7 @@ page 7775 "Copilot AI Capabilities"
         OnRegisterCopilotCapability();
 
         CopilotCapabilityImpl.CheckGeoAndEUDB(WithinGeo, WithinEUDB);
-        CopilotCapabilityImpl.CheckDataMovementAllowed(AllowDataMovement);
+        CopilotCapabilityImpl.GetDataMovementAllowed(AllowDataMovement);
 
         AllowDataMovementEditable := CopilotCapabilityImpl.IsAdmin();
 
