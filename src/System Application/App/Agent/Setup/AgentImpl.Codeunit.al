@@ -54,31 +54,22 @@ codeunit 4301 "Agent Impl."
     [NonDebuggable]
     internal procedure SetInstructions(AgentUserSecurityID: Guid; Instructions: SecretText)
     var
-        Agent: Record Agent;
-        InstructionsOutStream: OutStream;
+        AgentALFunctions: DotNet AgentALFunctions;
     begin
-        Agent.Get(AgentUserSecurityID);
-        Clear(Agent.Instructions);
-        Agent.Instructions.CreateOutStream(InstructionsOutStream, GetDefaultEncoding());
-        InstructionsOutStream.Write(Instructions.Unwrap());
-        Agent.Modify(true);
+        AgentALFunctions.SetInstructions(AgentUserSecurityID, Instructions.Unwrap());
     end;
 
-    internal procedure GetInstructions(var Agent: Record Agent): Text
+    [NonDebuggable]
+    internal procedure GetInstructions(AgentUserSecurityID: Guid): SecretText
     var
-        InstructionsInStream: InStream;
-        InstructionsText: Text;
+        AgentALFunctions: DotNet AgentALFunctions;
+        InstructionsAsSecretText: SecretText;
     begin
-        if IsNullGuid(Agent."User Security ID") then
+        if IsNullGuid(AgentUserSecurityID) then
             exit;
 
-        Agent.CalcFields(Instructions);
-        if not Agent.Instructions.HasValue() then
-            exit('');
-
-        Agent.Instructions.CreateInStream(InstructionsInStream, GetDefaultEncoding());
-        InstructionsInStream.Read(InstructionsText);
-        exit(InstructionsText);
+        InstructionsAsSecretText := AgentALFunctions.GetInstructions(AgentUserSecurityID);
+        exit(InstructionsAsSecretText);
     end;
 
     internal procedure InsertCurrentOwnerIfNoOwnersDefined(var Agent: Record Agent; var AgentAccessControl: Record "Agent Access Control")
@@ -312,7 +303,6 @@ codeunit 4301 "Agent Impl."
 
     local procedure GetAgent(var Agent: Record Agent; UserSecurityID: Guid)
     begin
-        Agent.SetAutoCalcFields(Instructions);
         if not Agent.Get(UserSecurityID) then
             Error(AgentDoesNotExistErr);
     end;
@@ -415,11 +405,6 @@ codeunit 4301 "Agent Impl."
     local procedure SetOwnerFilters(var AgentAccessControl: Record "Agent Access Control")
     begin
         AgentAccessControl.SetFilter("Can Configure Agent", '%1', true);
-    end;
-
-    local procedure GetDefaultEncoding(): TextEncoding
-    begin
-        exit(TextEncoding::UTF8);
     end;
 
     var
