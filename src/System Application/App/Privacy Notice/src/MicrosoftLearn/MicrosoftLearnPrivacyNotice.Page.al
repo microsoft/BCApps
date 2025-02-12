@@ -57,7 +57,7 @@ page 1569 "Microsoft Learn Privacy Notice"
                 ApplicationArea = All;
                 Visible = UserCanApproveForOrganization;
                 Caption = 'Allow data movement';
-                ToolTip = 'Specifies if data movement for the Microsoft Learn service has been approved.'
+                ToolTip = 'Specifies if data movement for the Microsoft Learn service has been approved.';
             }
         }
     }
