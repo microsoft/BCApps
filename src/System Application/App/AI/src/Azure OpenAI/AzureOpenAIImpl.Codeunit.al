@@ -53,12 +53,12 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
-        exit(CopilotCapabilityImpl.IsCapabilityEnabled(Capability, CallerModuleInfo));
+        CopilotCapabilityImpl.IsCapabilityEnabled(Capability, CallerModuleInfo);
     end;
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; Silent: Boolean; CallerModuleInfo: ModuleInfo): Boolean
     begin
-        exit(CopilotCapabilityImpl.IsCapabilityEnabled(Capability, Silent, CallerModuleInfo));
+        CopilotCapabilityImpl.IsCapabilityEnabled(Capability, Silent, CallerModuleInfo);
     end;
 
     procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo)
