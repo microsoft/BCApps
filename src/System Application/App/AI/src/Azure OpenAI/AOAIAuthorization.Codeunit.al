@@ -5,8 +5,9 @@
 namespace System.AI;
 
 using System;
-
 using System.Telemetry;
+using System.Utilities;
+
 /// <summary>
 /// Store the authorization information for the AOAI service.
 /// </summary>
@@ -30,6 +31,8 @@ codeunit 7767 "AOAI Authorization"
         [NonDebuggable]
         AOAIAccountName: Text;
         ResourceUtilization: Enum "AOAI Resource Utilization";
+        TelemetryInvalidAOAIAccountNameFormatTxt: Label 'Attempted use of invalid Azure Open AI account name', Locked = true;
+        TelemetryInvalidAOAIUrlTxt: Label 'Attempted call with invalid URL', Locked = true;
         TelemetryAOAIVerificationFailedTxt: Label 'Failed to authenticate account against Azure Open AI', Locked = true;
         TelemetryAOAIVerificationSucceededTxt: Label 'Successfully authenticated account against Azure Open AI', Locked = true;
         TelemetryAccessWithinCachePeriodTxt: Label 'Cached access to Azure Open AI was used', Locked = true;
@@ -160,27 +163,65 @@ codeunit 7767 "AOAI Authorization"
         Url: Text;
         IsSuccessful: Boolean;
         UrlFormatTxt: Label 'https://%1.openai.azure.com/openai/models?api-version=2024-06-01', Locked = true;
+        TrustedDomainTxt: Label 'openai.azure.com', Locked = true;
     begin
+        if not IsValidAOAIAccountName(AOAIAccountNameToVerify) then begin
+            Session.LogMessage('', TelemetryInvalidAOAIAccountNameFormatTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
+            exit(false);
+        end;
+
         Url := StrSubstNo(UrlFormatTxt, AOAIAccountNameToVerify);
+
+        if not IsValidUrl(Url, TrustedDomainTxt) then begin
+            Session.LogMessage('', TelemetryInvalidAOAIUrlTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
+            exit(false);
+        end;
 
         HttpContent.GetHeaders(ContentHeaders);
         if ContentHeaders.Contains('Content-Type') then
             ContentHeaders.Remove('Content-Type');
         ContentHeaders.Add('Content-Type', 'application/json');
         ContentHeaders.Add('api-key', NewApiKey);
-
         HttpRequestMessage.Method := 'GET';
         HttpRequestMessage.SetRequestUri(Url);
         HttpRequestMessage.Content(HttpContent);
 
         IsSuccessful := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
-
         if not IsSuccessful or not HttpResponseMessage.IsSuccessStatusCode() then begin
             Session.LogMessage('0000OLQ', TelemetryAOAIVerificationFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
             exit(false);
         end;
 
         Session.LogMessage('0000OLR', TelemetryAOAIVerificationSucceededTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
+        exit(true);
+    end;
+
+    local procedure IsValidAOAIAccountName(Subdomain: Text): Boolean
+    var
+        RegexPattern: Codeunit Regex;
+    begin
+        // Regular expression to validate the Azure OpenAI Instance name according to these requirements "Only alphanumeric characters and hyphens are allowed. The value must be 2-64 characters long and cannot start or end with a hyphen."
+        // ^[a-zA-Z0-9]     : Starts with an alphanumeric character
+        // [a-zA-Z0-9\-]{0,62} : Allows alphanumeric characters and hyphens, up to 62 characters
+        // [a-zA-Z0-9]$     : Ends with an alphanumeric character
+        // Total length: 2-64 characters (1 + 62 + 1)
+        exit(RegexPattern.IsMatch(Subdomain, '^[a-zA-Z0-9][a-zA-Z0-9\-]{0,62}[a-zA-Z0-9]$'));
+    end;
+
+    local procedure IsValidUrl(Url: Text; TrustedDomain: Text): Boolean
+    var
+        UriBuilder: Codeunit "Uri Builder";
+        HostName: Text;
+    begin
+        if (Url = '') or not Url.StartsWith('https://') then
+            exit(false);
+
+        UriBuilder.Init(Url);
+        HostName := UriBuilder.GetHost();
+
+        if HostName <> TrustedDomain then
+            exit(false);
+
         exit(true);
     end;
 
