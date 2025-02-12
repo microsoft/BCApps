@@ -6,7 +6,7 @@ namespace System.AI;
 
 using System.Upgrade;
 
-codeunit 7779 "Copilot Telemetry Upgrade"
+codeunit 7781 "Copilot Telemetry Upgrade"
 {
     Subtype = Upgrade;
     InherentEntitlements = X;

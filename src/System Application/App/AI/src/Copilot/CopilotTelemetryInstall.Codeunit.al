@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
-codeunit 7780 "Copilot Telemetry Install"
+codeunit 7782 "Copilot Telemetry Install"
 {
     Subtype = Install;
     InherentEntitlements = X;
