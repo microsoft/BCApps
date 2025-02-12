@@ -65,6 +65,7 @@ codeunit 7767 "AOAI Authorization"
         exit(false);
     end;
 
+#if not CLEAN26
     [NonDebuggable]
     procedure SetMicrosoftManagedAuthorization(NewEndpoint: Text; NewDeployment: Text; NewApiKey: SecretText; NewManagedResourceDeployment: Text)
     begin
@@ -76,6 +77,7 @@ codeunit 7767 "AOAI Authorization"
         ApiKey := NewApiKey;
         ManagedResourceDeployment := NewManagedResourceDeployment;
     end;
+#endif
 
     [NonDebuggable]
     procedure SetMicrosoftManagedAuthorization(NewAOAIAccountName: Text; NewApiKey: SecretText; NewManagedResourceDeployment: Text)
@@ -88,7 +90,6 @@ codeunit 7767 "AOAI Authorization"
         ManagedResourceDeployment := NewManagedResourceDeployment;
     end;
 
-#if not CLEAN26
     [NonDebuggable]
     procedure SetSelfManagedAuthorization(NewEndpoint: Text; NewDeployment: Text; NewApiKey: SecretText)
     begin
@@ -99,7 +100,6 @@ codeunit 7767 "AOAI Authorization"
         Deployment := NewDeployment;
         ApiKey := NewApiKey;
     end;
-#endif
 
     [NonDebuggable]
     procedure SetFirstPartyAuthorization(NewDeployment: Text)
