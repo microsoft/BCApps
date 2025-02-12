@@ -219,7 +219,7 @@ codeunit 7767 "AOAI Authorization"
         UriBuilder.Init(Url);
         HostName := UriBuilder.GetHost();
 
-        if HostName <> TrustedDomain then
+        if HostName.EndsWith(TrustedDomain) then
             exit(false);
 
         exit(true);
