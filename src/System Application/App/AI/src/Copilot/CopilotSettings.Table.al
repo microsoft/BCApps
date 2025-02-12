@@ -44,10 +44,6 @@ table 7775 "Copilot Settings"
         {
             DataClassification = SystemMetadata;
         }
-        field(7; "Service Type"; Enum "Azure AI Service Type")
-        {
-            DataClassification = SystemMetadata;
-        }
     }
 
     keys
