@@ -28,6 +28,11 @@ page 7757 "AI Monetization"
                 {
                     Caption = 'Non-Microsoft Capability';
 
+                    field(NonMicrosoftTog; NonMicrosoft)
+                    {
+                        ToolTip = 'Specifies if the capability is from a non-Microsoft publisher';
+                        Caption = 'Non-Microsoft';
+                    }
                     field(PublisherName; PublisherName)
                     {
                         ToolTip = 'Specifies the name of the publisher';
@@ -64,8 +69,8 @@ page 7757 "AI Monetization"
             action(LogMicrosoftCap)
             {
                 ApplicationArea = All;
-                Caption = 'Log Microsoft Capability Usage';
-                ToolTip = 'Log Microsoft Capability Usage';
+                Caption = 'Log Usage';
+                ToolTip = 'Log Usage';
                 Image = Action;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -73,22 +78,10 @@ page 7757 "AI Monetization"
 
                 trigger OnAction()
                 begin
-                    LogMicrosoftUsage();
-                end;
-            }
-            action(LogNonMicrosoftCap)
-            {
-                ApplicationArea = All;
-                Caption = 'Log Non-Microsoft Capability Usage';
-                ToolTip = 'Log Non-Microsoft Capability Usage';
-                Image = Action;
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedOnly = true;
-
-                trigger OnAction()
-                begin
-                    LogNonMicrosoftUsage();
+                    if NonMicrosoft then
+                        LogNonMicrosoftUsage()
+                    else
+                        LogMicrosoftUsage();
                 end;
             }
             action(UpdatePageVars)
@@ -116,6 +109,7 @@ page 7757 "AI Monetization"
         CanConsume: Boolean;
         HasBillingSetup: Boolean;
         QuotaUsed: Decimal;
+        NonMicrosoft: Boolean;
 
     local procedure LogMicrosoftUsage()
     var
