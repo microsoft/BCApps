@@ -270,7 +270,6 @@ codeunit 7771 "Azure OpenAI"
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         AzureOpenAIImpl.SetCopilotCapability(CopilotCapability, CallerModuleInfo);
     end;
-
 #if not CLEAN24
     /// <summary>
     /// Gets the approximate token count for the input.
