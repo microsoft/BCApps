@@ -166,14 +166,14 @@ codeunit 7767 "AOAI Authorization"
         TrustedDomainTxt: Label 'openai.azure.com', Locked = true;
     begin
         if not IsValidAOAIAccountName(AOAIAccountNameToVerify) then begin
-            Session.LogMessage('', TelemetryInvalidAOAIAccountNameFormatTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
+            Session.LogMessage('0000OQL', TelemetryInvalidAOAIAccountNameFormatTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
             exit(false);
         end;
 
         Url := StrSubstNo(UrlFormatTxt, AOAIAccountNameToVerify);
 
         if not IsValidUrl(Url, TrustedDomainTxt) then begin
-            Session.LogMessage('', TelemetryInvalidAOAIUrlTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
+            Session.LogMessage('0000OQM', TelemetryInvalidAOAIUrlTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
             exit(false);
         end;
 
