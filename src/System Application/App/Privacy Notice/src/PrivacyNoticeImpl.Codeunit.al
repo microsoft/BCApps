@@ -347,7 +347,7 @@ codeunit 1565 "Privacy Notice Impl."
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
     begin
         if CheckIntegrationIDEquality(SystemPrivacyNoticeReg.GetMicrosoftLearnID(), IntegrationID) then
-            exit(true);
+            exit(false);
 
         exit(false);
     end;
