@@ -24,7 +24,7 @@ codeunit 1569 "Microsoft Learn Privacy Notice"
         if Handled then
             exit;
 
-        if PrivacyNotice.ID <> SystemPrivacyNoticeReg.GetMicrosoftLearnID() then
+        if UpperCase(PrivacyNotice.ID) <> UpperCase(SystemPrivacyNoticeReg.GetMicrosoftLearnID()) then
             exit;
 
         Session.LogMessage('0000OQN', ShowingPrivacyNoticeTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
