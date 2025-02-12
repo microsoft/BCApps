@@ -3,13 +3,15 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Test.Security.Encryption;
+namespace System.Agents;
 
 dotnet
 {
-    assembly("netstandard")
+    assembly("Microsoft.Dynamics.Nav.Ncl")
     {
-        type("System.TimeZoneInfo"; TimeZoneInfoTest)
+        Culture = 'neutral';
+        PublicKeyToken = '31bf3856ad364e35';
+        type("Microsoft.Dynamics.Nav.Runtime.Agents.AgentALFunctions"; "AgentALFunctions")
         {
         }
     }

@@ -28,6 +28,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         CannotRunMultipleSuitesInParallelErr: Label 'There is already a test run in progress. You need to wait for it to finish or cancel it before starting a new test run.';
         FeatureNameLbl: Label 'AI Test Toolkit', Locked = true;
         LineNoFilterLbl: Label 'Codeunit %1 "%2" (Input: %3)', Locked = true;
+        ConfirmCancelQst: Label 'This action will mark the run as Cancelled. Are you sure you want to continue?';
 
     procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
     var
@@ -208,16 +209,15 @@ codeunit 149034 "AIT Test Suite Mgt."
         Commit();
     end;
 
-    internal procedure ResetStatus(var AITTestSuite: Record "AIT Test Suite")
+    internal procedure CancelRun(var AITTestSuite: Record "AIT Test Suite")
     var
         AITTestMethodLine: Record "AIT Test Method Line";
-        ConfirmResetStatusQst: Label 'This action will mark the run as Completed. Are you sure you want to continue?';
     begin
-        if not Confirm(ConfirmResetStatusQst) then
+        if not Confirm(ConfirmCancelQst) then
             exit;
 
         AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite."Code");
-        AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Completed, true);
+        AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Cancelled, true);
         AITTestSuite.Status := AITTestSuite.Status::Completed;
         AITTestSuite."No. of Tests Running" := 0;
         AITTestSuite."Ended at" := CurrentDateTime();

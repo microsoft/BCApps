@@ -13,7 +13,7 @@ using System.Telemetry;
 page 9450 "File Accounts"
 {
     PageType = List;
-    Caption = 'File Accounts';
+    Caption = 'External File Accounts';
     ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "File Account";
@@ -216,7 +216,7 @@ page 9450 "File Accounts"
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('0000CTA', 'External File Storage', Enum::"Feature Uptake Status"::Discovered);
+        FeatureTelemetry.LogUptake('0000OPH', 'External File Storage', Enum::"Feature Uptake Status"::Discovered);
         CanUserManageFileSetup := FileAccountImpl.IsUserFileAdmin();
         Rec.SetCurrentKey("Account Id", Connector);
         UpdateFileAccounts();

@@ -11,7 +11,7 @@ codeunit 9454 "External File Storage"
         ExternalFileStorageImpl: Codeunit "External File Storage Impl.";
 
     /// <summary>
-    /// Initialized the File Storage for the given scenario.
+    /// Initializes the File Storage for the given scenario.
     /// </summary>
     /// <param name="Scenario">File Scenario to use.</param>
     procedure Initialize(Scenario: Enum "File Scenario")
@@ -20,7 +20,7 @@ codeunit 9454 "External File Storage"
     end;
 
     /// <summary>
-    /// Initialized the File Storage for the give file account.
+    /// Initializes the File Storage for the give file account.
     /// </summary>
     /// <param name="TempFileAccount"> File Account to use.</param>
     procedure Initialize(TempFileAccount: Record "File Account" temporary)

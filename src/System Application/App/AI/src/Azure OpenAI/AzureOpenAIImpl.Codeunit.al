@@ -98,9 +98,14 @@ codeunit 7772 "Azure OpenAI Impl"
         EnvironmentInformation: Codeunit "Environment Information";
         AzureKeyVault: Codeunit "Azure Key Vault";
         AzureAdTenant: Codeunit "Azure AD Tenant";
+        ModuleInfo: ModuleInfo;
         BlockList: Text;
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit(true);
+
+        NavApp.GetCurrentModuleInfo(ModuleInfo);
+        if ModuleInfo.Publisher <> 'Microsoft' then
             exit(true);
 
         if (not AzureKeyVault.GetAzureKeyVaultSecret(EnabledKeyTok, BlockList)) or (BlockList.Trim() = '') then begin
@@ -508,6 +513,7 @@ codeunit 7772 "Azure OpenAI Impl"
     [NonDebuggable]
     local procedure SendRequest(ModelType: Enum "AOAI Model Type"; AOAIAuthorization: Codeunit "AOAI Authorization"; Payload: Text; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
+        CopilotNotifications: Codeunit "Copilot Notifications";
         ALCopilotAuthorization: DotNet ALCopilotAuthorization;
         ALCopilotCapability: DotNet ALCopilotCapability;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
@@ -542,6 +548,9 @@ codeunit 7772 "Azure OpenAI Impl"
         if Error = '' then
             Error := GetLastErrorText();
         AOAIOperationResponse.SetOperationResponse(ALCopilotOperationResponse.IsSuccess(), ALCopilotOperationResponse.StatusCode(), ALCopilotOperationResponse.Result(), Error);
+
+        if AOAIOperationResponse.GetStatusCode() = 402 then
+            CopilotNotifications.CheckAIQuotaAndShowNotification();
 
         if not ALCopilotOperationResponse.IsSuccess() then
             Error(GenerateRequestFailedErr);
@@ -662,6 +671,7 @@ codeunit 7772 "Azure OpenAI Impl"
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         EnvironmentInformation: Codeunit "Environment Information";
+        ModuleInfo: ModuleInfo;
         KVSecret: SecretText;
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
@@ -669,17 +679,24 @@ codeunit 7772 "Azure OpenAI Impl"
 
         if not AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Metaprompt-Text', KVSecret) then begin
             Telemetry.LogMessage('0000LX3', TelemetryMetapromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
-            Error(MetapromptLoadingErr);
+            NavApp.GetCurrentModuleInfo(ModuleInfo);
+            if ModuleInfo.Publisher = 'Microsoft' then
+                Error(MetapromptLoadingErr);
         end;
         Metaprompt := KVSecret;
     end;
 
     [NonDebuggable]
     local procedure CheckTextCompletionMetaprompt(Metaprompt: SecretText; CustomDimensions: Dictionary of [Text, Text])
+    var
+        ModuleInfo: ModuleInfo;
     begin
         if Metaprompt.Unwrap().Trim() = '' then begin
             FeatureTelemetry.LogError('0000LO8', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateTextCompletionLbl, EmptyMetapromptErr, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
-            Error(EmptyMetapromptErr);
+
+            NavApp.GetCurrentModuleInfo(ModuleInfo);
+            if ModuleInfo.Publisher = 'Microsoft' then
+                Error(EmptyMetapromptErr);
         end;
     end;
 #if not CLEAN24
@@ -719,9 +736,14 @@ codeunit 7772 "Azure OpenAI Impl"
         AllowlistedTenants: Text;
         EntraTenantIdAsText: Text;
         EntraTenantIdAsGuid: Guid;
+        ModuleInfo: ModuleInfo;
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit(false);
+
+        NavApp.GetCurrentModuleInfo(ModuleInfo);
+        if ModuleInfo.Publisher <> 'Microsoft' then
+            exit(true);
 
         if (not AzureKeyVault.GetAzureKeyVaultSecret(AllowlistedTenantsAkvKeyTok, AllowlistedTenants)) or (AllowlistedTenants.Trim() = '') then
             exit(false);

@@ -212,17 +212,18 @@ function DrawLayout(titletxt, subtitletxt, explanationtxt, intro, introDescripti
 
     canvas.appendChild(container);
 
-    $('#welcomeContainer').attr('role', 'dialog');
-    $('#welcomeContainer').attr('aria-describedby', 'welcomeDivTag');
-    $('#welcomePic').attr('role', 'presentation');
-    $('#tile1Button').attr('aria-labelledby', 'tileDescription1 tileSubDescription1');
-    $('#tile2Button').attr('aria-labelledby', 'tileDescription2 tileSubDescription2');
-    $('#tile3Button').attr('aria-labelledby', 'tileDescription3 tileSubDescription3');
-    $('#legalDescriptionDiv').attr('aria-labelledby', 'legalDiv'); 
-    
-    $("#tile1Button").click(function(){ThumbnailClick(1);});
-    $("#tile2Button").click(function(){ThumbnailClick(2);});
-    $("#tile3Button").click(function(){ThumbnailClick(3);});
+    const welcomeContainer = document.getElementById("welcomeContainer");
+    welcomeContainer?.setAttribute('role', 'dialog');
+    welcomeContainer?.setAttribute('aria-describedby', 'welcomeDivTag');
+    document.getElementById('welcomePic')?.setAttribute('role', 'presentation');
+    document.getElementById('tile1Button')?.setAttribute('aria-labelledby', 'tileDescription1 tileSubDescription1');
+    document.getElementById('tile2Button')?.setAttribute('aria-labelledby', 'tileDescription2 tileSubDescription2');
+    document.getElementById('tile3Button')?.setAttribute('aria-labelledby', 'tileDescription3 tileSubDescription3');
+    document.getElementById('legalDescriptionDiv')?.setAttribute('aria-labelledby', 'legalDiv');
+
+    document.getElementById('tile1Button')?.addEventListener("click", () => ThumbnailClick(1));
+    document.getElementById('tile2Button')?.addEventListener("click", () => ThumbnailClick(2));
+    document.getElementById('tile3Button')?.addEventListener("click", () => ThumbnailClick(3));
 }
 
 function ThumbnailClick(id)
