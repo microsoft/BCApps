@@ -16,6 +16,12 @@
       "name": "Upgrade Tags",
       "publisher": "Microsoft",
       "version": "26.0.0.0"
+    },
+    {
+      "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
+      "publisher": "Microsoft",
+      "name": "DotNet Aliases",
+      "version": "26.0.0.0"
     }
   ],
   "screenshots": [],
@@ -31,7 +37,7 @@
   "idRanges": [
     {
       "from": 1563,
-      "to": 1568
+      "to": 1569
     }
   ],
   "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
