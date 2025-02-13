@@ -8,10 +8,11 @@ using System;
 using System.Azure.Identity;
 using System.Azure.KeyVault;
 using System.Environment;
+using System.Globalization;
 using System.Privacy;
 using System.Telemetry;
 
-codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
+codeunit 7772 "Azure OpenAI Impl"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -19,6 +20,8 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     Permissions = tabledata "Copilot Settings" = r;
 
     var
+        CopilotSettings: Record "Copilot Settings";
+        CopilotCapabilityCU: Codeunit "Copilot Capability";
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         ChatCompletionsAOAIAuthorization: Codeunit "AOAI Authorization";
         TextCompletionsAOAIAuthorization: Codeunit "AOAI Authorization";
@@ -32,10 +35,16 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         EmbeddingsFailedWithCodeErr: Label 'Embeddings failed to be generated.';
         ChatCompletionsFailedWithCodeErr: Label 'Chat completions failed to be generated.';
         AuthenticationNotConfiguredErr: Label 'The authentication was not configured.';
+        CopilotNotEnabledErr: Label 'Copilot is not enabled. Please contact your system administrator.';
+        CopilotCapabilityNotSetErr: Label 'Copilot capability has not been set.';
         CapabilityBackgroundErr: Label 'Microsoft Copilot Capabilities are not allowed in the background.';
+        CopilotDisabledForTenantErr: Label 'Copilot is not enabled for the tenant. Please contact your system administrator.';
+        CapabilityNotRegisteredErr: Label 'Copilot capability ''%1'' has not been registered by the module.', Comment = '%1 is the name of the Copilot Capability';
+        CapabilityNotEnabledErr: Label 'Copilot capability ''%1'' has not been enabled. Please contact your system administrator.', Comment = '%1 is the name of the Copilot Capability';
         MessagesMustContainJsonWordWhenResponseFormatIsJsonErr: Label 'The messages must contain the word ''json'' in some form, to use ''response format'' of type ''json_object''.';
         EmptyMetapromptErr: Label 'The metaprompt has not been set, please provide a metaprompt.';
         MetapromptLoadingErr: Label 'Metaprompt not found.';
+        EnabledKeyTok: Label 'AOAI-Enabled', Locked = true;
         FunctionCallingFunctionNotFoundErr: Label 'Function call not found, %1.', Comment = '%1 is the name of the function';
         AllowlistedTenantsAkvKeyTok: Label 'AOAI-Allow-1P-Auth', Locked = true;
         TelemetryGenerateTextCompletionLbl: Label 'Text completion generated.', Locked = true;
@@ -43,27 +52,95 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         TelemetryGenerateChatCompletionLbl: Label 'Chat Completion generated.', Locked = true;
         TelemetryChatCompletionToolCallLbl: Label 'Tools called by chat completion.', Locked = true;
         TelemetryChatCompletionToolUsedLbl: Label 'Tools added to chat completion.', Locked = true;
+        TelemetrySetCapabilityLbl: Label 'Set Capability', Locked = true;
+        TelemetryCopilotCapabilityNotRegisteredLbl: Label 'Copilot capability not registered.', Locked = true;
+        TelemetryIsEnabledLbl: Label 'Is Enabled', Locked = true;
+        TelemetryUnableToCheckEnvironmentKVTxt: Label 'Unable to check if environment is allowed to run AOAI.', Locked = true;
+        TelemetryEnvironmentNotAllowedtoRunCopilotTxt: Label 'Copilot is not allowed on this environment.', Locked = true;
         TelemetryProhibitedCharactersTxt: Label 'Prohibited characters removed from the prompt.', Locked = true;
         TelemetryTokenCountLbl: Label 'Metaprompt token count: %1, Prompt token count: %2, Total token count: %3', Comment = '%1 is the number of tokens in the metaprompt, %2 is the number of tokens in the prompt, %3 is the total number of tokens', Locked = true;
         TelemetryMetapromptRetrievalErr: Label 'Unable to retrieve metaprompt from Azure Key Vault.', Locked = true;
         TelemetryFunctionCallingFailedErr: Label 'Function calling failed for function: %1', Comment = '%1 is the name of the function', Locked = true;
         TelemetryEmptyTenantIdErr: Label 'Empty or malformed tenant ID.', Locked = true;
         TelemetryTenantAllowlistedMsg: Label 'Current tenant allowlisted for first party auth.', Locked = true;
-        AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
-        CopilotCapabilityImpl.IsCapabilityEnabled(Capability, CallerModuleInfo);
+        exit(IsEnabled(Capability, false, CallerModuleInfo));
     end;
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; Silent: Boolean; CallerModuleInfo: ModuleInfo): Boolean
+    var
+        CopilotNotAvailable: Page "Copilot Not Available";
     begin
-        CopilotCapabilityImpl.IsCapabilityEnabled(Capability, Silent, CallerModuleInfo);
+        if not IsTenantAllowed() then begin
+            if not Silent then
+                Error(CopilotDisabledForTenantErr); // Copilot capabilities cannot be run on this environment.
+
+            exit(false);
+        end;
+
+        if not CopilotCapabilityCU.IsCapabilityActive(Capability, CallerModuleInfo.Id()) then begin
+            if not Silent then begin
+                CopilotNotAvailable.SetCopilotCapability(Capability);
+                CopilotNotAvailable.Run();
+            end;
+
+            exit(false);
+        end;
+
+        exit(CheckPrivacyNoticeState(Silent, Capability));
     end;
 
-    procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo)
+    [NonDebuggable]
+    local procedure IsTenantAllowed(): Boolean
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        AzureAdTenant: Codeunit "Azure AD Tenant";
+        ModuleInfo: ModuleInfo;
+        BlockList: Text;
     begin
-        CopilotCapabilityImpl.SetCopilotCapability(Capability, CallerModuleInfo, Enum::"Azure AI Service Type"::"Azure OpenAI");
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit(true);
+
+        NavApp.GetCurrentModuleInfo(ModuleInfo);
+        if ModuleInfo.Publisher <> 'Microsoft' then
+            exit(true);
+
+        if (not AzureKeyVault.GetAzureKeyVaultSecret(EnabledKeyTok, BlockList)) or (BlockList.Trim() = '') then begin
+            FeatureTelemetry.LogError('0000KYC', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryIsEnabledLbl, TelemetryUnableToCheckEnvironmentKVTxt);
+            exit(false);
+        end;
+
+        if BlockList.Contains(AzureAdTenant.GetAadTenantId()) then begin
+            FeatureTelemetry.LogError('0000LFP', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryIsEnabledLbl, TelemetryEnvironmentNotAllowedtoRunCopilotTxt);
+            exit(false);
+        end;
+
+        exit(true);
+    end;
+
+    local procedure CheckPrivacyNoticeState(Silent: Boolean; Capability: Enum "Copilot Capability"): Boolean
+    var
+        PrivacyNotice: Codeunit "Privacy Notice";
+        CopilotNotAvailable: Page "Copilot Not Available";
+    begin
+        case PrivacyNotice.GetPrivacyNoticeApprovalState(CopilotCapabilityImpl.GetAzureOpenAICategory(), false) of
+            Enum::"Privacy Notice Approval State"::Agreed:
+                exit(true);
+            Enum::"Privacy Notice Approval State"::Disagreed:
+                begin
+                    if not Silent then begin
+                        CopilotNotAvailable.SetCopilotCapability(Capability);
+                        CopilotNotAvailable.Run();
+                    end;
+
+                    exit(false);
+                end;
+            else
+                exit(true);
+        end;
     end;
 
     procedure IsAuthorizationConfigured(ModelType: Enum "AOAI Model Type"; CallerModule: ModuleInfo): Boolean
@@ -162,11 +239,11 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     begin
         GuiCheck(TextCompletionsAOAIAuthorization);
 
-        CopilotCapabilityImpl.CheckCapabilitySet();
-        CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
+        CheckCapabilitySet();
+        CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(TextCompletionsAOAIAuthorization, CallerModuleInfo);
 
-        CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
+        AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
         CheckTextCompletionMetaprompt(Metaprompt, CustomDimensions);
 
         UnwrappedPrompt := Metaprompt.Unwrap() + Prompt.Unwrap();
@@ -179,11 +256,11 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         SendTokenCountTelemetry(AOAIToken.GetGPT4TokenCount(Metaprompt), AOAIToken.GetGPT4TokenCount(Prompt), CustomDimensions);
 
         if not SendRequest(Enum::"AOAI Model Type"::"Text Completions", TextCompletionsAOAIAuthorization, PayloadText, AOAIOperationResponse, CallerModuleInfo) then begin
-            FeatureTelemetry.LogError('0000KVD', GetAzureOpenAICategory(), TelemetryGenerateTextCompletionLbl, CompletionsFailedWithCodeErr, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
+            FeatureTelemetry.LogError('0000KVD', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateTextCompletionLbl, CompletionsFailedWithCodeErr, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
             exit;
         end;
 
-        FeatureTelemetry.LogUsage('0000KVL', GetAzureOpenAICategory(), TelemetryGenerateTextCompletionLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+        FeatureTelemetry.LogUsage('0000KVL', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateTextCompletionLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
         Result := AOAIOperationResponse.GetResult();
     end;
 
@@ -196,21 +273,21 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     begin
         GuiCheck(EmbeddingsAOAIAuthorization);
 
-        CopilotCapabilityImpl.CheckCapabilitySet();
-        CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
+        CheckCapabilitySet();
+        CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(EmbeddingsAOAIAuthorization, CallerModuleInfo);
 
         Payload.Add('input', Input.Unwrap());
         Payload.WriteTo(PayloadText);
 
-        CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
+        AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
         SendTokenCountTelemetry(0, AOAIToken.GetAdaTokenCount(Input), CustomDimensions);
         if not SendRequest(Enum::"AOAI Model Type"::Embeddings, EmbeddingsAOAIAuthorization, PayloadText, AOAIOperationResponse, CallerModuleInfo) then begin
-            FeatureTelemetry.LogError('0000KVE', GetAzureOpenAICategory(), TelemetryGenerateEmbeddingLbl, EmbeddingsFailedWithCodeErr, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
+            FeatureTelemetry.LogError('0000KVE', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateEmbeddingLbl, EmbeddingsFailedWithCodeErr, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
             exit;
         end;
 
-        FeatureTelemetry.LogUsage('0000KVM', GetAzureOpenAICategory(), TelemetryGenerateEmbeddingLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+        FeatureTelemetry.LogUsage('0000KVM', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateEmbeddingLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
         exit(ProcessEmbeddingResponse(AOAIOperationResponse));
     end;
 
@@ -250,10 +327,10 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     begin
         GuiCheck(ChatCompletionsAOAIAuthorization);
 
-        CopilotCapabilityImpl.CheckCapabilitySet();
-        CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
+        CheckCapabilitySet();
+        CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(ChatCompletionsAOAIAuthorization, CallerModuleInfo);
-        CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
+        AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
 
         AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
         Payload.Add('messages', ChatMessages.AssembleHistory(MetapromptTokenCount, PromptTokenCount));
@@ -279,13 +356,13 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
 
         SendTokenCountTelemetry(MetapromptTokenCount, PromptTokenCount, CustomDimensions);
         if not SendRequest(Enum::"AOAI Model Type"::"Chat Completions", ChatCompletionsAOAIAuthorization, PayloadText, AOAIOperationResponse, CallerModuleInfo) then begin
-            FeatureTelemetry.LogError('0000KVF', GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, ChatCompletionsFailedWithCodeErr, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
+            FeatureTelemetry.LogError('0000KVF', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, ChatCompletionsFailedWithCodeErr, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
             exit;
         end;
 
         ProcessChatCompletionResponse(ChatMessages, AOAIOperationResponse, CallerModuleInfo);
 
-        FeatureTelemetry.LogUsage('0000KVN', GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+        FeatureTelemetry.LogUsage('0000KVN', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
 
         if (AOAIOperationResponse.GetFunctionResponses().Count() > 0) and (ChatMessages.GetToolInvokePreference() = Enum::"AOAI Tool Invoke Preference"::Automatic) then
             GenerateChatCompletion(ChatMessages, AOAIChatCompletionParams, AOAIOperationResponse, CallerModuleInfo);
@@ -341,10 +418,10 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
                 AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
             end;
 
-            CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
+            AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
             foreach AOAIFunctionResponse in AOAIOperationResponse.GetFunctionResponses() do
                 if not AOAIFunctionResponse.IsSuccess() then
-                    FeatureTelemetry.LogError('0000MTB', GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIFunctionResponse.GetFunctionName()), AOAIFunctionResponse.GetError(), AOAIFunctionResponse.GetErrorCallstack(), Enum::"AL Telemetry Scope"::All, CustomDimensions);
+                    FeatureTelemetry.LogError('0000MTB', CopilotCapabilityImpl.GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIFunctionResponse.GetFunctionName()), AOAIFunctionResponse.GetError(), AOAIFunctionResponse.GetErrorCallstack(), Enum::"AL Telemetry Scope"::All, CustomDimensions);
 
             if ChatMessages.GetToolInvokePreference() in [Enum::"AOAI Tool Invoke Preference"::"Invoke Tools Only", Enum::"AOAI Tool Invoke Preference"::Automatic] then
                 AOAIOperationResponse.AppendFunctionResponsesToChatMessages(ChatMessages);
@@ -454,7 +531,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
                 ALCopilotAuthorization := ALCopilotAuthorization.Create(AOAIAuthorization.GetEndpoint(), AOAIAuthorization.GetDeployment(), AOAIAuthorization.GetApiKey());
         end;
 
-        ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), CopilotCapabilityImpl.GetCapabilityName());
+        ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), GetCapabilityName());
 
         case ModelType of
             Enum::"AOAI Model Type"::"Text Completions":
@@ -479,6 +556,22 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
             Error(GenerateRequestFailedErr);
     end;
 
+    local procedure GetCapabilityName(): Text
+    var
+        CapabilityIndex: Integer;
+        CapabilityName: Text;
+    begin
+        CheckCapabilitySet();
+
+        CapabilityIndex := CopilotSettings.Capability.Ordinals.IndexOf(CopilotSettings.Capability.AsInteger());
+        CapabilityName := CopilotSettings.Capability.Names.Get(CapabilityIndex);
+
+        if CapabilityName.Trim() = '' then
+            exit(Format(CopilotSettings.Capability, 0, 9));
+
+        exit(CapabilityName);
+    end;
+
     local procedure SendTokenCountTelemetry(Metaprompt: Integer; Prompt: Integer; CustomDimensions: Dictionary of [Text, Text])
     begin
         Telemetry.LogMessage('0000LT4', StrSubstNo(TelemetryTokenCountLbl, Metaprompt, Prompt, Metaprompt + Prompt), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
@@ -495,10 +588,68 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         Error(CapabilityBackgroundErr);
     end;
 
+    local procedure AddTelemetryCustomDimensions(var CustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
+    var
+        Language: Codeunit Language;
+        SavedGlobalLanguageId: Integer;
+    begin
+        SavedGlobalLanguageId := GlobalLanguage();
+        GlobalLanguage(Language.GetDefaultApplicationLanguageId());
+
+        CustomDimensions.Add('Capability', Format(CopilotSettings.Capability));
+        CustomDimensions.Add('AppId', Format(CopilotSettings."App Id"));
+        CustomDimensions.Add('Publisher', CallerModuleInfo.Publisher);
+        CustomDimensions.Add('UserLanguage', Format(GlobalLanguage()));
+
+        GlobalLanguage(SavedGlobalLanguageId);
+    end;
+
+    procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo)
+    var
+        CopilotTelemetry: Codeunit "Copilot Telemetry";
+        Language: Codeunit Language;
+        SavedGlobalLanguageId: Integer;
+        CustomDimensions: Dictionary of [Text, Text];
+        ErrorMessage: Text;
+    begin
+        if not CopilotCapabilityCU.IsCapabilityRegistered(Capability, CallerModuleInfo.Id()) then begin
+            SavedGlobalLanguageId := GlobalLanguage();
+            GlobalLanguage(Language.GetDefaultApplicationLanguageId());
+            CustomDimensions.Add('Capability', Format(Capability));
+            CustomDimensions.Add('AppId', Format(CallerModuleInfo.Id()));
+            GlobalLanguage(SavedGlobalLanguageId);
+
+            FeatureTelemetry.LogError('0000LFN', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetrySetCapabilityLbl, TelemetryCopilotCapabilityNotRegisteredLbl, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
+            ErrorMessage := StrSubstNo(CapabilityNotRegisteredErr, Capability);
+            Error(ErrorMessage);
+        end;
+
+        CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
+        CopilotSettings.SetLoadFields(Status);
+        CopilotSettings.Get(Capability, CallerModuleInfo.Id());
+        if CopilotSettings.Status = Enum::"Copilot Status"::Inactive then begin
+            ErrorMessage := StrSubstNo(CapabilityNotEnabledErr, Capability);
+            Error(ErrorMessage);
+        end;
+        CopilotTelemetry.SetCopilotCapability(Capability, CallerModuleInfo.Id());
+    end;
+
+    local procedure CheckEnabled(CallerModuleInfo: ModuleInfo)
+    begin
+        if not IsEnabled(CopilotSettings.Capability, true, CallerModuleInfo) then
+            Error(CopilotNotEnabledErr);
+    end;
+
     local procedure CheckAuthorizationEnabled(AOAIAuthorization: Codeunit "AOAI Authorization"; CallerModuleInfo: ModuleInfo)
     begin
         if not AOAIAuthorization.IsConfigured(CallerModuleInfo) then
             Error(AuthenticationNotConfiguredErr);
+    end;
+
+    local procedure CheckCapabilitySet()
+    begin
+        if CopilotSettings.Capability.AsInteger() = 0 then
+            Error(CopilotCapabilityNotSetErr);
     end;
 
     [NonDebuggable]
@@ -541,7 +692,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         ModuleInfo: ModuleInfo;
     begin
         if Metaprompt.Unwrap().Trim() = '' then begin
-            FeatureTelemetry.LogError('0000LO8', GetAzureOpenAICategory(), TelemetryGenerateTextCompletionLbl, EmptyMetapromptErr, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
+            FeatureTelemetry.LogError('0000LO8', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateTextCompletionLbl, EmptyMetapromptErr, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
 
             NavApp.GetCurrentModuleInfo(ModuleInfo);
             if ModuleInfo.Publisher = 'Microsoft' then
@@ -600,39 +751,15 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         EntraTenantIdAsText := AzureAdTenant.GetAadTenantId();
 
         if (EntraTenantIdAsText = '') or not Evaluate(EntraTenantIdAsGuid, EntraTenantIdAsText) or IsNullGuid(EntraTenantIdAsGuid) then begin
-            Session.LogMessage('0000MLN', TelemetryEmptyTenantIdErr, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetAzureOpenAICategory());
+            Session.LogMessage('0000MLN', TelemetryEmptyTenantIdErr, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
             exit(false);
         end;
 
         if not AllowlistedTenants.Contains(EntraTenantIdAsText) then
             exit(false);
 
-        Session.LogMessage('0000MLE', TelemetryTenantAllowlistedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetAzureOpenAICategory());
+        Session.LogMessage('0000MLE', TelemetryTenantAllowlistedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
         exit(true);
-    end;
-
-    procedure GetAzureOpenAICategory(): Code[50]
-    begin
-        exit(AzureOpenAiTxt);
-    end;
-
-    procedure GetServiceName(): Text[250];
-    begin
-        exit(AzureOpenAiTxt);
-    end;
-
-    procedure GetServiceId(): Code[50];
-    begin
-        exit(AzureOpenAiTxt);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", 'OnRegisterPrivacyNotices', '', false, false)]
-    local procedure CreatePrivacyNoticeRegistrations(var TempPrivacyNotice: Record "Privacy Notice" temporary)
-    begin
-        TempPrivacyNotice.Init();
-        TempPrivacyNotice.ID := GetAzureOpenAICategory();
-        TempPrivacyNotice."Integration Service Name" := GetServiceName();
-        if not TempPrivacyNotice.Insert() then;
     end;
 
 }
