@@ -256,15 +256,7 @@ page 7775 "Copilot AI Capabilities"
         OnRegisterCopilotCapability();
 
         CopilotCapabilityImpl.CheckGeoAndEUDB(WithinGeo, WithinEUDB);
-
-        case PrivacyNotice.GetPrivacyNoticeApprovalState(AzureOpenAIImpl.GetAzureOpenAICategory(), false) of
-            Enum::"Privacy Notice Approval State"::Agreed:
-                AllowDataMovement := true;
-            Enum::"Privacy Notice Approval State"::Disagreed:
-                AllowDataMovement := false;
-            else
-                AllowDataMovement := true;
-        end;
+        CopilotCapabilityImpl.GetDataMovementAllowed(AllowDataMovement);
 
         AllowDataMovementEditable := CopilotCapabilityImpl.IsAdmin();
 
@@ -302,6 +294,8 @@ page 7775 "Copilot AI Capabilities"
     end;
 
     local procedure UpdateAllowDataMovement()
+    var
+        CopilotTelemetry: Codeunit "Copilot Telemetry";
     begin
         if AllowDataMovement then
             PrivacyNotice.SetApprovalState(AzureOpenAIImpl.GetAzureOpenAICategory(), Enum::"Privacy Notice Approval State"::Agreed)
@@ -311,6 +305,7 @@ page 7775 "Copilot AI Capabilities"
         CurrPage.GenerallyAvailableCapabilities.Page.SetDataMovement(AllowDataMovement);
         CurrPage.PreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
         CopilotCapabilityImpl.UpdateGuidedExperience(AllowDataMovement);
+        CopilotTelemetry.SendCopilotDataMovementUpdatedTelemetry(AllowDataMovement);
     end;
 
     [IntegrationEvent(false, false)]
