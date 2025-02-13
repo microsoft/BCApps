@@ -431,6 +431,6 @@ codeunit 4301 "Agent Impl."
         NoAgentsAvailableNotificationLbl: Label 'Business Central agents are currently not available in your country.';
         NoAgentsAvailableNotificationGuidLbl: Label 'bde1d653-40e6-4081-b2cf-f21b1a8622d1', Locked = true;
         NoAgentsAvailableNotificationLearnMoreLbl: Label 'Learn more';
-        NoAgentsAvailableNotificationLearnMoreUrlLbl: Label 'http://aka.ms', Locked = true;
+        NoAgentsAvailableNotificationLearnMoreUrlLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2303876', Locked = true;
 
 }
