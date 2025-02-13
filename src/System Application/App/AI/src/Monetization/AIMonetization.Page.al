@@ -11,8 +11,9 @@ page 7757 "AI Monetization"
     {
         area(Content)
         {
-            group(GroupName)
+            group(Details)
             {
+                Caption = 'Details';
                 field(Cost; Cost)
                 {
                     ToolTip = 'Specifies the cost of using the capability';
@@ -43,6 +44,8 @@ page 7757 "AI Monetization"
             group(Status)
             {
                 Caption = 'Status';
+                Editable = false;
+
                 field(CanConsume; CanConsume)
                 {
                     ToolTip = 'Specifies if the capability can be consumed';
@@ -105,7 +108,7 @@ page 7757 "AI Monetization"
     var
         CapabilityName: Text;
         PublisherName: Text;
-        Cost: Decimal;
+        Cost: Integer;
         CanConsume: Boolean;
         HasBillingSetup: Boolean;
         QuotaUsed: Decimal;
