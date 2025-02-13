@@ -416,6 +416,7 @@ codeunit 4301 "Agent Impl."
         NoAgentsNotification.Scope(NotificationScope::LocalScope);
         NoAgentsNotification.AddAction(NoAgentsAvailableNotificationLearnMoreLbl, Codeunit::"Agent Impl.", 'OpenNoAgentsLearnMore');
 
+        if NoAgentsNotification.Recall() then;
         NoAgentsNotification.Send();
     end;
 
