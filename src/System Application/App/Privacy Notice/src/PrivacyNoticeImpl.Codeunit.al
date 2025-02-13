@@ -345,9 +345,11 @@ codeunit 1565 "Privacy Notice Impl."
     local procedure ShouldApproveByDefault(IntegrationID: Text): Boolean
     var
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
+        MicrosoftLearnServiceInGeo: Boolean;
     begin
         if CheckIntegrationIDEquality(SystemPrivacyNoticeReg.GetMicrosoftLearnID(), IntegrationID) then
-            exit(true);
+            if (SystemPrivacyNoticeReg.TryGetMicrosoftLearnInGeoSupport(MicrosoftLearnServiceInGeo)) then
+                exit(MicrosoftLearnServiceInGeo);
 
         exit(false);
     end;

@@ -5,6 +5,8 @@
 
 namespace System.Privacy;
 
+using System;
+
 /// <summary>
 /// This codeunit registers platform level privacy notices and provides procedures to consistently reference the privacy notices.
 /// </summary>
@@ -68,5 +70,13 @@ codeunit 1566 "System Privacy Notice Reg."
     procedure GetPowerAutomatePrivacyNoticeName(): Code[250]
     begin
         exit(PowerAutomateLabelTxt);
+    end;
+
+    [TryFunction]
+    internal procedure TryGetMicrosoftLearnInGeoSupport(var HasInGeoSupport: Boolean)
+    var
+        ALMicrosoftLearnFunctions: DotNet ALMicrosoftLearnFunctions;
+    begin
+        HasInGeoSupport := ALMicrosoftLearnFunctions.HasInGeoSupport()
     end;
 }
