@@ -152,6 +152,7 @@ page 4307 "Agent Task Timeline"
     trigger OnOpenPage()
     begin
         SelectedSuggestionId := '';
+        GlobalPrevConfirmedBy := '';
         Rec.SetRange(Importance, Rec.Importance::Primary);
     end;
 
@@ -162,11 +163,11 @@ page 4307 "Agent Task Timeline"
 
     local procedure SetTaskTimelineDetails()
     var
+        AgentTaskTimelineRec: Record "Agent Task Timeline";
+        UserRec: Record User;
         InStream: InStream;
         ConfirmationLogEntryType: Enum "Agent Task Log Entry Type";
         LogEntryId: Integer;
-        AgentTaskTimelineRec: Record "Agent Task Timeline";
-        UserRec: Record User;
     begin
         GlobalPrevConfirmedBy := GlobalConfirmedBy;
         if (GlobalPrevConfirmedBy = '') then begin

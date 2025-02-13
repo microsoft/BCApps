@@ -120,8 +120,8 @@ page 4306 "Agent Tasks"
 
     local procedure SetTaskDetails()
     var
-        InStream: InStream;
         User: Record "User";
+        InStream: InStream;
     begin
         // Clear old values
         Clear(TaskSummary);
