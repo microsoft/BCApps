@@ -73,6 +73,11 @@ page 4307 "Agent Task Timeline"
                     Caption = 'Confirmed At';
                     ToolTip = 'Specifies the date and time when the timeline step was confirmed.';
                 }
+                field(NowAuthorizedBy; GlobalNowAuthorizedBy)
+                {
+                    Caption = 'Now Authorized By';
+                    ToolTip = 'Specifies the task authorization changes from previous steps.';
+                }
                 field(Annotations; GlobalAnnotations)
                 {
                     Caption = 'Annotations';
@@ -160,8 +165,24 @@ page 4307 "Agent Task Timeline"
         InStream: InStream;
         ConfirmationLogEntryType: Enum "Agent Task Log Entry Type";
         LogEntryId: Integer;
+        AgentTaskTimelineRec: Record "Agent Task Timeline";
+        UserRec: Record User;
     begin
+        GlobalPrevConfirmedBy := GlobalConfirmedBy;
+        if (GlobalPrevConfirmedBy = '') then begin
+            AgentTaskTimelineRec.SetRange("Task ID", Rec."Task ID");
+            if AgentTaskTimelineRec.FindFirst() then begin
+                UserRec.SetRange("User Security ID", AgentTaskTimelineRec."Created By");
+                if UserRec.FindFirst() then
+                    if UserRec."Full Name" <> '' then
+                        GlobalPrevConfirmedBy := UserRec."Full Name"
+                    else
+                        GlobalPrevConfirmedBy := UserRec."User Name";
+            end;
+        end;
+
         // Clear old values
+        GlobalNowAuthorizedBy := '';
         GlobalConfirmedBy := '';
         GlobalConfirmedAt := 0DT;
         Clear(GlobalPageSummary);
@@ -208,6 +229,9 @@ page 4307 "Agent Task Timeline"
                 exit;
         if not TryGetConfirmationDetails(LogEntryId, GlobalConfirmedBy, GlobalConfirmedAt, ConfirmationLogEntryType) then
             exit;
+
+        if (GlobalConfirmedBy <> GlobalPrevConfirmedBy) then
+            GlobalNowAuthorizedBy := GlobalConfirmedBy;
 
         case
             ConfirmationLogEntryType of
@@ -262,6 +286,8 @@ page 4307 "Agent Task Timeline"
         GlobalSuggestions: BigText;
         GlobalDescription: Text[2048];
         GlobalConfirmedBy: Text[250];
+        GlobalPrevConfirmedBy: Text[250];
+        GlobalNowAuthorizedBy: Text[250];
         GlobalConfirmedAt: DateTime;
         ConfirmationStatusOption: Option " ",ConfirmationNotRequired,ReviewConfirmationRequired,ReviewConfirmed,StopConfirmationRequired,StopConfirmed,Discarded;
         SelectedSuggestionId: Text[3];

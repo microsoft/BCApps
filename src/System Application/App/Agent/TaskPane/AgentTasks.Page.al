@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System.Security.AccessControl;
+
 page 4306 "Agent Tasks"
 {
     PageType = ListPlus;
@@ -52,6 +54,11 @@ page 4306 "Agent Tasks"
                 {
                     Caption = 'Started On';
                     ToolTip = 'Specifies the date and time when the task was started.';
+                }
+                field(TaskCreatedBy; GlobalCreatedBy)
+                {
+                    Caption = 'Created By';
+                    ToolTip = 'Specifies the user who created the task.';
                 }
                 field(TaskLastStepCompletedOn; Rec."Last Step Timestamp")
                 {
@@ -114,18 +121,28 @@ page 4306 "Agent Tasks"
     local procedure SetTaskDetails()
     var
         InStream: InStream;
+        User: Record "User";
     begin
         // Clear old values
         Clear(TaskSummary);
+        GlobalCreatedBy := '';
 
         Rec.CalcFields("Summary");
         if Rec."Summary".HasValue() then begin
             Rec."Summary".CreateInStream(InStream);
             TaskSummary.Read(InStream);
         end;
+
+        User.SetRange("User Security ID", Rec."Created By");
+        if User.FindFirst() then
+            if User."Full Name" <> '' then
+                GlobalCreatedBy := User."Full Name"
+            else
+                GlobalCreatedBy := User."User Name";
     end;
 
     var
         TaskSummary: BigText;
+        GlobalCreatedBy: Text[250];
 }
 
