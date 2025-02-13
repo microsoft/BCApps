@@ -11,7 +11,7 @@ page 4307 "Agent Task Timeline"
 {
     PageType = ListPart;
     ApplicationArea = All;
-    SourceTable = "Agent Task Timeline Entry";
+    SourceTable = "Agent Task Timeline Step";
     Caption = 'Agent Task Timeline';
     InsertAllowed = false;
     DeleteAllowed = false;
@@ -34,22 +34,22 @@ page 4307 "Agent Task Timeline"
                 field(Header; Rec.Title)
                 {
                     Caption = 'Header';
-                    ToolTip = 'Specifies the header of the timeline entry.';
+                    ToolTip = 'Specifies the header of the timeline step.';
                 }
                 field(Summary; GlobalPageSummary)
                 {
                     Caption = 'Summary';
-                    ToolTip = 'Specifies the summary of the timeline entry.';
+                    ToolTip = 'Specifies the summary of the timeline step.';
                 }
                 field(PrimaryPageQuery; GlobalPageQuery)
                 {
                     Caption = 'Primary Page Query';
-                    ToolTip = 'Specifies the primary page query of the timeline entry.';
+                    ToolTip = 'Specifies the primary page query of the timeline step.';
                 }
                 field(Description; GlobalDescription)
                 {
                     Caption = 'Description';
-                    ToolTip = 'Specifies the description of the timeline entry.';
+                    ToolTip = 'Specifies the description of the timeline step.';
                 }
                 field(Category; Rec.Category)
                 {
@@ -60,23 +60,23 @@ page 4307 "Agent Task Timeline"
                 field(ConfirmationStatus; ConfirmationStatusOption)
                 {
                     Caption = 'Confirmation Status';
-                    ToolTip = 'Specifies the confirmation status of the timeline entry.';
+                    ToolTip = 'Specifies the confirmation status of the timeline step.';
                     OptionCaption = ' ,ConfirmationNotRequired,ReviewConfirmationRequired,ReviewConfirmed,StopConfirmationRequired,StopConfirmed,Discarded';
                 }
                 field(ConfirmedBy; GlobalConfirmedBy)
                 {
                     Caption = 'Confirmed By';
-                    ToolTip = 'Specifies the user who confirmed the timeline entry.';
+                    ToolTip = 'Specifies the user who confirmed the timeline step.';
                 }
                 field(ConfirmedAt; GlobalConfirmedAt)
                 {
                     Caption = 'Confirmed At';
-                    ToolTip = 'Specifies the date and time when the timeline entry was confirmed.';
+                    ToolTip = 'Specifies the date and time when the timeline step was confirmed.';
                 }
                 field(Annotations; GlobalAnnotations)
                 {
                     Caption = 'Annotations';
-                    Tooltip = 'Specifies the annotations for the timeline entry, such as additional messages to surface to the user.';
+                    Tooltip = 'Specifies the annotations for the timeline step, such as additional messages to surface to the user.';
                 }
                 field(Importance; Rec.Importance)
                 {
@@ -84,7 +84,7 @@ page 4307 "Agent Task Timeline"
                 field(UserInterventionRequestType; Rec."User Intervention Request Type")
                 {
                     Caption = 'User Intervention Request Type';
-                    ToolTip = 'Specifies the type of user intervention request when this entry is an intervention request.';
+                    ToolTip = 'Specifies the type of user intervention request when this step is an intervention request.';
                 }
                 field(Suggestions; GlobalSuggestions)
                 {
@@ -94,7 +94,7 @@ page 4307 "Agent Task Timeline"
                 field(CreatedAt; Rec.SystemCreatedAt)
                 {
                     Caption = 'First Step Created At';
-                    ToolTip = 'Specifies the date and time when the timeline entry was created.';
+                    ToolTip = 'Specifies the date and time when the timeline step was created.';
                 }
             }
         }
@@ -112,14 +112,14 @@ page 4307 "Agent Task Timeline"
                 Scope = Repeater;
                 trigger OnAction()
                 var
-                    UserInterventionRequestStep: Record "Agent Task Step";
+                    UserInterventionRequestEntry: Record "Agent Task Log Entry";
                     AgentTaskImpl: Codeunit "Agent Task Impl.";
                     SelectedSuggestionIdInt: Integer;
                 begin
-                    if UserInterventionRequestStep.Get(Rec."Task ID", Rec."Last Step Number") then
-                        if UserInterventionRequestStep.Type = "Agent Task Step Type"::"User Intervention Request" then
+                    if UserInterventionRequestEntry.Get(Rec."Task ID", Rec."Last Log Entry ID") then
+                        if UserInterventionRequestEntry.Type = "Agent Task Log Entry Type"::"User Intervention Request" then
                             if Evaluate(SelectedSuggestionIdInt, SelectedSuggestionId) then
-                                AgentTaskImpl.CreateUserInterventionTaskStep(UserInterventionRequestStep, SelectedSuggestionIdInt);
+                                AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, SelectedSuggestionIdInt);
                 end;
             }
 
@@ -132,12 +132,12 @@ page 4307 "Agent Task Timeline"
                 Scope = Repeater;
                 trigger OnAction()
                 var
-                    UserInterventionRequestStep: Record "Agent Task Step";
+                    UserInterventionRequestEntry: Record "Agent Task Log Entry";
                     AgentTaskImpl: Codeunit "Agent Task Impl.";
                 begin
-                    if UserInterventionRequestStep.Get(Rec."Task ID", Rec."Last Step Number") then
-                        if UserInterventionRequestStep.Type = "Agent Task Step Type"::"User Intervention Request" then
-                            AgentTaskImpl.CreateUserInterventionTaskStep(UserInterventionRequestStep);
+                    if UserInterventionRequestEntry.Get(Rec."Task ID", Rec."Last Log Entry ID") then
+                        if UserInterventionRequestEntry.Type = "Agent Task Log Entry Type"::"User Intervention Request" then
+                            AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry);
                 end;
 
             }
@@ -158,8 +158,8 @@ page 4307 "Agent Task Timeline"
     local procedure SetTaskTimelineDetails()
     var
         InStream: InStream;
-        ConfirmationStepType: Enum "Agent Task Step Type";
-        StepNumber: Integer;
+        ConfirmationLogEntryType: Enum "Agent Task Log Entry Type";
+        LogEntryId: Integer;
     begin
         // Clear old values
         GlobalConfirmedBy := '';
@@ -199,52 +199,52 @@ page 4307 "Agent Task Timeline"
         end;
 
         ConfirmationStatusOption := ConfirmationStatusOption::ConfirmationNotRequired;
-        StepNumber := Rec."Last Step Number";
-        if (Rec."Last Step Type" <> "Agent Task Step Type"::Stop) and (Rec."Last User Intervention Step" > 0) then
-            StepNumber := Rec."Last User Intervention Step"
+        LogEntryId := Rec."Last Log Entry ID";
+        if (Rec."Last Log Entry Type" <> "Agent Task Log Entry Type"::Stop) and (Rec."Last User Intervention ID" > 0) then
+            LogEntryId := Rec."Last User Intervention ID"
         else
-            if Rec."Last Step Type" <> "Agent Task Step Type"::Stop then
-                // We know that there is no user intervention step for this timeline entry, and the last step is not a stop step.
+            if Rec."Last Log Entry Type" <> "Agent Task Log Entry Type"::Stop then
+                // We know that there is no user intervention entry for this timeline entry, and the last entry is not a stop.
                 exit;
-        if not TryGetConfirmationDetails(StepNumber, GlobalConfirmedBy, GlobalConfirmedAt, ConfirmationStepType) then
+        if not TryGetConfirmationDetails(LogEntryId, GlobalConfirmedBy, GlobalConfirmedAt, ConfirmationLogEntryType) then
             exit;
 
         case
-            ConfirmationStepType of
-            "Agent Task Step Type"::"User Intervention Request":
+            ConfirmationLogEntryType of
+            "Agent Task Log Entry Type"::"User Intervention Request":
                 ConfirmationStatusOption := ConfirmationStatusOption::ReviewConfirmationRequired;
-            "Agent Task Step Type"::"User Intervention":
+            "Agent Task Log Entry Type"::"User Intervention":
                 ConfirmationStatusOption := ConfirmationStatusOption::ReviewConfirmed;
-            "Agent Task Step Type"::Stop:
+            "Agent Task Log Entry Type"::Stop:
                 ConfirmationStatusOption := ConfirmationStatusOption::StopConfirmed;
             else
                 ConfirmationStatusOption := ConfirmationStatusOption::ConfirmationNotRequired;
         end;
     end;
 
-    local procedure TryGetConfirmationDetails(StepNumber: Integer; var By: Text[250]; var At: DateTime; var ConfirmationStepType: Enum "Agent Task Step Type"): Boolean
+    local procedure TryGetConfirmationDetails(LogEntryId: Integer; var By: Text[250]; var At: DateTime; var ConfirmationLogEntryType: Enum "Agent Task Log Entry Type"): Boolean
     var
-        TaskTimelineEntryStep: Record "Agent Task Timeline Entry Step";
+        TaskTimelineStepDetail: Record "Agent Task Timeline Step Det.";
         User: Record User;
     begin
-        if StepNumber <= 0 then
+        if LogEntryId <= 0 then
             exit(false);
 
-        TaskTimelineEntryStep.SetRange("Task ID", Rec."Task ID");
-        TaskTimelineEntryStep.SetRange("Timeline Entry ID", Rec.ID);
-        TaskTimelineEntryStep.SetRange("Step Number", StepNumber);
-        if not TaskTimelineEntryStep.FindLast() then
+        TaskTimelineStepDetail.SetRange("Task ID", Rec."Task ID");
+        TaskTimelineStepDetail.SetRange("Timeline Step ID", Rec.ID);
+        TaskTimelineStepDetail.SetRange("ID", LogEntryId);
+        if not TaskTimelineStepDetail.FindLast() then
             exit(false);
 
-        ConfirmationStepType := TaskTimelineEntryStep.Type;
-        if TaskTimelineEntryStep.Type = "Agent Task Step Type"::"User Intervention Request" then
+        ConfirmationLogEntryType := TaskTimelineStepDetail.Type;
+        if TaskTimelineStepDetail.Type = "Agent Task Log Entry Type"::"User Intervention Request" then
             exit(true);
 
-        if ((TaskTimelineEntryStep.Type <> "Agent Task Step Type"::"User Intervention") and
-            (TaskTimelineEntryStep.Type <> "Agent Task Step Type"::Stop)) then
+        if ((TaskTimelineStepDetail.Type <> "Agent Task Log Entry Type"::"User Intervention") and
+            (TaskTimelineStepDetail.Type <> "Agent Task Log Entry Type"::Stop)) then
             exit(false);
 
-        User.SetRange("User Security ID", TaskTimelineEntryStep."User Security ID");
+        User.SetRange("User Security ID", TaskTimelineStepDetail."User Security ID");
         if User.FindFirst() then
             if User."Full Name" <> '' then
                 By := User."Full Name"
