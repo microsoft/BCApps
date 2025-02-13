@@ -26,6 +26,11 @@
       "id": "1a3ac64b-0e25-2345-8e9b-eab2a74b9e9a",
       "name": "Agent Developer Toolkit",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "5afe217e-507a-40b4-9aa5-f4325b6e8230",
+      "name": "Agent Test Library",
+      "publisher": "Microsoft"
     }
   ],
   "screenshots": [],
