@@ -5,7 +5,9 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $PullRequestNumber,
     [Parameter(Mandatory = $true)]
-    [string] $Repository
+    [string] $Repository,
+    [Parameter(Mandatory = $false)]
+    [switch] $ValidateOnly
 )
 
 # Set error action
@@ -24,14 +26,16 @@ function Test-ADOWorkItemIsLinked() {
         [Parameter(Mandatory = $false)]
         [string[]] $ADOWorkItems,
         [Parameter(Mandatory = $false)]
-        [object] $PullRequest
+        [object] $PullRequest,
+        [Parameter(Mandatory = $false)]
+        [switch] $ValidateOnly
     )
 
     $Comment = "Could not find a linked ADO work item. Please link one by using the pattern 'AB#' followed by the relevant work item number. You may use the 'Fixes' keyword to automatically resolve the work item when the pull request is merged. E.g. 'Fixes AB#1234'"
 
     if (-not $ADOWorkItems) {
-        # If the pull request is not from a fork, add a comment to the pull request
-        if (-not $PullRequest.IsFromFork()) {
+        # If the pull request is not from a fork and not validate only, add a comment
+        if (-not $PullRequest.IsFromFork() -and -not $ValidateOnly) {
             $PullRequest.AddComment($Comment)
         }
 
@@ -39,7 +43,9 @@ function Test-ADOWorkItemIsLinked() {
         throw $Comment
     }
 
-    $PullRequest.RemoveComment($Comment)
+    if (-not $ValidateOnly) {
+        $PullRequest.RemoveComment($Comment)
+    }
 }
 
 Write-Host "Validating PR $PullRequestNumber"
@@ -52,6 +58,6 @@ if (-not $pullRequest) {
 $adoWorkItems = $pullRequest.GetLinkedADOWorkItemIDs()
 
 # Validate that all pull requests links to an ADO workitem
-Test-ADOWorkItemIsLinked -ADOWorkItems $adoWorkItems -PullRequest $PullRequest
+Test-ADOWorkItemIsLinked -ADOWorkItems $adoWorkItems -PullRequest $PullRequest -ValidateOnly:$ValidateOnly
 
 Write-Host "PR $PullRequestNumber validated successfully" -ForegroundColor Green
