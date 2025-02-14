@@ -162,8 +162,6 @@ page 4307 "Agent Task Timeline"
 
     local procedure SetTaskTimelineDetails()
     var
-        AgentTaskTimelineRec: Record "Agent Task Timeline";
-        UserRec: Record User;
         InStream: InStream;
         ConfirmationLogEntryType: Enum "Agent Task Log Entry Type";
         LogEntryId: Integer;
@@ -233,8 +231,9 @@ page 4307 "Agent Task Timeline"
 
         if (PrevConfirmedBy = '') and (GlobalConfirmedBy <> '') then
             GlobalNowAuthorizedBy := GlobalConfirmedBy
-        else if (PrevConfirmedBy <> '') and (GlobalConfirmedBy <> '') and (PrevConfirmedBy <> GlobalConfirmedBy) then
-            GlobalNowAuthorizedBy := GlobalConfirmedBy;
+        else
+            if (PrevConfirmedBy <> '') and (GlobalConfirmedBy <> '') and (PrevConfirmedBy <> GlobalConfirmedBy) then
+                GlobalNowAuthorizedBy := GlobalConfirmedBy;
 
         case
             ConfirmationLogEntryType of
@@ -249,10 +248,9 @@ page 4307 "Agent Task Timeline"
         end;
     end;
 
-    local procedure TryGetConfirmationDetails(LogEntryId: Integer; var ConfirmedBy: Text[250]; var ConfirmedAt: DateTime; var ConfirmationLogEntryType: Enum "Agent Task Log Entry Type"): Boolean
+    local procedure TryGetConfirmationDetails(LogEntryId: Integer; var By: Text[250]; var At: DateTime; var ConfirmationLogEntryType: Enum "Agent Task Log Entry Type"): Boolean
     var
         TaskTimelineStepDetail: Record "Agent Task Timeline Step Det.";
-        User: Record User;
     begin
         if LogEntryId <= 0 then
             exit(false);
@@ -271,8 +269,8 @@ page 4307 "Agent Task Timeline"
             (TaskTimelineStepDetail.Type <> "Agent Task Log Entry Type"::Stop)) then
             exit(false);
 
-        ConfirmedBy := ResolveUserDisplayName(TaskTimelineStepDetail."User Security ID");
-        ConfirmedAt := Rec.SystemModifiedAt;
+        By := ResolveUserDisplayName(TaskTimelineStepDetail."User Security ID");
+        At := Rec.SystemModifiedAt;
 
         exit(true);
     end;
@@ -280,7 +278,6 @@ page 4307 "Agent Task Timeline"
     local procedure GetTaskCreatedBy(): Text[250]
     var
         AgentTaskTimelineRec: Record "Agent Task Timeline";
-        User: Record User;
     begin
         AgentTaskTimelineRec.SetRange("Task ID", Rec."Task ID");
         if not AgentTaskTimelineRec.FindFirst() then
@@ -292,7 +289,6 @@ page 4307 "Agent Task Timeline"
     local procedure GetPreviousTimelineStepDetailConfirmedBy(LogEntryId: Integer): Text[250]
     var
         TaskTimelineStepDetail: Record "Agent Task Timeline Step Det.";
-        User: Record User;
         ConfirmedByUserId: Guid;
     begin
         TaskTimelineStepDetail.SetRange("Task ID", Rec."Task ID");
