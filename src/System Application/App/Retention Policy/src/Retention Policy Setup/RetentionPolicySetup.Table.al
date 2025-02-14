@@ -148,7 +148,7 @@ table 3901 "Retention Policy Setup"
         {
             DataClassification = SystemMetadata;
         }
-        field(100; "Number Of Records Deleted"; Integer)
+        field(100; "Number Of Records Deleted"; BigInteger)
         {
             DataClassification = SystemMetadata;
             Access = Internal;

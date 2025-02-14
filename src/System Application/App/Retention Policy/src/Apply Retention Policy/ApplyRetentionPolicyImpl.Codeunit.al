@@ -19,7 +19,7 @@ codeunit 3904 "Apply Retention Policy Impl."
     Permissions = tabledata AllObjWithCaption = r;
 
     var
-        TotalNumberOfRecordsDeleted: Integer;
+        TotalNumberOfRecordsDeleted: BigInteger;
         EndCurrentRun: Boolean;
         ApplyAllRetentionPolicies: Boolean;
         IsUserInvokedRun: Boolean;
@@ -222,7 +222,7 @@ codeunit 3904 "Apply Retention Policy Impl."
         RecordRefDuplicate: RecordRef;
         RetenPolDeleting: Interface "Reten. Pol. Deleting";
         Handled: Boolean;
-        NumberOfRecordsDeleted: Integer;
+        NumberOfRecordsDeleted: BigInteger;
         RecordCountBefore: Integer;
         RecordCountAfter: Integer;
     begin
@@ -427,12 +427,12 @@ codeunit 3904 "Apply Retention Policy Impl."
         exit(RetentionPolicyLogCategory::"Retention Policy - Apply");
     end;
 
-    internal procedure MaxNumberOfRecordsToDelete(): Integer
+    internal procedure MaxNumberOfRecordsToDelete(): BigInteger
     begin
         exit(10000)
     end;
 
-    internal procedure NumberOfRecordsToDeleteBuffer(): Integer
+    internal procedure NumberOfRecordsToDeleteBuffer(): BigInteger
     begin
         exit(0)
     end;
