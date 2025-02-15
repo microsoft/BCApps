@@ -11,7 +11,7 @@ page 4300 "Agent Task List"
     ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "Agent Task";
-    Caption = 'Agent Tasks';
+    Caption = 'Agent Tasks (Preview)';
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;

@@ -73,6 +73,11 @@ page 4307 "Agent Task Timeline"
                     Caption = 'Confirmed At';
                     ToolTip = 'Specifies the date and time when the timeline step was confirmed.';
                 }
+                field(NowAuthorizedBy; GlobalNowAuthorizedBy)
+                {
+                    Caption = 'Now Authorized By';
+                    ToolTip = 'Specifies the task authorization changes from previous steps.';
+                }
                 field(Annotations; GlobalAnnotations)
                 {
                     Caption = 'Annotations';
@@ -160,8 +165,11 @@ page 4307 "Agent Task Timeline"
         InStream: InStream;
         ConfirmationLogEntryType: Enum "Agent Task Log Entry Type";
         LogEntryId: Integer;
+        PrevConfirmedBy: Text[250];
+        ShouldRefreshConfirmationDetails: Boolean;
     begin
         // Clear old values
+        GlobalNowAuthorizedBy := '';
         GlobalConfirmedBy := '';
         GlobalConfirmedAt := 0DT;
         Clear(GlobalPageSummary);
@@ -200,14 +208,32 @@ page 4307 "Agent Task Timeline"
 
         ConfirmationStatusOption := ConfirmationStatusOption::ConfirmationNotRequired;
         LogEntryId := Rec."Last Log Entry ID";
+
+        ShouldRefreshConfirmationDetails := true;
+
         if (Rec."Last Log Entry Type" <> "Agent Task Log Entry Type"::Stop) and (Rec."Last User Intervention ID" > 0) then
             LogEntryId := Rec."Last User Intervention ID"
         else
             if Rec."Last Log Entry Type" <> "Agent Task Log Entry Type"::Stop then
                 // We know that there is no user intervention entry for this timeline entry, and the last entry is not a stop.
-                exit;
+                ShouldRefreshConfirmationDetails := false;
+
+        PrevConfirmedBy := GetPreviousTimelineStepDetailConfirmedBy(LogEntryId);
+
+        if (PrevConfirmedBy = '') then
+            GlobalNowAuthorizedBy := GetTaskCreatedBy();
+
+        if not ShouldRefreshConfirmationDetails then
+            exit;
+
         if not TryGetConfirmationDetails(LogEntryId, GlobalConfirmedBy, GlobalConfirmedAt, ConfirmationLogEntryType) then
             exit;
+
+        if (PrevConfirmedBy = '') and (GlobalConfirmedBy <> '') then
+            GlobalNowAuthorizedBy := GlobalConfirmedBy
+        else
+            if (PrevConfirmedBy <> '') and (GlobalConfirmedBy <> '') and (PrevConfirmedBy <> GlobalConfirmedBy) then
+                GlobalNowAuthorizedBy := GlobalConfirmedBy;
 
         case
             ConfirmationLogEntryType of
@@ -225,7 +251,6 @@ page 4307 "Agent Task Timeline"
     local procedure TryGetConfirmationDetails(LogEntryId: Integer; var By: Text[250]; var At: DateTime; var ConfirmationLogEntryType: Enum "Agent Task Log Entry Type"): Boolean
     var
         TaskTimelineStepDetail: Record "Agent Task Timeline Step Det.";
-        User: Record User;
     begin
         if LogEntryId <= 0 then
             exit(false);
@@ -244,15 +269,53 @@ page 4307 "Agent Task Timeline"
             (TaskTimelineStepDetail.Type <> "Agent Task Log Entry Type"::Stop)) then
             exit(false);
 
-        User.SetRange("User Security ID", TaskTimelineStepDetail."User Security ID");
+        By := ResolveUserDisplayName(TaskTimelineStepDetail."User Security ID");
+        At := Rec.SystemModifiedAt;
+
+        exit(true);
+    end;
+
+    local procedure GetTaskCreatedBy(): Text[250]
+    var
+        AgentTaskTimelineRec: Record "Agent Task Timeline";
+    begin
+        AgentTaskTimelineRec.SetRange("Task ID", Rec."Task ID");
+        if not AgentTaskTimelineRec.FindFirst() then
+            exit('');
+
+        exit(ResolveUserDisplayName(AgentTaskTimelineRec."Created By"));
+    end;
+
+    local procedure GetPreviousTimelineStepDetailConfirmedBy(LogEntryId: Integer): Text[250]
+    var
+        TaskTimelineStepDetail: Record "Agent Task Timeline Step Det.";
+        ConfirmedByUserId: Guid;
+    begin
+        TaskTimelineStepDetail.SetRange("Task ID", Rec."Task ID");
+        TaskTimelineStepDetail.SetFilter("Timeline Step ID", '<%1', Rec.ID);
+        TaskTimelineStepDetail.SetFilter("ID", '<%1', LogEntryId);
+        TaskTimelineStepDetail.SetFilter("Type", '%1|%2', "Agent Task Log Entry Type"::"User Intervention", "Agent Task Log Entry Type"::Stop);
+        if TaskTimelineStepDetail.FindLast() then
+            ConfirmedByUserId := TaskTimelineStepDetail."User Security ID";
+
+        if (IsNullGuid(ConfirmedByUserId)) then
+            exit('');
+
+        exit(ResolveUserDisplayName(TaskTimelineStepDetail."User Security ID"))
+    end;
+
+    local procedure ResolveUserDisplayName(UserSecurityId: Guid): Text[250]
+    var
+        User: Record User;
+    begin
+        User.SetRange("User Security ID", UserSecurityId);
         if User.FindFirst() then
             if User."Full Name" <> '' then
-                By := User."Full Name"
+                exit(User."Full Name")
             else
-                By := User."User Name";
+                exit(User."User Name");
 
-        At := Rec.SystemModifiedAt;
-        exit(true);
+        exit('');
     end;
 
     var
@@ -262,6 +325,7 @@ page 4307 "Agent Task Timeline"
         GlobalSuggestions: BigText;
         GlobalDescription: Text[2048];
         GlobalConfirmedBy: Text[250];
+        GlobalNowAuthorizedBy: Text[250];
         GlobalConfirmedAt: DateTime;
         ConfirmationStatusOption: Option " ",ConfirmationNotRequired,ReviewConfirmationRequired,ReviewConfirmed,StopConfirmationRequired,StopConfirmed,Discarded;
         SelectedSuggestionId: Text[3];
