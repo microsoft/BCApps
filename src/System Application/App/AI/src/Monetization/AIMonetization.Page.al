@@ -24,6 +24,12 @@ page 7757 "AI Monetization"
                     ToolTip = 'Specifies the name of the capability';
                     Caption = 'Capability Name';
                 }
+                field(CostType; CostType)
+                {
+                    ToolTip = 'Specifies the type of cost';
+                    Caption = 'Cost Type';
+                    OptionCaption = 'GenAI,Autonomous Action';
+                }
 
                 group(NonMicrosoft)
                 {
@@ -113,20 +119,27 @@ page 7757 "AI Monetization"
         HasBillingSetup: Boolean;
         QuotaUsed: Decimal;
         NonMicrosoft: Boolean;
+        CostType: Option "GenAI","Autonomous Action";
 
     local procedure LogMicrosoftUsage()
     var
         ALCopilotCapability: DotNet ALCopilotCapability;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
+        ALCopilotUsageType: DotNet ALCopilotUsageType;
         CallerModuleInfo: ModuleInfo;
         LoggedLbl: Label 'Microsoft capability usage logged for %1, with cost %2', Locked = true;
     begin
         if CapabilityName.Trim() = '' then
             Error('Capability name is required.');
 
+        if CostType = CostType::GenAI then
+            ALCopilotUsageType := ALCopilotUsageType::GenAIAnswer
+        else
+            ALCopilotUsageType := ALCopilotUsageType::AutonomousAction;
+
         NavApp.GetCurrentModuleInfo(CallerModuleInfo);
         ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), CapabilityName);
-        ALCopilotFunctions.LogCopilotQuotaUsage(ALCopilotCapability, Cost);
+        ALCopilotFunctions.LogCopilotQuotaUsage(ALCopilotCapability, Cost, ALCopilotUsageType);
         Message(StrSubstNo(LoggedLbl, CapabilityName, Format(Cost)));
         UpdatePageVariables();
     end;
@@ -135,6 +148,7 @@ page 7757 "AI Monetization"
     var
         ALCopilotCapability: DotNet ALCopilotCapability;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
+        ALCopilotUsageType: DotNet ALCopilotUsageType;
         CallerModuleInfo: ModuleInfo;
         LoggedLbl: Label 'Non-Microsoft (%1) capability usage logged for %2, with cost %3', Locked = true;
     begin
@@ -144,9 +158,14 @@ page 7757 "AI Monetization"
         if PublisherName.Trim() = '' then
             Error('Publisher name is required.');
 
+        if CostType = CostType::GenAI then
+            ALCopilotUsageType := ALCopilotUsageType::GenAIAnswer
+        else
+            ALCopilotUsageType := ALCopilotUsageType::AutonomousAction;
+
         NavApp.GetCurrentModuleInfo(CallerModuleInfo);
         ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(PublisherName, CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), CapabilityName);
-        ALCopilotFunctions.LogCopilotQuotaUsage(ALCopilotCapability, Cost);
+        ALCopilotFunctions.LogCopilotQuotaUsage(ALCopilotCapability, Cost, ALCopilotUsageType);
         Message(StrSubstNo(LoggedLbl, PublisherName, CapabilityName, Format(Cost)));
         UpdatePageVariables();
     end;
