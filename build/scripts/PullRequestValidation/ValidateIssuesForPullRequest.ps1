@@ -5,7 +5,9 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $PullRequestNumber,
     [Parameter(Mandatory = $true)]
-    [string] $Repository
+    [string] $Repository,
+    [Parameter(Mandatory = $false)]
+    [switch] $ValidateOnly
 )
 
 # Set error action
@@ -24,18 +26,24 @@ function Test-IssueIsLinked() {
         [Parameter(Mandatory = $false)]
         [string[]] $IssueIds,
         [Parameter(Mandatory = $false)]
-        [object] $PullRequest
+        [object] $PullRequest,
+        [Parameter(Mandatory = $false)]
+        [switch] $ValidateOnly
     )
 
     $Comment = "Could not find linked issues in the pull request description. Please make sure the pull request description contains a line that contains 'Fixes #' followed by the issue number being fixed. Use that pattern for every issue you want to link."
 
     if (-not $IssueIds) {
         # If the pull request is from a fork, add a comment to the pull request and throw an error
-        $PullRequest.AddComment($Comment)
+        if (-not $ValidateOnly) {
+            $PullRequest.AddComment($Comment)
+        }
         throw $Comment
     }
 
-    $PullRequest.RemoveComment($Comment)
+    if (-not $ValidateOnly) {
+        $PullRequest.RemoveComment($Comment)
+    }
 }
 
 <#
@@ -59,7 +67,9 @@ function Test-GitHubIssue() {
         [Parameter(Mandatory = $false)]
         [string[]] $IssueIds,
         [Parameter(Mandatory = $false)]
-        [object] $PullRequest
+        [object] $PullRequest,
+        [Parameter(Mandatory = $false)]
+        [switch] $ValidateOnly
     )
     $invalidIssues = @()
 
@@ -71,10 +81,12 @@ function Test-GitHubIssue() {
         $isValid = $issue -and ((-not $PullRequest.IsFromFork()) -or $issue.IsApproved()) -and $issue.IsOpen() -and (-not $issue.IsPullRequest())
         $Comment = "Issue #$($issueId) is not valid. Please make sure you link an **issue** that exists, is **open** and is **approved**."
         if (-not $isValid) {
-            $PullRequest.AddComment($Comment)
+            if (-not $ValidateOnly) {
+                $PullRequest.AddComment($Comment)
+            }
             $invalidIssues += $issueId
         }
-        else {
+        elseif (-not $ValidateOnly) {
             $PullRequest.RemoveComment($Comment)
         }
     }
@@ -95,10 +107,10 @@ $issueIds = $pullRequest.GetLinkedIssueIDs()
 
 # If the pull request is from a fork, validate that it links to an issue
 if ($pullRequest.IsFromFork()) {
-    Test-IssueIsLinked -IssueIds $issueIds -PullRequest $PullRequest
+    Test-IssueIsLinked -IssueIds $issueIds -PullRequest $PullRequest -ValidateOnly:$ValidateOnly
 }
 
 # Validate that all issues linked to the pull request are open and approved
-Test-GitHubIssue -Repository $Repository -IssueIds $issueIds -PullRequest $PullRequest
+Test-GitHubIssue -Repository $Repository -IssueIds $issueIds -PullRequest $PullRequest -ValidateOnly:$ValidateOnly
 
 Write-Host "PR $PullRequestNumber validated successfully" -ForegroundColor Green
