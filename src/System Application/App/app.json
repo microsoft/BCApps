@@ -46,6 +46,9 @@
     "TranslationFile",
     "GenerateCaptions"
   ],
+  "resourceFolders": [
+    ".resources"
+  ],
   "resourceExposurePolicy": {
     "allowDebugging": true,
     "allowDownloadingSource": true,

@@ -88,6 +88,11 @@
       "id": "4af62c1c-2f6d-4574-ba34-bb5c149cdf93",
       "name": "Guided Experience Test",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "d3433b68-4901-445f-9547-fdfeca57575a",
+      "name": "AI SDK",
+      "publisher": "Microsoft"
     }
   ],
   "screenshots": [],

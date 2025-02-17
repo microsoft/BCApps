@@ -33,7 +33,7 @@ permissionset 8900 "Email - Read"
                   tabledata "Email View Policy" = r,
                   tabledata Field = r,
                   tabledata Media = r, // Email Account Wizard requires this
-                  tabledata "Media Resources" = r,
+                  tabledata "Tenant Media Set" = r,
                   tabledata "Sent Email" = r,
                   tabledata "Tenant Media" = r,
                   tabledata User = R;
