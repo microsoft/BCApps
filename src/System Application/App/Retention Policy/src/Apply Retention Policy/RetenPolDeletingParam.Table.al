@@ -56,11 +56,13 @@ table 3907 "Reten. Pol. Deleting Param"
         /// <summary>
         /// Indicates the maximum number of records to be deleted.
         /// </summary>
+#pragma warning disable AS0004
         field(4; "Max. Number of Rec. to Delete"; BigInteger)
         {
             DataClassification = SystemMetadata;
             MinValue = 0;
         }
+#pragma warning restore AS0004
         /// <summary>
         /// if set to true the event OnApplyRetentionPolicyRecordLimitExceeded will not be raised.
         /// </summary>
@@ -71,11 +73,13 @@ table 3907 "Reten. Pol. Deleting Param"
         /// <summary>
         /// Indicates the maximum number of records that can be deleted at the same time across all retention policies
         /// </summary>
+#pragma warning disable AS0004
         field(6; "Total Max. Nr. of Rec. to Del."; BigInteger)
         {
             DataClassification = SystemMetadata;
             MinValue = 0;
         }
+#pragma warning restore AS0004
         /// <summary>
         /// If true, indicates that user is applying the retention policies manually.
         /// If false, the retention policies are applied by a scheduled task.
@@ -88,10 +92,12 @@ table 3907 "Reten. Pol. Deleting Param"
         /// The number of records in the table before the deletion.
         /// The count is calculated once before passing this table to the deletion implementation and is used to limit the number of records to be deleted as well as record the number of records actually deleted.
         /// </summary>
+#pragma warning disable AS0004
         field(8; "Record Count Before Delete"; BigInteger)
         {
             DataClassification = SystemMetadata;
         }
+#pragma warning restore AS0004
     }
 
     keys
