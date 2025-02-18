@@ -6,7 +6,7 @@ table 7767 "AOAI Account Verification Log"
     Caption = 'AOAI Account Verification Log';
     DataPerCompany = false;
     Extensible = false;
-    InherentEntitlements = RIMDX;
+    InherentEntitlements = RimdX;
     InherentPermissions = X;
     ReplicateData = false;
 
