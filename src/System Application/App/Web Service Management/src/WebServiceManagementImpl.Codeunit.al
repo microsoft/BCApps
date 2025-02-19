@@ -6,6 +6,10 @@
 namespace System.Integration;
 
 using System;
+#if not CLEAN29
+using System.Environment.Configuration;
+#endif
+using System.Apps;
 using System.Reflection;
 
 codeunit 9751 "Web Service Management Impl."
@@ -37,6 +41,10 @@ codeunit 9751 "Web Service Management Impl."
         WebServiceDeletedTxt: Label 'Web Service Deleted', Locked = true;
         TenantWebServiceDeletedTxt: Label 'Tenant Web Service Deleted', Locked = true;
         ODataUnboundActionHelpUrlLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2138827', Locked = true;
+        MicrosoftPublisherLbl: Label 'Microsoft', Locked = true;
+#if not CLEAN29
+        DisableSoapWebServicesOnMicrosoftUIPagesTok: Label 'DisableSOAPwebservicesonMicrosoftUIpages', Locked = true;
+#endif
 
     procedure CreateWebService(ObjectType: Option; ObjectId: Integer; ObjectName: Text; Published: Boolean)
     var
@@ -90,7 +98,10 @@ codeunit 9751 "Web Service Management Impl."
                 WebServiceAggregate."Object Type"::Page:
                     case ClientTypeParam of
                         ClientTypeParam::SOAP:
-                            exit(GetUrl(ClientType::SOAP, CompanyName(), ObjectType::Page, WebServiceAggregate."Object ID", WebService));
+                            if DisableSOAPWebserviceOnPage(WebServiceAggregate."Object ID") then
+                                exit(NotApplicableTxt)
+                            else
+                                exit(GetUrl(ClientType::SOAP, CompanyName(), ObjectType::Page, WebServiceAggregate."Object ID", WebService));
                         ClientTypeParam::ODataV3:
                             exit(GetUrl(ClientType::OData, CompanyName(), ObjectType::Page, WebServiceAggregate."Object ID", WebService));
                         ClientTypeParam::ODataV4:
@@ -123,7 +134,10 @@ codeunit 9751 "Web Service Management Impl."
                 WebServiceAggregate."Object Type"::Page:
                     case ClientTypeParam of
                         ClientTypeParam::SOAP:
-                            exit(GetUrl(ClientType::SOAP, CompanyName(), ObjectType::Page, WebServiceAggregate."Object ID", TenantWebService));
+                            if DisableSOAPWebserviceOnPage(WebServiceAggregate."Object ID") then
+                                exit(NotApplicableTxt)
+                            else
+                                exit(GetUrl(ClientType::SOAP, CompanyName(), ObjectType::Page, WebServiceAggregate."Object ID", TenantWebService));
                         ClientTypeParam::ODataV3:
                             begin
                                 ODataServiceRootUrl := GetUrl(ClientType::OData, CompanyName(), ObjectType::Page, WebServiceAggregate."Object ID", TenantWebService);
@@ -161,6 +175,26 @@ codeunit 9751 "Web Service Management Impl."
                     end;
             end;
         end;
+    end;
+
+    local procedure DisableSOAPWebserviceOnPage(ObjectId: Integer): Boolean
+    var
+        AllObj: Record AllObj;
+        PublishedApplication: Record "Published Application";
+#if not CLEAN29
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+#endif
+    begin
+#if not CLEAN29
+        if not FeatureManagementFacade.IsEnabled(DisableSoapWebServicesOnMicrosoftUIPagesTok) then
+            exit(false);
+#endif
+
+        if AllObj.Get(AllObj."Object Type"::Page, ObjectId) then
+            if PublishedApplication.Get(AllObj."App Runtime Package ID") then
+                exit(PublishedApplication.Publisher = MicrosoftPublisherLbl);
+
+        exit(true);
     end;
 
     procedure CreateTenantWebServiceColumnsFromTemp(var TenantWebServiceColumns: Record "Tenant Web Service Columns"; var TempTenantWebServiceColumns: Record "Tenant Web Service Columns" temporary; TenantWebServiceRecordId: RecordId)
