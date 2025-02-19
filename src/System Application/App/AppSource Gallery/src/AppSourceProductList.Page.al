@@ -135,7 +135,7 @@ page 2515 "AppSource Product List"
                 Caption = 'Edit User Settings';
                 RunObject = page "User Settings";
                 Image = UserSetup;
-                ToolTip = 'Locale will be used to determine the market and language will be used to determine the language of the app details listed here.';
+                ToolTip = 'The Locale from the User Settings will be used to determine the language of the app details listed here.';
             }
         }
 
