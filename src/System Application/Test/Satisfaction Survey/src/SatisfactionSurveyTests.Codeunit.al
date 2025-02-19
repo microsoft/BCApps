@@ -40,7 +40,6 @@ codeunit 138074 "Satisfaction Survey Tests"
         RequestTimeoutTxt: Label 'NpsRequestTimeout', Locked = true;
         CacheLifeTimeTxt: Label 'NpsCacheLifeTime', Locked = true;
         ParametersTxt: Label 'NpsParameters', Locked = true;
-        AllowedApplicationSecretsTxt: Label 'AllowedApplicationSecrets', Locked = true;
         FinacialsTok: Label 'FIN', Locked = true;
 
     [Test]
@@ -555,7 +554,6 @@ codeunit 138074 "Satisfaction Survey Tests"
         JObject.Add(CacheLifeTimeTxt, CacheLifeTimeMinutes);
         JObject.WriteTo(ParametersValue);
         MockAzureKeyvaultSecretProvider := MockAzureKeyvaultSecretProvider.MockAzureKeyVaultSecretProvider();
-        MockAzureKeyvaultSecretProvider.AddSecretMapping(AllowedApplicationSecretsTxt, ParametersTxt);
         MockAzureKeyvaultSecretProvider.AddSecretMapping(ParametersTxt, ParametersValue);
         AzureKeyVaultTestLibrary.SetAzureKeyVaultSecretProvider(MockAzureKeyVaultSecretProvider);
     end;
