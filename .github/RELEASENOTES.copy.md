@@ -2,6 +2,46 @@
 
 Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
 
+### Deprecations
+
+- `alwaysBuildAllProjects` will be removed after October 1st 2025. Please set the `onPull_Request` property of the `incrementalBuilds` setting to false to force full builds in Pull Requests.
+- `<workflow>Schedule` will be removed after October 1st 2025. The old setting, where the setting key was a combination of the workflow name and `Schedule` (dynamic setting key name) is deprecated. Instead you need to use a setting called [workflowSchedule](https://aka.ms/algosettings#workflowSchedule) and either use [Conditional Settings](https://aka.ms/algosettings#conditional-settings) or place the setting in a workflow specific settings file.
+
+### Issues
+
+- Issue 1433 Publish to Environment - DependencyInstallMode not found
+- Issue 1440 Create Release fails due to recent changes to the AL-Go
+- Issue 1330 CompilerFolder doesn't transfer installed Apps to NuGet resolution
+- Issue 1268 Do not throw an un-understandable error during nuGet download
+- Performance test sample code in 25.4 contains objects with ID 149201 and 149202, which are not renumbered
+
+### New Workflow specific settings
+
+- `workflowSchedule` - can be structure with a property named `cron`, which must be a valid crontab, defining the CRON schedule for when the specified workflow should run. Default is no scheduled runs, only manual triggers. Build your crontab string here: [https://crontab.guru](https://crontab.guru). You need to run the Update AL-Go System Files workflow for the schedule to take effect.<br/>**Note:** If you configure a WorkflowSchedule for the CI/CD workflow, AL-Go will stop triggering CICDs on push unless you have also added CICDPushBranches to your settings.<br/>**Note also:** If you define a schedule for Update AL-Go System Files, it uses direct Commit instead of creating a PR.
+- `workflowConcurrency` - is used to control concurrency of workflows. Like with the `workflowSchedule` setting, this setting should be applied in workflow specific settings files or conditional settings. By default, all workflows allows for concurrency, except for the Create Release workflow. If you are using incremental builds in CI/CD it is also recommented to set WorkflowConcurrency to:<br/>`[ "group: ${{ github.workflow }}-${{ github.ref }}", "cancel-in-progress: true" ]`<br />in order to cancel prior incremental builds on the same branch.<br />Read more about workflow concurrency [here](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs).
+
+### New Repository Settings
+
+- `deployTo<environment>` now has two additional properties:
+  - `includeTestAppsInSandboxEnvironment`, which deploys test apps and their dependencies to the specified sandbox environment if set to `true`. Deployment will fail if used on a Prod environment or if the test app has a dependency on Tests-TestLibraries. Default value is `false`.
+  - `excludeAppIds`, which is an array of app ids which will be excluded from deployment. Default value is `[]`
+- `incrementalBuilds` - is a structure defining how you want AL-Go to handle incremental builds. When using incremental builds for a build, AL-Go will look for the latest successful build, newer than the defined `retentionDays` and only rebuild projects or apps (based on `mode`) which needs to be rebuilt. Properties in the structure includes:
+  - `onPush` - set this property to **true** in order to enable incremental builds in CI/CD triggered by a merge/push event. Default is **false**.
+  - `onPull_Request` - set this property to **false** in order to disable incremental builds in Pull Request workflows. Default is **true**.
+  - `onSchedule` - set this property to **true** in order to enable incremental builds in CI/CD when running on a schedule. Default is **false**.
+  - `retentionDays` - number of days a successful build is good (and can be used for incremental builds). Default is **30**.
+  - `mode` - defines the mode for incremental builds. Currently, two values are supported. Use **modifiedProjects** when you want to rebuild all apps in modified projects and depending projects or **modifiedApps** if you only want to rebuild modified apps and depending apps.
+
+> [!NOTE]
+> The projects mentioned here are AL-Go projects in a multi-project repository. A repository can contain multiple projects and a project can contain multiple apps.
+
+### Support for incremental builds
+
+AL-Go for GitHub now supports incremental builds, which means that unchanged projects or apps will be reused from the previous good build. Read [this](aka.ms/algosettings#incrementalBuilds) to learn more.
+
+> [!NOTE]
+> When using incremental builds it is recommended to also set `workflowConcurrency` as defined [here](https://aka.ms/algosettings#workflowConcurrency).
+
 ### Support for GitHub App authentication
 
 AL-Go for GitHub now supports using a GitHub App specification as the GhTokenWorkflow secret for a more secure way of allowing repositories to run Update AL-Go System Files and other workflows which are creating commits and pull requests. See [this description](https://github.com/microsoft/AL-Go/blob/main/Scenarios/GhTokenWorkflow.md) to learn how to use GitHub App authentication.
@@ -152,7 +192,7 @@ In the summary after a Test Run, you now also have the result of performance tes
 ### Support Ubuntu runners for all AL-Go workflows
 
 Previously, the workflows "Update AL-Go System Files" and "TroubleShooting" were hardcoded to always run on `windows-latest` to prevent deadlocks and security issues.
-From now on, `ubuntu-lates` will also be allowed for these mission critical workflows, when changing the `runs-on` setting. Additionally, only the value `pwsh` for `shell` setting is allowed when using `ubuntu-latest` runners.
+From now on, `ubuntu-latest` will also be allowed for these mission critical workflows, when changing the `runs-on` setting. Additionally, only the value `pwsh` for `shell` setting is allowed when using `ubuntu-latest` runners.
 
 ### Updated AL-Go telemetry
 
@@ -645,7 +685,7 @@ In the latest version, we always use LF as line seperator, UTF8 without BOM and 
 ### Experimental Support
 
 Setting the repo setting "shell" to "pwsh", followed by running Update AL-Go System Files, will cause all PowerShell code to be run using PowerShell 7 instead of PowerShell 5. This functionality is experimental. Please report any issues at https://github.com/microsoft/AL-Go/issues
-Setting the repo setting "runs-on" to "Ubuntu-Latest", followed by running Update AL-Go System Files, will cause all non-build jobs to run using Linux. This functionality is experimental. Please report any issues at https://github.com/microsoft/AL-Go/issues
+Setting the repo setting "runs-on" to "Ubuntu-latest", followed by running Update AL-Go System Files, will cause all non-build jobs to run using Linux. This functionality is experimental. Please report any issues at https://github.com/microsoft/AL-Go/issues
 
 ## v2.2
 
