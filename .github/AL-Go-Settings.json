@@ -8,7 +8,7 @@
   "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/26.0.30369.0/base",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "26.0",
+  "repoVersion": "27.0",
   "conditionalSettings": [
     {
       "buildModes": [
