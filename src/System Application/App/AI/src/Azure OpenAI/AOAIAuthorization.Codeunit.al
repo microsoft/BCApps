@@ -46,6 +46,7 @@ codeunit 7767 "AOAI Authorization"
         TempDebugVerificationNotFoundTxt: Label 'Verification time not found for account: %1', Locked = true;
         TempDebugVerificationSetTxt: Label 'Verification time is set for account: %1', Locked = true;
         TempDebugVerificationNotSetTxt: Label 'Verification time is NOT set for account: %1', Locked = true;
+        TelemetryAOAIDatetimeParseFailedTxt: Label 'Failed to parse datetime for account %1. Value: %2', Locked = true;
 
     [NonDebuggable]
     procedure IsConfigured(CallerModule: ModuleInfo): Boolean
@@ -258,7 +259,7 @@ codeunit 7767 "AOAI Authorization"
             if IsAccountVerifiedWithinPeriod(TruncatedAccountName, GracePeriod) then begin
                 RemainingGracePeriod := GetRemainingGracePeriod(TruncatedAccountName, GracePeriod);
                 ShowUserNotification(StrSubstNo(AuthFailedWithinGracePeriodUserNotificationLbl, FormatDurationAsDays(RemainingGracePeriod)));
-                LogTelemetry(TruncatedAccountName, Today, StrSubstNo(AuthFailedWithinGracePeriodLogMessageLbl, TruncatedAccountName, Today, FormatDurationAsDays(RemainingGracePeriod)));
+                LogTelemetry(TruncatedAccountName, CurrentDateTime, StrSubstNo(AuthFailedWithinGracePeriodLogMessageLbl, TruncatedAccountName, CurrentDateTime, FormatDurationAsDays(RemainingGracePeriod)));
                 Session.LogMessage('0000OLT', StrSubstNo(TelemetryAccessTokenWithinGracePeriodTxt, FormatDurationAsDays(RemainingGracePeriod)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AzureOpenAIImpl.GetAzureOpenAICategory());
                 exit(true);
             end
@@ -266,7 +267,7 @@ codeunit 7767 "AOAI Authorization"
             else begin
                 ShowUserNotification('Account is outside grace period: ' + TruncatedAccountName);
                 ShowUserNotification(AuthFailedOutsideGracePeriodUserNotificationLbl);
-                LogTelemetry(TruncatedAccountName, Today, StrSubstNo(AuthFailedOutsideGracePeriodLogMessageLbl, TruncatedAccountName, Today));
+                LogTelemetry(TruncatedAccountName, CurrentDateTime, StrSubstNo(AuthFailedOutsideGracePeriodLogMessageLbl, TruncatedAccountName, CurrentDateTime));
                 Session.LogMessage('0000OLU', TelemetryAccessTokenOutsideCachePeriodTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AzureOpenAIImpl.GetAzureOpenAICategory());
                 exit(false);
             end;
@@ -295,18 +296,39 @@ codeunit 7767 "AOAI Authorization"
 
     local procedure SaveVerificationTime(AccountName: Text[100])
     begin
-        IsolatedStorage.Set(AccountName, Format(CurrentDateTime), DataScope::Module);
+        // Save DateTime in XML format (format 9)
+        IsolatedStorage.Set('AOAI_Verification_' + AccountName, Format(CurrentDateTime, 0, 9), DataScope::Module);
         ShowUserNotification(StrSubstNo(TempDebugSavedVerificationTxt, AccountName));
     end;
 
     local procedure GetLastVerificationDateTime(AccountName: Text[100]) LastVerificationDateTime: DateTime
     var
         LastVerificationDateTimeText: Text;
+        EvaluateSuccess: Boolean;
     begin
-        if IsolatedStorage.Get(AccountName, DataScope::Module, LastVerificationDateTimeText) then begin
-            Evaluate(LastVerificationDateTime, LastVerificationDateTimeText);
+        if IsolatedStorage.Get('AOAI_Verification_' + AccountName, DataScope::Module, LastVerificationDateTimeText) then begin
+            if LastVerificationDateTimeText <> '' then begin
+                ShowUserNotification('Attempting to parse datetime for account: ' + AccountName);
+                // Parse the DateTime using format 9 (XML datetime)
+                EvaluateSuccess := Evaluate(LastVerificationDateTime, LastVerificationDateTimeText, 9);
+                if not EvaluateSuccess then begin
+                    ShowUserNotification('Parsing failed for account: ' + AccountName);
+                    // Handle parsing failure
+                    Session.LogMessage('0000OS7',
+                        StrSubstNo(TelemetryAOAIDatetimeParseFailedTxt, AccountName, LastVerificationDateTimeText),
+                        Verbosity::Warning,
+                        DataClassification::SystemMetadata,
+                        TelemetryScope::ExtensionPublisher,
+                        'Category', AzureOpenAIImpl.GetAzureOpenAICategory()
+                    );
+                    Clear(LastVerificationDateTime);
+                end;
+            end else
+                // Handle empty value
+                Clear(LastVerificationDateTime);
             ShowUserNotification(StrSubstNo(TempDebugRetrievedVerificationTxt, AccountName, LastVerificationDateTime));
         end else begin
+            // Key doesn't exist in isolated storage
             Clear(LastVerificationDateTime);
             ShowUserNotification(StrSubstNo(TempDebugVerificationNotFoundTxt, AccountName));
         end;
@@ -350,13 +372,13 @@ codeunit 7767 "AOAI Authorization"
         Notif.Send();
     end;
 
-    local procedure LogTelemetry(AccountName: Text; VerificationDate: Date; FormattedLogMessage: Text)
+    local procedure LogTelemetry(AccountName: Text; VerificationDateTime: DateTime; FormattedLogMessage: Text)
     var
         Telemetry: Codeunit Telemetry;
         CustomDimensions: Dictionary of [Text, Text];
     begin
         CustomDimensions.Add('AccountName', AccountName);
-        CustomDimensions.Add('VerificationDate', Format(VerificationDate));
+        CustomDimensions.Add('VerificationDate', Format(VerificationDateTime));
 
         Telemetry.LogMessage(
             '0000AA1', // Event ID
