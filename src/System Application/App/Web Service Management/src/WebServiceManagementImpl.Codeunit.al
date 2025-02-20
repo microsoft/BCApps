@@ -6,7 +6,7 @@
 namespace System.Integration;
 
 using System;
-#if not CLEAN29
+#if not CLEAN26
 using System.Environment.Configuration;
 #endif
 using System.Apps;
@@ -42,7 +42,7 @@ codeunit 9751 "Web Service Management Impl."
         TenantWebServiceDeletedTxt: Label 'Tenant Web Service Deleted', Locked = true;
         ODataUnboundActionHelpUrlLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2138827', Locked = true;
         MicrosoftPublisherLbl: Label 'Microsoft', Locked = true;
-#if not CLEAN29
+#if not CLEAN26
         DisableSoapWebServicesOnMicrosoftUIPagesTok: Label 'DisableSOAPwebservicesonMicrosoftUIpages', Locked = true;
 #endif
 
@@ -181,11 +181,11 @@ codeunit 9751 "Web Service Management Impl."
     var
         AllObj: Record AllObj;
         PublishedApplication: Record "Published Application";
-#if not CLEAN29
+#if not CLEAN26
         FeatureManagementFacade: Codeunit "Feature Management Facade";
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN26
         if not FeatureManagementFacade.IsEnabled(DisableSoapWebServicesOnMicrosoftUIPagesTok) then
             exit(false);
 #endif
