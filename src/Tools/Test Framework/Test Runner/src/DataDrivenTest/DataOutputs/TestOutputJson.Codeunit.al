@@ -202,6 +202,8 @@ codeunit 130462 "Test Output Json"
         if TextOutput = 'null' then
             exit('');
 
+        TextOutput := TextOutput.TrimStart('"').TrimEnd('"');
+
         exit(TextOutput);
     end;
 
