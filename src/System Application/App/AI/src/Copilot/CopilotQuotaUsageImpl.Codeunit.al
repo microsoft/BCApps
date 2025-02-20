@@ -5,40 +5,44 @@
 namespace System.AI;
 
 using System;
-using System.Azure.Identity;
-using System.Azure.KeyVault;
-using System.Environment;
-using System.Environment.Configuration;
-using System.Globalization;
-using System.Privacy;
-using System.Security.User;
-using System.Telemetry;
 
-codeunit 7774 "Copilot Quota Usage Impl"
+codeunit 7786 "Copilot Quota Usage Impl"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata "Copilot Settings" = rimd;
 
+    var
+        InvalidUsageTypeErr: Label 'The value "%1" is not a valid Copilot Quota Usage Type.', Comment = '%1=a value such as "AI response"';
+
     [Scope('OnPrem')]
-    procedure LogQuotaUsage(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; UsageType: Enum "Copilot Quota Usage Type"; CallerModuleInfo: ModuleInfo)
+    procedure LogQuotaUsage(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; CallerModuleInfo: ModuleInfo)
     var
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         AlCopilotCapability: DotNet ALCopilotCapability;
-        AlCopilotUsageType: DotNet AlCopilotUsageType;
+        AlCopilotUsageType: DotNet ALCopilotUsageType;
     begin
+        CopilotCapabilityImpl.IsCapabilityRegistered(CopilotCapability, CallerModuleInfo);
+
         ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(
             CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), CopilotCapabilityImpl.CapabilityToEnumName(CopilotCapability));
 
-        UsageTypeToDotnetUsageType();
+        UsageTypeToDotnetUsageType(CopilotQuotaUsageType, AlCopilotUsageType);
 
-        ALCopilotFunctions.LogQuotaUsage(AlCopilotCapability, Usage,);
+        ALCopilotFunctions.LogCopilotQuotaUsage(AlCopilotCapability, Usage, AlCopilotUsageType);
     end;
 
-    internal procedure UsageTypeToDotnetUsageType(var d: DotNet )
+    internal procedure UsageTypeToDotnetUsageType(CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; var AlCopilotUsageType: DotNet AlCopilotUsageType)
     begin
-
+        case CopilotQuotaUsageType of
+            CopilotQuotaUsageType::GenAIAnswer:
+                AlCopilotUsageType := AlCopilotUsageType::GenAIAnswer;
+            CopilotQuotaUsageType::AutonomousAction:
+                AlCopilotUsageType := AlCopilotUsageType::AutonomousAction;
+            else
+                Error(InvalidUsageTypeErr, CopilotQuotaUsageType);
+        end;
     end;
 }

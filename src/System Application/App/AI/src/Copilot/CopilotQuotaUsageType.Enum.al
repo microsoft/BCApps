@@ -7,7 +7,7 @@ namespace System.AI;
 /// <summary>
 /// The Copilot Capability codeunit is used to register, modify, and delete Copilot capabilities.
 /// </summary>
-enum 7773 "Copilot Quota Usage Type"
+enum 7785 "Copilot Quota Usage Type"
 {
     Access = Public;
     Extensible = false;

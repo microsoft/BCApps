@@ -7,7 +7,7 @@ namespace System.AI;
 /// <summary>
 /// The Copilot Capability codeunit is used to register, modify, and delete Copilot capabilities.
 /// </summary>
-codeunit 7773 "Copilot Quota Usage"
+codeunit 7785 "Copilot Quota Usage"
 {
     Access = Public;
     InherentEntitlements = X;
@@ -23,12 +23,11 @@ codeunit 7773 "Copilot Quota Usage"
     /// <returns></returns>
     [TryFunction]
     [Scope('OnPrem')]
-    procedure TryLogQuotaUsage(CopilotCapability: Enum "Copilot Capability")
+    procedure TryLogQuotaUsage(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type")
     var
-        ALCopilotFunctions: DotNet ALCopilotFunctions;
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        CopilotQuotaUsageImpl.LogQuotaUsage(CopilotCapability, CallerModuleInfo);
+        CopilotQuotaUsageImpl.LogQuotaUsage(CopilotCapability, Usage, CopilotQuotaUsageType, CallerModuleInfo);
     end;
 }
