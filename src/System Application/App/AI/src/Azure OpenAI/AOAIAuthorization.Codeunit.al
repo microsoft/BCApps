@@ -29,7 +29,6 @@ codeunit 7767 "AOAI Authorization"
     [NonDebuggable]
     procedure IsConfigured(CallerModule: ModuleInfo): Boolean
     var
-        AzureOpenAiImpl: Codeunit "Azure OpenAI Impl";
         CurrentModule: ModuleInfo;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
     begin
@@ -41,7 +40,7 @@ codeunit 7767 "AOAI Authorization"
             Enum::"AOAI Resource Utilization"::"Self-Managed":
                 exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()));
             Enum::"AOAI Resource Utilization"::"Microsoft Managed":
-                exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()) and (ManagedResourceDeployment <> '') and AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls());
+                exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()) and (ManagedResourceDeployment <> ''));
         end;
 
         exit(false);
