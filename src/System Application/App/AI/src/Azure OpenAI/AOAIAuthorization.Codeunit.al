@@ -215,8 +215,8 @@ codeunit 7767 "AOAI Authorization"
         TruncatedAccountName: Text[100];
         RemainingGracePeriod: Duration;
     begin
-        GracePeriod := 5 * 60 * 1000; //5 min for debugging 14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
-        CachePeriod := 2 * 60 * 1000; //2 min for debugging 24 * 60 * 60 * 1000; // 1 day in milliseconds
+        GracePeriod := 14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
+        CachePeriod := 24 * 60 * 60 * 1000; // 1 day in milliseconds
         TruncatedAccountName := CopyStr(DelChr(AccountName, '<>', ' '), 1, 100);
 
         if not IsValidAOAIAccountName(TruncatedAccountName) then
