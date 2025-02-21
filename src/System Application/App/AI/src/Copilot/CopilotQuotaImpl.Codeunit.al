@@ -30,7 +30,6 @@ codeunit 7786 "Copilot Quota Impl."
 
         Session.LogMessage('', StrSubstNo(LoggingUsageTelemetryMsg, CopilotCapability, Usage, CopilotQuotaUsageType), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetCopilotCategory());
 
-
         ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(
             CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), CopilotCapabilityImpl.CapabilityToEnumName(CopilotCapability));
 
