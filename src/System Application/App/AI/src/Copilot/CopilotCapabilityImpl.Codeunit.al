@@ -213,7 +213,7 @@ codeunit 7774 "Copilot Capability Impl"
         CapabilityIndex: Integer;
         CapabilityName: Text;
     begin
-        CapabilityIndex := CopilotCapability.Ordinals.IndexOf(CopilotSettings.Capability.AsInteger());
+        CapabilityIndex := CopilotCapability.Ordinals.IndexOf(CopilotCapability.AsInteger());
         CapabilityName := CopilotCapability.Names.Get(CapabilityIndex);
 
         if CapabilityName.Trim() = '' then
