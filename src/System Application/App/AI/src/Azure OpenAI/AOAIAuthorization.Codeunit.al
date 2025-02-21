@@ -173,16 +173,16 @@ codeunit 7767 "AOAI Authorization"
         UrlFormatTxt: Label 'https://%1.openai.azure.com/openai/models?api-version=2024-06-01', Locked = true;
         TrustedDomainTxt: Label 'openai.azure.com', Locked = true;
     begin
-        ShowUserNotification('Starting account verification for: ' + AOAIAccountNameToVerify);
+        Message('Starting account verification for: ' + AOAIAccountNameToVerify);
         Url := StrSubstNo(UrlFormatTxt, AOAIAccountNameToVerify);
 
         if not IsValidUrl(Url, TrustedDomainTxt) then begin
-            ShowUserNotification('Invalid URL: ' + Url);
+            Message('Invalid URL: ' + Url);
             Session.LogMessage('0000OQM', TelemetryInvalidAOAIUrlTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AzureOpenAIImpl.GetAzureOpenAICategory());
             exit(false);
         end;
 
-        ShowUserNotification('Valid URL: ' + Url);
+        Message('Valid URL: ' + Url);
         HttpContent.GetHeaders(ContentHeaders);
         if ContentHeaders.Contains('Content-Type') then
             ContentHeaders.Remove('Content-Type');
@@ -192,16 +192,16 @@ codeunit 7767 "AOAI Authorization"
         HttpRequestMessage.SetRequestUri(Url);
         HttpRequestMessage.Content(HttpContent);
 
-        ShowUserNotification('Sending HTTP request to: ' + Url);
+        Message('Sending HTTP request to: ' + Url);
         IsSuccessful := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
 
         if not IsSuccessful or not HttpResponseMessage.IsSuccessStatusCode() then begin
-            ShowUserNotification('Account verification failed for: ' + AOAIAccountNameToVerify);
+            Message('Account verification failed for: ' + AOAIAccountNameToVerify);
             Session.LogMessage('0000OLQ', TelemetryAOAIVerificationFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AzureOpenAIImpl.GetAzureOpenAICategory());
             exit(false);
         end;
 
-        ShowUserNotification('Account verification succeeded for: ' + AOAIAccountNameToVerify);
+        Message('Account verification succeeded for: ' + AOAIAccountNameToVerify);
         Session.LogMessage('0000OLR', TelemetryAOAIVerificationSucceededTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AzureOpenAIImpl.GetAzureOpenAICategory());
         exit(true);
     end;
@@ -226,37 +226,38 @@ codeunit 7767 "AOAI Authorization"
         TruncatedAccountName: Text[100];
         RemainingGracePeriod: Duration;
     begin
-        ShowUserNotification('Starting verification process for account: ' + AccountName);
+        Message('Starting verification process for account: ' + AccountName);
         GracePeriod := 5 * 60 * 1000; //5 min for debugging 14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
         CachePeriod := 2 * 60 * 1000; //2 min for debugging 24 * 60 * 60 * 1000; // 1 day in milliseconds
         TruncatedAccountName := CopyStr(DelChr(AccountName, '<>', ' '), 1, 100);
 
         if not IsValidAOAIAccountName(TruncatedAccountName) then begin
-            ShowUserNotification('Invalid account name: ' + TruncatedAccountName);
+            Message('Invalid account name: ' + TruncatedAccountName);
             exit(false);
         end;
 
         // Within CACHE period
         if IsAccountVerifiedWithinPeriod(TruncatedAccountName, CachePeriod) then begin
-            ShowUserNotification('Account is verified within the cache period: ' + TruncatedAccountName);
+            Message('Account is verified within the cache period: ' + TruncatedAccountName);
             Session.LogMessage('0000OLS', TelemetryAccessWithinCachePeriodTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AzureOpenAIImpl.GetAzureOpenAICategory());
             exit(true);
         end;
 
         // Outside CACHE period
-        ShowUserNotification('Account verification outside cache period: ' + TruncatedAccountName);
+        Message('Account verification outside cache period: ' + TruncatedAccountName);
         AccountVerified := PerformAOAIAccountVerification(TruncatedAccountName, NewApiKey);
 
         if not AccountVerified then begin
             // Never verified - no GRACE period
             if not IsVerificationTimeSet(TruncatedAccountName) then begin
                 Session.LogMessage('0000OQL', TelemetryInvalidAOAIAccountNameFormatTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AzureOpenAIImpl.GetAzureOpenAICategory());
-                ShowUserNotification('Account has never been verified: ' + TruncatedAccountName);
+                Message('Account has never been verified: ' + TruncatedAccountName);
                 exit(false);
             end;
 
             // Within GRACE period
             if IsAccountVerifiedWithinPeriod(TruncatedAccountName, GracePeriod) then begin
+                Message('Account is within grace period: ' + TruncatedAccountName);
                 RemainingGracePeriod := GetRemainingGracePeriod(TruncatedAccountName, GracePeriod);
                 ShowUserNotification(StrSubstNo(AuthFailedWithinGracePeriodUserNotificationLbl, FormatDurationAsDays(RemainingGracePeriod)));
                 LogTelemetry(TruncatedAccountName, CurrentDateTime, StrSubstNo(AuthFailedWithinGracePeriodLogMessageLbl, TruncatedAccountName, CurrentDateTime, FormatDurationAsDays(RemainingGracePeriod)));
@@ -265,7 +266,7 @@ codeunit 7767 "AOAI Authorization"
             end
             // Outside GRACE period
             else begin
-                ShowUserNotification('Account is outside grace period: ' + TruncatedAccountName);
+                Message('Account is outside grace period: ' + TruncatedAccountName);
                 ShowUserNotification(AuthFailedOutsideGracePeriodUserNotificationLbl);
                 LogTelemetry(TruncatedAccountName, CurrentDateTime, StrSubstNo(AuthFailedOutsideGracePeriodLogMessageLbl, TruncatedAccountName, CurrentDateTime));
                 Session.LogMessage('0000OLU', TelemetryAccessTokenOutsideCachePeriodTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AzureOpenAIImpl.GetAzureOpenAICategory());
@@ -273,7 +274,7 @@ codeunit 7767 "AOAI Authorization"
             end;
         end;
 
-        ShowUserNotification('Account verification successful: ' + TruncatedAccountName);
+        Message('Account verification successful: ' + TruncatedAccountName);
         SaveVerificationTime(TruncatedAccountName);
         exit(true);
     end;
@@ -298,21 +299,21 @@ codeunit 7767 "AOAI Authorization"
     begin
         // Save DateTime in XML format (format 9)
         IsolatedStorage.Set('AOAI_Verification_' + AccountName, Format(CurrentDateTime, 0, 9), DataScope::Module);
-        ShowUserNotification(StrSubstNo(TempDebugSavedVerificationTxt, AccountName));
+        Message(StrSubstNo(TempDebugSavedVerificationTxt, AccountName));
     end;
 
-    local procedure GetLastVerificationDateTime(AccountName: Text[100]) LastVerificationDateTime: DateTime
+    local procedure GetVerificationTime(AccountName: Text[100]) LastVerificationDateTime: DateTime
     var
         LastVerificationDateTimeText: Text;
         EvaluateSuccess: Boolean;
     begin
         if IsolatedStorage.Get('AOAI_Verification_' + AccountName, DataScope::Module, LastVerificationDateTimeText) then begin
             if LastVerificationDateTimeText <> '' then begin
-                ShowUserNotification('Attempting to parse datetime for account: ' + AccountName);
+                Message('Attempting to parse datetime for account: ' + AccountName);
                 // Parse the DateTime using format 9 (XML datetime)
                 EvaluateSuccess := Evaluate(LastVerificationDateTime, LastVerificationDateTimeText, 9);
                 if not EvaluateSuccess then begin
-                    ShowUserNotification('Parsing failed for account: ' + AccountName);
+                    Message('Parsing failed for account: ' + AccountName);
                     // Handle parsing failure
                     Session.LogMessage('0000OS7',
                         StrSubstNo(TelemetryAOAIDatetimeParseFailedTxt, AccountName, LastVerificationDateTimeText),
@@ -326,37 +327,50 @@ codeunit 7767 "AOAI Authorization"
             end else
                 // Handle empty value
                 Clear(LastVerificationDateTime);
-            ShowUserNotification(StrSubstNo(TempDebugRetrievedVerificationTxt, AccountName, LastVerificationDateTime));
+            Message(StrSubstNo(TempDebugRetrievedVerificationTxt, AccountName, LastVerificationDateTime));
         end else begin
             // Key doesn't exist in isolated storage
             Clear(LastVerificationDateTime);
-            ShowUserNotification(StrSubstNo(TempDebugVerificationNotFoundTxt, AccountName));
+            Message(StrSubstNo(TempDebugVerificationNotFoundTxt, AccountName));
         end;
     end;
 
     local procedure IsVerificationTimeSet(AccountName: Text[100]): Boolean
     begin
-        if GetLastVerificationDateTime(AccountName) <> 0DT then begin
-            ShowUserNotification(StrSubstNo(TempDebugVerificationSetTxt, AccountName));
+        if GetVerificationTime(AccountName) <> 0DT then begin
+            Message(StrSubstNo(TempDebugVerificationSetTxt, AccountName));
             exit(true);
         end else begin
-            ShowUserNotification(StrSubstNo(TempDebugVerificationNotSetTxt, AccountName));
+            Message(StrSubstNo(TempDebugVerificationNotSetTxt, AccountName));
             exit(false);
         end;
     end;
 
     local procedure GetRemainingGracePeriod(AccountName: Text[100]; GracePeriod: Duration) RemainingGracePeriod: Duration
+    var
+        LastVerificationDateTime: DateTime;
     begin
-        RemainingGracePeriod := GracePeriod - (CurrentDateTime - GetLastVerificationDateTime(AccountName));
+        LastVerificationDateTime := GetVerificationTime(AccountName);
+        if LastVerificationDateTime <= 0DT then begin
+            RemainingGracePeriod := 0;
+            exit;
+        end;
+        RemainingGracePeriod := GracePeriod - (CurrentDateTime - LastVerificationDateTime);
     end;
 
     local procedure IsAccountVerifiedWithinPeriod(AccountName: Text[100]; Period: Duration): Boolean
     var
         LastVerificationDateTime: DateTime;
     begin
-        LastVerificationDateTime := GetLastVerificationDateTime(AccountName);
-        exit((LastVerificationDateTime > 0DT) and (CurrentDateTime - LastVerificationDateTime <= Period));
+        LastVerificationDateTime := GetVerificationTime(AccountName);
+        if LastVerificationDateTime <= 0DT then
+            exit(false);
+        if CurrentDateTime - LastVerificationDateTime <= Period then
+            exit(true)
+        else
+            exit(false);
     end;
+
 
     local procedure ShowUserNotification(Message: Text)
     var
