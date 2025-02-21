@@ -50,7 +50,7 @@ codeunit 139043 "Web Service Management Test"
         if WebServiceAggregate.Get(WebService."Object Type"::Page, PageServiceTxt) then begin
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV3), PageServiceTxt);
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV4), PageServiceTxt);
-            VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageServiceTxt);
+            VerifyUrlMissingServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageServiceTxt);
         end;
 
         if WebServiceAggregate.Get(WebService."Object Type"::Query, QueryServiceTxt) then begin
@@ -126,7 +126,7 @@ codeunit 139043 "Web Service Management Test"
         if WebServiceAggregate.Get(WebService."Object Type"::Page, PageATxt) then begin
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV3), PageATxt);
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV4), PageATxt);
-            VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageATxt);
+            VerifyUrlMissingServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageATxt);
             Assert.IsTrue(WebServiceAggregate.Published, PageATxt + ' web service record "Published" field should be checked.');
         end;
 
@@ -252,16 +252,16 @@ codeunit 139043 "Web Service Management Test"
         AutoServiceName := Any.GuidValue();
 
         TempWebServiceAggregate.Init();
-        TempWebServiceAggregate."Object Type" := TempWebServiceAggregate."Object Type"::Page;
-        TempWebServiceAggregate."Object ID" := Page::"Dummy Page";
+        TempWebServiceAggregate."Object Type" := TempWebServiceAggregate."Object Type"::Codeunit;
+        TempWebServiceAggregate."Object ID" := Codeunit::"Dummy Codeunit";
         TempWebServiceAggregate."Service Name" := AutoServiceName;
         TempWebServiceAggregate."All Tenants" := true;
         TempWebServiceAggregate.Published := true;
         TempWebServiceAggregate.Insert(true);
 
         TempWebServiceAggregate.Init();
-        TempWebServiceAggregate."Object Type" := TempWebServiceAggregate."Object Type"::Page;
-        TempWebServiceAggregate."Object ID" := Page::"Dummy Page2";
+        TempWebServiceAggregate."Object Type" := TempWebServiceAggregate."Object Type"::Codeunit;
+        TempWebServiceAggregate."Object ID" := Codeunit::"Dummy Codeunit";
         TempWebServiceAggregate."Service Name" := AutoServiceName;
         TempWebServiceAggregate."All Tenants" := false;
         TempWebServiceAggregate.Published := true;
