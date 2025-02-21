@@ -22,7 +22,6 @@ codeunit 7785 "Copilot Quota"
     /// <param name="CopilotCapability">The Copilot Capability to log usage for.</param>
     /// <param name="Usage">The usage to log.</param>
     /// <param name="CopilotQuotaUsageType">The type of Copilot Quota to log.</param>
-    /// <returns></returns>
     [TryFunction]
     [Scope('OnPrem')]
     procedure TryLogQuotaUsage(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type")

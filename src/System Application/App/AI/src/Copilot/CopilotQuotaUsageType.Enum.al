@@ -12,7 +12,6 @@ enum 7785 "Copilot Quota Usage Type"
     Caption = 'Copilot Quota Usage Type';
     Access = Public;
     Extensible = false;
-    Scope = OnPrem;
 
     /// <summary>
     /// Represents a Generative AI Answer usage type.
