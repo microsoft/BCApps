@@ -20,6 +20,7 @@ codeunit 9751 "Web Service Management Impl."
     Permissions = tabledata AllObj = r,
                   tabledata AllObjWithCaption = r,
                   tabledata Field = r,
+                  tabledata "Published Application" = r,
                   tabledata "Tenant Web Service" = rimd,
                   tabledata "Web Service" = rimd,
                   tabledata "Tenant Web Service Columns" = imd,
