@@ -6,15 +6,16 @@ namespace System.AI;
 
 using System;
 
-codeunit 7786 "Copilot Quota Usage Impl"
+codeunit 7786 "Copilot Quota Impl."
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Copilot Settings" = rimd;
 
     var
-        InvalidUsageTypeErr: Label 'The value "%1" is not a valid Copilot Quota Usage Type.', Comment = '%1=a value such as "AI response"';
+        InvalidUsageTypeErr: Label 'The value "%1" is not a valid Copilot Quota Usage Type.', Comment = '%1=a value such as "AI response" or "5"';
+        CapabilityNotRegisteredTelemetryMsg: Label 'Capability "%1" is not registered in the system but is logging usage.', Locked = true;
+        LoggingUsageTelemetryMsg: Label 'Capability "%1" is logging %2 usage of type %3.', Locked = true;
 
     [Scope('OnPrem')]
     procedure LogQuotaUsage(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; CallerModuleInfo: ModuleInfo)
@@ -24,7 +25,11 @@ codeunit 7786 "Copilot Quota Usage Impl"
         AlCopilotCapability: DotNet ALCopilotCapability;
         AlCopilotUsageType: DotNet ALCopilotUsageType;
     begin
-        CopilotCapabilityImpl.IsCapabilityRegistered(CopilotCapability, CallerModuleInfo);
+        if not CopilotCapabilityImpl.IsCapabilityRegistered(CopilotCapability, CallerModuleInfo) then
+            Session.LogMessage('', StrSubstNo(CapabilityNotRegisteredTelemetryMsg, CopilotCapability), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetCopilotCategory());
+
+        Session.LogMessage('', StrSubstNo(LoggingUsageTelemetryMsg, CopilotCapability, Usage, CopilotQuotaUsageType), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetCopilotCategory());
+
 
         ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(
             CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), CopilotCapabilityImpl.CapabilityToEnumName(CopilotCapability));
@@ -34,12 +39,12 @@ codeunit 7786 "Copilot Quota Usage Impl"
         ALCopilotFunctions.LogCopilotQuotaUsage(AlCopilotCapability, Usage, AlCopilotUsageType);
     end;
 
-    internal procedure UsageTypeToDotnetUsageType(CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; var AlCopilotUsageType: DotNet AlCopilotUsageType)
+    local procedure UsageTypeToDotnetUsageType(CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; var AlCopilotUsageType: DotNet AlCopilotUsageType)
     begin
         case CopilotQuotaUsageType of
-            CopilotQuotaUsageType::GenAIAnswer:
+            CopilotQuotaUsageType::"Generative AI Answer":
                 AlCopilotUsageType := AlCopilotUsageType::GenAIAnswer;
-            CopilotQuotaUsageType::AutonomousAction:
+            CopilotQuotaUsageType::"Autonomous Action":
                 AlCopilotUsageType := AlCopilotUsageType::AutonomousAction;
             else
                 Error(InvalidUsageTypeErr, CopilotQuotaUsageType);

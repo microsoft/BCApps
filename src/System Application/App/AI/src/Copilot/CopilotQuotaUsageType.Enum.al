@@ -5,26 +5,27 @@
 namespace System.AI;
 
 /// <summary>
-/// The Copilot Capability codeunit is used to register, modify, and delete Copilot capabilities.
+/// Enumeration of valid types of usage of the Copilot Quota.
 /// </summary>
 enum 7785 "Copilot Quota Usage Type"
 {
+    Caption = 'Copilot Quota Usage Type';
     Access = Public;
     Extensible = false;
     Scope = OnPrem;
 
     /// <summary>
-    /// The Copilot Capability is in preview.
+    /// Represents a Generative AI Answer usage type.
     /// </summary>
-    value(0; GenAIAnswer)
+    value(0; "Generative AI Answer")
     {
-        Caption = 'Gen AI Answer';
+        Caption = 'Generative AI Answer';
     }
 
     /// <summary>
-    /// The Copilot Capability is in preview.
+    /// Represents an Autonomous Action usage type.
     /// </summary>
-    value(1; AutonomousAction)
+    value(1; "Autonomous Action")
     {
         Caption = 'Autonomous Action';
     }

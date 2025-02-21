@@ -5,21 +5,23 @@
 namespace System.AI;
 
 /// <summary>
-/// The Copilot Capability codeunit is used to register, modify, and delete Copilot capabilities.
+/// Codeunit that exposes functionality related to Copilot Quota, such as logging quota usage
 /// </summary>
-codeunit 7785 "Copilot Quota Usage"
+codeunit 7785 "Copilot Quota"
 {
     Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 
     var
-        CopilotQuotaUsageImpl: Codeunit "Copilot Quota Usage Impl";
+        CopilotQuotaImpl: Codeunit "Copilot Quota Impl.";
 
     /// <summary>
-    /// 
+    /// Try function to log usage of Copilot quota in the system. This function is only available for Microsoft Copilot features.
     /// </summary>
-    /// <param name="CopilotCapability"></param>
+    /// <param name="CopilotCapability">The Copilot Capability to log usage for.</param>
+    /// <param name="Usage">The usage to log.</param>
+    /// <param name="CopilotQuotaUsageType">The type of Copilot Quota to log.</param>
     /// <returns></returns>
     [TryFunction]
     [Scope('OnPrem')]
@@ -28,6 +30,6 @@ codeunit 7785 "Copilot Quota Usage"
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        CopilotQuotaUsageImpl.LogQuotaUsage(CopilotCapability, Usage, CopilotQuotaUsageType, CallerModuleInfo);
+        CopilotQuotaImpl.LogQuotaUsage(CopilotCapability, Usage, CopilotQuotaUsageType, CallerModuleInfo);
     end;
 }
