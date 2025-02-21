@@ -152,7 +152,7 @@ codeunit 3702 "Environment Information Impl."
     begin
         if ModuleInfo.Publisher <> 'Microsoft' then
             exit('');
-        exit(NavTenantSettingsHelper.GetEnvironmentSetting(SettingName));
+        exit(NavTenantSettingsHelper.GetEnvironmentApplicationSetting(SettingName));
     end;
 
     [InternalEvent(false)]
