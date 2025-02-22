@@ -24,9 +24,9 @@ codeunit 9844 "User Selection Impl."
     begin
         User.FilterGroup(2);
         if not EnvironmentInformation.IsSaaS() then
-            User.SetFilter("License Type", '<>%1&<>%2', User."License Type"::Application, User."License Type"::"Windows Group")
+            User.SetFilter("License Type", '<>%1&<>%2&<>%3', User."License Type"::Application, User."License Type"::"Windows Group", User."License Type"::"Agent")
         else
-            User.SetFilter("License Type", '<>%1&<>%2&<>%3', User."License Type"::"External User", User."License Type"::Application, User."License Type"::"AAD Group");
+            User.SetFilter("License Type", '<>%1&<>%2&<>%3&<>%4', User."License Type"::"External User", User."License Type"::Application, User."License Type"::"AAD Group", User."License Type"::"Agent");
         User.FilterGroup(0);
     end;
 
