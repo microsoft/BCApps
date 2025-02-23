@@ -202,17 +202,22 @@ codeunit 7774 "Copilot Capability Impl"
     end;
 
     procedure GetCapabilityName(): Text
+    begin
+        CheckCapabilitySet();
+
+        exit(CapabilityToEnumName(CopilotSettings.Capability));
+    end;
+
+    procedure CapabilityToEnumName(CopilotCapability: Enum "Copilot Capability"): Text
     var
         CapabilityIndex: Integer;
         CapabilityName: Text;
     begin
-        CheckCapabilitySet();
-
-        CapabilityIndex := CopilotSettings.Capability.Ordinals.IndexOf(CopilotSettings.Capability.AsInteger());
-        CapabilityName := CopilotSettings.Capability.Names.Get(CapabilityIndex);
+        CapabilityIndex := CopilotCapability.Ordinals.IndexOf(CopilotCapability.AsInteger());
+        CapabilityName := CopilotCapability.Names.Get(CapabilityIndex);
 
         if CapabilityName.Trim() = '' then
-            exit(Format(CopilotSettings.Capability, 0, 9));
+            exit(Format(CopilotCapability, 0, 9));
 
         exit(CapabilityName);
     end;
