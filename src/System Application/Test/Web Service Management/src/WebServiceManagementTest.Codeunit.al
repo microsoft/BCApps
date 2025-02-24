@@ -50,11 +50,7 @@ codeunit 139043 "Web Service Management Test"
         if WebServiceAggregate.Get(WebService."Object Type"::Page, PageServiceTxt) then begin
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV3), PageServiceTxt);
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV4), PageServiceTxt);
-#if not CLEAN26            
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageServiceTxt);
-#else
-            VerifyUrlMissingServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageServiceTxt);
-#endif
         end;
 
         if WebServiceAggregate.Get(WebService."Object Type"::Query, QueryServiceTxt) then begin
@@ -72,9 +68,7 @@ codeunit 139043 "Web Service Management Test"
         if WebServiceAggregate.Get(WebService."Object Type"::Page, UnpublishedPageTxt) then begin
             Assert.AreEqual('', WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV3), 'ODataV3 Url should be empty when not published: ' + CodeunitServiceTxt);
             Assert.AreEqual('', WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV4), 'ODataV4 Url should be empty when not published: ' + CodeunitServiceTxt);
-#if not CLEAN26
             Assert.AreEqual('', WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), 'SOAP Url should be empty when not published: ' + CodeunitServiceTxt);
-#endif
         end;
     end;
 
@@ -132,22 +126,14 @@ codeunit 139043 "Web Service Management Test"
         if WebServiceAggregate.Get(WebService."Object Type"::Page, PageATxt) then begin
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV3), PageATxt);
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV4), PageATxt);
-#if not CLEAN26
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageATxt);
-#else
-            VerifyUrlMissingServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageATxt);
-#endif
             Assert.IsTrue(WebServiceAggregate.Published, PageATxt + ' web service record "Published" field should be checked.');
         end;
 
         if WebServiceAggregate.Get(WebService."Object Type"::Page, PageBTxt) then begin
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV3), PageBTxt);
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV4), PageBTxt);
-#if not CLEAN26
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageBTxt);
-#else
-            VerifyUrlMissingServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageBTxt);
-#endif
             Assert.IsTrue(WebServiceAggregate.Published, PageBTxt + ' web service record "Published" field should be checked.');
         end;
     end;
@@ -248,6 +234,40 @@ codeunit 139043 "Web Service Management Test"
         Assert.AreEqual(PAGE::"Dummy Page", TenantWebService."Object ID", AutoServiceName + ' incorrect object ID');
         Assert.AreEqual(AutoServiceName, TenantWebService."Service Name", AutoServiceName + ' incorrect service name');
         Assert.IsTrue(TenantWebService.Published, AutoServiceName + ' should be published');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestInsertDuplicateServiceName()
+    var
+        TempWebServiceAggregate: Record "Web Service Aggregate" temporary;
+        Any: Codeunit Any;
+        AutoServiceName: Text[240];
+    begin
+        PermissionsMock.Set('Web Service Admin');
+
+        Initialize();
+        // Test that adding a new web service with the same Object Type and Service Name as an existing record
+        // (system or tenant record) will result in a duplicate service error.
+        AutoServiceName := Any.GuidValue();
+
+        TempWebServiceAggregate.Init();
+        TempWebServiceAggregate."Object Type" := TempWebServiceAggregate."Object Type"::Page;
+        TempWebServiceAggregate."Object ID" := Page::"Dummy Page";
+        TempWebServiceAggregate."Service Name" := AutoServiceName;
+        TempWebServiceAggregate."All Tenants" := true;
+        TempWebServiceAggregate.Published := true;
+        TempWebServiceAggregate.Insert(true);
+
+        TempWebServiceAggregate.Init();
+        TempWebServiceAggregate."Object Type" := TempWebServiceAggregate."Object Type"::Page;
+        TempWebServiceAggregate."Object ID" := Page::"Dummy Page2";
+        TempWebServiceAggregate."Service Name" := AutoServiceName;
+        TempWebServiceAggregate."All Tenants" := false;
+        TempWebServiceAggregate.Published := true;
+
+        asserterror TempWebServiceAggregate.Insert(true);
+        Assert.ExpectedError('The web service cannot be added because it conflicts with an unpublished system web service for the object.');
     end;
 
     [Test]
