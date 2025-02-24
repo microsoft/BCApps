@@ -64,7 +64,8 @@ table 309 "No. Series Line"
             var
                 NoSeriesSetup: Codeunit "No. Series - Setup";
             begin
-                TestField("Ending No.");
+                if "Warning No." <> '' then
+                    TestField("Ending No.");
                 NoSeriesSetup.UpdateNoSeriesLine(Rec, "Warning No.", CopyStr(FieldCaption("Warning No."), 1, 100));
             end;
         }
