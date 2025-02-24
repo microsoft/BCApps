@@ -10,7 +10,7 @@ namespace System.Environment.Configuration;
 /// </summary>
 permissionset 2612 "Feature Key - View"
 {
-    Access = Internal;
+    Access = Public;
     Assignable = false;
 
     IncludedPermissionSets = "Feature Key - Read",
