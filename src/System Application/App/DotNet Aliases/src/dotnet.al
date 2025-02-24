@@ -2155,6 +2155,10 @@ dotnet
         type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALMicrosoftLearnFunctions"; ALMicrosoftLearnFunctions)
         {
         }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotUsageType"; ALCopilotUsageType)
+        {
+        }
     }
     assembly("Microsoft.Dynamics.Nav.DataSearch")
     {
