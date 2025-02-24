@@ -132,6 +132,67 @@ page 7775 "Copilot AI Capabilities"
                 }
             }
 
+            group(CopilotOptOut)
+            {
+                ShowCaption = false;
+                Visible = true;
+
+                group(CopilotAllowedDataMovementOffInfo)
+                {
+                    ShowCaption = false;
+                    Visible = true;//WithinAOAIServicesInRegionArea and (not AllowDataMovement);
+                    InstructionalText = 'Some features use Microsoft Bing Search to improve results. To get the most out of these features, you must enable Bing Search.';
+                }
+                field(CopilotEUDBAreaDataSecurityAndPrivacy; FAQForDataSecurityAndPrivacyLbl)
+                {
+                    ShowCaption = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        Hyperlink(FAQForDataSecurityAndPrivacyDocLinkLbl);
+                    end;
+                }
+                group(CopilotEUDBAreaDataMovementGroup)
+                {
+                    ShowCaption = false;
+                    label(CopilotEUDBAreaCaption)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'By enabeling Bing Search, you agree to data being processed by the Bing Search Service outside of your environments geographic region or compliance boundary.';
+                    }
+                    field(CopilotEUDBAreaDataMovement; AllowDataMovement)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Enable Bing Search';
+                        ToolTip = 'Specifies whether to enable Bing Search. This is required to for Copilot to use Bing Search in your environment.';
+                        Editable = WithinEUDBArea and AllowDataMovementEditable;
+
+                        trigger OnValidate()
+                        begin
+                            UpdateAllowDataMovement();
+                        end;
+                    }
+                    field(CopilotEUDBAreaAOAIServiceLocated; AOAIServiceLocatedLbl)
+                    {
+                        ShowCaption = false;
+
+                        trigger OnDrillDown()
+                        begin
+                            Hyperlink(AOAIServiceLocatedDocLinkLbl);
+                        end;
+                    }
+                    field(CopilotEUDBAreaDataProcess; DataProcessByAOAILbl)
+                    {
+                        ShowCaption = false;
+
+                        trigger OnDrillDown()
+                        begin
+                            Hyperlink(DataProcessByAOAIDocLinkLbl);
+                        end;
+                    }
+                }
+            }
+
             group(AOAIOutOfRegionArea)
             {
                 ShowCaption = false;
