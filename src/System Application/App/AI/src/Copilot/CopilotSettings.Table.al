@@ -89,4 +89,24 @@ table 7775 "Copilot Settings"
 
         exit(true);
     end;
+
+    procedure IsPaid(): Boolean
+    var
+        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
+        CapabilityName: Text;
+    begin
+        if Rec.Capability.AsInteger() = 0 then
+            exit(false);
+
+        // TODO: This logic should just call the backend logic to avoid code duplication
+        if Rec.Publisher <> 'Microsoft' then
+            exit(true);
+
+        CapabilityName := CopilotCapabilityImpl.CapabilityToEnumName(Rec.Capability);
+
+        if CapabilityName in ['Sales Order Agent', 'No-Code Agent'] then
+            exit(true);
+
+        exit(false);
+    end;
 }

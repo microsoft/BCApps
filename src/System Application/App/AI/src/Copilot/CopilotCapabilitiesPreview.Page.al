@@ -55,6 +55,13 @@ page 7773 "Copilot Capabilities Preview"
                     ToolTip = 'Specifies the publisher of this Copilot.';
                     Editable = false;
                 }
+                field(IsPaid; Rec.IsPaid())
+                {
+                    ApplicationArea = All;
+                    Caption = 'Paid';
+                    ToolTip = 'Specifies whether this is a paid Copilot, meaning its usage will consume the quota available for your Entra tenant. Learn more at aka.ms/foobar .';
+                    Editable = false;
+                }
                 field("Learn More"; LearnMore)
                 {
                     ApplicationArea = All;
