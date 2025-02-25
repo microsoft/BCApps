@@ -12,7 +12,7 @@ permissionset 6712 "Web Service Management - Admin"
     Assignable = false;
 
     IncludedPermissionSets = "Web Service Management - View",
-                             "Feature Key - Admin";
+                             "Feature Mgt. - Admin";
 
     Permissions = tabledata "Tenant Web Service" = IMD,
                   tabledata "Tenant Web Service Columns" = IMD,
