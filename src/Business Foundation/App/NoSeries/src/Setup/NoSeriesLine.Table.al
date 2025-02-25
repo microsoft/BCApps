@@ -64,7 +64,8 @@ table 309 "No. Series Line"
             var
                 NoSeriesSetup: Codeunit "No. Series - Setup";
             begin
-                TestField("Ending No.");
+                if "Warning No." <> '' then
+                    TestField("Ending No.");
                 NoSeriesSetup.UpdateNoSeriesLine(Rec, "Warning No.", CopyStr(FieldCaption("Warning No."), 1, 100));
             end;
         }
@@ -126,12 +127,14 @@ table 309 "No. Series Line"
             DataClassification = SystemMetadata;
 
         }
-        field(15; "Temp Current Sequence No."; Integer)
+#pragma warning disable AS0004
+        field(15; "Temp Current Sequence No."; BigInteger)
         {
             Caption = 'Temporary Sequence Number';
             DataClassification = SystemMetadata;
             Access = Internal;
         }
+#pragma warning restore AS0004
     }
 
     keys

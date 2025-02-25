@@ -15,8 +15,7 @@ controladdin "Microsoft.Dynamics.Nav.Client.RoleCenterSelector"
     VerticalStretch = true;
     HorizontalStretch = true;
 
-    Scripts = 'https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.5.1.min.js',
-              'https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/js/fabric.min.js',
+    Scripts = 'https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/js/fabric.min.js',
               'Resources\RoleCenterSelector\js\RoleCenterSelector.js';
     StartupScript = 'Resources\RoleCenterSelector\js\Startup.js';
     RefreshScript = 'Resources\RoleCenterSelector\js\Refresh.js';

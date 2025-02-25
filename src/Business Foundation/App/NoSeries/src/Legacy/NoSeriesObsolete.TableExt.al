@@ -12,14 +12,6 @@ tableextension 308 NoSeriesObsolete extends "No. Series"
 {
     fields
     {
-        field(11790; Mask; Text[20]) // CZ Functionality
-        {
-            Caption = 'Mask';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'The field is used in CZ localization only. The functionality of No. Series Enhancements will be removed and this field should not be used. (Obsolete::Removed in release 01.2021)';
-            ObsoleteState = Removed;
-            ObsoleteTag = '18.0';
-        }
 #pragma warning disable AL0432
         field(12100; "No. Series Type"; Integer)
 #pragma warning restore AL0432
@@ -65,9 +57,9 @@ tableextension 308 NoSeriesObsolete extends "No. Series"
     [Obsolete('The method has been moved to codeunit "No. Series Setup Impl."', '24.0')]
     procedure DrillDown()
     var
-        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+        NoSeries: Codeunit "No. Series";
     begin
-        NoSeriesSetupImpl.DrillDown(Rec);
+        NoSeries.DrillDown(Rec);
     end;
 
     [Obsolete('The method has been moved to codeunit "No. Series Setup Impl."', '24.0')]

@@ -21,13 +21,51 @@ page 1933 "Perf. Profiler Schedules List"
     Editable = false;
     CardPageID = "Perf. Profiler Schedule Card";
     SourceTable = "Performance Profile Scheduler";
+    Permissions = tabledata "Performance Profile Scheduler" = rimd;
 
     layout
     {
         area(Content)
         {
-            repeater(Profiles)
+            group("Profiling Status")
             {
+                AboutTitle = 'Profiling Status';
+                AboutText = 'Specifies if profiling is enabled for the current user session.';
+                Caption = 'Profiling Status';
+
+                field("Active Schedule ID"; ActiveScheduleIdDisplayText)
+                {
+                    AboutText = 'The ID of the active schedule for the current session.';
+                    Caption = 'Active Schedule ID';
+                    Editable = false;
+                    DrillDown = true;
+                    ToolTip = 'Specifies the ID of the active schedule for the current session.';
+
+                    trigger OnDrillDown()
+                    var
+                        PerformanceProfileScheduler: Record "Performance Profile Scheduler";
+                        ScheduleCardPage: Page "Perf. Profiler Schedule Card";
+                    begin
+                        if IsNullGuid(ActiveScheduleId) then
+                            exit;
+
+                        if not PerformanceProfileScheduler.Get(ActiveScheduleId) then
+                            exit;
+
+                        ScheduleCardPage.SetRecord(PerformanceProfileScheduler);
+                        ScheduleCardPage.Run();
+                    end;
+                }
+            }
+
+            repeater(ProfilerSchedules)
+            {
+                field(Description; Rec.Description)
+                {
+                    Caption = 'Description';
+                    ToolTip = 'Specifies the description of the schedule.';
+                    AboutText = 'The description of the schedule.';
+                }
                 field("Schedule ID"; Rec."Schedule ID")
                 {
                     Caption = 'Schedule ID';
@@ -38,8 +76,8 @@ page 1933 "Perf. Profiler Schedules List"
                 field(Enabled; Rec.Enabled)
                 {
                     Caption = 'Enabled';
-                    ToolTip = 'Specifies whether the schedule is enabled.';
-                    AboutText = 'Specifies whether the schedule is enabled.';
+                    ToolTip = 'Specifies if the schedule is enabled.';
+                    AboutText = 'Specifies if the schedule is enabled.';
                 }
                 field("Start Time"; Rec."Starting Date-Time")
                 {
@@ -64,12 +102,6 @@ page 1933 "Perf. Profiler Schedules List"
                     Caption = 'Activity Type';
                     ToolTip = 'Specifies the type of activity for which the schedule is created.';
                     AboutText = 'The type of activity for which the schedule is created.';
-                }
-                field(Description; Rec.Description)
-                {
-                    Caption = 'Description';
-                    ToolTip = 'Specifies the description of the schedule.';
-                    AboutText = 'The description of the schedule.';
                 }
                 field(Frequency; Rec.Frequency)
                 {
@@ -112,6 +144,8 @@ page 1933 "Perf. Profiler Schedules List"
     trigger OnOpenPage()
     begin
         ScheduledPerfProfiler.FilterUsers(Rec, UserSecurityId());
+        ScheduledPerfProfiler.IsProfilingEnabled(ActiveScheduleId);
+        ActiveScheduleIdDisplayText := ActiveScheduleDisplayName();
     end;
 
     trigger OnAfterGetRecord()
@@ -136,4 +170,14 @@ page 1933 "Perf. Profiler Schedules List"
         ScheduledPerfProfiler: Codeunit "Scheduled Perf. Profiler";
         UserName: Text;
         Activity: Enum "Perf. Profile Activity Type";
+        ActiveScheduleIdDisplayText: Text;
+        ActiveScheduleId: Guid;
+
+    local procedure ActiveScheduleDisplayName(): Text
+    begin
+        if IsNullGuid(ActiveScheduleId) then
+            exit('');
+
+        exit(Format(ActiveScheduleId));
+    end;
 }

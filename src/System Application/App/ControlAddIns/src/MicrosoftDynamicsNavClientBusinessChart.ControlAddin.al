@@ -20,11 +20,10 @@ controladdin "Microsoft.Dynamics.Nav.Client.BusinessChart"
     HorizontalShrink = true;
 
     Scripts = 'Resources\BusinessChart\js\BusinessChartAddIn.js',
-              'https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.5.1.min.js',
-              'https://code.highcharts.com/9.1.1/highcharts.js',
-              'https://code.highcharts.com/9.1.1/highcharts-more.js',
-              'https://code.highcharts.com/9.1.1/modules/accessibility.js',
-              'https://code.highcharts.com/9.1.1/modules/funnel.js';
+              'https://bc-cdn.dynamics.com/common/js/highcharts-9.1.1.js',
+              'https://bc-cdn.dynamics.com/common/js/highcharts-more-9.1.1.js',
+              'https://bc-cdn.dynamics.com/common/js/accessibility-9.1.1.js',
+              'https://bc-cdn.dynamics.com/common/js/funnel-9.1.1.js';
     StartupScript = 'Resources\BusinessChart\js\Startup.js';
     RecreateScript = 'Resources\BusinessChart\js\Recreate.js';
     RefreshScript = 'Resources\BusinessChart\js\Refresh.js';

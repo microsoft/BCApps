@@ -15,14 +15,34 @@ codeunit 8890 "Send Email"
     trigger OnRun()
     var
         EmailMessage: Codeunit "Email Message";
+        EmailImpl: Codeunit "Email Impl";
+        EmailConnector: Interface "Email Connector";
+#if not CLEAN26
+#pragma warning disable AL0432
+        EmailConnectorv2: Interface "Email Connector v2";
+#pragma warning restore AL0432
+#endif
+        EmailConnectorv3: Interface "Email Connector v3";
     begin
         EmailMessage.Get(Rec.Id);
-        EmailConnector.Send(EmailMessage, AccountId);
+
+        if EmailMessage.GetExternalId() <> '' then begin
+            EmailConnector := GlobalEmailConnector;
+#if not CLEAN26
+#pragma warning disable AL0432
+            if EmailImpl.CheckAndGetEmailConnectorv2(EmailConnector, EmailConnectorv2) then
+#pragma warning restore AL0432
+                EmailConnectorv2.Reply(EmailMessage, AccountId);
+#endif
+            if EmailImpl.CheckAndGetEmailConnectorv3(EmailConnector, EmailConnectorv3) then
+                EmailConnectorv3.Reply(EmailMessage, AccountId);
+        end else
+            GlobalEmailConnector.Send(EmailMessage, AccountId);
     end;
 
     procedure SetConnector(NewEmailConnector: Interface "Email Connector")
     begin
-        EmailConnector := NewEmailConnector;
+        GlobalEmailConnector := NewEmailConnector;
     end;
 
     procedure SetAccount(NewAccountId: Guid)
@@ -31,6 +51,6 @@ codeunit 8890 "Send Email"
     end;
 
     var
-        EmailConnector: Interface "Email Connector";
+        GlobalEmailConnector: Interface "Email Connector";
         AccountId: Guid;
 }

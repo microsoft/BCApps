@@ -18,13 +18,23 @@ codeunit 1931 "Scheduled Perf. Profiler"
         ScheduledPerfProfilerImpl: Codeunit "Scheduled Perf. Profiler Impl.";
 
     /// <summary>
-    /// Validate dates for the "Performance Profile Scheduler" record
+    /// Validate dates for the "Performance Profile Scheduler" record with all validations.
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record</param>
     /// <param name="MaxRetentionPeriod">The maximum retention period</param>
     procedure ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; MaxRetentionPeriod: Duration)
     begin
         ScheduledPerfProfilerImpl.ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler, MaxRetentionPeriod);
+    end;
+
+    /// <summary>
+    /// Validate the relation between the dates for the "Performance Profile Scheduler" record.
+    /// </summary>
+    /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record</param>
+    /// <param name="MaxRetentionPeriod">The maximum retention period</param>
+    procedure ValidatePerformanceProfileSchedulerDatesRelation(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
+    begin
+        ScheduledPerfProfilerImpl.ValidatePerformanceProfileSchedulerDatesRelation(PerformanceProfileScheduler);
     end;
 
     /// <summary>
@@ -37,7 +47,7 @@ codeunit 1931 "Scheduled Perf. Profiler"
     end;
 
     /// <summary>
-    /// Maps an activity type to a session type
+    /// Maps an activity type to a session type.
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>
     /// <param name="ActivityType">The activity enum type</param>
@@ -75,6 +85,16 @@ codeunit 1931 "Scheduled Perf. Profiler"
     procedure FilterUsers(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; SecurityID: Guid; ForceFilterToUser: Boolean)
     begin
         ScheduledPerfProfilerImpl.FilterUsers(PerformanceProfileScheduler, SecurityID, ForceFilterToUser);
+    end;
+
+    /// <summary>
+    /// Returns true if the user can make schedules for other users.
+    /// </summary>
+    /// <param name="UserID">The current user ID.</param>
+    /// <param name="ScheduleUserId">The schedule user ID.</param>
+    procedure ValidateScheduleCreationPermissions(UserID: Guid; ScheduleUserId: Guid)
+    begin
+        ScheduledPerfProfilerImpl.ValidateScheduleCreationPermissions(UserID, ScheduleUserId);
     end;
 
     /// <summary>
@@ -122,5 +142,15 @@ codeunit 1931 "Scheduled Perf. Profiler"
     procedure ValidateThreshold(var PerformanceProfileScheduler: Record "Performance Profile Scheduler")
     begin
         ScheduledPerfProfilerImpl.ValidateThreshold(PerformanceProfileScheduler);
+    end;
+
+    /// <summary>
+    /// Returns true if profiling is enabled for the session.
+    /// </summary>
+    /// <param name="ScheduleID">The schedule ID that triggers the profiling.</param>
+    /// <returns>True if profiling is enabled, false otherwise.</returns>
+    procedure IsProfilingEnabled(var ScheduleID: Guid): Boolean
+    begin
+        exit(ScheduledPerfProfilerImpl.IsProfilingEnabled(ScheduleID));
     end;
 }

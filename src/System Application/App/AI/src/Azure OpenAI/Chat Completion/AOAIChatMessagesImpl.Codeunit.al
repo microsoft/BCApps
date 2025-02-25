@@ -29,15 +29,17 @@ codeunit 7764 "AOAI Chat Messages Impl"
         HistoryNames: List of [Text[2048]];
         [NonDebuggable]
         HistoryToolCallIds: List of [Text];
+        [NonDebuggable]
+        HistoryToolCalls: List of [JsonArray];
         IsSystemMessageSet: Boolean;
         MessageIdDoesNotExistErr: Label 'Message id does not exist.';
         HistoryLengthErr: Label 'History length must be greater than 0.';
         MetapromptLoadingErr: Label 'Metaprompt not found.';
-        TelemetryMetapromptSetbutEmptyTxt: Label 'Metaprompt was set but is empty.', Locked = true;
-        TelemetryMetapromptEmptyTxt: Label 'Metaprompt was not set.', Locked = true;
-        TelemetryMetapromptRetrievalErr: Label 'Unable to retrieve metaprompt from Azure Key Vault.', Locked = true;
-        TelemetryPrepromptRetrievalErr: Label 'Unable to retrieve preprompt from Azure Key Vault.', Locked = true;
-        TelemetryPostpromptRetrievalErr: Label 'Unable to retrieve postprompt from Azure Key Vault.', Locked = true;
+        TelemetryMetapromptSetbutEmptyTxt: Label 'Metaprompt set (but was empty)', Locked = true;
+        TelemetryMetapromptEmptyTxt: Label 'Metaprompt not set.', Locked = true;
+        TelemetryMetapromptRetrievalErr: Label 'Metaprompt failed to be retrieved from Azure Key Vault.', Locked = true;
+        TelemetryPrepromptRetrievalErr: Label 'Preprompt failed to be retrieved from Azure Key Vault.', Locked = true;
+        TelemetryPostpromptRetrievalErr: Label 'Postprompt failed to be retrieved from Azure Key Vault.', Locked = true;
 
     [NonDebuggable]
     procedure SetPrimarySystemMessage(NewPrimaryMessage: SecretText)
@@ -75,6 +77,13 @@ codeunit 7764 "AOAI Chat Messages Impl"
     end;
 
     [NonDebuggable]
+    procedure AddToolCalls(ToolCalls: JsonArray)
+    begin
+        Initialize();
+        AddMessage(ToolCalls);
+    end;
+
+    [NonDebuggable]
     procedure AddToolMessage(ToolCallId: Text; FunctionName: Text; FunctionResult: Text)
     var
         FunctionNameTruncated: Text[2048];
@@ -82,6 +91,8 @@ codeunit 7764 "AOAI Chat Messages Impl"
         Initialize();
         FunctionNameTruncated := CopyStr(FunctionName, 1, MaxStrLen(FunctionNameTruncated));
         AddMessage(FunctionResult, FunctionNameTruncated, ToolCallId, Enum::"AOAI Chat Roles"::Tool);
+
+        HistoryLength += 1; // Do not contribute to history length
     end;
 
 
@@ -151,6 +162,15 @@ codeunit 7764 "AOAI Chat Messages Impl"
     end;
 
     [NonDebuggable]
+    procedure GetLastToolCalls() LastToolCalls: JsonArray
+    var
+        LastToolCallsRef: JsonArray;
+    begin
+        HistoryToolCalls.Get(HistoryToolCalls.Count, LastToolCallsRef);
+        LastToolCalls := LastToolCallsRef.Clone().AsArray(); // avoid modifications to the chat message
+    end;
+
+    [NonDebuggable]
     procedure GetLastToolCallId() LastToolCall: Text
     begin
         HistoryToolCallIds.Get(HistoryToolCallIds.Count, LastToolCall);
@@ -179,9 +199,9 @@ codeunit 7764 "AOAI Chat Messages Impl"
     procedure PrepareHistory(var SystemMessageTokenCount: Integer; var MessagesTokenCount: Integer) HistoryResult: JsonArray
     var
         AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
-        AOAIToolsImpl: Codeunit "AOAI Tools Impl";
         Counter: Integer;
         MessageJsonObject: JsonObject;
+        ToolCalls: JsonArray;
         Message: Text;
         TotalMessages: Text;
         Name: Text[2048];
@@ -213,13 +233,14 @@ codeunit 7764 "AOAI Chat Messages Impl"
             History.Get(Counter, Message);
             HistoryNames.Get(Counter, Name);
             HistoryToolCallIds.Get(Counter, ToolCallId);
+            HistoryToolCalls.Get(Counter, ToolCalls);
             MessageJsonObject.Add('role', Format(Role));
             if UsingMicrosoftMetaprompt and (Role = Enum::"AOAI Chat Roles"::User) then
                 Message := WrapUserMessages(AzureOpenAIImpl.RemoveProhibitedCharacters(Message))
             else
                 Message := AzureOpenAIImpl.RemoveProhibitedCharacters(Message);
-            if AOAIToolsImpl.IsToolsList(Message) then
-                MessageJsonObject.Add('tool_calls', AOAIToolsImpl.ConvertToJsonArray(Message))
+            if ToolCalls.Count() > 0 then
+                MessageJsonObject.Add('tool_calls', ToolCalls)
             else
                 MessageJsonObject.Add('content', Message);
 
@@ -248,21 +269,37 @@ codeunit 7764 "AOAI Chat Messages Impl"
     end;
 
     [NonDebuggable]
+    local procedure AddMessage(ToolCalls: JsonArray)
+    begin
+        HistoryRoles.Add(Enum::"AOAI Chat Roles"::Assistant);
+        HistoryToolCalls.Add(ToolCalls);
+        History.Add('');
+        HistoryNames.Add('');
+        HistoryToolCallIds.Add('');
+    end;
+
+    [NonDebuggable]
     local procedure AddMessage(NewMessage: Text; NewName: Text[2048]; NewRole: Enum "AOAI Chat Roles")
+    var
+        ToolCalls: JsonArray;
     begin
         History.Add(NewMessage);
         HistoryRoles.Add(NewRole);
         HistoryNames.Add(NewName);
         HistoryToolCallIds.Add('');
+        HistoryToolCalls.Add(ToolCalls);
     end;
 
     [NonDebuggable]
     local procedure AddMessage(NewMessage: Text; NewName: Text[2048]; NewToolCallId: Text; NewRole: Enum "AOAI Chat Roles")
+    var
+        ToolCalls: JsonArray;
     begin
         History.Add(NewMessage);
         HistoryRoles.Add(NewRole);
         HistoryNames.Add(NewName);
         HistoryToolCallIds.Add(NewToolCallId);
+        HistoryToolCalls.Add(ToolCalls);
     end;
 
     [NonDebuggable]
@@ -272,14 +309,10 @@ codeunit 7764 "AOAI Chat Messages Impl"
         Preprompt: Text;
         Postprompt: Text;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Preprompt-Chat', Preprompt) then begin
+        if not AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Preprompt-Chat', Preprompt) then
             Telemetry.LogMessage('0000LX4', TelemetryPrepromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
-            Error(MetapromptLoadingErr);
-        end;
-        if not AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Postprompt-Chat', Postprompt) then begin
+        if not AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Postprompt-Chat', Postprompt) then
             Telemetry.LogMessage('0000LX5', TelemetryPostpromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
-            Error(MetapromptLoadingErr);
-        end;
 
         exit(Preprompt + Message + Postprompt);
     end;
@@ -289,6 +322,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         EnvironmentInformation: Codeunit "Environment Information";
+        ModuleInfo: ModuleInfo;
         KVSecret: Text;
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
@@ -298,7 +332,9 @@ codeunit 7764 "AOAI Chat Messages Impl"
             UsingMicrosoftMetaprompt := true
         else begin
             Telemetry.LogMessage('0000LX6', TelemetryMetapromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
-            Error(MetapromptLoadingErr);
+            NavApp.GetCurrentModuleInfo(ModuleInfo);
+            if ModuleInfo.Publisher = 'Microsoft' then
+                Error(MetapromptLoadingErr);
         end;
         Metaprompt := KVSecret;
     end;

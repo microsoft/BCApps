@@ -30,6 +30,7 @@ codeunit 3904 "Apply Retention Policy Impl."
         StartApplyRetentionPoliciesInfoLbl: Label 'Started applying all retention policies.';
         EndApplyRetentionPoliciesInfoLbl: Label 'Finished applying all retention policies.';
         StartApplyRetentionPolicyInfoLbl: Label 'Started applying the retention policy defined for table %1, %2. ', Comment = '%1 = a id of a table (integer), %2 = the caption of the table.';
+        RetentionPolicyAppliedLbl: Label 'The retention policy defined for table %1, %2 applied by the UserSecurityId %3. ', Locked = true;
         EndApplyRetentionPolicyInfoLbl: Label 'Finished applying the retention policy defined for table: %1, %2.', Comment = '%1 = a id of a table (integer), %2 = the caption of the table.';
         DisabledRetentionPolicyOnMissingTableLbl: Label 'Table %1 was not found. The retention policy has been disabled.', Comment = '%1 = a id of a table (integer)';
         StartRetentionPolicyRecordCountLbl: Label 'Started counting the number of expired records in table %1, %2. ', Comment = '%1 = a id of a table (integer), %2 = table caption';
@@ -132,6 +133,7 @@ codeunit 3904 "Apply Retention Policy Impl."
 
         RetentionPolicySetup.CalcFields("Table Name", "Table Caption");
         RetentionPolicyLog.LogInfo(LogCategory(), AppendStartedByUserMessage(StrSubstNo(StartApplyRetentionPolicyInfoLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"), UserInvokedRun));
+        Session.LogAuditMessage(StrSubstNo(RetentionPolicyAppliedLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
 
         if GetExpiredRecords(RetentionPolicySetup, RecordRef, ExpiredRecordExpirationDate) then
             DeleteExpiredRecords(RecordRef)
@@ -160,9 +162,9 @@ codeunit 3904 "Apply Retention Policy Impl."
         RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(StartRetentionPolicyRecordCountLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));
 
         if GetExpiredRecords(RetentionPolicySetup, RecordRef, ExpiredRecordExpirationDate) then begin
-            ExpiredRecordCount := Count(RecordRef);
+            ExpiredRecordCount := this.Count(RecordRef);
             RecordRef.Reset();
-            TotalRecordCount := Count(RecordRef);
+            TotalRecordCount := this.Count(RecordRef);
         end;
         RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(EndRetentionPolicyRecordCountLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));
         RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(NumberOfExpiredRecordsLbl, ExpiredRecordCount, TotalRecordCount, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));
@@ -224,10 +226,10 @@ codeunit 3904 "Apply Retention Policy Impl."
         RecordCountBefore: Integer;
         RecordCountAfter: Integer;
     begin
-        RecordCountBefore := Count(RecordRef);
         RecordRefDuplicate := RecordRef.Duplicate();
 
         FillTempRetenPolDeletingParamTable(TempRetenPolDeletingParam, RecordRef);
+        RecordCountBefore := TempRetenPolDeletingParam."Record Count Before Delete";
 
         RetenPolDeleting := RetenPolAllowedTables.GetRetenPolDeleting(RecordRef.Number);
         RetenPolDeleting.DeleteRecords(RecordRef, TempRetenPolDeletingParam);
@@ -247,7 +249,7 @@ codeunit 3904 "Apply Retention Policy Impl."
         RetenPolicyTelemetryImpl.SendTelemetryOnRecordsDeleted(RecordRefDuplicate.Number, RecordRefDuplicate.Name, NumberOfRecordsDeleted, IsUserInvokedRun);
 
         if not TempRetenPolDeletingParam."Skip Event Rec. Limit Exceeded" then
-            RaiseRecordLimitExceededEvent(RecordRefDuplicate);
+            RaiseRecordLimitExceededEvent(RecordRefDuplicate, RecordCountAfter);
     end;
 
     local procedure CheckAndContinueWithRerun(var RetentionPolicySetup: Record "Retention Policy Setup")
@@ -263,15 +265,16 @@ codeunit 3904 "Apply Retention Policy Impl."
 
     local procedure FillTempRetenPolDeletingParamTable(var TempRetenPolDeletingParam: Record "Reten. Pol. Deleting Param" temporary; var RecordRef: RecordRef)
     begin
+        TempRetenPolDeletingParam."Record Count Before Delete" := this.Count(RecordRef);
         TempRetenPolDeletingParam."Indirect Permission Required" := VerifyIndirectDeletePermission(RecordRef.Number);
         TempRetenPolDeletingParam."Skip Event Indirect Perm. Req." := not TempRetenPolDeletingParam."Indirect Permission Required";
         TempRetenPolDeletingParam."Max. Number of Rec. to Delete" := MaxNumberOfRecordsToDelete() - TotalNumberOfRecordsDeleted;
-        TempRetenPolDeletingParam."Skip Event Rec. Limit Exceeded" := TempRetenPolDeletingParam."Max. Number of Rec. to Delete" > Count(RecordRef);
+        TempRetenPolDeletingParam."Skip Event Rec. Limit Exceeded" := TempRetenPolDeletingParam."Max. Number of Rec. to Delete" > TempRetenPolDeletingParam."Record Count Before Delete";
         TempRetenPolDeletingParam."Total Max. Nr. of Rec. to Del." := MaxNumberOfRecordsToDelete();
         TempRetenPolDeletingParam."User Invoked Run" := IsUserInvokedRun;
     end;
 
-    local procedure RaiseRecordLimitExceededEvent(var RecordRefDuplicate: RecordRef)
+    local procedure RaiseRecordLimitExceededEvent(var RecordRefDuplicate: RecordRef; RecordCountAfter: Integer)
     var
         RetentionPolicyLog: Codeunit "Retention Policy Log";
         ApplyRetentionPolicyFacade: Codeunit "Apply Retention Policy";
@@ -279,7 +282,7 @@ codeunit 3904 "Apply Retention Policy Impl."
     begin
         EndCurrentRun := true;
         RetentionPolicyLog.LogWarning(LogCategory(), EndCurrentRunLbl);
-        ApplyRetentionPolicyFacade.OnApplyRetentionPolicyRecordLimitExceeded(RecordRefDuplicate.Number, Count(RecordRefDuplicate), ApplyAllRetentionPolicies, IsUserInvokedRun, Handled);
+        ApplyRetentionPolicyFacade.OnApplyRetentionPolicyRecordLimitExceeded(RecordRefDuplicate.Number, RecordCountAfter, ApplyAllRetentionPolicies, IsUserInvokedRun, Handled);
         if IsUserInvokedRun and (not Handled) and GuiAllowed() then begin
             Commit();
             if Confirm(ConfirmRerunMsg, true, MaxNumberOfRecordsToDelete()) then
@@ -427,6 +430,11 @@ codeunit 3904 "Apply Retention Policy Impl."
     internal procedure MaxNumberOfRecordsToDelete(): Integer
     begin
         exit(10000)
+    end;
+
+    internal procedure NumberOfRecordsToDeleteBuffer(): Integer
+    begin
+        exit(0)
     end;
 
     local procedure Count(RecordRef: RecordRef): Integer;

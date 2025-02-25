@@ -19,7 +19,7 @@ codeunit 134687 "Test Email Connector" implements "Email Connector"
 
     procedure GetAccounts(var Accounts: Record "Email Account")
     begin
-        ConnectorMock.GetAccounts(Accounts);
+        ConnectorMock.GetAccounts(Accounts, Enum::"Email Connector"::"Test Email Connector");
     end;
 
     procedure ShowAccountInformation(AccountId: Guid)

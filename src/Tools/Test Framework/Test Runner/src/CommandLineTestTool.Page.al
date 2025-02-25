@@ -430,8 +430,10 @@ page 130455 "Command Line Test Tool"
         SetCurrentTestSuite();
     end;
 
-    var
+    protected var
         GlobalALTestSuite: Record "AL Test Suite";
+
+    var
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
         CurrentSuiteName: Code[10];
         TestCodeunitRangeFilter: Text;

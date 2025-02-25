@@ -10,8 +10,13 @@ on:
         required: false
         default: '*'
       versionNumber:
-        description: Updated Version Number. Use Major.Minor for absolute change, use +Major.Minor for incremental change.
-        required: true
+        description: New Version Number in main branch. Use Major.Minor (optionally add .Build for versioningstrategy 3) for absolute change, or +1, +0.1 (or +0.0.1 for versioningstrategy 3) incremental change.
+        required: false
+        default: ''
+      skipUpdatingDependencies:
+        description: Skip updating dependency version numbers in all apps.
+        type: boolean
+        default: false
       directCommit:
         description: Direct Commit?
         type: boolean
@@ -20,10 +25,6 @@ on:
         description: Use GhTokenWorkflow for PR/Commit?
         type: boolean
         default: false
-
-permissions:
-  contents: write
-  pull-requests: write
 
 defaults:
   run:
@@ -37,30 +38,34 @@ jobs:
   IncrementVersionNumber:
     needs: [ ]
     runs-on: [ windows-latest ]
+    permissions:
+      actions: read
+      contents: write
+      id-token: write
+      pull-requests: write
     steps:
       - name: Dump Workflow Information
-        uses: microsoft/AL-Go-Actions/DumpWorkflowInfo@v5.2
+        uses: microsoft/AL-Go-Actions/DumpWorkflowInfo@v6.3
         with:
           shell: powershell
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Initialize the workflow
         id: init
-        uses: microsoft/AL-Go-Actions/WorkflowInitialize@v5.2
+        uses: microsoft/AL-Go-Actions/WorkflowInitialize@v6.3
         with:
           shell: powershell
-          eventId: "DO0096"
 
       - name: Read settings
-        uses: microsoft/AL-Go-Actions/ReadSettings@v5.2
+        uses: microsoft/AL-Go-Actions/ReadSettings@v6.3
         with:
           shell: powershell
 
       - name: Read secrets
         id: ReadSecrets
-        uses: microsoft/AL-Go-Actions/ReadSecrets@v5.2
+        uses: microsoft/AL-Go-Actions/ReadSecrets@v6.3
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -68,19 +73,21 @@ jobs:
           useGhTokenWorkflowForPush: '${{ github.event.inputs.useGhTokenWorkflow }}'
 
       - name: Increment Version Number
-        uses: microsoft/AL-Go-Actions/IncrementVersionNumber@v5.2
+        uses: microsoft/AL-Go-Actions/IncrementVersionNumber@v6.3
         with:
           shell: powershell
           token: ${{ steps.ReadSecrets.outputs.TokenForPush }}
-          parentTelemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
           projects: ${{ github.event.inputs.projects }}
           versionNumber: ${{ github.event.inputs.versionNumber }}
+          skipUpdatingDependencies: ${{ github.event.inputs.skipUpdatingDependencies }}
           directCommit: ${{ github.event.inputs.directCommit }}
 
       - name: Finalize the workflow
         if: always()
-        uses: microsoft/AL-Go-Actions/WorkflowPostProcess@v5.2
+        uses: microsoft/AL-Go-Actions/WorkflowPostProcess@v6.3
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           shell: powershell
-          eventId: "DO0096"
           telemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
+          currentJobContext: ${{ toJson(job) }}

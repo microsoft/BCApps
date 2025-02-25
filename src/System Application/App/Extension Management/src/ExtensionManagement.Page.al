@@ -7,6 +7,7 @@ namespace System.Apps;
 
 using System.Environment;
 using System.Environment.Configuration;
+using System.Integration;
 
 /// <summary>
 /// Lists the available extensions, and provides features for managing them.
@@ -63,6 +64,13 @@ page 2500 "Extension Management"
                     Style = Favorable;
                     StyleExpr = InfoStyle;
                     ToolTip = 'Specifies whether the extension is installed.';
+                }
+                field("Source"; AllowsDownloadSource)
+                {
+                    Caption = 'Source';
+                    StyleExpr = AllowsDownloadSourceStyleExpr;
+                    ToolTip = 'Specifies whether the extension allows the source to be downloaded.';
+                    OptionCaption = ' ,Yes,No';
                 }
                 field("Published As"; Rec."Published As")
                 {
@@ -208,38 +216,24 @@ page 2500 "Extension Management"
                         CurrPage.Update(false);
                     end;
                 }
+#if not CLEAN25
                 action("Extension Marketplace")
                 {
                     Caption = 'Extension Marketplace';
                     Enabled = IsSaaS;
                     Image = NewItem;
                     ToolTip = 'Browse the extension marketplace for new extensions to install.';
-                    Visible = not IsOnPremDisplay;
-#if not CLEAN24                    
-#pragma warning disable AL0432
-                    RunObject = page "Extension Marketplace";
-#pragma warning restore AL0432
-#else                    
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This action will be obsoleted. Microsoft AppSource apps feature will replace the Extension Marketplace.';
+                    ObsoleteTag = '25.0';
+
                     trigger OnAction()
                     begin
                         Hyperlink('https://aka.ms/bcappsource');
                     end;
+                }
 #endif
-                }
-                action("Microsoft AppSource Gallery")
-                {
-                    Caption = 'AppSource Gallery';
-                    Enabled = IsSaaS;
-                    Image = NewItem;
-                    ToolTip = 'Browse the Microsoft AppSource Gallery for new extensions to install.';
-                    Visible = not IsOnPremDisplay;
-                    RunPageMode = View;
-
-                    trigger OnAction()
-                    begin
-                        Page.Run(2515);
-                    end;
-                }
                 action("Upload Extension")
                 {
                     Caption = 'Upload Extension';
@@ -266,14 +260,92 @@ page 2500 "Extension Management"
                     ToolTip = 'Delete the data of orphaned extensions.';
                 }
             }
+
+            group("Develop in VS Code")
+            {
+                Caption = 'Develop in VS Code';
+                ToolTip = 'Set of actions to configure your local AL project in Visual Studio Code for extension development.';
+
+                action("Open Source in VS Code")
+                {
+                    Caption = 'Open source from Git';
+                    Enabled = IsSourceSpecificationAvailable;
+                    Image = Open;
+                    Scope = Repeater;
+                    ToolTip = 'Open the source code for the extension based on the source control information.';
+
+                    trigger OnAction()
+                    begin
+                        VsCodeIntegration.OpenExtensionSourceInVSCode(Rec);
+                    end;
+                }
+                action("Update configurations")
+                {
+                    AccessByPermission = System "Tools, Zoom" = X;
+                    Caption = 'Generate launch configurations';
+                    Image = Setup;
+                    ToolTip = 'Generates the launch configurations in your local AL project in Visual Studio Code for extension development in this environment.';
+
+                    trigger OnAction()
+                    begin
+                        VSCodeIntegration.UpdateConfigurationsInVSCode();
+                    end;
+                }
+
+                group("Get as dependencies")
+                {
+                    Caption = 'Get selected as dependencies';
+                    ToolTip = 'Set of actions to add the selected extensions as dependencies to your local project in Visual Studio Code.';
+
+                    action("Download dependencies")
+                    {
+                        AccessByPermission = System "Tools, Zoom" = X;
+                        Caption = 'Download in VS Code';
+                        Enabled = IsInstalled;
+                        Image = Download;
+                        ToolTip = 'Adds the selected extensions to your local project''s dependencies in Visual Studio Code, and downloads the symbols for them.';
+
+                        trigger OnAction()
+                        begin
+                            CurrPage.SetSelectionFilter(Rec);
+                            VSCodeIntegration.UpdateDependenciesInVSCode(Rec);
+                        end;
+                    }
+
+                    action("Show dependencies")
+                    {
+                        AccessByPermission = System "Tools, Zoom" = X;
+                        ApplicationArea = All;
+                        Caption = 'Show and copy';
+                        Enabled = IsInstalled;
+                        Image = Copy;
+                        ToolTip = 'Formats the selected dependencies as a json array and displays them in a dialog window.';
+
+                        trigger OnAction()
+                        begin
+                            CurrPage.SetSelectionFilter(Rec);
+                            Message(VSCodeIntegration.GetDependenciesAsJson(Rec));
+                        end;
+                    }
+                }
+            }
         }
         area(Promoted)
         {
             group(Category_Category5)
             {
                 Caption = 'Manage', Comment = 'Generated from the PromotedActionCategories property index 4.';
-
-                actionref("Extension Marketplace_Promoted"; "Extension Marketplace") { }
+#if not CLEAN25
+#pragma warning disable AL0432
+                actionref("Extension Marketplace_Promoted"; "Extension Marketplace")
+#pragma warning restore AL0432
+                {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This action will be obsoleted. Microsoft AppSource apps feature will replace the Extension Marketplace.';
+                    ObsoleteTag = '25.0';
+                    Visible = false;
+                }
+#endif                
                 actionref("Upload Extension_Promoted"; "Upload Extension") { }
                 actionref("Deployment Status_Promoted"; "Deployment Status") { }
                 actionref(View_Promoted; View) { }
@@ -285,6 +357,22 @@ page 2500 "Extension Management"
                 actionref("Learn More_Promoted"; "Learn More") { }
                 actionref(Refresh_Promoted; Refresh) { }
             }
+
+            group("Develop in VS Code_Promoted")
+            {
+                Caption = 'Develop in VS Code';
+
+                actionref("Open Source in VS Code_Promoted"; "Open Source in VS Code") { }
+                actionref("Update configurations_Promoted"; "Update configurations") { }
+
+                group("Get as dependencies_Promoted")
+                {
+                    Caption = 'Get selected as dependencies';
+
+                    actionref("Download dependencies_Promoted"; "Download dependencies") { }
+                    actionref("Show dependencies_Promoted"; "Show dependencies") { }
+                }
+            }
         }
     }
 
@@ -295,7 +383,7 @@ page 2500 "Extension Management"
 
         DetermineExtensionConfigurations();
 
-        VersionDisplay := GetVersionDisplayText();
+        VersionDisplay := ExtensionInstallationImpl.GetVersionDisplayString(Rec);
         SetInfoStyleForIsInstalled();
     end;
 
@@ -320,10 +408,12 @@ page 2500 "Extension Management"
     var
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         ExtensionOperationImpl: Codeunit "Extension Operation Impl";
+        VsCodeIntegration: Codeunit "VS Code Integration";
+        AllowsDownloadSource: Option " ","Yes","No";
         VersionDisplay: Text;
+        AllowsDownloadSourceStyleExpr: Text;
         ActionsEnabled: Boolean;
         IsSaaS: Boolean;
-        VersionFormatTxt: Label 'v. %1', Comment = 'v=version abbr, %1=Version string';
         SaaSCaptionTxt: Label 'Installed Extensions', Comment = 'The caption to display when on SaaS';
         IsTenantExtension: Boolean;
         CannotUnpublishIfInstalledMsg: Label 'The extension %1 cannot be unpublished because it is installed.', Comment = '%1 = name of extension';
@@ -334,6 +424,17 @@ page 2500 "Extension Management"
         IsInstallAllowed: Boolean;
         InfoStyle: Boolean;
         HelpActionVisible: Boolean;
+        IsSourceSpecificationAvailable: Boolean;
+
+    protected procedure IsSaasEnvironment(): boolean
+    begin
+        exit(IsSaaS)
+    end;
+
+    protected procedure IsOnPremDisplayTarget(): boolean
+    begin
+        exit(IsOnPremDisplay)
+    end;
 
     local procedure SetExtensionManagementFilter()
     begin
@@ -366,11 +467,18 @@ page 2500 "Extension Management"
         // Determining Record and Styling Configurations
         IsInstalled := ExtensionInstallationImpl.IsInstalledByPackageId(Rec."Package ID");
         IsTenantExtension := Rec."Published As" <> Rec."Published As"::Global;
-    end;
 
-    local procedure GetVersionDisplayText(): Text
-    begin
-        exit(StrSubstNo(VersionFormatTxt, ExtensionInstallationImpl.GetVersionDisplayString(Rec)));
+        AllowsDownloadSource := AllowsDownloadSource::" ";
+        if IsTenantExtension then
+            if ExtensionInstallationImpl.AllowsDownloadSource(Rec."Resource Exposure Policy") then begin
+                AllowsDownloadSource := AllowsDownloadSource::Yes;
+                AllowsDownloadSourceStyleExpr := Format(PageStyle::Favorable);
+            end else begin
+                AllowsDownloadSource := AllowsDownloadSource::No;
+                AllowsDownloadSourceStyleExpr := Format(PageStyle::Unfavorable);
+            end;
+
+        IsSourceSpecificationAvailable := StrLen(Rec."Source Repository Url") > 0;
     end;
 
     local procedure SetInfoStyleForIsInstalled()

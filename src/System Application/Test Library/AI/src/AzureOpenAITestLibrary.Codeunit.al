@@ -28,9 +28,37 @@ codeunit 132933 "Azure OpenAI Test Library"
         AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
     end;
 
-    procedure SetAOAIFunctionResponse(var AOAIFunctionResponse: Codeunit "AOAI Function Response"; NewIsFunctionCall: Boolean; NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionId: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
+    procedure SetAOAIFunctionResponse(var AOAIFunctionResponse: Codeunit "AOAI Function Response"; NewIsFunctionCall: Boolean; NewAOAIFunctionResponseStatus: Enum "AOAI Function Response Status"; NewFunctionCalled: Text; NewFunctionId: Text; NewArguments: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
+    var
+        ParsedArguments: JsonObject;
     begin
-        AOAIFunctionResponse.SetFunctionCallingResponse(NewIsFunctionCall, NewFunctionCallSuccess, NewFunctionCalled, NewFunctionId, NewFunctionResult, NewFunctionError, NewFunctionErrorCallStack);
+        if NewArguments <> '' then
+            ParsedArguments.ReadFrom(NewArguments);
+
+        AOAIFunctionResponse.SetFunctionCallingResponse(NewIsFunctionCall, NewAOAIFunctionResponseStatus, NewFunctionCalled, NewFunctionId, ParsedArguments, NewFunctionResult, NewFunctionError, NewFunctionErrorCallStack);
+    end;
+
+    procedure AddAOAIFunctionResponse(var AOAIOperationResponse: Codeunit "AOAI Operation Response"; var AOAIFunctionResponse: Codeunit "AOAI Function Response"; NewIsFunctionCall: Boolean; NewAOAIFunctionResponseStatus: Enum "AOAI Function Response Status"; NewFunctionCalled: Text; NewFunctionId: Text; NewArguments: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
+    begin
+        if AOAIOperationResponse.GetStatusCode() = 0 then
+            AOAIOperationResponse.SetOperationResponse(true, 200, '', '');
+        SetAOAIFunctionResponse(AOAIFunctionResponse, NewIsFunctionCall, NewAOAIFunctionResponseStatus, NewFunctionCalled, NewFunctionId, NewArguments, NewFunctionResult, NewFunctionError, NewFunctionErrorCallStack);
+        AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
+    end;
+
+    procedure SetToolCalls(AOAIChatMessages: Codeunit "AOAI Chat Messages"; ToolCallId: Text; FunctionName: Text)
+    begin
+        SetToolCalls(AOAIChatMessages, ToolCallId, FunctionName, '{}');
+    end;
+
+    procedure SetToolCalls(AOAIChatMessages: Codeunit "AOAI Chat Messages"; ToolCallId: Text; FunctionName: Text; Arguments: Text)
+    var
+        ToolCalls: JsonArray;
+        ToolSelectionResponseLbl: Label '[{"id":"%1","type":"function","function":{"name":"%2","arguments":"%3"}}]', Locked = true;
+    begin
+        ToolCalls.ReadFrom(StrSubstNo(ToolSelectionResponseLbl, ToolCallId, FunctionName, Arguments));
+
+        AOAIChatMessages.AddToolCalls(ToolCalls);
     end;
 
 }

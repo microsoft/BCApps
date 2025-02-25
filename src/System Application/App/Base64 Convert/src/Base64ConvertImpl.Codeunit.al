@@ -92,6 +92,19 @@ codeunit 4111 "Base64 Convert Impl."
         exit(Base64String);
     end;
 
+    [NonDebuggable]
+    procedure ToBase64(SecretString: SecretText): SecretText
+    var
+        Convert: DotNet Convert;
+        Encoding: DotNet Encoding;
+        Base64FormattingOptions: DotNet Base64FormattingOptions;
+    begin
+        if SecretString.IsEmpty() then
+            exit;
+        Base64FormattingOptions := Base64FormattingOptions.None;
+        exit(Convert.ToBase64String(Encoding.UTF8().GetBytes(SecretString.Unwrap()), Base64FormattingOptions));
+    end;
+
     procedure FromBase64(Base64String: Text; TextEncoding: TextEncoding): Text
     begin
         exit(FromBase64(Base64String, TextEncoding, 1252));
@@ -135,5 +148,16 @@ codeunit 4111 "Base64 Convert Impl."
             MemoryStream.WriteTo(OutStream);
             MemoryStream.Close();
         end;
+    end;
+
+    [NonDebuggable]
+    procedure FromBase64(Base64SecretString: SecretText): SecretText
+    var
+        Convert: DotNet Convert;
+        Encoding: DotNet Encoding;
+    begin
+        if Base64SecretString.IsEmpty() then
+            exit;
+        exit(Encoding.UTF8().GetString(Convert.FromBase64String(Base64SecretString.Unwrap())));
     end;
 }

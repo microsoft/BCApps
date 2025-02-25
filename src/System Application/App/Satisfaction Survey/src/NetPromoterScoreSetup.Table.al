@@ -27,13 +27,6 @@ table 1432 "Net Promoter Score Setup"
         {
             DataClassification = SystemMetadata;
         }
-        field(4; "Time Between Requests"; Integer)
-        {
-            DataClassification = SystemMetadata;
-            ObsoleteReason = 'This field is not needed and it is not used anymore.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '18.0';
-        }
         field(5; "Request Timeout"; Integer)
         {
             DataClassification = SystemMetadata;
@@ -49,4 +42,3 @@ table 1432 "Net Promoter Score Setup"
     }
 
 }
-

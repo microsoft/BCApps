@@ -21,6 +21,7 @@ page 1932 "Perf. Profiler Schedule Card"
     DataCaptionExpression = Rec.Description;
     SourceTable = "Performance Profile Scheduler";
     DelayedInsert = true;
+    Permissions = tabledata "Performance Profile Scheduler" = rimd;
 
     layout
     {
@@ -57,7 +58,7 @@ page 1932 "Perf. Profiler Schedule Card"
 
                     trigger OnValidate()
                     begin
-                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(Rec, MaxRetentionPeriod);
+                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDatesRelation(Rec);
                     end;
                 }
                 field("End Time"; Rec."Ending Date-Time")
@@ -69,7 +70,7 @@ page 1932 "Perf. Profiler Schedule Card"
 
                     trigger OnValidate()
                     begin
-                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(Rec, MaxRetentionPeriod);
+                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDatesRelation(Rec);
                         ScheduledPerfProfiler.ValidatePerformanceProfileEndTime(Rec);
                     end;
                 }
@@ -79,6 +80,11 @@ page 1932 "Perf. Profiler Schedule Card"
                     Caption = 'Description';
                     ToolTip = 'Specifies the description of the schedule.';
                     AboutText = 'The description of the schedule.';
+
+                    trigger OnValidate()
+                    begin
+                        this.ValidateDescription();
+                    end;
                 }
             }
 
@@ -91,10 +97,15 @@ page 1932 "Perf. Profiler Schedule Card"
                 {
                     ApplicationArea = All;
                     Caption = 'User ID';
-                    ToolTip = 'Specifies the ID of the user who created the schedule.';
-                    AboutText = 'The ID of the user who created the schedule.';
+                    ToolTip = 'Specifies the ID of the user associated with the schedule.';
+                    AboutText = 'The ID of the user associated with the schedule.';
                     TableRelation = User."User Security ID";
                     Lookup = true;
+
+                    trigger OnValidate()
+                    begin
+                        ScheduledPerfProfiler.ValidateScheduleCreationPermissions(UserSecurityId(), Rec."User ID");
+                    end;
                 }
                 field(Activity; Activity)
                 {
@@ -134,7 +145,7 @@ page 1932 "Perf. Profiler Schedule Card"
                         RetentionPolicySetup: Record "Retention Policy Setup";
                         NoRetentionPolicyErrorInfo: ErrorInfo;
                     begin
-                        if RetentionPolicySetup.Get(Database::"Performance Profiles") then
+                        if RetentionPolicySetup.Get(Database::"Performance Profile Scheduler") then
                             Page.Run(Page::"Retention Policy Setup Card", RetentionPolicySetup)
                         else begin
                             NoRetentionPolicyErrorInfo.Message := NoRetentionPolicySetupErr;
@@ -143,16 +154,18 @@ page 1932 "Perf. Profiler Schedule Card"
                         end;
                     end;
                 }
-                field("Profile Creation Threshold"; Rec."Profile Creation Threshold")
+                field("Activity Duration Threshold"; ProfileCreationThreshold)
                 {
                     ApplicationArea = All;
-                    Caption = 'Profile Creation Threshold (ms)';
-                    ToolTip = 'Specifies Create only profiles that are greater then the profile creation threshold';
-                    AboutText = 'Limit the amount of sampling profiles that are created by setting a millisecond threshold. Only profiles larger then the threshold will be created.';
+                    Caption = 'Activity Duration Threshold (ms)';
+                    ToolTip = 'Specifies the minimum amount of time an activity must last in order to be recorded in a profile.';
+                    AboutText = 'Limit the amount of sampling profiles that are created by setting a millisecond threshold. Only activities that last longer then the threshold will be created.';
 
                     trigger OnValidate()
                     begin
+                        Rec."Profile Creation Threshold" := ProfileCreationThreshold;
                         ScheduledPerfProfiler.ValidateThreshold(Rec);
+                        ProfileCreationThreshold := Rec."Profile Creation Threshold";
                     end;
                 }
             }
@@ -197,24 +210,40 @@ page 1932 "Perf. Profiler Schedule Card"
     begin
         ScheduledPerfProfiler.MapActivityTypeToRecord(Rec, Activity);
         RetentionPeriod := ScheduledPerfProfiler.GetRetentionPeriod();
+        ProfileCreationThreshold := Rec."Profile Creation Threshold";
     end;
 
     trigger OnModifyRecord(): Boolean
     begin
         ScheduledPerfProfiler.MapActivityTypeToRecord(Rec, Activity);
-        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(Rec, Activity);
+        this.ValidateRecord();
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
-        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(Rec, Activity);
+        this.ValidateRecord();
+        this.ValidateDescription();
     end;
 
     var
         ScheduledPerfProfiler: Codeunit "Scheduled Perf. Profiler";
         Activity: Enum "Perf. Profile Activity Type";
+        ProfileCreationThreshold: BigInteger;
         RetentionPeriod: Code[20];
         MaxRetentionPeriod: Duration;
         NoRetentionPolicySetupErr: Label 'No retention policy setup found for the performance profiles table.';
         CreateRetentionPolicySetupTxt: Label 'Create a retention policy setup';
+        EmptyDescriptionErr: Label 'The description must be filled in.';
+
+    local procedure ValidateRecord()
+    begin
+        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(Rec, MaxRetentionPeriod);
+        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(Rec, Activity);
+    end;
+
+    local procedure ValidateDescription()
+    begin
+        if Rec.Description = '' then
+            Error(EmptyDescriptionErr);
+    end;
 }

@@ -13,25 +13,72 @@ using System.Globalization;
 page 2510 "Marketplace Extn Deployment"
 {
     Extensible = false;
-    Caption = 'Extension Installation';
+    Caption = 'Install extension';
     PageType = NavigatePage;
     ContextSensitiveHelpPage = 'ui-extensions';
+    ApplicationArea = All;
 
     layout
     {
         area(Content)
         {
-            group(General)
+            field(ActiveUsers; ActiveUsersLbl)
             {
+                ShowCaption = false;
+                Editable = false;
+                Style = Strong;
+                ToolTip = 'There might be other users working in the system.';
             }
-            label("Choose Language")
+            field(Warning; WarningLbl)
             {
-                ApplicationArea = All;
-                Caption = 'Choose language';
+                ShowCaption = false;
+                Editable = false;
+                ToolTip = 'Installing extensions during business hours will disrupt other users.';
+            }
+            field(RefreshInfo; RefreshInfoLbl)
+            {
+                ShowCaption = false;
+                Editable = false;
+                ToolTip = 'After installation, your session will refresh, and you can set up your extension.';
+            }
+            field(PreviewInfo; PreviewInfoLbl)
+            {
+                ShowCaption = false;
+                Editable = false;
+                MultiLine = true;
+                Style = Strong;
+                ToolTip = 'You are about to install a preview version of the extension.';
+                Visible = InstallPreview;
+            }
+            field(ImportantInfo; ImportantInfoLbl)
+            {
+                ShowCaption = false;
+                Editable = false;
+                Style = Strong;
+            }
+            field(ImportantDisclaimer; ImportantDisclaimerLbl)
+            {
+                ShowCaption = false;
+                Editable = false;
+                MultiLine = true;
+                Style = None;
+                ToolTip = 'Installing applications may require dependencies to be installed.';
+            }
+            field(HelpLink; InstallAppsURLLbl)
+            {
+                ShowCaption = false;
+                ToolTip = 'Read more about installing and uninstalling apps.';
+                Editable = false;
+                MultiLine = true;
+                Style = None;
+
+                trigger OnDrillDown()
+                begin
+                    Hyperlink(InstallAppsURLLbl);
+                end;
             }
             field(Language; LanguageName)
             {
-                ApplicationArea = All;
                 Caption = 'Language';
                 ToolTip = 'Specifies the language of the extension.';
                 Editable = false;
@@ -44,63 +91,6 @@ page 2510 "Marketplace Extn Deployment"
                     LanguageName := Language.GetWindowsLanguageName(LanguageID);
                 end;
             }
-            group(Info)
-            {
-                ShowCaption = false;
-
-                field(ActiveUsers; ActiveUsersLbl)
-                {
-                    ApplicationArea = All;
-                    ShowCaption = false;
-                    Editable = false;
-                    Style = Strong;
-                    ToolTip = 'There might be other users working in the system.';
-                }
-                field(Warning; WarningLbl)
-                {
-                    ApplicationArea = All;
-                    ShowCaption = false;
-                    Editable = false;
-                    ToolTip = 'Installing extensions during business hours will disrupt other users.';
-                }
-                field(RefreshInfo; RefreshInfoLbl)
-                {
-                    ApplicationArea = All;
-                    ShowCaption = false;
-                    Editable = false;
-                    ToolTip = 'After installation, your session will refresh, and you can set up your extension.';
-                }
-                field(PreviewInfo; PreviewInfoLbl)
-                {
-                    ApplicationArea = All;
-                    ShowCaption = false;
-                    Editable = false;
-                    MultiLine = true;
-                    Style = Strong;
-                    ToolTip = 'You are about to install a preview version of the extension.';
-                    Visible = InstallPreview;
-                }
-                group(InstallAppDependencyDisclaimer)
-                {
-                    Caption = 'Important';
-                    InstructionalText = 'When installing an AppSource app, it may require additional apps to be installed as dependencies. Make sure to review the provider''s terms of use and privacy policy review before proceeding. For more information on installing and uninstalling apps, see the link below.';
-
-                    field(HelpLink; InstallAppsURLLbl)
-                    {
-                        ApplicationArea = All;
-                        ShowCaption = false;
-                        ToolTip = 'Read more about installing and uninstalling apps.';
-                        Editable = false;
-                        MultiLine = true;
-                        Style = None;
-
-                        trigger OnDrillDown()
-                        begin
-                            Hyperlink(InstallAppsURLLbl);
-                        end;
-                    }
-                }
-            }
         }
     }
 
@@ -110,7 +100,6 @@ page 2510 "Marketplace Extn Deployment"
         {
             action(Install)
             {
-                ApplicationArea = All;
                 Image = Approve;
                 Caption = 'Install';
                 ToolTip = 'Install the extension.';
@@ -172,6 +161,8 @@ page 2510 "Marketplace Extn Deployment"
         AppID: Guid;
         ActiveUsersLbl: Label 'Note: There might be other users working in the system.';
         WarningLbl: Label 'Installing extensions during business hours will disrupt other users.';
+        ImportantInfoLbl: Label 'Important';
+        ImportantDisclaimerLbl: Label 'When installing an AppSource app, it may require additional apps to be installed as dependencies. Make sure to review the provider''s terms of use and privacy policy review before proceeding. For more information on installing and uninstalling apps, see the link below.';
         RefreshInfoLbl: Label 'After installation, your session will refresh, and you can set up your extension.';
         PreviewInfoLbl: Label 'Note: A preview key was provided for the installation. A preview version of the extension is about to be installed. If a higher public version exists for your environment, it will be installed instead of the preview version.';
         InstallAppsURLLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2260926', Locked = true;

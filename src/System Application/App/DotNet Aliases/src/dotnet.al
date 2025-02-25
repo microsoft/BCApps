@@ -261,6 +261,16 @@ dotnet
         }
     }
 
+    assembly("Microsoft.Dynamics.Nav.AppHTMLSanitizer")
+    {
+        Culture = 'neutral';
+        PublicKeyToken = '31bf3856ad364e35';
+
+        type("Microsoft.Dynamics.Nav.AppHTMLSanitizer.AppHtmlSanitizer"; "AppHtmlSanitizer")
+        {
+        }
+    }
+
     assembly("Microsoft.Dynamics.Nav.AzureADGraphClient")
     {
         type("Microsoft.Dynamics.Nav.AzureADGraphClient.GroupInfoPage"; "GroupInfoPage")
@@ -804,43 +814,6 @@ dotnet
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
-#if not CLEAN23
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportedReport"; "ImportedReport")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportedReportRequestList"; "ImportedReportRequestList")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportedReportResponse"; "ImportedReportResponse")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportedReportResponseList"; "ImportedReportResponseList")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportReportRequest"; "ImportReportRequest")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportReportRequestList"; "ImportReportRequestList")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportReportResponse"; "ImportReportResponse")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportReportResponseList"; "ImportReportResponseList")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.ServiceWrapper"; "ServiceWrapper")
-        {
-        }
-#endif
         type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ReturnedReport"; "ReturnedReport")
         {
         }
@@ -876,6 +849,16 @@ dotnet
         }
 
         type("Microsoft.Dynamics.Nav.SMTP.SmtpMessage"; "SmtpMessage")
+        {
+        }
+    }
+
+    assembly("Microsoft.Dynamics.Nav.SystemEnvironment")
+    {
+        Culture = 'neutral';
+        PublicKeyToken = '31bf3856ad364e35';
+
+        type("Microsoft.Dynamics.Nav.SystemEnvironment.SystemEnvironment"; "SystemEnvironment")
         {
         }
     }
@@ -1464,10 +1447,6 @@ dotnet
         }
 
         type("System.Enum"; "Enum")
-        {
-        }
-
-        type("System.Environment"; "Environment")
         {
         }
 
@@ -2168,6 +2147,18 @@ dotnet
         type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotCapability"; ALCopilotCapability)
         {
         }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotUsageType"; ALCopilotUsageType)
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotQuotaDetails"; ALCopilotQuotaDetails)
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALMicrosoftLearnFunctions"; ALMicrosoftLearnFunctions)
+        {
+        }
     }
     assembly("Microsoft.Dynamics.Nav.DataSearch")
     {
@@ -2205,4 +2196,3 @@ dotnet
         }
     }
 }
-

@@ -1504,6 +1504,16 @@ codeunit 501 OAuth2
     end;
 
     /// <summary>
+    /// Gets the Claims Set from a JSON Web Token (JWT).
+    /// </summary>
+    /// <param name="JWT">The JSON Web Token.</param>
+    /// <returns>The JWT Claims Set.</returns>
+    procedure GetClaims(JWT: SecretText) Result: JsonObject
+    begin
+        exit(OAuth2Impl.GetClaims(JWT));
+    end;
+
+    /// <summary>
     /// Get the last error message that happened during acquiring of an access token.
     /// </summary>
     /// <returns>The last error message that happened during acquiring of an access token.</returns>

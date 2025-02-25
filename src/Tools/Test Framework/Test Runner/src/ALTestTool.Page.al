@@ -96,7 +96,7 @@ page 130451 "AL Test Tool"
                 {
                     ApplicationArea = All;
                     Caption = 'Code Coverage Track All Sessions';
-                    ToolTip = 'Specifies should all seesions be tracked';
+                    ToolTip = 'Specifies should all sessions be tracked';
 
                     trigger OnValidate()
                     var
@@ -245,9 +245,9 @@ page 130451 "AL Test Tool"
                     trigger OnAction()
                     var
                         TestSuiteMgt: Codeunit "Test Suite Mgt.";
-                        TestRunnerProgessDialog: Codeunit "Test Runner - Progress Dialog";
+                        TestRunnerProgressDialog: Codeunit "Test Runner - Progress Dialog";
                     begin
-                        BindSubscription(TestRunnerProgessDialog);
+                        BindSubscription(TestRunnerProgressDialog);
                         TestSuiteMgt.RunTestSuiteSelection(Rec);
                         CurrPage.Update(false);
                     end;
@@ -494,7 +494,9 @@ page 130451 "AL Test Tool"
         NameIndent := Rec."Line Type";
         LineTypeEmphasize := Rec."Line Type" = Rec."Line Type"::Codeunit;
         TestCodeunitEmphasize := Rec."Line Type" = Rec."Line Type"::Codeunit;
+#pragma warning disable AA0205
         ResultEmphasize := Rec.Result = Rec.Result::Success;
+#pragma warning restore AA0205
     end;
 
     local procedure UpdateCalculatedFields()

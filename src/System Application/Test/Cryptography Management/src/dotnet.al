@@ -9,7 +9,7 @@ dotnet
 {
     assembly("netstandard")
     {
-        type("System.TimeZoneInfo"; TimeZoneInfo)
+        type("System.TimeZoneInfo"; TimeZoneInfoTest)
         {
         }
     }

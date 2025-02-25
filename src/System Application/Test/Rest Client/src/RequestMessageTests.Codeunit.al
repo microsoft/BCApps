@@ -30,7 +30,7 @@ codeunit 134972 "Request Message Tests"
         HttpRequestMessage := ALHttpRequestMessage.GetHttpRequestMessage();
 
         // [THEN] The request message is initialized correctly
-        Assert.AreEqual(HttpRequestMessage.Method(), 'PATCH', 'The request message method is not correct.');
+        Assert.AreEqual('PATCH', HttpRequestMessage.Method(), 'The request message method is not correct.');
     end;
 
     [Test]
@@ -49,8 +49,8 @@ codeunit 134972 "Request Message Tests"
         HttpRequestMessage := ALHttpRequestMessage.GetHttpRequestMessage();
 
         // [THEN] The request message is initialized correctly
-        Assert.AreEqual(HttpRequestMessage.Method(), 'GET', 'The request message method is not correct.');
-        Assert.AreEqual(HttpRequestMessage.GetRequestUri(), 'https://www.microsoft.com/', 'The request message request URI is not correct.');
+        Assert.AreEqual('GET', HttpRequestMessage.Method(), 'The request message method is not correct.');
+        Assert.AreEqual('https://www.microsoft.com/', HttpRequestMessage.GetRequestUri(), 'The request message request URI is not correct.');
     end;
 
     [Test]
@@ -74,17 +74,17 @@ codeunit 134972 "Request Message Tests"
         HttpRequestMessage := ALHttpRequestMessage.GetHttpRequestMessage();
 
         // [THEN] The request message is initialized correctly
-        Assert.AreEqual(HttpRequestMessage.Method(), 'POST', 'The request message method is not correct.');
-        Assert.AreEqual(HttpRequestMessage.GetRequestUri(), 'https://www.microsoft.com/', 'The request message request URI is not correct.');
+        Assert.AreEqual('POST', HttpRequestMessage.Method(), 'The request message method is not correct.');
+        Assert.AreEqual('https://www.microsoft.com/', HttpRequestMessage.GetRequestUri(), 'The request message request URI is not correct.');
 
         HttpRequestMessage.Content().ReadAs(ContentText);
-        Assert.AreEqual(ContentText, 'Hello World!', 'The request message content is not correct.');
+        Assert.AreEqual('Hello World!', ContentText, 'The request message content is not correct.');
 
         HttpRequestMessage.Content.GetHeaders(ContentHeaders);
-        Assert.AreEqual(ContentHeaders.Contains('Content-Type'), true, 'The content type header is missing.');
+        Assert.AreEqual(true, ContentHeaders.Contains('Content-Type'), 'The content type header is missing.');
 
         ContentHeaders.GetValues('Content-Type', ContentHeaderValues);
-        Assert.AreEqual(ContentHeaderValues.Get(1), 'text/plain', 'The request message content type is not correct.');
+        Assert.AreEqual('text/plain', ContentHeaderValues.Get(1), 'The request message content type is not correct.');
     end;
 
     [Test]
@@ -110,19 +110,19 @@ codeunit 134972 "Request Message Tests"
         HttpRequestMessage := ALHttpRequestMessage.GetHttpRequestMessage();
 
         // [THEN] The request message is initialized correctly
-        Assert.AreEqual(HttpRequestMessage.Method(), 'POST', 'The request message method is not correct.');
-        Assert.AreEqual(HttpRequestMessage.GetRequestUri(), 'https://www.microsoft.com/', 'The request message request URI is not correct.');
+        Assert.AreEqual('POST', HttpRequestMessage.Method(), 'The request message method is not correct.');
+        Assert.AreEqual('https://www.microsoft.com/', HttpRequestMessage.GetRequestUri(), 'The request message request URI is not correct.');
 
         HttpRequestMessage.Content().ReadAs(ContentText);
-        Assert.AreEqual(ContentJson.ReadFrom(ContentText), true, 'The request message content is not a valid JSON object.');
-        Assert.AreEqual(ContentJson.Contains('value'), true, 'The request message content does not contain the expected property "value".');
-        Assert.AreEqual(GetJsonToken(ContentJson, 'value').AsValue().AsText(), 'Hello World!', 'The request message content property "value" is not correct.');
+        Assert.AreEqual(true, ContentJson.ReadFrom(ContentText), 'The request message content is not a valid JSON object.');
+        Assert.AreEqual(true, ContentJson.Contains('value'), 'The request message content does not contain the expected property "value".');
+        Assert.AreEqual('Hello World!', GetJsonToken(ContentJson, 'value').AsValue().AsText(), 'The request message content property "value" is not correct.');
 
         HttpRequestMessage.Content.GetHeaders(ContentHeaders);
-        Assert.AreEqual(ContentHeaders.Contains('Content-Type'), true, 'The content type header is missing.');
+        Assert.AreEqual(true, ContentHeaders.Contains('Content-Type'), 'The content type header is missing.');
 
         ContentHeaders.GetValues('Content-Type', ContentHeaderValues);
-        Assert.AreEqual(ContentHeaderValues.Get(1), 'application/json', 'The request message content type is not correct.');
+        Assert.AreEqual('application/json', ContentHeaderValues.Get(1), 'The request message content type is not correct.');
     end;
 
     [Test]
@@ -145,11 +145,85 @@ codeunit 134972 "Request Message Tests"
 
         // [THEN] The request message is initialized correctly
         HttpRequestMessage.GetHeaders(ContentHeaders);
-        Assert.AreEqual(ContentHeaders.Contains('X-Custom-Header'), true, 'The custom header is missing.');
+        Assert.IsTrue(ContentHeaders.Contains('X-Custom-Header'), 'The custom header is missing.');
 
         ContentHeaders.GetValues('X-Custom-Header', ContentHeaderValues);
-        Assert.AreEqual(ContentHeaderValues.Get(1), 'My Request Header', 'The custom header value is not correct.');
+        Assert.AreEqual('My Request Header', ContentHeaderValues.Get(1), 'The custom header value is not correct.');
     end;
+
+    [Test]
+    [NonDebuggable]
+    procedure TestAddSecretRequestHeader()
+    var
+        ALHttpRequestMessage: Codeunit "Http Request Message";
+        HttpRequestMessage: HttpRequestMessage;
+        ContentHeaders: HttpHeaders;
+        SecretHeaderText: SecretText;
+        ContentHeaderValues: List of [SecretText];
+    begin
+        // [GIVEN] An initialized Http Request Message
+        ALHttpRequestMessage.SetHttpMethod('GET');
+        ALHttpRequestMessage.SetRequestUri('https://www.microsoft.com/');
+
+        // [GIVEN] The request message has a secret header
+        SecretHeaderText := SecretStrSubstNo('My Secret Request Header');
+        ALHttpRequestMessage.SetHeader('X-Secret-Header', SecretHeaderText);
+
+        // [WHEN] The request message is read
+        HttpRequestMessage := ALHttpRequestMessage.GetHttpRequestMessage();
+
+        // [THEN] The request message is initialized correctly
+        HttpRequestMessage.GetHeaders(ContentHeaders);
+        Assert.IsTrue(ContentHeaders.ContainsSecret('X-Secret-Header'), 'The secret header is missing.');
+
+        ContentHeaders.GetSecretValues('X-Secret-Header', ContentHeaderValues);
+        Assert.AreEqual(SecretHeaderText.Unwrap(), ContentHeaderValues.Get(1).Unwrap(), 'The secret header value is not correct.');
+    end;
+
+    [Test]
+    procedure TestAddCookie()
+    var
+        ALHttpRequestMessage: Codeunit "Http Request Message";
+        HttpRequestMessage: HttpRequestMessage;
+        RequestCookie: Cookie;
+    begin
+        // [GIVEN] An initialized Http Request Message
+        ALHttpRequestMessage.SetHttpMethod('GET');
+        ALHttpRequestMessage.SetRequestUri('https://www.microsoft.com/');
+
+        // [GIVEN] The request message has a cookie
+        ALHttpRequestMessage.SetCookie('MyCookie', 'MyCookieValue');
+
+        // [WHEN] The request message is read
+        HttpRequestMessage := ALHttpRequestMessage.GetHttpRequestMessage();
+
+        // [THEN] The request message is initialized correctly
+        Assert.IsTrue(HttpRequestMessage.GetCookie('MyCookie', RequestCookie), 'The cookie is missing.');
+        Assert.AreEqual('MyCookieValue', RequestCookie.Value(), 'The cookie value is not correct.');
+    end;
+
+    [Test]
+    procedure TestRemoveCookie()
+    var
+        ALHttpRequestMessage: Codeunit "Http Request Message";
+        HttpRequestMessage: HttpRequestMessage;
+        RequestCookie: Cookie;
+    begin
+        // [GIVEN] An initialized Http Request Message
+        ALHttpRequestMessage.SetHttpMethod('GET');
+        ALHttpRequestMessage.SetRequestUri('https://www.microsoft.com/');
+
+        // [GIVEN] The request message has a cookie
+        ALHttpRequestMessage.SetCookie('MyCookie', 'MyCookieValue');
+        ALHttpRequestMessage.RemoveCookie('MyCookie');
+
+        // [WHEN] The request message is read
+        HttpRequestMessage := ALHttpRequestMessage.GetHttpRequestMessage();
+
+        // [THEN] The request message is initialized correctly
+        Assert.IsFalse(HttpRequestMessage.GetCookie('MyCookie', RequestCookie), 'The cookie is not removed.');
+    end;
+
 
     local procedure GetJsonToken(JsonObject: JsonObject; Name: Text) JsonToken: JsonToken
     begin

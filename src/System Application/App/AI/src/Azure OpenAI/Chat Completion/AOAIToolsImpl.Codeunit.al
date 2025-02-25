@@ -12,6 +12,7 @@ codeunit 7778 "AOAI Tools Impl"
     InherentPermissions = X;
 
     var
+        AOAIToolInvokePreference: Enum "AOAI Tool Invoke Preference";
         Functions: array[20] of Interface "AOAI Function";
         FunctionNames: Dictionary of [Text, Integer];
         Initialized: Boolean;
@@ -171,12 +172,16 @@ codeunit 7778 "AOAI Tools Impl"
 
     procedure SetAddToolToPayload(AddToolsToPayload: Boolean)
     begin
+        Initialize();
+
         AddToolToPayload := AddToolsToPayload;
     end;
 
     [NonDebuggable]
     procedure SetToolChoice(NewToolChoice: Text)
     begin
+        Initialize();
+
         ToolChoice := NewToolChoice;
     end;
 
@@ -190,6 +195,8 @@ codeunit 7778 "AOAI Tools Impl"
         ToolChoiceObject: JsonObject;
         FunctionObject: JsonObject;
     begin
+        Initialize();
+
         ToolChoiceObject.add('type', 'function');
         FunctionObject.add('name', FunctionName);
         ToolChoiceObject.add('function', FunctionObject);
@@ -202,30 +209,16 @@ codeunit 7778 "AOAI Tools Impl"
         exit(ToolChoice);
     end;
 
-    [TryFunction]
-    [NonDebuggable]
-    procedure IsToolsList(Message: Text)
-    var
-        MessageJArray: JsonArray;
-        ToolToken: JsonToken;
-        TypeToken: JsonToken;
-        XPathLbl: Label '$.type', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
-        i: Integer;
+    procedure SetToolInvokePreference(NewAOAIToolInvokePreference: Enum "AOAI Tool Invoke Preference")
     begin
-        MessageJArray := ConvertToJsonArray(Message);
+        Initialize();
 
-        for i := 0 to MessageJArray.Count - 1 do begin
-            MessageJArray.Get(i, ToolToken);
-            ToolToken.SelectToken(XPathLbl, TypeToken);
-            if TypeToken.AsValue().AsText() <> 'function' then
-                Error('');
-        end;
+        AOAIToolInvokePreference := NewAOAIToolInvokePreference;
     end;
 
-    [NonDebuggable]
-    procedure ConvertToJsonArray(Message: Text) MessageJArray: JsonArray;
+    procedure GetToolInvokePreference(): Enum "AOAI Tool Invoke Preference"
     begin
-        MessageJArray.ReadFrom(Message);
+        exit(AOAIToolInvokePreference);
     end;
 
     local procedure Initialize()
@@ -235,6 +228,8 @@ codeunit 7778 "AOAI Tools Impl"
 
         AddToolToPayload := true;
         ToolChoice := 'auto';
+        AOAIToolInvokePreference := Enum::"AOAI Tool Invoke Preference"::"Invoke Tools Only";
+
         Initialized := true;
     end;
 
