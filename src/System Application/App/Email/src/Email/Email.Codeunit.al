@@ -639,9 +639,21 @@ codeunit 8901 Email
     /// </summary>
     /// <param name="EmailScenarioAttachments">The record to add filters to.</param>
     [IntegrationEvent(false, false)]
-    internal procedure OnBeforeGetEmailAttachmentsByEmailScenarios(var EmailScenarioAttachments: Record "Email Scenario Attachments")
+    internal procedure OnBeforeGetEmailAttachments(var EmailScenarioAttachments: Record "Email Scenario Attachments")
     begin
     end;
+
+#if not CLEAN27
+    /// <summary>
+    /// Integration event that allows adding filters to the Email Scenario Attachments before they are retrieved.
+    /// </summary>
+    /// <param name="EmailScenarioAttachments">The record to add filters to.</param>
+    [IntegrationEvent(false, false)]
+    [Obsolete('This event is being removed. Use OnBeforeGetEmailAttachments instead.', '27.0')]
+    internal procedure OnBeforeGetEmailAttachmentsByEmailScenarios(EmailScenarioAttachments: Record "Email Scenario Attachments")
+    begin
+    end;
+#endif
 
     #endregion
 
