@@ -115,7 +115,7 @@ page 4313 "Agent Task Details"
             exit;
 
         case TaskTimelineStep.Type of
-            "Agent Task Timeline Step Type"::OutputMessage:
+            "Agent Task Timeline Step Type"::InputMessage, "Agent Task Timeline Step Type"::OutputMessage:
                 if AgentTaskMessage.Get(TaskTimelineStep."Primary Page Record ID") then begin
                     AgentTaskMessage.Status := AgentTaskMessage.Status::Discarded;
                     AgentTaskMessage.Modify(true);
