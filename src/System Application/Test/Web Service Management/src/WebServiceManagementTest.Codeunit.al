@@ -50,11 +50,7 @@ codeunit 139043 "Web Service Management Test"
         if WebServiceAggregate.Get(WebService."Object Type"::Page, PageServiceTxt) then begin
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV3), PageServiceTxt);
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV4), PageServiceTxt);
-#if not CLEAN26            
-            VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageServiceTxt);
-#else
             VerifyUrlMissingServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageServiceTxt);
-#endif
         end;
 
         if WebServiceAggregate.Get(WebService."Object Type"::Query, QueryServiceTxt) then begin
@@ -72,9 +68,6 @@ codeunit 139043 "Web Service Management Test"
         if WebServiceAggregate.Get(WebService."Object Type"::Page, UnpublishedPageTxt) then begin
             Assert.AreEqual('', WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV3), 'ODataV3 Url should be empty when not published: ' + CodeunitServiceTxt);
             Assert.AreEqual('', WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV4), 'ODataV4 Url should be empty when not published: ' + CodeunitServiceTxt);
-#if not CLEAN26
-            Assert.AreEqual('', WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), 'SOAP Url should be empty when not published: ' + CodeunitServiceTxt);
-#endif
         end;
     end;
 
@@ -132,22 +125,14 @@ codeunit 139043 "Web Service Management Test"
         if WebServiceAggregate.Get(WebService."Object Type"::Page, PageATxt) then begin
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV3), PageATxt);
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV4), PageATxt);
-#if not CLEAN26
-            VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageATxt);
-#else
             VerifyUrlMissingServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageATxt);
-#endif
             Assert.IsTrue(WebServiceAggregate.Published, PageATxt + ' web service record "Published" field should be checked.');
         end;
 
         if WebServiceAggregate.Get(WebService."Object Type"::Page, PageBTxt) then begin
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV3), PageBTxt);
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV4), PageBTxt);
-#if not CLEAN26
-            VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageBTxt);
-#else
             VerifyUrlMissingServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageBTxt);
-#endif
             Assert.IsTrue(WebServiceAggregate.Published, PageBTxt + ' web service record "Published" field should be checked.');
         end;
     end;
