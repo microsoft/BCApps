@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Provides the tools needed to manage Visual Studio Code requests.",
   "description": "Provides methods for constructing requests to Visual Studio Code to debug, navigate to a symbol and more.",
-  "version": "26.0.0.0",
+  "version": "26.1.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2103698",
@@ -15,13 +15,13 @@
       "id": "1b2efb4b-8c44-4d74-a56f-60646645bb21",
       "name": "URI",
       "publisher": "Microsoft",
-      "version": "26.0.0.0"
+      "version": "26.1.0.0"
     },
     {
       "id": "645965f7-95bf-4ee9-bf97-84e45dc6c6d1",
       "name": "Json",
       "publisher": "Microsoft",
-      "version": "26.0.0.0"
+      "version": "26.1.0.0"
     }
   ],
   "screenshots": [],

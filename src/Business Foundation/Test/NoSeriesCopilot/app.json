@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Test suite for the No. Series Suggestions module",
   "description": "Contains an expansive set tests for the No. Series Suggestions module.",
-  "version": "26.0.0.0",
+  "version": "26.1.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2131960",
@@ -15,55 +15,55 @@
       "id": "d098b816-22fd-477f-9602-9122f5465527",
       "name": "No. Series",
       "publisher": "Microsoft",
-      "version": "26.0.0.0"
+      "version": "26.1.0.0"
     },
     {
       "id": "7efce506-def2-4195-9d1e-bc538e729242",
       "name": "No. Series Suggestions",
       "publisher": "Microsoft",
-      "version": "26.0.0.0"
+      "version": "26.1.0.0"
     },
     {
       "id": "f7277dc2-cc73-4b81-b7c6-4a58bfb33806",
       "name": "No. Series Test Library",
       "publisher": "Microsoft",
-      "version": "26.0.0.0"
+      "version": "26.1.0.0"
     },
     {
       "id": "ecb647bf-6fae-45b9-b136-28aa313f5e97",
       "name": "No. Series Suggestions Test Library",
       "publisher": "Microsoft",
-      "version": "26.0.0.0"
+      "version": "26.1.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
       "publisher": "Microsoft",
-      "version": "26.0.0.0"
+      "version": "26.1.0.0"
     },
     {
       "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
       "name": "Any",
       "publisher": "Microsoft",
-      "version": "26.0.0.0"
+      "version": "26.1.0.0"
     },
     {
       "id": "2156302a-872f-4568-be0b-60968696f0d5",
       "publisher": "Microsoft",
       "name": "AI Test Toolkit",
-      "version": "26.0.0.0"
+      "version": "26.1.0.0"
     },
     {
       "id": "23de40a6-dfe8-4f80-80db-d70f83ce8caf",
       "publisher": "Microsoft",
       "name": "Test Runner",
-      "version": "26.0.0.0"
+      "version": "26.1.0.0"
     },
     {
       "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
       "name": "System Application",
       "publisher": "Microsoft",
-      "version": "26.0.0.0"
+      "version": "26.1.0.0"
     }
   ],
   "internalsVisibleTo": [],
