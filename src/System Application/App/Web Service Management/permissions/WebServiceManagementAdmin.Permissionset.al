@@ -4,13 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Integration;
+using System.Environment.Configuration;
 
 permissionset 6712 "Web Service Management - Admin"
 {
     Access = Public;
     Assignable = false;
 
-    IncludedPermissionSets = "Web Service Management - View";
+    IncludedPermissionSets = "Web Service Management - View",
+                             "Feature Mgt. - Admin";
 
     Permissions = tabledata "Tenant Web Service" = IMD,
                   tabledata "Tenant Web Service Columns" = IMD,
