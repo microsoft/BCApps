@@ -59,7 +59,7 @@ codeunit 7767 "AOAI Authorization"
             Enum::"AOAI Resource Utilization"::"Microsoft Managed":
 #if CLEAN26
                 if (AOAIAccountName <> '') and (ManagedResourceDeployment <> '') and (not ApiKey.IsEmpty()) then
-                    exit(VerifyAOAIAccount(AOAIAccountName, ApiKey)
+                    exit(VerifyAOAIAccount(AOAIAccountName, ApiKey))
 #else
                 if (AOAIAccountName <> '') and (ManagedResourceDeployment <> '') and (not ApiKey.IsEmpty()) then
                     exit(VerifyAOAIAccount(AOAIAccountName, ApiKey))
