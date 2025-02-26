@@ -942,6 +942,7 @@ codeunit 9988 "Word Template Impl."
             exit(false);
 
         WordTemplatesRelatedTable.Init();
+        WordTemplatesRelatedTable.Code := WordTemplateCode;
         WordTemplatesRelatedTable."Source Record ID" := RecordSystemId;
         WordTemplatesRelatedTable."Related Table ID" := UnrelatedTableId;
         WordTemplatesRelatedTable."Related Table Code" := PrefixCode;
