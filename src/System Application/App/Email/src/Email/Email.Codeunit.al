@@ -643,7 +643,7 @@ codeunit 8901 Email
     begin
     end;
 
-#if not CLEAN27
+#if not CLEAN26
     /// <summary>
     /// Integration event that allows adding filters to the Email Scenario Attachments before they are retrieved.
     /// </summary>
