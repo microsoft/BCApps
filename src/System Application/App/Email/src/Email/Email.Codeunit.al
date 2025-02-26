@@ -649,7 +649,7 @@ codeunit 8901 Email
     /// </summary>
     /// <param name="EmailScenarioAttachments">The record to add filters to.</param>
     [IntegrationEvent(false, false)]
-    [Obsolete('This event is being removed. Use OnBeforeGetEmailAttachments instead.', '27.0')]
+    [Obsolete('This event is being removed. Use OnBeforeGetEmailAttachments instead.', '26.0')]
     internal procedure OnBeforeGetEmailAttachmentsByEmailScenarios(EmailScenarioAttachments: Record "Email Scenario Attachments")
     begin
     end;
