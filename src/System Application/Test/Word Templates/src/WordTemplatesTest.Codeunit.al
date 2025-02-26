@@ -91,8 +91,8 @@ codeunit 130443 "Word Templates Test"
         RelatedTableSystemId: Guid;
         Result: Boolean;
     begin
-        // [SCENARIO 3105] Calling AddUnrelatedTable returns false if related table already e
-        i
+        // [SCENARIO 3105] Calling AddUnrelatedTable returns false if related table already exists
+
         // [GIVEN] A Word Template Code
         TemplateCode := Any.AlphabeticText(10);
 
