@@ -162,6 +162,7 @@ page 4307 "Agent Task Timeline"
 
     local procedure SetTaskTimelineDetails()
     var
+        AgentTaskMessage: Record "Agent Task Message";
         InStream: InStream;
         ConfirmationLogEntryType: Enum "Agent Task Log Entry Type";
         LogEntryId: Integer;
@@ -240,7 +241,16 @@ page 4307 "Agent Task Timeline"
             "Agent Task Log Entry Type"::"User Intervention Request":
                 ConfirmationStatusOption := ConfirmationStatusOption::ReviewConfirmationRequired;
             "Agent Task Log Entry Type"::"User Intervention":
-                ConfirmationStatusOption := ConfirmationStatusOption::ReviewConfirmed;
+                if (Rec.Type = Rec.Type::InputMessage) or (Rec.Type = Rec.Type::OutputMessage) then begin
+                    ConfirmationStatusOption := ConfirmationStatusOption::ReviewConfirmed;
+                    if AgentTaskMessage.Get(Rec."Primary Page Record ID") then
+                        if AgentTaskMessage.Status = AgentTaskMessage.Status::Discarded then begin
+                            // Discards should not change authorized by.
+                            GlobalNowAuthorizedBy := '';
+                            ConfirmationStatusOption := ConfirmationStatusOption::Discarded;
+                        end;
+                end else
+                    ConfirmationStatusOption := ConfirmationStatusOption::ReviewConfirmed;
             "Agent Task Log Entry Type"::Stop:
                 ConfirmationStatusOption := ConfirmationStatusOption::StopConfirmed;
             else
