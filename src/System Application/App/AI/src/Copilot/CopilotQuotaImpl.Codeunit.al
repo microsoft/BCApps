@@ -17,6 +17,24 @@ codeunit 7786 "Copilot Quota Impl."
         CapabilityNotRegisteredTelemetryMsg: Label 'Capability "%1" is not registered in the system but is logging usage.', Locked = true;
         LoggingUsageTelemetryMsg: Label 'Capability "%1" is logging %2 usage of type %3.', Locked = true;
 
+    trigger OnRun()
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+        ALCopilotQuotaDetails: Dotnet ALCopilotQuotaDetails;
+        Results: Dictionary of [Text, Text];
+    begin
+        ALCopilotQuotaDetails := ALCopilotFunctions.GetCopilotQuotaDetails();
+
+        if IsNull(ALCopilotQuotaDetails) then
+            exit;
+
+        Results.Add('CanConsume', Format(ALCopilotQuotaDetails.CanConsume()));
+        Results.Add('HasSetupBilling', Format(ALCopilotQuotaDetails.HasSetupBilling()));
+        Results.Add('QuotaUsedPercentage', Format(ALCopilotQuotaDetails.QuotaUsedPercentage()));
+
+        Page.SetBackgroundTaskResult(Results);
+    end;
+
     procedure LogQuotaUsage(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; CallerModuleInfo: ModuleInfo)
     var
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
