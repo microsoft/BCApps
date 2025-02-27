@@ -220,7 +220,7 @@ page 4307 "Agent Task Timeline"
                 // We know that there is no user intervention entry for this timeline entry, and the last entry is not a stop.
                 ShouldRefreshConfirmationDetails := false;
 
-        PrevConfirmedById := GetPreviousTimelineStepDetailConfirmedBy(LogEntryId);
+        PrevConfirmedById := GetPreviousTimelineStepDetailConfirmedById(LogEntryId);
 
         if IsNullGuid(PrevConfirmedById) then
             // There were no user interventions before the current step. Default to the user who created the task.
@@ -296,30 +296,29 @@ page 4307 "Agent Task Timeline"
         exit(AgentTaskRec."Created By");
     end;
 
-    local procedure GetPreviousTimelineStepDetailConfirmedBy(LogEntryId: Integer): Text[250]
+    local procedure GetPreviousTimelineStepDetailConfirmedById(LogEntryId: Integer): Guid
     var
         TaskTimelineStepDetail: Record "Agent Task Timeline Step Det.";
-        ConfirmedByUserId: Guid;
+        EmptyGuid: Guid;
     begin
         TaskTimelineStepDetail.SetRange("Task ID", Rec."Task ID");
         TaskTimelineStepDetail.SetFilter("Timeline Step ID", '<%1', Rec.ID);
         TaskTimelineStepDetail.SetFilter("ID", '<%1', LogEntryId);
         TaskTimelineStepDetail.SetFilter("Type", '%1|%2', "Agent Task Log Entry Type"::"User Intervention", "Agent Task Log Entry Type"::Stop);
         if TaskTimelineStepDetail.FindLast() then
-            ConfirmedByUserId := TaskTimelineStepDetail."User Security ID";
+            exit(TaskTimelineStepDetail."User Security ID");
 
-        if (IsNullGuid(ConfirmedByUserId)) then
-            exit('');
-
-        exit(ResolveUserDisplayName(TaskTimelineStepDetail."User Security ID"))
+        exit(EmptyGuid);
     end;
 
     local procedure ResolveUserDisplayName(UserSecurityId: Guid): Text[250]
     var
         User: Record User;
     begin
-        User.SetRange("User Security ID", UserSecurityId);
-        if User.FindFirst() then
+        if IsNullGuid(UserSecurityId) then
+            exit('');
+
+        if User.Get(UserSecurityId) then
             if User."Full Name" <> '' then
                 exit(User."Full Name")
             else
