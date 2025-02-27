@@ -126,7 +126,7 @@ begin
     if GenJnlBatch."No. Series" <> '' then begin
         NoSeriesManagement.SetNoSeriesLineFilter(NoSeriesLine, GenJnlBatch."No. Series", "Posting Date");
         if NoSeriesLine."Increment-by No." > 1 then
-            NoSeriesManagement.IncrementNoText(LastDocNumber, NoSeriesLine."Increment-by No.")
+            LastDocNumber := IncStr(LastDocNumber, NoSeriesLine."Increment-by No.")
         else
             LastDocNumber := IncStr(LastDocNumber);
     end else
