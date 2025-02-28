@@ -150,7 +150,6 @@ codeunit 309 "No. Series - Batch Impl."
     begin
         if SimulationMode then
             Error(CannotSaveWhileSimulatingNumbersErr);
-        Session.LogMessage('0000MI4', SavingAllNoSeriesStatesTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesBatchTxt);
         TempGlobalNoSeriesLine.Reset();
         if TempGlobalNoSeriesLine.FindSet() then
             repeat
@@ -163,7 +162,6 @@ codeunit 309 "No. Series - Batch Impl."
     var
         NoSeriesLine: Record "No. Series Line";
     begin
-        Session.LogMessage('0000MI5', UpdatingNoSeriesLinesFromDbTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesBatchTxt);
         NoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
         NoSeriesLine.TransferFields(TempNoSeriesLine);
         NoSeriesLine.Modify(true);
