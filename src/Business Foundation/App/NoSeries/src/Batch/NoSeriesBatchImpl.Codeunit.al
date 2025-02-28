@@ -20,8 +20,6 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeriesBatchTxt: Label 'No. Series - Batch', Locked = true;
         SimulationModeStartedTxt: Label 'No. Series simulation mode started.', Locked = true;
         SavingSingleNoSeriesStateTxt: Label 'Saving single No. Series state.', Locked = true;
-        SavingAllNoSeriesStatesTxt: Label 'Saving all No. Series states.', Locked = true;
-        UpdatingNoSeriesLinesFromDbTxt: Label 'Updating No. Series lines from database.', Locked = true;
 
     procedure SetInitialState(TempNoSeriesLine: Record "No. Series Line" temporary)
     begin
