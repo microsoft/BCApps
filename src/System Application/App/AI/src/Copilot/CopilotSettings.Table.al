@@ -95,7 +95,7 @@ table 7775 "Copilot Settings"
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         CapabilityName: Text;
     begin
-        if Rec.Capability.AsInteger() = 0 then
+        if (Rec.Capability.AsInteger() = 0) and (Rec.Publisher = '') then
             exit(false);
 
         // TODO: This logic should just call the backend logic to avoid code duplication
