@@ -166,7 +166,8 @@ page 4307 "Agent Task Timeline"
         InStream: InStream;
         ConfirmationLogEntryType: Enum "Agent Task Log Entry Type";
         LogEntryId: Integer;
-        PrevConfirmedBy: Text[250];
+        ConfirmedById: Guid;
+        PrevConfirmedById: Guid;
         ShouldRefreshConfirmationDetails: Boolean;
     begin
         // Clear old values
@@ -219,22 +220,21 @@ page 4307 "Agent Task Timeline"
                 // We know that there is no user intervention entry for this timeline entry, and the last entry is not a stop.
                 ShouldRefreshConfirmationDetails := false;
 
-        PrevConfirmedBy := GetPreviousTimelineStepDetailConfirmedBy(LogEntryId);
+        PrevConfirmedById := GetPreviousTimelineStepDetailConfirmedById(LogEntryId);
 
-        if (PrevConfirmedBy = '') then
-            GlobalNowAuthorizedBy := GetTaskCreatedBy();
+        if IsNullGuid(PrevConfirmedById) then
+            // There were no user interventions before the current step. Default to the user who created the task.
+            PrevConfirmedById := GetTaskCreatedBy();
 
         if not ShouldRefreshConfirmationDetails then
             exit;
 
-        if not TryGetConfirmationDetails(LogEntryId, GlobalConfirmedBy, GlobalConfirmedAt, ConfirmationLogEntryType) then
+        if not TryGetConfirmationDetails(LogEntryId, ConfirmedById, GlobalConfirmedAt, ConfirmationLogEntryType) then
             exit;
 
-        if (PrevConfirmedBy = '') and (GlobalConfirmedBy <> '') then
-            GlobalNowAuthorizedBy := GlobalConfirmedBy
-        else
-            if (PrevConfirmedBy <> '') and (GlobalConfirmedBy <> '') and (PrevConfirmedBy <> GlobalConfirmedBy) then
-                GlobalNowAuthorizedBy := GlobalConfirmedBy;
+        GlobalConfirmedBy := ResolveUserDisplayName(ConfirmedById);
+        if (not IsNullGuid(ConfirmedById)) and (ConfirmedById <> PrevConfirmedById) then
+            GlobalNowAuthorizedBy := GlobalConfirmedBy;
 
         case
             ConfirmationLogEntryType of
@@ -258,7 +258,7 @@ page 4307 "Agent Task Timeline"
         end;
     end;
 
-    local procedure TryGetConfirmationDetails(LogEntryId: Integer; var By: Text[250]; var At: DateTime; var ConfirmationLogEntryType: Enum "Agent Task Log Entry Type"): Boolean
+    local procedure TryGetConfirmationDetails(LogEntryId: Integer; var ById: Guid; var At: DateTime; var ConfirmationLogEntryType: Enum "Agent Task Log Entry Type"): Boolean
     var
         TaskTimelineStepDetail: Record "Agent Task Timeline Step Det.";
     begin
@@ -279,47 +279,46 @@ page 4307 "Agent Task Timeline"
             (TaskTimelineStepDetail.Type <> "Agent Task Log Entry Type"::Stop)) then
             exit(false);
 
-        By := ResolveUserDisplayName(TaskTimelineStepDetail."User Security ID");
+        ById := TaskTimelineStepDetail."User Security ID";
         At := Rec.SystemModifiedAt;
 
         exit(true);
     end;
 
-    local procedure GetTaskCreatedBy(): Text[250]
+    local procedure GetTaskCreatedBy(): Guid
     var
-        AgentTaskTimelineRec: Record "Agent Task Timeline";
+        AgentTaskRec: Record "Agent Task";
+        EmptyGuid: Guid;
     begin
-        AgentTaskTimelineRec.SetRange("Task ID", Rec."Task ID");
-        if not AgentTaskTimelineRec.FindFirst() then
-            exit('');
+        if not AgentTaskRec.Get(Rec."Task ID") then
+            exit(EmptyGuid);
 
-        exit(ResolveUserDisplayName(AgentTaskTimelineRec."Created By"));
+        exit(AgentTaskRec."Created By");
     end;
 
-    local procedure GetPreviousTimelineStepDetailConfirmedBy(LogEntryId: Integer): Text[250]
+    local procedure GetPreviousTimelineStepDetailConfirmedById(LogEntryId: Integer): Guid
     var
         TaskTimelineStepDetail: Record "Agent Task Timeline Step Det.";
-        ConfirmedByUserId: Guid;
+        EmptyGuid: Guid;
     begin
         TaskTimelineStepDetail.SetRange("Task ID", Rec."Task ID");
         TaskTimelineStepDetail.SetFilter("Timeline Step ID", '<%1', Rec.ID);
         TaskTimelineStepDetail.SetFilter("ID", '<%1', LogEntryId);
         TaskTimelineStepDetail.SetFilter("Type", '%1|%2', "Agent Task Log Entry Type"::"User Intervention", "Agent Task Log Entry Type"::Stop);
         if TaskTimelineStepDetail.FindLast() then
-            ConfirmedByUserId := TaskTimelineStepDetail."User Security ID";
+            exit(TaskTimelineStepDetail."User Security ID");
 
-        if (IsNullGuid(ConfirmedByUserId)) then
-            exit('');
-
-        exit(ResolveUserDisplayName(TaskTimelineStepDetail."User Security ID"))
+        exit(EmptyGuid);
     end;
 
     local procedure ResolveUserDisplayName(UserSecurityId: Guid): Text[250]
     var
         User: Record User;
     begin
-        User.SetRange("User Security ID", UserSecurityId);
-        if User.FindFirst() then
+        if IsNullGuid(UserSecurityId) then
+            exit('');
+
+        if User.Get(UserSecurityId) then
             if User."Full Name" <> '' then
                 exit(User."Full Name")
             else
