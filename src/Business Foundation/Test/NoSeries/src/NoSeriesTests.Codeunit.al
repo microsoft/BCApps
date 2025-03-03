@@ -1018,8 +1018,12 @@ codeunit 134530 "No. Series Tests"
 
     [ModalPageHandler]
     procedure NoSeriesLineDrilldownHandler(var NoSeriesLines: TestPage "No. Series Lines")
+    var
+        CronusLicenseAlloweDate: Date;
     begin
-        NoSeriesLines."Starting Date".SetValue(WorkDate());
+        // allowed dates are November to February
+        CronusLicenseAlloweDate := DMY2Date(13, 11, Date2DMY(WorkDate(), 3) - 1);
+        NoSeriesLines."Starting Date".SetValue(CronusLicenseAlloweDate);
         NoSeriesLines."Starting No.".SetValue('00001');
     end;
 
