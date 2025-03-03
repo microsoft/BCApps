@@ -252,6 +252,7 @@ page 7775 "Copilot AI Capabilities"
         EnvironmentInformation: Codeunit "Environment Information";
         WithinGeo: Boolean;
         WithinEUDB: Boolean;
+        TaskId: Integer;
     begin
         OnRegisterCopilotCapability();
 
@@ -280,7 +281,43 @@ page 7775 "Copilot AI Capabilities"
 
         if EnvironmentInformation.IsSaaSInfrastructure() then begin
             CopilotNotifications.ShowBillingInTheFutureNotification();
-            CopilotNotifications.CheckAIQuotaAndShowNotification();
+            CurrPage.EnqueueBackgroundTask(TaskId, Codeunit::"Copilot Quota Impl.");
+        end;
+    end;
+
+    trigger OnPageBackgroundTaskCompleted(TaskId: Integer; Results: Dictionary of [Text, Text])
+    var
+        CopilotNotifications: Codeunit "Copilot Notifications";
+        Value: Text;
+        CanConsume: Boolean;
+        HasBilling: Boolean;
+        QuotaUsedPercentage: Decimal;
+        CanConsumeLbl: Label 'CanConsume', Locked = true;
+        HasSetupBillingLbl: Label 'HasSetupBilling', Locked = true;
+        QuotaUsedPercentageLbl: Label 'QuotaUsedPercentage', Locked = true;
+    begin
+        if Results.ContainsKey(CanConsumeLbl) then begin
+            Results.Get(CanConsumeLbl, Value);
+            if Evaluate(CanConsume, Value) then;
+            if not CanConsume then begin
+                CopilotNotifications.ShowAIQuotaUsedUpNotification();
+                exit;
+            end;
+        end;
+
+        if Results.ContainsKey(HasSetupBillingLbl) then begin
+            Results.Get(HasSetupBillingLbl, Value);
+            if Evaluate(HasBilling, Value) then;
+            if HasBilling then
+                exit;
+        end;
+
+        if Results.ContainsKey(QuotaUsedPercentageLbl) then begin
+            Results.Get(QuotaUsedPercentageLbl, Value);
+            if Evaluate(QuotaUsedPercentage, Value) then;
+            if QuotaUsedPercentage >= 80.0 then
+                CopilotNotifications.ShowAIQuotaNearlyUsedUpNotification();
+            exit;
         end;
     end;
 
