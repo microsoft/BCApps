@@ -273,33 +273,36 @@ codeunit 130458 "Test Inputs Management"
     local procedure InsertDataInputLine(DataOnlyTestInput: JsonObject; var TestInputGroup: Record "Test Input Group")
     var
         TestInput: Record "Test Input";
-        DataNameJsonToken: JsonToken;
-        DescriptionJsonToken: JsonToken;
         TestInputJsonToken: JsonToken;
         TestInputText: Text;
     begin
         TestInput."Test Input Group Code" := TestInputGroup.Code;
 
         if not DataOnlyTestInput.Get(TestInputTok, TestInputJsonToken) then
-            TestInputJsonToken := DataOnlyTestInput.AsToken()
-        else begin
-            if DataOnlyTestInput.Get(DataNameTok, DataNameJsonToken) then
-                TestInput.Code := CopyStr(DataNameJsonToken.AsValue().AsText(), 1, MaxStrLen(TestInput.Code));
+            TestInputJsonToken := DataOnlyTestInput.AsToken();
 
-            if DataOnlyTestInput.Get(DescriptionTok, DescriptionJsonToken) then
-                TestInput.Description := CopyStr(DescriptionJsonToken.AsValue().AsText(), 1, MaxStrLen(TestInput.Description))
-        end;
-
-        if TestInput.Code = '' then
-            AssignTestInputName(TestInput, TestInputGroup);
-
-        if TestInput.Description = '' then
-            TestInput.Description := TestInput.Code;
+        AssignTestInputCode(TestInput, TestInputGroup, TestInputJsonToken.AsObject());
 
         TestInput.Insert(true);
 
         TestInputJsonToken.WriteTo(TestInputText);
         TestInput.SetInput(TestInput, TestInputText);
+    end;
+
+    local procedure AssignTestInputCode(var TestInput: Record "Test Input"; var TestInputGroup: Record "Test Input Group"; TestInputJsonToken: JsonObject)
+    var
+        DataNameJsonToken: JsonToken;
+        DescriptionJsonToken: JsonToken;
+    begin
+        if TestInputJsonToken.Get(DataNameTok, DataNameJsonToken) then
+            TestInput.Code := CopyStr(DataNameJsonToken.AsValue().AsText(), 1, MaxStrLen(TestInput.Code))
+        else
+            AssignTestInputName(TestInput, TestInputGroup);
+
+        if TestInputJsonToken.Get(DescriptionTok, DescriptionJsonToken) then
+            TestInput.Description := CopyStr(DescriptionJsonToken.AsValue().AsText(), 1, MaxStrLen(TestInput.Description))
+        else
+            TestInput.Description := TestInput.Code;
     end;
 
     procedure InsertTestMethodLines(var TempTestMethodLine: Record "Test Method Line" temporary; var ALTestSuite: Record "AL Test Suite")

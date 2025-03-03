@@ -26,30 +26,43 @@ codeunit 4300 "Agent Task Impl."
 
     procedure GetStepsDoneCount(var AgentTask: Record "Agent Task"): Integer
     var
-        AgentTaskStep: Record "Agent Task Step";
+        AgentTaskLogEntry: Record "Agent Task Log Entry";
     begin
-        AgentTaskStep.SetRange("Task ID", AgentTask."ID");
-        AgentTaskStep.ReadIsolation := IsolationLevel::ReadCommitted;
-        exit(AgentTaskStep.Count());
+        AgentTaskLogEntry.SetRange("Task ID", AgentTask."ID");
+        AgentTaskLogEntry.ReadIsolation := IsolationLevel::ReadCommitted;
+        exit(AgentTaskLogEntry.Count());
     end;
 
-    procedure GetDetailsForAgentTaskStep(var AgentTaskStep: Record "Agent Task Step"): Text
+    procedure GetDetailsForAgentTaskLogEntry(var AgentTaskLogEntry: Record "Agent Task Log Entry"): Text
     var
         ContentInStream: InStream;
         ContentText: Text;
     begin
-        AgentTaskStep.CalcFields(Details);
-        AgentTaskStep.Details.CreateInStream(ContentInStream, GetDefaultEncoding());
+        AgentTaskLogEntry.CalcFields(Details);
+        AgentTaskLogEntry.Details.CreateInStream(ContentInStream, GetDefaultEncoding());
         ContentInStream.Read(ContentText);
         exit(ContentText);
     end;
 
-    procedure ShowTaskSteps(var AgentTask: Record "Agent Task")
+    procedure ShowTaskLogEntries(var AgentTask: Record "Agent Task")
     var
-        AgentTaskStep: Record "Agent Task Step";
+        AgentTaskLogEntry: Record "Agent Task Log Entry";
     begin
-        AgentTaskStep.SetRange("Task ID", AgentTask.ID);
-        Page.Run(Page::"Agent Task Step List", AgentTaskStep);
+        AgentTaskLogEntry.SetRange("Task ID", AgentTask.ID);
+        Page.Run(Page::"Agent Task Log Entry List", AgentTaskLogEntry);
+    end;
+
+    procedure CreateTask(AgentSecurityID: Guid; TaskTitle: Text[150]; ExternalId: Text[2048]; var NewAgentTask: Record "Agent Task")
+    begin
+        Clear(NewAgentTask);
+        NewAgentTask."Agent User Security ID" := AgentSecurityID;
+        NewAgentTask.Title := TaskTitle;
+        NewAgentTask."Created By" := UserSecurityId();
+        NewAgentTask."Needs Attention" := false;
+        NewAgentTask.Status := NewAgentTask.Status::Paused;
+        NewAgentTask."External ID" := ExternalId;
+        NewAgentTask.Insert();
+        StartTaskIfPossible(NewAgentTask);
     end;
 
     procedure CreateTaskMessage(From: Text[250]; MessageText: Text; var CurrentAgentTask: Record "Agent Task")
@@ -82,52 +95,47 @@ codeunit 4300 "Agent Task Impl."
         AgentTaskMessage.Insert();
 
         SetMessageText(AgentTaskMessage, MessageText);
-
-        // Only change the status if the task is in a status where it can be started again.
-        // If the task is running, we should not change the state, as platform will pickup a new message automatically.
-        if ((AgentTask.Status = AgentTask.Status::Paused) or (AgentTask.Status = AgentTask.Status::Completed)) then begin
-            AgentTask.Status := AgentTask.Status::Ready;
-            AgentTask.Modify(true);
-        end;
+        StartTaskIfPossible(AgentTask);
     end;
 
-    procedure CreateUserInterventionTaskStep(UserInterventionRequestStep: Record "Agent Task Step")
+    procedure CreateUserIntervention(UserInterventionRequestEntry: Record "Agent Task Log Entry")
     begin
-        CreateUserInterventionTaskStep(UserInterventionRequestStep, '', -1);
+        CreateUserIntervention(UserInterventionRequestEntry, '', -1);
     end;
 
-    procedure CreateUserInterventionTaskStep(UserInterventionRequestStep: Record "Agent Task Step"; UserInput: Text)
+    procedure CreateUserIntervention(UserInterventionRequestEntry: Record "Agent Task Log Entry"; UserInput: Text)
     begin
-        CreateUserInterventionTaskStep(UserInterventionRequestStep, UserInput, -1);
+        CreateUserIntervention(UserInterventionRequestEntry, UserInput, -1);
     end;
 
-    procedure CreateUserInterventionTaskStep(UserInterventionRequestStep: Record "Agent Task Step"; SelectedSuggestionId: Integer)
+    procedure CreateUserIntervention(UserInterventionRequestEntry: Record "Agent Task Log Entry"; SelectedSuggestionId: Integer)
     begin
-        CreateUserInterventionTaskStep(UserInterventionRequestStep, '', SelectedSuggestionId);
+        CreateUserIntervention(UserInterventionRequestEntry, '', SelectedSuggestionId);
     end;
 
-    procedure CreateUserInterventionTaskStep(UserInterventionRequestStep: Record "Agent Task Step"; UserInput: Text; SelectedSuggestionId: Integer)
+    procedure CreateUserIntervention(UserInterventionRequestEntry: Record "Agent Task Log Entry"; UserInput: Text; SelectedSuggestionId: Integer)
     var
         AgentTask: Record "Agent Task";
-        AgentTaskStep: Record "Agent Task Step";
-        DetailsOutStream: OutStream;
-        DetailsJson: JsonObject;
+        AgentALFunctions: DotNet AgentALFunctions;
+        UserIntervention: DotNet "AgentTaskUserIntervention";
     begin
-        AgentTask.Get(UserInterventionRequestStep."Task ID");
+        AgentTask.Get(UserInterventionRequestEntry."Task ID");
 
-        AgentTaskStep."Task ID" := AgentTask.ID;
-        AgentTaskStep."Type" := AgentTaskStep."Type"::"User Intervention";
-        AgentTaskStep.Description := 'User intervention';
-        DetailsJson.Add('interventionRequestStepNumber', UserInterventionRequestStep."Step Number");
+        UserIntervention := UserIntervention.AgentTaskUserInterventionDetails();
         if UserInput <> '' then
-            DetailsJson.Add('userInput', UserInput);
+            UserIntervention.UserInput := UserInput;
         if SelectedSuggestionId >= 0 then
-            DetailsJson.Add('selectedSuggestionId', SelectedSuggestionId);
-        AgentTaskStep.CalcFields(Details);
-        Clear(AgentTaskStep.Details);
-        AgentTaskStep.Details.CreateOutStream(DetailsOutStream, GetDefaultEncoding());
-        DetailsJson.WriteTo(DetailsOutStream);
-        AgentTaskStep.Insert();
+            UserIntervention.SelectedSuggestionId := SelectedSuggestionId;
+        AgentALFunctions.CreateAgentTaskUserIntervention(AgentTask."Agent User Security ID", AgentTask.ID, UserInterventionRequestEntry.ID, UserIntervention);
+    end;
+
+    procedure GetUserInterventionRequestDetails(UserInterventionRequestEntry: Record "Agent Task Log Entry"; var UserInterventionRequest: DotNet "AgentTaskUserInterventionRequest")
+    var
+        AgentTask: Record "Agent Task";
+        AgentALFunctions: DotNet AgentALFunctions;
+    begin
+        AgentTask.Get(UserInterventionRequestEntry."Task ID");
+        UserInterventionRequest := AgentALFunctions.GetAgentTaskUserInterventionRequest(AgentTask."Agent User Security ID", AgentTask.ID, UserInterventionRequestEntry.ID);
     end;
 
     procedure StopTask(var AgentTask: Record "Agent Task"; AgentTaskStatus: enum "Agent Task Status"; UserConfirm: Boolean)
@@ -168,6 +176,16 @@ codeunit 4300 "Agent Task Impl."
     procedure GetDefaultEncoding(): TextEncoding
     begin
         exit(TextEncoding::UTF8);
+    end;
+
+    local procedure StartTaskIfPossible(var AgentTask: Record "Agent Task")
+    begin
+        // Only change the status if the task is in a status where it can be started again.
+        // If the task is running, we should not change the state, as platform will pickup a new message automatically.
+        if ((AgentTask.Status = AgentTask.Status::Paused) or (AgentTask.Status = AgentTask.Status::Completed)) then begin
+            AgentTask.Status := AgentTask.Status::Ready;
+            AgentTask.Modify(true);
+        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetAgentTaskMessagePageId, '', true, true)]

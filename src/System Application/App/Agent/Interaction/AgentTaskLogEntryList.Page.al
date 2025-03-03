@@ -5,18 +5,18 @@
 
 namespace System.Agents;
 
-page 4303 "Agent Task Step List"
+#pragma warning disable AS0125
+page 4303 "Agent Task Log Entry List"
 {
     PageType = List;
     ApplicationArea = All;
-    UsageCategory = Administration;
-    SourceTable = "Agent Task Step";
-    Caption = 'Agent Task Steps';
+    SourceTable = "Agent Task Log Entry";
+    Caption = 'Agent Task Log';
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
     Editable = false;
-    SourceTableView = sorting("Step Number") order(descending);
+    SourceTableView = sorting("ID") order(descending);
     Extensible = false;
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -25,16 +25,30 @@ page 4303 "Agent Task Step List"
     {
         area(Content)
         {
-            repeater(AgentConversationActionLog)
+            repeater(LogEntries)
             {
-                field(StepNumber; Rec."Step Number")
+                field(ID; Rec."ID")
                 {
-                    Caption = 'Step Number';
+                    Caption = 'ID';
+                    ToolTip = 'Specifies the unique identifier of the log entry.';
                 }
                 field(TaskID; Rec."Task ID")
                 {
                     Visible = false;
                     Caption = 'Task ID';
+                }
+                field(Type; Rec.Type)
+                {
+                    Caption = 'Type';
+                }
+                field(PageCaption; Rec."Page Caption")
+                {
+                    Caption = 'Page Caption';
+                }
+                field("User Full Name"; Rec."User Full Name")
+                {
+                    Caption = 'User Full Name';
+                    Tooltip = 'Specifies the full name of the user that was involved in performing the step..';
                 }
                 field(Description; Rec.Description)
                 {
@@ -49,11 +63,6 @@ page 4303 "Agent Task Step List"
                     begin
                         Message(DetailsTxt);
                     end;
-                }
-                field("User Full Name"; Rec."User Full Name")
-                {
-                    Caption = 'User Full Name';
-                    Tooltip = 'Specifies the full name of the user that was involved in performing the step..';
                 }
             }
         }
@@ -73,9 +82,10 @@ page 4303 "Agent Task Step List"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        DetailsTxt := AgentTaskImpl.GetDetailsForAgentTaskStep(Rec);
+        DetailsTxt := AgentTaskImpl.GetDetailsForAgentTaskLogEntry(Rec);
     end;
 
     var
         DetailsTxt: Text;
 }
+#pragma warning restore AS0125

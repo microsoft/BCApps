@@ -20,7 +20,6 @@ controladdin "Microsoft.Dynamics.Nav.Client.BusinessChart"
     HorizontalShrink = true;
 
     Scripts = 'Resources\BusinessChart\js\BusinessChartAddIn.js',
-              'https://bc-cdn.dynamics.com/common/js/jquery-3.5.1.min.js',
               'https://bc-cdn.dynamics.com/common/js/highcharts-9.1.1.js',
               'https://bc-cdn.dynamics.com/common/js/highcharts-more-9.1.1.js',
               'https://bc-cdn.dynamics.com/common/js/accessibility-9.1.1.js',
