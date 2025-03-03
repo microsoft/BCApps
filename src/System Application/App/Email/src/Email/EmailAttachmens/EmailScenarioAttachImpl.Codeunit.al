@@ -25,7 +25,7 @@ codeunit 8902 "Email Scenario Attach Impl."
         Email: Codeunit Email;
     begin
         Email.OnBeforeGetEmailAttachments(EmailScenarioAttachments);
-#if not CLEAN26
+#if not CLEAN27
 #pragma warning disable AL0432
         Email.OnBeforeGetEmailAttachmentsByEmailScenarios(EmailScenarioAttachments);
 #pragma warning restore AL0432
