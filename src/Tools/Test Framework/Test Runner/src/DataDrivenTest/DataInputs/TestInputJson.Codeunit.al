@@ -112,10 +112,11 @@ codeunit 130464 "Test Input Json"
         TextOutput: Text;
     begin
         TestJson.WriteTo(TextOutput);
-        if TextOutput = 'null' then
-            exit('');
 
         TextOutput := TextOutput.TrimStart('"').TrimEnd('"');
+
+        if TextOutput = 'null' then
+            exit('');
 
         exit(TextOutput);
     end;

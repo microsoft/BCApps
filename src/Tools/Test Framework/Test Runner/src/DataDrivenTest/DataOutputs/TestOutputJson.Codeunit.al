@@ -199,10 +199,11 @@ codeunit 130462 "Test Output Json"
         TextOutput: Text;
     begin
         TestJson.WriteTo(TextOutput);
-        if TextOutput = 'null' then
-            exit('');
 
         TextOutput := TextOutput.TrimStart('"').TrimEnd('"');
+
+        if TextOutput = 'null' then
+            exit('');
 
         exit(TextOutput);
     end;
