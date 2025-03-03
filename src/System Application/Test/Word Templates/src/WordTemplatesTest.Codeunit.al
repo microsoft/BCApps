@@ -25,7 +25,7 @@ codeunit 130443 "Word Templates Test"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    procedure AddUnrelatedTable_CreatesRecord()
+    procedure AddUnrelatedTableCreatesRecord()
     var
         WordTemplatesRelatedTable: Record "Word Templates Related Table";
         Any: Codeunit Any;
@@ -58,7 +58,7 @@ codeunit 130443 "Word Templates Test"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    procedure AddUnrelatedTable_ReturnsTrue_IfCreated()
+    procedure AddUnrelatedTableReturnsTrueIfCreated()
     var
         WordTemplatesRelatedTable: Record "Word Templates Related Table";
         Any: Codeunit Any;
@@ -81,7 +81,7 @@ codeunit 130443 "Word Templates Test"
     [Test]
     [HandlerFunctions('MessageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    procedure AddUnrelatedTable_ReturnsFalse_IfNotCreated()
+    procedure AddUnrelatedTableReturnsFalseIfNotCreated()
     var
         WordTemplatesRelatedTable: Record "Word Templates Related Table";
         Any: Codeunit Any;
