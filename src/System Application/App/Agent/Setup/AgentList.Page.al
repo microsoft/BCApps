@@ -11,7 +11,7 @@ page 4316 "Agent List"
     ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "Agent";
-    Caption = 'Agents';
+    Caption = 'Agents (Preview)';
     CardPageId = "Agent Card";
     AdditionalSearchTerms = 'Agent, Agents, Copilot, Automation, AI';
     Editable = false;
@@ -90,4 +90,14 @@ page 4316 "Agent List"
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+        AgentMetadataProvider: Enum "Agent Metadata Provider";
+    begin
+        // Check if there are any agents available
+        if AgentMetadataProvider.Names().Count() = 0 then
+            AgentImpl.ShowNoAgentsAvailableNotification();
+    end;
 }

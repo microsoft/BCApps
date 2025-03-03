@@ -9,13 +9,14 @@ page 4300 "Agent Task List"
 {
     PageType = List;
     ApplicationArea = All;
+    UsageCategory = Administration;
     SourceTable = "Agent Task";
-    Caption = 'Agent Tasks';
+    Caption = 'Agent Tasks (Preview)';
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
     AdditionalSearchTerms = 'Agent Tasks, Agent Task, Agent, Agent Log, Agent Logs';
-    SourceTableView = sorting("Last Step Timestamp") order(descending);
+    SourceTableView = sorting("Last Log Entry Timestamp") order(descending);
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -33,11 +34,11 @@ page 4300 "Agent Task List"
                 {
                     Caption = 'Title';
                 }
-                field(LastStepTimestamp; Rec."Last Step Timestamp")
+                field(LastLogEntryTimestamp; Rec."Last Log Entry Timestamp")
                 {
                     Caption = 'Last Updated';
                 }
-                field(LastStepNumber; Rec."Last Step Number")
+                field(LastLogEntryId; Rec."Last Log Entry ID")
                 {
                 }
                 field(Status; Rec.Status)
@@ -72,7 +73,7 @@ page 4300 "Agent Task List"
                     var
                         AgentTaskImpl: Codeunit "Agent Task Impl.";
                     begin
-                        AgentTaskImpl.ShowTaskSteps(Rec);
+                        AgentTaskImpl.ShowTaskLogEntries(Rec);
                     end;
                 }
                 field("Created By"; Rec."Created By Full Name")
@@ -112,18 +113,18 @@ page 4300 "Agent Task List"
                     ShowTaskMessages();
                 end;
             }
-            action(ViewTaskSteps)
+            action(ViewTaskLogEntries)
             {
                 ApplicationArea = All;
-                Caption = 'View steps';
-                ToolTip = 'Show steps for the selected task.';
+                Caption = 'View log entries';
+                ToolTip = 'Show log entries for the selected task.';
                 Image = TaskList;
 
                 trigger OnAction()
                 var
                     AgentTaskImpl: Codeunit "Agent Task Impl.";
                 begin
-                    AgentTaskImpl.ShowTaskSteps(Rec);
+                    AgentTaskImpl.ShowTaskLogEntries(Rec);
                 end;
             }
             action(Stop)
@@ -149,7 +150,7 @@ page 4300 "Agent Task List"
                 actionref(ViewTaskMessage_Promoted; ViewTaskMessage)
                 {
                 }
-                actionref(ViewTaskSteps_Promoted; ViewTaskSteps)
+                actionref(ViewTaskLogEntries_Promoted; ViewTaskLogEntries)
                 {
                 }
             }

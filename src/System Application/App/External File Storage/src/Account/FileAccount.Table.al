@@ -12,6 +12,7 @@ table 9450 "File Account"
 {
     Extensible = false;
     TableType = Temporary;
+    Caption = 'External File Account';
 
     fields
     {

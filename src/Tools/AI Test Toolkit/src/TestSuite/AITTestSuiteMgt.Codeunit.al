@@ -32,6 +32,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         EmptyLogEntriesErr: Label 'Cannot download test summary as there is no log entries within the filter.';
         DownloadResultsLbl: Label 'Download Test Summary';
         SummaryFileNameLbl: Label '%1_Test_Summary.xlsx', Locked = true;
+        ConfirmCancelQst: Label 'This action will mark the run as Cancelled. Are you sure you want to continue?';
 
     procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
     var
@@ -212,16 +213,15 @@ codeunit 149034 "AIT Test Suite Mgt."
         Commit();
     end;
 
-    internal procedure ResetStatus(var AITTestSuite: Record "AIT Test Suite")
+    internal procedure CancelRun(var AITTestSuite: Record "AIT Test Suite")
     var
         AITTestMethodLine: Record "AIT Test Method Line";
-        ConfirmResetStatusQst: Label 'This action will mark the run as Completed. Are you sure you want to continue?';
     begin
-        if not Confirm(ConfirmResetStatusQst) then
+        if not Confirm(ConfirmCancelQst) then
             exit;
 
         AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite."Code");
-        AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Completed, true);
+        AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Cancelled, true);
         AITTestSuite.Status := AITTestSuite.Status::Completed;
         AITTestSuite."No. of Tests Running" := 0;
         AITTestSuite."Ended at" := CurrentDateTime();
