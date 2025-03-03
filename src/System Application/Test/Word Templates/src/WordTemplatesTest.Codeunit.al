@@ -30,17 +30,17 @@ codeunit 130443 "Word Templates Test"
         WordTemplatesRelatedTable: Record "Word Templates Related Table";
         Any: Codeunit Any;
         WordTemplate: Codeunit "Word Template";
-        TemplateCode: Code[30];
         PrefixCode: Code[5];
+        TemplateCode: Code[30];
         RelatedTableSystemId: Guid;
     begin
         // [SCENARIO 3105] Calling AddUnrelatedTable creates a related table record correctly
 
         // [GIVEN] A Word Template Code
-        TemplateCode := Any.AlphabeticText(10);
+        TemplateCode := CopyStr(Any.AlphabeticText(10), 1, MaxStrLen(TemplateCode));
 
         // [GIVEN] A prefix code for the unrelated table
-        PrefixCode := Any.AlphabeticText(5);
+        PrefixCode := CopyStr(Any.AlphabeticText(5), 1, MaxStrLen(PrefixCode));
 
         // [GIVEN] A SystemId for the unrelated table record
         RelatedTableSystemId := CreateGuid();
@@ -64,6 +64,8 @@ codeunit 130443 "Word Templates Test"
         Any: Codeunit Any;
         WordTemplate: Codeunit "Word Template";
         Result: Boolean;
+        PrefixCode: Code[5];
+        TemplateCode: Code[30];
     begin
         // [SCENARIO 3105] Calling AddUnrelatedTable returns true if the record is created
 
@@ -72,7 +74,9 @@ codeunit 130443 "Word Templates Test"
             WordTemplatesRelatedTable.DeleteAll(false);
 
         // [WHEN] AddUnrelatedTable is called with arbitrary table and record id
-        Result := WordTemplate.AddUnrelatedTable(Any.AlphabeticText(10), Any.AlphabeticText(5), Any.IntegerInRange(1, 100), CreateGuid());
+        TemplateCode := CopyStr(Any.AlphabeticText(10), 1, MaxStrLen(TemplateCode));
+        PrefixCode := CopyStr(Any.AlphabeticText(5), 1, MaxStrLen(PrefixCode));
+        Result := WordTemplate.AddUnrelatedTable(TemplateCode, PrefixCode, Any.IntegerInRange(1, 100), CreateGuid());
 
         // [THEN] The method result is true
         Assert.IsTrue(Result, 'Unexpected method return value.');
@@ -83,21 +87,20 @@ codeunit 130443 "Word Templates Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure AddUnrelatedTableReturnsFalseIfNotCreated()
     var
-        WordTemplatesRelatedTable: Record "Word Templates Related Table";
         Any: Codeunit Any;
         WordTemplate: Codeunit "Word Template";
-        TemplateCode: Code[30];
-        PrefixCode: Code[5];
-        RelatedTableSystemId: Guid;
         Result: Boolean;
+        PrefixCode: Code[5];
+        TemplateCode: Code[30];
+        RelatedTableSystemId: Guid;
     begin
         // [SCENARIO 3105] Calling AddUnrelatedTable returns false if related table already exists
 
         // [GIVEN] A Word Template Code
-        TemplateCode := Any.AlphabeticText(10);
+        TemplateCode := CopyStr(Any.AlphabeticText(10), 1, MaxStrLen(TemplateCode));
 
         // [GIVEN] A prefix code for the unrelated table
-        PrefixCode := Any.AlphabeticText(5);
+        PrefixCode := CopyStr(Any.AlphabeticText(5), 1, MaxStrLen(PrefixCode));
 
         // [GIVEN] A SystemId for the unrelated table record
         RelatedTableSystemId := CreateGuid();
