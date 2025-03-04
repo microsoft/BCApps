@@ -297,16 +297,16 @@ codeunit 9987 "Word Template"
     end;
 
     /// <summary>
-    /// Add unrelated table.
+    /// Adds an unrelated table entry for the specified <paramref name="WordTemplateCode"/>.
     /// </summary>
     /// <param name="WordTemplateCode">The code of an existing parent Word template.</param>
     /// <param name="PrefixCode">The code of the unrelated table to add.</param>
     /// <param name="UnrelatedTableId">The ID of the unrelated table to add.</param>
     /// <param name="RecordSystemId">The system id of the record to add.</param>
-    /// <returns>True if the unrelated table was added, false otherwise.</returns>
+    /// <returns>True if the unrelated table was added; otherwise, false.</returns>
     procedure AddUnrelatedTable(WordTemplateCode: Code[30]; PrefixCode: Code[5]; UnrelatedTableId: Integer; RecordSystemId: Guid): Boolean
     begin
-        WordTemplateImpl.AddUnrelatedTable(WordTemplateCode, PrefixCode, UnrelatedTableId, RecordSystemId);
+        exit(WordTemplateImpl.AddUnrelatedTable(WordTemplateCode, PrefixCode, UnrelatedTableId, RecordSystemId));
     end;
 
     /// <summary>
