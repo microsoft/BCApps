@@ -76,7 +76,7 @@ codeunit 138709 "Retention Policy Test Library"
     /// Gets the entry number of the last record in the Retention Policy Log Entry table.
     /// </summary>
     /// <returns>The entry number of the last record.</returns>
-    procedure RetenionPolicyLogLastEntryNo(): Integer
+    procedure RetentionPolicyLogLastEntryNo(): Integer
     var
         RetentionPolicyLogEntry: Record "Retention Policy Log Entry";
     begin
@@ -95,6 +95,23 @@ codeunit 138709 "Retention Policy Test Library"
     begin
         SelectLatestVersion(Database::"Retention Policy Log Entry");
         RetentionPolicyLogEntry.Get(EntryNo);
+        FieldValues.Add('MessageType', Format(RetentionPolicyLogEntry."Message Type"));
+        FieldValues.Add('Category', Format(RetentionPolicyLogEntry.Category));
+        FieldValues.Add('Message', RetentionPolicyLogEntry.Message);
+    end;
+
+    /// <summary>
+    /// Gets the field values of the Retention Policy Log Entry with EntryNo or the closest higher EntryNo.
+    /// </summary>
+    /// <param name="EntryNo">The entry number of the log entry.</param>
+    /// <returns>A dictionary containing the field values of the log entry.</returns>
+    procedure GetNextRetentionPolicyLogEntry(EntryNo: Integer) FieldValues: Dictionary of [Text, Text]
+    var
+        RetentionPolicyLogEntry: Record "Retention Policy Log Entry";
+    begin
+        SelectLatestVersion(Database::"Retention Policy Log Entry");
+        RetentionPolicyLogEntry.SetFilter("Entry No.", '%1..', EntryNo);
+        RetentionPolicyLogEntry.FindFirst();
         FieldValues.Add('MessageType', Format(RetentionPolicyLogEntry."Message Type"));
         FieldValues.Add('Category', Format(RetentionPolicyLogEntry.Category));
         FieldValues.Add('Message', RetentionPolicyLogEntry.Message);
