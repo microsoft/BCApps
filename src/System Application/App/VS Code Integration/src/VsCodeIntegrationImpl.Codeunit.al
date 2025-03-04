@@ -133,6 +133,7 @@ codeunit 8333 "VS Code Integration Impl."
     [Scope('OnPrem')]
     local procedure FormatDependencyAsParameter(var NavAppInstalledApp: Record "NAV App Installed App"): Text
     var
+        AppId: Text;
         AppVersion: Text;
         DependencyFormatLbl: Label '%1,%2,%3,%4;', Comment = '%1 = Id, %2 = Name, %3 = Publisher, %4 = Version', Locked = true;
     begin
@@ -141,8 +142,9 @@ codeunit 8333 "VS Code Integration Impl."
             SystemApplicationIdTxt, BaseApplicationIdTxt, ApplicationIdTxt, SystemIdTxt:
                 exit('')
             else
+                AppId := FormatDependencyId(NavAppInstalledApp."App ID");
                 AppVersion := FormatDependencyVersion(NavAppInstalledApp."Version Major", NavAppInstalledApp."Version Minor", NavAppInstalledApp."Version Build", NavAppInstalledApp."Version Revision");
-                exit(StrSubstNo(DependencyFormatLbl, Format(NavAppInstalledApp."App ID", 0, 4), NavAppInstalledApp.Name, NavAppInstalledApp.Publisher, AppVersion));
+                exit(StrSubstNo(DependencyFormatLbl, AppId, NavAppInstalledApp.Name, NavAppInstalledApp.Publisher, AppVersion));
         end;
     end;
 
@@ -163,10 +165,12 @@ codeunit 8333 "VS Code Integration Impl."
     [Scope('OnPrem')]
     local procedure FormatDependencyAsSerializedJsonObject(var PublishedApplication: Record "Published Application") Value: Text
     var
+        AppId: Text;
         AppVersion: Text;
         Dependency: JsonObject;
     begin
-        Dependency.Add('id', PublishedApplication.ID);
+        AppId := FormatDependencyId(PublishedApplication.ID);
+        Dependency.Add('id', AppId);
         Dependency.Add('name', PublishedApplication.Name);
         Dependency.Add('publisher', PublishedApplication.Publisher);
         AppVersion := FormatDependencyVersion(PublishedApplication."Version Major", PublishedApplication."Version Minor", PublishedApplication."Version Build", PublishedApplication."Version Revision");
@@ -181,6 +185,12 @@ codeunit 8333 "VS Code Integration Impl."
         AppVersionLbl: Label '%1.%2.%3.%4', Comment = '%1 = major, %2 = minor, %3 = build, %4 = revision', Locked = true;
     begin
         exit(StrSubstNo(AppVersionLbl, Major, Minor, Build, Revision));
+    end;
+
+    [Scope('OnPrem')]
+    local procedure FormatDependencyId(AppId: Guid): Text
+    begin
+        exit(LowerCase(Format(AppId, 0, 4)));
     end;
 
     [Scope('OnPrem')]
