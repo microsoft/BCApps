@@ -77,7 +77,7 @@ codeunit 138133 "VS Code Integration Test"
         // [SCENARIO] Constructing URL to send a request to VS Code to navigate to the page with dependencies
 
         Initialize();
-        HyperlinkStorage.Enqueue('&dependencies=A15FD72B-6430-4BB6-DFBC-1A948B7B15B4%2CMyApp2%2CPublisher2%2C23.0.0.0%3BF15FD82B-8050-4BB6-BFBC-1A948B7B17C3%2CMyApp1%2CPublisher1%2C1.2.3.4%3B');
+        HyperlinkStorage.Enqueue('&dependencies=a15fd72b-6430-4bb6-dfbc-1a948b7b15b4%2CMyApp2%2CPublisher2%2C23.0.0.0%3Bf15fd82b-8050-4bb6-bfbc-1a948b7b17c3%2CMyApp1%2CPublisher1%2C1.2.3.4%3B');
 
         // [GIVEN] a page's dependencies
         TempNavInstalledApp.Init();

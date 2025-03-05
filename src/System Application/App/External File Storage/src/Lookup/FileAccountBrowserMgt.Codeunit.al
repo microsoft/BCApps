@@ -86,7 +86,7 @@ codeunit 9458 "File Account Browser Mgt."
             exit;
 
         repeat
-            ExternalFileStorage.ListFiles(Path, FilePaginationData, TempFileAccountContent);
+            ExternalFileStorage.ListFiles(Path, FilePaginationData, TempFileAccountContentToAdd);
         until FilePaginationData.IsEndOfListing();
 
         AddFiles(TempFileAccountContent, TempFileAccountContentToAdd, FileNameFilter);
