@@ -44,6 +44,11 @@ codeunit 54 "Language Impl."
             UserLanguageCode := GetLanguageCode(GlobalLanguage());
     end;
 
+    procedure GetUserLanguageTag() UserLanguageTag: Text[80]
+    begin
+        UserLanguageTag := GetLanguageTag(GlobalLanguage());
+    end;
+
     procedure GetLanguageIdOrDefault(LanguageCode: Code[10]): Integer;
     var
         LanguageId: Integer;
@@ -124,6 +129,19 @@ codeunit 54 "Language Impl."
         if Language.FindFirst() then;
 
         exit(Language.Code);
+    end;
+
+    procedure GetLanguageTag(LanguageId: Integer): Text[80]
+    var
+        WindowsLanguage: Record "Windows Language";
+    begin
+        if LanguageId = 0 then
+            exit('');
+
+        WindowsLanguage.SetRange("Language ID", LanguageId);
+        if WindowsLanguage.FindFirst() then;
+
+        exit(WindowsLanguage."Language Tag");
     end;
 
     procedure GetWindowsLanguageName(LanguageCode: Code[10]): Text
