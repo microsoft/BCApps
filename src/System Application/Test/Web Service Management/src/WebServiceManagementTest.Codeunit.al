@@ -9,6 +9,7 @@ using System.Integration;
 using System.TestLibraries.Integration;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.Environment.Configuration;
 
 codeunit 139043 "Web Service Management Test"
 {
@@ -652,12 +653,35 @@ codeunit 139043 "Web Service Management Test"
         if Initialized then
             exit;
 
+        EnableFeatureKey();
+
         WebService.DeleteAll();
         TenantWebService.DeleteAll();
 #pragma warning disable AS0059
         WebServiceAggregate.DeleteAll();
 #pragma warning restore AS0059
         Initialized := true;
+    end;
+
+    local procedure EnableFeatureKey()
+    var
+        FeatureKey: Record "Feature Key";
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+        DisableSoapWebServicesOnMicrosoftUIPagesTok: Label 'DisableSOAPwebservicesonMicrosoftUIpages', Locked = true;
+    begin
+        if not FeatureKey.Get(DisableSoapWebServicesOnMicrosoftUIPagesTok) then begin
+            FeatureKey.Init();
+            FeatureKey.ID := DisableSoapWebServicesOnMicrosoftUIPagesTok;
+            FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
+            FeatureKey."Data Update Required" := false;
+            FeatureKey.Insert();
+        end else
+            if FeatureKey.Enabled <> FeatureKey.Enabled::"All Users" then begin
+                FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
+                FeatureKey.Modify();
+            end;
+
+        Assert.IsTrue(FeatureManagementFacade.IsEnabled(DisableSoapWebServicesOnMicrosoftUIPagesTok), 'Feature key should be enabled');
     end;
 }
 
