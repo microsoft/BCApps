@@ -11,6 +11,7 @@ permissionset 9451 "File Storage - Read"
 {
     Access = Internal;
     Assignable = false;
+    Caption = 'External File Storage - Read';
     IncludedPermissionSets = "File Storage - Objects";
 
     Permissions =

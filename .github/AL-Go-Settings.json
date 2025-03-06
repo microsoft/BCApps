@@ -5,10 +5,10 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/26.0.29633.0/base",
+  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/27.0.31076.0/base",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "26.0",
+  "repoVersion": "27.0",
   "conditionalSettings": [
     {
       "buildModes": [
@@ -92,7 +92,7 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "b608fc6787759aaac18f1407750c3436b6553b88",
+  "templateSha": "a3942163655ac899bec6037747164b554e27ce69",
   "commitOptions": {
     "messageSuffix": "Related to AB#539394",
     "pullRequestAutoMerge": true,

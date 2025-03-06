@@ -16,7 +16,7 @@ page 7773 "Copilot Capabilities Preview"
     Editable = false;
     Extensible = false;
     SourceTable = "Copilot Settings";
-    SourceTableView = where(Availability = const(Preview));
+    SourceTableView = where(Availability = const(Preview), "Service Type" = const("Azure AI Service Type"::"Azure OpenAI"));
     Permissions = tabledata "Copilot Settings" = rm;
     InherentEntitlements = X;
     InherentPermissions = X;

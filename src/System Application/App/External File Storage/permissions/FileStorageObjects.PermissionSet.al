@@ -4,6 +4,7 @@ permissionset 9452 "File Storage - Objects"
 {
     Access = Internal;
     Assignable = false;
+    Caption = 'External File Storage - Objects';
 
     Permissions =
         codeunit "File Account" = X,

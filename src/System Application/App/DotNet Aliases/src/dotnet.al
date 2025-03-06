@@ -849,6 +849,16 @@ dotnet
         }
     }
 
+    assembly("Microsoft.Dynamics.Nav.SystemEnvironment")
+    {
+        Culture = 'neutral';
+        PublicKeyToken = '31bf3856ad364e35';
+
+        type("Microsoft.Dynamics.Nav.SystemEnvironment.SystemEnvironment"; "SystemEnvironment")
+        {
+        }
+    }
+
     assembly("Microsoft.Dynamics.Nav.Timer")
     {
         Culture = 'neutral';
@@ -1433,10 +1443,6 @@ dotnet
         }
 
         type("System.Enum"; "Enum")
-        {
-        }
-
-        type("System.Environment"; "Environment")
         {
         }
 
@@ -2135,6 +2141,18 @@ dotnet
         }
 
         type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotCapability"; ALCopilotCapability)
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotUsageType"; ALCopilotUsageType)
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotQuotaDetails"; ALCopilotQuotaDetails)
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALMicrosoftLearnFunctions"; ALMicrosoftLearnFunctions)
         {
         }
     }

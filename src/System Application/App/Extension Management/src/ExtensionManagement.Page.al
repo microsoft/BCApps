@@ -301,14 +301,15 @@ page 2500 "Extension Management"
                     {
                         AccessByPermission = System "Tools, Zoom" = X;
                         Caption = 'Download in VS Code';
-                        Enabled = IsInstalled;
                         Image = Download;
                         ToolTip = 'Adds the selected extensions to your local project''s dependencies in Visual Studio Code, and downloads the symbols for them.';
 
                         trigger OnAction()
+                        var
+                            PublishedApplication: Record "Published Application";
                         begin
-                            CurrPage.SetSelectionFilter(Rec);
-                            VSCodeIntegration.UpdateDependenciesInVSCode(Rec);
+                            CurrPage.SetSelectionFilter(PublishedApplication);
+                            VSCodeIntegration.UpdateDependenciesInVSCode(PublishedApplication);
                         end;
                     }
 
@@ -317,14 +318,15 @@ page 2500 "Extension Management"
                         AccessByPermission = System "Tools, Zoom" = X;
                         ApplicationArea = All;
                         Caption = 'Show and copy';
-                        Enabled = IsInstalled;
                         Image = Copy;
                         ToolTip = 'Formats the selected dependencies as a json array and displays them in a dialog window.';
 
                         trigger OnAction()
+                        var
+                            PublishedApplication: Record "Published Application";
                         begin
-                            CurrPage.SetSelectionFilter(Rec);
-                            Message(VSCodeIntegration.GetDependenciesAsJson(Rec));
+                            CurrPage.SetSelectionFilter(PublishedApplication);
+                            Message(VSCodeIntegration.GetDependenciesAsJson(PublishedApplication));
                         end;
                     }
                 }

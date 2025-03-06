@@ -16,7 +16,7 @@ page 7770 "Copilot Cap. Early Preview"
     Editable = false;
     Extensible = false;
     SourceTable = "Copilot Settings";
-    SourceTableView = where(Availability = const("Early Preview"));
+    SourceTableView = where(Availability = const("Early Preview"), "Service Type" = const("Azure AI Service Type"::"Azure OpenAI"));
     Permissions = tabledata "Copilot Settings" = rm;
     InherentEntitlements = X;
     InherentPermissions = X;
