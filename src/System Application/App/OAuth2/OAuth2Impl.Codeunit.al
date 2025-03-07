@@ -54,39 +54,8 @@ codeunit 502 OAuth2Impl
     end;
 
     procedure GetAuthRequestUrl(ClientId: Text; ClientSecret: SecretText; Url: Text; RedirectUrl: Text; var State: Text; Scopes: List of [Text]; PromptConsent: Enum "Prompt Interaction"): Text
-    var
-        OAuthAuthorization: DotNet OAuthAuthorization;
-        Consumer: DotNet Consumer;
-        Token: DotNet Token;
-        Scope: Text;
-        ScopeText: Text;
-        AuthRequestUrl: Text;
-        SecretClientId: SecretText;
-        EmptySecretText: SecretText;
     begin
-        if (ClientId = '') or (RedirectUrl = '') then begin
-            Session.LogMessage('0000D1J', MissingClientIdRedirectUrlErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', Oauth2CategoryLbl);
-            exit('');
-        end;
-        Token := Token.Token(EmptySecretText, EmptySecretText);
-        SecretClientId := ClientId;
-        Consumer := Consumer.Consumer(SecretClientId, ClientSecret);
-        OAuthAuthorization := OAuthAuthorization.OAuthAuthorization(Consumer, Token);
-
-        foreach Scope in Scopes do
-            if ScopeText = '' then
-                ScopeText := ScopeText + Scope
-            else
-                ScopeText := ScopeText + ' ' + Scope;
-
-        State := Format(CreateGuid(), 0, 4);
-
-        AuthRequestUrl := OAuthAuthorization.CalculateAuthRequestUrl(Url, RedirectUrl, ScopeText, State);
-
-        AppendPromptParameter(PromptConsent, AuthRequestUrl);
-
-        Session.LogMessage('0000D1K', StrSubstNo(AuthRequestUrlTxt, AuthRequestUrl), Verbosity::Normal, DataClassification::AccountData, TelemetryScope::ExtensionPublisher, 'Category', Oauth2CategoryLbl);
-        exit(AuthRequestUrl);
+        exit(GetAuthRequestUrl(ClientId, ClientSecret, Url, RedirectUrl, State, Scopes, PromptConsent, ''));
     end;
 
     [NonDebuggable]
@@ -1527,5 +1496,53 @@ codeunit 502 OAuth2Impl
             Result.SetValue(Scope, Index);
             Index += 1;
         end;
+    end;
+
+    procedure GetAuthRequestUrl(ClientId: Text; ClientSecret: SecretText; Url: Text; RedirectUrl: Text; var State: Text; Scopes: List of [Text]; PromptConsent: Enum "Prompt Interaction"; Audience: Text): Text
+    var
+        OAuthAuthorization: DotNet OAuthAuthorization;
+        Consumer: DotNet Consumer;
+        Token: DotNet Token;
+        Scope: Text;
+        ScopeText: Text;
+        AuthRequestUrl: Text;
+        SecretClientId: SecretText;
+        EmptySecretText: SecretText;
+    begin
+        if (ClientId = '') or (RedirectUrl = '') then begin
+            Session.LogMessage('0000D1J', MissingClientIdRedirectUrlErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', Oauth2CategoryLbl);
+            exit('');
+        end;
+        Token := Token.Token(EmptySecretText, EmptySecretText);
+        SecretClientId := ClientId;
+        Consumer := Consumer.Consumer(SecretClientId, ClientSecret);
+        OAuthAuthorization := OAuthAuthorization.OAuthAuthorization(Consumer, Token);
+
+        foreach Scope in Scopes do
+            if ScopeText = '' then
+                ScopeText := ScopeText + Scope
+            else
+                ScopeText := ScopeText + ' ' + Scope;
+
+        State := Format(CreateGuid(), 0, 4);
+
+        AuthRequestUrl := OAuthAuthorization.CalculateAuthRequestUrl(Url, RedirectUrl, ScopeText, State);
+
+        AppendPromptParameter(PromptConsent, AuthRequestUrl);
+
+        AppendAudienceParameter(Audience, AuthRequestUrl);
+
+        Session.LogMessage('0000D1K', StrSubstNo(AuthRequestUrlTxt, AuthRequestUrl), Verbosity::Normal, DataClassification::AccountData, TelemetryScope::ExtensionPublisher, 'Category', Oauth2CategoryLbl);
+        exit(AuthRequestUrl);
+    end;
+
+    local procedure AppendAudienceParameter(Audience: Text; var AuthRequestUrl: Text)
+    var
+        Uri: Dotnet Uri;
+    begin
+        if (Audience = '') then
+            exit;
+
+        AuthRequestUrl += '&audience=' + Uri.EscapeDataString(Audience);
     end;
 }
