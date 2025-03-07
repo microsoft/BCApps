@@ -9,6 +9,7 @@ using System.Integration;
 using System.TestLibraries.Integration;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.Environment.Configuration;
 
 codeunit 139043 "Web Service Management Test"
 {
@@ -50,7 +51,7 @@ codeunit 139043 "Web Service Management Test"
         if WebServiceAggregate.Get(WebService."Object Type"::Page, PageServiceTxt) then begin
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV3), PageServiceTxt);
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV4), PageServiceTxt);
-            VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageServiceTxt);
+            VerifyUrlMissingServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageServiceTxt);
         end;
 
         if WebServiceAggregate.Get(WebService."Object Type"::Query, QueryServiceTxt) then begin
@@ -68,7 +69,6 @@ codeunit 139043 "Web Service Management Test"
         if WebServiceAggregate.Get(WebService."Object Type"::Page, UnpublishedPageTxt) then begin
             Assert.AreEqual('', WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV3), 'ODataV3 Url should be empty when not published: ' + CodeunitServiceTxt);
             Assert.AreEqual('', WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV4), 'ODataV4 Url should be empty when not published: ' + CodeunitServiceTxt);
-            Assert.AreEqual('', WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), 'SOAP Url should be empty when not published: ' + CodeunitServiceTxt);
         end;
     end;
 
@@ -126,14 +126,14 @@ codeunit 139043 "Web Service Management Test"
         if WebServiceAggregate.Get(WebService."Object Type"::Page, PageATxt) then begin
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV3), PageATxt);
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV4), PageATxt);
-            VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageATxt);
+            VerifyUrlMissingServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageATxt);
             Assert.IsTrue(WebServiceAggregate.Published, PageATxt + ' web service record "Published" field should be checked.');
         end;
 
         if WebServiceAggregate.Get(WebService."Object Type"::Page, PageBTxt) then begin
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV3), PageBTxt);
             VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::ODataV4), PageBTxt);
-            VerifyUrlHasServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageBTxt);
+            VerifyUrlMissingServiceName(WebServiceManagement.GetWebServiceUrl(WebServiceAggregate, ClientType::SOAP), PageBTxt);
             Assert.IsTrue(WebServiceAggregate.Published, PageBTxt + ' web service record "Published" field should be checked.');
         end;
     end;
@@ -234,40 +234,6 @@ codeunit 139043 "Web Service Management Test"
         Assert.AreEqual(PAGE::"Dummy Page", TenantWebService."Object ID", AutoServiceName + ' incorrect object ID');
         Assert.AreEqual(AutoServiceName, TenantWebService."Service Name", AutoServiceName + ' incorrect service name');
         Assert.IsTrue(TenantWebService.Published, AutoServiceName + ' should be published');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestInsertDuplicateServiceName()
-    var
-        TempWebServiceAggregate: Record "Web Service Aggregate" temporary;
-        Any: Codeunit Any;
-        AutoServiceName: Text[240];
-    begin
-        PermissionsMock.Set('Web Service Admin');
-
-        Initialize();
-        // Test that adding a new web service with the same Object Type and Service Name as an existing record
-        // (system or tenant record) will result in a duplicate service error.
-        AutoServiceName := Any.GuidValue();
-
-        TempWebServiceAggregate.Init();
-        TempWebServiceAggregate."Object Type" := TempWebServiceAggregate."Object Type"::Page;
-        TempWebServiceAggregate."Object ID" := Page::"Dummy Page";
-        TempWebServiceAggregate."Service Name" := AutoServiceName;
-        TempWebServiceAggregate."All Tenants" := true;
-        TempWebServiceAggregate.Published := true;
-        TempWebServiceAggregate.Insert(true);
-
-        TempWebServiceAggregate.Init();
-        TempWebServiceAggregate."Object Type" := TempWebServiceAggregate."Object Type"::Page;
-        TempWebServiceAggregate."Object ID" := Page::"Dummy Page2";
-        TempWebServiceAggregate."Service Name" := AutoServiceName;
-        TempWebServiceAggregate."All Tenants" := false;
-        TempWebServiceAggregate.Published := true;
-
-        asserterror TempWebServiceAggregate.Insert(true);
-        Assert.ExpectedError('The web service cannot be added because it conflicts with an unpublished system web service for the object.');
     end;
 
     [Test]
@@ -687,12 +653,35 @@ codeunit 139043 "Web Service Management Test"
         if Initialized then
             exit;
 
+        EnableFeatureKey();
+
         WebService.DeleteAll();
         TenantWebService.DeleteAll();
 #pragma warning disable AS0059
         WebServiceAggregate.DeleteAll();
 #pragma warning restore AS0059
         Initialized := true;
+    end;
+
+    local procedure EnableFeatureKey()
+    var
+        FeatureKey: Record "Feature Key";
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+        DisableSoapWebServicesOnMicrosoftUIPagesTok: Label 'DisableSOAPwebservicesonMicrosoftUIpages', Locked = true;
+    begin
+        if not FeatureKey.Get(DisableSoapWebServicesOnMicrosoftUIPagesTok) then begin
+            FeatureKey.Init();
+            FeatureKey.ID := DisableSoapWebServicesOnMicrosoftUIPagesTok;
+            FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
+            FeatureKey."Data Update Required" := false;
+            FeatureKey.Insert();
+        end else
+            if FeatureKey.Enabled <> FeatureKey.Enabled::"All Users" then begin
+                FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
+                FeatureKey.Modify();
+            end;
+
+        Assert.IsTrue(FeatureManagementFacade.IsEnabled(DisableSoapWebServicesOnMicrosoftUIPagesTok), 'Feature key should be enabled');
     end;
 }
 

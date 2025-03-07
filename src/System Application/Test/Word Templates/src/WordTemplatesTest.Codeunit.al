@@ -24,6 +24,101 @@ codeunit 130443 "Word Templates Test"
         Assert: Codeunit "Library Assert";
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure AddUnrelatedTableCreatesRecord()
+    var
+        WordTemplatesRelatedTable: Record "Word Templates Related Table";
+        Any: Codeunit Any;
+        WordTemplate: Codeunit "Word Template";
+        PrefixCode: Code[5];
+        TemplateCode: Code[30];
+        RelatedTableSystemId: Guid;
+    begin
+        // [SCENARIO 3105] Calling AddUnrelatedTable creates a related table record correctly
+
+        // [GIVEN] A Word Template Code
+        TemplateCode := CopyStr(Any.AlphabeticText(10), 1, MaxStrLen(TemplateCode));
+
+        // [GIVEN] A prefix code for the unrelated table
+        PrefixCode := CopyStr(Any.AlphabeticText(5), 1, MaxStrLen(PrefixCode));
+
+        // [GIVEN] A SystemId for the unrelated table record
+        RelatedTableSystemId := CreateGuid();
+
+        // [WHEN] AddUnrelatedTable is called for a specific table and record
+        WordTemplate.AddUnrelatedTable(TemplateCode, PrefixCode, Database::"Word Templates Table", RelatedTableSystemId);
+
+        // [THEN] The related table record is created
+        WordTemplatesRelatedTable.Get(TemplateCode, Database::"Word Templates Table");
+
+        // [THEN] The values match the provided parameters
+        Assert.AreEqual(PrefixCode, WordTemplatesRelatedTable."Related Table Code", WordTemplatesRelatedTable.FieldName("Related Table Code"));
+        Assert.AreEqual(RelatedTableSystemId, WordTemplatesRelatedTable."Source Record ID", WordTemplatesRelatedTable.FieldName("Source Record ID"));
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure AddUnrelatedTableReturnsTrueIfCreated()
+    var
+        WordTemplatesRelatedTable: Record "Word Templates Related Table";
+        Any: Codeunit Any;
+        WordTemplate: Codeunit "Word Template";
+        Result: Boolean;
+        PrefixCode: Code[5];
+        TemplateCode: Code[30];
+    begin
+        // [SCENARIO 3105] Calling AddUnrelatedTable returns true if the record is created
+
+        // [GIVEN] No related table records exist
+        if not WordTemplatesRelatedTable.IsEmpty() then
+            WordTemplatesRelatedTable.DeleteAll(false);
+
+        // [WHEN] AddUnrelatedTable is called with arbitrary table and record id
+        TemplateCode := CopyStr(Any.AlphabeticText(10), 1, MaxStrLen(TemplateCode));
+        PrefixCode := CopyStr(Any.AlphabeticText(5), 1, MaxStrLen(PrefixCode));
+        Result := WordTemplate.AddUnrelatedTable(TemplateCode, PrefixCode, Any.IntegerInRange(1, 100), CreateGuid());
+
+        // [THEN] The method result is true
+        Assert.IsTrue(Result, 'Unexpected method return value.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure AddUnrelatedTableReturnsFalseIfNotCreated()
+    var
+        Any: Codeunit Any;
+        WordTemplate: Codeunit "Word Template";
+        Result: Boolean;
+        PrefixCode: Code[5];
+        TemplateCode: Code[30];
+        RelatedTableSystemId: Guid;
+    begin
+        // [SCENARIO 3105] Calling AddUnrelatedTable returns false if related table already exists
+
+        // [GIVEN] A Word Template Code
+        TemplateCode := CopyStr(Any.AlphabeticText(10), 1, MaxStrLen(TemplateCode));
+
+        // [GIVEN] A prefix code for the unrelated table
+        PrefixCode := CopyStr(Any.AlphabeticText(5), 1, MaxStrLen(PrefixCode));
+
+        // [GIVEN] A SystemId for the unrelated table record
+        RelatedTableSystemId := CreateGuid();
+
+        // [GIVEN] The related table already exists
+        WordTemplate.AddUnrelatedTable(TemplateCode, PrefixCode, Database::"Word Templates Table", RelatedTableSystemId);
+
+        // [WHEN] AddUnrelatedTable is called for the same table and record
+        Result := WordTemplate.AddUnrelatedTable(TemplateCode, PrefixCode, Database::"Word Templates Table", RelatedTableSystemId);
+
+        // [THEN] The user is informed that the (un)related table already exists
+        // Verified by MessageHandler
+
+        // [THEN] The method result is false
+        Assert.IsFalse(Result, 'Unexpected method return value.');
+    end;
+
+    [Test]
     procedure TestCreateDocument()
     var
         WordTemplates: Codeunit "Word Template";
@@ -252,5 +347,10 @@ codeunit 130443 "Word Templates Test"
     procedure ConfirmHandlerFalse(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := false;
+    end;
+
+    [MessageHandler]
+    procedure MessageHandler(Message: Text[1024])
+    begin
     end;
 }
