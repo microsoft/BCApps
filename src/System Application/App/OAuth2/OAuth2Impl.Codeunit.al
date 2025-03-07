@@ -1545,4 +1545,20 @@ codeunit 502 OAuth2Impl
 
         AuthRequestUrl += '&audience=' + Uri.EscapeDataString(Audience);
     end;
+
+    [TryFunction]
+    procedure AcquireAuthorizationCode(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; Audience: Text; var AuthCode: Text; var AuthCodeErr: Text)
+    var
+        AuthRequestUrl: Text;
+        State: Text;
+    begin
+        Initialize(OAuthAuthorityUrl, RedirectURL);
+
+        AuthRequestUrl := GetAuthRequestUrl(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, State, Scopes, PromptInteraction, Audience);
+
+        SetPropertiesBasedOnAuthRequestUrlAndRunOAuth2ControlAddIn(AuthRequestUrl, State, AuthCode, AuthCodeErr);
+
+        if StrPos(AuthCodeErr, PopupBlockedCodeErrLbl) > 0 then
+            Error(PopupBlockedErr, ProductName.Short());
+    end;
 }
