@@ -705,7 +705,7 @@ codeunit 8901 Email
     /// </summary>
     /// <param name="EmailScenarioAttachments">The record to add filters to.</param>
     [IntegrationEvent(false, false)]
-    internal procedure OnBeforeGetEmailAttachmentsByEmailScenarios(EmailScenarioAttachments: Record "Email Scenario Attachments")
+    internal procedure OnBeforeGetEmailAttachmentsByEmailScenarios(var EmailScenarioAttachments: Record "Email Scenario Attachments")
     begin
     end;
 
