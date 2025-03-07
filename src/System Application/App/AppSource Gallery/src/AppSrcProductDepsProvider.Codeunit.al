@@ -44,7 +44,7 @@ codeunit 2518 "AppSrc Product Deps. Provider" implements "AppSource Product Mana
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
-        exit(EnvironmentInformation.IsSaas());
+        exit(EnvironmentInformation.IsSaas() and EnvironmentInformation.IsSaaSInfrastructure());
     end;
 
     procedure GetFormatRegionOrDefault(FormatRegion: Text[80]): Text
