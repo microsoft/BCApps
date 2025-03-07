@@ -37,8 +37,6 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'm')]
     local procedure GetNextNoInternal(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
-    var
-        NoSeriesSetup: Codeunit "No. Series - Setup";
     begin
         if NoSeriesLine."Last No. Used" = '' then begin
             if HideErrorsAndWarnings and (NoSeriesLine."Starting No." = '') then
@@ -49,7 +47,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
             if NoSeriesLine."Increment-by No." <= 1 then
                 NoSeriesLine."Last No. Used" := IncStr(NoSeriesLine."Last No. Used")
             else
-                NoSeriesLine."Last No. Used" := NoSeriesSetup.IncrementNoText(NoSeriesLine."Last No. Used", NoSeriesLine."Increment-by No.");
+                NoSeriesLine."Last No. Used" := IncStr(NoSeriesLine."Last No. Used", NoSeriesLine."Increment-by No.");
 
         if not EnsureLastNoUsedIsWithinValidRange(NoSeriesLine, HideErrorsAndWarnings) then
             exit('');

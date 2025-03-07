@@ -340,7 +340,7 @@ codeunit 396 NoSeriesManagement
                 if NoSeriesLine."Increment-by No." <= 1 then
                     NoSeriesLine."Last No. Used" := IncStr(NoSeriesLine."Last No. Used")
                 else
-                    IncrementNoText(NoSeriesLine."Last No. Used", NoSeriesLine."Increment-by No.");
+                    NoSeriesLine."Last No. Used" := IncStr(NoSeriesLine."Last No. Used", NoSeriesLine."Increment-by No.");
 
         // Ensure number is within the valid range
         if (NoSeriesLine."Ending No." <> '') and
