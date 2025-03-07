@@ -24,7 +24,12 @@ codeunit 8902 "Email Scenario Attach Impl."
         EmailScenarioAttachments: Record "Email Scenario Attachments";
         Email: Codeunit Email;
     begin
+        Email.OnBeforeGetEmailAttachments(EmailScenarioAttachments);
+#if not CLEAN27
+#pragma warning disable AL0432
         Email.OnBeforeGetEmailAttachmentsByEmailScenarios(EmailScenarioAttachments);
+#pragma warning restore AL0432
+#endif
         if EmailScenario <> 0 then
             EmailScenarioAttachments.SetRange(Scenario, Enum::"Email Scenario".FromInteger(EmailScenario));
 
