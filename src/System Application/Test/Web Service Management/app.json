@@ -40,6 +40,12 @@
       "name": "Web Service Management Test Library",
       "publisher": "Microsoft",
       "version": "26.0.0.0"
+    },
+    {
+      "id": "ae59aed1-040c-453c-9585-fe9da2f8211e",
+      "name": "Feature Key",
+      "publisher": "Microsoft",
+      "version": "26.0.0.0"
     }
   ],
   "screenshots": [],
