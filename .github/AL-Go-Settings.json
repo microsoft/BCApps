@@ -16,6 +16,7 @@
       ],
       "settings": {
         "preprocessorSymbols": [
+          "CLEAN23",
           "CLEAN24",
           "CLEAN25",
           "CLEAN26",
