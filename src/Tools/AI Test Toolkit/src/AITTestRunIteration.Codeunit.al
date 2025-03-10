@@ -21,6 +21,9 @@ codeunit 149042 "AIT Test Run Iteration"
         GlobalTestMethodLine: Record "Test Method Line";
         NoOfInsertedLogEntries: Integer;
         GlobalAITokenUsedByLastTestMethodLine: Integer;
+        GlobalNumberOfTurnsForLastTestMethodLine: Integer;
+        GlobalNumberOfTurnsPassedForLastTestMethodLine: Integer;
+        GlobalTestAccuracy: Decimal;
         GlobalSessionAITokenUsed: Integer;
 
     trigger OnRun()
@@ -124,6 +127,21 @@ codeunit 149042 "AIT Test Run Iteration"
         exit(GlobalAITokenUsedByLastTestMethodLine);
     end;
 
+    procedure GetNumberOfTurnsForLastTestMethodLine(): Integer
+    begin
+        exit(GlobalNumberOfTurnsForLastTestMethodLine);
+    end;
+
+    procedure GetNumberOfTurnsPassedForLastTestMethodLine(): Integer
+    begin
+        exit(GlobalNumberOfTurnsPassedForLastTestMethodLine);
+    end;
+
+    procedure GetAccuracyForLastTestMethodLine(): Decimal
+    begin
+        exit(GlobalTestAccuracy);
+    end;
+
     [InternalEvent(false)]
     procedure OnBeforeRunIteration(var AITTestSuite: Record "AIT Test Suite"; var AITTestMethodLine: Record "AIT Test Method Line")
     begin
@@ -144,6 +162,14 @@ codeunit 149042 "AIT Test Run Iteration"
 
         // Update AI Token Consumption
         GlobalAITokenUsedByLastTestMethodLine := 0;
+
+        // Update Turns
+        GlobalNumberOfTurnsPassedForLastTestMethodLine := 0;
+        GlobalNumberOfTurnsForLastTestMethodLine := 1;
+
+        // Update Test Accuracy
+        GlobalTestAccuracy := 0;
+
         GlobalSessionAITokenUsed := AOAIToken.GetTotalServerSessionTokensConsumed();
 
         AITContextCU.StartRunProcedureScenario();
@@ -154,6 +180,7 @@ codeunit 149042 "AIT Test Run Iteration"
     var
         AITContextCU: Codeunit "AIT Test Context Impl.";
         AOAIToken: Codeunit "AOAI Token";
+        Accuracy: Decimal;
     begin
         if ActiveAITTestSuite.Code = '' then
             exit;
@@ -165,6 +192,19 @@ codeunit 149042 "AIT Test Run Iteration"
 
         // Update AI Token Consumption
         GlobalAITokenUsedByLastTestMethodLine := AOAIToken.GetTotalServerSessionTokensConsumed() - GlobalSessionAITokenUsed;
+
+        // Update Turns
+        GlobalNumberOfTurnsForLastTestMethodLine := AITContextCU.GetNumberOfTurns();
+        GlobalNumberOfTurnsPassedForLastTestMethodLine := AITContextCU.GetCurrentTurn();
+
+        if not IsSuccess then
+            GlobalNumberOfTurnsPassedForLastTestMethodLine -= 1;
+
+        // Update Test Accuracy
+        if AITContextCU.GetAccuracy(Accuracy) then
+            GlobalTestAccuracy := Accuracy
+        else
+            GlobalTestAccuracy := GlobalNumberOfTurnsPassedForLastTestMethodLine / GlobalNumberOfTurnsForLastTestMethodLine;
 
         AITContextCU.EndRunProcedureScenario(CurrentTestMethodLine, IsSuccess);
         Commit();
