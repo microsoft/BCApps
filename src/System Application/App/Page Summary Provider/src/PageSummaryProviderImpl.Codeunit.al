@@ -188,8 +188,7 @@ codeunit 2717 "Page Summary Provider Impl."
         end;
 
         // Get summary fields
-        if not TryGetPageSummaryFields(PageId, RecId, Bookmark, ResultJsonObject, IncludeBinaryData) then
-            AddErrorMessage(ResultJsonObject, FailedGetSummaryFieldsCodeTok, GetLastErrorText());
+        TryGetPageSummaryFields(PageId, RecId, Bookmark, ResultJsonObject, IncludeBinaryData);
     end;
 
     local procedure GetRecordFields(PageId: Integer; Bookmark: Text; var ResultJsonObject: JsonObject)
@@ -263,7 +262,6 @@ codeunit 2717 "Page Summary Provider Impl."
         ResultJsonObject.Add('cardPageId', PageMetadata.CardPageID);
     end;
 
-    [TryFunction]
     local procedure TryGetPageSummaryFields(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject; IncludeBinaryData: Boolean)
     var
         PageSummaryProvider: Codeunit "Page Summary Provider";
@@ -444,7 +442,6 @@ codeunit 2717 "Page Summary Provider Impl."
         SummaryFailureTelemetryTxt: Label 'Failure to get summary for page %1.', Locked = true;
         InvalidBookmarkErrorCodeTok: Label 'InvalidBookmark', Locked = true;
         InvalidBookmarkErrorMessageTxt: Label 'The bookmark is invalid.';
-        FailedGetSummaryFieldsCodeTok: Label 'FailedGettingPageSummaryFields', Locked = true;
         InvalidSystemIdErrorCodeTok: Label 'InvalidSystemId', Locked = true;
         InvalidSystemIdErrorMessageTxt: Label 'The system ID is invalid.';
         PageNotFoundErrorCodeTok: Label 'PageNotFound', Locked = true;

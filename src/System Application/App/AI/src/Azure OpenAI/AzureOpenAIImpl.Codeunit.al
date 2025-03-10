@@ -32,7 +32,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         EmbeddingsFailedWithCodeErr: Label 'Embeddings failed to be generated.';
         ChatCompletionsFailedWithCodeErr: Label 'Chat completions failed to be generated.';
         AuthenticationNotConfiguredErr: Label 'The authentication was not configured.';
-        CapabilityBackgroundErr: Label 'Microsoft Copilot Capabilities are not allowed in the background.';
+        //CapabilityBackgroundErr: Label 'Microsoft Copilot Capabilities are not allowed in the background.';
         MessagesMustContainJsonWordWhenResponseFormatIsJsonErr: Label 'The messages must contain the word ''json'' in some form, to use ''response format'' of type ''json_object''.';
         EmptyMetapromptErr: Label 'The metaprompt has not been set, please provide a metaprompt.';
         MetapromptLoadingErr: Label 'Metaprompt not found.';
@@ -509,7 +509,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         if AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed" then
             exit;
 
-        Error(CapabilityBackgroundErr);
+        //Error(CapabilityBackgroundErr);
     end;
 
     local procedure CheckAuthorizationEnabled(AOAIAuthorization: Codeunit "AOAI Authorization"; CallerModuleInfo: ModuleInfo)
