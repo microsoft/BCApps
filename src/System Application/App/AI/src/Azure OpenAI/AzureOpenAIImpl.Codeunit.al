@@ -177,8 +177,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         PayloadText: Text;
         UnwrappedPrompt: Text;
     begin
-        GuiCheck();
-
         CopilotCapabilityImpl.CheckCapabilitySet();
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(TextCompletionsAOAIAuthorization, CallerModuleInfo);
@@ -211,8 +209,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         Payload: JsonObject;
         PayloadText: Text;
     begin
-        GuiCheck();
-
         CopilotCapabilityImpl.CheckCapabilitySet();
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(EmbeddingsAOAIAuthorization, CallerModuleInfo);
@@ -265,8 +261,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         MetapromptTokenCount: Integer;
         PromptTokenCount: Integer;
     begin
-        GuiCheck();
-
         CopilotCapabilityImpl.CheckCapabilitySet();
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(ChatCompletionsAOAIAuthorization, CallerModuleInfo);
@@ -499,14 +493,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     local procedure SendTokenCountTelemetry(Metaprompt: Integer; Prompt: Integer; CustomDimensions: Dictionary of [Text, Text])
     begin
         Telemetry.LogMessage('0000LT4', StrSubstNo(TelemetryTokenCountLbl, Metaprompt, Prompt, Metaprompt + Prompt), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
-    end;
-
-    local procedure GuiCheck()
-    begin
-        if GuiAllowed() then
-            exit;
-
-        Error(CapabilityBackgroundErr);
     end;
 
     local procedure CheckAuthorizationEnabled(AOAIAuthorization: Codeunit "AOAI Authorization"; CallerModuleInfo: ModuleInfo)
