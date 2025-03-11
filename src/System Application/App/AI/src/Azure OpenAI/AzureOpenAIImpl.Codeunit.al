@@ -177,7 +177,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         PayloadText: Text;
         UnwrappedPrompt: Text;
     begin
-        GuiCheck(TextCompletionsAOAIAuthorization);
+        GuiCheck();
 
         CopilotCapabilityImpl.CheckCapabilitySet();
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
@@ -211,7 +211,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         Payload: JsonObject;
         PayloadText: Text;
     begin
-        GuiCheck(EmbeddingsAOAIAuthorization);
+        GuiCheck();
 
         CopilotCapabilityImpl.CheckCapabilitySet();
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
@@ -265,7 +265,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         MetapromptTokenCount: Integer;
         PromptTokenCount: Integer;
     begin
-        GuiCheck(ChatCompletionsAOAIAuthorization);
+        GuiCheck();
 
         CopilotCapabilityImpl.CheckCapabilitySet();
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
@@ -501,12 +501,9 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         Telemetry.LogMessage('0000LT4', StrSubstNo(TelemetryTokenCountLbl, Metaprompt, Prompt, Metaprompt + Prompt), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
     end;
 
-    local procedure GuiCheck(AOAIAuthorization: Codeunit "AOAI Authorization")
+    local procedure GuiCheck()
     begin
         if GuiAllowed() then
-            exit;
-
-        if AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed" then
             exit;
 
         Error(CapabilityBackgroundErr);
