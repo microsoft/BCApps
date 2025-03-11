@@ -33,15 +33,15 @@ codeunit 2717 "Page Summary Provider Impl."
     procedure GetPageSummary(PageSummaryParameters: Record "Page Summary Parameters"): Text
     begin
         if PageSummaryParameters.Bookmark <> '' then
-            exit(GetPageSummary(PageSummaryParameters."Page ID", PageSummaryParameters.Bookmark, PageSummaryParameters."Include Binary Data"));
+            exit(GetPageSummary(PageSummaryParameters."Page ID", PageSummaryParameters.Bookmark, PageSummaryParameters."Include Binary Data", PageSummaryParameters."Data for External Use"));
 
         if not IsNullGuid(PageSummaryParameters."Record SystemID") then
-            exit(GetPageSummary(PageSummaryParameters."Page ID", PageSummaryParameters."Record SystemID", PageSummaryParameters."Include Binary Data"));
+            exit(GetPageSummary(PageSummaryParameters."Page ID", PageSummaryParameters."Record SystemID", PageSummaryParameters."Include Binary Data", PageSummaryParameters."Data for External Use"));
 
-        exit(GetPageSummary(PageSummaryParameters."Page ID", '', PageSummaryParameters."Include Binary Data"));
+        exit(GetPageSummary(PageSummaryParameters."Page ID", '', PageSummaryParameters."Include Binary Data", PageSummaryParameters."Data for External Use"));
     end;
 
-    procedure GetPageSummary(PageId: Integer; Bookmark: Text; IncludeBinaryData: Boolean): Text
+    procedure GetPageSummary(PageId: Integer; Bookmark: Text; IncludeBinaryData: Boolean; ForExternalUse: Boolean): Text
     var
         RecId: RecordId;
         ResultJsonObject: JsonObject;
@@ -50,8 +50,9 @@ codeunit 2717 "Page Summary Provider Impl."
         AddPageSummaryHeader(PageId, ResultJsonObject);
 
         // If show summary record is false, then exit with summary type caption
-        if not PageSummarySettings.IsShowRecordSummaryEnabled() then
-            exit(Format(ResultJsonObject));
+        if ForExternalUse then
+            if not PageSummarySettings.IsShowRecordSummaryEnabled() then
+                exit(Format(ResultJsonObject));
 
         if Bookmark = '' then
             exit(Format(ResultJsonObject)); // There is no bookmark, so just return page header
@@ -68,7 +69,7 @@ codeunit 2717 "Page Summary Provider Impl."
         exit(Format(ResultJsonObject));
     end;
 
-    procedure GetPageSummary(PageId: Integer; SystemId: Guid; IncludeBinaryData: Boolean): Text
+    procedure GetPageSummary(PageId: Integer; SystemId: Guid; IncludeBinaryData: Boolean; ForExternalUse: Boolean): Text
     var
         PageMetadata: Record "Page Metadata";
         RecId: RecordId;
@@ -93,8 +94,9 @@ codeunit 2717 "Page Summary Provider Impl."
         AddUrl(ResultJsonObject, PageId, SourceRecordRef);
 
         // If show summary record is false, then exit with summary type caption
-        if not PageSummarySettings.IsShowRecordSummaryEnabled() then
-            exit(Format(ResultJsonObject));
+        if ForExternalUse then
+            if not PageSummarySettings.IsShowRecordSummaryEnabled() then
+                exit(Format(ResultJsonObject));
 
         RecId := SourceRecordRef.RecordId;
         Bookmark := Format(RecId, 0, 10); // 10 = Format RecordId into string
@@ -132,7 +134,6 @@ codeunit 2717 "Page Summary Provider Impl."
         exit(Format(ResultJsonObject));
     end;
 
-
     procedure GetVersion(): Text[30]
     begin
         exit('1.1');
@@ -159,6 +160,9 @@ codeunit 2717 "Page Summary Provider Impl."
 
         if PageSummaryJsonObject.Get(IncludeBinaryDataTok, ParsedJsonToken) then
             PageSummaryParameters."Include Binary Data" := ParsedJsonToken.AsValue().AsBoolean();
+
+        if PageSummaryJsonObject.Get(DataForExternalUseTok, ParsedJsonToken) then
+            PageSummaryParameters."Data for External Use" := ParsedJsonToken.AsValue().AsBoolean();
     end;
 
     local procedure AddFields(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject; IncludeBinaryData: Boolean)
@@ -456,4 +460,5 @@ codeunit 2717 "Page Summary Provider Impl."
         RecordSystemIdTok: Label 'recordSystemId', Locked = true;
         BookmarkTok: Label 'bookmark', Locked = true;
         IncludeBinaryDataTok: Label 'includeBinaryData', Locked = true;
+        DataForExternalUseTok: Label 'dataForExternalUse', Locked = true;
 }
