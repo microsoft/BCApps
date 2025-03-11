@@ -2,6 +2,7 @@ name: Report a bug in the contribution process
 description: Report a bug in the contribution process
 title: "[Contribution Process Bug]: "
 labels: ["Contribution-Bug"]
+type: 'Bug'
 body:
   - type: markdown
     attributes:

@@ -3,6 +3,7 @@
 using System.Apps;
 using System.Reflection;
 using System.Utilities;
+using System.Text.Json;
 
 codeunit 8333 "VS Code Integration Impl."
 {
@@ -17,6 +18,7 @@ codeunit 8333 "VS Code Integration Impl."
         BaseApplicationIdTxt: Label '437dbf0e-84ff-417a-965d-ed2bb9650972', Locked = true;
         SystemApplicationIdTxt: Label '63ca2fa4-4f03-4f2b-a480-172fef340d3f', Locked = true;
         ApplicationIdTxt: Label 'c1335042-3002-4257-bf8a-75c898ccb1b8', Locked = true;
+        SystemIdTxt: Label '8874ed3a-0643-4247-9ced-7a7002f7135d', Locked = true;
         NotSufficientPermissionErr: Label 'You do not have sufficient permissions to interact with the source code of extensions. Please contact your administrator.';
 
     [Scope('OnPrem')]
@@ -43,6 +45,49 @@ codeunit 8333 "VS Code Integration Impl."
     end;
 
     [Scope('OnPrem')]
+    procedure UpdateConfigurationsInVSCode()
+    var
+        Url: Text;
+    begin
+        CheckPermissions();
+
+        UriBuilder.Init(AlExtensionUriTxt + '/configure');
+        UriBuilder.SetQuery(VSCodeRequestHelper.GetLaunchInformationQueryPart());
+        UriBuilder.AddQueryParameter('sessionId', Format(SessionId()));
+
+        Url := GetAbsoluteUri();
+        HyperLink(Url);
+    end;
+
+    [Scope('OnPrem')]
+    procedure UpdateDependenciesInVSCode(var PublishedApplication: Record "Published Application")
+    var
+        NavAppInstalledApp: Record "NAV App Installed App";
+        Url: Text;
+    begin
+        CheckPermissions();
+
+        NavAppInstalledApp.Reset();
+        if PublishedApplication.FindSet() then
+            repeat
+                if NavAppInstalledApp.Get(PublishedApplication.ID) then
+                    NavAppInstalledApp.Mark := true;
+            until PublishedApplication.Next() = 0;
+        NavAppInstalledApp.MarkedOnly(true);
+
+        UriBuilder.Init(AlExtensionUriTxt + '/addDependencies');
+        UriBuilder.SetQuery(VSCodeRequestHelper.GetLaunchInformationQueryPart());
+        UriBuilder.AddQueryParameter('dependencies', GetDependenciesAsParameter(NavAppInstalledApp));
+
+        Url := GetAbsoluteUri();
+        if DoesExceedCharLimit(Url) then
+            // If the URL length exceeds 2000 characters then it will crash the page, so we truncate it.
+            Error('The number of dependencies exceeds the limit that can be sent to VS Code.')
+        else
+            HyperLink(Url);
+    end;
+
+    [Scope('OnPrem')]
     procedure NavigateToObjectDefinitionInVSCode(ObjectType: Option; ObjectId: Integer; ObjectName: Text; ControlName: Text; var NavAppInstalledApp: Record "NAV App Installed App")
     var
         Url: Text;
@@ -59,7 +104,7 @@ codeunit 8333 "VS Code Integration Impl."
             UriBuilder.AddQueryParameter('fieldName', Format(ControlName));
         UriBuilder.SetQuery(UriBuilder.GetQuery() + '&' + VSCodeRequestHelper.GetLaunchInformationQueryPart());
         UriBuilder.AddQueryParameter('sessionId', Format(SessionId()));
-        UriBuilder.AddQueryParameter('dependencies', GetDependencies(NavAppInstalledApp));
+        UriBuilder.AddQueryParameter('dependencies', GetDependenciesAsParameter(NavAppInstalledApp));
 
         Url := GetAbsoluteUri();
         if DoesExceedCharLimit(Url) then
@@ -70,13 +115,13 @@ codeunit 8333 "VS Code Integration Impl."
     end;
 
     [Scope('OnPrem')]
-    local procedure GetDependencies(var NavAppInstalledApp: Record "NAV App Installed App"): Text
+    local procedure GetDependenciesAsParameter(var NavAppInstalledApp: Record "NAV App Installed App"): Text
     var
         DependencyList: TextBuilder;
     begin
         if NavAppInstalledApp.FindSet() then
             repeat
-                DependencyList.Append(FormatDependency(NavAppInstalledApp));
+                DependencyList.Append(FormatDependencyAsParameter(NavAppInstalledApp));
             until NavAppInstalledApp.Next() = 0;
 
         if DoesExceedCharLimit(GetAbsoluteUri() + DependencyList.ToText()) then
@@ -86,20 +131,66 @@ codeunit 8333 "VS Code Integration Impl."
     end;
 
     [Scope('OnPrem')]
-    local procedure FormatDependency(var NavAppInstalledApp: Record "NAV App Installed App"): Text
+    local procedure FormatDependencyAsParameter(var NavAppInstalledApp: Record "NAV App Installed App"): Text
     var
+        AppId: Text;
         AppVersion: Text;
-        AppVersionLbl: Label '%1.%2.%3.%4', Comment = '%1 = major, %2 = minor, %3 = build, %4 = revision', Locked = true;
         DependencyFormatLbl: Label '%1,%2,%3,%4;', Comment = '%1 = Id, %2 = Name, %3 = Publisher, %4 = Version', Locked = true;
     begin
         // Skip System and Base app
         case NavAppInstalledApp."App ID" of
-            SystemApplicationIdTxt, BaseApplicationIdTxt, ApplicationIdTxt:
+            SystemApplicationIdTxt, BaseApplicationIdTxt, ApplicationIdTxt, SystemIdTxt:
                 exit('')
             else
-                AppVersion := StrSubstNo(AppVersionLbl, NavAppInstalledApp."Version Major", NavAppInstalledApp."Version Minor", NavAppInstalledApp."Version Build", NavAppInstalledApp."Version Revision");
-                exit(StrSubstNo(DependencyFormatLbl, Format(NavAppInstalledApp."App ID", 0, 4), NavAppInstalledApp.Name, NavAppInstalledApp.Publisher, AppVersion));
+                AppId := FormatDependencyId(NavAppInstalledApp."App ID");
+                AppVersion := FormatDependencyVersion(NavAppInstalledApp."Version Major", NavAppInstalledApp."Version Minor", NavAppInstalledApp."Version Build", NavAppInstalledApp."Version Revision");
+                exit(StrSubstNo(DependencyFormatLbl, AppId, NavAppInstalledApp.Name, NavAppInstalledApp.Publisher, AppVersion));
         end;
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetDependenciesAsSerializedJsonArray(var PublishedApplication: Record "Published Application"): Text
+    var
+        Json: Codeunit Json;
+    begin
+        Json.InitializeCollection('');
+        if PublishedApplication.FindSet() then
+            repeat
+                Json.AddJObjectToCollection(FormatDependencyAsSerializedJsonObject(PublishedApplication));
+            until PublishedApplication.Next() = 0;
+
+        exit(Json.GetCollectionAsText(true));
+    end;
+
+    [Scope('OnPrem')]
+    local procedure FormatDependencyAsSerializedJsonObject(var PublishedApplication: Record "Published Application") Value: Text
+    var
+        AppId: Text;
+        AppVersion: Text;
+        Dependency: JsonObject;
+    begin
+        AppId := FormatDependencyId(PublishedApplication.ID);
+        Dependency.Add('id', AppId);
+        Dependency.Add('name', PublishedApplication.Name);
+        Dependency.Add('publisher', PublishedApplication.Publisher);
+        AppVersion := FormatDependencyVersion(PublishedApplication."Version Major", PublishedApplication."Version Minor", PublishedApplication."Version Build", PublishedApplication."Version Revision");
+        Dependency.Add('version', AppVersion);
+
+        Dependency.WriteTo(Value);
+    end;
+
+    [Scope('OnPrem')]
+    local procedure FormatDependencyVersion(Major: Integer; Minor: Integer; Build: Integer; Revision: Integer): Text
+    var
+        AppVersionLbl: Label '%1.%2.%3.%4', Comment = '%1 = major, %2 = minor, %3 = build, %4 = revision', Locked = true;
+    begin
+        exit(StrSubstNo(AppVersionLbl, Major, Minor, Build, Revision));
+    end;
+
+    [Scope('OnPrem')]
+    local procedure FormatDependencyId(AppId: Guid): Text
+    begin
+        exit(LowerCase(Format(AppId, 0, 4)));
     end;
 
     [Scope('OnPrem')]
@@ -122,11 +213,10 @@ codeunit 8333 "VS Code Integration Impl."
     var
         AllObjWithCaption: Record AllObjWithCaption;
         NavAppInstalledApp: Record "NAV App Installed App";
-        EmptyGuid: Guid;
     begin
         // Objects in the system app range
         if ObjectId >= 2000000000 then
-            exit(EmptyGuid);
+            exit(SystemIdTxt);
 
         if AllObjWithCaption.ReadPermission() then begin
             AllObjWithCaption.SetRange("Object Type", ObjectType);

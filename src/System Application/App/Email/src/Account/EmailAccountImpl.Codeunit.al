@@ -29,16 +29,16 @@ codeunit 8889 "Email Account Impl."
     var
         EmailAccounts: Record "Email Account";
         Connector: Enum "Email Connector";
-        IEmailConnector: Interface "Email Connector";
+        EmailConnector: Interface "Email Connector";
     begin
         TempEmailAccount.Reset();
         TempEmailAccount.DeleteAll();
 
         foreach Connector in Connector.Ordinals do begin
-            IEmailConnector := Connector;
+            EmailConnector := Connector;
 
             EmailAccounts.DeleteAll();
-            IEmailConnector.GetAccounts(EmailAccounts);
+            EmailConnector.GetAccounts(EmailAccounts);
 
             if EmailAccounts.FindSet() then
                 repeat

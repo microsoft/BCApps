@@ -16,7 +16,7 @@ page 7773 "Copilot Capabilities Preview"
     Editable = false;
     Extensible = false;
     SourceTable = "Copilot Settings";
-    SourceTableView = where(Availability = const(Preview));
+    SourceTableView = where(Availability = const(Preview), "Service Type" = const("Azure AI Service Type"::"Azure OpenAI"));
     Permissions = tabledata "Copilot Settings" = rm;
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -35,7 +35,7 @@ page 7773 "Copilot Capabilities Preview"
                     Editable = false;
                     Width = 30;
                 }
-                field(Status; Rec.Status)
+                field(Status; Rec.EvaluateStatus())
                 {
                     ApplicationArea = All;
                     Caption = 'Status';
@@ -89,6 +89,9 @@ page 7773 "Copilot Capabilities Preview"
 
                 trigger OnAction()
                 begin
+                    if not Rec.EnsurePrivacyNoticesApproved() then
+                        exit;
+
                     Rec.Status := Rec.Status::Active;
                     Rec.Modify(true);
 
@@ -166,17 +169,19 @@ page 7773 "Copilot Capabilities Preview"
 
     local procedure SetStatusStyle()
     begin
-        if (Rec.Status = Rec.Status::Active) then
+        if (Rec.EvaluateStatus() = Rec.Status::Active) then
             StatusStyleExpr := 'Favorable'
         else
             StatusStyleExpr := '';
     end;
 
     local procedure SetActionsEnabled()
+    var
+        CopilotCapability: Codeunit "Copilot Capability";
     begin
         if CopilotCapabilityImpl.IsAdmin() then begin
             ActionsEnabled := (Rec.Capability.AsInteger() <> 0) and DataMovementEnabled;
-            CapabilityEnabled := Rec.Status = Rec.Status::Active;
+            CapabilityEnabled := CopilotCapability.IsCapabilityActive(Rec.Capability, Rec."App Id");
         end
         else begin
             ActionsEnabled := false;
