@@ -121,6 +121,11 @@ codeunit 8894 "Email Account"
     begin
     end;
 
+    [IntegrationEvent(false, false)]
+    internal procedure OnAfterDeleteEmailAccount(EmailAccountId: GUID; EmailAccountConnector: enum "Email Connector")
+    begin
+    end;
+
     var
         EmailAccountImpl: Codeunit "Email Account Impl.";
 }
