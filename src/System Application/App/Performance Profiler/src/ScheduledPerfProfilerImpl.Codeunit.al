@@ -218,6 +218,14 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         exit(PerformanceProfileSchedulerRecord.IsProfiling());
     end;
 
+    internal procedure GetStatus(PerformanceProfileScheduler: Record "Performance Profile Scheduler"): Text
+    begin
+        if PerformanceProfileScheduler.Enabled and (PerformanceProfileScheduler."Starting Date-Time" <= CurrentDateTime) and (PerformanceProfileScheduler."Ending Date-Time" >= CurrentDateTime) then
+            exit(ActiveLbl)
+        else
+            exit(InactiveLbl);
+    end;
+
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetProfilerSchedulesPageId, '', false, false)]
     local procedure GetProfilerSchedulesPageId(var PageId: Integer)
@@ -226,6 +234,8 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     end;
 
     var
+        ActiveLbl: Label 'Active';
+        InactiveLbl: Label 'Inactive';
         ProfileStartingDateLessThenEndingDateErr: Label 'The performance profile starting date must be set before the ending date.';
         ProfileHasAlreadyBeenScheduledErr: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
         ProfileCannotBeInThePastErr: Label 'A schedule cannot be set to run in the past.';
