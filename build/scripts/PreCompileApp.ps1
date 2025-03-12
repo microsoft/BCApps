@@ -65,7 +65,7 @@ if($appType -eq 'app')
                         Write-Host "$key = $($parameters.Value[$key])"
                     }
 
-                    $parameters.Value["RulesetFile"] = Get-RulesetPath -Name "minorrelease.ruleset.json"
+                    $parameters.Value["ruleset"] = Get-RulesetPath -Name "minorrelease.ruleset.json"
 
                     foreach ($key in $parameters.Value.Keys) {
                         Write-Host "$key = $($parameters.Value[$key])"
