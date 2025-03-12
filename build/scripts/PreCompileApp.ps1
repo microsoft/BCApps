@@ -61,15 +61,7 @@ if($appType -eq 'app')
                     return
                 } else {
                     Write-Host "Enabling minor release ruleset for strict mode breaking changes check"
-                    foreach ($key in $parameters.Value.Keys) {
-                        Write-Host "$key = $($parameters.Value[$key])"
-                    }
-
                     $parameters.Value["ruleset"] = Get-RulesetPath -Name "minorrelease.ruleset.json"
-
-                    foreach ($key in $parameters.Value.Keys) {
-                        Write-Host "$key = $($parameters.Value[$key])"
-                    }
                 }
             }
 
