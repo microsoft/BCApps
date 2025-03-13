@@ -33,6 +33,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         ChatCompletionsFailedWithCodeErr: Label 'Chat completions failed to be generated.';
         AuthenticationNotConfiguredErr: Label 'The authentication was not configured.';
         CapabilityBackgroundErr: Label 'Microsoft Copilot Capabilities are not allowed in the background.';
+        CapabilityODataErr: Label 'Microsoft Copilot Capabilities are not allowed in API and OData Web Services sessions.';
         MessagesMustContainJsonWordWhenResponseFormatIsJsonErr: Label 'The messages must contain the word ''json'' in some form, to use ''response format'' of type ''json_object''.';
         EmptyMetapromptErr: Label 'The metaprompt has not been set, please provide a metaprompt.';
         MetapromptLoadingErr: Label 'Metaprompt not found.';
@@ -177,6 +178,8 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         PayloadText: Text;
         UnwrappedPrompt: Text;
     begin
+        GuiCheck(TextCompletionsAOAIAuthorization);
+
         CopilotCapabilityImpl.CheckCapabilitySet();
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(TextCompletionsAOAIAuthorization, CallerModuleInfo);
@@ -209,6 +212,8 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         Payload: JsonObject;
         PayloadText: Text;
     begin
+        GuiCheck(EmbeddingsAOAIAuthorization);
+
         CopilotCapabilityImpl.CheckCapabilitySet();
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(EmbeddingsAOAIAuthorization, CallerModuleInfo);
@@ -261,6 +266,8 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         MetapromptTokenCount: Integer;
         PromptTokenCount: Integer;
     begin
+        GuiCheck(ChatCompletionsAOAIAuthorization);
+
         CopilotCapabilityImpl.CheckCapabilitySet();
         CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(ChatCompletionsAOAIAuthorization, CallerModuleInfo);
@@ -493,6 +500,20 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     local procedure SendTokenCountTelemetry(Metaprompt: Integer; Prompt: Integer; CustomDimensions: Dictionary of [Text, Text])
     begin
         Telemetry.LogMessage('0000LT4', StrSubstNo(TelemetryTokenCountLbl, Metaprompt, Prompt, Metaprompt + Prompt), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+    end;
+
+    local procedure GuiCheck(AOAIAuthorization: Codeunit "AOAI Authorization")
+    var
+        ClientTypeManagement: Codeunit "Client Type Management";
+    begin
+        if AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed" then
+            exit;
+
+        if ClientTypeManagement.GetCurrentClientType() in [ClientType::Api, ClientType::OData, ClientType::ODataV4, ClientType::SOAP, ClientType::Management] then
+            Error(CapabilityODataErr);
+
+        if (not GuiAllowed()) and (AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Microsoft Managed") then
+            Error(CapabilityBackgroundErr);
     end;
 
     local procedure CheckAuthorizationEnabled(AOAIAuthorization: Codeunit "AOAI Authorization"; CallerModuleInfo: ModuleInfo)
