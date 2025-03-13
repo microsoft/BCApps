@@ -112,6 +112,7 @@ page 1933 "Perf. Profiler Schedules List"
                     Caption = 'Schedule ID';
                     ToolTip = 'Specifies the ID of the schedule.';
                     Editable = false;
+                    Visible = false;
                 }
 #if not CLEAN27
                 field(Enabled; Rec.Enabled)
@@ -194,8 +195,7 @@ page 1933 "Perf. Profiler Schedules List"
     trigger OnOpenPage()
     begin
         ScheduledPerfProfiler.FilterUsers(Rec, UserSecurityId());
-        ScheduledPerfProfiler.IsProfilingEnabled(ActiveScheduleId);
-        ActiveScheduleDisplayNameText := ActiveScheduleDisplayName();
+        ReloadActiveSchedule();
     end;
 
     trigger OnAfterGetRecord()
@@ -203,12 +203,14 @@ page 1933 "Perf. Profiler Schedules List"
         ScheduledPerfProfiler.MapRecordToActivityType(Rec, Activity);
         UserName := ScheduledPerfProfiler.MapRecordToUserName(Rec);
         Status := ScheduledPerfProfilerImpl.GetStatus(Rec);
+        ReloadActiveSchedule();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
         ScheduledPerfProfiler.MapRecordToActivityType(Rec, Activity);
         UserName := ScheduledPerfProfiler.MapRecordToUserName(Rec);
+        ReloadActiveSchedule();
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
@@ -229,6 +231,11 @@ page 1933 "Perf. Profiler Schedules List"
         ActiveScheduleId: Guid;
         Status: Text;
 
+    local procedure ReloadActiveSchedule()
+    begin
+        ScheduledPerfProfiler.IsProfilingEnabled(ActiveScheduleId);
+        ActiveScheduleDisplayNameText := ActiveScheduleDisplayName();
+    end;
 
     local procedure ActiveScheduleDisplayName(): Text
     var

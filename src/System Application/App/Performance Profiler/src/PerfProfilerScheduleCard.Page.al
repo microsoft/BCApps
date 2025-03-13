@@ -49,7 +49,6 @@ page 1932 "Perf. Profiler Schedule Card"
                     Caption = 'Schedule ID';
                     ToolTip = 'Specifies the ID of the schedule.';
                     Editable = false;
-                    Visible = false;
                 }
 #if not CLEAN27
                 field(Enabled; Rec.Enabled)

@@ -17,7 +17,7 @@ enum 1932 "Perf. Profile Activity Type"
     /// </summary>
     value(0; "Web Client")
     {
-        Caption = 'Activity in the browser';
+        Caption = 'Activities in the browser';
     }
 
     /// <summary>
