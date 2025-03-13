@@ -11,7 +11,7 @@
   "url": "https://go.microsoft.com/fwlink/?linkid=724011",
   "logo": "",
   "screenshots": [],
-  "platform": "26.0.0.0",
+  "platform": "27.0.0.0",
   "dependencies": [
     {
       "id": "fd3d0b8e-61fa-4f87-b2fc-c4a1f3e53a63",
