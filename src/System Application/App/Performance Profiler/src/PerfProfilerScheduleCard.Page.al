@@ -127,7 +127,8 @@ page 1932 "Perf. Profiler Schedule Card"
 
                     trigger OnValidate()
                     begin
-                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDatesRelation(Rec);
+                        if Rec.Enabled then
+                            ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDatesRelation(Rec);
                         CurrPage.Update();
                     end;
                 }
@@ -140,7 +141,8 @@ page 1932 "Perf. Profiler Schedule Card"
 
                     trigger OnValidate()
                     begin
-                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDatesRelation(Rec);
+                        if Rec.Enabled then
+                            ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDatesRelation(Rec);
                         ScheduledPerfProfiler.ValidatePerformanceProfileEndTime(Rec);
                         CurrPage.Update();
                     end;
@@ -326,7 +328,8 @@ page 1932 "Perf. Profiler Schedule Card"
 
     local procedure ValidateRecord()
     begin
-        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(Rec, MaxRetentionPeriod);
+        if Rec.Enabled then
+            ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(Rec, MaxRetentionPeriod);
         ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(Rec, Activity);
     end;
 
