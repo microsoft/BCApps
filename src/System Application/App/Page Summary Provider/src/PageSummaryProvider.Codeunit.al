@@ -64,7 +64,7 @@ codeunit 2718 "Page Summary Provider"
     var
         SummaryProviderImpl: Codeunit "Page Summary Provider Impl.";
     begin
-        exit(SummaryProviderImpl.GetPageSummary(PageId, Bookmark, true));
+        exit(SummaryProviderImpl.GetPageSummary(PageId, Bookmark, true, true));
     end;
 
     /// <summary>
@@ -121,7 +121,7 @@ codeunit 2718 "Page Summary Provider"
     var
         SummaryProviderImpl: Codeunit "Page Summary Provider Impl.";
     begin
-        exit(SummaryProviderImpl.GetPageSummary(PageId, SystemId, true));
+        exit(SummaryProviderImpl.GetPageSummary(PageId, SystemId, true, true));
     end;
 
     /// <summary>
@@ -153,7 +153,7 @@ codeunit 2718 "Page Summary Provider"
     var
         SummaryProviderImpl: Codeunit "Page Summary Provider Impl.";
     begin
-        exit(SummaryProviderImpl.GetPageSummary(PageId, '', true));
+        exit(SummaryProviderImpl.GetPageSummary(PageId, '', true, true));
     end;
 
     /// <summary>

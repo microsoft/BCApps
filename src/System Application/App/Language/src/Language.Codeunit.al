@@ -21,12 +21,23 @@ codeunit 43 Language
     /// To change the language code returned from this function, subscribe for this event and change the passed language code.
     /// </summary>
     /// <seealso cref="OnGetUserLanguageCode"/>
-    /// <returns>The language code of the user's language</returns>
+    /// <returns>The language code of the user's language, for example 'ENU' for 'English (United States)'</returns>
     procedure GetUserLanguageCode(): Code[10]
     var
         LanguageImpl: Codeunit "Language Impl.";
     begin
         exit(LanguageImpl.GetUserLanguageCode());
+    end;
+
+    /// <summary>
+    /// Gets the current user's language tag.
+    /// </summary>
+    /// <returns>The language tag of the user's language, for example 'en-US' for 'English (United States)'</returns>
+    procedure GetUserLanguageTag(): Text[80]
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        exit(LanguageImpl.GetUserLanguageTag());
     end;
 
     /// <summary>
