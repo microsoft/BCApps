@@ -177,7 +177,7 @@ codeunit 305 "No. Series - Setup Impl."
             exit(false);
 
         if NoSeriesLine."Increment-by No." <> 1 then begin
-            NextNo := IncrementNoText(LastNoUsed, NoSeriesLine."Increment-by No.");
+            NextNo := IncStr(LastNoUsed, NoSeriesLine."Increment-by No.");
             if NextNo > NoSeriesLine."Ending No." then
                 exit(false);
             if StrLen(NextNo) > StrLen(NoSeriesLine."Ending No.") then
@@ -220,6 +220,7 @@ codeunit 305 "No. Series - Setup Impl."
                 NoSeries.Validate("Default Nos.", true);
     end;
 
+#if not CLEAN27
     procedure IncrementNoText(No: Code[20]; Increment: Integer): Code[20]
     var
         BigIntNo: BigInteger;
@@ -235,6 +236,7 @@ codeunit 305 "No. Series - Setup Impl."
         ReplaceNoText(No, NewNo, 0, StartPos, EndPos);
         exit(No);
     end;
+#endif
 
     procedure UpdateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NewNo: Code[20]; NewFieldCaption: Text[100])
     var
