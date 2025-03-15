@@ -203,6 +203,27 @@ page 130455 "Command Line Test Tool"
                     TestSuiteMgt.ChangeStabilityRun(GlobalALTestSuite, StabilityRun);
                 end;
             }
+            field(CurrentCompanyName; CurrentCompanyName)
+            {
+                ApplicationArea = All;
+                Caption = 'Company Name';
+                Editable = false;
+                ToolTip = 'Specifies the current company name';
+            }
+            field(CurrentTenant; CurrentTenant)
+            {
+                ApplicationArea = All;
+                Caption = 'Tenant ID';
+                Editable = false;
+                ToolTip = 'Specifies the current tenant ID';
+            }
+            field(CurrentLanguage; CurrentLanguage)
+            {
+                ApplicationArea = All;
+                Caption = 'Language ID';
+                Editable = false;
+                ToolTip = 'Specifies the current language ID';
+            }
             repeater(Control1)
             {
                 IndentationControls = Name;
@@ -453,6 +474,9 @@ page 130455 "Command Line Test Tool"
         CCResultsCSVText: Text;
         CCMapCSVText: Text;
         CCInfo: Text;
+        CurrentCompanyName: Text;
+        CurrentTenant: Text;
+        CurrentLanguage: Integer;
         AllTestsExecutedTxt: Label 'All tests executed.', Locked = true;
         DoneLbl: Label 'Done.', Locked = true;
         CCTrackingType: Integer;
@@ -503,6 +527,9 @@ page 130455 "Command Line Test Tool"
         CCTrackingType := GlobalALTestSuite."CC Tracking Type";
         CodeCoverageExporterID := GlobalALTestSuite."CC Exporter ID";
         CCMap := GlobalALTestSuite."CC Coverage Map";
+        CurrentCompanyName := CompanyName();
+        CurrentTenant := TenantID();
+        CurrentLanguage := GlobalLanguage();
     end;
 
     local procedure UpdateLine()
