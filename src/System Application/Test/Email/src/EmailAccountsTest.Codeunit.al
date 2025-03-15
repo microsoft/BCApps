@@ -262,6 +262,49 @@ codeunit 134686 "Email Accounts Test"
     end;
 
     [Test]
+    procedure GetAllV2AccountsTest()
+    var
+        EmailAccountBuffer, EmailAccounts : Record "Email Account";
+        ConnectorMock: Codeunit "Connector Mock";
+        EmailAccount: Codeunit "Email Account";
+    begin
+        // [SCENARIO] GetAllV2Accounts retrieves all the registered accounts that implement the v2 interface
+
+        // [GIVEN] A connector is installed and no account is added
+        ConnectorMock.Initialize();
+
+        PermissionsMock.Set('Email Edit');
+
+        // [WHEN] GetAllAccounts is called
+        EmailAccount.GetAllV2Accounts(EmailAccounts);
+
+        // [THEN] The returned record is empty (there are no registered accounts)
+        Assert.IsTrue(EmailAccounts.IsEmpty(), 'Record should be empty');
+
+        // [GIVEN] An account is added to the connector
+        ConnectorMock.AddAccount(EmailAccountBuffer);
+        // [GIVEN] A v2 account is added to the connector
+        ConnectorMock.AddAccount(EmailAccountBuffer, Enum::"Email Connector"::"Test Email Connector v2");
+
+        // [WHEN] GetAllAccounts is called
+        EmailAccount.GetAllAccounts(EmailAccounts);
+
+        // [THEN] The returned record is not empty and the values are as expected
+        Assert.AreEqual(2, EmailAccounts.Count(), 'Record should not be empty');
+
+        // [WHEN] GetAllV2Accounts is called
+        EmailAccount.GetAllV2Accounts(EmailAccounts);
+
+        // [THEN] The returned record is not empty and the values are as expected
+        Assert.AreEqual(1, EmailAccounts.Count(), 'Record should not be empty');
+        EmailAccounts.FindFirst();
+        Assert.AreEqual(EmailAccountBuffer."Account Id", EmailAccounts."Account Id", 'Wrong account ID');
+        Assert.AreEqual(Enum::"Email Connector"::"Test Email Connector v2", EmailAccounts.Connector, 'Wrong connector');
+        Assert.AreEqual(EmailAccountBuffer.Name, EmailAccounts.Name, 'Wrong account name');
+        Assert.AreEqual(EmailAccountBuffer."Email Address", EmailAccounts."Email Address", 'Wrong account email address');
+    end;
+
+    [Test]
     procedure IsAnyAccountRegisteredTest()
     var
         ConnectorMock: Codeunit "Connector Mock";
