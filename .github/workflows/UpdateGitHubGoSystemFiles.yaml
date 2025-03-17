@@ -19,6 +19,8 @@ on:
         description: Specify a comma-separated list of branches to update. Wildcards are supported. The AL-Go settings will be read for every branch. Leave empty to update the current branch only.
         required: false
         default: ''
+  schedule:
+    - cron: '55 08 * * 3'
 
 permissions:
   actions: read
