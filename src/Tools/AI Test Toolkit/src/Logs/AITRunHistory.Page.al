@@ -121,6 +121,12 @@ page 149032 "AIT Run History"
                             AITLogEntryCodeunit.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No. Filter", Rec.Version);
                         end;
                     }
+                    field("Accuracy - By Version"; Rec."Accuracy Per Version")
+                    {
+                        Visible = ViewBy = ViewBy::Version;
+                        Caption = 'Accuracy';
+                        ToolTip = 'Specifies the average accuracy of the version.';
+                    }
                     field("Duration - By Version"; Rec."Total Duration (ms)")
                     {
                         Visible = ViewBy = ViewBy::Version;
@@ -160,6 +166,12 @@ page 149032 "AIT Run History"
                         begin
                             AITLogEntryCodeunit.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No. Filter", Rec.Tag);
                         end;
+                    }
+                    field("Accuracy - By Tag"; Rec."Accuracy - By Tag")
+                    {
+                        Visible = ViewBy = ViewBy::Tag;
+                        Caption = 'Accuracy';
+                        ToolTip = 'Specifies the average accuracy of the tag.';
                     }
                     field("Duration - By Tag"; Rec."Total Duration (ms) - By Tag")
                     {
