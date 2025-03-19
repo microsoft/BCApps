@@ -17,7 +17,7 @@ enum 1932 "Perf. Profile Activity Type"
     /// </summary>
     value(0; "Web Client")
     {
-        Caption = 'Activity in the browser';
+        Caption = 'Activities in the browser';
     }
 
     /// <summary>
@@ -25,7 +25,7 @@ enum 1932 "Perf. Profile Activity Type"
     /// </summary>
     value(1; "Background")
     {
-        Caption = 'Background Tasks';
+        Caption = 'Background tasks (incl. job queues)';
     }
 
     /// <summary>
@@ -33,6 +33,6 @@ enum 1932 "Perf. Profile Activity Type"
     /// </summary>
     value(2; "Web API Client")
     {
-        Caption = 'Web Service Calls';
+        Caption = 'Web service calls';
     }
 }

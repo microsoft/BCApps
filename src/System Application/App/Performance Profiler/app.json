@@ -72,6 +72,12 @@
       "name": "System Initialization",
       "publisher": "Microsoft",
       "version": "27.0.0.0"
+    },
+    {
+      "id": "7f850a76-a58c-4ade-a14f-7d7acff97115",
+      "name": "User Selection",
+      "publisher": "Microsoft",
+      "version": "27.0.0.0"
     }
   ],
   "internalsVisibleTo": [
