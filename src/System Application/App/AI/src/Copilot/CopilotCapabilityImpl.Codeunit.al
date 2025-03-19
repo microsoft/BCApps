@@ -265,10 +265,9 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure GetDataMovementAllowed(var AllowDataMovement: Boolean)
     var
-        AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
         PrivacyNotice: Codeunit "Privacy Notice";
     begin
-        case PrivacyNotice.GetPrivacyNoticeApprovalState(AzureOpenAIImpl.GetAzureOpenAICategory(), false) of
+        case PrivacyNotice.GetPrivacyNoticeApprovalState(GetAzureOpenAICategory(), false) of
             Enum::"Privacy Notice Approval State"::Agreed:
                 AllowDataMovement := true;
             Enum::"Privacy Notice Approval State"::Disagreed:
