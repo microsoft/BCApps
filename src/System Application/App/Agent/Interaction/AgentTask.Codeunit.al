@@ -53,4 +53,20 @@ codeunit 4303 "Agent Task"
     begin
         AgentTaskImpl.CreateTask(AgentSecurityID, TaskTitle, ExternalId, NewAgentTask);
     end;
+
+    /// <summary>
+    /// Add an attachment to the task message.
+    /// </summary>
+    /// <param name="TaskId">The task ID to which the message belongs.</param>
+    /// <param name="TaskMesssageId">The task message ID to which the attachment will be added.</param>
+    /// <param name="FileName">The name of the file to be attached.</param>
+    /// <param name="FileMIMEType">The MIME type of the file to be attached.</param>
+    /// <param name="Attachment">The attachment stream.</param>
+    [Scope('OnPrem')]
+    procedure AddAttachmentToTaskMessage(TaskId: BigInteger; TaskMesssageId: Guid; FileName: Text[250]; FileMIMEType: Text[100]; Attachment: InStream)
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        AgentTaskImpl.AddAttachmentToTaskMessage(TaskId, TaskMesssageId, FileName, FileMIMEType, Attachment);
+    end;
 }
