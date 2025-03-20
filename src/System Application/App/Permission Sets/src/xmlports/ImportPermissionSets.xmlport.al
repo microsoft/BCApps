@@ -129,10 +129,10 @@ xmlport 9864 "Import Permission Sets"
                     if not UpdatePermissions then begin
                         TenantPermissionSetRel.SetFilter("App ID", TempTenantPermissionSet."App ID");
                         TenantPermissionSetRel.SetFilter("Role ID", TempTenantPermissionSet."Role ID");
-                        TenantPermissionSetRel.DeleteAll;
+                        TenantPermissionSetRel.DeleteAll();
                         TenantPermission.SetFilter("App ID", TempTenantPermissionSet."App ID");
                         TenantPermission.SetFilter("Role ID", TempTenantPermissionSet."Role ID");
-                        TenantPermission.DeleteAll;
+                        TenantPermission.DeleteAll();
                     end;
                 end;
             }
@@ -231,10 +231,10 @@ xmlport 9864 "Import Permission Sets"
                     if not UpdatePermissions then begin
                         MetadataPermissionSetRel.SetFilter("App ID", TempMetadataPermissionSet."App ID");
                         MetadataPermissionSetRel.SetFilter("Role ID", TempMetadataPermissionSet."Role ID");
-                        MetadataPermissionSetRel.DeleteAll;
+                        MetadataPermissionSetRel.DeleteAll();
                         MetadataPermission.SetFilter("App ID", TempMetadataPermissionSet."App ID");
                         MetadataPermission.SetFilter("Role ID", TempTenantPermissionSet."Role ID");
-                        MetadataPermission.DeleteAll;
+                        MetadataPermission.DeleteAll();
                     end;
                 end;
             }
@@ -348,7 +348,6 @@ xmlport 9864 "Import Permission Sets"
                 TenantPermission."Delete Permission" := SourceMetadataPermission."Delete Permission";
             if IsFirstPermissionHigherThanSecond(SourceMetadataPermission."Execute Permission", TenantPermission."Execute Permission") then
                 TenantPermission."Execute Permission" := SourceMetadataPermission."Execute Permission";
-            TenantPermission."Security Filter" := SourceMetadataPermission."Security Filter";
             TenantPermission.Modify();
         end;
     end;
@@ -414,7 +413,6 @@ xmlport 9864 "Import Permission Sets"
                 TenantPermission."Delete Permission" := SourceTenantPermission."Delete Permission";
             if IsFirstPermissionHigherThanSecond(SourceTenantPermission."Execute Permission", TenantPermission."Execute Permission") then
                 TenantPermission."Execute Permission" := SourceTenantPermission."Execute Permission";
-            TenantPermission."Security Filter" := SourceTenantPermission."Security Filter";
             TenantPermission.Modify();
         end;
     end;
