@@ -188,28 +188,6 @@ codeunit 4300 "Agent Task Impl."
         end;
     end;
 
-    procedure AddAttachmentToTaskMessage(TaskId: BigInteger; TaskMesssageId: Guid; FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream)
-    var
-        AgentTaskFile: Record "Agent Task File";
-        AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
-        AgentTaskImpl: Codeunit "Agent Task Impl.";
-        OutStream: OutStream;
-    begin
-        // Add attachment to task file
-        AgentTaskFile."Task ID" := TaskId;
-        AgentTaskFile."File Name" := FileName;
-        AgentTaskFile."File MIME Type" := FileMIMEType;
-        AgentTaskFile.Content.CreateOutStream(OutStream, AgentTaskImpl.GetDefaultEncoding());
-        CopyStream(OutStream, InStream);
-        AgentTaskFile.Insert();
-
-        // Link task file to task message
-        AgentTaskMessageAttachment."Task ID" := TaskId;
-        AgentTaskMessageAttachment."Message ID" := TaskMesssageId;
-        AgentTaskMessageAttachment."File ID" := AgentTaskFile.ID;
-        AgentTaskMessageAttachment.Insert();
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetAgentTaskMessagePageId, '', true, true)]
     local procedure OnGetAgentTaskMessagePageId(var PageId: Integer)
     begin
