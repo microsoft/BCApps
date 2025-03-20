@@ -186,7 +186,7 @@ codeunit 149043 "AIT Test Context Impl."
         if not IsMultiTurn then
             exit(false);
 
-        if CurrentTurn > NumberOfTurns then
+        if CurrentTurn + 1 > NumberOfTurns then
             exit(false);
 
         CurrentTurn := CurrentTurn + 1;
