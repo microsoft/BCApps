@@ -27,7 +27,7 @@ codeunit 7781 "Copilot Telemetry Upgrade"
         if EnvironmentInformation.IsOnPrem() then
             exit;
 
-        if UpgradeTag.HasDatabaseUpgradeTag(GetSendCopilotDataMovementUpgradeTelemetryTag()) then
+        if UpgradeTag.HasUpgradeTag(GetSendCopilotDataMovementUpgradeTelemetryTag(), '') then
             exit;
 
         CopilotTelemetry.SendCopilotDataMovementUpdatedTelemetry();
