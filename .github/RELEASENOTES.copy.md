@@ -1,3 +1,24 @@
+## preview
+
+Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
+
+### Issues
+
+- Issue 1519 Submitting to AppSource WARNING: AuthContext.Scopes is .. should be
+- Issue 1521 Dependencies not installed for multi project incremental PR build
+- Issue 1522 Strange warnings in Deploy job post update to AL-Go 6.4
+- BcContainerHelper settings were only read from .github/AL-Go-Settings.json, not allowing global settings in ALGoOrgSettings for TrustedNuGetFeeds, MemoryLimit and other things that should be possible to define globally
+- Issue 1526 When updating AL-Go system files, the update process (creating a PR or directly pushing to the branch) fails when there is a file or directory in the repo with the same name as the branch that is to be updated
+
+### Support for deploying to sandbox environments from a pull request
+
+AL-Go for GitHub now supports deploying from a PR. When using the 'Publish To Environment' workflow, it is now possible to input 'PR_X' as the App version, where 'X' is the PR Id. This will deploy the artifacts from the latest PR build to the chosen environment, if that build is completed and successful.
+
+All apps, which were not built by the PR build will be deployed from the last known good build. You can find a notification on the PR build explaining which build is used as the last known good build.
+
+> [!NOTE]
+> When deploying a PR build to a sandbox environment, the app will get a special version number, which is: major.minor.maxint.run-number. This means that the sandbox environment likely needs to be deleted after the testing has ended.
+
 ## v6.4
 
 ### Deprecations
