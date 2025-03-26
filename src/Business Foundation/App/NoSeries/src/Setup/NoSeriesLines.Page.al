@@ -81,15 +81,6 @@ page 457 "No. Series Lines"
                     Editable = false;
 #endif
 
-#if not CLEAN24
-#pragma warning disable AL0432
-                    trigger OnValidate()
-                    begin
-                        Rec.Validate("Allow Gaps in Nos.", AllowGaps);
-                        CurrPage.Update(true);
-                    end;
-#pragma warning restore AL0432
-#endif
                 }
                 field(Implementation; Rec.Implementation)
                 {

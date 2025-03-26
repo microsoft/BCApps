@@ -8,13 +8,7 @@ namespace System.Security;
 /// <summary>
 /// An in-memory secret provider that can be populated with secrets from any source.
 /// </summary>
-#if not CLEAN24
-#pragma warning disable AL0432
-codeunit 3802 "In Memory Secret Provider" implements "Secret Provider", "Secret Provider v2"
-#pragma warning restore AL0432
-#else
 codeunit 3802 "In Memory Secret Provider" implements "Secret Provider v2"
-#endif
 {
     Access = Public;
     InherentEntitlements = X;

@@ -565,21 +565,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
                 Error(EmptyMetapromptErr);
         end;
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [Obsolete('Use the function GetTokenCount() instead.', '24.0')]
-    procedure ApproximateTokenCount(Input: Text): Decimal
-    var
-        AverageWordsPerToken: Decimal;
-        TokenCount: Integer;
-        WordsInInput: Integer;
-    begin
-        AverageWordsPerToken := 0.6; // Based on OpenAI estimate
-        WordsInInput := Input.Split(' ', ',', '.', '!', '?', ';', ':', '/n').Count;
-        TokenCount := Round(WordsInInput / AverageWordsPerToken, 1);
-        exit(TokenCount);
-    end;
-#endif
 
     procedure GetTokenCount(Input: SecretText; Encoding: Text) TokenCount: Integer
     var

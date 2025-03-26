@@ -7,13 +7,7 @@ namespace System.Security.Encryption;
 
 using System;
 
-#if not CLEAN24
-#pragma warning disable AL0432
-codeunit 1448 "DSACryptoServiceProvider Impl." implements SignatureAlgorithm, "Signature Algorithm v2"
-#pragma warning restore AL0432
-#else
 codeunit 1448 "DSACryptoServiceProvider Impl." implements "Signature Algorithm v2"
-#endif
 {
     Access = Internal;
     InherentEntitlements = X;
