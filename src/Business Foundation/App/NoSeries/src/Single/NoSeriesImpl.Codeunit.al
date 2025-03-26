@@ -24,29 +24,12 @@ codeunit 304 "No. Series - Impl."
         PostErr: Label 'You have one or more documents that must be posted before you post document no. %1 according to your company''s No. Series setup.', Comment = '%1=Document No.';
         CannotGetNoSeriesLineNoWithEmptyCodeErr: Label 'You cannot get a No. Series Line with empty No. Series Code.';
 
-#if not CLEAN24
-#pragma warning disable AL0432
-    procedure TestManual(NoSeriesCode: Code[20])
-    var
-        NoSeries: Record "No. Series";
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-        IsHandled: Boolean;
-    begin
-        NoSeriesManagement.OnBeforeTestManual(NoSeriesCode, IsHandled);
-        if not IsHandled then
-            if NoSeriesCode <> '' then
-                TestManualInternal(NoSeriesCode, StrSubstNo(CannotAssignManuallyErr, NoSeries.FieldCaption("Manual Nos."), NoSeries.TableCaption(), NoSeries.Code));
-        NoSeriesManagement.OnAfterTestManual(NoSeriesCode);
-    end;
-#pragma warning restore AL0432
-#else
     procedure TestManual(NoSeriesCode: Code[20])
     var
         NoSeries: Record "No. Series";
     begin
         TestManualInternal(NoSeriesCode, StrSubstNo(CannotAssignManuallyErr, NoSeries.FieldCaption("Manual Nos."), NoSeries.TableCaption(), NoSeries.Code));
     end;
-#endif
 
     procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20])
     begin
@@ -104,44 +87,17 @@ codeunit 304 "No. Series - Impl."
 
     procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     var
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-#pragma warning restore AL0432
-#endif
         NoSeriesSingle: Interface "No. Series - Single";
-#if not CLEAN24
-        Result: Code[20];
-        IsHandled: Boolean;
-#endif
     begin
         if UsageDate = 0D then
             UsageDate := WorkDate();
 
-#if not CLEAN24
-#pragma warning disable AL0432, AA0205
-        NoSeriesManagement.RaiseObsoleteOnBeforeGetNextNo(NoSeriesLine, UsageDate, true, Result, IsHandled);
-        if IsHandled then
-            exit(Result);
-        NoSeriesManagement.RaiseObsoleteOnBeforeDoGetNextNo(NoSeriesLine."Series Code", UsageDate, true, HideErrorsAndWarnings);
-#pragma warning restore AL0432, AA0205
-#endif
         if not ValidateCanGetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings) then
             exit('');
 
         NoSeriesSingle := GetImplementation(NoSeriesLine);
 
-#if not CLEAN24
-#pragma warning disable AL0432, AA0205
-        Result := NoSeriesSingle.GetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings);
-        if Result <> NoSeriesLine."Last No. Used" then
-            NoSeriesLine."Last No. Used" := Result;
-        NoSeriesManagement.RaiseObsoleteOnAfterGetNextNo3(NoSeriesLine, true);
-        exit(NoSeriesLine."Last No. Used");
-#pragma warning restore AL0432, AA0205
-#else
         exit(NoSeriesSingle.GetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings))
-#endif
     end;
 
     local procedure GetImplementation(var NoSeriesLine: Record "No. Series Line"): Interface "No. Series - Single"
@@ -157,11 +113,6 @@ codeunit 304 "No. Series - Impl."
         NoSeries: Codeunit "No. Series";
         NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
         NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-#pragma warning restore AL0432
-#endif
         LineFound: Boolean;
     begin
         if NoSeriesCode = '' then begin
@@ -176,11 +127,6 @@ codeunit 304 "No. Series - Impl."
         // Find the No. Series Line closest to the usage date
         NoSeriesLine2.Reset();
         NoSeriesSetupImpl.SetNoSeriesLineFilters(NoSeriesLine2, NoSeriesCode, UsageDate);
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine2);
-#pragma warning restore AL0432
-#endif
         if NoSeriesLine2.FindLast() then;
         NoSeriesLine.SetCurrentKey("Series Code", "Starting Date");
         NoSeriesLine.CopyFilters(NoSeriesLine2);
@@ -188,26 +134,12 @@ codeunit 304 "No. Series - Impl."
         if (NoSeriesLine."Line No." <> 0) and (NoSeriesLine."Series Code" = NoSeriesCode) and (NoSeriesLine."Starting Date" = NoSeriesLine2."Starting Date") then begin
             NoSeriesLine.CopyFilters(NoSeriesLine2);
             NoSeriesLine.SetRange("Line No.", NoSeriesLine."Line No.");
-#if not CLEAN24
-#pragma warning disable AL0432
-            NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
-#pragma warning restore AL0432
-#endif
             LineFound := NoSeriesLine.FindLast();
             if not LineFound then
                 NoSeriesLine.SetRange("Line No.");
         end;
-#if not CLEAN24
-#pragma warning disable AL0432
-        if not LineFound then begin
-            NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
-            LineFound := NoSeriesLine.FindLast();
-        end;
-#pragma warning restore AL0432
-#else
         if not LineFound then
             LineFound := NoSeriesLine.FindLast();
-#endif
 
         if LineFound and NoSeries.MayProduceGaps(NoSeriesLine) then begin
             NoSeriesLine.Validate(Open);
@@ -256,47 +188,18 @@ codeunit 304 "No. Series - Impl."
 
     procedure PeekNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     var
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-#pragma warning restore AL0432
-#endif
         NoSeriesSingle: Interface "No. Series - Single";
-#if not CLEAN24
-        Result: Code[20];
-        HideErrorsAndWarnings: Boolean;
-        IsHandled: Boolean;
-#endif
     begin
         if UsageDate = 0D then
             UsageDate := WorkDate();
 
-#if not CLEAN24
-#pragma warning disable AL0432, AA0205
-        NoSeriesManagement.RaiseObsoleteOnBeforeGetNextNo(NoSeriesLine, UsageDate, false, Result, IsHandled);
-        if IsHandled then
-            exit(Result);
-        HideErrorsAndWarnings := false;
-        NoSeriesManagement.RaiseObsoleteOnBeforeDoGetNextNo(NoSeriesLine."Series Code", UsageDate, false, HideErrorsAndWarnings);
-#pragma warning restore AL0432, AA0205
-#endif
         if not ValidateCanGetNextNo(NoSeriesLine, UsageDate, false) then
             exit('');
 
         NoSeriesSingle := GetImplementation(NoSeriesLine);
 
 
-#if not CLEAN24
-#pragma warning disable AL0432, AA0205
-        Result := NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate);
-        if Result <> NoSeriesLine."Last No. Used" then
-            NoSeriesLine."Last No. Used" := Result;
-        NoSeriesManagement.RaiseObsoleteOnAfterGetNextNo3(NoSeriesLine, false);
-        exit(NoSeriesLine."Last No. Used");
-#pragma warning restore AL0432, AA0205
-#else
         exit(NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate));
-#endif
     end;
 
     procedure HasRelatedSeries(NoSeriesCode: Code[20]): Boolean
@@ -371,25 +274,7 @@ codeunit 304 "No. Series - Impl."
     var
         NoSeries: Record "No. Series";
         NoSeriesRelationship: Record "No. Series Relationship";
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-        IsHandled: Boolean;
-        Result: Boolean;
-#pragma warning restore AL0432
-#endif
     begin
-#if not CLEAN24
-#pragma warning disable AL0432
-        IsHandled := false;
-        NoSeriesManagement.RaiseObsoleteOnBeforeSelectSeries(OriginalNoSeriesCode, DefaultHighlightedNoSeriesCode, NewNoSeriesCode, Result, IsHandled);
-        if IsHandled then
-            exit(Result);
-
-        NoSeriesManagement.RaiseObsoleteOnBeforeFilterSeries(NoSeries, OriginalNoSeriesCode, IsHandled);
-        if not IsHandled then begin
-#pragma warning restore AL0432
-#endif
             NoSeriesRelationship.SetRange(Code, OriginalNoSeriesCode);
             if NoSeriesRelationship.FindSet() then
                 repeat
@@ -401,19 +286,11 @@ codeunit 304 "No. Series - Impl."
             NoSeries.Code := OriginalNoSeriesCode;
             NoSeries.Mark := true;
             NoSeries.MarkedOnly := true;
-#if not CLEAN24
-        end;
-#endif
 
         // If DefaultHighlightedNoSeriesCode is set, make sure we select it by default on the page
         if DefaultHighlightedNoSeriesCode <> '' then
             NoSeries.Code := DefaultHighlightedNoSeriesCode;
 
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesManagement.RaiseObsoleteOnSelectSeriesOnBeforePageRunModal(NoSeries.Code, NoSeries);
-#pragma warning restore AL0432
-#endif
         if Page.RunModal(0, NoSeries) = Action::LookupOK then begin
             NewNoSeriesCode := NoSeries.Code;
             exit(true);

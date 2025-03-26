@@ -129,17 +129,6 @@ codeunit 479 "Business Chart"
         exit(BusinessChartImpl.GetMaxNumberOfMeasures());
     end;
 
-#if not CLEAN24
-    /// <summary>
-    /// Updates the provided business chart control add-in.
-    /// </summary>
-    /// <param name="DotNetBusinessChartAddIn">The business chart add-in to update.</param>
-    [Obsolete('Replaced with BusinessChart Add-In', '24.0')]
-    procedure Update(DotNetBusinessChartAddIn: DotNet BusinessChartAddIn)
-    begin
-        BusinessChartImpl.Update(DotNetBusinessChartAddIn);
-    end;
-#endif
 
     /// <summary>
     /// Updates the provided business chart control add-in.
