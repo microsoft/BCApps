@@ -1,38 +1,10 @@
 [
-    {
-        "bug": "524800",
-        "codeunitId": 134971,
-        "codeunitName": "Rest Client Tests",
-        "method": "TestResponseWithCookies"
-    },
-    {
-        "bug": "524800",
-        "codeunitId": 134971,
-        "codeunitName": "Rest Client Tests",
-        "method": "TestRequestWithCookies"
-    },
-    {
-        "bug": "524800",
-        "codeunitId": 134971,
-        "codeunitName": "Rest Client Tests",
-        "method": "TestGetAsJson"
-    },
-    {
-        "bug": "524800",
-        "codeunitId": 134971,
-        "codeunitName": "Rest Client Tests",
-        "method": "TestWithoutUseResponseCookies"
-    },
-    {
-        "bug": "524800",
-        "codeunitId": 134971,
-        "codeunitName": "Rest Client Tests",
-        "method": "TestWithUseResponseCookies"
-    },
-    {
-        "bug": "524800",
-        "codeunitId": 134971,
-        "codeunitName": "Rest Client Tests",
-        "method": "TestUseResponseCookiesWithAdditionalCookies"
-    }
+  {
+    "bug": "554885",
+    "codeunitId": 134971,
+    "codeunitName": "Rest Client Tests",
+    "method": "*",
+    "owner": "\\AI Business Solutions\\Integrations",
+    "path": "App/BCApps/src/System Application/Test/Rest Client"
+  }
 ]

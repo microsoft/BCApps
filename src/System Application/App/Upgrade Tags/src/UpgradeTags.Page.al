@@ -17,6 +17,8 @@ page 9985 "Upgrade Tags"
     ModifyAllowed = false;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions =
+        tabledata "Upgrade Tags" = r;
 
     layout
     {

@@ -127,6 +127,9 @@ page 149031 "AIT Test Suite"
                         AITLogEntry.DrillDownFailedAITLogEntries(Rec.Code, 0, Rec.Version);
                     end;
                 }
+                field(Accuracy; Rec.Accuracy)
+                {
+                }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
                     Visible = false;
@@ -255,6 +258,21 @@ page 149031 "AIT Test Suite"
                         AITTestSuite.SetRecFilter();
                         AITTestSuiteMgt.ExportAITTestSuite(AITTestSuite);
                     end;
+                end;
+            }
+            action("Download Test Summary")
+            {
+                Caption = 'Download Test Summary';
+                Image = Export;
+                ToolTip = 'Downloads a summary of the test results.';
+
+                trigger OnAction()
+                var
+                    AITLogEntry: Record "AIT Log Entry";
+                    AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+                begin
+                    AITLogEntry.SetRange(Version, Rec.Version);
+                    AITTestSuiteMgt.DownloadTestSummary(AITLogEntry);
                 end;
             }
         }

@@ -26,6 +26,15 @@ controladdin CameraBarcodeScannerProviderAddIn
     procedure RequestBarcodeAsync(ShowFlipCameraButton: Boolean; ShowTorchButton: Boolean; ResultDisplayDuration: Integer);
 
     /// <summary>
+    /// This method is used to request the camera barcode scanner.
+    /// </summary>
+    /// <param name="BarcodeFormats">A list of comma-separated barcode formats that the scanner should recognize. The available formats are: QR_CODE,DATA_MATRIX,UPC_A,UPC_E,EAN_8,EAN_13,CODE_39,CODE_93,CODE_128,CODABAR,ITF,RSS14,PDF_417,RSS_EXPANDED,MSI,AZTEC</param>
+    /// <param name="ShowFlipCameraButton">Indicates whether the flip camera button should be shown.</param>
+    /// <param name="ShowTorchButton">Indicates whether the torch button should be shown.</param>
+    /// <param name="ResultDisplayDuration">The duration in milliseconds for which the barcode result should be displayed.</param>
+    procedure RequestBarcodeAsync(BarcodeFormats: Text; ShowFlipCameraButton: Boolean; ShowTorchButton: Boolean; ResultDisplayDuration: Integer);
+
+    /// <summary>
     /// This event is raised when the control is ready.
     /// </summary>
     /// <param name="IsSupported">Whether the camera barcode scanner is supported on the device.</param>
