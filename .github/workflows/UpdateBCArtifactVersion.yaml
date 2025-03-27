@@ -14,7 +14,6 @@ permissions: read-all
 jobs:
   GetBranches:
     name: Get Official Branches
-    if: github.repository_owner == 'microsoft'
     runs-on: ubuntu-latest
     outputs:
       updateBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
