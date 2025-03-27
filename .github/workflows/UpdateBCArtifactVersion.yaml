@@ -49,9 +49,16 @@ jobs:
         with:
           ref: ${{ matrix.branch }}
 
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          # required
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+
       - name: Update BC Artifact Version
         env:
-          GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         uses: microsoft/BCApps/.github/actions/RunAutomation@main
 
         with:
