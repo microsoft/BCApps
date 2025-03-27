@@ -33,6 +33,7 @@ jobs:
 
   UpdateBCArtifactVersion:
     name: "[${{ matrix.branch }}] Update BC Artifact Version"
+    if: github.repository_owner == 'microsoft'
     permissions:
       contents: write
     environment: Official-Build
