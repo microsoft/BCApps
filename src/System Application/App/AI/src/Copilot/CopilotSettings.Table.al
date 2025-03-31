@@ -13,8 +13,8 @@ table 7775 "Copilot Settings"
 {
     Access = Internal;
     DataPerCompany = false;
-    InherentEntitlements = rimdX;
-    InherentPermissions = rimdX;
+    InherentEntitlements = RIMDX;
+    InherentPermissions = RIMDX;
     ReplicateData = false;
 
     fields

@@ -322,6 +322,7 @@ page 7775 "Copilot AI Capabilities"
         end;
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Copilot Settings", 'R', InherentPermissionsScope::Both)]
     local procedure HasEarlyPreviewCapabilities(): Boolean
     var
         CopilotSettings: Record "Copilot Settings";
