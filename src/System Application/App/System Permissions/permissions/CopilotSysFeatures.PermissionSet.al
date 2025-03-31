@@ -11,5 +11,8 @@ permissionset 9680 "Copilot Sys Features"
     Assignable = true;
     Caption = 'Copilot System Features';
 
-    Permissions = system "Allow Copilot Summary" = X;
+    Permissions = system "Allow Copilot Autofill" = X,
+                  system "Allow Copilot Chat" = X,
+                  system "Allow Copilot Summary" = X;
+                  
 }

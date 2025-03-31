@@ -24,18 +24,21 @@ codeunit 299 "No. Series - Setup"
         exit(NoSeriesSetupImpl.CalculateOpen(NoSeriesLine))
     end;
 
+#if not CLEAN27
     /// <summary>
     /// Increments the given No. by the specified Increment.
     /// </summary>
     /// <param name="No">The number, as a code string to increment</param>
     /// <param name="Increment">Indicates by how much to increment the No.</param>
     /// <returns>The incremented No.</returns>
+    [Obsolete('Use IncStr(No, Increment) instead.', '27.0')]
     procedure IncrementNoText(No: Code[20]; Increment: Integer): Code[20]
     var
         NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
     begin
         exit(NoSeriesSetupImpl.IncrementNoText(No, Increment));
     end;
+#endif
 
     /// <summary>
     /// Updates the different No. fields in the No. Series Line based on the pattern provided in the NewNo parameter.

@@ -62,6 +62,20 @@ codeunit 4307 "Agent Message"
     end;
 
     /// <summary>
+    /// Add an attachment to the task message.
+    /// </summary>
+    /// <param name="FileName">The name of the file to be attached.</param>
+    /// <param name="FileMIMEType">The MIME type of the file to be attached.</param>
+    /// <param name="Attachment">The attachment stream.</param>
+    [Scope('OnPrem')]
+    procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; FileName: Text[250]; FileMIMEType: Text[100]; Attachment: InStream)
+    var
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
+    begin
+        AgentMessageImpl.AddAttachment(AgentTaskMessage, FileName, FileMIMEType, Attachment);
+    end;
+
+    /// <summary>
     /// Downloads the attachments for a specific message.
     /// </summary>
     /// <param name="AgentTaskMessage">Message to download attachments for.</param>

@@ -13,6 +13,7 @@ permissionset 1563 "Privacy Notice - Objects"
     Permissions = table "Privacy Notice" = X,
                   codeunit "Privacy Notice" = X,
                   page "Power Automate Privacy Notice" = X,
+                  page "Microsoft Learn Privacy Notice" = X,
                   page "Privacy Notice" = X,
                   page "Privacy Notice Approvals" = X,
                   page "Privacy Notices" = X;

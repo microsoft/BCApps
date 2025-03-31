@@ -183,7 +183,7 @@ codeunit 3904 "Apply Retention Policy Impl."
             RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(ErrorOccuredDuringApplyErrLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption", GetLastErrorText()), false);
             exit
         end;
-        TotalNumberOfRecordsDeleted += TempRetentionPolicySetup."Number Of Records Deleted";
+        TotalNumberOfRecordsDeleted := TempRetentionPolicySetup."Number Of Records Deleted";
     end;
 
     local procedure CanApplyRetentionPolicy(var RetentionPolicySetup: Record "Retention Policy Setup"; Manual: Boolean): Boolean
