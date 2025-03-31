@@ -28,7 +28,7 @@ dotnet.al @microsoft/d365-bc-app-security
 *.Entitlement.al @microsoft/d365-bc-app-permissions
 
 # app.json files are owned by Engineering Systems to control the versions
-app.json @microsoft/d365-bc-engineering-systems
+app.json @microsoft/d365-bc-engineering-systems @microsoft/d365-bc-app-required
 
 # AL-Go files and build scripts are owned by Engineering Systems
 .AL-Go/ @microsoft/d365-bc-engineering-systems
