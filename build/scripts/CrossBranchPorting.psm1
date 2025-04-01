@@ -108,7 +108,7 @@ function New-BCAppsBackport() {
             }
         }
 
-        if(!$PSCmdlet.ShouldProcess("PR $PullRequestNumber backported")) {
+        if(!$PSCmdlet.ShouldProcess("PR $PullRequestNumber backported", "", "")) {
             return # Nothing else to do
         }
 
