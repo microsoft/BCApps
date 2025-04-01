@@ -5,7 +5,7 @@ on:
   schedule:
     - cron: "0 04 * * *" # Run at 04:00 UTC every day
 
-permissions: read-all
+permissions: write-all
 
 jobs:
   GetBranches:
