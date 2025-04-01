@@ -35,7 +35,7 @@ function New-BCAppsBackport() {
 
         # Get the pull request details
         $pullRequestDetails = (gh pr view $PullRequestNumber --json title,number,body,headRefName,baseRefName,mergeCommit,potentialMergeCommit | ConvertFrom-Json)
-        Write-Host "Backport to: $($TargetBranches -join ",")" -ForegroundColor Cyan
+        Write-Host "Backport to branches: $($TargetBranches -join ", ")" -ForegroundColor Cyan
         Write-Host "Pull Request Source Branch: $($pullRequestDetails.headRefName)" -ForegroundColor Cyan
         Write-Host "Pull Request Target Branch: $($pullRequestDetails.baseRefName)" -ForegroundColor Cyan
         Write-Host "Pull Request Title: $($pullRequestDetails.title)" -ForegroundColor Cyan
@@ -82,7 +82,7 @@ function New-BCAppsBackport() {
                 # Create a new branch for the cherry-pick
                 $cherryPickBranch = "backport/$TargetBranch/$branchNameSuffix"
 
-                if(!$PSCmdlet.ShouldProcess("Porting PR $PullRequestNumber to $TargetBranch (fromb branch: $cherryPickBranch)", "$TargetBranch", "PortPullRequest $PullRequestNumber")) {
+                if(!$PSCmdlet.ShouldProcess("Porting PR $PullRequestNumber to $TargetBranch (from branch: $cherryPickBranch)", "$TargetBranch", "PortPullRequest $PullRequestNumber")) {
                     continue
                 }
 
