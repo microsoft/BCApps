@@ -9,6 +9,8 @@
     The list of branches to backport the pull request to.
     .PARAMETER SkipConfirmation
     Skip the confirmation prompt.
+    .PARAMETER ReuseWorkItem
+    Reuse the work item number from the original pull request.
 #>
 function New-BCAppsBackport() {
     param(
@@ -17,7 +19,9 @@ function New-BCAppsBackport() {
         [Parameter(Mandatory=$true)]
         [string[]] $TargetBranches,
         [Parameter(Mandatory=$false)]
-        [switch] $SkipConfirmation
+        [switch] $SkipConfirmation,
+        [Parameter(Mandatory=$false)]
+        [switch] $ReuseWorkItem
     )
     Import-Module $PSScriptRoot/EnlistmentHelperFunctions.psm1
 
@@ -34,6 +38,16 @@ function New-BCAppsBackport() {
         Write-Host "Pull Request Target Branch: $($pullRequestDetails.baseRefName)" -ForegroundColor Cyan
         Write-Host "Pull Request Title: $($pullRequestDetails.title)" -ForegroundColor Cyan
         Write-Host "Pull Request Description: `n$($pullRequestDetails.body)" -ForegroundColor Cyan
+
+        $workItemNumber = "[**Insert Work Item Number Here**]" # By default, work item number is not set and has to be added manually in the PR description
+        if($ReuseWorkItem) {
+            if ($pullRequestDetails.body -match "AB#(\d+)") {
+                $workItemNumber = $matches[1]
+                Write-Host "Reusing work item number: $workItemNumber" -ForegroundColor Cyan
+            } else {
+                Write-Host "No work item number found in the pull request description." -ForegroundColor Yellow
+            }
+        }
 
         if (-not $SkipConfirmation) {
             GetConfirmation -Message "Please review the above information and press (y)es to continue or any other key to stop"
@@ -53,7 +67,7 @@ function New-BCAppsBackport() {
                 $title = "[$TargetBranch] $($pullRequestDetails.title)"
                 $title = $title.Substring(0, [Math]::Min(255, $title.Length))
                 $body = "This pull request backports #$($pullRequestDetails.number) to $TargetBranch"
-                $body += "`r`n`r`nFixes AB#[**Insert Work Item Number Here**]"
+                $body += "`r`n`r`nFixes AB#$workItemNumber"
 
                 # Check if there is already a pull request for this branch
                 $existingPr = $existingOpenPullRequests | Where-Object { ($_.title -eq $title) -and ($_.baseRefName -eq $TargetBranch) }
