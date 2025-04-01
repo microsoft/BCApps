@@ -82,7 +82,8 @@ function New-BCAppsBackport() {
                 # Create a new branch for the cherry-pick
                 $cherryPickBranch = "backport/$TargetBranch/$branchNameSuffix"
 
-                if(!$PSCmdlet.ShouldProcess("WhatIf: Porting PR $PullRequestNumber to $TargetBranch. Branch: $cherryPickBranch")) {
+                if(!$PSCmdlet.ShouldProcess) {
+                    Write-Host "WhatIf: Porting PR $PullRequestNumber to $TargetBranch. Branch: $cherryPickBranch" -ForegroundColor Magenta
                     continue
                 }
 
