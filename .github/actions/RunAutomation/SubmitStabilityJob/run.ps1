@@ -9,7 +9,9 @@ $workflowName = " CI/CD"
 $workflowRunTime = Get-Date -AsUTC
 
 Write-Host "Running the workflow '$workflowName' on branch $targetBranch"
-gh workflow run --repo $repository --ref $targetBranch $workflowName
+#gh workflow run --repo $repository --ref $targetBranch $workflowName
+
+gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" /repos/microsoft/BCApps/actions/workflows/CICD.yaml/dispatches -f "ref=$targetBranch"
 
 # Get the workflow run URL to display in the message
 
