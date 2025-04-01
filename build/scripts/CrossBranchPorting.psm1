@@ -83,7 +83,6 @@ function New-BCAppsBackport() {
                 $cherryPickBranch = "backport/$TargetBranch/$branchNameSuffix"
 
                 if(!$PSCmdlet.ShouldProcess("Porting PR $PullRequestNumber to $TargetBranch (fromb branch: $cherryPickBranch)", "$TargetBranch", "PortPullRequest $PullRequestNumber")) {
-                    Write-Host "WhatIf: Porting PR $PullRequestNumber to $TargetBranch. Branch: $cherryPickBranch" -ForegroundColor Magenta
                     continue
                 }
 
