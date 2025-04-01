@@ -13,6 +13,8 @@
     Reuse the work item number from the original pull request.
 #>
 function New-BCAppsBackport() {
+    [CmdletBinding(SupportsShouldProcess=$true)]
+
     param(
         [Parameter(Mandatory=$true)]
         [string] $PullRequestNumber,
@@ -20,7 +22,7 @@ function New-BCAppsBackport() {
         [string[]] $TargetBranches,
         [Parameter(Mandatory=$false)]
         [switch] $SkipConfirmation,
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$false, DontShow=$true)]
         [switch] $ReuseWorkItem
     )
     Import-Module $PSScriptRoot/EnlistmentHelperFunctions.psm1
@@ -44,6 +46,7 @@ function New-BCAppsBackport() {
             if ($pullRequestDetails.body -match "AB#(\d+)") {
                 $workItemNumber = $matches[1]
                 Write-Host "Reusing work item number: $workItemNumber" -ForegroundColor Cyan
+                Write-Warning "You are reusing the work item number from the original pull request."
             } else {
                 Write-Host "No work item number found in the pull request description." -ForegroundColor Yellow
             }
@@ -78,6 +81,10 @@ function New-BCAppsBackport() {
 
                 # Create a new branch for the cherry-pick
                 $cherryPickBranch = "backport/$TargetBranch/$branchNameSuffix"
+
+                if(!$PSCmdlet.ShouldProcess("WhatIf: Porting PR $PullRequestNumber to $TargetBranch. Branch: $cherryPickBranch")) {
+                    continue
+                }
 
                 # Port the pull request to the target branch
                 PortPullRequest -PullRequestDetails $pullRequestDetails -TargetBranch $TargetBranch -CherryPickBranch $cherryPickBranch
