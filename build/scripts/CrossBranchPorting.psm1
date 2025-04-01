@@ -102,8 +102,14 @@ function New-BCAppsBackport() {
             Write-Host $_.Exception.Message -ForegroundColor Red
             throw $_.Exception.Message
         } finally {
-            # Go back to the original branch
-            RunAndCheck git checkout $startingBranch
+            $currentBranch = RunAndCheck git rev-parse --abbrev-ref HEAD
+            if ($currentBranch -ne $startingBranch) {
+                RunAndCheck git checkout $startingBranch
+            }
+        }
+
+        if(!$PSCmdlet.ShouldProcess()) {
+            return # Nothing else to do
         }
 
         if ($pullRequests.Count -eq 0) {
