@@ -225,7 +225,7 @@ page 7775 "Copilot AI Capabilities"
                     label(BingSearchCaption)
                     {
                         ApplicationArea = All;
-                        Caption = 'By enabeling Bing Search, you agree to data being processed by the Bing Search Service outside of your environment''s geographic region or compliance boundary.';
+                        Caption = 'By enabling Bing Search, you agree to data being processed by the Bing Search Service outside of your environment''s geographic region or compliance boundary.';
                     }
                     field(BingSearchAreaDataMovement; BingOptIn)
                     {
