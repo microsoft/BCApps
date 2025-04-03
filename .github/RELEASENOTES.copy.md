@@ -1,6 +1,4 @@
-## preview
-
-Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
+## v7.0
 
 ### Issues
 
@@ -9,6 +7,13 @@ Note that when using the preview version of AL-Go for GitHub, we recommend you U
 - Issue 1522 Strange warnings in Deploy job post update to AL-Go 6.4
 - BcContainerHelper settings were only read from .github/AL-Go-Settings.json, not allowing global settings in ALGoOrgSettings for TrustedNuGetFeeds, MemoryLimit and other things that should be possible to define globally
 - Issue 1526 When updating AL-Go system files, the update process (creating a PR or directly pushing to the branch) fails when there is a file or directory in the repo with the same name as the branch that is to be updated
+- Legacy code signing stopped working
+
+### Page Scripting visualizer
+
+Page scripting tests have been available for AL-Go for GitHub for a while but required manual inspection of the Page scripting artifact to see the results. It is now possible to get a quick overview in the job summary section of a CICD build, similar to how regular and bcpt test results are displayed.
+
+No new settings are required. Test results will automatically be displayed if tests are enabled via the existing setting [pageScriptingTests](https://aka.ms/algosettings#pageScriptingTests).
 
 ### Support for deploying to sandbox environments from a pull request
 
