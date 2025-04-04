@@ -31,6 +31,8 @@ codeunit 7757 "Copilot Notifications"
         AIQuotaNearlyUsedUpNotificationMsg: Label 'The AI quota in this environment is nearly used up. When it is, AI capabilities will be unavailable.';
         AIQuotaNearlyUsedUpLearnMoreLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2302603', Locked = true;
         AIQuotaNearlyUsedUpAdminMsg: Label 'AI capabilities in Business Central require AI quota, and your organization has a limited amount remaining.\\When it''s used up, AI capabilities will be unavailable until AI quota is available again.\\Would you like to open the Business Central administration center to set up billing?';
+        BingNudgeLbl: Label 'You''re missing out! Enabling Bing Search offers enhanced results';
+        BingNudgeGuidLbl: Label 'b08194f4-7904-4e2b-a08a-421da4391971', Locked = true;
         BCAdminCenterSaaSLinkTxt: Label '%1/admin', Comment = '%1 - BC url', Locked = true;
         LearnMoreLbl: Label 'Learn more', Locked = true;
 
@@ -130,6 +132,16 @@ codeunit 7757 "Copilot Notifications"
         AIQuotaNearlyUsedUpNotification.Scope := NotificationScope::LocalScope;
         AIQuotaNearlyUsedUpNotification.AddAction(LearnMoreLbl, Codeunit::"Copilot Notifications", 'ShowAIQuotaNearlyUsedUpLearnMore');
         AIQuotaNearlyUsedUpNotification.Send();
+    end;
+
+    procedure ShowBingSearchOptOutNudgeMessage()
+    var
+        BingSearchNudgeNotification: Notification;
+    begin
+        BingSearchNudgeNotification.Id := BingNudgeGuidLbl;
+        BingSearchNudgeNotification.Message := BingNudgeLbl;
+        BingSearchNudgeNotification.Scope := NotificationScope::LocalScope;
+        BingSearchNudgeNotification.Send();
     end;
 
     procedure ShowAIQuotaNearlyUsedUpLearnMore(AIQuotaNearlyUsedUpNotification: Notification)
