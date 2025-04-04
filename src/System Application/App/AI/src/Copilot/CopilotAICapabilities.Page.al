@@ -219,7 +219,7 @@ page 7775 "Copilot AI Capabilities"
                         Hyperlink(BingFeaturesDocLinkLbl);
                     end;
                 }
-                group(CopilotEUDBAreaDataMovementGroup)
+                group(BingSearchDataMovementGroup)
                 {
                     ShowCaption = false;
                     label(BingSearchCaption)
@@ -413,18 +413,24 @@ page 7775 "Copilot AI Capabilities"
     local procedure UpdateBingSearchOptIn()
     var
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
-        BingSearchNudgeNotification: Notification;
     begin
 
         if BingOptIn then
             PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetBingPrivacyNoticeName(), "Privacy Notice Approval State"::Agreed)
         else begin
             PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetBingPrivacyNoticeName(), "Privacy Notice Approval State"::Disagreed);
-            BingSearchNudgeNotification.Id(BingNudgeGuidLbl);
-            BingSearchNudgeNotification.Message(BingNudgeLbl);
-            BingSearchNudgeNotification.Scope(NotificationScope::LocalScope);
-            BingSearchNudgeNotification.Send();
+            ShowBingSearchOptOutNudgeMessage();
         end;
+    end;
+
+    local procedure ShowBingSearchOptOutNudgeMessage()
+    var
+        BingSearchNudgeNotification: Notification;
+    begin
+        BingSearchNudgeNotification.Id(BingNudgeGuidLbl);
+        BingSearchNudgeNotification.Message(BingNudgeLbl);
+        BingSearchNudgeNotification.Scope(NotificationScope::LocalScope);
+        BingSearchNudgeNotification.Send();
     end;
 
     [IntegrationEvent(false, false)]
