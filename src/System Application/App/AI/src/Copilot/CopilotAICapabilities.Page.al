@@ -412,6 +412,7 @@ page 7775 "Copilot AI Capabilities"
 
     local procedure UpdateBingSearchOptIn()
     var
+        CopilotNotifications: Codeunit "Copilot Notifications";
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
     begin
 
@@ -419,18 +420,8 @@ page 7775 "Copilot AI Capabilities"
             PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetBingPrivacyNoticeName(), "Privacy Notice Approval State"::Agreed)
         else begin
             PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetBingPrivacyNoticeName(), "Privacy Notice Approval State"::Disagreed);
-            ShowBingSearchOptOutNudgeMessage();
+            CopilotNotifications.ShowBingSearchOptOutNudgeMessage();
         end;
-    end;
-
-    local procedure ShowBingSearchOptOutNudgeMessage()
-    var
-        BingSearchNudgeNotification: Notification;
-    begin
-        BingSearchNudgeNotification.Id(BingNudgeGuidLbl);
-        BingSearchNudgeNotification.Message(BingNudgeLbl);
-        BingSearchNudgeNotification.Scope(NotificationScope::LocalScope);
-        BingSearchNudgeNotification.Send();
     end;
 
     [IntegrationEvent(false, false)]
@@ -465,6 +456,4 @@ page 7775 "Copilot AI Capabilities"
         BingMSServiceAgreementDocLinkLbl: Label 'https://aka.ms/msa', Locked = true;
         BingMSPrivacyStatementLbl: Label 'Microsoft Privacy Statement';
         BingMSPrivacyStatementDocLinkLbl: Label 'https://go.microsoft.com/fwlink?LinkId=521839', Locked = true;
-        BingNudgeLbl: Label 'You''re missing out! Enabling Bing Search offers enhanced results';
-        BingNudgeGuidLbl: Label 'b08194f4-7904-4e2b-a08a-421da4391971', Locked = true;
 }
