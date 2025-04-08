@@ -186,7 +186,7 @@ page 2511 "Extension Settings"
     local procedure SetInstalledFilter(var PublishedApplication: Record "Published Application")
     begin
         PublishedApplication.SetRange(Installed, true);
-        if Rec.FindFirst() then
+        if PublishedApplication.FindFirst() then
             exit;
         PublishedApplication.SetRange(Installed, false);
     end;
