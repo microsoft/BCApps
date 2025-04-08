@@ -36,7 +36,6 @@ codeunit 7785 "Copilot Quota"
     /// Checks if the tenant is allowed to consume Copilot quota.
     /// </summary>
     /// <returns>True if allowed, false otherwise.</returns>
-    [Scope('OnPrem')]
     procedure CanConsume(): Boolean
     begin
         exit(CopilotQuotaImpl.CanConsume());
