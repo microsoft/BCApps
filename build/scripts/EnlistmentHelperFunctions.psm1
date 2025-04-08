@@ -367,7 +367,7 @@ function Update-PackageVersion
     Write-Host "Latest $PackageName version found: $latestVersion"
 
     $result = $null
-    if ([System.Version] $latestVersion -gt [System.Version] $currentVersion) {
+    if ([System.Version] $latestVersion -ne [System.Version] $currentVersion) {
         Write-Host "Updating $PackageName version from $currentVersion to $latestVersion"
 
         $currentPackage.Version = $latestVersion
