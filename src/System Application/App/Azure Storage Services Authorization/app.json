@@ -40,5 +40,8 @@
     }
   ],
   "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/",
-  "target": "OnPrem"
+  "target": "OnPrem",
+  "preprocessorSymbols": [
+    "CLEAN15,CLEAN16,CLEAN17,CLEAN18,CLEAN19,CLEAN20,CLEAN21,CLEAN22,CLEAN23,CLEAN24,CLEAN25,CLEAN26,CLEAN27"
+  ]
 }
