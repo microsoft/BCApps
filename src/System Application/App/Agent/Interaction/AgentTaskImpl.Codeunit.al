@@ -52,50 +52,73 @@ codeunit 4300 "Agent Task Impl."
         Page.Run(Page::"Agent Task Log Entry List", AgentTaskLogEntry);
     end;
 
-    procedure CreateTask(AgentSecurityID: Guid; TaskTitle: Text[150]; ExternalId: Text[2048]; var NewAgentTask: Record "Agent Task")
+    procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; StartTask: Boolean): BigInteger
+    var
+        NewAgentTask: Record "Agent Task";
     begin
-        Clear(NewAgentTask);
-        NewAgentTask."Agent User Security ID" := AgentSecurityID;
-        NewAgentTask.Title := TaskTitle;
+        CreateTask(AgentUserSecurityID, TaskTitle, ExternalID, NewAgentTask);
+        if StartTask then
+            StartTaskIfPossible(NewAgentTask);
+
+        exit(NewAgentTask.ID);
+    end;
+
+    procedure CreateTaskWithMessage(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; From: Text[250]; MessageText: Text; StartTask: Boolean; var MessageGuid: Guid): BigInteger
+    var
+        NewAgentTask: Record "Agent Task";
+    begin
+        CreateTask(AgentUserSecurityID, TaskTitle, ExternalID, NewAgentTask);
+        MessageGuid := AddMessage(From, MessageText, ExternalID, false, NewAgentTask);
+
+        if StartTask then
+            StartTaskIfPossible(NewAgentTask);
+
+        exit(NewAgentTask.ID);
+    end;
+
+    local procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; var NewAgentTask: Record "Agent Task")
+    begin
+        NewAgentTask."Agent User Security ID" := AgentUserSecurityID;
         NewAgentTask."Created By" := UserSecurityId();
+        NewAgentTask.Title := TaskTitle;
         NewAgentTask."Needs Attention" := false;
         NewAgentTask.Status := NewAgentTask.Status::Paused;
-        NewAgentTask."External ID" := ExternalId;
+        NewAgentTask."External ID" := ExternalID;
         NewAgentTask.Insert();
-        StartTaskIfPossible(NewAgentTask);
     end;
 
-    procedure CreateTaskMessage(From: Text[250]; MessageText: Text; var CurrentAgentTask: Record "Agent Task")
-    begin
-        CreateTaskMessage(From, MessageText, '', CurrentAgentTask);
-    end;
-
-    procedure CreateTaskMessage(From: Text[250]; MessageText: Text; ExternalMessageId: Text[2048]; var CurrentAgentTask: Record "Agent Task")
+    procedure AddMessage(AgentTaskRecord: BigInteger; From: Text[250]; MessageText: Text; ExternalId: Text[2048]; StartTask: Boolean): Guid
     var
         AgentTask: Record "Agent Task";
+    begin
+        AgentTask.Get(AgentTaskRecord);
+        exit(AddMessage(From, MessageText, ExternalId, StartTask, AgentTask));
+    end;
+
+    procedure AddMessage(From: Text[250]; MessageText: Text; StartTask: Boolean; var CurrentAgentTask: Record "Agent Task"): Guid
+    begin
+        exit(AddMessage(From, MessageText, '', StartTask, CurrentAgentTask));
+    end;
+
+    procedure AddMessage(From: Text[250]; MessageText: Text; ExternalMessageId: Text[2048]; StartTask: Boolean; var CurrentAgentTask: Record "Agent Task"): Guid
+    var
         AgentTaskMessage: Record "Agent Task Message";
     begin
         if MessageText = '' then
             Error(MessageTextMustBeProvidedErr);
 
-        if not AgentTask.Get(CurrentAgentTask.RecordId) then begin
-            AgentTask."Agent User Security ID" := CurrentAgentTask."Agent User Security ID";
-            AgentTask."Created By" := UserSecurityId();
-            AgentTask."Needs Attention" := false;
-            AgentTask.Status := AgentTask.Status::Paused;
-            AgentTask.Title := CurrentAgentTask.Title;
-            AgentTask."External ID" := CurrentAgentTask."External ID";
-            AgentTask.Insert();
-        end;
-
-        AgentTaskMessage."Task ID" := AgentTask.ID;
+        AgentTaskMessage."Task ID" := CurrentAgentTask.ID;
         AgentTaskMessage."Type" := AgentTaskMessage."Type"::Input;
         AgentTaskMessage."External ID" := ExternalMessageId;
         AgentTaskMessage.From := From;
         AgentTaskMessage.Insert();
 
         SetMessageText(AgentTaskMessage, MessageText);
-        StartTaskIfPossible(AgentTask);
+
+        if StartTask then
+            StartTaskIfPossible(CurrentAgentTask);
+
+        exit(AgentTaskMessage.ID);
     end;
 
     procedure CreateUserIntervention(UserInterventionRequestEntry: Record "Agent Task Log Entry")
@@ -145,7 +168,7 @@ codeunit 4300 "Agent Task Impl."
 
         if UserConfirm then
             if not Confirm(AreYouSureThatYouWantToStopTheTaskQst) then
-                exit;
+            exit;
 
         AgentTask.Status := AgentTaskStatus;
         AgentTask."Needs Attention" := false;

@@ -25,32 +25,108 @@ codeunit 4303 "Agent Task"
     end;
 
     /// <summary>
-    /// Create a new task message for the given agent user and conversation.
-    /// If task does not exist, it will be created.
+    /// Create a new task for the given agent.
+    /// It is possible to add messages to the task with additional details, however agent can run on just a task with a descriptive title.
+    /// The task will be started immediately, if it is in the state that it can be started again.
     /// </summary>
-    /// <param name="From">Specifies from address.</param>
-    /// <param name="MessageText">The message text for the task.</param>
-    /// <param name="CurrentAgentTask">Current Agent Task to which the message will be added.</param>
+    /// <param name="AgentUserSecurityID">The user security ID of the agent that will handle the task.</param>
+    /// <param name="TaskTitle">The title of the task. Agent will take the title into the consideration. </param>
+    /// <returns>The ID of the task that was created.</returns>
     [Scope('OnPrem')]
-    procedure CreateTaskMessage(From: Text[250]; MessageText: Text; ExternalMessageId: Text[2048]; var CurrentAgentTask: Record "Agent Task")
+    procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]): BigInteger
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        AgentTaskImpl.CreateTaskMessage(From, MessageText, ExternalMessageId, CurrentAgentTask);
+        exit(AgentTaskImpl.CreateTask(AgentUserSecurityID, TaskTitle, '', true));
     end;
 
     /// <summary>
-    /// Create a new task  for the given agent user. No message is added to the task.
+    /// Create a new task for the given agent.
+    /// It is possible to add messages to the task with additional details, however agent can run on just a task with a descriptive title.
     /// </summary>
-    /// <param name="AgentSecurityID">The security ID of the agent to create the task for.</param>
-    /// <param name="TaskTitle">The title of the task.</param>
-    /// <param name="ExternalId">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
-    /// <param name="NewAgentTask">The new agent task record that was created.</param>
+    /// <param name="AgentUserSecurityID">The user security ID of the agent that will handle the task.</param>
+    /// <param name="TaskTitle">The title of the task. Agent will take the title into the consideration. </param>
+    /// <param name="ExternalID">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
+    /// <param name="StartTask">If true, the task will be started immediately. The default value is true. </param>
+    /// <returns>The ID of the task that was created.</returns>
     [Scope('OnPrem')]
-    procedure CreateTaskWithoutMessage(AgentSecurityID: Guid; TaskTitle: Text[150]; ExternalId: Text[2048]; var NewAgentTask: Record "Agent Task")
+    procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; StartTask: Boolean): BigInteger
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        AgentTaskImpl.CreateTask(AgentSecurityID, TaskTitle, ExternalId, NewAgentTask);
+        exit(AgentTaskImpl.CreateTask(AgentUserSecurityID, TaskTitle, ExternalID, StartTask));
+    end;
+
+    /// <summary>
+    /// Create a new task for the given agent with one message.
+    /// The task will be started immediately, if it is in the state that it can be started again.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">The user security ID of the agent that will handle the task.</param>
+    /// <param name="TaskTitle">The title of the task. Agent will take the title into the consideration. </param>
+    /// <param name="ExternalID">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
+    /// <param name="From">The sender of the message. This field is a free text value, it can be an email, phone number, username, etc.</param>
+    /// <param name="MessageText">The message text. Agent will use text as additional input.</param>
+    /// <returns>The ID of the task that was created.</returns>
+    [Scope('OnPrem')]
+    procedure CreateTask(AgentSecurityID: Guid; TaskTitle: Text[150]; ExternalId: Text[2048]; From: Text[250]; MessageText: Text): BigInteger
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+        NewMessageID: Guid;
+    begin
+        exit(AgentTaskImpl.CreateTaskWithMessage(AgentSecurityID, TaskTitle, ExternalID, From, MessageText, true, NewMessageID));
+    end;
+
+    /// <summary>
+    /// Create a new task for the given agent with one message.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">The user security ID of the agent that will handle the task.</param>
+    /// <param name="TaskTitle">The title of the task. Agent will take the title into the consideration. </param>
+    /// <param name="ExternalID">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
+    /// <param name="From">The sender of the message. This field is a free text value, it can be an email, phone number, username, etc.</param>
+    /// <param name="MessageText">The message text. Agent will use text as additional input.</param>
+    /// <param name="StartTask">If true, the task will be started immediately. The default value is true. </param>
+    /// <param name="NewMessageID">The ID of the message that was created.</param>
+    /// <returns>The ID of the task that was created.</returns>
+    [Scope('OnPrem')]
+    procedure CreateTask(AgentSecurityID: Guid; TaskTitle: Text[150]; ExternalId: Text[2048]; From: Text[250]; MessageText: Text; StartTask: Boolean; var NewMessageID: Guid): BigInteger
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        exit(AgentTaskImpl.CreateTaskWithMessage(AgentSecurityID, TaskTitle, ExternalID, From, MessageText, StartTask, NewMessageID));
+    end;
+
+    /// <summary>
+    /// Add a message to the task.
+    /// The task will be started immediately, if it is in the state that it can be started again.
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the task to which the message will be added.</param>
+    /// <param name="From">The sender of the message. This field is a free text value, it can be an email, phone number, username, etc.</param> 
+    /// <param name="MessageText">The message text. Agent will use text as additional input.</param>
+    /// <param name="ExternalId"></param>
+    /// <param name="StartTask"></param>
+    /// <returns></returns>
+    [Scope('OnPrem')]
+    procedure AddMessage(AgentTaskID: BigInteger; From: Text[250]; MessageText: Text; ExternalId: Text[2048]): Guid
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        exit(AgentTaskImpl.AddMessage(AgentTaskID, From, MessageText, ExternalId, true));
+    end;
+
+    /// <summary>
+    /// Add a message to the task.
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the task to which the message will be added.</param>
+    /// <param name="From">The sender of the message. This field is a free text value, it can be an email, phone number, username, etc.</param> 
+    /// <param name="MessageText">The message text. Agent will use text as additional input.</param>
+    /// <param name="ExternalId"></param>
+    /// <param name="StartTask"></param>
+    /// <returns></returns>
+    [Scope('OnPrem')]
+    procedure AddMessage(AgentTaskID: BigInteger; From: Text[250]; MessageText: Text; ExternalId: Text[2048]; StartTask: Boolean): Guid
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        exit(AgentTaskImpl.AddMessage(AgentTaskID, From, MessageText, ExternalId, StartTask));
     end;
 }
