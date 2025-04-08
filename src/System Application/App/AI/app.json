@@ -94,6 +94,12 @@
       "name": "Guided Experience",
       "publisher": "Microsoft",
       "version": "27.0.0.0"
+    },
+    {
+      "id": "7f3d7c69-3ffc-4201-b2b9-9f7cd56f7c50",
+      "name": "Client Type Management",
+      "publisher": "Microsoft",
+      "version": "27.0.0.0"
     }
   ],
   "screenshots": [],
