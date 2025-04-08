@@ -159,6 +159,21 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'Output Data';
         }
+        field(40; "No. of Turns"; Integer)
+        {
+            Caption = 'Total number of turns';
+            ToolTip = 'Specifies the total number of turns.';
+        }
+        field(41; "No. of Turns Passed"; Integer)
+        {
+            Caption = 'Number of turns passed';
+            ToolTip = 'Specifies the number of turns passed.';
+        }
+        field(45; "Test Method Line Accuracy"; Decimal)
+        {
+            Caption = 'Test Method Line Accuracy';
+            ToolTip = 'Specifies the accuracy of the test line. The accuracy is calculated as the percentage of turns that passed or can be set manually in the test.';
+        }
         field(50; "Tokens Consumed"; Integer)
         {
             Caption = 'Total Tokens Consumed';

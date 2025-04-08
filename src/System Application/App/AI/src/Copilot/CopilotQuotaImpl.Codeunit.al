@@ -13,13 +13,50 @@ codeunit 7786 "Copilot Quota Impl."
     InherentPermissions = X;
 
     var
+        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         InvalidUsageTypeErr: Label 'The value "%1" is not a valid Copilot Quota Usage Type.', Comment = '%1=a value such as "AI response" or "5"';
         CapabilityNotRegisteredTelemetryMsg: Label 'Capability "%1" is not registered in the system but is logging usage.', Locked = true;
         LoggingUsageTelemetryMsg: Label 'Capability "%1" is logging %2 usage of type %3.', Locked = true;
 
+    trigger OnRun()
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+        ALCopilotQuotaDetails: Dotnet ALCopilotQuotaDetails;
+        Results: Dictionary of [Text, Text];
+    begin
+        ALCopilotQuotaDetails := ALCopilotFunctions.GetCopilotQuotaDetails();
+
+        if IsNull(ALCopilotQuotaDetails) then
+            exit;
+
+        Results.Add('CanConsume', Format(ALCopilotQuotaDetails.CanConsume()));
+        Results.Add('HasSetupBilling', Format(ALCopilotQuotaDetails.HasSetupBilling()));
+        Results.Add('QuotaUsedPercentage', Format(ALCopilotQuotaDetails.QuotaUsedPercentage()));
+
+        Page.SetBackgroundTaskResult(Results);
+    end;
+
+    procedure CanConsume(): Boolean
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+        ALCopilotQuotaDetails: Dotnet ALCopilotQuotaDetails;
+        UnableToRetrieveQuotaDetailsLbl: Label 'Unable to retrieve quota details for tenant', locked = true;
+        IsTenantAllowedToConsumeQuotaLbl: Label 'Is tenant allowed to consume quota: %1', locked = true, Comment = '%1 = true/false';
+    begin
+        ALCopilotQuotaDetails := ALCopilotFunctions.GetCopilotQuotaDetails();
+
+        if IsNull(ALCopilotQuotaDetails) then begin
+            Session.LogMessage('0000P7N', UnableToRetrieveQuotaDetailsLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'category', CopilotCapabilityImpl.GetCopilotCategory());
+            exit(false);
+        end;
+
+        Session.LogMessage('0000P7O', StrSubstNo(IsTenantAllowedToConsumeQuotaLbl, Format(ALCopilotQuotaDetails.CanConsume())), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'category', CopilotCapabilityImpl.GetCopilotCategory());
+
+        exit(ALCopilotQuotaDetails.CanConsume());
+    end;
+
     procedure LogQuotaUsage(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; CallerModuleInfo: ModuleInfo)
     var
-        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         AlCopilotCapability: DotNet ALCopilotCapability;
         AlCopilotUsageType: DotNet ALCopilotUsageType;

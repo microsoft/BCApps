@@ -14,34 +14,6 @@ codeunit 1282 "Password Handler Impl."
     var
         InsufficientPassLengthErr: Label 'The password must contain at least %1 characters.', Comment = '%1 = the number of characters';
 
-#if not CLEAN24
-    [Obsolete('Replaced by GenerateSecretPassword with SecretText data type.', '24.0')]
-    [NonDebuggable]
-    procedure GeneratePassword(): Text;
-    begin
-#pragma warning disable AL0432
-        exit(GeneratePassword(GetPasswordMinLength()));
-#pragma warning restore AL0432
-    end;
-
-    [Obsolete('Replaced by GenerateSecretPassword with SecretText data type.', '24.0')]
-    [NonDebuggable]
-    procedure GeneratePassword(Length: Integer): Text;
-    var
-        PasswordGenerator: DotNet "PasswordGenerator";
-        Password: Text;
-        MinNumOfNonAlphanumericChars: Integer;
-    begin
-        if Length < GetPasswordMinLength() then
-            Error(InsufficientPassLengthErr, GetPasswordMinLength());
-
-        MinNumOfNonAlphanumericChars := 1;
-        repeat
-            Password := PasswordGenerator.GeneratePassword(Length, MinNumOfNonAlphanumericChars);
-        until IsPasswordStrong(Password);
-        exit(Password);
-    end;
-#endif
 
     procedure GenerateSecretPassword(): SecretText;
     begin
@@ -169,4 +141,3 @@ codeunit 1282 "Password Handler Impl."
         CharacterSets.Add(ReverseDigits);
     end;
 }
-

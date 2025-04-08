@@ -23,7 +23,7 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
 
     trigger OnRun()
     begin
-        if ClientTypeManagement.GetCurrentClientType() = ClientType::Background then
+        if ClientTypeManagement.GetCurrentClientType() in [ClientType::Background, ClientType::Api, ClientType::ODataV4] then
             exit;
 
         Run(UserSecurityId());

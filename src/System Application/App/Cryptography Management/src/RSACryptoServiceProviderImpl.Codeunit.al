@@ -7,13 +7,7 @@ namespace System.Security.Encryption;
 
 using System;
 
-#if not CLEAN24
-#pragma warning disable AL0432
-codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm, "Signature Algorithm v2"
-#pragma warning restore AL0432
-#else
 codeunit 1446 "RSACryptoServiceProvider Impl." implements "Signature Algorithm v2"
-#endif
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -142,22 +136,6 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements "Signature Algorithm v
     #endregion
 
     #region XmlString
-#if not CLEAN24
-    [NonDebuggable]
-    [Obsolete('Replaced by ToSecretXmlString with SecretText data type for XmlString.', '24.0')]
-    procedure ToXmlString(IncludePrivateParameters: Boolean): Text
-    begin
-        exit(DotNetRSACryptoServiceProvider.ToXmlString(IncludePrivateParameters));
-    end;
-
-    [NonDebuggable]
-    [Obsolete('Replaced by FromSecretXmlString with SecretText data type for XmlString.', '24.0')]
-    procedure FromXmlString(XmlString: Text)
-    begin
-        RSACryptoServiceProvider();
-        DotNetRSACryptoServiceProvider.FromXmlString(XmlString);
-    end;
-#endif
     procedure PublicKeyToXmlString(): Text
     begin
         exit(DotNetRSACryptoServiceProvider.ToXmlString(false));

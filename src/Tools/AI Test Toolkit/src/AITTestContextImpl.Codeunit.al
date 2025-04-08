@@ -18,9 +18,12 @@ codeunit 149043 "AIT Test Context Impl."
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         GlobalTestOutputJson: Codeunit "Test Output Json";
+        GlobalAccuracy: Decimal;
         CurrentTurn: Integer;
         NumberOfTurns: Integer;
         IsMultiTurn: Boolean;
+        AccuracySetManually: Boolean;
+        AccuracyErr: Label 'Accuracy must be between 0 and 1.';
         AnswerTok: Label 'answer', Locked = true;
         ContextTok: Label 'context', Locked = true;
         GroundTruthTok: Label 'ground_truth', Locked = true;
@@ -147,6 +150,34 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
+    /// Sets the accuracy of the test.
+    /// </summary>
+    /// <param name="Accuracy">The accuracy as a decimal between 0 and 1.</param>
+    procedure SetAccuracy(Accuracy: Decimal)
+    begin
+        if (Accuracy < 0) or (Accuracy > 1) then
+            Error(AccuracyErr);
+
+        AccuracySetManually := true;
+        GlobalAccuracy := Accuracy;
+    end;
+
+    /// <summary>
+    /// Gets the accuracy of the test. Can only be retrieved if the accuracy of the test was already set manually.
+    /// </summary>
+    /// <param name="Accuracy">The accuracy as a decimal between 0 and 1.</param>
+    /// <returns>True if it was possible to get the accuracy, false otherwise.</returns>
+    procedure GetAccuracy(var Accuracy: Decimal): Boolean
+    begin
+        if AccuracySetManually then begin
+            Accuracy := GlobalAccuracy;
+            exit(true);
+        end;
+
+        exit(false);
+    end;
+
+    /// <summary>
     /// Sets to next turn for multiturn testing.
     /// </summary>
     /// <returns>True if another turn exists, otherwise false.</returns>
@@ -164,12 +195,21 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
-    /// Gets the current turn for multiturn testing. Turns start from turn 0.
+    /// Gets the current turn for multiturn testing. Turns start from turn 1.
     /// </summary>
     /// <returns>The current turn number.</returns>
     procedure GetCurrentTurn(): Integer
     begin
         exit(CurrentTurn);
+    end;
+
+    /// <summary>
+    /// Gets the total number of turns for multiturn testing.
+    /// </summary>
+    /// <returns>The total number of turns for the line.</returns>
+    procedure GetNumberOfTurns(): Integer
+    begin
+        exit(NumberOfTurns);
     end;
 
     /// <summary>
@@ -205,12 +245,16 @@ codeunit 149043 "AIT Test Context Impl."
         TestInput: Codeunit "Test Input";
         TurnsInputJson: Codeunit "Test Input Json";
     begin
-        CurrentTurn := 0;
+        AccuracySetManually := false;
+        GlobalAccuracy := 0;
+        CurrentTurn := 1;
         GlobalTestOutputJson.Initialize();
         TurnsInputJson := TestInput.GetTestInput().ElementExists(TurnsTok, IsMultiTurn);
 
         if IsMultiTurn then
-            NumberOfTurns := TurnsInputJson.GetElementCount() - 1;
+            NumberOfTurns := TurnsInputJson.GetElementCount()
+        else
+            NumberOfTurns := 1;
     end;
 
     /// <summary>
@@ -223,7 +267,7 @@ codeunit 149043 "AIT Test Context Impl."
         TestInput: Codeunit "Test Input";
     begin
         if IsMultiTurn then
-            TestInputJson := TestInput.GetTestInput(TurnsTok).ElementAt(CurrentTurn).Element(ElementName)
+            TestInputJson := TestInput.GetTestInput(TurnsTok).ElementAt(CurrentTurn - 1).Element(ElementName)
         else
             TestInputJson := TestInput.GetTestInput(ElementName);
     end;

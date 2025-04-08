@@ -174,9 +174,6 @@ codeunit 132578 "Password Handler Test"
         Password := 'password1@';
         SecretPassword := Password;
         // [THEN] The password is not considered to be strong.
-#if not CLEAN24
-#pragma warning disable AL0432
-#endif
         Assert.IsFalse(PasswordHandler.IsPasswordStrong(SecretPassword), 'Password must contain uppercase characters.');
 
         // [GIVEN] A password without any lowercase characters.
@@ -196,9 +193,6 @@ codeunit 132578 "Password Handler Test"
         SecretPassword := Password;
         // [THEN] The password is not considered to be strong.
         Assert.IsFalse(PasswordHandler.IsPasswordStrong(SecretPassword), 'Password must contain special characters.');
-#if not CLEAN24
-#pragma warning restore AL0432
-#endif
     end;
 
     [Test]

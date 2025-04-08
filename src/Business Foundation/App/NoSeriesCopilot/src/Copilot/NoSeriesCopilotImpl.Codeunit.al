@@ -7,7 +7,6 @@ namespace Microsoft.Foundation.NoSeries;
 
 using System.Telemetry;
 using System.Azure.KeyVault;
-using System.Environment;
 using System.AI;
 using System.Text.Json;
 
@@ -567,12 +566,9 @@ codeunit 324 "No. Series Copilot Impl."
 
     procedure IsCopilotVisible(): Boolean
     var
-        EnvironmentInformation: Codeunit "Environment Information";
+        CopilotCapability: Codeunit "Copilot Capability";
     begin
-        if not EnvironmentInformation.IsSaaSInfrastructure() then
-            exit(false);
-
-        exit(true);
+        exit(CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"No. Series Copilot"));
     end;
 
     procedure GetChatCompletionResponseErr(): Text

@@ -26,37 +26,6 @@ codeunit 9811 "Password Dialog Impl."
             Error(PasswordTooSimpleErr, PasswordHandler.GetPasswordMinLength());
     end;
 
-#if not CLEAN24
-    [Obsolete('Replaced by OpenSecretPasswordDialog with SecretText return data type.', '24.0')]
-    procedure OpenPasswordDialog(DisablePasswordValidation: Boolean; DisablePasswordConfirmation: Boolean): Text
-    var
-        PasswordDialog: Page "Password Dialog";
-    begin
-        if DisablePasswordValidation then
-            PasswordDialog.DisablePasswordValidation();
-        if DisablePasswordConfirmation then
-            PasswordDialog.DisablePasswordConfirmation();
-        if PasswordDialog.RunModal() = Action::OK then
-#pragma warning disable AL0432
-            exit(PasswordDialog.GetPasswordValue());
-#pragma warning restore AL0432
-        exit('');
-    end;
-
-    [Obsolete('Replaced by OpenChangePassworDialog with SecretText parameter data type.', '24.0')]
-    procedure OpenChangePasswordDialog(var OldPassword: Text; var Password: Text)
-    var
-        PasswordDialog: Page "Password Dialog";
-    begin
-        PasswordDialog.EnableChangePassword();
-        if PasswordDialog.RunModal() = Action::OK then begin
-#pragma warning disable AL0432
-            Password := PasswordDialog.GetPasswordValue();
-            OldPassword := PasswordDialog.GetOldPasswordValue();
-#pragma warning restore AL0432
-        end;
-    end;
-#endif
 
     procedure OpenSecretPasswordDialog(DisablePasswordValidation: Boolean; DisablePasswordConfirmation: Boolean): SecretText
     var
@@ -123,4 +92,3 @@ codeunit 9811 "Password Dialog Impl."
             Error(PasswordSameAsNewErr);
     end;
 }
-

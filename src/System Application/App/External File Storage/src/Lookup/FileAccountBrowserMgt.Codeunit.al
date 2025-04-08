@@ -38,7 +38,8 @@ codeunit 9458 "File Account Browser Mgt."
             ExternalFileStorage.ListDirectories(Path, FilePaginationData, TempFileAccountContent);
         until FilePaginationData.IsEndOfListing();
 
-        ListFiles(TempFileAccountContent, Path, DoNotLoadFiles, CurrentPath, FileNameFilter);
+        ListFiles(TempFileAccountContent, Path, DoNotLoadFiles, FileNameFilter);
+        AddParentFolder(TempFileAccountContent, CurrentPath);
         if TempFileAccountContent.FindFirst() then;
     end;
 
@@ -76,7 +77,7 @@ codeunit 9458 "File Account Browser Mgt."
         ExternalFileStorage.CreateDirectory(ExternalFileStorage.CombinePath(Path, FolderName));
     end;
 
-    local procedure ListFiles(var TempFileAccountContent: Record "File Account Content" temporary; Path: Text; DoNotLoadFields: Boolean; CurrentPath: Text; FileNameFilter: Text)
+    local procedure ListFiles(var TempFileAccountContent: Record "File Account Content" temporary; Path: Text; DoNotLoadFields: Boolean; FileNameFilter: Text)
     var
         TempFileAccountContentToAdd: Record "File Account Content" temporary;
         FilePaginationData: Codeunit "File Pagination Data";
@@ -85,13 +86,13 @@ codeunit 9458 "File Account Browser Mgt."
             exit;
 
         repeat
-            ExternalFileStorage.ListFiles(Path, FilePaginationData, TempFileAccountContent);
+            ExternalFileStorage.ListFiles(Path, FilePaginationData, TempFileAccountContentToAdd);
         until FilePaginationData.IsEndOfListing();
 
-        AddFiles(TempFileAccountContent, TempFileAccountContentToAdd, CurrentPath, FileNameFilter);
+        AddFiles(TempFileAccountContent, TempFileAccountContentToAdd, FileNameFilter);
     end;
 
-    local procedure AddFiles(var TempFileAccountContent: Record "File Account Content" temporary; var FileAccountContentToAdd: Record "File Account Content" temporary; CurrentPath: Text; FileNameFilter: Text)
+    local procedure AddFiles(var TempFileAccountContent: Record "File Account Content" temporary; var FileAccountContentToAdd: Record "File Account Content" temporary; FileNameFilter: Text)
     begin
         if FileNameFilter <> '' then
             FileAccountContentToAdd.SetFilter(Name, FileNameFilter);
@@ -102,11 +103,20 @@ codeunit 9458 "File Account Browser Mgt."
                 TempFileAccountContent.TransferFields(FileAccountContentToAdd);
                 TempFileAccountContent.Insert();
             until FileAccountContentToAdd.Next() = 0;
+    end;
+
+    local procedure AddParentFolder(var TempFileAccountContent: Record "File Account Content" temporary; CurrentPath: Text)
+    var
+        ParentFolder: Text;
+    begin
+        ParentFolder := ExternalFileStorage.GetParentPath(CurrentPath);
+        if ParentFolder = CurrentPath then
+            exit;
 
         TempFileAccountContent.Init();
         TempFileAccountContent.Validate(Name, '..');
         TempFileAccountContent.Validate(Type, TempFileAccountContent.Type::Directory);
-        TempFileAccountContent.Validate("Parent Directory", CopyStr(ExternalFileStorage.GetParentPath(CurrentPath), 1, MaxStrLen(TempFileAccountContent."Parent Directory")));
+        TempFileAccountContent.Validate("Parent Directory", CopyStr(ParentFolder, 1, MaxStrLen(TempFileAccountContent."Parent Directory")));
         TempFileAccountContent.Insert();
     end;
 

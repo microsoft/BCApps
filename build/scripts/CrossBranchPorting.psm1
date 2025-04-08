@@ -9,15 +9,21 @@
     The list of branches to backport the pull request to.
     .PARAMETER SkipConfirmation
     Skip the confirmation prompt.
+    .PARAMETER ReuseWorkItem
+    Reuse the work item number from the original pull request.
 #>
 function New-BCAppsBackport() {
+    [CmdletBinding(SupportsShouldProcess=$true)]
+
     param(
         [Parameter(Mandatory=$true)]
         [string] $PullRequestNumber,
         [Parameter(Mandatory=$true)]
         [string[]] $TargetBranches,
         [Parameter(Mandatory=$false)]
-        [switch] $SkipConfirmation
+        [switch] $SkipConfirmation,
+        [Parameter(Mandatory=$false, DontShow=$true)]
+        [switch] $ReuseWorkItem
     )
     Import-Module $PSScriptRoot/EnlistmentHelperFunctions.psm1
 
@@ -29,11 +35,22 @@ function New-BCAppsBackport() {
 
         # Get the pull request details
         $pullRequestDetails = (gh pr view $PullRequestNumber --json title,number,body,headRefName,baseRefName,mergeCommit,potentialMergeCommit | ConvertFrom-Json)
-        Write-Host "Backport to: $($TargetBranches -join ",")" -ForegroundColor Cyan
+        Write-Host "Backport to branches: $($TargetBranches -join ", ")" -ForegroundColor Cyan
         Write-Host "Pull Request Source Branch: $($pullRequestDetails.headRefName)" -ForegroundColor Cyan
         Write-Host "Pull Request Target Branch: $($pullRequestDetails.baseRefName)" -ForegroundColor Cyan
         Write-Host "Pull Request Title: $($pullRequestDetails.title)" -ForegroundColor Cyan
         Write-Host "Pull Request Description: `n$($pullRequestDetails.body)" -ForegroundColor Cyan
+
+        $workItemNumber = "[**Insert Work Item Number Here**]" # By default, work item number is not set and has to be added manually in the PR description
+        if($ReuseWorkItem) {
+            if ($pullRequestDetails.body -match "AB#(\d+)") {
+                $workItemNumber = $matches[1]
+                Write-Host "Reusing work item number: $workItemNumber" -ForegroundColor Cyan
+                Write-Warning "You are reusing the work item number from the original pull request."
+            } else {
+                Write-Host "No work item number found in the pull request description." -ForegroundColor Yellow
+            }
+        }
 
         if (-not $SkipConfirmation) {
             GetConfirmation -Message "Please review the above information and press (y)es to continue or any other key to stop"
@@ -53,7 +70,7 @@ function New-BCAppsBackport() {
                 $title = "[$TargetBranch] $($pullRequestDetails.title)"
                 $title = $title.Substring(0, [Math]::Min(255, $title.Length))
                 $body = "This pull request backports #$($pullRequestDetails.number) to $TargetBranch"
-                $body += "`r`n`r`nFixes AB#[**Insert Work Item Number Here**]"
+                $body += "`r`n`r`nFixes AB#$workItemNumber"
 
                 # Check if there is already a pull request for this branch
                 $existingPr = $existingOpenPullRequests | Where-Object { ($_.title -eq $title) -and ($_.baseRefName -eq $TargetBranch) }
@@ -64,6 +81,10 @@ function New-BCAppsBackport() {
 
                 # Create a new branch for the cherry-pick
                 $cherryPickBranch = "backport/$TargetBranch/$branchNameSuffix"
+
+                if(!$PSCmdlet.ShouldProcess("Porting PR $PullRequestNumber to $TargetBranch (from branch: $cherryPickBranch)", "$TargetBranch", "PortPullRequest $PullRequestNumber")) {
+                    continue
+                }
 
                 # Port the pull request to the target branch
                 PortPullRequest -PullRequestDetails $pullRequestDetails -TargetBranch $TargetBranch -CherryPickBranch $cherryPickBranch
@@ -81,8 +102,14 @@ function New-BCAppsBackport() {
             Write-Host $_.Exception.Message -ForegroundColor Red
             throw $_.Exception.Message
         } finally {
-            # Go back to the original branch
-            RunAndCheck git checkout $startingBranch
+            $currentBranch = RunAndCheck git rev-parse --abbrev-ref HEAD
+            if ($currentBranch -ne $startingBranch) {
+                RunAndCheck git checkout $startingBranch
+            }
+        }
+
+        if(!$PSCmdlet.ShouldProcess("PR $PullRequestNumber backported", "", "")) {
+            return # Nothing else to do
         }
 
         if ($pullRequests.Count -eq 0) {
