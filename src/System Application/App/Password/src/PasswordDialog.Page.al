@@ -103,37 +103,6 @@ page 9810 "Password Dialog"
         RequiresPasswordValidation: Boolean;
         RequiresPasswordConfirmation: Boolean;
 
-#if not CLEAN24
-    /// <summary>
-    /// Gets the password value typed on the page.
-    /// </summary>
-    /// <returns>The password value typed on the page.</returns>
-    [Scope('OnPrem')]
-    [NonDebuggable]
-    [Obsolete('Replaced by GetPasswordSecretValue', '24.0')]
-    procedure GetPasswordValue(): Text
-    begin
-        if ValidPassword then
-            exit(PasswordValue);
-
-        exit('');
-    end;
-
-    /// <summary>
-    /// Gets the old password value typed on the page.
-    /// </summary>
-    /// <returns>The old password typed on the page.</returns>
-    [Scope('OnPrem')]
-    [NonDebuggable]
-    [Obsolete('Replaced by GetOldPasswordSecretValue', '24.0')]
-    procedure GetOldPasswordValue(): Text
-    begin
-        if ValidPassword then
-            exit(OldPasswordValue);
-
-        exit('');
-    end;
-#endif
 
     /// <summary>
     /// Gets the password value typed on the page.
@@ -194,4 +163,3 @@ page 9810 "Password Dialog"
         RequiresPasswordConfirmation := false;
     end;
 }
-

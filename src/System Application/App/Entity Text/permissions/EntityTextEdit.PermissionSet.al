@@ -12,10 +12,5 @@ permissionset 2012 "Entity Text - Edit"
     IncludedPermissionSets = "Entity Text - View";
 
     Permissions =
-#if not CLEAN24
-#pragma warning disable AL0432
-                  tabledata "Azure OpenAi Settings" = IMD,
-#pragma warning restore AL0432
-#endif
                   tabledata "Entity Text" = IMD;
 }

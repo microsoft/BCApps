@@ -131,13 +131,6 @@ codeunit 478 "Business Chart Impl."
         exit(MaximumNumberOfColoursInChart);
     end;
 
-#if not CLEAN24
-    procedure Update(DotNetBusinessChartAddIn: DotNet BusinessChartAddIn)
-    begin
-        DotNetBusinessChartData.DataTable := DotNetDataTable;
-        DotNetBusinessChartAddIn.Update(DotNetBusinessChartData);
-    end;
-#endif
 
     procedure Update(BusinessChartAddIn: ControlAddIn BusinessChart)
     var

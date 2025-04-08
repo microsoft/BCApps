@@ -38,20 +38,7 @@ codeunit 305 "No. Series - Setup Impl."
     var
         NoSeriesLine: Record "No. Series Line";
         NoSeries: Codeunit "No. Series";
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-        IsHandled: Boolean;
-#pragma warning restore AL0432        
-#endif
     begin
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesManagement.OnBeforeUpdateLine(NoSeriesRec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, Implementation, IsHandled);
-        if IsHandled then
-            exit;
-#pragma warning restore AL0432        
-#endif
         SelectCurrentNoSeriesLine(NoSeriesRec, NoSeriesLine, false);
 
         StartDate := NoSeriesLine."Starting Date";
@@ -92,19 +79,9 @@ codeunit 305 "No. Series - Setup Impl."
     procedure SelectCurrentNoSeriesLine(NoSeriesRec: Record "No. Series"; var NoSeriesLine: Record "No. Series Line"; ResetForDrillDown: Boolean) LineFound: Boolean
     var
         NoSeries: Codeunit "No. Series";
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-#pragma warning restore AL0432
-#endif
     begin
         NoSeriesLine.Reset();
         SetNoSeriesLineFilters(NoSeriesLine, NoSeriesRec.Code, WorkDate());
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
-#pragma warning restore AL0432
-#endif
         if NoSeriesLine.FindLast() then begin
             NoSeriesLine.SetRange("Starting Date", NoSeriesLine."Starting Date");
             NoSeriesLine.SetRange(Open, true);
@@ -177,7 +154,7 @@ codeunit 305 "No. Series - Setup Impl."
             exit(false);
 
         if NoSeriesLine."Increment-by No." <> 1 then begin
-            NextNo := IncrementNoText(LastNoUsed, NoSeriesLine."Increment-by No.");
+            NextNo := IncStr(LastNoUsed, NoSeriesLine."Increment-by No.");
             if NextNo > NoSeriesLine."Ending No." then
                 exit(false);
             if StrLen(NextNo) > StrLen(NoSeriesLine."Ending No.") then
@@ -187,39 +164,19 @@ codeunit 305 "No. Series - Setup Impl."
     end;
 
     procedure ValidateDefaultNos(var NoSeries: Record "No. Series"; xRecNoSeries: Record "No. Series")
-#if not CLEAN24
-#pragma warning disable AL0432
-    var
-        IsHandled: Boolean;
     begin
-        IsHandled := false;
-        NoSeries.OnBeforeValidateDefaultNos(NoSeries, IsHandled);
-        if not IsHandled then
-#pragma warning restore AL0432
-#else
-    begin
-#endif
             if (NoSeries."Default Nos." = false) and (xRecNoSeries."Default Nos." <> NoSeries."Default Nos.") and (NoSeries."Manual Nos." = false) then
                 NoSeries.Validate("Manual Nos.", true);
     end;
 
     procedure ValidateManualNos(var NoSeries: Record "No. Series"; xRecNoSeries: Record "No. Series")
-#if not CLEAN24
-#pragma warning disable AL0432
-    var
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        NoSeries.OnBeforeValidateManualNos(NoSeries, IsHandled);
-        if not IsHandled then
-#else
     begin
 #pragma warning restore AL0432
-#endif
             if (NoSeries."Manual Nos." = false) and (xRecNoSeries."Manual Nos." <> NoSeries."Manual Nos.") and (NoSeries."Default Nos." = false) then
                 NoSeries.Validate("Default Nos.", true);
     end;
 
+#if not CLEAN27
     procedure IncrementNoText(No: Code[20]; Increment: Integer): Code[20]
     var
         BigIntNo: BigInteger;
@@ -235,31 +192,14 @@ codeunit 305 "No. Series - Setup Impl."
         ReplaceNoText(No, NewNo, 0, StartPos, EndPos);
         exit(No);
     end;
+#endif
 
     procedure UpdateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NewNo: Code[20]; NewFieldCaption: Text[100])
     var
         NoSeriesLine2: Record "No. Series Line";
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-#pragma warning restore AL0432
-#endif
         NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
-#if not CLEAN24
-#pragma warning disable AL0432
-        IsHandled: Boolean;
-#pragma warning restore AL0432
-#endif
         Length: Integer;
     begin
-#if not CLEAN24
-#pragma warning disable AL0432
-        IsHandled := false;
-        NoSeriesManagement.RaiseObsoleteOnBeforeUpdateNoSeriesLine(NoSeriesLine, NewNo, NewFieldCaption, IsHandled);
-        if IsHandled then
-            exit;
-#pragma warning restore AL0432
-#endif
         if NewNo <> '' then begin
             if IncStr(NewNo) = '' then
                 NoSeriesErrorsImpl.Throw(StrSubstNo(UnIncrementableStringErr, NewFieldCaption), NoSeriesLine, NoSeriesErrorsImpl.OpenNoSeriesLinesAction());
@@ -370,25 +310,10 @@ codeunit 305 "No. Series - Setup Impl."
     var
         NoSeriesLine: Record "No. Series Line";
         NoSeriesRelationship: Record "No. Series Relationship";
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesLineSales: Record "No. Series Line Sales";
-        NoSeriesLinePurchase: Record "No. Series Line Purchase";
-#pragma warning restore AL0432
-#endif
     begin
         NoSeriesLine.SetRange("Series Code", NoSeries.Code);
         NoSeriesLine.DeleteAll();
 
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesLineSales.SetRange("Series Code", NoSeries.Code);
-        NoSeriesLineSales.DeleteAll();
-
-        NoSeriesLinePurchase.SetRange("Series Code", NoSeries.Code);
-        NoSeriesLinePurchase.DeleteAll();
-#pragma warning restore AL0432
-#endif
 
         NoSeriesRelationship.SetRange(Code, NoSeries.Code);
         NoSeriesRelationship.DeleteAll();

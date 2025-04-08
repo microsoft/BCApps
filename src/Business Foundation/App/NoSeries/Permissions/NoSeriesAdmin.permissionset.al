@@ -14,11 +14,5 @@ permissionset 304 "No. Series - Admin"
     Permissions =
         tabledata "No. Series" = IMD,
         tabledata "No. Series Line" = IMD,
-#if not CLEAN24
-#pragma warning disable AL0432
-        tabledata "No. Series Line Sales" = IMD,
-        tabledata "No. Series Line Purchase" = IMD,
-#pragma warning restore AL0432
-#endif
         tabledata "No. Series Relationship" = IMD;
 }

@@ -111,22 +111,6 @@ codeunit 1285 "X509Certificate2 Impl."
         CreateCertificatePropertyJson(X509Certificate2, CertPropertyJson);
     end;
 
-#if not CLEAN24
-    [NonDebuggable]
-    [Obsolete('Replaced by GetSecretCertificatePrivateKey with SecretText data type return value.', '24.0')]
-    procedure GetCertificatePrivateKey(CertBase64Value: Text; Password: SecretText): Text
-    var
-        X509Certificate2: DotNet X509Certificate2;
-        AsymmetricAlgorithm: DotNet AsymmetricAlgorithm;
-    begin
-        InitializeX509Certificate(CertBase64Value, Password, X509Certificate2);
-        if not X509Certificate2.HasPrivateKey then
-            exit;
-
-        AsymmetricAlgorithm := X509Certificate2.PrivateKey;
-        exit(AsymmetricAlgorithm.ToXmlString(true));
-    end;
-#endif
     [NonDebuggable]
     procedure GetSecretCertificatePrivateKey(CertBase64Value: Text; Password: SecretText): SecretText
     var
