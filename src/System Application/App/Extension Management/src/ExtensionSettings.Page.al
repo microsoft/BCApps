@@ -145,6 +145,7 @@ page 2511 "Extension Settings"
         PublishedApplication: Record "Published Application";
     begin
         PublishedApplication.SetRange(ID, Rec."App ID");
+        PublishedApplication.SetRange(Installed, true);
         PublishedApplication.SetRange("Tenant Visible", true);
 
         if PublishedApplication.FindFirst() then begin
