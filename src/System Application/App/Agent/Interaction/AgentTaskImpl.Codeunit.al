@@ -168,7 +168,7 @@ codeunit 4300 "Agent Task Impl."
 
         if UserConfirm then
             if not Confirm(AreYouSureThatYouWantToStopTheTaskQst) then
-            exit;
+                exit;
 
         AgentTask.Status := AgentTaskStatus;
         AgentTask."Needs Attention" := false;
@@ -234,6 +234,13 @@ codeunit 4300 "Agent Task Impl."
 #pragma warning restore AA0139
         PageSummaryParameters."Include Binary Data" := false;
         Summary := PageSummaryProvider.GetPageSummary(PageSummaryParameters);
+    end;
+
+    internal procedure GetSessionAgentTaskId(): BigInteger
+    var
+        AgentALFunctions: DotNet AgentALFunctions;
+    begin
+        exit(AgentALFunctions.GetSessionAgentTaskId());
     end;
 
     var

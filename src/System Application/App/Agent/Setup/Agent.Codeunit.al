@@ -171,4 +171,18 @@ codeunit 4321 Agent
     begin
         AgentImpl.UpdateAgentAccessControl(AgentUserSecurityID, TempAgentAccessControl);
     end;
+
+    /// <summary>
+    /// Checks if the current session is an agent session.
+    /// </summary>
+    /// <param name="ActiveAgentMetadataProvider">Returns the type of the active agent</param>
+    /// <returns>
+    /// True if the current session is an agent session, false otherwise.
+    /// </returns>
+    procedure IsAgentSession(var ActiveAgentMetadataProvider: Enum "Agent Metadata Provider"): Boolean
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        exit(AgentImpl.IsAgentSession(ActiveAgentMetadataProvider));
+    end;
 }

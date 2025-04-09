@@ -129,4 +129,15 @@ codeunit 4303 "Agent Task"
     begin
         exit(AgentTaskImpl.AddMessage(AgentTaskID, From, MessageText, ExternalId, StartTask));
     end;
+
+    /// <summary>
+    /// Get the agent task ID related to the current session, if any, -1 otherwise.
+    /// </summary>
+    /// <returns>The agent task ID, if any, -1 otherwise.</returns>
+    procedure GetSessionAgentTaskId(): BigInteger
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        exit(AgentTaskImpl.GetSessionAgentTaskId());
+    end;
 }

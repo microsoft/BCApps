@@ -425,6 +425,29 @@ codeunit 4301 "Agent Impl."
         Hyperlink(NoAgentsAvailableNotificationLearnMoreUrlLbl);
     end;
 
+    internal procedure IsAgentSession(var ActiveAgentMetadataProvider: Enum "Agent Metadata Provider"): Boolean
+    var
+        AgentType: Integer;
+        AgentALFunctions: DotNet AgentALFunctions;
+    begin
+        if not GuiAllowed() then
+            exit(false);
+
+        AgentType := AgentALFunctions.GetSessionAgentMetadataProviderType();
+        if AgentType < 0 then
+            exit(false);
+
+        ActiveAgentMetadataProvider := "Agent Metadata Provider".FromInteger(AgentType);
+        exit(true);
+    end;
+
+    internal procedure GetAgentTaskID(): Integer
+    var
+        AgentALFunctions: DotNet AgentALFunctions;
+    begin
+        exit(AgentALFunctions.GetSessionAgentTaskId());
+    end;
+
     var
         OneOwnerMustBeDefinedForAgentErr: Label 'One owner must be defined for the agent.';
         AgentDoesNotExistErr: Label 'Agent does not exist.';
