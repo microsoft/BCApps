@@ -86,4 +86,18 @@ codeunit 4307 "Agent Message"
     begin
         AgentMessageImpl.DownloadAttachments(AgentTaskMessage);
     end;
+
+    /// <summary>
+    /// Adds a user intervention request to the agent task message.
+    /// </summary>
+    /// <param name="AgentId">Agent's security user id</param>
+    /// <param name="AgentTaskMessage">The agent task message to add the request to.</param>
+    /// <param name="AgentAnnotation">The agent annotation to add to the request.</param>
+    [Scope('OnPrem')]
+    procedure AddUserInterventionRequest(AgentId: Guid; var AgentTaskMessage: Record "Agent Task Message"; var AgentAnnotation: Record "Agent Annotation")
+    var
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
+    begin
+        AgentMessageImpl.AddUserInterventionRequest(AgentId, AgentTaskMessage, AgentAnnotation);
+    end;
 }

@@ -20,6 +20,10 @@ dotnet
     {
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
+        type("Microsoft.Dynamics.Nav.Types.AgentAnnotation"; "AgentAnnotation")
+        {
+        }
+
         type("Microsoft.Dynamics.Nav.Types.AgentTaskUserInterventionDetails"; "AgentTaskUserIntervention")
         {
         }

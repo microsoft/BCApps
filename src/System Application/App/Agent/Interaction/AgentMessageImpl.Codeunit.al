@@ -99,4 +99,17 @@ codeunit 4308 "Agent Message Impl."
         AgentTaskMessage.Status := Status;
         AgentTaskMessage.Modify(true);
     end;
+
+    procedure AddUserInterventionRequest(AgentId: Guid; var AgentTaskMessage: Record "Agent Task Message"; var AgentAnnotationRec: Record "Agent Annotation")
+    var
+        AgentALFunctions: DotNet AgentALFunctions;
+        AgentAnnotation: DotNet AgentAnnotation;
+    begin
+        AgentAnnotation.Severity(AgentAnnotationRec."Severity");
+        AgentAnnotation.Message(AgentAnnotationRec."Message");
+        AgentAnnotation.Details(AgentAnnotationRec."Details");
+        AgentAnnotation.Code(AgentAnnotationRec."Code");
+
+        AgentALFunctions.CreateAgentTaskMessageUserInterventionRequest(AgentId, AgentTaskMessage."Task ID", AgentTaskMessage.ID, AgentAnnotation);
+    end;
 }
