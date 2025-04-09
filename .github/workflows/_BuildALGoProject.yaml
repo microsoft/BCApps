@@ -99,16 +99,16 @@ jobs:
           lfs: true
 
       - name: Read settings
-        uses: microsoft/AL-Go-Actions/ReadSettings@v6.4
+        uses: microsoft/AL-Go-Actions/ReadSettings@v7.0
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
           buildMode: ${{ inputs.buildMode }}
-          get: useCompilerFolder,keyVaultCodesignCertificateName,doNotSignApps,doNotRunTests,artifact,generateDependencyArtifact,trustedSigning,useGitSubmodules
+          get: useCompilerFolder,keyVaultCodesignCertificateName,doNotSignApps,doNotRunTests,doNotRunBcptTests,doNotRunpageScriptingTests,artifact,generateDependencyArtifact,trustedSigning,useGitSubmodules
 
       - name: Determine whether to build project
         id: DetermineBuildProject
-        uses: microsoft/AL-Go-Actions/DetermineBuildProject@v6.4
+        uses: microsoft/AL-Go-Actions/DetermineBuildProject@v7.0
         with:
           shell: ${{ inputs.shell }}
           skippedProjectsJson: ${{ inputs.skippedProjectsJson }}
@@ -118,7 +118,7 @@ jobs:
       - name: Read secrets
         id: ReadSecrets
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && github.event_name != 'pull_request'
-        uses: microsoft/AL-Go-Actions/ReadSecrets@v6.4
+        uses: microsoft/AL-Go-Actions/ReadSecrets@v7.0
         with:
           shell: ${{ inputs.shell }}
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -136,14 +136,14 @@ jobs:
       - name: Determine ArtifactUrl
         id: determineArtifactUrl
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
-        uses: microsoft/AL-Go-Actions/DetermineArtifactUrl@v6.4
+        uses: microsoft/AL-Go-Actions/DetermineArtifactUrl@v7.0
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
 
       - name: Cache Business Central Artifacts
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && env.useCompilerFolder == 'True' && inputs.useArtifactCache && env.artifactCacheKey
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: .artifactcache
           key: ${{ env.artifactCacheKey }}
@@ -151,7 +151,7 @@ jobs:
       - name: Download Project Dependencies
         id: DownloadProjectDependencies
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
-        uses: microsoft/AL-Go-Actions/DownloadProjectDependencies@v6.4
+        uses: microsoft/AL-Go-Actions/DownloadProjectDependencies@v7.0
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -162,7 +162,7 @@ jobs:
           baselineWorkflowRunId: ${{ inputs.baselineWorkflowRunId }}
 
       - name: Build
-        uses: microsoft/AL-Go-Actions/RunPipeline@v6.4
+        uses: microsoft/AL-Go-Actions/RunPipeline@v7.0
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
@@ -180,7 +180,7 @@ jobs:
       - name: Sign
         id: sign
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && inputs.signArtifacts && env.doNotSignApps == 'False' && (env.keyVaultCodesignCertificateName != '' || (fromJson(env.trustedSigning).Endpoint != '' && fromJson(env.trustedSigning).Account != '' && fromJson(env.trustedSigning).CertificateProfile != ''))
-        uses: microsoft/AL-Go-Actions/Sign@v6.4
+        uses: microsoft/AL-Go-Actions/Sign@v7.0
         with:
           shell: ${{ inputs.shell }}
           azureCredentialsJson: '${{ fromJson(steps.ReadSecrets.outputs.Secrets).AZURE_CREDENTIALS }}'
@@ -188,7 +188,7 @@ jobs:
 
       - name: Calculate Artifact names
         id: calculateArtifactsNames
-        uses: microsoft/AL-Go-Actions/CalculateArtifactNames@v6.4
+        uses: microsoft/AL-Go-Actions/CalculateArtifactNames@v7.0
         if: success() || failure()
         with:
           shell: ${{ inputs.shell }}
@@ -197,7 +197,7 @@ jobs:
           suffix: ${{ inputs.artifactsNameSuffix }}
 
       - name: Publish artifacts - apps
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: inputs.artifactsRetentionDays >= 0 && (hashFiles(format('{0}/.buildartifacts/Apps/*',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.AppsArtifactsName }}
@@ -206,7 +206,7 @@ jobs:
           retention-days: ${{ inputs.artifactsRetentionDays }}
 
       - name: Publish artifacts - dependencies
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: inputs.artifactsRetentionDays >= 0 && env.generateDependencyArtifact == 'True' && (hashFiles(format('{0}/.buildartifacts/Dependencies/*',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.DependenciesArtifactsName }}
@@ -215,7 +215,7 @@ jobs:
           retention-days: ${{ inputs.artifactsRetentionDays }}
 
       - name: Publish artifacts - test apps
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: inputs.artifactsRetentionDays >= 0 && (hashFiles(format('{0}/.buildartifacts/TestApps/*',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.TestAppsArtifactsName }}
@@ -224,7 +224,7 @@ jobs:
           retention-days: ${{ inputs.artifactsRetentionDays }}
 
       - name: Publish artifacts - build output
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: (success() || failure()) && (hashFiles(format('{0}/BuildOutput.txt',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.BuildOutputArtifactsName }}
@@ -232,7 +232,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish artifacts - container event log
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: (failure()) && (hashFiles(format('{0}/ContainerEventLog.evtx',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.ContainerEventLogArtifactsName }}
@@ -240,7 +240,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish artifacts - test results
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: (success() || failure()) && (hashFiles(format('{0}/.buildartifacts/TestResults.xml',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.TestResultsArtifactsName }}
@@ -248,7 +248,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish artifacts - bcpt test results
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: (success() || failure()) && (hashFiles(format('{0}/.buildartifacts/bcptTestResults.json',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.BcptTestResultsArtifactsName }}
@@ -256,7 +256,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish artifacts - page scripting test results
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: (success() || failure()) && (hashFiles(format('{0}/.buildartifacts/PageScriptingTestResults.xml',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.PageScriptingTestResultsArtifactsName }}
@@ -264,7 +264,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish artifacts - page scripting test result details
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: (success() || failure()) && (hashFiles(format('{0}/.buildartifacts/PageScriptingTestResultDetails/*',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.PageScriptingTestResultDetailsArtifactsName }}
@@ -274,14 +274,33 @@ jobs:
       - name: Analyze Test Results
         id: analyzeTestResults
         if: (success() || failure()) && env.doNotRunTests == 'False' && ((hashFiles(format('{0}/.buildartifacts/TestResults.xml',inputs.project)) != '') || (hashFiles(format('{0}/.buildartifacts/bcptTestResults.json',inputs.project)) != ''))
-        uses: microsoft/AL-Go-Actions/AnalyzeTests@v6.4
+        uses: microsoft/AL-Go-Actions/AnalyzeTests@v7.0
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
+          testType: "normal"
+
+      - name: Analyze BCPT Test Results
+        id: analyzeTestResultsBCPT
+        if: (success() || failure()) && env.doNotRunBcptTests == 'False'
+        uses: microsoft/AL-Go-Actions/AnalyzeTests@v7.0
+        with:
+          shell: ${{ inputs.shell }}
+          project: ${{ inputs.project }}
+          testType: "bcpt"
+
+      - name: Analyze Page Scripting Test Results
+        id: analyzeTestResultsPageScripting
+        if: (success() || failure()) && env.doNotRunpageScriptingTests == 'False'
+        uses: microsoft/AL-Go-Actions/AnalyzeTests@v7.0
+        with:
+          shell: ${{ inputs.shell }}
+          project: ${{ inputs.project }}
+          testType: "pageScripting"
 
       - name: Cleanup
         if: always() && steps.DetermineBuildProject.outputs.BuildIt == 'True'
-        uses: microsoft/AL-Go-Actions/PipelineCleanup@v6.4
+        uses: microsoft/AL-Go-Actions/PipelineCleanup@v7.0
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
