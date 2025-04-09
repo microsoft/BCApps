@@ -138,6 +138,36 @@
       "id": "AL0678",
       "action": "None",
       "justification": "Information diagnostic reported on obsolete symbols contributing to metadata name conflicts, ex: 'My Page' and 'My_Page'."
+    },
+    {
+        "id": "AS0072",
+        "action": "None",
+        "justification": "Ignore the rule for CLEAN test build"
+    },
+    {
+        "id": "AL0660",
+        "action": "Error",
+        "justification": "Enforce the rule for CLEAN test build"
+    },
+    {
+        "id": "AL0677",
+        "action": "Error",
+        "justification": "Enforce the rule for CLEAN test build"
+    },
+    {
+        "id": "AL0697",
+        "action": "Error",
+        "justification": "Enforce the rule for CLEAN test build"
+    },
+    {
+        "id": "AL0715",
+        "action": "Error",
+        "justification": "Enforce the rule for CLEAN test build"
+    },
+    {
+        "id": "AL0711",
+        "action": "Error",
+        "justification": "Enforce the rule for CLEAN test build"
     }
   ]
 }
