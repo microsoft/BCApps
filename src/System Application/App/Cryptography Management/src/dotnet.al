@@ -50,9 +50,9 @@ dotnet
 
     }
 
-    assembly("X509CertificateWrapper")
+    assembly("Microsoft.Dynamics.BusinessCentral.DotNet.Helpers.Encryption")
     {
-        type(X509CertificateWrapper.X509CertificateWrapper; X509CertificateWrapper) { }
+        type("Microsoft.Dynamics.BusinessCentral.DotNet.Helpers.RSAEncryptionHelper"; "RSAEncryptionHelper") { }
     }
 }
 
