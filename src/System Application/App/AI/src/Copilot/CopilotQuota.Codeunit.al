@@ -31,4 +31,13 @@ codeunit 7785 "Copilot Quota"
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         CopilotQuotaImpl.LogQuotaUsage(CopilotCapability, Usage, CopilotQuotaUsageType, CallerModuleInfo);
     end;
+
+    /// <summary>
+    /// Checks if the tenant is allowed to consume Copilot quota.
+    /// </summary>
+    /// <returns>True if allowed, false otherwise.</returns>
+    procedure CanConsume(): Boolean
+    begin
+        exit(CopilotQuotaImpl.CanConsume());
+    end;
 }
