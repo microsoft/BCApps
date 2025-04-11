@@ -109,10 +109,10 @@ page 9810 "Password Dialog"
     /// </summary>
     /// <returns>The password value typed on the page.</returns>
     [Scope('OnPrem')]
-    procedure GetPasswordSecretValue() Password: SecretText
+    procedure GetPasswordSecretValue(): SecretText
     begin
         if ValidPassword then
-            Password := PasswordValue;
+            exit(PasswordValue);
     end;
 
     /// <summary>
@@ -120,10 +120,10 @@ page 9810 "Password Dialog"
     /// </summary>
     /// <returns>The old password typed on the page.</returns>
     [Scope('OnPrem')]
-    procedure GetOldPasswordSecretValue() Password: SecretText
+    procedure GetOldPasswordSecretValue(): SecretText
     begin
         if ValidPassword then
-            Password := OldPasswordValue;
+            exit(OldPasswordValue);
     end;
 
     /// <summary>
