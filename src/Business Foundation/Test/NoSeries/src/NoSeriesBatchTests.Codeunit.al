@@ -1018,60 +1018,6 @@ codeunit 134531 "No. Series Batch Tests"
         LibraryAssert.AreEqual(StrSubstNo('%1-001', WorkDate() + 1), NextNo, 'Number was not as expected');
     end;
 
-#if not CLEAN24
-#pragma warning disable AL0432
-    [Test]
-    procedure TestLegacyDailyNoSeries()
-    var
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-        NoSeriesCode: Code[20];
-        NextNo: Code[20];
-    begin
-        // [SCENARIO] When setting up a No. Series Line with a new start date each day, ensure that the correct number is returned for each day
-        Initialize();
-
-        // [GIVEN] A No Series with 3 lines starting on 3 different days 
-        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
-        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
-        CreateDailyNoSeriesLines(NoSeriesCode);
-
-        // [WHEN] We get the next number for the first starting date
-        NextNo := NoSeriesManagement.GetNextNo(NoSeriesCode, WorkDate(), true);
-        // [THEN] the correct number is returned
-        LibraryAssert.AreEqual(StrSubstNo('%1-001', WorkDate()), NextNo, 'Number was not as expected');
-
-        // [WHEN] We get the next number for the second starting date
-        NextNo := NoSeriesManagement.GetNextNo(NoSeriesCode, WorkDate() + 1, true);
-        // [THEN] the correct number is returned
-        LibraryAssert.AreEqual(StrSubstNo('%1-001', WorkDate() + 1), NextNo, 'Number was not as expected');
-
-        // [WHEN] We get the next number for the first starting date
-        NextNo := NoSeriesManagement.GetNextNo(NoSeriesCode, WorkDate(), true);
-        // [THEN] the correct number is returned
-        LibraryAssert.AreEqual(StrSubstNo('%1-002', WorkDate()), NextNo, 'Number was not as expected');
-
-        // [WHEN] We get the next number for the second starting date
-        NextNo := NoSeriesManagement.GetNextNo(NoSeriesCode, WorkDate() + 1, true);
-        // [THEN] the correct number is returned
-        LibraryAssert.AreEqual(StrSubstNo('%1-002', WorkDate() + 1), NextNo, 'Number was not as expected');
-
-        // [WHEN] We get the next number for the third starting date
-        NextNo := NoSeriesManagement.GetNextNo(NoSeriesCode, WorkDate() + 2, true);
-        // [THEN] the correct number is returned
-        LibraryAssert.AreEqual(StrSubstNo('%1-001', WorkDate() + 2), NextNo, 'Number was not as expected');
-
-        // [WHEN] We get the next number for the third starting date
-        NextNo := NoSeriesManagement.GetNextNo(NoSeriesCode, WorkDate() + 2, true);
-        // [THEN] the correct number is returned
-        LibraryAssert.AreEqual(StrSubstNo('%1-002', WorkDate() + 2), NextNo, 'Number was not as expected');
-
-        // [WHEN] We get the next number for the second starting date
-        NextNo := NoSeriesManagement.GetNextNo(NoSeriesCode, WorkDate() + 1, true);
-        // [THEN] the correct number is returned
-        LibraryAssert.AreEqual(StrSubstNo('%1-003', WorkDate() + 1), NextNo, 'Number was not as expected');
-    end;
-#pragma warning restore AL0432
-#endif
 
     local procedure CreateDailyNoSeriesLines(NoSeriesCode: Code[20])
     begin

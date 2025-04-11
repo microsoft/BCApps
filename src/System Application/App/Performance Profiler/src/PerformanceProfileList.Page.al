@@ -87,12 +87,37 @@ page 1931 "Performance Profile List"
                     ToolTip = 'Specifies the ID of the client session that was profiled.';
                     AboutText = 'The ID of the client session that was profiled.';
                 }
+#if not CLEAN27
                 field("Schedule ID"; Rec."Schedule ID")
                 {
                     Caption = 'Schedule ID';
                     ToolTip = 'Specifies the ID of the schedule that was used to profile the activity.';
                     AboutText = 'The ID of the schedule that was used to profile the activity.';
                     TableRelation = "Performance Profile Scheduler"."Schedule ID";
+                    DrillDown = true;
+                    Visible = false;
+                    ObsoleteReason = 'This field is obsolete.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '27.0';
+
+                    trigger OnDrillDown()
+                    var
+                        PerfProfileSchedule: Record "Performance Profile Scheduler";
+                        PerfProfileScheduleCard: Page "Perf. Profiler Schedule Card";
+                    begin
+                        if not PerfProfileSchedule.Get(Rec."Schedule ID") then
+                            exit;
+
+                        PerfProfileScheduleCard.SetRecord(PerfProfileSchedule);
+                        PerfProfileScheduleCard.Run();
+                    end;
+                }
+#endif
+                field("Schedule Description"; ScheduleDescription)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Schedule Description';
+                    ToolTip = 'Specifies the description of the schedule that was used to profile the activity.';
                     DrillDown = true;
 
                     trigger OnDrillDown()
@@ -206,6 +231,7 @@ page 1931 "Performance Profile List"
     trigger OnAfterGetCurrRecord()
     begin
         this.MapClientTypeToActivityType();
+        ScheduleDescription := ScheduleDisplayName();
     end;
 
     local procedure MapClientTypeToActivityType()
@@ -214,10 +240,19 @@ page 1931 "Performance Profile List"
         PerfProfActivityMapper.MapClientTypeToActivityType(rec."Client Type", ActivityType);
     end;
 
+    local procedure ScheduleDisplayName(): Text
+    var
+        PerformanceProfileScheduler: Record "Performance Profile Scheduler";
+    begin
+        if PerformanceProfileScheduler.Get(Rec."Schedule ID") then
+            exit(PerformanceProfileScheduler.Description);
+    end;
+
     var
         PerfProfActivityMapper: Codeunit "Perf. Prof. Activity Mapper";
         ScheduledPerfProfilerImpl: Codeunit "Scheduled Perf. Profiler Impl.";
         ActivityType: Enum "Perf. Profile Activity Type";
+        ScheduleDescription: Text;
         ProfileFileNameTxt: Label 'PerformanceProfile_Activity%1_Session%2', Locked = true;
         ProfileFileExtensionTxt: Label '.alcpuprofile', Locked = true;
 }

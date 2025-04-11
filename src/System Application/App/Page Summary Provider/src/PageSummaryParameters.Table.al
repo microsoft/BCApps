@@ -35,6 +35,12 @@ table 2719 "Page Summary Parameters"
             ToolTip = 'Specifies if the media should be included in the summary.';
             InitValue = true;
         }
+        field(5; "Data for External Use"; Boolean)
+        {
+            Caption = 'Data for External Use';
+            ToolTip = 'Specifies if the summary data needs to satisfy the data visibility preference as it will be used in an external system.';
+            InitValue = true;
+        }
     }
 
     keys

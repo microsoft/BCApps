@@ -32,9 +32,15 @@ jobs:
         branch: ${{ fromJson(needs.GetBranches.outputs.officialBranches) }}
       fail-fast: false
     steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+
       - name: Submit Stability Job
         env:
-          GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         uses: microsoft/BCApps/.github/actions/RunAutomation@main
         with:
           automations: SubmitStabilityJob

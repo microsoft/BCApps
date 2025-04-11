@@ -120,9 +120,20 @@ xmlport 9864 "Import Permission Sets"
                 }
 
                 trigger OnBeforeInsertRecord()
+                var
+                    TenantPermission: Record "Tenant Permission";
+                    TenantPermissionSetRel: Record "Tenant Permission Set Rel.";
                 begin
                     if TempTenantPermissionSet.Get(TempTenantPermissionSet."App ID", TempTenantPermissionSet."Role ID") then
                         currXMLport.Skip();
+                    if not UpdatePermissions then begin
+                        TenantPermissionSetRel.SetFilter("App ID", TempTenantPermissionSet."App ID");
+                        TenantPermissionSetRel.SetFilter("Role ID", TempTenantPermissionSet."Role ID");
+                        TenantPermissionSetRel.DeleteAll();
+                        TenantPermission.SetFilter("App ID", TempTenantPermissionSet."App ID");
+                        TenantPermission.SetFilter("Role ID", TempTenantPermissionSet."Role ID");
+                        TenantPermission.DeleteAll();
+                    end;
                 end;
             }
             tableelement(TempMetadataPermissionSet; "Metadata Permission Set")
@@ -211,9 +222,20 @@ xmlport 9864 "Import Permission Sets"
                 }
 
                 trigger OnBeforeInsertRecord()
+                var
+                    MetadataPermission: Record "Metadata Permission";
+                    MetadataPermissionSetRel: Record "Metadata Permission Set Rel.";
                 begin
                     if TempMetadataPermissionSet.Get(TempMetadataPermissionSet."App ID", TempMetadataPermissionSet."Role ID") then
                         currXMLport.Skip();
+                    if not UpdatePermissions then begin
+                        MetadataPermissionSetRel.SetFilter("App ID", TempMetadataPermissionSet."App ID");
+                        MetadataPermissionSetRel.SetFilter("Role ID", TempMetadataPermissionSet."Role ID");
+                        MetadataPermissionSetRel.DeleteAll();
+                        MetadataPermission.SetFilter("App ID", TempMetadataPermissionSet."App ID");
+                        MetadataPermission.SetFilter("Role ID", TempTenantPermissionSet."Role ID");
+                        MetadataPermission.DeleteAll();
+                    end;
                 end;
             }
         }
