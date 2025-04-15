@@ -71,6 +71,18 @@ function Get-AssemblyProbingPaths() {
     }
     return $assemblyProbingPaths -join ","
 }
+
+<#
+    .Synopsis
+        Build a dependency app from source code and place it in the symbols folder for the app.
+    .Description
+        This function will build a dependency app from source code and place it in the symbols folder for the app.
+        The source code is downloaded from the artifact and the app is built with the same parameters as the main app.
+    .Parameter App
+        The name of the app to build.
+    .Parameter CompilationParameters
+        The parameters to use for the compilation of the app. This should be the same as the parameters used for the main app.
+#>
 function Build-Dependency() {
     param(
         [string] $App,
@@ -129,6 +141,14 @@ function Build-Dependency() {
     Compile-AppWithBcCompilerFolder @CompilationParameters
 }
 
+<#
+    .Synopsis
+        Install all uninstalled apps in the environment.
+    .Description
+        This function will install all uninstalled apps in the environment.
+    .Parameter ContainerName
+        The name of the container to install the apps in.
+#>
 function Install-UninstalledAppsInEnvironment() {
     param(
         [Parameter(Mandatory = $true)]
@@ -153,6 +173,18 @@ function Install-UninstalledAppsInEnvironment() {
     }
 }
 
+<#
+    .Synopsis
+        Publish an app from a file.
+    .Description
+        This function will publish an app from a file.
+    .Parameter ContainerName
+        The name of the container to publish the app in.
+    .Parameter AppFilePath
+        The path to the app file to publish.
+    .Parameter AppName
+        The name of the app to publish. If this is specified, the function will search for the app file with this name.
+#>
 function Publish-AppFromFile() {
     param(
         [Parameter(Mandatory = $true)]
@@ -176,6 +208,16 @@ function Publish-AppFromFile() {
     Publish-BcContainerApp -containerName $ContainerName -appFile ":$($AppFilePath)" -skipVerification -scope Global -install -sync
 }
 
+<#
+    .Synopsis
+        Install missing dependencies
+    .Description
+        This function will install missing dependencies
+    .Parameter ContainerName
+        The name of the container to install the dependencies in.
+    .Parameter DependenciesToInstall
+        The list of dependencies to install.
+#>
 function Install-MissingDependencies() {
     param(
         [Parameter(Mandatory = $true)]
@@ -223,6 +265,16 @@ function Install-MissingDependencies() {
     return $missingDependencies
 }
 
+<#
+    .Synopsis
+        Install apps in the container.
+    .Description
+        This function will install apps in the container.
+    .Parameter ContainerName
+        The name of the container to install the apps in.
+    .Parameter Apps
+        The list of apps to install.
+#>
 function Install-AppsInContainer() {
     param(
         [string] $ContainerName,
