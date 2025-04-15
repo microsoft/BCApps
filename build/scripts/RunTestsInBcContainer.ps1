@@ -1,6 +1,7 @@
 Param(
     [Hashtable] $parameters,
-    [switch] $DisableTestIsolation
+    [switch] $DisableTestIsolation,
+    [switch] $ReinstallUninstalledApps
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
@@ -62,6 +63,11 @@ else { # Test isolation is enabled
 if ($disabledTests)
 {
     $parameters["disabledTests"] = $disabledTests
+}
+
+if ($ReinstallUninstalledApps) {
+    Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
+    Install-UninstalledAppsInEnvironment -ContainerName $parameters["containerName"] -Verbose
 }
 
 Run-TestsInBcContainer @parameters

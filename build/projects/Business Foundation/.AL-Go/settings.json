@@ -1,11 +1,11 @@
 {
     "projectName": "Business Foundation",
     "appFolders":  [
-        "../../../src/Business Foundation/App"
+        "../../../src/Business Foundation/App",
+        "../../../src/Business Foundation/Test Library"
     ],
     "testFolders":  [
-        "../../../src/Business Foundation/Test",
-        "../../../src/Business Foundation/Test Library"
+        "../../../src/Business Foundation/Test"
     ],
     "buildModes": [
         "Translated"
