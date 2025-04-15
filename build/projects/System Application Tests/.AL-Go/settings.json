@@ -1,7 +1,24 @@
 {
     "projectName": "System Application Tests",
-    "testFolders":  [
-        "../../../src/System Application/Test",
+    "appFolders": [
         "../../../src/System Application/Test Library"
+    ],
+    "testFolders":  [
+        "../../../src/System Application/Test"
+    ],
+    "installOnlyReferencedApps": false,
+    "enableCodeCop": false,
+    "enableAppSourceCop": false,
+    "enablePerTenantExtensionCop": false,
+    "enableUICop": false,
+    "ConditionalSettings": [
+        {
+            "buildModes": [
+                "Clean"
+            ],
+            "settings": {
+                "doNotRunTests": true
+            }
+        }
     ]
 }

@@ -1,7 +1,8 @@
 Param(
     [ValidateSet('app', 'testApp', 'bcptApp')]
     [string] $appType = 'app',
-    [ref] $parameters
+    [ref] $parameters,
+    [string[]] $recompileDependencies = @()
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
@@ -32,6 +33,13 @@ if($appType -eq 'app')
             Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
 
             if($appBuildMode -eq 'Clean') {
+                if ($recompileDependencies.Count -gt 0) {
+                    Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
+                    $recompileDependencies | ForEach-Object {
+                        Build-Dependency -App $_ -CompilationParameters ($parameters.Value.Clone())
+                    }
+                }
+                
                 Write-Host "Compile the app without any preprocessor symbols to generate a baseline app to use for breaking changes check"
 
                 $tempParameters = $parameters.Value.Clone()
