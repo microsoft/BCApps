@@ -1782,9 +1782,9 @@ codeunit 138702 "Retention Policy Test"
         exit(true);
     end;
 
-    local procedure RetentionPolicyCode(RetentionPeriod: Variant) RetentionPolicyCode: Code[20]
+    local procedure RetentionPolicyCode(RetentionPeriod: Variant): Code[20]
     begin
-        RetentionPolicyCode := CopyStr(UpperCase(Format(RetentionPeriod)), 1, MaxStrLen(RetentionPolicyCode))
+        exit(CopyStr(UpperCase(Format(RetentionPeriod)), 1, 20))
     end;
 
     local procedure FixViewsTimeZoneIssueMaxRange(InDate: Date): Date

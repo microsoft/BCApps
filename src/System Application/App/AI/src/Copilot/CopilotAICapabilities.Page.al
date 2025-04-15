@@ -199,6 +199,67 @@ page 7775 "Copilot AI Capabilities"
                 }
             }
 
+            group(BingSearchOptIn)
+            {
+                ShowCaption = false;
+                Visible = true;
+
+                group(BingSearchAllowedDataMovementOffInfo)
+                {
+                    ShowCaption = false;
+                    Visible = true;
+                    InstructionalText = 'Some features use Microsoft Bing Search to improve results. To get the most out of these features, you must enable Bing Search.';
+                }
+                field(BingSearchFeatures; BingFeaturesLbl)
+                {
+                    ShowCaption = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        Hyperlink(BingFeaturesDocLinkLbl);
+                    end;
+                }
+                group(BingSearchDataMovementGroup)
+                {
+                    ShowCaption = false;
+                    label(BingSearchCaption)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'By enabling Bing Search, you agree to data being processed by the Bing Search Service outside of your environment''s geographic region or compliance boundary.';
+                    }
+                    field(BingSearchAreaDataMovement; BingOptIn)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Enable Bing Search';
+                        ToolTip = 'Specifies whether to enable Bing Search. This is required to for Copilot to use Bing Search in your environment.';
+                        Editable = true;
+
+                        trigger OnValidate()
+                        begin
+                            UpdateBingSearchOptIn();
+                        end;
+                    }
+                    field(BingSearchServiceAgreement; BingMSServiceAgreementLbl)
+                    {
+                        ShowCaption = false;
+
+                        trigger OnDrillDown()
+                        begin
+                            Hyperlink(BingMSServiceAgreementDocLinkLbl);
+                        end;
+                    }
+                    field(BingSearchPrivacyStatement; BingMSPrivacyStatementLbl)
+                    {
+                        ShowCaption = false;
+
+                        trigger OnDrillDown()
+                        begin
+                            Hyperlink(BingMSPrivacyStatementDocLinkLbl);
+                        end;
+                    }
+                }
+            }
+
             part(PreviewCapabilities; "Copilot Capabilities Preview")
             {
                 Caption = 'Production-ready previews';
@@ -251,6 +312,7 @@ page 7775 "Copilot AI Capabilities"
     var
         CopilotNotifications: Codeunit "Copilot Notifications";
         EnvironmentInformation: Codeunit "Environment Information";
+        SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
         WithinGeo: Boolean;
         WithinEUDB: Boolean;
         TaskId: Integer;
@@ -284,6 +346,8 @@ page 7775 "Copilot AI Capabilities"
             CopilotNotifications.ShowBillingInTheFutureNotification();
             CurrPage.EnqueueBackgroundTask(TaskId, Codeunit::"Copilot Quota Impl.");
         end;
+
+        BingOptIn := PrivacyNotice.GetPrivacyNoticeApprovalState(SystemPrivacyNoticeReg.GetBingPrivacyNoticeName(), false) = Enum::"Privacy Notice Approval State"::Agreed;
     end;
 
     trigger OnPageBackgroundTaskCompleted(TaskId: Integer; Results: Dictionary of [Text, Text])
@@ -346,6 +410,20 @@ page 7775 "Copilot AI Capabilities"
         CopilotTelemetry.SendCopilotDataMovementUpdatedTelemetry(AllowDataMovement);
     end;
 
+    local procedure UpdateBingSearchOptIn()
+    var
+        CopilotNotifications: Codeunit "Copilot Notifications";
+        SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
+    begin
+
+        if BingOptIn then
+            PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetBingPrivacyNoticeName(), "Privacy Notice Approval State"::Agreed)
+        else begin
+            PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetBingPrivacyNoticeName(), "Privacy Notice Approval State"::Disagreed);
+            CopilotNotifications.ShowBingSearchOptOutNudgeMessage();
+        end;
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnRegisterCopilotCapability()
     begin
@@ -371,4 +449,11 @@ page 7775 "Copilot AI Capabilities"
         DataProcessByAOAIDocLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2298232', Locked = true;
         AOAIServiceLocatedDocLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2250267', Locked = true;
         CheckServiceHealthDocLinkLbl: Label 'https://aka.ms/azurestatus', Locked = true;
+        BingOptIn: Boolean;
+        BingFeaturesLbl: Label 'Features using Bing Search';
+        BingFeaturesDocLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2298540', Locked = true;
+        BingMSServiceAgreementLbl: Label 'Microsoft Services Agreement';
+        BingMSServiceAgreementDocLinkLbl: Label 'https://aka.ms/msa', Locked = true;
+        BingMSPrivacyStatementLbl: Label 'Microsoft Privacy Statement';
+        BingMSPrivacyStatementDocLinkLbl: Label 'https://go.microsoft.com/fwlink?LinkId=521839', Locked = true;
 }
