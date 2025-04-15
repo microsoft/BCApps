@@ -225,4 +225,10 @@ codeunit 1476 "RSA Impl." implements "Signature Algorithm v2"
                 DotNetRSASignaturePadding := DotNetRSASignaturePadding.Pss;
         end;
     end;
+
+    [NonDebuggable]
+    internal procedure ExportRSAPrivateKeyPem(): SecretText
+    begin
+        exit(DotNetRSA.ExportRSAPrivateKeyPem());
+    end;
 }
