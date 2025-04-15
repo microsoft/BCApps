@@ -39,7 +39,7 @@ if($appType -eq 'app')
                         Build-Dependency -App $_ -CompilationParameters ($parameters.Value.Clone())
                     }
                 }
-                
+
                 Write-Host "Compile the app without any preprocessor symbols to generate a baseline app to use for breaking changes check"
 
                 $tempParameters = $parameters.Value.Clone()

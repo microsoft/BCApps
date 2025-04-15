@@ -6,7 +6,7 @@ if ($parameters.ContainsKey("upgrade")) {
     $parameters.Remove("upgrade")
 }
 
-# if ignoreIfAppExists is there then remove 
+# if ignoreIfAppExists is there then remove
 if ($parameters.ContainsKey("ignoreIfAppExists")) {
     Write-Host "Do not ignore if app exists"
     $parameters.Remove("ignoreIfAppExists")

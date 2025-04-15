@@ -27,10 +27,10 @@ function GetSourceCode() {
         # Download the artifact that contains the source code for those apps
         Download-Artifacts -artifactUrl $artifactVersion -basePath $TempFolder -includePlatform | Out-Null
 
-        # Unzip it 
-        $sourceArchive = Get-ChildItem -Path $TempFolder -Recurse -Filter "$App.Source.zip" 
+        # Unzip it
+        $sourceArchive = Get-ChildItem -Path $TempFolder -Recurse -Filter "$App.Source.zip"
     }
-    
+
     $sourceArchive | Expand-Archive -Destination $sourceCodeFolder
 
     if (-not (Test-Path $sourceCodeFolder)) {
@@ -49,7 +49,7 @@ function Get-AssemblyProbingPaths() {
     $DotNetSharedPath = "$env:ProgramFiles\dotnet\shared\Microsoft.AspNetCore.App\$TargetDotnetVersion.*"
     if(!(Test-Path $DotNetSharedPath)) {
         throw "Please install dotnet $TargetDotnetVersion SDK, path not found $DotNetSharedPath"
-    }    
+    }
 
     # Get the .NET latest minor version
     $versions = (Get-ChildItem "$DotNetSharedPath" -Name)
@@ -108,7 +108,7 @@ function Build-Dependency() {
     }
 
     $CompilationParameters["assemblyProbingPaths"] = Get-AssemblyProbingPaths
-    
+
     # Update the CompilationParameters
     $CompilationParameters["appProjectFolder"] = $sourceCodeFolder # Use the downloaded source code as the project folder
     $CompilationParameters["appOutputFolder"] = $addOnsSymbolsFolder # Place the app directly in the symbols folder for Add-Ons
@@ -137,7 +137,7 @@ function Install-UninstalledAppsInEnvironment() {
     # Get all apps in the environment
     $allAppsInEnvironment = Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesFirst
     foreach ($app in $allAppsInEnvironment) {
-        # Check if the app is already installed 
+        # Check if the app is already installed
         $isAppAlreadyInstalled = $allAppsInEnvironment | Where-Object { ($($_.Name) -eq $app.Name) -and ($_.IsInstalled -eq $true) }
         if (($app.IsInstalled -eq $true) -or ($isAppAlreadyInstalled)) {
             Write-Host "$($app.Name) is already installed"
@@ -167,7 +167,7 @@ function Publish-AppFromFile() {
         $allApps = (Invoke-ScriptInBCContainer -containerName $ContainerName -scriptblock { Get-ChildItem -Path "C:\Applications\" -Filter "*.app" -Recurse })
         $AppFilePath = $allApps | Where-Object { $($_.BaseName) -like "*$($AppName)" } | ForEach-Object { $_.FullName }
     }
-    
+
     if (-not $AppFilePath) {
         throw "App file not found"
     }
@@ -198,7 +198,7 @@ function Install-MissingDependencies() {
             Write-Host "[Install Missing Dependencies] - $($dependency) ($($isAppInstalled.Version)) is already installed"
             continue
         }
-        
+
         $uninstalledApps = @($appInContainer | Where-Object IsInstalled -eq $false)
         if ($uninstalledApps.Count -gt 1) {
             throw "[Install Missing Dependencies] - $($dependency) has multiple versions published. Cannot determine which one to install"
