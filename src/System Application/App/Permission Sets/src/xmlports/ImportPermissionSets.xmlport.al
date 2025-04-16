@@ -413,6 +413,8 @@ xmlport 9864 "Import Permission Sets"
                 TenantPermission."Delete Permission" := SourceTenantPermission."Delete Permission";
             if IsFirstPermissionHigherThanSecond(SourceTenantPermission."Execute Permission", TenantPermission."Execute Permission") then
                 TenantPermission."Execute Permission" := SourceTenantPermission."Execute Permission";
+
+            TenantPermission."Security Filter" := SourceTenantPermission."Security Filter";
             TenantPermission.Modify();
         end;
     end;
