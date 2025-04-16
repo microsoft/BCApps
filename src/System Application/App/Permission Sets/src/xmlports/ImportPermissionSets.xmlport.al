@@ -124,8 +124,8 @@ xmlport 9864 "Import Permission Sets"
                     TenantPermission: Record "Tenant Permission";
                     TenantPermissionSetRel: Record "Tenant Permission Set Rel.";
                 begin
-                    if TempTenantPermissionSet.Get(TempTenantPermissionSet."App ID", TempTenantPermissionSet."Role ID") then
-                        currXMLport.Skip();
+                    // if TempTenantPermissionSet.Get(TempTenantPermissionSet."App ID", TempTenantPermissionSet."Role ID") then
+                    //     currXMLport.Skip(); 
                     if not UpdatePermissions then begin
                         TenantPermissionSetRel.SetFilter("App ID", TempTenantPermissionSet."App ID");
                         TenantPermissionSetRel.SetFilter("Role ID", TempTenantPermissionSet."Role ID");
@@ -226,8 +226,8 @@ xmlport 9864 "Import Permission Sets"
                     MetadataPermission: Record "Metadata Permission";
                     MetadataPermissionSetRel: Record "Metadata Permission Set Rel.";
                 begin
-                    if TempMetadataPermissionSet.Get(TempMetadataPermissionSet."App ID", TempMetadataPermissionSet."Role ID") then
-                        currXMLport.Skip();
+                    // if TempMetadataPermissionSet.Get(TempMetadataPermissionSet."App ID", TempMetadataPermissionSet."Role ID") then
+                    //     currXMLport.Skip();
                     if not UpdatePermissions then begin
                         MetadataPermissionSetRel.SetFilter("App ID", TempMetadataPermissionSet."App ID");
                         MetadataPermissionSetRel.SetFilter("Role ID", TempMetadataPermissionSet."Role ID");
@@ -413,6 +413,8 @@ xmlport 9864 "Import Permission Sets"
                 TenantPermission."Delete Permission" := SourceTenantPermission."Delete Permission";
             if IsFirstPermissionHigherThanSecond(SourceTenantPermission."Execute Permission", TenantPermission."Execute Permission") then
                 TenantPermission."Execute Permission" := SourceTenantPermission."Execute Permission";
+
+            TenantPermission."Security Filter" := SourceTenantPermission."Security Filter";
             TenantPermission.Modify();
         end;
     end;
