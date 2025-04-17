@@ -17,6 +17,7 @@ codeunit 134971 "Rest Client Tests"
         HttpClientHandler: Codeunit "Test Http Client Handler";
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestGet()
     var
         RestClient: Codeunit "Rest Client";
@@ -40,6 +41,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestGetWithQueryParameters()
     var
         RestClient: Codeunit "Rest Client";
@@ -64,6 +66,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestPost()
     var
         RestClient: Codeunit "Rest Client";
@@ -89,6 +92,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestPatch()
     var
         RestClient: Codeunit "Rest Client";
@@ -114,6 +118,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestPut()
     var
         RestClient: Codeunit "Rest Client";
@@ -139,6 +144,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestDelete()
     var
         RestClient: Codeunit "Rest Client";
@@ -162,6 +168,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestGetWithDefaultHeaders()
     var
         RestClient: Codeunit "Rest Client";
@@ -187,6 +194,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestBaseAddress()
     var
         RestClient: Codeunit "Rest Client";
@@ -211,6 +219,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestDefaultUserAgentHeader()
     var
         RestClient: Codeunit "Rest Client";
@@ -234,6 +243,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestCustomUserAgentHeader()
     var
         RestClient: Codeunit "Rest Client";
@@ -258,6 +268,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestGetAsJson()
     var
         RestClient: Codeunit "Rest Client";
@@ -277,6 +288,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     [ErrorBehavior(ErrorBehavior::Collect)]
     procedure TestGetAsJsonWithCollectingErrors()
     var
@@ -302,6 +314,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestPostAsJson()
     var
         RestClient: Codeunit "Rest Client";
@@ -331,6 +344,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestPatchAsJson()
     var
         RestClient: Codeunit "Rest Client";
@@ -360,6 +374,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestPutAsJson()
     var
         RestClient: Codeunit "Rest Client";
@@ -389,6 +404,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestSendWithoutGetContent()
     var
         RestClient: Codeunit "Rest Client";
@@ -412,6 +428,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestSendWithGetContent()
     var
         RestClient: Codeunit "Rest Client";
@@ -437,6 +454,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestSendRequestMessage()
     var
         RestClient: Codeunit "Rest Client";
@@ -463,6 +481,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestBasicAuthentication()
     var
         RestClient: Codeunit "Rest Client";
@@ -488,6 +507,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestResponseWithCookies()
     var
         RestClient: Codeunit "Rest Client";
@@ -509,6 +529,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestRequestWithCookies()
     var
         RestClient: Codeunit "Rest Client";
@@ -539,6 +560,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestWithoutUseResponseCookies()
     var
         RestClient: Codeunit "Rest Client";
@@ -569,6 +591,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestWithUseResponseCookies()
     var
         RestClient: Codeunit "Rest Client";
@@ -598,6 +621,7 @@ codeunit 134971 "Rest Client Tests"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
     procedure TestUseResponseCookiesWithAdditionalCookies()
     var
         RestClient: Codeunit "Rest Client";
@@ -638,5 +662,11 @@ codeunit 134971 "Rest Client Tests"
     local procedure SelectJsonToken(JsonObject: JsonObject; Path: Text) JsonToken: JsonToken
     begin
         JsonObject.SelectToken(Path, JsonToken);
+    end;
+
+    [StrMenuHandler]
+    procedure StrMenuHandler(Options: Text[1024]; var Choice: Integer; Instruction: Text[1024])
+    begin
+        Choice := 2;
     end;
 }
