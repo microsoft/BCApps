@@ -3,7 +3,9 @@
         "System Application",
         "Business Foundation", 
         "Base Application", 
-        "Application",
+        "Application"
+    ],
+    "ExternalTestAppDependencies" : [
         "Permissions Mock",
         "Any",
         "Library Assert",

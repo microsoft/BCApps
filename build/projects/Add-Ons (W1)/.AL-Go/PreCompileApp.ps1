@@ -4,7 +4,8 @@ Param(
 )
 
 if ($ENV:BuildMode -eq 'Clean') {
-    $externalDependencies = (Get-Content (Join-Path $PSScriptRoot "customSettings.json" -Resolve) | ConvertFrom-Json).ExternalAppDependencies
+    $customSettings = Get-Content (Join-Path $PSScriptRoot "customSettings.json" -Resolve) | ConvertFrom-Json
+    $externalDependencies = ($customSettings.ExternalAppDependencies + $customSettings.ExternalTestAppDependencies)
     $settings = Get-Content (Join-Path $PSScriptRoot "settings.json" -Resolve) | ConvertFrom-Json
 
     if ($settings.useProjectDependencies -eq $false) {
