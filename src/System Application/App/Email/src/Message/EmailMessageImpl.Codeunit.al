@@ -727,9 +727,12 @@ codeunit 8905 "Email Message Impl."
             exit(false);
 
         EmailMessage.SetRange(Id, EmailRecipient."Email Message Id");
-        if EmailMessage.IsEmpty() then
+        if EmailMessage.IsEmpty() then begin
+            OrphanedList.Add(EmailRecipient."Email Message Id");
             exit(true);
+        end;
 
+        NotOrphanedList.Add(EmailRecipient."Email Message Id");
         exit(false);
     end;
 
