@@ -220,6 +220,6 @@ codeunit 1285 "X509Certificate2 Impl."
 
         RSA.FromSecretXmlString(PrivateKeyXmlString);
 
-        exit(RSAEncryptionHelper.CreateBase64Pkcs12FromPem(CertBase64, RSA.ExportRSAPrivateKeyPem().Unwrap(), Password.Unwrap()));
+        exit(RSAEncryptionHelper.CreateBase64Pkcs12FromPem(CertBase64, RSA.ExportRSAPrivateKeyPem(), Password));
     end;
 }
