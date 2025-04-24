@@ -123,6 +123,16 @@ codeunit 9024 "Azure AD Graph User"
     end;
 
     /// <summary>
+    /// Returns whether the current user is delegated.
+    /// </summary>
+    /// <returns>True if the current user is delegated, false otherwise.</returns>
+    [NonDebuggable]
+    procedure IsUserDelegated(): Boolean
+    begin
+        exit(AzureADGraphUserImpl.IsUserDelegated());
+    end;
+
+    /// <summary>
     /// Updates the user record with information from Microsoft Entra.
     /// </summary>
     /// <param name="User">The user record to update.</param>
