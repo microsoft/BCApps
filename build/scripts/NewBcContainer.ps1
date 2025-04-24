@@ -19,7 +19,7 @@ $installedApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName
 foreach($app in $installedApps) {
     Write-Host "Removing $($app.Name)"
     UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -doNotSaveData -doNotSaveSchema -force
-    
+
     if ((-not $KeepAppsPublished)) {
         Write-Host "Unpublishing $($app.Name)"
         Unpublish-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -unInstall -doNotSaveData -doNotSaveSchema -force
