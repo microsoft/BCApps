@@ -690,12 +690,12 @@ codeunit 8905 "Email Message Impl."
         EmailMessage.Delete();
     end;
 
-    procedure DeleteOrphanedEmailRecipients(StartMessageId: Guid; MessagesToIterate: Integer) NextMessageId: Guid
+    procedure DeleteEmailRecipientsIfOrphaned(StartMessageId: Guid; RecipientsToIterate: Integer) NextMessageId: Guid
     var
         EmailRecipients: Record "Email Recipient";
         OrphanedDict: Dictionary of [Guid, Boolean];
         EmptyGuid: Guid;
-        MessageNo: Integer;
+        RecipientIdx: Integer;
     begin
         EmailRecipients.SetLoadFields("Email Message Id");
         EmailRecipients.ReadIsolation(IsolationLevel::ReadCommitted);
@@ -704,7 +704,7 @@ codeunit 8905 "Email Message Impl."
         if not EmailRecipients.FindSet() then
             exit;
 
-        for MessageNo := 1 to MessagesToIterate do begin
+        for RecipientIdx := 1 to RecipientsToIterate do begin
             if IsEmailRecipientOrphaned(OrphanedDict, EmailRecipients) then
                 EmailRecipients.Delete();
 

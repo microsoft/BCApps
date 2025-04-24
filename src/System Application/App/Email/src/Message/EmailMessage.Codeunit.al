@@ -165,9 +165,9 @@ codeunit 8904 "Email Message"
     /// <param name="MessagesToIterate">Number of email messages to loop over.</param>
     /// <returns>The next email message id to be checked. Returns empty guid if there are no more messages.</returns>
     /// <remarks>Only the recipients that are not referenced by any email message will be deleted.</remarks>
-    procedure DeleteOrphanedEmailRecipients(StartMessageId: Guid; MessagesToIterate: Integer) NextMessageId: Guid
+    procedure DeleteEmailRecipientsIfOrphaned(StartMessageId: Guid; MessagesToIterate: Integer) NextMessageId: Guid
     begin
-        exit(EmailMessageImpl.DeleteOrphanedEmailRecipients(StartMessageId, MessagesToIterate));
+        exit(EmailMessageImpl.DeleteEmailRecipientsIfOrphaned(StartMessageId, MessagesToIterate));
     end;
 
     /// <summary>
