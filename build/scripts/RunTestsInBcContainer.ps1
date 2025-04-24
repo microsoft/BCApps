@@ -67,7 +67,15 @@ if ($disabledTests)
 
 if ($ReinstallUninstalledApps) {
     Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
-    Install-UninstalledAppsInEnvironment -ContainerName $parameters["containerName"] -Verbose
+
+    # Get all uninstalled apps and install them in the container
+    $allUninstalledApps = Get-BcContainerAppInfo -containerName $parameters["containerName"] -tenantSpecificProperties -sort DependenciesFirst | Where-Object { $_.IsInstalled -eq $false }
+    Install-AppFromContainer -ContainerName $parameters["containerName"] -DependenciesToInstall $allUninstalledApps.Name
+
+    # Log all the installed apps
+    foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesLast)) {
+        Write-Verbose "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - $($app.IsInstalled) / $($app.IsPublished)"
+    }
 }
 
 Run-TestsInBcContainer @parameters

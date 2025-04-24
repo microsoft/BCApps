@@ -11,7 +11,7 @@ function Invoke-ContosoDemoTool() {
         [switch]$SetupData = $false,
         [string]$DemodataApp = "Contoso Coffee Demo Dataset"
     )
-    Install-AppsInContainer -ContainerName $ContainerName -Apps @($DemodataApp)
+    Install-AppFromContainer -ContainerName $ContainerName -DependenciesToInstall @($DemodataApp)
 
     Write-Host "Initializing company in container $ContainerName"
     Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName

@@ -1,4 +1,4 @@
-function GetSourceCode() {
+function GetSourceCodeFromArtifact() {
     param(
         [string] $App,
         [string] $TempFolder
@@ -41,7 +41,7 @@ function GetSourceCode() {
     return $sourceCodeFolder
 }
 
-function Get-AssemblyProbingPaths() {
+function GetAssemblyProbingPaths() {
     param(
         [string] $TargetDotnetVersion = "8"
     )
@@ -101,7 +101,7 @@ function Build-Dependency() {
     }
 
     Write-Host "Get source code for $App"
-    $sourceCodeFolder = GetSourceCode -App $App -TempFolder $script:tempFolder
+    $sourceCodeFolder = GetSourceCodeFromArtifact -App $App -TempFolder $script:tempFolder
 
     # Copy apps to packagecachepath
     $addOnsSymbolsFolder = $CompilationParameters["appSymbolsFolder"]
@@ -119,7 +119,7 @@ function Build-Dependency() {
         return
     }
 
-    $CompilationParameters["assemblyProbingPaths"] = Get-AssemblyProbingPaths
+    $CompilationParameters["assemblyProbingPaths"] = GetAssemblyProbingPaths
 
     # Update the CompilationParameters
     $CompilationParameters["appProjectFolder"] = $sourceCodeFolder # Use the downloaded source code as the project folder
@@ -143,41 +143,9 @@ function Build-Dependency() {
 
 <#
     .Synopsis
-        Install all uninstalled apps in the environment.
+        Publish and install an app from a file.
     .Description
-        This function will install all uninstalled apps in the environment.
-    .Parameter ContainerName
-        The name of the container to install the apps in.
-#>
-function Install-UninstalledAppsInEnvironment() {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string] $ContainerName
-    )
-    # Get all apps in the environment
-    $allAppsInEnvironment = Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesFirst
-    foreach ($app in $allAppsInEnvironment) {
-        # Check if the app is already installed
-        $isAppAlreadyInstalled = $allAppsInEnvironment | Where-Object { ($($_.Name) -eq $app.Name) -and ($_.IsInstalled -eq $true) }
-        if (($app.IsInstalled -eq $true) -or ($isAppAlreadyInstalled)) {
-            Write-Host "$($app.Name) is already installed"
-        } else {
-            Write-Host "Re-Installing $($app.Name)"
-            Sync-BcContainerApp -containerName $ContainerName -appName $app.Name -appPublisher $app.Publisher -Mode ForceSync -Force
-            Install-BcContainerApp -containerName $ContainerName -appName $app.Name -appPublisher $app.Publisher -appVersion $app.Version -Force
-        }
-    }
-
-    foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesLast)) {
-        Write-Verbose "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - $($app.IsInstalled) / $($app.IsPublished)"
-    }
-}
-
-<#
-    .Synopsis
-        Publish an app from a file.
-    .Description
-        This function will publish an app from a file.
+        This function will publish and install an app from a file.
     .Parameter ContainerName
         The name of the container to publish the app in.
     .Parameter AppFilePath
@@ -185,7 +153,7 @@ function Install-UninstalledAppsInEnvironment() {
     .Parameter AppName
         The name of the app to publish. If this is specified, the function will search for the app file with this name.
 #>
-function Publish-AppFromFile() {
+function Install-AppFromFile() {
     param(
         [Parameter(Mandatory = $true)]
         [string] $ContainerName,
@@ -195,30 +163,30 @@ function Publish-AppFromFile() {
         [string] $AppName
     )
     if ($PSCmdlet.ParameterSetName -eq "ByAppName") {
-        Write-Host "Searching for app file with name: $AppName"
+        Write-Host "[Install App from file] - Searching for app file with name: $AppName"
         $allApps = (Invoke-ScriptInBCContainer -containerName $ContainerName -scriptblock { Get-ChildItem -Path "C:\Applications\" -Filter "*.app" -Recurse })
         $AppFilePath = $allApps | Where-Object { $($_.BaseName) -like "*$($AppName)" } | ForEach-Object { $_.FullName }
     }
 
     if (-not $AppFilePath) {
-        throw "App file not found"
+        throw "[Install App from file] - App file not found"
     }
 
-    Write-Host "Installing app from file: $AppFilePath"
+    Write-Host "[Install App from file] - $AppFilePath"
     Publish-BcContainerApp -containerName $ContainerName -appFile ":$($AppFilePath)" -skipVerification -scope Global -install -sync
 }
 
 <#
     .Synopsis
-        Install missing dependencies
+        Install Container App
     .Description
-        This function will install missing dependencies
+        This function will Install Container App
     .Parameter ContainerName
         The name of the container to install the dependencies in.
     .Parameter DependenciesToInstall
         The list of dependencies to install.
 #>
-function Install-MissingDependenciesFromContainer() {
+function Install-AppFromContainer() {
     param(
         [Parameter(Mandatory = $true)]
         [string] $ContainerName,
@@ -230,29 +198,29 @@ function Install-MissingDependenciesFromContainer() {
     foreach($dependency in $DependenciesToInstall) {
         $appInContainer = $allAppsInEnvironment | Where-Object Name -eq $dependency
         if (-not $appInContainer) {
-            Write-Host "[Install Missing Dependencies] - $($dependency) is not published to the container"
+            Write-Host "[Install Container App] - $($dependency) is not published to the container"
             $missingDependencies += $dependency
             continue
         }
 
         $isAppInstalled = $appInContainer | Where-Object IsInstalled -eq $true
         if ($isAppInstalled) {
-            Write-Host "[Install Missing Dependencies] - $($dependency) ($($isAppInstalled.Version)) is already installed"
+            Write-Host "[Install Container App] - $($dependency) ($($isAppInstalled.Version)) is already installed"
             continue
         }
 
         $uninstalledApps = @($appInContainer | Where-Object IsInstalled -eq $false)
         if ($uninstalledApps.Count -gt 1) {
-            throw "[Install Missing Dependencies] - $($dependency) has multiple versions published. Cannot determine which one to install"
+            throw "[Install Container App] - $($dependency) has multiple versions published. Cannot determine which one to install"
         }
 
         $appToInstall = $uninstalledApps[0]
-        Write-Host "[Install Missing Dependencies] - Installing $($dependency)"
+        Write-Host "[Install Container App] - Installing $($dependency)"
         try {
             Sync-BcContainerApp -containerName $ContainerName -appName $appToInstall.Name -appPublisher $appToInstall.Publisher -Mode ForceSync -Force
             Install-BcContainerApp -containerName $ContainerName -appName $appToInstall.Name -appPublisher $appToInstall.Publisher -appVersion $appToInstall.Version -Force
         } catch {
-            Write-Host "[Install Missing Dependencies] - Failed to install $($dependency) ($($appToInstall.Version))"
+            Write-Host "[Install Container App] - Failed to install $($dependency) ($($appToInstall.Version))"
             Write-Host $_.Exception.Message
             $missingDependencies += $dependency
             continue
@@ -260,44 +228,9 @@ function Install-MissingDependenciesFromContainer() {
     }
 
     if ($missingDependencies.Count -gt 0) {
-        Write-Host "[Install Missing Dependencies] - The following dependencies are missing: $($missingDependencies -join ', ')"
+        Write-Host "[Install Container App] - The following dependencies are missing: $($missingDependencies -join ', ')"
     }
     return $missingDependencies
-}
-
-<#
-    .Synopsis
-        Install apps in the container.
-    .Description
-        This function will install apps in the container.
-    .Parameter ContainerName
-        The name of the container to install the apps in.
-    .Parameter Apps
-        The list of apps to install.
-#>
-function Install-AppsInContainer() {
-    param(
-        [string] $ContainerName,
-        [string[]] $Apps
-    )
-    $allAppsInEnvironment = Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesFirst
-    foreach ($app in $Apps) {
-        # Check if app can be found in the container
-        $appInContainer = $allAppsInEnvironment | Where-Object { ($($_.Name) -eq $app) }
-
-        if (-not $appInContainer) {
-            Write-Host "App $($app) not found in the container. Cannot install it until it is published."
-            return $false
-        } elseif ($appInContainer.IsInstalled -eq $true) {
-            Write-Host "$($app) is already installed"
-            return $true
-        } else {
-            Write-Host "Installing $appInContainer from container $ContainerName"
-            Sync-BcContainerApp -containerName $ContainerName -appName $appInContainer.Name -appPublisher $appInContainer.Publisher -Mode ForceSync -Force
-            Install-BcContainerApp -containerName $ContainerName -appName $appInContainer.Name -appPublisher $appInContainer.Publisher -appVersion $appInContainer.Version -Force
-            return $true
-        }
-    }
 }
 
 function Get-ExternalDependencies() {
@@ -318,4 +251,4 @@ function Get-ExternalDependencies() {
     }
 }
 
-Export-ModuleMember -Function Build-Dependency, Install-UninstalledAppsInEnvironment, Publish-AppFromFile, Install-MissingDependenciesFromContainer, Install-AppsInContainer, Get-ExternalDependencies
+Export-ModuleMember Export-ModuleMember -Function *-*
