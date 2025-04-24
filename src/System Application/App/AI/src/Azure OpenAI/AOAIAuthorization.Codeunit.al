@@ -59,12 +59,12 @@ codeunit 7767 "AOAI Authorization"
             Enum::"AOAI Resource Utilization"::"Microsoft Managed":
 #if CLEAN26
                 if (AOAIAccountName <> '') and (ManagedResourceDeployment <> '') and (not ApiKey.IsEmpty()) then
-                    exit(VerifyAOAIAccount(AOAIAccountName, ApiKey))
+                    exit(VerifyAOAIAccount(AOAIAccountName, ApiKey) and AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls())
 #else
                 if (AOAIAccountName <> '') and (ManagedResourceDeployment <> '') and (not ApiKey.IsEmpty()) then
-                    exit(VerifyAOAIAccount(AOAIAccountName, ApiKey))
+                    exit(VerifyAOAIAccount(AOAIAccountName, ApiKey) and AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls())
                 else
-                    exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()) and (ManagedResourceDeployment <> ''));
+                    exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()) and (ManagedResourceDeployment <> '') and AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls());
 #endif
         end;
 
