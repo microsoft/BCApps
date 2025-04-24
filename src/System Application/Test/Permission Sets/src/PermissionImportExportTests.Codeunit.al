@@ -422,6 +422,66 @@ codeunit 132437 "Permission Import Export Tests"
         LibraryAssert.AreEqual(TenantPermission."Delete Permission", TenantPermission."Delete Permission"::" ", 'Delete permission is not set correctly.');
     end;
 
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportTenantPermissionSetUsingOverwriteOptionWithSecurityFilter()
+    var
+        TenantPermission: Record "Tenant Permission";
+        TenantPermissionSet: Record "Tenant Permission Set";
+        PermissionSetRelation: Codeunit "Permission Set Relation";
+        TempBlobOriginal: Codeunit "Temp Blob";
+        ImportPermissionSets: XmlPort "Import Permission Sets";
+        OutStr: OutStream;
+        InStr: InStream;
+        ZeroGuid: Guid;
+        AppId: Guid;
+        NewRoleId: Code[20];
+        NewName: Text;
+    begin
+        // [FEATURE] [Import] [XMLPORT] [Permission Set] [Tenant Permission Set]
+        // [SCENARIO] Tenant permission set is exported, then change the security filter, and then import the original permission set. The origin security filter should be imported.
+
+        Initialize();
+
+        NewRoleId := 'Test Permission Set';
+        NewName := 'Test Permission Set';
+
+        // [WHEN] Permission Set C is cloned to get a tenant permission set
+        PermissionSetRelation.CopyPermissionSet(NewRoleId, NewName, 'Permission Set C', AppId, Scope::System, Enum::"Permission Set Copy Type"::Clone);
+
+        LibraryAssert.IsTrue(TenantPermissionSet.Get(ZeroGuid, NewRoleId), 'Test permission set is missing');
+        LibraryAssert.IsTrue(TenantPermission.Get(ZeroGuid, TenantPermissionSet."Role ID", TenantPermission."Object Type"::"Table Data", Database::"Tenant Permission"), 'Included permission to Test permission set is missing');
+
+        // [WHEN] Change the security filter before exporting
+        Evaluate(TenantPermission."Security Filter", 'Tenant Permission: Type=<>Include');
+        TenantPermission.Modify();
+
+        TenantPermissionSet.SetFilter("Role ID", NewRoleId);
+        TempBlobOriginal.CreateOutStream(OutStr);
+
+        // [WHEN] Export Tenant permission set
+        Xmlport.Export(Xmlport::"Export Permission Sets Tenant", OutStr, TenantPermissionSet);
+
+        LibraryAssert.IsTrue(TenantPermissionSet.Get(ZeroGuid, NewRoleId), 'Test permission set is missing');
+        LibraryAssert.IsTrue(TenantPermission.Get(ZeroGuid, TenantPermissionSet."Role ID", TenantPermission."Object Type"::"Table Data", Database::"Tenant Permission"), 'Included permission to Test permission set is missing');
+
+        // [WHEN] Change the security filter from '<>Include' to '<>Exclude'
+        Evaluate(TenantPermission."Security Filter", 'Tenant Permission: Type=<>Exclude');
+        TenantPermission.Modify();
+
+        // [WHEN] Import the original tenant permission set that was exported, and user choose to overwrite the permission set
+        TempBlobOriginal.CreateInStream(InStr);
+        ImportPermissionSets.SetSource(InStr);
+        ImportPermissionSets.SetUpdatePermissions(false);
+        ImportPermissionSets.Import();
+
+        // [THEN] The original security filter is imported, and the permission set is found with the correct permissions
+        LibraryAssert.IsTrue(TenantPermissionSet.Get(ZeroGuid, NewRoleId), 'Test permission set is missing');
+        LibraryAssert.IsTrue(TenantPermission.Get(ZeroGuid, TenantPermissionSet."Role ID", TenantPermission."Object Type"::"Table Data", Database::"Tenant Permission"), 'Included permission to Test permission set is missing');
+        LibraryAssert.AreEqual('Tenant Permission: Type=<>Include', Format(TenantPermission."Security Filter"), 'Security Filter is not set correctly.');
+    end;
+
     local procedure Initialize()
     var
         TenantPermission: Record "Tenant Permission";
