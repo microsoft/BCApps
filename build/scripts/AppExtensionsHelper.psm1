@@ -300,4 +300,22 @@ function Install-AppsInContainer() {
     }
 }
 
-Export-ModuleMember -Function Build-Dependency, Install-UninstalledAppsInEnvironment, Publish-AppFromFile, Install-MissingDependencies, Install-AppsInContainer
+function Get-ExternalDependencies() {
+    param(
+        [switch] $AppDependencies,
+        [switch] $TestAppDependencies
+    )
+    Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
+    $appExtensionsSettings = Join-Path (Get-BaseFolder) "build/projects/Add-Ons (W1)/.AL-Go/settings.json" -Resolve
+    $customSettings = Get-Content -Path $appExtensionsSettings -Resolve | ConvertFrom-Json
+
+    if ($AppDependencies) {
+        return $customSettings.ExternalAppDependencies
+    } elseif ($TestAppDependencies) {
+        return $customSettings.ExternalTestAppDependencies
+    } else {
+        return $customSettings.ExternalAppDependencies + $customSettings.ExternalTestAppDependencies
+    }
+}
+
+Export-ModuleMember -Function Build-Dependency, Install-UninstalledAppsInEnvironment, Publish-AppFromFile, Install-MissingDependencies, Install-AppsInContainer, Get-ExternalDependencies

@@ -2,17 +2,16 @@ Param(
     [Hashtable]$parameters
 )
 
-# Reinstall the dependencies in the container
-$customSettings = Get-Content -Path (Join-Path $PSScriptRoot "customSettings.json" -Resolve) | ConvertFrom-Json
+Import-Module (Join-Path $PSScriptRoot "../../../scripts/AppExtensionsHelper.psm1" -Resolve)
 
-$isBaseAppInstalled = Get-BcContainerAppInfo -containerName $parameters.containerName -tenantSpecificProperties | Where-Object { ($_.Name -eq "Base Application") -and ($_.IsInstalled -eq $true) }
 # If the base app isn't installed we need to start by installing the app dependencies. Later we will install the test app dependencies.
+$isBaseAppInstalled = Get-BcContainerAppInfo -containerName $parameters.containerName -tenantSpecificProperties | Where-Object { ($_.Name -eq "Base Application") -and ($_.IsInstalled -eq $true) }
 if (-not $isBaseAppInstalled) {
     Write-Host "Installing App Dependencies"
-    $dependenciesToInstall = $customSettings.ExternalAppDependencies
+    $dependenciesToInstall = Get-ExternalDependencies -AppDependencies
 } else {
     Write-Host "Installing Test App Dependencies"
-    $dependenciesToInstall = $customSettings.ExternalTestAppDependencies
+    $dependenciesToInstall = Get-ExternalDependencies -TestAppDependencies
 }
 
 $script = Join-Path $PSScriptRoot "../../../scripts/InstallMissingDependencies.ps1" -Resolve
