@@ -17,6 +17,7 @@ codeunit 7769 "AOAI Deployments Impl"
 
     var
         Telemetry: Codeunit Telemetry;
+        UnableToGetDeploymentNameErr: Label 'Unable to get deployment name, if this is a third party capability you must specify your own deployment name. You may need to contact your partner.';
         GPT4oLatestLbl: Label 'gpt-4o-latest', Locked = true;
         GPT4oPreviewLbl: Label 'gpt-4o-preview', Locked = true;
         GPT4oMiniLatestLbl: Label 'gpt-4o-mini-latest', Locked = true;
@@ -41,7 +42,7 @@ codeunit 7769 "AOAI Deployments Impl"
         EnviromentInformation: Codeunit "Environment Information";
     begin
         if EnviromentInformation.IsSaaS() then
-            exit(GetDeploymentName(Turbo0301SaasLbl));
+            exit(GetDeploymentName(Turbo0301SaasLbl, CallerModuleInfo));
 
         exit(Turbo0301Lbl);
     end;
@@ -51,7 +52,7 @@ codeunit 7769 "AOAI Deployments Impl"
         EnviromentInformation: Codeunit "Environment Information";
     begin
         if EnviromentInformation.IsSaaS() then
-            exit(GetDeploymentName(GPT40613SaasLbl));
+            exit(GetDeploymentName(GPT40613SaasLbl, CallerModuleInfo));
 
         exit(GPT40613Lbl);
     end;
@@ -61,50 +62,50 @@ codeunit 7769 "AOAI Deployments Impl"
         EnviromentInformation: Codeunit "Environment Information";
     begin
         if EnviromentInformation.IsSaaS() then
-            exit(GetDeploymentName(Turbo0613SaasLbl));
+            exit(GetDeploymentName(Turbo0613SaasLbl, CallerModuleInfo));
 
         exit(Turbo031316kLbl);
     end;
 
     procedure GetGPT35TurboPreview(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT35TurboPreviewLbl));
+        exit(GetDeploymentName(GPT35TurboPreviewLbl, CallerModuleInfo));
     end;
 
     procedure GetGPT35TurboLatest(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT35TurboLatestLbl));
+        exit(GetDeploymentName(GPT35TurboLatestLbl, CallerModuleInfo));
     end;
 
     procedure GetGPT4Preview(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT4PreviewLbl));
+        exit(GetDeploymentName(GPT4PreviewLbl, CallerModuleInfo));
     end;
 
     procedure GetGPT4Latest(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT4LatestLbl));
+        exit(GetDeploymentName(GPT4LatestLbl, CallerModuleInfo));
     end;
 #endif
 
     procedure GetGPT4oPreview(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT4oPreviewLbl));
+        exit(GetDeploymentName(GPT4oPreviewLbl, CallerModuleInfo));
     end;
 
     procedure GetGPT4oLatest(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT4oLatestLbl));
+        exit(GetDeploymentName(GPT4oLatestLbl, CallerModuleInfo));
     end;
 
     procedure GetGPT4oMiniPreview(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT4oMiniPreviewLbl));
+        exit(GetDeploymentName(GPT4oMiniPreviewLbl, CallerModuleInfo));
     end;
 
     procedure GetGPT4oMiniLatest(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT4oMiniLatestLbl));
+        exit(GetDeploymentName(GPT4oMiniLatestLbl, CallerModuleInfo));
     end;
 
     // Initializes dictionary of deprecated models
@@ -148,13 +149,17 @@ codeunit 7769 "AOAI Deployments Impl"
         end;
     end;
 
-    local procedure GetDeploymentName(DeploymentName: Text): Text
+    local procedure GetDeploymentName(DeploymentName: Text; CallerModuleInfo: ModuleInfo): Text
     var
+        AzureOpenAiImpl: Codeunit "Azure OpenAI Impl";
         CurrentModuleInfo: ModuleInfo;
     begin
         LogDeprecationTelemetry(DeploymentName);
 
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+
+        if (CallerModuleInfo.Publisher <> CurrentModuleInfo.Publisher) and not AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls() then
+            Error(UnableToGetDeploymentNameErr);
 
         exit(DeploymentName);
     end;
