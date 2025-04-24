@@ -383,6 +383,21 @@ page 8886 "Email Account Wizard"
                 end;
             }
 
+            action(EditAccount)
+            {
+                ApplicationArea = All;
+                Visible = TestEmailActionVisible;
+                Caption = 'Edit Account';
+                ToolTip = 'Edit Account';
+                InFooterBar = true;
+                Image = Edit;
+
+                trigger OnAction()
+                var
+                begin
+                    ShowAccountEdit();
+                end;
+            }
         }
     }
 
@@ -445,6 +460,20 @@ page 8886 "Email Account Wizard"
             Step::Done:
                 ShowDoneStep();
         end;
+    end;
+
+    local procedure ShowAccountEdit()
+    var
+        EmailAccountImpl: Codeunit "Email Account Impl.";
+        Connector: Interface "Email Connector";
+    begin
+        if not EmailAccountImpl.IsValidConnector(Rec.Connector) then
+            Error(EmailConnectorHasBeenUninstalledMsg);
+
+        Connector := Rec.Connector;
+        Connector.ShowAccountInformation(RegisteredAccount."Account Id");
+
+        CurrPage.Close();
     end;
 
     local procedure ShowWelcomeStep()
