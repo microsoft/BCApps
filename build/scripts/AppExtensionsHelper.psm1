@@ -233,6 +233,16 @@ function Install-AppFromContainer() {
     return $missingDependencies
 }
 
+<#
+    .Synopsis
+        Get the external dependencies from the settings.json file.
+    .Description
+        This function will get the external dependencies from the settings.json file.
+    .Parameter AppDependencies
+        If this switch is set, only the app dependencies will be returned.
+    .Parameter TestAppDependencies
+        If this switch is set, only the test app dependencies will be returned.
+#>
 function Get-ExternalDependencies() {
     param(
         [switch] $AppDependencies,
