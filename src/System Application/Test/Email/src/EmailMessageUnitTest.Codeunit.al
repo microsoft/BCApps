@@ -1361,6 +1361,7 @@ codeunit 134689 "Email Message Unit Test"
     begin
         // [SCENARIO] There are orphaned email recipients in the database
         // [GIVEN] Orphaned email recipients
+        EmailRecipient.DeleteAll();
         AddEmailRecipients(1, MessageId1Txt);
         AddEmailRecipients(4, MessageId2Txt);
         AddEmailRecipients(5, MessageId3Txt);
