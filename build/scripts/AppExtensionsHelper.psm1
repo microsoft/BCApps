@@ -250,7 +250,7 @@ function Get-ExternalDependencies() {
     )
     Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
     $appExtensionsSettings = Join-Path (Get-BaseFolder) "build/projects/Add-Ons (W1)/.AL-Go/settings.json" -Resolve
-    $customSettings = Get-Content -Path $appExtensionsSettings -Resolve | ConvertFrom-Json
+    $customSettings = Get-Content -Path $appExtensionsSettings | ConvertFrom-Json
 
     if ($AppDependencies) {
         return $customSettings.ExternalAppDependencies
