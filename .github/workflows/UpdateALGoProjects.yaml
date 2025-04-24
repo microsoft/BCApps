@@ -1,4 +1,4 @@
-name: Update BC Artifact Version
+name: Update AL-Go Projects
 
 on:
   workflow_dispatch:
