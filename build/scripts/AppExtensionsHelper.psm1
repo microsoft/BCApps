@@ -218,7 +218,7 @@ function Publish-AppFromFile() {
     .Parameter DependenciesToInstall
         The list of dependencies to install.
 #>
-function Install-MissingDependencies() {
+function Install-MissingDependenciesFromContainer() {
     param(
         [Parameter(Mandatory = $true)]
         [string] $ContainerName,
@@ -318,4 +318,4 @@ function Get-ExternalDependencies() {
     }
 }
 
-Export-ModuleMember -Function Build-Dependency, Install-UninstalledAppsInEnvironment, Publish-AppFromFile, Install-MissingDependencies, Install-AppsInContainer, Get-ExternalDependencies
+Export-ModuleMember -Function Build-Dependency, Install-UninstalledAppsInEnvironment, Publish-AppFromFile, Install-MissingDependenciesFromContainer, Install-AppsInContainer, Get-ExternalDependencies
