@@ -261,4 +261,4 @@ function Get-ExternalDependencies() {
     }
 }
 
-Export-ModuleMember Export-ModuleMember -Function *-*
+Export-ModuleMember -Function *-*
