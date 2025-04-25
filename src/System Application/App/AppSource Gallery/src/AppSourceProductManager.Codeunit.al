@@ -25,6 +25,7 @@ codeunit 2515 "AppSource Product Manager"
         AppSourceJsonUtilities: Codeunit "AppSource Json Utilities";
         AppSourceProductManagerDependencies: Interface "AppSource Product Manager Dependencies";
         IsDependenciesInterfaceSet: Boolean;
+        UnusedBoolField: Boolean;
         CatalogProductsUriLbl: Label 'https://catalogapi.azure.com/products', Locked = true;
         CatalogApiVersionQueryParamNameLbl: Label 'api-version', Locked = true;
         CatalogApiVersionQueryParamValueLbl: Label '2023-05-01-preview', Locked = true;
