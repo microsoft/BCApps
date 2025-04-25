@@ -9,6 +9,7 @@
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "27.0",
+  "CICDSchedule": "0 2 * * *",
   "conditionalSettings": [
     {
       "buildModes": [
