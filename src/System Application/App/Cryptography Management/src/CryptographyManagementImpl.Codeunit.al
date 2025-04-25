@@ -417,7 +417,7 @@ codeunit 1279 "Cryptography Management Impl."
         TempBlob.CreateOutStream(DataOutStream, TextEncoding::UTF8);
         TempBlob.CreateInStream(DataInStream, TextEncoding::UTF8);
         DataOutStream.WriteText(InputString);
-        SignData(DataInStream, XmlString, HashAlgorithm, SignatureOutStream);
+        SignData(DataInStream, XmlString, HashAlgorithm, RSASignaturePadding, SignatureOutStream);
     end;
 
     procedure SignData(DataInStream: InStream; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; RSASignaturePadding: Enum "RSA Signature Padding"; SignatureOutStream: OutStream)
