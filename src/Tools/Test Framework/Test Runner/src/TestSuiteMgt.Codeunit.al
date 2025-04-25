@@ -6,11 +6,13 @@
 namespace System.TestTools.TestRunner;
 
 using System.Reflection;
+using System.Apps;
 
 codeunit 130456 "Test Suite Mgt."
 {
     Permissions = tabledata "AL Test Suite" = rimd,
-                  tabledata "Test Method Line" = rimd;
+                  tabledata "Test Method Line" = rimd,
+                  tabledata AllObj = r;
 
     trigger OnRun()
     begin
@@ -147,6 +149,8 @@ codeunit 130456 "Test Suite Mgt."
     var
         CodeunitTestMethodLine: Record "Test Method Line";
         FunctionTestMethodLine: Record "Test Method Line";
+        AllObj: Record AllObj;
+        NavInstalledApp: Record "NAV App Installed App";
         TestResultArray: JsonArray;
         TestResultJson: JsonObject;
         CodeunitResultJson: JsonObject;
@@ -164,6 +168,16 @@ codeunit 130456 "Test Suite Mgt."
 
         CodeunitResultJson.Add('name', CodeunitTestMethodLine.Name);
         CodeunitResultJson.Add('codeUnit', CodeunitTestMethodLine."Test Codeunit");
+        AllObj.SetRange("Object ID", CodeunitTestMethodLine."Test Codeunit");
+        AllObj.SetRange("Object Type", AllObj."Object Type"::Codeunit);
+        if AllObj.FindFirst() then begin
+            CodeunitResultJson.Add('codeunitName', AllObj."Object Name");
+            NavInstalledApp.SetRange("Package ID", AllObj."App Package ID");
+            if NavInstalledApp.FindFirst() then begin
+                CodeunitResultJson.Add('applicationID', NavInstalledApp."App ID");
+                CodeunitResultJson.Add('applicationName', NavInstalledApp.Name);
+            end;
+        end;
         CodeunitResultJson.Add('startTime', CodeunitTestMethodLine."Start Time");
         CodeunitResultJson.Add('finishTime', CodeunitTestMethodLine."Finish Time");
 
