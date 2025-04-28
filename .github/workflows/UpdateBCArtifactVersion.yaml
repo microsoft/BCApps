@@ -27,7 +27,8 @@ jobs:
       - name: Get Official Branches
         id: getOfficialBranches
         uses: microsoft/BCApps/.github/actions/GetGitBranches@main
-
+        env:
+          GH_Token: ${{ github.token }}
         with:
           include: "['main', 'releases/*']"
 
