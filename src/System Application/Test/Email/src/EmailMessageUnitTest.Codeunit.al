@@ -1355,13 +1355,16 @@ codeunit 134689 "Email Message Unit Test"
     var
         EmailRecipient: Record "Email Recipient";
         EmailMessage: Codeunit "Email Message";
+        OriginalCount: Integer;
+        EmptyGuid: Guid;
         MessageId1Txt: Label '{00000000-0000-0000-0000-000000000001}';
         MessageId2Txt: Label '{00000000-0000-0000-0000-000000000011}';
         MessageId3Txt: Label '{00000000-0000-0000-0000-000000000111}';
     begin
         // [SCENARIO] There are orphaned email recipients in the database
         // [GIVEN] Orphaned email recipients
-        EmailRecipient.DeleteAll();
+        EmailMessage.DeleteEmailRecipientsIfOrphaned(EmptyGuid, 999999);
+        OriginalCount := EmailRecipient.Count();
         AddEmailRecipients(1, MessageId1Txt);
         AddEmailRecipients(4, MessageId2Txt);
         AddEmailRecipients(5, MessageId3Txt);
@@ -1370,20 +1373,20 @@ codeunit 134689 "Email Message Unit Test"
         EmailMessage.DeleteEmailRecipientsIfOrphaned(MessageId1Txt, 1);
 
         // [THEN] 1 orphaned email recipient is deleted, for message id 1
-        Assert.AreEqual(9, EmailRecipient.Count(), 'Orphaned email recipient for message id 1 was not deleted');
+        Assert.AreEqual(9 + OriginalCount, EmailRecipient.Count(), 'Orphaned email recipient for message id 1 was not deleted');
 
         // [WHEN] DeleteOrphanedEmailRecipients is called with 10 messages to iterate
         EmailMessage.DeleteEmailRecipientsIfOrphaned(MessageId3Txt, 10);
 
         // [THEN] 5 orphaned email recipient is deleted, for message id 3
         // Message id 2 is not deleted because the GUID id is earlier than message id 3.
-        Assert.AreEqual(4, EmailRecipient.Count(), 'Orphaned email recipient for message id 3 was not deleted');
+        Assert.AreEqual(4 + OriginalCount, EmailRecipient.Count(), 'Orphaned email recipient for message id 3 was not deleted');
 
         // [WHEN] DeleteOrphanedEmailRecipients is called with 5 messages to iterate
         EmailMessage.DeleteEmailRecipientsIfOrphaned(MessageId2Txt, 4);
 
         // [THEN] 4 orphaned email recipient is deleted, for message id 2
-        Assert.AreEqual(0, EmailRecipient.Count(), 'Orphaned email recipient for message id 2 was not deleted');
+        Assert.AreEqual(0 + OriginalCount, EmailRecipient.Count(), 'Orphaned email recipient for message id 2 was not deleted');
     end;
 
     [StrMenuHandler]
