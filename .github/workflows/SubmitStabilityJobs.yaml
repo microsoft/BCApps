@@ -44,3 +44,4 @@ jobs:
         uses: microsoft/BCApps/.github/actions/RunAutomation@main
         with:
           automations: SubmitStabilityJob
+          targetBranch: ${{ matrix.branch }}
