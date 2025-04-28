@@ -41,8 +41,6 @@ jobs:
           private-key: ${{ secrets.PRIVATE_KEY }}
 
       - name: Submit Stability Job
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         uses: microsoft/BCApps/.github/actions/RunAutomation@main
         with:
           automations: SubmitStabilityJob
