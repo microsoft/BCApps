@@ -7,7 +7,10 @@ namespace Microsoft.Foundation.NoSeries;
 
 using System.AI;
 using System.Upgrade;
-using System.Environment;
+// start of <todo>
+// TODO: Uncomment this once the semantic search is implemented in production.
+// using System.Environment;
+// end of <todo>
 
 codeunit 327 "No. Series Copilot Register"
 {
@@ -24,12 +27,18 @@ codeunit 327 "No. Series Copilot Register"
     procedure RegisterCapability()
     var
         CopilotCapability: Codeunit "Copilot Capability";
-        EnvironmentInformation: Codeunit "Environment Information";
+        // start of <todo>
+        // TODO: Uncomment this once the semantic search is implemented in production.
+        // EnvironmentInformation: Codeunit "Environment Information";
+        // end of <todo>
         UpgradeTag: Codeunit "Upgrade Tag";
         NoSeriesCopilotUpgradeTags: Codeunit "No. Series Copilot Upgr. Tags";
     begin
-        if not EnvironmentInformation.IsSaaSInfrastructure() then
-            exit;
+        // start of <todo>
+        // TODO: Uncomment this once the semantic search is implemented in production.
+        // if not EnvironmentInformation.IsSaaSInfrastructure() then
+        //     exit;
+        // end of <todo>
 
         if UpgradeTag.HasUpgradeTag(NoSeriesCopilotUpgradeTags.GetImplementationUpgradeTag()) then
             exit;
