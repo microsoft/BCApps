@@ -5,6 +5,11 @@ function GetSourceCodeFromArtifact() {
     )
     $sourceArchive = Get-ChildItem -Path $TempFolder -Recurse -Filter "$App.Source.zip" -ErrorAction SilentlyContinue
     $sourceCodeFolder = "$TempFolder/$($App -replace " ", "_")Source"
+    # Return source code folder if it exists
+    if (Test-Path $sourceCodeFolder) {
+        Write-Host "Source code folder already exists: $sourceCodeFolder"
+        return $sourceCodeFolder
+    }
 
     if (-not $sourceArchive) {
         # Find out which version of the apps we need
@@ -100,9 +105,6 @@ function Build-Dependency() {
         New-Item -ItemType Directory -Path $newSymbolsFolder -Force | Out-Null
     }
 
-    Write-Host "Get source code for $App"
-    $sourceCodeFolder = GetSourceCodeFromArtifact -App $App -TempFolder $script:tempFolder
-
     # Copy apps to packagecachepath
     $addOnsSymbolsFolder = $CompilationParameters["appSymbolsFolder"]
 
@@ -118,6 +120,10 @@ function Build-Dependency() {
         Write-Host "$App is already in the symbols folder. Skipping recompilation"
         return
     }
+
+    
+    Write-Host "Get source code for $App"
+    $sourceCodeFolder = GetSourceCodeFromArtifact -App $App -TempFolder $script:tempFolder
 
     $CompilationParameters["assemblyProbingPaths"] = GetAssemblyProbingPaths
 
