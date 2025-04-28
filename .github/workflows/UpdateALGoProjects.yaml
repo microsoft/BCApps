@@ -27,12 +27,11 @@ jobs:
       - name: Get Official Branches
         id: getOfficialBranches
         uses: microsoft/BCApps/.github/actions/GetGitBranches@main
-
         with:
           include: "['main', 'releases/*']"
 
-  UpdateBCArtifactVersion:
-    name: "[${{ matrix.branch }}] Update BC Artifact Version"
+  UpdateALGoProjects:
+    name: "[${{ matrix.branch }}] Update AL-Go projects"
     if: github.repository_owner == 'microsoft'
     permissions:
       contents: write
@@ -55,7 +54,7 @@ jobs:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
 
-      - name: Update BC Artifact Version
+      - name: Update AL-Go Project Dependencies
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         uses: microsoft/BCApps/.github/actions/RunAutomation@main
