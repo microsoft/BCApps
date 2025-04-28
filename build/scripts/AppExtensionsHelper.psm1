@@ -46,7 +46,7 @@ function GetSourceCodeFromArtifact() {
     return $sourceCodeFolder
 }
 
-function GetAssemblyProbingPaths() {
+function Get-AssemblyProbingPaths() {
     param(
         [string] $TargetDotnetVersion = "8"
     )
@@ -125,7 +125,7 @@ function Build-Dependency() {
     Write-Host "Get source code for $App"
     $sourceCodeFolder = GetSourceCodeFromArtifact -App $App -TempFolder $script:tempFolder
 
-    $CompilationParameters["assemblyProbingPaths"] = GetAssemblyProbingPaths
+    $CompilationParameters["assemblyProbingPaths"] = Get-AssemblyProbingPaths
 
     # Update the CompilationParameters
     $CompilationParameters["appProjectFolder"] = $sourceCodeFolder # Use the downloaded source code as the project folder

@@ -6,6 +6,7 @@ Param(
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
+Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
 
 $appBuildMode = Get-BuildMode
 
@@ -34,7 +35,6 @@ if($appType -eq 'app')
 
             if($appBuildMode -eq 'Clean') {
                 if ($recompileDependencies.Count -gt 0) {
-                    Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
                     $recompileDependencies | ForEach-Object {
                         Build-Dependency -App $_ -CompilationParameters ($parameters.Value.Clone())
                     }
@@ -76,4 +76,9 @@ if($appType -eq 'app')
             Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
         }
     }
+}
+
+if($useCompilerFolder) {
+    Write-Host "Using compiler folder for compilation - Setting assemblyProbingPaths"
+    $CompilationParameters["assemblyProbingPaths"] = Get-AssemblyProbingPaths
 }
