@@ -18,8 +18,6 @@ jobs:
       - name: Get Official Branches
         id: getOfficialBranches
         uses: microsoft/BCApps/.github/actions/GetGitBranches@main
-        env:
-          GH_Token: ${{ github.token }}
         with:
           include: "['releases/*']"
 
@@ -41,7 +39,8 @@ jobs:
           private-key: ${{ secrets.PRIVATE_KEY }}
 
       - name: Submit Stability Job
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         uses: microsoft/BCApps/.github/actions/RunAutomation@main
         with:
           automations: SubmitStabilityJob
-          targetBranch: ${{ matrix.branch }}
