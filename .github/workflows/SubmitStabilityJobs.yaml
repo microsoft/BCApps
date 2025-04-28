@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Get Official Branches
         id: getOfficialBranches
-        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        uses: microsoft/BCApps/.github/actions/GetGitBranches@private/aholstrup/github_token_branches
         with:
           include: "['releases/*']"
 
