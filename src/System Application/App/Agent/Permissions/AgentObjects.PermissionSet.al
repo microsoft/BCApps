@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Agents;
-using System.Environment.Configuration;
 
 permissionset 4300 "Agent - Objects"
 {
