@@ -117,12 +117,12 @@ codeunit 9176 "User Settings"
     /// <summary>
     /// Updates the user settings for given user
     /// </summary>
-    /// <param name="UserSettings"></param>
-    procedure UpdateUserSettings(var UserSettings: Record "User Settings")
+    /// <param name="NewUserSettings">New User settings that should be set to the user.</param>
+    procedure UpdateUserSettings(NewUserSettings: Record "User Settings")
     var
         UserSettingsImpl: Codeunit "User Settings Impl.";
     begin
-        UserSettingsImpl.UpdateUserSettings(UserSettings);
+        UserSettingsImpl.UpdateUserSettings(NewUserSettings);
     end;
 
     /// <summary>

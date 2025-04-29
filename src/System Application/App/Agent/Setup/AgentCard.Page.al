@@ -122,8 +122,8 @@ page 4315 "Agent Card"
             action(UserSettingsAction)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'User Settings';
-                ToolTip = 'Set up the profile and regional settings for the agent.';
+                Caption = 'Agent User Settings';
+                ToolTip = 'Set up the user settings for the agent.';
                 Image = SetupLines;
 
                 trigger OnAction()

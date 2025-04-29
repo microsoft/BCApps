@@ -27,6 +27,7 @@ page 4317 "Agent User Settings"
     InsertAllowed = false;
     ModifyAllowed = true;
     LinksAllowed = false;
+    RefreshOnActivate = true;
     Extensible = true;
     HelpLink = 'https://go.microsoft.com/fwlink/?linkid=2149387';
     Permissions = tabledata User = r;
@@ -41,7 +42,7 @@ page 4317 "Agent User Settings"
                 group("Agent Settings")
                 {
                     ShowCaption = false;
-                    field(UserRoleCenter; UserSettings.GetProfileName(Rec))
+                    field(ProfileDisplayName; ProfileDisplayName)
                     {
                         ApplicationArea = All;
                         AssistEdit = true;
@@ -53,6 +54,7 @@ page 4317 "Agent User Settings"
                         trigger OnAssistEdit()
                         begin
                             UserSettings.LookupProfile(Rec);
+                            CurrPage.Update();
                         end;
                     }
                     field(Region; Language.GetWindowsLanguageName(Rec."Locale ID"))
@@ -97,9 +99,16 @@ page 4317 "Agent User Settings"
     trigger OnOpenPage()
     begin
         if not Rec.Initialized then
-            UserSettings.GetUserSettings(UserSecurityId(), Rec);
+            UserSettings.GetUserSettings(Rec."User Security ID", Rec);
 
         OldUserSettings := Rec;
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        ProfileDisplayName := AgentImpl.GetProfileName(Rec.Scope, Rec."App ID", Rec."Profile ID");
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -113,4 +122,5 @@ page 4317 "Agent User Settings"
         Language: Codeunit Language;
         TimeZoneSelection: Codeunit "Time Zone Selection";
         UserSettings: Codeunit "User Settings";
+        ProfileDisplayName: Text;
 }
