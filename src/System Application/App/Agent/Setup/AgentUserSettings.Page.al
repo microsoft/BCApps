@@ -41,7 +41,7 @@ page 4317 "Agent User Settings"
                 group("Agent Settings")
                 {
                     ShowCaption = false;
-                    field(UserRoleCenter; UserSettingsImpl.GetProfileName(Rec.Scope, Rec."App ID", Rec."Profile ID"))
+                    field(UserRoleCenter; UserSettings.GetProfileName(Rec))
                     {
                         ApplicationArea = All;
                         AssistEdit = true;
@@ -52,21 +52,7 @@ page 4317 "Agent User Settings"
 
                         trigger OnAssistEdit()
                         begin
-                            UserSettingsImpl.ProfileLookup(Rec);
-                        end;
-                    }
-                    field(Company; UserSettingsImpl.GetCompanyDisplayName(Rec.Company))
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Company';
-                        Editable = false;
-                        ToolTip = 'Specifies the database company that you work in. You must sign out and then sign in again for the change to take effect.';
-
-                        trigger OnAssistEdit()
-                        var
-                            UserSettingsImpl: Codeunit "User Settings Impl.";
-                        begin
-                            UserSettingsImpl.LookupCompanies(Rec.Company);
+                            UserSettings.LookupProfile(Rec);
                         end;
                     }
                     field(Region; Language.GetWindowsLanguageName(Rec."Locale ID"))
@@ -111,7 +97,7 @@ page 4317 "Agent User Settings"
     trigger OnOpenPage()
     begin
         if not Rec.Initialized then
-            UserSettingsImpl.GetUserSettings(UserSecurityId(), Rec);
+            UserSettings.GetUserSettings(UserSecurityId(), Rec);
 
         OldUserSettings := Rec;
     end;
@@ -119,12 +105,12 @@ page 4317 "Agent User Settings"
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
         if CloseAction = Action::OK then
-            UserSettingsImpl.UpdateUserSettings(OldUserSettings, Rec);
+            UserSettings.UpdateUserSettings(Rec);
     end;
 
     var
         OldUserSettings: Record "User Settings";
         Language: Codeunit Language;
         TimeZoneSelection: Codeunit "Time Zone Selection";
-        UserSettingsImpl: Codeunit "User Settings Impl.";
+        UserSettings: Codeunit "User Settings";
 }
