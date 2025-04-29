@@ -18,7 +18,6 @@ page 4317 "Agent User Settings"
     ApplicationArea = All;
     Caption = 'Agent User Settings';
     PageType = StandardDialog;
-    UsageCategory = Administration;
     SourceTable = "User Settings";
     InherentEntitlements = X;
     InherentPermissions = X;
