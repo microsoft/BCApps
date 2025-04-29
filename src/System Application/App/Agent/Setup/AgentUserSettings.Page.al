@@ -14,13 +14,14 @@ using System.Security.AccessControl;
 /// </summary>
 page 4317 "Agent User Settings"
 {
-    AdditionalSearchTerms = 'company,role center,work date,role';
     DataCaptionExpression = Rec."User ID";
     ApplicationArea = All;
     Caption = 'Agent User Settings';
     PageType = StandardDialog;
     UsageCategory = Administration;
     SourceTable = "User Settings";
+    InherentEntitlements = X;
+    InherentPermissions = X;
     SourceTableTemporary = true;
     DeleteAllowed = false;
     InsertAllowed = false;
