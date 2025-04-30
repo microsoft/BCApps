@@ -2,6 +2,47 @@
 
 Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
 
+### Issues
+
+- Issue 1640 AL1040 error due to app folder within the artifacts cache being incorrectly recognized as an app folder
+- Issue 1630 Error when downloading a release, when the destination folder already exists.
+- Issue 1540 and 1649 Apps with dependencies to Microsft\_\_EXCLUDE\_ apps fails deployment
+- Issue 1547 Dependencies will be installed even if DependencyInstallMode is ignore, but dependencies will never be installed on production environments
+- Issue 1654 GithubPackageContext does not work together with private trustedNuGetFeeds
+- Issue 1627 AL-Go should throw an error or a warning if you create a release, which is older than the latest release
+- Issue 1657 When no files modified on Git, deployment fails
+- Issue 1530 Dependency Field Service Integration does not get published in container while Installing apps
+- Issue 1644 Support for AppAuth when using a private Template repository from another organization
+- Issue 1478 Rate Limit Exceeded when running Update AL-Go System files
+
+## v7.0
+
+### Issues
+
+- Issue 1519 Submitting to AppSource WARNING: AuthContext.Scopes is .. should be
+- Issue 1521 Dependencies not installed for multi project incremental PR build
+- Issue 1522 Strange warnings in Deploy job post update to AL-Go 6.4
+- BcContainerHelper settings were only read from .github/AL-Go-Settings.json, not allowing global settings in ALGoOrgSettings for TrustedNuGetFeeds, MemoryLimit and other things that should be possible to define globally
+- Issue 1526 When updating AL-Go system files, the update process (creating a PR or directly pushing to the branch) fails when there is a file or directory in the repo with the same name as the branch that is to be updated
+- Legacy code signing stopped working
+
+### Page Scripting visualizer
+
+Page scripting tests have been available for AL-Go for GitHub for a while but required manual inspection of the Page scripting artifact to see the results. It is now possible to get a quick overview in the job summary section of a CICD build, similar to how regular and bcpt test results are displayed.
+
+No new settings are required. Test results will automatically be displayed if tests are enabled via the existing setting [pageScriptingTests](https://aka.ms/algosettings#pageScriptingTests).
+
+### Support for deploying to sandbox environments from a pull request
+
+AL-Go for GitHub now supports deploying from a PR. When using the 'Publish To Environment' workflow, it is now possible to input 'PR_X' as the App version, where 'X' is the PR Id. This will deploy the artifacts from the latest PR build to the chosen environment, if that build is completed and successful.
+
+All apps, which were not built by the PR build will be deployed from the last known good build. You can find a notification on the PR build explaining which build is used as the last known good build.
+
+> [!NOTE]
+> When deploying a PR build to a sandbox environment, the app will get a special version number, which is: major.minor.maxint.run-number. This means that the sandbox environment likely needs to be deleted after the testing has ended.
+
+## v6.4
+
 ### Deprecations
 
 - `alwaysBuildAllProjects` will be removed after October 1st 2025. Please set the `onPull_Request` property of the `incrementalBuilds` setting to false to force full builds in Pull Requests.
@@ -16,6 +57,7 @@ Note that when using the preview version of AL-Go for GitHub, we recommend you U
 - Performance test sample code in 25.4 contains objects with ID 149201 and 149202, which are not renumbered
 - Issue 798 Publish To Environment breaks CI/CD pipelines
 - Issue 1182 Runs-on setting type is ambiguous - string or array
+- Issue 1502 NuGet dependency version is always LatestMatching
 
 ### New Workflow specific settings
 
@@ -24,6 +66,7 @@ Note that when using the preview version of AL-Go for GitHub, we recommend you U
 
 ### New Repository Settings
 
+- `nuGetFeedSelectMode` determines the select mode when finding Business Central app packages from NuGet feeds, based on the dependency version specified in app.json. Options are: `Earliest` for earliest version of the package, `EarliestMatching` for earliest version of the package also compatible with the Business Central version used, `Exact` for the exact version of the package, `Latest` for the latest version of the package, `LatestMatching` for the latest version of the package also compatible with the Business Central version used.
 - `deployTo<environment>` now has two additional properties:
   - `includeTestAppsInSandboxEnvironment`, which deploys test apps and their dependencies to the specified sandbox environment if set to `true`. Deployment will fail if used on a Prod environment or if the test app has a dependency on Tests-TestLibraries. Default value is `false`.
   - `excludeAppIds`, which is an array of app ids which will be excluded from deployment. Default value is `[]`

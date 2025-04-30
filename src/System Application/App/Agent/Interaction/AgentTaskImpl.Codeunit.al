@@ -5,8 +5,8 @@
 
 namespace System.Agents;
 
-using System.Integration;
 using System.Environment;
+using System.Integration;
 
 codeunit 4300 "Agent Task Impl."
 {

@@ -73,6 +73,52 @@ page 149034 "AIT Test Method Lines"
                         AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", AITTestSuite.Version);
                     end;
                 }
+                field(Accuracy; Rec."Test Method Line Accuracy")
+                {
+                }
+                field(TurnsText; TurnsText)
+                {
+                    Visible = false;
+                    Editable = false;
+                    Caption = 'No. of Turns Passed';
+                    ToolTip = 'Specifies the number of turns that passed out of the total number of turns.';
+
+                    trigger OnDrillDown()
+                    var
+                        AITTestSuite: Record "AIT Test Suite";
+                        AITLogEntry: Codeunit "AIT Log Entry";
+                    begin
+                        AITTestSuite.SetLoadFields("Base Version");
+                        AITTestSuite.Get(Rec."Test Suite Code");
+                        AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", AITTestSuite."Base Version");
+                    end;
+                }
+                field("No. of Turns"; Rec."No. of Turns")
+                {
+                    Visible = false;
+                }
+                field("No. of Turns Passed"; Rec."No. of Turns Passed")
+                {
+                    Visible = false;
+                }
+                field("No. of Turns Failed"; Rec."No. of Turns" - Rec."No. of Turns Passed")
+                {
+                    Visible = false;
+                    Editable = false;
+                    Caption = 'No. of Turns Failed';
+                    ToolTip = 'Specifies the number of failed turns of the test line.';
+                    Style = Unfavorable;
+
+                    trigger OnDrillDown()
+                    var
+                        AITTestSuite: Record "AIT Test Suite";
+                        AITLogEntry: Codeunit "AIT Log Entry";
+                    begin
+                        AITTestSuite.SetLoadFields("Base Version");
+                        AITTestSuite.Get(Rec."Test Suite Code");
+                        AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", AITTestSuite."Base Version");
+                    end;
+                }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
                     Visible = false;
@@ -196,6 +242,7 @@ page 149034 "AIT Test Method Lines"
         AITTestSuite: Record "AIT Test Suite";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         NoLineSelectedErr: Label 'Select a line to compare';
+        TurnsText: Text;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
@@ -203,6 +250,11 @@ page 149034 "AIT Test Method Lines"
             exit(true);
         if Rec."Test Suite Code" <> AITTestSuite.Code then
             if AITTestSuite.Get(Rec."Test Suite Code") then;
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        TurnsText := AITTestSuiteMgt.GetTurnsAsText(Rec);
     end;
 
     local procedure GetAvg(NumIterations: Integer; TotalNo: Integer): Integer

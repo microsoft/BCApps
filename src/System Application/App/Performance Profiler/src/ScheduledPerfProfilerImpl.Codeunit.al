@@ -78,13 +78,13 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
 
     procedure InitializeFields(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; var ActivityType: Enum "Perf. Profile Activity Type")
     var
-        OneHour: Duration;
+        FourHours: Duration;
     begin
-        OneHour := 1000 * 60 * 60;
+        FourHours := 1000 * 60 * 60 * 4;
         PerformanceProfileScheduler.Init();
         PerformanceProfileScheduler."Schedule ID" := CreateGuid();
         PerformanceProfileScheduler."Starting Date-Time" := CurrentDateTime;
-        PerformanceProfileScheduler."Ending Date-Time" := PerformanceProfileScheduler."Starting Date-Time" + OneHour;
+        PerformanceProfileScheduler."Ending Date-Time" := PerformanceProfileScheduler."Starting Date-Time" + FourHours;
         PerformanceProfileScheduler.Enabled := true;
         PerformanceProfileScheduler."Profile Creation Threshold" := 500;
         PerformanceProfileScheduler.Frequency := PerformanceProfileScheduler.Frequency::"100 milliseconds";
@@ -218,6 +218,16 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         exit(PerformanceProfileSchedulerRecord.IsProfiling());
     end;
 
+    internal procedure GetStatus(PerformanceProfileScheduler: Record "Performance Profile Scheduler"): Text
+    begin
+        if PerformanceProfileScheduler.Enabled then
+            if (PerformanceProfileScheduler."Starting Date-Time" <= CurrentDateTime) and (PerformanceProfileScheduler."Ending Date-Time" >= CurrentDateTime) then
+                exit(ActiveLbl)
+            else
+                exit(InactiveOutsideTimeWindowLbl)
+        else
+            exit(InactiveLbl);
+    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetProfilerSchedulesPageId, '', false, false)]
     local procedure GetProfilerSchedulesPageId(var PageId: Integer)
@@ -226,6 +236,9 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     end;
 
     var
+        ActiveLbl: Label 'Active';
+        InactiveLbl: Label 'Inactive';
+        InactiveOutsideTimeWindowLbl: Label 'Inactive (outside time window)';
         ProfileStartingDateLessThenEndingDateErr: Label 'The performance profile starting date must be set before the ending date.';
         ProfileHasAlreadyBeenScheduledErr: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
         ProfileCannotBeInThePastErr: Label 'A schedule cannot be set to run in the past.';
