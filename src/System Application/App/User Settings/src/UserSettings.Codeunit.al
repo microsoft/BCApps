@@ -120,7 +120,7 @@ codeunit 9176 "User Settings"
     /// <param name="NewUserSettings">New User settings that should be set to the user.</param>
 #if not CLEAN27
 #pragma warning disable AS0078
-    // Parameter name changed from UserSettings to NewUserSettings. Var was removed because UpdateUserSettings did not have the var in the signature.
+    // Parameter name changed from UserSettings to NewUserSettings. var was removed because UpdateUserSettings did not have the var in the signature. NewUserSettings record is not changed in the method.
 #endif
     procedure UpdateUserSettings(NewUserSettings: Record "User Settings")
 #if not CLEAN27    
