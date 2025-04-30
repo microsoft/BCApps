@@ -17,10 +17,10 @@ function Invoke-ContosoDemoTool() {
     Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName
 
     if ($SetupData) {
-        Write-Host "Setting up demo data in container $ContainerName"
-        Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName -MethodName "CreateSetupDemoData"
+        Write-Host "Generating Setup Demo Data in container $ContainerName"
+        Invoke-NavContainerCodeunit -Codeunitid 5193 -containerName $ContainerName -CompanyName $CompanyName -MethodName "CreateSetupDemoData"
     } else {
-        Write-Host "Importing configuration package"
+        Write-Host "Generating All Demo Data in container $ContainerName"
         Invoke-NavContainerCodeunit -CodeunitId 5193 -containerName $containerName -CompanyName $CompanyName -MethodName "CreateAllDemoData"
         Invoke-NavContainerCodeunit -CodeunitId 5140 -containerName $containerName -CompanyName $CompanyName -MethodName "DeleteWarehouseEmployee"
     }
