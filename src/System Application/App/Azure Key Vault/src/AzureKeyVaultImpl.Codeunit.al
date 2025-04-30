@@ -31,7 +31,7 @@ codeunit 2202 "Azure Key Vault Impl."
         AzureKeyVaultTxt: Label 'Azure Key Vault', Locked = true;
         CertificateInfoTxt: Label 'Successfully constructed certificate from secret %1. Certificate thumbprint %2', Locked = true;
         MissingSecretErr: Label 'The secret %1 is either missing or empty.', Comment = '%1 = Secret Name.';
-        NotMicrosoftPublisherErr: Label 'The caller module %1 is not from Microsoft.', Locked = true;
+        NotMicrosoftPublisherErr: Label 'Only Microsoft apps can use the Azure Key Vault library. Calling module: %1, %2', Comment = '%1 - App Name, %1 - App Publisher', Locked = true;
 
     [NonDebuggable]
     procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: Text; CallerModuleInfo: ModuleInfo)
@@ -145,7 +145,7 @@ codeunit 2202 "Azure Key Vault Impl."
     local procedure VerifyMicrosoftPublisher(CallerModuleInfo: ModuleInfo)
     begin
         if CallerModuleInfo.Publisher <> 'Microsoft' then
-            Error(NotMicrosoftPublisherErr, CallerModuleInfo.Publisher);
+            Error(NotMicrosoftPublisherErr, CallerModuleInfo.Name, CallerModuleInfo.Publisher);
     end;
 }
 
