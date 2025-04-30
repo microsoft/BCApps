@@ -100,8 +100,6 @@ page 4317 "Agent User Settings"
     begin
         if not Rec.Initialized then
             UserSettings.GetUserSettings(Rec."User Security ID", Rec);
-
-        OldUserSettings := Rec;
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -118,7 +116,6 @@ page 4317 "Agent User Settings"
     end;
 
     var
-        OldUserSettings: Record "User Settings";
         Language: Codeunit Language;
         TimeZoneSelection: Codeunit "Time Zone Selection";
         UserSettings: Codeunit "User Settings";
