@@ -31,10 +31,14 @@ codeunit 2202 "Azure Key Vault Impl."
         AzureKeyVaultTxt: Label 'Azure Key Vault', Locked = true;
         CertificateInfoTxt: Label 'Successfully constructed certificate from secret %1. Certificate thumbprint %2', Locked = true;
         MissingSecretErr: Label 'The secret %1 is either missing or empty.', Comment = '%1 = Secret Name.';
+        NotMicrosoftPublisherErr: Label 'The caller module %1 is not from Microsoft.', Locked = true;
 
     [NonDebuggable]
-    procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: Text)
+    procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: Text; CallerModuleInfo: ModuleInfo)
     begin
+        // Method only available for Microsoft publisher.
+        VerifyMicrosoftPublisher(CallerModuleInfo);
+
         // Gets the secret as a Text from the key vault, given a SecretName.
         Secret := GetSecretFromClient(SecretName);
 
@@ -43,8 +47,11 @@ codeunit 2202 "Azure Key Vault Impl."
     end;
 
     [NonDebuggable]
-    procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText)
+    procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText; CallerModuleInfo: ModuleInfo)
     begin
+        // Method only available for Microsoft publisher.
+        VerifyMicrosoftPublisher(CallerModuleInfo);
+
         Secret := GetSecretFromClient(SecretName);
 
         if Secret.IsEmpty() then
@@ -52,18 +59,22 @@ codeunit 2202 "Azure Key Vault Impl."
     end;
 
     [NonDebuggable]
-    procedure GetAzureKeyVaultCertificate(CertificateName: Text; var Certificate: Text)
+    procedure GetAzureKeyVaultCertificate(CertificateName: Text; var Certificate: Text; CallerModuleInfo: ModuleInfo)
     begin
-        // Gets the certificate as a base 64 encoded string from the key vault, given a CertificateName.
+        // Method only available for Microsoft publisher.
+        VerifyMicrosoftPublisher(CallerModuleInfo);
 
+        // Gets the certificate as a base 64 encoded string from the key vault, given a CertificateName.
         Certificate := GetCertificateFromClient(CertificateName);
     end;
 
     [NonDebuggable]
-    procedure GetAzureKeyVaultCertificate(CertificateName: Text; var Certificate: SecretText)
+    procedure GetAzureKeyVaultCertificate(CertificateName: Text; var Certificate: SecretText; CallerModuleInfo: ModuleInfo)
     begin
-        // Gets the certificate as a base 64 encoded string from the key vault, given a CertificateName.
+        // Method only available for Microsoft publisher.
+        VerifyMicrosoftPublisher(CallerModuleInfo);
 
+        // Gets the certificate as a base 64 encoded string from the key vault, given a CertificateName.
         Certificate := GetCertificateFromClient(CertificateName);
     end;
 
@@ -129,6 +140,12 @@ codeunit 2202 "Azure Key Vault Impl."
                 Session.LogMessage('0000C17', StrSubstNo(CertificateInfoTxt, CertificateName, CertificateThumbprint), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AzureKeyVaultTxt);
         end;
         CachedCertificatesDictionary.Add(CertificateName, Certificate);
+    end;
+
+    local procedure VerifyMicrosoftPublisher(CallerModuleInfo: ModuleInfo)
+    begin
+        if CallerModuleInfo.Publisher <> 'Microsoft' then
+            Error(NotMicrosoftPublisherErr, CallerModuleInfo.Publisher);
     end;
 }
 
