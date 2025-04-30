@@ -77,19 +77,8 @@ page 457 "No. Series Lines"
                 {
                     Caption = 'Allow Gaps in Nos.';
                     ToolTip = 'Specifies that a number assigned from the number series can later be deleted. This is practical for records, such as item cards and warehouse documents that, unlike financial transactions, can be deleted and cause gaps in the number sequence. NOTE: If an error occurs on a new record that will be assigned a number from such a number series when it is completed, the number in question may be lost, causing a gap in the sequence.';
-#if CLEAN24
                     Editable = false;
-#endif
 
-#if not CLEAN24
-#pragma warning disable AL0432
-                    trigger OnValidate()
-                    begin
-                        Rec.Validate("Allow Gaps in Nos.", AllowGaps);
-                        CurrPage.Update(true);
-                    end;
-#pragma warning restore AL0432
-#endif
                 }
                 field(Implementation; Rec.Implementation)
                 {

@@ -129,7 +129,7 @@ codeunit 8902 "Email Scenario Attach Impl."
         EmailScenarioAttachments.Scenario := Enum::"Email Scenario".FromInteger(EmailScenario);
         EmailScenarioAttachments.AttachmentDefaultStatus := false;
         EmailScenarioAttachments.Insert();
-        InsertEmailAttachments(EmailScenarioAttachments, EmailAttachments, EmailScenario);
+        InsertEmailAttachments(EmailScenarioAttachments, EmailAttachments);
     end;
 
     procedure AddAttachment(var EmailScenarioAttachments: Record "Email Scenario Attachments"; var EmailAttachments: Record "Email Attachments"; EmailScenario: Integer)
@@ -146,16 +146,12 @@ codeunit 8902 "Email Scenario Attach Impl."
         EmailScenarioAttachments.Scenario := Enum::"Email Scenario".FromInteger(EmailScenario);
         EmailScenarioAttachments.AttachmentDefaultStatus := false;
         EmailScenarioAttachments.Insert();
-        InsertEmailAttachments(EmailScenarioAttachments, EmailAttachments, EmailScenario);
+        InsertEmailAttachments(EmailScenarioAttachments, EmailAttachments);
     end;
 
-    local procedure InsertEmailAttachments(EmailScenarioAttachments: Record "Email Scenario Attachments"; var EmailAttachment: Record "Email Attachments"; EmailScenario: Integer)
+    local procedure InsertEmailAttachments(EmailScenarioAttachments: Record "Email Scenario Attachments"; var EmailAttachment: Record "Email Attachments")
     begin
-        EmailAttachment.Id := EmailScenarioAttachments.Id;
-        EmailAttachment."Attachment Name" := EmailScenarioAttachments."Attachment Name";
-        EmailAttachment."Email Attachment" := EmailScenarioAttachments."Email Attachment";
-        EmailAttachment.AttachmentDefaultStatus := EmailScenarioAttachments.AttachmentDefaultStatus;
-        EmailAttachment.Scenario := Enum::"Email Scenario".FromInteger(EmailScenario);
+        EmailAttachment.TransferFields(EmailScenarioAttachments);
         EmailAttachment.Insert();
     end;
 
