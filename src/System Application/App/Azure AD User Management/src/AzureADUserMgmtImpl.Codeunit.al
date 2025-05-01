@@ -299,7 +299,7 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
 
                     repeat
                         TempAccessControlWithDefaultPermissions.Copy(AccessControl);
-                        TempAccessControlWithDefaultPermissions.Insert();
+                        if not TempAccessControlWithDefaultPermissions.Insert() then; // Ignore multiple plans referencing the same permission
                     until AccessControl.Next() = 0;
                 until PermissionSetInPlanBuffer.Next() = 0;
         end;
