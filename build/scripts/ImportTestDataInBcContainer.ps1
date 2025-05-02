@@ -8,11 +8,8 @@ function Invoke-ContosoDemoTool() {
     param(
         [string]$ContainerName,
         [string]$CompanyName = (Get-NavDefaultCompanyName),
-        [switch]$SetupData = $false,
-        [string]$DemodataApp = "Contoso Coffee Demo Dataset"
+        [switch]$SetupData = $false
     )
-    Install-AppFromContainer -ContainerName $ContainerName -DependenciesToInstall @($DemodataApp)
-
     Write-Host "Initializing company in container $ContainerName"
     Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName
 
@@ -35,7 +32,6 @@ function Get-NavDefaultCompanyName
 
 # Reinstall all the uninstalled apps in the container
 # This is needed to ensure that the various Demo Data apps are installed in the container when we generate demo data
-Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
 $allUninstalledApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesFirst | Where-Object { $_.IsInstalled -eq $false }
 Install-AppFromContainer -ContainerName $parameters.ContainerName -DependenciesToInstall $allUninstalledApps.Name
 # Log all the installed apps
