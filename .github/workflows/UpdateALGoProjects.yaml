@@ -58,7 +58,6 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         uses: microsoft/BCApps/.github/actions/RunAutomation@main
-
         with:
           automations: UpdateUseProjectDependencies
           targetBranch: ${{ matrix.branch }}
