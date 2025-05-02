@@ -19,6 +19,11 @@ codeunit 134971 "Rest Client Tests"
         MockRestClientService: Codeunit "Mock Rest Client Service";
         ResponseBodyUrlTxt: Label '{"url": "%1"}', Locked = true;
 
+    local procedure Initialize()
+    begin
+        Clear(MockRestClientService);
+    end;
+
     [Test]
     [HandlerFunctions('HandleRestClientCall')]
     procedure TestGet()
@@ -27,6 +32,8 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage: Codeunit "Http Response Message";
         JsonObject: JsonObject;
     begin
+        Initialize();
+
         // [SCENARIO] Test GET request
 
         // [GIVEN] An initialized Rest Client
@@ -38,6 +45,7 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage := RestClient.Get(MockRestClientService.GetGetUrl());
 
         // [THEN] The response contains the expected data
+        MockRestClientService.VerifyAllExpectedRequestWereHandled();
         Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
@@ -55,6 +63,8 @@ codeunit 134971 "Rest Client Tests"
         QueryParametersDictionary: Dictionary of [Text, Text];
         ResponseBodyTxt: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Test GET request with query parameters
 
         // [GIVEN] An initialized Rest Client
@@ -62,7 +72,6 @@ codeunit 134971 "Rest Client Tests"
         RestClient.Initialize(HttpClientHandler);
 
         // [WHEN] The Get method is called with query parameters                              
-        MockRestClientService.SetResponse('{param1: "value1", param2: "value2"}');
         QueryParameters := '?param1=value1&param2=value2';
         QueryParametersDictionary.Add('param1', 'value1');
         QueryParametersDictionary.Add('param2', 'value2');
@@ -75,6 +84,7 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage := RestClient.Get(MockRestClientService.GetGetUrl() + QueryParameters);
 
         // [THEN] The response contains the expected data
+        MockRestClientService.VerifyAllExpectedRequestWereHandled();
         Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
@@ -93,6 +103,8 @@ codeunit 134971 "Rest Client Tests"
         ResponseBodyTxt: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Test POST request
 
         // [GIVEN] An initialized Rest Client
@@ -108,6 +120,7 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage := RestClient.Post(MockRestClientService.GetPostUrl(), HttpGetContent.Create(ResponseText));
 
         // [THEN] The response contains the expected data
+        MockRestClientService.VerifyAllExpectedRequestWereHandled();
         Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
@@ -126,6 +139,8 @@ codeunit 134971 "Rest Client Tests"
         ResponseText: Text;
         ResponseBodyTxt: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Test PATCH request
 
         // [GIVEN] An initialized Rest Client
@@ -141,6 +156,7 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage := RestClient.Patch(MockRestClientService.GetPatchUrl(), HttpGetContent.Create(ResponseText));
 
         // [THEN] The response contains the expected data
+        MockRestClientService.VerifyAllExpectedRequestWereHandled();
         Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
@@ -159,6 +175,8 @@ codeunit 134971 "Rest Client Tests"
         ResponseBodyTxt: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Test PUT request
 
         // [GIVEN] An initialized Rest Client
@@ -173,6 +191,7 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage := RestClient.Put(MockRestClientService.GetPutUrl(), HttpGetContent.Create(ResponseText));
 
         // [THEN] The response contains the expected data
+        MockRestClientService.VerifyAllExpectedRequestWereHandled();
         Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
@@ -189,6 +208,8 @@ codeunit 134971 "Rest Client Tests"
         JsonObject: JsonObject;
         ResponseBodyTxt: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Test DELETE request
 
         // [GIVEN] An initialized Rest Client
@@ -201,6 +222,7 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage := RestClient.Delete(MockRestClientService.GetDeleteUrl());
 
         // [THEN] The response contains the expected data
+        MockRestClientService.VerifyAllExpectedRequestWereHandled();
         Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
@@ -217,6 +239,8 @@ codeunit 134971 "Rest Client Tests"
         JsonObject: JsonObject;
         ResponseBodyTxt: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Test GET request with base address
 
         // [GIVEN] An initialized Rest Client with base address
@@ -230,6 +254,7 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage := RestClient.Get('get');
 
         // [THEN] The response contains the expected data
+        MockRestClientService.VerifyAllExpectedRequestWereHandled();
         Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
@@ -244,6 +269,8 @@ codeunit 134971 "Rest Client Tests"
         JsonObject: JsonObject;
         ResponseBodyTxt: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Test GET request with JSON response
 
         // [GIVEN] An initialized Rest Client
@@ -256,6 +283,7 @@ codeunit 134971 "Rest Client Tests"
         JsonObject := RestClient.GetAsJson(MockRestClientService.GetGetUrl()).AsObject();
 
         // [THEN] The response contains the expected data
+        MockRestClientService.VerifyAllExpectedRequestWereHandled();
         Assert.AreEqual(MockRestClientService.GetGetUrl(), GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'The response should contain the expected url');
     end;
 
@@ -269,6 +297,8 @@ codeunit 134971 "Rest Client Tests"
         JsonObject2: JsonObject;
         RequestURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Test POST request with JSON request and response
 
         // [GIVEN] An initialized Rest Client
@@ -286,6 +316,7 @@ codeunit 134971 "Rest Client Tests"
         JsonObject2 := RestClient.PostAsJson(RequestURL, JsonObject1).AsObject();
 
         // [THEN] The response contains the expected data
+        MockRestClientService.VerifyAllExpectedRequestWereHandled();
         Assert.AreEqual(RequestURL, GetJsonToken(JsonObject2, 'url').AsValue().AsText(), 'The response should contain the expected url');
         JsonObject2.ReadFrom(GetJsonToken(JsonObject2, 'data').AsValue().AsText());
         Assert.AreEqual('John', GetJsonToken(JsonObject2, 'name').AsValue().AsText(), 'The response should contain the expected data');
@@ -302,6 +333,8 @@ codeunit 134971 "Rest Client Tests"
         JsonObject2: JsonObject;
         RequestURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Test PATCH request with JSON request and response
 
         // [GIVEN] An initialized Rest Client
@@ -320,6 +353,7 @@ codeunit 134971 "Rest Client Tests"
         JsonObject2 := RestClient.PatchAsJson(RequestURL, JsonObject1).AsObject();
 
         // [THEN] The response contains the expected data
+        MockRestClientService.VerifyAllExpectedRequestWereHandled();
         Assert.AreEqual(RequestURL, GetJsonToken(JsonObject2, 'url').AsValue().AsText(), 'The response should contain the expected url');
         JsonObject2.ReadFrom(GetJsonToken(JsonObject2, 'data').AsValue().AsText());
         Assert.AreEqual('John', GetJsonToken(JsonObject2, 'name').AsValue().AsText(), 'The response should contain the expected data');
@@ -336,6 +370,8 @@ codeunit 134971 "Rest Client Tests"
         JsonObject2: JsonObject;
         RequestURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Test PUT request with JSON request and response
 
         // [GIVEN] An initialized Rest Client
@@ -353,6 +389,7 @@ codeunit 134971 "Rest Client Tests"
         JsonObject2 := RestClient.PutAsJson(RequestURL, JsonObject1).AsObject();
 
         // [THEN] The response contains the expected data
+        MockRestClientService.VerifyAllExpectedRequestWereHandled();
         Assert.AreEqual(RequestURL, GetJsonToken(JsonObject2, 'url').AsValue().AsText(), 'The response should contain the expected url');
         JsonObject2.ReadFrom(GetJsonToken(JsonObject2, 'data').AsValue().AsText());
         Assert.AreEqual('John', GetJsonToken(JsonObject2, 'name').AsValue().AsText(), 'The response should contain the expected data');
@@ -367,6 +404,8 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage: Codeunit "Http Response Message";
         JsonObject: JsonObject;
     begin
+        Initialize();
+
         // [SCENARIO] Test Send method without Getcontent
 
         // [GIVEN] An initialized Rest Client
@@ -378,6 +417,7 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage := RestClient.Send(Enum::"Http Method"::GET, MockRestClientService.GetGetUrl());
 
         // [THEN] The response contains the expected data
+        MockRestClientService.VerifyAllExpectedRequestWereHandled();
         Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
@@ -395,6 +435,8 @@ codeunit 134971 "Rest Client Tests"
         ResponseBodyTxt: Text;
         RequestText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Test Send method with Get content
 
         // [GIVEN] An initialized Rest Client
@@ -409,6 +451,7 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage := RestClient.Send(Enum::"Http Method"::POST, MockRestClientService.GetPostUrl(), HttpContent.Create(RequestText));
 
         // [THEN] The response contains the expected data
+        MockRestClientService.VerifyAllExpectedRequestWereHandled();
         Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
@@ -425,6 +468,8 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage: Codeunit "Http Response Message";
         JsonObject: JsonObject;
     begin
+        Initialize();
+
         // [SCENARIO] Test Send method with request message
 
         // [GIVEN] An initialized Rest Client
@@ -438,6 +483,7 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage := RestClient.Send(ALHttpRequestMessage);
 
         // [THEN] The response contains the expected data
+        MockRestClientService.VerifyAllExpectedRequestWereHandled();
         Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();

@@ -10,13 +10,13 @@ codeunit 134965 "Mock Rest Client Service"
 {
     var
         Assert: Codeunit "Library Assert";
+        WebRequestResponse: Codeunit "Library - Variable Storage";
         BaseURLTxt: Label 'https://localhost';
         GetUrlTxt: Label 'https://localhost/get';
         PostUrlTxt: Label 'https://localhost/post';
         PatchUrlTxt: Label 'https://localhost/patch';
         PutUrlTxt: Label 'https://localhost/put';
         DeleteUrlTxt: Label 'https://localhost/delete';
-        ResponseTxt: Text;
         ExpectedRequestQueryParameters: Dictionary of [Text, Text];
 
     procedure GetBaseURL(): Text
@@ -51,7 +51,7 @@ codeunit 134965 "Mock Rest Client Service"
 
     procedure SetResponse(Response: Text)
     begin
-        ResponseTxt := Response;
+        WebRequestResponse.Enqueue(Response);
     end;
 
     procedure SetQueryParameters(QueryParameters: Dictionary of [Text, Text])
@@ -64,38 +64,44 @@ codeunit 134965 "Mock Rest Client Service"
         if not Request.Path.StartsWith(BaseURLTxt) then
             exit;
 
-        if Request.Path.StartsWith(GetUrlTxt) then begin
-            if Request.QueryParameters.Count() > 0 then
-                VerifyRequestQueryParameters(Request.QueryParameters);
+        VerifyRequestQueryParameters(Request.QueryParameters);
 
-            Response.Content.WriteFrom(ResponseTxt);
+        if Request.Path.StartsWith(GetUrlTxt) then begin
+            Response.Content.WriteFrom(WebRequestResponse.DequeueText());
             Response.HttpStatusCode := 200;
             exit;
         end;
 
         if Request.Path = PostUrlTxt then begin
-            Response.Content.WriteFrom(ResponseTxt);
+            Response.Content.WriteFrom(WebRequestResponse.DequeueText());
             Response.HttpStatusCode := 200;
             exit;
         end;
 
         if Request.Path = PatchUrlTxt then begin
-            Response.Content.WriteFrom(ResponseTxt);
+            Response.Content.WriteFrom(WebRequestResponse.DequeueText());
             Response.HttpStatusCode := 200;
             exit;
         end;
 
         if Request.Path = PutUrlTxt then begin
-            Response.Content.WriteFrom(ResponseTxt);
+            Response.Content.WriteFrom(WebRequestResponse.DequeueText());
             Response.HttpStatusCode := 200;
             exit;
         end;
 
         if Request.Path = DeleteUrlTxt then begin
-            Response.Content.WriteFrom(ResponseTxt);
+            Response.Content.WriteFrom(WebRequestResponse.DequeueText());
             Response.HttpStatusCode := 200;
             exit;
         end;
+
+        Assert.Fail('Unexpected request path: ' + Request.Path);
+    end;
+
+    procedure VerifyAllExpectedRequestWereHandled()
+    begin
+        WebRequestResponse.AssertEmpty();
     end;
 
     local procedure VerifyRequestQueryParameters(RequestQueryParameters: Dictionary of [Text, Text])
@@ -103,6 +109,10 @@ codeunit 134965 "Mock Rest Client Service"
         QueryParameter: Text;
     begin
         Assert.AreEqual(ExpectedRequestQueryParameters.Count(), RequestQueryParameters.Count(), 'Wrong number of query parameters in request.');
+
+        if RequestQueryParameters.Count() = 0 then
+            exit;
+
         foreach QueryParameter in ExpectedRequestQueryParameters.Keys() do begin
             Assert.IsTrue(RequestQueryParameters.ContainsKey(QueryParameter), 'Missing query parameter: ' + QueryParameter);
             Assert.AreEqual(ExpectedRequestQueryParameters.Get(QueryParameter), RequestQueryParameters.Get(QueryParameter), 'Wrong value for query parameter: ' + QueryParameter);
