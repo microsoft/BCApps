@@ -15,14 +15,14 @@ enum 7770 "AOAI Image Detail Level"
 
     value(0; low)
     {
-        Caption = 'Low';
+        Caption = 'low';
     }
     value(1; high)
     {
-        Caption = 'High';
+        Caption = 'high';
     }
     value(2; auto)
     {
-        Caption = 'Auto';
+        Caption = 'auto';
     }
 }

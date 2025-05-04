@@ -61,17 +61,14 @@ codeunit 7783 "AOAI Images Impl"
         if IsNullGuid(MediaSetId) then
             exit('');
 
-        if not TenantMediaSet.Get(MediaSetId) then
+        TenantMediaSet.SetRange(ID, MediaSetId);
+        if TenantMediaSet.IsEmpty() then
             exit('');
 
         MaxImages := 10;
         ImageCount := 0;
 
         AddTextPart(UserText, ContentArray);
-
-        TenantMediaSet.SetRange(ID, MediaSetId);
-        if TenantMediaSet.IsEmpty() then
-            exit('');
 
         if TenantMediaSet.FindSet() then
             repeat
