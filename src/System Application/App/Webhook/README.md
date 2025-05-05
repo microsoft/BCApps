@@ -1,12 +1,10 @@
-This module exposes functionality to connect to CES (Customer Experience Surveys).
+This module exposes functionality to  handle webhook subscriptions to external resources.
 
 Use this module to do the following:
-> Register events to CES backend.
+> Access and create webhook subscriptions.
 
-> Get eligibility for the current user for a specific survey.
+> Get notified of new webhook notifications.
 
-> Get survey properties for Business Central surveys.
-
-> Render survey for the current user.
+> Access webhook notification content.
 
 This is an internal module for Microsoft.
