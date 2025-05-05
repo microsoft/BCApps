@@ -98,6 +98,12 @@ jobs:
           ref: ${{ inputs.checkoutRef }}
           lfs: true
 
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: | 
+            8.0.x
+
       - name: Read settings
         uses: microsoft/AL-Go/Actions/ReadSettings@5cfd7e2ceab0ade7a7b6e46a59a25cd49d3ff3ba
         with:
