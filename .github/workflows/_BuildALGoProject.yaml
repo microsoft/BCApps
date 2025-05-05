@@ -100,9 +100,10 @@ jobs:
 
       - name: Remove dotnet 9.0.x
         run: |
-          if(Test-Path 'C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\9.0.4') {
-            Write-Host 'Removing dotnet 9.0.4...'
-            Remove-Item -Path 'C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\9.0.4' -Recurse -Force
+          $dotNet9 = Get-ChildItem -Path "C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.*" -Directory
+          $dotNet9 | ForEach-Object {
+            Write-Host "Removing $($_.FullName)"
+            Remove-Item -Path $_.FullName -Recurse -Force
           }
 
       - name: Read settings
