@@ -98,11 +98,12 @@ jobs:
           ref: ${{ inputs.checkoutRef }}
           lfs: true
 
-      - name: Setup dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: | 
-            8.0.x
+      - name: Remove dotnet 9.0.x
+        run: |
+          if(Test-Path ''C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\9.0.4') {
+            Write-Host 'Removing dotnet 9.0.4...'
+            Remove-Item -Path 'C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\9.0.4' -Recurse -Force
+          }
 
       - name: Read settings
         uses: microsoft/AL-Go/Actions/ReadSettings@5cfd7e2ceab0ade7a7b6e46a59a25cd49d3ff3ba
