@@ -98,14 +98,6 @@ jobs:
           ref: ${{ inputs.checkoutRef }}
           lfs: true
 
-      - name: Remove dotnet 9.0.x
-        run: |
-          $dotNet9 = Get-ChildItem -Path "C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.*" -Directory
-          $dotNet9 | ForEach-Object {
-            Write-Host "Removing $($_.FullName)"
-            Remove-Item -Path $_.FullName -Recurse -Force
-          }
-
       - name: Read settings
         uses: microsoft/AL-Go/Actions/ReadSettings@5cfd7e2ceab0ade7a7b6e46a59a25cd49d3ff3ba
         with:
