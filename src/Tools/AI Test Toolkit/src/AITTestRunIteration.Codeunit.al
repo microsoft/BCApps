@@ -20,6 +20,8 @@ codeunit 149042 "AIT Test Run Iteration"
         ActiveAITTestSuite: Record "AIT Test Suite";
         GlobalTestMethodLine: Record "Test Method Line";
         NoOfInsertedLogEntries: Integer;
+        UpdateTestSuite: Boolean;
+        RunAllTests: Boolean;
         GlobalAITokenUsedByLastTestMethodLine: Integer;
         GlobalNumberOfTurnsForLastTestMethodLine: Integer;
         GlobalNumberOfTurnsPassedForLastTestMethodLine: Integer;
@@ -34,6 +36,8 @@ codeunit 149042 "AIT Test Run Iteration"
 
         NoOfInsertedLogEntries := 0;
         GlobalAITokenUsedByLastTestMethodLine := 0;
+        UpdateTestSuite := true;
+        RunAllTests := true;
 
         InitializeAITTestMethodLineForRun(Rec, ActiveAITTestSuite);
         SetAITTestSuite(ActiveAITTestSuite);
@@ -55,7 +59,7 @@ codeunit 149042 "AIT Test Run Iteration"
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
-        OnBeforeRunIteration(AITTestSuite, AITTestMethodLine);
+        OnBeforeRunIteration(AITTestSuite, AITTestMethodLine, RunAllTests, UpdateTestSuite);
         RunIteration(AITTestMethodLine);
         Commit();
 
@@ -69,14 +73,23 @@ codeunit 149042 "AIT Test Run Iteration"
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
         AITTestMethodLine.Find();
-        AITALTestSuiteMgt.UpdateALTestSuite(AITTestMethodLine);
+
+        if UpdateTestSuite then
+            AITALTestSuiteMgt.UpdateALTestSuite(AITTestMethodLine);
+
         SetAITTestMethodLine(AITTestMethodLine);
 
         TestMethodLine.SetRange("Test Codeunit", AITTestMethodLine."Codeunit ID");
         TestMethodLine.SetRange("Test Suite", AITTestMethodLine."AL Test Suite");
         TestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Codeunit);
+        OnBeforeRunTestMethodLine(TestMethodLine);
+
         TestMethodLine.FindFirst();
-        TestSuiteMgt.RunAllTests(TestMethodLine);
+
+        if RunAllTests then
+            TestSuiteMgt.RunAllTests(TestMethodLine)
+        else
+            TestSuiteMgt.RunSelectedTests(TestMethodLine);
     end;
 
     procedure GetAITTestSuiteTag(): Text[20]
@@ -143,7 +156,12 @@ codeunit 149042 "AIT Test Run Iteration"
     end;
 
     [InternalEvent(false)]
-    procedure OnBeforeRunIteration(var AITTestSuite: Record "AIT Test Suite"; var AITTestMethodLine: Record "AIT Test Method Line")
+    procedure OnBeforeRunIteration(var AITTestSuite: Record "AIT Test Suite"; var AITTestMethodLine: Record "AIT Test Method Line"; var RunAllTests: Boolean; var UpdateTestSuite: Boolean)
+    begin
+    end;
+
+    [InternalEvent(false)]
+    procedure OnBeforeRunTestMethodLine(var TestMethodLine: Record "Test Method Line")
     begin
     end;
 
