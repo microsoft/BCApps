@@ -665,7 +665,7 @@ codeunit 8905 "Email Message Impl."
             exit(EmptyGuid);
 
         for MessageNo := 1 to MessagesToIterate do begin
-            DeleteIfOrphaned(EmailMessage);
+            DeleteEmailMessageIfOrphaned(EmailMessage);
 
             if EmailMessage.Next() = 0 then
                 exit(EmptyGuid);
@@ -674,7 +674,7 @@ codeunit 8905 "Email Message Impl."
         exit(EmailMessage.Id);
     end;
 
-    local procedure DeleteIfOrphaned(var EmailMessage: Record "Email Message")
+    local procedure DeleteEmailMessageIfOrphaned(var EmailMessage: Record "Email Message")
     var
         EmailOutbox: Record "Email Outbox";
         SentEmail: Record "Sent Email";
@@ -688,6 +688,47 @@ codeunit 8905 "Email Message Impl."
             exit;
 
         EmailMessage.Delete();
+    end;
+
+    procedure DeleteEmailRecipientsIfOrphaned(StartMessageId: Guid; RecipientsToIterate: Integer) NextMessageId: Guid
+    var
+        EmailRecipients: Record "Email Recipient";
+        OrphanedDict: Dictionary of [Guid, Boolean];
+        EmptyGuid: Guid;
+        RecipientIdx: Integer;
+    begin
+        EmailRecipients.SetLoadFields("Email Message Id");
+        EmailRecipients.ReadIsolation(IsolationLevel::ReadCommitted);
+        EmailRecipients.SetFilter("Email Message Id", '>=%1', StartMessageId);
+
+        if not EmailRecipients.FindSet() then
+            exit;
+
+        for RecipientIdx := 1 to RecipientsToIterate do begin
+            if IsEmailRecipientOrphaned(OrphanedDict, EmailRecipients) then
+                EmailRecipients.Delete();
+
+            if EmailRecipients.Next() = 0 then
+                exit(EmptyGuid);
+        end;
+
+        exit(EmailRecipients."Email Message Id");
+    end;
+
+    local procedure IsEmailRecipientOrphaned(var OrphanedDict: Dictionary of [Guid, Boolean]; var EmailRecipient: Record "Email Recipient"): Boolean
+    var
+        EmailMessage: Record "Email Message";
+    begin
+        if OrphanedDict.ContainsKey(EmailRecipient."Email Message Id") then
+            exit(OrphanedDict.Get(EmailRecipient."Email Message Id"));
+        EmailMessage.SetRange(Id, EmailRecipient."Email Message Id");
+        if EmailMessage.IsEmpty() then begin
+            OrphanedDict.Add(EmailRecipient."Email Message Id", true);
+            exit(true);
+        end;
+
+        OrphanedDict.Add(EmailRecipient."Email Message Id", false);
+        exit(false);
     end;
 
     procedure ValidateRecipients()

@@ -270,6 +270,11 @@ page 130460 "AL Code Coverage"
         SetStyles();
     end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        CodeCoverageRunning := System.CodeCoverageLog();
+    end;
+
     trigger OnInit()
     begin
         RequiredCoveragePercent := 90;
