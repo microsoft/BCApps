@@ -188,20 +188,19 @@ codeunit 2717 "Page Summary Provider Impl."
         end;
 
         // Get summary fields
-        if not TryGetPageSummaryFields(PageId, RecId, Bookmark, ResultJsonObject, IncludeBinaryData) then
+        if not GetPageSummaryFields(PageId, RecId, Bookmark, ResultJsonObject, IncludeBinaryData) then
             AddErrorMessage(ResultJsonObject, FailedGetSummaryFieldsCodeTok, GetLastErrorText());
     end;
 
     local procedure GetRecordFields(PageId: Integer; Bookmark: Text; var ResultJsonObject: JsonObject)
     begin
         // Get all visible and available table fields that back the controls that are visible on the page
-        if not TryGetAvailableRecordFieldsData(PageId, Bookmark, ResultJsonObject) then
+        if not GetAvailableRecordFieldsData(PageId, Bookmark, ResultJsonObject) then
             Session.LogMessage('0000NFZ', StrSubstNo(GetRecordFieldsFailureTelemetryTxt, PageId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PageSummaryCategoryLbl);
         exit;
     end;
 
-    [TryFunction]
-    local procedure TryGetAvailableRecordFieldsData(PageId: Integer; Bookmark: Text; var ResultJsonObject: JsonObject)
+    local procedure GetAvailableRecordFieldsData(PageId: Integer; Bookmark: Text; var ResultJsonObject: JsonObject): Boolean
     var
         GenericList: DotNet GenericList1;
         NavPageSummaryALFunctions: DotNet NavPageSummaryALFunctions;
@@ -212,14 +211,14 @@ codeunit 2717 "Page Summary Provider Impl."
         GenericList := NavPageSummaryALFunctions.GetAvailableTableFields(PageId);
         if IsNull(GenericList) then begin
             Session.LogMessage('0000NCO', StrSubstNo(NoRecordFieldsFoundTelemetryTxt, PageId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PageSummaryCategoryLbl);
-            exit;
+            exit(true);
         end;
 
         if (GenericList.Count() > 0) then begin
             NavPageSummaryALResponse := NavPageSummaryALFunctions.GetSummary(PageId, Bookmark, GenericList);
             if not NavPageSummaryALResponse.Success then begin
                 Session.LogMessage('0000NCX', StrSubstNo(SummaryFailureTelemetryTxt, PageId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PageSummaryCategoryLbl);
-                exit;
+                exit(false);
             end;
 
             // Get field values
@@ -227,6 +226,7 @@ codeunit 2717 "Page Summary Provider Impl."
                 AddFieldToFieldsJsonArray(NavPageSummaryALField, RecordFieldsJsonArray, true, false);
         end;
         ResultJsonObject.Add('recordFields', RecordFieldsJsonArray);
+        exit(true);
     end;
 
     local procedure AddErrorMessage(var ResultJsonObject: JsonObject; ErrorCode: Text; ErrorMessage: Text)
@@ -263,8 +263,7 @@ codeunit 2717 "Page Summary Provider Impl."
         ResultJsonObject.Add('cardPageId', PageMetadata.CardPageID);
     end;
 
-    [TryFunction]
-    local procedure TryGetPageSummaryFields(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject; IncludeBinaryData: Boolean)
+    local procedure GetPageSummaryFields(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject; IncludeBinaryData: Boolean): Boolean
     var
         PageSummaryProvider: Codeunit "Page Summary Provider";
         NavPageSummaryALFunctions: DotNet NavPageSummaryALFunctions;
@@ -274,11 +273,10 @@ codeunit 2717 "Page Summary Provider Impl."
         FieldsJsonArray: JsonArray;
         PageSummaryFieldList: List of [Integer];
         PageSummaryField: Integer;
-        ErrorMessage: Text;
     begin
         GenericList := NavPageSummaryALFunctions.GetSummaryFields(PageId);
         if IsNull(GenericList) then
-            exit;
+            exit(true);
 
         foreach PageSummaryField in GenericList do
             PageSummaryFieldList.Add(PageSummaryField);
@@ -299,8 +297,7 @@ codeunit 2717 "Page Summary Provider Impl."
             NavPageSummaryALResponse := NavPageSummaryALFunctions.GetSummary(PageId, Bookmark, GenericList);
             if not NavPageSummaryALResponse.Success then begin
                 Session.LogMessage('0000DGV', StrSubstNo(SummaryFailureTelemetryTxt, PageId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PageSummaryCategoryLbl);
-                ErrorMessage := NavPageSummaryALResponse.ErrorMessage;
-                Error(ErrorMessage);
+                exit(false);
             end;
             // Get field values
             foreach NavPageSummaryALField in NavPageSummaryALResponse.SummaryFields do
@@ -310,6 +307,7 @@ codeunit 2717 "Page Summary Provider Impl."
         // Allow partner to finally override field names and values
         PageSummaryProvider.OnAfterGetPageSummary(PageId, RecId, FieldsJsonArray);
         AddFieldsJsonArrayToResult(FieldsJsonArray, ResultJsonObject);
+        exit(true);
     end;
 
     local procedure RemoveMediaAndBlobFields(RecId: RecordId; var PageSummaryFieldList: List of [Integer])
