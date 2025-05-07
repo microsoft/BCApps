@@ -372,8 +372,8 @@ page 8886 "Email Account Wizard"
             {
                 ApplicationArea = All;
                 Visible = TestEmailActionVisible;
-                Caption = 'Send Test Email';
-                ToolTip = 'Send Test Email';
+                Caption = 'Send test email';
+                ToolTip = 'Send test email';
                 InFooterBar = true;
                 Image = Action;
 
@@ -387,8 +387,8 @@ page 8886 "Email Account Wizard"
             {
                 ApplicationArea = All;
                 Visible = TestEmailActionVisible;
-                Caption = 'Edit Account';
-                ToolTip = 'Edit Account';
+                Caption = 'Edit account';
+                ToolTip = 'Edit account';
                 InFooterBar = true;
                 Image = Edit;
 
