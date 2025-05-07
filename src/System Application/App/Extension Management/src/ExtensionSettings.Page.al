@@ -146,6 +146,7 @@ page 2511 "Extension Settings"
     begin
         PublishedApplication.SetRange(ID, Rec."App ID");
         PublishedApplication.SetRange("Tenant Visible", true);
+        PublishedApplication.SetRange("Tenant ID", TenantID());
 
         SetInstalledFilter(PublishedApplication);
 
