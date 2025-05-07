@@ -272,16 +272,14 @@ codeunit 54 "Language Impl."
 
     procedure LookupWindowsLanguageId(var LanguageId: Integer)
     var
-        TempWindowsLanguage: Record "Windows Language" temporary;
+        WindowsLanguage: Record "Windows Language";
     begin
-        GetApplicationLanguages(TempWindowsLanguage);
+        WindowsLanguage.SetCurrentKey(Name);
 
-        TempWindowsLanguage.SetCurrentKey(Name);
+        if WindowsLanguage.Get(LanguageId) then;
 
-        if TempWindowsLanguage.Get(LanguageId) then;
-
-        if Page.RunModal(Page::"Windows Languages", TempWindowsLanguage) = Action::LookupOK then
-            LanguageId := TempWindowsLanguage."Language ID";
+        if Page.RunModal(Page::"Windows Languages", WindowsLanguage) = Action::LookupOK then
+            LanguageId := WindowsLanguage."Language ID";
     end;
 
     procedure GetParentLanguageId(LanguageId: Integer) ParentLanguageId: Integer
