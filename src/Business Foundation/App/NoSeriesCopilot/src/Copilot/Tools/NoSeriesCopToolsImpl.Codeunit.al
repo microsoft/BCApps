@@ -14,6 +14,7 @@ codeunit 336 "No. Series Cop. Tools Impl."
     Access = Internal;
 
     var
+        SemanticImpl: Codeunit "No. Series Cop. Semantic Impl.";
         PrefixLbl: Label 'for ';
 
     procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var Arguments: JsonObject; var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]; UpdateForNextYear: Boolean)
@@ -236,9 +237,21 @@ codeunit 336 "No. Series Cop. Tools Impl."
 
             if TextMatchImpl.IsRelevant(String1, String2) then
                 exit(true);
+
+            if SemanticImpl.IsRelevant(String1, String2) then
+                exit(true);
+
         end;
         exit(false);
     end;
+
+    // start of <todo>
+    //TODO: Remove this procedure if the semantic vocabulary is not required
+    procedure UpdateSemanticVocabulary()
+    begin
+        SemanticImpl.UpdateSemanticVocabulary();
+    end;
+    // end of <todo>
 
     procedure GenerateChunkedTablesListInYamlFormat(var TablesYamlList: List of [Text]; var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var NumberOfAddedTables: Integer)
     begin
