@@ -28,7 +28,7 @@ codeunit 389 "No. Series Copilot Telemetry"
         FeatureTelemetry.LogUptake('0000O9D', NoSeriesCopilotImpl.FeatureName(), Enum::"Feature Uptake Status"::"Set up");
     end;
 
-    procedure LogApply(GeneratedNoSeries: Record "No. Series Generation Detail")
+    procedure LogApply(var GeneratedNoSeries: Record "No. Series Generation Detail")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
