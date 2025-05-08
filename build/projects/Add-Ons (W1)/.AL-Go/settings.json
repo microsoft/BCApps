@@ -1,10 +1,10 @@
 {
     "projectName": "Add-Ons (W1)",
     "appFolders": [
-        "../../../src/Add-Ons/W1/*/app"
+        "../../../src/Add-Ons/W1/*/App"
     ],
     "testFolders": [
-        "../../../src/Add-Ons/W1/*/test"
+        "../../../src/Add-Ons/W1/*/Test"
     ],
     "buildModes": [
         "Translated"
