@@ -29,6 +29,5 @@ permissionset 22 "System Application - Edit"
                              "Language - Edit",
                              "PageScripting - Rec",
                              "Translation - Edit",
-                             "Word Templates - Edit",
-                             "Data Analysis - Edit";
+                             "Word Templates - Edit";
 }

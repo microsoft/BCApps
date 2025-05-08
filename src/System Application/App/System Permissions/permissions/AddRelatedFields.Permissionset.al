@@ -5,7 +5,7 @@
 
 namespace System.Security.AccessControl;
 
-permissionset 9632 "Data Analysis - Edit"
+permissionset 9632 "Add Related Fields"
 {
     Access = Public;
     Assignable = true;
