@@ -36,5 +36,6 @@ permissionset 154 "System Application - Admin"
                              "PageScripting - Play",
                              "Page Summary - Admin",
                              "TROUBLESHOOT TOOLS",
-                             "VSC Intgr. - Admin";
+                             "VSC Intgr. - Admin",
+                             "Add Related Fields";
 }
