@@ -79,16 +79,16 @@ function Get-AssemblyProbingPaths() {
 
 <#
     .Synopsis
-        Build a dependency app from source code and place it in the symbols folder for the app.
+        Build an app from source code and place it in the symbols folder for the app.
     .Description
-        This function will build a dependency app from source code and place it in the symbols folder for the app.
+        This function will build an app from source code and place it in the symbols folder for the app.
         The source code is downloaded from the artifact and the app is built with the same parameters as the main app.
     .Parameter App
         The name of the app to build.
     .Parameter CompilationParameters
         The parameters to use for the compilation of the app. This should be the same as the parameters used for the main app.
 #>
-function Build-Dependency() {
+function Build-App() {
     param(
         [string] $App,
         [hashtable] $CompilationParameters
@@ -196,11 +196,11 @@ function Install-AppFromContainer() {
         [Parameter(Mandatory = $true)]
         [string] $ContainerName,
         [Parameter(Mandatory = $true)]
-        [string[]] $DependenciesToInstall
+        [string[]] $AppsToInstall
     )
     $allAppsInEnvironment = Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesFirst
     $missingDependencies = @()
-    foreach($dependency in $DependenciesToInstall) {
+    foreach($dependency in $AppsToInstall) {
         $appInContainer = $allAppsInEnvironment | Where-Object Name -eq $dependency
         if (-not $appInContainer) {
             Write-Host "[Install Container App] - $($dependency) is not published to the container"

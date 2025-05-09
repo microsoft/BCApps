@@ -36,7 +36,7 @@ if($appType -eq 'app')
             if($appBuildMode -eq 'Clean') {
                 if ($recompileDependencies.Count -gt 0) {
                     $recompileDependencies | ForEach-Object {
-                        Build-Dependency -App $_ -CompilationParameters ($parameters.Value.Clone())
+                        Build-App -App $_ -CompilationParameters ($parameters.Value.Clone())
                     }
                 }
 
