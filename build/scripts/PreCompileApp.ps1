@@ -77,4 +77,3 @@ if($appType -eq 'app')
         }
     }
 }
-
