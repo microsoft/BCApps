@@ -46,37 +46,6 @@ function GetSourceCodeFromArtifact() {
     return $sourceCodeFolder
 }
 
-function Get-AssemblyProbingPaths() {
-    param(
-        [string] $TargetDotnetVersion = "8"
-    )
-    # Check if the target .NET version is installed
-    $DotNetSharedPath = "$env:ProgramFiles\dotnet\shared\Microsoft.AspNetCore.App\$TargetDotnetVersion.*"
-    if(!(Test-Path $DotNetSharedPath)) {
-        throw "Please install dotnet $TargetDotnetVersion SDK, path not found $DotNetSharedPath"
-    }
-
-    # Get the .NET latest minor version
-    $versions = (Get-ChildItem "$DotNetSharedPath" -Name)
-    $latestVersion = [version]"0.0.0"
-    foreach ($currentVersion in $versions) {
-        if ([version]$currentVersion -gt $latestVersion) {
-            $latestVersion = [version]$currentVersion
-        }
-    }
-
-    $assemblyProbingPaths = @()
-    $assemblyProbingPaths += "$env:ProgramFiles\dotnet\shared\Microsoft.AspNetCore.App\$latestVersion"
-    $assemblyProbingPaths += "$env:ProgramFiles\dotnet\shared\Microsoft.NETCore.App\$latestVersion"
-    $assemblyProbingPaths += "$env:ProgramFiles\dotnet\shared\Microsoft.WindowsDesktop.App\$latestVersion"
-
-    if (($null -ne $bcContainerHelperConfig)) {
-        # Set the minimum .NET runtime version for the bccontainerhelper to avoid containerhelper injecting a newer version of the .NET runtime
-        $bcContainerHelperConfig.MinimumDotNetRuntimeVersionStr = "99.0.0"
-    }
-    return $assemblyProbingPaths -join ","
-}
-
 <#
     .Synopsis
         Build an app from source code and place it in the symbols folder for the app.
@@ -123,8 +92,6 @@ function Build-App() {
 
     Write-Host "Get source code for $App"
     $sourceCodeFolder = GetSourceCodeFromArtifact -App $App -TempFolder $script:tempFolder
-
-    $CompilationParameters["assemblyProbingPaths"] = Get-AssemblyProbingPaths
 
     # Update the CompilationParameters
     $CompilationParameters["appProjectFolder"] = $sourceCodeFolder # Use the downloaded source code as the project folder

@@ -78,7 +78,3 @@ if($appType -eq 'app')
     }
 }
 
-if($useCompilerFolder) {
-    Write-Host "Using compiler folder for compilation - Setting assemblyProbingPaths"
-    $parameters.Value["assemblyProbingPaths"] = Get-AssemblyProbingPaths
-}
