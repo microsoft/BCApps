@@ -138,7 +138,9 @@ function Install-AppFromFile() {
         Write-Host "[Install App from file] - Searching for app file with name: $AppName"
         # Looking for app files under the Applications folder on the container
         $allApps = (Invoke-ScriptInBCContainer -containerName $ContainerName -scriptblock { Get-ChildItem -Path "C:\Applications\" -Filter "*.app" -Recurse })
-        $AppFilePath = $allApps | Where-Object { $($_.BaseName) -like "*$($AppName)" } | ForEach-Object { $_.FullName }
+
+        # Find the app file by looking for an app file with the base name "Microsoft_AppName"
+        $AppFilePath = $allApps | Where-Object { $($_.BaseName) -eq "Microsoft_$($AppName)" } | ForEach-Object { $_.FullName }
     }
 
     if (-not $AppFilePath) {
