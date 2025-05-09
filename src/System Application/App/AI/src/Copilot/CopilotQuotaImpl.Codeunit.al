@@ -50,7 +50,7 @@ codeunit 7786 "Copilot Quota Impl."
             exit(false);
         end;
 
-        Session.LogMessage('0000P7O', StrSubstNo(IsTenantAllowedToConsumeQuotaLbl, Format(ALCopilotQuotaDetails.CanConsume())), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'category', CopilotCapabilityImpl.GetCopilotCategory());
+        Session.LogMessage('0000P7O', StrSubstNo(IsTenantAllowedToConsumeQuotaLbl, Format(ALCopilotQuotaDetails.CanConsume())), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'category', CopilotCapabilityImpl.GetCopilotCategory());
 
         exit(ALCopilotQuotaDetails.CanConsume());
     end;
