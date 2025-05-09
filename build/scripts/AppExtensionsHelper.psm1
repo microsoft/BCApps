@@ -169,7 +169,7 @@ function Install-AppFromFile() {
     )
     if ($PSCmdlet.ParameterSetName -eq "ByAppName") {
         Write-Host "[Install App from file] - Searching for app file with name: $AppName"
-        # Looking for app files under the Applications folder on the container 
+        # Looking for app files under the Applications folder on the container
         $allApps = (Invoke-ScriptInBCContainer -containerName $ContainerName -scriptblock { Get-ChildItem -Path "C:\Applications\" -Filter "*.app" -Recurse })
         $AppFilePath = $allApps | Where-Object { $($_.BaseName) -like "*$($AppName)" } | ForEach-Object { $_.FullName }
     }

@@ -6,8 +6,7 @@ Param(
 if ($ENV:BuildMode -eq 'Clean') {
 
     # If useProjectDependencies is set to false, we need to remove the app symbols folder so we recompile everything.
-    $settings = Get-Content (Join-Path $PSScriptRoot "settings.json" -Resolve) | ConvertFrom-Json
-    if ($settings.useProjectDependencies -eq $false) {
+    if ($env:settings.useProjectDependencies -eq $false) {
         $symbolsFolder = $compilationParams.Value["appSymbolsFolder"]
         if (Test-Path $symbolsFolder) {
             Remove-Item -Path $symbolsFolder\* -Recurse -Force -Verbose
