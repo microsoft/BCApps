@@ -978,6 +978,24 @@ codeunit 501 OAuth2
     end;
 
     /// <summary>
+    /// Gets the authorization token based on the authorization code via the OAuth2 v2.0 code grant flow.
+    /// </summary>
+    /// <param name="ClientId">The Application (client) ID that the "Azure portal – App registrations" experience assigned to your app.</param>
+    /// <param name="ClientSecret">The Application (client) secret configured in the "Azure Portal - Certificates &amp; Secrets".</param>
+    /// <param name="OAuthAuthorityUrl">The identity authorization provider URL.</param>
+    /// <param name="RedirectURL">The redirectURL of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirectURLs you registered in the portal. If this parameter is empty, the default Business Central URL will be used.</param>
+    /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
+    /// <param name="PromptInteraction">Indicates the type of user interaction that is required.</param>
+    /// <param name="Audience">The specific audience to request the token for.</param>
+    /// <param name="AuthCode">Exit parameter containing the authorization code. When this parameter is empty, check the AuthCodeErr for a description of the error.</param>
+    /// <param name="AuthCodeErr">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
+    [TryFunction]
+    procedure AcquireAuthorizationCode(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; Audience: Text; var AuthCode: Text; var AuthCodeErr: Text)
+    begin
+        OAuth2Impl.AcquireAuthorizationCode(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, Audience, AuthCode, AuthCodeErr);
+    end;
+
+    /// <summary>
     /// Gets the Claims Set from a JSON Web Token (JWT).
     /// </summary>
     /// <param name="JWT">The JSON Web Token.</param>

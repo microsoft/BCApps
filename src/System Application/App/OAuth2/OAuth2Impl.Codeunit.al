@@ -54,6 +54,11 @@ codeunit 502 OAuth2Impl
     end;
 
     procedure GetAuthRequestUrl(ClientId: Text; ClientSecret: SecretText; Url: Text; RedirectUrl: Text; var State: Text; Scopes: List of [Text]; PromptConsent: Enum "Prompt Interaction"): Text
+    begin
+        exit(GetAuthRequestUrl(ClientId, ClientSecret, Url, RedirectUrl, State, Scopes, PromptConsent, ''));
+    end;
+
+    procedure GetAuthRequestUrl(ClientId: Text; ClientSecret: SecretText; Url: Text; RedirectUrl: Text; var State: Text; Scopes: List of [Text]; PromptConsent: Enum "Prompt Interaction"; Audience: Text): Text
     var
         OAuthAuthorization: DotNet OAuthAuthorization;
         Consumer: DotNet Consumer;
@@ -85,8 +90,20 @@ codeunit 502 OAuth2Impl
 
         AppendPromptParameter(PromptConsent, AuthRequestUrl);
 
+        AppendAudienceParameter(Audience, AuthRequestUrl);
+
         Session.LogMessage('0000D1K', StrSubstNo(AuthRequestUrlTxt, AuthRequestUrl), Verbosity::Normal, DataClassification::AccountData, TelemetryScope::ExtensionPublisher, 'Category', Oauth2CategoryLbl);
         exit(AuthRequestUrl);
+    end;
+
+    local procedure AppendAudienceParameter(Audience: Text; var AuthRequestUrl: Text)
+    var
+        Uri: Dotnet Uri;
+    begin
+        if (Audience = '') then
+            exit;
+
+        AuthRequestUrl += '&audience=' + Uri.EscapeDataString(Audience);
     end;
 
     [NonDebuggable]
@@ -1116,6 +1133,22 @@ codeunit 502 OAuth2Impl
         CompoundToken := AuthFlow.ALAcquireTokenWithUserCredentials(ScopesArray, UserName, Credential);
         AccessToken := CompoundToken.AccessToken;
         IdToken := CompoundToken.IdToken;
+    end;
+
+    [TryFunction]
+    procedure AcquireAuthorizationCode(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; Audience: Text; var AuthCode: Text; var AuthCodeErr: Text)
+    var
+        AuthRequestUrl: Text;
+        State: Text;
+    begin
+        Initialize(OAuthAuthorityUrl, RedirectURL);
+
+        AuthRequestUrl := GetAuthRequestUrl(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, State, Scopes, PromptInteraction, Audience);
+
+        SetPropertiesBasedOnAuthRequestUrlAndRunOAuth2ControlAddIn(AuthRequestUrl, State, AuthCode, AuthCodeErr);
+
+        if StrPos(AuthCodeErr, PopupBlockedCodeErrLbl) > 0 then
+            Error(PopupBlockedErr, ProductName.Short());
     end;
 
     [NonDebuggable]
