@@ -197,4 +197,29 @@ codeunit 1285 "X509Certificate2 Impl."
 
         exit(SerialNumberASCII);
     end;
+
+    [NonDebuggable]
+    procedure CreateFromPemAndExportAsBase64(CertBase64: Text; PrivateKeyXmlString: SecretText; Password: SecretText): Text
+    var
+        RSA: Codeunit "RSA Impl.";
+        RSAEncryptionHelper: DotNet RSAEncryptionHelper;
+        BeginCertTok: Label '-----BEGIN CERTIFICATE-----', Locked = true;
+        EndCertTok: Label '-----END CERTIFICATE-----', Locked = true;
+    begin
+        if CertBase64 = '' then
+            exit;
+
+        if PrivateKeyXmlString.IsEmpty() then
+            exit;
+
+        if Password.IsEmpty() then
+            exit;
+
+        if not CertBase64.StartsWith(BeginCertTok) then
+            CertBase64 := BeginCertTok + CertBase64 + EndCertTok;
+
+        RSA.FromSecretXmlString(PrivateKeyXmlString);
+
+        exit(RSAEncryptionHelper.CreateBase64Pkcs12FromPem(CertBase64, RSA.ExportRSAPrivateKeyPem(), Password));
+    end;
 }
