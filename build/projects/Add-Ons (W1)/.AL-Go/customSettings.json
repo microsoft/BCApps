@@ -4,7 +4,8 @@
         "Business Foundation", 
         "Base Application", 
         "Application",
-        "Sustainability"
+        "Sustainability",
+        "Statistical Accounts"
     ],
     "ExternalTestAppDependencies" : [
         "Permissions Mock",
