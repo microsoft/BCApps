@@ -4,12 +4,15 @@
         "../../../src/Add-Ons/W1/*/App"
     ],
     "testFolders": [
-        "../../../src/Add-Ons/W1/*/Test"
+        "../../../src/Add-Ons/W1/*/Test",
+        "../../../src/Add-Ons/W1/*/Test Library",
+        "../../../src/Add-Ons/W1/*/DemoData"
     ],
     "buildModes": [
         "Translated"
     ],
     "installOnlyReferencedApps": false,
+    "rulesetFile": "../../../src/rulesets/app.ruleset.json",
     "ConditionalSettings": [
         {
             "buildModes": [
