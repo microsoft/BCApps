@@ -298,6 +298,7 @@ codeunit 30290 "Shpfy Catalog API"
         JResponse: JsonToken;
         Parameters: Dictionary of [Text, Text];
     begin
+        ClearCatalogMarketRelations(Catalog);
         GraphQLType := "Shpfy GraphQL Type"::GetCatalogMarkets;
         Parameters.Add('CatalogId', Format(Catalog.Id));
         repeat
@@ -312,6 +313,15 @@ codeunit 30290 "Shpfy Catalog API"
                 end else
                     break;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.catalog.markets.pageInfo.hasNextPage');
+    end;
+
+    local procedure ClearCatalogMarketRelations(Catalog: Record "Shpfy Catalog")
+    var
+        MarketCatalogRelation: Record "Shpfy Market Catalog Relation";
+    begin
+        MarketCatalogRelation.SetRange("Shop Code", Shop.Code);
+        MarketCatalogRelation.SetRange("Catalog System Id", Catalog.SystemId);
+        MarketCatalogRelation.DeleteAll(true);
     end;
 
     local procedure ExtractMarketsLinkedToCatalog(JResponse: JsonObject; Catalog: Record "Shpfy Catalog"; var Cursor: Text): Boolean
@@ -333,6 +343,7 @@ codeunit 30290 "Shpfy Catalog API"
                     if not MarketCatalogRelation.FindFirst() then begin
                         MarketCatalogRelation."Market Id" := MarketId;
                         MarketCatalogRelation."Catalog Id" := Catalog.Id;
+                        MarketCatalogRelation."Catalog System Id" := Catalog.SystemId;
                         MarketCatalogRelation.Insert(true);
                     end;
                     MarketCatalogRelation."Shop Code" := Shop.Code;
