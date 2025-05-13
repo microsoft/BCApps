@@ -6,7 +6,12 @@ Param(
 if ($ENV:BuildMode -eq 'Clean') {
 
     # If useProjectDependencies is set to false, we need to remove the app symbols folder so we recompile everything.
-    if ($env:settings.useProjectDependencies -eq $false) {
+    $settings = $env:Settings | ConvertFrom-Json
+
+    # DEBUG: Log all settings
+    Write-Host "Settings: $env:Settings"
+
+    if ($settings.useProjectDependencies -eq $false) {
         $symbolsFolder = $compilationParams.Value["appSymbolsFolder"]
         if (Test-Path $symbolsFolder) {
             Remove-Item -Path $symbolsFolder\* -Recurse -Force -Verbose
