@@ -9,7 +9,9 @@ permissionset 9632 "Add Related Fields"
 {
     Access = Public;
     Assignable = true;
-    Caption = 'Allow Adding Related Fields in Data Analysis Mode';
+    Caption = 'Add Fields in Analysis Mode';
+
+    IncludedPermissionSets = "Data Analysis - Exec";
 
     Permissions = system "Add Fields in Analysis Mode" = X;
 }
