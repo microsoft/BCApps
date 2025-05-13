@@ -46,49 +46,18 @@ function GetSourceCodeFromArtifact() {
     return $sourceCodeFolder
 }
 
-function Get-AssemblyProbingPaths() {
-    param(
-        [string] $TargetDotnetVersion = "8"
-    )
-    # Check if the target .NET version is installed
-    $DotNetSharedPath = "$env:ProgramFiles\dotnet\shared\Microsoft.AspNetCore.App\$TargetDotnetVersion.*"
-    if(!(Test-Path $DotNetSharedPath)) {
-        throw "Please install dotnet $TargetDotnetVersion SDK, path not found $DotNetSharedPath"
-    }
-
-    # Get the .NET latest minor version
-    $versions = (Get-ChildItem "$DotNetSharedPath" -Name)
-    $latestVersion = [version]"0.0.0"
-    foreach ($currentVersion in $versions) {
-        if ([version]$currentVersion -gt $latestVersion) {
-            $latestVersion = [version]$currentVersion
-        }
-    }
-
-    $assemblyProbingPaths = @()
-    $assemblyProbingPaths += "$env:ProgramFiles\dotnet\shared\Microsoft.AspNetCore.App\$latestVersion"
-    $assemblyProbingPaths += "$env:ProgramFiles\dotnet\shared\Microsoft.NETCore.App\$latestVersion"
-    $assemblyProbingPaths += "$env:ProgramFiles\dotnet\shared\Microsoft.WindowsDesktop.App\$latestVersion"
-
-    if (($null -ne $bcContainerHelperConfig)) {
-        # Set the minimum .NET runtime version for the bccontainerhelper to avoid containerhelper injecting a newer version of the .NET runtime
-        $bcContainerHelperConfig.MinimumDotNetRuntimeVersionStr = "99.0.0"
-    }
-    return $assemblyProbingPaths -join ","
-}
-
 <#
     .Synopsis
-        Build a dependency app from source code and place it in the symbols folder for the app.
+        Build an app from source code and place it in the symbols folder for the app.
     .Description
-        This function will build a dependency app from source code and place it in the symbols folder for the app.
+        This function will build an app from source code and place it in the symbols folder for the app.
         The source code is downloaded from the artifact and the app is built with the same parameters as the main app.
     .Parameter App
         The name of the app to build.
     .Parameter CompilationParameters
         The parameters to use for the compilation of the app. This should be the same as the parameters used for the main app.
 #>
-function Build-Dependency() {
+function Build-App() {
     param(
         [string] $App,
         [hashtable] $CompilationParameters
@@ -123,8 +92,6 @@ function Build-Dependency() {
 
     Write-Host "Get source code for $App"
     $sourceCodeFolder = GetSourceCodeFromArtifact -App $App -TempFolder $script:tempFolder
-
-    $CompilationParameters["assemblyProbingPaths"] = Get-AssemblyProbingPaths
 
     # Update the CompilationParameters
     $CompilationParameters["appProjectFolder"] = $sourceCodeFolder # Use the downloaded source code as the project folder
@@ -169,8 +136,11 @@ function Install-AppFromFile() {
     )
     if ($PSCmdlet.ParameterSetName -eq "ByAppName") {
         Write-Host "[Install App from file] - Searching for app file with name: $AppName"
+        # Looking for app files under the Applications folder on the container
         $allApps = (Invoke-ScriptInBCContainer -containerName $ContainerName -scriptblock { Get-ChildItem -Path "C:\Applications\" -Filter "*.app" -Recurse })
-        $AppFilePath = $allApps | Where-Object { $($_.BaseName) -like "*$($AppName)" } | ForEach-Object { $_.FullName }
+
+        # Find the app file by looking for an app file with the base name "Microsoft_AppName"
+        $AppFilePath = $allApps | Where-Object { $($_.BaseName) -eq "Microsoft_$($AppName)" } | ForEach-Object { $_.FullName }
     }
 
     if (-not $AppFilePath) {
@@ -196,11 +166,11 @@ function Install-AppFromContainer() {
         [Parameter(Mandatory = $true)]
         [string] $ContainerName,
         [Parameter(Mandatory = $true)]
-        [string[]] $DependenciesToInstall
+        [string[]] $AppsToInstall
     )
     $allAppsInEnvironment = Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesFirst
     $missingDependencies = @()
-    foreach($dependency in $DependenciesToInstall) {
+    foreach($dependency in $AppsToInstall) {
         $appInContainer = $allAppsInEnvironment | Where-Object Name -eq $dependency
         if (-not $appInContainer) {
             Write-Host "[Install Container App] - $($dependency) is not published to the container"

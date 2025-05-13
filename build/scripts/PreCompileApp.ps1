@@ -36,7 +36,7 @@ if($appType -eq 'app')
             if($appBuildMode -eq 'Clean') {
                 if ($recompileDependencies.Count -gt 0) {
                     $recompileDependencies | ForEach-Object {
-                        Build-Dependency -App $_ -CompilationParameters ($parameters.Value.Clone())
+                        Build-App -App $_ -CompilationParameters ($parameters.Value.Clone())
                     }
                 }
 
@@ -76,9 +76,4 @@ if($appType -eq 'app')
             Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
         }
     }
-}
-
-if($useCompilerFolder) {
-    Write-Host "Using compiler folder for compilation - Setting assemblyProbingPaths"
-    $parameters.Value["assemblyProbingPaths"] = Get-AssemblyProbingPaths
 }
