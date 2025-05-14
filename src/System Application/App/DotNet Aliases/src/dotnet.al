@@ -799,8 +799,10 @@ dotnet
         type("Microsoft.BusinessCentral.DocumentProcessor.WordTransformation"; "WordTransformation")
         {
         }
-
         type("Microsoft.BusinessCentral.DocumentProcessor.MailMerge"; "MailMerge")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfConverter"; "PdfConverter")
         {
         }
     }
