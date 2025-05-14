@@ -1,6 +1,6 @@
 {
     "workflowSchedule": {
-        "cron": "25 11 * * 3",
+        "cron": "25 12 * * 3",
         "includeBranches": [
             "main",
             "releases/24.x",
