@@ -47,19 +47,7 @@
       "name": "Permissions Mock",
       "publisher": "Microsoft",
       "version": "27.0.0.0"    
-    },
-      {
-        "id": "aceb66c8-472e-437c-81d3-27e6c07d0f14",
-        "name": "Email - Microsoft 365 Connector",
-        "publisher": "Microsoft",
-        "version": "27.0.0.0"
-    },
-      {
-        "id": "e6328152-bb29-4664-9dae-3bc7eaae1fd8",
-        "name": "Email - Outlook REST API",
-        "publisher": "Microsoft",
-        "version": "27.0.0.0"
-      }
+    }
   ],
   "screenshots": [],
   "platform": "27.0.0.0",
