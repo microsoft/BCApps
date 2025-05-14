@@ -146,6 +146,9 @@ page 2511 "Extension Settings"
     begin
         PublishedApplication.SetRange(ID, Rec."App ID");
         PublishedApplication.SetRange("Tenant Visible", true);
+        PublishedApplication.SetRange("Tenant ID", TenantID());
+
+        SetInstalledFilter(PublishedApplication);
 
         if PublishedApplication.FindFirst() then begin
             AppNameValue := PublishedApplication.Name;
@@ -179,6 +182,14 @@ page 2511 "Extension Settings"
         end;
 
         CanManageExtensions := ExtensionInstallationImpl.CanManageExtensions();
+    end;
+
+    local procedure SetInstalledFilter(var PublishedApplication: Record "Published Application")
+    begin
+        PublishedApplication.SetRange(Installed, true);
+        if PublishedApplication.FindFirst() then
+            exit;
+        PublishedApplication.SetRange(Installed, false);
     end;
 
     var
