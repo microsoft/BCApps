@@ -33,6 +33,9 @@ codeunit 149034 "AIT Test Suite Mgt."
         DownloadResultsLbl: Label 'Download Test Summary';
         SummaryFileNameLbl: Label '%1_Test_Summary.xlsx', Locked = true;
         ConfirmCancelQst: Label 'This action will mark the run as Cancelled. Are you sure you want to continue?';
+        TestMethodLineNotFoundErr: Label 'The test suite %1 does not contain the test line %2. Run the suite again.', Comment = '%1 = test suite code, %2 = line number';
+        TestSuiteChangedErr: Label 'The test suite %1 has been changed since test line %2 was run. Run the suite again.', Comment = '%1 = test suite code, %2 = line number';
+
 
     procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
     var
@@ -97,6 +100,28 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITRunHistory.Version := AITTestSuite.Version;
         AITRunHistory.Tag := AITTestSuite.Tag;
         AITRunHistory.Insert();
+    end;
+
+    internal procedure RerunTest(var AITLogEntry: Record "AIT Log Entry"): Integer
+    var
+        AITTestSuite: Record "AIT Test Suite";
+        AITTestMethodLineForLogEntry: Record "AIT Test Method Line";
+        AITTestRunInputHandler: Codeunit "AIT Test Run Input Handler";
+    begin
+        if not AITTestMethodLineForLogEntry.Get(AITLogEntry."Test Suite Code", AITLogEntry."Test Method Line No.") then
+            Error(TestMethodLineNotFoundErr, AITLogEntry."Test Method Line No.", AITLogEntry."Test Suite Code");
+
+        if AITTestMethodLineForLogEntry."Codeunit ID" <> AITLogEntry."Codeunit ID" then
+            Error(TestSuiteChangedErr);
+
+        AITTestRunInputHandler.SetInput(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code");
+
+        BindSubscription(AITTestRunInputHandler);
+        RunAITestLine(AITTestMethodLineForLogEntry, false);
+        UnbindSubscription(AITTestRunInputHandler);
+
+        AITTestSuite.Get(AITTestMethodLineForLogEntry."Test Suite Code");
+        exit(AITTestSuite.Version);
     end;
 
     internal procedure RunAITestLine(AITTestMethodLine: Record "AIT Test Method Line"; IsExecutedFromTestSuiteHeader: Boolean)
