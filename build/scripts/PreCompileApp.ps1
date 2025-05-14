@@ -34,12 +34,6 @@ if($appType -eq 'app')
             Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
 
             if($appBuildMode -eq 'Clean') {
-                if ($recompileDependencies.Count -gt 0) {
-                    $recompileDependencies | ForEach-Object {
-                        Build-App -App $_ -CompilationParameters ($parameters.Value.Clone())
-                    }
-                }
-
                 Write-Host "Compile the app without any preprocessor symbols to generate a baseline app to use for breaking changes check"
 
                 $tempParameters = $parameters.Value.Clone()
@@ -60,6 +54,18 @@ if($appType -eq 'app')
                 }
                 else {
                     Compile-AppInBcContainer @tempParameters | Out-Null
+                }
+
+                # Remove everything in the symbols folder that isn't the baseline app (not _clean.app)
+                Get-ChildItem -Path $tempParameters["appSymbolsFolder"] -Recurse | Where-Object { $_.Name -ne "$($appName)_clean.app" } | ForEach-Object {
+                    Remove-Item -Path $_.FullName -Recurse -Force -Verbose
+                }
+
+                # Compile the clean dependencies
+                if ($recompileDependencies.Count -gt 0) {
+                    $recompileDependencies | ForEach-Object {
+                        Build-App -App $_ -CompilationParameters ($parameters.Value.Clone())
+                    }
                 }
             }
 
