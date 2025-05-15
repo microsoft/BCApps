@@ -158,7 +158,7 @@ codeunit 9175 "User Settings Impl."
         CurrentUserSettings: Record "User Settings";
     begin
         GetUserSettings(NewUserSettings."User Security ID", CurrentUserSettings);
-        UpdateCurrentUsersSettings(CurrentUserSettings, NewUserSettings);
+        UpdateUserSettings(CurrentUserSettings, NewUserSettings);
     end;
 
     procedure UpdateUserSettings(OldUserSettings: Record "User Settings"; NewUserSettings: Record "User Settings")
