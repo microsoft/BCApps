@@ -24,12 +24,22 @@ codeunit 9563 "Pdf Processing Impl"
         PdfConverter: DotNet PdfConverter;
         PdfTargetDevice: DotNet PdfTargetDevice;
         MemoryStream: DotNet MemoryStream;
-        GenericList: DotNet GenericList1;
+        Stream: DotNet Stream;
+        ArrayList: DotNet ArrayList;
+        IList1: DotNet IList1;
+        Pages: Integer;
     begin
         ConvertImageFormatToPdfTargetDevice(ImageFormat, PdfTargetDevice);
-        PdfConverter.ConvertPdfToImage(PdfInStream, GenericList, DPI, PdfTargetDevice, PageNumber, 1, Width, Height);
+        Stream := PdfInStream;
+        MemoryStream := MemoryStream.MemoryStream();
+        ArrayList := ArrayList.ArrayList();
+        ArrayList.Add(MemoryStream);
+        IList1 := ArrayList.ToArray();
+
+        Pages := 1;
+        PdfConverter.ConvertPdfToImage(Stream, IList1, DPI, PdfTargetDevice, PageNumber, Pages, Width, Height);
         // Get the first image from the list
-        MemoryStream := GenericList.ToArray().GetValue(0);
+        MemoryStream := ArrayList.ToArray().GetValue(0);
         MemoryStream.WriteTo(ImageOutStream);
         MemoryStream.Close();
     end;

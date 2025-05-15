@@ -1419,6 +1419,10 @@ dotnet
         {
         }
 
+        type("System.Collections.Generic.IList`1"; "IList1")
+        {
+        }
+
         type("System.Collections.Queue"; "Queue")
         {
         }
@@ -2128,6 +2132,7 @@ dotnet
         type("System.Activator"; "Activator")
         {
         }
+
     }
     assembly("Microsoft.Dynamics.Nav.Service.CopilotApi")
     {
