@@ -50,7 +50,7 @@ codeunit 134853 "Email Default Attachment Tests"
         EmailScenarioMock.AddMapping(Enum::"Email Scenario"::"Test Email Scenario", AccountId, Enum::"Email Connector"::"Test Email Connector");
 
         // [When] calling GetEmailAccount
-        // [Then] true is retuned and the email account is as expected
+        // [Then] true is returned and the email account is as expected
         Assert.IsTrue(EmailScenario.GetEmailAccount(Enum::"Email Scenario"::"Test Email Scenario", EmailAccount), 'There should be an email account');
         Assert.AreEqual(AccountId, EmailAccount."Account Id", 'Wrong account ID');
         Assert.AreEqual(Enum::"Email Connector"::"Test Email Connector", EmailAccount.Connector, 'Wrong connector');
@@ -92,7 +92,7 @@ codeunit 134853 "Email Default Attachment Tests"
         AddAttachment('Attachment2', InStream, Enum::"Email Scenario"::"Test Email Scenario", false);
 
         // [When] calling GetEmailAccount
-        // [Then] true is retuned and the email account is as expected
+        // [Then] true is returned and the email account is as expected
         Assert.IsTrue(EmailScenario.GetEmailAccount(Enum::"Email Scenario"::"Test Email Scenario", EmailAccount), 'There should be an email account');
         Assert.AreEqual(AccountId, EmailAccount."Account Id", 'Wrong account ID');
         Assert.AreEqual(Enum::"Email Connector"::"Test Email Connector", EmailAccount.Connector, 'Wrong connector');
