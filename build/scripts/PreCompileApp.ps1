@@ -40,14 +40,28 @@ if($appType -eq 'app')
 
                 # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
                 $tempParameters["preprocessorsymbols"] = @()
+                
+                # Create a new folder folder for the symbols
+                $newSymbolsPath = Split-Path $tempParameters["appSymbolsFolder"] -Parent
+                if (-not (Test-Path $newSymbolsPath)) {
+                    New-Item -Path $newSymbolsPath -ItemType Directory -Force | Out-Null
+                }
 
                 # Place the app directly in the symbols folder
-                $tempParameters["appOutputFolder"] = $tempParameters["appSymbolsFolder"]
+                $tempParameters["appOutputFolder"] = $tempParameters["appSymbolsFolder"] # Output into the symbols folder
+                $tempParameters["appSymbolsFolder"] = $newSymbolsPath # Create a new folder for symbols used for compiling the non-clean app
 
                 # Rename the app to avoid overwriting the app that will be generated with preprocessor symbols
                 $appJson = Join-Path $tempParameters["appProjectFolder"] "app.json"
                 $appName = (Get-Content -Path $appJson | ConvertFrom-Json).Name
                 $tempParameters["appName"] = "$($appName)_clean.app"
+
+                # Print the content of the appSymbols folder
+                Write-Host "Content of the app symbols folder:"
+                Get-ChildItem -Path $tempParameters["appSymbolsFolder"] | ForEach-Object { Write-Host $_.FullName }
+                # Print the content of the appOutput folder
+                Write-Host "Content of the app output folder:"
+                Get-ChildItem -Path $tempParameters["appOutputFolder"] | ForEach-Object { Write-Host $_.FullName }
 
                 if($useCompilerFolder) {
                     Compile-AppWithBcCompilerFolder @tempParameters | Out-Null
