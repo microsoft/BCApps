@@ -13,13 +13,14 @@ codeunit 9564 "Pdf Processing"
 {
 
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         /// <summary>
         /// This variable is used to store the document processing implementation.
         /// </summary>
         PdfProcessingImpl: Codeunit "Pdf Processing Impl";
-
 
     /// <summary>
     /// This procedure is used to convert a PDF file to an image.

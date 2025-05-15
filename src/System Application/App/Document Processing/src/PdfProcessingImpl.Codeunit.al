@@ -15,6 +15,8 @@ codeunit 9563 "Pdf Processing Impl"
 {
 
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     /// <summary>
     /// Converts a PDF file to an image.
