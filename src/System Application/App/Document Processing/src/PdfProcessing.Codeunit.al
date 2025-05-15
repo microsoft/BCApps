@@ -18,7 +18,7 @@ codeunit 9564 "Pdf Processing"
         /// <summary>
         /// This variable is used to store the document processing implementation.
         /// </summary>
-        DocumentProcessingImpl: Codeunit "Document Processing Impl";
+        PdfProcessingImpl: Codeunit "Pdf Processing Impl";
 
 
     /// <summary>
@@ -33,7 +33,7 @@ codeunit 9564 "Pdf Processing"
     /// <param name="PageNumber">Page number to convert.</param>
     procedure ConvertPdfToImage(PdfInStream: InStream; ImageOutStream: OutStream; ImageFormat: Enum "Image Format"; DPI: Integer; Width: Integer; Height: Integer; PageNumber: Integer)
     begin
-        DocumentProcessingImpl.ConvertPdfToImage(PdfInStream, ImageOutStream, ImageFormat, DPI, Width, Height, PageNumber);
+        PdfProcessingImpl.ConvertPdfToImage(PdfInStream, ImageOutStream, ImageFormat, DPI, Width, Height, PageNumber);
     end;
 
 

@@ -805,6 +805,9 @@ dotnet
         type("Microsoft.BusinessCentral.DocumentProcessor.PdfConverter"; "PdfConverter")
         {
         }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfTargetDevice"; "PdfTargetDevice")
+        {
+        }
     }
 
     assembly("Microsoft.Dynamics.Nav.PowerBIEmbedded")
