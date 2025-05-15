@@ -5,8 +5,8 @@
 
 namespace System.Agents;
 
-using System.Environment;
 using System.Integration;
+using System.Environment;
 
 codeunit 4300 "Agent Task Impl."
 {
@@ -52,31 +52,7 @@ codeunit 4300 "Agent Task Impl."
         Page.Run(Page::"Agent Task Log Entry List", AgentTaskLogEntry);
     end;
 
-    procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; StartTask: Boolean): BigInteger
-    var
-        NewAgentTask: Record "Agent Task";
-    begin
-        CreateTask(AgentUserSecurityID, TaskTitle, ExternalID, NewAgentTask);
-        if StartTask then
-            StartTaskIfPossible(NewAgentTask);
-
-        exit(NewAgentTask.ID);
-    end;
-
-    procedure CreateTaskWithMessage(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; From: Text[250]; MessageText: Text; StartTask: Boolean; var MessageGuid: Guid): BigInteger
-    var
-        NewAgentTask: Record "Agent Task";
-    begin
-        CreateTask(AgentUserSecurityID, TaskTitle, ExternalID, NewAgentTask);
-        MessageGuid := AddMessage(From, MessageText, ExternalID, false, NewAgentTask);
-
-        if StartTask then
-            StartTaskIfPossible(NewAgentTask);
-
-        exit(NewAgentTask.ID);
-    end;
-
-    local procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; var NewAgentTask: Record "Agent Task")
+    internal procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; var NewAgentTask: Record "Agent Task")
     begin
         NewAgentTask."Agent User Security ID" := AgentUserSecurityID;
         NewAgentTask."Created By" := UserSecurityId();
@@ -87,20 +63,7 @@ codeunit 4300 "Agent Task Impl."
         NewAgentTask.Insert();
     end;
 
-    procedure AddMessage(AgentTaskRecord: BigInteger; From: Text[250]; MessageText: Text; ExternalId: Text[2048]; StartTask: Boolean): Guid
-    var
-        AgentTask: Record "Agent Task";
-    begin
-        AgentTask.Get(AgentTaskRecord);
-        exit(AddMessage(From, MessageText, ExternalId, StartTask, AgentTask));
-    end;
-
-    procedure AddMessage(From: Text[250]; MessageText: Text; StartTask: Boolean; var CurrentAgentTask: Record "Agent Task"): Guid
-    begin
-        exit(AddMessage(From, MessageText, '', StartTask, CurrentAgentTask));
-    end;
-
-    procedure AddMessage(From: Text[250]; MessageText: Text; ExternalMessageId: Text[2048]; StartTask: Boolean; var CurrentAgentTask: Record "Agent Task"): Guid
+    procedure AddMessage(From: Text[250]; MessageText: Text; ExternalMessageId: Text[2048]; var CurrentAgentTask: Record "Agent Task"; RequiresReview: Boolean): Record "Agent Task Message"
     var
         AgentTaskMessage: Record "Agent Task Message";
     begin
@@ -111,14 +74,11 @@ codeunit 4300 "Agent Task Impl."
         AgentTaskMessage."Type" := AgentTaskMessage."Type"::Input;
         AgentTaskMessage."External ID" := ExternalMessageId;
         AgentTaskMessage.From := From;
+        AgentTaskMessage."Requires Review" := RequiresReview;
         AgentTaskMessage.Insert();
 
         SetMessageText(AgentTaskMessage, MessageText);
-
-        if StartTask then
-            StartTaskIfPossible(CurrentAgentTask);
-
-        exit(AgentTaskMessage.ID);
+        exit(AgentTaskMessage);
     end;
 
     procedure CreateUserIntervention(UserInterventionRequestEntry: Record "Agent Task Log Entry")
@@ -168,7 +128,7 @@ codeunit 4300 "Agent Task Impl."
 
         if UserConfirm then
             if not Confirm(AreYouSureThatYouWantToStopTheTaskQst) then
-                exit;
+            exit;
 
         AgentTask.Status := AgentTaskStatus;
         AgentTask."Needs Attention" := false;
@@ -201,7 +161,7 @@ codeunit 4300 "Agent Task Impl."
         exit(TextEncoding::UTF8);
     end;
 
-    local procedure StartTaskIfPossible(var AgentTask: Record "Agent Task")
+    internal procedure StartTaskIfPossible(var AgentTask: Record "Agent Task")
     begin
         // Only change the status if the task is in a status where it can be started again.
         // If the task is running, we should not change the state, as platform will pickup a new message automatically.

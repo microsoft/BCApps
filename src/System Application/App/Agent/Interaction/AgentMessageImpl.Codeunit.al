@@ -47,6 +47,15 @@ codeunit 4308 "Agent Message Impl."
         UpdateAgentTaskMessageStatus(AgentTaskMessage, AgentTaskMessage.Status::Sent);
     end;
 
+    procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; AgentTaskFile: Record "Agent Task File")
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+        FileInstream: InStream;
+    begin
+        AgentTaskFile.Content.CreateInStream(FileInstream, AgentTaskImpl.GetDefaultEncoding());
+        AddAttachment(AgentTaskMessage, AgentTaskFile."File Name", AgentTaskFile."File MIME Type", FileInstream);
+    end;
+
     procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream)
     var
         AgentTaskFile: Record "Agent Task File";
