@@ -66,5 +66,8 @@
       "from": 130000,
       "to": 139999
     }
+  ],
+  "resourceFolders": [
+    ".resources"
   ]
 }

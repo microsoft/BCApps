@@ -799,8 +799,13 @@ dotnet
         type("Microsoft.BusinessCentral.DocumentProcessor.WordTransformation"; "WordTransformation")
         {
         }
-
         type("Microsoft.BusinessCentral.DocumentProcessor.MailMerge"; "MailMerge")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfConverter"; "PdfConverter")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfTargetDevice"; "PdfTargetDevice")
         {
         }
     }
@@ -1411,6 +1416,10 @@ dotnet
         }
 
         type("System.Collections.IList"; "IList")
+        {
+        }
+
+        type("System.Collections.Generic.IList`1"; "IList1")
         {
         }
 
@@ -2123,6 +2132,7 @@ dotnet
         type("System.Activator"; "Activator")
         {
         }
+
     }
     assembly("Microsoft.Dynamics.Nav.Service.CopilotApi")
     {
