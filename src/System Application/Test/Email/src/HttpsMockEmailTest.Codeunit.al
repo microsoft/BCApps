@@ -6,11 +6,7 @@
 namespace System.Test.Email;
 
 using System.Email;
-// using System.Text;
 using System.TestLibraries.Email;
-// using System.Azure.Identity;
-// using System.Environment;
-// using System.TestLibraries.Reflection;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
 
@@ -28,21 +24,18 @@ codeunit 134055 "Https Mock Email Test"
                   tabledata "Sent Email" = rid;
 
     EventSubscriberInstance = Manual;
-    TestHttpRequestPolicy = BlockOutboundRequests; // Allow outbound requests from handler
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
         Assert: Codeunit "Library Assert";
         Any: Codeunit Any;
-        // ConnectorMock: Codeunit "Connector Mock";
-        // EmailScenarioMock: Codeunit "Email Scenario Mock";
-        // EmailScenario: Codeunit "Email Scenario";
         PermissionsMock: Codeunit "Permissions Mock";
         Email: Codeunit Email;
 
     [Test]
     [HandlerFunctions('HttpRequestMockHandler')]
     [Scope('OnPrem')]
-    procedure SendNewMessageThroughEditorTest()
+    procedure SendNewMessageThroughEditorSuccessTest()
     var
         Account: Record "Email Account";
         OutlookAccount: Record "Email - Outlook Account";
@@ -56,9 +49,6 @@ codeunit 134055 "Https Mock Email Test"
         BindSubscription(MockTest);
 
         ConnectorMock.AddAccount(Account, Enum::"Email Connector"::"Microsoft 365");
-        // ConnectorMock.AddAccount(Account, Enum::"Email Connector"::"Microsoft 365");
-        // AddAccountForM365(TempAccount);
-        // AddAccount(Account, Enum::"Email Connector"::"Microsoft 365");
         PermissionsMock.Set('Super');
 
         OutlookAccount.Id := Account."Account Id";
@@ -69,7 +59,7 @@ codeunit 134055 "Https Mock Email Test"
 
         OutlookApiSetup.ClientId := Any.GuidValue();
         OutlookApiSetup.ClientSecret := Any.GuidValue();
-        OutlookApiSetup.RedirectURL := Any.AlphanumericText(50);
+        OutlookApiSetup.RedirectURL := CopyStr(Any.AlphanumericText(50), 1, 250);
         OutlookApiSetup.Insert();
 
         // [GIVEN] The Email Editor pages opens up and details are filled
@@ -96,6 +86,58 @@ codeunit 134055 "Https Mock Email Test"
         Assert.AreEqual(Enum::"Email Connector"::"Microsoft 365", SentEmail.Connector, 'A different connector was expected');
     end;
 
+    // [Test]
+    // [HandlerFunctions('HttpRequestMockHandler')]
+    // [Scope('OnPrem')]
+    // procedure SendNewMessageThroughEditorFailedTest()
+    // var
+    //     Account: Record "Email Account";
+    //     OutlookAccount: Record "Email - Outlook Account";
+    //     OutlookApiSetup: Record "Email - Outlook API Setup";
+    //     SentEmail: Record "Sent Email";
+    //     MockTest: Codeunit "Https Mock Email Test";
+    //     ConnectorMock: Codeunit "Connector Mock";
+    //     EmailMessage: Codeunit "Email Message";
+    //     Editor: TestPage "Email Editor";
+    // begin
+    //     BindSubscription(MockTest);
+
+    //     ConnectorMock.AddAccount(Account, Enum::"Email Connector"::"Microsoft 365");
+    //     PermissionsMock.Set('Super');
+
+    //     OutlookAccount.Id := Account."Account Id";
+    //     OutlookAccount."Email Address" := Account."Email Address";
+    //     OutlookAccount.Name := Account.Name;
+    //     OutlookAccount."Outlook API Email Connector" := Enum::"Email Connector"::"Microsoft 365";
+    //     OutlookAccount.Insert();
+
+    //     OutlookApiSetup.ClientId := Any.GuidValue();
+    //     OutlookApiSetup.ClientSecret := Any.GuidValue();
+    //     OutlookApiSetup.RedirectURL := CopyStr(Any.AlphanumericText(50), 1, 250);
+    //     OutlookApiSetup.Insert();
+
+    //     // [GIVEN] The Email Editor pages opens up and details are filled
+    //     Editor.Trap();
+    //     EmailMessage.Create('', '', '', false);
+    //     Email.OpenInEditor(EmailMessage, Account);
+
+    //     // Editor.Account.SetValue(TempAccount."Email Address");
+    //     Editor.ToField.SetValue('wenjiefan@microsoft.com');
+    //     Editor.SubjectField.SetValue('Test Subject');
+    //     Editor.BodyField.SetValue('Test body');
+
+    //     // [WHEN] The send action is invoked
+    //     Editor.Send.Invoke();
+
+    //     // [THEN] The mail is sent and the info is correct
+    //     EmailMessage.GetId();
+    //     SentEmail.SetRange("Message Id", EmailMessage.GetId());
+    //     Assert.IsTrue(SentEmail.FindFirst(), 'A Sent Email record should have been inserted.');
+    //     Assert.AreEqual('Test Subject', SentEmail.Description, 'A different description was expected');
+    //     Assert.AreEqual(Account."Account Id", SentEmail."Account Id", 'A different account was expected');
+    //     Assert.AreEqual(Account."Email Address", SentEmail."Sent From", 'A different sent from was expected');
+    //     Assert.AreEqual(Enum::"Email Connector"::"Microsoft 365", SentEmail.Connector, 'A different connector was expected');
+    // end;
 
     [HttpClientHandler]
     procedure HttpRequestMockHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
