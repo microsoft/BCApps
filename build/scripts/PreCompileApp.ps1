@@ -30,6 +30,15 @@ if($appType -eq 'app')
 
     # Restore the baseline app and generate the AppSourceCop.json file
     if($gitHubActions) {
+        if($appBuildMode -eq 'Clean') {
+            # Compile the clean dependencies
+            if ($recompileDependencies.Count -gt 0) {
+                $recompileDependencies | ForEach-Object {
+                    Build-App -App $_ -CompilationParameters ($parameters.Value.Clone())
+                }
+            }
+        }
+
         if (($parameters.Value.ContainsKey("EnableAppSourceCop") -and $parameters.Value["EnableAppSourceCop"]) -or ($parameters.Value.ContainsKey("EnablePerTenantExtensionCop") -and $parameters.Value["EnablePerTenantExtensionCop"])) {
             Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
 
@@ -74,13 +83,6 @@ if($appType -eq 'app')
                 #Get-ChildItem -Path $tempParameters["appSymbolsFolder"] -Recurse -Filter *.app | Where-Object { $_.Name -ne "$($appName)_clean.app" } | ForEach-Object {
                 #    Remove-Item -Path $_.FullName -Force -Verbose
                 #}
-
-                # Compile the clean dependencies
-                if ($recompileDependencies.Count -gt 0) {
-                    $recompileDependencies | ForEach-Object {
-                        Build-App -App $_ -CompilationParameters ($parameters.Value.Clone())
-                    }
-                }
             }
 
             if($appBuildMode -eq 'Strict') {
