@@ -8,13 +8,20 @@ namespace System.Agents;
 /// <summary>
 /// This codeunit is used to create an agent task message.
 /// </summary>
-codeunit 4316 "Agent Task Message Builder"
+codeunit 4311 "Agent Task Msg. Builder Impl."
 {
     InherentEntitlements = X;
     InherentPermissions = X;
 
     var
-        AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";
+        TempAgentTaskFileToAttach: Record "Agent Task File" temporary;
+        GlobalAgentTask: Record "Agent Task";
+        GlobalAgentTaskMessage: Record "Agent Task Message";
+        GlobalFrom: Text[250];
+        GlobalMessageExternalID: Text[2048];
+        GlobalMessageText: Text;
+        GlobalRequiresReview: Boolean;
+        GlobalAgentTaskStartAgentTask: Boolean;
 
     /// <summary>
     /// Check if a task exists for the given agent user and conversation
@@ -23,9 +30,11 @@ codeunit 4316 "Agent Task Message Builder"
     /// <param name="ConversationId">The conversation ID to check.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     [Scope('OnPrem')]
-    procedure Initialize(From: Text[250]; MessageText: Text): codeunit "Agent Task Message Builder"
+    procedure Initialize(From: Text[250]; MessageText: Text): codeunit "Agent Task Msg. Builder Impl."
     begin
-        AgentTaskMsgBuilderImpl.Initialize(From, MessageText);
+        GlobalFrom := From;
+        GlobalMessageText := MessageText;
+        GlobalRequiresReview := true;
         exit(this);
     end;
 
@@ -35,9 +44,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// <param name="RequiresReview">Specifies if the user needs to review and approve message before agent starts processing the task. The default value is true.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     [Scope('OnPrem')]
-    procedure SetRequiresReview(RequiresReview: Boolean): codeunit "Agent Task Message Builder"
+    procedure SetRequiresReview(RequiresReview: Boolean): codeunit "Agent Task Msg. Builder Impl."
     begin
-        AgentTaskMsgBuilderImpl.SetRequiresReview(RequiresReview);
+        GlobalRequiresReview := RequiresReview;
         exit(this);
     end;
 
@@ -47,9 +56,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// <param name="ExternalId">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     [Scope('OnPrem')]
-    procedure SetMessageExternalID(ExternalId: Text[2048]): codeunit "Agent Task Message Builder"
+    procedure SetMessageExternalID(ExternalId: Text[2048]): codeunit "Agent Task Msg. Builder Impl."
     begin
-        AgentTaskMsgBuilderImpl.SetMessageExternalID(ExternalId);
+        GlobalMessageExternalID := ExternalId;
         exit(this);
     end;
 
@@ -59,10 +68,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// <param name="ParentAgentTask">The agent task to set the message text to.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     [Scope('OnPrem')]
-    procedure SetAgentTask(ParentAgentTask: Record "Agent Task"): codeunit "Agent Task Message Builder"
+    procedure SetAgentTask(ParentAgentTask: Record "Agent Task"): codeunit "Agent Task Msg. Builder Impl."
     begin
-        AgentTaskMsgBuilderImpl.SetAgentTask(ParentAgentTask);
-        exit(this);
+        GlobalAgentTask.Copy(ParentAgentTask);
     end;
 
     /// <summary>
@@ -71,9 +79,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// </summary>
     /// <param name="StartAgentTask">If the task should be started after the message is created.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
-    procedure SetStartAgentTask(StartAgentTask: Boolean): codeunit "Agent Task Message Builder"
+    procedure SetStartAgentTask(StartAgentTask: Boolean): codeunit "Agent Task Msg. Builder Impl."
     begin
-        AgentTaskMsgBuilderImpl.SetStartAgentTask(StartAgentTask);
+        GlobalAgentTaskStartAgentTask := StartAgentTask;
         exit(this);
     end;
 
@@ -83,10 +91,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// <param name="ParentAgentTask">The agent task to set the message text to.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     [Scope('OnPrem')]
-    procedure SetAgentTask(ParentAgentTaskID: BigInteger): codeunit "Agent Task Message Builder"
+    procedure SetAgentTask(ParentAgentTaskID: BigInteger): codeunit "Agent Task Msg. Builder Impl."
     begin
-        AgentTaskMsgBuilderImpl.SetAgentTask(ParentAgentTaskID);
-        exit(this);
+        GlobalAgentTask.Get(ParentAgentTaskID);
     end;
 
     /// <summary>
@@ -97,8 +104,22 @@ codeunit 4316 "Agent Task Message Builder"
     /// </returns>
     [Scope('OnPrem')]
     procedure Create(): Record "Agent Task Message"
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        exit(AgentTaskMsgBuilderImpl.Create());
+        VerifyMandatoryFieldsSet();
+        GlobalAgentTaskMessage := AgentTaskImpl.AddMessage(GlobalFrom, GlobalMessageText, GlobalMessageExternalID, GlobalAgentTask, GlobalRequiresReview);
+        TempAgentTaskFileToAttach.Reset();
+        if TempAgentTaskFileToAttach.FindSet() then
+            repeat
+                AgentMessageImpl.AddAttachment(GlobalAgentTaskMessage, TempAgentTaskFileToAttach);
+            until TempAgentTaskFileToAttach.Next() = 0;
+
+        if GlobalAgentTaskStartAgentTask then
+            AgentTaskImpl.StartTaskIfPossible(GlobalAgentTask);
+
+        exit(GlobalAgentTaskMessage);
     end;
 
     /// <summary>
@@ -109,8 +130,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// </returns>
     procedure GetAgentTaskMessage(): Record "Agent Task Message"
     begin
-        AgentTaskMsgBuilderImpl.Create();
-        exit(AgentTaskMsgBuilderImpl.GetAgentTaskMessage());
+        exit(GlobalAgentTaskMessage);
     end;
 
     /// <summary>
@@ -123,9 +143,40 @@ codeunit 4316 "Agent Task Message Builder"
     /// <param name="InStream">The stream of the file to attach.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     [Scope('OnPrem')]
-    procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream): codeunit "Agent Task Message Builder"
+    procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream): codeunit "Agent Task Msg. Builder Impl."
+    var
+        FileOutStream: OutStream;
     begin
-        AgentTaskMsgBuilderImpl.AddAttachment(FileName, FileMIMEType, InStream);
+        Clear(TempAgentTaskFileToAttach);
+        TempAgentTaskFileToAttach."File Name" := FileName;
+        TempAgentTaskFileToAttach."File MIME Type" := FileMIMEType;
+        TempAgentTaskFileToAttach.Insert();
+        CopyStream(FileOutStream, InStream);
+        TempAgentTaskFileToAttach.Content.CreateOutStream(FileOutStream);
+        TempAgentTaskFileToAttach.Modify();
         exit(this);
+    end;
+
+    local procedure VerifyMandatoryFieldsSet()
+    var
+        GlobalFromIsMandatoryErr: Label 'The From field is mandatory. Please set it before creating the task message.';
+        GlobalMessageTextIsMandatoryErr: Label 'The Message Text field is mandatory. Please set it before creating the task message.';
+        GlobalAgentTaskIDErr: Label 'The Agent Task ID field is mandatory. Please set it before creating the task message.';
+        CodingErrorInfo: ErrorInfo;
+    begin
+        if GlobalFrom = '' then
+            CodingErrorInfo.Message(GlobalFromIsMandatoryErr);
+
+        if GlobalMessageText = '' then
+            CodingErrorInfo.Message(GlobalMessageTextIsMandatoryErr);
+
+        if GlobalAgentTask.ID = 0 then
+            CodingErrorInfo.Message(GlobalAgentTaskIDErr);
+
+        if CodingErrorInfo.Message = '' then
+            exit;
+
+        CodingErrorInfo.ErrorType := ErrorType::Internal;
+        Error(CodingErrorInfo);
     end;
 }

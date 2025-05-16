@@ -8,14 +8,18 @@ namespace System.Agents;
 /// <summary>
 /// This codeunit is used to create an agent task.
 /// </summary>
-codeunit 4315 "Agent Task Builder"
+codeunit 4310 "Agent Task Builder Impl."
 {
     InherentEntitlements = X;
     InherentPermissions = X;
+    Access = Internal;
 
     var
-        AgentTaskBuilderImpl: Codeunit "Agent Task Builder Impl.";
-
+        GlobalAgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
+        MessageSet: Boolean;
+        GlobalAgentUserSecurityId: Guid;
+        GlobalTaskTitle: Text[150];
+        GlobalExternalID: Text[2048];
 
     /// <summary>
     /// Check if a task exists for the given agent user and conversation
@@ -24,9 +28,10 @@ codeunit 4315 "Agent Task Builder"
     /// <param name="ConversationId">The conversation ID to check.</param>
     /// <returns>This instance of the Agent Task Builder.</returns>
     [Scope('OnPrem')]
-    procedure Initialize(NewAgentUserSecurityId: Guid; NewTaskTitle: Text[150]): codeunit "Agent Task Builder"
+    procedure Initialize(NewAgentUserSecurityId: Guid; NewTaskTitle: Text[150]): codeunit "Agent Task Builder Impl."
     begin
-        AgentTaskBuilderImpl.Initialize(NewAgentUserSecurityId, NewTaskTitle);
+        GlobalAgentUserSecurityId := NewAgentUserSecurityId;
+        GlobalTaskTitle := NewTaskTitle;
         exit(this);
     end;
 
@@ -38,8 +43,21 @@ codeunit 4315 "Agent Task Builder"
     /// </returns>
     [Scope('OnPrem')]
     procedure CreateTask(): Record "Agent Task"
+    var
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        exit(AgentTaskBuilderImpl.CreateTask());
+        VerifyMandatoryFieldsSet();
+        AgentTaskImpl.CreateTask(GlobalAgentUserSecurityId, GlobalTaskTitle, GlobalExternalID, AgentTaskRecord);
+        if not MessageSet then begin
+            AgentTaskImpl.StartTaskIfPossible(AgentTaskRecord);
+            exit(AgentTaskRecord);
+        end;
+
+        GlobalAgentTaskMessageBuilder.SetAgentTask(AgentTaskRecord);
+        GlobalAgentTaskMessageBuilder.SetStartAgentTask(true);
+        GlobalAgentTaskMessageBuilder.Create();
+        exit(AgentTaskRecord);
     end;
 
     /// <summary>
@@ -51,7 +69,7 @@ codeunit 4315 "Agent Task Builder"
     [Scope('OnPrem')]
     procedure GetAgentTaskMessageCreated(): Record "Agent Task Message"
     begin
-        exit(AgentTaskBuilderImpl.GetAgentTaskMessageCreated());
+        exit(GlobalAgentTaskMessageBuilder.GetAgentTaskMessage());
     end;
 
     /// <summary>
@@ -60,9 +78,9 @@ codeunit 4315 "Agent Task Builder"
     /// <param name="ExternalId">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
     /// <returns>This instance of the Agent Task Builder.</returns>
     [Scope('OnPrem')]
-    procedure SetExternalId(ExternalId: Text[2048]): codeunit "Agent Task Builder"
+    procedure SetExternalId(ExternalId: Text[2048]): codeunit "Agent Task Builder Impl."
     begin
-        AgentTaskBuilderImpl.SetExternalId(ExternalId);
+        GlobalExternalID := ExternalId;
         exit(this);
     end;
 
@@ -75,9 +93,9 @@ codeunit 4315 "Agent Task Builder"
     /// <param name="AgentTaskMessageBuilder">The agent task message builder.</param>
     /// <returns>This instance of the Agent Task Builder.</returns>
     [Scope('OnPrem')]
-    procedure AddTaskMessage(From: Text[250]; MessageText: Text): codeunit "Agent Task Builder"
+    procedure AddTaskMessage(From: Text[250]; MessageText: Text): codeunit "Agent Task Builder Impl."
     begin
-        AgentTaskBuilderImpl.AddTaskMessage(From, MessageText);
+        GlobalAgentTaskMessageBuilder.Initialize(From, MessageText);
         exit(this);
     end;
 
@@ -88,9 +106,10 @@ codeunit 4315 "Agent Task Builder"
     /// <param name="AgentTaskMessageBuilder">The agent task message builder.</param>
     /// <returns>This instance of the Agent Task Builder.</returns>
     [Scope('OnPrem')]
-    procedure AddTaskMessage(var AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder"): codeunit "Agent Task Builder"
+    procedure AddTaskMessage(var AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder"): codeunit "Agent Task Builder Impl."
     begin
-        AgentTaskBuilderImpl.AddTaskMessage(AgentTaskMessageBuilder);
+        GlobalAgentTaskMessageBuilder := AgentTaskMessageBuilder;
+        MessageSet := true;
         exit(this);
     end;
 
@@ -101,7 +120,7 @@ codeunit 4315 "Agent Task Builder"
     [Scope('OnPrem')]
     procedure GetTaskMessageBuilder(): Codeunit "Agent Task Message Builder"
     begin
-        exit(AgentTaskBuilderImpl.GetTaskMessageBuilder());
+        exit(GlobalAgentTaskMessageBuilder);
     end;
 
     /// <summary>
@@ -112,7 +131,33 @@ codeunit 4315 "Agent Task Builder"
     /// <returns>True if task exists, false if not.</returns>
     [Scope('OnPrem')]
     procedure TaskExists(AgentUserSecurityId: Guid; ConversationId: Text): Boolean
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        exit(AgentTaskBuilderImpl.TaskExists(AgentUserSecurityId, ConversationId));
+        exit(AgentTaskImpl.TaskExists(AgentUserSecurityId, ConversationId));
+    end;
+
+    local procedure VerifyMandatoryFieldsSet()
+    var
+        Agent: Codeunit Agent;
+        GlobalTitleMandatoryErr: Label 'Task title is mandatory. Please set the task title before creating task.';
+        GlobalAgentUserSecurityIdMandatoryErr: Label 'Agent user security ID is mandatory. Please set the agent user security ID before creating task.';
+        ActiveAgentDoesNotExistErr: Label 'Agent with user security ID %1 does not exist or is not active.', Comment = '%1 - Agent user security ID, value is a guid';
+        CodingErrorInfo: ErrorInfo;
+    begin
+        if GlobalTaskTitle = '' then
+            CodingErrorInfo.Message(GlobalTitleMandatoryErr);
+
+        if IsNullGuid(GlobalAgentUserSecurityId) then
+            CodingErrorInfo.Message(GlobalAgentUserSecurityIdMandatoryErr)
+        else
+            if not Agent.IsActive(GlobalAgentUserSecurityId) then
+                CodingErrorInfo.Message(StrSubstNo(ActiveAgentDoesNotExistErr, GlobalAgentUserSecurityId));
+
+        if CodingErrorInfo.Message = '' then
+            exit;
+
+        CodingErrorInfo.ErrorType := ErrorType::Internal;
+        Error(CodingErrorInfo);
     end;
 }
