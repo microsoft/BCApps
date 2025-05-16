@@ -62,7 +62,7 @@ if($appType -eq 'app')
                     }
                 }
 
-                $CompilationParameters["appSymbolsFolder"] = $defaultSymbolsPath
+                $tempParameters["appSymbolsFolder"] = $defaultSymbolsPath
 
                 if($useCompilerFolder) {
                     Compile-AppWithBcCompilerFolder @tempParameters | Out-Null
