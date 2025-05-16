@@ -60,7 +60,8 @@ function GetSourceCodeFromArtifact() {
 function Build-App() {
     param(
         [string] $App,
-        [hashtable] $CompilationParameters
+        [hashtable] $CompilationParameters,
+        [string] $OutputFolder = $CompilationParameters["appSymbolsFolder"]
     )
     # Set up temp folder if not already set
     if ($null -eq $script:tempFolder) {
@@ -69,22 +70,23 @@ function Build-App() {
     }
 
     # Create a new folder for the symbols if it does not exist
-    $newSymbolsFolder = (Join-Path $script:tempFolder "Symbols")
+    if (($null -ne $CompilationParameters["preprocessorsymbols"]) -and ($CompilationParameters["preprocessorsymbols"].Count -gt 0)) {
+        $newSymbolsFolder = (Join-Path $script:tempFolder "CleanSymbols")
+    } else {
+        $newSymbolsFolder = (Join-Path $script:tempFolder "Symbols")
+    }
     if (-not (Test-Path $newSymbolsFolder)) {
         New-Item -ItemType Directory -Path $newSymbolsFolder -Force | Out-Null
     }
 
-    # Copy apps to packagecachepath
-    $addOnsSymbolsFolder = $CompilationParameters["appSymbolsFolder"]
-
     # Log what is in the symbols folder
-    Write-Host "Symbols folder: $addOnsSymbolsFolder"
-    Get-ChildItem -Path $addOnsSymbolsFolder | ForEach-Object {
+    Write-Host "Symbols folder: $($CompilationParameters['appSymbolsFolder'])"
+    Get-ChildItem -Path $CompilationParameters["appSymbolsFolder"] | ForEach-Object {
         Write-Host $_.Name
     }
 
     # If app is already there then skip it
-    $appSymbolsExist = Get-ChildItem -Path $addOnsSymbolsFolder | Where-Object { $_.Name -like "Microsoft_$($App)*.app" }
+    $appSymbolsExist = Get-ChildItem -Path $OutputFolder | Where-Object { $_.Name -like "Microsoft_$($App)*.app" }
     if ($appSymbolsExist) {
         Write-Host "$App is already in the symbols folder. Skipping recompilation"
         return
@@ -95,7 +97,7 @@ function Build-App() {
 
     # Update the CompilationParameters
     $CompilationParameters["appProjectFolder"] = $sourceCodeFolder # Use the downloaded source code as the project folder
-    $CompilationParameters["appOutputFolder"] = $addOnsSymbolsFolder # Place the app directly in the symbols folder for Add-Ons
+    $CompilationParameters["appOutputFolder"] = $OutputFolder # Place the app directly in the symbols folder for Add-Ons
     $CompilationParameters["appSymbolsFolder"] = $newSymbolsFolder # New symbols folder only used for recompliation. Not used for compilation of Add-Ons
 
     # Disable all cops for dependencies

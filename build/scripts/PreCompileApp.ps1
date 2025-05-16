@@ -43,7 +43,7 @@ if($appType -eq 'app')
             Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
 
             if($appBuildMode -eq 'Clean') {
-                <#Write-Host "Compile the app without any preprocessor symbols to generate a baseline app to use for breaking changes check"
+                Write-Host "Compile the app without any preprocessor symbols to generate a baseline app to use for breaking changes check"
 
                 $tempParameters = $parameters.Value.Clone()
 
@@ -51,38 +51,40 @@ if($appType -eq 'app')
                 $tempParameters["preprocessorsymbols"] = @()
                 
                 # Create a new folder folder for the symbols
-                $newSymbolsPath = Split-Path $tempParameters["appSymbolsFolder"] -Parent
-                if (-not (Test-Path $newSymbolsPath)) {
-                    New-Item -Path $newSymbolsPath -ItemType Directory -Force | Out-Null
+                $defaultSymbolsPath = Join-Path (Split-Path $tempParameters["appSymbolsFolder"] -Parent) "DefaultSymbols"
+                if (-not (Test-Path $defaultSymbolsPath)) {
+                    New-Item -Path $defaultSymbolsPath -ItemType Directory -Force | Out-Null
                 }
 
-                # Place the app directly in the symbols folder
-                $tempParameters["appOutputFolder"] = $tempParameters["appSymbolsFolder"] # Output into the symbols folder
-                $tempParameters["appSymbolsFolder"] = $newSymbolsPath # Create a new folder for symbols used for compiling the non-clean app
+                if ($recompileDependencies.Count -gt 0) {
+                    $recompileDependencies | ForEach-Object {
+                        Build-App -App $_ -CompilationParameters $tempParameters -OutputFolder $defaultSymbolsPath
+                    }
+                }
 
-                # Rename the app to avoid overwriting the app that will be generated with preprocessor symbols
-                $appJson = Join-Path $tempParameters["appProjectFolder"] "app.json"
-                $appName = (Get-Content -Path $appJson | ConvertFrom-Json).Name
-                $tempParameters["appName"] = "$($appName)_clean.app"
-
-                # Print the content of the appSymbols folder
-                Write-Host "Content of the app symbols folder:"
-                Get-ChildItem -Path $tempParameters["appSymbolsFolder"] | ForEach-Object { Write-Host $_.FullName }
-                # Print the content of the appOutput folder
-                Write-Host "Content of the app output folder:"
-                Get-ChildItem -Path $tempParameters["appOutputFolder"] | ForEach-Object { Write-Host $_.FullName }
+                $CompilationParameters["appSymbolsFolder"] = $defaultSymbolsPath
 
                 if($useCompilerFolder) {
                     Compile-AppWithBcCompilerFolder @tempParameters | Out-Null
                 }
                 else {
                     Compile-AppInBcContainer @tempParameters | Out-Null
-                }#>
+                }
 
-                # Remove everything in the symbols folder that isn't the baseline app (not _clean.app)
-                #Get-ChildItem -Path $tempParameters["appSymbolsFolder"] -Recurse -Filter *.app | Where-Object { $_.Name -ne "$($appName)_clean.app" } | ForEach-Object {
-                #    Remove-Item -Path $_.FullName -Force -Verbose
-                #}
+                # Copy the generated app to the symbols folder
+                $appFile = Join-Path $tempParameters["appOutputFolder"] $tempParameters["appName"]
+                $location = Join-Path $parameters.Value["appSymbolsFolder"] "$($tempParameters["appName"])_clean.app"
+                Write-Host "Copying $appFile to $location"
+                Copy-Item -Path $appFile -Destination $location -Force -Verbose
+                # Remove the app file from the output folder
+                Write-Host "Removing $appFile from the output folder"
+                Remove-Item -Path $appFile -Force -Verbose
+
+                # Print the content of the symbols folder
+                Write-Host "Content of the symbols folder:"
+                Get-ChildItem -Path $parameters.Value["appSymbolsFolder"] -Recurse -Filter *.app | ForEach-Object {
+                    Write-Host $_.FullName
+                }
             }
 
             if($appBuildMode -eq 'Strict') {
