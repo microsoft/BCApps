@@ -145,10 +145,22 @@ codeunit 324 "No. Series Copilot Impl."
     [NonDebuggable]
     local procedure GetToolsSelectionSystemPrompt() ToolsSelectionSystemPrompt: SecretText
     var
+        // start of <todo>
+        // TODO: Remove this once the semantic search is implemented in production.
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+        // end of <todo>
         AzureKeyVault: Codeunit "Azure Key Vault";
         Telemetry: Codeunit Telemetry;
         ToolsSelectionPrompt: Text;
     begin
+        // start of <todo>
+        // TODO: Remove this once the semantic search is implemented in production.
+        // This is a temporary solution to get the system prompt. The system prompt should be retrieved from the Azure Key Vault.
+        if NoSeriesCopilotSetup.Get() then begin
+            ToolsSelectionSystemPrompt := NoSeriesCopilotSetup.GetToolsSelectionPromptFromIsolatedStorage().Replace(DateSpecificPlaceholderLbl, Format(Today(), 0, 4));
+            exit;
+        end;
+        // end of <todo>
         if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotToolsSelectionPromptV2', ToolsSelectionPrompt) then begin
             Telemetry.LogMessage('0000NDY', TelemetryToolsSelectionPromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
             Error(ToolLoadingErr);
@@ -159,6 +171,10 @@ codeunit 324 "No. Series Copilot Impl."
 
     local procedure GenerateNoSeries(SystemPromptTxt: SecretText; InputText: Text): Text
     var
+        // start of <todo>
+        // TODO: Remove this once the semantic search is implemented in production.
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+        // end of <todo>
         AzureOpenAI: Codeunit "Azure OpenAI";
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
@@ -172,7 +188,13 @@ codeunit 324 "No. Series Copilot Impl."
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"No. Series Copilot") then
             exit;
 
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT4oLatest());
+        // start of <todo>
+        // TODO: Remove this once the semantic search is implemented in production.
+        if NoSeriesCopilotSetup.Get() then
+            AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", NoSeriesCopilotSetup.GetEndpoint(), NoSeriesCopilotSetup.GetDeployment(), NoSeriesCopilotSetup.GetSecretKeyFromIsolatedStorage())
+        else
+            // end of <todo>
+            AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT4oLatest());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"No. Series Copilot");
         AOAIChatCompletionParams.SetMaxTokens(MaxOutputTokens());
         AOAIChatCompletionParams.SetTemperature(0);
@@ -192,10 +214,14 @@ codeunit 324 "No. Series Copilot Impl."
 
         CompletionAnswerTxt := AOAIChatMessages.GetLastMessage(); // the model can answer to rephrase the question, if the user input is not clear
 
-        if AOAIOperationResponse.IsFunctionCall() then
-            CompletionAnswerTxt := GenerateNoSeriesUsingToolResult(AzureOpenAI, InputText, AOAIOperationResponse, AddNoSeriesIntent.GetExistingNoSeries())
-        else
-            NoSeriesCopilotTelemetry.LogToolNotInvoked(AOAIOperationResponse);
+        if AOAIOperationResponse.IsFunctionCall() then begin
+            CompletionAnswerTxt := GenerateNoSeriesUsingToolResult(AzureOpenAI, InputText, AOAIOperationResponse, AddNoSeriesIntent.GetExistingNoSeries());
+            // start of <todo>
+            // TODO: If semantic vocabulary is not required, we can remove the code.
+            AddNoSeriesIntent.UpdateSemanticVocabulary();
+            ChangeNoSeriesIntent.UpdateSemanticVocabulary();
+            // end of <todo>
+        end;
 
         exit(CompletionAnswerTxt);
     end;
@@ -237,7 +263,7 @@ codeunit 324 "No. Series Copilot Impl."
                 AOAIChatMessages.SetToolChoice(NoSeriesGenerateTool.GetDefaultToolChoice());
 
                 // call the API again to get the final response from the model
-                if not GenerateAndReviewToolCompletionWithRetry(AzureOpenAI, AOAIChatMessages, AOAIChatCompletionParams, GeneratedNoSeriesArray, GetExpectedNoSeriesCount(ToolResponse, SystemPrompt)) then
+                if not GenerateAndReviewToolCompletionWithRetry(AzureOpenAI, AOAIChatMessages, AOAIChatCompletionParams, GeneratedNoSeriesArray, AOAIFunctionResponse.GetFunctionName(), GetExpectedNoSeriesCount(ToolResponse, SystemPrompt)) then
                     Error(GetLastErrorText());
 
                 FinalResults.Add(GeneratedNoSeriesArray);
@@ -255,7 +281,7 @@ codeunit 324 "No. Series Copilot Impl."
         ToolResponse.Get(Message, ExpectedNoSeriesCount);
     end;
 
-    local procedure GenerateAndReviewToolCompletionWithRetry(var AzureOpenAI: Codeunit "Azure OpenAI"; var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var GeneratedNoSeriesArrayText: Text; ExpectedNoSeriesCount: Integer): Boolean
+    local procedure GenerateAndReviewToolCompletionWithRetry(var AzureOpenAI: Codeunit "Azure OpenAI"; var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var GeneratedNoSeriesArrayText: Text; Intent: Text; ExpectedNoSeriesCount: Integer): Boolean
     var
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
@@ -279,7 +305,7 @@ codeunit 324 "No. Series Copilot Impl."
                 Error(AOAIFunctionResponse.GetError());
 
             GeneratedNoSeriesArrayText := AOAIFunctionResponse.GetResult();
-            if CheckIfValidResult(GeneratedNoSeriesArrayText, AOAIFunctionResponse.GetFunctionName(), ExpectedNoSeriesCount) then begin
+            if CheckIfValidResult(GeneratedNoSeriesArrayText, Intent, ExpectedNoSeriesCount) then begin
                 NoSeriesCopilotTelemetry.LogGenerationCompletion(ReadGeneratedNumberSeriesJArray(GeneratedNoSeriesArrayText).Count, ExpectedNoSeriesCount, Attempt);
                 exit(true);
             end;
@@ -291,14 +317,14 @@ codeunit 324 "No. Series Copilot Impl."
         exit(false);
     end;
 
-    local procedure CheckIfValidResult(GeneratedNoSeriesArrayText: Text; FunctionName: Text; ExpectedNoSeriesCount: Integer): Boolean
+    local procedure CheckIfValidResult(GeneratedNoSeriesArrayText: Text; Intent: Text; ExpectedNoSeriesCount: Integer): Boolean
     var
         AddNoSeriesIntent: Codeunit "No. Series Cop. Add Intent";
     begin
         if not CheckIfCompletionMeetAllRequirements(GeneratedNoSeriesArrayText) then
             exit(false);
 
-        if FunctionName = AddNoSeriesIntent.GetName() then
+        if Intent = AddNoSeriesIntent.GetName() then
             exit(CheckIfExpectedNoSeriesCount(GeneratedNoSeriesArrayText, ExpectedNoSeriesCount));
 
         exit(true);
@@ -454,6 +480,7 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         ReadGeneratedNumberSeriesJArray(Completion).WriteTo(NoSeriesArrText);
         ReassembleDuplicates(NoSeriesArrText);
+        ExcludeExistingNoSeriesIfNewWhereGenerated(NoSeriesArrText);
 
         Json.InitializeCollection(NoSeriesArrText);
 
@@ -492,6 +519,40 @@ codeunit 324 "No. Series Copilot Impl."
             exit;
         end;
         NoSeriesCodes.Add(NoSeriesCode);
+    end;
+
+    local procedure ExcludeExistingNoSeriesIfNewWhereGenerated(var NoSeriesArrText: Text)
+    var
+        Json: Codeunit Json;
+        i: Integer;
+        NoSeriesArr: JsonArray;
+        NoSeriesObj: Text;
+    begin
+        if not CheckIfGeneratedNoSeriesExists(NoSeriesArrText) then
+            exit;
+
+        Json.InitializeCollection(NoSeriesArrText);
+        for i := 0 to Json.GetCollectionCount() - 1 do begin
+            Json.GetObjectFromCollectionByIndex(i, NoSeriesObj);
+            if CheckIfNumberSeriesIsGenerated(Json) then
+                NoSeriesArr.Add(Json.GetObject());
+        end;
+        NoSeriesArr.WriteTo(NoSeriesArrText);
+    end;
+
+    local procedure CheckIfGeneratedNoSeriesExists(NoSeriesArrText: Text): Boolean
+    var
+        Json: Codeunit Json;
+        i: Integer;
+        NoSeriesObj: Text;
+    begin
+        Json.InitializeCollection(NoSeriesArrText);
+        for i := 0 to Json.GetCollectionCount() - 1 do begin
+            Json.GetObjectFromCollectionByIndex(i, NoSeriesObj);
+            if CheckIfNumberSeriesIsGenerated(Json) then
+                exit(true);
+        end;
+        exit(false);
     end;
 
     local procedure InsertGeneratedNoSeries(var GeneratedNoSeries: Record "No. Series Generation Detail"; NoSeriesObj: Text; GenerationNo: Integer)

@@ -28,7 +28,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
         NumberOfAddedTablesPlaceholderLbl: Label '{number_of_tables}', Locked = true;
         TelemetryTool1PromptRetrievalErr: Label 'Unable to retrieve the prompt for No. Series Copilot Tool 1 from Azure Key Vault.', Locked = true;
         TelemetryTool1DefinitionRetrievalErr: Label 'Unable to retrieve the definition for No. Series Copilot Tool 1 from Azure Key Vault.', Locked = true;
-        ToolProgressDialogTextLbl: Label 'Searching for tables with number series related to your query';
+        ToolProgressDialogTextLbl: Label 'Searching for tables with number series semantically related to your query';
         ToolLoadingErr: Label 'Unable to load the No. Series Copilot Tool 1. Please try again later.';
         ExistingNoSeriesMessageLbl: Label 'Number series already configured. If you wish to modify the existing series, please use the `Modify number series` prompt.';
 
@@ -122,6 +122,14 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
             until Field.Next() = 0;
     end;
 
+    // start of <todo>
+    //TODO: Remove this procedure if the semantic vocabulary is not required
+    procedure UpdateSemanticVocabulary()
+    begin
+        ToolsImpl.UpdateSemanticVocabulary();
+    end;
+    // end of <todo>
+
     local procedure ListAllTablesWithNumberSeries(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary)
     var
         TempTableMetadata: Record "Table Metadata" temporary;
@@ -206,20 +214,44 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
 
     [NonDebuggable]
     local procedure GetToolPrompt() Prompt: Text
+    var
+        // start of <todo>
+        // TODO: Remove this once the semantic search is implemented in production.
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    // end of <todo>
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool1Prompt', Prompt) then begin
-            Telemetry.LogMessage('0000ND4', TelemetryTool1PromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
-            Error(ToolLoadingErr);
-        end;
+        // start of <todo>
+        // TODO: Remove this once the semantic search is implemented in production.
+        // This is a temporary solution to get the tool prompt. The tool should be retrieved from the Azure Key Vault.
+        if NoSeriesCopilotSetup.Get() then
+            exit(NoSeriesCopilotSetup.GetTool1PromptFromIsolatedStorage())
+        else
+            // end of <todo>
+            if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool1Prompt', Prompt) then begin
+                Telemetry.LogMessage('0000ND4', TelemetryTool1PromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+                Error(ToolLoadingErr);
+            end;
     end;
 
     [NonDebuggable]
     local procedure GetToolDefinition() Definition: Text
+    var
+        // start of <todo>
+        // TODO: Remove this once the semantic search is implemented in production.
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    // end of <todo>
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool1Definition', Definition) then begin
-            Telemetry.LogMessage('0000ND5', TelemetryTool1DefinitionRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
-            Error(ToolLoadingErr);
-        end;
+        // start of <todo>
+        // TODO: Remove this once the semantic search is implemented in production.
+        // This is a temporary solution to get the tool definition. The tool should be retrieved from the Azure Key Vault.
+        if NoSeriesCopilotSetup.Get() then
+            exit(NoSeriesCopilotSetup.GetTool1DefinitionFromIsolatedStorage())
+        else
+            // end of <todo>
+            if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool1Definition', Definition) then begin
+                Telemetry.LogMessage('0000ND5', TelemetryTool1DefinitionRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+                Error(ToolLoadingErr);
+            end;
     end;
 
 }
