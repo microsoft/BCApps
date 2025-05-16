@@ -44,24 +44,23 @@ if($appType -eq 'app')
 
             if($appBuildMode -eq 'Clean') {
                 Write-Host "Compile the app without any preprocessor symbols to generate a baseline app to use for breaking changes check"
-
-                $tempParameters = $parameters.Value.Clone()
-
-                # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
-                $tempParameters["preprocessorsymbols"] = @()
-                
                 # Create a new folder folder for the symbols
-                $defaultSymbolsPath = Join-Path (Split-Path $tempParameters["appSymbolsFolder"] -Parent) "DefaultSymbols"
+                $defaultSymbolsPath = Join-Path (Split-Path $parameters.Value["appSymbolsFolder"] -Parent) "DefaultSymbols"
                 if (-not (Test-Path $defaultSymbolsPath)) {
                     New-Item -Path $defaultSymbolsPath -ItemType Directory -Force | Out-Null
                 }
 
                 if ($recompileDependencies.Count -gt 0) {
                     $recompileDependencies | ForEach-Object {
-                        Build-App -App $_ -CompilationParameters $tempParameters -OutputFolder $defaultSymbolsPath
+                        $dependenciesParameters = $parameters.Value.Clone()
+                        $dependenciesParameters["preprocessorsymbols"] = @()
+                        Build-App -App $_ -CompilationParameters $dependenciesParameters -OutputFolder $defaultSymbolsPath
                     }
                 }
 
+                $tempParameters = $parameters.Value.Clone()
+                # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
+                $tempParameters["preprocessorsymbols"] = @()
                 $tempParameters["appSymbolsFolder"] = $defaultSymbolsPath
 
                 if($useCompilerFolder) {
