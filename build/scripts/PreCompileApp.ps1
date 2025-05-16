@@ -76,12 +76,16 @@ if($appType -eq 'app')
                 $appName = (Get-Content -Path $appJson | ConvertFrom-Json).Name
 
                 $appFile = Get-ChildItem -Path $tempParameters["appOutputFolder"] -Filter "Microsoft_$($appName)*.app" | Select-Object -First 1
-                $location = Join-Path $defaultSymbolsPath "$($appName)_clean.app"
+                $location = Join-Path $parameters.Value["appSymbolsFolder"] "$($appName)_clean.app"
                 Write-Host "Copying $($appFile.FullName) to $location"
                 Copy-Item -Path $appFile.FullName -Destination $location -Force -Verbose
+
+                # Move app file to default symbols folder
+                Move-Item -Path $appFile.FullName -Destination $defaultSymbolsPath -Force -Verbose
+
                 # Remove the app file from the output folder
-                Write-Host "Removing $($appFile.FullName) from the output folder"
-                Remove-Item -Path $($appFile.FullName) -Force -Verbose
+                #Write-Host "Removing $($appFile.FullName) from the output folder"
+                #Remove-Item -Path $($appFile.FullName) -Force -Verbose
 
                 # Print the content of the symbols folder
                 Write-Host "Content of the symbols folder:"
