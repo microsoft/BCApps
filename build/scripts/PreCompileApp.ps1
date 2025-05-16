@@ -80,8 +80,8 @@ if($appType -eq 'app')
                 Write-Host "Copying $($appFile.FullName) to $location"
                 Copy-Item -Path $appFile.FullName -Destination $location -Force -Verbose
                 # Remove the app file from the output folder
-                Write-Host "Removing $appFile from the output folder"
-                Remove-Item -Path $appFile -Force -Verbose
+                Write-Host "Removing $($appFile.FullName) from the output folder"
+                Remove-Item -Path $($appFile.FullName) -Force -Verbose
 
                 # Print the content of the symbols folder
                 Write-Host "Content of the symbols folder:"
