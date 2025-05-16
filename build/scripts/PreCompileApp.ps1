@@ -71,8 +71,8 @@ if($appType -eq 'app')
                 }
 
                 # Remove everything in the symbols folder that isn't the baseline app (not _clean.app)
-                Get-ChildItem -Path $tempParameters["appSymbolsFolder"] -Recurse | Where-Object { $_.Name -ne "$($appName)_clean.app" } | ForEach-Object {
-                    Remove-Item -Path $_.FullName -Recurse -Force -Verbose
+                Get-ChildItem -Path $tempParameters["appSymbolsFolder"] -Recurse -Filter *.app | Where-Object { $_.Name -ne "$($appName)_clean.app" } | ForEach-Object {
+                    Remove-Item -Path $_.FullName -Force -Verbose
                 }
 
                 # Compile the clean dependencies
