@@ -23,7 +23,6 @@ codeunit 9120 "SharePoint Graph Client Impl."
         SharePointGraphRequestHelper: Codeunit "SharePoint Graph Req. Helper";
         SharePointGraphParser: Codeunit "SharePoint Graph Parser";
         SharePointGraphUriBuilder: Codeunit "SharePoint Graph Uri Builder";
-        SharePointDiagnostics: Codeunit "SharePoint Diagnostics";
         SiteId: Text;
         SharePointUrl: Text;
         DefaultDriveId: Text;
@@ -32,6 +31,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         InvalidSharePointUrlErr: Label 'Invalid SharePoint URL ''%1''.', Comment = '%1 = URL string';
         RetrieveSiteInfoErr: Label 'Failed to retrieve SharePoint site information from Graph API. %1', Comment = '%1 = Error message';
         DefaultListTemplateLbl: Label 'genericList', Locked = true;
+        ContentRangeHeaderLbl: Label 'bytes %1-%2/%3', Locked = true, Comment = '%1 = Start Bytes, %2 = End Bytes, %3 = Total Bytes';
 
     #region Initialization
 
@@ -76,10 +76,12 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="NewSharePointUrl">SharePoint site URL.</param>
     local procedure InitializeCommon(NewSharePointUrl: Text)
     begin
-        SharePointUrl := NewSharePointUrl;
-        GetSiteIdFromUrl(NewSharePointUrl);
-        SharePointGraphUriBuilder.Initialize(SiteId, SharePointGraphRequestHelper);
-        GetDefaultDriveId();
+        // If we have a new URL, clear the cached IDs so they'll be re-acquired
+        if SharePointUrl <> NewSharePointUrl then begin
+            SharePointUrl := NewSharePointUrl;
+            SiteId := '';
+            DefaultDriveId := '';
+        end;
         IsInitialized := true;
     end;
 
@@ -102,7 +104,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         Endpoint := SharePointGraphUriBuilder.GetSiteByHostAndPathEndpoint(HostName, RelativePath);
 
         if not SharePointGraphRequestHelper.Get(Endpoint, JsonResponse) then
-            Error(RetrieveSiteInfoErr, SharePointDiagnostics.GetResponseReasonPhrase());
+            Error(RetrieveSiteInfoErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
 
         if JsonResponse.Get('id', JsonToken) then
             SiteId := JsonToken.AsValue().AsText();
@@ -182,6 +184,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         NextLink: Text;
     begin
         EnsureInitialized();
+        EnsureSiteId();
 
         if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetListsEndpoint(), JsonResponse, GraphOptionalParameters) then
             exit(false);
@@ -228,6 +231,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         JsonResponse: JsonObject;
     begin
         EnsureInitialized();
+        EnsureSiteId();
 
         if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetListEndpoint(ListId), JsonResponse, GraphOptionalParameters) then
             exit(false);
@@ -266,6 +270,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         ListJsonObj: JsonObject;
     begin
         EnsureInitialized();
+        EnsureSiteId();
 
         // Create the request body with list properties
         RequestJsonObj.Add('displayName', DisplayName);
@@ -316,6 +321,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         NextLink: Text;
     begin
         EnsureInitialized();
+        EnsureSiteId();
 
         if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetListItemsEndpoint(ListId), JsonResponse, GraphOptionalParameters) then
             exit(false);
@@ -350,6 +356,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         RequestJsonObj: JsonObject;
     begin
         EnsureInitialized();
+        EnsureSiteId();
 
         // Create the request body with fields
         RequestJsonObj.Add('fields', FieldsJsonObject);
@@ -393,6 +400,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure GetDefaultDrive(var DriveId: Text): Boolean
     begin
         EnsureInitialized();
+        EnsureDefaultDriveId();
         DriveId := DefaultDriveId;
         exit(DriveId <> '');
     end;
@@ -421,6 +429,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         NextLink: Text;
     begin
         EnsureInitialized();
+        EnsureSiteId();
 
         if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDrivesEndpoint(), JsonResponse, GraphOptionalParameters) then
             exit(false);
@@ -468,6 +477,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         DriveEndpoint: Text;
     begin
         EnsureInitialized();
+        EnsureSiteId();
 
         // Construct drive endpoint for specific drive ID
         DriveEndpoint := SharePointGraphUriBuilder.GetSiteEndpoint() + '/drives/' + DriveId;
@@ -493,6 +503,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         JsonResponse: JsonObject;
     begin
         EnsureInitialized();
+        EnsureSiteId();
 
         if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveEndpoint(), JsonResponse, GraphOptionalParameters) then
             exit(false);
@@ -500,6 +511,9 @@ codeunit 9120 "SharePoint Graph Client Impl."
         GraphDrive.Init();
         SharePointGraphParser.ParseDriveDetail(JsonResponse, GraphDrive);
         GraphDrive.Insert();
+
+        // Update DefaultDriveId while we're at it
+        DefaultDriveId := CopyStr(GraphDrive.Id, 1, MaxStrLen(DefaultDriveId));
 
         exit(true);
     end;
@@ -580,6 +594,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
         JsonResponse: JsonObject;
     begin
         EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
 
         // Remove leading slash if present
         if ItemPath.StartsWith('/') then
@@ -608,6 +624,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
         JsonResponse: JsonObject;
     begin
         EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
 
         if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveItemByIdEndpoint(ItemId), JsonResponse, GraphOptionalParameters) then
             exit(false);
@@ -633,6 +651,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
         NextLink: Text;
     begin
         EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
 
         // Handle empty path as root
         if FolderPath = '' then
@@ -675,6 +695,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
         NextLink: Text;
     begin
         EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
 
         if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveItemChildrenByIdEndpoint(FolderId), JsonResponse, GraphOptionalParameters) then
             exit(false);
@@ -708,6 +730,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
         NextLink: Text;
     begin
         EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
 
         if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveRootChildrenEndpoint(), JsonResponse, GraphOptionalParameters) then
             exit(false);
@@ -746,10 +770,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
         EffectiveDriveId: Text;
     begin
         EnsureInitialized();
+        EnsureSiteId();
 
         // Use default drive ID if none specified
-        if DriveId = '' then
-            EffectiveDriveId := DefaultDriveId
+        if DriveId = '' then begin
+            EnsureDefaultDriveId();
+            EffectiveDriveId := DefaultDriveId;
+        end
         else
             EffectiveDriveId := DriveId;
 
@@ -783,7 +810,148 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <returns>True if the operation was successful; otherwise - false.</returns>
     procedure UploadFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Boolean
     begin
-        exit(UploadFile(DriveId, FolderPath, FileName, FileInStream, GraphDriveItem, Enum::"Graph ConflictBehavior"::Fail));
+        exit(UploadFile(DriveId, FolderPath, FileName, FileInStream, GraphDriveItem, Enum::"Graph ConflictBehavior"::Replace));
+    end;
+
+    /// <summary>
+    /// Uploads a large file to a folder on SharePoint using chunked upload for better performance and reliability.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library), or empty for default drive.</param>
+    /// <param name="FolderPath">Path to the folder (e.g., 'Documents').</param>
+    /// <param name="FileName">Name of the file to upload.</param>
+    /// <param name="FileInStream">Content of the file.</param>
+    /// <param name="GraphDriveItem">Record to store the result.</param>
+    /// <returns>True if the operation was successful; otherwise - false.</returns>
+    procedure UploadLargeFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Boolean
+    var
+        GraphConflictBehavior: Enum "Graph ConflictBehavior";
+    begin
+        exit(UploadLargeFile(DriveId, FolderPath, FileName, FileInStream, GraphDriveItem, GraphConflictBehavior::Replace));
+    end;
+
+    /// <summary>
+    /// Uploads a large file to a folder on SharePoint using chunked upload with specified conflict behavior.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library), or empty for default drive.</param>
+    /// <param name="FolderPath">Path to the folder (e.g., 'Documents').</param>
+    /// <param name="FileName">Name of the file to upload.</param>
+    /// <param name="FileInStream">Content of the file.</param>
+    /// <param name="GraphDriveItem">Record to store the result.</param>
+    /// <param name="ConflictBehavior">How to handle conflicts if a file with the same name exists</param>
+    /// <returns>True if the operation was successful; otherwise - false.</returns>
+    procedure UploadLargeFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Boolean
+    var
+        GraphOptionalParameters: Codeunit "Graph Optional Parameters";
+        TempBlob: Codeunit "Temp Blob";
+        ChunkInStream: InStream;
+        ChunkOutStream: OutStream;
+        JsonResponse: JsonObject;
+        CompleteResponseJson: JsonObject;
+        Endpoint: Text;
+        UploadUrl: Text;
+        ContentRange: Text;
+        EffectiveDriveId: Text;
+        FileSize: Integer;
+        ChunkSize: Integer;
+        BytesInChunk: Integer;
+        TotalBytesRead: Integer;
+        MinChunkSize: Integer;
+        ChunkMultiple: Integer;
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+
+        // Use default drive ID if none specified
+        if DriveId = '' then begin
+            EnsureDefaultDriveId();
+            EffectiveDriveId := DefaultDriveId;
+        end else
+            EffectiveDriveId := DriveId;
+
+        // Remove leading slash if present
+        if FolderPath.StartsWith('/') then
+            FolderPath := CopyStr(FolderPath, 2);
+
+        // Configure conflict behavior
+        SharePointGraphRequestHelper.ConfigureConflictBehavior(GraphOptionalParameters, ConflictBehavior);
+
+        // Prepare the upload session endpoint
+        if EffectiveDriveId = DefaultDriveId then
+            Endpoint := SharePointGraphUriBuilder.GetDriveItemByPathEndpoint(FolderPath + '/' + FileName)
+        else
+            Endpoint := SharePointGraphUriBuilder.GetSpecificDriveUploadEndpoint(EffectiveDriveId, FolderPath, FileName);
+
+        FileSize := FileInStream.Length();
+        if FileSize <= 0 then
+            exit(false);
+
+        // Create upload session
+        if not SharePointGraphRequestHelper.CreateUploadSession(Endpoint, FileName, FileSize, GraphOptionalParameters, ConflictBehavior, UploadUrl) then
+            exit(false);
+
+        // Microsoft requires chunks to be multiples of 320 KiB (327,680 bytes)
+        ChunkMultiple := 320 * 1024; // 320 KiB
+        MinChunkSize := ChunkMultiple; // Minimum allowed size
+
+        // Use 4 MB chunks as recommended by Microsoft for optimum performance
+        ChunkSize := 4 * 1024 * 1024; // 4 MB
+
+        // Ensure chunk size is a multiple of 320 KiB
+        ChunkSize := Round(ChunkSize / ChunkMultiple, 1, '<') * ChunkMultiple;
+
+        // For small files, use at least the minimum size but ensure it doesn't exceed file size
+        if FileSize < ChunkSize then
+            ChunkSize := MinChunkSize;
+
+        // Reset the stream position to beginning
+        FileInStream.ResetPosition();
+        TotalBytesRead := 0;
+
+        // Read and upload chunks until the entire file is uploaded
+        while TotalBytesRead < FileSize do begin
+            // Clear temp blob for new chunk
+            Clear(TempBlob);
+            TempBlob.CreateOutStream(ChunkOutStream);
+
+            // Determine bytes to copy in this chunk
+            BytesInChunk := ChunkSize;
+            if (FileSize - TotalBytesRead) < ChunkSize then
+                // For the last chunk, ensure it's still a multiple of 320 KiB unless it's the final remainder
+                if (FileSize - TotalBytesRead) > MinChunkSize then
+                    BytesInChunk := Round((FileSize - TotalBytesRead) / ChunkMultiple, 1, '<') * ChunkMultiple
+                else
+                    BytesInChunk := FileSize - TotalBytesRead;
+
+            // Copy directly from source stream into the chunk stream
+            CopyStream(ChunkOutStream, FileInStream, BytesInChunk);
+
+            // Prepare content range header - must follow format "bytes startPosition-endPosition/totalSize"
+            ContentRange := StrSubstNo(ContentRangeHeaderLbl,
+                            TotalBytesRead,
+                            TotalBytesRead + BytesInChunk - 1,
+                            FileSize);
+
+            // Get the input stream for the chunk
+            TempBlob.CreateInStream(ChunkInStream);
+
+            // Upload the chunk - use the exact URL returned from the upload session without modification
+            if not SharePointGraphRequestHelper.UploadChunk(UploadUrl, ChunkInStream, ContentRange, JsonResponse) then
+                exit(false);
+
+            // Check if upload is complete (last chunk response will contain the item details)
+            if JsonResponse.Contains('id') then
+                CompleteResponseJson := JsonResponse;
+
+            // Update total bytes read
+            TotalBytesRead += BytesInChunk;
+        end;
+
+        GraphDriveItem.Init();
+        GraphDriveItem.DriveId := CopyStr(EffectiveDriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
+        SharePointGraphParser.ParseDriveItemDetail(CompleteResponseJson, GraphDriveItem);
+        GraphDriveItem.Insert();
+
+        exit(true);
     end;
 
     /// <summary>
@@ -805,11 +973,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
         EffectiveDriveId: Text;
     begin
         EnsureInitialized();
+        EnsureSiteId();
 
         // Use default drive ID if none specified
-        if DriveId = '' then
-            EffectiveDriveId := DefaultDriveId
-        else
+        if DriveId = '' then begin
+            EnsureDefaultDriveId();
+            EffectiveDriveId := DefaultDriveId;
+        end else
             EffectiveDriveId := DriveId;
 
         // Remove leading slash if present
@@ -863,6 +1033,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure DownloadFile(ItemId: Text; var FileInStream: InStream): Boolean
     begin
         EnsureInitialized();
+        EnsureSiteId();
         exit(SharePointGraphRequestHelper.DownloadFile(SharePointGraphUriBuilder.GetDriveItemContentByIdEndpoint(ItemId), FileInStream));
     end;
 
@@ -875,6 +1046,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure DownloadFileByPath(FilePath: Text; var FileInStream: InStream): Boolean
     begin
         EnsureInitialized();
+        EnsureSiteId();
 
         // Remove leading slash if present
         if FilePath.StartsWith('/') then
@@ -911,9 +1083,12 @@ codeunit 9120 "SharePoint Graph Client Impl."
         NextLink: Text;
     begin
         EnsureInitialized();
+        EnsureSiteId();
 
-        if DriveId = '' then
+        if DriveId = '' then begin
+            EnsureDefaultDriveId();
             exit(GetItemsByPath(FolderPath, GraphDriveItems, GraphOptionalParameters));
+        end;
 
         // Handle empty path as root
         if FolderPath = '' then
@@ -969,9 +1144,12 @@ codeunit 9120 "SharePoint Graph Client Impl."
         NextLink: Text;
     begin
         EnsureInitialized();
+        EnsureSiteId();
 
-        if DriveId = '' then
+        if DriveId = '' then begin
+            EnsureDefaultDriveId();
             exit(GetRootItems(GraphDriveItems, GraphOptionalParameters));
+        end;
 
         if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetSpecificDriveRootChildrenEndpoint(DriveId), JsonResponse, GraphOptionalParameters) then
             exit(false);
@@ -1001,6 +1179,22 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <returns>Codeunit holding http response status, reason phrase, headers and possible error information for the last API call</returns>
     procedure GetDiagnostics(): Interface "HTTP Diagnostics"
     begin
-        exit(SharePointDiagnostics);
+        exit(SharePointGraphRequestHelper.GetDiagnostics());
+    end;
+
+    // Add this method to lazily load the default drive ID
+    local procedure EnsureDefaultDriveId()
+    begin
+        if DefaultDriveId = '' then
+            GetDefaultDriveId();
+    end;
+
+    // Add method to lazily load the site ID
+    local procedure EnsureSiteId()
+    begin
+        if SiteId = '' then begin
+            GetSiteIdFromUrl(SharePointUrl);
+            SharePointGraphUriBuilder.Initialize(SiteId, SharePointGraphRequestHelper);
+        end;
     end;
 }

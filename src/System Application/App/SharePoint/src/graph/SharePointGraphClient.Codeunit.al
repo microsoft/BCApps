@@ -487,6 +487,62 @@ codeunit 9119 "SharePoint Graph Client"
         exit(SharePointGraphClientImpl.DownloadFileByPath(FilePath, FileInStream));
     end;
 
+    /// <summary>
+    /// Uploads a large file to a folder on the default drive using chunked upload for improved performance and reliability.
+    /// </summary>
+    /// <param name="FolderPath">Path to the folder (e.g., 'Documents').</param>
+    /// <param name="FileName">Name of the file to upload.</param>
+    /// <param name="FileInStream">Content of the file.</param>
+    /// <param name="GraphDriveItem">Record to store the result.</param>
+    /// <returns>True if the operation was successful; otherwise - false.</returns>
+    procedure UploadLargeFile(FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Boolean
+    begin
+        exit(SharePointGraphClientImpl.UploadLargeFile('', FolderPath, FileName, FileInStream, GraphDriveItem));
+    end;
+
+    /// <summary>
+    /// Uploads a large file to a folder on the default drive using chunked upload with specified conflict behavior.
+    /// </summary>
+    /// <param name="FolderPath">Path to the folder (e.g., 'Documents').</param>
+    /// <param name="FileName">Name of the file to upload.</param>
+    /// <param name="FileInStream">Content of the file.</param>
+    /// <param name="GraphDriveItem">Record to store the result.</param>
+    /// <param name="ConflictBehavior">How to handle conflicts if a file with the same name exists</param>
+    /// <returns>True if the operation was successful; otherwise - false.</returns>
+    procedure UploadLargeFile(FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Boolean
+    begin
+        exit(SharePointGraphClientImpl.UploadLargeFile('', FolderPath, FileName, FileInStream, GraphDriveItem, ConflictBehavior));
+    end;
+
+    /// <summary>
+    /// Uploads a large file to a folder in a specific drive (document library) using chunked upload.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="FolderPath">Path to the folder (e.g., 'Documents').</param>
+    /// <param name="FileName">Name of the file to upload.</param>
+    /// <param name="FileInStream">Content of the file.</param>
+    /// <param name="GraphDriveItem">Record to store the result.</param>
+    /// <returns>True if the operation was successful; otherwise - false.</returns>
+    procedure UploadLargeFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Boolean
+    begin
+        exit(SharePointGraphClientImpl.UploadLargeFile(DriveId, FolderPath, FileName, FileInStream, GraphDriveItem));
+    end;
+
+    /// <summary>
+    /// Uploads a large file to a folder in a specific drive (document library) using chunked upload with specified conflict behavior.
+    /// </summary>
+    /// <param name="DriveId">ID of the drive (document library).</param>
+    /// <param name="FolderPath">Path to the folder (e.g., 'Documents').</param>
+    /// <param name="FileName">Name of the file to upload.</param>
+    /// <param name="FileInStream">Content of the file.</param>
+    /// <param name="GraphDriveItem">Record to store the result.</param>
+    /// <param name="ConflictBehavior">How to handle conflicts if a file with the same name exists</param>
+    /// <returns>True if the operation was successful; otherwise - false.</returns>
+    procedure UploadLargeFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Boolean
+    begin
+        exit(SharePointGraphClientImpl.UploadLargeFile(DriveId, FolderPath, FileName, FileInStream, GraphDriveItem, ConflictBehavior));
+    end;
+
     #endregion
 
     /// <summary>

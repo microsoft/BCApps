@@ -212,6 +212,94 @@ codeunit 9123 "SharePoint Graph Req. Helper"
 
     #endregion
 
+    #region Chunked File Upload
+
+    /// <summary>
+    /// Creates an upload session for chunked file upload.
+    /// </summary>
+    /// <param name="Endpoint">The endpoint to create the upload session.</param>
+    /// <param name="FileName">Name of the file to upload.</param>
+    /// <param name="FileSize">Size of the file in bytes.</param>
+    /// <param name="GraphOptionalParameters">Optional parameters for the request.</param>
+    /// <param name="GraphConflictBehavior">How to handle conflicts if a file with the same name exists.</param>
+    /// <param name="UploadUrlResult">The upload URL result for the session.</param>
+    /// <returns>True if the upload session was created successfully; otherwise false.</returns>
+    procedure CreateUploadSession(Endpoint: Text; FileName: Text; FileSize: Integer; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; GraphConflictBehavior: Enum "Graph ConflictBehavior"; var UploadUrlResult: Text): Boolean
+    var
+        HttpResponseMessage: Codeunit "Http Response Message";
+        HttpContent: Codeunit "Http Content";
+        RequestBodyJson: JsonObject;
+        ItemJson: JsonObject;
+        ResponseJson: JsonObject;
+        JsonToken: JsonToken;
+        FinalEndpoint: Text;
+    begin
+        // Create request body for upload session
+        ItemJson.Add('@microsoft.graph.conflictBehavior', Format(GraphConflictBehavior));
+        ItemJson.Add('name', FileName);
+        // Can also add description or fileSystemInfo here if needed
+        RequestBodyJson.Add('item', ItemJson);
+
+        HttpContent.Create(RequestBodyJson);
+        FinalEndpoint := PrepareEndpoint(Endpoint + ':/createUploadSession', GraphOptionalParameters);
+        GraphClient.Post(FinalEndpoint, GraphOptionalParameters, HttpContent, HttpResponseMessage);
+
+        if not ProcessJsonResponse(HttpResponseMessage, ResponseJson) then
+            exit(false);
+
+        // Extract uploadUrl from the response
+        if ResponseJson.Get('uploadUrl', JsonToken) then
+            UploadUrlResult := JsonToken.AsValue().AsText()
+        else
+            exit(false);
+
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Uploads a chunk of file content to an upload session.
+    /// </summary>
+    /// <param name="UploadUrl">The upload URL for the session.</param>
+    /// <param name="ChunkContent">The content of the chunk.</param>
+    /// <param name="ContentRange">The content range header value (e.g., "bytes 0-1023/5000").</param>
+    /// <param name="ResponseJson">The JSON response.</param>
+    /// <returns>True if the chunk was uploaded successfully; otherwise false.</returns>
+    procedure UploadChunk(UploadUrl: Text; var ChunkContent: InStream; ContentRange: Text; var ResponseJson: JsonObject): Boolean
+    var
+        RestClient: Codeunit "Rest Client";
+        HttpContent: Codeunit "Http Content";
+        HttpResponseMessage: Codeunit "Http Response Message";
+    begin
+        // Important: For upload sessions, we don't use GraphClient
+        // because the upload URL is a complete URL and we shouldn't send the Authorization header
+        Clear(ResponseJson);
+
+        // Initialize a fresh RestClient without passing any authorization
+        RestClient.Initialize();
+
+        // Create the HTTP content with our chunk
+        HttpContent.Create(ChunkContent);
+        HttpContent.SetHeader('Content-Range', ContentRange);
+        HttpContent.SetContentTypeHeader('application/octet-stream');
+
+        // Use direct PUT method on the upload URL
+        // The UploadUrl is already a complete URL from the upload session
+        HttpResponseMessage := RestClient.Put(UploadUrl, HttpContent);
+
+        SharePointDiagnostics.SetParameters(HttpResponseMessage.GetIsSuccessStatusCode(),
+            HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetReasonPhrase(),
+            0, HttpResponseMessage.GetErrorMessage());
+
+        if not HttpResponseMessage.GetIsSuccessStatusCode() then
+            exit(false);
+
+        ResponseJson := HttpResponseMessage.GetContent().AsJsonObject();
+
+        exit(true);
+    end;
+
+    #endregion
+
     #region PUT Requests
 
     /// <summary>
@@ -244,6 +332,56 @@ codeunit 9123 "SharePoint Graph Req. Helper"
     begin
         HttpContent.Create(RequestBody);
         FinalEndpoint := PrepareEndpoint(Endpoint, GraphOptionalParameters);
+        GraphClient.Put(FinalEndpoint, GraphOptionalParameters, HttpContent, HttpResponseMessage);
+        exit(ProcessJsonResponse(HttpResponseMessage, ResponseJson));
+    end;
+
+    /// <summary>
+    /// Makes a PUT request with binary content and custom headers to the Microsoft Graph API.
+    /// </summary>
+    /// <param name="Endpoint">The endpoint to request.</param>
+    /// <param name="Content">The binary content stream.</param>
+    /// <param name="ContentType">The content type of the binary data.</param>
+    /// <param name="AdditionalHeaders">Dictionary of additional headers to include.</param>
+    /// <param name="ResponseJson">The JSON response.</param>
+    /// <returns>True if the request was successful; otherwise false.</returns>
+    procedure PutContent(Endpoint: Text; var Content: InStream; ContentType: Text; var AdditionalHeaders: Dictionary of [Text, Text]; var ResponseJson: JsonObject): Boolean
+    var
+        GraphOptionalParameters: Codeunit "Graph Optional Parameters";
+    begin
+        exit(PutContent(Endpoint, Content, ContentType, AdditionalHeaders, GraphOptionalParameters, false, ResponseJson));
+    end;
+
+    /// <summary>
+    /// Makes a PUT request with binary content and custom headers to the Microsoft Graph API with optional parameters.
+    /// </summary>
+    /// <param name="Endpoint">The endpoint to request.</param>
+    /// <param name="Content">The binary content stream.</param>
+    /// <param name="ContentType">The content type of the binary data.</param>
+    /// <param name="AdditionalHeaders">Dictionary of additional headers to include.</param>
+    /// <param name="GraphOptionalParameters">Optional parameters for the request.</param>
+    /// <param name="IsCompleteUrl">If true, the endpoint is treated as a complete URL and not processed further.</param>
+    /// <param name="ResponseJson">The JSON response.</param>
+    /// <returns>True if the request was successful; otherwise false.</returns>
+    procedure PutContent(Endpoint: Text; var Content: InStream; ContentType: Text; var AdditionalHeaders: Dictionary of [Text, Text]; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; IsCompleteUrl: Boolean; var ResponseJson: JsonObject): Boolean
+    var
+        HttpResponseMessage: Codeunit "Http Response Message";
+        HttpContent: Codeunit "Http Content";
+        FinalEndpoint: Text;
+        HeaderKey: Text;
+    begin
+        HttpContent.Create(Content);
+        HttpContent.SetContentTypeHeader(ContentType);
+
+        // Add any additional headers
+        foreach HeaderKey in AdditionalHeaders.Keys() do
+            HttpContent.SetHeader(HeaderKey, AdditionalHeaders.Get(HeaderKey));
+
+        if IsCompleteUrl then
+            FinalEndpoint := Endpoint
+        else
+            FinalEndpoint := PrepareEndpoint(Endpoint, GraphOptionalParameters);
+
         GraphClient.Put(FinalEndpoint, GraphOptionalParameters, HttpContent, HttpResponseMessage);
         exit(ProcessJsonResponse(HttpResponseMessage, ResponseJson));
     end;
