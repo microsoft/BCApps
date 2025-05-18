@@ -29,8 +29,10 @@ if($appType -eq 'app')
     }
 
     if(($appBuildMode -eq 'Clean') -and ($recompileDependencies.Count -gt 0)) {
-        # In CLEAN mode we might need to recompile some of the dependencies before we can compile the app
+        # In CLEAN mode we might need to recompile some of the dependencies before we can compile the app (in case the dependencies are not within the repository)
         $recompileDependencies | ForEach-Object {
+            $dependenciesParameters = $parameters.Value.Clone()
+            $dependenciesParameters["appOutputFolder"] = $dependenciesParameters["appSymbolsFolder"] # Output the apps into the symbols folder so we can use them for the clean build later
             Build-App -App $_ -CompilationParameters ($parameters.Value.Clone())
         }
     }
@@ -54,12 +56,14 @@ if($appType -eq 'app')
                     $recompileDependencies | ForEach-Object {
                         $dependenciesParameters = $parameters.Value.Clone()
                         $dependenciesParameters["preprocessorsymbols"] = @() # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
-                        Build-App -App $_ -CompilationParameters $dependenciesParameters -OutputFolder $defaultSymbolsPath
+                        $dependenciesParameters["appOutputFolder"] = $defaultSymbolsPath # Use the default symbols folder as appOutputFolder
+                        Build-App -App $_ -CompilationParameters $dependenciesParameters
                     }
                 }
 
                 $tempParameters = $parameters.Value.Clone()
                 $tempParameters["preprocessorsymbols"] = @() # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
+                $tempParameters["appOutputFolder"] = $defaultSymbolsPath # Output the default app into the default symbols folder
                 $tempParameters["appSymbolsFolder"] = $defaultSymbolsPath # Use the default symbols folder as appSymbolsFolder
 
                 if($useCompilerFolder) {
@@ -69,17 +73,12 @@ if($appType -eq 'app')
                     Compile-AppInBcContainer @tempParameters | Out-Null
                 }
 
-                # Get the generated app file
+                # Copy the the generated app to the symbols folder for the CLEAN mode build
                 $appName = (Get-Content -Path (Join-Path $tempParameters["appProjectFolder"] "app.json" -Resolve) | ConvertFrom-Json).Name
                 $appFile = Get-ChildItem -Path $tempParameters["appOutputFolder"] -Filter "Microsoft_$($appName)*.app" | Select-Object -First 1
-
-                # Copy the generated app to the symbols folder for the CLEAN mode build
                 $location = Join-Path $parameters.Value["appSymbolsFolder"] "$($appName)_clean.app"
                 Write-Host "Copying $($appFile.FullName) to $location"
                 Copy-Item -Path $appFile.FullName -Destination $location -Force
-
-                # Move app file to default symbols folder
-                Move-Item -Path $appFile.FullName -Destination $defaultSymbolsPath -Force
             }
 
             if($appBuildMode -eq 'Strict') {
