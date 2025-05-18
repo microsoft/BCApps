@@ -85,11 +85,14 @@ function Build-App() {
     }
 
     # If app is already there then skip it
-    $appSymbolsExist = Get-ChildItem -Path $CompilationParameters["appOutputFolder"] | Where-Object { $_.Name -like "Microsoft_$($App)*.app" }
-    if ($appSymbolsExist) {
-        Write-Host "$App is already in the symbols folder. Skipping recompilation"
-        return
+    if (Test-Path $CompilationParameters["appOutputFolder"]) {
+        $appSymbolsExist = Get-ChildItem -Path $CompilationParameters["appOutputFolder"] | Where-Object { $_.Name -like "Microsoft_$($App)*.app" }
+        if ($appSymbolsExist) {
+            Write-Host "$App is already in the symbols folder. Skipping recompilation"
+            return
+        }
     }
+
 
     Write-Host "Get source code for $App"
     $sourceCodeFolder = GetSourceCodeFromArtifact -App $App -TempFolder $script:tempFolder
