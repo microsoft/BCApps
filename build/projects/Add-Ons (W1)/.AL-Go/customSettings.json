@@ -3,7 +3,9 @@
         "System Application",
         "Business Foundation", 
         "Base Application", 
-        "Application"
+        "Application",
+        "Sustainability",
+        "Statistical Accounts"
     ],
     "ExternalTestAppDependencies" : [
         "Permissions Mock",
@@ -12,6 +14,7 @@
         "Library Variable Storage",
         "System Application Test Library",
         "Business Foundation Test Libraries",
-        "Tests-TestLibraries"    
+        "Tests-TestLibraries",
+        "Contoso Coffee Demo Dataset"
     ]
 }
