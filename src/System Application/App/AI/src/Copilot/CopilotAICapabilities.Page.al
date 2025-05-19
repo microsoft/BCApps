@@ -225,13 +225,13 @@ page 7775 "Copilot AI Capabilities"
                     label(BingSearchCaption)
                     {
                         ApplicationArea = All;
-                        Caption = 'By enabling Bing Search, you agree to data being processed by the Bing Search Service outside of your environment''s geographic region or compliance boundary.';
+                        Caption = 'By enabling Microsoft Bing Search, you agree to data being processed by the Bing Search Service outside of your environment''s geographic region or compliance boundary.';
                     }
                     field(BingSearchAreaDataMovement; BingOptIn)
                     {
                         ApplicationArea = All;
-                        Caption = 'Enable Bing Search';
-                        ToolTip = 'Specifies whether to enable Bing Search. This is required to for Copilot to use Bing Search in your environment.';
+                        Caption = 'Enable Microsoft Bing Search';
+                        ToolTip = 'Specifies whether to enable Microsoft Bing Search. This is required to for Copilot to use Microsoft Bing Search in your environment.';
                         Editable = true;
 
                         trigger OnValidate()
