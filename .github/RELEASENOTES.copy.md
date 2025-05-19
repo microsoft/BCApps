@@ -1,3 +1,27 @@
+## preview
+
+Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
+
+### Security
+
+- Add top-level permissions for _Increment Version Number_ workflow
+
+### Issues
+
+- Issue 1697 Error in CheckForUpdates: "Internet Explorer engine is not available" when using self-hosted runners
+
+### Test settings against a JSON schema
+
+AL-Go for GitHub settings now has a schema. The following line is added at the beginning to any AL-Go settings files to utilize the schema:
+
+```
+"$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/<version>/Actions/settings.schema.json"
+```
+
+### Failing pull requests if new warnings are added
+
+By setting failOn to 'newWarning', pull requests will fail if new warnings are introduced. This feature compares the warnings in the pull request build against those in the latest successful CI/CD build and fails if new warnings are detected.
+
 ## v7.1
 
 ### Issues
