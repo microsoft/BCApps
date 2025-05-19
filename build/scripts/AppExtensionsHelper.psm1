@@ -93,7 +93,6 @@ function Build-App() {
         }
     }
 
-
     Write-Host "Get source code for $App"
     $sourceCodeFolder = GetSourceCodeFromArtifact -App $App -TempFolder $script:tempFolder
 
