@@ -6,13 +6,12 @@
     "testFolders": [
         "../../../src/Add-Ons/W1/*/Test",
         "../../../src/Add-Ons/W1/*/Test Library",
-        "../../../src/Add-Ons/W1/*/DemoData"
+        "../../../src/Add-Ons/W1/*/Demo Data"
     ],
     "buildModes": [
         "Translated"
     ],
     "installOnlyReferencedApps": false,
-    "rulesetFile": "../../../src/rulesets/app.ruleset.json",
     "ConditionalSettings": [
         {
             "buildModes": [
