@@ -818,9 +818,6 @@ dotnet
         type("Microsoft.BusinessCentral.DocumentProcessor.PdfAttachment"; "PdfAttachment")
         {
         }
-        type("Microsoft.BusinessCentral.DocumentProcessor.WordTransformation"; "WordHandler")
-        {
-        }
     }
 
     assembly("Microsoft.Dynamics.Nav.PowerBIEmbedded")
