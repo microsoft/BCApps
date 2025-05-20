@@ -29,16 +29,16 @@ codeunit 8889 "Email Account Impl."
     var
         EmailAccounts: Record "Email Account";
         Connector: Enum "Email Connector";
-        IEmailConnector: Interface "Email Connector";
+        EmailConnector: Interface "Email Connector";
     begin
         TempEmailAccount.Reset();
         TempEmailAccount.DeleteAll();
 
         foreach Connector in Connector.Ordinals do begin
-            IEmailConnector := Connector;
+            EmailConnector := Connector;
 
             EmailAccounts.DeleteAll();
-            IEmailConnector.GetAccounts(EmailAccounts);
+            EmailConnector.GetAccounts(EmailAccounts);
 
             if EmailAccounts.FindSet() then
                 repeat
@@ -70,6 +70,7 @@ codeunit 8889 "Email Account Impl."
         EmailRateLimitToDelete: Record "Email Rate Limit";
         ConfirmManagement: Codeunit "Confirm Management";
         EmailScenario: Codeunit "Email Scenario";
+        EmailAccount: Codeunit "Email Account";
         EmailConnector: Interface "Email Connector";
     begin
         CheckPermissions();
@@ -94,6 +95,7 @@ codeunit 8889 "Email Account Impl."
                 // Delete the corresponding account in the Rate Limit table.
                 if EmailRateLimitToDelete.Get(EmailAccountsToDelete."Account Id", EmailAccountsToDelete.Connector) then
                     EmailRateLimitToDelete.Delete();
+                EmailAccount.OnAfterDeleteEmailAccount(EmailAccountsToDelete."Account Id", EmailAccountsToDelete.Connector);
             end;
         until EmailAccountsToDelete.Next() = 0;
 

@@ -14,12 +14,6 @@ permissionset 301 "No. Series - Read"
     Permissions =
         tabledata "No. Series" = R,
         tabledata "No. Series Line" = R,
-#if not CLEAN24
-#pragma warning disable AL0432
-        tabledata "No. Series Line Sales" = R,
-        tabledata "No. Series Line Purchase" = R,
-#pragma warning restore AL0432
-#endif
         tabledata "No. Series Relationship" = R,
         tabledata "No. Series Tenant" = r;
 }

@@ -17,7 +17,7 @@ codeunit 349 "No. Series Cop. Nxt Yr. Intent" implements "AOAI Function"
 
     var
         Telemetry: Codeunit Telemetry;
-        FunctionNameLbl: Label 'GenerateNextYearNumberSeries', Locked = true;
+        FunctionNameLbl: Label 'PrepareNextYearNumberSeries', Locked = true;
         TelemetryTool3DefinitionRetrievalErr: Label 'Unable to retrieve the definition for No. Series Copilot Tool 3 from Azure Key Vault.', Locked = true;
         ToolLoadingErr: Label 'Unable to load the No. Series Copilot Tool 3. Please try again later.';
 
@@ -45,7 +45,7 @@ codeunit 349 "No. Series Cop. Nxt Yr. Intent" implements "AOAI Function"
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool3Definition', Definition) then begin
+        if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool3DefinitionV2', Definition) then begin
             Telemetry.LogMessage('0000ND9', TelemetryTool3DefinitionRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
             Error(ToolLoadingErr);
         end;

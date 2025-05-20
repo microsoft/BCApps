@@ -68,6 +68,23 @@ page 149033 "AIT Log Entries"
                 {
                     StyleExpr = StatusStyleExpr;
                 }
+                field(Accuracy; Rec."Test Method Line Accuracy")
+                {
+                }
+                field("No. of Turns Passed"; Rec."No. of Turns Passed")
+                {
+                    Visible = false;
+                }
+                field("No. of Turns"; Rec."No. of Turns")
+                {
+                    Visible = false;
+                }
+                field(TurnsText; TurnsText)
+                {
+                    StyleExpr = TurnsStyleExpr;
+                    Caption = 'No. of Turns Passed';
+                    ToolTip = 'Specifies the number of turns that passed out of the total number of turns.';
+                }
                 field("Orig. Status"; Rec."Original Status")
                 {
                     Visible = false;
@@ -88,7 +105,7 @@ page 149033 "AIT Log Entries"
 
                     trigger OnDrillDown()
                     begin
-                        Message(Rec.GetInputBlob());
+                        Page.Run(Page::"AIT Test Data Compare", Rec);
                     end;
                 }
                 field("Output Text"; OutputText)
@@ -98,7 +115,7 @@ page 149033 "AIT Log Entries"
 
                     trigger OnDrillDown()
                     begin
-                        Message(Rec.GetOutputBlob());
+                        Page.Run(Page::"AIT Test Data Compare", Rec);
                     end;
                 }
                 field("Tokens Consumed"; Rec."Tokens Consumed")
@@ -241,13 +258,59 @@ page 149033 "AIT Log Entries"
                 begin
                     AITALTestSuiteMgt.DownloadTestOutputFromLogToFile(Rec);
                 end;
+            }
+            action("View Test Data")
+            {
+                Caption = 'View Test Data';
+                Image = CompareCOA;
+                ToolTip = 'View Test Data.';
 
+                trigger OnAction()
+                begin
+                    Page.Run(Page::"AIT Test Data Compare", Rec);
+                end;
+            }
+            action("Download Test Summary")
+            {
+                Caption = 'Download Test Summary';
+                Image = Export;
+                ToolTip = 'Downloads a summary of the test results.';
+
+                trigger OnAction()
+                var
+                    AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+                begin
+                    AITTestSuiteMgt.DownloadTestSummary(Rec);
+                end;
+            }
+
+            action(RerunTest)
+            {
+                Caption = 'Rerun test';
+                Image = Redo;
+                ToolTip = 'Rerun the test for the selected line.';
+
+                trigger OnAction()
+                var
+                    AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+                    Version: Integer;
+                begin
+                    Version := AITTestSuiteMgt.RerunTest(Rec);
+
+                    Rec.Reset();
+                    Rec.SetRange(Version, Version);
+                    CurrPage.Update(false);
+                end;
             }
         }
         area(Promoted)
         {
             group(Category_Process)
             {
+
+                actionref("RerunTest_Promoted"; "RerunTest")
+                {
+                }
                 actionref(DeleteAll_Promoted; DeleteAll)
                 {
                 }
@@ -266,6 +329,12 @@ page 149033 "AIT Log Entries"
                 actionref("Download Test Output_Promoted"; "Download Test Output")
                 {
                 }
+                actionref("View Test Data_Promoted"; "View Test Data")
+                {
+                }
+                actionref("Export Results_Promoted"; "Download Test Summary")
+                {
+                }
             }
         }
     }
@@ -274,20 +343,26 @@ page 149033 "AIT Log Entries"
         ClickToShowLbl: Label 'Show data input';
         DoYouWantToDeleteQst: Label 'Do you want to delete all entries within the filter?';
         InputText: Text;
+        TurnsText: Text;
         OutputText: Text;
         ErrorMessage: Text;
         ErrorCallStack: Text;
         StatusStyleExpr: Text;
+        TurnsStyleExpr: Text;
         TestRunDuration: Duration;
         IsFilteredToErrors: Boolean;
         ShowSensitiveData: Boolean;
 
     trigger OnAfterGetRecord()
+    var
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
         TestRunDuration := Rec."Duration (ms)";
+        TurnsText := AITTestSuiteMgt.GetTurnsAsText(Rec);
         SetInputOutputDataFields();
         SetErrorFields();
         SetStatusStyleExpr();
+        SetTurnsStyleExpr();
     end;
 
     local procedure SetStatusStyleExpr()
@@ -299,6 +374,18 @@ page 149033 "AIT Log Entries"
                 StatusStyleExpr := 'Unfavorable';
             else
                 StatusStyleExpr := '';
+        end;
+    end;
+
+    local procedure SetTurnsStyleExpr()
+    begin
+        case Rec."No. of Turns Passed" of
+            Rec."No. of Turns":
+                TurnsStyleExpr := 'Favorable';
+            0:
+                TurnsStyleExpr := 'Unfavorable';
+            else
+                TurnsStyleExpr := 'Ambiguous';
         end;
     end;
 
@@ -317,7 +404,6 @@ page 149033 "AIT Log Entries"
     begin
         InputText := '';
         OutputText := '';
-
         if Rec.Sensitive and not ShowSensitiveData then begin
             Rec.CalcFields("Input Data", "Output Data");
             if Rec."Input Data".Length > 0 then

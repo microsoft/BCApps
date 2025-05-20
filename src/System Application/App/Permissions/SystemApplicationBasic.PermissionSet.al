@@ -14,5 +14,6 @@ permissionset 69 "System Application - Basic"
 
     IncludedPermissionSets = "System Tables - Basic",
                              "System Application - Edit",
+                             "Copilot Sys Features",
                              "Web Service Management - Admin";
 }

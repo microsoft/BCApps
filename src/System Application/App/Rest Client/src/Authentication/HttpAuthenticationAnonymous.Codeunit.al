@@ -7,6 +7,7 @@ namespace System.RestClient;
 /// <summary>Implementation of the "Http Authentication" interface for a anonymous request.</summary>
 codeunit 2358 "Http Authentication Anonymous" implements "Http Authentication"
 {
+    Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 

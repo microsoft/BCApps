@@ -5,6 +5,7 @@
 namespace System.AI;
 
 using System.Telemetry;
+using System.Globalization;
 
 /// <summary>
 /// This codeunit is called from Platform.
@@ -21,6 +22,7 @@ codeunit 7775 "Copilot Telemetry"
         AppId: Guid;
         TelemetryFeedbackOnCopilotCapabilityLbl: Label 'Feedback on Copilot Capability.', Locked = true;
         TelemetryActionInvokedOnCopilotCapabilityLbl: Label 'Action invoked on Copilot Capability.', Locked = true;
+        TelemetryAllowDataMovementUpdatedLbl: Label 'Allow data movement was updated.', Locked = true;
 
     procedure SetCopilotCapability(NewCopilotCapability: Enum "Copilot Capability"; NewAppId: Guid)
     begin
@@ -46,5 +48,41 @@ codeunit 7775 "Copilot Telemetry"
         if not CustomDimensions.ContainsKey('Capability') then
             CopilotCapabilitiesImpl.AddTelemetryDimensions(CopilotCapability, AppId, CustomDimensions);
         FeatureTelemetry.LogUsage('0000LLW', CopilotCapabilitiesImpl.GetCopilotCategory(), TelemetryActionInvokedOnCopilotCapabilityLbl, CustomDimensions);
+    end;
+
+    procedure SendCopilotDataMovementUpdatedTelemetry()
+    var
+        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
+        AllowDataMovement: Boolean;
+    begin
+        CopilotCapabilityImpl.GetDataMovementAllowed(AllowDataMovement);
+
+        SendCopilotDataMovementUpdatedTelemetry(AllowDataMovement);
+    end;
+
+    procedure SendCopilotDataMovementUpdatedTelemetry(AllowDataMovement: Boolean)
+    var
+        CopilotCapabilitiesImpl: Codeunit "Copilot Capability Impl";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        Language: Codeunit Language;
+        CustomDimensions: Dictionary of [Text, Text];
+        WithinGeo: Boolean;
+        WithinEUDB: Boolean;
+        SavedGlobalLanguageId: Integer;
+    begin
+        CopilotCapabilitiesImpl.CheckGeoAndEUDB(WithinGeo, WithinEUDB);
+
+        SavedGlobalLanguageId := GlobalLanguage();
+
+        GlobalLanguage(Language.GetDefaultApplicationLanguageId());
+
+        CustomDimensions.Add('Category', CopilotCapabilitiesImpl.GetCopilotCategory());
+        CustomDimensions.Add('AllowDataMovement', Format(AllowDataMovement));
+        CustomDimensions.Add('WithinGeo', Format(WithinGeo));
+        CustomDimensions.Add('WithinEUDB', Format(WithinEUDB));
+
+        GlobalLanguage(SavedGlobalLanguageId);
+
+        FeatureTelemetry.LogUsage('0000OQK', CopilotCapabilitiesImpl.GetCopilotCategory(), TelemetryAllowDataMovementUpdatedLbl, CustomDimensions);
     end;
 }

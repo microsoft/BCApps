@@ -6,11 +6,13 @@
 namespace System.TestTools.TestRunner;
 
 using System.Reflection;
+using System.Apps;
 
 codeunit 130456 "Test Suite Mgt."
 {
     Permissions = tabledata "AL Test Suite" = rimd,
-                  tabledata "Test Method Line" = rimd;
+                  tabledata "Test Method Line" = rimd,
+                  tabledata AllObj = r;
 
     trigger OnRun()
     begin
@@ -147,6 +149,8 @@ codeunit 130456 "Test Suite Mgt."
     var
         CodeunitTestMethodLine: Record "Test Method Line";
         FunctionTestMethodLine: Record "Test Method Line";
+        AllObj: Record AllObj;
+        NavInstalledApp: Record "NAV App Installed App";
         TestResultArray: JsonArray;
         TestResultJson: JsonObject;
         CodeunitResultJson: JsonObject;
@@ -164,6 +168,16 @@ codeunit 130456 "Test Suite Mgt."
 
         CodeunitResultJson.Add('name', CodeunitTestMethodLine.Name);
         CodeunitResultJson.Add('codeUnit', CodeunitTestMethodLine."Test Codeunit");
+        AllObj.SetRange("Object ID", CodeunitTestMethodLine."Test Codeunit");
+        AllObj.SetRange("Object Type", AllObj."Object Type"::Codeunit);
+        if AllObj.FindFirst() then begin
+            CodeunitResultJson.Add('codeunitName', AllObj."Object Name");
+            NavInstalledApp.SetRange("Package ID", AllObj."App Package ID");
+            if NavInstalledApp.FindFirst() then begin
+                CodeunitResultJson.Add('applicationID', NavInstalledApp."App ID");
+                CodeunitResultJson.Add('applicationName', NavInstalledApp.Name);
+            end;
+        end;
         CodeunitResultJson.Add('startTime', CodeunitTestMethodLine."Start Time");
         CodeunitResultJson.Add('finishTime', CodeunitTestMethodLine."Finish Time");
 
@@ -403,14 +417,19 @@ codeunit 130456 "Test Suite Mgt."
                     Dialog.Update(2, format(Counter) + '/' + format(TotalCount) + ' (' + format(round(Counter / TotalCount * 100, 1)) + '%)');
                 end;
 
-                TempTestMethodLine.TransferFields(TestMethodLine);
-                TempTestMethodLine.Insert();
-                ExpandDataDrivenTests.SetDataDrivenTests(TempTestMethodLine);
-                BindSubscription(ExpandDataDrivenTests);
+                if TestMethodLine."Data Input Group Code" <> '' then begin
+                    TempTestMethodLine.TransferFields(TestMethodLine);
+                    TempTestMethodLine.Insert();
+                    ExpandDataDrivenTests.SetDataDrivenTests(TempTestMethodLine);
+                    BindSubscription(ExpandDataDrivenTests);
+                end;
+
                 TestRunnerGetMethods.SetUpdateTests(true);
                 TestRunnerGetMethods.Run(TestMethodLine);
-                UnbindSubscription(ExpandDataDrivenTests);
-                TempTestMethodLine.DeleteAll();
+                if TempTestMethodLine."Data Input Group Code" <> '' then begin
+                    UnbindSubscription(ExpandDataDrivenTests);
+                    TempTestMethodLine.DeleteAll();
+                end;
             until TestMethodLine.Next() = 0;
 
         if GuiAllowed() then
@@ -481,7 +500,8 @@ codeunit 130456 "Test Suite Mgt."
         CodeunitTestMethodLine.SetRange("Test Codeunit", TestMethodLine."Test Codeunit");
         CodeunitTestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Codeunit);
         CodeunitTestMethodLine.SetAscending("Line No.", true);
-        CodeunitTestMethodLine.FindLast();
+        if not CodeunitTestMethodLine.FindLast() then
+            CodeunitTestMethodLine."Line No." := TestMethodLine."Line No.";
 
         NextCodeunitTestMethodLine.SetFilter("Line No.", '>%1', TestMethodLine."Line No.");
         NextCodeunitTestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");

@@ -45,6 +45,12 @@ table 130454 "Test Input Group"
             CalcFormula = count("Test Input" where("Test Input Group Code" = field(Code)));
             ToolTip = 'Specifies the number of entries in the dataset.';
         }
+        field(60; "Imported by AppId"; Guid)
+        {
+            Caption = 'Imported from AppId';
+            ToolTip = 'Specifies the AppId from which the test input group was imported.';
+            DataClassification = SystemMetadata;
+        }
     }
     keys
     {

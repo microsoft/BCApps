@@ -14,6 +14,7 @@ table 149034 "AIT Log Entry"
     DataClassification = SystemMetadata;
     DrillDownPageId = "AIT Log Entries";
     LookupPageId = "AIT Log Entries";
+    DataCaptionFields = "Codeunit Name", "Procedure Name", "Test Input Code";
     Extensible = false;
     Access = Internal;
     ReplicateData = false;
@@ -158,6 +159,21 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'Output Data';
         }
+        field(40; "No. of Turns"; Integer)
+        {
+            Caption = 'Total number of turns';
+            ToolTip = 'Specifies the total number of turns.';
+        }
+        field(41; "No. of Turns Passed"; Integer)
+        {
+            Caption = 'Number of turns passed';
+            ToolTip = 'Specifies the number of turns passed.';
+        }
+        field(45; "Test Method Line Accuracy"; Decimal)
+        {
+            Caption = 'Test Method Line Accuracy';
+            ToolTip = 'Specifies the accuracy of the test line. The accuracy is calculated as the percentage of turns that passed or can be set manually in the test.';
+        }
         field(50; "Tokens Consumed"; Integer)
         {
             Caption = 'Total Tokens Consumed';
@@ -175,6 +191,12 @@ table 149034 "AIT Log Entry"
         {
             IncludedFields = Status;
             SumIndexFields = "Duration (ms)";
+        }
+        key(Key3; Tag)
+        {
+        }
+        key(Key4; Version)
+        {
         }
     }
 
@@ -280,5 +302,25 @@ table 149034 "AIT Log Entry"
         Rec.SetRange(Operation, AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
         Rec.SetFilter("Procedure Name", '<>%1', '');
         Rec.SetRange(Status, Rec.Status::Error);
+    end;
+
+    internal procedure GetSuiteDescription(): Text[250]
+    var
+        AITTestSuite: Record "AIT Test Suite";
+    begin
+        AITTestSuite.SetLoadFields("Description");
+        if AITTestSuite.Get(Rec."Test Suite Code") then
+            exit(AITTestSuite."Description");
+        exit('');
+    end;
+
+    internal procedure GetTestMethodLineDescription(): Text[250]
+    var
+        AITTestMethodLine: Record "AIT Test Method Line";
+    begin
+        AITTestMethodLine.SetLoadFields("Description");
+        if AITTestMethodLine.Get(Rec."Test Suite Code", Rec."Test Method Line No.") then
+            exit(AITTestMethodLine."Description");
+        exit('');
     end;
 }

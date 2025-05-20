@@ -114,23 +114,23 @@ page 332 "No. Series Generation"
             {
                 Caption = 'Prepare for next year';
 
-                action(SetupForNextYear)
+                action(PrepareForNextYear)
                 {
-                    Caption = 'Set up number series for the next year';
+                    Caption = 'Prepare number series for the next year';
                     ToolTip = 'Sample prompt for setting up number series for the next year.';
                     trigger OnAction()
                     begin
-                        InputText := SetupForNextYearLbl;
+                        InputText := PrepareForNextYearLbl;
                         CurrPage.Update();
                     end;
                 }
-                action(SetupModuleForNextYear)
+                action(PrepareModuleForNextYear)
                 {
-                    Caption = 'Set up number series for the [sales] module for the next year';
+                    Caption = 'Prepare number series for the [sales] module for the next year';
                     ToolTip = 'Sample prompt for setting up number series for a specific module for the next year. Replace [sales] with the module you want to set up number series for.';
                     trigger OnAction()
                     begin
-                        InputText := SetupModuleForNextYearLbl;
+                        InputText := PrepareModuleForNextYearLbl;
                         CurrPage.Update();
                     end;
                 }
@@ -171,6 +171,7 @@ page 332 "No. Series Generation"
     }
 
     var
+        NoSeriesCopilotTelemetry: Codeunit "No. Series Copilot Telemetry";
         InputText: Text;
         PageCaptionLbl: text;
         IsGenerationDetailsVisible: Boolean;
@@ -178,8 +179,8 @@ page 332 "No. Series Generation"
         CreateNoSeriesForModuleWithPatternLbl: Label 'Create number series for [specify here] module in the format ';
         CreateNoSeriesForCompanyLbl: Label 'Create numbers series for the new company';
         ChangeNumberLbl: Label 'Change the [specify here] number to ';
-        SetupForNextYearLbl: Label 'Set up number series for the next year';
-        SetupModuleForNextYearLbl: Label 'Set up number series for the [specify here] module for the next year';
+        PrepareForNextYearLbl: Label 'Prepare number series for the next year';
+        PrepareModuleForNextYearLbl: Label 'Prepare number series for the [specify here] module for the next year';
 
     trigger OnAfterGetCurrRecord()
     begin
@@ -191,6 +192,8 @@ page 332 "No. Series Generation"
     begin
         if CloseAction = CloseAction::OK then
             ApplyGeneratedNoSeries();
+
+        NoSeriesCopilotTelemetry.LogFeatureUsage();
     end;
 
     local procedure GenerateNoSeries()
@@ -198,7 +201,10 @@ page 332 "No. Series Generation"
         GeneratedNoSeries: Record "No. Series Generation Detail";
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
     begin
+        NoSeriesCopilotTelemetry.StartDurationTracking();
         NoSeriesCopilotImpl.Generate(Rec, GeneratedNoSeries, InputText);
+        NoSeriesCopilotTelemetry.StopDurationTracking();
+        NoSeriesCopilotTelemetry.SaveTotalSuggestedLines(GeneratedNoSeries.Count());
         CurrPage.GenerationDetails.Page.Load(GeneratedNoSeries);
         IsGenerationDetailsVisible := not GeneratedNoSeries.IsEmpty;
     end;
@@ -210,5 +216,6 @@ page 332 "No. Series Generation"
     begin
         CurrPage.GenerationDetails.Page.GetTempRecord(Rec."No.", GeneratedNoSeries);
         NoSeriesCopilotImpl.ApplyGeneratedNoSeries(GeneratedNoSeries);
+        NoSeriesCopilotTelemetry.LogApply(GeneratedNoSeries);
     end;
 }

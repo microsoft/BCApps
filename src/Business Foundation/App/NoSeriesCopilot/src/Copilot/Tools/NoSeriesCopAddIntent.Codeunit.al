@@ -28,6 +28,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
         NumberOfAddedTablesPlaceholderLbl: Label '{number_of_tables}', Locked = true;
         TelemetryTool1PromptRetrievalErr: Label 'Unable to retrieve the prompt for No. Series Copilot Tool 1 from Azure Key Vault.', Locked = true;
         TelemetryTool1DefinitionRetrievalErr: Label 'Unable to retrieve the definition for No. Series Copilot Tool 1 from Azure Key Vault.', Locked = true;
+        ToolProgressDialogTextLbl: Label 'Searching for tables with number series related to your query';
         ToolLoadingErr: Label 'Unable to load the No. Series Copilot Tool 1. Please try again later.';
         ExistingNoSeriesMessageLbl: Label 'Number series already configured. If you wish to modify the existing series, please use the `Modify number series` prompt.';
 
@@ -59,10 +60,13 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
     var
         TempNoSeriesField: Record "Field" temporary;
         TempSetupTable: Record "Table Metadata" temporary;
+        NoSeriesCopilotTelemetry: Codeunit "No. Series Copilot Telemetry";
         NewNoSeriesPrompt, CustomPatternsPromptList, TablesYamlList, EmptyList : List of [Text];
         NumberOfToolResponses, i, ActualTablesChunkSize : Integer;
         NumberOfAddedTables: Integer;
+        Progress: Dialog;
     begin
+        Progress.Open(ToolProgressDialogTextLbl);
         GetTablesRequireNoSeries(Arguments, TempSetupTable, TempNoSeriesField);
         ToolsImpl.GetUserSpecifiedOrExistingNumberPatternsGuidelines(Arguments, CustomPatternsPromptList, EmptyList, false);
 
@@ -80,7 +84,9 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
                                                      .Replace(NumberOfAddedTablesPlaceholderLbl, Format(ActualTablesChunkSize)));
 
                 ToolResults.Add(ToolsImpl.ConvertListToText(NewNoSeriesPrompt), ActualTablesChunkSize);
-            end
+            end;
+        Progress.Close();
+        NoSeriesCopilotTelemetry.LogCreateNewNumberSeriesToolUsage(ToolsImpl.GetEntities(Arguments).Count, CustomPatternsPromptList.Count > 0, NumberOfToolResponses, NumberOfAddedTables);
     end;
 
     local procedure GetTablesRequireNoSeries(var Arguments: JsonObject; var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary)

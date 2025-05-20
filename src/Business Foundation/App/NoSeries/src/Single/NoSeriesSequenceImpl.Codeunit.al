@@ -80,12 +80,6 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
     var
         NoSeriesLine2: Record "No. Series Line";
         NoSeriesStatelessImpl: Codeunit "No. Series - Stateless Impl.";
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-        IsHandled: Boolean;
-#pragma warning restore AL0432
-#endif
         NewNo: BigInteger;
     begin
         if NoSeriesLine.IsTemporary() or (NoSeriesLine."Temp Current Sequence No." <> 0) then begin // Do not update the database for temporary records, if Temp Current Sequence No. is set that means we are emulating the next numbers
@@ -113,12 +107,6 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if ModifySeries and ((NoSeriesLine."Last Date Used" <> UsageDate) or (NoSeriesLine.Open <> NoSeriesLine2.Open) or NoSeriesLine.IsTemporary()) then begin // Only modify the series if either the date or the open status has changed. Otherwise avoid locking the record.
             NoSeriesLine."Last Date Used" := UsageDate;
             NoSeriesLine.Open := NoSeriesLine2.Open;
-#if not CLEAN24
-#pragma warning disable AL0432
-            NoSeriesManagement.RaiseObsoleteOnBeforeModifyNoSeriesLine(NoSeriesLine, IsHandled);
-            if not IsHandled then
-#pragma warning restore AL0432
-#endif
             NoSeriesLine.Modify(true);
         end;
 
@@ -138,11 +126,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         end;
     end;
 
-#if not CLEAN24
-    internal procedure CreateNewSequence(var NoSeriesLine: Record "No. Series Line")
-#else
     local procedure CreateNewSequence(var NoSeriesLine: Record "No. Series Line")
-#endif
     begin
         CreateNewSequence(NoSeriesLine, NoSeriesLine."Starting Sequence No.");
     end;
@@ -157,11 +141,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if NumberSequence.Next(NoSeriesLine."Sequence Name") = 0 then; // Get a number to make sure LastNoUsed is set correctly
     end;
 
-#if not CLEAN24
-    internal procedure GetFormattedNo(NoSeriesLine: Record "No. Series Line"; Number: BigInteger): Code[20]
-#else
     local procedure GetFormattedNo(NoSeriesLine: Record "No. Series Line"; Number: BigInteger): Code[20]
-#endif
     var
         NumberCode: Code[20];
         i: Integer;

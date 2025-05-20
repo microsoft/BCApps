@@ -180,9 +180,10 @@ page 2516 "AppSource Product Details"
                 var
                     ExtensionManagement: Codeunit "Extension Management";
                 begin
-                    if (PlansAreVisible) then
+                    if PlansAreVisible then
                         if not Confirm(PurchaseLicensesElsewhereLbl) then
                             exit;
+
                     ExtensionManagement.InstallMarketplaceExtension(AppID);
                 end;
             }
@@ -305,7 +306,7 @@ page 2516 "AppSource Product Details"
             PlansOverview := '';
         end;
 
-        CurrentRecordCanBeInstalled := (AppID <> '') and (not CurrentRecordCanBeUninstalled) and AppSourceProductManager.CanInstallProductWithPlans(AllPlans);
+        CurrentRecordCanBeInstalled := (AppID <> '') and (not CurrentRecordCanBeUninstalled) and AppSourceProductManager.CanInstallProductWithPlans(UniqueProductID);
     end;
 
     local procedure BuildPlanPriceText(Availabilities: JsonArray; var MonthlyPriceText: Text; var YearlyPriceText: Text): Boolean

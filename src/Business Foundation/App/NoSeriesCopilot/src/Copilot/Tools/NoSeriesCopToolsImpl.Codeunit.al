@@ -225,30 +225,19 @@ codeunit 336 "No. Series Cop. Tools Impl."
 
     procedure IsRelevant(TableMetadata: Record "Table Metadata"; Field: Record "Field"; Entities: List of [Text]): Boolean
     var
-        RecordMatchMgtCopy: Codeunit "Record Match Impl.";
+        TextMatchImpl: Codeunit "No. Series Text Match Impl.";
         Entity: Text[250];
         String1: Text[250];
         String2: Text[250];
-        Score: Decimal;
     begin
         foreach Entity in Entities do begin
-            String1 := RecordMatchMgtCopy.RemoveShortWords(RemoveTextPart(TableMetadata.Caption, ' Setup') + ' ' + RemoveTextParts(Field.FieldName, GetNoSeriesAbbreviations()));
-            String2 := RecordMatchMgtCopy.RemoveShortWords(Entity);
-            Score := RecordMatchMgtCopy.CalculateStringNearness(String1, String2, GetMatchLengthThreshold(), 100) / 100;
-            if Score >= RequiredNearness() then
+            String1 := RemoveTextPart(TableMetadata.Name, '& ') + ' ' + Field.FieldName;
+            String2 := Entity;
+
+            if TextMatchImpl.IsRelevant(String1, String2) then
                 exit(true);
         end;
         exit(false);
-    end;
-
-    local procedure GetMatchLengthThreshold(): Decimal
-    begin
-        exit(2);
-    end;
-
-    local procedure RequiredNearness(): Decimal
-    begin
-        exit(0.9)
     end;
 
     procedure GenerateChunkedTablesListInYamlFormat(var TablesYamlList: List of [Text]; var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var NumberOfAddedTables: Integer)

@@ -50,7 +50,18 @@ page 9 Languages
             }
         }
     }
-
+    actions
+    {
+        area(Navigation)
+        {
+            action(ShowAllowedLanguagesNotification)
+            {
+                ApplicationArea = All;
+                Caption = 'Allowed Languages';
+                ToolTip = 'Shows the list of allowed languages for this environment.';
+                RunObject = Page "Allowed Languages";
+                Image = Language;
+            }
+        }
+    }
 }
-
-

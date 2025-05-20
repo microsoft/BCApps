@@ -94,38 +94,6 @@ codeunit 9062 "Storage Service Authorization"
         exit(StorServAuthImpl.CreateSAS(SigningKey, SignedVersion, SignedServices, SignedResources, SignedPermissions, SignedExpiry, OptionalSASParameters));
     end;
 
-#if not CLEAN24
-    /// <summary>
-    /// Creates a Shared Key authorization mechanism for HTTP requests to Azure Storage Services.
-    /// See: https://go.microsoft.com/fwlink/?linkid=2210396
-    /// </summary>
-    /// <param name="SharedKey">The shared key to use.</param>
-    /// <returns>A Shared Key authorization.</returns>
-    [NonDebuggable]
-    [Obsolete('Use CreateSharedKey with SecretText data type for SharedKey.', '24.0')]
-    procedure CreateSharedKey(SharedKey: Text): Interface "Storage Service Authorization"
-    var
-        StorServAuthImpl: Codeunit "Stor. Serv. Auth. Impl.";
-    begin
-        exit(StorServAuthImpl.SharedKey(SharedKey, GetDefaultAPIVersion()));
-    end;
-
-    /// <summary>
-    /// Creates a Shared Key authorization mechanism for HTTP requests to Azure Storage Services.
-    /// See: https://go.microsoft.com/fwlink/?linkid=2210396
-    /// </summary>
-    /// <param name="SharedKey">The shared key to use.</param>
-    /// <param name="ApiVersion">The API version to use.</param>
-    /// <returns>A Shared Key authorization.</returns>
-    [NonDebuggable]
-    [Obsolete('Use CreateSharedKey with SecretText data type for SharedKey.', '24.0')]
-    procedure CreateSharedKey(SharedKey: Text; ApiVersion: Enum "Storage Service API Version"): Interface "Storage Service Authorization"
-    var
-        StorServAuthImpl: Codeunit "Stor. Serv. Auth. Impl.";
-    begin
-        exit(StorServAuthImpl.SharedKey(SharedKey, ApiVersion));
-    end;
-#endif
 
     /// <summary>
     /// Creates a Shared Key authorization mechanism for HTTP requests to Azure Storage Services.

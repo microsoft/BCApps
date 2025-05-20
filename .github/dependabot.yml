@@ -5,8 +5,14 @@ version: 2
 updates:
 - package-ecosystem: github-actions
   directory: ".github/workflows/"
+  groups:
+    External-Dependencies:
+      applies-to: version-updates
+      dependency-type: "production"
   schedule:
     interval: weekly
   ignore:
     - dependency-name: "microsoft/AL-Go-Actions/*"
     - dependency-name: "microsoft/AL-Go/*"
+  labels:
+    - "Automation"

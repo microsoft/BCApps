@@ -193,4 +193,58 @@ codeunit 149037 "AIT AL Test Suite Mgt"
                 Error(NoTestOutputFoundErr);
         end;
     end;
+
+    /// <summary>
+    /// Import the Test Input Dataset from an InStream of a dataset in a supported format.
+    /// Overwrite the dataset if the dataset with same filename is already imported by the same app
+    /// Error if the dataset with the same filename is created by a different app
+    /// </summary>
+    /// <param name="DatasetFileName">The file name of the dataset file which will be used in the description of the dataset.</param>
+    /// <param name="DatasetInStream">The InStream of the dataset file.</param>
+    procedure ImportTestInputs(DatasetFileName: Text; var DatasetInStream: InStream)
+    var
+        TestInputGroup: Record "Test Input Group";
+        TestInputsManagement: Codeunit "Test Inputs Management";
+        CallerModuleInfo: ModuleInfo;
+        EmptyGuid: Guid;
+        SameDatasetNameErr: Label 'The test input dataset %1 with the same file name already exists. The dataset was uploaded %2. Please rename the current dataset or delete the existing dataset.', Comment = '%1 = test input dataset Name, %2 = "from the UI" or "by the app id: {app_id}';
+        SourceOfTheDatasetIsUILbl: Label 'from the UI';
+        SourceOfTheDatasetIsAppIdLbl: Label 'by the app id: %1', Comment = '%1 = app id';
+    begin
+        // Check if the dataset with the same filename exists
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        TestInputGroup.SetLoadFields(Code, "Imported by AppId");
+
+        if TestInputGroup.Get(TestInputsManagement.GetTestInputGroupCodeFromFileName(DatasetFileName)) then
+            if TestInputGroup."Imported by AppId" = CallerModuleInfo.Id then
+                TestInputGroup.Delete(true) // Overwrite the dataset
+            else
+                case TestInputGroup."Imported by AppId" of
+                    EmptyGuid:
+                        Error(SameDatasetNameErr, DatasetFileName, SourceOfTheDatasetIsUILbl)
+                    else
+                        Error(SameDatasetNameErr, DatasetFileName, StrSubstNo(SourceOfTheDatasetIsAppIdLbl, TestInputGroup."Imported by AppId"));
+                end;
+
+        TestInputsManagement.UploadAndImportDataInputs(DatasetFileName, DatasetInStream, CallerModuleInfo.Id);
+    end;
+
+    /// <summary>
+    /// Import the AI Test Suite using InStream of the XML file. Use this to import XML from resource files during installation of the test app.
+    /// Skip if the same suite is already imported by the same app
+    /// Error if the same suite is already imported with a different XML
+    /// Error if the same suite is already imported by a different app
+    /// </summary>
+    /// <param name="XMLSetupInStream">The InStream of the test suite XML file.</param>
+    procedure ImportAITestSuite(var XMLSetupInStream: InStream)
+    var
+        AITTestSuiteImportExport: XmlPort "AIT Test Suite Import/Export";
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        AITTestSuiteImportExport.SetCallerModuleInfo(CallerModuleInfo);
+        AITTestSuiteImportExport.SetMD5HashForTheImportedXML(XMLSetupInStream);
+        AITTestSuiteImportExport.SetSource(XMLSetupInStream);
+        AITTestSuiteImportExport.Import();
+    end;
 }

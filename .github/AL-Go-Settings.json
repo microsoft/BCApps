@@ -5,21 +5,36 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/26.0.24720.0/base",
+  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/27.0.34170.0/base",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "26.0",
-  "cleanModePreprocessorSymbols": [
-    "CLEAN17",
-    "CLEAN18",
-    "CLEAN19",
-    "CLEAN20",
-    "CLEAN21",
-    "CLEAN22",
-    "CLEAN23",
-    "CLEAN24",
-    "CLEAN25",
-    "CLEAN26"
+  "repoVersion": "27.0",
+  "conditionalSettings": [
+    {
+      "buildModes": [
+        "Clean"
+      ],
+      "settings": {
+        "preprocessorSymbols": [
+          "CLEAN23",
+          "CLEAN24",
+          "CLEAN25",
+          "CLEAN26",
+          "CLEAN27"
+        ]
+      }
+    },
+    {
+      "branches": [
+        "main",
+        "releases/*.x"
+      ],
+      "settings": {
+        "buildModes": [
+          "Clean"
+        ]
+      }
+    }
   ],
   "unusedALGoSystemFiles": [
     "AddExistingAppOrTestApp.yaml",
@@ -38,8 +53,7 @@
     "Official-Build"
   ],
   "buildModes": [
-    "Default",
-    "Clean"
+    "Default"
   ],
   "CICDPushBranches": [
     "main",
@@ -73,5 +87,12 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "becb26e1f895fb75145bbc10535afb19c09bff5c"
+  "templateSha": "4c6b438bbc8cf7ec04986fa81330427566e0e191",
+  "commitOptions": {
+    "messageSuffix": "Related to AB#539394",
+    "pullRequestAutoMerge": true,
+    "pullRequestLabels": [
+      "Automation"
+    ]
+  }
 }

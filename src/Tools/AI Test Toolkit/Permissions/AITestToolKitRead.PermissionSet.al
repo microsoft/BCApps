@@ -11,7 +11,8 @@ permissionset 149033 "AI Test Toolkit - Read"
 
     IncludedPermissionSets = "AI Test Toolkit - Obj";
 
-    Permissions = tabledata "AIT Test Suite" = R,
+    Permissions = tabledata "AIT Run History" = R,
+        tabledata "AIT Test Suite" = R,
         tabledata "AIT Test Method Line" = R,
         tabledata "AIT Log Entry" = R;
 }

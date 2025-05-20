@@ -14,6 +14,7 @@ using System.Privacy;
 using System.Reflection;
 using System.Integration;
 using System.Integration.Excel;
+using System.ExternalFileStorage;
 using System.Email;
 using System.Text;
 using System.Globalization;
@@ -42,6 +43,7 @@ permissionset 219 "System Application - Objects"
                              "Entity Text - Objects",
                              "Extension Management - Objects",
                              "Feature Key - Objects",
+                             "File Storage - Objects",
                              "Guided Experience - Objects",
                              "Language - Objects",
                              "Page Summary Provider - Obj.",

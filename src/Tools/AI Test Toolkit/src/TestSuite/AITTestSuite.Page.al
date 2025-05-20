@@ -37,6 +37,25 @@ page 149031 "AIT Test Suite"
                 {
                     ShowMandatory = true;
                     NotBlank = true;
+
+                    trigger OnValidate()
+                    var
+                        AITTestMethodLine: Record "AIT Test Method Line";
+                    begin
+                        if Rec."Input Dataset" = xRec."Input Dataset" then
+                            exit;
+
+                        AITTestMethodLine.SetRange("Test Suite Code", Rec.Code);
+
+                        if AITTestMethodLine.IsEmpty() then
+                            exit;
+
+                        if GuiAllowed() then
+                            if not Dialog.Confirm(InputDatasetChangedQst) then
+                                exit;
+
+                        AITTestMethodLine.ModifyAll("Input Dataset", Rec."Input Dataset", true);
+                    end;
                 }
                 field("Test Runner Id"; TestRunnerDisplayName)
                 {
@@ -108,6 +127,9 @@ page 149031 "AIT Test Suite"
                         AITLogEntry.DrillDownFailedAITLogEntries(Rec.Code, 0, Rec.Version);
                     end;
                 }
+                field(Accuracy; Rec.Accuracy)
+                {
+                }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
                     Visible = false;
@@ -156,6 +178,30 @@ page 149031 "AIT Test Suite"
                     CurrPage.Update(false);
                 end;
             }
+            action(StartBatch)
+            {
+                Enabled = Rec.Status <> Rec.Status::Running;
+                Caption = 'Start Batch';
+                Image = ExecuteBatch;
+                ToolTip = 'Starts running the AI Test Suite, the specified number of times.';
+
+                trigger OnAction()
+                var
+                    AITBatchRunDialog: Page "AIT Batch Run Dialog";
+                    Iterations: Integer;
+                begin
+                    CurrPage.Update(false);
+
+                    AITBatchRunDialog.LookupMode := true;
+                    if AITBatchRunDialog.RunModal() <> ACTION::LookupOK then
+                        exit;
+
+                    Iterations := AITBatchRunDialog.GetNumberOfIterations();
+                    AITTestSuiteMgt.StartAITSuite(Iterations, Rec);
+
+                    CurrPage.Update(false);
+                end;
+            }
             action(RefreshStatus)
             {
                 Caption = 'Refresh';
@@ -170,38 +216,30 @@ page 149031 "AIT Test Suite"
             }
             action(ResetStatus)
             {
-                Enabled = Rec.Status = Rec.Status::Running;
-                Caption = 'Reset Status';
-                ToolTip = 'Reset the status.';
-                Image = ResetStatus;
+                Visible = Rec.Status = Rec.Status::Running;
+                Caption = 'Cancel';
+                ToolTip = 'Cancels the run and marks the run as Cancelled.';
+                Image = Cancel;
 
                 trigger OnAction()
                 begin
-                    AITTestSuiteMgt.ResetStatus(Rec);
+                    AITTestSuiteMgt.CancelRun(Rec);
                 end;
             }
 
             action(Compare)
             {
-                Caption = 'Compare Versions';
-                Image = CompareCOA;
-                ToolTip = 'Compare results of the suite to a base version.';
+                Caption = 'View Runs';
+                Image = History;
+                ToolTip = 'View the run history of the suite.';
                 Scope = Repeater;
 
                 trigger OnAction()
                 var
-                    TemporaryAITTestSuiteRec: Record "AIT Test Suite" temporary;
-                    AITTestSuiteComparePage: Page "AIT Test Suite Compare";
+                    AITRunHistory: Page "AIT Run History";
                 begin
-                    TemporaryAITTestSuiteRec.Code := Rec.Code;
-                    TemporaryAITTestSuiteRec.Version := Rec.Version;
-                    TemporaryAITTestSuiteRec."Base Version" := Rec."Version" - 1;
-                    TemporaryAITTestSuiteRec.Insert();
-
-                    AITTestSuiteComparePage.SetBaseVersion(Rec."Version" - 1);
-                    AITTestSuiteComparePage.SetVersion(Rec.Version);
-                    AITTestSuiteComparePage.SetRecord(TemporaryAITTestSuiteRec);
-                    AITTestSuiteComparePage.Run();
+                    AITRunHistory.SetTestSuite(Rec.Code);
+                    AITRunHistory.Run();
                 end;
             }
             action(ExportAIT)
@@ -220,6 +258,21 @@ page 149031 "AIT Test Suite"
                         AITTestSuite.SetRecFilter();
                         AITTestSuiteMgt.ExportAITTestSuite(AITTestSuite);
                     end;
+                end;
+            }
+            action("Download Test Summary")
+            {
+                Caption = 'Download Test Summary';
+                Image = Export;
+                ToolTip = 'Downloads a summary of the test results.';
+
+                trigger OnAction()
+                var
+                    AITLogEntry: Record "AIT Log Entry";
+                    AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+                begin
+                    AITLogEntry.SetRange(Version, Rec.Version);
+                    AITTestSuiteMgt.DownloadTestSummary(AITLogEntry);
                 end;
             }
         }
@@ -245,7 +298,13 @@ page 149031 "AIT Test Suite"
         {
             group(Category_Process)
             {
+                actionref(ResetStatus_Promoted; ResetStatus)
+                {
+                }
                 actionref(Start_Promoted; Start)
+                {
+                }
+                actionref(StartBatch_Promoted; StartBatch)
                 {
                 }
                 actionref(LogEntries_Promoted; LogEntries)
@@ -271,6 +330,7 @@ page 149031 "AIT Test Suite"
         TotalDuration: Duration;
         PageCaptionLbl: Label 'AI Test';
         TestRunnerDisplayName: Text;
+        InputDatasetChangedQst: Label 'You have modified the input dataset.\\Do you want to update the lines?';
 
     trigger OnOpenPage()
     var

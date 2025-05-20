@@ -9,6 +9,7 @@ using System;
 
 codeunit 2359 "Http Authentication Basic" implements "Http Authentication"
 {
+    Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 
