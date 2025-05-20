@@ -8,7 +8,6 @@ namespace System.Test.Email;
 using System.Email;
 using System.TestLibraries.Email;
 using System.TestLibraries.Utilities;
-using System.Environment;
 using System.TestLibraries.Security.AccessControl;
 
 codeunit 134055 "Https Mock Email Test"
@@ -47,8 +46,10 @@ codeunit 134055 "Https Mock Email Test"
         EmailMessage: Codeunit "Email Message";
         Editor: TestPage "Email Editor";
     begin
+        // [Scenario] When user send the email from the editor with Microsoft 365 connector, the http request mocker returns a 202 to mock the success. All the records are updated correctly.
         BindSubscription(MockTest);
 
+        // [GIVEN] Set up the email account and Outlook account
         PermissionsMock.Set('Super');
         ConnectorMock.AddAccount(Account, Enum::"Email Connector"::"Microsoft 365");
         SetupOutlookAccount(OutlookAccount, Account);
@@ -58,8 +59,7 @@ codeunit 134055 "Https Mock Email Test"
         Editor.Trap();
         EmailMessage.Create('', '', '', false);
         Email.OpenInEditor(EmailMessage, Account);
-
-        Editor.ToField.SetValue('wenjiefan@microsoft.com');
+        Editor.ToField.SetValue('testtest@microsoft.com');
         Editor.SubjectField.SetValue('Test Subject');
         Editor.BodyField.SetValue('Test body');
 
@@ -85,24 +85,21 @@ codeunit 134055 "Https Mock Email Test"
         OutlookAccount: Record "Email - Outlook Account";
         OutlookApiSetup: Record "Email - Outlook API Setup";
         EmailOutbox: Record "Email Outbox";
-        ScheduleTasks: Record "Scheduled Task";
         SentEmail: Record "Sent Email";
         MockTest: Codeunit "Https Mock Email Test";
         EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
     begin
+        // [Scenario] When the email is sent from the background task with Microsoft 365 connector, the http request mocker returns a 202 to mock the success. All the records are updated correctly.
         BindSubscription(MockTest);
 
+        // [GIVEN] Set up the email account and Outlook account
         PermissionsMock.Set('Super');
         EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
         Assert.IsTrue(EmailMessage.Get(EmailMessage.GetId()), 'The email should exist');
         ConnectorMock.AddAccount(Account, Enum::"Email Connector"::"Microsoft 365");
         SetupOutlookAccount(OutlookAccount, Account);
         SetupOutlookApi(OutlookApiSetup);
-
-        // [When] Enqueuing the email message with the email account
-        ScheduleTasks.DeleteAll();
-        ClearLastError();
 
         EmailOutbox."Message Id" := EmailMessage.GetId();
         EmailOutbox.Insert();
@@ -113,9 +110,10 @@ codeunit 134055 "Https Mock Email Test"
         EmailOutbox."Send From" := Account."Email Address";
         EmailOutbox.Modify();
 
+        // [WHEN] The sending task is run from the background
         Codeunit.Run(Codeunit::"Email Dispatcher", EmailOutbox);
 
-        // [Then] No error occurs
+        // [THEN] No error occurs
         Assert.AreEqual('', GetLastErrorText(), 'There should be no errors when enqueuing an email.');
 
         // [THEN] The mail is sent and the info is correct
@@ -160,7 +158,6 @@ codeunit 134055 "Https Mock Email Test"
 
         exit(true); // fall through and issue the original request in case of other requests
     end;
-
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Email - OAuth Client", 'OnBeforeGetToken', '', false, false)]
     local procedure MockTokenRequest(var IsHandled: Boolean)
