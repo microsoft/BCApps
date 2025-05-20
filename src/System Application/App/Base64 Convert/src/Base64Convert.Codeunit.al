@@ -109,6 +109,59 @@ codeunit 4110 "Base64 Convert"
     end;
 
     /// <summary>
+    /// Converts the value of the input string to its equivalent string representation that is encoded with base64 URL-safe characters.
+    /// </summary>
+    /// <param name="String">The string to convert.</param>
+    /// <returns>The string representation, in base64url, of the input string.</returns>
+    procedure ToBase64Url(String: Text): Text
+    begin
+        exit(Base64ConvertImpl.ToBase64Url(String));
+    end;
+
+    /// <summary>
+    /// Converts the value of the input secret string to its equivalent secret string representation that is encoded with base64 URL-safe characters.
+    /// </summary>
+    /// <param name="SecretString">The secret string to convert.</param>
+    /// <returns>The secret string representation, in base64url, of the input secret string.</returns>
+    procedure ToBase64Url(SecretString: SecretText): SecretText
+    begin
+        exit(Base64ConvertImpl.ToBase64Url(SecretString));
+    end;
+
+    /// <summary>
+    /// Converts the value of the input string to its equivalent string representation that is encoded with base64 URL-safe characters.
+    /// </summary>
+    /// <param name="String">The string to convert.</param>
+    /// <param name="TextEncoding">The TextEncoding for the input string.</param>
+    /// <returns>The string representation, in base64url, of the input string.</returns>
+    procedure ToBase64Url(String: Text; TextEncoding: TextEncoding): Text
+    begin
+        exit(Base64ConvertImpl.ToBase64Url(String, TextEncoding));
+    end;
+
+    /// <summary>
+    /// Converts the value of the input string to its equivalent string representation that is encoded with base64 URL-safe characters.
+    /// </summary>
+    /// <param name="String">The string to convert.</param>
+    /// <param name="TextEncoding">The TextEncoding for the input string.</param>
+    /// <param name="Codepage">The Codepage if TextEncoding is MsDos or Windows.</param>
+    /// <returns>The string representation, in base64url, of the input string.</returns>
+    procedure ToBase64Url(String: Text; TextEncoding: TextEncoding; Codepage: Integer): Text
+    begin
+        exit(Base64ConvertImpl.ToBase64Url(String, TextEncoding, Codepage));
+    end;
+
+    /// <summary>
+    /// Converts the value of the input stream to its equivalent string representation that is encoded with base64 URL-safe characters.
+    /// </summary>
+    /// <param name="InStream">The stream to read the input from.</param>
+    /// <returns>The string representation, in base64url, of the input string.</returns>
+    procedure ToBase64Url(InStream: InStream): Text
+    begin
+        exit(Base64ConvertImpl.ToBase64Url(InStream));
+    end;
+
+    /// <summary>
     /// Converts the specified string, which encodes binary data as base-64 digits, to an equivalent regular string.
     /// </summary>
     /// <param name="Base64String">The string to convert.</param>
