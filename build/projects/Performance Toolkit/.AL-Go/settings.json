@@ -1,20 +1,23 @@
 {
-    "projectName": "Performance Toolkit",
-    "appFolders":  [
-        "../../../src/Tools/Performance Toolkit/App"
-    ],
-    "testFolders":  [
-        "../../../src/Tools/Performance Toolkit/Test"
-    ],
-    "installOnlyReferencedApps": false,
-    "ConditionalSettings": [
-        {
-            "branches": [
-                "releases/*.[0-5]"
-            ],
-            "settings": {
-                "buildModes": [ "Strict" ]
-            }
-        }
-    ]
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/f95036a256cddc946513cffa84824712b9d44c95/Actions/settings.schema.json",
+  "projectName": "Performance Toolkit",
+  "appFolders": [
+    "../../../src/Tools/Performance Toolkit/App"
+  ],
+  "testFolders": [
+    "../../../src/Tools/Performance Toolkit/Test"
+  ],
+  "installOnlyReferencedApps": false,
+  "ConditionalSettings": [
+    {
+      "branches": [
+        "releases/*.[0-5]"
+      ],
+      "settings": {
+        "buildModes": [
+          "Strict"
+        ]
+      }
+    }
+  ]
 }
