@@ -16,6 +16,9 @@ permissionset 130452 "Test Runner - Obj."
         table "Test Method Line" = X,
         table "Test Code Coverage Result" = X,
         table "AL Code Coverage Map" = X,
+        table "Test Input" = X,
+        table "Test Input Group" = X,
+        table "Test Output" = X,
         codeunit "ALTestRunner Reset Environment" = X,
         codeunit "Test Profile Management" = X,
         codeunit "Test Runner - Get Methods" = X,
@@ -26,6 +29,11 @@ permissionset 130452 "Test Runner - Obj."
         codeunit "Test Suite Mgt." = X,
         codeunit "AL Code Coverage Mgt." = X,
         codeunit "AL Code Coverage Subscribers" = X,
+        codeunit "Test Input" = X,
+        codeunit "Test Input Json" = X,
+        codeunit "Test Inputs Management" = X,
+        codeunit "Test Output" = X,
+        codeunit "Test Output Json" = X,
         xmlport "AL Code Coverage Map" = X,
         xmlport "Code Coverage Detailed" = X,
         xmlport "Code Coverage Results" = X,
@@ -36,5 +44,9 @@ permissionset 130452 "Test Runner - Obj."
         page "Select TestRunner" = X,
         page "Select Tests By Range" = X,
         page "Select Tests" = X,
-        page "Test Role Center" = X;
+        page "Test Role Center" = X,
+        page "Test Input" = X,
+        page "Test Input Groups" = X,
+        page "Test Input Part" = X,
+        page "Test Outputs" = X;
 }

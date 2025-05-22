@@ -47,14 +47,25 @@ codeunit 8708 "Telemetry Loggers"
     begin
     end;
 
-    internal procedure GetTelemetryLogger(var TelemetryLogger: Interface "Telemetry Logger"): Boolean
+    /// <summary>
+    /// Get the telemetry logger from publisher. If there are multiple telemetry loggers registered for the current publisher, a warning is logged.
+    /// </summary>
+    internal procedure GetTelemetryLogger(Publisher: Text; var TelemetryLogger: Interface "Telemetry Logger"): Boolean
     begin
-        exit(TelemetryLoggersImpl.GetTelemetryLogger(TelemetryLogger));
+        exit(TelemetryLoggersImpl.GetTelemetryLogger(Publisher, TelemetryLogger));
     end;
 
-    internal procedure SetCurrentPublisher(Publisher: Text)
+    /// <summary>
+    /// Gets the relevant telemetry loggers based on the CallerCallStack, doesn't include the ExcludePublisher's logger.
+    /// </summary>
+    internal procedure GetRelevantTelemetryLoggers(ExcludePublisher: Text): List of [Interface "Telemetry Logger"]
     begin
-        TelemetryLoggersImpl.SetCurrentPublisher(Publisher);
+        exit(TelemetryLoggersImpl.GetRelevantTelemetryLoggers(ExcludePublisher));
+    end;
+
+    internal procedure SetCallStackPublishers(Publishers: List of [Text])
+    begin
+        TelemetryLoggersImpl.SetCallStackPublishers(Publishers);
     end;
 
     internal procedure Register(TelemetryLogger: Interface "Telemetry Logger"; Publisher: Text)

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -41,9 +41,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                        NoSeries: Codeunit "No. Series";
                     begin
-                        NoSeriesSetupImpl.DrillDown(Rec);
+                        NoSeries.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -56,9 +56,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                        NoSeries: Codeunit "No. Series";
                     begin
-                        NoSeriesSetupImpl.DrillDown(Rec);
+                        NoSeries.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -71,9 +71,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                        NoSeries: Codeunit "No. Series";
                     begin
-                        NoSeriesSetupImpl.DrillDown(Rec);
+                        NoSeries.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -85,9 +85,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                        NoSeries: Codeunit "No. Series";
                     begin
-                        NoSeriesSetupImpl.DrillDown(Rec);
+                        NoSeries.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -100,9 +100,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                        NoSeries: Codeunit "No. Series";
                     begin
-                        NoSeriesSetupImpl.DrillDown(Rec);
+                        NoSeries.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -115,9 +115,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                        NoSeries: Codeunit "No. Series";
                     begin
-                        NoSeriesSetupImpl.DrillDown(Rec);
+                        NoSeries.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -130,9 +130,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                        NoSeries: Codeunit "No. Series";
                     begin
-                        NoSeriesSetupImpl.DrillDown(Rec);
+                        NoSeries.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -155,20 +155,7 @@ page 456 "No. Series"
                 {
                     Caption = 'Allow Gaps in Nos.';
                     ToolTip = 'Specifies that a number assigned from the number series can later be deleted. This is practical for records, such as item cards and warehouse documents that, unlike financial transactions, can be deleted and cause gaps in the number sequence. This setting also means that new numbers will be generated and assigned in a faster, non-blocking way. NOTE: If an error occurs on a new record that will be assigned a number from such a number series when it is completed, the number in question will be lost, causing a gap in the sequence.';
-#if CLEAN24
                     Editable = false;
-#else
-#pragma warning disable AL0432
-                    trigger OnValidate()
-                    var
-                        NoSeriesManagement: Codeunit NoSeriesManagement;
-                    begin
-                        Rec.TestField(Code);
-                        NoSeriesManagement.SetAllowGaps(Rec, AllowGaps);
-                        UpdateLineActionOnPage();
-                    end;
-#pragma warning restore AL0432
-#endif
                 }
                 field(Implementation; Implementation)
                 {
@@ -300,22 +287,6 @@ page 456 "No. Series"
         }
         area(Promoted)
         {
-#if not CLEAN24
-            group(Category_Report)
-            {
-                Caption = 'Report', Comment = 'Generated from the PromotedActionCategories property index 2.';
-                ObsoleteReason = 'This promoted group is no longer used, please create a group manually.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '24.0';
-            }
-            group(Category_Category4)
-            {
-                Caption = 'Navigate', Comment = 'Generated from the PromotedActionCategories property index 3.';
-                ObsoleteReason = 'This promoted group is no longer used, please create a group manually.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '24.0';
-            }
-#endif
             actionref(Lines_Promoted; Lines)
             {
             }

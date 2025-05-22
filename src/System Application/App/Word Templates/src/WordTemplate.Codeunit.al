@@ -297,16 +297,16 @@ codeunit 9987 "Word Template"
     end;
 
     /// <summary>
-    /// Add unrelated table.
+    /// Adds an unrelated table entry for the specified <paramref name="WordTemplateCode"/>.
     /// </summary>
     /// <param name="WordTemplateCode">The code of an existing parent Word template.</param>
     /// <param name="PrefixCode">The code of the unrelated table to add.</param>
     /// <param name="UnrelatedTableId">The ID of the unrelated table to add.</param>
     /// <param name="RecordSystemId">The system id of the record to add.</param>
-    /// <returns>True if the unrelated table was added, false otherwise.</returns>
+    /// <returns>True if the unrelated table was added; otherwise, false.</returns>
     procedure AddUnrelatedTable(WordTemplateCode: Code[30]; PrefixCode: Code[5]; UnrelatedTableId: Integer; RecordSystemId: Guid): Boolean
     begin
-        WordTemplateImpl.AddUnrelatedTable(WordTemplateCode, PrefixCode, UnrelatedTableId, RecordSystemId);
+        exit(WordTemplateImpl.AddUnrelatedTable(WordTemplateCode, PrefixCode, UnrelatedTableId, RecordSystemId));
     end;
 
     /// <summary>
@@ -361,19 +361,6 @@ codeunit 9987 "Word Template"
         exit(WordTemplateFieldSelection.IsFieldSupported(Field));
     end;
 
-#if not CLEAN22
-    /// <summary>
-    /// Remove a related or unrelated table.
-    /// </summary>
-    /// <param name="WordTemplateCode">The code of the parent Word template.</param>
-    /// <param name="RelatedTableID">The ID of the related table to remove. This table must not have tables depending on it, otherwise an error will be thrown.</param>
-    /// <returns>True if the table was removed, false otherwise.</returns>
-    [Obsolete('Replaced by RemoveTable below', '22.0')]
-    procedure RemoveRelatedTable(WordTemplateCode: Code[30]; TableId: Integer): Boolean
-    begin
-        WordTemplateImpl.RemoveTable(WordTemplateCode, TableId);
-    end;
-#endif
 
     /// <summary>
     /// Remove a related or unrelated table.

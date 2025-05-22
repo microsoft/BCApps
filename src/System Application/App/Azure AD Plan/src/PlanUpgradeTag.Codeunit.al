@@ -28,6 +28,7 @@ codeunit 9058 "Plan Upgrade Tag"
         PerDatabaseUpgradeTags.Add(GetEssentialAttachUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetMD365AdminUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetBCAdminUpgradeTag());
+        PerDatabaseUpgradeTags.Add(GetDelegatedD365AdminUpgradeTag());
     end;
 
     /// <summary>
@@ -100,6 +101,15 @@ codeunit 9058 "Plan Upgrade Tag"
     internal procedure GetMD365AdminUpgradeTag(): Code[250]
     begin
         exit('MS-465490-AddD365Admin-20230103');
+    end;
+
+    /// <summary>
+    /// Returns the Delegated Dynamics 365 Administrator upgrade tag.
+    /// </summary>
+    /// <returns>The Dynamics 365 Administrator upgrade tag.</returns>
+    internal procedure GetDelegatedD365AdminUpgradeTag(): Code[250]
+    begin
+        exit('MS-548582-AddDelegatedD365Admin-20240912');
     end;
 
     /// <summary>

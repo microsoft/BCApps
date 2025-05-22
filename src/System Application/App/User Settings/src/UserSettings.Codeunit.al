@@ -28,7 +28,7 @@ codeunit 9176 "User Settings"
     /// Gets the settings for the given user.
     /// </summary>
     /// <param name="UserSecurityID">The user security id of the user.</param>
-    /// <param name="UserSettings">The return Record with the settings od the User.</param>
+    /// <param name="UserSettings">The return Record with the settings of the User.</param>
     procedure GetUserSettings(UserSecurityID: Guid; var UserSettings: Record "User Settings")
     var
         UserSettingsImpl: Codeunit "User Settings Impl.";
@@ -89,6 +89,47 @@ codeunit 9176 "User Settings"
         UserSettingsImpl: Codeunit "User Settings Impl.";
     begin
         UserSettingsImpl.GetAllowedCompaniesForCurrentUser(TempCompany);
+    end;
+
+    /// <summary>
+    /// Allows the user to select the new profile for given User Settings
+    /// </summary>
+    /// <param name="UserSettingsRec">User settings to update with the new profile</param>
+    procedure LookupProfile(var UserSettingsRec: Record "User Settings")
+    var
+        UserSettingsImpl: Codeunit "User Settings Impl.";
+    begin
+        UserSettingsImpl.ProfileLookup(UserSettingsRec);
+    end;
+
+    /// <summary>
+    /// Gets a profile name for the given user settings.
+    /// </summary>
+    /// <param name="UserSettingsRec">User settings to get the profile name.</param>
+    /// <returns></returns>
+    procedure GetProfileName(UserSettingsRec: Record "User Settings"): Text
+    var
+        UserSettingsImpl: Codeunit "User Settings Impl.";
+    begin
+        UserSettingsImpl.GetProfileName(UserSettingsRec.Scope, UserSettingsRec."App ID", UserSettingsRec."Profile ID");
+    end;
+
+    /// <summary>
+    /// Updates the user settings for given user
+    /// </summary>
+    /// <param name="NewUserSettings">New User settings that should be set to the user.</param>
+#if not CLEAN27
+#pragma warning disable AS0078
+    // Parameter name changed from UserSettings to NewUserSettings. var was removed because UpdateUserSettings did not have the var in the signature. NewUserSettings record is not changed in the method.
+#endif
+    procedure UpdateUserSettings(NewUserSettings: Record "User Settings")
+#if not CLEAN27    
+#pragma warning restore AS0078
+#endif    
+    var
+        UserSettingsImpl: Codeunit "User Settings Impl.";
+    begin
+        UserSettingsImpl.UpdateUserSettings(NewUserSettings);
     end;
 
     /// <summary>

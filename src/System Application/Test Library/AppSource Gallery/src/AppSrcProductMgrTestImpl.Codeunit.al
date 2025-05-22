@@ -46,11 +46,6 @@ codeunit 132935 "AppSrc Product Mgr. Test Impl."
         exit(AppSourceProductManager.ExtractAppIDFromUniqueProductID(UniqueProductIDValue))
     end;
 
-    procedure CanInstallProductWithPlans(Plans: JsonArray): Boolean
-    begin
-        exit(AppSourceProductManager.CanInstallProductWithPlans(Plans));
-    end;
-
     #region Record handling functions
 
     /// <summary>

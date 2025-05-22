@@ -205,7 +205,7 @@ function Update-AppSourceCopVersion
 
     # All major versions greater than current but less or equal to main should be allowed
     $currentBuildVersion = [int] $buildVersion.Split('.')[0]
-    $maxAllowedObsoleteVersion = [int] (GetMaxAllowedObsoleteVersion)
+    $maxAllowedObsoleteVersion = [int] (Get-MaxAllowedObsoleteVersion)
     $obsoleteTagAllowedVersions = @()
 
     # Add 3 versions for tasks built with CLEANpreProcessorSymbols
@@ -257,9 +257,11 @@ function Test-IsStrictModeEnabled
     return $false
 }
 
-function GetMaxAllowedObsoleteVersion() {
-    git fetch origin main
-    $alGoSettings = $(git show origin/main:.github/AL-Go-Settings.json) | ConvertFrom-Json
+function Get-MaxAllowedObsoleteVersion() {
+    Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
+
+    Invoke-CommandWithRetry -ScriptBlock { RunAndCheck git fetch origin main }
+    $alGoSettings = $(RunAndCheck git show origin/main:.github/AL-Go-Settings.json) | ConvertFrom-Json
     if (-not $alGoSettings.repoVersion) {
         throw "Unable to find repoVersion in AL-Go-Settings.json"
     }

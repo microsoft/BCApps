@@ -125,6 +125,7 @@ page 2011 "Entity Text Factbox Part"
     procedure SetContext(SourceTableId: Integer; SourceSystemId: Guid; SourceScenario: Enum "Entity Text Scenario"; PlaceholderText: Text)
     var
         EntityTextRec: Record "Entity Text";
+        EntityTextImpl: Codeunit "Entity Text Impl.";
     begin
         HasContext := false;
 
@@ -167,7 +168,7 @@ page 2011 "Entity Text Factbox Part"
 
         CurrPage.Update(false);
 
-        Session.LogMessage('0000JVC', StrSubstNo(TelemetrySetContextTxt, Format(SourceTableId), Format(SourceScenario), Format(CallerModuleInfo.Id()), CallerModuleInfo.Publisher()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+        Session.LogMessage('0000JVC', StrSubstNo(TelemetrySetContextTxt, Format(SourceTableId), Format(SourceScenario), Format(CallerModuleInfo.Id()), CallerModuleInfo.Publisher()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EntityTextImpl.GetFeatureName());
     end;
 
     local procedure OpenEditPage(SourceAction: Enum "Entity Text Actions")
@@ -192,11 +193,11 @@ page 2011 "Entity Text Factbox Part"
         EntityTextCod.OnEditEntityTextWithTriggerAction(TempEntityText, EditAction, Handled, SourceAction);
 
         if not Handled then begin
-            Session.LogMessage('0000LJ4', StrSubstNo(TelemetryNoEditPageTxt, Format(CurrentTableId), Format(CurrentScenario)), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+            Session.LogMessage('0000LJ4', StrSubstNo(TelemetryNoEditPageTxt, Format(CurrentTableId), Format(CurrentScenario)), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EntityTextImpl.GetFeatureName());
             Error(NoHandlerErr);
         end;
 
-        Session.LogMessage('0000JVB', StrSubstNo(TelemetryEditHandledTxt, Format(Handled), Format(EditAction)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+        Session.LogMessage('0000JVB', StrSubstNo(TelemetryEditHandledTxt, Format(Handled), Format(EditAction)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EntityTextImpl.GetFeatureName());
 
         if EditAction in [Action::LookupOK, Action::OK] then begin
             EntityTextImpl.InsertSuggestion(CurrentTableId, CurrentSystemId, CurrentScenario, EntityTextImpl.GetText(TempEntityText));
@@ -239,7 +240,6 @@ page 2011 "Entity Text Factbox Part"
         NotEnabledPlaceholderTxt: Label 'Select Edit to add text', Comment = 'Edit refers to an action on this part with the same name';
         DefaultPlaceholderTxt: Label '[Create text](). Then review and edit based on your needs.', Comment = 'Text contained in [here]() will be clickable to invoke the suggest action';
         ContextNotSetErr: Label 'The context has not been set on the part. Ensure SetContext has been called from the parent page, contact your partner to fix this.';
-        TelemetryCategoryLbl: Label 'Entity Text', Locked = true;
         NoHandlerErr: Label 'There was no handler to provide an edit page for this entity. Contact your partner.';
         TelemetryNoEditPageTxt: Label 'No custom page was specified for edit by partner: table %1, scenario %2.', Locked = true;
         TelemetryEditHandledTxt: Label 'Edit result was handled: %1, with action %2.', Locked = true;

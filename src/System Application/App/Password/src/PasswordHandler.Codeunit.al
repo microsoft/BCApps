@@ -17,52 +17,6 @@ codeunit 1284 "Password Handler"
     var
         PasswordHandlerImpl: Codeunit "Password Handler Impl.";
 
-#if not CLEAN24
-    /// <summary>
-    /// Generates a password that consists of a number of characters defined by the <see cref="GetPasswordMinLength"/> method,
-    /// and meets the <see cref="IsPasswordStrong"/> conditions.
-    /// </summary>
-    /// <error>The length is less than the minimum defined in <see cref="OnSetMinPasswordLength"/> event.</error>
-    /// <returns>The generated password.</returns>
-    [Obsolete('Replaced by GenerateSecretPassword with SecretText data type.', '24.0')]
-    [NonDebuggable]
-    procedure GeneratePassword(): Text;
-    begin
-#pragma warning disable AL0432
-        exit(PasswordHandlerImpl.GeneratePassword());
-#pragma warning restore AL0432
-    end;
-
-    /// <summary>
-    /// Generates a password that consists of a user-defined number of characters, and meets the <see cref="IsPasswordStrong"/> conditions.
-    /// </summary>
-    /// <param name="Length">The number of characters in the password. Passwords must contain at least eight characters.</param>
-    /// <error>The length is less than the minimum defined in <see cref="OnSetMinPasswordLength"/> event.</error>
-    /// <returns>The generated password.</returns>
-    [Obsolete('Replaced by GenerateSecretPassword with SecretText data type.', '24.0')]
-    [NonDebuggable]
-    procedure GeneratePassword(Length: Integer): Text;
-    begin
-#pragma warning disable AL0432
-        exit(PasswordHandlerImpl.GeneratePassword(Length));
-#pragma warning restore AL0432
-    end;
-
-    /// <summary>
-    /// Check whether the password meets the following conditions:
-    /// - Contains at least the number characters defined by <see cref="OnSetMinPasswordLength"/> event, but it cannot be less than eight.
-    /// - Contains uppercase and lowercase characters, digits, and special characters.
-    /// - Does not contain sequences of characters. For example, aaa or 123.
-    /// </summary>
-    /// <param name="Password">The password to check.</param>
-    /// <returns>True if the password meets the conditions for strong passwords.</returns>
-    [Obsolete('Replaced by IsPasswordStrong with SecretText data type.', '24.0')]
-    [NonDebuggable]
-    procedure IsPasswordStrong(Password: Text): Boolean;
-    begin
-        exit(PasswordHandlerImpl.IsPasswordStrong(Password));
-    end;
-#endif
     /// <summary>
     /// Generates a password that consists of a number of characters defined by the <see cref="GetPasswordMinLength"/> method,
     /// and meets the <see cref="IsPasswordStrong"/> conditions.
@@ -107,4 +61,3 @@ codeunit 1284 "Password Handler"
         exit(PasswordHandlerImpl.GetPasswordMinLength());
     end;
 }
-

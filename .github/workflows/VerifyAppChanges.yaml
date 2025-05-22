@@ -1,0 +1,24 @@
+name: 'Verify App Changes'
+
+on:
+  pull_request:
+    branches: [ 'main', 'releases/*']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  VerifyAppChanges:
+    runs-on: windows-latest
+    name: Verify App Changes
+    steps:
+      - name: checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+
+      - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main

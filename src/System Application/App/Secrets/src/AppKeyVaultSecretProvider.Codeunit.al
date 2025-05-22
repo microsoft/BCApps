@@ -8,13 +8,7 @@ namespace System.Security;
 /// <summary>
 /// Exposes functionality to retrieve app secrets from the key vault that is specified in the app's manifest file.
 /// </summary>
-#if not CLEAN24
-#pragma warning disable AL0432
-codeunit 3800 "App Key Vault Secret Provider" implements "Secret Provider", "Secret Provider v2"
-#pragma warning restore AL0432
-#else
 codeunit 3800 "App Key Vault Secret Provider" implements "Secret Provider v2"
-#endif
 {
     Access = Public;
     InherentEntitlements = X;

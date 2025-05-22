@@ -39,5 +39,4 @@ table 2718 "Page Summary Settings"
         {
         }
     }
-
 }

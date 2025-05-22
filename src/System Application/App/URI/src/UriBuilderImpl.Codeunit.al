@@ -84,6 +84,11 @@ codeunit 3062 "Uri Builder Impl."
     end;
 
     procedure AddQueryFlag(Flag: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour")
+    begin
+        AddQueryFlag(Flag, DuplicateAction, false);
+    end;
+
+    procedure AddQueryFlag(Flag: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour"; ShouldRemove: Boolean)
     var
         KeysWithValueList: Dictionary of [Text, List of [Text]];
         Flags: List of [Text];
@@ -94,7 +99,7 @@ codeunit 3062 "Uri Builder Impl."
 
         QueryString := GetQuery();
         ParseParametersAndFlags(QueryString, KeysWithValueList, Flags);
-        ProcessNewFlag(Flags, Flag, DuplicateAction);
+        ProcessNewFlag(Flags, Flag, DuplicateAction, ShouldRemove);
         QueryString := CreateNewQueryString(KeysWithValueList, Flags, false);
 
         SetQuery(QueryString);
@@ -102,15 +107,20 @@ codeunit 3062 "Uri Builder Impl."
 
     procedure AddQueryParameter(ParameterKey: Text; ParameterValue: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour")
     begin
-        AddQueryParameterInternal(ParameterKey, ParameterValue, DuplicateAction, false);
+        AddQueryParameterInternal(ParameterKey, ParameterValue, DuplicateAction, false, false);
     end;
 
     procedure AddODataQueryParameter(ParameterKey: Text; ParameterValue: Text)
     begin
-        AddQueryParameterInternal(ParameterKey, ParameterValue, Enum::"Uri Query Duplicate Behaviour"::"Overwrite All Matching", true);
+        AddQueryParameterInternal(ParameterKey, ParameterValue, Enum::"Uri Query Duplicate Behaviour"::"Overwrite All Matching", true, false);
     end;
 
-    local procedure AddQueryParameterInternal(ParameterKey: Text; ParameterValue: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour"; UseODataEncoding: Boolean)
+    procedure RemoveQueryParameter(ParameterKey: Text; ParameterValue: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour")
+    begin
+        AddQueryParameterInternal(ParameterKey, ParameterValue, DuplicateAction, false, true);
+    end;
+
+    local procedure AddQueryParameterInternal(ParameterKey: Text; ParameterValue: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour"; UseODataEncoding: Boolean; ShouldRemove: Boolean)
     var
         KeysWithValueList: Dictionary of [Text, List of [Text]];
         Flags: List of [Text];
@@ -121,7 +131,7 @@ codeunit 3062 "Uri Builder Impl."
 
         QueryString := GetQuery();
         ParseParametersAndFlags(QueryString, KeysWithValueList, Flags);
-        ProcessNewParameter(KeysWithValueList, ParameterKey, ParameterValue, DuplicateAction);
+        ProcessNewParameter(KeysWithValueList, ParameterKey, ParameterValue, DuplicateAction, ShouldRemove);
         QueryString := CreateNewQueryString(KeysWithValueList, Flags, UseODataEncoding);
 
         SetQuery(QueryString);
@@ -157,48 +167,75 @@ codeunit 3062 "Uri Builder Impl."
             end;
     end;
 
-    local procedure ProcessNewParameter(var KeysWithValueList: Dictionary of [Text, List of [Text]]; QueryKey: Text; QueryValue: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour")
+    local procedure ProcessNewParameter(var KeysWithValueList: Dictionary of [Text, List of [Text]]; QueryKey: Text; QueryValue: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour"; ShouldRemove: Boolean)
     var
         Values: List of [Text];
     begin
         if not KeysWithValueList.ContainsKey(QueryKey) then begin
+            if ShouldRemove then begin
+                if DuplicateAction = DuplicateAction::"Throw Error" then
+                    Error(ParameterNotFoundErr);
+                exit;
+            end;
             Values.Add(QueryValue);
             KeysWithValueList.Add(QueryKey, Values);
             exit;
         end;
 
         KeysWithValueList.Get(QueryKey, Values);
+
+        if ShouldRemove then
+            if Values.Contains(QueryValue) then begin
+                Values.Remove(QueryValue); // Remove first-occurrence from List
+                KeysWithValueList.Set(QueryKey, Values);
+            end;
+
         case DuplicateAction of
             DuplicateAction::"Overwrite All Matching":
                 begin
                     Clear(Values);
-                    Values.Add(QueryValue);
-                    KeysWithValueList.Remove(QueryKey);
-                    KeysWithValueList.Add(QueryKey, Values);
+                    if not ShouldRemove then
+                        Values.Add(QueryValue);
+                    KeysWithValueList.Set(QueryKey, Values);
                 end;
             DuplicateAction::Skip:
                 ; // Do nothing
             DuplicateAction::"Keep All":
-                Values.Add(QueryValue);
+                begin
+                    if not ShouldRemove then
+                        Values.Add(QueryValue)
+                    else
+                        if Values.Contains(QueryValue) then
+                            Values.Remove(QueryValue);
+                    KeysWithValueList.Set(QueryKey, Values);
+                end;
             DuplicateAction::"Throw Error":
-                Error(DuplicateParameterErr);
+                if not ShouldRemove then
+                    Error(DuplicateParameterErr);
             else // In case the duplicate action is invalid, it's safer to error out than to have a malformed URL
                 Error(DuplicateParameterErr);
         end;
     end;
 
-    local procedure ProcessNewFlag(var Flags: List of [Text]; Flag: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour")
+    local procedure ProcessNewFlag(var Flags: List of [Text]; Flag: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour"; ShouldRemove: Boolean)
     var
         FlagsSizeBeforeRemove: Integer;
     begin
         if not Flags.Contains(Flag) then begin
-            Flags.Add(Flag);
+            if not ShouldRemove then
+                Flags.Add(Flag)
+            else
+                if DuplicateAction = DuplicateAction::"Throw Error" then
+                    Error(FlagNotFoundErr);
             exit;
         end;
 
+        if ShouldRemove then
+            Flags.Remove(Flag); // Remove first occurence from List
+
         case DuplicateAction of
             DuplicateAction::Skip:
-                ;
+                ; // Do nothing
             DuplicateAction::"Overwrite All Matching":
                 begin
                     // If multiple matching flags exist, we need to keep only one
@@ -208,15 +245,55 @@ codeunit 3062 "Uri Builder Impl."
                             if Flags.Remove(Flag) then;
                     until Flags.Count >= FlagsSizeBeforeRemove;
 
-                    Flags.Add(Flag);
+                    if not ShouldRemove then
+                        Flags.Add(Flag);
                 end;
             DuplicateAction::"Keep All":
-                Flags.Add(Flag);
+                if not ShouldRemove then
+                    Flags.Add(Flag);
             DuplicateAction::"Throw Error":
-                Error(DuplicateFlagErr);
+                if not ShouldRemove then
+                    Error(DuplicateFlagErr);
             else // In case the duplicate action is invalid, it's safer to error out than to have a malformed URL
                 Error(DuplicateFlagErr);
         end;
+    end;
+
+    procedure RemoveQueryParameters()
+    begin
+        SetQuery('');
+    end;
+
+    procedure GetQueryFlags(): List of [Text]
+    var
+        KeysWithValueList: Dictionary of [Text, List of [Text]];
+        Flags: List of [Text];
+        QueryString: Text;
+    begin
+        QueryString := GetQuery();
+        ParseParametersAndFlags(QueryString, KeysWithValueList, Flags);
+        exit(Flags);
+    end;
+
+    procedure GetQueryParameters(): Dictionary of [Text, List of [Text]]
+    var
+        KeysWithValueList: Dictionary of [Text, List of [Text]];
+        Flags: List of [Text];
+        QueryString: Text;
+    begin
+        QueryString := GetQuery();
+        ParseParametersAndFlags(QueryString, KeysWithValueList, Flags);
+        exit(KeysWithValueList);
+    end;
+
+    procedure GetQueryParameter(ParameterKey: Text): List of [Text]
+    var
+        KeysWithValueList: Dictionary of [Text, List of [Text]];
+    begin
+        KeysWithValueList := GetQueryParameters();
+        if not KeysWithValueList.ContainsKey(ParameterKey) then
+            exit;
+        exit(KeysWithValueList.Get(ParameterKey));
     end;
 
     local procedure CreateNewQueryString(KeysWithValueList: Dictionary of [Text, List of [Text]]; Flags: List of [Text]; UseODataEncoding: Boolean) FinalQuery: Text
@@ -261,5 +338,7 @@ codeunit 3062 "Uri Builder Impl."
         QueryParameterKeyCannotBeEmptyErr: Label 'The query parameter key cannot be empty.';
         DuplicateFlagErr: Label 'The provided query flag is already present in the URI.';
         DuplicateParameterErr: Label 'The provided query parameter is already present in the URI.';
+        FlagNotFoundErr: Label 'The provided query flag is not present in the URI.';
+        ParameterNotFoundErr: Label 'The provided query parameter is not present in the URI.';
         UriBuilder: DotNet UriBuilder;
 }

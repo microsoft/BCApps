@@ -11,5 +11,9 @@ permissionset 1921 "Performance Profiler - Objects"
     Assignable = false;
 
     Permissions = codeunit "Sampling Performance Profiler" = X,
-                  page "Performance Profiler" = X;
+                  codeunit "Scheduled Perf. Profiler" = X,
+                  page "Performance Profiler" = X,
+                  page "Perf. Profiler Schedules List" = X,
+                  page "Perf. Profiler Schedule Card" = X,
+                  page "Performance Profile List" = X;
 }

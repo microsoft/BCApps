@@ -168,12 +168,11 @@ page 24 "Performance Profiler"
 
                 trigger OnAction()
                 var
-                    ToFile: Text;
+                    SampPerfProfilerImpl: Codeunit "Sampling Perf. Profiler Impl.";
+                    FileName: Text;
                 begin
-                    if not Confirm(PrivacyNoticeMsg) then
-                        exit;
-                    ToFile := StrSubstNo(ProfileFileNameTxt, SessionId()) + ProfileFileExtensionTxt;
-                    DownloadFromStream(SamplingPerformanceProfiler.GetData(), '', '', '', ToFile);
+                    FileName := StrSubstNo(ProfileFileNameTxt, SessionId()) + ProfileFileExtensionTxt;
+                    SampPerfProfilerImpl.DownloadData(FileName, SamplingPerformanceProfiler.GetData());
                 end;
             }
             action(ShareToOneDrive)
@@ -211,8 +210,7 @@ page 24 "Performance Profiler"
                         exit;
 
                     FeatureTelemetry.LogUptake('0000GMO', PerformanceProfilingFeatureTxt, Enum::"Feature Uptake Status"::"Set up");
-                    SamplingPerformanceProfiler.SetData(FileContentInStream);
-                    UpdateData();
+                    this.SetData(FileContentInStream);
                 end;
             }
             action(Settings)
@@ -284,6 +282,12 @@ page 24 "Performance Profiler"
         UpdateControlProperties();
     end;
 
+    procedure SetData(Data: InStream)
+    begin
+        SamplingPerformanceProfiler.SetData(Data);
+        UpdateData();
+    end;
+
     local procedure UpdateSubPages()
     begin
         CurrPage."Profiling Self Time Chart".Page.UpdateData();
@@ -352,6 +356,5 @@ page 24 "Performance Profiler"
         ProfileFileNameTxt: Label 'PerformanceProfile_Session%1', Locked = true;
         ProfileFileExtensionTxt: Label '.alcpuprofile', Locked = true;
         PerformanceProfilingFeatureTxt: Label 'Performance Profiling', Locked = true;
-        PrivacyNoticeMsg: Label 'The file might contain sensitive data, so be sure to handle it securely and according to privacy requirements. Do you want to continue?';
         SamplingIntervalChoiceTxt: Label 'Choose the sampling interval of the performance profiler. Smaller intervals will result in more precise timings, but it might result in higher load of the system.';
 }

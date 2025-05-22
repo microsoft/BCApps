@@ -127,6 +127,19 @@ codeunit 3902 "Retention Policy Setup"
         exit(RetentionPolicySetupImpl.FindOrCreateRetentionPeriod(RetentionPeriodEnum, RetPeriodCalc))
     end;
 
+    /// <summary>
+    /// Finds or creates a new retention period record for the provided retention period.
+    /// </summary>
+    /// <param name="RetentionPeriodEnum">Specifies the retention period length enum value for which the retention period record should be found or created.</param>
+    /// <param name="RetPeriodCalc">Specifies the retention period length date formula for which the retention period record should be found or created.</param>
+    /// <returns>The retention period code for the retention period record.</returns>
+    procedure FindOrCreateRetentionPeriod(RetentionPeriodCode: Code[20]; RetentionPeriodEnum: Enum "Retention Period Enum"; RetPeriodCalc: DateFormula): Code[20]
+    var
+        RetentionPolicySetupImpl: Codeunit "Retention Policy Setup Impl.";
+    begin
+        exit(RetentionPolicySetupImpl.FindOrCreateRetentionPeriod(RetentionPeriodCode, RetentionPeriodEnum, RetPeriodCalc))
+    end;
+
     // these event subscribers are here because the Impl. codeunit has a manual subscriber
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", OnRegisterManualSetup, '', true, true)]

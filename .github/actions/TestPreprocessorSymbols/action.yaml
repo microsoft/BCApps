@@ -1,0 +1,13 @@
+name: Test Preprocessor Symbols
+author: Microsoft Corporation
+description: Verifies the preprocessor symbols on .al files
+runs:
+  using: composite
+  steps:
+    - name: Test Preprocessor Symbols
+      shell: pwsh
+      run: |
+        ${{ github.action_path }}/action.ps1
+branding:
+  icon: terminal
+  color: blue

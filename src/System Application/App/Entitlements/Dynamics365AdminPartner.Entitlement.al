@@ -10,6 +10,7 @@ using System.Environment.Configuration;
 using System.Email;
 using System.Apps;
 using System.DataAdministration;
+using System.Integration;
 
 entitlement "Dynamics 365 Admin - Partner"
 {
@@ -25,6 +26,7 @@ entitlement "Dynamics 365 Admin - Partner"
                          "Exten. Mgt. - Admin",
                          "Email - Admin",
                          "Feature Key - Admin",
-                         "Retention Policy - Admin";
-#pragma warning restore
+                         "Retention Policy - Admin",
+                         "VSC Intgr. - Admin";
+#pragma warning restore AL0684
 }

@@ -47,6 +47,11 @@ table 8900 "Email Message"
             InitValue = 0;
             DataClassification = SystemMetadata;
         }
+        field(7; "External Id"; Text[2048])
+        {
+            Access = Internal;
+            DataClassification = CustomerContent;
+        }
     }
 
     keys

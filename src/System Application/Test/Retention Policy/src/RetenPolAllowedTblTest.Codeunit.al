@@ -20,6 +20,7 @@ codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
     var
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
+        RetentionPolicyTestLibrary: Codeunit "Retention Policy Test Library";
         TableIdinFilterNotListLbl: Label 'Table %1 appears in the filter but not in the list', Locked = true;
         DatefieldIsWrongLbl: Label 'The datefield number is wrong for table %1', Locked = true;
         MandatoryMinRetentionDaysLbl: Label 'The mandatory minimum number of retention days is wrong for table %1', Locked = true;
@@ -75,7 +76,7 @@ codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
         // verify
         Assert.IsTrue(AllowedTables.Contains(Database::"Retention Policy Test Data"), 'Table Retention Policy Test Data should be allowed');
         Assert.IsTrue(AllowedTables.Contains(Database::"Retention Policy Test Data 3"), 'Table Retention Policy Test Data 3 should be allowed');
-        Assert.IsTrue(AllowedTables.Contains(Database::"Retention Policy Log Entry"), 'Table Retention Policy Log Entry should be allowed');
+        Assert.IsTrue(AllowedTables.Contains(RetentionPolicyTestLibrary.RetentionPolicyLogEntryTableId()), 'Table Retention Policy Log Entry should be allowed');
         Assert.IsFalse(AllowedTables.Contains(Database::"Retention Policy Test Data Two"), 'Table Retention Policy Test Data Two should not be allowed');
         Assert.IsFalse(AllowedTables.Contains(17), 'Table G/L Entry should not be allowed');
     end;
@@ -95,7 +96,7 @@ codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
             RetenPolAllowedTables.RemoveAllowedTable(OldAllowedTables.Get(TableIndex));
 
         // [WHEN] Tables are refreshed
-        RetenPolAllowedTables.OnRefreshAllowedTables();
+        RetentionPolicyTestLibrary.RaiseOnRefreshAllowedTables();
 
         // [THEN] The same tables exist
         RetenPolAllowedTables.GetAllowedTables(NewAllowedTables);
@@ -104,7 +105,7 @@ codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
             Assert.AreEqual(OldAllowedTables.Get(TableIndex), NewAllowedTables.Get(TableIndex), 'Not all allowed tables were refreshed.');
 
         // [THEN] It's possible to refresh the table again, even though entries already exist
-        RetenPolAllowedTables.OnRefreshAllowedTables();
+        RetentionPolicyTestLibrary.RaiseOnRefreshAllowedTables();
     end;
 
     [Test]
@@ -139,7 +140,6 @@ codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
     var
         RetentionPolicyTestData: Record "Retention Policy Test Data";
         RetentionPolicyTestData3: Record "Retention Policy Test Data 3";
-        RetentionPolicyLogEntry: Record "Retention Policy Log Entry";
         RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
     begin
         PermissionsMock.Set('Retention Pol. Admin');
@@ -150,7 +150,7 @@ codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
         // verify
         Assert.AreEqual(RetentionPolicyTestData.FieldNo("Datetime Field"), RetenPolAllowedTables.GetDefaultDateFieldNo(Database::"Retention Policy Test Data"), StrSubsTNo(DatefieldIsWrongLbl, Database::"Retention Policy Test Data"));
         Assert.AreEqual(RetentionPolicyTestData3.FieldNo("Date Field"), RetenPolAllowedTables.GetDefaultDateFieldNo(Database::"Retention Policy Test Data 3"), StrSubsTNo(DatefieldIsWrongLbl, Database::"Retention Policy Test Data 3"));
-        Assert.AreEqual(RetentionPolicyLogEntry.FieldNo(SystemCreatedAt), RetenPolAllowedTables.GetDefaultDateFieldNo(Database::"Retention Policy Log Entry"), StrSubsTNo(DatefieldIsWrongLbl, Database::"Retention Policy Log Entry"));
+        Assert.AreEqual(RetentionPolicyTestLibrary.RetentionPolicyLogEntrySystemCreatedAtFieldNo(), RetenPolAllowedTables.GetDefaultDateFieldNo(RetentionPolicyTestLibrary.RetentionPolicyLogEntryTableId()), StrSubsTNo(DatefieldIsWrongLbl, RetentionPolicyTestLibrary.RetentionPolicyLogEntryTableId()));
         Assert.AreEqual(0, RetenPolAllowedTables.GetDefaultDateFieldNo(17), StrSubsTNo(DatefieldIsWrongLbl, 17));
     end;
 
@@ -167,7 +167,7 @@ codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
         // verify
         Assert.AreEqual(7, RetenPolAllowedTables.GetMandatoryMinimumRetentionDays(Database::"Retention Policy Test Data"), StrSubsTNo(MandatoryMinRetentionDaysLbl, Database::"Retention Policy Test Data"));
         Assert.AreEqual(0, RetenPolAllowedTables.GetMandatoryMinimumRetentionDays(Database::"Retention Policy Test Data 3"), StrSubsTNo(MandatoryMinRetentionDaysLbl, Database::"Retention Policy Test Data 3"));
-        Assert.AreEqual(28, RetenPolAllowedTables.GetMandatoryMinimumRetentionDays(Database::"Retention Policy Log Entry"), StrSubsTNo(MandatoryMinRetentionDaysLbl, Database::"Retention Policy Log Entry"));
+        Assert.AreEqual(28, RetenPolAllowedTables.GetMandatoryMinimumRetentionDays(RetentionPolicyTestLibrary.RetentionPolicyLogEntryTableId()), StrSubsTNo(MandatoryMinRetentionDaysLbl, RetentionPolicyTestLibrary.RetentionPolicyLogEntryTableId()));
         Assert.AreEqual(0, RetenPolAllowedTables.GetMandatoryMinimumRetentionDays(17), StrSubsTNo(MandatoryMinRetentionDaysLbl, 17));
     end;
 

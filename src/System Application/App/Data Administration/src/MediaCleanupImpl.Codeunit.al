@@ -5,7 +5,6 @@
 
 namespace System.DataAdministration;
 
-using System.Utilities;
 using System.Environment;
 
 codeunit 1928 "Media Cleanup Impl."
@@ -74,8 +73,8 @@ codeunit 1928 "Media Cleanup Impl."
                 repeat
                     if TenantMedia.Get(TenantMediaSet."Media ID".MediaId()) then begin
                         TempTenantMediaVar := TenantMedia;
-                        TempTenantMediaVar.Insert();
-                        MediaLoaded += 1;
+                        if TempTenantMediaVar.Insert() then
+                            MediaLoaded += 1;
                         if MediaLoaded >= RecordLimit then
                             exit(false);
                     end;
@@ -162,16 +161,23 @@ codeunit 1928 "Media Cleanup Impl."
     var
         [SecurityFiltering(SecurityFilter::Ignored)]
         TenantMediaSet: Record "Tenant Media Set";
+        SplitList: List of [List of [Guid]];
         MediaSetOrphans: List of [Guid];
-        Orphan: Guid;
+        MediaOrphanSubList: List of [Guid];
+        TenantMediaFilter: Text;
     begin
         if not TenantMediaSet.WritePermission() then
             exit;
 
         MediaSetOrphans := MediaSet.FindOrphans();
-        foreach Orphan in MediaSetOrphans do begin
-            TenantMediaSet.SetRange(ID, Orphan);
-            TenantMediaSet.DeleteAll();
+        SplitListIntoSubLists(MediaSetOrphans, 10, SplitList);
+        foreach MediaOrphanSubList in SplitList do begin
+            TenantMediaFilter := CreateOrFilter(MediaOrphanSubList);
+            if TenantMediaFilter <> '' then begin
+                TenantMediaSet.SetFilter(ID, TenantMediaFilter);
+                TenantMediaSet.DeleteAll();
+                Commit(); // Ensure we keep the progress even on timeout (in case of large amounts of detached media).
+            end;
         end;
     end;
 
@@ -182,6 +188,7 @@ codeunit 1928 "Media Cleanup Impl."
         SplitList: List of [List of [Guid]];
         MediaOrphans: List of [Guid];
         MediaOrphanSubList: List of [Guid];
+        TenantMediaFilter: Text;
     begin
         if not TenantMedia.WritePermission() then
             exit;
@@ -189,9 +196,12 @@ codeunit 1928 "Media Cleanup Impl."
         MediaOrphans := Media.FindOrphans();
         SplitListIntoSubLists(MediaOrphans, 100, SplitList);
         foreach MediaOrphanSubList in SplitList do begin
-            TenantMedia.SetFilter(ID, CreateOrFilter(MediaOrphanSubList));
-            TenantMedia.DeleteAll();
-            Commit(); // Ensure we keep the progress even on timeout (in case of large amounts of detached media).
+            TenantMediaFilter := CreateOrFilter(MediaOrphanSubList);
+            if TenantMediaFilter <> '' then begin
+                TenantMedia.SetFilter(ID, TenantMediaFilter);
+                TenantMedia.DeleteAll();
+                Commit(); // Ensure we keep the progress even on timeout (in case of large amounts of detached media).
+            end;
         end;
     end;
 
@@ -233,20 +243,25 @@ codeunit 1928 "Media Cleanup Impl."
         FilterText := FilterText.TrimEnd('|');
     end;
 
-    local procedure SplitListIntoSubLists(var InputList: List of [Guid]; SubListCount: Integer; var SplitList: List of [List of [Guid]])
+    // 322, 100 will result in [[1, 100], [101, 200], [201, 300], [301, 322]]
+    procedure SplitListIntoSubLists(var InputList: List of [Guid]; SubListCount: Integer; var SplitList: List of [List of [Guid]])
     var
-        Math: Codeunit Math;
         ListNumber: Integer;
-        SubList: List of [Guid];
-        From: Integer;
-        ToInt: Integer;
+        FromIndex: Integer;
+        SubSize: Integer;
+        NumberOfBatches: Integer;
+        TempSubList: List of [Guid];
     begin
-        for ListNumber := 0 to Round(InputList.Count() / SubListCount, 1) - 1 do begin
-            Clear(SubList);
-            From := ListNumber * SubListCount + 1;
-            ToInt := Math.Min(SubListCount, InputList.Count() - ListNumber * SubListCount);
-            SubList := InputList.GetRange(From, ToInt);
-            SplitList.Add(SubList);
+        NumberOfBatches := (InputList.Count() + SubListCount - 1) div SubListCount;
+
+        for ListNumber := 1 to NumberOfBatches do begin
+            Clear(TempSubList);
+            FromIndex := (ListNumber - 1) * SubListCount + 1;
+            SubSize := InputList.Count() - (FromIndex - 1);
+            if SubSize > SubListCount then
+                SubSize := SubListCount;
+            TempSubList := InputList.GetRange(FromIndex, SubSize);
+            SplitList.Add(TempSubList);
         end;
     end;
 }

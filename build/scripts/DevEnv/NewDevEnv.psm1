@@ -21,83 +21,63 @@ function GetRootedFolder {
 }
 
 <#
-    .Synopsis
-    Creates a BC container from based on the specified artifact URL in the AL-Go settings.
-    If the container already exists, it will be reused.
-    .Parameter containerName
-    The name of the container.
-    .Parameter credential
-    The credential to use for the container.
-    .Parameter backgroundJob
-    If specified, the container will be created in the background.
-    .Outputs
-    The job that creates the container if the backgroundJob switch is specified.
+    .SYNOPSIS
+    Creates a new Business Central container.
+    .PARAMETER ContainerName
+    The name of the container to create.
+    .PARAMETER Authentication
+    The authentication type to use. Can be 'Windows' or 'NavUserPassword'.
+    .PARAMETER Credential
+    The credential to use when creating the container.
+    .PARAMETER backgroundJob
+    If specified, the container creation will be done in a background job.
+    .OUTPUTS
+    The job that was started if the backgroundJob parameter was specified.
+    .EXAMPLE
+    Create-BCContainer -ContainerName "MyContainer" -Authentication "Windows" -Credential (Get-Credential)
 #>
 function Create-BCContainer {
-    param (
-        [Parameter(Mandatory = $true)]
-        [string] $containerName,
-        [Parameter(Mandatory = $true)]
-        [pscredential] $credential,
+    param(
+        [string] $ContainerName,
+        [string] $Authentication,
+        [PSCredential] $Credential,
         [switch] $backgroundJob
     )
+    $baseFolder = (Get-BaseFolderForPath -Path $PSScriptRoot)
 
-    if(Test-ContainerExists -containerName $containerName) {
-        Write-Host "Container $containerName already exists" -ForegroundColor Yellow
-        return
+    [Scriptblock] $createContainerScriptblock = {
+        param(
+            [string] $baseFolder,
+            [string] $ContainerName,
+            [string] $Authentication,
+            [PSCredential] $Credential
+        )
+        Set-Location $baseFolder
+
+        Import-Module "$baseFolder\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+        Import-Module "$baseFolder\build\scripts\DevEnv\NewDevContainer.psm1" -DisableNameChecking
+        Import-Module BcContainerHelper
+
+        # Get artifactUrl from branch
+        $artifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
+
+        # Create a new container with a single tenant
+        $bcContainerHelperConfig.sandboxContainersAreMultitenantByDefault = $false
+        New-BcContainer -artifactUrl $artifactUrl -accept_eula -accept_insiderEula -containerName $ContainerName -auth $Authentication -Credential $Credential -includeAL -additionalParameters @("--volume ""$($baseFolder):c:\sources""")
+
+        # Move all installed apps to the dev scope
+        # By default, the container is created with the global scope. We need to move all installed apps to the dev scope.
+        Setup-ContainerForDevelopment -ContainerName $ContainerName -RepoVersion (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go)
     }
 
-    $baseFolder = Get-BaseFolder
-
-    $bcArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
-    if($backgroundJob) {
-        [Scriptblock] $createContainerScriptblock = {
-            param(
-                [Parameter(Mandatory = $true)]
-                [string] $containerName,
-                [Parameter(Mandatory = $true)]
-                [pscredential] $credential,
-                [Parameter(Mandatory = $true)]
-                [string] $bcArtifactUrl,
-                [Parameter(Mandatory = $true)]
-                [string] $baseFolder
-            )
-            Import-Module "BCContainerHelper" -DisableNameChecking
-
-            $newContainerParams = @{
-                "accept_eula" = $true
-                "accept_insiderEula" = $true
-                "containerName" = $containerName
-                "artifactUrl" = $bcArtifactUrl
-                "Credential" = $credential
-                "auth" = "UserPassword"
-                "additionalParameters" = @("--volume ""$($baseFolder):c:\sources""")
-            }
-
-            $creatingContainerStats = Measure-Command {
-                $newBCContainerScript = Join-Path $baseFolder "build\scripts\NewBcContainer.ps1" -Resolve
-                . $newBCContainerScript -parameters $newContainerParams
-            }
-
-            Write-Host "Creating container $containerName took $($creatingContainerStats.TotalSeconds) seconds"
-        }
-
-        # Set the current location to the base folder
-        function jobInit {
-            param(
-                $baseFolder
-            )
-
-            return [ScriptBlock]::Create("Set-Location $baseFolder")
-        }
-
-        $createContainerJob = $null
-        $createContainerJob = Start-Job -InitializationScript $(jobInit -baseFolder $baseFolder) -ScriptBlock $createContainerScriptblock -ArgumentList $containerName, $credential, $bcArtifactUrl, $baseFolder | Get-Job
-        Write-Host "Creating container $containerName from artifact URL $bcArtifactUrl in the background. Job ID: $($createContainerJob.Id)" -ForegroundColor Yellow
-
+    if ($backgroundJob)
+    {
+        $createContainerJob = Start-Job -ScriptBlock $createContainerScriptblock -ArgumentList $baseFolder, $ContainerName, $Authentication, $credential | Get-Job
         return $createContainerJob
-    } else {
-        $createContainerScriptblock.Invoke($containerName, $credential, $bcArtifactUrl, $baseFolder)
+    }
+    else
+    {
+        Invoke-Command -ScriptBlock $createContainerScriptblock -ArgumentList $baseFolder, $ContainerName, $Authentication, $credential
     }
 }
 
@@ -126,8 +106,8 @@ function Resolve-ProjectPaths {
         [Parameter(Mandatory = $false)]
         [string] $alGoProject,
 
-        [Parameter(Mandatory = $true)]
-        [string] $baseFolder
+        [Parameter(Mandatory = $false)]
+        [string] $baseFolder = (Get-BaseFolder)
     )
 
     $result = @()
@@ -165,17 +145,6 @@ function Resolve-ProjectPaths {
 
 <#
     .Synopsis
-    Checks if a container with the specified name exists.
-#>
-function Test-ContainerExists {
-    param (
-        $containerName
-    )
-    return ($null -ne $(docker ps -q -f name="$containerName"))
-}
-
-<#
-    .Synopsis
     Builds an app.
 
     .Parameter appProjectFolder
@@ -199,13 +168,17 @@ function BuildApp {
         [Parameter(Mandatory = $true)]
         [string] $packageCacheFolder,
         [Parameter(Mandatory = $true)]
-        [string] $baseFolder
+        [string] $baseFolder,
+        [Parameter(Mandatory = $false)]
+        [switch] $rebuild
     )
 
     $appFiles = @()
     $allAppInfos = GetAllApps -baseFolder $baseFolder
     $appOutputFolder = $packageCacheFolder
     $appInfo = [AppProjectInfo]::Get($appProjectFolder)
+    $appFileName = $appInfo.GetAppFileName()
+    $appFilePath = Join-Path $appOutputFolder $appFileName
 
     # Build dependencies
     foreach($dependency in $appInfo.AppJson.dependencies) {
@@ -218,11 +191,14 @@ function BuildApp {
 
     $appProjectFolder = GetRootedFolder -folder $appProjectFolder -baseFolder $baseFolder
 
-    $appFile = $appInfo.GetAppFileName()
+    # If we are rebuilding, remove the app file if it already exists
+    if ($rebuild -and (Test-Path $appFilePath)) {
+        Write-Host "App $appFileName already exists in $appOutputFolder. Removing and rebuilding..." -ForegroundColor Yellow
+        Remove-Item -Path $appFilePath -Force
+    }
 
-    if((Test-Path (Join-Path $appOutputFolder $appFile)) -and (-not $rebuild)) {
-        Write-Host "App $appFile already exists in $appOutputFolder. Skipping..."
-        $appFile = (Join-Path $appOutputFolder $appFile -Resolve)
+    if(Test-Path $appFilePath) {
+        Write-Host "App $appFileName already exists in $appOutputFolder. Skipping..."
     } else {
         # Create compiler folder on demand
         if(-not $compilerFolder.Value) {
@@ -232,9 +208,8 @@ function BuildApp {
         }
 
         $appFile = Compile-AppWithBcCompilerFolder -compilerFolder $($compilerFolder.Value) -appProjectFolder "$($appInfo.AppProjectFolder)" -appOutputFolder $appOutputFolder -appSymbolsFolder $packageCacheFolder
+        $appFiles += $appFile
     }
-
-    $appFiles += $appFile
 
     return $appFiles
 }
@@ -252,7 +227,8 @@ function BuildApp {
 function Build-Apps {
     param (
         $projectPaths,
-        $packageCacheFolder
+        $packageCacheFolder,
+        [switch] $rebuild
     )
     $appFiles = @()
     $baseFolder = Get-BaseFolder
@@ -264,7 +240,7 @@ function Build-Apps {
     try {
         foreach($currentProjectPath in $projectPaths) {
             Write-Host "Building app in $currentProjectPath" -ForegroundColor Yellow
-            $currentAppFiles = BuildApp -appProjectFolder $currentProjectPath -compilerFolder ([ref]$compilerFolder) -packageCacheFolder $packageCacheFolder -baseFolder $baseFolder
+            $currentAppFiles = BuildApp -appProjectFolder $currentProjectPath -compilerFolder ([ref]$compilerFolder) -packageCacheFolder $packageCacheFolder -baseFolder $baseFolder -rebuild:$rebuild
             $appFiles += @($currentAppFiles)
         }
     }
@@ -286,8 +262,42 @@ function Build-Apps {
 
 <#
     .Synopsis
-    Creates a compiler folder.
+    Publishes apps to a container.
 
+    .Parameter ContainerName
+    The name of the container to publish the app to.
+
+    .Parameter AppFiles
+    The paths to the app files to publish.
+
+    .Parameter Credential
+    The credential to use when publishing the app.
+#>
+function Publish-Apps() {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $ContainerName,
+        [Parameter(Mandatory = $true)]
+        [string[]] $AppFiles,
+        [Parameter(Mandatory = $true)]
+        [PSCredential] $Credential
+    )
+    $appPublishResults = @() # Array of hashtables with the results of the app publishing
+    foreach($appFile in $AppFiles) {
+        try {
+            Publish-BcContainerApp -containerName $ContainerName -appFile $appFile -credential $Credential -syncMode ForceSync -sync -skipVerification -install -useDevEndpoint -dependencyPublishingOption ignore
+            $appPublishResults += @{ "AppFile" = $appFile; "Success" = $true }
+        } catch {
+            Write-Error "Failed to publish app $appFile : $_"
+            $appPublishResults += @{ "AppFile" = $appFile; "Success" = $false}
+        }
+    }
+    return $appPublishResults
+}
+
+<#
+    .Synopsis
+    Creates a compiler folder.
     .Parameter packageCacheFolder
     The folder for the packagecache.
 #>
@@ -296,14 +306,23 @@ function CreateCompilerFolder {
         [Parameter(Mandatory = $true)]
         [string] $packageCacheFolder
     )
-    $bcArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
 
-    if(-not (Test-Path -Path $packageCacheFolder)) {
-        Write-Host "Creating package cache folder $packageCacheFolder"
+    # If the compiler folder already exists, return it
+    $compilerFolder = Join-Path $packageCacheFolder "CompilerFolder"
+    if (Test-Path $compilerFolder) {
+        return $compilerFolder
+    }
+
+    # Create the package cache folder if it does not exist
+    if (-not (Test-Path $packageCacheFolder)) {
         New-Item -Path $packageCacheFolder -ItemType Directory | Out-Null
     }
 
-    return New-BcCompilerFolder -artifactUrl $bcArtifactUrl -cacheFolder $packageCacheFolder
+    # Create compiler folder using the AL-Go artifact URL
+    $bcArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
+    Write-Host "Creating compiler folder $compilerFolder" -ForegroundColor Yellow
+    New-BcCompilerFolder -artifactUrl $bcArtifactUrl -cacheFolder $compilerFolder | Out-Null
+    return $compilerFolder
 }
 
 <#
@@ -351,7 +370,73 @@ function GetAllApps {
     return $script:allApps
 }
 
+<#
+    .Synopsis
+    Checks if a container with the specified name exists.
+#>
+function Test-ContainerExists {
+    param (
+        $containerName
+    )
+    return ($null -ne $(docker ps -q -f name="$containerName"))
+}
+
+<#
+    .Synopsis
+    Gets the credential to use for a container.
+
+    .Description
+    This function gets the credential to use for a container. The credential is used to authenticate with the container.
+
+    .Parameter AuthenticationType
+    The authentication type to use. Can be 'Windows' or 'NavUserPassword'.
+
+    .Outputs
+    The credential to use for the container.
+#>
+function Get-CredentialForContainer($AuthenticationType) {
+    if ($AuthenticationType -eq 'Windows') {
+        return Get-Credential -Message "Please enter your Windows Credentials" -UserName $env:USERNAME
+    } elseif($AuthenticationType -eq 'UserPassword') {
+        return Get-Credential -UserName 'admin' -Message "Enter the password for the admin user"
+    } else {
+        throw "Invalid authentication type: $AuthenticationType"
+    }
+}
+
+<#
+    .Synopsis
+    Installs the AL extension in VSCode.
+
+    .Parameter ContainerName
+    The name of the container for which to install the extension.
+
+    .Parameter Force
+    If specified, the extension will be installed even there is a newer version already installed.
+#>
+function Install-ALExtension([string] $ContainerName, [switch] $Force) {
+    if (-not (Get-Command code -ErrorAction SilentlyContinue)) {
+        Write-Host "VSCode is not installed or 'code' is not in the PATH. See https://code.visualstudio.com/docs/setup/windows for installation instructions." -ForegroundColor Red
+        return
+    }
+
+    Write-Host "Installing VSCode extension..." -ForegroundColor Magenta
+    # Kill VSCode to avoid issues with the extension installation
+    Stop-Process -Name code -Force -ErrorAction SilentlyContinue
+
+    $vsixPath = Get-ChildItem "$($bcContainerHelperConfig.containerHelperFolder)\Extensions\$ContainerName\*.vsix" | Select-Object -ExpandProperty FullName
+    if ($Force) {
+        code --install-extension $vsixPath --force
+    } else {
+        code --install-extension $vsixPath
+    }
+    Write-Host "VSCode extension installed." -ForegroundColor Magenta
+}
+
 Export-ModuleMember -Function Create-BCContainer
 Export-ModuleMember -Function Resolve-ProjectPaths
-Export-ModuleMember -Function Test-ContainerExists
 Export-ModuleMember -Function Build-Apps
+Export-ModuleMember -Function Publish-Apps
+Export-ModuleMember -Function Test-ContainerExists
+Export-ModuleMember -Function Get-CredentialForContainer
+Export-ModuleMember -Function Install-ALExtension

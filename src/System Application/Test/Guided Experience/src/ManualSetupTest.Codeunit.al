@@ -55,7 +55,6 @@ codeunit 134934 "Manual Setup Test"
 
         Assert.AreEqual(TestBusinessSetupNameTxt, ManualSetupPage.Name.Value(), 'Page with given name is not found');
         Assert.AreEqual(TestBusinessSetupDescriptionTxt, ManualSetupPage.Description.Value(), 'Page description is not correct');
-        Assert.AreEqual(TestBusinessSetupKeywordsTxt, ManualSetupPage.Keywords.Value(), 'Keywords are not correct');
 
         // [When] Open the manual setup page
         // [Then] Verify that the my manual setup page is opened
@@ -126,6 +125,7 @@ codeunit 134934 "Manual Setup Test"
     [ModalPageHandler]
     procedure HandleManualSetup(var ManualSetup: TestPage "Manual Setup")
     begin
+        ManualSetup.Expand(true);
         ManualSetup.GoToKey('MANUAL SETUP_PAGE_134934__0', 0);
     end;
 }

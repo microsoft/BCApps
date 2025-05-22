@@ -70,6 +70,16 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
+    /// Adds a assistant message containing the tool calls returned from the model to the chat messages history.
+    /// </summary>
+    /// <param name="ToolCalls">The tool calls to add.</param>
+    [NonDebuggable]
+    internal procedure AddToolCalls(ToolCalls: JsonArray)
+    begin
+        AOAIChatMessagesImpl.AddToolCalls(ToolCalls);
+    end;
+
+    /// <summary>
     /// Adds a tool result to the chat messages history.
     /// </summary>
     /// <param name="ToolCallId">The id of the tool call.</param>
@@ -164,6 +174,16 @@ codeunit 7763 "AOAI Chat Messages"
     procedure GetLastName(): Text[2048]
     begin
         exit(AOAIChatMessagesImpl.GetLastName());
+    end;
+
+    /// <summary>
+    /// Gets a copy of the last chat message tool calls array.
+    /// </summary>
+    /// <returns>The last tool calls array.</returns>
+    [NonDebuggable]
+    procedure GetLastToolCalls(): JsonArray
+    begin
+        exit(AOAIChatMessagesImpl.GetLastToolCalls());
     end;
 
     /// <summary>
@@ -364,6 +384,23 @@ codeunit 7763 "AOAI Chat Messages"
     procedure GetToolChoice(): Text
     begin
         exit(AOAIToolsImpl.GetToolChoice());
+    end;
+
+    /// <summary>
+    /// Sets the tool invocation preference, controls how a tool calls response should be handled.
+    /// </summary>
+    /// <remarks>The default behavior is to execute the tools and append the results to the chat history.</remarks>
+    procedure SetToolInvokePreference(AOAIToolInvokePreference: Enum "AOAI Tool Invoke Preference")
+    begin
+        AOAIToolsImpl.SetToolInvokePreference(AOAIToolInvokePreference);
+    end;
+
+    /// <summary>
+    /// Gets the tool invocation preference, controls how a tool calls response should be handled.
+    /// </summary>
+    procedure GetToolInvokePreference(): Enum "AOAI Tool Invoke Preference"
+    begin
+        exit(AOAIToolsImpl.GetToolInvokePreference());
     end;
 
     /// <summary>

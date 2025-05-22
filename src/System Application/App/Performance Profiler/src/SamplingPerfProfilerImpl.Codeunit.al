@@ -22,6 +22,7 @@ codeunit 1925 "Sampling Perf. Profiler Impl."
         IdleTimeTok: Label 'IdleTime', Locked = true;
         NoRecordingErr: Label 'There is no performance profiling data.';
         NotSupportedCpuProfileKindErr: Label 'This type of .alcpuprofile file is not supported. Please upload a sampling-based CPU profile file.';
+        PrivacyNoticeMsg: Label 'The file might contain sensitive data, so be sure to handle it securely and according to privacy requirements. Do you want to continue?';
 
     procedure Start(SamplingInterval: Enum "Sampling Interval")
     var
@@ -74,6 +75,14 @@ codeunit 1925 "Sampling Perf. Profiler Impl."
         UpdateCpuProfile(ProfilingResultsInStream);
     end;
 
+    procedure DownloadData(ProfileFileName: Text; ProfileInStream: InStream)
+    begin
+        if not Confirm(PrivacyNoticeMsg) then
+            exit;
+
+        DownloadFromStream(ProfileInStream, '', '', '', ProfileFileName);
+    end;
+
     local procedure UpdateCpuProfile(CpuProfileInStream: InStream)
     var
         ProfilingResultsOutStream: OutStream;
@@ -86,17 +95,26 @@ codeunit 1925 "Sampling Perf. Profiler Impl."
 
     local procedure InitializeCpuProfile()
     var
-        JsonSerializer: DotNet JsonSerializer;
-        StreamReader: DotNet StreamReader;
         ProfilingResultsInStream: InStream;
     begin
         TempBlob.CreateInStream(ProfilingResultsInStream);
+        if TryDeserializeCpuProfile(ProfilingResultsInStream) then begin
+            if (not IsNull(CpuProfile)) then
+                if CpuProfile.Kind <> CpuProfile.Kind::Sampling then
+                    Error(NotSupportedCpuProfileKindErr);
+        end else
+            Error(NotSupportedCpuProfileKindErr);
+    end;
+
+    [TryFunction]
+    local procedure TryDeserializeCpuProfile(CpuProfileInStream: InStream)
+    var
+        JsonSerializer: DotNet JsonSerializer;
+        StreamReader: DotNet StreamReader;
+    begin
         JsonSerializer := JsonSerializer.JsonSerializer();
-        StreamReader := StreamReader.StreamReader(ProfilingResultsInStream);
+        StreamReader := StreamReader.StreamReader(CpuProfileInStream);
         CpuProfile := JsonSerializer.Deserialize(StreamReader, GetDotNetType(CpuProfile));
-        if (not IsNull(CpuProfile)) then
-            if CpuProfile.Kind <> CpuProfile.Kind::Sampling then
-                Error(NotSupportedCpuProfileKindErr);
     end;
 
     procedure GetProfilingNodes(var ProfilingNode: Record "Profiling Node")

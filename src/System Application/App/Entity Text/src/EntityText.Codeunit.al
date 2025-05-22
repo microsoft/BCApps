@@ -89,10 +89,9 @@ codeunit 2010 "Entity Text"
     /// <param name="EntityTextContent">The new entity text content.</param>
     procedure UpdateText(var EntityText: Record "Entity Text"; EntityTextContent: Text)
     var
-        TelemetryCategoryLbl: Label 'Entity Text', Locked = true;
         TelemetryUpdateRecordTxt: Label 'Updating text on record for table %1 and scenario %2.', Locked = true, Comment = '%1 the table id, %2 the scenario id';
     begin
-        Session.LogMessage('0000JVL', StrSubstNo(TelemetryUpdateRecordTxt, Format(EntityText."Source Table Id"), Format(EntityText.Scenario)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+        Session.LogMessage('0000JVL', StrSubstNo(TelemetryUpdateRecordTxt, Format(EntityText."Source Table Id"), Format(EntityText.Scenario)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EntityTextImpl.GetFeatureName());
         EntityTextImpl.SetText(EntityText, EntityTextContent);
     end;
 
@@ -128,22 +127,6 @@ codeunit 2010 "Entity Text"
     begin
     end;
 
-#if not CLEAN24
-    /// <summary>
-    /// Event that is raised to override the default Edit behavior.
-    /// </summary>
-    /// <param name="TempEntityText">The Entity Text record to be modified.</param>
-    /// <param name="Action">Must be set to the resulting action from the edit page (if handled).</param>
-    /// <param name="Handled">If the edit event was handled (set to true even if the action was cancelled).</param>
-    /// <remarks>
-    /// Subscribers should check the Entity Text primary keys (table id, source id, scenario) if you should handle this record before opening a page.
-    /// </remarks>
-    [Obsolete('The OnEditEntityText event is now raised with additional parameter, see OnEditEntityTextWithTriggerAction', '24.0')]
-    [IntegrationEvent(false, false)]
-    internal procedure OnEditEntityText(var TempEntityText: Record "Entity Text" temporary; var Action: Action; var Handled: Boolean)
-    begin
-    end;
-#endif
 
     /// <summary>
     /// Event that is raised to override the default Edit behavior.

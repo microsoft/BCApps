@@ -40,22 +40,6 @@ table 1470 "Product Video Buffer"
             DataClassification = SystemMetadata;
             Editable = false;
         }
-        field(4; "Assisted Setup ID"; Integer)
-        {
-            Caption = 'Assisted Setup ID';
-            DataClassification = SystemMetadata;
-            ObsoleteState = Removed;
-            ObsoleteReason = 'All assisted setups shall be shown';
-            ObsoleteTag = '18.0';
-        }
-        field(5; Indentation; Integer)
-        {
-            Caption = 'Indentation';
-            DataClassification = SystemMetadata;
-            ObsoleteState = Removed;
-            ObsoleteReason = 'Product videos are no more grouped.';
-            ObsoleteTag = '18.0';
-        }
         field(6; "Table Num"; Integer)
         {
             DataClassification = SystemMetadata;
@@ -95,4 +79,3 @@ table 1470 "Product Video Buffer"
         }
     }
 }
-

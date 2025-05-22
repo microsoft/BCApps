@@ -5,9 +5,6 @@
 
 namespace System.Azure.Identity;
 
-#if not CLEAN22
-using System.Security.User;
-#endif
 using System.Security.AccessControl;
 
 /// <summary>
@@ -38,11 +35,7 @@ table 9010 "Azure AD User Update Buffer"
 
             trigger OnValidate()
             var
-#if not CLEAN22
-                UserPermissions: Codeunit "User Permissions";
-#else
                 AzureADUserManagement: Codeunit "Azure AD User Management";
-#endif
             begin
                 if "Update Entity" <> "Update Entity"::Plan then
                     exit;
@@ -55,13 +48,7 @@ table 9010 "Azure AD User Update Buffer"
                         end;
                     "Update Type"::Change:
                         begin
-#if not CLEAN22
-#pragma warning disable AL0432
-                            "Needs User Review" := UserPermissions.HasUserCustomPermissions("User Security ID");
-#pragma warning restore AL0432
-#else
                             "Needs User Review" := AzureADUserManagement.ArePermissionsCustomized("User Security ID");
-#endif
                             if "Needs User Review" then
                                 "Permission Change Action" := "Permission Change Action"::Select
                             else

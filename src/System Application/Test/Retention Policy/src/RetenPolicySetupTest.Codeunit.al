@@ -19,6 +19,7 @@ codeunit 138701 "Reten. Policy Setup Test"
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        RetentionPolicyTestLibrary: Codeunit "Retention Policy Test Library";
         MinExpirationDateErr: Label 'The expiration date for this retention policy must be equal to or before %1.', Comment = '%1 = Date';
         RetentionPolicySetupLineLockedErr: Label 'The retention policy setup for table %1, %2 has mandatory filters that cannot be modified.', Comment = '%1 = table number, %2 = table caption';
         RetenPolSetupRenameErr: Label 'You cannot rename retention policy setup records. Table ID %1. Renamed to %2.', Comment = '%1, %2 = table number';
@@ -356,7 +357,7 @@ codeunit 138701 "Reten. Policy Setup Test"
         RetentionPolicySetup."Table Id" := Database::"Retention Policy Test Data";
         RetentionPolicySetup.Insert();
         RetentionPolicySetupLine."Table ID" := RetentionPolicySetup."Table Id";
-        RetentionPolicySetupLine.Locked := true;
+        RetentionPolicyTestLibrary.SetLockedFieldOnRetentionPolicySetupLine(RetentionPolicySetupLine, true);
         RetentionPolicySetupLine.Insert();
         RetentionPolicySetupLine.CalcFields("Table Caption");
 
@@ -397,7 +398,7 @@ codeunit 138701 "Reten. Policy Setup Test"
         RetentionPolicySetup."Table Id" := Database::"Retention Policy Test Data";
         RetentionPolicySetup.Insert();
         RetentionPolicySetupLine."Table ID" := RetentionPolicySetup."Table Id";
-        RetentionPolicySetupLine.Locked := true;
+        RetentionPolicyTestLibrary.SetLockedFieldOnRetentionPolicySetupLine(RetentionPolicySetupLine, true);
         RetentionPolicySetupLine.Insert();
         RetentionPolicySetupLine.CalcFields("Table Caption");
         ClearLastError();
@@ -424,12 +425,12 @@ codeunit 138701 "Reten. Policy Setup Test"
         RetentionPolicySetup."Table Id" := Database::"Retention Policy Test Data";
         RetentionPolicySetup.Insert();
         RetentionPolicySetupLine."Table ID" := RetentionPolicySetup."Table Id";
-        RetentionPolicySetupLine.Locked := true;
+        RetentionPolicyTestLibrary.SetLockedFieldOnRetentionPolicySetupLine(RetentionPolicySetupLine, true);
         RetentionPolicySetupLine.Insert();
         RetentionPolicySetupLine.CalcFields("Table Caption");
 
         // Exercise
-        RetentionPolicySetupLine.Locked := false;
+        RetentionPolicyTestLibrary.SetLockedFieldOnRetentionPolicySetupLine(RetentionPolicySetupLine, false);
         asserterror RetentionPolicySetupLine.Modify();
 
         // Verify
@@ -447,7 +448,7 @@ codeunit 138701 "Reten. Policy Setup Test"
         RetentionPolicySetup."Table Id" := Database::"Retention Policy Test Data";
         RetentionPolicySetup.Insert();
         RetentionPolicySetupLine."Table ID" := RetentionPolicySetup."Table Id";
-        RetentionPolicySetupLine.Locked := true;
+        RetentionPolicyTestLibrary.SetLockedFieldOnRetentionPolicySetupLine(RetentionPolicySetupLine, true);
         RetentionPolicySetupLine.Insert();
 
         // Exercise
@@ -551,9 +552,7 @@ codeunit 138701 "Reten. Policy Setup Test"
         RetentionPolicySetup."Table Id" := Database::"Retention Policy Test Data 4";
         RetentionPolicySetup.Insert();
         RetentionPolicySetupLine.SetRange("Table ID", Database::"Retention Policy Test Data 4");
-#pragma warning disable AA0210 // The table Retention Policy Setup Line does not contain a key with the field Locked.
-        RetentionPolicySetupLine.SetRange(Locked, true);
-#pragma warning restore AA0210
+        RetentionPolicyTestLibrary.SetRangeFilterOnLockedFieldOnRetentionPolicySetupLine(RetentionPolicySetupLine, true);
         RetentionPolicySetupLine.FindFirst();
 
         // exercise
@@ -585,9 +584,7 @@ codeunit 138701 "Reten. Policy Setup Test"
         RetentionPolicySetup."Table Id" := Database::"Retention Policy Test Data 4";
         RetentionPolicySetup.Insert();
         RetentionPolicySetupLine.SetRange("Table ID", Database::"Retention Policy Test Data 4");
-#pragma warning disable AA0210 // The table Retention Policy Setup Line does not contain a key with the field Locked.
-        RetentionPolicySetupLine.SetRange(Locked, true);
-#pragma warning restore AA0210
+        RetentionPolicyTestLibrary.SetRangeFilterOnLockedFieldOnRetentionPolicySetupLine(RetentionPolicySetupLine, true);
         RetentionPolicySetupLine.FindFirst();
 
         // exercise
@@ -612,9 +609,7 @@ codeunit 138701 "Reten. Policy Setup Test"
         RetentionPolicySetup."Table Id" := Database::"Retention Policy Test Data 4";
         RetentionPolicySetup.Insert();
         RetentionPolicySetupLine.SetRange("Table ID", Database::"Retention Policy Test Data 4");
-#pragma warning disable AA0210 // The table Retention Policy Setup Line does not contain a key with the field Locked.
-        RetentionPolicySetupLine.SetRange(Locked, true);
-#pragma warning restore AA0210
+        RetentionPolicyTestLibrary.SetRangeFilterOnLockedFieldOnRetentionPolicySetupLine(RetentionPolicySetupLine, true);
         RetentionPolicySetupLine.FindFirst();
 
         // exercise

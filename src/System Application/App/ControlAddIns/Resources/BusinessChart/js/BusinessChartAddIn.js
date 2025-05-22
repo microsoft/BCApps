@@ -17,14 +17,18 @@ var BEFORE_CHART_FORMAT_TEMPLATE =
 // Initialization of the control add-in.
 // Note: This function is called by the manifest after loading the control add-in.
 function Initialize() {
-  $(window).resize(function () {
-    var width = $(this).width();
-    var height = $(this).height();
+  window.addEventListener('resize', function () {
+    var width = window.document.documentElement.getBoundingClientRect().width;
+    var height = window.document.documentElement.getBoundingClientRect().height;
 
     onChartSizeChanged(width, height);
   });
 
   raiseAddInReady();
+}
+
+function controlAddIn() {
+  return document.getElementById('controlAddIn');
 }
 
 // Update the chart with the supplied chart data.
@@ -96,7 +100,7 @@ function createUI(chartData) {
   }
 
   // Remove any existing content
-  $("#controlAddIn").empty();
+  controlAddIn().innerHTML = '';
 
   if (validateChartData(chartData)) {
     initializeChartLanguage(chartData);
@@ -152,9 +156,13 @@ function validateYAxisRange(chartData) {
 
 // Create a DIV containing the specified message text.
 function createMessage(text) {
-  $("#controlAddIn").append(
-    '<div class="' + getMessageClassName() + '"><span>' + text + "</span></div>"
-  );
+  var element = document.createElement("div");
+  element.className = getMessageClassName();
+  var spanElement = document.createElement("span");
+  spanElement.innerText = text;
+  element.appendChild(spanElement);
+
+  controlAddIn().appendChild(element);
 }
 
 // Initialize the month, short month, and weekday names of the chart.
@@ -403,10 +411,12 @@ function createChart(chartData) {
   );
 
   // Make chart non-focusable
-  $(chart.container).find("svg").attr("focusable", "false");
+  chart.container.querySelectorAll("svg").forEach(svg => {
+    svg.setAttribute("focusable", "false")
+  });
 
-  var width = $(chart.container).width();
-  var height = $(chart.container).height();
+  var width = chart.container.getBoundingClientRect().width;
+  var height = chart.container.getBoundingClientRect().height;
 
   // Update the size-dependent properties
   if (width > 0 && height > 0) {

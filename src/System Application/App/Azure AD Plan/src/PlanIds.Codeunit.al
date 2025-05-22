@@ -59,17 +59,6 @@ codeunit 9027 "Plan Ids"
         exit(TeamMemberPlanGUIDTxt);
     end;
 
-#if not CLEAN22
-    /// <summary>
-    /// Returns the ID for the Microsoft 365 Collaboration plan.
-    /// </summary>
-    /// <returns>The ID for the Microsoft 365 Collaboration plan.</returns>
-    [Obsolete('Replaced by GetMicrosoft365PlanId()', '22.0')]
-    procedure GetM365CollaborationPlanId(): Guid
-    begin
-        exit(Microsoft365PlanGUIDTxt);
-    end;
-#endif
 
     /// <summary>
     /// Returns the ID for the Microsoft 365 plan.
@@ -161,17 +150,6 @@ codeunit 9027 "Plan Ids"
         exit(D365AdminGUIDTxt);
     end;
 
-#if not CLEAN23
-    /// <summary>
-    /// Returns the ID for the Internal Administrator plan.
-    /// </summary>
-    /// <returns>The ID for the Internal Administrator plan.</returns>
-    [Obsolete('Replaced by GetGlobalAdminPlanId()', '23.0')]
-    procedure GetInternalAdminPlanId(): Guid
-    begin
-        exit(GlobalAdminGUIDTxt);
-    end;
-#endif
 
     /// <summary>
     /// Returns the ID for the Global Administrator plan.

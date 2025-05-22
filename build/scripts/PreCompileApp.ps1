@@ -55,9 +55,14 @@ if($appType -eq 'app')
                 }
             }
 
-            if(($appBuildMode -eq 'Strict') -and !(Test-IsStrictModeEnabled)) {
-                Write-Host "::Warning:: Strict mode is not enabled for this branch. Exiting without enabling the strict mode breaking changes check."
-                return
+            if($appBuildMode -eq 'Strict') {
+                if (!(Test-IsStrictModeEnabled)) {
+                    Write-Host "::Warning:: Strict mode is not enabled for this branch. Exiting without enabling the strict mode breaking changes check."
+                    return
+                } else {
+                    Write-Host "Enabling minor release ruleset for strict mode breaking changes check"
+                    $parameters.Value["ruleset"] = Get-RulesetPath -Name "minorrelease.ruleset.json"
+                }
             }
 
             Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode | Out-Null

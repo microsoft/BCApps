@@ -60,6 +60,11 @@
       "justification": "Unsafe methods cannot be invoked in an AppSource application"
     },
     {
+      "id": "AS0077",
+      "action": "None",
+      "justification": "Adding a var modifier in events should be allowed in main, as it only will break the runtime behavior of extensions subscribing to it when used in hotfix scenarios."
+    },
+    {
       "id": "AS0081",
       "action": "None",
       "justification": "InternalsVisibleTo should not be used as a security feature."
@@ -113,6 +118,11 @@
       "id": "PTE0013",
       "action": "None",
       "justification": "Entitlements cannot be defined in an extension."
+    },
+    {
+      "id": "PTE0024",
+      "action": "None",
+      "justification": "We allow moved symbols for Microsoft apps because we run PTECop on the entire codebase which includes global apps."
     },
     {
       "id": "AW0006",

@@ -292,7 +292,7 @@ codeunit 3970 "Image Impl."
         Size, Width, Height : Integer;
         MaxSize: Integer;
     begin
-        MaxSize := 5242880; // 5MB
+        MaxSize := 52428800; // 50MB
         if TempBlob.Length() > MaxSize then begin
             Session.LogMessage('0000FMA', StrSubstNo(ImageTooLargeTxt, TempBlob.Length()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ImageCatTxt);
             System.Clear(TempBlob);

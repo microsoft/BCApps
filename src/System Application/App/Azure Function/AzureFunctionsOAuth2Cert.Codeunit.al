@@ -19,10 +19,10 @@ codeunit 7807 "Azure Functions OAuth2 Cert" implements "Azure Functions Authenti
         [NonDebuggable]
         AuthenticationCodeGlobal, EndpointGlobal : Text;
         [NonDebuggable]
-        ClientIdGlobal, OAuthAuthorityUrlGlobal, RedirectURLGlobal, ScopeGlobal : Text;
+        ClientIdGlobal, OAuthAuthorityUrlGlobal, RedirectURLGlobal : Text;
         CertGlobal: SecretText;
         AccessToken: SecretText;
-        Scopes: List of [Text];
+        ScopesGlobal: List of [Text];
         BearerLbl: Label 'Bearer %1', Locked = true;
         FailedToGetTokenErr: Label 'Authorization failed to Azure function: %1', Locked = true;
         AzureFunctionCategoryLbl: Label 'Connect to Azure Functions', Locked = true;
@@ -38,9 +38,8 @@ codeunit 7807 "Azure Functions OAuth2 Cert" implements "Azure Functions Authenti
         IdToken: Text;
     begin
         UriBuilder.Init(EndpointGlobal);
-        Scopes.Add(ScopeGlobal);
 
-        OAuth2.AcquireTokensWithCertificate(ClientIdGlobal, CertGlobal, RedirectURLGlobal, OAuthAuthorityUrlGlobal, Scopes, AccessToken, IdToken);
+        OAuth2.AcquireTokensWithCertificate(ClientIdGlobal, CertGlobal, RedirectURLGlobal, OAuthAuthorityUrlGlobal, ScopesGlobal, AccessToken, IdToken);
 
         if AccessToken.IsEmpty() then begin
             UriBuilder.GetUri(Uri);
@@ -62,7 +61,7 @@ codeunit 7807 "Azure Functions OAuth2 Cert" implements "Azure Functions Authenti
     end;
 
     [NonDebuggable]
-    procedure SetAuthParameters(Endpoint: Text; AuthenticationCode: Text; ClientId: Text; Cert: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scope: Text)
+    procedure SetAuthParameters(Endpoint: Text; AuthenticationCode: Text; ClientId: Text; Cert: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text])
     begin
         EndpointGlobal := Endpoint;
         AuthenticationCodeGlobal := AuthenticationCode;
@@ -70,6 +69,6 @@ codeunit 7807 "Azure Functions OAuth2 Cert" implements "Azure Functions Authenti
         CertGlobal := Cert;
         OAuthAuthorityUrlGlobal := OAuthAuthorityUrl;
         RedirectURLGlobal := RedirectURL;
-        ScopeGlobal := Scope;
+        ScopesGlobal := Scopes;
     end;
 }

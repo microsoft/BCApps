@@ -25,6 +25,11 @@ codeunit 9996 "Upgrade Tag Impl."
         exit(HasUpgradeTag(Tag, CopyStr(CompanyName(), 1, MaxStrLen(ConstUpgradeTags.Company))));
     end;
 
+    procedure HasDatabaseUpgradeTag(Tag: Code[250]): Boolean
+    begin
+        exit(HasUpgradeTag(Tag, ''));
+    end;
+
     procedure HasUpgradeTag(Tag: Code[250]; TagCompanyName: Code[30]): Boolean
     var
         UpgradeTags: Record "Upgrade Tags";

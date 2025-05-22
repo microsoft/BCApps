@@ -4,8 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
-using System.Telemetry;
-using System.Globalization;
+using System.Privacy;
 
 /// <summary>
 /// Table to keep track of each Copilot Capability settings.
@@ -45,6 +44,10 @@ table 7775 "Copilot Settings"
         {
             DataClassification = SystemMetadata;
         }
+        field(7; "Service Type"; Enum "Azure AI Service Type")
+        {
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys
@@ -55,27 +58,35 @@ table 7775 "Copilot Settings"
         }
     }
 
-    trigger OnModify()
+    procedure EvaluateStatus(): Enum "Copilot Status"
     var
-        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
-        Language: Codeunit Language;
-        SavedGlobalLanguageId: Integer;
-        CustomDimensions: Dictionary of [Text, Text];
+        CopilotCapability: Codeunit "Copilot Capability";
     begin
-        SavedGlobalLanguageId := GlobalLanguage();
-        GlobalLanguage(Language.GetDefaultApplicationLanguageId());
+        if Rec.Status <> Rec.Status::Active then
+            exit(Rec.Status);
 
-        CustomDimensions.Add('Category', CopilotCapabilityImpl.GetCopilotCategory());
-        CustomDimensions.Add('Capability', Format(Rec.Capability));
-        CustomDimensions.Add('AppId', Format(Rec."App Id"));
-        CustomDimensions.Add('Enabled', Format(Rec.Status));
-        FeatureTelemetry.LogUsage('0000LE0', CopilotCapabilityImpl.GetCopilotCategory(), CopilotCapabilityModifiedLbl, CustomDimensions);
-
-        GlobalLanguage(SavedGlobalLanguageId);
+        if CopilotCapability.IsCapabilityActive(Rec.Capability, Rec."App Id") then
+            exit(Rec.Status::Active)
+        else
+            exit(Rec.Status::Inactive);
     end;
 
+    procedure EnsurePrivacyNoticesApproved(): Boolean
     var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-        CopilotCapabilityModifiedLbl: Label 'Copilot capability has been modified.', Locked = true;
+        CopilotCapability: Codeunit "Copilot Capability";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        RequiredPrivacyNotices: List of [Code[50]];
+        RequiredPrivacyNotice: Code[50];
+    begin
+        CopilotCapability.OnGetRequiredPrivacyNotices(Rec.Capability, Rec."App Id", RequiredPrivacyNotices);
 
+        if RequiredPrivacyNotices.Count() <= 0 then
+            exit(true);
+
+        foreach RequiredPrivacyNotice in RequiredPrivacyNotices do
+            if not PrivacyNotice.ConfirmPrivacyNoticeApproval(RequiredPrivacyNotice, true) then
+                exit(false);
+
+        exit(true);
+    end;
 }

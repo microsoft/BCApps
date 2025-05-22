@@ -33,16 +33,12 @@ permissionset 66 "System Tables - Basic"
                              "User Personalization - Edit",
                              "User Selection - Read",
                              "Webhook - Edit",
-                             "Data Analysis - Exec";
+                             "Data Analysis - Exec",
+                             "Perf. Profiler Tables - Edit";
 
     Permissions = tabledata "Add-in" = R,
                   tabledata "Aggregate Permission Set" = Rimd,
                   tabledata "All Profile Page Metadata" = Rimd,
-#if not CLEAN22
-#pragma warning disable AL0432
-                  tabledata Chart = R,
-#pragma warning restore AL0432
-#endif
                   tabledata "Code Coverage" = Rimd,
                   tabledata "Configuration Package File" = RIMD,
                   tabledata "Document Service" = R,

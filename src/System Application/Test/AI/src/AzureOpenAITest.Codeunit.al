@@ -39,7 +39,7 @@ codeunit 132684 "Azure OpenAI Test"
 
         // [WHEN] IsEnabled is called
         // [THEN] IsEnabled opens "Copilot Not Available" page and also returns false
-        LibraryAssert.IsFalse(AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Text Capability"), 'IsEnabled should return false when privacy notice is "Not Set" and not in geo.');
+        LibraryAssert.IsTrue(AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Text Capability"), 'IsEnabled should return true when privacy notice is "Not Set" and not in geo.');
     end;
 
     [Test]

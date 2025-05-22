@@ -73,7 +73,7 @@ page 2513 "Extn. Orphaned App Details"
 
                 trigger OnAction()
                 begin
-                    ExtensionInstallationImpl.DeleteOrphanData(Rec."Package Id", Rec."Name");
+                    ExtensionInstallationImpl.DeleteOrphanData(Rec."App Id", Rec."Name");
                     CurrPage.Close();
                 end;
             }

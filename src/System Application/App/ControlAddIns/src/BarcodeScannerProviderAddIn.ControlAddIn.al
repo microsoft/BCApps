@@ -10,7 +10,7 @@ namespace System.Device;
 /// </summary>
 controladdin BarcodeScannerProviderAddIn
 {
-    Scripts = 'emptyScript.js';
+    Scripts = 'Resources\emptyScript.js';
 
     /// <summary>
     /// This method is used to request the barcode scanner.

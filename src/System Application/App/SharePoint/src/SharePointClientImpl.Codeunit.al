@@ -652,6 +652,25 @@ codeunit 9101 "SharePoint Client Impl."
         exit(true);
     end;
 
+    procedure FolderExistsByServerRelativeUrl(ServerRelativeUrl: Text): Boolean
+    var
+        Result: Text;
+        FolderExists: Boolean;
+    begin
+        SharePointUriBuilder.ResetPath();
+        SharePointUriBuilder.SetMethod('GetFolderByServerRelativeUrl', ServerRelativeUrl);
+        SharePointUriBuilder.SetObject('Exists');
+
+        SharePointRequestHelper.SetAuthorization(Authorization);
+        SharePointOperationResponse := SharePointRequestHelper.Get(SharePointUriBuilder);
+        if not SharePointOperationResponse.GetDiagnostics().IsSuccessStatusCode() then
+            exit(false);
+
+        SharePointOperationResponse.GetResultAsText(Result);
+        ParseFolderExistsByServerRelativeUrlResult(Result, FolderExists);
+        exit(FolderExists);
+    end;
+
     procedure DeleteFolder(OdataId: Text): Boolean
     begin
         //DELETE https://{site_url}/_api/web/GetFolderByServerRelativeUrl('{folder_name}')
@@ -777,6 +796,23 @@ codeunit 9101 "SharePoint Client Impl."
 
         SharePointOperationResponse.GetResultAsText(Txt);
         exit(true);
+    end;
+
+    local procedure ParseFolderExistsByServerRelativeUrlResult(Payload: Text; var FolderExists: Boolean)
+    var
+        JObject: JsonObject;
+        JToken: JsonToken;
+    begin
+        if not JObject.ReadFrom(Payload) then
+            exit;
+
+        if not JObject.Get('value', JToken) then
+            exit;
+
+        if not JToken.IsValue() then
+            exit;
+
+        FolderExists := JToken.AsValue().AsBoolean();
     end;
     #endregion
 }

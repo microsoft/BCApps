@@ -26,6 +26,17 @@ codeunit 2611 "Feature Management Facade"
     end;
 
     /// <summary>
+    /// Returns true if the feature is enabled and data update, if required, is complete.
+    /// </summary>
+    /// <param name="FeatureId">the feature id in the system table "Feature Key"</param>
+    /// <param name="AllowInsert">specifies if inserts are allowed while checking for feature being enabled</param>
+    /// <returns>if the feature is fully enabled</returns>
+    procedure IsEnabled(FeatureId: Text[50]; AllowInsert: Boolean): Boolean;
+    begin
+        exit(FeatureManagementImpl.IsEnabled(FeatureId, AllowInsert));
+    end;
+
+    /// <summary>
     /// Updates the status in "Feature Data Update Status" records related to all companies.
     /// Also sends the notification reminding user to sign in again after feature is enabled/disabled.
     /// </summary>
