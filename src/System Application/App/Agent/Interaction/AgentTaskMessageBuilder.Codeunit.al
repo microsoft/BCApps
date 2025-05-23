@@ -17,10 +17,22 @@ codeunit 4316 "Agent Task Message Builder"
         AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";
 
     /// <summary>
-    /// Check if a task exists for the given agent user and conversation
+    /// Check if a task exists for the given user and conversation
     /// </summary>
-    /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
-    /// <param name="ConversationId">The conversation ID to check.</param>
+    /// <param name="MessageText">The text of the message.</param>
+    /// <returns>This instance of the Agent Task Message Builder.</returns>
+    [Scope('OnPrem')]
+    procedure Initialize(MessageText: Text): codeunit "Agent Task Message Builder"
+    begin
+        AgentTaskMsgBuilderImpl.Initialize(MessageText);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Check if a task exists for the given user and conversation
+    /// </summary>
+    /// <param name="From">Text indicating the sender of the message.</param>
+    /// <param name="MessageText">The text of the message.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     [Scope('OnPrem')]
     procedure Initialize(From: Text[250]; MessageText: Text): codeunit "Agent Task Message Builder"
@@ -127,5 +139,43 @@ codeunit 4316 "Agent Task Message Builder"
     begin
         AgentTaskMsgBuilderImpl.AddAttachment(FileName, FileMIMEType, InStream);
         exit(this);
+    end;
+
+    /// <summary>
+    /// Attach a file to the task message.
+    /// The file will be attached when the message is created.
+    /// It is possible to attach multiple files to the message.
+    /// </summary>
+    /// <param name="AgentTaskFile">The file to attach.</param>
+    /// <returns>This instance of the Agent Task Message Builder.</returns>
+    [Scope('OnPrem')]
+    procedure AddAttachment(AgentTaskFile: Record "Agent Task File"): codeunit "Agent Task Message Builder"
+    begin
+        AgentTaskMsgBuilderImpl.AddAttachment(AgentTaskFile);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Uploads a file to the task message.
+    /// The file will be attached when the message is created.
+    /// It is possible to attach multiple files to the message.
+    /// </summary>
+    /// <returns>True if the attachment was uploaded, false otherwise.</returns>
+    [Scope('OnPrem')]
+    procedure UploadAttachment(): Boolean
+    begin
+        exit(AgentTaskMsgBuilderImpl.UploadAttachment());
+    end;
+
+    /// <summary>
+    /// Get the last attachment that was added to the task message.
+    /// </summary>
+    /// <returns>
+    /// The last attachment that was added to the task message.
+    /// </returns>
+    [Scope('OnPrem')]
+    procedure GetLastAttachment(): Record "Agent Task File"
+    begin
+        exit(AgentTaskMsgBuilderImpl.GetLastAttachment());
     end;
 }

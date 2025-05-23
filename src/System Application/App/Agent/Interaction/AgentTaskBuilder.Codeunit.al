@@ -16,7 +16,6 @@ codeunit 4315 "Agent Task Builder"
     var
         AgentTaskBuilderImpl: Codeunit "Agent Task Builder Impl.";
 
-
     /// <summary>
     /// Check if a task exists for the given agent user and conversation
     /// </summary>
@@ -37,9 +36,9 @@ codeunit 4315 "Agent Task Builder"
     /// Agent task that was created
     /// </returns>
     [Scope('OnPrem')]
-    procedure CreateTask(): Record "Agent Task"
+    procedure Create(): Record "Agent Task"
     begin
-        exit(AgentTaskBuilderImpl.CreateTask());
+        exit(AgentTaskBuilderImpl.Create());
     end;
 
     /// <summary>

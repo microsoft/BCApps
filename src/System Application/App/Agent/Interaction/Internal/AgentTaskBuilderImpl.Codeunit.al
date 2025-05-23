@@ -42,7 +42,7 @@ codeunit 4310 "Agent Task Builder Impl."
     /// Agent task that was created
     /// </returns>
     [Scope('OnPrem')]
-    procedure CreateTask(): Record "Agent Task"
+    procedure Create(): Record "Agent Task"
     var
         AgentTaskRecord: Record "Agent Task";
         AgentTaskImpl: Codeunit "Agent Task Impl.";
