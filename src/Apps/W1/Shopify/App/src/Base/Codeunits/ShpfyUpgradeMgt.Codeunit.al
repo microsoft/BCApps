@@ -452,13 +452,13 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         Catalog: Record "Shpfy Catalog";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        if UpgradeTag.HasUpgradeTag(GetShopifyCatalogsTypeUpgradeTag()) then
+        if UpgradeTag.HasUpgradeTag(this.GetShopifyCatalogsTypeUpgradeTag()) then
             exit;
 
         Catalog.SetRange("Catalog Type", Catalog."Catalog Type"::" ");
         Catalog.ModifyAll("Catalog Type", Catalog."Catalog Type"::"Company", false);
 
-        UpgradeTag.SetUpgradeTag(GetShopifyCatalogsTypeUpgradeTag());
+        UpgradeTag.SetUpgradeTag(this.GetShopifyCatalogsTypeUpgradeTag());
     end;
 
     internal procedure GetAllowOutgoingRequestseUpgradeTag(): Code[250]
