@@ -418,7 +418,7 @@ page 8887 "Email Accounts"
                     continue;
                 end;
 #endif
-            if V3Filter then
+            if V2V3Filter or V3Filter then
                 if not (IConnector is "Email Connector v3") then
                     EmailAccounts.Delete();
 
