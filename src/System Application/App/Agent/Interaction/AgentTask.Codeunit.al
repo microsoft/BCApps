@@ -9,6 +9,8 @@ namespace System.Agents;
 codeunit 4303 "Agent Task"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
     ObsoleteState = Pending;
     ObsoleteReason = 'Use Agent Task Builder (Codeunit 4315) instead.';
     ObsoleteTag = '27.0';
