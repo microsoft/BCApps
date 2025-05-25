@@ -33,7 +33,7 @@ if($appType -eq 'app')
         $recompileDependencies | ForEach-Object {
             $dependenciesParameters = $parameters.Value.Clone()
             $dependenciesParameters["appOutputFolder"] = $dependenciesParameters["appSymbolsFolder"] # Output the apps into the symbols folder so we can use them for the clean build later
-            Build-App -App $_ -CompilationParameters ($parameters.Value.Clone())
+            Build-App -App $_ -CompilationParameters $dependenciesParameters
         }
     }
 
@@ -57,6 +57,7 @@ if($appType -eq 'app')
                         $dependenciesParameters = $parameters.Value.Clone()
                         $dependenciesParameters["preprocessorsymbols"] = @() # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
                         $dependenciesParameters["appOutputFolder"] = $defaultSymbolsPath # Use the default symbols folder as appOutputFolder
+                        $dependenciesParameters["appSymbolsFolder"] = $defaultSymbolsPath # Use the default symbols folder as appSymbolsFolder
                         Build-App -App $_ -CompilationParameters $dependenciesParameters
                     }
                 }
