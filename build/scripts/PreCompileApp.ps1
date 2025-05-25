@@ -44,7 +44,7 @@ if($appType -eq 'app')
 
             if($appBuildMode -eq 'Clean') {
                 Write-Host "Compile the app without any preprocessor symbols to generate a baseline app to use for breaking changes check"
-                
+
                 # Create a new empty folder for the apps without preprocessor symbols
                 $defaultSymbolsPath = Join-Path (Split-Path $parameters.Value["appSymbolsFolder"] -Parent) "DefaultModeSymbols"
                 if (-not (Test-Path $defaultSymbolsPath)) {
