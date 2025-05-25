@@ -196,7 +196,6 @@ codeunit 3109 "PDF Helper Impl"
         ImageMemoryStream: DotNet MemoryStream;
         SharedDocumentStream: InStream;
     begin
-
         // Empty stream, no actions possible on the stream so return immediatly
         if DocumentStream.Length < 1 then
             exit(false);
