@@ -9,6 +9,11 @@ Note that when using the preview version of AL-Go for GitHub, we recommend you U
 ### Issues
 
 - Issue 1697 Error in CheckForUpdates: "Internet Explorer engine is not available" when using self-hosted runners
+- Issue 1685 HttpError: Resource not accessible by integration
+
+### Workflow input validation
+
+Some workflow inputs are now validated early in order to avoid workflows to make modifications like creating a release, when we already should know that an error will occur later.
 
 ### Test settings against a JSON schema
 
