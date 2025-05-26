@@ -62,9 +62,7 @@ table 149001 "BCPT Line"
                 Parameters := GetDefaultParametersIfAvailable();
             end;
         }
-#pragma warning disable AS0086
         field(4; "Codeunit Name"; Text[249])
-#pragma warning restore AS0086
         {
             Caption = 'Codeunit Name';
             Editable = false;
@@ -240,13 +238,11 @@ table 149001 "BCPT Line"
             FieldClass = FlowField;
             CalcFormula = sum("BCPT Log Entry"."No. of SQL Statements" where("BCPT Code" = field("BCPT Code"), "BCPT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Scenario')));
         }
-#pragma warning disable AS0080
         field(29; "Company Name"; Code[30])
         {
             Caption = 'Specify the test company';
             DataClassification = CustomerContent;
         }
-#pragma warning restore AS0080
     }
 
     keys

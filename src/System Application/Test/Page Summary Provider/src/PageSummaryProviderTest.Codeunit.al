@@ -31,7 +31,7 @@ codeunit 132548 "Page Summary Provider Test"
         InvalidSystemIdErrorCodeTok: Label 'InvalidSystemId', Locked = true;
         InvalidSystemIdErrorMessageTxt: Label 'The system ID is invalid.';
         FailedGetSummaryFieldsCodeTok: Label 'FailedGettingPageSummaryFields', Locked = true;
-        CannotOpenSpecifiedRecordTxt: Label 'Cannot open the specified record because it is from a different table than the Page Provider Summary Test table, which the current page is based on.';
+        CannotOpenSpecifiedRecordTxt: Label 'A RecordID from table ''Page Provider Summary Test2'' cannot be used with a record from table ''Page Provider Summary Test''.';
         PageIdTok: Label 'pageId', Locked = true;
         BookmarkTok: Label 'bookmark', Locked = true;
         RecordSystemIdTok: Label 'recordSystemId', Locked = true;
