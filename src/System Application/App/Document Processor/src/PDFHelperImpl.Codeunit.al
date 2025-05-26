@@ -19,7 +19,7 @@ codeunit 3109 "PDF Helper Impl"
     var
         TempFolderPath: Text;
         Initialized: Boolean;
-        ValidNamesTxt: TextConst ENU = 'factur-x.xml, xrechnung.xml, zugferd-invoice.xml';
+        ValidNamesTxt: Label 'factur-x.xml, xrechnung.xml, zugferd-invoice.xml', Locked = true;
 
     procedure Init()
     begin
@@ -79,7 +79,6 @@ codeunit 3109 "PDF Helper Impl"
         PdfAttachmentManager: DotNet PdfAttachmentManager;
         AttachmentStream: InStream;
         ZipFilename: Text;
-        AttachmentsLbl: Label 'Attachments.zip';
         ZipFileLbl: Label 'zip file';
     begin
         PdfAttachmentManager := PdfAttachmentManager.PdfAttachmentManager(PdfStream);
@@ -113,7 +112,6 @@ codeunit 3109 "PDF Helper Impl"
     var
         PdfDocumentInfoInstance: DotNet PdfDocumentInfo;
         PdfConverterInstance: DotNet PdfConverter;
-        PdfTargetDevice: DotNet PdfTargetDevice;
         MemoryStream: DotNet MemoryStream;
         TextValue: text;
         IntegerValue: Integer;
