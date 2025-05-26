@@ -20,5 +20,6 @@ permissionset 4300 "Agent - Objects"
                   page "Agent Task Log Entry List" = X,
                   page "Agent User Settings" = X,
                   codeunit "Agent Impl." = X,
-                  codeunit "Agent Task" = X;
+                  codeunit "Agent Task Builder" = X,
+                  codeunit "Agent Task Message Builder" = X;
 }
