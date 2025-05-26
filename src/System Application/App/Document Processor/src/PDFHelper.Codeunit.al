@@ -58,15 +58,6 @@ codeunit 3110 "PDF Helper"
     end;
 
     /// <summary>
-    /// This procedure is used to save all attachments from a PDF file.
-    /// </summary>
-    /// <param name="PdfStream">Input stream of the PDF file.</param>
-    procedure SaveAllAttachments(PdfStream: InStream)
-    begin
-        PDFHelperImpl.SaveAllAttachments(PdfStream);
-    end;
-
-    /// <summary>
     /// Get the zip archive from the PDF stream.
     /// </summary>
     /// <param name="PdfStream">Input stream of the PDF file.</param>
@@ -93,16 +84,6 @@ codeunit 3110 "PDF Helper"
     procedure GetPdfProperties(DocumentStream: InStream): JsonObject
     begin
         exit(PDFHelperImpl.GetPdfProperties(DocumentStream));
-    end;
-
-    /// <summary>
-    /// Saves the content of a PDF file to a specified stream and file name.
-    /// </summary>
-    /// <param name="DocumentStream">Input stream of the PDF file.</param>
-    /// <param name="FileName">File name to save the PDF file.</param>
-    procedure SaveFileContent(var DocumentStream: InStream; FileName: Text)
-    begin
-        PDFHelperImpl.SaveFileContent(DocumentStream, FileName);
     end;
 
     /// <summary>

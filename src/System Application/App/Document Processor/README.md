@@ -4,8 +4,6 @@ You can use this module to:
 
 - Extract invoice attachments from PDF documents
 
-- Save all embedded attachments from a PDF
-
 - Download all attachments as a ZIP archive
 
 - Retrieve PDF metadata (author, title, page size, etc.)
@@ -26,14 +24,6 @@ begin
     Success := PdfHelper.GetInvoiceAttachmentStream(PdfStream, TempBlob);
     if Success then
         Message('Invoice extracted successfully');
-end;
-
-### Save all attachments from a PDF
-procedure Example(PdfStream: InStream)
-var
-    PdfHelper: Codeunit "PDF Helper Impl";
-begin
-    PdfHelper.SaveAllAttachments(PdfStream);
 end;
 
 ### Download all attachments as a ZIP file

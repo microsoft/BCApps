@@ -74,23 +74,6 @@ codeunit 3109 "PDF Helper Impl"
         exit(true);
     end;
 
-    procedure SaveAllAttachments(PdfStream: InStream)
-    var
-        PdfAttachmentManager: DotNet PdfAttachmentManager;
-        PdfAttachment: DotNet PdfAttachment;
-        AttachmentStream: InStream;
-        AttachmentName: Text;
-        AttachmentSavedLbl: Label 'All attachments saved to %1', Comment = '%1 = path';
-    begin
-        PdfAttachmentManager := PdfAttachmentManager.PdfAttachmentManager(PdfStream);
-        foreach PdfAttachment in PdfAttachmentManager do begin
-            AttachmentName := PdfAttachment.Name;
-            AttachmentStream := PdfAttachment.Contents;
-            SaveFileContent(AttachmentStream, GetOutputPath() + AttachmentName);
-        end;
-        Message(AttachmentSavedLbl, GetOutputPath());
-    end;
-
     procedure GetZipArchive(PdfStream: InStream)
     var
         PdfAttachmentManager: DotNet PdfAttachmentManager;
@@ -175,17 +158,6 @@ codeunit 3109 "PDF Helper Impl"
         TextValue := PdfDocumentInfoInstance.Title;
         JsonContainer.Add('title', TextValue);
         exit(JsonContainer);
-    end;
-
-    procedure SaveFileContent(var DocumentStream: InStream; FileName: Text)
-    var
-        FileObject: File;
-        DocumentOutStream: OutStream;
-    begin
-        FileObject.Create(FileName);
-        FileObject.CreateOutStream(DocumentOutStream);
-        CopyStream(DocumentOutStream, DocumentStream);
-        FileObject.Close();
     end;
 
     procedure ConvertPageToImage(DocumentStream: InStream; var ImageStream: InStream; ImageFormat: Enum "Image Format"; PageNumber: Integer): Boolean
