@@ -33,7 +33,7 @@ codeunit 134055 "Https Mock Email Test"
         Email: Codeunit Email;
 
     [Test]
-    [HandlerFunctions('HttpRequestMockHandler')]
+    [HandlerFunctions('HttpRequestMockSuccessHandler')]
     [Scope('OnPrem')]
     procedure SendNewMessageThroughEditorSuccessTest()
     var
@@ -41,14 +41,14 @@ codeunit 134055 "Https Mock Email Test"
         OutlookAccount: Record "Email - Outlook Account";
         OutlookApiSetup: Record "Email - Outlook API Setup";
         SentEmail: Record "Sent Email";
-        MockTest: Codeunit "Https Mock Email Test";
+        SkipTokenRequest: Codeunit "Skip Outlook API Token Request";
         ConnectorMock: Codeunit "Connector Mock";
         EmailMessage: Codeunit "Email Message";
         Editor: TestPage "Email Editor";
     begin
         // [Scenario] When user send the email from the editor with Microsoft 365 connector, the http request mocker returns a 202 to mock the success. All the records are updated correctly.
-        BindSubscription(MockTest);
-
+        BindSubscription(SkipTokenRequest);
+        SkipTokenRequest.SetSkipTokenRequest(true);
         // [GIVEN] Set up the email account and Outlook account
         PermissionsMock.Set('Super');
         ConnectorMock.AddAccount(Account, Enum::"Email Connector"::"Microsoft 365");
@@ -63,7 +63,7 @@ codeunit 134055 "Https Mock Email Test"
         Editor.SubjectField.SetValue('Test Subject');
         Editor.BodyField.SetValue('Test body');
 
-        // [WHEN] The send action is invoked
+        // [WHEN] The send action is invoked, the post request is mocked to return a 202 - the email is sent successfully
         Editor.Send.Invoke();
 
         // [THEN] The mail is sent and the info is correct
@@ -78,7 +78,7 @@ codeunit 134055 "Https Mock Email Test"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('HttpRequestMockHandler')]
+    [HandlerFunctions('HttpRequestMockSuccessHandler')]
     procedure ScheduledEmailBackgroundTest()
     var
         Account: Record "Email Account";
@@ -86,12 +86,13 @@ codeunit 134055 "Https Mock Email Test"
         OutlookApiSetup: Record "Email - Outlook API Setup";
         EmailOutbox: Record "Email Outbox";
         SentEmail: Record "Sent Email";
-        MockTest: Codeunit "Https Mock Email Test";
+        SkipTokenRequest: Codeunit "Skip Outlook API Token Request";
         EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
     begin
         // [Scenario] When the email is sent from the background task with Microsoft 365 connector, the http request mocker returns a 202 to mock the success. All the records are updated correctly.
-        BindSubscription(MockTest);
+        BindSubscription(SkipTokenRequest);
+        SkipTokenRequest.SetSkipTokenRequest(true);
 
         // [GIVEN] Set up the email account and Outlook account
         PermissionsMock.Set('Super');
@@ -110,7 +111,7 @@ codeunit 134055 "Https Mock Email Test"
         EmailOutbox."Send From" := Account."Email Address";
         EmailOutbox.Modify();
 
-        // [WHEN] The sending task is run from the background
+        // [WHEN] The sending task is run from the background, the post request is mocked to return a 202 - the email is sent successfully
         Codeunit.Run(Codeunit::"Email Dispatcher", EmailOutbox);
 
         // [THEN] No error occurs
@@ -146,7 +147,7 @@ codeunit 134055 "Https Mock Email Test"
     end;
 
     [HttpClientHandler]
-    procedure HttpRequestMockHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    procedure HttpRequestMockSuccessHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
         if (Request.RequestType = HttpRequestType::Post) then begin
             // Populate the mocked response with content `HTTP/1.1 202 Accepted`
@@ -157,11 +158,5 @@ codeunit 134055 "Https Mock Email Test"
         end;
 
         exit(true); // fall through and issue the original request in case of other requests
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Email - OAuth Client", 'OnBeforeGetToken', '', false, false)]
-    local procedure MockTokenRequest(var IsHandled: Boolean)
-    begin
-        IsHandled := true;
     end;
 }
