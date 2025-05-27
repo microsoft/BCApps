@@ -2114,9 +2114,6 @@ dotnet
         type("System.Collections.Generic.List`1"; "GenericList1")
         {
         }
-        type("System.Collections.Generic.IList`1"; "GenericIList1")
-        {
-        }
         type("System.Nullable`1"; "Nullable1")
         {
         }
