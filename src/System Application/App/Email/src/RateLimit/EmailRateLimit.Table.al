@@ -33,6 +33,11 @@ table 8912 "Email Rate Limit"
         {
             DataClassification = SystemMetadata;
         }
+        field(5; "Concurrency Limit"; Integer)
+        {
+            DataClassification = SystemMetadata;
+            MinValue = 0;
+        }
     }
 
     keys
