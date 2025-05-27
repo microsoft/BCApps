@@ -10,12 +10,7 @@ using System.Email;
 codeunit 134056 "Http Mock Email Mgnt."
 {
     Permissions = tabledata "Email Message" = rid,
-                  tabledata "Email Message Attachment" = r,
-                  tabledata "Email Recipient" = r,
-                  tabledata "Email Related Record" = r,
                   tabledata "Email Outbox" = rimd,
-                  tabledata "Email View Policy" = rid,
-                  tabledata "Email Address Lookup" = rimd,
                   tabledata "Email Rate Limit" = rimd,
                   tabledata "Sent Email" = rid;
 
@@ -33,7 +28,6 @@ codeunit 134056 "Http Mock Email Mgnt."
         ConnectorMock.AddAccount(EmailAccount, Connector);
     end;
 
-
     procedure HasAtLeastOneEmailInSentEmail(EmailMessageId: Guid): Boolean
     begin
         SentEmail.SetRange("Message Id", EmailMessageId);
@@ -41,7 +35,6 @@ codeunit 134056 "Http Mock Email Mgnt."
     end;
 
     procedure CheckSentEmailDescription(EmailMessageId: Guid; ExpectedDescription: Text): Boolean
-
     begin
         SentEmail.SetRange("Message Id", EmailMessageId);
         if not SentEmail.FindFirst() then
@@ -74,7 +67,6 @@ codeunit 134056 "Http Mock Email Mgnt."
             Error(NoSentEmailRecordFoundErr);
         exit(ExpectedConnector = SentEmail.Connector);
     end;
-
 
     procedure SetupEmailOutbox(EmailMessageId: Guid; Connector: Enum "Email Connector"; EmailAccountId: Guid; EmailDescription: Text; EmailAddress: Text[250]; UserSecurityId: Code[50])
     var
