@@ -7,18 +7,12 @@ namespace System.TestLibraries.Email;
 
 using System.Email;
 
-codeunit 134056 "Http Mock Email Mgnt."
+codeunit 134056 "Library - Email Mock"
 {
     Permissions = tabledata "Email Message" = rid,
                   tabledata "Email Outbox" = rimd,
                   tabledata "Email Rate Limit" = rimd,
                   tabledata "Sent Email" = rid;
-
-
-    var
-        SentEmail: Record "Sent Email";
-        EmailError: Record "Email Error";
-        NoSentEmailRecordFoundErr: Label 'No Sent Email record found for the given Message Id.';
 
 
     procedure AddAccount(var EmailAccount: Record "Email Account"; Connector: Enum "Email Connector")
@@ -28,47 +22,54 @@ codeunit 134056 "Http Mock Email Mgnt."
         ConnectorMock.AddAccount(EmailAccount, Connector);
     end;
 
-    procedure HasAtLeastOneEmailInSentEmail(EmailMessageId: Guid): Boolean
+    procedure SentEmailExists(EmailMessageId: Guid): Boolean
+    var
+        SentEmail: Record "Sent Email";
     begin
         SentEmail.SetRange("Message Id", EmailMessageId);
         exit(not SentEmail.IsEmpty());
     end;
 
     procedure CheckSentEmailDescription(EmailMessageId: Guid; ExpectedDescription: Text): Boolean
+    var
+        SentEmail: Record "Sent Email";
     begin
         SentEmail.SetRange("Message Id", EmailMessageId);
-        if not SentEmail.FindFirst() then
-            Error(NoSentEmailRecordFoundErr);
+        SentEmail.FindFirst();
         exit(ExpectedDescription = SentEmail.Description);
     end;
 
-
     procedure CheckSentEmailFrom(EmailMessageId: Guid; ExpectedFrom: Text): Boolean
+    var
+        SentEmail: Record "Sent Email";
     begin
         SentEmail.SetRange("Message Id", EmailMessageId);
-        if not SentEmail.FindFirst() then
-            Error(NoSentEmailRecordFoundErr);
+        SentEmail.FindFirst();
         exit(ExpectedFrom = SentEmail."Sent From");
     end;
 
-
     procedure CheckSentEmailAccountId(EmailMessageId: Guid; ExpectedAccountId: Guid): Boolean
+    var
+        SentEmail: Record "Sent Email";
     begin
         SentEmail.SetRange("Message Id", EmailMessageId);
-        if not SentEmail.FindFirst() then
-            Error(NoSentEmailRecordFoundErr);
+        SentEmail.FindFirst();
         exit(ExpectedAccountId = SentEmail."Account Id");
     end;
 
     procedure CheckSentEmailConnector(EmailMessageId: Guid; ExpectedConnector: Enum "Email Connector"): Boolean
+    var
+        SentEmail: Record "Sent Email";
     begin
         SentEmail.SetRange("Message Id", EmailMessageId);
-        if not SentEmail.FindFirst() then
-            Error(NoSentEmailRecordFoundErr);
+        SentEmail.FindFirst();
         exit(ExpectedConnector = SentEmail.Connector);
     end;
 
-    procedure SetupEmailOutbox(EmailMessageId: Guid; Connector: Enum "Email Connector"; EmailAccountId: Guid; EmailDescription: Text; EmailAddress: Text[250]; UserSecurityId: Code[50])
+    procedure SetupEmailOutbox(EmailMessageId: Guid; Connector: Enum "Email Connector"; EmailAccountId: Guid;
+                                                                    EmailDescription: Text;
+                                                                    EmailAddress: Text[250];
+                                                                    UserSecurityId: Code[50])
     var
         EmailOutbox: Record "Email Outbox";
     begin
@@ -87,30 +88,32 @@ codeunit 134056 "Http Mock Email Mgnt."
         EmailOutbox: Record "Email Outbox";
     begin
         EmailOutbox.SetRange("Message Id", EmailMessageId);
-        if not EmailOutbox.FindFirst() then
-            Error(NoSentEmailRecordFoundErr);
+        EmailOutbox.FindFirst();
         Codeunit.Run(Codeunit::"Email Dispatcher", EmailOutbox);
     end;
 
     procedure CleanEmailErrors()
+    var
+        EmailError: Record "Email Error";
     begin
         EmailError.DeleteAll();
     end;
 
     procedure GetEmailErrorCount(): Integer
+    var
+        EmailError: Record "Email Error";
     begin
         EmailError.Reset();
         exit(EmailError.Count());
     end;
 
-    procedure GetEmailOutBoxStatusWithMessageId(MessageId: Guid): Enum "Email Status"
+    procedure CheckEmailOutBoxStatusWithMessageId(MessageId: Guid; Status: Enum "Email Status"): Boolean
     var
         EmailOutbox: Record "Email Outbox";
     begin
         EmailOutbox.SetRange("Message Id", MessageId);
-        if not EmailOutbox.FindFirst() then
-            Error('No Email Outbox record found for the given Message Id.');
-        exit(EmailOutbox.Status);
+        EmailOutbox.FindFirst();
+        exit(EmailOutbox.Status = Status);
     end;
 
 }
