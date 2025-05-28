@@ -158,7 +158,7 @@ codeunit 3109 "PDF Helper Impl"
         exit(JsonContainer);
     end;
 
-    procedure ConvertPageToImage(DocumentStream: InStream; var ImageStream: InStream; ImageFormat: Enum "Image Format"; PageNumber: Integer): Boolean
+    procedure ConvertPdfToImage(DocumentStream: InStream; var ImageStream: InStream; ImageFormat: Enum "Image Format"; PageNumber: Integer): Boolean
     var
         PdfConverterInstance: DotNet PdfConverter;
         PdfTargetDevice: DotNet PdfTargetDevice;
@@ -179,7 +179,7 @@ codeunit 3109 "PDF Helper Impl"
         MemoryStream := SharedDocumentStream;
 
         ConvertImageFormatToPdfTargetDevice(ImageFormat, PdfTargetDevice);
-        ImageMemoryStream := PdfConverterInstance.ConvertPage(PdfTargetDevice.PngDevice, MemoryStream, PageNumber, 0, 0, 0); // apply default heighth, width and resolution
+        ImageMemoryStream := PdfConverterInstance.ConvertPage(PdfTargetDevice, MemoryStream, PageNumber, 0, 0, 0); // apply default heighth, width and resolution
         // Copy data to the outgoing stream and make sure it is reset to the beginning of the stream.
         ImageMemoryStream.Seek(0, 0);
         ImageMemoryStream.CopyTo(ImageStream);
