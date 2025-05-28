@@ -142,13 +142,19 @@ page 2511 "Extension Settings"
 
     trigger OnAfterGetCurrRecord()
     var
+        NavAppInstalledApp: Record "NAV App Installed App";
         PublishedApplication: Record "Published Application";
     begin
         PublishedApplication.SetRange(ID, Rec."App ID");
         PublishedApplication.SetRange("Tenant Visible", true);
-        PublishedApplication.SetRange("Tenant ID", TenantID());
 
-        SetInstalledFilter(PublishedApplication);
+        // If the app is installed on the tenant, filter by this app package. Otherwise, retrieve the first occurrence of the app.
+        if NavAppInstalledApp.Get(Rec."App ID") then
+            PublishedApplication.SetRange("Package ID", NavAppInstalledApp."Package ID")
+        else
+            // For PTEs we need to filter by the tenant ID.
+            if PublishedApplication."Published As" <> PublishedApplication."Published As"::Global then
+                PublishedApplication.SetRange("Tenant ID", TenantID());
 
         if PublishedApplication.FindFirst() then begin
             AppNameValue := PublishedApplication.Name;
@@ -182,14 +188,6 @@ page 2511 "Extension Settings"
         end;
 
         CanManageExtensions := ExtensionInstallationImpl.CanManageExtensions();
-    end;
-
-    local procedure SetInstalledFilter(var PublishedApplication: Record "Published Application")
-    begin
-        PublishedApplication.SetRange(Installed, true);
-        if PublishedApplication.FindFirst() then
-            exit;
-        PublishedApplication.SetRange(Installed, false);
     end;
 
     var
