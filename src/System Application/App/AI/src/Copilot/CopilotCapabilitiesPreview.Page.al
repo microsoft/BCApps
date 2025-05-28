@@ -55,6 +55,13 @@ page 7773 "Copilot Capabilities Preview"
                     ToolTip = 'Specifies the publisher of this Copilot.';
                     Editable = false;
                 }
+                field("Billing Type"; Rec."Billing Type")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Billing Type';
+                    ToolTip = 'Specifies the billing type of this Copilot.';
+                    Editable = false;
+                }
                 field("Learn More"; LearnMore)
                 {
                     ApplicationArea = All;

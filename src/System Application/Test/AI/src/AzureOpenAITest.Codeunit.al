@@ -292,6 +292,34 @@ codeunit 132684 "Azure OpenAI Test"
     end;
 
     [Test]
+    procedure GenerateTextCompletionsBillingTypeAuthorizationErr()
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        Metaprompt: Text;
+        CopilotCapability: Codeunit "Copilot Capability";
+    begin
+        // [SCENARIO] GenerateTextCompletion returns an error when generate complete is called
+
+        // [GIVEN] The privacy notice is agreed to
+        // [GIVEN] The authorization key is set
+        PrivacyNotice.SetApprovalState(AzureOpenAITxt, "Privacy Notice Approval State"::Agreed);
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Text Completions", EndpointTxt, DeploymentTxt, Any.AlphanumericText(10));
+
+        // [GIVEN] Capability is set
+        CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::"Custom Billed", '');
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Text Capability");
+        Metaprompt := 'metaprompt';
+
+        // [WHEN] GenerateTextCompletion is called
+        AzureOpenAI.GenerateTextCompletion(Metaprompt, Any.AlphanumericText(10), AOAIOperationResponse);
+
+        // [THEN] GenerateTextCompletion shall fail [CAPI with Custom Billed - Not allowed for Microsoft published capabilities]
+        LibraryAssert.ExpectedError('Usage of resources not authorized with current billing type.');
+    end;
+
+    [Test]
     procedure GenerateEmbeddingCopilotCapabilityNotSet()
     var
         AzureOpenAI: Codeunit "Azure OpenAI";

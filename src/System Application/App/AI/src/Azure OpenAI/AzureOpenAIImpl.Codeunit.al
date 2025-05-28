@@ -47,6 +47,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         TelemetryMetapromptRetrievalErr: Label 'Unable to retrieve metaprompt from Azure Key Vault.', Locked = true;
         TelemetryFunctionCallingFailedErr: Label 'Function calling failed for function: %1', Comment = '%1 is the name of the function', Locked = true;
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
+        BillingTypeAuthorizationErr: Label 'Usage of resources not authorized with current billing type.', Locked = true;
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
@@ -459,6 +460,10 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         EmptySecretText: SecretText;
     begin
         ClearLastError();
+
+        if not IsBillingTypeAuthorized(AOAIAuthorization, CallerModuleInfo) then
+            Error(BillingTypeAuthorizationErr);
+
         case AOAIAuthorization.GetResourceUtilization() of
             Enum::"AOAI Resource Utilization"::"Microsoft Managed":
                 ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
@@ -602,4 +607,25 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         if not TempPrivacyNotice.Insert() then;
     end;
 
+    procedure IsBillingTypeAuthorized(AOAIAuthorization: Codeunit "AOAI Authorization"; CallerModuleInfo: ModuleInfo): Boolean
+    var
+        BillingType: Enum "Copilot Billing Type";
+    begin
+        BillingType := CopilotCapabilityImpl.GetCopilotBillingType();
+        if (CopilotCapabilityImpl.IsPublisherMicrosoft(CallerModuleInfo)) then begin
+            if (AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"First Party") then
+                exit(BillingType <> Enum::"Copilot Billing Type"::"Custom Billed");
+        end else begin
+            case BillingType of
+                Enum::"Copilot Billing Type"::"Custom Billed":
+                    exit(AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed");
+                Enum::"Copilot Billing Type"::"Microsoft Billed":
+                    exit(AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Microsoft Managed");
+                Enum::"Copilot Billing Type"::"Not Billed":
+                    exit(AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed");
+                else
+                    exit(true);
+            end;
+        end;
+    end;
 }

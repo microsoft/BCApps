@@ -52,10 +52,15 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     begin
-        RegisterCapability(CopilotCapability, CopilotAvailability, Enum::"Azure AI Service Type"::"Azure OpenAI", LearnMoreUrl, CallerModuleInfo);
+        RegisterCapability(CopilotCapability, CopilotAvailability, Enum::"Copilot Billing Type"::"Undefined", Enum::"Azure AI Service Type"::"Azure OpenAI", LearnMoreUrl, CallerModuleInfo);
     end;
 
-    procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; AzureAIServiceType: Enum "Azure AI Service Type"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
+    procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; CopilotBillingType: Enum "Copilot Billing Type"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
+    begin
+        RegisterCapability(CopilotCapability, CopilotAvailability, CopilotBillingType, Enum::"Azure AI Service Type"::"Azure OpenAI", LearnMoreUrl, CallerModuleInfo);
+    end;
+
+    procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; CopilotBillingType: Enum "Copilot Billing Type"; AzureAIServiceType: Enum "Azure AI Service Type"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     var
         CustomDimensions: Dictionary of [Text, Text];
     begin
@@ -70,6 +75,7 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotSettings.Availability := CopilotAvailability;
         CopilotSettings."Learn More Url" := LearnMoreUrl;
         CopilotSettings."Service Type" := AzureAIServiceType;
+        CopilotSettings."Billing Type" := CopilotBillingType;
         if CopilotSettings.Availability = Enum::"Copilot Availability"::"Early Preview" then
             CopilotSettings.Status := Enum::"Copilot Status"::Inactive
         else
@@ -78,6 +84,7 @@ codeunit 7774 "Copilot Capability Impl"
         Commit();
 
         AddTelemetryDimensions(CopilotCapability, CallerModuleInfo.Id(), CustomDimensions);
+        AddStatusAndBillingTypeTelemetryDimension(CopilotSettings.Status, CopilotSettings."Billing Type", CustomDimensions);
         Telemetry.LogMessage('0000LDV', TelemetryRegisteredNewCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
     end;
 
@@ -114,6 +121,11 @@ codeunit 7774 "Copilot Capability Impl"
     end;
 
     procedure ModifyCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
+    begin
+        ModifyCapability(CopilotCapability, CopilotAvailability, Enum::"Copilot Billing Type"::"Undefined", LearnMoreUrl, CallerModuleInfo);
+    end;
+
+    procedure ModifyCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; CopilotBillingType: Enum "Copilot Billing Type"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     var
         CustomDimensions: Dictionary of [Text, Text];
     begin
@@ -127,12 +139,13 @@ codeunit 7774 "Copilot Capability Impl"
             CopilotSettings.Status := Enum::"Copilot Status"::Active;
 
         CopilotSettings.Availability := CopilotAvailability;
+        CopilotSettings."Billing Type" := CopilotBillingType;
         CopilotSettings."Learn More Url" := LearnMoreUrl;
         CopilotSettings.Modify(true);
         Commit();
 
         AddTelemetryDimensions(CopilotCapability, CallerModuleInfo.Id(), CustomDimensions);
-        AddStatusTelemetryDimension(CopilotSettings.Status, CustomDimensions);
+        AddStatusAndBillingTypeTelemetryDimension(CopilotSettings.Status, CopilotSettings."Billing Type", CustomDimensions);
         Telemetry.LogMessage('0000LDW', TelemetryModifiedCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
     end;
 
@@ -336,6 +349,7 @@ codeunit 7774 "Copilot Capability Impl"
         CustomDimensions.Add('AppId', Format(CopilotSettings."App Id"));
         CustomDimensions.Add('Publisher', CallerModuleInfo.Publisher);
         CustomDimensions.Add('UserLanguage', Format(GlobalLanguage()));
+        CustomDimensions.Add('BillingType', Format(CopilotSettings."Billing Type"));
 
         GlobalLanguage(SavedGlobalLanguageId);
     end;
@@ -370,7 +384,7 @@ codeunit 7774 "Copilot Capability Impl"
         exit(CopilotCategoryLbl);
     end;
 
-    procedure AddStatusTelemetryDimension(CopilotStatus: Enum "Copilot Status"; var CustomDimensions: Dictionary of [Text, Text])
+    procedure AddStatusAndBillingTypeTelemetryDimension(CopilotStatus: Enum "Copilot Status"; CopilotBillingType: Enum "Copilot Billing Type"; var CustomDimensions: Dictionary of [Text, Text])
     var
         Language: Codeunit Language;
         SavedGlobalLanguageId: Integer;
@@ -379,6 +393,7 @@ codeunit 7774 "Copilot Capability Impl"
         GlobalLanguage(Language.GetDefaultApplicationLanguageId());
 
         CustomDimensions.Add('Status', Format(CopilotStatus));
+        CustomDimensions.Add('BillingType', Format(CopilotBillingType));
 
         GlobalLanguage(SavedGlobalLanguageId);
     end;
@@ -450,5 +465,16 @@ codeunit 7774 "Copilot Capability Impl"
     begin
         CopilotCapability := Enum::"Copilot Capability".FromInteger(Capability);
         IsEnabled := AzureOpenAI.IsEnabled(CopilotCapability, Silent, AppId);
+    end;
+
+    procedure IsPublisherMicrosoft(CallerModuleInfo: ModuleInfo): Boolean
+    begin
+        exit(CallerModuleInfo.Publisher() = 'Microsoft');
+    end;
+
+    procedure GetCopilotBillingType(): Enum "Copilot Billing Type"
+    begin
+        CheckCapabilitySet();
+        exit(CopilotSettings."Billing Type");
     end;
 }

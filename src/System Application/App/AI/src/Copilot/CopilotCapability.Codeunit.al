@@ -44,6 +44,21 @@ codeunit 7773 "Copilot Capability"
     end;
 
     /// <summary>
+    /// Register a capability.
+    /// </summary>
+    /// <param name="CopilotCapability">The capability.</param>
+    /// <param name="CopilotAvailability">The availability.</param>
+    /// <param name="CopilotBillingType">BillingType.</param>
+    /// <param name="LearnMoreUrl">The learn more url.</param>
+    procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; CopilotBillingType: Enum "Copilot Billing Type"; LearnMoreUrl: Text[2048])
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        CopilotCapabilityImpl.RegisterCapability(CopilotCapability, CopilotAvailability, CopilotBillingType, LearnMoreUrl, CallerModuleInfo);
+    end;
+
+    /// <summary>
     /// Modify an existing capability.
     /// </summary>
     /// <param name="CopilotCapability">The capability.</param>
@@ -55,6 +70,21 @@ codeunit 7773 "Copilot Capability"
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         CopilotCapabilityImpl.ModifyCapability(CopilotCapability, CopilotAvailability, LearnMoreUrl, CallerModuleInfo);
+    end;
+
+    /// <summary>
+    /// Modify an existing capability.
+    /// </summary>
+    /// <param name="CopilotCapability">The capability.</param>
+    /// <param name="CopilotAvailability">The availability.</param>
+    /// <param name="CopilotBillingType">BillingType.</param>
+    /// <param name="LearnMoreUrl">The learn more url.</param>
+    procedure ModifyCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; CopilotBillingType: Enum "Copilot Billing Type"; LearnMoreUrl: Text[2048])
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        CopilotCapabilityImpl.ModifyCapability(CopilotCapability, CopilotAvailability, CopilotBillingType, LearnMoreUrl, CallerModuleInfo);
     end;
 
     /// <summary>
