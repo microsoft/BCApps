@@ -31,7 +31,7 @@ codeunit 134056 "Http Mock Email Mgnt."
     procedure HasAtLeastOneEmailInSentEmail(EmailMessageId: Guid): Boolean
     begin
         SentEmail.SetRange("Message Id", EmailMessageId);
-        exit(SentEmail.FindFirst());
+        exit(not SentEmail.IsEmpty());
     end;
 
     procedure CheckSentEmailDescription(EmailMessageId: Guid; ExpectedDescription: Text): Boolean
@@ -72,13 +72,13 @@ codeunit 134056 "Http Mock Email Mgnt."
     var
         EmailOutbox: Record "Email Outbox";
     begin
-        EmailOutbox."Message Id" := EmailMessageId;
+        EmailOutbox.Validate("Message Id", EmailMessageId);
         EmailOutbox.Insert();
-        EmailOutbox.Connector := Connector;
-        EmailOutbox."Account Id" := EmailAccountId;
-        EmailOutbox.Description := CopyStr('Test Subject', 1, MaxStrLen(EmailOutbox.Description));
-        EmailOutbox."User Security Id" := UserSecurityId;
-        EmailOutbox."Send From" := EmailAddress;
+        EmailOutbox.Validate(Connector, Connector);
+        EmailOutbox.Validate("Account Id", EmailAccountId);
+        EmailOutbox.Validate(Description, EmailDescription);
+        EmailOutbox.Validate("User Security Id", UserSecurityId);
+        EmailOutbox.Validate("Send From", EmailAddress);
         EmailOutbox.Modify();
     end;
 
@@ -88,7 +88,7 @@ codeunit 134056 "Http Mock Email Mgnt."
     begin
         EmailOutbox.SetRange("Message Id", EmailMessageId);
         if not EmailOutbox.FindFirst() then
-            Error('No Email Outbox record found for the given Message Id.');
+            Error(NoSentEmailRecordFoundErr);
         Codeunit.Run(Codeunit::"Email Dispatcher", EmailOutbox);
     end;
 
