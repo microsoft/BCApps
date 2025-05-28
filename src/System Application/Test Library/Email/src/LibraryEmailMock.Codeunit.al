@@ -7,7 +7,7 @@ namespace System.TestLibraries.Email;
 
 using System.Email;
 
-codeunit 134056 "Library - Email Mock"
+codeunit 134107 "Library - Email Mock"
 {
     Permissions = tabledata "Email Message" = rid,
                   tabledata "Email Outbox" = rimd,
