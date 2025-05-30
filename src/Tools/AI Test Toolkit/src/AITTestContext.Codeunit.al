@@ -132,6 +132,15 @@ codeunit 149044 "AIT Test Context"
         AITTestContextImpl.SetAccuracy(Accuracy);
     end;
 
+    /// <summary>
+    /// Gets the AITTestSuite associated with the run.
+    /// </summary>
+    /// <param name="AITTestSuite">AITTestSuite associated with the run.</param>
+    procedure GetAITTestSuite(var AITTestSuite: Record "AIT Test Suite")
+    begin
+        AITTestContextImpl.GetAITTestSuite(AITTestSuite);
+    end;
+
     var
         AITTestContextImpl: Codeunit "AIT Test Context Impl.";
 }
