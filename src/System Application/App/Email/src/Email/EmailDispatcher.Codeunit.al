@@ -82,9 +82,11 @@ codeunit 8888 "Email Dispatcher"
                 Commit();
             end else begin
                 FeatureTelemetry.LogError('0000CTP', EmailFeatureNameLbl, 'Failed to send email', GetLastErrorText(true), GetLastErrorCallStack(), Dimensions);
-
                 UpdateOutboxError(GetLastErrorText(), EmailOutbox);
-                UpdateOutboxStatus(EmailOutbox, EmailOutbox.Status::Failed);
+                if RetryEmail(EmailOutbox) then
+                    exit else
+                    // Failed after the maximum retry times
+                    UpdateOutboxStatus(EmailOutbox, EmailOutbox.Status::Failed);
             end;
         end else begin
             FeatureTelemetry.LogError('0000CTR', EmailFeatureNameLbl, 'Failed to find email', StrSubstNo(FailedToFindEmailMessageMsg, EmailOutbox."Message Id"), '', Dimensions);
@@ -96,6 +98,35 @@ codeunit 8888 "Email Dispatcher"
             Email.OnAfterEmailSent(SentEmail)
         else
             Email.OnAfterEmailSendFailed(EmailOutbox);
+    end;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="EmailOutbox"></param>
+    /// <returns> If reaches maximum retry times, return false. </returns>
+    local procedure RetryEmail(var EmailOutbox: Record "Email Outbox"): Boolean
+    var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        Dimensions: Dictionary of [Text, Text];
+        TaskId: Guid;
+    begin
+        FeatureTelemetry.LogError('', EmailFeatureNameLbl, 'Failed Email Retry', StrSubstNo(FailedToFindEmailMessageMsg, EmailOutbox."Message Id"), '', Dimensions);
+        EmailOutbox.Validate("Retry No.", EmailOutbox."Retry No." + 1);
+
+        if EmailOutbox."Retry No." > 10 then begin
+            FeatureTelemetry.LogError('', EmailFeatureNameLbl, 'Email retry reached maximum times', '', '', Dimensions);
+            exit(false);
+        end;
+
+        UpdateOutboxStatus(EmailOutbox, EmailOutbox.Status::Queued);
+
+        //[TODO] add jitter here when rescheduling the email to avoid all emails being sent at the same time
+        TaskId := TaskScheduler.CreateTask(Codeunit::"Email Dispatcher", Codeunit::"Email Error Handler", true, CompanyName(), CurrentDateTime, EmailOutbox.RecordId());
+        EmailOutbox."Task Scheduler Id" := TaskId;
+        EmailOutbox."Date Sending" := CurrentDateTime;
+        EmailOutbox.Modify();
+        // update time 
     end;
 
     local procedure RescheduleEmail(Delay: Duration; Dimensions: Dictionary of [Text, Text]; var EmailOutbox: Record "Email Outbox")
@@ -146,6 +177,8 @@ codeunit 8888 "Email Dispatcher"
         ErrorOutStream.WriteText(LastError);
         EmailError."Error Callstack".CreateOutStream(ErrorOutStream, TextEncoding::UTF8);
         ErrorOutStream.WriteText(GetLastErrorCallStack());
+        EmailError.Validate("Error Timestamp", CurrentDateTime());
+        EmailError.Validate("Retry No.", EmailOutbox."Retry No." + 1);
         EmailError.Insert();
 
         EmailOutbox."Error Message" := CopyStr(LastError, 1, MaxStrLen(EmailOutbox."Error Message"));

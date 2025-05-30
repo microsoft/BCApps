@@ -35,6 +35,14 @@ table 8901 "Email Error"
         {
             DataClassification = SystemMetadata;
         }
+        field(5; "Error Timestamp"; DateTime)
+        {
+            DataClassification = SystemMetadata;
+        }
+        field(6; "Retry No."; Integer)
+        {
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys
