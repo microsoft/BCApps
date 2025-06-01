@@ -23,6 +23,18 @@ page 4313 "Agent Task Details"
     {
         area(content)
         {
+            field(SelectedSuggestionId; SelectedSuggestionId)
+            {
+                Editable = true;
+                Caption = 'Selected Suggestion ID';
+                ToolTip = 'Specifies the selected suggestion ID for the user intervention request.';
+            }
+            field(UserMessage; UserMessage)
+            {
+                Editable = true;
+                Caption = 'Additional Instructions';
+                ToolTip = 'Specifies additional instructions for the user intervention request.';
+            }
             repeater(Details)
             {
                 field(ClientContext; ClientContext)
@@ -67,6 +79,8 @@ page 4313 "Agent Task Details"
 
     trigger OnAfterGetRecord()
     begin
+        SelectedSuggestionId := '';
+        UserMessage := '';
         SetClientContext();
     end;
 
@@ -88,21 +102,17 @@ page 4313 "Agent Task Details"
     var
         UserInterventionRequestEntry: Record "Agent Task Log Entry";
         TaskTimelineStep: Record "Agent Task Timeline Step";
-        UserInput: Text;
+        SelectedSuggestionIdInt: Integer;
     begin
         TaskTimelineStep.SetRange("Task ID", Rec."Task ID");
         TaskTimelineStep.SetRange(ID, Rec."Timeline Step ID");
         TaskTimelineStep.SetRange("Last Log Entry Type", "Agent Task Log Entry Type"::"User Intervention Request");
-        if TaskTimelineStep.FindLast() then begin
-            case TaskTimelineStep."User Intervention Request Type" of
-                TaskTimelineStep."User Intervention Request Type"::ReviewMessage:
-                    UserInput := '';
-                else
-                    UserInput := UserMessage; //ToDo: Will be implemented when we have a message field.
-            end;
+        if TaskTimelineStep.FindLast() then
             if UserInterventionRequestEntry.Get(TaskTimelineStep."Task ID", TaskTimelineStep."Last Log Entry ID") then
-                AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, UserInput);
-        end;
+                if Evaluate(SelectedSuggestionIdInt, SelectedSuggestionId) then
+                    AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, UserMessage, SelectedSuggestionIdInt)
+                else
+                    AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, UserMessage);
     end;
 
     local procedure SkipStep()
@@ -126,7 +136,8 @@ page 4313 "Agent Task Details"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         ClientContext: BigText;
-        UserMessage: Text;
+        UserMessage: Text[250];
+        SelectedSuggestionId: Text[3];
 }
 
 
