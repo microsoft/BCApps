@@ -151,10 +151,6 @@ page 2511 "Extension Settings"
         // If the app is installed on the tenant, filter by this app package. Otherwise, retrieve the first occurrence of the app.
         if NavAppInstalledApp.Get(Rec."App ID") then
             PublishedApplication.SetRange("Package ID", NavAppInstalledApp."Package ID")
-        else
-            // For PTEs we need to filter by the tenant ID.
-            if PublishedApplication."Published As" <> PublishedApplication."Published As"::Global then
-                PublishedApplication.SetRange("Tenant ID", TenantID());
 
         if PublishedApplication.FindFirst() then begin
             AppNameValue := PublishedApplication.Name;
