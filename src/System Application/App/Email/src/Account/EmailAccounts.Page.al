@@ -384,8 +384,11 @@ page 8887 "Email Accounts"
         IsSelected := not IsNullGuid(SelectedAccountId);
 
         EmailAccount.GetAllAccounts(true, Rec); // Refresh the email accounts
-        if V2V3Filter or V3Filter then
+        if V2V3Filter then
             FilterToConnectorv2v3Accounts(Rec);
+        if V3Filter then
+            FilterToConnectorv3Accounts(Rec);
+
         EmailScenario.GetDefaultEmailAccount(DefaultEmailAccount); // Refresh the default email account
 
         if IsSelected then begin
@@ -399,6 +402,20 @@ page 8887 "Email Accounts"
         CurrPage.Update(false);
     end;
 
+    local procedure FilterToConnectorv3Accounts(var EmailAccounts: Record "Email Account")
+    var
+        IConnector: Interface "Email Connector";
+    begin
+        if EmailAccounts.IsEmpty() then
+            exit;
+
+        repeat
+            IConnector := EmailAccounts.Connector;
+            if not (IConnector is "Email Connector v3") then
+                EmailAccounts.Delete();
+        until EmailAccounts.Next() = 0;
+    end;
+
     local procedure FilterToConnectorv2v3Accounts(var EmailAccounts: Record "Email Account")
     var
         IConnector: Interface "Email Connector";
@@ -410,17 +427,13 @@ page 8887 "Email Accounts"
             IConnector := EmailAccounts.Connector;
 
 #if not CLEAN26
-            if V2V3Filter then
 #pragma warning disable AL0432
-                if not (IConnector is "Email Connector v2") and not (IConnector is "Email Connector v3") then begin
+            if not (IConnector is "Email Connector v2") and not (IConnector is "Email Connector v3") then
 #pragma warning restore AL0432
-                    EmailAccounts.Delete();
-                    continue;
-                end;
+#else
+            if not (IConnector is "Email Connector v3") then
 #endif
-            if V2V3Filter or V3Filter then
-                if not (IConnector is "Email Connector v3") then
-                    EmailAccounts.Delete();
+                EmailAccounts.Delete();
 
         until EmailAccounts.Next() = 0;
     end;
