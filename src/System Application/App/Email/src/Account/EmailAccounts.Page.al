@@ -409,11 +409,12 @@ page 8887 "Email Accounts"
         if EmailAccounts.IsEmpty() then
             exit;
 
-        repeat
-            IConnector := EmailAccounts.Connector;
-            if not (IConnector is "Email Connector v3") then
-                EmailAccounts.Delete();
-        until EmailAccounts.Next() = 0;
+        if EmailAccounts.FindSet() then
+            repeat
+                IConnector := EmailAccounts.Connector;
+                if not (IConnector is "Email Connector v3") then
+                    EmailAccounts.Delete();
+            until EmailAccounts.Next() = 0;
     end;
 
     local procedure FilterToConnectorv2v3Accounts(var EmailAccounts: Record "Email Account")
