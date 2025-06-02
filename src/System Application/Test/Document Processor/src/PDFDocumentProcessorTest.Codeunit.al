@@ -8,7 +8,7 @@ using System.Utilities;
 using System.TestLibraries.Utilities;
 
 
-codeunit 132601 "Document Processor Test"
+codeunit 132601 "PDF Document Processor Test"
 {
     Access = Internal;
     Subtype = Test;
@@ -21,7 +21,7 @@ codeunit 132601 "Document Processor Test"
     [Test]
     procedure ValidPdfToPngImage()
     var
-        PdfHelper: Codeunit "PDF Helper";
+        PdfHelper: Codeunit "PDF Document Processor";
         TempBlob: Codeunit "Temp Blob";
         ImageFormat: Enum "Image Format";
         PdfInstream, ImageStream : InStream;

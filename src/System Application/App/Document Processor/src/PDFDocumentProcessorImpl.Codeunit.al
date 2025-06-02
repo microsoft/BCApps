@@ -10,7 +10,7 @@ using System;
 /// <summary>
 /// Codeunit that provides helper functions for PDF processing.
 /// </summary>
-codeunit 3109 "PDF Helper Impl"
+codeunit 3109 "PDF Document Processor Impl."
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -19,7 +19,7 @@ codeunit 3109 "PDF Helper Impl"
     var
         UnsupportedImageFormatErr: Label 'Unsupported image format: %1', Comment = '%1 is the image format that is not supported.';
 
-    procedure ConvertPdfToImage(DocumentStream: InStream; var ImageStream: InStream; ImageFormat: Enum "Image Format"; PageNumber: Integer): Boolean
+    procedure ConvertToImage(DocumentStream: InStream; var ImageStream: InStream; ImageFormat: Enum "Image Format"; PageNumber: Integer): Boolean
     var
         PdfConverterInstance: DotNet PdfConverter;
         PdfTargetDevice: DotNet PdfTargetDevice;
@@ -28,7 +28,7 @@ codeunit 3109 "PDF Helper Impl"
         SharedDocumentStream: InStream;
     begin
         // Empty stream, no actions possible on the stream so return immediately
-        if DocumentStream.Length < 1 then
+        if DocumentStream.Length() < 1 then
             exit(false);
 
         // Use a shared stream and reset the read pointer to beginning of stream.
@@ -37,7 +37,7 @@ codeunit 3109 "PDF Helper Impl"
             SharedDocumentStream.ResetPosition();
 
         MemoryStream := MemoryStream.MemoryStream();
-        MemoryStream := SharedDocumentStream;
+        CopyStream(MemoryStream, SharedDocumentStream);
 
         ConvertImageFormatToPdfTargetDevice(ImageFormat, PdfTargetDevice);
         ImageMemoryStream := PdfConverterInstance.ConvertPage(PdfTargetDevice, MemoryStream, PageNumber, 0, 0, 0); // apply default height, width and resolution
