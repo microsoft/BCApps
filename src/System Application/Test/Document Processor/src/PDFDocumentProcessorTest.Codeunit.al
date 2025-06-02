@@ -29,7 +29,7 @@ codeunit 132601 "PDF Document Processor Test"
         // Setup
         NavApp.GetResource('test.pdf', PdfInstream, TextEncoding::UTF8);
         TempBlob.CreateInStream(ImageStream);
-        PdfHelper.ConvertPdfToImage(PdfInstream, ImageStream, ImageFormat::Png, 1);
+        PdfHelper.ConvertToImage(PdfInstream, ImageStream, ImageFormat::Png, 1);
         Assert.AreNotEqual(0, TempBlob.Length(), LengthErr);
     end;
 
