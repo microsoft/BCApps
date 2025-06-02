@@ -16,6 +16,9 @@ codeunit 3109 "PDF Helper Impl"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    var
+        UnsupportedImageFormatErr: Label 'Unsupported image format: %1', Comment = '%1 is the image format that is not supported.';
+
     procedure ConvertPdfToImage(DocumentStream: InStream; var ImageStream: InStream; ImageFormat: Enum "Image Format"; PageNumber: Integer): Boolean
     var
         PdfConverterInstance: DotNet PdfConverter;
@@ -37,7 +40,7 @@ codeunit 3109 "PDF Helper Impl"
         MemoryStream := SharedDocumentStream;
 
         ConvertImageFormatToPdfTargetDevice(ImageFormat, PdfTargetDevice);
-        ImageMemoryStream := PdfConverterInstance.ConvertPage(PdfTargetDevice, MemoryStream, PageNumber, 0, 0, 0); // apply default heighth, width and resolution
+        ImageMemoryStream := PdfConverterInstance.ConvertPage(PdfTargetDevice, MemoryStream, PageNumber, 0, 0, 0); // apply default height, width and resolution
         // Copy data to the outgoing stream and make sure it is reset to the beginning of the stream.
         ImageMemoryStream.Seek(0, 0);
         ImageMemoryStream.CopyTo(ImageStream);
@@ -48,18 +51,18 @@ codeunit 3109 "PDF Helper Impl"
     local procedure ConvertImageFormatToPdfTargetDevice(ImageFormat: Enum "Image Format"; var PdfTargetDevice: DotNet PdfTargetDevice)
     begin
         case ImageFormat of
-            ImageFormat::PNG:
+            ImageFormat::Png:
                 PdfTargetDevice := PdfTargetDevice.PngDevice;
-            ImageFormat::JPEG:
+            ImageFormat::Jpeg:
                 PdfTargetDevice := PdfTargetDevice.JpegDevice;
-            ImageFormat::TIFF:
+            ImageFormat::Tiff:
                 PdfTargetDevice := PdfTargetDevice.TiffDevice;
-            ImageFormat::BMP:
+            ImageFormat::Bmp:
                 PdfTargetDevice := PdfTargetDevice.BmpDevice;
-            ImageFormat::GIF:
+            ImageFormat::Gif:
                 PdfTargetDevice := PdfTargetDevice.GifDevice;
             else
-                Error('Unsupported image format: %1', ImageFormat);
+                Error(UnsupportedImageFormatErr, ImageFormat);
         end;
     end;
 }

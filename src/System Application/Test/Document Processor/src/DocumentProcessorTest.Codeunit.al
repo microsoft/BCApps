@@ -14,7 +14,6 @@ codeunit 132601 "Document Processor Test"
     Subtype = Test;
     TestPermissions = Disabled;
 
-
     var
         Assert: Codeunit "Library Assert";
         LengthErr: Label 'Outstream length should have length 0';
@@ -33,6 +32,5 @@ codeunit 132601 "Document Processor Test"
         PdfHelper.ConvertPdfToImage(PdfInstream, ImageStream, ImageFormat::Png, 1);
         Assert.AreNotEqual(0, TempBlob.Length(), LengthErr);
     end;
-
 
 }
