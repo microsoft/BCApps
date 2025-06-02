@@ -6,7 +6,7 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/27.0.34467.0/base",
+  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/27.0.34776.0/base",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "27.0",
@@ -48,7 +48,9 @@
     "NextMajor.yaml",
     "NextMinor.yaml",
     "PublishToEnvironment.yaml",
-    "Test Current.settings.json"
+    "Test Current.settings.json",
+    "Test Next Minor.settings.json",
+    "Test Next Major.settings.json"
   ],
   "excludeEnvironments": [
     "Official-Build"
