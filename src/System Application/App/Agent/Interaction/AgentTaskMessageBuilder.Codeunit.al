@@ -121,7 +121,6 @@ codeunit 4316 "Agent Task Message Builder"
     /// </returns>
     procedure GetAgentTaskMessage(): Record "Agent Task Message"
     begin
-        AgentTaskMsgBuilderImpl.Create();
         exit(AgentTaskMsgBuilderImpl.GetAgentTaskMessage());
     end;
 

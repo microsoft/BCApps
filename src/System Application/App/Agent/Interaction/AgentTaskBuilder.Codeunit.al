@@ -111,7 +111,9 @@ codeunit 4315 "Agent Task Builder"
     /// <returns>True if task exists, false if not.</returns>
     [Scope('OnPrem')]
     procedure TaskExists(AgentUserSecurityId: Guid; ConversationId: Text): Boolean
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        exit(AgentTaskBuilderImpl.TaskExists(AgentUserSecurityId, ConversationId));
+        exit(AgentTaskImpl.TaskExists(AgentUserSecurityId, ConversationId));
     end;
 }
