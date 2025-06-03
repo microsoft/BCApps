@@ -27,20 +27,16 @@ codeunit 132601 "PDF Document Test"
         Base64Convert: Codeunit "Base64 Convert";
         ImageFormat: Enum "Image Format";
         PdfInstream, ImageStream, ResultImageStream : InStream;
-        fileName: Text;
     begin
-        fileName := 'test.png';
         // Setup
         NavApp.GetResource('test.pdf', PdfInstream, TextEncoding::UTF8);
         NavApp.GetResource('test.png', ResultImageStream, TextEncoding::UTF8);
         TempBlob.CreateInStream(ImageStream);
         PdfDocument.Load(PdfInstream);
         PdfDocument.ConvertToImage(ImageStream, ImageFormat::Png, 1);
-        DownloadFromStream(ImageStream, '', '', '', fileName);
         Assert.AreNotEqual(0, TempBlob.Length(), LengthErr);
 
-        Assert.AreEqual(Base64Convert.ToBase64(ResultImageStream),
-                        Base64Convert.ToBase64(ImageStream),
+        Assert.AreEqual(Base64Convert.ToBase64(ImageStream), Base64Convert.ToBase64(ResultImageStream),
                         'The converted image does not match the expected result.');
 
     end;
