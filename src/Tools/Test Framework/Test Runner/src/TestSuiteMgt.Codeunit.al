@@ -255,13 +255,13 @@ codeunit 130456 "Test Suite Mgt."
 
     procedure SelectTestMethods(var ALTestSuite: Record "AL Test Suite")
     var
-        AllObjWithCaption: Record AllObjWithCaption;
+        CodeunitMetadata: Record "CodeUnit Metadata";
         SelectTests: Page "Select Tests";
     begin
         SelectTests.LookupMode := true;
         if SelectTests.RunModal() = ACTION::LookupOK then begin
-            SelectTests.SetSelectionFilter(AllObjWithCaption);
-            GetTestMethods(ALTestSuite, AllObjWithCaption);
+            SelectTests.SetSelectionFilter(CodeunitMetadata);
+            GetTestMethods(ALTestSuite, CodeunitMetadata);
         end;
     end;
 
@@ -277,12 +277,11 @@ codeunit 130456 "Test Suite Mgt."
 
     procedure SelectTestMethodsByRange(var ALTestSuite: Record "AL Test Suite"; TestCodeunitFilter: Text)
     var
-        AllObjWithCaption: Record AllObjWithCaption;
+        CodeunitMetadata: Record "CodeUnit Metadata";
     begin
-        AllObjWithCaption.SetFilter("Object ID", TestCodeunitFilter);
-        AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Codeunit);
-        AllObjWithCaption.SetRange("Object Subtype", GetTestObjectSubtype());
-        GetTestMethods(ALTestSuite, AllObjWithCaption);
+        CodeunitMetadata.SetFilter(ID, TestCodeunitFilter);
+        CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::Test);
+        GetTestMethods(ALTestSuite, CodeunitMetadata);
     end;
 
     procedure SelectTestProceduresByName(ALTestSuite: Code[10]; TestProcedureRangeFilter: Text)
@@ -299,27 +298,26 @@ codeunit 130456 "Test Suite Mgt."
 
     procedure SelectTestMethodsByExtension(var ALTestSuite: Record "AL Test Suite"; ExtensionID: Text)
     var
-        AllObjWithCaption: Record AllObjWithCaption;
-        AppModuleInfo: ModuleInfo;
+        CodeunitMetadata: Record "CodeUnit Metadata";
         AppExtensionId: Guid;
     begin
         Evaluate(AppExtensionId, ExtensionID);
-        NavApp.GetModuleInfo(ExtensionID, AppModuleInfo);
-        AllObjWithCaption.SetRange("App Package ID", AppModuleInfo.PackageID);
-        AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Codeunit);
-        AllObjWithCaption.SetRange("Object Subtype", GetTestObjectSubtype());
-        GetTestMethods(ALTestSuite, AllObjWithCaption);
+
+        CodeunitMetadata.SetRange("App ID", AppExtensionId);
+        CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::Test);
+
+        GetTestMethods(ALTestSuite, CodeunitMetadata);
     end;
 
     procedure LookupTestRunner(var ALTestSuite: Record "AL Test Suite")
     var
-        AllObjWithCaption: Record AllObjWithCaption;
+        CodeunitMetadata: Record "CodeUnit Metadata";
         SelectTestRunner: Page "Select TestRunner";
     begin
         SelectTestRunner.LookupMode := true;
         if SelectTestRunner.RunModal() = ACTION::LookupOK then begin
-            SelectTestRunner.GetRecord(AllObjWithCaption);
-            ChangeTestRunner(ALTestSuite, AllObjWithCaption."Object ID");
+            SelectTestRunner.GetRecord(CodeunitMetadata);
+            ChangeTestRunner(ALTestSuite, CodeunitMetadata.ID);
         end;
     end;
 
@@ -346,18 +344,18 @@ codeunit 130456 "Test Suite Mgt."
         ALTestSuite.Insert(true);
     end;
 
-    procedure GetTestMethods(var ALTestSuite: Record "AL Test Suite"; var AllObjWithCaption: Record AllObjWithCaption)
+    procedure GetTestMethods(var ALTestSuite: Record "AL Test Suite"; var CodeunitMetadata: Record "CodeUnit Metadata")
     var
         TestLineNo: Integer;
     begin
-        if not AllObjWithCaption.FindSet() then
+        if not CodeunitMetadata.FindSet() then
             exit;
 
         repeat
             // Must be inside of loop. Test Runner used for discovering tests is adding methods
             TestLineNo := GetLastTestLineNo(ALTestSuite) + 10000;
-            AddTestMethod(AllObjWithCaption, ALTestSuite, TestLineNo);
-        until AllObjWithCaption.Next() = 0;
+            AddTestMethod(CodeunitMetadata, ALTestSuite, TestLineNo);
+        until CodeunitMetadata.Next() = 0;
     end;
 
     procedure UpdateCodeCoverageTrackingType(var NewALTestSuite: Record "AL Test Suite")
@@ -547,23 +545,18 @@ codeunit 130456 "Test Suite Mgt."
         exit(LineNo);
     end;
 
-    local procedure AddTestMethod(AllObjWithCaption: Record AllObjWithCaption; ALTestSuite: Record "AL Test Suite"; NextLineNo: Integer)
+    local procedure AddTestMethod(CodeunitMetadata: Record "CodeUnit Metadata"; ALTestSuite: Record "AL Test Suite"; NextLineNo: Integer)
     var
         TestMethodLine: Record "Test Method Line";
     begin
         TestMethodLine."Test Suite" := ALTestSuite.Name;
         TestMethodLine."Line No." := NextLineNo;
-        TestMethodLine."Test Codeunit" := AllObjWithCaption."Object ID";
+        TestMethodLine."Test Codeunit" := CodeunitMetadata.ID;
         TestMethodLine.Validate("Line Type", TestMethodLine."Line Type"::Codeunit);
-        TestMethodLine.Name := AllObjWithCaption."Object Name";
+        TestMethodLine.Name := CodeunitMetadata.Name;
         TestMethodLine.Insert(true);
 
         CODEUNIT.Run(CODEUNIT::"Test Runner - Get Methods", TestMethodLine);
-    end;
-
-    local procedure GetTestObjectSubtype(): Text
-    begin
-        exit('Test');
     end;
 
     procedure DeleteAllMethods(var ALTestSuite: Record "AL Test Suite")
@@ -586,13 +579,13 @@ codeunit 130456 "Test Suite Mgt."
 
     procedure GetTestRunnerDisplayName(TestRunnerID: Integer): Text
     var
-        AllObjWithCaption: Record AllObjWithCaption;
+        CodeunitMetadata: Record "CodeUnit Metadata";
     begin
-        if not AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Codeunit, TestRunnerId) then
+        if not CodeunitMetadata.Get(TestRunnerId) then
             exit(NoTestRunnerSelectedTxt);
 
 #pragma warning disable AA0217
-        exit(StrSubstNo('%1 - %2', TestRunnerId, AllObjWithCaption."Object Name"));
+        exit(StrSubstNo('%1 - %2', TestRunnerId, CodeunitMetadata.Name));
 #pragma warning restore        
     end;
 
@@ -777,13 +770,13 @@ codeunit 130456 "Test Suite Mgt."
 
     procedure ValidateTestMethodTestCodeunit(var TestMethodLine: Record "Test Method Line")
     var
-        AllObjWithCaption: Record AllObjWithCaption;
+        CodeunitMetadata: Record "CodeUnit Metadata";
     begin
         if TestMethodLine."Test Codeunit" = 0 then
             exit;
 
-        if AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Codeunit, TestMethodLine."Test Codeunit") then
-            TestMethodLine.Name := AllObjWithCaption."Object Name";
+        if CodeunitMetadata.Get(TestMethodLine."Test Codeunit") then
+            TestMethodLine.Name := CodeunitMetadata.Name;
 
         TestMethodLine.Level := GetLineLevel(TestMethodLine);
     end;
