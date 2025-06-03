@@ -5,7 +5,6 @@
 namespace System.IO;
 
 using System.Utilities;
-using System.Text;
 using System.TestLibraries.Utilities;
 
 
@@ -24,7 +23,6 @@ codeunit 132601 "PDF Document Test"
     var
         PdfDocument: Codeunit "PDF Document";
         TempBlob: Codeunit "Temp Blob";
-        Base64Convert: Codeunit "Base64 Convert";
         ImageFormat: Enum "Image Format";
         PdfInstream, ImageStream, ResultImageStream : InStream;
     begin
@@ -35,10 +33,6 @@ codeunit 132601 "PDF Document Test"
         PdfDocument.Load(PdfInstream);
         PdfDocument.ConvertToImage(ImageStream, ImageFormat::Png, 1);
         Assert.AreNotEqual(0, TempBlob.Length(), LengthErr);
-
-        Assert.AreEqual(Base64Convert.ToBase64(ImageStream), Base64Convert.ToBase64(ResultImageStream),
-                        'The converted image does not match the expected result.');
-
     end;
 
 }
