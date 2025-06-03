@@ -344,18 +344,33 @@ codeunit 130456 "Test Suite Mgt."
         ALTestSuite.Insert(true);
     end;
 
-    procedure GetTestMethods(var ALTestSuite: Record "AL Test Suite"; var CodeunitMetadata: Record "CodeUnit Metadata")
+#if not CLEAN27
+    [Obsolete('Use GetTestMethods with Codeunit Metadata instead.', '27.0')]
+    procedure GetTestMethods(var ALTestSuite: Record "AL Test Suite"; var AllObjWithCaption: Record AllObjWithCaption)
     var
         TestLineNo: Integer;
     begin
-        if not CodeunitMetadata.FindSet() then
+        if not AllObjWithCaption.FindSet() then
             exit;
 
         repeat
             // Must be inside of loop. Test Runner used for discovering tests is adding methods
             TestLineNo := GetLastTestLineNo(ALTestSuite) + 10000;
-            AddTestMethod(CodeunitMetadata, ALTestSuite, TestLineNo);
-        until CodeunitMetadata.Next() = 0;
+            AddTestMethod(AllObjWithCaption, ALTestSuite, TestLineNo);
+        until AllObjWithCaption.Next() = 0;
+    end;
+#endif
+
+    procedure GetTestMethods(var ALTestSuite: Record "AL Test Suite"; var CodeunitMetadata: Record "CodeUnit Metadata")
+    var
+        TestLineNo: Integer;
+    begin
+        if CodeunitMetadata.FindSet() then
+            repeat
+                // Must be inside of loop. Test Runner used for discovering tests is adding methods
+                TestLineNo := GetLastTestLineNo(ALTestSuite) + 10000;
+                AddTestMethod(CodeunitMetadata, ALTestSuite, TestLineNo);
+            until CodeunitMetadata.Next() = 0;
     end;
 
     procedure UpdateCodeCoverageTrackingType(var NewALTestSuite: Record "AL Test Suite")
@@ -544,6 +559,22 @@ codeunit 130456 "Test Suite Mgt."
 
         exit(LineNo);
     end;
+
+#if not CLEAN27
+    local procedure AddTestMethod(AllObjWithCaption: Record AllObjWithCaption; ALTestSuite: Record "AL Test Suite"; NextLineNo: Integer)
+    var
+        TestMethodLine: Record "Test Method Line";
+    begin
+        TestMethodLine."Test Suite" := ALTestSuite.Name;
+        TestMethodLine."Line No." := NextLineNo;
+        TestMethodLine."Test Codeunit" := AllObjWithCaption."Object ID";
+        TestMethodLine.Validate("Line Type", TestMethodLine."Line Type"::Codeunit);
+        TestMethodLine.Name := AllObjWithCaption."Object Name";
+        TestMethodLine.Insert(true);
+
+        CODEUNIT.Run(CODEUNIT::"Test Runner - Get Methods", TestMethodLine);
+    end;
+#endif
 
     local procedure AddTestMethod(CodeunitMetadata: Record "CodeUnit Metadata"; ALTestSuite: Record "AL Test Suite"; NextLineNo: Integer)
     var

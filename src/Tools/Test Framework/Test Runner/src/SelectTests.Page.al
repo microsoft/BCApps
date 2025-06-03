@@ -11,7 +11,9 @@ page 130453 "Select Tests"
 {
     Editable = false;
     PageType = List;
+#pragma warning disable AS0035
     SourceTable = "CodeUnit Metadata";
+#pragma warning restore
     SourceTableView = where(Subtype = const(Test));
 
     layout
