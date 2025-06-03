@@ -21,7 +21,6 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         GlobalMessageExternalID: Text[2048];
         GlobalMessageText: Text;
         GlobalRequiresReview: Boolean;
-        GlobalAgentTaskStartAgentTask: Boolean;
 
     /// <summary>
     /// Check if a task exists for the given user and conversation
@@ -88,18 +87,6 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     end;
 
     /// <summary>
-    /// Sets if the task should be started after the message is created. 
-    /// Default value is true.
-    /// </summary>
-    /// <param name="StartAgentTask">If the task should be started after the message is created.</param>
-    /// <returns>This instance of the Agent Task Message Builder.</returns>
-    procedure SetStartAgentTask(StartAgentTask: Boolean): codeunit "Agent Task Msg. Builder Impl."
-    begin
-        GlobalAgentTaskStartAgentTask := StartAgentTask;
-        exit(this);
-    end;
-
-    /// <summary>
     /// Set the message text of the task.
     /// </summary>
     /// <param name="ParentAgentTask">The agent task to set the message text to.</param>
@@ -116,8 +103,22 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     /// <returns>
     /// The created task message.
     /// </returns>
-    [Scope('OnPrem')]
     procedure Create(): Record "Agent Task Message"
+    begin
+        exit(Create(true));
+    end;
+
+    /// <summary>
+    /// Creates the task message.
+    /// </summary>
+    /// <param name="SetTaskStatusToReady">If the task status should be set to ready after the message is created. Task will be picked up shortly after it is set to ready.
+    /// Default value is true.
+    /// </param>
+    /// <returns>
+    /// The created task message.
+    /// </returns>
+    [Scope('OnPrem')]
+    procedure Create(SetTaskStatusToReady: Boolean): Record "Agent Task Message"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         AgentMessageImpl: Codeunit "Agent Message Impl.";
@@ -131,8 +132,8 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
                 AgentMessageImpl.AddAttachment(GlobalAgentTaskMessage, TempAgentTaskFileToAttach);
             until TempAgentTaskFileToAttach.Next() = 0;
 
-        if GlobalAgentTaskStartAgentTask then
-            AgentTaskImpl.StartTaskIfPossible(GlobalAgentTask);
+        if SetTaskStatusToReady then
+            AgentTaskImpl.SetTaskStatusToReadyIfPossible(GlobalAgentTask);
 
         exit(GlobalAgentTaskMessage);
     end;

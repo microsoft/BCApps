@@ -38,25 +38,28 @@ codeunit 4310 "Agent Task Builder Impl."
     /// <summary>
     /// Create a new task for the agent.
     /// </summary>
+    /// <param name="SetTaskStatusToReady">
+    /// Specifies if the task status should be set to ready after creation. 
+    /// </param>
     /// <returns>
     /// Agent task that was created
     /// </returns>
     [Scope('OnPrem')]
-    procedure Create(): Record "Agent Task"
+    procedure Create(SetTaskStatusToReady: Boolean): Record "Agent Task"
     var
         AgentTaskRecord: Record "Agent Task";
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
         VerifyMandatoryFieldsSet();
         AgentTaskImpl.CreateTask(GlobalAgentUserSecurityId, GlobalTaskTitle, GlobalExternalID, AgentTaskRecord);
-        if not MessageSet then begin
-            AgentTaskImpl.StartTaskIfPossible(AgentTaskRecord);
-            exit(AgentTaskRecord);
+        if MessageSet then begin
+            GlobalAgentTaskMessageBuilder.SetAgentTask(AgentTaskRecord);
+            GlobalAgentTaskMessageBuilder.Create(false);
         end;
 
-        GlobalAgentTaskMessageBuilder.SetAgentTask(AgentTaskRecord);
-        GlobalAgentTaskMessageBuilder.SetStartAgentTask(true);
-        GlobalAgentTaskMessageBuilder.Create();
+        if SetTaskStatusToReady then
+            AgentTaskImpl.SetTaskStatusToReadyIfPossible(AgentTaskRecord);
+
         exit(AgentTaskRecord);
     end;
 

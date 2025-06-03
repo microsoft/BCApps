@@ -78,18 +78,6 @@ codeunit 4316 "Agent Task Message Builder"
     end;
 
     /// <summary>
-    /// Sets if the task should be started after the message is created. 
-    /// Default value is true.
-    /// </summary>
-    /// <param name="StartAgentTask">If the task should be started after the message is created.</param>
-    /// <returns>This instance of the Agent Task Message Builder.</returns>
-    procedure SetStartAgentTask(StartAgentTask: Boolean): codeunit "Agent Task Message Builder"
-    begin
-        AgentTaskMsgBuilderImpl.SetStartAgentTask(StartAgentTask);
-        exit(this);
-    end;
-
-    /// <summary>
     /// Set the message text of the task.
     /// </summary>
     /// <param name="ParentAgentTask">The agent task to set the message text to.</param>
@@ -103,6 +91,7 @@ codeunit 4316 "Agent Task Message Builder"
 
     /// <summary>
     /// Creates the task message.
+    /// Task will be marked as ready and be picked up for processing after message is created.
     /// </summary>
     /// <returns>
     /// The created task message.
@@ -111,6 +100,21 @@ codeunit 4316 "Agent Task Message Builder"
     procedure Create(): Record "Agent Task Message"
     begin
         exit(AgentTaskMsgBuilderImpl.Create());
+    end;
+
+    /// <summary>
+    /// Creates the task message.
+    /// </summary>
+    /// <param name="MarkTaskAsReady">Specifies if the task should be marked as ready for processing after the message is created.
+    /// If set to false, the task will not be marked as ready and will not be picked up for processing. 
+    /// </param>
+    /// <returns>
+    /// The created task message.
+    /// </returns>
+    [Scope('OnPrem')]
+    procedure Create(MarkTaskAsReady: Boolean): Record "Agent Task Message"
+    begin
+        exit(AgentTaskMsgBuilderImpl.Create(MarkTaskAsReady));
     end;
 
     /// <summary>

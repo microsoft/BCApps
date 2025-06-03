@@ -23,4 +23,34 @@ codeunit 4303 "Agent Task"
     begin
         exit(AgentTaskImpl.TaskExists(AgentUserSecurityId, ConversationId));
     end;
+
+    /// <summary>
+    /// Set the status of the task to ready if the task is in the state that it can be started again.
+    /// The agent task will be be picked up for processing shortly after updating the status.
+    /// </summary>
+    /// <param name="AgentTask">The agent task to set to ready.</param>
+    /// <returns>
+    /// The agent task with the status set to ready.
+    /// </returns>
+    [Scope('OnPrem')]
+    procedure SetStatusToReady(AgentTask: Record "Agent Task")
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        AgentTaskImpl.SetTaskStatusToReadyIfPossible(AgentTask);
+    end;
+
+    /// <summary>
+    /// Checks if the task can be set to ready and started again.
+    /// </summary>
+    /// <param name="AgentTask">
+    /// The agent task to check.
+    /// </param>
+    /// <returns>True if agent task can be set to ready, false otherwise</returns>
+    procedure CanSetStatusToReady(AgentTask: Record "Agent Task"): Boolean
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        exit(AgentTaskImpl.CanAgentTaskBeSetToReady(AgentTask));
+    end;
 }

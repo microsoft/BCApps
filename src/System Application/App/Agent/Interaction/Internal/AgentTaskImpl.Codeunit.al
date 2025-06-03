@@ -128,7 +128,7 @@ codeunit 4300 "Agent Task Impl."
 
         if UserConfirm then
             if not Confirm(AreYouSureThatYouWantToStopTheTaskQst) then
-            exit;
+                exit;
 
         AgentTask.Status := AgentTaskStatus;
         AgentTask."Needs Attention" := false;
@@ -161,14 +161,19 @@ codeunit 4300 "Agent Task Impl."
         exit(TextEncoding::UTF8);
     end;
 
-    internal procedure StartTaskIfPossible(var AgentTask: Record "Agent Task")
+    internal procedure SetTaskStatusToReadyIfPossible(var AgentTask: Record "Agent Task")
     begin
         // Only change the status if the task is in a status where it can be started again.
         // If the task is running, we should not change the state, as platform will pickup a new message automatically.
-        if ((AgentTask.Status = AgentTask.Status::Paused) or (AgentTask.Status = AgentTask.Status::Completed)) then begin
+        if CanAgentTaskBeSetToReady(AgentTask) then begin
             AgentTask.Status := AgentTask.Status::Ready;
             AgentTask.Modify(true);
         end;
+    end;
+
+    internal procedure CanAgentTaskBeSetToReady(var AgentTask: Record "Agent Task"): Boolean
+    begin
+        exit((AgentTask.Status = AgentTask.Status::Paused) or (AgentTask.Status = AgentTask.Status::Completed));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetAgentTaskMessagePageId, '', true, true)]

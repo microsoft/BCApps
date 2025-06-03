@@ -38,7 +38,22 @@ codeunit 4315 "Agent Task Builder"
     [Scope('OnPrem')]
     procedure Create(): Record "Agent Task"
     begin
-        exit(AgentTaskBuilderImpl.Create());
+        exit(AgentTaskBuilderImpl.Create(true));
+    end;
+
+    /// <summary>
+    /// Create a new task for the agent.
+    /// </summary>
+    /// <param name="SetTaskStatusToReady">
+    /// Specifies if the task status should be set to ready after creation. 
+    /// </param>
+    /// <returns>
+    /// Agent task that was created
+    /// </returns>
+    [Scope('OnPrem')]
+    procedure Create(SetTaskStatusToReady: Boolean): Record "Agent Task"
+    begin
+        exit(AgentTaskBuilderImpl.Create(SetTaskStatusToReady));
     end;
 
     /// <summary>
