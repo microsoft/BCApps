@@ -8,6 +8,7 @@ namespace System.Integration.Sharepoint;
 using System.Integration.Graph;
 using System.Integration.Graph.Authorization;
 using System.Utilities;
+using System.RestClient;
 
 /// <summary>
 /// Provides functionality for interacting with SharePoint through Microsoft Graph API.
@@ -21,8 +22,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
 
     var
         SharePointGraphRequestHelper: Codeunit "SharePoint Graph Req. Helper";
-        SharePointGraphParser: Codeunit "SharePoint Graph Parser";
-        SharePointGraphUriBuilder: Codeunit "SharePoint Graph Uri Builder";
+        SharePointGraphParser: Codeunit "Sharepoint Graph Parser";
+        SharePointGraphUriBuilder: Codeunit "Sharepoint Graph Uri Builder";
         SiteId: Text;
         SharePointUrl: Text;
         DefaultDriveId: Text;
@@ -30,8 +31,65 @@ codeunit 9120 "SharePoint Graph Client Impl."
         NotInitializedErr: Label 'SharePoint Graph Client is not initialized. Call Initialize first.';
         InvalidSharePointUrlErr: Label 'Invalid SharePoint URL ''%1''.', Comment = '%1 = URL string';
         RetrieveSiteInfoErr: Label 'Failed to retrieve SharePoint site information from Graph API. %1', Comment = '%1 = Error message';
-        DefaultListTemplateLbl: Label 'genericList', Locked = true;
         ContentRangeHeaderLbl: Label 'bytes %1-%2/%3', Locked = true, Comment = '%1 = Start Bytes, %2 = End Bytes, %3 = Total Bytes';
+        FailedToRetrieveListsErr: Label 'Failed to retrieve lists: %1', Comment = '%1 = Error message';
+        FailedToParseListsErr: Label 'Failed to parse lists collection from response';
+        FailedToRetrieveNextPageErr: Label 'Failed to retrieve next page of lists: %1', Comment = '%1 = Error message';
+        FailedToParseListsPaginationErr: Label 'Failed to parse lists collection from pagination response';
+        FailedToRetrieveListErr: Label 'Failed to retrieve list: %1', Comment = '%1 = Error message';
+        FailedToParseListErr: Label 'Failed to parse list details from response';
+        InvalidListIdErr: Label 'List ID cannot be empty';
+        InvalidDisplayNameErr: Label 'Display name cannot be empty';
+        FailedToCreateListErr: Label 'Failed to create list: %1', Comment = '%1 = Error message';
+        FailedToParseCreatedListErr: Label 'Failed to parse created list details from response';
+        FailedToRetrieveListItemsErr: Label 'Failed to retrieve list items: %1', Comment = '%1 = Error message';
+        FailedToParseListItemsErr: Label 'Failed to parse list items collection from response';
+        FailedToRetrieveNextPageItemsErr: Label 'Failed to retrieve next page of list items: %1', Comment = '%1 = Error message';
+        FailedToParseListItemsPaginationErr: Label 'Failed to parse list items collection from pagination response';
+        FailedToCreateListItemErr: Label 'Failed to create list item: %1', Comment = '%1 = Error message';
+        FailedToParseCreatedListItemErr: Label 'Failed to parse created list item details from response';
+        NoDefaultDriveIdErr: Label 'Default drive ID is not available. Please check the SharePoint site.';
+        FailedToRetrieveDefaultDriveErr: Label 'Failed to retrieve default drive: %1', Comment = '%1 = Error message';
+        FailedToRetrieveDrivesErr: Label 'Failed to retrieve drives: %1', Comment = '%1 = Error message';
+        FailedToParseDrivesErr: Label 'Failed to parse drives collection from response';
+        FailedToRetrieveNextPageDrivesErr: Label 'Failed to retrieve next page of drives: %1', Comment = '%1 = Error message';
+        FailedToParseDrivesPaginationErr: Label 'Failed to parse drives collection from pagination response';
+        FailedToRetrieveDriveErr: Label 'Failed to retrieve drive: %1', Comment = '%1 = Error message';
+        FailedToParseDriveErr: Label 'Failed to parse drive details from response';
+        InvalidDriveIdErr: Label 'Drive ID cannot be empty';
+        FailedToRetrieveRootItemsErr: Label 'Failed to retrieve root items: %1', Comment = '%1 = Error message';
+        FailedToParseRootItemsErr: Label 'Failed to parse root items collection from response';
+        FailedToRetrieveNextPageRootItemsErr: Label 'Failed to retrieve next page of root items: %1', Comment = '%1 = Error message';
+        FailedToParseRootItemsPaginationErr: Label 'Failed to parse root items collection from pagination response';
+        InvalidFolderIdErr: Label 'Folder ID cannot be empty';
+        FailedToRetrieveFolderItemsErr: Label 'Failed to retrieve folder items: %1', Comment = '%1 = Error message';
+        FailedToParseFolderItemsErr: Label 'Failed to parse folder items collection from response';
+        FailedToRetrieveNextPageFolderItemsErr: Label 'Failed to retrieve next page of folder items: %1', Comment = '%1 = Error message';
+        FailedToParseFolderItemsPaginationErr: Label 'Failed to parse folder items collection from pagination response';
+        FailedToRetrieveItemsByPathErr: Label 'Failed to retrieve items by path: %1', Comment = '%1 = Error message';
+        FailedToParseItemsByPathErr: Label 'Failed to parse items collection from response';
+        FailedToRetrieveNextPageItemsByPathErr: Label 'Failed to retrieve next page of items by path: %1', Comment = '%1 = Error message';
+        FailedToParseItemsByPathPaginationErr: Label 'Failed to parse items collection from pagination response';
+        InvalidItemIdErr: Label 'Item ID cannot be empty';
+        FailedToRetrieveDriveItemErr: Label 'Failed to retrieve drive item: %1', Comment = '%1 = Error message';
+        FailedToParseDriveItemErr: Label 'Failed to parse drive item details from response';
+        InvalidItemPathErr: Label 'Item path cannot be empty';
+        FailedToRetrieveDriveItemByPathErr: Label 'Failed to retrieve drive item by path: %1', Comment = '%1 = Error message';
+        FailedToParseDriveItemByPathErr: Label 'Failed to parse drive item details from response';
+        InvalidFolderNameErr: Label 'Folder name cannot be empty';
+        FailedToCreateFolderErr: Label 'Failed to create folder: %1', Comment = '%1 = Error message';
+        FailedToParseCreatedFolderErr: Label 'Failed to parse created folder details from response';
+        InvalidFileNameErr: Label 'File name cannot be empty';
+        FailedToUploadFileErr: Label 'Failed to upload file: %1', Comment = '%1 = Error message';
+        FailedToParseUploadedFileErr: Label 'Failed to parse uploaded file details from response';
+        InvalidFileSizeErr: Label 'File size must be greater than 0';
+        FailedToCreateUploadSessionErr: Label 'Failed to create upload session: %1', Comment = '%1 = Error message';
+        FailedToUploadChunkErr: Label 'Failed to upload file chunk: %1', Comment = '%1 = Error message';
+        NoUploadResponseErr: Label 'No response received from chunked upload';
+        FailedToParseChunkedUploadErr: Label 'Failed to parse chunked upload response';
+        FailedToDownloadFileErr: Label 'Failed to download file: %1', Comment = '%1 = Error message';
+        InvalidFilePathErr: Label 'File path cannot be empty';
+        FailedToDownloadFileByPathErr: Label 'Failed to download file by path: %1', Comment = '%1 = Error message';
 
     #region Initialization
 
@@ -67,6 +125,19 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure Initialize(NewSharePointUrl: Text; BaseUrl: Text; GraphAuthorization: Interface "Graph Authorization")
     begin
         SharePointGraphRequestHelper.Initialize(BaseUrl, GraphAuthorization);
+        InitializeCommon(NewSharePointUrl);
+    end;
+
+    /// <summary>
+    /// Initializes SharePoint Graph client with an HTTP client handler for testing.
+    /// </summary>
+    /// <param name="NewSharePointUrl">SharePoint site URL.</param>
+    /// <param name="ApiVersion">The Graph API version to use.</param>
+    /// <param name="GraphAuthorization">The Graph API authorization to use.</param>
+    /// <param name="HttpClientHandler">HTTP client handler for intercepting requests.</param>
+    procedure Initialize(NewSharePointUrl: Text; ApiVersion: Enum "Graph API Version"; GraphAuthorization: Interface "Graph Authorization"; HttpClientHandler: Interface "Http Client Handler")
+    begin
+        SharePointGraphRequestHelper.Initialize(ApiVersion, GraphAuthorization, HttpClientHandler);
         InitializeCommon(NewSharePointUrl);
     end;
 
@@ -164,8 +235,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// Gets all lists from the SharePoint site.
     /// </summary>
     /// <param name="GraphLists">Collection of the result (temporary record).</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetLists(var GraphLists: Record "SharePoint Graph List" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetLists(var GraphLists: Record "SharePoint Graph List" temporary): Codeunit "SharePoint Graph Response"
     var
         GraphOptionalParameters: Codeunit "Graph Optional Parameters";
     begin
@@ -177,33 +248,49 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="GraphLists">Collection of the result (temporary record).</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetLists(var GraphLists: Record "SharePoint Graph List" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetLists(var GraphLists: Record "SharePoint Graph List" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         JsonResponse: JsonObject;
         NextLink: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
 
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetListsEndpoint(), JsonResponse, GraphOptionalParameters) then
-            exit(false);
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
 
-        if not SharePointGraphParser.ParseListCollection(JsonResponse, GraphLists) then
-            exit(false);
+        // Make the API request
+        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetListsEndpoint(), JsonResponse, GraphOptionalParameters) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveListsErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
+
+        // Parse the response
+        if not SharePointGraphParser.ParseListCollection(JsonResponse, GraphLists) then begin
+            SharePointGraphResponse.SetError(FailedToParseListsErr);
+            exit(SharePointGraphResponse);
+        end;
 
         // Handle pagination
         while SharePointGraphParser.ExtractNextLink(JsonResponse, NextLink) do begin
             Clear(JsonResponse);
 
-            if not SharePointGraphRequestHelper.GetNextPage(NextLink, JsonResponse) then
-                exit(false);
+            if not SharePointGraphRequestHelper.GetNextPage(NextLink, JsonResponse) then begin
+                SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveNextPageErr,
+                    SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+                exit(SharePointGraphResponse);
+            end;
 
-            if not SharePointGraphParser.ParseListCollection(JsonResponse, GraphLists) then
-                exit(false);
+            if not SharePointGraphParser.ParseListCollection(JsonResponse, GraphLists) then begin
+                SharePointGraphResponse.SetError(FailedToParseListsPaginationErr);
+                exit(SharePointGraphResponse);
+            end;
         end;
 
-        exit(true);
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     /// <summary>
@@ -211,8 +298,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="ListId">ID of the list to retrieve.</param>
     /// <param name="GraphList">Record to store the result.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetList(ListId: Text; var GraphList: Record "SharePoint Graph List" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetList(ListId: Text; var GraphList: Record "SharePoint Graph List" temporary): Codeunit "SharePoint Graph Response"
     var
         GraphOptionalParameters: Codeunit "Graph Optional Parameters";
     begin
@@ -225,22 +312,39 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="ListId">ID of the list to retrieve.</param>
     /// <param name="GraphList">Record to store the result.</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetList(ListId: Text; var GraphList: Record "SharePoint Graph List" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetList(ListId: Text; var GraphList: Record "SharePoint Graph List" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         JsonResponse: JsonObject;
     begin
         EnsureInitialized();
         EnsureSiteId();
 
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetListEndpoint(ListId), JsonResponse, GraphOptionalParameters) then
-            exit(false);
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if ListId = '' then begin
+            SharePointGraphResponse.SetError(InvalidListIdErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // Make the API request
+        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetListEndpoint(ListId), JsonResponse, GraphOptionalParameters) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveListErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
 
         GraphList.Init();
-        SharePointGraphParser.ParseListItem(JsonResponse, GraphList);
+        if not SharePointGraphParser.ParseListItem(JsonResponse, GraphList) then begin
+            SharePointGraphResponse.SetError(FailedToParseListErr);
+            exit(SharePointGraphResponse);
+        end;
         GraphList.Insert();
 
-        exit(true);
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     /// <summary>
@@ -249,10 +353,10 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="DisplayName">Display name for the list.</param>
     /// <param name="Description">Description for the list.</param>
     /// <param name="GraphList">Record to store the result.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure CreateList(DisplayName: Text; Description: Text; var GraphList: Record "SharePoint Graph List" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure CreateList(DisplayName: Text; Description: Text; var GraphList: Record "SharePoint Graph List" temporary): Codeunit "SharePoint Graph Response"
     begin
-        exit(CreateList(DisplayName, DefaultListTemplateLbl, Description, GraphList));
+        exit(CreateList(DisplayName, 'genericList', Description, GraphList));
     end;
 
     /// <summary>
@@ -262,15 +366,24 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="ListTemplate">Template for the list (genericList, documentLibrary, etc.)</param>
     /// <param name="Description">Description for the list.</param>
     /// <param name="GraphList">Record to store the result.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure CreateList(DisplayName: Text; ListTemplate: Text; Description: Text; var GraphList: Record "SharePoint Graph List" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure CreateList(DisplayName: Text; ListTemplate: Text; Description: Text; var GraphList: Record "SharePoint Graph List" temporary): Codeunit "SharePoint Graph Response"
     var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         JsonResponse: JsonObject;
         RequestJsonObj: JsonObject;
         ListJsonObj: JsonObject;
     begin
         EnsureInitialized();
         EnsureSiteId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if DisplayName = '' then begin
+            SharePointGraphResponse.SetError(InvalidDisplayNameErr);
+            exit(SharePointGraphResponse);
+        end;
 
         // Create the request body with list properties
         RequestJsonObj.Add('displayName', DisplayName);
@@ -281,14 +394,21 @@ codeunit 9120 "SharePoint Graph Client Impl."
         RequestJsonObj.Add('list', ListJsonObj);
 
         // Post the request to create the list
-        if not SharePointGraphRequestHelper.Post(SharePointGraphUriBuilder.GetListsEndpoint(), RequestJsonObj, JsonResponse) then
-            exit(false);
+        if not SharePointGraphRequestHelper.Post(SharePointGraphUriBuilder.GetListsEndpoint(), RequestJsonObj, JsonResponse) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToCreateListErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
 
         GraphList.Init();
-        SharePointGraphParser.ParseListItem(JsonResponse, GraphList);
+        if not SharePointGraphParser.ParseListItem(JsonResponse, GraphList) then begin
+            SharePointGraphResponse.SetError(FailedToParseCreatedListErr);
+            exit(SharePointGraphResponse);
+        end;
         GraphList.Insert();
 
-        exit(true);
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     #endregion
@@ -300,8 +420,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="ListId">ID of the list.</param>
     /// <param name="GraphListItems">Collection of the result (temporary record).</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetListItems(ListId: Text; var GraphListItems: Record "SharePoint Graph List Item" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetListItems(ListId: Text; var GraphListItems: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
     var
         GraphOptionalParameters: Codeunit "Graph Optional Parameters";
     begin
@@ -314,33 +434,55 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="ListId">ID of the list.</param>
     /// <param name="GraphListItems">Collection of the result (temporary record).</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetListItems(ListId: Text; var GraphListItems: Record "SharePoint Graph List Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetListItems(ListId: Text; var GraphListItems: Record "SharePoint Graph List Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         JsonResponse: JsonObject;
         NextLink: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
 
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetListItemsEndpoint(ListId), JsonResponse, GraphOptionalParameters) then
-            exit(false);
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
 
-        if not SharePointGraphParser.ParseListItemCollection(JsonResponse, ListId, GraphListItems) then
-            exit(false);
+        // Validate input
+        if ListId = '' then begin
+            SharePointGraphResponse.SetError(InvalidListIdErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // Make the API request
+        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetListItemsEndpoint(ListId), JsonResponse, GraphOptionalParameters) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveListItemsErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
+
+        // Parse the response
+        if not SharePointGraphParser.ParseListItemCollection(JsonResponse, ListId, GraphListItems) then begin
+            SharePointGraphResponse.SetError(FailedToParseListItemsErr);
+            exit(SharePointGraphResponse);
+        end;
 
         // Handle pagination
         while SharePointGraphParser.ExtractNextLink(JsonResponse, NextLink) do begin
             Clear(JsonResponse);
 
-            if not SharePointGraphRequestHelper.GetNextPage(NextLink, JsonResponse) then
-                exit(false);
+            if not SharePointGraphRequestHelper.GetNextPage(NextLink, JsonResponse) then begin
+                SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveNextPageItemsErr,
+                    SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+                exit(SharePointGraphResponse);
+            end;
 
-            if not SharePointGraphParser.ParseListItemCollection(JsonResponse, ListId, GraphListItems) then
-                exit(false);
+            if not SharePointGraphParser.ParseListItemCollection(JsonResponse, ListId, GraphListItems) then begin
+                SharePointGraphResponse.SetError(FailedToParseListItemsPaginationErr);
+                exit(SharePointGraphResponse);
+            end;
         end;
 
-        exit(true);
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     /// <summary>
@@ -349,28 +491,44 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="ListId">ID of the list.</param>
     /// <param name="FieldsJsonObject">JSON object containing the fields for the new item.</param>
     /// <param name="GraphListItem">Record to store the result.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure CreateListItem(ListId: Text; FieldsJsonObject: JsonObject; var GraphListItem: Record "SharePoint Graph List Item" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure CreateListItem(ListId: Text; FieldsJsonObject: JsonObject; var GraphListItem: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
     var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         JsonResponse: JsonObject;
         RequestJsonObj: JsonObject;
     begin
         EnsureInitialized();
         EnsureSiteId();
 
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if ListId = '' then begin
+            SharePointGraphResponse.SetError(InvalidListIdErr);
+            exit(SharePointGraphResponse);
+        end;
+
         // Create the request body with fields
         RequestJsonObj.Add('fields', FieldsJsonObject);
 
         // Post the request to create the item
-        if not SharePointGraphRequestHelper.Post(SharePointGraphUriBuilder.GetCreateListItemEndpoint(ListId), RequestJsonObj, JsonResponse) then
-            exit(false);
+        if not SharePointGraphRequestHelper.Post(SharePointGraphUriBuilder.GetCreateListItemEndpoint(ListId), RequestJsonObj, JsonResponse) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToCreateListItemErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
 
         GraphListItem.Init();
         GraphListItem.ListId := CopyStr(ListId, 1, MaxStrLen(GraphListItem.ListId));
-        SharePointGraphParser.ParseListItemDetail(JsonResponse, GraphListItem);
+        if not SharePointGraphParser.ParseListItemDetail(JsonResponse, GraphListItem) then begin
+            SharePointGraphResponse.SetError(FailedToParseCreatedListItemErr);
+            exit(SharePointGraphResponse);
+        end;
         GraphListItem.Insert();
 
-        exit(true);
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     /// <summary>
@@ -379,8 +537,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="ListId">ID of the list.</param>
     /// <param name="Title">Title for the new item.</param>
     /// <param name="GraphListItem">Record to store the result.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure CreateListItem(ListId: Text; Title: Text; var GraphListItem: Record "SharePoint Graph List Item" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure CreateListItem(ListId: Text; Title: Text; var GraphListItem: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
     var
         FieldsJsonObject: JsonObject;
     begin
@@ -396,21 +554,35 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// Gets the default document library (drive) for the site.
     /// </summary>
     /// <param name="DriveId">ID of the default drive.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetDefaultDrive(var DriveId: Text): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetDefaultDrive(var DriveId: Text): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
     begin
         EnsureInitialized();
+        EnsureSiteId();
         EnsureDefaultDriveId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Get default drive ID if not already cached
+        if DefaultDriveId = '' then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveDefaultDriveErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
+
         DriveId := DefaultDriveId;
-        exit(DriveId <> '');
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     /// <summary>
     /// Gets all drives (document libraries) available on the site with detailed information.
     /// </summary>
     /// <param name="GraphDrives">Collection of the result (temporary record).</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetDrives(var GraphDrives: Record "SharePoint Graph Drive" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetDrives(var GraphDrives: Record "SharePoint Graph Drive" temporary): Codeunit "SharePoint Graph Response"
     var
         GraphOptionalParameters: Codeunit "Graph Optional Parameters";
     begin
@@ -422,33 +594,49 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="GraphDrives">Collection of the result (temporary record).</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetDrives(var GraphDrives: Record "SharePoint Graph Drive" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetDrives(var GraphDrives: Record "SharePoint Graph Drive" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         JsonResponse: JsonObject;
         NextLink: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
 
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDrivesEndpoint(), JsonResponse, GraphOptionalParameters) then
-            exit(false);
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
 
-        if not SharePointGraphParser.ParseDriveCollection(JsonResponse, GraphDrives) then
-            exit(false);
+        // Make the API request
+        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDrivesEndpoint(), JsonResponse, GraphOptionalParameters) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveDrivesErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
+
+        // Parse the response
+        if not SharePointGraphParser.ParseDriveCollection(JsonResponse, GraphDrives) then begin
+            SharePointGraphResponse.SetError(FailedToParseDrivesErr);
+            exit(SharePointGraphResponse);
+        end;
 
         // Handle pagination
         while SharePointGraphParser.ExtractNextLink(JsonResponse, NextLink) do begin
             Clear(JsonResponse);
 
-            if not SharePointGraphRequestHelper.GetNextPage(NextLink, JsonResponse) then
-                exit(false);
+            if not SharePointGraphRequestHelper.GetNextPage(NextLink, JsonResponse) then begin
+                SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveNextPageDrivesErr,
+                    SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+                exit(SharePointGraphResponse);
+            end;
 
-            if not SharePointGraphParser.ParseDriveCollection(JsonResponse, GraphDrives) then
-                exit(false);
+            if not SharePointGraphParser.ParseDriveCollection(JsonResponse, GraphDrives) then begin
+                SharePointGraphResponse.SetError(FailedToParseDrivesPaginationErr);
+                exit(SharePointGraphResponse);
+            end;
         end;
 
-        exit(true);
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     /// <summary>
@@ -456,8 +644,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="DriveId">ID of the drive to retrieve.</param>
     /// <param name="GraphDrive">Record to store the result.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetDrive(DriveId: Text; var GraphDrive: Record "SharePoint Graph Drive" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetDrive(DriveId: Text; var GraphDrive: Record "SharePoint Graph Drive" temporary): Codeunit "SharePoint Graph Response"
     var
         GraphOptionalParameters: Codeunit "Graph Optional Parameters";
     begin
@@ -470,60 +658,88 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="DriveId">ID of the drive to retrieve.</param>
     /// <param name="GraphDrive">Record to store the result.</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetDrive(DriveId: Text; var GraphDrive: Record "SharePoint Graph Drive" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetDrive(DriveId: Text; var GraphDrive: Record "SharePoint Graph Drive" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         JsonResponse: JsonObject;
         DriveEndpoint: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
 
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if DriveId = '' then begin
+            SharePointGraphResponse.SetError(InvalidDriveIdErr);
+            exit(SharePointGraphResponse);
+        end;
+
         // Construct drive endpoint for specific drive ID
         DriveEndpoint := SharePointGraphUriBuilder.GetSiteEndpoint() + '/drives/' + DriveId;
 
-        if not SharePointGraphRequestHelper.Get(DriveEndpoint, JsonResponse, GraphOptionalParameters) then
-            exit(false);
+        // Make the API request
+        if not SharePointGraphRequestHelper.Get(DriveEndpoint, JsonResponse, GraphOptionalParameters) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveDriveErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
 
         GraphDrive.Init();
-        SharePointGraphParser.ParseDriveDetail(JsonResponse, GraphDrive);
+        if not SharePointGraphParser.ParseDriveDetail(JsonResponse, GraphDrive) then begin
+            SharePointGraphResponse.SetError(FailedToParseDriveErr);
+            exit(SharePointGraphResponse);
+        end;
         GraphDrive.Insert();
 
-        exit(true);
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     /// <summary>
     /// Gets the default document library (drive) for the site with detailed information.
     /// </summary>
     /// <param name="GraphDrive">Record to store the result.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetDefaultDrive(var GraphDrive: Record "SharePoint Graph Drive" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetDefaultDrive(var GraphDrive: Record "SharePoint Graph Drive" temporary): Codeunit "SharePoint Graph Response"
     var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         GraphOptionalParameters: Codeunit "Graph Optional Parameters";
         JsonResponse: JsonObject;
     begin
         EnsureInitialized();
         EnsureSiteId();
 
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveEndpoint(), JsonResponse, GraphOptionalParameters) then
-            exit(false);
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Make the API request
+        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveEndpoint(), JsonResponse, GraphOptionalParameters) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveDefaultDriveErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
 
         GraphDrive.Init();
-        SharePointGraphParser.ParseDriveDetail(JsonResponse, GraphDrive);
+        if not SharePointGraphParser.ParseDriveDetail(JsonResponse, GraphDrive) then begin
+            SharePointGraphResponse.SetError(FailedToParseDriveErr);
+            exit(SharePointGraphResponse);
+        end;
         GraphDrive.Insert();
 
         // Update DefaultDriveId while we're at it
         DefaultDriveId := CopyStr(GraphDrive.Id, 1, MaxStrLen(DefaultDriveId));
 
-        exit(true);
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     /// <summary>
     /// Gets items in the root folder of the default drive.
     /// </summary>
     /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetRootItems(var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetRootItems(var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     var
         GraphOptionalParameters: Codeunit "Graph Optional Parameters";
     begin
@@ -531,12 +747,69 @@ codeunit 9120 "SharePoint Graph Client Impl."
     end;
 
     /// <summary>
+    /// Gets items in the root folder of the default drive.
+    /// </summary>
+    /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
+    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetRootItems(var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        JsonResponse: JsonObject;
+        NextLink: Text;
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Ensure we have Default Drive ID
+        EnsureDefaultDriveId();
+        if DefaultDriveId = '' then begin
+            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // Make the API request
+        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveRootChildrenEndpoint(), JsonResponse, GraphOptionalParameters) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveRootItemsErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
+
+        // Parse the response
+        if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DefaultDriveId, GraphDriveItems) then begin
+            SharePointGraphResponse.SetError(FailedToParseRootItemsErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // Handle pagination
+        while SharePointGraphParser.ExtractNextLink(JsonResponse, NextLink) do begin
+            Clear(JsonResponse);
+
+            if not SharePointGraphRequestHelper.GetNextPage(NextLink, JsonResponse) then begin
+                SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveNextPageRootItemsErr,
+                    SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+                exit(SharePointGraphResponse);
+            end;
+
+            if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DefaultDriveId, GraphDriveItems) then begin
+                SharePointGraphResponse.SetError(FailedToParseRootItemsPaginationErr);
+                exit(SharePointGraphResponse);
+            end;
+        end;
+
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
+    end;
+
+    /// <summary>
     /// Gets children of a folder by the folder's ID.
     /// </summary>
     /// <param name="FolderId">ID of the folder.</param>
     /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetFolderItems(FolderId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetFolderItems(FolderId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     var
         GraphOptionalParameters: Codeunit "Graph Optional Parameters";
     begin
@@ -544,12 +817,76 @@ codeunit 9120 "SharePoint Graph Client Impl."
     end;
 
     /// <summary>
+    /// Gets children of a folder by the folder's ID.
+    /// </summary>
+    /// <param name="FolderId">ID of the folder.</param>
+    /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
+    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetFolderItems(FolderId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        JsonResponse: JsonObject;
+        NextLink: Text;
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if FolderId = '' then begin
+            SharePointGraphResponse.SetError(InvalidFolderIdErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // Ensure we have Default Drive ID
+        EnsureDefaultDriveId();
+        if DefaultDriveId = '' then begin
+            SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // Make the API request
+        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveItemChildrenByIdEndpoint(FolderId), JsonResponse, GraphOptionalParameters) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveFolderItemsErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
+
+        // Parse the response
+        if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DefaultDriveId, GraphDriveItems) then begin
+            SharePointGraphResponse.SetError(FailedToParseFolderItemsErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // Handle pagination
+        while SharePointGraphParser.ExtractNextLink(JsonResponse, NextLink) do begin
+            Clear(JsonResponse);
+
+            if not SharePointGraphRequestHelper.GetNextPage(NextLink, JsonResponse) then begin
+                SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveNextPageFolderItemsErr,
+                    SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+                exit(SharePointGraphResponse);
+            end;
+
+            if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DefaultDriveId, GraphDriveItems) then begin
+                SharePointGraphResponse.SetError(FailedToParseFolderItemsPaginationErr);
+                exit(SharePointGraphResponse);
+            end;
+        end;
+
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
+    end;
+
+    /// <summary>
     /// Gets items from a path in the default drive.
     /// </summary>
     /// <param name="FolderPath">Path to the folder (e.g., 'Documents/Folder1').</param>
     /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetItemsByPath(FolderPath: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetItemsByPath(FolderPath: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     var
         GraphOptionalParameters: Codeunit "Graph Optional Parameters";
     begin
@@ -557,102 +894,23 @@ codeunit 9120 "SharePoint Graph Client Impl."
     end;
 
     /// <summary>
-    /// Gets a file or folder by ID.
-    /// </summary>
-    /// <param name="ItemId">ID of the item to retrieve.</param>
-    /// <param name="GraphDriveItem">Record to store the result.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetDriveItem(ItemId: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Boolean
-    var
-        GraphOptionalParameters: Codeunit "Graph Optional Parameters";
-    begin
-        exit(GetDriveItem(ItemId, GraphDriveItem, GraphOptionalParameters));
-    end;
-
-    /// <summary>
-    /// Gets a file or folder by path.
-    /// </summary>
-    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
-    /// <param name="GraphDriveItem">Record to store the result.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetDriveItemByPath(ItemPath: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Boolean
-    var
-        GraphOptionalParameters: Codeunit "Graph Optional Parameters";
-    begin
-        exit(GetDriveItemByPath(ItemPath, GraphDriveItem, GraphOptionalParameters));
-    end;
-
-    /// <summary>
-    /// Gets a file or folder by path.
-    /// </summary>
-    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
-    /// <param name="GraphDriveItem">Record to store the result.</param>
-    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetDriveItemByPath(ItemPath: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Boolean
-    var
-        JsonResponse: JsonObject;
-    begin
-        EnsureInitialized();
-        EnsureSiteId();
-        EnsureDefaultDriveId();
-
-        // Remove leading slash if present
-        if ItemPath.StartsWith('/') then
-            ItemPath := CopyStr(ItemPath, 2);
-
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveItemByPathEndpoint(ItemPath), JsonResponse, GraphOptionalParameters) then
-            exit(false);
-
-        GraphDriveItem.Init();
-        GraphDriveItem.DriveId := CopyStr(DefaultDriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
-        SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem);
-        GraphDriveItem.Insert();
-
-        exit(true);
-    end;
-
-    /// <summary>
-    /// Gets a file or folder by ID.
-    /// </summary>
-    /// <param name="ItemId">ID of the item to retrieve.</param>
-    /// <param name="GraphDriveItem">Record to store the result.</param>
-    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetDriveItem(ItemId: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Boolean
-    var
-        JsonResponse: JsonObject;
-    begin
-        EnsureInitialized();
-        EnsureSiteId();
-        EnsureDefaultDriveId();
-
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveItemByIdEndpoint(ItemId), JsonResponse, GraphOptionalParameters) then
-            exit(false);
-
-        GraphDriveItem.Init();
-        GraphDriveItem.DriveId := CopyStr(DefaultDriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
-        SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem);
-        GraphDriveItem.Insert();
-
-        exit(true);
-    end;
-
-    /// <summary>
     /// Gets items from a path in the default drive.
     /// </summary>
     /// <param name="FolderPath">Path to the folder (e.g., 'Documents/Folder1').</param>
     /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetItemsByPath(FolderPath: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetItemsByPath(FolderPath: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         JsonResponse: JsonObject;
         NextLink: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
         EnsureDefaultDriveId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
 
         // Handle empty path as root
         if FolderPath = '' then
@@ -662,95 +920,37 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if FolderPath.StartsWith('/') then
             FolderPath := CopyStr(FolderPath, 2);
 
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveItemChildrenByPathEndpoint(FolderPath), JsonResponse, GraphOptionalParameters) then
-            exit(false);
+        // Make the API request
+        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveItemChildrenByPathEndpoint(FolderPath), JsonResponse, GraphOptionalParameters) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveItemsByPathErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
 
-        if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DefaultDriveId, GraphDriveItems) then
-            exit(false);
+        // Parse the response
+        if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DefaultDriveId, GraphDriveItems) then begin
+            SharePointGraphResponse.SetError(FailedToParseItemsByPathErr);
+            exit(SharePointGraphResponse);
+        end;
 
         // Handle pagination
         while SharePointGraphParser.ExtractNextLink(JsonResponse, NextLink) do begin
             Clear(JsonResponse);
 
-            if not SharePointGraphRequestHelper.GetNextPage(NextLink, JsonResponse) then
-                exit(false);
+            if not SharePointGraphRequestHelper.GetNextPage(NextLink, JsonResponse) then begin
+                SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveNextPageItemsByPathErr,
+                    SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+                exit(SharePointGraphResponse);
+            end;
 
-            if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DefaultDriveId, GraphDriveItems) then
-                exit(false);
+            if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DefaultDriveId, GraphDriveItems) then begin
+                SharePointGraphResponse.SetError(FailedToParseItemsByPathPaginationErr);
+                exit(SharePointGraphResponse);
+            end;
         end;
 
-        exit(true);
-    end;
-
-    /// <summary>
-    /// Gets children of a folder by the folder's ID.
-    /// </summary>
-    /// <param name="FolderId">ID of the folder.</param>
-    /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
-    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetFolderItems(FolderId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Boolean
-    var
-        JsonResponse: JsonObject;
-        NextLink: Text;
-    begin
-        EnsureInitialized();
-        EnsureSiteId();
-        EnsureDefaultDriveId();
-
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveItemChildrenByIdEndpoint(FolderId), JsonResponse, GraphOptionalParameters) then
-            exit(false);
-
-        if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DefaultDriveId, GraphDriveItems) then
-            exit(false);
-
-        // Handle pagination
-        while SharePointGraphParser.ExtractNextLink(JsonResponse, NextLink) do begin
-            Clear(JsonResponse);
-
-            if not SharePointGraphRequestHelper.GetNextPage(NextLink, JsonResponse) then
-                exit(false);
-
-            if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DefaultDriveId, GraphDriveItems) then
-                exit(false);
-        end;
-
-        exit(true);
-    end;
-
-    /// <summary>
-    /// Gets items in the root folder of the default drive.
-    /// </summary>
-    /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
-    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetRootItems(var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Boolean
-    var
-        JsonResponse: JsonObject;
-        NextLink: Text;
-    begin
-        EnsureInitialized();
-        EnsureSiteId();
-        EnsureDefaultDriveId();
-
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveRootChildrenEndpoint(), JsonResponse, GraphOptionalParameters) then
-            exit(false);
-
-        if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DefaultDriveId, GraphDriveItems) then
-            exit(false);
-
-        // Handle pagination
-        while SharePointGraphParser.ExtractNextLink(JsonResponse, NextLink) do begin
-            Clear(JsonResponse);
-
-            if not SharePointGraphRequestHelper.GetNextPage(NextLink, JsonResponse) then
-                exit(false);
-
-            if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DefaultDriveId, GraphDriveItems) then
-                exit(false);
-        end;
-
-        exit(true);
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     /// <summary>
@@ -762,9 +962,10 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="FileInStream">Content of the file.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="ConflictBehavior">How to handle conflicts if a file with the same name exists</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure UploadFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure UploadFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
     var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         GraphOptionalParameters: Codeunit "Graph Optional Parameters";
         JsonResponse: JsonObject;
         EffectiveDriveId: Text;
@@ -772,12 +973,19 @@ codeunit 9120 "SharePoint Graph Client Impl."
         EnsureInitialized();
         EnsureSiteId();
 
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if FileName = '' then begin
+            SharePointGraphResponse.SetError(InvalidFileNameErr);
+            exit(SharePointGraphResponse);
+        end;
+
         // Use default drive ID if none specified
         if DriveId = '' then begin
             EnsureDefaultDriveId();
             EffectiveDriveId := DefaultDriveId;
-        end
-        else
+        end else
             EffectiveDriveId := DriveId;
 
         // Remove leading slash if present
@@ -788,15 +996,22 @@ codeunit 9120 "SharePoint Graph Client Impl."
         SharePointGraphRequestHelper.ConfigureConflictBehavior(GraphOptionalParameters, ConflictBehavior);
 
         // Put the file content in the specific drive
-        if not SharePointGraphRequestHelper.UploadFile(SharePointGraphUriBuilder.GetSpecificDriveUploadEndpoint(EffectiveDriveId, FolderPath, FileName), FileInStream, GraphOptionalParameters, JsonResponse) then
-            exit(false);
+        if not SharePointGraphRequestHelper.UploadFile(SharePointGraphUriBuilder.GetSpecificDriveUploadEndpoint(EffectiveDriveId, FolderPath, FileName), FileInStream, GraphOptionalParameters, JsonResponse) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToUploadFileErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
 
         GraphDriveItem.Init();
         GraphDriveItem.DriveId := CopyStr(EffectiveDriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
-        SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem);
+        if not SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem) then begin
+            SharePointGraphResponse.SetError(FailedToParseUploadedFileErr);
+            exit(SharePointGraphResponse);
+        end;
         GraphDriveItem.Insert();
 
-        exit(true);
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     /// <summary>
@@ -807,8 +1022,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="FileName">Name of the file to upload.</param>
     /// <param name="FileInStream">Content of the file.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure UploadFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure UploadFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(UploadFile(DriveId, FolderPath, FileName, FileInStream, GraphDriveItem, Enum::"Graph ConflictBehavior"::Replace));
     end;
@@ -821,8 +1036,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="FileName">Name of the file to upload.</param>
     /// <param name="FileInStream">Content of the file.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure UploadLargeFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure UploadLargeFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     var
         GraphConflictBehavior: Enum "Graph ConflictBehavior";
     begin
@@ -838,9 +1053,10 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="FileInStream">Content of the file.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="ConflictBehavior">How to handle conflicts if a file with the same name exists</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure UploadLargeFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure UploadLargeFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
     var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         GraphOptionalParameters: Codeunit "Graph Optional Parameters";
         TempBlob: Codeunit "Temp Blob";
         ChunkInStream: InStream;
@@ -861,9 +1077,21 @@ codeunit 9120 "SharePoint Graph Client Impl."
         EnsureInitialized();
         EnsureSiteId();
 
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if FileName = '' then begin
+            SharePointGraphResponse.SetError(InvalidFileNameErr);
+            exit(SharePointGraphResponse);
+        end;
+
         // Use default drive ID if none specified
         if DriveId = '' then begin
             EnsureDefaultDriveId();
+            if DefaultDriveId = '' then begin
+                SharePointGraphResponse.SetError(NoDefaultDriveIdErr);
+                exit(SharePointGraphResponse);
+            end;
             EffectiveDriveId := DefaultDriveId;
         end else
             EffectiveDriveId := DriveId;
@@ -882,12 +1110,17 @@ codeunit 9120 "SharePoint Graph Client Impl."
             Endpoint := SharePointGraphUriBuilder.GetSpecificDriveUploadEndpoint(EffectiveDriveId, FolderPath, FileName);
 
         FileSize := FileInStream.Length();
-        if FileSize <= 0 then
-            exit(false);
+        if FileSize <= 0 then begin
+            SharePointGraphResponse.SetError(InvalidFileSizeErr);
+            exit(SharePointGraphResponse);
+        end;
 
         // Create upload session
-        if not SharePointGraphRequestHelper.CreateUploadSession(Endpoint, FileName, FileSize, GraphOptionalParameters, ConflictBehavior, UploadUrl) then
-            exit(false);
+        if not SharePointGraphRequestHelper.CreateUploadSession(Endpoint, FileName, FileSize, GraphOptionalParameters, ConflictBehavior, UploadUrl) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToCreateUploadSessionErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
 
         // Microsoft requires chunks to be multiples of 320 KiB (327,680 bytes)
         ChunkMultiple := 320 * 1024; // 320 KiB
@@ -935,8 +1168,11 @@ codeunit 9120 "SharePoint Graph Client Impl."
             TempBlob.CreateInStream(ChunkInStream);
 
             // Upload the chunk - use the exact URL returned from the upload session without modification
-            if not SharePointGraphRequestHelper.UploadChunk(UploadUrl, ChunkInStream, ContentRange, JsonResponse) then
-                exit(false);
+            if not SharePointGraphRequestHelper.UploadChunk(UploadUrl, ChunkInStream, ContentRange, JsonResponse) then begin
+                SharePointGraphResponse.SetError(StrSubstNo(FailedToUploadChunkErr,
+                    SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+                exit(SharePointGraphResponse);
+            end;
 
             // Check if upload is complete (last chunk response will contain the item details)
             if JsonResponse.Contains('id') then
@@ -946,12 +1182,21 @@ codeunit 9120 "SharePoint Graph Client Impl."
             TotalBytesRead += BytesInChunk;
         end;
 
+        if not CompleteResponseJson.Contains('id') then begin
+            SharePointGraphResponse.SetError(NoUploadResponseErr);
+            exit(SharePointGraphResponse);
+        end;
+
         GraphDriveItem.Init();
         GraphDriveItem.DriveId := CopyStr(EffectiveDriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
-        SharePointGraphParser.ParseDriveItemDetail(CompleteResponseJson, GraphDriveItem);
+        if not SharePointGraphParser.ParseDriveItemDetail(CompleteResponseJson, GraphDriveItem) then begin
+            SharePointGraphResponse.SetError(FailedToParseChunkedUploadErr);
+            exit(SharePointGraphResponse);
+        end;
         GraphDriveItem.Insert();
 
-        exit(true);
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     /// <summary>
@@ -962,9 +1207,10 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="FolderName">Name of the new folder.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="ConflictBehavior">How to handle conflicts if a folder with the same name exists</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure CreateFolder(DriveId: Text; FolderPath: Text; FolderName: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure CreateFolder(DriveId: Text; FolderPath: Text; FolderName: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
     var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         GraphOptionalParameters: Codeunit "Graph Optional Parameters";
         JsonResponse: JsonObject;
         RequestJsonObj: JsonObject;
@@ -974,6 +1220,14 @@ codeunit 9120 "SharePoint Graph Client Impl."
     begin
         EnsureInitialized();
         EnsureSiteId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if FolderName = '' then begin
+            SharePointGraphResponse.SetError(InvalidFolderNameErr);
+            exit(SharePointGraphResponse);
+        end;
 
         // Use default drive ID if none specified
         if DriveId = '' then begin
@@ -1000,15 +1254,22 @@ codeunit 9120 "SharePoint Graph Client Impl."
             Endpoint := SharePointGraphUriBuilder.GetSpecificDriveItemChildrenByPathEndpoint(EffectiveDriveId, FolderPath);
 
         // Post the request to create the folder
-        if not SharePointGraphRequestHelper.Post(Endpoint, RequestJsonObj, GraphOptionalParameters, JsonResponse) then
-            exit(false);
+        if not SharePointGraphRequestHelper.Post(Endpoint, RequestJsonObj, GraphOptionalParameters, JsonResponse) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToCreateFolderErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
 
         GraphDriveItem.Init();
         GraphDriveItem.DriveId := CopyStr(EffectiveDriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
-        SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem);
+        if not SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem) then begin
+            SharePointGraphResponse.SetError(FailedToParseCreatedFolderErr);
+            exit(SharePointGraphResponse);
+        end;
         GraphDriveItem.Insert();
 
-        exit(true);
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     /// <summary>
@@ -1018,8 +1279,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="FolderPath">Path where to create the folder (e.g., 'Documents').</param>
     /// <param name="FolderName">Name of the new folder.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure CreateFolder(DriveId: Text; FolderPath: Text; FolderName: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure CreateFolder(DriveId: Text; FolderPath: Text; FolderName: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(CreateFolder(DriveId, FolderPath, FolderName, GraphDriveItem, Enum::"Graph ConflictBehavior"::Fail));
     end;
@@ -1029,12 +1290,31 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="ItemId">ID of the file to download.</param>
     /// <param name="FileInStream">InStream to receive the file content.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure DownloadFile(ItemId: Text; var FileInStream: InStream): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure DownloadFile(ItemId: Text; var FileInStream: InStream): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
     begin
         EnsureInitialized();
         EnsureSiteId();
-        exit(SharePointGraphRequestHelper.DownloadFile(SharePointGraphUriBuilder.GetDriveItemContentByIdEndpoint(ItemId), FileInStream));
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if ItemId = '' then begin
+            SharePointGraphResponse.SetError(InvalidItemIdErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // Make the API request
+        if not SharePointGraphRequestHelper.DownloadFile(SharePointGraphUriBuilder.GetDriveItemContentByIdEndpoint(ItemId), FileInStream) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToDownloadFileErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
+
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     /// <summary>
@@ -1042,133 +1322,151 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="FilePath">Path to the file (e.g., 'Documents/file.docx').</param>
     /// <param name="FileInStream">InStream to receive the file content.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure DownloadFileByPath(FilePath: Text; var FileInStream: InStream): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure DownloadFileByPath(FilePath: Text; var FileInStream: InStream): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
     begin
         EnsureInitialized();
         EnsureSiteId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if FilePath = '' then begin
+            SharePointGraphResponse.SetError(InvalidFilePathErr);
+            exit(SharePointGraphResponse);
+        end;
 
         // Remove leading slash if present
         if FilePath.StartsWith('/') then
             FilePath := CopyStr(FilePath, 2);
 
-        exit(SharePointGraphRequestHelper.DownloadFile(SharePointGraphUriBuilder.GetDriveItemContentByPathEndpoint(FilePath), FileInStream));
+        // Make the API request
+        if not SharePointGraphRequestHelper.DownloadFile(SharePointGraphUriBuilder.GetDriveItemContentByPathEndpoint(FilePath), FileInStream) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToDownloadFileByPathErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
+
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     /// <summary>
-    /// Gets items from a path in a specific drive (document library).
+    /// Gets a file or folder by ID.
     /// </summary>
-    /// <param name="DriveId">ID of the drive (document library).</param>
-    /// <param name="FolderPath">Path to the folder (e.g., 'Documents/Folder1').</param>
-    /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetItemsByPathInDrive(DriveId: Text; FolderPath: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Boolean
+    /// <param name="ItemId">ID of the item to retrieve.</param>
+    /// <param name="GraphDriveItem">Record to store the result.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetDriveItem(ItemId: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     var
         GraphOptionalParameters: Codeunit "Graph Optional Parameters";
     begin
-        exit(GetItemsByPathInDrive(DriveId, FolderPath, GraphDriveItems, GraphOptionalParameters));
+        exit(GetDriveItem(ItemId, GraphDriveItem, GraphOptionalParameters));
     end;
 
     /// <summary>
-    /// Gets items from a path in a specific drive (document library).
+    /// Gets a file or folder by path.
     /// </summary>
-    /// <param name="DriveId">ID of the drive (document library).</param>
-    /// <param name="FolderPath">Path to the folder (e.g., 'Documents/Folder1').</param>
-    /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
-    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetItemsByPathInDrive(DriveId: Text; FolderPath: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Boolean
+    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
+    /// <param name="GraphDriveItem">Record to store the result.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetDriveItemByPath(ItemPath: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     var
+        GraphOptionalParameters: Codeunit "Graph Optional Parameters";
+    begin
+        exit(GetDriveItemByPath(ItemPath, GraphDriveItem, GraphOptionalParameters));
+    end;
+
+    /// <summary>
+    /// Gets a file or folder by path.
+    /// </summary>
+    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
+    /// <param name="GraphDriveItem">Record to store the result.</param>
+    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetDriveItemByPath(ItemPath: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         JsonResponse: JsonObject;
-        NextLink: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
+        EnsureDefaultDriveId();
 
-        if DriveId = '' then begin
-            EnsureDefaultDriveId();
-            exit(GetItemsByPath(FolderPath, GraphDriveItems, GraphOptionalParameters));
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if ItemPath = '' then begin
+            SharePointGraphResponse.SetError(InvalidItemPathErr);
+            exit(SharePointGraphResponse);
         end;
-
-        // Handle empty path as root
-        if FolderPath = '' then
-            exit(GetRootItemsInDrive(DriveId, GraphDriveItems, GraphOptionalParameters));
 
         // Remove leading slash if present
-        if FolderPath.StartsWith('/') then
-            FolderPath := CopyStr(FolderPath, 2);
+        if ItemPath.StartsWith('/') then
+            ItemPath := CopyStr(ItemPath, 2);
 
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetSpecificDriveItemChildrenByPathEndpoint(DriveId, FolderPath), JsonResponse, GraphOptionalParameters) then
-            exit(false);
-
-        if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DriveId, GraphDriveItems) then
-            exit(false);
-
-        // Handle pagination
-        while SharePointGraphParser.ExtractNextLink(JsonResponse, NextLink) do begin
-            Clear(JsonResponse);
-
-            if not SharePointGraphRequestHelper.GetNextPage(NextLink, JsonResponse) then
-                exit(false);
-
-            if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DriveId, GraphDriveItems) then
-                exit(false);
+        // Make the API request
+        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveItemByPathEndpoint(ItemPath), JsonResponse, GraphOptionalParameters) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveDriveItemByPathErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
         end;
 
-        exit(true);
+        GraphDriveItem.Init();
+        GraphDriveItem.DriveId := CopyStr(DefaultDriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
+        if not SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem) then begin
+            SharePointGraphResponse.SetError(FailedToParseDriveItemByPathErr);
+            exit(SharePointGraphResponse);
+        end;
+        GraphDriveItem.Insert();
+
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     /// <summary>
-    /// Gets items in the root folder of a specific drive (document library).
+    /// Gets a file or folder by ID.
     /// </summary>
-    /// <param name="DriveId">ID of the drive (document library).</param>
-    /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetRootItemsInDrive(DriveId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Boolean
-    var
-        GraphOptionalParameters: Codeunit "Graph Optional Parameters";
-    begin
-        exit(GetRootItemsInDrive(DriveId, GraphDriveItems, GraphOptionalParameters));
-    end;
-
-    /// <summary>
-    /// Gets items in the root folder of a specific drive (document library).
-    /// </summary>
-    /// <param name="DriveId">ID of the drive (document library).</param>
-    /// <param name="GraphDriveItems">Collection of the result (temporary record).</param>
+    /// <param name="ItemId">ID of the item to retrieve.</param>
+    /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
-    /// <returns>True if the operation was successful; otherwise - false.</returns>
-    procedure GetRootItemsInDrive(DriveId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Boolean
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure GetDriveItem(ItemId: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         JsonResponse: JsonObject;
-        NextLink: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
+        EnsureDefaultDriveId();
 
-        if DriveId = '' then begin
-            EnsureDefaultDriveId();
-            exit(GetRootItems(GraphDriveItems, GraphOptionalParameters));
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if ItemId = '' then begin
+            SharePointGraphResponse.SetError(InvalidItemIdErr);
+            exit(SharePointGraphResponse);
         end;
 
-        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetSpecificDriveRootChildrenEndpoint(DriveId), JsonResponse, GraphOptionalParameters) then
-            exit(false);
-
-        if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DriveId, GraphDriveItems) then
-            exit(false);
-
-        // Handle pagination
-        while SharePointGraphParser.ExtractNextLink(JsonResponse, NextLink) do begin
-            Clear(JsonResponse);
-
-            if not SharePointGraphRequestHelper.GetNextPage(NextLink, JsonResponse) then
-                exit(false);
-
-            if not SharePointGraphParser.ParseDriveItemCollection(JsonResponse, DriveId, GraphDriveItems) then
-                exit(false);
+        // Make the API request
+        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveItemByIdEndpoint(ItemId), JsonResponse, GraphOptionalParameters) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveDriveItemErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
         end;
 
-        exit(true);
+        GraphDriveItem.Init();
+        GraphDriveItem.DriveId := CopyStr(DefaultDriveId, 1, MaxStrLen(GraphDriveItem.DriveId));
+        if not SharePointGraphParser.ParseDriveItemDetail(JsonResponse, GraphDriveItem) then begin
+            SharePointGraphResponse.SetError(FailedToParseDriveItemErr);
+            exit(SharePointGraphResponse);
+        end;
+        GraphDriveItem.Insert();
+
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
     end;
 
     #endregion
@@ -1180,6 +1478,25 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure GetDiagnostics(): Interface "HTTP Diagnostics"
     begin
         exit(SharePointGraphRequestHelper.GetDiagnostics());
+    end;
+
+    /// <summary>
+    /// Sets the site ID directly for testing purposes.
+    /// </summary>
+    /// <param name="NewSiteId">The site ID to set.</param>
+    internal procedure SetSiteIdForTesting(NewSiteId: Text)
+    begin
+        SiteId := NewSiteId;
+        SharePointGraphUriBuilder.Initialize(SiteId, SharePointGraphRequestHelper);
+    end;
+
+    /// <summary>
+    /// Sets the default drive ID directly for testing purposes.
+    /// </summary>
+    /// <param name="NewDefaultDriveId">The default drive ID to set.</param>
+    internal procedure SetDefaultDriveIdForTesting(NewDefaultDriveId: Text)
+    begin
+        DefaultDriveId := NewDefaultDriveId;
     end;
 
     // Add this method to lazily load the default drive ID

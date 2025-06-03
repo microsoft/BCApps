@@ -61,6 +61,19 @@ codeunit 9123 "SharePoint Graph Req. Helper"
     end;
 
     /// <summary>
+    /// Initializes the Graph Request Helper with an HTTP client handler for testing.
+    /// </summary>
+    /// <param name="NewApiVersion">The Graph API version to use.</param>
+    /// <param name="GraphAuthorization">The Graph API authorization to use.</param>
+    /// <param name="HttpClientHandler">HTTP client handler for intercepting requests.</param>
+    procedure Initialize(NewApiVersion: Enum "Graph API Version"; GraphAuthorization: Interface "Graph Authorization"; HttpClientHandler: Interface "Http Client Handler")
+    begin
+        ApiVersion := NewApiVersion;
+        CustomBaseUrl := '';
+        GraphClient.Initialize(NewApiVersion, GraphAuthorization, HttpClientHandler);
+    end;
+
+    /// <summary>
     /// Gets the base URL for Graph API calls.
     /// </summary>
     /// <returns>The base URL for Graph API requests.</returns>

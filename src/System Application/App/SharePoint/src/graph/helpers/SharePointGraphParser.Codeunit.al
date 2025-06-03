@@ -55,8 +55,8 @@ codeunit 9122 "SharePoint Graph Parser"
             JsonListObject := JsonToken.AsObject();
 
             GraphLists.Init();
-            ParseListItem(JsonListObject, GraphLists);
-            GraphLists.Insert();
+            if ParseListItem(JsonListObject, GraphLists) then
+                GraphLists.Insert();
         end;
 
         exit(true);
@@ -67,13 +67,16 @@ codeunit 9122 "SharePoint Graph Parser"
     /// </summary>
     /// <param name="JsonListObject">The JSON object to parse.</param>
     /// <param name="GraphList">The record to populate.</param>
-    procedure ParseListItem(JsonListObject: JsonObject; var GraphList: Record "SharePoint Graph List" temporary)
+    /// <returns>True if successfully parsed; otherwise false.</returns>
+    procedure ParseListItem(JsonListObject: JsonObject; var GraphList: Record "SharePoint Graph List" temporary): Boolean
     var
         JsonToken: JsonToken;
         DtToken: JsonToken;
     begin
-        if JsonListObject.Get('id', JsonToken) then
-            GraphList.Id := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(GraphList.Id));
+        if not JsonListObject.Get('id', JsonToken) then
+            exit(false);
+
+        GraphList.Id := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(GraphList.Id));
 
         if JsonListObject.Get('displayName', JsonToken) then
             GraphList.DisplayName := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(GraphList.DisplayName));
@@ -102,6 +105,8 @@ codeunit 9122 "SharePoint Graph Parser"
 
         if JsonListObject.Get('lastModifiedDateTime', JsonToken) then
             GraphList.LastModifiedDateTime := JsonToken.AsValue().AsDateTime();
+
+        exit(true);
     end;
 
     /// <summary>
@@ -130,8 +135,8 @@ codeunit 9122 "SharePoint Graph Parser"
 
             GraphListItems.Init();
             GraphListItems.ListId := CopyStr(ListId, 1, MaxStrLen(GraphListItems.Id));
-            ParseListItemDetail(JsonItemObject, GraphListItems);
-            GraphListItems.Insert();
+            if ParseListItemDetail(JsonItemObject, GraphListItems) then
+                GraphListItems.Insert();
         end;
 
         exit(true);
@@ -142,13 +147,16 @@ codeunit 9122 "SharePoint Graph Parser"
     /// </summary>
     /// <param name="JsonItemObject">The JSON object to parse.</param>
     /// <param name="GraphListItem">The record to populate.</param>
-    procedure ParseListItemDetail(JsonItemObject: JsonObject; var GraphListItem: Record "SharePoint Graph List Item" temporary)
+    /// <returns>True if successfully parsed; otherwise false.</returns>
+    procedure ParseListItemDetail(JsonItemObject: JsonObject; var GraphListItem: Record "SharePoint Graph List Item" temporary): Boolean
     var
         JsonToken: JsonToken;
         FieldsJsonObject: JsonObject;
     begin
-        if JsonItemObject.Get('id', JsonToken) then
-            GraphListItem.Id := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(GraphListItem.Id));
+        if not JsonItemObject.Get('id', JsonToken) then
+            exit(false);
+
+        GraphListItem.Id := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(GraphListItem.Id));
 
         if JsonItemObject.Get('contentType', JsonToken) then
             if JsonToken.IsObject() then
@@ -175,6 +183,8 @@ codeunit 9122 "SharePoint Graph Parser"
             // Store all fields as JSON
             GraphListItem.SetFieldsJson(FieldsJsonObject);
         end;
+
+        exit(true);
     end;
 
     /// <summary>
@@ -203,8 +213,8 @@ codeunit 9122 "SharePoint Graph Parser"
 
             GraphDriveItems.Init();
             GraphDriveItems.DriveId := CopyStr(DriveId, 1, MaxStrLen(GraphDriveItems.DriveId));
-            ParseDriveItemDetail(JsonItemObject, GraphDriveItems);
-            GraphDriveItems.Insert();
+            if ParseDriveItemDetail(JsonItemObject, GraphDriveItems) then
+                GraphDriveItems.Insert();
         end;
 
         exit(true);
@@ -215,14 +225,17 @@ codeunit 9122 "SharePoint Graph Parser"
     /// </summary>
     /// <param name="JsonItemObject">The JSON object to parse.</param>
     /// <param name="GraphDriveItem">The record to populate.</param>
-    procedure ParseDriveItemDetail(JsonItemObject: JsonObject; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary)
+    /// <returns>True if successfully parsed; otherwise false.</returns>
+    procedure ParseDriveItemDetail(JsonItemObject: JsonObject; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Boolean
     var
         JsonToken: JsonToken;
         FileJsonObj: JsonObject;
         ParentRefJsonObj: JsonObject;
     begin
-        if JsonItemObject.Get('id', JsonToken) then
-            GraphDriveItem.Id := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(GraphDriveItem.Id));
+        if not JsonItemObject.Get('id', JsonToken) then
+            exit(false);
+
+        GraphDriveItem.Id := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(GraphDriveItem.Id));
 
         if JsonItemObject.Get('name', JsonToken) then
             GraphDriveItem.Name := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(GraphDriveItem.Name));
@@ -261,6 +274,8 @@ codeunit 9122 "SharePoint Graph Parser"
 
         if JsonItemObject.Get('size', JsonToken) then
             GraphDriveItem.Size := JsonToken.AsValue().AsBigInteger();
+
+        exit(true);
     end;
 
     /// <summary>
@@ -287,8 +302,8 @@ codeunit 9122 "SharePoint Graph Parser"
             JsonDriveObject := JsonToken.AsObject();
 
             GraphDrives.Init();
-            ParseDriveDetail(JsonDriveObject, GraphDrives);
-            GraphDrives.Insert();
+            if ParseDriveDetail(JsonDriveObject, GraphDrives) then
+                GraphDrives.Insert();
         end;
 
         exit(true);
@@ -299,15 +314,18 @@ codeunit 9122 "SharePoint Graph Parser"
     /// </summary>
     /// <param name="JsonDriveObject">The JSON object to parse.</param>
     /// <param name="GraphDrive">The record to populate.</param>
-    procedure ParseDriveDetail(JsonDriveObject: JsonObject; var GraphDrive: Record "SharePoint Graph Drive" temporary)
+    /// <returns>True if successfully parsed; otherwise false.</returns>
+    procedure ParseDriveDetail(JsonDriveObject: JsonObject; var GraphDrive: Record "SharePoint Graph Drive" temporary): Boolean
     var
         JsonToken: JsonToken;
         OwnerJsonObj: JsonObject;
         UserJsonObj: JsonObject;
         QuotaJsonObj: JsonObject;
     begin
-        if JsonDriveObject.Get('id', JsonToken) then
-            GraphDrive.Id := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(GraphDrive.Id));
+        if not JsonDriveObject.Get('id', JsonToken) then
+            exit(false);
+
+        GraphDrive.Id := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(GraphDrive.Id));
 
         if JsonDriveObject.Get('name', JsonToken) then
             GraphDrive.Name := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(GraphDrive.Name));
@@ -351,5 +369,7 @@ codeunit 9122 "SharePoint Graph Parser"
             if QuotaJsonObj.Get('state', JsonToken) then
                 GraphDrive.QuotaState := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(GraphDrive.QuotaState));
         end;
+
+        exit(true);
     end;
 }
