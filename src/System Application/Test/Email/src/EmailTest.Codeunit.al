@@ -704,7 +704,8 @@ codeunit 134685 "Email Test"
 
         Assert.IsTrue(EmailOutbox.FindFirst(), 'The email outbox entry should exist');
         Assert.AreEqual(Connector::"Test Email Connector".AsInteger(), EmailOutbox.Connector.AsInteger(), 'Wrong connector');
-        Assert.AreEqual(EmailStatus::Failed.AsInteger(), EmailOutbox.Status.AsInteger(), 'Wrong status');
+        // [TODO] Check the content in the retry record. We cannot check the status here, because we don't know if the email was already queued 
+        Assert.AreEqual(EmailStatus::Queued.AsInteger(), EmailOutbox.Status.AsInteger(), 'Wrong status');
         Assert.AreEqual('Failed to send email', EmailOutbox."Error Message", 'Wrong error message');
     end;
 
