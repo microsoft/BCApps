@@ -42,10 +42,25 @@ codeunit 8888 "Email Dispatcher"
         // -----------
 
         Rec.LockTable(true);
-        if EmailRateLimitImpl.IsRateLimitExceeded(Rec."Account Id", Rec.Connector, Rec."Send From", RateLimitDuration) then
+        if EmailRateLimitImpl.IsRateLimitExceeded(Rec."Account Id", Rec.Connector, Rec."Send From", RateLimitDuration) or (GetEmailOutboxCurrentProcessingCount() > 5) then
             RescheduleEmail(RateLimitDuration, Dimensions, Rec)
         else
             SendEmail(Rec);
+    end;
+
+    /// <summary>
+    /// Returns the current count of emails in the outbox that are being processed.
+    /// </summary>
+    /// <returns>The count of the email which is being sending</returns>
+    internal procedure GetEmailOutboxCurrentProcessingCount(): Integer
+    var
+        EmailOutbox: Record "Email Outbox";
+    begin
+        EmailOutbox.SetRange(Status, EmailOutbox.Status::Processing);
+        if not EmailOutbox.FindSet() then
+            exit(0);
+
+        exit(EmailOutbox.Count());
     end;
 
     local procedure SendEmail(var EmailOutbox: Record "Email Outbox")
@@ -203,7 +218,7 @@ codeunit 8888 "Email Dispatcher"
         EmailOutbox.Modify();
 
         Dimensions.Add('TaskId', Format(TaskId));
-        FeatureTelemetry.LogUsage('0000CTK', EmailFeatureNameLbl, 'Email being rescheduled', Dimensions);
+        FeatureTelemetry.LogUsage('0000CTK', EmailFeatureNameLbl, 'Email being rescheduled for exceeding currency limitation', Dimensions);
         Success := true;
     end;
 
