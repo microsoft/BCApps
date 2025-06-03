@@ -13,6 +13,7 @@ codeunit 8888 "Email Dispatcher"
     TableNo = "Email Outbox";
     Permissions = tabledata "Sent Email" = ri,
                   tabledata "Email Outbox" = rimd,
+                  tabledata "Email Retry" = rimd,
                   tabledata "Email Message" = r,
                   tabledata "Email Error" = ri;
 
