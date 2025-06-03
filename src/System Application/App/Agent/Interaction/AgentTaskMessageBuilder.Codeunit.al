@@ -105,16 +105,16 @@ codeunit 4316 "Agent Task Message Builder"
     /// <summary>
     /// Creates the task message.
     /// </summary>
-    /// <param name="MarkTaskAsReady">Specifies if the task should be marked as ready for processing after the message is created.
+    /// <param name="SetTaskStatusToReady">Specifies if the task should be marked as ready for processing after the message is created.
     /// If set to false, the task will not be marked as ready and will not be picked up for processing. 
     /// </param>
     /// <returns>
     /// The created task message.
     /// </returns>
     [Scope('OnPrem')]
-    procedure Create(MarkTaskAsReady: Boolean): Record "Agent Task Message"
+    procedure Create(SetTaskStatusToReady: Boolean): Record "Agent Task Message"
     begin
-        exit(AgentTaskMsgBuilderImpl.Create(MarkTaskAsReady));
+        exit(AgentTaskMsgBuilderImpl.Create(SetTaskStatusToReady));
     end;
 
     /// <summary>
