@@ -1,10 +1,10 @@
 function GetSourceCodeFromArtifact() {
     param(
-        [string] $App,
+        [string] $AppName,
         [string] $TempFolder
     )
-    $sourceArchive = Get-ChildItem -Path $TempFolder -Recurse -Filter "$App.Source.zip" -ErrorAction SilentlyContinue
-    $sourceCodeFolder = "$TempFolder/$($App -replace " ", "_")Source"
+    $sourceArchive = Get-ChildItem -Path $TempFolder -Recurse -Filter "$AppName.Source.zip" -ErrorAction SilentlyContinue
+    $sourceCodeFolder = "$TempFolder/$($AppName -replace " ", "_")Source"
     # Return source code folder if it exists
     if (Test-Path $sourceCodeFolder) {
         Write-Host "Source code folder already exists: $sourceCodeFolder"
@@ -33,13 +33,13 @@ function GetSourceCodeFromArtifact() {
         Download-Artifacts -artifactUrl $artifactVersion -basePath $TempFolder -includePlatform | Out-Null
 
         # Unzip it
-        $sourceArchive = Get-ChildItem -Path $TempFolder -Recurse -Filter "$App.Source.zip"
+        $sourceArchive = Get-ChildItem -Path $TempFolder -Recurse -Filter "$AppName.Source.zip"
     }
 
     $sourceArchive | Expand-Archive -Destination $sourceCodeFolder
 
     if (-not (Test-Path $sourceCodeFolder)) {
-        Write-Error "Could not find the source code for $App"
+        Write-Error "Could not find the source code for $AppName"
         throw
     }
 
@@ -59,7 +59,7 @@ function GetSourceCodeFromArtifact() {
 #>
 function Build-App() {
     param(
-        [string] $App,
+        [string] $AppName,
         [hashtable] $CompilationParameters
     )
     # Set up temp folder if not already set
@@ -76,9 +76,9 @@ function Build-App() {
 
     # If app is already there then skip it
     if (Test-Path $CompilationParameters["appOutputFolder"]) {
-        $appSymbolsExist = Get-ChildItem -Path $CompilationParameters["appOutputFolder"] | Where-Object { $_.Name -like "Microsoft_$($App)*.app" }
+        $appSymbolsExist = Get-ChildItem -Path $CompilationParameters["appOutputFolder"] | Where-Object { $_.Name -like "Microsoft_$($AppName)*.app" }
         if ($appSymbolsExist) {
-            Write-Host "$App is already in the symbols folder. Skipping recompilation"
+            Write-Host "$AppName is already in the symbols folder. Skipping recompilation"
             return
         }
     }
@@ -88,13 +88,13 @@ function Build-App() {
     $sourceCodeFolder = $null
     # If we are using project dependencies we will try to find the source code within the repository
     if ($alGoSettings.useProjectDependencies) {
-        Write-Host "Get source code for $App"
+        Write-Host "Get source code for $AppName"
         Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
         $sourceCodeFolder = Get-ChildItem -Path (Get-BaseFolder) -Filter "app.json" -Recurse | ForEach-Object {
-            $appName = (Get-Content -Path $_.FullName | ConvertFrom-Json).Name
-            if ($appName -eq $App) {
+            $appJsonName = (Get-Content -Path $_.FullName | ConvertFrom-Json).Name
+            if ($appJsonName -eq $AppName) {
                 $sourceCodeFolder = Split-Path $_.FullName -Parent
-                Write-Host "Found code for $App in $sourceCodeFolder"
+                Write-Host "Found code for $AppName in $sourceCodeFolder"
                 return $sourceCodeFolder
             }
         }
@@ -102,7 +102,7 @@ function Build-App() {
 
     # If we didn't find the source code in the repository, we will try to get it from the artifact
     if (-not $sourceCodeFolder) {
-        $sourceCodeFolder = GetSourceCodeFromArtifact -App $App -TempFolder $script:tempFolder
+        $sourceCodeFolder = GetSourceCodeFromArtifact -AppName $AppName -TempFolder $script:tempFolder
     }
 
     # Update the CompilationParameters
@@ -115,7 +115,7 @@ function Build-App() {
     $CompilationParameters["EnablePerTenantExtensionCop"] = $false
     $CompilationParameters.Remove("ruleset")
 
-    Write-Host "Recompile $App with parameters"
+    Write-Host "Recompile $AppName with parameters"
     foreach ($key in $CompilationParameters.Keys) {
         Write-Host "$key : $($CompilationParameters[$key])"
     }
