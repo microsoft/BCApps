@@ -11,9 +11,7 @@ page 4313 "Agent Task Details"
     ApplicationArea = All;
     SourceTable = "Agent Task Timeline Step Det.";
     Caption = 'Agent Task Timeline Step Details';
-    Editable = false;
     InsertAllowed = false;
-    ModifyAllowed = false;
     DeleteAllowed = false;
     Extensible = false;
     InherentEntitlements = X;
