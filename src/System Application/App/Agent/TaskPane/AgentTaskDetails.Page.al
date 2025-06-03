@@ -75,10 +75,14 @@ page 4313 "Agent Task Details"
         }
     }
 
-    trigger OnAfterGetRecord()
+    trigger OnOpenPage()
     begin
         SelectedSuggestionId := '';
         UserMessage := '';
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
         SetClientContext();
     end;
 
