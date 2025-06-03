@@ -63,7 +63,7 @@ codeunit 3109 "PDF Helper Impl"
             // xmp did not register the attachment name, try to get the attachment by name
             // using a list of valid names from the E-Invoicing standard.
             Name := ValidNamesTxt;
-            MemoryStream := PdfAttachmentManager.GetInvoiceAttachment('');
+            MemoryStream := PdfAttachmentManager.GetInvoiceAttachment(Name);
         end;
 
         if IsNull(MemoryStream) then
