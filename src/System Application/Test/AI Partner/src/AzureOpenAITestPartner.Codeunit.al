@@ -11,7 +11,7 @@ using System.TestLibraries.AI;
 using System.TestLibraries.Environment;
 using System.TestLibraries.Utilities;
 
-codeunit 139020 "Azure OpenAI Test Partner"
+codeunit 139025 "Azure OpenAI Test Partner"
 {
     Subtype = Test;
 
@@ -71,7 +71,7 @@ codeunit 139020 "Azure OpenAI Test Partner"
         AzureOpenAI.GenerateTextCompletion(Metaprompt, Any.AlphanumericText(10), AOAIOperationResponse);
 
         // [THEN] GenerateTextCompletion returns an error [CAPI with Partner Billed - Not allowed for Partner published capabilities]
-        LibraryAssert.ExpectedError('Usage of resources not authorized with current billing type.');
+        LibraryAssert.ExpectedError('Usage of AI resources not authorized with chosen billing type. Please reach out to your administrator to resolve this issue.');
     end;
 
     [Test]
@@ -96,7 +96,7 @@ codeunit 139020 "Azure OpenAI Test Partner"
         AzureOpenAI.GenerateEmbeddings(Any.AlphanumericText(10), AOAIOperationResponse);
 
         // [THEN] GenerateEmbeddings returns an error [BYO with Microsoft Billed - Not allowed for Partner published capabilities]
-        LibraryAssert.ExpectedError('Usage of resources not authorized with current billing type.');
+        LibraryAssert.ExpectedError('Usage of AI resources not authorized with chosen billing type. Please reach out to your administrator to resolve this issue.');
     end;
 
     [Test]
@@ -123,7 +123,7 @@ codeunit 139020 "Azure OpenAI Test Partner"
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIOperationResponse);
 
         // [THEN] GenerateChatCompletion fails [CAPI with Free billing type - Not allowed for Partner published capabilities]
-        LibraryAssert.ExpectedError('Usage of resources not authorized with current billing type.');
+        LibraryAssert.ExpectedError('Usage of AI resources not authorized with chosen billing type. Please reach out to your administrator to resolve this issue.');
     end;
 
     local procedure RegisterCapabilityWithBillingType(Capability: Enum "Copilot Capability"; Availability: Enum "Copilot Availability"; BillingType: Enum "Copilot Billing Type")

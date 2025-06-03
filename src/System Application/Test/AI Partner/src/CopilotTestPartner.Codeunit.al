@@ -4,7 +4,7 @@ using System.AI;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.AI;
 
-codeunit 139019 "Copilot Test Partner"
+codeunit 139024 "Copilot Test Partner"
 {
     Subtype = Test;
 

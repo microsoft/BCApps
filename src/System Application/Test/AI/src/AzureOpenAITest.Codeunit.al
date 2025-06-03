@@ -316,7 +316,7 @@ codeunit 132684 "Azure OpenAI Test"
         AzureOpenAI.GenerateTextCompletion(Metaprompt, Any.AlphanumericText(10), AOAIOperationResponse);
 
         // [THEN] GenerateTextCompletion shall fail [CAPI with Custom Billed - Not allowed for Microsoft published capabilities]
-        LibraryAssert.ExpectedError('Usage of resources not authorized with current billing type.');
+        LibraryAssert.ExpectedError('Usage of AI resources not authorized with chosen billing type. Please reach out to your administrator to resolve this issue');
     end;
 
     [Test]

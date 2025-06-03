@@ -47,7 +47,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         TelemetryMetapromptRetrievalErr: Label 'Unable to retrieve metaprompt from Azure Key Vault.', Locked = true;
         TelemetryFunctionCallingFailedErr: Label 'Function calling failed for function: %1', Comment = '%1 is the name of the function', Locked = true;
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
-        BillingTypeAuthorizationErr: Label 'Usage of resources not authorized with current billing type.', Locked = true;
+        BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type. Please reach out to your administrator to resolve this issue.';
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
