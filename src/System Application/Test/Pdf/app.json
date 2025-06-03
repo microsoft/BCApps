@@ -1,8 +1,8 @@
 {
     "id": "2c7afcfb-9625-4ace-b972-5889d045ce8c",
-    "name": "Document Processor Tests",
+    "name": "Pdf Tests",
     "publisher": "Microsoft",
-    "brief": "Tests for the Document Processor module.",
+    "brief": "Tests for the Pdf module.",
     "description": "Provides functionality for processing and extracting data from PDF documents.",
     "version": "27.0.0.0",
     "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
@@ -13,7 +13,7 @@
     "dependencies": [
         {
             "id": "2c7afcfb-9625-4ace-b972-5889d045ce8f",
-            "name": "Document Processor",
+            "name": "Pdf",
             "publisher": "Microsoft",
             "version": "27.0.0.0"
         },
@@ -34,6 +34,12 @@
             "name": "Library Assert",
             "publisher": "Microsoft",
             "version": "27.0.0.0"
+        },
+        {
+            "id": "0846d207-5dec-4c1b-afd8-6a25e1e14b9d",
+            "name": "Base64 Convert",
+            "publisher": "Microsoft",
+            "version": "27.0.0.0"
         }
     ],
     "screenshots": [],
@@ -43,9 +49,6 @@
             "from": 132601,
             "to": 132602
         }
-    ],
-    "resourceFolders": [
-        ".resources"
     ],
     "target": "OnPrem",
     "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
