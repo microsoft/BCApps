@@ -37,6 +37,7 @@ page 4307 "Agent Task Timeline"
             }
             repeater(TaskTimeline)
             {
+                Editable = false;
                 field(Header; Rec.Title)
                 {
                     Caption = 'Header';
@@ -130,14 +131,10 @@ page 4307 "Agent Task Timeline"
                 var
                     UserInterventionRequestEntry: Record "Agent Task Log Entry";
                     AgentTaskImpl: Codeunit "Agent Task Impl.";
-                    SelectedSuggestionIdInt: Integer;
                 begin
                     if UserInterventionRequestEntry.Get(Rec."Task ID", Rec."Last Log Entry ID") then
                         if UserInterventionRequestEntry.Type = "Agent Task Log Entry Type"::"User Intervention Request" then
-                            if Evaluate(SelectedSuggestionIdInt, SelectedSuggestionId) then
-                                AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, UserMessage, SelectedSuggestionIdInt)
-                            else
-                                AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, UserMessage);
+                            AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, UserMessage, SelectedSuggestionId);
                 end;
             }
 
@@ -164,8 +161,8 @@ page 4307 "Agent Task Timeline"
 
     trigger OnOpenPage()
     begin
-        SelectedSuggestionId := '';
-        UserMessage := '';
+        Clear(SelectedSuggestionId);
+        Clear(UserMessage);
         Rec.SetRange(Importance, Rec.Importance::Primary);
     end;
 
@@ -197,22 +194,22 @@ page 4307 "Agent Task Timeline"
         GlobalDescription := Rec.Description;
 
         if Rec.CalcFields("Primary Page Summary", "Primary Page Query", "Annotations", "Last User Intervention Details") then begin
-            if Rec."Primary Page Summary".HasValue then begin
+            if Rec."Primary Page Summary".HasValue() then begin
                 Rec."Primary Page Summary".CreateInStream(InStream, TextEncoding::UTF8);
                 GlobalPageSummary.Read(InStream);
                 Clear(InStream);
             end;
-            if Rec."Primary Page Query".HasValue then begin
+            if Rec."Primary Page Query".HasValue() then begin
                 Rec."Primary Page Query".CreateInStream(InStream, TextEncoding::UTF8);
                 GlobalPageQuery.Read(InStream);
                 Clear(InStream);
             end;
-            if Rec."Annotations".HasValue then begin
+            if Rec."Annotations".HasValue() then begin
                 Rec."Annotations".CreateInStream(InStream, TextEncoding::UTF8);
                 GlobalAnnotations.Read(InStream);
                 Clear(InStream);
             end;
-            if Rec."Last User Intervention Details".HasValue then begin
+            if Rec."Last User Intervention Details".HasValue() then begin
                 Rec."Last User Intervention Details".CreateInStream(InStream, TextEncoding::UTF8);
                 GlobalUserInterventionDetails.Read(InStream);
                 Clear(InStream);

@@ -35,6 +35,7 @@ page 4313 "Agent Task Details"
             }
             repeater(Details)
             {
+                Editable = false;
                 field(ClientContext; ClientContext)
                 {
                     Caption = 'Client Context';
@@ -77,8 +78,8 @@ page 4313 "Agent Task Details"
 
     trigger OnOpenPage()
     begin
-        SelectedSuggestionId := '';
-        UserMessage := '';
+        Clear(SelectedSuggestionId);
+        Clear(UserMessage);
     end;
 
     trigger OnAfterGetRecord()
@@ -104,17 +105,13 @@ page 4313 "Agent Task Details"
     var
         UserInterventionRequestEntry: Record "Agent Task Log Entry";
         TaskTimelineStep: Record "Agent Task Timeline Step";
-        SelectedSuggestionIdInt: Integer;
     begin
         TaskTimelineStep.SetRange("Task ID", Rec."Task ID");
         TaskTimelineStep.SetRange(ID, Rec."Timeline Step ID");
         TaskTimelineStep.SetRange("Last Log Entry Type", "Agent Task Log Entry Type"::"User Intervention Request");
         if TaskTimelineStep.FindLast() then
             if UserInterventionRequestEntry.Get(TaskTimelineStep."Task ID", TaskTimelineStep."Last Log Entry ID") then
-                if Evaluate(SelectedSuggestionIdInt, SelectedSuggestionId) then
-                    AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, UserMessage, SelectedSuggestionIdInt)
-                else
-                    AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, UserMessage);
+                AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, UserMessage, SelectedSuggestionId);
     end;
 
     local procedure SkipStep()
