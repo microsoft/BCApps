@@ -26,7 +26,7 @@ codeunit 132601 "PDF Document Test"
         ImageFormat: Enum "Image Format";
         PdfInstream, ImageStream, ResultImageStream : InStream;
     begin
-        // Setup
+        // Setup test this
         NavApp.GetResource('test.pdf', PdfInstream, TextEncoding::UTF8);
         NavApp.GetResource('test.png', ResultImageStream, TextEncoding::UTF8);
         TempBlob.CreateInStream(ImageStream);
