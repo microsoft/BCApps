@@ -176,7 +176,7 @@ codeunit 3109 "PDF Document Impl."
         DownloadFromStream(AttachmentStream, ZipFileLbl, '', '', ZipFilename);
     end;
 
-    procedure ShowNames(PdfStream: InStream): Text
+    procedure ShowAttachmentNames(PdfStream: InStream): Text
     var
         PdfAttachmentManager: DotNet PdfAttachmentManager;
         PdfAttachment: DotNet PdfAttachment;

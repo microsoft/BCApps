@@ -17,7 +17,7 @@ var
     Success: Boolean;
     PdfHelper: Codeunit "PDF Helper Impl";
 begin
-    Success := PdfHelper.GetInvoiceAttachmentStream(PdfStream, TempBlob);
+    Success := PdfHelper.GetDocumentAttachmentStream(PdfStream, TempBlob);
     if Success then
         Message('Invoice extracted successfully');
 end;
@@ -36,7 +36,7 @@ var
     PdfHelper: Codeunit "PDF Helper Impl";
     Names: Text;
 begin
-    Names := PdfHelper.ShowNames(PdfStream);
+    Names := PdfHelper.ShowAttachmentNames(PdfStream);
     Message('Attachments: %1', Names);
 end;
 

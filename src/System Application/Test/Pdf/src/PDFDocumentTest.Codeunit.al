@@ -124,7 +124,7 @@ codeunit 132601 "PDF Document Test"
         NavApp.GetResource('XRechnung.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get attachment names
-        Names := PdfDocumentImpl.ShowNames(PdfInstream);
+        Names := PdfDocumentImpl.ShowAttachmentNames(PdfInstream);
 
         // [THEN] Assert that the names are returned correctly
         Assert.AreEqual('EN16931_Elektron_Aufmass.png, EN16931_Elektron_ElektronRapport.pdf, xrechnung.xml', Names, 'Expected list of attachment names');
@@ -141,7 +141,7 @@ codeunit 132601 "PDF Document Test"
         NavApp.GetResource('test.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get attachment names
-        Names := PdfDocumentImpl.ShowNames(PdfInstream);
+        Names := PdfDocumentImpl.ShowAttachmentNames(PdfInstream);
 
         // [THEN] Assert that no attachment names are returned
         Assert.AreEqual('', Names, 'Expected empty string for no attachments');

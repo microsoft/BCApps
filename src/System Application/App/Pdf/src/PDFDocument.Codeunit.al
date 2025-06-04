@@ -74,9 +74,9 @@ codeunit 3110 "PDF Document"
     /// </summary>
     /// <param name="PdfStream">Input stream of the PDF file.</param>
     /// <returns>Names as comma-separated string.</returns>
-    procedure ShowNames(PdfStream: InStream): Text
+    procedure ShowAttachmentNames(PdfStream: InStream): Text
     begin
-        exit(PDFDocumentImpl.ShowNames(PdfStream));
+        exit(PDFDocumentImpl.ShowAttachmentNames(PdfStream));
     end;
 
 }
