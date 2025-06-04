@@ -112,7 +112,7 @@ codeunit 3109 "PDF Document Impl."
         exit(true);
     end;
 
-    procedure GetPdfProperties(DocumentStream: InStream): JsonObject
+    procedure GetPdfProperties(DocumentInStream: InStream): JsonObject
     var
         PdfDocumentInfoInstance: DotNet PdfDocumentInfo;
         PdfConverterInstance: DotNet PdfConverter;
@@ -125,7 +125,7 @@ codeunit 3109 "PDF Document Impl."
         JsonContainer: JsonObject;
     begin
         MemoryStream := MemoryStream.MemoryStream();
-        MemoryStream := DocumentStream;
+        MemoryStream := DocumentInStream;
 
         PdfConverterInstance := PdfConverterInstance.PdfConverter(MemoryStream);
         PdfDocumentInfoInstance := PdfConverterInstance.DocumentInfo();

@@ -39,4 +39,43 @@ codeunit 3110 "PDF Document"
     begin
         PDFDocumentImpl.ConvertToImage(ImageStream, ImageFormat, PageNumber);
     end;
+
+    /// <summary>
+    /// This procedure is used to get the invoice attachment stream from a PDF file.
+    /// </summary>
+    /// <param name="PdfStream">Input stream of the PDF file.</param>
+    /// <param name="TempBlob">Temporary blob to store the attachment.</param>
+    procedure GetInvoiceAttachmentStream(PdfStream: InStream; TempBlob: Codeunit "Temp Blob"): Boolean
+    begin
+        exit(PDFDocumentImpl.GetInvoiceAttachmentStream(PdfStream, TempBlob));
+    end;
+
+    /// <summary>
+    /// Get the zip archive from the PDF stream.
+    /// </summary>
+    /// <param name="PdfStream">Input stream of the PDF file.</param>
+    procedure GetZipArchive(PdfStream: InStream)
+    begin
+        PDFDocumentImpl.GetZipArchive(PdfStream);
+    end;
+
+    /// <summary>
+    /// This procedure is used to get the names of the attachments in a PDF file.
+    /// </summary>
+    /// <param name="PdfStream">Input stream of the PDF file.</param>
+    /// <returns>Names as comma-separated string.</returns>
+    procedure ShowNames(PdfStream: InStream): Text
+    begin
+        exit(PDFDocumentImpl.ShowNames(PdfStream));
+    end;
+
+    /// <summary>
+    /// This procedure is used to get the properties of a PDF file.
+    /// </summary>
+    /// <param name="DocumentInStream">Input stream of the PDF file.</param>
+    /// <returns>Properties of the PDF file in JSON format.</returns>
+    procedure GetPdfProperties(DocumentInStream: InStream): JsonObject
+    begin
+        exit(PDFDocumentImpl.GetPdfProperties(DocumentInStream));
+    end;
 }
