@@ -45,9 +45,9 @@ codeunit 3110 "PDF Document"
     /// </summary>
     /// <param name="PdfStream">Input stream of the PDF file.</param>
     /// <param name="TempBlob">Temporary blob to store the attachment.</param>
-    procedure GetInvoiceAttachmentStream(PdfStream: InStream; TempBlob: Codeunit "Temp Blob"): Boolean
+    procedure GetDocumentAttachmentStream(PdfStream: InStream; TempBlob: Codeunit "Temp Blob"): Boolean
     begin
-        exit(PDFDocumentImpl.GetInvoiceAttachmentStream(PdfStream, TempBlob));
+        exit(PDFDocumentImpl.GetDocumentAttachmentStream(PdfStream, TempBlob));
     end;
 
     /// <summary>

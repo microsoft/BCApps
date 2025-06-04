@@ -47,7 +47,7 @@ codeunit 132601 "PDF Document Test"
         NavApp.GetResource('XRechnung.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get invoice attachment stream
-        Success := PdfDocumentImpl.GetInvoiceAttachmentStream(PdfInstream, TempBlob);
+        Success := PdfDocumentImpl.GetDocumentAttachmentStream(PdfInstream, TempBlob);
 
         // [THEN] Assert that the attachment is found via XMP metadata
         Assert.IsTrue(Success, 'Expected attachment to be found via XMP metadata');
@@ -66,7 +66,7 @@ codeunit 132601 "PDF Document Test"
         NavApp.GetResource('XRechnung.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get invoice attachment stream by known name
-        Success := PdfDocumentImpl.GetInvoiceAttachmentStream(PdfInstream, TempBlob);
+        Success := PdfDocumentImpl.GetDocumentAttachmentStream(PdfInstream, TempBlob);
 
         // [THEN] Assert that the attachment is found by known name
         Assert.IsTrue(Success, 'Expected attachment to be found by known name');
@@ -85,7 +85,7 @@ codeunit 132601 "PDF Document Test"
         NavApp.GetResource('test.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get invoice attachment stream
-        Success := PdfDocumentImpl.GetInvoiceAttachmentStream(PdfInstream, TempBlob);
+        Success := PdfDocumentImpl.GetDocumentAttachmentStream(PdfInstream, TempBlob);
 
         // [THEN] Assert no attachment is found
         Assert.IsFalse(Success, 'Expected no attachment to be found');
