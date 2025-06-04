@@ -18,6 +18,7 @@ enum 3110 "PDF Attach. Data Relationship"
     /// </summary>
     value(0; Data)
     {
+        Caption = 'Data';
     }
 
     /// <summary>
@@ -27,6 +28,7 @@ enum 3110 "PDF Attach. Data Relationship"
     /// </summary>    
     value(1; Source)
     {
+        Caption = 'Source';
     }
 
     /// <summary>
@@ -35,6 +37,7 @@ enum 3110 "PDF Attach. Data Relationship"
     /// </summary>
     value(2; Alternative)
     {
+        Caption = 'Alternative';
     }
 
     /// <summary>
@@ -44,6 +47,7 @@ enum 3110 "PDF Attach. Data Relationship"
     /// </summary>
     value(3; Supplement)
     {
+        Caption = 'Supplement';
     }
 
     /// <summary>
@@ -52,5 +56,6 @@ enum 3110 "PDF Attach. Data Relationship"
     /// </summary>  
     value(4; Unspecified)
     {
+        Caption = 'Unspecified';
     }
 }

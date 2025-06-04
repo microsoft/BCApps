@@ -17,6 +17,7 @@ enum 3109 "PDF Save Format"
     /// </summary>
     value(0; Default)
     {
+        Caption = 'Default';
     }
 
     /// <summary>
@@ -24,6 +25,7 @@ enum 3109 "PDF Save Format"
     /// </summary>
     value(1; PdfA3B)
     {
+        Caption = 'PDF/A-3B';
     }
 
     /// <summary>
@@ -31,5 +33,6 @@ enum 3109 "PDF Save Format"
     /// </summary>
     value(2; Einvoice)
     {
+        Caption = 'E-Invoice';
     }
 }
