@@ -70,13 +70,20 @@ codeunit 3110 "PDF Document"
     end;
 
     /// <summary>
-    /// This procedure is used to get the names of the attachments in a PDF file.
+    /// Retrieves the names of embedded file attachments from a PDF document.
     /// </summary>
-    /// <param name="PdfStream">Input stream of the PDF file.</param>
-    /// <returns>Names as comma-separated string.</returns>
+    /// <param name="PdfStream">The input stream representing the PDF file to inspect.</param>
+    /// <returns>
+    /// A comma-separated string containing the names of all embedded attachments found in the PDF.
+    /// If no attachments are found, an empty string is returned.
+    /// </returns>
+    /// <remarks>
+    /// This procedure is particularly useful for PDF/A-3 compliant documents that embed XML-based e-invoices,
+    /// such as Factur-X, XRechnung, or ZUGFeRD formats. These formats typically include attachments like
+    /// 'factur-x.xml', 'xrechnung.xml', or 'zugferd-invoice.xml' which are used for automated invoice processing.
+    /// </remarks>
     procedure ShowAttachmentNames(PdfStream: InStream): Text
     begin
         exit(PDFDocumentImpl.ShowAttachmentNames(PdfStream));
     end;
-
 }
