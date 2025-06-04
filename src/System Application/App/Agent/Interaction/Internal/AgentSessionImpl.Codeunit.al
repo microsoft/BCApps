@@ -32,5 +32,4 @@ codeunit 4313 "Agent Session Impl."
     begin
         exit(AgentALFunctions.GetSessionAgentTaskId());
     end;
-
 }

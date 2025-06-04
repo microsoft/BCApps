@@ -17,7 +17,7 @@ codeunit 4315 "Agent Task Builder"
         AgentTaskBuilderImpl: Codeunit "Agent Task Builder Impl.";
 
     /// <summary>
-    /// Check if a task exists for the given agent user and conversation
+    /// Initialize the agent task builder with the mandatory parameters.
     /// </summary>
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
     /// <param name="ConversationId">The conversation ID to check.</param>

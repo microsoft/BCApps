@@ -5,9 +5,6 @@
 
 namespace System.Agents;
 
-/// <summary>
-/// This codeunit is used to create an agent task.
-/// </summary>
 codeunit 4310 "Agent Task Builder Impl."
 {
     InherentEntitlements = X;
@@ -21,12 +18,6 @@ codeunit 4310 "Agent Task Builder Impl."
         GlobalTaskTitle: Text[150];
         GlobalExternalID: Text[2048];
 
-    /// <summary>
-    /// Check if a task exists for the given agent user and conversation
-    /// </summary>
-    /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
-    /// <param name="ConversationId">The conversation ID to check.</param>
-    /// <returns>This instance of the Agent Task Builder.</returns>
     [Scope('OnPrem')]
     procedure Initialize(NewAgentUserSecurityId: Guid; NewTaskTitle: Text[150]): codeunit "Agent Task Builder Impl."
     begin
@@ -35,15 +26,6 @@ codeunit 4310 "Agent Task Builder Impl."
         exit(this);
     end;
 
-    /// <summary>
-    /// Create a new task for the agent.
-    /// </summary>
-    /// <param name="SetTaskStatusToReady">
-    /// Specifies if the task status should be set to ready after creation. 
-    /// </param>
-    /// <returns>
-    /// Agent task that was created
-    /// </returns>
     [Scope('OnPrem')]
     procedure Create(SetTaskStatusToReady: Boolean): Record "Agent Task"
     var
@@ -63,23 +45,12 @@ codeunit 4310 "Agent Task Builder Impl."
         exit(AgentTaskRecord);
     end;
 
-    /// <summary>
-    /// Get the agent task message that was created.
-    /// </summary>
-    /// <returns>
-    /// The agent task message that was created.
-    /// </returns>
     [Scope('OnPrem')]
     procedure GetAgentTaskMessageCreated(): Record "Agent Task Message"
     begin
         exit(GlobalAgentTaskMessageBuilder.GetAgentTaskMessage());
     end;
 
-    /// <summary>
-    /// Set the external ID of the task.
-    /// </summary>
-    /// <param name="ExternalId">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
-    /// <returns>This instance of the Agent Task Builder.</returns>
     [Scope('OnPrem')]
     procedure SetExternalId(ExternalId: Text[2048]): codeunit "Agent Task Builder Impl."
     begin
@@ -87,14 +58,6 @@ codeunit 4310 "Agent Task Builder Impl."
         exit(this);
     end;
 
-    /// <summary>
-    /// Add a task message to the task.
-    /// Only a single message can be added to the task.
-    /// </summary>
-    /// <param name="From">The sender of the message.</param>
-    /// <param name="MessageText">The message text.</param>
-    /// <param name="AgentTaskMessageBuilder">The agent task message builder.</param>
-    /// <returns>This instance of the Agent Task Builder.</returns>
     [Scope('OnPrem')]
     procedure AddTaskMessage(From: Text[250]; MessageText: Text): codeunit "Agent Task Builder Impl."
     begin
@@ -102,12 +65,6 @@ codeunit 4310 "Agent Task Builder Impl."
         exit(this);
     end;
 
-    /// <summary>
-    /// Add a task message to the task.
-    /// Only a single message can be added to the task.
-    /// </summary>
-    /// <param name="AgentTaskMessageBuilder">The agent task message builder.</param>
-    /// <returns>This instance of the Agent Task Builder.</returns>
     [Scope('OnPrem')]
     procedure AddTaskMessage(var AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder"): codeunit "Agent Task Builder Impl."
     begin
@@ -116,10 +73,6 @@ codeunit 4310 "Agent Task Builder Impl."
         exit(this);
     end;
 
-    /// <summary>
-    /// Get the agent task message builder.
-    /// </summary>
-    /// <returns>The agent task message builder.</returns>
     [Scope('OnPrem')]
     procedure GetTaskMessageBuilder(): Codeunit "Agent Task Message Builder"
     begin

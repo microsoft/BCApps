@@ -17,7 +17,8 @@ codeunit 4316 "Agent Task Message Builder"
         AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";
 
     /// <summary>
-    /// Check if a task exists for the given user and conversation
+    /// Initialize the agent task message builder with the mandatory parameter.
+    /// From value will be set to the current user.
     /// </summary>
     /// <param name="MessageText">The text of the message.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
@@ -29,7 +30,7 @@ codeunit 4316 "Agent Task Message Builder"
     end;
 
     /// <summary>
-    /// Check if a task exists for the given user and conversation
+    /// Initialize the agent task message builder with the mandatory parameters.
     /// </summary>
     /// <param name="From">Text indicating the sender of the message.</param>
     /// <param name="MessageText">The text of the message.</param>
@@ -66,7 +67,7 @@ codeunit 4316 "Agent Task Message Builder"
     end;
 
     /// <summary>
-    /// Set the message text of the task.
+    /// Set the agent task for which to create the message.
     /// </summary>
     /// <param name="ParentAgentTask">The agent task to set the message text to.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
@@ -78,7 +79,7 @@ codeunit 4316 "Agent Task Message Builder"
     end;
 
     /// <summary>
-    /// Set the message text of the task.
+    /// Set the agent task for which to create the message.
     /// </summary>
     /// <param name="ParentAgentTask">The agent task to set the message text to.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
