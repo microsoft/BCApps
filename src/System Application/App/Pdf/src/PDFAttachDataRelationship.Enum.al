@@ -7,7 +7,6 @@ namespace Syste.IO;
 /// <summary>
 /// Enum for the relationship between the attachment and the data.
 /// Factur-X Version 1.07.2 (ZUGFeRD v. 2.3.2) | November 15th, 2024, section 6.2.2 Data relationship 
-/// TODO: Replace standard reference with the Adope PDF v2.0 reference move this file to system app.
 /// </summary>
 enum 3110 "PDF Attach. Data Relationship"
 {

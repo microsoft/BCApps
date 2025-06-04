@@ -51,6 +51,16 @@ codeunit 3110 "PDF Document"
     end;
 
     /// <summary>
+    /// This procedure is used to get the properties of a PDF file.
+    /// </summary>
+    /// <param name="DocumentInStream">Input stream of the PDF file.</param>
+    /// <returns>Properties of the PDF file in JSON format.</returns>
+    procedure GetPdfProperties(DocumentInStream: InStream): JsonObject
+    begin
+        exit(PDFDocumentImpl.GetPdfProperties(DocumentInStream));
+    end;
+
+    /// <summary>
     /// Get the zip archive from the PDF stream.
     /// </summary>
     /// <param name="PdfStream">Input stream of the PDF file.</param>
@@ -69,13 +79,4 @@ codeunit 3110 "PDF Document"
         exit(PDFDocumentImpl.ShowNames(PdfStream));
     end;
 
-    /// <summary>
-    /// This procedure is used to get the properties of a PDF file.
-    /// </summary>
-    /// <param name="DocumentInStream">Input stream of the PDF file.</param>
-    /// <returns>Properties of the PDF file in JSON format.</returns>
-    procedure GetPdfProperties(DocumentInStream: InStream): JsonObject
-    begin
-        exit(PDFDocumentImpl.GetPdfProperties(DocumentInStream));
-    end;
 }
