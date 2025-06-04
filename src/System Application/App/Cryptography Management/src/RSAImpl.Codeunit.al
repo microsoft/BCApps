@@ -169,7 +169,7 @@ codeunit 1476 "RSA Impl." implements "Signature Algorithm v2"
     var
         RSAEncryptionHelper: DotNet RSAEncryptionHelper;
     begin
-        DotNetRSA := DotNetRSA.Create(2048);
+        RSA();
         RSAEncryptionHelper.ImportFromPem(DotNetRSA, PrivateKey.Unwrap());
         exit(ToSecretXmlString(IncludePrivateParameters));
     end;
