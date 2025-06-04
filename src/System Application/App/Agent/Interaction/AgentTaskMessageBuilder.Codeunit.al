@@ -125,7 +125,7 @@ codeunit 4316 "Agent Task Message Builder"
     end;
 
     /// <summary>
-    /// Get the agent task message.
+    /// Get the agent task message record.
     /// </summary>
     /// <returns>
     /// The agent task message that was created.
