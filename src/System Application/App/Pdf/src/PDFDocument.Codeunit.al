@@ -75,6 +75,15 @@ codeunit 3110 "PDF Document"
         exit(PDFDocumentImpl.GetPdfProperties(DocumentInStream));
     end;
 
+    /// <summary>
+    /// Returns the number of pages in the provided PDF stream.
+    /// </summary>
+    /// <param name="DocumentInStream">Input stream of the PDF file.</param>
+    /// <returns>The number of pages in the PDF document.</returns>
+    procedure GetPdfPageCount(DocumentInStream: InStream): Integer
+    begin
+        exit(PDFDocumentImpl.GetPdfPageCount(DocumentInStream));
+    end;
 
     /// <summary>
     /// Initiates a download of a ZIP archive containing all embedded attachments from the provided PDF stream.
@@ -94,16 +103,16 @@ codeunit 3110 "PDF Document"
     /// </summary>
     /// <param name="PdfStream">The input stream representing the PDF file to inspect.</param>
     /// <returns>
-    /// A comma-separated string containing the names of all embedded attachments found in the PDF.
-    /// If no attachments are found, an empty string is returned.
+    ///  A list of strings containing the name of all embedded attachments found in the PDF.
+    /// If no attachments are found, an empty list is returned.
     /// </returns>
     /// <remarks>
     /// This procedure is particularly useful for PDF/A-3 compliant documents that embed XML-based e-invoices,
     /// such as Factur-X, XRechnung, or ZUGFeRD formats. These formats typically include attachments like
     /// 'factur-x.xml', 'xrechnung.xml', or 'zugferd-invoice.xml' which are used for automated invoice processing.
     /// </remarks>
-    procedure ShowAttachmentNames(PdfStream: InStream): List of [Text]
+    procedure GetAttachmentNames(PdfStream: InStream): List of [Text]
     begin
-        exit(PDFDocumentImpl.ShowAttachmentNames(PdfStream));
+        exit(PDFDocumentImpl.GetAttachmentNames(PdfStream));
     end;
 }

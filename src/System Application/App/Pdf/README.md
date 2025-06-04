@@ -8,6 +8,8 @@ You can use this module to:
 
 - Retrieve PDF metadata (author, title, page size, etc.)
 
+- Number of pages 
+
 - List the names of all embedded attachments
 
 ### Extract an embedded invoice from a PDF
@@ -16,9 +18,9 @@ procedure Example(PdfStream: InStream)
 var
     TempBlob: Codeunit "Temp Blob";
     Success: Boolean;
-    PdfHelper: Codeunit "PDF Helper Impl";
+    PDFDocumentImpl: Codeunit "PDF Document Impl.";
 begin
-    Success := PdfHelper.GetDocumentAttachmentStream(PdfStream, TempBlob);
+    Success := PDFDocumentImpl.GetDocumentAttachmentStream(PdfStream, TempBlob);
     if Success then
         Message('Invoice extracted successfully');
 end;
@@ -28,9 +30,9 @@ end;
 ```
 procedure Example(PdfStream: InStream)
 var
-    PdfHelper: Codeunit "PDF Helper Impl";
+    PDFDocumentImpl: Codeunit "PDF Document Impl.";
 begin
-    PdfHelper.GetZipArchive(PdfStream);
+    PDFDocumentImpl.GetZipArchive(PdfStream);
 end;
 ```
 
@@ -38,12 +40,12 @@ end;
 ```
 procedure Example(PdfStream: InStream)
 var
-    PdfHelper: Codeunit "PDF Helper Impl";
+    PDFDocumentImpl: Codeunit "PDF Document Impl.";
     AttachmentNames: List of [Text];
     AttachmentName: Text;
     Output: Text;
 begin
-    Names := PdfHelper.ShowAttachmentNames(PdfStream);
+    Names := PDFDocumentImpl.GetAttachmentNames(PdfStream);
     foreach AttachmentName in AttachmentNames do begin
         if Output <> '' then
             Output += ', ';
@@ -57,10 +59,22 @@ end;
 ```
 procedure Example(PdfStream: InStream)
 var
-    PdfHelper: Codeunit "PDF Helper Impl";
+    PDFDocumentImpl: Codeunit "PDF Document Impl.";
     Metadata: JsonObject;
 begin
-    Metadata := PdfHelper.GetPdfProperties(PdfStream);
+    Metadata := PDFDocumentImpl.GetPdfProperties(PdfStream);
     Message('PDF has %1 pages', Metadata.GetValue('pagecount'));
+end;
+
+
+### Get number of pages
+```
+procedure Example(PdfStream: InStream)
+var
+    PDFDocumentImpl: Codeunit "PDF Document Impl.";
+    PageCount: Integer;
+begin
+    PageCount := PDFDocumentImpl.GetPdfPageCount(PdfStream);
+    Message('PDF has %1 pages', PageCount);
 end;
 ```

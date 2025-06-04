@@ -115,8 +115,6 @@ codeunit 3109 "PDF Document Impl."
     procedure GetPdfProperties(DocumentInStream: InStream): JsonObject
     var
         PdfDocumentInfoInstance: DotNet PdfDocumentInfo;
-        PdfConverterInstance: DotNet PdfConverter;
-        MemoryStream: DotNet MemoryStream;
         TextValue: Text;
         IntegerValue: Integer;
         DecimalValue: Decimal;
@@ -124,11 +122,7 @@ codeunit 3109 "PDF Document Impl."
         DurationValue: Duration;
         JsonContainer: JsonObject;
     begin
-        MemoryStream := MemoryStream.MemoryStream();
-        MemoryStream := DocumentInStream;
-
-        PdfConverterInstance := PdfConverterInstance.PdfConverter(MemoryStream);
-        PdfDocumentInfoInstance := PdfConverterInstance.DocumentInfo();
+        InitializePdfDocumentInfo(DocumentInStream, PdfDocumentInfoInstance);
 
         DecimalValue := PdfDocumentInfoInstance.PageWidth;
         JsonContainer.Add('pageWidth', DecimalValue);
@@ -162,6 +156,14 @@ codeunit 3109 "PDF Document Impl."
         exit(JsonContainer);
     end;
 
+    procedure GetPdfPageCount(DocumentInStream: InStream): Integer
+    var
+        PdfDocumentInfoInstance: DotNet PdfDocumentInfo;
+    begin
+        InitializePdfDocumentInfo(DocumentInStream, PdfDocumentInfoInstance);
+        exit(PdfDocumentInfoInstance.PageCount);
+    end;
+
     procedure GetZipArchive(PdfStream: InStream)
     var
         PdfAttachmentManager: DotNet PdfAttachmentManager;
@@ -176,7 +178,7 @@ codeunit 3109 "PDF Document Impl."
         DownloadFromStream(AttachmentStream, ZipFileLbl, '', '', ZipFilename);
     end;
 
-    procedure ShowAttachmentNames(PdfStream: InStream) AttachmentNames: List of [Text]
+    procedure GetAttachmentNames(PdfStream: InStream) AttachmentNames: List of [Text]
     var
         PdfAttachmentManager: DotNet PdfAttachmentManager;
         PdfAttachment: DotNet PdfAttachment;
@@ -192,5 +194,17 @@ codeunit 3109 "PDF Document Impl."
         end;
 
         exit(AttachmentNames);
+    end;
+
+    local procedure InitializePdfDocumentInfo(DocumentInStream: InStream; var PdfDocumentInfoInstance: DotNet PdfDocumentInfo)
+    var
+        PdfConverterInstance: DotNet PdfConverter;
+        MemoryStream: DotNet MemoryStream;
+    begin
+        MemoryStream := MemoryStream.MemoryStream();
+        MemoryStream := DocumentInStream;
+
+        PdfConverterInstance := PdfConverterInstance.PdfConverter(MemoryStream);
+        PdfDocumentInfoInstance := PdfConverterInstance.DocumentInfo();
     end;
 }

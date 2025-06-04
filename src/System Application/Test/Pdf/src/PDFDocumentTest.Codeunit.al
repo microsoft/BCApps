@@ -127,7 +127,7 @@ codeunit 132601 "PDF Document Test"
         NavApp.GetResource('XRechnung.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get attachment names
-        Names := PdfDocumentImpl.ShowAttachmentNames(PdfInstream);
+        Names := PdfDocumentImpl.GetAttachmentNames(PdfInstream);
 
         // [THEN] Assert that the names are returned correctly
         ExpectedNames.Add('EN16931_Elektron_Aufmass.png');
@@ -151,12 +151,28 @@ codeunit 132601 "PDF Document Test"
         NavApp.GetResource('test.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get attachment names
-        Names := PdfDocumentImpl.ShowAttachmentNames(PdfInstream);
+        Names := PdfDocumentImpl.GetAttachmentNames(PdfInstream);
 
         // [THEN] Assert that no attachment names are returned
         Assert.AreEqual(0, Names.Count(), 'Expected no attachment names');
     end;
 
+    [Test]
+    procedure Test_GetPdfPageCount()
+    var
+        PdfDocumentImpl: Codeunit "PDF Document Impl.";
+        PdfInstream: InStream;
+        PageCount: Integer;
+    begin
+        // [GIVEN] Load XRechnung.pdf
+        NavApp.GetResource('XRechnung.pdf', PdfInstream, TextEncoding::UTF8);
+
+        // [WHEN] Get the page count from the PDF document
+        PageCount := PdfDocumentImpl.GetPdfPageCount(PdfInstream);
+
+        // [THEN] Assert that the page count is correct
+        Assert.AreEqual(2, PageCount, 'Expected 2 pages in the test PDF.');
+    end;
 
     local procedure AssertStreamNotEmpty(TempBlob: Codeunit "Temp Blob")
     var
