@@ -70,7 +70,7 @@ codeunit 8888 "Email Dispatcher"
         EmailMessage: Record "Email Message";
         SentEmail: Record "Sent Email";
         SendEmailCodeunit: Codeunit "Send Email";
-        ClientTypeManagement: Codeunit "Client Type Mgt. Impl.";
+        ClientTypeManagement: Codeunit "Client Type Management";
         Email: Codeunit Email;
         FeatureTelemetry: Codeunit "Feature Telemetry";
         Dimensions: Dictionary of [Text, Text];
