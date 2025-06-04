@@ -6,6 +6,7 @@
 namespace System.Email;
 
 using System.Telemetry;
+using System.Environment;
 
 codeunit 8888 "Email Dispatcher"
 {
@@ -69,6 +70,7 @@ codeunit 8888 "Email Dispatcher"
         EmailMessage: Record "Email Message";
         SentEmail: Record "Sent Email";
         SendEmailCodeunit: Codeunit "Send Email";
+        ClientTypeManagement: Codeunit "Client Type Mgt. Impl.";
         Email: Codeunit Email;
         FeatureTelemetry: Codeunit "Feature Telemetry";
         Dimensions: Dictionary of [Text, Text];
@@ -101,10 +103,13 @@ codeunit 8888 "Email Dispatcher"
                 FeatureTelemetry.LogError('0000CTP', EmailFeatureNameLbl, 'Failed to send email', GetLastErrorText(true), GetLastErrorCallStack(), Dimensions);
                 UpdateOutboxError(GetLastErrorText(), EmailOutbox);
                 UpdateOutboxStatus(EmailOutbox, EmailOutbox.Status::Failed);
-                UpdateEmailRetryStatus(EmailOutbox."Message Id", EmailOutbox."Retry No.", EmailOutbox.Status::Failed);
-                // if email is not rescheduled, it means it has exceeded the retry limit, stop retrying
-                if RetryEmail(EmailOutbox) then
-                    exit;
+                // todo: check with darrick if all the email is sent in background
+                if ClientTypeManagement.GetCurrentClientType() = CLIENTTYPE::Background then begin
+                    UpdateEmailRetryStatus(EmailOutbox."Message Id", EmailOutbox."Retry No.", EmailOutbox.Status::Failed);
+                    // if email is not rescheduled, it means it has exceeded the retry limit, stop retrying
+                    if RetryEmail(EmailOutbox) then
+                        exit;
+                end;
             end;
         end else begin
             FeatureTelemetry.LogError('0000CTR', EmailFeatureNameLbl, 'Failed to find email', StrSubstNo(FailedToFindEmailMessageMsg, EmailOutbox."Message Id"), '', Dimensions);
