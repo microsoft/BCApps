@@ -123,7 +123,7 @@ codeunit 4308 "Agent Message Impl."
         File.DownloadFromStream(InStream, DownloadDialogTitleLbl, '', '', FileName);
     end;
 
-    internal procedure GetAttachments(TaskID: BigInteger; MessageID: Guid; TempAgentTaskFile: Record "Agent Task File" temporary)
+    procedure GetAttachments(TaskID: BigInteger; MessageID: Guid; TempAgentTaskFile: Record "Agent Task File" temporary)
     var
         AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
         AgentTaskFile: Record "Agent Task File";
@@ -134,6 +134,7 @@ codeunit 4308 "Agent Message Impl."
 
         if TaskID = 0 then
             exit;
+
         if IsNullGuid(MessageID) then
             exit;
 
@@ -152,7 +153,7 @@ codeunit 4308 "Agent Message Impl."
                 exit;
 
             if not TempAgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then begin
-                TempAgentTaskFile.Init();
+                Clear(TempAgentTaskFile);
                 TempAgentTaskFile.TransferFields(AgentTaskFile, true);
                 TempAgentTaskFile.Content := AgentTaskFile.Content;
                 TempAgentTaskFile.Insert();

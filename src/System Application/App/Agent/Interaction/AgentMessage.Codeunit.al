@@ -138,5 +138,4 @@ codeunit 4307 "Agent Message"
     begin
         exit(AgentMessageImpl.GetFileSizeDisplayText(SizeInBytes));
     end;
-
 }

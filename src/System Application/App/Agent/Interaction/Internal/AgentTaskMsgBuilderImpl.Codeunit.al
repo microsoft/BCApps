@@ -90,6 +90,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         exit(GlobalAgentTaskMessage);
     end;
 
+    [Scope('OnPrem')]
     procedure GetAgentTaskMessage(): Record "Agent Task Message"
     begin
         exit(GlobalAgentTaskMessage);

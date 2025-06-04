@@ -52,7 +52,7 @@ codeunit 4300 "Agent Task Impl."
         Page.Run(Page::"Agent Task Log Entry List", AgentTaskLogEntry);
     end;
 
-    internal procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; var NewAgentTask: Record "Agent Task")
+    procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; var NewAgentTask: Record "Agent Task")
     begin
         NewAgentTask."Agent User Security ID" := AgentUserSecurityID;
         NewAgentTask."Created By" := UserSecurityId();
@@ -161,7 +161,7 @@ codeunit 4300 "Agent Task Impl."
         exit(TextEncoding::UTF8);
     end;
 
-    internal procedure SetTaskStatusToReadyIfPossible(var AgentTask: Record "Agent Task")
+    procedure SetTaskStatusToReadyIfPossible(var AgentTask: Record "Agent Task")
     begin
         // Only change the status if the task is in a status where it can be started again.
         // If the task is running, we should not change the state, as platform will pickup a new message automatically.
@@ -171,7 +171,7 @@ codeunit 4300 "Agent Task Impl."
         end;
     end;
 
-    internal procedure CanAgentTaskBeSetToReady(var AgentTask: Record "Agent Task"): Boolean
+    procedure CanAgentTaskBeSetToReady(var AgentTask: Record "Agent Task"): Boolean
     begin
         exit((AgentTask.Status = AgentTask.Status::Paused) or (AgentTask.Status = AgentTask.Status::Completed));
     end;
@@ -201,7 +201,7 @@ codeunit 4300 "Agent Task Impl."
         Summary := PageSummaryProvider.GetPageSummary(PageSummaryParameters);
     end;
 
-    internal procedure GetSessionAgentTaskId(): BigInteger
+    procedure GetSessionAgentTaskId(): BigInteger
     var
         AgentALFunctions: DotNet AgentALFunctions;
     begin

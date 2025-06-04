@@ -130,6 +130,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>
     /// The agent task message that was created.
     /// </returns>
+    [Scope('OnPrem')]
     procedure GetAgentTaskMessage(): Record "Agent Task Message"
     begin
         exit(AgentTaskMsgBuilderImpl.GetAgentTaskMessage());
