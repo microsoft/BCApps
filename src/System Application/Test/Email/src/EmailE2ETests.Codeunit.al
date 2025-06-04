@@ -438,7 +438,7 @@ codeunit 134692 "Email E2E Tests"
         Assert.AreEqual(Enum::"Email Connector"::"Test Email Connector".AsInteger(), Outbox.Connector.AsInteger(), 'A different connector was expected.');
         Assert.AreEqual(TempAccount."Account Id", Outbox."Account Id", 'A different account was expected');
         Assert.AreEqual(TempAccount."Email Address", Outbox."Send From", 'A different sent from was expected');
-        Assert.AreEqual(Enum::"Email Status"::Queued.AsInteger(), Outbox.Status.AsInteger(), 'A different sent from was expected');
+        Assert.AreEqual(Enum::"Email Status"::Failed.AsInteger(), Outbox.Status.AsInteger(), 'A different sent from was expected');
 
         // [TODO] Check the retry record
 

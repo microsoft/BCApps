@@ -44,7 +44,7 @@ codeunit 8888 "Email Dispatcher"
         // -----------
 
         Rec.LockTable(true);
-        if EmailRateLimitImpl.IsRateLimitExceeded(Rec."Account Id", Rec.Connector, Rec."Send From", RateLimitDuration) or (GetEmailOutboxCurrentProcessingCount() > 5) then
+        if EmailRateLimitImpl.IsRateLimitExceeded(Rec."Account Id", Rec.Connector, Rec."Send From", RateLimitDuration) or (GetEmailOutboxCurrentProcessingCount() > EmailRateLimitImpl.GetConcurrencyLimit(Rec."Account Id", Rec.Connector, Rec."Send From")) then
             RescheduleEmail(RateLimitDuration, Dimensions, Rec)
         else
             SendEmail(Rec);
