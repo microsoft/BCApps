@@ -69,7 +69,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <summary>
     /// Set the agent task for which to create the message.
     /// </summary>
-    /// <param name="ParentAgentTask">The agent task to set the message text to.</param>
+    /// <param name="ParentAgentTask">The agent task to set the message to.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     [Scope('OnPrem')]
     procedure SetAgentTask(ParentAgentTask: Record "Agent Task"): codeunit "Agent Task Message Builder"
@@ -81,7 +81,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <summary>
     /// Set the agent task for which to create the message.
     /// </summary>
-    /// <param name="ParentAgentTask">The agent task to set the message text to.</param>
+    /// <param name="ParentAgentTaskID">The ID of the agent task to set the message to.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     [Scope('OnPrem')]
     procedure SetAgentTask(ParentAgentTaskID: BigInteger): codeunit "Agent Task Message Builder"
@@ -97,6 +97,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>
     /// The created task message.
     /// </returns>
+    /// <remarks>
+    /// The builder keeps the state, do not reuse the same instance of the builder to create multiple tasks. 
+    /// </remarks>
     [Scope('OnPrem')]
     procedure Create(): Record "Agent Task Message"
     begin
@@ -112,6 +115,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>
     /// The created task message.
     /// </returns>
+    /// <remarks>
+    /// The builder keeps the state, do not reuse the same instance of the builder to create multiple tasks. 
+    /// </remarks>
     [Scope('OnPrem')]
     procedure Create(SetTaskStatusToReady: Boolean): Record "Agent Task Message"
     begin

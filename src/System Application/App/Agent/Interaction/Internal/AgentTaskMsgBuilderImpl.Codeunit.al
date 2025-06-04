@@ -7,6 +7,7 @@ namespace System.Agents;
 
 codeunit 4311 "Agent Task Msg. Builder Impl."
 {
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 

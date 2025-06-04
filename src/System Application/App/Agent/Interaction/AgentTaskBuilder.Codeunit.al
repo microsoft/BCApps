@@ -35,6 +35,9 @@ codeunit 4315 "Agent Task Builder"
     /// <returns>
     /// Agent task that was created
     /// </returns>
+    /// <remarks>
+    /// The builder keeps the state, do not reuse the same instance of the builder to create multiple tasks. 
+    /// </remarks>
     [Scope('OnPrem')]
     procedure Create(): Record "Agent Task"
     begin
@@ -50,6 +53,9 @@ codeunit 4315 "Agent Task Builder"
     /// <returns>
     /// Agent task that was created
     /// </returns>
+    /// <remarks>
+    /// The builder keeps the state, do not reuse the same instance of the builder to create multiple tasks. 
+    /// </remarks>
     [Scope('OnPrem')]
     procedure Create(SetTaskStatusToReady: Boolean): Record "Agent Task"
     begin

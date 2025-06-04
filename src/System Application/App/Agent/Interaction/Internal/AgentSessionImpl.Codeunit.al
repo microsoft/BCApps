@@ -7,10 +7,11 @@ namespace System.Agents;
 
 codeunit 4313 "Agent Session Impl."
 {
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    internal procedure IsAgentSession(var ActiveAgentMetadataProvider: Enum "Agent Metadata Provider"): Boolean
+    procedure IsAgentSession(var ActiveAgentMetadataProvider: Enum "Agent Metadata Provider"): Boolean
     var
         AgentType: Integer;
         AgentALFunctions: DotNet AgentALFunctions;
@@ -26,7 +27,7 @@ codeunit 4313 "Agent Session Impl."
         exit(true);
     end;
 
-    internal procedure GetCurrentSessionAgentTaskId(): Integer
+    procedure GetCurrentSessionAgentTaskId(): Integer
     var
         AgentALFunctions: DotNet AgentALFunctions;
     begin

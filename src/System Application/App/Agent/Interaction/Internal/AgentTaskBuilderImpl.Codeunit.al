@@ -7,9 +7,9 @@ namespace System.Agents;
 
 codeunit 4310 "Agent Task Builder Impl."
 {
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Access = Internal;
 
     var
         GlobalAgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
