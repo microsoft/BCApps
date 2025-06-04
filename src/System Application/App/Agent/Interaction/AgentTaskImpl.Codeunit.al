@@ -71,11 +71,6 @@ codeunit 4300 "Agent Task Impl."
     end;
 
     procedure CreateTaskMessage(From: Text[250]; MessageText: Text; ExternalMessageId: Text[2048]; var CurrentAgentTask: Record "Agent Task")
-    begin
-        CreateTaskMessage(From, MessageText, ExternalMessageId, true, CurrentAgentTask);
-    end;
-
-    procedure CreateTaskMessage(From: Text[250]; MessageText: Text; ExternalMessageId: Text[2048]; RequireReview: Boolean; var CurrentAgentTask: Record "Agent Task")
     var
         AgentTask: Record "Agent Task";
         AgentTaskMessage: Record "Agent Task Message";
@@ -97,7 +92,6 @@ codeunit 4300 "Agent Task Impl."
         AgentTaskMessage."Type" := AgentTaskMessage."Type"::Input;
         AgentTaskMessage."External ID" := ExternalMessageId;
         AgentTaskMessage.From := From;
-        AgentTaskMessage."Requires Review" := RequireReview;
         AgentTaskMessage.Insert();
 
         SetMessageText(AgentTaskMessage, MessageText);

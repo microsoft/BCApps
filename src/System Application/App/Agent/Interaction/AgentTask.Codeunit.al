@@ -40,23 +40,6 @@ codeunit 4303 "Agent Task"
     end;
 
     /// <summary>
-    /// Create a new task message for the given agent user and conversation.
-    /// If task does not exist, it will be created.
-    /// </summary>
-    /// <param name="From">Specifies from address.</param>
-    /// <param name="MessageText">The message text for the task.</param>
-    /// <param name="ExternalMessageId">The external message ID for the task, used to connect to external systems.</param>
-    /// <param name="RequireReview">Indicates if the message requires review.</param>
-    /// <param name="CurrentAgentTask">Current Agent Task to which the message will be added.</param>
-    [Scope('OnPrem')]
-    procedure CreateTaskMessage(From: Text[250]; MessageText: Text; ExternalMessageId: Text[2048]; RequireReview: Boolean; var CurrentAgentTask: Record "Agent Task")
-    var
-        AgentTaskImpl: Codeunit "Agent Task Impl.";
-    begin
-        AgentTaskImpl.CreateTaskMessage(From, MessageText, ExternalMessageId, RequireReview, CurrentAgentTask);
-    end;
-
-    /// <summary>
     /// Create a new task  for the given agent user. No message is added to the task.
     /// </summary>
     /// <param name="AgentSecurityID">The security ID of the agent to create the task for.</param>
