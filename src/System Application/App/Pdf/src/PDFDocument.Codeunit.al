@@ -82,7 +82,7 @@ codeunit 3110 "PDF Document"
     /// such as Factur-X, XRechnung, or ZUGFeRD formats. These formats typically include attachments like
     /// 'factur-x.xml', 'xrechnung.xml', or 'zugferd-invoice.xml' which are used for automated invoice processing.
     /// </remarks>
-    procedure ShowAttachmentNames(PdfStream: InStream): Text
+    procedure ShowAttachmentNames(PdfStream: InStream): List of [Text]
     begin
         exit(PDFDocumentImpl.ShowAttachmentNames(PdfStream));
     end;

@@ -38,11 +38,18 @@ end;
 ```
 procedure Example(PdfStream: InStream)
 var
-    PdfHelper: Codeunit "PDF Helper Impl";
-    Names: Text;
+    PdfHelper: Codeunit "PDF Helper Impl";
+    AttachmentNames: List of [Text];
+    AttachmentName: Text;
+    Output: Text;
 begin
-    Names := PdfHelper.ShowAttachmentNames(PdfStream);
-    Message('Attachments: %1', Names);
+    Names := PdfHelper.ShowAttachmentNames(PdfStream);
+    foreach AttachmentName in AttachmentNames do begin
+        if Output <> '' then
+            Output += ', ';
+        Output += AttachmentName;
+    end;
+    Message('Attachments: %1', Output);
 end;
 ```
 

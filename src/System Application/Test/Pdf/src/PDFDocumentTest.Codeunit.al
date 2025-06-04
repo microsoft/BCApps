@@ -118,7 +118,10 @@ codeunit 132601 "PDF Document Test"
     var
         PdfDocumentImpl: Codeunit "PDF Document Impl.";
         PdfInstream: InStream;
-        Names: Text;
+        Names: List of [Text];
+        ExpectedNames: List of [Text];
+        i: Integer;
+        ExpectedNameLbl: Label 'Expected name at position %1 to be %2', Comment = '%1 = Position, %2 = Expected Name';
     begin
         // [GIVEN] Load XRechnung.pdf with multiple named attachments
         NavApp.GetResource('XRechnung.pdf', PdfInstream, TextEncoding::UTF8);
@@ -127,7 +130,14 @@ codeunit 132601 "PDF Document Test"
         Names := PdfDocumentImpl.ShowAttachmentNames(PdfInstream);
 
         // [THEN] Assert that the names are returned correctly
-        Assert.AreEqual('EN16931_Elektron_Aufmass.png, EN16931_Elektron_ElektronRapport.pdf, xrechnung.xml', Names, 'Expected list of attachment names');
+        ExpectedNames.Add('EN16931_Elektron_Aufmass.png');
+        ExpectedNames.Add('EN16931_Elektron_ElektronRapport.pdf');
+        ExpectedNames.Add('xrechnung.xml');
+
+        Assert.AreEqual(ExpectedNames.Count(), Names.Count(), 'Expected number of attachment names does not match');
+
+        for i := 1 to ExpectedNames.Count() do
+            Assert.AreEqual(ExpectedNames.Get(i), Names.Get(i), StrSubstNo(ExpectedNameLbl, i, ExpectedNames.Get(i)));
     end;
 
     [Test]
@@ -135,7 +145,7 @@ codeunit 132601 "PDF Document Test"
     var
         PdfDocumentImpl: Codeunit "PDF Document Impl.";
         PdfInstream: InStream;
-        Names: Text;
+        Names: List of [Text];
     begin
         // [GIVEN] Load test.pdf without attachments
         NavApp.GetResource('test.pdf', PdfInstream, TextEncoding::UTF8);
@@ -144,8 +154,9 @@ codeunit 132601 "PDF Document Test"
         Names := PdfDocumentImpl.ShowAttachmentNames(PdfInstream);
 
         // [THEN] Assert that no attachment names are returned
-        Assert.AreEqual('', Names, 'Expected empty string for no attachments');
+        Assert.AreEqual(0, Names.Count(), 'Expected no attachment names');
     end;
+
 
     local procedure AssertStreamNotEmpty(TempBlob: Codeunit "Temp Blob")
     var

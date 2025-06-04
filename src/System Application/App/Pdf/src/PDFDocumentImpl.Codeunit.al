@@ -176,23 +176,21 @@ codeunit 3109 "PDF Document Impl."
         DownloadFromStream(AttachmentStream, ZipFileLbl, '', '', ZipFilename);
     end;
 
-    procedure ShowAttachmentNames(PdfStream: InStream): Text
+    procedure ShowAttachmentNames(PdfStream: InStream) AttachmentNames: List of [Text]
     var
         PdfAttachmentManager: DotNet PdfAttachmentManager;
         PdfAttachment: DotNet PdfAttachment;
-        Names: Text;
-        Name: Text;
+        AttachmentName: Text;
     begin
         PdfAttachmentManager := PdfAttachmentManager.PdfAttachmentManager(PdfStream);
 
         foreach PdfAttachment in PdfAttachmentManager do begin
-            Name := PdfAttachment.Name;
-            if (Name = '') then
+            AttachmentName := PdfAttachment.Name;
+            if AttachmentName = '' then
                 continue;
-            if Names <> '' then
-                Names += ', ';
-            Names += Name;
+            AttachmentNames.Add(AttachmentName);
         end;
-        exit(Names);
+
+        exit(AttachmentNames);
     end;
 }
