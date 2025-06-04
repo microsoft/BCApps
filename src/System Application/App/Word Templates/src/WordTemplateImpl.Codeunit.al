@@ -912,7 +912,9 @@ codeunit 9988 "Word Template Impl."
         WordTemplatesRelatedTable.SetRange("Related Table Code", TableCode);
 
         if not WordTemplatesRelatedTable.IsEmpty() then begin
-            Message(RelatedTableCodeAlreadyUsedMsg);
+            if GuiAllowed() then
+                Message(RelatedTableCodeAlreadyUsedMsg);
+
             exit(false);
         end;
 
@@ -921,9 +923,12 @@ codeunit 9988 "Word Template Impl."
         WordTemplatesRelatedTable.SetRange("Related Table ID", TableId);
 
         if not WordTemplatesRelatedTable.IsEmpty() then begin
-            Message(RelatedTableIdAlreadyUsedMsg);
+            if GuiAllowed() then
+                Message(RelatedTableIdAlreadyUsedMsg);
+
             exit(false);
         end;
+
         exit(true);
     end;
 
@@ -937,6 +942,7 @@ codeunit 9988 "Word Template Impl."
             exit(false);
 
         WordTemplatesRelatedTable.Init();
+        WordTemplatesRelatedTable.Code := WordTemplateCode;
         WordTemplatesRelatedTable."Source Record ID" := RecordSystemId;
         WordTemplatesRelatedTable."Related Table ID" := UnrelatedTableId;
         WordTemplatesRelatedTable."Related Table Code" := PrefixCode;

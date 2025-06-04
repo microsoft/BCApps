@@ -15,11 +15,17 @@ enum 59 "Auto Format"
     /// <summary>
     /// Ignore the value that AutoFormatExpr passes and use the standard format for decimals instead.
     /// </summary>
-    value(0; DefaultFormat) { }
+    value(0; DefaultFormat)
+    {
+        Caption = 'Default Format';
+    }
 
     /// <summary>
     /// Apply a specific format in AutoFormatExpr without additional transformation.
     /// </summary>
-    value(11; CustomFormatExpr) { }
+    value(11; CustomFormatExpr)
+    {
+        Caption = 'Custom Format Expression';
+    }
 }
 

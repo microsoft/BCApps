@@ -16,22 +16,33 @@ codeunit 8890 "Send Email"
     var
         EmailMessage: Codeunit "Email Message";
         EmailImpl: Codeunit "Email Impl";
-        IEmailConnector: Interface "Email Connector";
-        IEmailConnectorv2: Interface "Email Connector v2";
+        EmailConnector: Interface "Email Connector";
+#if not CLEAN26
+#pragma warning disable AL0432
+        EmailConnectorv2: Interface "Email Connector v2";
+#pragma warning restore AL0432
+#endif
+        EmailConnectorv3: Interface "Email Connector v3";
     begin
         EmailMessage.Get(Rec.Id);
 
         if EmailMessage.GetExternalId() <> '' then begin
-            IEmailConnector := EmailConnector;
-            if EmailImpl.CheckAndGetEmailConnectorv2(IEmailConnector, IEmailConnectorv2) then
-                IEmailConnectorv2.Reply(EmailMessage, AccountId);
+            EmailConnector := GlobalEmailConnector;
+#if not CLEAN26
+#pragma warning disable AL0432
+            if EmailImpl.CheckAndGetEmailConnectorv2(EmailConnector, EmailConnectorv2) then
+#pragma warning restore AL0432
+                EmailConnectorv2.Reply(EmailMessage, AccountId);
+#endif
+            if EmailImpl.CheckAndGetEmailConnectorv3(EmailConnector, EmailConnectorv3) then
+                EmailConnectorv3.Reply(EmailMessage, AccountId);
         end else
-            EmailConnector.Send(EmailMessage, AccountId);
+            GlobalEmailConnector.Send(EmailMessage, AccountId);
     end;
 
     procedure SetConnector(NewEmailConnector: Interface "Email Connector")
     begin
-        EmailConnector := NewEmailConnector;
+        GlobalEmailConnector := NewEmailConnector;
     end;
 
     procedure SetAccount(NewAccountId: Guid)
@@ -40,6 +51,6 @@ codeunit 8890 "Send Email"
     end;
 
     var
-        EmailConnector: Interface "Email Connector";
+        GlobalEmailConnector: Interface "Email Connector";
         AccountId: Guid;
 }

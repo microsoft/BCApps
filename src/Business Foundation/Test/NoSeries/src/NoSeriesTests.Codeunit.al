@@ -13,6 +13,7 @@ using Microsoft.Foundation.NoSeries;
 codeunit 134530 "No. Series Tests"
 {
     Subtype = Test;
+    EventSubscriberInstance = Manual;
 
     var
         Any: Codeunit Any;
@@ -307,38 +308,6 @@ codeunit 134530 "No. Series Tests"
         LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
     end;
 
-#if not CLEAN24
-#pragma warning disable AL0432
-    [Test]
-    procedure TestGetNextNoWithMultipleLinesExhaustClosedLine_Sequence_ObsoleteCode()
-    var
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-        PermissionsMock: Codeunit "Permissions Mock";
-        NoSeriesCode: Code[20];
-    begin
-        // [Scenario] [Bug 538011] When we have multiple lines, the GetNextNo should return value from latest line. If there is no number left in the latest line, it should throw an error even there are numbers left in previous line.
-        // [GIVEN] Initialize the test
-        Initialize();
-        PermissionsMock.Set('No. Series - Admin');
-
-        // [GIVEN] Create a No. Series
-        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
-        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
-        // [GIVEN] Create the first line with 10 numbers and no start day, and the 'Last No. Used' set to 'TEST0005'
-        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'TEST0001', 'TEST0010', 'TEST0005', 0D);
-        // [GIVEN] Create the second line with 10 numbers and the start date is today, and the 'Last No. Used' set to 'TEST0039', so only one number is left
-        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'TEST0030', 'TEST0040', 'TEST0039', Today());
-
-        PermissionsMock.SetExactPermissionSet('No. Series Test');
-
-        // [WHEN] Call GetNextNo and we get the last number from the second Series Line.
-        LibraryAssert.AreEqual('TEST0040', NoSeriesManagement.GetNextNo(NoSeriesCode, Today(), true), 'Get the last SN from the second Series Line');
-        // [Then] Call GetNextNo again, and we get an error since the second Series Line is out of SN although the first Series Line still has SN.
-        asserterror NoSeriesManagement.GetNextNo(NoSeriesCode, Today(), true);
-        LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
-    end;
-#pragma warning restore AL0432
-#endif
     #endregion
 
     #region normal
@@ -660,38 +629,6 @@ codeunit 134530 "No. Series Tests"
         LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
     end;
 
-#if not CLEAN24
-#pragma warning disable AL0432
-    [Test]
-    procedure TestGetNextNoWithMultipleLinesExhaustClosedLine_ObsoleteCode()
-    var
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-        PermissionsMock: Codeunit "Permissions Mock";
-        NoSeriesCode: Code[20];
-    begin
-        // [Scenario] [Bug 538011] When we have multiple lines, the GetNextNo should return value from latest line. If there is no number left in the latest line, it should throw an error even there are numbers left in previous line.
-        // [GIVEN] Initialize the test
-        Initialize();
-        PermissionsMock.Set('No. Series - Admin');
-
-        // [GIVEN] Create a No. Series
-        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
-        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
-        // [GIVEN] Create the first line with 10 numbers and no start day, and the 'Last No. Used' set to 'TEST0005'
-        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'TEST0001', 'TEST0010', 'TEST0005', 0D);
-        // [GIVEN] Create the second line with 10 numbers and the start date is today, and the 'Last No. Used' set to 'TEST0039', so only one number is left
-        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'TEST0030', 'TEST0040', 'TEST0039', Today());
-
-        PermissionsMock.SetExactPermissionSet('No. Series Test');
-
-        // [WHEN] Call GetNextNo and we get the last number from the second Series Line.
-        LibraryAssert.AreEqual('TEST0040', NoSeriesManagement.GetNextNo(NoSeriesCode, Today(), true), 'Get the last SN from the second Series Line');
-        // [Then] Call GetNextNo again, and we get an error since the second Series Line is out of SN although the first Series Line still has SN.
-        asserterror NoSeriesManagement.GetNextNo(NoSeriesCode, Today(), true);
-        LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
-    end;
-#pragma warning restore AL0432
-#endif
     #endregion
 
     #region GetLastNoUsed
@@ -955,6 +892,128 @@ codeunit 134530 "No. Series Tests"
 
         // Call to GetLastNoUsed must return empty number
         Assert.AreEqual('', NoSeries.GetLastNoUsed(''), 'GetLastNoUsed should return empty code if argument supplied is empty code');
+    end;
+
+    [Test]
+    [HandlerFunctions('NoSeriesLinesPageHandler')]
+    procedure TestEditNoSeriesLinePreservesFilter()
+    var
+        NoSeriesPage: TestPage "No. Series";
+        NoSeriesCode, NoSeriesCode2 : Code[20];
+    begin
+        // [SCENARIO] When a user opens the No. Series page and drills down on a line and edits it, the filter on the line must be preserved.
+        Initialize();
+
+        // [GIVEN] Multiple No. Series with lines exist
+        // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode := CopyStr('A' + UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, '1', '10');
+        // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode2 := CopyStr('B' + UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode2))), 1, MaxStrLen(NoSeriesCode2));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode2);
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode2, 1, '1', '10');
+
+        // [WHEN] Open the No. Series page
+        NoSeriesPage.OpenView();
+        NoSeriesPage.GoToKey(NoSeriesCode);
+
+        // [WHEN] drill down on a line and close the page
+        NoSeriesPage.StartNo.Drilldown(); // pagehandler
+
+        // [THEN] You can still drill down
+        ClearLastError();
+        asserterror
+        begin
+            NoSeriesPage.StartNo.Drilldown(); // pagehandler
+            error('');
+        end;
+        LibraryAssert.ExpectedError('');
+    end;
+
+    [ModalPageHandler]
+    procedure NoSeriesLinesPageHandler(var NoSeriesLines: TestPage "No. Series Lines")
+    begin
+        // [WHEN] Editing the line
+        NoSeriesLines."Last No. Used".SetValue(IncStr(NoSeriesLines."Starting No.".Value()));
+
+        NoSeriesLines.Next();
+        LibraryAssert.AreEqual('', NoSeriesLines."Starting No.".Value(), 'The next line should not exist. The filter was removed.');
+    end;
+
+    [HandlerFunctions('NoSeriesLineDrilldownHandler')]
+    [Test]
+    procedure TestCreateNewNoSeriesFromUI()
+    var
+        DummyNoSeriesRec: Record "No. Series";
+        NoSeries: TestPage "No. Series";
+        NewNoSeriesCode: Code[20];
+    begin
+        // Setup
+        NewNoSeriesCode := CopyStr(Any.AlphabeticText(MaxStrLen(DummyNoSeriesRec.Code)), 1, MaxStrLen(DummyNoSeriesRec.Code));
+
+        // Execute
+        NoSeries.OpenNew();
+        NoSeries.Code.SetValue(NewNoSeriesCode);
+        NoSeries.Next();
+        NoSeries.GoToKey(NewNoSeriesCode);
+        // Fill in Starting Date and Starting No. on the No. Series Line
+        NoSeries.StartNo.Drilldown();
+
+        // Verify
+        NoSeries.GoToKey(NewNoSeriesCode);
+        LibraryAssert.AreEqual('00001', NoSeries.StartNo.Value(), 'Starting No. was not as expected');
+    end;
+
+    [Test]
+    procedure TestNoSeriesCodeFilterChange()
+    var
+        NoSeriesTests: Codeunit "No. Series Tests";
+        NoSeries: TestPage "No. Series";
+    begin
+        // Setup
+        BindSubscription(NoSeriesTests);
+
+        // Execute
+        asserterror NoSeries.OpenNew();
+
+        // Verify
+        LibraryAssert.ExpectedError('The filter on Series Code was altered by an event subscriber. This is a programming error. Please contact your partner to resolve the issue.');
+    end;
+
+    [Test]
+    procedure TestOpenNoSeriesPageWithFilterCharacters()
+    var
+        NoSeriesRec: Record "No. Series";
+        NoSeries: TestPage "No. Series";
+    begin
+        // Setup
+        NoSeriesRec.Code := 'ABC&DEF|GHI<JKL>MNO';
+        NoSeriesRec.Insert();
+
+        // Execute
+        ClearLastError();
+        NoSeries.OpenView();
+
+        // Verify
+        LibraryAssert.AreEqual('', GetLastErrorText(), 'No error should be thrown when opening No. Series page with filter characters in the No. Series Code');
+    end;
+
+    [ModalPageHandler]
+    procedure NoSeriesLineDrilldownHandler(var NoSeriesLines: TestPage "No. Series Lines")
+    var
+        CronusLicenseAlloweDate: Date;
+    begin
+        // allowed dates are November to February
+        CronusLicenseAlloweDate := DMY2Date(13, 11, Date2DMY(WorkDate(), 3) - 1);
+        NoSeriesLines."Starting Date".SetValue(CronusLicenseAlloweDate);
+        NoSeriesLines."Starting No.".SetValue('00001');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"No. Series", OnSetNoSeriesLineFilters, '', false, false)]
+    local procedure ClearNoSeriesLineFilters(var NoSeriesLine: Record "No. Series Line")
+    begin
+        NoSeriesLine.Reset();
     end;
 
     local procedure Initialize()

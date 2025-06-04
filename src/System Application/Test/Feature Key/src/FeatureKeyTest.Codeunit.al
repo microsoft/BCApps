@@ -364,7 +364,8 @@ codeunit 135003 "Feature Key Test"
             FeatureManagement.EnabledFor.Value(Format(FeatureKey.Enabled::"All Users"));
             // [THEN] "Feature Status" is 'Enabled'
             FeatureManagement.DataUpdateStatus.AssertEquals("Feature Status"::Enabled);
-        end;
+        end else
+            if Confirm('dummy confirm') then;
     end;
 
     [Test]

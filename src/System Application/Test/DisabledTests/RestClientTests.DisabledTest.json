@@ -1,0 +1,10 @@
+[
+  {
+    "bug": "554885",
+    "codeunitId": 134971,
+    "codeunitName": "Rest Client Tests",
+    "method": "*",
+    "owner": "\\AI Business Solutions\\Integrations",
+    "path": "App/BCApps/src/System Application/Test/Rest Client"
+  }
+]

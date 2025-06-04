@@ -96,7 +96,7 @@ function OpenPR {
 
     $shortTargetBranch = $TargetBranch -replace 'releases/',''
     $Category = "$shortTargetBranch/$Category".ToLower().Replace(' ', '_')
-    $branch = New-TopicBranchIfNeeded -Category "$shortTargetBranch/$Category" -Repository $Repository
+    $branch = New-TopicBranchIfNeeded -Category $Category -Repository $Repository
 
     # Open PR with a commit for each update
     $prDescription = "This PR contains the following changes:"

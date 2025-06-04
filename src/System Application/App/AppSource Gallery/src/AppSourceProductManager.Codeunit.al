@@ -31,6 +31,7 @@ codeunit 2515 "AppSource Product Manager"
         CatalogApiVersionOldQueryParamValueLbl: Label '2018-08-01-beta', Locked = true;
         CatalogApiOrderByQueryParamNameLbl: Label '$orderby', Locked = true;
         CatalogMarketQueryParamNameLbl: Label 'market', Locked = true;
+        CatalogListMarketNameLbl: label 'all', Locked = true;
         CatalogLanguageQueryParamNameLbl: Label 'language', Locked = true;
         CatalogApiFilterQueryParamNameLbl: Label '$filter', Locked = true;
         CatalogApiSelectQueryParamNameLbl: Label '$select', Locked = true;
@@ -102,6 +103,8 @@ codeunit 2515 "AppSource Product Manager"
         PlanObject: JsonObject;
         CallToActionToken: JsonToken;
     begin
+        Init();
+
         // Query legacy api toget all the plan and test if there is a contact me call to action.
         LegacyProductObject := GetProductDetails(UniqieProductIDValue, ConstructProductUri(UniqieProductIDValue, CatalogApiVersionOldQueryParamValueLbl));
         LegacyProductObject.Get('plans', LegacyPlansToken);
@@ -118,19 +121,19 @@ codeunit 2515 "AppSource Product Manager"
     #endregion
 
     #region Market and language helper functions
-    procedure GetCurrentLanguageCultureName(): Text
+    local procedure GetCurrentLanguageCultureName(): Text
     var
         Language: Codeunit Language;
     begin
         exit(Language.GetCultureName(GetCurrentUserLanguageID()));
     end;
 
-    procedure ResolveMarketAndLanguage(var Market: Code[2]; var LanguageName: Text)
+    local procedure ResolveLanguageName() LanguageName: Text;
     var
         Language: Codeunit Language;
         LanguageID: Integer;
     begin
-        GetCurrentUserLanguageAndLocaleID(LanguageID, Market);
+        LanguageID := GetCurrentUserLanguageAndLocaleID();
 
         // Marketplace API only supports two letter languages.
         LanguageName := Language.GetTwoLetterISOLanguageName(LanguageID);
@@ -152,7 +155,7 @@ codeunit 2515 "AppSource Product Manager"
         exit(LanguageID);
     end;
 
-    local procedure GetCurrentUserLanguageAndLocaleID(var LanguageID: Integer; var LocaleID: Code[2])
+    local procedure GetCurrentUserLanguageAndLocaleID() LanguageID: Integer
     var
         TempUserSettings: Record "User Settings" temporary;
         Language: Codeunit Language;
@@ -163,9 +166,6 @@ codeunit 2515 "AppSource Product Manager"
             LanguageID := Language.GetLanguageIdFromCultureName(AppSourceProductManagerDependencies.GetPreferredLanguage());
         if (LanguageID = 0) then
             LanguageID := 1033; // Default to EN-US
-
-        if (AppSourceProductManagerDependencies.IsSaas()) then
-            LocaleID := AppSourceProductManagerDependencies.GetCountryLetterCode();
     end;
 
     /// <summary>
@@ -295,13 +295,12 @@ codeunit 2515 "AppSource Product Manager"
         UriBuilder: Codeunit "Uri Builder";
         Uri: Codeunit Uri;
         Language: Text;
-        Market: Code[2];
     begin
-        ResolveMarketAndLanguage(Market, Language);
+        Language := ResolveLanguageName();
 
         UriBuilder.Init(CatalogProductsUriLbl);
         UriBuilder.AddQueryParameter(CatalogApiVersionQueryParamNameLbl, CatalogApiVersionQueryParamValueLbl);
-        UriBuilder.AddQueryParameter(CatalogMarketQueryParamNameLbl, Market);
+        UriBuilder.AddQueryParameter(CatalogMarketQueryParamNameLbl, CatalogListMarketNameLbl);
         UriBuilder.AddQueryParameter(CatalogLanguageQueryParamNameLbl, Language);
 
         UriBuilder.AddODataQueryParameter(CatalogApiFilterQueryParamNameLbl, 'productType eq ''DynamicsBC''');
@@ -322,9 +321,11 @@ codeunit 2515 "AppSource Product Manager"
         UriBuilder: Codeunit "Uri Builder";
         Uri: Codeunit Uri;
         Language: Text;
-        Market: Code[2];
+        Market: Text;
     begin
-        ResolveMarketAndLanguage(Market, Language);
+        // For market in the product details we use the Entra ID country code.
+        Market := AppSourceProductManagerDependencies.GetCountryLetterCode();
+        Language := ResolveLanguageName();
         UriBuilder.Init(CatalogProductsUriLbl);
         UriBuilder.SetPath('products/' + UniqueIdentifier);
         UriBuilder.AddQueryParameter(CatalogApiVersionQueryParamNameLbl, ApiVersion);

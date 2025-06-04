@@ -111,22 +111,6 @@ codeunit 1285 "X509Certificate2 Impl."
         CreateCertificatePropertyJson(X509Certificate2, CertPropertyJson);
     end;
 
-#if not CLEAN24
-    [NonDebuggable]
-    [Obsolete('Replaced by GetSecretCertificatePrivateKey with SecretText data type return value.', '24.0')]
-    procedure GetCertificatePrivateKey(CertBase64Value: Text; Password: SecretText): Text
-    var
-        X509Certificate2: DotNet X509Certificate2;
-        AsymmetricAlgorithm: DotNet AsymmetricAlgorithm;
-    begin
-        InitializeX509Certificate(CertBase64Value, Password, X509Certificate2);
-        if not X509Certificate2.HasPrivateKey then
-            exit;
-
-        AsymmetricAlgorithm := X509Certificate2.PrivateKey;
-        exit(AsymmetricAlgorithm.ToXmlString(true));
-    end;
-#endif
     [NonDebuggable]
     procedure GetSecretCertificatePrivateKey(CertBase64Value: Text; Password: SecretText): SecretText
     var
@@ -212,5 +196,30 @@ codeunit 1285 "X509Certificate2 Impl."
         end;
 
         exit(SerialNumberASCII);
+    end;
+
+    [NonDebuggable]
+    procedure CreateFromPemAndExportAsBase64(CertBase64: Text; PrivateKeyXmlString: SecretText; Password: SecretText): Text
+    var
+        RSA: Codeunit "RSA Impl.";
+        RSAEncryptionHelper: DotNet RSAEncryptionHelper;
+        BeginCertTok: Label '-----BEGIN CERTIFICATE-----', Locked = true;
+        EndCertTok: Label '-----END CERTIFICATE-----', Locked = true;
+    begin
+        if CertBase64 = '' then
+            exit;
+
+        if PrivateKeyXmlString.IsEmpty() then
+            exit;
+
+        if Password.IsEmpty() then
+            exit;
+
+        if not CertBase64.StartsWith(BeginCertTok) then
+            CertBase64 := BeginCertTok + CertBase64 + EndCertTok;
+
+        RSA.FromSecretXmlString(PrivateKeyXmlString);
+
+        exit(RSAEncryptionHelper.CreateBase64Pkcs12FromPem(CertBase64, RSA.ExportRSAPrivateKeyPem(), Password));
     end;
 }

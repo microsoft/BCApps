@@ -261,6 +261,16 @@ dotnet
         }
     }
 
+    assembly("Microsoft.Dynamics.Nav.AppHTMLSanitizer")
+    {
+        Culture = 'neutral';
+        PublicKeyToken = '31bf3856ad364e35';
+
+        type("Microsoft.Dynamics.Nav.AppHTMLSanitizer.AppHtmlSanitizer"; "AppHtmlSanitizer")
+        {
+        }
+    }
+
     assembly("Microsoft.Dynamics.Nav.AzureADGraphClient")
     {
         type("Microsoft.Dynamics.Nav.AzureADGraphClient.GroupInfoPage"; "GroupInfoPage")
@@ -793,6 +803,21 @@ dotnet
         type("Microsoft.BusinessCentral.DocumentProcessor.MailMerge"; "MailMerge")
         {
         }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfDocumentInfo"; "PdfDocumentInfo")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfConverter"; "PdfConverter")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfTargetDevice"; "PdfTargetDevice")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfAttachmentManager"; "PdfAttachmentManager")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfAttachment"; "PdfAttachment")
+        {
+        }
     }
 
     assembly("Microsoft.Dynamics.Nav.PowerBIEmbedded")
@@ -835,6 +860,16 @@ dotnet
         }
 
         type("Microsoft.Dynamics.Nav.SMTP.SmtpMessage"; "SmtpMessage")
+        {
+        }
+    }
+
+    assembly("Microsoft.Dynamics.Nav.SystemEnvironment")
+    {
+        Culture = 'neutral';
+        PublicKeyToken = '31bf3856ad364e35';
+
+        type("Microsoft.Dynamics.Nav.SystemEnvironment.SystemEnvironment"; "SystemEnvironment")
         {
         }
     }
@@ -1423,10 +1458,6 @@ dotnet
         }
 
         type("System.Enum"; "Enum")
-        {
-        }
-
-        type("System.Environment"; "Environment")
         {
         }
 
@@ -2083,7 +2114,6 @@ dotnet
         type("System.Collections.Generic.List`1"; "GenericList1")
         {
         }
-
         type("System.Nullable`1"; "Nullable1")
         {
         }
@@ -2125,6 +2155,18 @@ dotnet
         }
 
         type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotCapability"; ALCopilotCapability)
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotUsageType"; ALCopilotUsageType)
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotQuotaDetails"; ALCopilotQuotaDetails)
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALMicrosoftLearnFunctions"; ALMicrosoftLearnFunctions)
         {
         }
     }

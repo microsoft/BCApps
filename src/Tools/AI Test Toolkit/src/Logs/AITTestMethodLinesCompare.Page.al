@@ -1,3 +1,4 @@
+#if not CLEAN26
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -15,6 +16,9 @@ page 149035 "AIT Test Method Lines Compare"
     InsertAllowed = false;
     DeleteAllowed = false;
     UsageCategory = None;
+    ObsoleteState = Pending;
+    ObsoleteTag = '26.0';
+    ObsoleteReason = 'Replaced with page AIT Run History';
 
     layout
     {
@@ -187,3 +191,4 @@ page 149035 "AIT Test Method Lines Compare"
         CurrPage.Update(false);
     end;
 }
+#endif

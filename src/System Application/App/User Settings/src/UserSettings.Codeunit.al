@@ -117,12 +117,19 @@ codeunit 9176 "User Settings"
     /// <summary>
     /// Updates the user settings for given user
     /// </summary>
-    /// <param name="UserSettings"></param>
-    procedure UpdateUserSettings(var UserSettings: Record "User Settings")
+    /// <param name="NewUserSettings">New User settings that should be set to the user.</param>
+#if not CLEAN27
+#pragma warning disable AS0078
+    // Parameter name changed from UserSettings to NewUserSettings. var was removed because UpdateUserSettings did not have the var in the signature. NewUserSettings record is not changed in the method.
+#endif
+    procedure UpdateUserSettings(NewUserSettings: Record "User Settings")
+#if not CLEAN27    
+#pragma warning restore AS0078
+#endif    
     var
         UserSettingsImpl: Codeunit "User Settings Impl.";
     begin
-        UserSettingsImpl.UpdateUserSettings(UserSettings);
+        UserSettingsImpl.UpdateUserSettings(NewUserSettings);
     end;
 
     /// <summary>

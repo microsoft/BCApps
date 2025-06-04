@@ -29,7 +29,7 @@ codeunit 132980 "Unix Timestamp Test"
         // [GIVEN] A DateTime with value 2024-07-01 06:30:30 in the user time zone
         GivenDateTime := CreateDateTime(20240701D, 063030T);
         // [GIVEN] The offset of the session's timezone
-        Offset := TimeZone.GetTimezoneOffset(CurrentDateTime);
+        Offset := TimeZone.GetTimezoneOffset(GivenDateTime);
 
         // [WHEN] Given DateTime is converted to a Unix timestamp after a correction for timezone offset
         ResultTimestamp := UnixTimestamp.CreateTimestampSeconds(GivenDateTime + Offset);
@@ -52,7 +52,7 @@ codeunit 132980 "Unix Timestamp Test"
         // [GIVEN] A DateTime with value 2024-07-01 06:30:30 in the user time zone
         GivenDateTime := CreateDateTime(20240701D, 063030T);
         // [GIVEN] The offset of the session's timezone
-        Offset := TimeZone.GetTimezoneOffset(CurrentDateTime);
+        Offset := TimeZone.GetTimezoneOffset(GivenDateTime);
 
         // [WHEN] Given DateTime is converted to a Unix timestamp after a correction for timezone offset
         ResultTimestamp := UnixTimestamp.CreateTimestampMilliseconds(GivenDateTime + Offset);

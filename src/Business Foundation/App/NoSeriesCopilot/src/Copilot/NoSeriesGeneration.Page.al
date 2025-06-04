@@ -171,6 +171,7 @@ page 332 "No. Series Generation"
     }
 
     var
+        NoSeriesCopilotTelemetry: Codeunit "No. Series Copilot Telemetry";
         InputText: Text;
         PageCaptionLbl: text;
         IsGenerationDetailsVisible: Boolean;
@@ -191,6 +192,8 @@ page 332 "No. Series Generation"
     begin
         if CloseAction = CloseAction::OK then
             ApplyGeneratedNoSeries();
+
+        NoSeriesCopilotTelemetry.LogFeatureUsage();
     end;
 
     local procedure GenerateNoSeries()
@@ -198,7 +201,10 @@ page 332 "No. Series Generation"
         GeneratedNoSeries: Record "No. Series Generation Detail";
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
     begin
+        NoSeriesCopilotTelemetry.StartDurationTracking();
         NoSeriesCopilotImpl.Generate(Rec, GeneratedNoSeries, InputText);
+        NoSeriesCopilotTelemetry.StopDurationTracking();
+        NoSeriesCopilotTelemetry.SaveTotalSuggestedLines(GeneratedNoSeries.Count());
         CurrPage.GenerationDetails.Page.Load(GeneratedNoSeries);
         IsGenerationDetailsVisible := not GeneratedNoSeries.IsEmpty;
     end;
@@ -210,5 +216,6 @@ page 332 "No. Series Generation"
     begin
         CurrPage.GenerationDetails.Page.GetTempRecord(Rec."No.", GeneratedNoSeries);
         NoSeriesCopilotImpl.ApplyGeneratedNoSeries(GeneratedNoSeries);
+        NoSeriesCopilotTelemetry.LogApply(GeneratedNoSeries);
     end;
 }

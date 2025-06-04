@@ -8,6 +8,7 @@ namespace System.Security.AccessControl;
 using System.Visualization;
 using System.Privacy;
 using System.Email;
+using System.ExternalFileStorage;
 using System.Text;
 using System.Environment.Configuration;
 using System.Globalization;
@@ -23,6 +24,7 @@ permissionset 22 "System Application - Edit"
                              "Data Classification - Edit",
                              "Email - Edit",
                              "Entity Text - Edit",
+                             "File Storage - Edit",
                              "Guided Experience - Edit",
                              "Language - Edit",
                              "PageScripting - Rec",

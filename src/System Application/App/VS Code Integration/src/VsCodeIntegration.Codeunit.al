@@ -34,6 +34,36 @@ codeunit 8334 "VS Code Integration"
     end;
 
     /// <summary>
+    /// Opens an URL that sends a request to VS Code to update the launch configurations to match the current environment to publish and debug.
+    /// </summary>
+    [Scope('OnPrem')]
+    procedure UpdateConfigurationsInVSCode()
+    begin
+        VsCodeIntegrationImpl.UpdateConfigurationsInVSCode();
+    end;
+
+    /// <summary>
+    /// Opens an URL that sends a request to VS Code to add and download the selected extensions as dependencies.
+    /// </summary>
+    /// <param name="PublishedApplication">The selected extensions.</param>
+    [Scope('OnPrem')]
+    procedure UpdateDependenciesInVSCode(var PublishedApplication: Record "Published Application")
+    begin
+        VsCodeIntegrationImpl.UpdateDependenciesInVSCode(PublishedApplication);
+    end;
+
+    /// <summary>
+    /// Returns the selected extensions as a JSON array of dependencies.
+    /// </summary>
+    /// <param name="PublishedApplication">The selected extensions.</param>
+    /// <returns>The JSON array.</returns>
+    [Scope('OnPrem')]
+    procedure GetDependenciesAsJson(var PublishedApplication: Record "Published Application"): Text
+    begin
+        exit(VsCodeIntegrationImpl.GetDependenciesAsSerializedJsonArray(PublishedApplication));
+    end;
+
+    /// <summary>
     /// Opens an URL that sends a request to VS Code to navigate to the source definition of the given page and to download the dependent symbols.
     /// </summary>
     /// <param name="PageInfoAndFields">The page to navigate to.</param>

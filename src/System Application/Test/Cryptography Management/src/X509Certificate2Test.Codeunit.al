@@ -301,7 +301,7 @@ codeunit 132587 "X509Certificate2 Test"
 
     local procedure OffsetToLocalTimeZone(): Duration
     var
-        TimeZoneInfo: DotNet TimeZoneInfo;
+        TimeZoneInfo: DotNet TimeZoneInfoTest;
     begin
         TimeZoneInfo := TimeZoneInfo.Local;
         exit(TimeZoneInfo.BaseUtcOffset());

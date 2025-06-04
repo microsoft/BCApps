@@ -45,6 +45,10 @@ page 535 "Windows Languages"
         }
     }
 
+    trigger OnOpenPage()
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        LanguageImpl.ShowAllowedLanguagesNotification();
+    end;
 }
-
-
