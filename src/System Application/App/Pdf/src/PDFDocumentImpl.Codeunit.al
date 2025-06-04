@@ -117,7 +117,7 @@ codeunit 3109 "PDF Document Impl."
         PdfDocumentInfoInstance: DotNet PdfDocumentInfo;
         PdfConverterInstance: DotNet PdfConverter;
         MemoryStream: DotNet MemoryStream;
-        TextValue: text;
+        TextValue: Text;
         IntegerValue: Integer;
         DecimalValue: Decimal;
         DateTimeValue: DateTime;
