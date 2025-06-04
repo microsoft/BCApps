@@ -7,6 +7,7 @@ namespace System.AI;
 
 using System.Azure.KeyVault;
 using System.Environment;
+using System.Utilities;
 using System.Telemetry;
 
 codeunit 7764 "AOAI Chat Messages Impl"
@@ -67,6 +68,76 @@ codeunit 7764 "AOAI Chat Messages Impl"
     begin
         Initialize();
         AddMessage(NewMessage, NewName, Enum::"AOAI Chat Roles"::User);
+    end;
+
+    [NonDebuggable]
+    procedure AddUserMessage(UserText: Text; ImageUrl: Text; DetailLevel: Enum "AOAI Image Detail Level")
+    var
+        AOAIImagesImpl: Codeunit "AOAI Images Impl";
+        ContentAsText: Text;
+    begin
+        Initialize();
+        ContentAsText := AOAIImagesImpl.PrepareUserMessageContentFromUrl(UserText, ImageUrl, DetailLevel);
+        if ContentAsText = '' then
+            exit;
+
+        AddMessage(ContentAsText, '', Enum::"AOAI Chat Roles"::User);
+    end;
+
+    [NonDebuggable]
+    procedure AddUserMessage(UserText: Text; var ImageStream: InStream; FileExtension: Text; DetailLevel: Enum "AOAI Image Detail Level")
+    var
+        AOAIImagesImpl: Codeunit "AOAI Images Impl";
+        ContentAsText: Text;
+    begin
+        Initialize();
+        ContentAsText := AOAIImagesImpl.PrepareUserMessageContentFromStream(UserText, ImageStream, FileExtension, DetailLevel);
+        if ContentAsText = '' then
+            exit;
+
+        AddMessage(ContentAsText, '', Enum::"AOAI Chat Roles"::User);
+    end;
+
+    [NonDebuggable]
+    procedure AddUserMessage(UserText: Text; MediaSetId: Guid; DetailLevel: Enum "AOAI Image Detail Level")
+    var
+        AOAIImagesImpl: Codeunit "AOAI Images Impl";
+        ContentAsText: Text;
+    begin
+        Initialize();
+        ContentAsText := AOAIImagesImpl.PrepareUserMessageContentFromMediaSet(UserText, MediaSetId, DetailLevel);
+        if ContentAsText = '' then
+            exit;
+
+        AddMessage(ContentAsText, '', Enum::"AOAI Chat Roles"::User);
+    end;
+
+    [NonDebuggable]
+    procedure AddUserMessage(UserText: Text; TenantMedia: Record "Tenant Media"; DetailLevel: Enum "AOAI Image Detail Level")
+    var
+        AOAIImagesImpl: Codeunit "AOAI Images Impl";
+        ContentAsText: Text;
+    begin
+        Initialize();
+        ContentAsText := AOAIImagesImpl.PrepareUserMessageContentFromMediaRecord(UserText, TenantMedia, DetailLevel);
+        if ContentAsText = '' then
+            exit;
+
+        AddMessage(ContentAsText, '', Enum::"AOAI Chat Roles"::User);
+    end;
+
+    [NonDebuggable]
+    procedure AddUserMessage(UserText: Text; var TempBlob: Codeunit "Temp Blob"; FileExtension: Text; DetailLevel: Enum "AOAI Image Detail Level")
+    var
+        AOAIImagesImpl: Codeunit "AOAI Images Impl";
+        ContentAsText: Text;
+    begin
+        Initialize();
+        ContentAsText := AOAIImagesImpl.PrepareUserMessageContentFromTempBlob(UserText, TempBlob, FileExtension, DetailLevel);
+        if ContentAsText = '' then
+            exit;
+
+        AddMessage(ContentAsText, '', Enum::"AOAI Chat Roles"::User);
     end;
 
     [NonDebuggable]
@@ -239,10 +310,11 @@ codeunit 7764 "AOAI Chat Messages Impl"
                 Message := WrapUserMessages(AzureOpenAIImpl.RemoveProhibitedCharacters(Message))
             else
                 Message := AzureOpenAIImpl.RemoveProhibitedCharacters(Message);
+
             if ToolCalls.Count() > 0 then
                 MessageJsonObject.Add('tool_calls', ToolCalls)
             else
-                MessageJsonObject.Add('content', Message);
+                AddContentToMessage(Message, MessageJsonObject);
 
             if Name <> '' then
                 MessageJsonObject.Add('name', Name);
@@ -257,6 +329,38 @@ codeunit 7764 "AOAI Chat Messages Impl"
 
         MessagesTokenCount := AOAIToken.GetGPT4TokenCount(TotalMessages);
     end;
+
+    local procedure AddContentToMessage(Message: Text; var MessageJsonObject: JsonObject)
+    begin
+        AddTextContentToMessage(Message, MessageJsonObject);
+        AddImageContentToMessage(Message, MessageJsonObject);
+    end;
+
+    local procedure AddTextContentToMessage(Message: Text; var MessageJsonObject: JsonObject)
+    begin
+        if CheckIfImageContent(Message) then
+            exit;
+
+        MessageJsonObject.Add('content', Message);
+    end;
+
+    local procedure AddImageContentToMessage(Message: Text; var MessageJsonObject: JsonObject)
+    var
+        AOAIImagesImpl: Codeunit "AOAI Images Impl";
+    begin
+        if not CheckIfImageContent(Message) then
+            exit;
+
+        MessageJsonObject.Add('content', AOAIImagesImpl.ReadImageContent(Message));
+    end;
+
+    local procedure CheckIfImageContent(Message: Text): Boolean
+    var
+        AOAIImagesImpl: Codeunit "AOAI Images Impl";
+    begin
+        exit(AOAIImagesImpl.CheckIfImageContent(Message));
+    end;
+
 
     local procedure Initialize()
     begin
