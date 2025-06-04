@@ -51,19 +51,39 @@ codeunit 3110 "PDF Document"
     end;
 
     /// <summary>
-    /// This procedure is used to get the properties of a PDF file.
+    /// Retrieves metadata properties from a PDF file, such as page size, author, title, and creation date.
     /// </summary>
     /// <param name="DocumentInStream">Input stream of the PDF file.</param>
-    /// <returns>Properties of the PDF file in JSON format.</returns>
+    /// <returns>A JSON object containing the extracted PDF metadata.</returns>
+    /// <remarks>
+    /// The format of the returned JSON object looks like the following:
+    /// {
+    ///     "pageWidth": 210.0,
+    ///     "pageHeight": 297.0,
+    ///     "pagecount": 3,
+    ///     "author": "Author Name",
+    ///     "creationDate": "2025-06-04T10:00:00",
+    ///     "creationTimeZone": "PT2H",
+    ///     "creator": "PDF Generator",
+    ///     "producer": "PDF Engine",
+    ///     "subject": "Invoice Document",
+    ///     "title": "Invoice #12345"
+    /// }
+    /// </remarks>
     procedure GetPdfProperties(DocumentInStream: InStream): JsonObject
     begin
         exit(PDFDocumentImpl.GetPdfProperties(DocumentInStream));
     end;
 
+
     /// <summary>
-    /// Get the zip archive from the PDF stream.
+    /// Initiates a download of a ZIP archive containing all embedded attachments from the provided PDF stream.
     /// </summary>
     /// <param name="PdfStream">Input stream of the PDF file.</param>
+    /// <remarks>
+    /// This procedure does not return the ZIP archive directly. Instead, it triggers a download dialog for the user,
+    /// allowing them to save the ZIP file locally. 
+    /// </remarks>
     procedure GetZipArchive(PdfStream: InStream)
     begin
         PDFDocumentImpl.GetZipArchive(PdfStream);
