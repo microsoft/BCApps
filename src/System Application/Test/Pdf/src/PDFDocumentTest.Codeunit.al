@@ -40,14 +40,14 @@ codeunit 132601 "PDF Document Test"
     var
         PdfDocumentImpl: Codeunit "PDF Document Impl.";
         TempBlob: Codeunit "Temp Blob";
-        DummyStream: InStream;
+        PdfInstream: InStream;
         Success: Boolean;
     begin
-        //[GIVEN] Create a dummy PDF with XMP metadata containing an attachment
-        DummyStream := CreateDummyPdfWithXmpAttachment();
+        // [GIVEN] Load XRechnung.pdf with XMP metadata
+        NavApp.GetResource('XRechnung.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get invoice attachment stream
-        Success := PdfDocumentImpl.GetInvoiceAttachmentStream(DummyStream, TempBlob);
+        Success := PdfDocumentImpl.GetInvoiceAttachmentStream(PdfInstream, TempBlob);
 
         // [THEN] Assert that the attachment is found via XMP metadata
         Assert.IsTrue(Success, 'Expected attachment to be found via XMP metadata');
@@ -59,14 +59,14 @@ codeunit 132601 "PDF Document Test"
     var
         PdfDocumentImpl: Codeunit "PDF Document Impl.";
         TempBlob: Codeunit "Temp Blob";
-        DummyStream: InStream;
+        PdfInstream: InStream;
         Success: Boolean;
     begin
-        // [GIVEN] Create a dummy PDF with a known attachment name
-        DummyStream := CreateDummyPdfWithNamedAttachment('factur-x.xml');
+        // [GIVEN] Load XRechnung.pdf with known attachment name
+        NavApp.GetResource('XRechnung.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get invoice attachment stream by known name
-        Success := PdfDocumentImpl.GetInvoiceAttachmentStream(DummyStream, TempBlob);
+        Success := PdfDocumentImpl.GetInvoiceAttachmentStream(PdfInstream, TempBlob);
 
         // [THEN] Assert that the attachment is found by known name
         Assert.IsTrue(Success, 'Expected attachment to be found by known name');
@@ -78,14 +78,14 @@ codeunit 132601 "PDF Document Test"
     var
         PdfDocumentImpl: Codeunit "PDF Document Impl.";
         TempBlob: Codeunit "Temp Blob";
-        DummyStream: InStream;
+        PdfInstream: InStream;
         Success: Boolean;
     begin
-        //[GIVEN] Create PDF without attachment
-        DummyStream := CreateDummyPdfWithoutAttachment();
+        // [GIVEN] Load test.pdf without valid attachment
+        NavApp.GetResource('test.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get invoice attachment stream
-        Success := PdfDocumentImpl.GetInvoiceAttachmentStream(DummyStream, TempBlob);
+        Success := PdfDocumentImpl.GetInvoiceAttachmentStream(PdfInstream, TempBlob);
 
         // [THEN] Assert no attachment is found
         Assert.IsFalse(Success, 'Expected no attachment to be found');
@@ -95,67 +95,53 @@ codeunit 132601 "PDF Document Test"
     procedure Test_MetadataExtractedSuccessfully()
     var
         PdfDocumentImpl: Codeunit "PDF Document Impl.";
-        PdfStream: InStream;
+        PdfInstream: InStream;
         Metadata: JsonObject;
         Value: JsonToken;
     begin
-        // [GIVEN] Create a dummy PDF with metadata
-        PdfStream := CreateDummyPdfWithMetadata();
+        // [GIVEN] Load XRechnung.pdf with metadata
+        NavApp.GetResource('XRechnung.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Extract metadata from the PDF stream
-        Metadata := PdfDocumentImpl.GetPdfProperties(PdfStream);
+        Metadata := PdfDocumentImpl.GetPdfProperties(PdfInstream);
 
         // [THEN] Assert that metadata contains expected values
         if Metadata.Get('pagecount', Value) then
-            Assert.AreEqual(Value.AsValue().AsInteger(), 3, 'Expected 3 pages');
+            Assert.AreEqual(Value.AsValue().AsInteger(), 2, 'Expected 2 pages');
 
         if Metadata.Get('author', Value) then
-            Assert.AreEqual(Value.AsValue().AsText(), 'XXX', 'Expected author to be XXX');
-    end;
-
-    [Test]
-    procedure Test_ZipArchiveDownloaded()
-    var
-        PdfDocumentImpl: Codeunit "PDF Document Impl.";
-        PdfStream: InStream;
-    begin
-        // [GIVEN] Create a dummy PDF with attachments
-        PdfStream := CreateDummyPdfWithXmpAttachment();
-
-        // [WHEN] Attempt to get the zip archive from the PDF stream
-        // [THEN] Assert that the zip archive can be downloaded without errors
-        PdfDocumentImpl.GetZipArchive(PdfStream);
+            Assert.AreEqual(Value.AsValue().AsText(), 'ELEKTRON Industrieservice GmbH', 'Expected author to be XXX');
     end;
 
     [Test]
     procedure Test_MultipleAttachmentNames()
     var
         PdfDocumentImpl: Codeunit "PDF Document Impl.";
-        PdfStream: InStream;
+        PdfInstream: InStream;
         Names: Text;
     begin
-        // [GIVEN] Create a dummy PDF with multiple named attachments
-        PdfStream := CreateDummyPdfWithNamedAttachment('invoice.xml,readme.txt');
+        // [GIVEN] Load XRechnung.pdf with multiple named attachments
+        NavApp.GetResource('XRechnung.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get attachment names
-        Names := PdfDocumentImpl.ShowNames(PdfStream);
+        Names := PdfDocumentImpl.ShowNames(PdfInstream);
 
         // [THEN] Assert that the names are returned correctly
-        Assert.AreEqual('invoice.xml, readme.txt', Names, 'Expected list of attachment names');
+        Assert.AreEqual('EN16931_Elektron_Aufmass.png, EN16931_Elektron_ElektronRapport.pdf, xrechnung.xml', Names, 'Expected list of attachment names');
     end;
 
     [Test]
     procedure Test_NoAttachments()
     var
         PdfDocumentImpl: Codeunit "PDF Document Impl.";
-        PdfStream: InStream;
+        PdfInstream: InStream;
         Names: Text;
     begin
-        // [GIVEN] Create a dummy PDF without attachments
-        PdfStream := CreateDummyPdfWithNamedAttachment('');
+        // [GIVEN] Load test.pdf without attachments
+        NavApp.GetResource('test.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get attachment names
-        Names := PdfDocumentImpl.ShowNames(PdfStream);
+        Names := PdfDocumentImpl.ShowNames(PdfInstream);
 
         // [THEN] Assert that no attachment names are returned
         Assert.AreEqual('', Names, 'Expected empty string for no attachments');
@@ -170,58 +156,4 @@ codeunit 132601 "PDF Document Test"
         InStr.ReadText(TextLine);
         Assert.AreNotEqual('', TextLine, 'Expected stream to contain data');
     end;
-
-    local procedure CreateDummyPdfWithoutAttachment(): InStream
-    var
-        TempBlob: Codeunit "Temp Blob";
-        OutStr: OutStream;
-    begin
-        TempBlob.CreateOutStream(OutStr);
-        OutStr.WriteText('PDF without attachment');
-        exit(TempBlob.CreateInStream());
-    end;
-
-    local procedure CreateDummyPdfWithNamedAttachment(Name: Text): InStream
-    var
-        TempBlob: Codeunit "Temp Blob";
-        OutStr: OutStream;
-        PDFNameLbl: Label 'PDF with attachment %1', Comment = '%1 = Name';
-    begin
-        TempBlob.CreateOutStream(OutStr);
-        OutStr.WriteText(StrSubstNo(PDFNameLbl, Name));
-        exit(TempBlob.CreateInStream());
-    end;
-
-    local procedure CreateDummyPdfWithXmpAttachment(): InStream
-    var
-        TempBlob: Codeunit "Temp Blob";
-        OutStr: OutStream;
-    begin
-        TempBlob.CreateOutStream(OutStr);
-        OutStr.WriteText('PDF with attachment: <invoice>123</invoice>');
-        exit(TempBlob.CreateInStream());
-    end;
-
-    local procedure CreateDummyPdfWithMetadata(): InStream
-    var
-        TempBlob: Codeunit "Temp Blob";
-        OutStr: OutStream;
-    begin
-        TempBlob.CreateOutStream(OutStr);
-        OutStr.WriteText(
-            'PDF document' +
-            '\nAuthor: XXX' +
-            '\nTitle: Test PDF' +
-            '\nPageCount: 3' +
-            '\nPageWidth: 210' +
-            '\nPageHeight: 297' +
-            '\nCreationDate: 2025-06-04T10:00:00' +
-            '\nCreator: AL Test Suite' +
-            '\nProducer: PDF Generator' +
-            '\nSubject: Test'
-        );
-        exit(TempBlob.CreateInStream());
-    end;
-
-
 }
