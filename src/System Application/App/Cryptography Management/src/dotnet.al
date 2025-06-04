@@ -49,9 +49,10 @@ dotnet
         type("System.Security.Cryptography.AesCryptoServiceProvider"; "Cryptography.AesCryptoServiceProvider") { }
 
     }
-    
+
     assembly("Microsoft.Dynamics.BusinessCentral.DotNet.Helpers.Encryption")
     {
         type("Microsoft.Dynamics.BusinessCentral.DotNet.Helpers.RSAEncryptionHelper"; "RSAEncryptionHelper") { }
     }
 }
+
