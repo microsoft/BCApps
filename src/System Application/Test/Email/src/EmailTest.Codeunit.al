@@ -713,7 +713,7 @@ codeunit 134685 "Email Test"
     end;
 
     [Test]
-    procedure SendEmailMessageFromBackgroundFailedAndRetry()
+    procedure SendEmailMessageFromBackgroundFailedAndRetryTest()
     var
         EmailRetry: Record "Email Retry";
         TempAccount: Record "Email Account" temporary;
@@ -728,10 +728,11 @@ codeunit 134685 "Email Test"
         // [Scenario] When sending an email on the background and then fails, the email should be scheduled for retry
         // [Given] An email message and an email account are created
         BindSubscription(TestClientTypeSubscriber);
+
+        PermissionsMock.Set('Super');
         ConnectorMock.Initialize();
         ConnectorMock.AddAccount(TempAccount);
         TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Background);
-        PermissionsMock.Set('Super');
         EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
         Assert.IsTrue(EmailMessage.Get(EmailMessage.GetId()), 'The email should exist');
         ConnectorMock.FailOnSend(true);
@@ -760,6 +761,111 @@ codeunit 134685 "Email Test"
         Assert.IsTrue(EmailRetry."Date Sending" > ScheduledDateTime, 'The Date Queued should be later than now');
 
         UnBindSubscription(TestClientTypeSubscriber);
+    end;
+
+    [Test]
+    procedure SendEmailMessageForegroundExceedingMaxConcurrencyTest()
+    var
+        TempAccount: Record "Email Account" temporary;
+        EmailOutbox: Record "Email Outbox";
+        Any: Codeunit Any;
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+        OriginalScheduledDateTime: DateTime;
+        OriginalTaskId: Guid;
+    begin
+        // [Scenario] When there are already too many emails being sent in the background, sending an email from the foreground should be rescheduled
+        PermissionsMock.Set('Super');
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(TempAccount);
+
+        // [Given] Ten email messages and an email account are created
+        CreateEmailMessageAndEmailOutboxRecord(10, TempAccount);
+
+        // [Given] The 11st email is created
+        EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+        SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Queued);
+
+        // [When] The 11st email is sent from the foreground
+        EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
+        EmailOutbox.FindFirst();
+        OriginalScheduledDateTime := EmailOutbox."Date Sending";
+        OriginalTaskId := EmailOutbox."Task Scheduler Id";
+        Codeunit.Run(Codeunit::"Email Dispatcher", EmailOutbox);
+
+        // [Then] The sending task is rescheduled, and the email outbox entry is updated with the error message and status
+        Assert.AreNotEqual(OriginalScheduledDateTime, EmailOutbox."Date Sending", 'The Date Sending should be updated');
+        Assert.AreNotEqual(OriginalTaskId, EmailOutbox."Task Scheduler Id", 'The Task Scheduler Id should be updated');
+        Assert.AreEqual(EmailOutbox.Status, EmailOutbox.Status::Queued, 'The status should not be Processing');
+    end;
+
+    [Test]
+    procedure SendEmailMessageBackgroundExceedingMaxConcurrencyTest()
+    var
+        TempAccount: Record "Email Account" temporary;
+        EmailOutbox: Record "Email Outbox";
+        Any: Codeunit Any;
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
+        OriginalScheduledDateTime: DateTime;
+        OriginalTaskId: Guid;
+    begin
+        // [Scenario] When there are already too many emails being sent in the background, sending an email from the background should be rescheduled
+        BindSubscription(TestClientTypeSubscriber);
+
+        PermissionsMock.Set('Super');
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(TempAccount);
+        TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Background);
+
+        // [Given] Ten email messages and an email account are created
+        CreateEmailMessageAndEmailOutboxRecord(10, TempAccount);
+
+        // [Given] The 11st email is created
+        EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+        SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Queued);
+
+        // [When] The 11st email is sent from the background
+        EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
+        EmailOutbox.FindFirst();
+        OriginalScheduledDateTime := EmailOutbox."Date Sending";
+        OriginalTaskId := EmailOutbox."Task Scheduler Id";
+        Codeunit.Run(Codeunit::"Email Dispatcher", EmailOutbox);
+
+        // [Then] The sending task is rescheduled, and the email outbox entry is updated with the error message and status
+        Assert.AreNotEqual(OriginalScheduledDateTime, EmailOutbox."Date Sending", 'The Date Sending should be updated');
+        Assert.AreNotEqual(OriginalTaskId, EmailOutbox."Task Scheduler Id", 'The Task Scheduler Id should be updated');
+        Assert.AreEqual(EmailOutbox.Status, EmailOutbox.Status::Queued, 'The status should not be Processing');
+        UnBindSubscription(TestClientTypeSubscriber);
+    end;
+
+    local procedure CreateEmailMessageAndEmailOutboxRecord(NumberOfRecords: Integer; TempAccount: Record "Email Account")
+    var
+        EmailMessage: Codeunit "Email Message";
+        Any: Codeunit Any;
+        i: Integer;
+    begin
+        for i := 1 to NumberOfRecords do begin
+            EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+            // [Given] The email is enqueued in the outbox
+            SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Processing);
+        end;
+    end;
+
+    procedure SetupEmailOutbox(EmailMessageId: Guid; Connector: Enum "Email Connector"; EmailAccountId: Guid; EmailDescription: Text; EmailAddress: Text[250]; UserSecurityId: Code[50]; Status: Enum "Email Status")
+    var
+        EmailOutbox: Record "Email Outbox";
+    begin
+        EmailOutbox.Validate("Message Id", EmailMessageId);
+        EmailOutbox.Insert();
+        EmailOutbox.Validate(Connector, Connector);
+        EmailOutbox.Validate("Account Id", EmailAccountId);
+        EmailOutbox.Validate(Description, EmailDescription);
+        EmailOutbox.Validate("User Security Id", UserSecurityId);
+        EmailOutbox.Validate("Send From", EmailAddress);
+        EmailOutbox.Validate(Status, Status);
+        EmailOutbox.Modify();
     end;
 
     [Test]
