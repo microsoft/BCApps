@@ -309,6 +309,34 @@ codeunit 130456 "Test Suite Mgt."
         GetTestMethods(ALTestSuite, CodeunitMetadata);
     end;
 
+    /// <summary>
+    /// Converts a text representation of a TestType to an option.
+    /// </summary>
+    /// <param name="TestType">Text representation of TestType, specified from CLI</param>
+    /// <returns>One of the options from TestType field in CodeunitMetadata table, except for None</returns>
+    internal procedure ConvertTestTypeToOption(TestType: Text) result: Option None,UnitTest,IntegrationTest,Uncategorized;
+    begin
+        case TestType of
+            'UnitTest':
+                exit(result::UnitTest);
+            'IntegrationTest':
+                exit(result::IntegrationTest);
+            'Uncategorized':
+                exit(result::Uncategorized);
+            else
+                Error('Invalid test type: %1', TestType);
+        end;
+    end;
+
+    internal procedure SelectTestMethodsByTestType(var ALTestSuite: Record "AL Test Suite"; TestType: Text)
+    var
+        CodeunitMetadata: Record "CodeUnit Metadata";
+    begin
+        CodeunitMetadata.SetRange(TestType, ConvertTestTypeToOption(TestType));
+
+        GetTestMethods(ALTestSuite, CodeunitMetadata);
+    end;
+
     procedure LookupTestRunner(var ALTestSuite: Record "AL Test Suite")
     var
         CodeunitMetadata: Record "CodeUnit Metadata";
@@ -585,6 +613,7 @@ codeunit 130456 "Test Suite Mgt."
         TestMethodLine."Test Codeunit" := CodeunitMetadata.ID;
         TestMethodLine.Validate("Line Type", TestMethodLine."Line Type"::Codeunit);
         TestMethodLine.Name := CodeunitMetadata.Name;
+        TestMethodLine.Validate("Test Type", CodeunitMetadata.TestType);
         TestMethodLine.Insert(true);
 
         CODEUNIT.Run(CODEUNIT::"Test Runner - Get Methods", TestMethodLine);

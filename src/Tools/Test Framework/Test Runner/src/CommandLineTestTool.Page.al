@@ -96,6 +96,25 @@ page 130455 "Command Line Test Tool"
                     if Rec.FindFirst() then;
                 end;
             }
+            field(TestType; TestType)
+            {
+                ApplicationArea = All;
+                Caption = 'Test Type';
+                ToolTip = 'Specifies the Test Type';
+
+                trigger OnValidate()
+                var
+                    TestSuiteMgt: Codeunit "Test Suite Mgt.";
+                begin
+                    if ExtensionId <> '' then begin
+                        Rec.SetRange("Test Type", TestSuiteMgt.ConvertTestTypeToOption(TestType));
+                        if Rec.FindSet() then;
+                    end else begin
+                        TestSuiteMgt.DeleteAllMethods(GlobalALTestSuite);
+                        TestSuiteMgt.SelectTestMethodsByTestType(GlobalALTestSuite, TestType);
+                    end;
+                end;
+            }
             field(DisableTestMethod; RemoveTestMethod)
             {
                 ApplicationArea = All;
@@ -469,6 +488,7 @@ page 130455 "Command Line Test Tool"
         FullErrorMessage: Text;
         StackTrace: Text;
         ExtensionId: Text;
+        TestType: Text;
         RemoveTestMethod: Text;
         TestResultsJSONText: Text;
         CCResultsCSVText: Text;
