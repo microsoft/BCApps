@@ -187,7 +187,7 @@ codeunit 3109 "PDF Document Impl."
 
         foreach PdfAttachment in PdfAttachmentManager do begin
             Name := PdfAttachment.Name;
-            if (Name = '') then
+            if Name = '' then
                 continue;
             if Names <> '' then
                 Names += ', ';
