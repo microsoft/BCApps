@@ -106,18 +106,6 @@ table 130450 "Test Method Line"
         {
             Editable = false;
         }
-        field(13; "Test Type"; Option)
-        {
-            Editable = false;
-            OptionMembers = None,UnitTest,IntegrationTest,Uncategorized;
-            Description = 'Must be align with TestType field in CodeunitMetadata table.';
-
-            trigger OnValidate()
-            begin
-                if "Test Type" = "Test Type"::None then
-                    Error('Test Type cannot be None. None is reserved for non-test codeunits.');
-            end;
-        }
         field(50; "Error Message Preview"; Text[2048])
         {
             DataClassification = CustomerContent;

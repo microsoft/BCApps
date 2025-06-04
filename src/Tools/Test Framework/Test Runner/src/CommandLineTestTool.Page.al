@@ -106,13 +106,9 @@ page 130455 "Command Line Test Tool"
                 var
                     TestSuiteMgt: Codeunit "Test Suite Mgt.";
                 begin
-                    if ExtensionId <> '' then begin
-                        Rec.SetRange("Test Type", TestSuiteMgt.ConvertTestTypeToOption(TestType));
-                        if Rec.FindSet() then;
-                    end else begin
-                        TestSuiteMgt.DeleteAllMethods(GlobalALTestSuite);
-                        TestSuiteMgt.SelectTestMethodsByTestType(GlobalALTestSuite, TestType);
-                    end;
+                    TestSuiteMgt.DeleteAllMethods(GlobalALTestSuite);
+                    TestSuiteMgt.SelectTestMethodsByExtensionAndTestType(GlobalALTestSuite, ExtensionId, TestType);
+                    if Rec.FindSet() then;
                 end;
             }
             field(DisableTestMethod; RemoveTestMethod)

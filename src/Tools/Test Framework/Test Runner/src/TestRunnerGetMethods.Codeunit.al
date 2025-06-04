@@ -71,7 +71,6 @@ codeunit 130452 "Test Runner - Get Methods"
         TestMethodLine.Validate("Test Suite", CurrentTestMethodLine."Test Suite");
         TestMethodLine.Validate("Line Type", TestMethodLine."Line Type"::"Function");
         TestMethodLine.Validate("Function", FunctionName);
-        TestMethodLine.Validate("Test Type", CurrentTestMethodLine."Test Type");
         TestMethodLine.Validate(Run, CurrentTestMethodLine.Run);
         OnBeforeAddTestMethodLine(TestMethodLine, Handled);
         if not Handled then
