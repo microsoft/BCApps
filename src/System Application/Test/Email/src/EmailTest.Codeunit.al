@@ -20,6 +20,7 @@ codeunit 134685 "Email Test"
                   tabledata "Email Message Attachment" = rd,
                   tabledata "Email Recipient" = rd,
                   tabledata "Email Outbox" = rimd,
+                  tabledata "Email Retry" = rimd,
                   tabledata "Email Inbox" = rimd,
                   tabledata "Scheduled Task" = rd,
                   tabledata "Sent Email" = rid;
@@ -684,6 +685,7 @@ codeunit 134685 "Email Test"
         Connector: Enum "Email Connector";
         EmailStatus: Enum "Email Status";
         AccountId: Guid;
+        ScheduledDateTime: DateTime;
     begin
         // [Scenario] When sending an email on the foreground and the process fails, an error is shown
         PermissionsMock.Set('Email Edit');
@@ -696,6 +698,7 @@ codeunit 134685 "Email Test"
 
         // [When] Sending the email fails
         ConnectorMock.FailOnSend(true);
+        ScheduledDateTime := CurrentDateTime();
         Assert.IsFalse(Email.Send(EmailMessage, AccountId, Connector::"Test Email Connector"), 'Sending an email should have failed');
 
         // [Then] The error is as expected
@@ -704,9 +707,59 @@ codeunit 134685 "Email Test"
 
         Assert.IsTrue(EmailOutbox.FindFirst(), 'The email outbox entry should exist');
         Assert.AreEqual(Connector::"Test Email Connector".AsInteger(), EmailOutbox.Connector.AsInteger(), 'Wrong connector');
-        // [TODO] Check the content in the retry record. We cannot check the status here, because we don't know if the email was already queued 
         Assert.AreEqual(EmailStatus::Failed.AsInteger(), EmailOutbox.Status.AsInteger(), 'Wrong status');
         Assert.AreEqual('Failed to send email', EmailOutbox."Error Message", 'Wrong error message');
+        Assert.IsTrue(EmailOutbox."Date Queued" > ScheduledDateTime, 'The Date Queued should be later than now');
+    end;
+
+    [Test]
+    procedure SendEmailMessageFromBackgroundFailedAndRetry()
+    var
+        EmailRetry: Record "Email Retry";
+        TempAccount: Record "Email Account" temporary;
+        EmailOutbox: Record "Email Outbox";
+        HttpMockEmailMgnt: Codeunit "Library - Email Mock";
+        Any: Codeunit Any;
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
+        ScheduledDateTime: DateTime;
+    begin
+        // [Scenario] When sending an email on the background and then fails, the email should be scheduled for retry
+        // [Given] An email message and an email account are created
+        BindSubscription(TestClientTypeSubscriber);
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(TempAccount);
+        TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Background);
+        PermissionsMock.Set('Super');
+        EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+        Assert.IsTrue(EmailMessage.Get(EmailMessage.GetId()), 'The email should exist');
+        ConnectorMock.FailOnSend(true);
+        // [Given] The email is enqueued in the outbox
+        HttpMockEmailMgnt.SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId());
+
+        // [WHEN] The sending task is run from the background
+        EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
+        EmailOutbox.FindFirst();
+        Codeunit.Run(Codeunit::"Email Dispatcher", EmailOutbox);
+        ScheduledDateTime := CurrentDateTime();
+
+        // [THEN] The email outbox entry is updated with the error message and status
+        EmailRetry.SetRange("Account Id", TempAccount."Account Id");
+        EmailRetry.SetRange("Message Id", EmailMessage.GetId());
+        Assert.IsTrue(EmailRetry.FindFirst(), 'The email retry entry should exist');
+        Assert.AreEqual(Enum::"Email Connector"::"Test Email Connector".AsInteger(), EmailRetry.Connector.AsInteger(), 'Wrong connector');
+        Assert.AreEqual(Enum::"Email Status"::Failed.AsInteger(), EmailRetry.Status.AsInteger(), 'Wrong status');
+        Assert.AreEqual('Failed to send email', EmailRetry."Error Message", 'Wrong error message');
+        Assert.AreEqual(0, EmailRetry."Retry No.", 'The retry number should be 0');
+        Assert.AreEqual(2, EmailRetry.Count, 'There are two entries in the Email Retry table');
+
+        EmailRetry.Next();
+        Assert.AreEqual(Enum::"Email Status"::Queued.AsInteger(), EmailRetry.Status.AsInteger(), 'Wrong status');
+        Assert.AreEqual(1, EmailRetry."Retry No.", 'The retry number should be 0');
+        Assert.IsTrue(EmailRetry."Date Sending" > ScheduledDateTime, 'The Date Queued should be later than now');
+
+        UnBindSubscription(TestClientTypeSubscriber);
     end;
 
     [Test]
@@ -721,7 +774,7 @@ codeunit 134685 "Email Test"
         ConnectorMock: Codeunit "Connector Mock";
         Connector: Enum "Email Connector";
     begin
-        // [Scenario] When successfuly sending an email, a recond is added on the Sent Emails table
+        // [Scenario] When successfully sending an email, a record is added on the Sent Emails table
         PermissionsMock.Set('Email Edit');
 
         // [Given] An email message and an email account
@@ -736,7 +789,7 @@ codeunit 134685 "Email Test"
         // [When] The email is Sent
         Assert.IsTrue(Email.Send(EmailMessage, EmailAccount), 'Sending an email should have succeeded');
 
-        // [Then] There is a Sent Mail recond and no Outbox record
+        // [Then] There is a Sent Mail record and no Outbox record
         SentEmail.SetRange("Account Id", EmailAccount."Account Id");
         SentEmail.SetRange("Message Id", EmailMessage.GetId());
 
@@ -802,7 +855,7 @@ codeunit 134685 "Email Test"
         EmailOutboxTestPage.ShowSourceRecord.Invoke();
 
         // [Then] No error appears
-        Assert.AreEqual('', GetLastErrorText, 'An error occured');
+        Assert.AreEqual('', GetLastErrorText, 'An error occurred');
     end;
 
     [Test]
@@ -930,7 +983,7 @@ codeunit 134685 "Email Test"
         TableId, NumberOfEmails, i : Integer;
         MessageIds: List of [Guid];
     begin
-        // [Scenario] When successfuly sending an email with source, a record is added to the email source document table and sent emails table. 
+        // [Scenario] When successfully sending an email with source, a record is added to the email source document table and sent emails table. 
         PermissionsMock.Set('Email Edit');
 
         // [Given] An email with source and an email account
@@ -1001,7 +1054,7 @@ codeunit 134685 "Email Test"
         // [Then] The related attachment is added as an attachment to the email 
         EmailMessageAttachments.SetRange("Email Message Id", EmailMessage.GetId());
         EmailMessageAttachments.FindSet();
-        Assert.AreEqual(1, EmailMessageAttachments.Count(), 'Related attachment wasnt attached to the email.');
+        Assert.AreEqual(1, EmailMessageAttachments.Count(), 'Related attachment was not attached to the email.');
         Assert.AreEqual('Attachment1', EmailMessageAttachments."Attachment Name", 'Wrong attachment was attached to email.');
         AssertVariableStorageEmpty();
     end;
@@ -1038,7 +1091,7 @@ codeunit 134685 "Email Test"
         EmailEditor.GetRelatedAttachments(EmailMessage.GetId(), EmailRelatedAttachment);
 
         Assert.AreEqual(1, EmailRelatedAttachment.Count(), 'Wrong number of attachments.');
-        Assert.AreEqual('Attachment1', EmailRelatedAttachment."Attachment Name", 'Wrong attachmentname');
+        Assert.AreEqual('Attachment1', EmailRelatedAttachment."Attachment Name", 'Wrong attachment name');
     end;
 
     [Test]
@@ -1077,7 +1130,7 @@ codeunit 134685 "Email Test"
         Status: Boolean;
         MessageID: Guid;
     begin
-        // [Scenario] When Sending the email in the background an event is fired to nothify for the status of the email
+        // [Scenario] When Sending the email in the background an event is fired to notify for the status of the email
         PermissionsMock.Set('Email Edit');
 
         TestClientType.SetClientType(ClientType::Background);
@@ -1122,7 +1175,7 @@ codeunit 134685 "Email Test"
         Status: Boolean;
         MessageID: Guid;
     begin
-        // [Scenario] When Sending the email in the background an event is fired to nothify for the status of the email
+        // [Scenario] When Sending the email in the background an event is fired to notify for the status of the email
         PermissionsMock.Set('Email Edit');
 
         TestClientType.SetClientType(ClientType::Background);
@@ -1367,7 +1420,7 @@ codeunit 134685 "Email Test"
         TableId, NumberOfEmails, i : Integer;
         MessageIds: List of [Guid];
     begin
-        // [Scenario] When successfuly sending an email with source, GetSentEmailsForRecord return related Sent Emails. 
+        // [Scenario] When successfully sending an email with source, GetSentEmailsForRecord return related Sent Emails. 
         PermissionsMock.Set('Email Edit');
         SentEmail.DeleteAll();
 
@@ -2085,7 +2138,7 @@ codeunit 134685 "Email Test"
         ClearLastError();
         EmailRelationPickerTestPage."Source Name".Lookup();
 
-        Assert.AreEqual('', GetLastErrorText, 'An error occured - opening email relation from picker');
+        Assert.AreEqual('', GetLastErrorText, 'An error occurred - opening email relation from picker');
     end;
 
     [ModalPageHandler]

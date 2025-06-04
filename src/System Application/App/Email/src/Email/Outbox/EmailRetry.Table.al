@@ -12,7 +12,6 @@ table 8890 "Email Retry"
 {
     Access = Internal;
     Extensible = true;
-    Description = 'The table is public so that it can also be extensible. The table is one of the modules''s extensibility endpoints.';
 
     fields
     {
@@ -59,21 +58,21 @@ table 8890 "Email Retry"
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(8; Status; Enum "Email Status")
+        field(7; Status; Enum "Email Status")
         {
             Access = Internal;
             DataClassification = SystemMetadata;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(9; "Task Scheduler Id"; Guid)
+        field(8; "Task Scheduler Id"; Guid)
         {
             Access = Internal;
             DataClassification = SystemMetadata;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(10; Sender; Code[50])
+        field(9; Sender; Code[50])
         {
             Access = Internal;
             FieldClass = FlowField;
@@ -81,41 +80,41 @@ table 8890 "Email Retry"
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(11; "Date Queued"; DateTime)
+        field(10; "Date Queued"; DateTime)
         {
             Access = Internal;
             DataClassification = SystemMetadata;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(12; "Date Failed"; DateTime)
+        field(11; "Date Failed"; DateTime)
         {
             Access = Internal;
             DataClassification = SystemMetadata;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(13; "Send From"; Text[250])
+        field(12; "Send From"; Text[250])
         {
             Access = Internal;
             DataClassification = EndUserIdentifiableInformation;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(14; "Error Message"; Text[2048])
+        field(13; "Error Message"; Text[2048])
         {
             Access = Internal;
             DataClassification = CustomerContent;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(15; "Date Sending"; DateTime)
+        field(14; "Date Sending"; DateTime)
         {
             Access = Internal;
             DataClassification = SystemMetadata;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
-        field(17; "Retry No."; Integer)
+        field(15; "Retry No."; Integer)
         {
             Access = Internal;
             DataClassification = SystemMetadata;
