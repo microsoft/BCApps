@@ -6,11 +6,11 @@ You can use this module to:
 
 - Download all attachments as a ZIP archive
 
+- List the names of all embedded attachments
+
 - Retrieve PDF metadata (author, title, page size, etc.)
 
 - Number of pages 
-
-- List the names of all embedded attachments
 
 ### Extract an embedded invoice from a PDF
 ```
@@ -65,7 +65,7 @@ begin
     Metadata := PDFDocumentImpl.GetPdfProperties(PdfStream);
     Message('PDF has %1 pages', Metadata.GetValue('pagecount'));
 end;
-
+```
 
 ### Get number of pages
 ```
