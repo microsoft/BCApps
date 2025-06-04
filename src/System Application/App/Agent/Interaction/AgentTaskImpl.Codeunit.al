@@ -233,5 +233,5 @@ codeunit 4300 "Agent Task Impl."
         AreYouSureThatYouWantToRestartTheTaskQst: Label 'Are you sure that you want to restart the task?';
         AreYouSureThatYouWantToStopTheTaskQst: Label 'Are you sure that you want to stop the task?';
         InvalidSelectedSuggestionIdErr: Label 'Invalid SelectedSuggestionId: %1', Comment = '%1 - SelectedSuggestionId', Locked = true;
-        CategoryTok: Label 'Agent App', Locked = true;
+        CategoryTok: Label 'Agents', Locked = true;
 }
