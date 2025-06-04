@@ -11,6 +11,7 @@ You can use this module to:
 - List the names of all embedded attachments
 
 ### Extract an embedded invoice from a PDF
+```
 procedure Example(PdfStream: InStream)
 var
     TempBlob: Codeunit "Temp Blob";
@@ -21,16 +22,20 @@ begin
     if Success then
         Message('Invoice extracted successfully');
 end;
+```
 
 ### Download all attachments as a ZIP file
+```
 procedure Example(PdfStream: InStream)
 var
     PdfHelper: Codeunit "PDF Helper Impl";
 begin
     PdfHelper.GetZipArchive(PdfStream);
 end;
+```
 
 ### Get names of embedded files
+```
 procedure Example(PdfStream: InStream)
 var
     PdfHelper: Codeunit "PDF Helper Impl";
@@ -39,8 +44,10 @@ begin
     Names := PdfHelper.ShowAttachmentNames(PdfStream);
     Message('Attachments: %1', Names);
 end;
+```
 
 ### Read PDF metadata
+```
 procedure Example(PdfStream: InStream)
 var
     PdfHelper: Codeunit "PDF Helper Impl";
@@ -49,3 +56,4 @@ begin
     Metadata := PdfHelper.GetPdfProperties(PdfStream);
     Message('PDF has %1 pages', Metadata.GetValue('pagecount'));
 end;
+```
