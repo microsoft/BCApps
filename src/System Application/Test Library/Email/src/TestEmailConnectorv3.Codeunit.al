@@ -74,9 +74,18 @@ codeunit 134702 "Test Email Connector v3" implements "Email Connector v3"
     end;
 
     procedure SetEmailInbox(var EmailInbox: Record "Email Inbox" temporary)
+    var
+        MailId: Integer;
     begin
         TempEmailInbox.DeleteAll();
-        TempEmailInbox.Copy(EmailInbox, true);
+        if EmailInbox.FindSet() then
+            repeat
+                MailId += 1;
+                TempEmailInbox.Init();
+                TempEmailInbox := EmailInbox;
+                TempEmailInbox.Id := MailId;
+                TempEmailInbox.Insert();
+            until EmailInbox.Next() = 0;
     end;
 
     procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox"; var Filter: Record "Email Retrieval Filters" temporary)
