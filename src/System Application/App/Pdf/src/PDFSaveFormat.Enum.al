@@ -29,7 +29,7 @@ enum 3109 "PDF Save Format"
     }
 
     /// <summary>
-    /// Save the PDF in the PDF/A-3B format and add the embedded XMP metadata requried by E-Invoice standards like ZUGFeRD/Facturec.
+    /// Save the PDF in the PDF/A-3B format and add the embedded XMP metadata required by E-Invoice standards like ZUGFeRD/Facturec.
     /// </summary>
     value(2; Einvoice)
     {
