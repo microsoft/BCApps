@@ -2,6 +2,10 @@
 
 Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
 
+### Removed functionality
+
+As stated in [AL-Go Deprecations](https://aka.ms/algodeprecations#cleanModePreprocessorSymbols), setting `cleanModePreprocessorSymbols` is no longer supported and will be ignored by AL-Go for GitHub.
+
 ### Security
 
 - Add top-level permissions for _Increment Version Number_ workflow
