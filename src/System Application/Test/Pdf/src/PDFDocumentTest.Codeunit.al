@@ -38,7 +38,7 @@ codeunit 132601 "PDF Document Test"
     [Test]
     procedure Test_AttachmentFoundViaXMP()
     var
-        PdfDocumentImpl: Codeunit "PDF Document Impl.";
+        PdfDocument: Codeunit "PDF Document";
         TempBlob: Codeunit "Temp Blob";
         PdfInstream: InStream;
         Success: Boolean;
@@ -47,7 +47,7 @@ codeunit 132601 "PDF Document Test"
         NavApp.GetResource('XRechnung.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get invoice attachment stream
-        Success := PdfDocumentImpl.GetDocumentAttachmentStream(PdfInstream, TempBlob);
+        Success := PdfDocument.GetDocumentAttachmentStream(PdfInstream, TempBlob);
 
         // [THEN] Assert that the attachment is found via XMP metadata
         Assert.IsTrue(Success, 'Expected attachment to be found via XMP metadata');
@@ -57,7 +57,7 @@ codeunit 132601 "PDF Document Test"
     [Test]
     procedure Test_AttachmentFoundByName()
     var
-        PdfDocumentImpl: Codeunit "PDF Document Impl.";
+        PdfDocument: Codeunit "PDF Document";
         TempBlob: Codeunit "Temp Blob";
         PdfInstream: InStream;
         Success: Boolean;
@@ -66,7 +66,7 @@ codeunit 132601 "PDF Document Test"
         NavApp.GetResource('XRechnung.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get invoice attachment stream by known name
-        Success := PdfDocumentImpl.GetDocumentAttachmentStream(PdfInstream, TempBlob);
+        Success := PdfDocument.GetDocumentAttachmentStream(PdfInstream, TempBlob);
 
         // [THEN] Assert that the attachment is found by known name
         Assert.IsTrue(Success, 'Expected attachment to be found by known name');
@@ -76,7 +76,7 @@ codeunit 132601 "PDF Document Test"
     [Test]
     procedure Test_NoAttachmentFound()
     var
-        PdfDocumentImpl: Codeunit "PDF Document Impl.";
+        PdfDocument: Codeunit "PDF Document";
         TempBlob: Codeunit "Temp Blob";
         PdfInstream: InStream;
         Success: Boolean;
@@ -85,7 +85,7 @@ codeunit 132601 "PDF Document Test"
         NavApp.GetResource('test.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get invoice attachment stream
-        Success := PdfDocumentImpl.GetDocumentAttachmentStream(PdfInstream, TempBlob);
+        Success := PdfDocument.GetDocumentAttachmentStream(PdfInstream, TempBlob);
 
         // [THEN] Assert no attachment is found
         Assert.IsFalse(Success, 'Expected no attachment to be found');
@@ -94,7 +94,7 @@ codeunit 132601 "PDF Document Test"
     [Test]
     procedure Test_MetadataExtractedSuccessfully()
     var
-        PdfDocumentImpl: Codeunit "PDF Document Impl.";
+        PdfDocument: Codeunit "PDF Document";
         PdfInstream: InStream;
         Metadata: JsonObject;
         Value: JsonToken;
@@ -103,7 +103,7 @@ codeunit 132601 "PDF Document Test"
         NavApp.GetResource('XRechnung.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Extract metadata from the PDF stream
-        Metadata := PdfDocumentImpl.GetPdfProperties(PdfInstream);
+        Metadata := PdfDocument.GetPdfProperties(PdfInstream);
 
         // [THEN] Assert that metadata contains expected values
         if Metadata.Get('pagecount', Value) then
@@ -116,7 +116,7 @@ codeunit 132601 "PDF Document Test"
     [Test]
     procedure Test_MultipleAttachmentNames()
     var
-        PdfDocumentImpl: Codeunit "PDF Document Impl.";
+        PdfDocument: Codeunit "PDF Document";
         PdfInstream: InStream;
         Names: List of [Text];
         ExpectedNames: List of [Text];
@@ -127,7 +127,7 @@ codeunit 132601 "PDF Document Test"
         NavApp.GetResource('XRechnung.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get attachment names
-        Names := PdfDocumentImpl.GetAttachmentNames(PdfInstream);
+        Names := PdfDocument.GetAttachmentNames(PdfInstream);
 
         // [THEN] Assert that the names are returned correctly
         ExpectedNames.Add('EN16931_Elektron_Aufmass.png');
@@ -143,7 +143,7 @@ codeunit 132601 "PDF Document Test"
     [Test]
     procedure Test_NoAttachments()
     var
-        PdfDocumentImpl: Codeunit "PDF Document Impl.";
+        PdfDocument: Codeunit "PDF Document";
         PdfInstream: InStream;
         Names: List of [Text];
     begin
@@ -151,7 +151,7 @@ codeunit 132601 "PDF Document Test"
         NavApp.GetResource('test.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Attempt to get attachment names
-        Names := PdfDocumentImpl.GetAttachmentNames(PdfInstream);
+        Names := PdfDocument.GetAttachmentNames(PdfInstream);
 
         // [THEN] Assert that no attachment names are returned
         Assert.AreEqual(0, Names.Count(), 'Expected no attachment names');
@@ -160,7 +160,7 @@ codeunit 132601 "PDF Document Test"
     [Test]
     procedure Test_GetPdfPageCount()
     var
-        PdfDocumentImpl: Codeunit "PDF Document Impl.";
+        PdfDocument: Codeunit "PDF Document";
         PdfInstream: InStream;
         PageCount: Integer;
     begin
@@ -168,7 +168,7 @@ codeunit 132601 "PDF Document Test"
         NavApp.GetResource('XRechnung.pdf', PdfInstream, TextEncoding::UTF8);
 
         // [WHEN] Get the page count from the PDF document
-        PageCount := PdfDocumentImpl.GetPdfPageCount(PdfInstream);
+        PageCount := PdfDocument.GetPdfPageCount(PdfInstream);
 
         // [THEN] Assert that the page count is correct
         Assert.AreEqual(2, PageCount, 'Expected 2 pages in the test PDF.');
