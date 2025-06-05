@@ -18,9 +18,9 @@ procedure Example(PdfStream: InStream)
 var
     TempBlob: Codeunit "Temp Blob";
     Success: Boolean;
-    PDFDocumentImpl: Codeunit "PDF Document Impl.";
+    PDFDocument: Codeunit "PDF Document";
 begin
-    Success := PDFDocumentImpl.GetDocumentAttachmentStream(PdfStream, TempBlob);
+    Success := PDFDocument.GetDocumentAttachmentStream(PdfStream, TempBlob);
     if Success then
         Message('Invoice extracted successfully');
 end;
@@ -30,9 +30,9 @@ end;
 ```
 procedure Example(PdfStream: InStream)
 var
-    PDFDocumentImpl: Codeunit "PDF Document Impl.";
+    PDFDocument: Codeunit "PDF Document";
 begin
-    PDFDocumentImpl.GetZipArchive(PdfStream);
+    PDFDocument.GetZipArchive(PdfStream);
 end;
 ```
 
@@ -40,12 +40,12 @@ end;
 ```
 procedure Example(PdfStream: InStream)
 var
-    PDFDocumentImpl: Codeunit "PDF Document Impl.";
+    PDFDocument: Codeunit "PDF Document";
     AttachmentNames: List of [Text];
     AttachmentName: Text;
     Output: Text;
 begin
-    Names := PDFDocumentImpl.GetAttachmentNames(PdfStream);
+    Names := PDFDocument.GetAttachmentNames(PdfStream);
     foreach AttachmentName in AttachmentNames do begin
         if Output <> '' then
             Output += ', ';
@@ -59,11 +59,11 @@ end;
 ```
 procedure Example(PdfStream: InStream)
 var
-    PDFDocumentImpl: Codeunit "PDF Document Impl.";
+    PDFDocument: Codeunit "PDF Document";
     Metadata: JsonObject;
 begin
-    Metadata := PDFDocumentImpl.GetPdfProperties(PdfStream);
-    Message('PDF has %1 pages', Metadata.GetValue('pagecount'));
+    Metadata := PDFDocument.GetPdfProperties(PdfStream);
+    Message('PDF author is %1', Metadata.GetValue('author'));
 end;
 ```
 
@@ -71,10 +71,10 @@ end;
 ```
 procedure Example(PdfStream: InStream)
 var
-    PDFDocumentImpl: Codeunit "PDF Document Impl.";
+    PDFDocument: Codeunit "PDF Document";
     PageCount: Integer;
 begin
-    PageCount := PDFDocumentImpl.GetPdfPageCount(PdfStream);
+    PageCount := PDFDocument.GetPdfPageCount(PdfStream);
     Message('PDF has %1 pages', PageCount);
 end;
 ```

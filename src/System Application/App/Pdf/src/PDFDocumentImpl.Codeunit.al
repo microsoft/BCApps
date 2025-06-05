@@ -80,7 +80,7 @@ codeunit 3109 "PDF Document Impl."
         end;
     end;
 
-    procedure GetDocumentAttachmentStream(PdfStream: InStream; TempBlob: Codeunit "Temp Blob"): Boolean
+    procedure GetDocumentAttachmentStream(PdfStream: InStream; var TempBlob: Codeunit "Temp Blob"): Boolean
     var
         PdfAttachmentManager: DotNet PdfAttachmentManager;
         MemoryStream: DotNet MemoryStream;
