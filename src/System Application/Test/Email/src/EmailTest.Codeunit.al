@@ -713,6 +713,7 @@ codeunit 134685 "Email Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure SendEmailMessageFromBackgroundFailedAndRetryTest()
     var
         EmailRetry: Record "Email Retry";
@@ -764,6 +765,8 @@ codeunit 134685 "Email Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure SendEmailMessageForegroundExceedingMaxConcurrencyTest()
     var
         TempAccount: Record "Email Account" temporary;
@@ -800,6 +803,8 @@ codeunit 134685 "Email Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure SendEmailMessageBackgroundExceedingMaxConcurrencyTest()
     var
         TempAccount: Record "Email Account" temporary;
