@@ -11,9 +11,7 @@ page 4313 "Agent Task Details"
     ApplicationArea = All;
     SourceTable = "Agent Task Timeline Step Det.";
     Caption = 'Agent Task Timeline Step Details';
-    Editable = false;
     InsertAllowed = false;
-    ModifyAllowed = false;
     DeleteAllowed = false;
     Extensible = false;
     InherentEntitlements = X;
@@ -23,8 +21,21 @@ page 4313 "Agent Task Details"
     {
         area(content)
         {
+            field(SelectedSuggestionId; SelectedSuggestionId)
+            {
+                Editable = true;
+                Caption = 'Selected Suggestion ID';
+                ToolTip = 'Specifies the selected suggestion ID for the user intervention request.';
+            }
+            field(UserMessage; UserMessage)
+            {
+                Editable = true;
+                Caption = 'Additional Instructions';
+                ToolTip = 'Specifies additional instructions for the user intervention request.';
+            }
             repeater(Details)
             {
+                Editable = false;
                 field(ClientContext; ClientContext)
                 {
                     Caption = 'Client Context';
@@ -65,6 +76,12 @@ page 4313 "Agent Task Details"
         }
     }
 
+    trigger OnOpenPage()
+    begin
+        Clear(SelectedSuggestionId);
+        Clear(UserMessage);
+    end;
+
     trigger OnAfterGetRecord()
     begin
         SetClientContext();
@@ -88,21 +105,13 @@ page 4313 "Agent Task Details"
     var
         UserInterventionRequestEntry: Record "Agent Task Log Entry";
         TaskTimelineStep: Record "Agent Task Timeline Step";
-        UserInput: Text;
     begin
         TaskTimelineStep.SetRange("Task ID", Rec."Task ID");
         TaskTimelineStep.SetRange(ID, Rec."Timeline Step ID");
         TaskTimelineStep.SetRange("Last Log Entry Type", "Agent Task Log Entry Type"::"User Intervention Request");
-        if TaskTimelineStep.FindLast() then begin
-            case TaskTimelineStep."User Intervention Request Type" of
-                TaskTimelineStep."User Intervention Request Type"::ReviewMessage:
-                    UserInput := '';
-                else
-                    UserInput := UserMessage; //ToDo: Will be implemented when we have a message field.
-            end;
+        if TaskTimelineStep.FindLast() then
             if UserInterventionRequestEntry.Get(TaskTimelineStep."Task ID", TaskTimelineStep."Last Log Entry ID") then
-                AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, UserInput);
-        end;
+                AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, UserMessage, SelectedSuggestionId);
     end;
 
     local procedure SkipStep()
@@ -126,7 +135,8 @@ page 4313 "Agent Task Details"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         ClientContext: BigText;
-        UserMessage: Text;
+        UserMessage: Text[250];
+        SelectedSuggestionId: Text[3];
 }
 
 
