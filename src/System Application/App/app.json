@@ -28,6 +28,11 @@
       "publisher": "Microsoft"
     },
     {
+      "id": "00155c68-8cdd-4d60-a451-2034ad094223",
+      "name": "Business Central Agent Builder",
+      "publisher": "Microsoft"
+    },
+    {
       "id": "5afe217e-507a-40b4-9aa5-f4325b6e8230",
       "name": "Agent Test Library",
       "publisher": "Microsoft"
