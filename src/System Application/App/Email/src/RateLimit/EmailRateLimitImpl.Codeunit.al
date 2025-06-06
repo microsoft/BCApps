@@ -74,7 +74,25 @@ codeunit 8999 "Email Rate Limit Impl."
         EmailRateLimit.Connector := Connector;
         EmailRateLimit."Email Address" := EmailAddress;
         EmailRateLimit."Rate Limit" := 0;
+        EmailRateLimit."Concurrency Limit" := 10;
         EmailRateLimit.Insert();
         exit(EmailRateLimit."Rate Limit");
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Email Rate Limit", 'ri')]
+    procedure GetConcurrencyLimit(AccountId: Guid; Connector: Enum "Email Connector"; EmailAddress: Text[250]): Integer
+    var
+        EmailRateLimit: Record "Email Rate Limit";
+    begin
+        if EmailRateLimit.Get(AccountId, Connector) then
+            exit(EmailRateLimit."Concurrency Limit");
+
+        EmailRateLimit."Account Id" := AccountId;
+        EmailRateLimit.Connector := Connector;
+        EmailRateLimit."Email Address" := EmailAddress;
+        EmailRateLimit."Rate Limit" := 0;
+        EmailRateLimit.Validate("Concurrency Limit", 10);
+        EmailRateLimit.Insert();
+        exit(EmailRateLimit."Concurrency Limit");
     end;
 }

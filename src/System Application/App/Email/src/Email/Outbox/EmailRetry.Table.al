@@ -8,11 +8,10 @@ namespace System.Email;
 using System.Security.AccessControl;
 
 /// <summary>Holds information about draft emails and email that are about to be sent.</summary>
-table 8888 "Email Outbox"
+table 8890 "Email Retry"
 {
-    Access = Public;
+    Access = Internal;
     Extensible = true;
-    Description = 'The table is public so that it can also be extensible. The table is one of the modules''s extensibility endpoints.';
 
     fields
     {
@@ -59,21 +58,21 @@ table 8888 "Email Outbox"
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(8; Status; Enum "Email Status")
+        field(7; Status; Enum "Email Status")
         {
             Access = Internal;
             DataClassification = SystemMetadata;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(9; "Task Scheduler Id"; Guid)
+        field(8; "Task Scheduler Id"; Guid)
         {
             Access = Internal;
             DataClassification = SystemMetadata;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(10; Sender; Code[50])
+        field(9; Sender; Code[50])
         {
             Access = Internal;
             FieldClass = FlowField;
@@ -81,47 +80,41 @@ table 8888 "Email Outbox"
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(11; "Date Queued"; DateTime)
+        field(10; "Date Queued"; DateTime)
         {
             Access = Internal;
             DataClassification = SystemMetadata;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(12; "Date Failed"; DateTime)
+        field(11; "Date Failed"; DateTime)
         {
             Access = Internal;
             DataClassification = SystemMetadata;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(13; "Send From"; Text[250])
+        field(12; "Send From"; Text[250])
         {
             Access = Internal;
             DataClassification = EndUserIdentifiableInformation;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(14; "Error Message"; Text[2048])
+        field(13; "Error Message"; Text[2048])
         {
             Access = Internal;
             DataClassification = CustomerContent;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 
-        field(15; "Date Sending"; DateTime)
+        field(14; "Date Sending"; DateTime)
         {
             Access = Internal;
             DataClassification = SystemMetadata;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
-        field(16; "External Id"; Text[2048])
-        {
-            Access = Internal;
-            DataClassification = CustomerContent;
-            Description = 'The field is marked as internal in order to prevent modifying it from code.';
-        }
-        field(17; "Retry No."; Integer)
+        field(15; "Retry No."; Integer)
         {
             Access = Internal;
             DataClassification = SystemMetadata;
@@ -141,38 +134,8 @@ table 8888 "Email Outbox"
         key(UserSecurityId; "User Security Id")
         {
         }
-        key(Status; Status)
-        {
-        }
-        key(StatusMessageId; "Message Id", Status)
+        key(RetryNo; "Retry No.")
         {
         }
     }
-
-    /// <summary>
-    /// Get the message id of the outbox email.
-    /// </summary>
-    /// <returns>Message id.</returns>
-    procedure GetMessageId(): Guid
-    begin
-        exit(Rec."Message Id");
-    end;
-
-    /// <summary>
-    /// Get the account id of the outbox email.
-    /// </summary>
-    /// <returns>Account id.</returns>
-    procedure GetAccountId(): Guid
-    begin
-        exit(Rec."Account Id");
-    end;
-
-    /// <summary>
-    /// The email connector of the outbox email.
-    /// </summary>
-    /// <returns>Email connector</returns>
-    procedure GetConnector(): Enum "Email Connector"
-    begin
-        exit(Rec.Connector);
-    end;
 }

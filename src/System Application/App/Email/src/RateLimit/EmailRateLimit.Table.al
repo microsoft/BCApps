@@ -33,6 +33,17 @@ table 8912 "Email Rate Limit"
         {
             DataClassification = SystemMetadata;
         }
+        field(5; "Concurrency Limit"; Integer)
+        {
+            DataClassification = SystemMetadata;
+            MinValue = 0;
+
+            trigger OnValidate()
+            begin
+                if "Concurrency Limit" > 10 then
+                    Error('The maximum value for Concurrency Limit is 10. Please set a lower value.');
+            end;
+        }
     }
 
     keys

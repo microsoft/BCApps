@@ -23,6 +23,7 @@ permissionset 8901 "Email - Edit"
                   tabledata "Email Outbox" = imd,
                   tabledata "Email Inbox" = id,
                   tabledata "Email Rate Limit" = imd,
+                  tabledata "Email Retry" = imd,
                   tabledata "Email Recipient" = imd,
                   tabledata "Email Related Record" = id,
                   tabledata "Sent Email" = imd,
