@@ -128,6 +128,12 @@ codeunit 2351 "Rest Client Impl."
         CurrHttpClientInstance.AddCertificate(Certificate, Password);
     end;
 
+    procedure SetUseServerCertificateValidation(Value: Boolean)
+    begin
+        CheckInitialized();
+        CurrHttpClientInstance.UseServerCertificateValidation(Value);
+    end;
+
     procedure SetAuthorizationHeader(Value: SecretText)
     begin
         SetDefaultRequestHeader('Authorization', Value);
