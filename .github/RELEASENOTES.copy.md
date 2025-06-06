@@ -1,6 +1,4 @@
-## preview
-
-Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
+## v7.2
 
 ### Removed functionality
 
@@ -14,6 +12,7 @@ As stated in [AL-Go Deprecations](https://aka.ms/algodeprecations#cleanModePrepr
 
 - Issue 1697 Error in CheckForUpdates: "Internet Explorer engine is not available" when using self-hosted runners
 - Issue 1685 HttpError: Resource not accessible by integration
+- Issue 1757 Error when signing apps with key vault signing
 
 ### Workflow input validation
 
@@ -30,6 +29,10 @@ AL-Go for GitHub settings now has a schema. The following line is added at the b
 ### Failing pull requests if new warnings are added
 
 By setting failOn to 'newWarning', pull requests will fail if new warnings are introduced. This feature compares the warnings in the pull request build against those in the latest successful CI/CD build and fails if new warnings are detected.
+
+### AL-Go Telemetry
+
+Now AL-Go telemetry also logs `ActionDuration` which makes it possible to track the duration of the different steps in the AL-Go workflows (e.g. RunPipeline or Sign)
 
 ## v7.1
 
