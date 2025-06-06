@@ -887,6 +887,7 @@ dotnet
         {
         }
     }
+
     assembly("Microsoft.Dynamics.Nav.Types.Report")
     {
 
