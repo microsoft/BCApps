@@ -1,108 +1,183 @@
+namespace System.SFTPClient;
+
+using System;
+using System.Utilities;
+
 codeunit 50101 "SFTP Client Implementation"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
-    [NonDebuggable]
-    procedure Initialize(Host: Text; Port: Integer; UserName: Text; Password: SecretText)
+    procedure Initialize(Host: Text; Port: Integer; UserName: Text; Password: SecretText): Codeunit "SFTP Operation Response"
     begin
-        SFTPClient := SFTPClient.SftpClient(Host, Port, UserName, Password.Unwrap());
-        TryConnecting();
+        InitializeSFTPInterface();
+        if not ISFTPClient.SftpClient(Host, Port, UserName, Password) then
+            exit(ParseException());
     end;
 
-    procedure Initialize(HostName: Text; Port: Integer; Username: Text; PrivateKey: InStream)
+    procedure Initialize(HostName: Text; Port: Integer; Username: Text; PrivateKey: InStream): Codeunit "SFTP Operation Response"
+    begin
+        InitializeSFTPInterface();
+        if not ISFTPClient.SftpClient(HostName, Port, Username, PrivateKey) then
+            exit(ParseException());
+    end;
+
+    procedure Initialize(HostName: Text; Port: Integer; Username: Text; PrivateKey: InStream; Passphrase: SecretText): Codeunit "SFTP Operation Response"
+    begin
+        InitializeSFTPInterface();
+        if not ISFTPClient.SftpClient(HostName, Port, Username, PrivateKey, Passphrase) then
+            exit(ParseException());
+    end;
+
+    local procedure InitializeSFTPInterface()
     var
-        PrivateKeyFile: DotNet RenciPrivateKeyFile;
-        Arr: DotNet Array;
+        DotnetSFTPClient: Codeunit "Dotnet SFTP Client";
     begin
-        PrivateKeyFile := PrivateKeyFile.PrivateKeyFile(PrivateKey);
-        Arr := Arr.CreateInstance(GetDotNetType(PrivateKeyFile), 1);
-        Arr.SetValue(PrivateKeyFile, 0);
-        SFTPClient := SFTPClient.SftpClient(HostName, Port, UserName, Arr);
-        TryConnecting();
-    end;
-
-    [NonDebuggable]
-    procedure Initialize(HostName: Text; Port: Integer; Username: Text; PrivateKey: InStream; Passphrase: SecretText)
-    var
-        PrivateKeyFile: DotNet RenciPrivateKeyFile;
-        Arr: DotNet Array;
-    begin
-        PrivateKeyFile := PrivateKeyFile.PrivateKeyFile(PrivateKey, Passphrase.Unwrap());
-        Arr := Arr.CreateInstance(GetDotNetType(PrivateKeyFile), 1);
-        Arr.SetValue(PrivateKeyFile, 0);
-        SFTPClient := SFTPClient.SftpClient(HostName, Port, UserName, Arr);
-        TryConnecting();
-    end;
-
-    local procedure TryConnecting()
-    begin
-        if ConnectClient() then
+        if ISFTPClientSet then
             exit;
-        //TODO: Handle exceptions (For example SocketException)
+        ISFTPClient := DotnetSFTPClient;
     end;
 
-    [TryFunction]
-    local procedure ConnectClient()
+    local procedure ParseException() Result: Codeunit "SFTP Operation Response"
+    var
+        SocketExceptionLbl: Label 'Socket connection to the SSH server or proxy server could not be established, or an error occurred while resolving the hostname.';
+        InvalidOperationExceptionLbl: Label 'The client is already connected.';
+        SshConnectionExceptionLbl: Label 'Client is not connected.';
+        SshAuthenticationExceptionLbl: Label 'Authentication of SSH session failed.';
+        SftpPathNotFoundExceptionLbl: Label 'The specified path is invalid, or its directory was not found on the remote host.';
+        ExceptionType: Enum "SFTP Exception Type";
+        ExceptionMessage: Text;
     begin
-        SFTPClient.Connect();
+        ISFTPClient.GetOperationException(ExceptionType, ExceptionMessage);
+        Result.SetExceptionType(ExceptionType);
+        case ExceptionType of
+            ExceptionType::"Socket Exception":
+                Result.SetError(SocketExceptionLbl);
+            ExceptionType::"Invalid Operation Exception":
+                Result.SetError(InvalidOperationExceptionLbl);
+            ExceptionType::"SSH Connection Exception":
+                Result.SetError(SshConnectionExceptionLbl);
+            ExceptionType::"SSH Authentication Exception":
+                Result.SetError(SshAuthenticationExceptionLbl);
+            ExceptionType::"SFTP Path Not Found Exception":
+                Result.SetError(SftpPathNotFoundExceptionLbl);
+            ExceptionType::"Generic Exception": // Catch-all for any other exceptions
+                Result.SetError(ExceptionMessage);
+        end;
+        exit(Result);
     end;
 
     procedure Disconnect()
     begin
-        SFTPClient.Disconnect();
+        if not ISFTPClient.IsConnected() then
+            exit;
+        ISFTPClient.Disconnect();
     end;
 
-    procedure ListFiles(Path: Text; var FileList: List of [Text]): Codeunit "SFTP Operation Response"
-    var
-        IEnumerable: DotNet IEnumerable;
-        ISftpFile: DotNet RenciISftpFile;
+    procedure ListFiles(Path: Text; var FileList: List of [Interface "ISFTP File"]): Codeunit "SFTP Operation Response"
     begin
-        IEnumerable := SFTPClient.ListDirectory(Path);
-        foreach ISftpFile in IEnumerable do begin
-            FileList.Add(iSftpFile.Name);
+        if not ISFTPClient.ListDirectory(Path, FileList) then
+            exit(ParseException());
+    end;
+
+    procedure ListFiles(Path: Text; var FileList: Record "SFTP Folder Content"): Codeunit "SFTP Operation Response"
+    var
+        Files: List of [Interface "ISFTP File"];
+        ISftpFile: Interface "ISFTP File";
+        Index: Integer;
+    begin
+        if not ISFTPClient.ListDirectory(Path, Files) then
+            exit(ParseException());
+        FileList.DeleteAll();
+        foreach ISftpFile in Files do begin
+            FileList.Init();
+            FileList."Entry No." := Index;
+            FileList.Name := ISftpFile.Name();
+            FileList."Full Name" := ISftpFile.FullName();
+            FileList."Is Directory" := ISftpFile.IsDirectory();
+            FileList.Length := ISftpFile.Length();
+            FileList.Insert();
+            Index += 1;
         end;
     end;
 
     procedure GetFileAsStream(Path: Text; var InStream: InStream) Result: Codeunit "SFTP Operation Response"
     var
         TempBlob: Codeunit "Temp Blob";
-        MemoryStream: Dotnet MemoryStream;
-        Arr: Dotnet Array;
+        MemoryStream: DotNet MemoryStream;
+        Arr: DotNet Array;
     begin
-        Arr := SFTPClient.ReadAllBytes(Path);
+        if not ISFTPClient.ReadAllBytes(Path, Arr) then
+            exit(ParseException());
         MemoryStream := MemoryStream.MemoryStream(Arr);
         CopyStream(TempBlob.CreateOutStream(), MemoryStream);
         Result.SetTempBlob(TempBlob);
-        InStream := TempBlob.CreateInStream();
+        Result.GetResponseStream(InStream);
     end;
 
     procedure PutFileStream(Path: Text; var SourceInStream: InStream): Codeunit "SFTP Operation Response"
     var
-        MemoryStream: Dotnet MemoryStream;
+        MemoryStream: DotNet MemoryStream;
     begin
         MemoryStream := MemoryStream.MemoryStream();
         CopyStream(MemoryStream, SourceInStream);
-        SFTPClient.WriteAllBytes(Path, MemoryStream.ToArray());
+        if not ISFTPClient.WriteAllBytes(Path, MemoryStream.ToArray()) then
+            exit(ParseException());
     end;
 
     procedure DeleteFile(Path: Text): Codeunit "SFTP Operation Response"
     begin
-        SFTPClient.Delete(Path);
+        if not ISFTPClient.Delete(Path) then
+            exit(ParseException());
     end;
 
-    procedure FileExists(Path: Text): Boolean
+    procedure FileExists(Path: Text; var Result: Boolean): Codeunit "SFTP Operation Response"
     begin
-        exit(SFTPClient.Exists(Path));
+        if not ISFTPClient.Exists(Path, Result) then
+            exit(ParseException());
     end;
 
     procedure MoveFile(SourcePath: Text; DestinationPath: Text): Codeunit "SFTP Operation Response"
     var
-        Isftpfile: DotNet RenciISftpFile;
+        ISFTPFile: Interface "ISFTP File";
     begin
-        Isftpfile := SFTPClient.Get(SourcePath);
-        Isftpfile.MoveTo(DestinationPath);
+        if not ISFTPClient.Get(SourcePath, ISFTPFile) then
+            exit(ParseException());
+        if not ISFTPFile.MoveTo(DestinationPath) then
+            exit(ParseException());
+    end;
+
+    procedure GetWorkingDirectory(var Result: Text): Codeunit "SFTP Operation Response"
+    begin
+        if not ISFTPClient.WorkingDirectory(Result) then
+            exit(ParseException());
+    end;
+
+    procedure SetWorkingDirectory(Path: Text): Codeunit "SFTP Operation Response"
+    begin
+        if not ISFTPClient.SetWorkingDirectory(Path) then
+            exit(ParseException());
+    end;
+
+    procedure CreateDirectory(Path: Text): Codeunit "SFTP Operation Response"
+    begin
+        if not ISFTPClient.CreateDirectory(Path) then
+            exit(ParseException());
+    end;
+
+    procedure IsConnected(): Boolean
+    begin
+        exit(ISFTPClient.IsConnected());
+    end;
+
+    procedure SetISFTPClient(NewISFTPClient: Interface "ISFTP Client")
+    begin
+        ISFTPClient := NewISFTPClient;
+        ISFTPClientSet := true;
     end;
 
     var
-        SFTPClient: DotNet RenciSftpClient;
+        ISFTPClient: Interface "ISFTP Client";
+        ISFTPClientSet: Boolean;
 }

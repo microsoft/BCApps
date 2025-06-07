@@ -3,12 +3,12 @@
     "name": "SFTP Client",
     "publisher": "Microsoft",
     "version": "27.0.0.0",
-    "brief": "",
-    "description": "",
-    "privacyStatement": "",
-    "EULA": "",
-    "help": "",
-    "url": "",
+    "brief": "Connects to SFTP servers.",
+    "description": "The purpose of this module is to provide ability to connect to SFTP servers.",
+    "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
+    "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help": "https://go.microsoft.com/fwlink/?linkid=2103698",
+    "url": "https://go.microsoft.com/fwlink/?linkid=724011",
     "logo": "",
     "dependencies": [],
     "screenshots": [],
@@ -25,9 +25,12 @@
         "allowDownloadingSource": true,
         "includeSourceInSymbolFile": true
     },
-    "target": "OnPrem",
-    "runtime": "12.0",
-    "features": [
-        "TranslationFile"
-    ]
+    "internalsVisibleTo": [
+        {
+            "id": "d367ef25-dc5e-4585-b5ec-915b78878799",
+            "name": "SFTP Client Test",
+            "publisher": "Microsoft"
+        }
+    ],
+    "target": "OnPrem"
 }

@@ -9,5 +9,13 @@ dotnet
         type(Renci.SshNet.SftpClient; "RenciSftpClient") { }
         type(Renci.SshNet.Sftp.ISftpFile; "RenciISftpFile") { }
         type(Renci.SshNet.PrivateKeyFile; "RenciPrivateKeyFile") { }
+        type(Renci.SshNet.Common.SshConnectionException; "SshConnectionException") { }
+        type(Renci.SshNet.Common.SshAuthenticationException; "SshAuthenticationException") { }
+        type(Renci.SshNet.Common.SftpPathNotFoundException; "SftpPathNotFoundException") { }
+    }
+    assembly("netstandard")
+    {
+        type(System.Net.Sockets.SocketException; "SocketException") { }
+        type(System.InvalidOperationException; "InvalidOperationException") { }
     }
 }
