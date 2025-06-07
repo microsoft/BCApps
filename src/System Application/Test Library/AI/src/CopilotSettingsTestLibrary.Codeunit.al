@@ -43,6 +43,16 @@ codeunit 132934 "Copilot Settings Test Library"
         exit(CopilotSettings."Learn More URL");
     end;
 
+    procedure GetPublisher(): Text
+    begin
+        exit(CopilotSettings."Publisher");
+    end;
+
+    procedure GetBillingType(): Enum "Copilot Billing Type"
+    begin
+        exit(CopilotSettings."Billing Type");
+    end;
+
     procedure IsEmpty(): Boolean
     begin
         exit(CopilotSettings.IsEmpty());
