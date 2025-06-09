@@ -29,8 +29,15 @@ page 4307 "Agent Task Timeline"
                 Caption = 'Selected Suggestion ID';
                 ToolTip = 'Specifies the selected suggestion ID for the user intervention request.';
             }
+            field(UserMessage; UserMessage)
+            {
+                Editable = true;
+                Caption = 'Additional Instructions';
+                ToolTip = 'Specifies additional instructions for the user intervention request.';
+            }
             repeater(TaskTimeline)
             {
+                Editable = false;
                 field(Header; Rec.Title)
                 {
                     Caption = 'Header';
@@ -101,6 +108,11 @@ page 4307 "Agent Task Timeline"
                     Caption = 'First Step Created At';
                     ToolTip = 'Specifies the date and time when the timeline step was created.';
                 }
+                field(LastUserInterventionDetails; GlobalUserInterventionDetails)
+                {
+                    Caption = 'Last User Intervention Details';
+                    ToolTip = 'Specifies the details of the last user intervention in the timeline step.';
+                }
             }
         }
     }
@@ -119,12 +131,10 @@ page 4307 "Agent Task Timeline"
                 var
                     UserInterventionRequestEntry: Record "Agent Task Log Entry";
                     AgentTaskImpl: Codeunit "Agent Task Impl.";
-                    SelectedSuggestionIdInt: Integer;
                 begin
                     if UserInterventionRequestEntry.Get(Rec."Task ID", Rec."Last Log Entry ID") then
                         if UserInterventionRequestEntry.Type = "Agent Task Log Entry Type"::"User Intervention Request" then
-                            if Evaluate(SelectedSuggestionIdInt, SelectedSuggestionId) then
-                                AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, SelectedSuggestionIdInt);
+                            AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, UserMessage, SelectedSuggestionId);
                 end;
             }
 
@@ -151,7 +161,8 @@ page 4307 "Agent Task Timeline"
 
     trigger OnOpenPage()
     begin
-        SelectedSuggestionId := '';
+        Clear(SelectedSuggestionId);
+        Clear(UserMessage);
         Rec.SetRange(Importance, Rec.Importance::Primary);
     end;
 
@@ -178,23 +189,29 @@ page 4307 "Agent Task Timeline"
         Clear(GlobalPageQuery);
         Clear(GlobalAnnotations);
         Clear(GlobalSuggestions);
+        Clear(GlobalUserInterventionDetails);
 
         GlobalDescription := Rec.Description;
 
-        if Rec.CalcFields("Primary Page Summary", "Primary Page Query", "Annotations") then begin
-            if Rec."Primary Page Summary".HasValue then begin
+        if Rec.CalcFields("Primary Page Summary", "Primary Page Query", "Annotations", "Last User Intervention Details") then begin
+            if Rec."Primary Page Summary".HasValue() then begin
                 Rec."Primary Page Summary".CreateInStream(InStream, TextEncoding::UTF8);
                 GlobalPageSummary.Read(InStream);
                 Clear(InStream);
             end;
-            if Rec."Primary Page Query".HasValue then begin
+            if Rec."Primary Page Query".HasValue() then begin
                 Rec."Primary Page Query".CreateInStream(InStream, TextEncoding::UTF8);
                 GlobalPageQuery.Read(InStream);
                 Clear(InStream);
             end;
-            if Rec."Annotations".HasValue then begin
+            if Rec."Annotations".HasValue() then begin
                 Rec."Annotations".CreateInStream(InStream, TextEncoding::UTF8);
                 GlobalAnnotations.Read(InStream);
+                Clear(InStream);
+            end;
+            if Rec."Last User Intervention Details".HasValue() then begin
+                Rec."Last User Intervention Details".CreateInStream(InStream, TextEncoding::UTF8);
+                GlobalUserInterventionDetails.Read(InStream);
                 Clear(InStream);
             end;
         end;
@@ -332,12 +349,13 @@ page 4307 "Agent Task Timeline"
         GlobalPageQuery: BigText;
         GlobalAnnotations: BigText;
         GlobalSuggestions: BigText;
+        GlobalUserInterventionDetails: BigText;
         GlobalDescription: Text[2048];
         GlobalConfirmedBy: Text[250];
         GlobalNowAuthorizedBy: Text[250];
         GlobalConfirmedAt: DateTime;
         ConfirmationStatusOption: Option " ",ConfirmationNotRequired,ReviewConfirmationRequired,ReviewConfirmed,StopConfirmationRequired,StopConfirmed,Discarded;
+        UserMessage: Text[250];
         SelectedSuggestionId: Text[3];
 }
-
 

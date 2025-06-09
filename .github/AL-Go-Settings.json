@@ -1,12 +1,12 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/e33c893a4c31aafaf8ceae69cf6df36a8d2afbe2/Actions/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v7.2/settings.schema.json",
   "type": "PTE",
   "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/27.0.34592.0/base",
+  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/27.0.35002.0/base",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "27.0",
@@ -48,7 +48,9 @@
     "NextMajor.yaml",
     "NextMinor.yaml",
     "PublishToEnvironment.yaml",
-    "Test Current.settings.json"
+    "Test Current.settings.json",
+    "Test Next Minor.settings.json",
+    "Test Next Major.settings.json"
   ],
   "excludeEnvironments": [
     "Official-Build"
@@ -88,7 +90,7 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "219a46b99fb162867fef701c7ae07e3824b15c2b",
+  "templateSha": "773587b64b7cff61b6549b9fa126ca8125684f20",
   "commitOptions": {
     "messageSuffix": "Related to AB#539394",
     "pullRequestAutoMerge": true,
