@@ -15,6 +15,7 @@ codeunit 3112 "Activity Log Builder Impl."
         LogEntry: DotNet ActivityLogEntry;
         AttributeType: DotNet ActivityLogAttribute;
         GlobalFieldNo: Integer;
+        BuilderNotInitializedErr: Label 'Activity Log Builder not initialized.';
 
     procedure Init(TableNo: Integer; FieldNo: Integer; RecSystemId: Guid): Codeunit "Activity Log Builder Impl."
     begin
@@ -53,6 +54,8 @@ codeunit 3112 "Activity Log Builder Impl."
 
     procedure Log()
     begin
+        if GlobalFieldNo = 0 then
+            Error(BuilderNotInitializedErr);
         LogEntry.Log();
     end;
 
