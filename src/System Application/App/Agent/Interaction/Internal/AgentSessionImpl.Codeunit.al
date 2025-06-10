@@ -27,6 +27,15 @@ codeunit 4313 "Agent Session Impl."
         exit(true);
     end;
 
+    procedure BlockPageFromBeingOpenedByAgent()
+    var
+        AgentMetadataProvider: Enum "Agent Metadata Provider";
+        ThisPageCannotBeOpenedByAnAgentErr: Label 'This page cannot be opened by an agent.', Locked = true;
+    begin
+        if IsAgentSession(AgentMetadataProvider) then
+            Error(ThisPageCannotBeOpenedByAnAgentErr);
+    end;
+
     procedure GetCurrentSessionAgentTaskId(): Integer
     var
         AgentALFunctions: DotNet AgentALFunctions;
