@@ -269,13 +269,13 @@ codeunit 9011 "Azure AD Graph User Impl."
     procedure IsUserDelegated(): Boolean
     var
         UserAccountHelper: DotNet NavUserAccountHelper;
-        IsUserDelegated, Handled : Boolean;
+        IsDelegatedUser, Handled : Boolean;
     begin
-        OnIsUserDelegated(IsUserDelegated, Handled); // used to mock UserAccountHelper.OnIsUserDelegated()
+        OnIsUserDelegated(IsDelegatedUser, Handled); // used to mock UserAccountHelper.IsDelegatedUser()
         if Handled then
-            exit(IsUserDelegated);
+            exit(IsDelegatedUser);
 
-        exit(UserAccountHelper.IsUserDelegated());
+        exit(UserAccountHelper.IsDelegatedUser());
     end;
 
     [NonDebuggable]
@@ -373,7 +373,7 @@ codeunit 9011 "Azure AD Graph User Impl."
     end;
 
     [InternalEvent(false)]
-    local procedure OnIsUserDelegated(var IsUserDelegated: Boolean; var Handled: Boolean)
+    local procedure OnIsUserDelegated(var IsDelegatedUser: Boolean; var Handled: Boolean)
     begin
     end;
 
