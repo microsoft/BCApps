@@ -1,3 +1,56 @@
+## v7.2
+
+### Removed functionality
+
+As stated in [AL-Go Deprecations](https://aka.ms/algodeprecations#cleanModePreprocessorSymbols), setting `cleanModePreprocessorSymbols` is no longer supported and will be ignored by AL-Go for GitHub.
+
+### Security
+
+- Add top-level permissions for _Increment Version Number_ workflow
+
+### Issues
+
+- Issue 1697 Error in CheckForUpdates: "Internet Explorer engine is not available" when using self-hosted runners
+- Issue 1685 HttpError: Resource not accessible by integration
+- Issue 1757 Error when signing apps with key vault signing
+
+### Workflow input validation
+
+Some workflow inputs are now validated early in order to avoid workflows to make modifications like creating a release, when we already should know that an error will occur later.
+
+### Test settings against a JSON schema
+
+AL-Go for GitHub settings now has a schema. The following line is added at the beginning to any AL-Go settings files to utilize the schema:
+
+```
+"$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/<version>/Actions/settings.schema.json"
+```
+
+### Failing pull requests if new warnings are added
+
+By setting failOn to 'newWarning', pull requests will fail if new warnings are introduced. This feature compares the warnings in the pull request build against those in the latest successful CI/CD build and fails if new warnings are detected.
+
+### AL-Go Telemetry
+
+Now AL-Go telemetry also logs `ActionDuration` which makes it possible to track the duration of the different steps in the AL-Go workflows (e.g. RunPipeline or Sign)
+
+## v7.1
+
+### Issues
+
+- Issue 1678 Test summary is showing too many status icons
+- Issue 1640 AL1040 error due to app folder within the artifacts cache being incorrectly recognized as an app folder
+- Issue 1630 Error when downloading a release, when the destination folder already exists.
+- Issue 1540 and 1649 Apps with dependencies to Microsft\_\_EXCLUDE\_ apps fails deployment
+- Issue 1547 Dependencies will be installed even if DependencyInstallMode is ignore, but dependencies will never be installed on production environments
+- Issue 1654 GithubPackageContext does not work together with private trustedNuGetFeeds
+- Issue 1627 AL-Go should throw an error or a warning if you create a release, which is older than the latest release
+- Issue 1657 When no files modified on Git, deployment fails
+- Issue 1530 Dependency Field Service Integration does not get published in container while Installing apps
+- Issue 1644 Support for AppAuth when using a private Template repository from another organization
+- Issue 1669 GitHub App authentication to download dependencies from private repositories
+- Issue 1478 Rate Limit Exceeded when running Update AL-Go System files
+
 ## v7.0
 
 ### Issues

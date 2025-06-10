@@ -158,6 +158,19 @@ codeunit 8904 "Email Message"
     end;
 
     /// <summary>
+    /// Deletes email recipients that do not have a reference from email message.
+    /// This functionality is only needed if email recipients have been created without any email message referencing it, otherwise they will be cleaned up automatically.
+    /// </summary>
+    /// <param name="StartMessageId">The email message id to start from. Using empty guid will start from the beginning.</param>
+    /// <param name="MessagesToIterate">Number of email messages to loop over.</param>
+    /// <returns>The next email message id to be checked. Returns empty guid if there are no more messages.</returns>
+    /// <remarks>Only the recipients that are not referenced by any email message will be deleted.</remarks>
+    procedure DeleteEmailRecipientsIfOrphaned(StartMessageId: Guid; MessagesToIterate: Integer) NextMessageId: Guid
+    begin
+        exit(EmailMessageImpl.DeleteEmailRecipientsIfOrphaned(StartMessageId, MessagesToIterate));
+    end;
+
+    /// <summary>
     /// Gets the body of the email message.
     /// </summary>
     /// <returns>The body of the email.</returns>

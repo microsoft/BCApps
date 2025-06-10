@@ -32,6 +32,14 @@ enum 9042 "ABS Blob Access Tier"
     }
 
     /// <summary>
+    /// Optimized for storing data that is rarely accessed and stored for at least 90 days, but still requires fast retrieval.
+    /// </summary>
+    value(2; Cold)
+    {
+        Caption = 'Cold', Locked = true;
+    }
+
+    /// <summary>
     /// Optimized for storing data that is rarely accessed and stored for at least 180 days with flexible latency requirements, on the order of hours.
     /// </summary>
     value(3; Archive)
