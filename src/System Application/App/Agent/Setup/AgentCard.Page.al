@@ -169,7 +169,11 @@ page 4315 "Agent Card"
     }
 
     trigger OnOpenPage()
+    var
+        AgentSessionImpl: Codeunit "Agent Session Impl.";
     begin
+        AgentSessionImpl.BlockPageFromBeingOpenedByAgent();
+
         if not Rec.WritePermission() then
             Error(YouDoNotHavePermissionToModifyThisAgentErr);
     end;
