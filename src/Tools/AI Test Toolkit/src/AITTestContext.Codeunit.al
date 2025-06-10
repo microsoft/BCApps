@@ -97,6 +97,15 @@ codeunit 149044 "AIT Test Context"
     /// <summary>
     /// Sets the test output for the current iteration.
     /// </summary>
+    /// <param name="TestOutputJson">The test output.</param>
+    procedure SetTestOutput(TestOutputJson: Codeunit "Test Output Json")
+    begin
+        AITTestContextImpl.SetTestOutput(TestOutputJson);
+    end;
+
+    /// <summary>
+    /// Sets the test output for the current iteration.
+    /// </summary>
     /// <param name="TestOutputText">The test output as text.</param>
     procedure SetTestOutput(TestOutputText: Text)
     begin
@@ -130,6 +139,26 @@ codeunit 149044 "AIT Test Context"
     procedure SetAccuracy(Accuracy: Decimal)
     begin
         AITTestContextImpl.SetAccuracy(Accuracy);
+    end;
+
+    /// <summary>
+    /// Gets the AITTestSuite associated with the run.
+    /// </summary>
+    /// <param name="AITTestSuite">AITTestSuite associated with the run.</param>
+    procedure GetAITTestSuite(var AITTestSuite: Record "AIT Test Suite")
+    begin
+        AITTestContextImpl.GetAITTestSuite(AITTestSuite);
+    end;
+
+    /// <summary>
+    /// Integration event that is raised after a test run is completed.
+    /// </summary>
+    /// <param name="Code">The code of the test run.</param>
+    /// <param name="Version">The version of the test run.</param>
+    /// <param name="Tag">The tag of the test run.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnAfterRunComplete(Code: Code[10]; Version: Integer; Tag: Text[20])
+    begin
     end;
 
     var

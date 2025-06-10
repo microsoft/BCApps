@@ -109,6 +109,15 @@ codeunit 149043 "AIT Test Context Impl."
     /// <summary>
     /// Sets the test output for the current iteration.
     /// </summary>
+    /// <param name="TestOutputJson">The test output.</param>
+    procedure SetTestOutput(TestOutputJson: Codeunit "Test Output Json")
+    begin
+        SetSuiteTestOutput(TestOutputJson.ToText());
+    end;
+
+    /// <summary>
+    /// Sets the test output for the current iteration.
+    /// </summary>
     /// <param name="TestOutputText">The test output as text.</param>
     procedure SetTestOutput(TestOutputText: Text)
     var
@@ -210,6 +219,17 @@ codeunit 149043 "AIT Test Context Impl."
     procedure GetNumberOfTurns(): Integer
     begin
         exit(NumberOfTurns);
+    end;
+
+    /// <summary>
+    /// Returns the AITTestSuite associated with the run.
+    /// </summary>
+    /// <param name="AITTestSuite">AITTestSuite associated with the run.</param>
+    procedure GetAITTestSuite(var AITTestSuite: Record "AIT Test Suite")
+    var
+        AITTestRunIteration: Codeunit "AIT Test Run Iteration";
+    begin
+        AITTestRunIteration.GetAITTestSuite(AITTestSuite);
     end;
 
     /// <summary>

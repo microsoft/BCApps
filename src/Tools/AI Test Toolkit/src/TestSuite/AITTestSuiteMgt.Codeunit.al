@@ -62,7 +62,6 @@ codeunit 149034 "AIT Test Suite Mgt."
     local procedure RunAITests(AITTestSuite: Record "AIT Test Suite")
     var
         AITTestMethodLine: Record "AIT Test Method Line";
-        AITRunHistory: Record "AIT Run History";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         FeatureTelemetryCD: Dictionary of [Text, Text];
@@ -96,32 +95,7 @@ codeunit 149034 "AIT Test Suite Mgt."
                 RunAITestLine(AITTestMethodLine, true);
             until AITTestMethodLine.Next() = 0;
 
-        AITRunHistory."Test Suite Code" := AITTestSuite.Code;
-        AITRunHistory.Version := AITTestSuite.Version;
-        AITRunHistory.Tag := AITTestSuite.Tag;
-        AITRunHistory.Insert();
-    end;
-
-    internal procedure RerunTest(var AITLogEntry: Record "AIT Log Entry"): Integer
-    var
-        AITTestSuite: Record "AIT Test Suite";
-        AITTestMethodLineForLogEntry: Record "AIT Test Method Line";
-        AITTestRunInputHandler: Codeunit "AIT Test Run Input Handler";
-    begin
-        if not AITTestMethodLineForLogEntry.Get(AITLogEntry."Test Suite Code", AITLogEntry."Test Method Line No.") then
-            Error(TestMethodLineNotFoundErr, AITLogEntry."Test Method Line No.", AITLogEntry."Test Suite Code");
-
-        if AITTestMethodLineForLogEntry."Codeunit ID" <> AITLogEntry."Codeunit ID" then
-            Error(TestSuiteChangedErr);
-
-        AITTestRunInputHandler.SetInput(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code");
-
-        BindSubscription(AITTestRunInputHandler);
-        RunAITestLine(AITTestMethodLineForLogEntry, false);
-        UnbindSubscription(AITTestRunInputHandler);
-
-        AITTestSuite.Get(AITTestMethodLineForLogEntry."Test Suite Code");
-        exit(AITTestSuite.Version);
+        LogRunHistory(AITTestSuite.Code, AITTestSuite.Version, AITTestSuite.Tag);
     end;
 
     internal procedure RunAITestLine(AITTestMethodLine: Record "AIT Test Method Line"; IsExecutedFromTestSuiteHeader: Boolean)
@@ -160,8 +134,44 @@ codeunit 149034 "AIT Test Suite Mgt."
                 AITTestMethodLine.CalcFields("No. of Tests Executed", "No. of Tests Passed", "Total Duration (ms)");
                 TelemetryCustomDimensions := GetFeatureUsedInsights(EmptyGuid, AITTestSuite.Version, AITTestMethodLine."No. of Tests Executed", AITTestMethodLine."No. of Tests Passed", AITTestMethodLine."Total Duration (ms)");
                 FeatureTelemetry.LogUptake('0000NEY', GetFeatureName(), Enum::"Feature Uptake Status"::Used, TelemetryCustomDimensions);
+                LogRunHistory(AITTestSuite.Code, AITTestSuite.Version, AITTestSuite.Tag);
             end;
         end;
+    end;
+
+    internal procedure RerunTest(var AITLogEntry: Record "AIT Log Entry"): Integer
+    var
+        AITTestSuite: Record "AIT Test Suite";
+        AITTestMethodLineForLogEntry: Record "AIT Test Method Line";
+        AITTestRunInputHandler: Codeunit "AIT Test Run Input Handler";
+    begin
+        if not AITTestMethodLineForLogEntry.Get(AITLogEntry."Test Suite Code", AITLogEntry."Test Method Line No.") then
+            Error(TestMethodLineNotFoundErr, AITLogEntry."Test Method Line No.", AITLogEntry."Test Suite Code");
+
+        if AITTestMethodLineForLogEntry."Codeunit ID" <> AITLogEntry."Codeunit ID" then
+            Error(TestSuiteChangedErr);
+
+        AITTestRunInputHandler.SetInput(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code");
+
+        BindSubscription(AITTestRunInputHandler);
+        RunAITestLine(AITTestMethodLineForLogEntry, false);
+        UnbindSubscription(AITTestRunInputHandler);
+
+        AITTestSuite.Get(AITTestMethodLineForLogEntry."Test Suite Code");
+        exit(AITTestSuite.Version);
+    end;
+
+    local procedure LogRunHistory(Code: Code[10]; Version: Integer; Tag: Text[20])
+    var
+        AITRunHistory: Record "AIT Run History";
+        AITTestContext: Codeunit "AIT Test Context";
+    begin
+        AITRunHistory."Test Suite Code" := Code;
+        AITRunHistory.Version := Version;
+        AITRunHistory.Tag := Tag;
+        AITRunHistory.Insert();
+
+        AITTestContext.OnAfterRunComplete(Code, Version, Tag);
     end;
 
     local procedure ValidateAITestSuite(AITTestSuite: Record "AIT Test Suite")

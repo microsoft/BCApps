@@ -12,8 +12,8 @@ table 149032 "AIT Test Method Line"
 {
     Caption = 'AI Test Method Line';
     DataClassification = SystemMetadata;
-    Extensible = false;
-    Access = Internal;
+    Access = Public;
+    Extensible = true;
     ReplicateData = false;
 
     fields

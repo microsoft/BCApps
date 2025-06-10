@@ -13,7 +13,7 @@ page 149034 "AIT Test Method Lines"
     SourceTable = "AIT Test Method Line";
     AutoSplitKey = true;
     DelayedInsert = true;
-    Extensible = false;
+    Extensible = true;
     UsageCategory = None;
 
     layout
