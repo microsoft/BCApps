@@ -62,6 +62,20 @@ codeunit 4307 "Agent Message"
     end;
 
     /// <summary>
+    /// Add an attachment to the task message.
+    /// </summary>
+    /// <param name="FileName">The name of the file to be attached.</param>
+    /// <param name="FileMIMEType">The MIME type of the file to be attached.</param>
+    /// <param name="Attachment">The attachment stream.</param>
+    [Scope('OnPrem')]
+    procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; FileName: Text[250]; FileMIMEType: Text[100]; Attachment: InStream)
+    var
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
+    begin
+        AgentMessageImpl.AddAttachment(AgentTaskMessage, FileName, FileMIMEType, Attachment);
+    end;
+
+    /// <summary>
     /// Downloads the attachments for a specific message.
     /// </summary>
     /// <param name="AgentTaskMessage">Message to download attachments for.</param>
@@ -71,5 +85,57 @@ codeunit 4307 "Agent Message"
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
         AgentMessageImpl.DownloadAttachments(AgentTaskMessage);
+    end;
+
+    /// <summary>
+    /// Shows the attachments for a specific message. If file is not supported to be shown, it will be downloaded.
+    /// </summary>
+    /// <param name="TaskID">Task ID to download attachments for.</param>
+    /// <param name="FileID">File ID to download.</param>
+    [Scope('OnPrem')]
+    procedure ShowAttachment(TaskID: BigInteger; FileID: BigInteger)
+    var
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
+    begin
+        AgentMessageImpl.ShowOrDownloadAttachment(TaskId, FileID, false);
+    end;
+
+    /// <summary>
+    /// Shows the attachments for a specific message. If file is not supported to be shown, it will be downloaded.
+    /// </summary>
+    /// <param name="AgentTaskFile">Agent file to display.</param>
+    [Scope('OnPrem')]
+    procedure ShowAttachment(var AgentTaskFile: Record "Agent Task File")
+    var
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
+    begin
+        AgentMessageImpl.ShowOrDownloadAttachment(AgentTaskFile, false);
+    end;
+
+    /// <summary>
+    /// Loads the attachments for a specific message to the temporary buffer.
+    /// </summary>  
+    /// <param name="TaskID">Task ID to download attachments for.</param>
+    /// <param name="MessageID">Message ID to download attachments for.</param>
+    /// <param name="TempAgentTaskFile">Temporary buffer to load the attachments.</param>
+    [Scope('OnPrem')]
+    procedure GetAttachments(TaskID: BigInteger; MessageID: Guid; var TempAgentTaskFile: Record "Agent Task File" temporary)
+    var
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
+    begin
+        AgentMessageImpl.GetAttachments(TaskID, MessageID, TempAgentTaskFile);
+    end;
+
+    /// <summary>
+    /// Get the display text for the file size. 
+    /// </summary>
+    /// <param name="SizeInBytes">The size in bytes.</param>
+    /// <returns>The display text for the file size.</returns>
+    [Scope('OnPrem')]
+    procedure GetFileSizeDisplayText(SizeInBytes: Decimal): Text
+    var
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
+    begin
+        exit(AgentMessageImpl.GetFileSizeDisplayText(SizeInBytes));
     end;
 }
