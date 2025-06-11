@@ -26,6 +26,7 @@ codeunit 130456 "Test Suite Mgt."
         DefaultTestSuiteNameTxt: Label 'DEFAULT', Locked = true;
         DialogUpdatingTestsMsg: Label 'Updating Tests: \#1#\#2#', Comment = '1 = Object being processed, 2 = Progress', Locked = true;
         ErrorMessageWithCallStackErr: Label 'Error Message: %1 - Error Call Stack: ', Locked = true;
+        InvalidTestTypeErr: Label 'Invalid test type: %1', Locked = true;
 
     procedure IsTestMethodLine(FunctionName: Text[128]): Boolean
     begin
@@ -305,6 +306,33 @@ codeunit 130456 "Test Suite Mgt."
 
         CodeunitMetadata.SetRange("App ID", AppExtensionId);
         CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::Test);
+
+        GetTestMethods(ALTestSuite, CodeunitMetadata);
+    end;
+
+    internal procedure SelectTestMethodsByExtensionAndTestType(var ALTestSuite: Record "AL Test Suite"; ExtensionID: Text; TestType: Text)
+    var
+        CodeunitMetadata: Record "CodeUnit Metadata";
+        AppExtensionId: Guid;
+    begin
+        if ExtensionID <> '' then begin
+            Evaluate(AppExtensionId, ExtensionID);
+
+            CodeunitMetadata.SetRange("App ID", AppExtensionId);
+        end;
+
+        CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::Test);
+
+        case TestType of
+            'UnitTest':
+                CodeunitMetadata.SetRange(TestType, CodeunitMetadata.TestType::UnitTest);
+            'IntegrationTest':
+                CodeunitMetadata.SetRange(TestType, CodeunitMetadata.TestType::IntegrationTest);
+            'Uncategorized':
+                CodeunitMetadata.SetRange(TestType, CodeunitMetadata.TestType::Uncategorized);
+            else
+                Error(InvalidTestTypeErr, TestType);
+        end;
 
         GetTestMethods(ALTestSuite, CodeunitMetadata);
     end;
