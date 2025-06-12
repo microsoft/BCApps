@@ -43,11 +43,22 @@ codeunit 349 "No. Series Cop. Nxt Yr. Intent" implements "AOAI Function"
     [NonDebuggable]
     local procedure GetTool3Definition() Definition: Text
     var
+        // start of <todo>
+        // TODO: Remove this once the semantic search is implemented in production.
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+        // end of <todo>
         AzureKeyVault: Codeunit "Azure Key Vault";
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool3DefinitionV2', Definition) then begin
-            Telemetry.LogMessage('0000ND9', TelemetryTool3DefinitionRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
-            Error(ToolLoadingErr);
-        end;
+        // start of <todo>
+        // TODO: Remove this once the semantic search is implemented in production.
+        // This is a temporary solution to get the tool definition. The tool should be retrieved from the Azure Key Vault.
+        if NoSeriesCopilotSetup.Get() then
+            exit(NoSeriesCopilotSetup.GetTool3DefinitionFromIsolatedStorage())
+        else
+            // end of <todo>
+            if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool3DefinitionV2', Definition) then begin
+                Telemetry.LogMessage('0000ND9', TelemetryTool3DefinitionRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+                Error(ToolLoadingErr);
+            end;
     end;
 }

@@ -18,7 +18,6 @@ pageextension 324 "No. Series Ext." extends "No. Series"
                 Image = Sparkle;
                 ApplicationArea = All;
                 Visible = CopilotActionsVisible;
-                Enabled = CopilotActionsVisible;
 
                 trigger OnAction()
                 var
@@ -28,6 +27,27 @@ pageextension 324 "No. Series Ext." extends "No. Series"
                 end;
             }
         }
+        // start of <todo>
+        // TODO: Remove this action once the semantic search is implemented in production.
+        addfirst(Processing)
+        {
+            action("Generate With Copilot Processing")
+            {
+                Caption = 'Generate';
+                ToolTip = 'Generate No. Series using Copilot';
+                Image = Sparkle;
+                ApplicationArea = All;
+                Visible = CopilotActionsVisible;
+
+                trigger OnAction()
+                var
+                    NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
+                begin
+                    NoSeriesCopilotImpl.GetNoSeriesSuggestions();
+                end;
+            }
+        }
+        // end of <todo>
     }
 
     trigger OnOpenPage()
