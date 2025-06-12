@@ -14,7 +14,7 @@ page 149031 "AIT Test Suite"
     ApplicationArea = All;
     PageType = Document;
     SourceTable = "AIT Test Suite";
-    Extensible = false;
+    Extensible = true;
     DataCaptionExpression = PageCaptionLbl + ' - ' + Rec."Code";
     UsageCategory = None;
 

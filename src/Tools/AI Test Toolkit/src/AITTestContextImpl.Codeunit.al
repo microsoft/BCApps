@@ -173,6 +173,26 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
+    /// Gets the total number of turns for multiturn testing.
+    /// </summary>
+    /// <returns>The total number of turns for the line.</returns>
+    procedure GetNumberOfTurns(): Integer
+    begin
+        exit(NumberOfTurns);
+    end;
+
+    /// <summary>
+    /// Returns the AITTestSuite associated with the run.
+    /// </summary>
+    /// <param name="AITTestSuite">AITTestSuite associated with the run.</param>
+    procedure GetAITTestSuite(var AITTestSuite: Record "AIT Test Suite")
+    var
+        AITTestRunIteration: Codeunit "AIT Test Run Iteration";
+    begin
+        AITTestRunIteration.GetAITTestSuite(AITTestSuite);
+    end;
+
+    /// <summary>
     /// This method starts the scope of the Run Procedure scenario.
     /// </summary>
     procedure StartRunProcedureScenario()
