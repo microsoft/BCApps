@@ -213,6 +213,17 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
+    /// Returns the AITTestSuite associated with the run.
+    /// </summary>
+    /// <param name="AITTestSuite">AITTestSuite associated with the run.</param>
+    procedure GetAITTestSuite(var AITTestSuite: Record "AIT Test Suite")
+    var
+        AITTestRunIteration: Codeunit "AIT Test Run Iteration";
+    begin
+        AITTestRunIteration.GetAITTestSuite(AITTestSuite);
+    end;
+
+    /// <summary>
     /// This method starts the scope of the Run Procedure scenario.
     /// </summary>
     procedure StartRunProcedureScenario()
