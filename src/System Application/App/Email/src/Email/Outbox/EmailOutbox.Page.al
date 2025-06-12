@@ -98,6 +98,11 @@ page 8882 "Email Outbox"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the date when this email is scheduled for sending.';
                 }
+                field("Retry No."; Rec."Retry No.")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the number of times this email has been retried for sending.';
+                }
             }
         }
     }

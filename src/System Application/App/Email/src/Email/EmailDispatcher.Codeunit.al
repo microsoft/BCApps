@@ -6,6 +6,7 @@
 namespace System.Email;
 
 using System.Telemetry;
+using System.Environment;
 
 codeunit 8888 "Email Dispatcher"
 {
@@ -13,6 +14,7 @@ codeunit 8888 "Email Dispatcher"
     TableNo = "Email Outbox";
     Permissions = tabledata "Sent Email" = ri,
                   tabledata "Email Outbox" = rimd,
+                  tabledata "Email Retry" = rimd,
                   tabledata "Email Message" = r,
                   tabledata "Email Error" = ri;
 
@@ -42,10 +44,26 @@ codeunit 8888 "Email Dispatcher"
         // -----------
 
         Rec.LockTable(true);
-        if EmailRateLimitImpl.IsRateLimitExceeded(Rec."Account Id", Rec.Connector, Rec."Send From", RateLimitDuration) then
+        if EmailRateLimitImpl.IsRateLimitExceeded(Rec."Account Id", Rec.Connector, Rec."Send From", RateLimitDuration)
+        or (GetEmailOutboxCurrentProcessingCount() > EmailRateLimitImpl.GetConcurrencyLimit(Rec."Account Id", Rec.Connector, Rec."Send From")) then
             RescheduleEmail(RateLimitDuration, Dimensions, Rec)
         else
             SendEmail(Rec);
+    end;
+
+    /// <summary>
+    /// Returns the current count of emails in the outbox that are being processed.
+    /// </summary>
+    /// <returns>The count of the email which is being sending</returns>
+    internal procedure GetEmailOutboxCurrentProcessingCount(): Integer
+    var
+        EmailOutbox: Record "Email Outbox";
+    begin
+        EmailOutbox.SetRange(Status, EmailOutbox.Status::Processing);
+        if not EmailOutbox.FindSet() then
+            exit(0);
+
+        exit(EmailOutbox.Count());
     end;
 
     local procedure SendEmail(var EmailOutbox: Record "Email Outbox")
@@ -53,9 +71,11 @@ codeunit 8888 "Email Dispatcher"
         EmailMessage: Record "Email Message";
         SentEmail: Record "Sent Email";
         SendEmailCodeunit: Codeunit "Send Email";
+        ClientTypeManagement: Codeunit "Client Type Management";
         Email: Codeunit Email;
         FeatureTelemetry: Codeunit "Feature Telemetry";
         Dimensions: Dictionary of [Text, Text];
+        LastErrorText: Text;
     begin
         // -----------
         // NB: Avoid adding events here as any error would cause a roll-back and possibly an inconsistent state of the Email Outbox.
@@ -77,14 +97,26 @@ codeunit 8888 "Email Dispatcher"
 
                 InsertToSentEmail(EmailOutbox, SentEmail);
 
+                CleanEmailRetry(EmailOutbox."Message Id");
                 EmailOutbox.Delete();
                 EmailMessageImpl.MarkAsRead();
                 Commit();
             end else begin
                 FeatureTelemetry.LogError('0000CTP', EmailFeatureNameLbl, 'Failed to send email', GetLastErrorText(true), GetLastErrorCallStack(), Dimensions);
-
-                UpdateOutboxError(GetLastErrorText(), EmailOutbox);
+                LastErrorText := GetLastErrorText();
+                UpdateOutboxError(LastErrorText, EmailOutbox);
                 UpdateOutboxStatus(EmailOutbox, EmailOutbox.Status::Failed);
+
+                // if email is not rescheduled, it means it has exceeded the retry limit, stop retrying
+                if ClientTypeManagement.GetCurrentClientType() = CLIENTTYPE::Background then begin
+                    if EmailOutbox."Retry No." = 0 then
+                        CreateEmailRetry(EmailOutbox);
+
+                    UpdateEmailRetryStatus(EmailOutbox."Message Id", EmailOutbox."Retry No.", EmailOutbox.Status::Failed);
+                    UpdateEmailRetryErrorMessage(EmailOutbox."Message Id", EmailOutbox."Retry No.", LastErrorText);
+
+                    if RetrySendEmail(EmailOutbox) then exit;
+                end;
             end;
         end else begin
             FeatureTelemetry.LogError('0000CTR', EmailFeatureNameLbl, 'Failed to find email', StrSubstNo(FailedToFindEmailMessageMsg, EmailOutbox."Message Id"), '', Dimensions);
@@ -96,6 +128,95 @@ codeunit 8888 "Email Dispatcher"
             Email.OnAfterEmailSent(SentEmail)
         else
             Email.OnAfterEmailSendFailed(EmailOutbox);
+    end;
+
+    local procedure RetrySendEmail(var EmailOutbox: Record "Email Outbox"): Boolean
+    var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        Dimensions: Dictionary of [Text, Text];
+        TaskId: Guid;
+        RetryTime: DateTime;
+        RandomDelay: Integer;
+    begin
+        FeatureTelemetry.LogError('', EmailFeatureNameLbl, 'Retry failed email', StrSubstNo(FailedToFindEmailMessageMsg, EmailOutbox."Message Id"), '', Dimensions);
+        EmailOutbox.Validate("Retry No.", EmailOutbox."Retry No." + 1);
+
+        if EmailOutbox."Retry No." > 10 then begin
+            FeatureTelemetry.LogError('', EmailFeatureNameLbl, 'Email retry reached maximum times', '', '', Dimensions);
+            exit(false);
+        end;
+
+        EmailOutbox.Status := EmailOutbox.Status::Queued;
+        EmailOutbox.Modify();
+
+        RandomDelay := Random(5000); // Jitter - Random delay between 0 and 5000 milliseconds (5 seconds)
+        RetryTime := CurrentDateTime() + EmailOutbox."Retry No." * 1.5 * 60000 + RandomDelay; // Base interval: 1.5 minutes, plus a random delay of up to 5 seconds
+
+        FeatureTelemetry.LogUsage('', EmailFeatureNameLbl, 'Email Retry - Rescheduling email', Dimensions);
+        TaskId := TaskScheduler.CreateTask(Codeunit::"Email Dispatcher", Codeunit::"Email Error Handler", true, CompanyName(), RetryTime, EmailOutbox.RecordId());
+        EmailOutbox.Validate("Task Scheduler Id", TaskId);
+        EmailOutbox.Validate("Date Sending", RetryTime);
+        EmailOutbox.Modify();
+
+        CreateEmailRetry(EmailOutbox);
+    end;
+
+    local procedure CleanEmailRetry(MessageId: Guid)
+    var
+        EmailRetry: Record "Email Retry";
+    begin
+        EmailRetry.SetRange("Message Id", MessageId);
+        if not EmailRetry.FindSet() then
+            exit;
+
+        EmailRetry.DeleteAll();
+        Commit();
+    end;
+
+    local procedure CreateEmailRetry(var EmailOutbox: Record "Email Outbox")
+    var
+        EmailRetry: Record "Email Retry";
+    begin
+        EmailRetry.Init();
+        EmailRetry.Validate("Message Id", EmailOutbox."Message Id");
+        EmailRetry.Validate("User Security Id", EmailOutbox."User Security Id");
+        EmailRetry.Validate("Account Id", EmailOutbox."Account Id");
+        EmailRetry.Validate("Retry No.", EmailOutbox."Retry No.");
+        EmailRetry.Validate("Date Sending", EmailOutbox."Date Sending");
+        EmailRetry.Validate("Send From", EmailOutbox."Send From");
+        EmailRetry.Validate(Description, EmailOutbox.Description);
+        EmailRetry.Validate(Connector, EmailOutbox.Connector);
+        EmailRetry.Validate(Status, EmailOutbox.Status);
+        EmailRetry.Validate("Task Scheduler Id", EmailOutbox."Task Scheduler Id");
+        EmailRetry.Insert();
+    end;
+
+    local procedure UpdateEmailRetryStatus(MessageId: Guid; RetryNo: Integer; Status: Enum "Email Status")
+    var
+        EmailRetry: Record "Email Retry";
+    begin
+        EmailRetry.SetRange("Message Id", MessageId);
+        EmailRetry.SetRange("Retry No.", RetryNo);
+        if not EmailRetry.FindFirst() then
+            exit;
+
+        EmailRetry.Status := Status;
+        EmailRetry.Modify();
+        Commit();
+    end;
+
+    local procedure UpdateEmailRetryErrorMessage(MessageId: Guid; RetryNo: Integer; ErrorMessage: Text)
+    var
+        EmailRetry: Record "Email Retry";
+    begin
+        EmailRetry.SetRange("Message Id", MessageId);
+        EmailRetry.SetRange("Retry No.", RetryNo);
+        if not EmailRetry.FindFirst() then
+            exit;
+
+        EmailRetry."Error Message" := CopyStr(ErrorMessage, 1, MaxStrLen(EmailRetry."Error Message"));
+        EmailRetry.Modify();
+        Commit();
     end;
 
     local procedure RescheduleEmail(Delay: Duration; Dimensions: Dictionary of [Text, Text]; var EmailOutbox: Record "Email Outbox")
@@ -114,7 +235,7 @@ codeunit 8888 "Email Dispatcher"
         EmailOutbox.Modify();
 
         Dimensions.Add('TaskId', Format(TaskId));
-        FeatureTelemetry.LogUsage('0000CTK', EmailFeatureNameLbl, 'Email being rescheduled', Dimensions);
+        FeatureTelemetry.LogUsage('0000CTK', EmailFeatureNameLbl, 'Email being rescheduled for exceeding currency limitation', Dimensions);
         Success := true;
     end;
 
@@ -146,6 +267,8 @@ codeunit 8888 "Email Dispatcher"
         ErrorOutStream.WriteText(LastError);
         EmailError."Error Callstack".CreateOutStream(ErrorOutStream, TextEncoding::UTF8);
         ErrorOutStream.WriteText(GetLastErrorCallStack());
+        EmailError.Validate("Error Timestamp", CurrentDateTime());
+        EmailError.Validate("Retry No.", EmailOutbox."Retry No." + 1);
         EmailError.Insert();
 
         EmailOutbox."Error Message" := CopyStr(LastError, 1, MaxStrLen(EmailOutbox."Error Message"));
