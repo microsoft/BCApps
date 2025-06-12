@@ -1,38 +1,39 @@
 {
-    "projectName": "Add-Ons (W1)",
-    "appFolders": [
-        "../../../src/Add-Ons/W1/*/App"
-    ],
-    "testFolders": [
-        "../../../src/Add-Ons/W1/*/Test",
-        "../../../src/Add-Ons/W1/*/Test Library",
-        "../../../src/Add-Ons/W1/*/Demo Data"
-    ],
-    "buildModes": [
-        "Translated"
-    ],
-    "installOnlyReferencedApps": false,
-    "ConditionalSettings": [
-        {
-            "buildModes": [
-                "Clean"
-            ],
-            "settings": {
-                "doNotRunTests": true,
-                "useCompilerFolder": true,
-                "doNotPublishApps": true
-            }
-        },
-        {
-            "branches": [
-                "releases/*.[0-5]"
-            ],
-            "settings": {
-                "buildModes": [
-                    "Strict"
-                ]
-            }
-        }
-    ],
-    "useProjectDependencies": true
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v7.2/settings.schema.json",
+  "projectName": "Add-Ons (W1)",
+  "appFolders": [
+    "../../../src/Add-Ons/W1/*/App"
+  ],
+  "testFolders": [
+    "../../../src/Add-Ons/W1/*/Test",
+    "../../../src/Add-Ons/W1/*/Test Library",
+    "../../../src/Add-Ons/W1/*/Demo Data"
+  ],
+  "buildModes": [
+    "Translated"
+  ],
+  "installOnlyReferencedApps": false,
+  "ConditionalSettings": [
+    {
+      "buildModes": [
+        "Clean"
+      ],
+      "settings": {
+        "doNotRunTests": true,
+        "useCompilerFolder": true,
+        "doNotPublishApps": true
+      }
+    },
+    {
+      "branches": [
+        "releases/*.[0-5]"
+      ],
+      "settings": {
+        "buildModes": [
+          "Strict"
+        ]
+      }
+    }
+  ],
+  "useProjectDependencies": true
 }
