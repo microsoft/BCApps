@@ -46,6 +46,26 @@ page 149034 "AIT Test Method Lines"
                 field(Description; Rec.Description)
                 {
                 }
+                field("Evaluation Setup"; EvaluationSetupTxt)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Evaluators';
+                    ToolTip = 'Specifies whether the evaluation is setup.';
+                    Editable = false;
+
+                    trigger OnAssistEdit()
+                    var
+                        AITEvaluator: Record "AIT Evaluator";
+                        AITEvaluatorPage: Page "AIT Evaluators";
+                    begin
+                        AITEvaluator.SetRange("Test Suite Code", Rec."Test Suite Code");
+                        AITEvaluator.SetRange("Test Method Line", Rec."Line No.");
+                        AITEvaluatorPage.SetTableView(AITEvaluator);
+                        AITEvaluatorPage.SetTestMethodLine(Rec."Line No.");
+                        AITEvaluatorPage.Run();
+                        //Page.Run(Page::"AIT Evaluators", AITEvaluator);
+                    end;
+                }
                 field(Status; Rec.Status)
                 {
                 }
@@ -243,6 +263,7 @@ page 149034 "AIT Test Method Lines"
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         NoLineSelectedErr: Label 'Select a line to compare';
         TurnsText: Text;
+        EvaluationSetupTxt: Text;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
@@ -254,6 +275,7 @@ page 149034 "AIT Test Method Lines"
 
     trigger OnAfterGetRecord()
     begin
+        EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(CopyStr(Rec."Test Suite Code", 1, 10), Rec."Line No.");
         TurnsText := AITTestSuiteMgt.GetTurnsAsText(Rec);
     end;
 
