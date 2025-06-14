@@ -48,6 +48,11 @@ table 7775 "Copilot Settings"
         {
             DataClassification = SystemMetadata;
         }
+        field(8; "Billing Type"; Enum "Copilot Billing Type")
+        {
+            DataClassification = SystemMetadata;
+            ValuesAllowed = 0, 1, 2;
+        }
     }
 
     keys
