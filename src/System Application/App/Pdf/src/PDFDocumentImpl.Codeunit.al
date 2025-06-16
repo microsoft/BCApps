@@ -379,9 +379,9 @@ codeunit 3109 "PDF Document Impl."
                 Json.Add(PrimaryDocumentTokenLbl, this.PrimaryDocumentName);
 
             if Json.Contains(SaveFormatTokenLbl) then
-                Json.Replace(SaveFormatTokenLbl, format(this.SaveFormat, 0, 1))
+                Json.Replace(SaveFormatTokenLbl, Format(this.SaveFormat, 0, 2))
             else
-                Json.Add(SaveFormatTokenLbl, format(this.SaveFormat, 0, 1));
+                Json.Add(SaveFormatTokenLbl, Format(this.SaveFormat, 0, 2));
         end;
 
         for i := 1 to this.AttachmentCount() do begin
@@ -389,7 +389,7 @@ codeunit 3109 "PDF Document Impl."
             clear(JsonElement);
             JsonElement.Add(NameTokenLbl, name);
             JsonElement.Add(DescriptionTokenLbl, Description);
-            JsonElement.Add(RelationshipTokenLbl, format(DataType, 0, 1));
+            JsonElement.Add(RelationshipTokenLbl, Format(DataType, 0, 2));
             JsonElement.Add(MimeTypeTokenLbl, MimeType);
             JsonElement.Add(FileNameTokenLbl, FileName);
             JsonDataArray.Add(JsonElement);
