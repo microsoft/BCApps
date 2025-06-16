@@ -101,6 +101,8 @@ page 130455 "Command Line Test Tool"
                 ApplicationArea = All;
                 Caption = 'Test Type';
                 ToolTip = 'Specifies the Test Type';
+                BlankZero = true;
+                MinValue = 1;
 
                 trigger OnValidate()
                 var
@@ -484,7 +486,7 @@ page 130455 "Command Line Test Tool"
         FullErrorMessage: Text;
         StackTrace: Text;
         ExtensionId: Text;
-        TestType: Text;
+        TestType: Integer;
         RemoveTestMethod: Text;
         TestResultsJSONText: Text;
         CCResultsCSVText: Text;
