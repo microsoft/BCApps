@@ -79,4 +79,132 @@ codeunit 3109 "PDF Document Impl."
                 Error(UnsupportedImageFormatErr, ImageFormat);
         end;
     end;
+
+    procedure GetDocumentAttachmentStream(PdfStream: InStream; var TempBlob: Codeunit "Temp Blob"): Boolean
+    var
+        PdfAttachmentManager: DotNet PdfAttachmentManager;
+        MemoryStream: DotNet MemoryStream;
+        Name: Text;
+        PdfAttachmentOutStream: OutStream;
+        PdfAttachmentInStream: InStream;
+        ValidNamesTxt: Label 'factur-x.xml, xrechnung.xml, zugferd-invoice.xml', Locked = true;
+    begin
+        TempBlob.CreateOutStream(PdfAttachmentOutStream);
+        TempBlob.CreateInStream(PdfAttachmentInStream);
+
+        PdfAttachmentManager := PdfAttachmentManager.PdfAttachmentManager(PdfStream);
+
+        // Try to get the invoice attachment stored in the pdf xml metedata
+        MemoryStream := PdfAttachmentManager.GetInvoiceAttachment('');
+
+        if IsNull(MemoryStream) then begin
+            // xmp did not register the attachment name, try to get the attachment by name
+            // using a list of valid names from the E-Invoicing standard.
+            Name := ValidNamesTxt;
+            MemoryStream := PdfAttachmentManager.GetInvoiceAttachment(Name);
+        end;
+
+        if IsNull(MemoryStream) then
+            exit(false);
+
+        MemoryStream.Position := 0;
+        MemoryStream.CopyTo(PdfAttachmentOutStream);
+        exit(true);
+    end;
+
+    procedure GetPdfProperties(DocumentInStream: InStream): JsonObject
+    var
+        PdfDocumentInfoInstance: DotNet PdfDocumentInfo;
+        TextValue: Text;
+        IntegerValue: Integer;
+        DecimalValue: Decimal;
+        DateTimeValue: DateTime;
+        DurationValue: Duration;
+        JsonContainer: JsonObject;
+    begin
+        InitializePdfDocumentInfo(DocumentInStream, PdfDocumentInfoInstance);
+
+        DecimalValue := PdfDocumentInfoInstance.PageWidth;
+        JsonContainer.Add('pageWidth', DecimalValue);
+
+        DecimalValue := PdfDocumentInfoInstance.PageHeight;
+        JsonContainer.Add('pageHeight', DecimalValue);
+
+        IntegerValue := PdfDocumentInfoInstance.PageCount;
+        JsonContainer.Add('pagecount', IntegerValue);
+
+        TextValue := PdfDocumentInfoInstance.Author;
+        JsonContainer.Add('author', TextValue);
+
+        DateTimeValue := PdfDocumentInfoInstance.CreationDate;
+        JsonContainer.Add('creationDate', DateTimeValue);
+
+        DurationValue := PdfDocumentInfoInstance.CreationTimeZone;
+        JsonContainer.Add('creationTimeZone', DurationValue);
+
+        TextValue := PdfDocumentInfoInstance.Creator;
+        JsonContainer.Add('creator', TextValue);
+
+        TextValue := PdfDocumentInfoInstance.Producer;
+        JsonContainer.Add('producer', TextValue);
+
+        TextValue := PdfDocumentInfoInstance.Subject;
+        JsonContainer.Add('subject', TextValue);
+
+        TextValue := PdfDocumentInfoInstance.Title;
+        JsonContainer.Add('title', TextValue);
+        exit(JsonContainer);
+    end;
+
+    procedure GetPdfPageCount(DocumentInStream: InStream): Integer
+    var
+        PdfDocumentInfoInstance: DotNet PdfDocumentInfo;
+    begin
+        InitializePdfDocumentInfo(DocumentInStream, PdfDocumentInfoInstance);
+        exit(PdfDocumentInfoInstance.PageCount);
+    end;
+
+    procedure GetZipArchive(PdfStream: InStream)
+    var
+        PdfAttachmentManager: DotNet PdfAttachmentManager;
+        AttachmentStream: InStream;
+        ZipFilename: Text;
+        ZipFileLbl: Label 'zip file';
+    begin
+        PdfAttachmentManager := PdfAttachmentManager.PdfAttachmentManager(PdfStream);
+        AttachmentStream := PdfAttachmentManager.GetZipArchiveWithAttachments();
+
+        ZipFilename := ZipFileLbl;
+        DownloadFromStream(AttachmentStream, ZipFileLbl, '', '', ZipFilename);
+    end;
+
+    procedure GetAttachmentNames(PdfStream: InStream) AttachmentNames: List of [Text]
+    var
+        PdfAttachmentManager: DotNet PdfAttachmentManager;
+        PdfAttachment: DotNet PdfAttachment;
+        AttachmentName: Text;
+    begin
+        PdfAttachmentManager := PdfAttachmentManager.PdfAttachmentManager(PdfStream);
+
+        foreach PdfAttachment in PdfAttachmentManager do begin
+            AttachmentName := PdfAttachment.Name;
+            if AttachmentName = '' then
+                continue;
+            AttachmentNames.Add(AttachmentName);
+        end;
+
+        exit(AttachmentNames);
+    end;
+
+    local procedure InitializePdfDocumentInfo(DocumentInStream: InStream; var PdfDocumentInfoInstance: DotNet PdfDocumentInfo)
+    var
+        PdfConverterInstance: DotNet PdfConverter;
+        MemoryStream: DotNet MemoryStream;
+    begin
+        MemoryStream := MemoryStream.MemoryStream();
+        MemoryStream := DocumentInStream;
+
+        PdfConverterInstance := PdfConverterInstance.PdfConverter(MemoryStream);
+        PdfDocumentInfoInstance := PdfConverterInstance.DocumentInfo();
+    end;
 }

@@ -703,6 +703,14 @@ dotnet
         type("Microsoft.Dynamics.Nav.Runtime.Designer.NavDesignerALCopyResponse"; "NavDesignerALCopyResponse")
         {
         }
+
+        type("Microsoft.Dynamics.Nav.Runtime.AL.ALActivityLogEntry"; "ActivityLogEntry")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.ActivityLogAttribute"; "ActivityLogAttribute")
+        {
+        }
     }
 
     assembly("Microsoft.Dynamics.Nav.OAuth")

@@ -23,8 +23,10 @@ dotnet
         type("Microsoft.Dynamics.Nav.Types.AgentTaskUserInterventionDetails"; "AgentTaskUserIntervention")
         {
         }
-
         type("Microsoft.Dynamics.Nav.Types.AgentTaskUserInterventionRequestDetails"; "AgentTaskUserInterventionRequest")
+        {
+        }
+        type("Microsoft.Dynamics.Nav.Types.AgentTaskUserInterventionSuggestion"; "AgentTaskUserInterventionSuggestion")
         {
         }
     }

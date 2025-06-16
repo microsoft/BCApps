@@ -39,4 +39,80 @@ codeunit 3110 "PDF Document"
     begin
         PDFDocumentImpl.ConvertToImage(ImageStream, ImageFormat, PageNumber);
     end;
+
+    /// <summary>
+    /// This procedure is used to get the invoice attachment stream from a PDF file.
+    /// </summary>
+    /// <param name="PdfStream">Input stream of the PDF file.</param>
+    /// <param name="TempBlob">Temporary blob to store the attachment.</param>
+    procedure GetDocumentAttachmentStream(PdfStream: InStream; var TempBlob: Codeunit "Temp Blob"): Boolean
+    begin
+        exit(PDFDocumentImpl.GetDocumentAttachmentStream(PdfStream, TempBlob));
+    end;
+
+    /// <summary>
+    /// Retrieves metadata properties from a PDF file, such as page size, author, title, and creation date.
+    /// </summary>
+    /// <param name="DocumentInStream">Input stream of the PDF file.</param>
+    /// <returns>A JSON object containing the extracted PDF metadata.</returns>
+    /// <remarks>
+    /// The format of the returned JSON object looks like the following:
+    /// {
+    ///     "pageWidth": 210.0,
+    ///     "pageHeight": 297.0,
+    ///     "pagecount": 3,
+    ///     "author": "Author Name",
+    ///     "creationDate": "2025-06-04T10:00:00",
+    ///     "creationTimeZone": "PT2H",
+    ///     "creator": "PDF Generator",
+    ///     "producer": "PDF Engine",
+    ///     "subject": "Invoice Document",
+    ///     "title": "Invoice #12345"
+    /// }
+    /// </remarks>
+    procedure GetPdfProperties(DocumentInStream: InStream): JsonObject
+    begin
+        exit(PDFDocumentImpl.GetPdfProperties(DocumentInStream));
+    end;
+
+    /// <summary>
+    /// Returns the number of pages in the provided PDF stream.
+    /// </summary>
+    /// <param name="DocumentInStream">Input stream of the PDF file.</param>
+    /// <returns>The number of pages in the PDF document.</returns>
+    procedure GetPdfPageCount(DocumentInStream: InStream): Integer
+    begin
+        exit(PDFDocumentImpl.GetPdfPageCount(DocumentInStream));
+    end;
+
+    /// <summary>
+    /// Initiates a download of a ZIP archive containing all embedded attachments from the provided PDF stream.
+    /// </summary>
+    /// <param name="PdfStream">Input stream of the PDF file.</param>
+    /// <remarks>
+    /// This procedure does not return the ZIP archive directly. Instead, it triggers a download dialog for the user,
+    /// allowing them to save the ZIP file locally. 
+    /// </remarks>
+    procedure GetZipArchive(PdfStream: InStream)
+    begin
+        PDFDocumentImpl.GetZipArchive(PdfStream);
+    end;
+
+    /// <summary>
+    /// Retrieves the names of embedded file attachments from a PDF document.
+    /// </summary>
+    /// <param name="PdfStream">The input stream representing the PDF file to inspect.</param>
+    /// <returns>
+    ///  A list of strings containing the name of all embedded attachments found in the PDF.
+    /// If no attachments are found, an empty list is returned.
+    /// </returns>
+    /// <remarks>
+    /// This procedure is particularly useful for PDF/A-3 compliant documents that embed XML-based e-invoices,
+    /// such as Factur-X, XRechnung, or ZUGFeRD formats. These formats typically include attachments like
+    /// 'factur-x.xml', 'xrechnung.xml', or 'zugferd-invoice.xml' which are used for automated invoice processing.
+    /// </remarks>
+    procedure GetAttachmentNames(PdfStream: InStream): List of [Text]
+    begin
+        exit(PDFDocumentImpl.GetAttachmentNames(PdfStream));
+    end;
 }
