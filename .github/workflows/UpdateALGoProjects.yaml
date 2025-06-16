@@ -20,7 +20,7 @@ jobs:
       updateBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
         with:
           egress-policy: audit
 
@@ -48,7 +48,7 @@ jobs:
         with:
           ref: ${{ matrix.branch }}
 
-      - uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@v2
         id: app-token
         with:
           app-id: ${{ vars.APP_ID }}
