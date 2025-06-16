@@ -310,7 +310,7 @@ codeunit 130456 "Test Suite Mgt."
         GetTestMethods(ALTestSuite, CodeunitMetadata);
     end;
 
-    internal procedure SelectTestMethodsByExtensionAndTestType(var ALTestSuite: Record "AL Test Suite"; ExtensionID: Text; TestType: Text)
+    internal procedure SelectTestMethodsByExtensionAndTestType(var ALTestSuite: Record "AL Test Suite"; ExtensionID: Text; TestType: Integer)
     var
         CodeunitMetadata: Record "CodeUnit Metadata";
         AppExtensionId: Guid;
@@ -322,17 +322,8 @@ codeunit 130456 "Test Suite Mgt."
         end;
 
         CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::Test);
-
-        case TestType of
-            'UnitTest':
-                CodeunitMetadata.SetRange(TestType, CodeunitMetadata.TestType::UnitTest);
-            'IntegrationTest':
-                CodeunitMetadata.SetRange(TestType, CodeunitMetadata.TestType::IntegrationTest);
-            'Uncategorized':
-                CodeunitMetadata.SetRange(TestType, CodeunitMetadata.TestType::Uncategorized);
-            else
-                Error(InvalidTestTypeErr, TestType);
-        end;
+        // inexplicit conversion from Integer to Option
+        CodeunitMetadata.SetRange(TestType, TestType);
 
         GetTestMethods(ALTestSuite, CodeunitMetadata);
     end;
