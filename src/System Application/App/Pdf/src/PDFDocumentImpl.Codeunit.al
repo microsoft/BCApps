@@ -51,7 +51,7 @@ codeunit 3109 "PDF Document Impl."
         exit(true);
     end;
 
-    procedure ConvertToImage(var ImageStream: InStream; ImageFormat: Enum "Image Format"; PagEnumber: Integer): Boolean
+    procedure ConvertToImage(var ImageStream: InStream; ImageFormat: Enum "Image Format"; PageNumber: Integer): Boolean
     var
         PdfConverterInstance: DotNet PdfConverter;
         PdfTargetDevice: DotNet PdfTargetDevice;
@@ -72,7 +72,7 @@ codeunit 3109 "PDF Document Impl."
         CopyStream(MemoryStream, SharedDocumentStream);
 
         ConvertImageFormatToPdfTargetDevice(ImageFormat, PdfTargetDevice);
-        ImageMemoryStream := PdfConverterInstance.ConvertPage(PdfTargetDevice, MemoryStream, PagEnumber, 0, 0, 0); // apply default height, width and resolution
+        ImageMemoryStream := PdfConverterInstance.ConvertPage(PdfTargetDevice, MemoryStream, PageNumber, 0, 0, 0); // apply default height, width and resolution
         // Copy data to the outgoing stream and make sure it is reset to the beginning of the stream.
         ImageMemoryStream.Seek(0, 0);
         ImageMemoryStream.CopyTo(ImageStream);
@@ -251,11 +251,9 @@ codeunit 3109 "PDF Document Impl."
 
     procedure AddFilesToAppend(FileName: Text)
     begin
-        //TODO Change
         if FileName = '' then begin
-            if this.AppendCount() = 0 then
-                exit;
-            Clear(this.AdditionalDocumenNames);
+            if this.AppendCount() > 0 then
+                Clear(this.AdditionalDocumenNames);
             exit;
         end;
 
@@ -300,15 +298,18 @@ codeunit 3109 "PDF Document Impl."
 
     procedure AttachmentCount(): Integer
     var
+        AttachmentNamesCount: Integer;
         AttachmentErr: Label 'Attachment information lists are not in sync.';
     begin
-        if (AttachmentNames.Count() <> AttachmentMimeTypes.Count()) or
-            (AttachmentNames.Count() <> AttachmentDataTypes.Count()) or
-            (AttachmentNames.Count() <> AttachmentFileNames.Count()) or
-            (AttachmentNames.Count() <> AttachmentDescriptions.Count()) then
+        AttachmentNamesCount := AttachmentNames.Count();
+
+        if (AttachmentNamesCount <> AttachmentMimeTypes.Count()) or
+        (AttachmentNamesCount <> AttachmentDataTypes.Count()) or
+        (AttachmentNamesCount <> AttachmentFileNames.Count()) or
+        (AttachmentNamesCount <> AttachmentDescriptions.Count()) then
             Error(AttachmentErr);
 
-        exit(AttachmentNames.Count());
+        exit(AttachmentNamesCount);
     end;
 
     procedure AppendCount(): Integer
@@ -443,7 +444,7 @@ codeunit 3109 "PDF Document Impl."
         HasProtection := not (User.IsEmpty() and Admin.IsEmpty());
     end;
 
-    local procedure FetchAttachment(AttachmentIndex: Integer; var Name: Text; var DataType: Enum "PDF Attach. Data Relationship"; var MimeType: Text; var FileName: Text; var Description: Text): Boolean
+    local procedure FetchAttachment(AttachmentIndex: Integer; var AttachmentName: Text; var DataType: Enum "PDF Attach. Data Relationship"; var MimeType: Text; var FileName: Text; var AttachmentDescription: Text): Boolean
     var
         AttachmentIndexErr: Label 'Attachment index must be greater than 0.';
         AttachmentRangeErr: Label 'Attachment index is out of range.';
@@ -454,11 +455,11 @@ codeunit 3109 "PDF Document Impl."
         if (AttachmentIndex > this.AttachmentCount()) then
             Error(AttachmentRangeErr);
 
-        Name := this.AttachmentNames.Get(AttachmentIndex);
+        AttachmentName := this.AttachmentNames.Get(AttachmentIndex);
         DataType := this.AttachmentDataTypes.Get(AttachmentIndex);
         MimeType := this.AttachmentMimeTypes.Get(AttachmentIndex);
         FileName := this.AttachmentFileNames.Get(AttachmentIndex);
-        Description := this.AttachmentDescriptions.Get(AttachmentIndex);
+        AttachmentDescription := this.AttachmentDescriptions.Get(AttachmentIndex);
         if not File.Exists(FileName) then
             exit(false);
 

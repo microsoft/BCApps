@@ -35,7 +35,7 @@ codeunit 132601 "PDF Document Test"
     end;
 
     [Test]
-    procedure Test_AttachmentFoundViaXMP()
+    procedure AttachmentFoundViaXMP()
     var
         PdfDocument: Codeunit "PDF Document";
         TempBlob: Codeunit "Temp Blob";
@@ -54,7 +54,7 @@ codeunit 132601 "PDF Document Test"
     end;
 
     [Test]
-    procedure Test_AttachmentFoundByName()
+    procedure AttachmentFoundByName()
     var
         PdfDocument: Codeunit "PDF Document";
         TempBlob: Codeunit "Temp Blob";
@@ -73,7 +73,7 @@ codeunit 132601 "PDF Document Test"
     end;
 
     [Test]
-    procedure Test_NoAttachmentFound()
+    procedure NoAttachmentFound()
     var
         PdfDocument: Codeunit "PDF Document";
         TempBlob: Codeunit "Temp Blob";
@@ -91,7 +91,7 @@ codeunit 132601 "PDF Document Test"
     end;
 
     [Test]
-    procedure Test_MetadataExtractedSuccessfully()
+    procedure MetadataExtractedSuccessfully()
     var
         PdfDocument: Codeunit "PDF Document";
         PdfInstream: InStream;
@@ -113,7 +113,7 @@ codeunit 132601 "PDF Document Test"
     end;
 
     [Test]
-    procedure Test_MultipleAttachmentNames()
+    procedure MultipleAttachmentNames()
     var
         PdfDocument: Codeunit "PDF Document";
         PdfInstream: InStream;
@@ -140,7 +140,7 @@ codeunit 132601 "PDF Document Test"
     end;
 
     [Test]
-    procedure Test_NoAttachments()
+    procedure NoAttachments()
     var
         PdfDocument: Codeunit "PDF Document";
         PdfInstream: InStream;
@@ -157,7 +157,7 @@ codeunit 132601 "PDF Document Test"
     end;
 
     [Test]
-    procedure Test_GetPdfPageCount()
+    procedure GetPdfPageCount()
     var
         PdfDocument: Codeunit "PDF Document";
         PdfInstream: InStream;
@@ -172,6 +172,174 @@ codeunit 132601 "PDF Document Test"
         // [THEN] Assert that the page count is correct
         Assert.AreEqual(2, PageCount, 'Expected 2 pages in the test PDF.');
     end;
+
+    [Test]
+    procedure AddAttachment_Success()
+    var
+        PDFDocument: Codeunit "PDF Document";
+        AttachmentName: Text;
+        MimeType: Text;
+        FileName: Text;
+        Description: Text;
+        Count: Integer;
+    begin
+        // [GIVEN] A valid attachment definition
+        AttachmentName := 'factur-x.xml';
+        MimeType := 'application/xml';
+        FileName := 'factur-x.xml';
+        Description := 'Test e-invoice attachment';
+
+        // [WHEN] Add the attachment
+        PDFDocument.Initialize();
+        PDFDocument.AddAttachment(
+            AttachmentName,
+            Enum::"PDF Attach. Data Relationship"::Data,
+            MimeType,
+            FileName,
+            Description,
+            false);
+
+        // [THEN] Assert that the attachment count is 1
+        Count := PDFDocument.AttachmentCount();
+        Assert.AreEqual(1, Count, 'Expected one attachment to be added.');
+    end;
+
+    [Test]
+    procedure AddAttachment_DuplicateName_ThrowsError()
+    var
+        PDFDocument: Codeunit "PDF Document";
+        AttachmentName: Text;
+    begin
+        // [GIVEN] A valid attachment added once
+        AttachmentName := 'duplicate.xml';
+        PDFDocument.Initialize();
+        PDFDocument.AddAttachment(
+            AttachmentName,
+            Enum::"PDF Attach. Data Relationship"::Data,
+            'application/xml',
+            'duplicate.xml',
+            'First instance',
+            false);
+
+        // [WHEN/THEN] Adding the same attachment again should throw an error
+        asserterror
+            PDFDocument.AddAttachment(
+                AttachmentName,
+                Enum::"PDF Attach. Data Relationship"::Data,
+                'application/xml',
+                'duplicate.xml',
+                'Second instance',
+                false);
+    end;
+
+    [Test]
+    procedure AddFilesToAppend_AddsFile()
+    var
+        PDFDocument: Codeunit "PDF Document";
+        FileName: Text;
+        Count: Integer;
+    begin
+        // [GIVEN] A valid file name to append
+        FileName := 'appendix.pdf';
+        PDFDocument.Initialize();
+
+        // [WHEN] Add the file to append list
+        PDFDocument.AddFilesToAppend(FileName);
+
+        // [THEN] Assert that the file was added
+        Count := PDFDocument.AppendCount();
+        Assert.AreEqual(1, Count, 'Expected one file to be appended.');
+    end;
+
+    [Test]
+    procedure AddFilesToAppend_EmptyNameWithExistingFiles_ClearsList()
+    var
+        PDFDocument: Codeunit "PDF Document";
+    begin
+        // [GIVEN] One file already appended
+        PDFDocument.Initialize();
+        PDFDocument.AddFilesToAppend('appendix.pdf');
+        Assert.AreEqual(1, PDFDocument.AppendCount(), 'Expected one file before reset.');
+
+        // [WHEN] Add an empty file name
+        PDFDocument.AddFilesToAppend('');
+
+        // [THEN] Assert that the list is cleared
+        Assert.AreEqual(0, PDFDocument.AppendCount(), 'Expected file list to be cleared.');
+    end;
+
+    [Test]
+    procedure AddStreamToAppend_AddsFile()
+    var
+        PDFDocument: Codeunit "PDF Document";
+        TempBlob: Codeunit "Temp Blob";
+        FileOutStream: OutStream;
+        FileInStream: InStream;
+        Count: Integer;
+    begin
+        // [GIVEN] A non-empty stream
+        TempBlob.CreateOutStream(FileOutStream);
+        FileOutStream.WriteText('Test content');
+        TempBlob.CreateInStream(FileInStream);
+
+        // [WHEN] Add the stream to append list
+        PDFDocument.Initialize();
+        PDFDocument.AddStreamToAppend(FileInStream);
+
+        // [THEN] Assert that the file was added
+        Count := PDFDocument.AppendCount();
+        Assert.AreEqual(1, Count, 'Expected one file to be appended from stream.');
+    end;
+
+    [Test]
+    procedure AttachmentCount_ReturnsCorrectCount()
+    var
+        PDFDocument: Codeunit "PDF Document";
+        Count: Integer;
+    begin
+        // [GIVEN] One valid attachment
+        PDFDocument.Initialize();
+        PDFDocument.AddAttachment(
+            'invoice.xml',
+            Enum::"PDF Attach. Data Relationship"::Data,
+            'application/xml',
+            'invoice.xml',
+            'Test invoice',
+            false);
+
+        // [WHEN] Count attachments
+        Count := PDFDocument.AttachmentCount();
+
+        // [THEN] Assert count is 1
+        Assert.AreEqual(1, Count, 'Expected one attachment to be counted.');
+    end;
+
+    [Test]
+    procedure ToJson_SerializesAttachmentsAndAdditionalDocs()
+    var
+        PDFDocument: Codeunit "PDF Document";
+        JsonOut: JsonObject;
+        JsonAttachments: JsonArray;
+        AttachmentCount: Integer;
+        JsonToken: JsonToken;
+    begin
+        // [GIVEN] A PDF document with attachments
+        PDFDocument.Initialize();
+        PDFDocument.AddAttachment('invoice.xml', Enum::"PDF Attach. Data Relationship"::Data, 'application/xml', 'invoice.xml', 'Test invoice', false);
+
+        // [WHEN] Convert to JSON
+        JsonOut := PDFDocument.ToJson(JsonOut);
+
+        // [THEN] Verify JSON output
+        if JsonOut.Contains('attachments') then begin
+            JsonOut.Get('attachments', JsonToken);
+            JsonAttachments := JsonToken.AsArray();
+            AttachmentCount := JsonAttachments.Count();
+            Assert.AreEqual(1, AttachmentCount, 'Expected one attachment in the JSON output.');
+        end else
+            Error('Missing attachments array in JSON output.');
+    end;
+
 
     local procedure AssertStreamNotEmpty(TempBlob: Codeunit "Temp Blob")
     var
