@@ -171,7 +171,7 @@ var
     PDFDocument: Codeunit "PDF Document";
     Count: Integer;
 begin
-    Count := PDFDocument.AppendCount();
+    Count := PDFDocument.AppendedDocumentCount();
     Message('There are %1 appended documents.', Count);
 end;
 ```

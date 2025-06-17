@@ -252,7 +252,7 @@ codeunit 3109 "PDF Document Impl."
     procedure AddFilesToAppend(FileName: Text)
     begin
         if FileName = '' then begin
-            if this.AppendCount() > 0 then
+            if this.AppendedDocumentCount() > 0 then
                 Clear(this.AdditionalDocumenNames);
             exit;
         end;
@@ -312,7 +312,7 @@ codeunit 3109 "PDF Document Impl."
         exit(AttachmentNamesCount);
     end;
 
-    procedure AppendCount(): Integer
+    procedure AppendedDocumentCount(): Integer
     begin
         exit(AdditionalDocumenNames.Count());
     end;
@@ -328,63 +328,69 @@ codeunit 3109 "PDF Document Impl."
         Clear(this.SaveFormat);
     end;
 
-    [NonDebuggable]
     procedure ToJson(RenderingPayload: JsonObject): JsonObject
     var
         JsonElement: JsonObject;
         Json: JsonObject;
         JsonDataArray: JsonArray;
-        SourceDataArray: JsonArray;
-        JsonTokenElement: JsonToken;
-        JsonTextToken: JsonToken;
-        i: Integer;
-        Name: Text;
-        DataType: Enum "PDF Attach. Data Relationship";
-        MimeType: Text;
-        FileName: Text;
-        Description: Text;
-        TextVar: Text;
         User, Admin : SecretText;
-        HasProtection: Boolean;
-        ProtectionOverrideErr: Label 'The rendering payload already contains protection. This cannot be overwritten.';
-        PrimaryDocumentOverrideErr: Label 'The rendering payload already contains a primary document. This cannot be overwritten.';
-        PrimaryDocumentTokenLbl: Label 'primaryDocument', Locked = true;
-        SaveFormatTokenLbl: Label 'saveformat', Locked = true;
-        AttachmentsTokenLbl: Label 'attachments', Locked = true;
-        AdditionalDocumentsTokenLbl: Label 'additionalDocuments', Locked = true;
         VersionTokenLbl: Label 'version', Locked = true;
-        ProtectionTokenLbl: Label 'protection', Locked = true;
-        NameTokenLbl: Label 'name', Locked = true;
-        RelationshipTokenLbl: Label 'relationship', Locked = true;
-        MimeTypeTokenLbl: Label 'mimetype', Locked = true;
-        FileNameTokenLbl: Label 'filename', Locked = true;
-        DescriptionTokenLbl: Label 'description', Locked = true;
-        UserTokenLbl: Label 'user', Locked = true;
-        AdminTokenLbl: Label 'admin', Locked = true;
         JsonVersionTxt: Label '1.0', Locked = true;
     begin
         Json := RenderingPayload;
         if not Json.Contains(VersionTokenLbl) then
             Json.Add(VersionTokenLbl, JsonVersionTxt);
 
-        if StrLen(this.PrimaryDocumentName) > 0 then begin
-            if Json.Contains(PrimaryDocumentTokenLbl) then begin
-                Json.Get(PrimaryDocumentTokenLbl, JsonTextToken);
-                if JsonTextToken.WriteTo(TextVar) then
-                    // The rendering payload already contains a primary document. This cannot be overwritten. Fail with an error.
-                    if TextVar <> '' then
-                        Error(PrimaryDocumentOverrideErr);
+        AddPrimaryDocument(Json);
+        AddJsonTokens(JsonElement, JsonDataArray);
+        AddAttachments(Json, JsonDataArray);
+        SetDocumentProtection(Json, User, Admin, JsonElement);
 
-                Json.Replace(PrimaryDocumentTokenLbl, this.PrimaryDocumentName);
-            end else
-                Json.Add(PrimaryDocumentTokenLbl, this.PrimaryDocumentName);
+        exit(Json);
+    end;
 
-            if Json.Contains(SaveFormatTokenLbl) then
-                Json.Replace(SaveFormatTokenLbl, Format(this.SaveFormat, 0, 2))
-            else
-                Json.Add(SaveFormatTokenLbl, Format(this.SaveFormat, 0, 2));
-        end;
+    local procedure AddPrimaryDocument(var Json: JsonObject)
+    var
+        JsonTextToken: JsonToken;
+        TextVar: Text;
+        PrimaryDocumentTokenLbl: Label 'primaryDocument', Locked = true;
+        SaveFormatTokenLbl: Label 'saveformat', Locked = true;
+        PrimaryDocumentOverrideErr: Label 'The rendering payload already contains a primary document. This cannot be overwritten.';
+    begin
+        if StrLen(this.PrimaryDocumentName) = 0 then
+            exit;
 
+        if Json.Contains(PrimaryDocumentTokenLbl) then begin
+            Json.Get(PrimaryDocumentTokenLbl, JsonTextToken);
+            if JsonTextToken.WriteTo(TextVar) then
+                // The rendering payload already contains a primary document. This cannot be overwritten. Fail with an error.
+                if TextVar <> '' then
+                    Error(PrimaryDocumentOverrideErr);
+
+            Json.Replace(PrimaryDocumentTokenLbl, this.PrimaryDocumentName);
+        end else
+            Json.Add(PrimaryDocumentTokenLbl, this.PrimaryDocumentName);
+
+        if Json.Contains(SaveFormatTokenLbl) then
+            Json.Replace(SaveFormatTokenLbl, Format(this.SaveFormat, 0, 2))
+        else
+            Json.Add(SaveFormatTokenLbl, Format(this.SaveFormat, 0, 2));
+    end;
+
+    local procedure AddJsonTokens(var JsonElement: JsonObject; var JsonDataArray: JsonArray)
+    var
+        i: Integer;
+        DataType: Enum "PDF Attach. Data Relationship";
+        Name: Text;
+        MimeType: Text;
+        FileName: Text;
+        Description: Text;
+        NameTokenLbl: Label 'name', Locked = true;
+        RelationshipTokenLbl: Label 'relationship', Locked = true;
+        MimeTypeTokenLbl: Label 'mimetype', Locked = true;
+        FileNameTokenLbl: Label 'filename', Locked = true;
+        DescriptionTokenLbl: Label 'description', Locked = true;
+    begin
         for i := 1 to this.AttachmentCount() do begin
             this.FetchAttachment(i, name, DataType, MimeType, FileName, Description);
             clear(JsonElement);
@@ -395,7 +401,16 @@ codeunit 3109 "PDF Document Impl."
             JsonElement.Add(FileNameTokenLbl, FileName);
             JsonDataArray.Add(JsonElement);
         end;
+    end;
 
+    local procedure AddAttachments(var Json: JsonObject; var JsonDataArray: JsonArray)
+    var
+        i: Integer;
+        SourceDataArray: JsonArray;
+        JsonTokenElement: JsonToken;
+        AttachmentsTokenLbl: Label 'attachments', Locked = true;
+        AdditionalDocumentsTokenLbl: Label 'additionalDocuments', Locked = true;
+    begin
         if (Json.Contains(AttachmentsTokenLbl)) then begin
             // The rendering payload already contains attachments. We need to add the new ones to the existing list.
             SourceDataArray := Json.GetArray(AttachmentsTokenLbl);
@@ -413,15 +428,25 @@ codeunit 3109 "PDF Document Impl."
 
         if (Json.Contains(AdditionalDocumentsTokenLbl)) then begin
             SourceDataArray := Json.GetArray(AdditionalDocumentsTokenLbl);
-            for i := 1 to this.AppendCount() do
+            for i := 1 to this.AppendedDocumentCount() do
                 SourceDataArray.Add(this.AdditionalDocumenNames.Get(i));
             Json.Replace(AdditionalDocumentsTokenLbl, SourceDataArray);
         end else begin
-            for i := 1 to this.AppendCount() do
+            for i := 1 to this.AppendedDocumentCount() do
                 JsonDataArray.Add(this.AdditionalDocumenNames.Get(i));
             Json.Add(AdditionalDocumentsTokenLbl, JsonDataArray);
         end;
+    end;
 
+    [NonDebuggable]
+    local procedure SetDocumentProtection(var Json: JsonObject; var User: SecretText; var Admin: SecretText; var JsonElement: JsonObject)
+    var
+        HasProtection: Boolean;
+        ProtectionOverrideErr: Label 'The rendering payload already contains protection. This cannot be overwritten.';
+        ProtectionTokenLbl: Label 'protection', Locked = true;
+        UserTokenLbl: Label 'user', Locked = true;
+        AdminTokenLbl: Label 'admin', Locked = true;
+    begin
         HasProtection := this.FetchDocumentProtection(User, Admin);
         if (Json.Contains(ProtectionTokenLbl)) then begin
             // The rendering payload already contains protection. This cannot be overwritten. Fail with an error. 
@@ -433,7 +458,6 @@ codeunit 3109 "PDF Document Impl."
             JsonElement.Add(AdminTokenLbl, Admin.Unwrap());
             Json.Add(ProtectionTokenLbl, JsonElement);
         end;
-        exit(Json);
     end;
 
     [NonDebuggable]

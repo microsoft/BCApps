@@ -198,9 +198,9 @@ codeunit 3110 "PDF Document"
     /// This count reflects how many supplementary documents are currently tracked.
     /// </summary>
     /// <returns>The total number of additional document names.</returns>
-    procedure AppendCount(): Integer
+    procedure AppendedDocumentCount(): Integer
     begin
-        exit(PDFDocumentImpl.AppendCount());
+        exit(PDFDocumentImpl.AppendedDocumentCount());
     end;
 
     /// <summary>

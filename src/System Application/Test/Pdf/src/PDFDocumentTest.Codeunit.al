@@ -247,7 +247,7 @@ codeunit 132601 "PDF Document Test"
         PDFDocument.AddFilesToAppend(FileName);
 
         // [THEN] Assert that the file was added
-        Count := PDFDocument.AppendCount();
+        Count := PDFDocument.AppendedDocumentCount();
         Assert.AreEqual(1, Count, 'Expected one file to be appended.');
     end;
 
@@ -259,13 +259,13 @@ codeunit 132601 "PDF Document Test"
         // [GIVEN] One file already appended
         PDFDocument.Initialize();
         PDFDocument.AddFilesToAppend('appendix.pdf');
-        Assert.AreEqual(1, PDFDocument.AppendCount(), 'Expected one file before reset.');
+        Assert.AreEqual(1, PDFDocument.AppendedDocumentCount(), 'Expected one file before reset.');
 
         // [WHEN] Add an empty file name
         PDFDocument.AddFilesToAppend('');
 
         // [THEN] Assert that the list is cleared
-        Assert.AreEqual(0, PDFDocument.AppendCount(), 'Expected file list to be cleared.');
+        Assert.AreEqual(0, PDFDocument.AppendedDocumentCount(), 'Expected file list to be cleared.');
     end;
 
     [Test]
@@ -287,7 +287,7 @@ codeunit 132601 "PDF Document Test"
         PDFDocument.AddStreamToAppend(FileInStream);
 
         // [THEN] Assert that the file was added
-        Count := PDFDocument.AppendCount();
+        Count := PDFDocument.AppendedDocumentCount();
         Assert.AreEqual(1, Count, 'Expected one file to be appended from stream.');
     end;
 
