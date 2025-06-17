@@ -3084,6 +3084,7 @@ ObjectIDToRun2, ManualSetupCategory::Uncategorized, '');
         ChecklistItemRole.DeleteAll();
         ChecklistItemUser.DeleteAll();
         SpotlightTourText.DeleteAll();
+        User.SetFilter("User Name", '<>%1', 'ADMIN');
         User.DeleteAll();
     end;
 

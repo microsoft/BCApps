@@ -1000,6 +1000,7 @@ codeunit 132602 "Checklist Administration Test"
         ChecklistItem.DeleteAll();
         ChecklistItemRole.DeleteAll();
         ChecklistItemUser.DeleteAll();
+        User.SetFilter("User Name", '<>%1', 'ADMIN');
         User.DeleteAll();
 
         LibraryVariableStorage.Clear();
