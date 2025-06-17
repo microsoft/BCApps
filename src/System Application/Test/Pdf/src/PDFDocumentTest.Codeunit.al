@@ -340,6 +340,170 @@ codeunit 132601 "PDF Document Test"
             Error('Missing attachments array in JSON output.');
     end;
 
+    [Test]
+    procedure ToJson_IncludesVersionAndPrimaryDocument()
+    var
+        PDFDocument: Codeunit "PDF Document Impl.";
+        JsonOut: JsonObject;
+    begin
+        // [GIVEN] Valid PDF document with primary attachment
+        PDFDocument.Initialize();
+        PDFDocument.AddAttachment(
+            'main.pdf',
+            Enum::"PDF Attach. Data Relationship"::Data,
+            'application/pdf',
+            'main.pdf',
+            'Main document',
+            true);
+
+        // [WHEN] Generate JSON
+        JsonOut := PDFDocument.ToJson(JsonOut);
+
+        // [THEN] Check for version and primaryDocument tokens
+        Assert.IsTrue(JsonOut.Contains('version'), 'Expected version token.');
+        Assert.IsTrue(JsonOut.Contains('primaryDocument'), 'Expected primaryDocument token.');
+    end;
+
+    [Test]
+    procedure ToJson_AppendsAdditionalDocuments()
+    var
+        PDFDocument: Codeunit "PDF Document Impl.";
+        JsonOut: JsonObject;
+        JsonToken: JsonToken;
+        JsonArray: JsonArray;
+    begin
+        // [GIVEN] Create a PDF document with 2 additional files to append
+        PDFDocument.Initialize();
+        PDFDocument.AddFilesToAppend('appendix1.pdf');
+        PDFDocument.AddFilesToAppend('appendix2.pdf');
+
+        // [WHEN] Generate JSON
+        JsonOut := PDFDocument.ToJson(JsonOut);
+
+        // [THEN] Verify additionalDocuments array is 2
+        JsonOut.Get('additionalDocuments', JsonToken);
+        JsonArray := JsonToken.AsArray();
+        Assert.AreEqual(2, JsonArray.Count(), 'Expected two additional documents.');
+    end;
+
+    [Test]
+    procedure ToJson_IncludesProtectionBlock()
+    var
+        PDFDocument: Codeunit "PDF Document Impl.";
+        JsonOut: JsonObject;
+    begin
+        // [GIVEN] PDF document with protection
+        PDFDocument.Initialize();
+        PDFDocument.ProtectDocument('usercode', 'admincode');
+
+        // [WHEN] Generate JSON
+        JsonOut := PDFDocument.ToJson(JsonOut);
+
+        // [THEN] Check for protection block
+        Assert.IsTrue(JsonOut.Contains('protection'), 'Expected protection block in JSON.');
+    end;
+
+    [Test]
+    procedure ToJson_IncludesAttachmentDetails()
+    var
+        PDFDocument: Codeunit "PDF Document Impl.";
+        JsonOut: JsonObject;
+        JsonToken: JsonToken;
+        JsonArray: JsonArray;
+    begin
+        // [GIVEN] PDF document with one attachment
+        PDFDocument.Initialize();
+        PDFDocument.AddAttachment(
+            'invoice.xml',
+            Enum::"PDF Attach. Data Relationship"::Data,
+            'application/xml',
+            'invoice.xml',
+            'Test invoice',
+            false);
+
+        // [WHEN] Generate JSON
+        JsonOut := PDFDocument.ToJson(JsonOut);
+
+        // [THEN] Check for attachments array is 1
+        JsonOut.Get('attachments', JsonToken);
+        JsonArray := JsonToken.AsArray();
+        Assert.AreEqual(1, JsonArray.Count(), 'Expected one attachment in the JSON output.');
+    end;
+
+    [Test]
+    procedure ToJson_ThrowsOnPrimaryDocumentOverride()
+    var
+        PDFDocument: Codeunit "PDF Document Impl.";
+        JsonIn: JsonObject;
+    begin
+        // [GIVEN] Valid PDF document with primary attachment
+        PDFDocument.Initialize();
+        PDFDocument.AddAttachment(
+            'main.pdf',
+            Enum::"PDF Attach. Data Relationship"::Data,
+            'application/pdf',
+            'main.pdf',
+            'Main document',
+            true);
+
+        // [GIVEN] RenderingPayload already contains primaryDocument
+        JsonIn.Add('primaryDocument', 'existing.pdf');
+
+        // [WHEN/THEN] Calling ToJson should throw an error that primaryDocument cannot be overridden
+        asserterror PDFDocument.ToJson(JsonIn);
+    end;
+
+    [Test]
+    procedure ToJson_ThrowsOnProtectionOverride()
+    var
+        PDFDocument: Codeunit "PDF Document Impl.";
+        JsonIn: JsonObject;
+        ProtectionObj: JsonObject;
+    begin
+        // [GIVEN] Valid PDF document with protection
+        PDFDocument.Initialize();
+        PDFDocument.ProtectDocument('usercode', 'admincode');
+
+        // [AND] RenderingPayload already contains protection block
+        ProtectionObj.Add('user', 'existing');
+        ProtectionObj.Add('admin', 'existing');
+        JsonIn.Add('protection', ProtectionObj);
+
+        // [WHEN/THEN] Calling ToJson should throw an error that protection cannot be overridden
+        asserterror PDFDocument.ToJson(JsonIn);
+    end;
+
+    [Test]
+    procedure ToJson_AddsMandatoryElements_UsingExistingProcedures()
+    var
+        PDFDocument: Codeunit "PDF Document Impl.";
+        JsonOut: JsonObject;
+    begin
+        // [GIVEN] A valid PDF document with attachments and protection
+        PDFDocument.Initialize();
+        PDFDocument.AddAttachment(
+            'main.pdf',
+            Enum::"PDF Attach. Data Relationship"::Data,
+            'application/pdf',
+            'main.pdf',
+            'Main document',
+            true);
+
+        PDFDocument.AddFilesToAppend('appendix.pdf');
+        PDFDocument.ProtectDocument('usercode', 'admincode');
+
+        // [WHEN] Generate JSON output
+        JsonOut := PDFDocument.ToJson(JsonOut);
+
+        // [THEN] Assert that mandatory elements are present
+        Assert.IsTrue(JsonOut.Contains('version'), 'Expected version token.');
+        Assert.IsTrue(JsonOut.Contains('primaryDocument'), 'Expected primaryDocument token.');
+        Assert.IsTrue(JsonOut.Contains('saveformat'), 'Expected saveformat token.');
+        Assert.IsTrue(JsonOut.Contains('attachments'), 'Expected attachments token.');
+        Assert.IsTrue(JsonOut.Contains('additionalDocuments'), 'Expected additionalDocuments token.');
+        Assert.IsTrue(JsonOut.Contains('protection'), 'Expected protection token.');
+    end;
+
 
     local procedure AssertStreamNotEmpty(TempBlob: Codeunit "Temp Blob")
     var
