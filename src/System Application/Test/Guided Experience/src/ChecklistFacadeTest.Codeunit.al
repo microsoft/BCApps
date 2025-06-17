@@ -24,7 +24,7 @@ codeunit 132604 "Checklist Facade Test"
                     tabledata "Checklist Setup" = rimd,
                     tabledata "Spotlight Tour Text" = rimd,
                     tabledata "All Profile" = ri,
-                    tabledata User = ri,
+                    tabledata User = rid,
                     tabledata Company = rm;
 
     var
@@ -3070,6 +3070,7 @@ ObjectIDToRun2, ManualSetupCategory::Uncategorized, '');
         ChecklistItemRole: Record "Checklist Item Role";
         ChecklistItemUser: Record "Checklist Item User";
         SpotlightTourText: Record "Spotlight Tour Text";
+        User: Record User;
     begin
         if ShouldInsertProfiles then begin
             InsertProfile(ProfileID1);
@@ -3083,6 +3084,7 @@ ObjectIDToRun2, ManualSetupCategory::Uncategorized, '');
         ChecklistItemRole.DeleteAll();
         ChecklistItemUser.DeleteAll();
         SpotlightTourText.DeleteAll();
+        User.DeleteAll();
     end;
 
     local procedure AddRoleToList(var TempAllProfile: Record "All Profile" temporary; ProfileID: Code[30])
@@ -3146,14 +3148,12 @@ ObjectIDToRun2, ManualSetupCategory::Uncategorized, '');
     var
         User: Record User;
     begin
-        PermissionsMock.Stop();
         UserSecurityID := CreateGuid();
         UserName := CopyStr(Any.AlphanumericText(50), 1, MaxStrLen(UserName));
 
         User."User Security ID" := UserSecurityID;
         User."User Name" := UserName;
         User.Insert();
-        PermissionsMock.Start();
     end;
 
     local procedure GetNewLink(): Text[250]

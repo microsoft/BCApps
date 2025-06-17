@@ -20,7 +20,7 @@ codeunit 132602 "Checklist Administration Test"
                     tabledata "Checklist Item Role" = rimd,
                     tabledata "Checklist Item User" = rimd,
                     tabledata "All Profile" = ri,
-                    tabledata User = ri,
+                    tabledata User = rid,
                     tabledata "User Personalization" = rm;
 
     var
@@ -988,6 +988,7 @@ codeunit 132602 "Checklist Administration Test"
         ChecklistItem: Record "Checklist Item";
         ChecklistItemRole: Record "Checklist Item Role";
         ChecklistItemUser: Record "Checklist Item User";
+        User: Record User;
     begin
         if ShouldInitializeProfiles then begin
             InsertProfile(ProfileID1);
@@ -999,6 +1000,7 @@ codeunit 132602 "Checklist Administration Test"
         ChecklistItem.DeleteAll();
         ChecklistItemRole.DeleteAll();
         ChecklistItemUser.DeleteAll();
+        User.DeleteAll();
 
         LibraryVariableStorage.Clear();
     end;
@@ -1138,14 +1140,12 @@ codeunit 132602 "Checklist Administration Test"
     var
         User: Record User;
     begin
-        PermissionsMock.Stop();
         UserSecurityID := CreateGuid();
         UserName := CopyStr(Any.AlphanumericText(50), 1, MaxStrLen(UserName));
 
         User."User Security ID" := UserSecurityID;
         User."User Name" := UserName;
         User.Insert();
-        PermissionsMock.Start();
     end;
 
     local procedure AddUserToList(var TempUser: Record User temporary; var UserSecurityId: Guid; var UserName: Code[50])
