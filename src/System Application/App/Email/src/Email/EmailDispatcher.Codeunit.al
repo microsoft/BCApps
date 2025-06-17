@@ -112,6 +112,27 @@ codeunit 8888 "Email Dispatcher"
             Email.OnAfterEmailSendFailed(EmailOutbox);
     end;
 
+    procedure GetMaximumRetryCount(): Integer
+    begin
+        exit(10); // Maximum retry count for sending emails
+    end;
+
+    procedure CleanEmailRetryByMessageId(MessageId: Guid)
+    var
+        EmailRetry: Record "Email Retry";
+        EmailOutbox: Record "Email Outbox";
+    begin
+        EmailRetry.SetRange("Message Id", MessageId);
+        if not EmailRetry.IsEmpty() then
+            EmailRetry.DeleteAll();
+
+        EmailOutbox.SetRange("Message Id", MessageId);
+        if not EmailOutbox.FindFirst() then
+            exit;
+        EmailOutbox.Validate("Retry No.", 0);
+        EmailOutbox.Modify();
+    end;
+
     local procedure RetrySendEmail(var EmailOutbox: Record "Email Outbox"): Boolean
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -123,7 +144,7 @@ codeunit 8888 "Email Dispatcher"
         FeatureTelemetry.LogError('', EmailFeatureNameLbl, 'Retry failed email', StrSubstNo(FailedToFindEmailMessageMsg, EmailOutbox."Message Id"), '', Dimensions);
         EmailOutbox.Validate("Retry No.", EmailOutbox."Retry No." + 1);
 
-        if EmailOutbox."Retry No." > 10 then begin
+        if EmailOutbox."Retry No." > GetMaximumRetryCount() then begin
             FeatureTelemetry.LogError('', EmailFeatureNameLbl, 'Email retry reached maximum times', '', '', Dimensions);
             exit(false);
         end;
@@ -173,7 +194,10 @@ codeunit 8888 "Email Dispatcher"
         EmailRetry.Insert();
     end;
 
-    local procedure UpdateEmailRetryRecord(MessageId: Guid; RetryNo: Integer; Status: Enum "Email Status"; ErrorMessage: Text; DateQueued: DateTime; DateFailed: DateTime; DateSending: DateTime)
+    local procedure UpdateEmailRetryRecord(MessageId: Guid; RetryNo: Integer; Status: Enum "Email Status"; ErrorMessage: Text;
+                                                                                          DateQueued: DateTime;
+                                                                                          DateFailed: DateTime;
+                                                                                          DateSending: DateTime)
     var
         EmailRetry: Record "Email Retry";
     begin
