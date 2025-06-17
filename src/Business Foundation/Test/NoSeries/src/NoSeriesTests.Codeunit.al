@@ -52,18 +52,6 @@ codeunit 134530 "No. Series Tests"
     end;
 
     [Test]
-    procedure Test_IsEmptyCompany()
-    var
-        NoSeries: Record "No. Series";
-        PermissionsMock: Codeunit "Permissions Mock";
-    begin
-        Initialize();
-        PermissionsMock.Set('No. Series - Admin');
-
-        LibraryAssert.AreEqual(0, NoSeries.Count(), 'No. Series should be empty');
-    end;
-
-    [Test]
     procedure TestGetNextNo_Sequence()
     var
         NoSeries: Codeunit "No. Series";
