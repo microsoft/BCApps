@@ -1138,12 +1138,14 @@ codeunit 132602 "Checklist Administration Test"
     var
         User: Record User;
     begin
+        PermissionsMock.Stop();
         UserSecurityID := CreateGuid();
         UserName := CopyStr(Any.AlphanumericText(50), 1, MaxStrLen(UserName));
 
         User."User Security ID" := UserSecurityID;
         User."User Name" := UserName;
         User.Insert();
+        PermissionsMock.Start();
     end;
 
     local procedure AddUserToList(var TempUser: Record User temporary; var UserSecurityId: Guid; var UserName: Code[50])
