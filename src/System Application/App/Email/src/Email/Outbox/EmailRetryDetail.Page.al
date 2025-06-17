@@ -14,7 +14,7 @@ page 8892 "Email Retry Detail"
     SourceTable = "Email Retry";
     SourceTableTemporary = true;
     AdditionalSearchTerms = 'retry email';
-    Permissions = tabledata "Email Retry" = rd;
+    Permissions = tabledata "Email Retry" = r;
     RefreshOnActivate = true;
     InsertAllowed = false;
     ModifyAllowed = false;
@@ -67,7 +67,7 @@ page 8892 "Email Retry Detail"
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedOnly = true;
-                Enabled = true;
+                Enabled = FailedStatus;
 
                 trigger OnAction()
                 begin
@@ -84,7 +84,7 @@ page 8892 "Email Retry Detail"
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedOnly = true;
-                Enabled = true;
+                Enabled = FailedStatus;
 
                 trigger OnAction()
                 var
@@ -102,6 +102,12 @@ page 8892 "Email Retry Detail"
             Error(NoRetryDetailFoundErr);
     end;
 
+    trigger OnAfterGetRecord()
+    begin
+        FailedStatus := Rec.Status = Rec.Status::Failed;
+    end;
+
     var
         NoRetryDetailFoundErr: Label 'No email retry details found. This could be caused by the email was sent before the retry feature was enabled.';
+        FailedStatus: Boolean;
 }
