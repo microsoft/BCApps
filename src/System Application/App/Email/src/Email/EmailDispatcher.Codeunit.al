@@ -44,26 +44,10 @@ codeunit 8888 "Email Dispatcher"
         // -----------
 
         Rec.LockTable(true);
-        if EmailRateLimitImpl.IsRateLimitExceeded(Rec."Account Id", Rec.Connector, Rec."Send From", RateLimitDuration)
-        or (GetEmailOutboxCurrentProcessingCount() > EmailRateLimitImpl.GetConcurrencyLimit(Rec."Account Id", Rec.Connector, Rec."Send From")) then
+        if EmailRateLimitImpl.IsRateLimitExceeded(Rec."Account Id", Rec.Connector, Rec."Send From", RateLimitDuration) or EmailRateLimitImpl.IsConcurrencyLimitExceeded(Rec."Account Id", Rec.Connector, Rec."Send From") then
             RescheduleEmail(RateLimitDuration, Dimensions, Rec)
         else
             SendEmail(Rec);
-    end;
-
-    /// <summary>
-    /// Returns the current count of emails in the outbox that are being processed.
-    /// </summary>
-    /// <returns>The count of the email which is being sending</returns>
-    internal procedure GetEmailOutboxCurrentProcessingCount(): Integer
-    var
-        EmailOutbox: Record "Email Outbox";
-    begin
-        EmailOutbox.SetRange(Status, EmailOutbox.Status::Processing);
-        if not EmailOutbox.FindSet() then
-            exit(0);
-
-        exit(EmailOutbox.Count());
     end;
 
     local procedure SendEmail(var EmailOutbox: Record "Email Outbox")
@@ -96,7 +80,6 @@ codeunit 8888 "Email Dispatcher"
                 FeatureTelemetry.LogUsage('0000CTV', EmailFeatureNameLbl, 'Email sent', Dimensions);
 
                 InsertToSentEmail(EmailOutbox, SentEmail);
-
                 CleanEmailRetry(EmailOutbox."Message Id");
                 EmailOutbox.Delete();
                 EmailMessageImpl.MarkAsRead();
@@ -112,8 +95,7 @@ codeunit 8888 "Email Dispatcher"
                     if EmailOutbox."Retry No." = 0 then
                         CreateEmailRetry(EmailOutbox);
 
-                    UpdateEmailRetryStatus(EmailOutbox."Message Id", EmailOutbox."Retry No.", EmailOutbox.Status::Failed);
-                    UpdateEmailRetryErrorMessage(EmailOutbox."Message Id", EmailOutbox."Retry No.", LastErrorText);
+                    UpdateEmailRetryRecord(EmailOutbox."Message Id", EmailOutbox."Retry No.", EmailOutbox.Status::Failed, LastErrorText, EmailOutbox."Date Queued", EmailOutbox."Date Failed", EmailOutbox."Date Sending");
 
                     if RetrySendEmail(EmailOutbox) then exit;
                 end;
@@ -191,7 +173,7 @@ codeunit 8888 "Email Dispatcher"
         EmailRetry.Insert();
     end;
 
-    local procedure UpdateEmailRetryStatus(MessageId: Guid; RetryNo: Integer; Status: Enum "Email Status")
+    local procedure UpdateEmailRetryRecord(MessageId: Guid; RetryNo: Integer; Status: Enum "Email Status"; ErrorMessage: Text; DateQueued: DateTime; DateFailed: DateTime; DateSending: DateTime)
     var
         EmailRetry: Record "Email Retry";
     begin
@@ -200,21 +182,12 @@ codeunit 8888 "Email Dispatcher"
         if not EmailRetry.FindFirst() then
             exit;
 
-        EmailRetry.Status := Status;
-        EmailRetry.Modify();
-        Commit();
-    end;
+        EmailRetry.Validate(Status, Status);
+        EmailRetry.Validate("Error Message", CopyStr(ErrorMessage, 1, MaxStrLen(EmailRetry."Error Message")));
+        EmailRetry.Validate("Date Queued", DateQueued);
+        EmailRetry.Validate("Date Failed", DateFailed);
+        EmailRetry.Validate("Date Sending", DateSending);
 
-    local procedure UpdateEmailRetryErrorMessage(MessageId: Guid; RetryNo: Integer; ErrorMessage: Text)
-    var
-        EmailRetry: Record "Email Retry";
-    begin
-        EmailRetry.SetRange("Message Id", MessageId);
-        EmailRetry.SetRange("Retry No.", RetryNo);
-        if not EmailRetry.FindFirst() then
-            exit;
-
-        EmailRetry."Error Message" := CopyStr(ErrorMessage, 1, MaxStrLen(EmailRetry."Error Message"));
         EmailRetry.Modify();
         Commit();
     end;
@@ -268,7 +241,7 @@ codeunit 8888 "Email Dispatcher"
         EmailError."Error Callstack".CreateOutStream(ErrorOutStream, TextEncoding::UTF8);
         ErrorOutStream.WriteText(GetLastErrorCallStack());
         EmailError.Validate("Error Timestamp", CurrentDateTime());
-        EmailError.Validate("Retry No.", EmailOutbox."Retry No." + 1);
+        EmailError.Validate("Retry No.", EmailOutbox."Retry No.");
         EmailError.Insert();
 
         EmailOutbox."Error Message" := CopyStr(LastError, 1, MaxStrLen(EmailOutbox."Error Message"));

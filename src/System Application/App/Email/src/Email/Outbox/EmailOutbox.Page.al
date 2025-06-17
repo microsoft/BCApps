@@ -160,6 +160,25 @@ page 8882 "Email Outbox"
                     EmailImpl.ShowSourceRecord(Rec."Message Id");
                 end;
             }
+            action(ShowRetryDetail)
+            {
+                ApplicationArea = All;
+                Image = ShowList;
+                Caption = 'Retry Detail';
+                ToolTip = 'View the retry detail of the email.';
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedOnly = true;
+                Enabled = true;
+
+                trigger OnAction()
+                var
+                    EmailRetryDetailRec: Record "Email Retry";
+                begin
+                    EmailRetryDetailRec.SetRange("Message Id", Rec."Message Id");
+                    PAGE.RunModal(PAGE::"Email Retry Detail", EmailRetryDetailRec);
+                end;
+            }
         }
 
         area(Processing)

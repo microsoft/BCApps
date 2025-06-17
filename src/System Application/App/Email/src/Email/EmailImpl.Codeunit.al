@@ -45,6 +45,8 @@ codeunit 8900 "Email Impl"
         EmailconnectorDoesNotSupportReplyingErr: Label 'The selected email connector does not support replying to emails.';
         ExternalIdCannotBeEmptyErr: Label 'The external ID cannot be empty.';
         TelemetryRetrieveEmailsUsedTxt: Label 'Retrieving emails is used', Locked = true;
+        ErrorCallStackNotFoundErr: Label 'Error call stack not found for the email message with ID %1.', Locked = true;
+        EmailOutboxDoesNotExistErr: Label 'The email outbox does not exist for the email message with ID %1.', Locked = true;
 
     #region API
 
@@ -554,6 +556,27 @@ codeunit 8900 "Email Impl"
     begin
         EmailError.SetRange("Outbox Id", EmailOutboxId);
         EmailError.FindLast();
+        EmailError.CalcFields(EmailError."Error Callstack");
+        EmailError."Error Callstack".CreateInStream(ErrorInstream, TextEncoding::UTF8);
+        ErrorInstream.ReadText(ErrorText);
+        exit(ErrorText);
+    end;
+
+    procedure FindErrorCallStackWithMsgIDAndRetryNo(MessageId: Guid; RetryNo: Integer): Text
+    var
+        EmailError: Record "Email Error";
+        EmailOutbox: Record "Email Outbox";
+        ErrorInstream: InStream;
+        ErrorText: Text;
+    begin
+        EmailOutbox.SetRange("Message Id", MessageId);
+        if not EmailOutbox.FindFirst() then
+            Error(EmailOutboxDoesNotExistErr, MessageId);
+
+        EmailError.SetRange("Outbox Id", EmailOutbox.Id);
+        EmailError.SetRange("Retry No.", RetryNo);
+        if not EmailError.FindFirst() then
+            Error(ErrorCallStackNotFoundErr, MessageId);
         EmailError.CalcFields(EmailError."Error Callstack");
         EmailError."Error Callstack".CreateInStream(ErrorInstream, TextEncoding::UTF8);
         ErrorInstream.ReadText(ErrorText);
