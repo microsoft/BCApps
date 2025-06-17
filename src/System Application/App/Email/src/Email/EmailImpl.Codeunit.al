@@ -22,7 +22,8 @@ codeunit 8900 "Email Impl"
                   tabledata "Email Message" = r,
                   tabledata "Email Error" = r,
                   tabledata "Email Recipient" = r,
-                  tabledata "Email View Policy" = r;
+                  tabledata "Email View Policy" = r,
+                  tabledata "Email Retry" = r;
 
     var
         EmailCategoryLbl: Label 'Email', Locked = true;
