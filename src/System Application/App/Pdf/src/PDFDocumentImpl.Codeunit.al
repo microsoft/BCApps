@@ -357,7 +357,7 @@ codeunit 3109 "PDF Document Impl."
         NameTokenLbl: Label 'name', Locked = true;
         RelationshipTokenLbl: Label 'relationship', Locked = true;
         MimeTypeTokenLbl: Label 'mimetype', Locked = true;
-        FileNameTokenLbl: Label 'FileName', Locked = true;
+        FileNameTokenLbl: Label 'filename', Locked = true;
         DescriptionTokenLbl: Label 'description', Locked = true;
         UserTokenLbl: Label 'user', Locked = true;
         AdminTokenLbl: Label 'admin', Locked = true;
