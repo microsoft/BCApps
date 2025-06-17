@@ -10,7 +10,6 @@ using System.Security.AccessControl;
 table 8890 "Email Retry"
 {
     Access = Internal;
-    Extensible = true;
 
     fields
     {
@@ -30,7 +29,7 @@ table 8890 "Email Retry"
         field(3; "Account Id"; Guid)
         {
             Access = Internal;
-            DataClassification = SystemMetadata;
+            DataClassification = CustomerContent;
         }
 
         field(4; Connector; Enum "Email Connector")
