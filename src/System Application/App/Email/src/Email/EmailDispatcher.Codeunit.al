@@ -148,7 +148,7 @@ codeunit 8888 "Email Dispatcher"
         EmailRetry: Record "Email Retry";
     begin
         EmailRetry.SetRange("Message Id", MessageId);
-        if not EmailRetry.FindSet() then
+        if not EmailRetry.IsEmpty() then
             exit;
 
         EmailRetry.DeleteAll();
