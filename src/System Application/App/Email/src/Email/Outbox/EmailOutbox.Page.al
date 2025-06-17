@@ -169,7 +169,7 @@ page 8882 "Email Outbox"
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedOnly = true;
-                Enabled = true;
+                Enabled = HasRetryDetail;
 
                 trigger OnAction()
                 var
@@ -253,6 +253,7 @@ page 8882 "Email Outbox"
         end;
 
         FailedStatus := Rec.Status = Rec.Status::Failed;
+        HasRetryDetail := EmailImpl.HasRetryDetail(Rec."Message Id");
         CanSendEmail := (Rec."Retry No." = EmailDispatcher.GetMaximumRetryCount()) and (Rec.Status = Rec.Status::Failed);
         NoEmailsInOutbox := false;
     end;
@@ -351,6 +352,7 @@ page 8882 "Email Outbox"
         EmailAccountId: Guid;
         RefreshOutbox: Boolean;
         CanSendEmail: Boolean;
+        HasRetryDetail: Boolean;
         NoEmailsInOutbox: Boolean;
         FailedStatus: Boolean;
         HasSourceRecord: Boolean;

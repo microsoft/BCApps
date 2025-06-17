@@ -96,18 +96,11 @@ page 8892 "Email Retry Detail"
         }
     }
 
-    trigger OnOpenPage()
-    begin
-        if Rec.IsEmpty() then
-            Error(NoRetryDetailFoundErr);
-    end;
-
     trigger OnAfterGetRecord()
     begin
         FailedStatus := Rec.Status = Rec.Status::Failed;
     end;
 
     var
-        NoRetryDetailFoundErr: Label 'No email retry details found. This could be caused by the email was sent before the retry feature was enabled.';
         FailedStatus: Boolean;
 }

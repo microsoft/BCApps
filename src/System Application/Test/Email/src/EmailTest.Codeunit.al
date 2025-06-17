@@ -714,6 +714,59 @@ codeunit 134685 "Email Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure SendEmailMessageFromForegroundFailedAndRetryTest()
+    var
+        EmailRetry: Record "Email Retry";
+        EmailOutbox: Record "Email Outbox";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+        EmailOutboxPage: Page "Email Outbox";
+        EmailOutboxTestPage: TestPage "Email Outbox";
+        Connector: Enum "Email Connector";
+        EmailStatus: Enum "Email Status";
+        AccountId: Guid;
+        ScheduledDateTime: DateTime;
+    begin
+        // [Scenario] When sending an email on the foreground and the process fails, an error is shown and the email is not rescheduled for retry
+        PermissionsMock.Set('Super');
+
+        // [Given] An email message and an email account
+        CreateEmail(EmailMessage);
+        Assert.IsTrue(EmailMessage.Get(EmailMessage.GetId()), 'The email should exist');
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(AccountId);
+
+        // [When] Sending the email fails
+        ConnectorMock.FailOnSend(true);
+        ScheduledDateTime := CurrentDateTime();
+        Assert.IsFalse(Email.Send(EmailMessage, AccountId, Connector::"Test Email Connector"), 'Sending an email should have failed');
+
+        // [Then] The error is as expected
+        EmailOutbox.SetRange("Account Id", AccountId);
+        EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
+        Assert.IsTrue(EmailOutbox.FindFirst(), 'The email outbox entry should exist');
+        Assert.AreEqual(Connector::"Test Email Connector".AsInteger(), EmailOutbox.Connector.AsInteger(), 'Wrong connector');
+        Assert.AreEqual(EmailStatus::Failed.AsInteger(), EmailOutbox.Status.AsInteger(), 'Wrong status');
+        Assert.AreEqual('Failed to send email', EmailOutbox."Error Message", 'Wrong error message');
+        Assert.IsTrue(EmailOutbox."Date Queued" > ScheduledDateTime, 'The Date Queued should be later than now');
+
+        // [Then] There is no entry in the Email Retry table
+        EmailRetry.SetRange("Account Id", AccountId);
+        EmailRetry.SetRange("Message Id", EmailMessage.GetId());
+        Assert.IsTrue(EmailRetry.IsEmpty(), 'There should be no entries in the Email Retry table for this message');
+
+        // [When] The Email Outbox page is opened
+        EmailOutboxTestPage.Trap();
+        EmailOutboxPage.SetRecord(EmailOutbox);
+        EmailOutboxPage.Run();
+
+        // [Then] The show retry detail action is not enabled
+        Assert.IsFalse(EmailOutboxTestPage.ShowRetryDetail.Enabled(), 'The Show Retry Detail action should not be visible when there is no retry entry');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('EmailRetryDetailPageHandler')]
     procedure SendEmailMessageFromBackgroundFailedAndRetryTest()
     var
         EmailRetry: Record "Email Retry";
@@ -724,6 +777,8 @@ codeunit 134685 "Email Test"
         EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
         TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
+        EmailOutboxPage: Page "Email Outbox";
+        EmailOutboxTestPage: TestPage "Email Outbox";
         ScheduledDateTime: DateTime;
     begin
         // [Scenario] When sending an email on the background and then fails, the email should be scheduled for retry
@@ -754,12 +809,19 @@ codeunit 134685 "Email Test"
         Assert.AreEqual(Enum::"Email Status"::Failed.AsInteger(), EmailRetry.Status.AsInteger(), 'Wrong status');
         Assert.AreEqual('Failed to send email', EmailRetry."Error Message", 'Wrong error message');
         Assert.AreEqual(0, EmailRetry."Retry No.", 'The retry number should be 0');
-        Assert.AreEqual(2, EmailRetry.Count, 'There are two entries in the Email Retry table');
+        Assert.AreEqual(2, EmailRetry.Count(), 'There are two entries in the Email Retry table');
 
         EmailRetry.Next();
         Assert.AreEqual(Enum::"Email Status"::Queued.AsInteger(), EmailRetry.Status.AsInteger(), 'Wrong status');
-        Assert.AreEqual(1, EmailRetry."Retry No.", 'The retry number should be 0');
+        Assert.AreEqual(1, EmailRetry."Retry No.", 'The retry number should be 1');
         Assert.IsTrue(EmailRetry."Date Sending" > ScheduledDateTime, 'The Date Queued should be later than now');
+
+        // [When] The Email Outbox page is opened and the retry detail is shown
+        EmailOutboxTestPage.Trap();
+        EmailOutboxPage.SetRecord(EmailOutbox);
+        EmailOutboxPage.Run();
+        EmailOutboxTestPage.ShowRetryDetail.Invoke();
+        // [Then] The Email Retry Detail page is opened with the correct entries in EmailRetryDetailPageHandler
 
         UnBindSubscription(TestClientTypeSubscriber);
     end;
@@ -787,7 +849,7 @@ codeunit 134685 "Email Test"
 
         // [Given] The 11st email is created
         EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
-        SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Queued);
+        SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Queued, 0);
 
         // [When] The 11st email is sent from the foreground
         EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
@@ -829,7 +891,7 @@ codeunit 134685 "Email Test"
 
         // [Given] The 11st email is created
         EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
-        SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Queued);
+        SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Queued, 0);
 
         // [When] The 11st email is sent from the background
         EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
@@ -845,32 +907,92 @@ codeunit 134685 "Email Test"
         UnBindSubscription(TestClientTypeSubscriber);
     end;
 
-    local procedure CreateEmailMessageAndEmailOutboxRecord(NumberOfRecords: Integer; TempAccount: Record "Email Account")
+    [Test]
+    [Scope('OnPrem')]
+    procedure ResendEmailFromEmailOutboxTest()
     var
-        EmailMessage: Codeunit "Email Message";
-        Any: Codeunit Any;
-        i: Integer;
-    begin
-        for i := 1 to NumberOfRecords do begin
-            EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
-            // [Given] The email is enqueued in the outbox
-            SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Processing);
-        end;
-    end;
-
-    procedure SetupEmailOutbox(EmailMessageId: Guid; Connector: Enum "Email Connector"; EmailAccountId: Guid; EmailDescription: Text; EmailAddress: Text[250]; UserSecurityId: Code[50]; Status: Enum "Email Status")
-    var
+        TempAccount: Record "Email Account" temporary;
         EmailOutbox: Record "Email Outbox";
+        Any: Codeunit Any;
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+        EmailOutboxPage: Page "Email Outbox";
+        EmailOutboxTestPage: TestPage "Email Outbox";
+
     begin
-        EmailOutbox.Validate("Message Id", EmailMessageId);
-        EmailOutbox.Insert();
-        EmailOutbox.Validate(Connector, Connector);
-        EmailOutbox.Validate("Account Id", EmailAccountId);
-        EmailOutbox.Validate(Description, EmailDescription);
-        EmailOutbox.Validate("User Security Id", UserSecurityId);
-        EmailOutbox.Validate("Send From", EmailAddress);
-        EmailOutbox.Validate(Status, Status);
-        EmailOutbox.Modify();
+        // [Scenario] User can resend an email from the Email Outbox page when the email is failed and the retry process has completed
+        // There are four email outbox records with different statuses and retry records are created:
+        // 1. Status Failed and no retry records -> Not re-sendable and not showing retry details
+        // 2. Status Failed and Retry No. = 3 -> Not re-sendable and showing retry details
+        // 3. Status Queued and Retry No. = 5 -> Not re-sendable and showing retry details
+        // 4. Status Failed and Retry No. = 10 -> Re-sendable and showing retry details
+        // 
+        // For the forth email outbox record, when the user clicks on the Send Email action, the retry records should be deleted, and the "Retry No." should be set with 0.
+
+        PermissionsMock.Set('Super');
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(TempAccount);
+
+        // [Given] Create the first email message without retry records
+        EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+        EmailOutbox := SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject1', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Processing, 10);
+        // [When] Open the Email Outbox page and check the first email outbox record
+        EmailOutboxTestPage.Trap();
+        EmailOutboxPage.SetRecord(EmailOutbox);
+        EmailOutboxPage.Run();
+        // [Then] The Send Email and Show Retry Details actions are disabled
+        Assert.IsFalse(EmailOutboxTestPage.SendEmail.Enabled(), 'Send Email action should not be enabled for the first email outbox record because it is in Processing status');
+        Assert.IsFalse(EmailOutboxTestPage.ShowRetryDetail.Enabled(), 'Show Retry Details action should not be enabled for the first email outbox record because it doesn''t have any retry records');
+        EmailOutboxPage.Close();
+
+        // [Given] Create the second email message and retry record
+        EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+        EmailOutbox := SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject2', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Failed, 3);
+        CreateMultipleEmailRetryRecords(3, EmailOutbox);
+        // [When] Open the Email Outbox page and check the first email outbox record
+        EmailOutboxTestPage.Trap();
+        EmailOutboxPage.SetRecord(EmailOutbox);
+        EmailOutboxPage.Run();
+        // [Then] The Send Email is disabled, and Show Retry Details actions is enabled
+        Assert.IsFalse(EmailOutboxTestPage.SendEmail.Enabled(), 'Send Email action should not be enabled for the second email outbox record because it only has 3 retries');
+        Assert.IsTrue(EmailOutboxTestPage.ShowRetryDetail.Enabled(), 'Show Retry Details action should be enabled for the second email outbox record');
+        EmailOutboxPage.Close();
+
+        // [Given] Create the third email message and retry record
+        EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+        EmailOutbox := SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject3', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Processing, 5);
+        CreateMultipleEmailRetryRecords(5, EmailOutbox);
+        // [When] Open the Email Outbox page and check the first email outbox record
+        EmailOutboxTestPage.Trap();
+        EmailOutboxPage.SetRecord(EmailOutbox);
+        EmailOutboxPage.Run();
+        // [Then] The Send Email is disabled, and Show Retry Details actions is enabled
+        Assert.IsFalse(EmailOutboxTestPage.SendEmail.Enabled(), 'Send Email action should not be enabled for the third email outbox record because it is in Processing status');
+        Assert.IsTrue(EmailOutboxTestPage.ShowRetryDetail.Enabled(), 'Show Retry Details action should be enabled for the third email outbox record');
+        EmailOutboxPage.Close();
+
+        // [Given] Create the forth email message and retry record
+        EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+        EmailOutbox := SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject4', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Failed, 10);
+        CreateMultipleEmailRetryRecords(10, EmailOutbox);
+        // [When] Open the Email Outbox page and check the first email outbox record
+        EmailOutboxTestPage.Trap();
+        EmailOutboxPage.SetRecord(EmailOutbox);
+        EmailOutboxPage.Run();
+        // [Then] The Send Email and Show Retry Details actions are enabled
+        Assert.IsTrue(EmailOutboxTestPage.SendEmail.Enabled(), 'Send Email action should be enabled for the forth email outbox record with 10 retries');
+        Assert.IsTrue(EmailOutboxTestPage.ShowRetryDetail.Enabled(), 'Show Retry Details action should be enabled for the forth email outbox record');
+
+        // [When] The Send Email action is clicked
+        EmailOutboxTestPage.SendEmail.Invoke();
+
+        // [Then] The retry records are deleted, the Retry No. is reset to 0, and the status is set to Queued
+        Assert.AreEqual(0, EmailOutboxTestPage."Retry No.".AsInteger(), 'The Retry No. should be reset to 0');
+        Assert.AreEqual(Enum::"Email Status"::Queued, EmailOutboxTestPage.Status.AsInteger(), 'The Status should be reset to Queued');
+        Assert.IsFalse(EmailOutboxTestPage.SendEmail.Enabled(), 'Send Email action should be disabled after sending the email');
+        Assert.IsFalse(EmailOutboxTestPage.ShowRetryDetail.Enabled(), 'Show Retry Details action should be disabled after sending the email');
+
+        EmailOutboxPage.Close();
     end;
 
     [Test]
@@ -2188,6 +2310,58 @@ codeunit 134685 "Email Test"
         Email.EnqueueReplyAll(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
     end;
 
+    local procedure CreateEmailMessageAndEmailOutboxRecord(NumberOfRecords: Integer; TempAccount: Record "Email Account")
+    var
+        EmailMessage: Codeunit "Email Message";
+        Any: Codeunit Any;
+        i: Integer;
+    begin
+        for i := 0 to NumberOfRecords do begin
+            EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+            // [Given] The email is enqueued in the outbox
+            SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Processing, i);
+        end;
+    end;
+
+    local procedure SetupEmailOutbox(EmailMessageId: Guid; Connector: Enum "Email Connector"; EmailAccountId: Guid; EmailDescription: Text; EmailAddress: Text[250]; UserSecurityId: Code[50]; Status: Enum "Email Status"; RetryCount: Integer): Record "Email Outbox"
+    var
+        EmailOutbox: Record "Email Outbox";
+    begin
+        EmailOutbox.Validate("Message Id", EmailMessageId);
+        EmailOutbox.Insert();
+        EmailOutbox.Validate(Connector, Connector);
+        EmailOutbox.Validate("Account Id", EmailAccountId);
+        EmailOutbox.Validate(Description, EmailDescription);
+        EmailOutbox.Validate("User Security Id", UserSecurityId);
+        EmailOutbox.Validate("Send From", EmailAddress);
+        EmailOutbox.Validate(Status, Status);
+        EmailOutbox.Validate("Retry No.", RetryCount);
+        EmailOutbox.Modify();
+        exit(EmailOutbox);
+    end;
+
+    local procedure CreateMultipleEmailRetryRecords(NumberOfRecords: Integer; EmailOutbox: Record "Email Outbox")
+    var
+        i: Integer;
+    begin
+        for i := 1 to NumberOfRecords do
+            CreateEmailRetryRecord(EmailOutbox."Message Id", EmailOutbox.Connector, EmailOutbox."Account Id", EmailOutbox.Description, EmailOutbox."Send From", EmailOutbox."User Security Id");
+    end;
+
+    local procedure CreateEmailRetryRecord(EmailMessageId: Guid; Connector: Enum "Email Connector"; EmailAccountId: Guid; EmailDescription: Text; EmailAddress: Text[250]; UserSecurityId: Code[50])
+    var
+        EmailRetry: Record "Email Retry";
+    begin
+        EmailRetry.Validate("Message Id", EmailMessageId);
+        EmailRetry.Insert();
+        EmailRetry.Validate(Connector, Connector);
+        EmailRetry.Validate("Account Id", EmailAccountId);
+        EmailRetry.Validate(Description, EmailDescription);
+        EmailRetry.Validate("User Security Id", UserSecurityId);
+        EmailRetry.Validate("Send From", EmailAddress);
+        EmailRetry.Modify();
+    end;
+
     local procedure CreateEmail(var EmailMessage: Codeunit "Email Message")
     var
         Any: Codeunit Any;
@@ -2280,6 +2454,21 @@ codeunit 134685 "Email Test"
 #pragma warning restore
 #endif
         Assert.IsTrue(EmailEditor.Send.Enabled(), 'Send Action was not enabled.');
+    end;
+
+    [ModalPageHandler]
+    procedure EmailRetryDetailPageHandler(var EmailRetryDetailPage: TestPage "Email Retry Detail")
+    begin
+        Assert.IsTrue(EmailRetryDetailPage.First(), 'The first Email Retry Detail should be shown');
+        Assert.AreEqual(Enum::"Email Status"::Failed.AsInteger(), EmailRetryDetailPage.Status.AsInteger(), 'Wrong status');
+        Assert.AreEqual('Failed to send email', EmailRetryDetailPage."Error Message".Value(), 'Wrong error message');
+        Assert.AreEqual(0, EmailRetryDetailPage."Retry No.".AsInteger(), 'The retry number should be 0');
+
+        Assert.IsTrue(EmailRetryDetailPage.Next(), 'The second Email Retry Detail should be shown');
+        Assert.AreEqual(Enum::"Email Status"::Queued.AsInteger(), EmailRetryDetailPage.Status.AsInteger(), 'Wrong status');
+        Assert.AreEqual(1, EmailRetryDetailPage."Retry No.".AsInteger(), 'The retry number should be 1');
+
+        Assert.IsFalse(EmailRetryDetailPage.Next(), 'There should be no more Email Retry Details');
     end;
 
     [ModalPageHandler]
