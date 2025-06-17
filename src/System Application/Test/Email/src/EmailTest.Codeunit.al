@@ -43,7 +43,6 @@ codeunit 134685 "Email Test"
 
     [Test]
     [Scope('OnPrem')]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ResendEmailFromEmailOutboxTest()
     var
         TempAccount: Record "Email Account" temporary;
