@@ -342,7 +342,7 @@ codeunit 3109 "PDF Document Impl."
             Json.Add(VersionTokenLbl, JsonVersionTxt);
 
         AddPrimaryDocument(Json);
-        AddJsonTokens(JsonElement, JsonDataArray);
+        SetJsonTokens(JsonElement, JsonDataArray);
         AddAttachments(Json, JsonDataArray);
         SetDocumentProtection(Json, User, Admin, JsonElement);
 
@@ -377,7 +377,7 @@ codeunit 3109 "PDF Document Impl."
             Json.Add(SaveFormatTokenLbl, Format(this.SaveFormat, 0, 2));
     end;
 
-    local procedure AddJsonTokens(var JsonElement: JsonObject; var JsonDataArray: JsonArray)
+    local procedure SetJsonTokens(var JsonElement: JsonObject; var JsonDataArray: JsonArray)
     var
         i: Integer;
         DataType: Enum "PDF Attach. Data Relationship";
