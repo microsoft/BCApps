@@ -160,6 +160,26 @@ page 8882 "Email Outbox"
                     EmailImpl.ShowSourceRecord(Rec."Message Id");
                 end;
             }
+            action(CancelRetry)
+            {
+                ApplicationArea = All;
+                Image = Cancel;
+                Caption = 'Cancel Retry';
+                ToolTip = 'Cancel the retry of the email.';
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedOnly = true;
+                Enabled = true;
+
+                trigger OnAction()
+                var
+                    EmailDispatcher: Codeunit "Email Dispatcher";
+                begin
+                    if not EmailDispatcher.CancelRetryByMessageId(Rec."Message Id") then
+                        Error(CannotCancelRetryMsg);
+                    CurrPage.Update(false);
+                end;
+            }
             action(ShowRetryDetail)
             {
                 ApplicationArea = All;
@@ -360,4 +380,5 @@ page 8882 "Email Outbox"
         EmailRetryNotCompletedMsg: Label 'The selected email cannot be sent because it is still being retried. Please wait until the retry is complete.';
         EmailThrottledMsg: Label 'Your emails are being throttled due to the rate limit set on an account.';
         EmailThrottledMsgIdTok: Label '025cd7b4-9a12-44de-af35-d84f5e360438', Locked = true;
+        CannotCancelRetryMsg: Label 'We cannot cancel the retry of this email because the background task has completed.';
 }

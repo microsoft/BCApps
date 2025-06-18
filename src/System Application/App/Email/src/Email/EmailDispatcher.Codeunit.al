@@ -26,6 +26,7 @@ codeunit 8888 "Email Dispatcher"
         FailedToFindEmailMessageMsg: Label 'Failed to find email message %1', Comment = '%1 - Email Message Id', Locked = true;
         FailedToFindEmailMessageErrorMsg: Label 'The email message has been deleted by another user.';
         AttachmentMsg: Label 'Sending email with attachment file size: %1, Content type: %2', Comment = '%1 - File size, %2 - Content type', Locked = true;
+        EmailRetryCancelledByUserLbl: Label 'Sending email cancelled by user.';
 
     trigger OnRun()
     var
@@ -117,7 +118,7 @@ codeunit 8888 "Email Dispatcher"
         exit(10); // Maximum retry count for sending emails
     end;
 
-    procedure CleanEmailRetryByMessageId(MessageId: Guid)
+    internal procedure CleanEmailRetryByMessageId(MessageId: Guid)
     var
         EmailRetry: Record "Email Retry";
         EmailOutbox: Record "Email Outbox";
@@ -131,6 +132,31 @@ codeunit 8888 "Email Dispatcher"
             exit;
         EmailOutbox.Validate("Retry No.", 0);
         EmailOutbox.Modify();
+    end;
+
+    internal procedure CancelRetryByMessageId(MessageId: Guid): Boolean
+    var
+        EmailRetry: Record "Email Retry";
+        EmailOutbox: Record "Email Outbox";
+    begin
+        EmailRetry.SetRange("Message Id", MessageId);
+        if not EmailRetry.FindLast() then
+            exit(false);
+        if not TaskScheduler.CancelTask(EmailRetry."Task Scheduler Id") then exit(false);
+
+        EmailRetry.Validate(Status, EmailRetry.Status::Failed);
+        EmailRetry.Validate("Error Message", EmailRetryCancelledByUserLbl);
+        EmailRetry.Validate("Date Failed", CurrentDateTime());
+        EmailRetry.Modify();
+
+        EmailOutbox.SetRange("Message Id", MessageId);
+        if not EmailOutbox.FindFirst() then
+            exit(false);
+        EmailOutbox.Validate("Error Message", EmailRetryCancelledByUserLbl);
+        EmailOutbox.Validate(Status, EmailOutbox.Status::Failed);
+        EmailOutbox.Validate("Date Failed", CurrentDateTime());
+        EmailOutbox.Modify();
+        exit(true);
     end;
 
     local procedure RetrySendEmail(var EmailOutbox: Record "Email Outbox"): Boolean

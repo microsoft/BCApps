@@ -36,10 +36,10 @@ page 8892 "Email Retry Detail"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the status of the email retry.';
                 }
-                field("Date Queued"; Rec."Date Queued")
+                field("Date Sending"; Rec."Date Sending")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date when the email was retried.';
+                    ToolTip = 'Specifies the date when the email was sent.';
                 }
                 field("Date Failed"; Rec."Date Failed")
                 {
