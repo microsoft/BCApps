@@ -11,9 +11,10 @@ using System.TestLibraries.AI;
 using System.TestLibraries.Environment;
 using System.TestLibraries.Utilities;
 
-codeunit 139025 "Azure OpenAI Test Partner"
+codeunit 139011 "Azure OpenAI Test Partner"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
         CopilotTestLibrary: Codeunit "Copilot Test Library";
@@ -26,6 +27,7 @@ codeunit 139025 "Azure OpenAI Test Partner"
         AccountNameTxt: Label 'account', Locked = true;
         ManagedResourceDeploymentTxt: Label 'Managed AI Resource', Locked = true;
         LearMoreUrlLbl: Label 'http://LearnMore.com', Locked = true;
+        BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.';
 
     [Test]
     [Scope('OnPrem')]
@@ -71,7 +73,8 @@ codeunit 139025 "Azure OpenAI Test Partner"
         AzureOpenAI.GenerateTextCompletion(Metaprompt, Any.AlphanumericText(10), AOAIOperationResponse);
 
         // [THEN] GenerateTextCompletion returns an error [CAPI with Partner Billed - Not allowed for Partner published capabilities]
-        LibraryAssert.ExpectedError('Usage of AI resources not authorized with chosen billing type. Please reach out to your administrator to resolve this issue.');
+        LibraryAssert.AreEqual(AOAIOperationResponse.IsSuccess(), false, 'AOAI Operation Response should be an error');
+        LibraryAssert.ExpectedError(StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Billing Type"::"Custom Billed"));
     end;
 
     [Test]
@@ -96,7 +99,8 @@ codeunit 139025 "Azure OpenAI Test Partner"
         AzureOpenAI.GenerateEmbeddings(Any.AlphanumericText(10), AOAIOperationResponse);
 
         // [THEN] GenerateEmbeddings returns an error [BYO with Microsoft Billed - Not allowed for Partner published capabilities]
-        LibraryAssert.ExpectedError('Usage of AI resources not authorized with chosen billing type. Please reach out to your administrator to resolve this issue.');
+        LibraryAssert.AreEqual(AOAIOperationResponse.IsSuccess(), false, 'AOAI Operation Response should be an error');
+        LibraryAssert.ExpectedError(StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Embedding Capability", Enum::"Copilot Billing Type"::"Microsoft Billed"));
     end;
 
     [Test]
@@ -123,7 +127,8 @@ codeunit 139025 "Azure OpenAI Test Partner"
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIOperationResponse);
 
         // [THEN] GenerateChatCompletion fails [CAPI with Free billing type - Not allowed for Partner published capabilities]
-        LibraryAssert.ExpectedError('Usage of AI resources not authorized with chosen billing type. Please reach out to your administrator to resolve this issue.');
+        LibraryAssert.AreEqual(AOAIOperationResponse.IsSuccess(), false, 'AOAI Operation Response should be an error');
+        LibraryAssert.ExpectedError(StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Chat Capability", Enum::"Copilot Billing Type"::"Not Billed"));
     end;
 
     local procedure RegisterCapabilityWithBillingType(Capability: Enum "Copilot Capability"; Availability: Enum "Copilot Availability"; BillingType: Enum "Copilot Billing Type")

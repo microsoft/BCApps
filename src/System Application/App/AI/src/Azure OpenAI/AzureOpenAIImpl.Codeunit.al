@@ -47,7 +47,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         TelemetryMetapromptRetrievalErr: Label 'Unable to retrieve metaprompt from Azure Key Vault.', Locked = true;
         TelemetryFunctionCallingFailedErr: Label 'Function calling failed for function: %1', Comment = '%1 is the name of the function', Locked = true;
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
-        BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type. Please reach out to your administrator to resolve this issue.';
+        BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.';
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
@@ -462,7 +462,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         ClearLastError();
 
         if not IsBillingTypeAuthorized(AOAIAuthorization, CallerModuleInfo) then
-            Error(BillingTypeAuthorizationErr);
+            Error(StrSubstNo(BillingTypeAuthorizationErr, CopilotCapabilityImpl.GetCapabilityName(), CopilotCapabilityImpl.GetCopilotBillingType()));
 
         case AOAIAuthorization.GetResourceUtilization() of
             Enum::"AOAI Resource Utilization"::"Microsoft Managed":
@@ -620,7 +620,14 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
                 Enum::"Copilot Billing Type"::"Custom Billed":
                     exit(AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed");
                 Enum::"Copilot Billing Type"::"Microsoft Billed":
-                    exit(AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Microsoft Managed");
+                    if (AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Microsoft Managed") then
+                        exit(true)
+                    // Use-case : Partners are allowed to set Microsoft Billed and use BYO model in their environments except for Production
+                    else if (AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed") then
+                        if (CopilotCapabilityImpl.IsProductionEnvironment()) then
+                            exit(false)
+                        else
+                            exit(true);
                 Enum::"Copilot Billing Type"::"Not Billed":
                     exit(AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed");
                 else

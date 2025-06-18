@@ -23,6 +23,7 @@ codeunit 132684 "Azure OpenAI Test"
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
         EndpointTxt: Label 'https://resourcename.openai.azure.com/', Locked = true;
         DeploymentTxt: Label 'deploymentid', Locked = true;
+        BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.';
 
     [Test]
     [HandlerFunctions('HandleCopilotNotAvailable')]
@@ -316,7 +317,8 @@ codeunit 132684 "Azure OpenAI Test"
         AzureOpenAI.GenerateTextCompletion(Metaprompt, Any.AlphanumericText(10), AOAIOperationResponse);
 
         // [THEN] GenerateTextCompletion shall fail [CAPI with Custom Billed - Not allowed for Microsoft published capabilities]
-        LibraryAssert.ExpectedError('Usage of AI resources not authorized with chosen billing type. Please reach out to your administrator to resolve this issue');
+        LibraryAssert.AreEqual(false, AOAIOperationResponse.IsSuccess(), 'The text completions generation succeeded when it should fail.');
+        LibraryAssert.ExpectedError(StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Billing Type"::"Custom Billed"));
     end;
 
     [Test]

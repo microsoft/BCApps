@@ -4,7 +4,7 @@ using System.AI;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.AI;
 
-codeunit 139024 "Copilot Test Partner"
+codeunit 139012 "Copilot Test Partner"
 {
     Subtype = Test;
 
@@ -14,6 +14,7 @@ codeunit 139024 "Copilot Test Partner"
         LibraryAssert: Codeunit "Library Assert";
         LearnMoreUrlLbl: Label 'http://LearnMore.com', Locked = true;
         LearnMoreUrl2Lbl: Label 'http://LearnMore2.com', Locked = true;
+        InvalidBillingTypeErr: Label 'Invalid billing type for Copilot capability ''%1''', Comment = '%1 is the name of the Copilot Capability';
 
     [Test]
     procedure TestRegisterCapabilityWithBillingType()
@@ -45,7 +46,25 @@ codeunit 139024 "Copilot Test Partner"
     end;
 
     [Test]
-    procedure TestModifyCapabilityForBillingType()
+    procedure TestRegisterCapabilityWithInvalidBillingType()
+    var
+        CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
+        CurrentModuleInfo: ModuleInfo;
+    begin
+        // [SCENARIO] Register a copilot capability with billing type set to Undefined
+
+        // [GIVEN] Copilot capability is not registered
+        Initialize();
+
+        // [WHEN] RegisterCapability is called
+        asserterror CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::Undefined, LearnMoreUrlLbl);
+
+        // [THEN] Register capability should throw an error
+        LibraryAssert.ExpectedError(StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Capability"));
+    end;
+
+    [Test]
+    procedure TestModifyCapabilityWithBillingType()
     var
         CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
         CurrentModuleInfo: ModuleInfo;
@@ -76,6 +95,41 @@ codeunit 139024 "Copilot Test Partner"
         LibraryAssert.AreEqual(LearnMoreUrl2Lbl, CopilotSettingsTestLibrary.GetLearnMoreUrl(), 'Learn More Url is not updated');
         LibraryAssert.AreEqual(Enum::"Copilot Status"::Active, CopilotSettingsTestLibrary.GetStatus(), 'Status is not Active');
         LibraryAssert.AreEqual(Enum::"Copilot Billing Type"::"Microsoft Billed", CopilotSettingsTestLibrary.GetBillingType(), 'Billing type is not updated');
+    end;
+
+    [Test]
+    procedure TestModifyCapabilityWithInvalidBillingType()
+    var
+        CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
+        CurrentModuleInfo: ModuleInfo;
+    begin
+        // [SCENARIO] Modify copilot capabilities - Availability, Billing Type, and Learn More Url
+
+        // [GIVEN] Copilot capability is registered
+        Initialize();
+        CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Early Preview", Enum::"Copilot Billing Type"::"Custom Billed", LearnMoreUrlLbl);
+
+        // [THEN] Copilot capability is registered
+        LibraryAssert.IsTrue(CopilotSettingsTestLibrary.FindFirst(), 'Copilot capability should be registered');
+        LibraryAssert.AreEqual(Enum::"Copilot Capability"::"Text Capability", CopilotSettingsTestLibrary.GetCapability(), 'Copilot capability is not "Text Capability"');
+        LibraryAssert.AreEqual(Enum::"Copilot Billing Type"::"Custom Billed", CopilotSettingsTestLibrary.GetBillingType(), 'Billing type is not "Custom Billed"');
+
+        // [THEN] Registered capability is associated with the current module
+        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+        LibraryAssert.AreEqual(CurrentModuleInfo.Id(), CopilotSettingsTestLibrary.GetAppId(), 'App Id is different from the current module');
+        LibraryAssert.AreEqual(CurrentModuleInfo.Publisher(), CopilotSettingsTestLibrary.GetPublisher(), 'Publisher is different from the current module');
+        LibraryAssert.AreEqual(CurrentModuleInfo.Publisher(), 'Partner', 'CurrentModule Publisher is Microsoft');
+
+        // [WHEN] ModifyCapability is called
+        asserterror CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::Undefined, LearnMoreUrl2Lbl);
+        LibraryAssert.ExpectedError(StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Capability"));
+
+        // [THEN] Copilot capability is modified
+        CopilotSettingsTestLibrary.FindFirst();
+        LibraryAssert.AreEqual(Enum::"Copilot Availability"::"Early Preview", CopilotSettingsTestLibrary.GetAvailability(), 'Availability is not updated');
+        LibraryAssert.AreEqual(LearnMoreUrlLbl, CopilotSettingsTestLibrary.GetLearnMoreUrl(), 'Learn More Url is updated');
+        LibraryAssert.AreEqual(Enum::"Copilot Status"::Inactive, CopilotSettingsTestLibrary.GetStatus(), 'Status is Active');
+        LibraryAssert.AreEqual(Enum::"Copilot Billing Type"::"Custom Billed", CopilotSettingsTestLibrary.GetBillingType(), 'Billing type is not updated');
     end;
 
     local procedure Initialize()
