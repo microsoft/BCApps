@@ -44,6 +44,7 @@ codeunit 3110 "PDF Document"
     /// <param name="ImageStream">Stream of the image file.</param>
     /// <param name="ImageFormat">Image format to convert the PDF to.</param>
     /// <param name="PageNumber">Page number to convert.</param>
+    [Scope('OnPrem')]
     procedure ConvertToImage(var ImageStream: InStream; ImageFormat: Enum "Image Format"; PageNumber: Integer)
     begin
         PDFDocumentImpl.ConvertToImage(ImageStream, ImageFormat, PageNumber);
@@ -54,6 +55,7 @@ codeunit 3110 "PDF Document"
     /// </summary>
     /// <param name="PdfStream">Input stream of the PDF file.</param>
     /// <param name="TempBlob">Temporary blob to store the attachment.</param>
+    [Scope('OnPrem')]
     procedure GetDocumentAttachmentStream(PdfStream: InStream; var TempBlob: Codeunit "Temp Blob"): Boolean
     begin
         exit(PDFDocumentImpl.GetDocumentAttachmentStream(PdfStream, TempBlob));
@@ -79,6 +81,7 @@ codeunit 3110 "PDF Document"
     ///     "title": "Invoice #12345"
     /// }
     /// </remarks>
+    [Scope('OnPrem')]
     procedure GetPdfProperties(DocumentInStream: InStream): JsonObject
     begin
         exit(PDFDocumentImpl.GetPdfProperties(DocumentInStream));
@@ -89,6 +92,7 @@ codeunit 3110 "PDF Document"
     /// </summary>
     /// <param name="DocumentInStream">Input stream of the PDF file.</param>
     /// <returns>The number of pages in the PDF document.</returns>
+    [Scope('OnPrem')]
     procedure GetPdfPageCount(DocumentInStream: InStream): Integer
     begin
         exit(PDFDocumentImpl.GetPdfPageCount(DocumentInStream));
@@ -102,6 +106,7 @@ codeunit 3110 "PDF Document"
     /// This procedure does not return the ZIP archive directly. Instead, it triggers a download dialog for the user,
     /// allowing them to save the ZIP file locally. 
     /// </remarks>
+    [Scope('OnPrem')]
     procedure GetZipArchive(PdfStream: InStream)
     begin
         PDFDocumentImpl.GetZipArchive(PdfStream);
@@ -120,6 +125,7 @@ codeunit 3110 "PDF Document"
     /// such as Factur-X, XRechnung, or ZUGFeRD formats. These formats typically include attachments like
     /// 'factur-x.xml', 'xrechnung.xml', or 'zugferd-invoice.xml' which are used for automated invoice processing.
     /// </remarks>
+    [Scope('OnPrem')]
     procedure GetAttachmentNames(PdfStream: InStream): List of [Text]
     begin
         exit(PDFDocumentImpl.GetAttachmentNames(PdfStream));
@@ -154,6 +160,7 @@ codeunit 3110 "PDF Document"
     /// Add a stream to the list of files to append to the rendered document using a temporary file name.
     /// </summary>
     /// <param name="FileInStream">Stream with file content. Platform will remove the temporary file when rendering has been completed.</param>
+    [Scope('OnPrem')]
     procedure AddStreamToAppend(FileInStream: InStream)
     begin
         PDFDocumentImpl.AddStreamToAppend(FileInStream);
@@ -175,7 +182,6 @@ codeunit 3110 "PDF Document"
     /// </summary>
     /// <param name="User">User code.</param>
     /// <param name="Admin">Admin code.</param>
-    [NonDebuggable]
     procedure ProtectDocument(User: SecretText; Admin: SecretText)
     begin
         PDFDocumentImpl.ProtectDocument(User, Admin);

@@ -29,7 +29,7 @@ codeunit 3109 "PDF Document Impl."
         AdminCode: SecretText;
         PrimaryDocumentName: Text; // The primary document that will be used at the alternative representation of the PDF contents.
         SaveFormat: Enum "PDF Save Format";
-        UnsupportedImageFormatErr: Label 'Unsupported image format: %1', Comment = '%1 is the image format that is not supported.';
+        UnsupportedImageFormatErr: Label 'Unsupported image format: %1', Comment = '%1 = the image format that is not supported.';
         NotLoadedErr: Label 'PDF document is not loaded. Please load the document before performing this operation.';
 
     procedure Initialize()
@@ -51,6 +51,7 @@ codeunit 3109 "PDF Document Impl."
         exit(true);
     end;
 
+    [Scope('OnPrem')]
     procedure ConvertToImage(var ImageStream: InStream; ImageFormat: Enum "Image Format"; PageNumber: Integer): Boolean
     var
         PdfConverterInstance: DotNet PdfConverter;
@@ -98,6 +99,7 @@ codeunit 3109 "PDF Document Impl."
         end;
     end;
 
+    [Scope('OnPrem')]
     procedure GetDocumentAttachmentStream(PdfStream: InStream; var TempBlob: Codeunit "Temp Blob"): Boolean
     var
         PdfAttachmentManager: DotNet PdfAttachmentManager;
@@ -130,6 +132,7 @@ codeunit 3109 "PDF Document Impl."
         exit(true);
     end;
 
+    [Scope('OnPrem')]
     procedure GetPdfProperties(DocumentInStream: InStream): JsonObject
     var
         PdfDocumentInfoInstance: DotNet PdfDocumentInfo;
@@ -174,6 +177,7 @@ codeunit 3109 "PDF Document Impl."
         exit(JsonContainer);
     end;
 
+    [Scope('OnPrem')]
     procedure GetPdfPageCount(DocumentInStream: InStream): Integer
     var
         PdfDocumentInfoInstance: DotNet PdfDocumentInfo;
@@ -182,6 +186,7 @@ codeunit 3109 "PDF Document Impl."
         exit(PdfDocumentInfoInstance.PageCount);
     end;
 
+    [Scope('OnPrem')]
     procedure GetZipArchive(PdfStream: InStream)
     var
         PdfAttachmentManager: DotNet PdfAttachmentManager;
@@ -196,6 +201,7 @@ codeunit 3109 "PDF Document Impl."
         DownloadFromStream(AttachmentStream, ZipFileLbl, '', '', ZipFileName);
     end;
 
+    [Scope('OnPrem')]
     procedure GetAttachmentNames(PdfStream: InStream) AttachmentNameList: List of [Text]
     var
         PdfAttachmentManager: DotNet PdfAttachmentManager;
@@ -228,7 +234,7 @@ codeunit 3109 "PDF Document Impl."
 
     procedure AddAttachment(AttachmentName: Text; PDFAttachmentDataType: Enum "PDF Attach. Data Relationship"; MimeType: Text; FileName: Text; Description: Text; PrimaryDocument: Boolean)
     var
-        AttachmentNameErr: Label 'Attachment with name %1 already exists.', Comment = '%1 - attachment name';
+        AttachmentNameErr: Label 'Attachment with name %1 already exists.', Comment = '%1 = attachment name';
     begin
         if AttachmentName = '' then begin
             ResetAttachmentLists();
@@ -260,6 +266,7 @@ codeunit 3109 "PDF Document Impl."
         this.AdditionalDocumenNames.Add(FileName);
     end;
 
+    [Scope('OnPrem')]
     procedure AddStreamToAppend(FileInStream: InStream)
     var
         TempFile: File;
