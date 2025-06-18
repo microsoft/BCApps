@@ -45,8 +45,6 @@
         }
     ],
     "target": "OnPrem",
-    "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/",
-    "resourceFolders": [
-        ".resources"
+    "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
     ]
 }
