@@ -347,7 +347,7 @@ page 7775 "Copilot AI Capabilities"
             CurrPage.EnqueueBackgroundTask(TaskId, Codeunit::"Copilot Quota Impl.");
         end;
 
-        BingOptIn := PrivacyNotice.GetPrivacyNoticeApprovalState(SystemPrivacyNoticeReg.GetBingPrivacyNoticeName(), false) = Enum::"Privacy Notice Approval State"::Agreed;
+        BingOptIn := PrivacyNotice.GetPrivacyNoticeApprovalState(SystemPrivacyNoticeReg.GetBingPrivacyNoticeName(), true) = Enum::"Privacy Notice Approval State"::Agreed;
     end;
 
     trigger OnPageBackgroundTaskCompleted(TaskId: Integer; Results: Dictionary of [Text, Text])
