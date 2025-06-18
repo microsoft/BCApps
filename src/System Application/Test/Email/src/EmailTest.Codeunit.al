@@ -43,6 +43,7 @@ codeunit 134685 "Email Test"
 
     [Test]
     [Scope('OnPrem')]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ResendEmailFromEmailOutboxTest()
     var
         TempAccount: Record "Email Account" temporary;
@@ -52,7 +53,6 @@ codeunit 134685 "Email Test"
         ConnectorMock: Codeunit "Connector Mock";
         EmailOutboxPage: Page "Email Outbox";
         EmailOutboxTestPage: TestPage "Email Outbox";
-
     begin
         // [Scenario] User can resend an email from the Email Outbox page when the email is failed and the retry process has completed
         // There are four email outbox records with different statuses and retry records are created:
@@ -133,6 +133,7 @@ codeunit 134685 "Email Test"
     [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('EmailRetryDetailPageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure SendEmailMessageFromBackgroundFailedAndRetryTest()
     var
         EmailRetry: Record "Email Retry";
@@ -186,6 +187,7 @@ codeunit 134685 "Email Test"
         EmailOutboxTestPage.Trap();
         EmailOutboxPage.SetRecord(EmailOutbox);
         EmailOutboxPage.Run();
+        Assert.IsTrue(EmailOutboxTestPage.ShowRetryDetail.Enabled(), 'Show Retry Details action should be enabled for the email outbox record');
         EmailOutboxTestPage.ShowRetryDetail.Invoke();
         // [Then] The Email Retry Detail page is opened with the correct entries in EmailRetryDetailPageHandler
 

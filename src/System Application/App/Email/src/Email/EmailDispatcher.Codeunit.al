@@ -173,7 +173,6 @@ codeunit 8888 "Email Dispatcher"
             exit;
 
         EmailRetry.DeleteAll();
-        Commit();
     end;
 
     local procedure CreateEmailRetry(var EmailOutbox: Record "Email Outbox")
@@ -213,7 +212,6 @@ codeunit 8888 "Email Dispatcher"
         EmailRetry.Validate("Date Sending", DateSending);
 
         EmailRetry.Modify();
-        Commit();
     end;
 
     local procedure RescheduleEmail(Delay: Duration; Dimensions: Dictionary of [Text, Text]; var EmailOutbox: Record "Email Outbox")
