@@ -343,7 +343,7 @@ codeunit 132601 "PDF Document Test"
     [Test]
     procedure ToJson_IncludesVersionAndPrimaryDocument()
     var
-        PDFDocument: Codeunit "PDF Document Impl.";
+        PDFDocument: Codeunit "PDF Document";
         JsonOut: JsonObject;
     begin
         // [GIVEN] Valid PDF document with primary attachment
@@ -367,7 +367,7 @@ codeunit 132601 "PDF Document Test"
     [Test]
     procedure ToJson_AppendsAdditionalDocuments()
     var
-        PDFDocument: Codeunit "PDF Document Impl.";
+        PDFDocument: Codeunit "PDF Document";
         JsonOut: JsonObject;
         JsonToken: JsonToken;
         JsonArray: JsonArray;
@@ -389,7 +389,7 @@ codeunit 132601 "PDF Document Test"
     [Test]
     procedure ToJson_IncludesProtectionBlock()
     var
-        PDFDocument: Codeunit "PDF Document Impl.";
+        PDFDocument: Codeunit "PDF Document";
         JsonOut: JsonObject;
     begin
         // [GIVEN] PDF document with protection
@@ -406,7 +406,7 @@ codeunit 132601 "PDF Document Test"
     [Test]
     procedure ToJson_IncludesAttachmentDetails()
     var
-        PDFDocument: Codeunit "PDF Document Impl.";
+        PDFDocument: Codeunit "PDF Document";
         JsonOut: JsonObject;
         JsonToken: JsonToken;
         JsonArray: JsonArray;
@@ -433,7 +433,7 @@ codeunit 132601 "PDF Document Test"
     [Test]
     procedure ToJson_ThrowsOnPrimaryDocumentOverride()
     var
-        PDFDocument: Codeunit "PDF Document Impl.";
+        PDFDocument: Codeunit "PDF Document";
         JsonIn: JsonObject;
     begin
         // [GIVEN] Valid PDF document with primary attachment
@@ -456,7 +456,7 @@ codeunit 132601 "PDF Document Test"
     [Test]
     procedure ToJson_ThrowsOnProtectionOverride()
     var
-        PDFDocument: Codeunit "PDF Document Impl.";
+        PDFDocument: Codeunit "PDF Document";
         JsonIn: JsonObject;
         ProtectionObj: JsonObject;
     begin
@@ -476,7 +476,7 @@ codeunit 132601 "PDF Document Test"
     [Test]
     procedure ToJson_AddsMandatoryElements_UsingExistingProcedures()
     var
-        PDFDocument: Codeunit "PDF Document Impl.";
+        PDFDocument: Codeunit "PDF Document";
         JsonOut: JsonObject;
     begin
         // [GIVEN] A valid PDF document with attachments and protection
