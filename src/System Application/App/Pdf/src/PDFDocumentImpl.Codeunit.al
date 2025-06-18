@@ -51,7 +51,6 @@ codeunit 3109 "PDF Document Impl."
         exit(true);
     end;
 
-    [Scope('OnPrem')]
     procedure ConvertToImage(var ImageStream: InStream; ImageFormat: Enum "Image Format"; PageNumber: Integer): Boolean
     var
         PdfConverterInstance: DotNet PdfConverter;
@@ -99,7 +98,6 @@ codeunit 3109 "PDF Document Impl."
         end;
     end;
 
-    [Scope('OnPrem')]
     procedure GetDocumentAttachmentStream(PdfStream: InStream; var TempBlob: Codeunit "Temp Blob"): Boolean
     var
         PdfAttachmentManager: DotNet PdfAttachmentManager;
@@ -132,7 +130,6 @@ codeunit 3109 "PDF Document Impl."
         exit(true);
     end;
 
-    [Scope('OnPrem')]
     procedure GetPdfProperties(DocumentInStream: InStream): JsonObject
     var
         PdfDocumentInfoInstance: DotNet PdfDocumentInfo;
@@ -177,7 +174,6 @@ codeunit 3109 "PDF Document Impl."
         exit(JsonContainer);
     end;
 
-    [Scope('OnPrem')]
     procedure GetPdfPageCount(DocumentInStream: InStream): Integer
     var
         PdfDocumentInfoInstance: DotNet PdfDocumentInfo;
@@ -186,7 +182,6 @@ codeunit 3109 "PDF Document Impl."
         exit(PdfDocumentInfoInstance.PageCount);
     end;
 
-    [Scope('OnPrem')]
     procedure GetZipArchive(PdfStream: InStream)
     var
         PdfAttachmentManager: DotNet PdfAttachmentManager;
@@ -201,7 +196,6 @@ codeunit 3109 "PDF Document Impl."
         DownloadFromStream(AttachmentStream, ZipFileLbl, '', '', ZipFileName);
     end;
 
-    [Scope('OnPrem')]
     procedure GetAttachmentNames(PdfStream: InStream) AttachmentNameList: List of [Text]
     var
         PdfAttachmentManager: DotNet PdfAttachmentManager;
@@ -267,7 +261,6 @@ codeunit 3109 "PDF Document Impl."
         this.AdditionalDocumenNames.Add(FileName);
     end;
 
-    [Scope('OnPrem')]
     procedure AddStreamToAppend(FileInStream: InStream)
     var
         TempFile: File;
