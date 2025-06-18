@@ -24,6 +24,7 @@ permissionset 8900 "Email - Read"
                   tabledata "Email Message" = r,
                   tabledata "Email Message Attachment" = r,
                   tabledata "Email Outbox" = r,
+                  tabledata "Email Retry" = r,
                   tabledata "Email Inbox" = r,
                   tabledata "Email Rate Limit" = r,
                   tabledata "Email Recipient" = r,

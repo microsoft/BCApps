@@ -62,6 +62,26 @@ codeunit 8999 "Email Rate Limit Impl."
         exit((EmailOutboxCurrent.Count() + SentEmail.Count()) >= RateLimit);
     end;
 
+    procedure IsConcurrencyLimitExceeded(AccountId: Guid; Connector: Enum "Email Connector"; EmailAddress: Text[250]): Boolean
+    begin
+        exit(GetEmailOutboxCurrentProcessingCount() > GetConcurrencyLimit(AccountId, Connector, EmailAddress))
+    end;
+
+    /// <summary>
+    /// Returns the current count of emails in the outbox that are being processed.
+    /// </summary>
+    /// <returns>The count of the email which is being sending</returns>
+    internal procedure GetEmailOutboxCurrentProcessingCount(): Integer
+    var
+        EmailOutbox: Record "Email Outbox";
+    begin
+        EmailOutbox.SetRange(Status, EmailOutbox.Status::Processing);
+        if EmailOutbox.IsEmpty() then
+            exit(0);
+
+        exit(EmailOutbox.Count());
+    end;
+
     [InherentPermissions(PermissionObjectType::TableData, Database::"Email Rate Limit", 'ri')]
     procedure GetRateLimit(AccountId: Guid; Connector: Enum "Email Connector"; EmailAddress: Text[250]): Integer
     var
@@ -74,7 +94,25 @@ codeunit 8999 "Email Rate Limit Impl."
         EmailRateLimit.Connector := Connector;
         EmailRateLimit."Email Address" := EmailAddress;
         EmailRateLimit."Rate Limit" := 0;
+        EmailRateLimit.Validate("Concurrency Limit", 10);
         EmailRateLimit.Insert();
         exit(EmailRateLimit."Rate Limit");
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Email Rate Limit", 'ri')]
+    procedure GetConcurrencyLimit(AccountId: Guid; Connector: Enum "Email Connector"; EmailAddress: Text[250]): Integer
+    var
+        EmailRateLimit: Record "Email Rate Limit";
+    begin
+        if EmailRateLimit.Get(AccountId, Connector) then
+            exit(EmailRateLimit."Concurrency Limit");
+
+        EmailRateLimit."Account Id" := AccountId;
+        EmailRateLimit.Connector := Connector;
+        EmailRateLimit."Email Address" := EmailAddress;
+        EmailRateLimit."Rate Limit" := 0;
+        EmailRateLimit.Validate("Concurrency Limit", 10);
+        EmailRateLimit.Insert();
+        exit(EmailRateLimit."Concurrency Limit");
     end;
 }
