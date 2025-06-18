@@ -10,15 +10,13 @@ page 8892 "Email Retry Detail"
     PageType = List;
     Caption = 'Email Retry Detail';
     ApplicationArea = All;
-    UsageCategory = Administration;
+    UsageCategory = None;
     SourceTable = "Email Retry";
-    SourceTableTemporary = true;
-    AdditionalSearchTerms = 'retry email';
     Permissions = tabledata "Email Retry" = r;
     RefreshOnActivate = true;
     InsertAllowed = false;
     ModifyAllowed = false;
-    Extensible = true;
+    Extensible = false;
 
     layout
     {

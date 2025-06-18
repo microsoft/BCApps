@@ -36,12 +36,12 @@ table 8912 "Email Rate Limit"
         field(5; "Concurrency Limit"; Integer)
         {
             DataClassification = SystemMetadata;
-            MinValue = 0;
+            InitValue = 3;
 
             trigger OnValidate()
             begin
-                if "Concurrency Limit" > 10 then
-                    Error('The maximum value for Concurrency Limit is 10. Please set a lower value.');
+                if (Rec."Concurrency Limit" < 1) or (Rec."Concurrency Limit" > 10) then
+                    Error(ConcurrencyLimitErrLbl);
             end;
         }
     }
@@ -57,4 +57,7 @@ table 8912 "Email Rate Limit"
             Description = 'Used for sorting by Email Address.';
         }
     }
+
+    var
+        ConcurrencyLimitErrLbl: Label 'Concurrency Limit must be between 0 and 10.';
 }
