@@ -120,7 +120,7 @@ page 8882 "Email Outbox"
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedOnly = true;
-                Enabled = FailedStatus;
+                Enabled = FailedStatus or HasRetryDetail;
 
                 trigger OnAction()
                 begin
@@ -137,7 +137,7 @@ page 8882 "Email Outbox"
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedOnly = true;
-                Enabled = FailedStatus;
+                Enabled = FailedStatus or HasRetryDetail;
 
                 trigger OnAction()
                 begin
@@ -164,8 +164,8 @@ page 8882 "Email Outbox"
             {
                 ApplicationArea = All;
                 Image = Cancel;
-                Caption = 'Cancel Retry';
-                ToolTip = 'Cancel the retry of the email.';
+                Caption = 'Cancel Sending';
+                ToolTip = 'Cancel the sending of the email.';
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedOnly = true;
@@ -173,10 +173,11 @@ page 8882 "Email Outbox"
 
                 trigger OnAction()
                 var
-                    EmailDispatcher: Codeunit "Email Dispatcher";
+                    EmailRetryImpl: Codeunit "Email Retry Impl.";
                 begin
-                    if not EmailDispatcher.CancelRetryByMessageId(Rec."Message Id") then
+                    if not EmailRetryImpl.CancelRetryByMessageId(Rec."Message Id") then
                         Error(CannotCancelRetryMsg);
+                    Message(CancelSendSuccessMsg);
                     CurrPage.Update(false);
                 end;
             }
@@ -218,16 +219,16 @@ page 8882 "Email Outbox"
                 var
                     SelectedEmailOutbox: Record "Email Outbox";
                     EmailMessage: Codeunit "Email Message";
-                    EmailDispatcher: Codeunit "Email Dispatcher";
+                    EmailRetryImpl: Codeunit "Email Retry Impl.";
                 begin
                     CurrPage.SetSelectionFilter(SelectedEmailOutbox);
                     if not SelectedEmailOutbox.FindSet() then
                         exit;
 
                     repeat
-                        if (Rec."Retry No." = EmailDispatcher.GetMaximumRetryCount()) and (Rec.Status = Rec.Status::Failed) then begin
+                        if ((Rec.Status = Rec.Status::Failed) or (Rec.Status = Rec.Status::Draft)) and not TaskScheduler.TaskExists(Rec."Task Scheduler Id") then begin
                             EmailMessage.Get(SelectedEmailOutbox."Message Id");
-                            EmailDispatcher.CleanEmailRetryByMessageId(SelectedEmailOutbox."Message Id");
+                            EmailRetryImpl.CleanEmailRetryByMessageId(SelectedEmailOutbox."Message Id");
                             EmailImpl.Enqueue(EmailMessage, SelectedEmailOutbox."Account Id", SelectedEmailOutbox.Connector, CurrentDateTime());
                         end else
                             Error(EmailRetryNotCompletedMsg);
@@ -263,8 +264,6 @@ page 8882 "Email Outbox"
     end;
 
     trigger OnAfterGetRecord()
-    var
-        EmailDispatcher: Codeunit "Email Dispatcher";
     begin
         // Updating the outbox for user is done via OnAfterGetRecord in the cases when an Email Message was changed from the Email Editor page.
         if RefreshOutbox then begin
@@ -274,7 +273,7 @@ page 8882 "Email Outbox"
 
         FailedStatus := Rec.Status = Rec.Status::Failed;
         HasRetryDetail := EmailImpl.HasRetryDetail(Rec."Message Id");
-        CanSendEmail := (Rec."Retry No." = EmailDispatcher.GetMaximumRetryCount()) and (Rec.Status = Rec.Status::Failed);
+        CanSendEmail := ((Rec.Status = Rec.Status::Failed) or (Rec.Status = Rec.Status::Draft)) and not TaskScheduler.TaskExists(Rec."Task Scheduler Id");
         NoEmailsInOutbox := false;
     end;
 
@@ -381,4 +380,5 @@ page 8882 "Email Outbox"
         EmailThrottledMsg: Label 'Your emails are being throttled due to the rate limit set on an account.';
         EmailThrottledMsgIdTok: Label '025cd7b4-9a12-44de-af35-d84f5e360438', Locked = true;
         CannotCancelRetryMsg: Label 'We cannot cancel the retry of this email because the background task has completed.';
+        CancelSendSuccessMsg: Label 'The sending of the email has been cancelled.';
 }
