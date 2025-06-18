@@ -197,7 +197,6 @@ codeunit 134685 "Email Test"
         EmailRetry: Record "Email Retry";
         TempAccount: Record "Email Account" temporary;
         EmailOutbox: Record "Email Outbox";
-        HttpMockEmailMgnt: Codeunit "Library - Email Mock";
         Any: Codeunit Any;
         EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
@@ -218,7 +217,7 @@ codeunit 134685 "Email Test"
         Assert.IsTrue(EmailMessage.Get(EmailMessage.GetId()), 'The email should exist');
         ConnectorMock.FailOnSend(true);
         // [Given] The email is enqueued in the outbox
-        HttpMockEmailMgnt.SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId());
+        SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId());
 
         // [WHEN] The sending task is run from the background
         EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
@@ -2372,6 +2371,23 @@ codeunit 134685 "Email Test"
         // [When] Reply to email
         // [Then] No error occurs and reply returns true
         Email.EnqueueReplyAll(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
+    end;
+
+    local procedure SetupEmailOutbox(EmailMessageId: Guid; Connector: Enum "Email Connector"; EmailAccountId: Guid;
+                                                                    EmailDescription: Text;
+                                                                    EmailAddress: Text[250];
+                                                                    UserSecurityId: Code[50])
+    var
+        EmailOutbox: Record "Email Outbox";
+    begin
+        EmailOutbox.Validate("Message Id", EmailMessageId);
+        EmailOutbox.Insert();
+        EmailOutbox.Validate(Connector, Connector);
+        EmailOutbox.Validate("Account Id", EmailAccountId);
+        EmailOutbox.Validate(Description, EmailDescription);
+        EmailOutbox.Validate("User Security Id", UserSecurityId);
+        EmailOutbox.Validate("Send From", EmailAddress);
+        EmailOutbox.Modify();
     end;
 
     local procedure CreateEmailMessageAndEmailOutboxRecord(NumberOfRecords: Integer; TempAccount: Record "Email Account")
