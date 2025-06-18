@@ -233,7 +233,7 @@ codeunit 132601 "PDF Document Test"
     end;
 
     [Test]
-    procedure AddFilesToAppend_AddsFile()
+    procedure AddFileToAppend_AddsFile()
     var
         PDFDocument: Codeunit "PDF Document";
         FileName: Text;
@@ -244,7 +244,7 @@ codeunit 132601 "PDF Document Test"
         PDFDocument.Initialize();
 
         // [WHEN] Add the file to append list
-        PDFDocument.AddFilesToAppend(FileName);
+        PDFDocument.AddFileToAppend(FileName);
 
         // [THEN] Assert that the file was added
         Count := PDFDocument.AppendedDocumentCount();
@@ -252,17 +252,17 @@ codeunit 132601 "PDF Document Test"
     end;
 
     [Test]
-    procedure AddFilesToAppend_EmptyNameWithExistingFiles_ClearsList()
+    procedure AddFileToAppend_EmptyNameWithExistingFiles_ClearsList()
     var
         PDFDocument: Codeunit "PDF Document";
     begin
         // [GIVEN] One file already appended
         PDFDocument.Initialize();
-        PDFDocument.AddFilesToAppend('appendix.pdf');
+        PDFDocument.AddFileToAppend('appendix.pdf');
         Assert.AreEqual(1, PDFDocument.AppendedDocumentCount(), 'Expected one file before reset.');
 
         // [WHEN] Add an empty file name
-        PDFDocument.AddFilesToAppend('');
+        PDFDocument.AddFileToAppend('');
 
         // [THEN] Assert that the list is cleared
         Assert.AreEqual(0, PDFDocument.AppendedDocumentCount(), 'Expected file list to be cleared.');
@@ -374,8 +374,8 @@ codeunit 132601 "PDF Document Test"
     begin
         // [GIVEN] Create a PDF document with 2 additional files to append
         PDFDocument.Initialize();
-        PDFDocument.AddFilesToAppend('appendix1.pdf');
-        PDFDocument.AddFilesToAppend('appendix2.pdf');
+        PDFDocument.AddFileToAppend('appendix1.pdf');
+        PDFDocument.AddFileToAppend('appendix2.pdf');
 
         // [WHEN] Generate JSON
         JsonOut := PDFDocument.ToJson(JsonOut);
@@ -489,7 +489,7 @@ codeunit 132601 "PDF Document Test"
             'Main document',
             true);
 
-        PDFDocument.AddFilesToAppend('appendix.pdf');
+        PDFDocument.AddFileToAppend('appendix.pdf');
         PDFDocument.ProtectDocument('usercode', 'admincode');
 
         // [WHEN] Generate JSON output

@@ -106,7 +106,7 @@ procedure Example()
 var
     PDFDocument: Codeunit "PDF Document";
 begin
-    PDFDocument.AddFilesToAppend('c:\temp\appendix.pdf');
+    PDFDocument.AddFileToAppend('c:\temp\appendix.pdf');
 end;
 
 ```

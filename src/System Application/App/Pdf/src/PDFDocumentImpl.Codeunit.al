@@ -255,7 +255,8 @@ codeunit 3109 "PDF Document Impl."
         end;
     end;
 
-    procedure AddFilesToAppend(FileName: Text)
+    [Scope('OnPrem')]
+    procedure AddFileToAppend(FileName: Text)
     begin
         if FileName = '' then begin
             if this.AppendedDocumentCount() > 0 then
@@ -286,7 +287,7 @@ codeunit 3109 "PDF Document Impl."
 
         CopyStream(FileOutStream, LocalInStream);
         TempFile.Close();
-        this.AddFilesToAppend(TempFileName);
+        this.AddFileToAppend(TempFileName);
     end;
 
     [NonDebuggable]

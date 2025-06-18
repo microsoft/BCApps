@@ -151,9 +151,10 @@ codeunit 3110 "PDF Document"
     /// Add a file to the list of files to append to the rendered document. Empty name will reset the list.
     /// </summary>
     /// <param name="FileName">Path to the file to append. Platform will remove the file when rendering has been completed.</param>
-    procedure AddFilesToAppend(FileName: Text)
+    [Scope('OnPrem')]
+    procedure AddFileToAppend(FileName: Text)
     begin
-        PDFDocumentImpl.AddFilesToAppend(FileName);
+        PDFDocumentImpl.AddFileToAppend(FileName);
     end;
 
     /// <summary>
