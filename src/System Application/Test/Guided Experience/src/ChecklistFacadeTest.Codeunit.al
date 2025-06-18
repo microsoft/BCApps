@@ -3070,7 +3070,7 @@ ObjectIDToRun2, ManualSetupCategory::Uncategorized, '');
         ChecklistItemRole: Record "Checklist Item Role";
         ChecklistItemUser: Record "Checklist Item User";
         SpotlightTourText: Record "Spotlight Tour Text";
-        User: Record User;
+        UserLoginTestLibrary: Codeunit "User Login Test Library";
     begin
         if ShouldInsertProfiles then begin
             InsertProfile(ProfileID1);
@@ -3084,8 +3084,7 @@ ObjectIDToRun2, ManualSetupCategory::Uncategorized, '');
         ChecklistItemRole.DeleteAll();
         ChecklistItemUser.DeleteAll();
         SpotlightTourText.DeleteAll();
-        User.SetFilter("User Name", '<>%1', 'ADMIN');
-        User.DeleteAll();
+        UserLoginTestLibrary.DeleteAllUnLoggedInUsers();
     end;
 
     local procedure AddRoleToList(var TempAllProfile: Record "All Profile" temporary; ProfileID: Code[30])

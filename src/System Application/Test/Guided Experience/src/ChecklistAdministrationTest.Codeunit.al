@@ -988,7 +988,7 @@ codeunit 132602 "Checklist Administration Test"
         ChecklistItem: Record "Checklist Item";
         ChecklistItemRole: Record "Checklist Item Role";
         ChecklistItemUser: Record "Checklist Item User";
-        User: Record User;
+        UserLoginTestLibrary: Codeunit "User Login Test Library";
     begin
         if ShouldInitializeProfiles then begin
             InsertProfile(ProfileID1);
@@ -1000,8 +1000,7 @@ codeunit 132602 "Checklist Administration Test"
         ChecklistItem.DeleteAll();
         ChecklistItemRole.DeleteAll();
         ChecklistItemUser.DeleteAll();
-        User.SetFilter("User Name", '<>%1', 'ADMIN');
-        User.DeleteAll();
+        UserLoginTestLibrary.DeleteAllUnLoggedInUsers();
 
         LibraryVariableStorage.Clear();
     end;
