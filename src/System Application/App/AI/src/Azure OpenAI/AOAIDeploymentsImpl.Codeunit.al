@@ -150,6 +150,12 @@ codeunit 7769 "AOAI Deployments Impl"
         DeprecatedDeployments.Add(GPT40613SaasLbl, DMY2Date(1, 11, 2024));
         DeprecatedDeployments.Add(Turbo0613SaasLbl, DMY2Date(1, 11, 2024));
 #endif
+#if not CLEAN27
+        DeprecatedDeployments.Add(GPT4oLatestLbl, DMY2Date(15, 7, 2025));
+        DeprecatedDeployments.Add(GPT4oPreviewLbl, DMY2Date(15, 7, 2025));
+        DeprecatedDeployments.Add(GPT4oMiniLatestLbl, DMY2Date(15, 7, 2025));
+        DeprecatedDeployments.Add(GPT4oMiniPreviewLbl, DMY2Date(15, 7, 2025));
+#endif
         DeprecationDatesInitialized := true;
     end;
 
