@@ -167,11 +167,11 @@ codeunit 8888 "Email Dispatcher"
         RetryTime: DateTime;
         RandomDelay: Integer;
     begin
-        FeatureTelemetry.LogError('', EmailFeatureNameLbl, 'Retry failed email', StrSubstNo(FailedToFindEmailMessageMsg, EmailOutbox."Message Id"), '', Dimensions);
+        FeatureTelemetry.LogError('0000PMT', EmailFeatureNameLbl, 'Retry failed email', StrSubstNo(FailedToFindEmailMessageMsg, EmailOutbox."Message Id"), '', Dimensions);
         EmailOutbox.Validate("Retry No.", EmailOutbox."Retry No." + 1);
 
         if EmailOutbox."Retry No." > GetMaximumRetryCount() then begin
-            FeatureTelemetry.LogError('', EmailFeatureNameLbl, 'Email retry reached maximum times', '', '', Dimensions);
+            FeatureTelemetry.LogError('0000PMU', EmailFeatureNameLbl, 'Email retry reached maximum times', '', '', Dimensions);
             exit(false);
         end;
 
@@ -181,7 +181,7 @@ codeunit 8888 "Email Dispatcher"
         RandomDelay := Random(5000); // Jitter - Random delay between 0 and 5000 milliseconds (5 seconds)
         RetryTime := CurrentDateTime() + EmailOutbox."Retry No." * 1.5 * 60000 + RandomDelay; // Base interval: 1.5 minutes, plus a random delay of up to 5 seconds
 
-        FeatureTelemetry.LogUsage('', EmailFeatureNameLbl, 'Email Retry - Rescheduling email', Dimensions);
+        FeatureTelemetry.LogUsage('0000PMV', EmailFeatureNameLbl, 'Email Retry - Rescheduling email', Dimensions);
         TaskId := TaskScheduler.CreateTask(Codeunit::"Email Dispatcher", Codeunit::"Email Error Handler", true, CompanyName(), RetryTime, EmailOutbox.RecordId());
         EmailOutbox.Validate("Task Scheduler Id", TaskId);
         EmailOutbox.Validate("Date Sending", RetryTime);
