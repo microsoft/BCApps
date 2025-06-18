@@ -9,8 +9,10 @@ using System.Email;
 
 codeunit 134702 "Test Email Connector v3" implements "Email Connector v3"
 {
+    SingleInstance = true;
 
     var
+        TempEmailInbox: Record "Email Inbox" temporary;
         ConnectorMock: Codeunit "Connector Mock";
 
     procedure Send(EmailMessage: Codeunit "Email Message"; AccountId: Guid)
@@ -71,15 +73,39 @@ codeunit 134702 "Test Email Connector v3" implements "Email Connector v3"
             Error('Failed to send email');
     end;
 
+    procedure SetEmailInbox(var EmailInbox: Record "Email Inbox" temporary)
+    var
+        MailId: Integer;
+    begin
+        TempEmailInbox.DeleteAll();
+        if EmailInbox.FindSet() then
+            repeat
+                MailId += 1;
+                TempEmailInbox.Init();
+                TempEmailInbox := EmailInbox;
+                TempEmailInbox.Id := MailId;
+                TempEmailInbox.Insert();
+            until EmailInbox.Next() = 0;
+    end;
+
     procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox"; var Filter: Record "Email Retrieval Filters" temporary)
     begin
         if ConnectorMock.FailOnRetrieveEmails() then
             Error('Failed to retrieve emails');
 
-        ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v3", EmailInbox);
-        EmailInbox.Mark(true);
-        ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v3", EmailInbox);
-        EmailInbox.Mark(true);
+        if TempEmailInbox.FindSet() then
+            repeat
+                EmailInbox := TempEmailInbox;
+                EmailInbox.Id := 0; // Reset ID to ensure a new record is created
+                EmailInbox.Insert();
+                EmailInbox.Mark(true);
+            until TempEmailInbox.Next() = 0
+        else begin
+            ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v3", EmailInbox);
+            EmailInbox.Mark(true);
+            ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v3", EmailInbox);
+            EmailInbox.Mark(true);
+        end;
     end;
 
     procedure MarkAsRead(AccountId: Guid; ConversationId: Text)

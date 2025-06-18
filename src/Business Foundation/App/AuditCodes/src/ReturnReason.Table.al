@@ -12,7 +12,9 @@ table 6635 "Return Reason"
 {
     Caption = 'Return Reason';
     DataClassification = CustomerContent;
+#if not CLEANSCHEMA27
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+#endif
     DrillDownPageID = "Return Reasons";
     LookupPageID = "Return Reasons";
 
