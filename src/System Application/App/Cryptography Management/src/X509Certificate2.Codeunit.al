@@ -161,4 +161,16 @@ codeunit 1286 X509Certificate2
     begin
         X509Certificate2Impl.GetCertificateSerialNumberAsASCII(CertBase64Value, Password, SerialNumberASCII);
     end;
+
+    /// <summary>
+    /// Creates a new instance of X509Certificate2 from the specified Base64 encoded certificate value. The certificate is exported as Base64 encoded string.
+    /// </summary>
+    /// <param name="CertificateBase64">The Base64 encoded certificate in PEM format.</param>
+    /// <param name="PrivateKeyXmlString">The private key in XML format.</param>
+    /// <param name="Password">The password to protect the private key.</param>
+    /// <returns>The Base64 encoded certificate including the private key.</returns>
+    procedure CreateFromPemAndExportAsBase64(CertificateBase64: Text; PrivateKeyXmlString: SecretText; Password: SecretText) CertBase64Value: Text
+    begin
+        exit(X509Certificate2Impl.CreateFromPemAndExportAsBase64(CertificateBase64, PrivateKeyXmlString, Password));
+    end;
 }

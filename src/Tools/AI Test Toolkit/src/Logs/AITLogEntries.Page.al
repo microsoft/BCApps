@@ -283,11 +283,34 @@ page 149033 "AIT Log Entries"
                     AITTestSuiteMgt.DownloadTestSummary(Rec);
                 end;
             }
+
+            action(RerunTest)
+            {
+                Caption = 'Rerun test';
+                Image = Redo;
+                ToolTip = 'Rerun the test for the selected line.';
+
+                trigger OnAction()
+                var
+                    AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+                    Version: Integer;
+                begin
+                    Version := AITTestSuiteMgt.RerunTest(Rec);
+
+                    Rec.Reset();
+                    Rec.SetRange(Version, Version);
+                    CurrPage.Update(false);
+                end;
+            }
         }
         area(Promoted)
         {
             group(Category_Process)
             {
+
+                actionref("RerunTest_Promoted"; "RerunTest")
+                {
+                }
                 actionref(DeleteAll_Promoted; DeleteAll)
                 {
                 }
