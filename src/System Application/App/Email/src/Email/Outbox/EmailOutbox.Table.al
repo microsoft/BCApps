@@ -121,6 +121,12 @@ table 8888 "Email Outbox"
             DataClassification = CustomerContent;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
+        field(17; "Retry No."; Integer)
+        {
+            Access = Internal;
+            DataClassification = SystemMetadata;
+            Description = 'The field is marked as internal in order to prevent modifying it from code.';
+        }
     }
 
     keys
