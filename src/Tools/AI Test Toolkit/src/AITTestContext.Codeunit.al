@@ -95,6 +95,51 @@ codeunit 149044 "AIT Test Context"
     end;
 
     /// <summary>
+    /// Sets the query and respone for a single-turn evaluation.
+    /// Optionally, a context can be provided.
+    /// </summary>
+    /// <param name="Query">The query as text.</param>
+    /// <param name="Response">The response as text.</param>
+    /// <param name="Context">The context as text.</param>
+    procedure SetQueryResponse(Query: Text; Response: Text; Context: Text)
+    begin
+        AITTestContextImpl.SetQueryResponse(Query, Response, Context);
+    end;
+
+    /// <summary>
+    /// Sets the query and response for a single-turn evaluation.
+    /// </summary>
+    /// <param name="Query">The query as text.</param>
+    /// <param name="Response">The response as text.</param>
+    procedure SetQueryResponse(Query: Text; Response: Text)
+    begin
+        AITTestContextImpl.SetQueryResponse(Query, Response, '');
+    end;
+
+    /// <summary>
+    /// Adds a message to the current test iteration.
+    /// This is used for multi-turn tests to add messages to the output.
+    /// </summary>
+    /// <param name="Content">The content of the message.</param>
+    /// <param name="Role">The role of the message (e.g., 'user', 'assistant').</param>
+    /// <param name="Context">The context of the message (optional).</param>
+    procedure AddMessage(Content: Text; Role: Text; Context: Text)
+    begin
+        AITTestContextImpl.AddMessage(Content, Role, Context);
+    end;
+
+    /// <summary>
+    /// Adds a message to the current test iteration.
+    /// This is used for multi-turn tests to add messages to the output.
+    /// </summary>
+    /// <param name="Content">The content of the message.</param>
+    /// <param name="Role">The role of the message (e.g., 'user', 'assistant').</param>
+    procedure AddMessage(Content: Text; Role: Text)
+    begin
+        AITTestContextImpl.AddMessage(Content, Role, '');
+    end;
+
+    /// <summary>
     /// Sets the test output for the current iteration.
     /// </summary>
     /// <param name="TestOutputJson">The test output.</param>
