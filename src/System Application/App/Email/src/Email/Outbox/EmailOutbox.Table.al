@@ -125,6 +125,8 @@ table 8888 "Email Outbox"
         {
             Access = Internal;
             DataClassification = SystemMetadata;
+            MinValue = 1;
+            InitValue = 1;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
     }

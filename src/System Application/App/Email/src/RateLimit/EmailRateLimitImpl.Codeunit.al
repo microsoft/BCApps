@@ -90,12 +90,8 @@ codeunit 8999 "Email Rate Limit Impl."
         if EmailRateLimit.Get(AccountId, Connector) then
             exit(EmailRateLimit."Rate Limit");
 
-        EmailRateLimit."Account Id" := AccountId;
-        EmailRateLimit.Connector := Connector;
-        EmailRateLimit."Email Address" := EmailAddress;
-        EmailRateLimit."Rate Limit" := 0;
-        EmailRateLimit.Validate("Concurrency Limit", 10);
-        EmailRateLimit.Insert();
+        InitEmailRateLimitRecord(EmailRateLimit, AccountId, Connector, EmailAddress);
+
         exit(EmailRateLimit."Rate Limit");
     end;
 
@@ -107,12 +103,28 @@ codeunit 8999 "Email Rate Limit Impl."
         if EmailRateLimit.Get(AccountId, Connector) then
             exit(EmailRateLimit."Concurrency Limit");
 
-        EmailRateLimit."Account Id" := AccountId;
-        EmailRateLimit.Connector := Connector;
-        EmailRateLimit."Email Address" := EmailAddress;
-        EmailRateLimit."Rate Limit" := 0;
-        EmailRateLimit.Validate("Concurrency Limit", 10);
-        EmailRateLimit.Insert();
+        InitEmailRateLimitRecord(EmailRateLimit, AccountId, Connector, EmailAddress);
+
         exit(EmailRateLimit."Concurrency Limit");
+    end;
+
+    local procedure GetDefaultRateLimit(): Integer
+    begin
+        exit(0); // Default rate limit is 0, meaning no limit.
+    end;
+
+    local procedure GetDefaultConcurrencyLimit(): Integer
+    begin
+        exit(3);
+    end;
+
+    local procedure InitEmailRateLimitRecord(var EmailRateLimit: Record "Email Rate Limit"; AccountId: Guid; Connector: Enum "Email Connector"; EmailAddress: Text[250])
+    begin
+        EmailRateLimit.Validate("Account Id", AccountId);
+        EmailRateLimit.Validate(Connector, Connector);
+        EmailRateLimit.Validate("Email Address", EmailAddress);
+        EmailRateLimit.Validate("Rate Limit", GetDefaultRateLimit());
+        EmailRateLimit.Validate("Concurrency Limit", GetDefaultConcurrencyLimit());
+        EmailRateLimit.Insert();
     end;
 }
