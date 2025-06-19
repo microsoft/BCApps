@@ -803,6 +803,21 @@ dotnet
         type("Microsoft.BusinessCentral.DocumentProcessor.MailMerge"; "MailMerge")
         {
         }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfDocumentInfo"; "PdfDocumentInfo")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfConverter"; "PdfConverter")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfTargetDevice"; "PdfTargetDevice")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfAttachmentManager"; "PdfAttachmentManager")
+        {
+        }
+        type("Microsoft.BusinessCentral.DocumentProcessor.PdfAttachment"; "PdfAttachment")
+        {
+        }
     }
 
     assembly("Microsoft.Dynamics.Nav.PowerBIEmbedded")
@@ -2099,7 +2114,6 @@ dotnet
         type("System.Collections.Generic.List`1"; "GenericList1")
         {
         }
-
         type("System.Nullable`1"; "Nullable1")
         {
         }
