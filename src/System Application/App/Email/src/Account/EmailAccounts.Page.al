@@ -111,6 +111,19 @@ page 8887 "Email Accounts"
                         EmailRateLimitImpl.UpdateRateLimit(Rec);
                     end;
                 }
+
+                field(EmailConcurrencyLimit; ConcurrencyLimit)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Email Rate Limit';
+                    ToolTip = 'Specifies the rate limit per minute for the email account.';
+                    Visible = true;
+
+                    trigger OnDrillDown()
+                    begin
+                        EmailRateLimitImpl.UpdateRateLimit(Rec);
+                    end;
+                }
             }
         }
 
@@ -364,6 +377,7 @@ page 8887 "Email Accounts"
         end;
 
         RateLimit := EmailRateLimitImpl.GetRateLimit(Rec."Account Id", Rec.Connector, Rec."Email Address");
+        ConcurrencyLimit := EmailRateLimitImpl.GetConcurrencyLimit(Rec."Account Id", Rec.Connector, Rec."Email Address");
 
         DefaultTxt := '';
 
@@ -515,6 +529,7 @@ page 8887 "Email Accounts"
         EmailRateLimitImpl: Codeunit "Email Rate Limit Impl.";
         IsDefault: Boolean;
         RateLimit: Integer;
+        ConcurrencyLimit: Integer;
         CanUserManageEmailSetup: Boolean;
         DefaultTxt: Text;
         UpdateAccounts: Boolean;
