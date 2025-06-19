@@ -173,7 +173,7 @@ codeunit 324 "No. Series Copilot Impl."
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"No. Series Copilot") then
             exit;
 
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT4oLatest());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"No. Series Copilot");
         AOAIChatCompletionParams.SetMaxTokens(MaxOutputTokens());
         AOAIChatCompletionParams.SetTemperature(0);
