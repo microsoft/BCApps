@@ -99,6 +99,28 @@ codeunit 149034 "AIT Test Suite Mgt."
         LogRunHistory(AITTestSuite.Code, AITTestSuite.Version, AITTestSuite.Tag);
     end;
 
+    internal procedure RerunTest(var AITLogEntry: Record "AIT Log Entry"): Integer
+    var
+        AITTestSuite: Record "AIT Test Suite";
+        AITTestMethodLineForLogEntry: Record "AIT Test Method Line";
+        AITTestRunInputHandler: Codeunit "AIT Test Run Input Handler";
+    begin
+        if not AITTestMethodLineForLogEntry.Get(AITLogEntry."Test Suite Code", AITLogEntry."Test Method Line No.") then
+            Error(TestMethodLineNotFoundErr, AITLogEntry."Test Method Line No.", AITLogEntry."Test Suite Code");
+
+        if AITTestMethodLineForLogEntry."Codeunit ID" <> AITLogEntry."Codeunit ID" then
+            Error(TestSuiteChangedErr);
+
+        AITTestRunInputHandler.SetInput(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code");
+
+        BindSubscription(AITTestRunInputHandler);
+        RunAITestLine(AITTestMethodLineForLogEntry, false);
+        UnbindSubscription(AITTestRunInputHandler);
+
+        AITTestSuite.Get(AITTestMethodLineForLogEntry."Test Suite Code");
+        exit(AITTestSuite.Version);
+    end;
+
     internal procedure RunAITestLine(AITTestMethodLine: Record "AIT Test Method Line"; IsExecutedFromTestSuiteHeader: Boolean)
     var
         AITTestSuite: Record "AIT Test Suite";

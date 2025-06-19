@@ -14,8 +14,8 @@ table 149030 "AIT Test Suite"
     Caption = 'AI Test Suite';
     DataClassification = SystemMetadata;
     ReplicateData = false;
-    Access = Public;
     Extensible = true;
+    Access = Public;
 
     fields
     {

@@ -13,7 +13,7 @@ using System.Security.AccessControl;
 /// </summary>
 page 9843 "User Lookup"
 {
-    Extensible = false;
+    Extensible = true;
     DataCaptionExpression = '';
     DeleteAllowed = false;
     InsertAllowed = false;
