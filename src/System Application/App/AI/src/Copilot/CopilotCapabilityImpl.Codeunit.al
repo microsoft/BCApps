@@ -48,7 +48,7 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     begin
-        RegisterCapability(CopilotCapability, Enum::"Copilot Availability"::Preview, LearnMoreUrl, CallerModuleInfo);
+        RegisterCapability(CopilotCapability, Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", LearnMoreUrl, CallerModuleInfo);
     end;
 
 #if not CLEAN27
