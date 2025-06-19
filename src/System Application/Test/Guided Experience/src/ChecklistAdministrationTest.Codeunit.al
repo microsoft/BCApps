@@ -20,7 +20,7 @@ codeunit 132602 "Checklist Administration Test"
                     tabledata "Checklist Item Role" = rimd,
                     tabledata "Checklist Item User" = rimd,
                     tabledata "All Profile" = ri,
-                    tabledata User = ri,
+                    tabledata User = rid,
                     tabledata "User Personalization" = rm;
 
     var
@@ -988,6 +988,7 @@ codeunit 132602 "Checklist Administration Test"
         ChecklistItem: Record "Checklist Item";
         ChecklistItemRole: Record "Checklist Item Role";
         ChecklistItemUser: Record "Checklist Item User";
+        UserLoginTestLibrary: Codeunit "User Login Test Library";
     begin
         if ShouldInitializeProfiles then begin
             InsertProfile(ProfileID1);
@@ -999,6 +1000,7 @@ codeunit 132602 "Checklist Administration Test"
         ChecklistItem.DeleteAll();
         ChecklistItemRole.DeleteAll();
         ChecklistItemUser.DeleteAll();
+        UserLoginTestLibrary.DeleteAllUnLoggedInUsers();
 
         LibraryVariableStorage.Clear();
     end;
