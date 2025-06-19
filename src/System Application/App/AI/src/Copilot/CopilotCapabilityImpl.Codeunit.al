@@ -64,10 +64,14 @@ codeunit 7774 "Copilot Capability Impl"
                                                         CopilotBillingType: Enum "Copilot Billing Type";
                                                         LearnMoreUrl: Text[2048];
                                                         CallerModuleInfo: ModuleInfo)
+    var
+        ErrorMessage: Text;
     begin
         // Validate Billing Type
-        if CopilotBillingType = Enum::"Copilot Billing Type"::Undefined then
-            Error(StrSubstNo(InvalidBillingTypeErr, CopilotCapability));
+        if CopilotBillingType = Enum::"Copilot Billing Type"::Undefined then begin
+            ErrorMessage := StrSubstNo(InvalidBillingTypeErr, CopilotCapability);
+            Error(ErrorMessage);
+        end;
 
         RegisterCapability(CopilotCapability, CopilotAvailability, CopilotBillingType, Enum::"Azure AI Service Type"::"Azure OpenAI", LearnMoreUrl, CallerModuleInfo);
     end;
@@ -153,6 +157,7 @@ codeunit 7774 "Copilot Capability Impl"
                                                       CallerModuleInfo: ModuleInfo)
     var
         CustomDimensions: Dictionary of [Text, Text];
+        ErrorMessage: Text;
     begin
         if not IsCapabilityRegistered(CopilotCapability, CallerModuleInfo) then
             Error(NotRegisteredErr);
@@ -168,8 +173,10 @@ codeunit 7774 "Copilot Capability Impl"
 
         // Validate Billing Type, Undefined billing type is not allowed
         if (CopilotSettings."Billing Type" <> Enum::"Copilot Billing Type"::Undefined) and
-            (CopilotBillingType = Enum::"Copilot Billing Type"::Undefined) then
-            Error(StrSubstNo(InvalidBillingTypeErr, CopilotCapability));
+            (CopilotBillingType = Enum::"Copilot Billing Type"::Undefined) then begin
+            ErrorMessage := StrSubstNo(InvalidBillingTypeErr, CopilotCapability);
+            Error(ErrorMessage);
+        end;
 
         CopilotSettings."Billing Type" := CopilotBillingType;
         CopilotSettings.Modify(true);

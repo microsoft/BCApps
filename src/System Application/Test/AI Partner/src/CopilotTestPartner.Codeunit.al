@@ -4,7 +4,7 @@ using System.AI;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.AI;
 
-codeunit 139012 "Copilot Test Partner"
+codeunit 139022 "Copilot Test Partner"
 {
     Subtype = Test;
 
@@ -50,6 +50,7 @@ codeunit 139012 "Copilot Test Partner"
     var
         CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
         CurrentModuleInfo: ModuleInfo;
+        ErrorMessage: Text;
     begin
         // [SCENARIO] Register a copilot capability with billing type set to Undefined
 
@@ -60,7 +61,8 @@ codeunit 139012 "Copilot Test Partner"
         asserterror CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::Undefined, LearnMoreUrlLbl);
 
         // [THEN] Register capability should throw an error
-        LibraryAssert.ExpectedError(StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Capability"));
+        ErrorMessage := StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Capability");
+        LibraryAssert.ExpectedError(ErrorMessage);
     end;
 
     [Test]
@@ -102,6 +104,7 @@ codeunit 139012 "Copilot Test Partner"
     var
         CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
         CurrentModuleInfo: ModuleInfo;
+        ErrorMessage: Text;
     begin
         // [SCENARIO] Modify copilot capabilities - Availability, Billing Type, and Learn More Url
 
@@ -122,7 +125,8 @@ codeunit 139012 "Copilot Test Partner"
 
         // [WHEN] ModifyCapability is called
         asserterror CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::Undefined, LearnMoreUrl2Lbl);
-        LibraryAssert.ExpectedError(StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Capability"));
+        ErrorMessage := StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Capability");
+        LibraryAssert.ExpectedError(ErrorMessage);
 
         // [THEN] Copilot capability is modified
         CopilotSettingsTestLibrary.FindFirst();

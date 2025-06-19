@@ -11,7 +11,7 @@ using System.TestLibraries.AI;
 using System.TestLibraries.Environment;
 using System.TestLibraries.Utilities;
 
-codeunit 139011 "Azure OpenAI Test Partner"
+codeunit 139021 "Azure OpenAI Test Partner"
 {
     Subtype = Test;
     TestHttpRequestPolicy = BlockOutboundRequests;
@@ -27,7 +27,7 @@ codeunit 139011 "Azure OpenAI Test Partner"
         AccountNameTxt: Label 'account', Locked = true;
         ManagedResourceDeploymentTxt: Label 'Managed AI Resource', Locked = true;
         LearMoreUrlLbl: Label 'http://LearnMore.com', Locked = true;
-        BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.';
+        BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.', Comment = '%1 is the capability name, %2 is the billing type';
 
     [Test]
     [Scope('OnPrem')]
@@ -40,6 +40,7 @@ codeunit 139011 "Azure OpenAI Test Partner"
         Metaprompt: Text;
         CurrentModuleInfo: ModuleInfo;
         CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
+        ErrorMessage: Text;
     begin
         // Initialize the Copilot Settings Test Library
         CopilotSettingsTestLibrary.DeleteAll();
@@ -74,7 +75,8 @@ codeunit 139011 "Azure OpenAI Test Partner"
 
         // [THEN] GenerateTextCompletion returns an error [CAPI with Partner Billed - Not allowed for Partner published capabilities]
         LibraryAssert.AreEqual(AOAIOperationResponse.IsSuccess(), false, 'AOAI Operation Response should be an error');
-        LibraryAssert.ExpectedError(StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Billing Type"::"Custom Billed"));
+        ErrorMessage := StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Billing Type"::"Custom Billed");
+        LibraryAssert.ExpectedError(ErrorMessage);
     end;
 
     [Test]
@@ -83,6 +85,7 @@ codeunit 139011 "Azure OpenAI Test Partner"
         AzureOpenAI: Codeunit "Azure OpenAI";
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         PrivacyNotice: Codeunit "Privacy Notice";
+        ErrorMessage: Text;
     begin
         // [SCENARIO] GenerateEmbeddings returns an error when generate complete is called
 
@@ -100,7 +103,8 @@ codeunit 139011 "Azure OpenAI Test Partner"
 
         // [THEN] GenerateEmbeddings returns an error [BYO with Microsoft Billed - Not allowed for Partner published capabilities]
         LibraryAssert.AreEqual(AOAIOperationResponse.IsSuccess(), false, 'AOAI Operation Response should be an error');
-        LibraryAssert.ExpectedError(StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Embedding Capability", Enum::"Copilot Billing Type"::"Microsoft Billed"));
+        ErrorMessage := StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Embedding Capability", Enum::"Copilot Billing Type"::"Microsoft Billed");
+        LibraryAssert.ExpectedError(ErrorMessage);
     end;
 
     [Test]
@@ -112,6 +116,7 @@ codeunit 139011 "Azure OpenAI Test Partner"
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         PrivacyNotice: Codeunit "Privacy Notice";
+        ErrorMessage: Text;
     begin
         // [SCENARIO] GenerateEmbeddings returns an error when generate chat complete is called
 
@@ -128,7 +133,8 @@ codeunit 139011 "Azure OpenAI Test Partner"
 
         // [THEN] GenerateChatCompletion fails [CAPI with Free billing type - Not allowed for Partner published capabilities]
         LibraryAssert.AreEqual(AOAIOperationResponse.IsSuccess(), false, 'AOAI Operation Response should be an error');
-        LibraryAssert.ExpectedError(StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Chat Capability", Enum::"Copilot Billing Type"::"Not Billed"));
+        ErrorMessage := StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Chat Capability", Enum::"Copilot Billing Type"::"Not Billed");
+        LibraryAssert.ExpectedError(ErrorMessage);
     end;
 
     local procedure RegisterCapabilityWithBillingType(Capability: Enum "Copilot Capability"; Availability: Enum "Copilot Availability"; BillingType: Enum "Copilot Billing Type")

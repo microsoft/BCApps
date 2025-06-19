@@ -94,6 +94,7 @@ codeunit 132683 "Copilot Test"
     var
         CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
         CurrentModuleInfo: ModuleInfo;
+        ErrorMessage: Text;
     begin
         // [SCENARIO] Register a copilot capability with invalid billing type
 
@@ -104,7 +105,8 @@ codeunit 132683 "Copilot Test"
         asserterror CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::Undefined, LearnMoreUrlLbl);
 
         // [THEN] Registered capability should throw an error
-        LibraryAssert.ExpectedError(StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Capability"));
+        ErrorMessage := StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Capability");
+        LibraryAssert.ExpectedError(ErrorMessage);
     end;
 
     [Test]
@@ -159,6 +161,7 @@ codeunit 132683 "Copilot Test"
     procedure TestModifyCapabilityWithInvalidBillingType()
     var
         CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
+        ErrorMessage: Text;
     begin
         // [SCENARIO] Modify a copilot capability
 
@@ -168,7 +171,8 @@ codeunit 132683 "Copilot Test"
         CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", LearnMoreUrlLbl);
         // [WHEN] ModifyCapability is called
         asserterror CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::Undefined, LearnMoreUrl2Lbl);
-        LibraryAssert.ExpectedError(StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Capability"));
+        ErrorMessage := StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Capability");
+        LibraryAssert.ExpectedError(ErrorMessage);
         // Copilot capability is not modified
         CopilotSettingsTestLibrary.FindFirst();
         LibraryAssert.AreEqual(Enum::"Copilot Availability"::Preview, CopilotSettingsTestLibrary.GetAvailability(), 'Availability is updated to Generally Available');
