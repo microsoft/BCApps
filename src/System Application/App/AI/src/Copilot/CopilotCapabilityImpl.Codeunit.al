@@ -22,7 +22,6 @@ codeunit 7774 "Copilot Capability Impl"
     Permissions = tabledata "Copilot Settings" = rimd;
 
     var
-        CopilotSettings: Record "Copilot Settings";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         Telemetry: Codeunit Telemetry;
         CopilotCategoryLbl: Label 'Copilot', Locked = true;
@@ -44,6 +43,7 @@ codeunit 7774 "Copilot Capability Impl"
         TelemetryUnregisteredCopilotCapabilityLbl: Label 'Copilot capability unregistered.', Locked = true;
         TelemetryActivatedCopilotCapabilityLbl: Label 'Copilot capability activated.', Locked = true;
         TelemetryDeactivatedCopilotCapabilityLbl: Label 'Copilot capability deactivated.', Locked = true;
+        CopilotFeatureDeactivatedLbl: Label 'The copilot/AI capability %1, App Id %2 has been deactivated by UserSecurityId %3.', Locked = true;
 
     procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     begin
@@ -57,6 +57,7 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; AzureAIServiceType: Enum "Azure AI Service Type"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     var
+        CopilotSettings: Record "Copilot Settings";
         CustomDimensions: Dictionary of [Text, Text];
     begin
         if IsCapabilityRegistered(CopilotCapability, CallerModuleInfo) then
@@ -83,6 +84,7 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo; AIServiceType: Enum "Azure AI Service Type")
     var
+        CopilotSettings: Record "Copilot Settings";
         CopilotTelemetry: Codeunit "Copilot Telemetry";
         Language: Codeunit Language;
         IAIServicename: Interface "AI Service Name";
@@ -115,6 +117,7 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure ModifyCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     var
+        CopilotSettings: Record "Copilot Settings";
         CustomDimensions: Dictionary of [Text, Text];
     begin
         if not IsCapabilityRegistered(CopilotCapability, CallerModuleInfo) then
@@ -138,6 +141,7 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure UnregisterCapability(CopilotCapability: Enum "Copilot Capability"; var CallerModuleInfo: ModuleInfo)
     var
+        CopilotSettings: Record "Copilot Settings";
         CustomDimensions: Dictionary of [Text, Text];
     begin
         if not IsCapabilityRegistered(CopilotCapability, CallerModuleInfo) then
@@ -159,6 +163,8 @@ codeunit 7774 "Copilot Capability Impl"
     end;
 
     procedure IsCapabilityRegistered(CopilotCapability: Enum "Copilot Capability"; AppId: Guid): Boolean
+    var
+        CopilotSettings: Record "Copilot Settings";
     begin
         CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
         CopilotSettings.SetRange("Capability", CopilotCapability);
@@ -167,6 +173,8 @@ codeunit 7774 "Copilot Capability Impl"
     end;
 
     procedure IsCapabilityActive(CallerModuleInfo: ModuleInfo): Boolean
+    var
+        CopilotSettings: Record "Copilot Settings";
     begin
         exit(IsCapabilityActive(CopilotSettings.Capability, CallerModuleInfo.Id()));
     end;
@@ -178,6 +186,7 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure IsCapabilityActive(CopilotCapability: Enum "Copilot Capability"; AppId: Guid): Boolean
     var
+        CopilotSettings: Record "Copilot Settings";
         CopilotCapabilityCU: Codeunit "Copilot Capability";
         PrivacyNotice: Codeunit "Privacy Notice";
         RequiredPrivacyNotices: List of [Code[50]];
@@ -202,6 +211,8 @@ codeunit 7774 "Copilot Capability Impl"
     end;
 
     procedure GetCapabilityName(): Text
+    var
+        CopilotSettings: Record "Copilot Settings";
     begin
         CheckCapabilitySet();
 
@@ -223,18 +234,24 @@ codeunit 7774 "Copilot Capability Impl"
     end;
 
     procedure CheckCapabilitySet()
+    var
+        CopilotSettings: Record "Copilot Settings";
     begin
         if CopilotSettings.Capability.AsInteger() = 0 then
             Error(CopilotCapabilityNotSetErr);
     end;
 
     procedure CheckCapabilityServiceType(ServiceType: Enum "Azure AI Service Type")
+    var
+        CopilotSettings: Record "Copilot Settings";
     begin
         if CopilotSettings."Service Type" <> ServiceType then
             Error(CopilotCapabilityNotSetErr);
     end;
 
     procedure CheckEnabled(CallerModuleInfo: ModuleInfo)
+    var
+        CopilotSettings: Record "Copilot Settings";
     begin
         if not IsCapabilityEnabled(CopilotSettings.Capability, true, CallerModuleInfo) then
             Error(CopilotNotEnabledErr);
@@ -326,6 +343,7 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure AddTelemetryCustomDimensions(var CustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
     var
+        CopilotSettings: Record "Copilot Settings";
         Language: Codeunit Language;
         SavedGlobalLanguageId: Integer;
     begin
@@ -440,6 +458,28 @@ codeunit 7774 "Copilot Capability Impl"
             GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Copilot AI Capabilities")
         else
             GuidedExperience.ResetAssistedSetup(ObjectType::Page, Page::"Copilot AI Capabilities");
+    end;
+
+    procedure DeactivateCapability(var CopilotSettings: Record "Copilot Settings")
+    var
+        CopilotDeactivate: Page "Copilot Deactivate Capability";
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+    begin
+        if ALCopilotFunctions.IsCopilotFeedbackEnabled() then begin
+            CopilotDeactivate.SetCaption(Format(CopilotSettings.Capability));
+            if CopilotDeactivate.RunModal() = Action::OK then begin
+                CopilotSettings.Status := CopilotSettings.Status::Inactive;
+                CopilotSettings.Modify(true);
+
+                SendDeactivateTelemetry(CopilotSettings.Capability, CopilotSettings."App Id", CopilotDeactivate.GetReason());
+                Session.LogAuditMessage(StrSubstNo(CopilotFeatureDeactivatedLbl, CopilotSettings.Capability, CopilotSettings."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
+            end;
+        end else begin
+            CopilotSettings.Status := CopilotSettings.Status::Inactive;
+            CopilotSettings.Modify(true);
+
+            Session.LogAuditMessage(StrSubstNo(CopilotFeatureDeactivatedLbl, CopilotSettings.Capability, CopilotSettings."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
+        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetCopilotCapabilityStatus', '', false, false)]
