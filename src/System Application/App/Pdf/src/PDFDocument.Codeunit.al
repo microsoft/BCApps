@@ -19,6 +19,15 @@ codeunit 3110 "PDF Document"
     var
         PDFDocumentImpl: Codeunit "PDF Document Impl.";
 
+
+    /// <summary>
+    /// This procedure initializes the internal state of the object by resetting attachment lists
+    /// and clearing user and admin codes, as well as any additional document names.
+    /// </summary>
+    procedure Initialize()
+    begin
+        PDFDocumentImpl.Initialize();
+    end;
     /// <summary>
     /// This procedure is used to load a PDF document from a stream.
     /// </summary>
@@ -114,5 +123,99 @@ codeunit 3110 "PDF Document"
     procedure GetAttachmentNames(PdfStream: InStream): List of [Text]
     begin
         exit(PDFDocumentImpl.GetAttachmentNames(PdfStream));
+    end;
+
+    /// <summary>
+    /// Configure the attachment lists. An empty name will reset the list. 
+    /// This procedure adds a new attachment to the PDF document with the specified metadata and relationship type.
+    /// </summary>
+    /// <param name="AttachmentName">Attachment name. If empty, the list will be reset.</param>
+    /// <param name="PDFAttachmentDataType">Defines the relationship of the attachment to the PDF (e.g. supplementary, source, data, alternative).</param>
+    /// <param name="MimeType">MIME type of the attachment (e.g., application/pdf, image/png).</param>
+    /// <param name="FileName">The file name of the attachment as it should appear in the PDF.</param>
+    /// <param name="Description">A textual description of the attachment.</param>
+    /// <param name="PrimaryDocument">Indicates whether this attachment is the primary document.</param>
+
+    procedure AddAttachment(AttachmentName: Text; PDFAttachmentDataType: Enum "PDF Attach. Data Relationship"; MimeType: Text; FileName: Text; Description: Text; PrimaryDocument: Boolean)
+    begin
+        PDFDocumentImpl.AddAttachment(AttachmentName, PDFAttachmentDataType, MimeType, FileName, Description, PrimaryDocument);
+    end;
+
+    /// <summary>
+    /// Add a file to the list of files to append to the rendered document. Empty name will reset the list.
+    /// </summary>
+    /// <param name="FileName">Path to the file to append. Platform will remove the file when rendering has been completed.</param>
+    [Scope('OnPrem')]
+    procedure AddFileToAppend(FileName: Text)
+    begin
+        PDFDocumentImpl.AddFileToAppend(FileName);
+    end;
+
+    /// <summary>
+    /// Add a stream to the list of files to append to the rendered document using a temporary file name.
+    /// </summary>
+    /// <param name="FileInStream">Stream with file content. Platform will remove the temporary file when rendering has been completed.</param>
+    procedure AddStreamToAppend(FileInStream: InStream)
+    begin
+        PDFDocumentImpl.AddStreamToAppend(FileInStream);
+    end;
+
+    /// <summary>
+    /// Protect the document with a user and admin code using text data type.
+    /// </summary>
+    /// <param name="User">User code.</param>
+    /// <param name="Admin">Admin code.</param>
+    [NonDebuggable]
+    procedure ProtectDocument(User: Text; Admin: Text)
+    begin
+        PDFDocumentImpl.ProtectDocument(User, Admin);
+    end;
+
+    /// <summary>
+    /// Protect the document with a user and admin code using secrettext data type.
+    /// </summary>
+    /// <param name="User">User code.</param>
+    /// <param name="Admin">Admin code.</param>
+    procedure ProtectDocument(User: SecretText; Admin: SecretText)
+    begin
+        PDFDocumentImpl.ProtectDocument(User, Admin);
+    end;
+
+    /// <summary>
+    /// Returns the number of configured attachments. 
+    /// Validates that all attachment-related lists (names, MIME types, data types, filenames, and descriptions) are synchronized in length.
+    /// Throws an error if any of the lists are out of sync.
+    /// </summary>
+    /// <returns>The total number of attachments configured.</returns>
+
+    procedure AttachmentCount(): Integer
+    begin
+        exit(PDFDocumentImpl.AttachmentCount());
+    end;
+
+    /// <summary>
+    /// Returns the number of additional document names that have been appended.
+    /// This count reflects how many supplementary documents are currently tracked.
+    /// </summary>
+    /// <returns>The total number of additional document names.</returns>
+    procedure AppendedDocumentCount(): Integer
+    begin
+        exit(PDFDocumentImpl.AppendedDocumentCount());
+    end;
+
+    /// <summary>
+    /// Converts the internal state of the PDF document configuration into a structured JSON payload.
+    /// This includes metadata such as version, primary document, attachments, additional documents, and protection settings.
+    /// </summary>
+    /// <param name="RenderingPayload">The base JSON object to which the PDF configuration will be applied.</param>
+    /// <returns>A JsonObject representing the complete rendering payload with all configured properties.</returns>
+    /// <remarks>
+    /// Throws an error if the payload already contains a primary document or protection block, as these cannot be overwritten.
+    /// </remarks>
+
+    [NonDebuggable]
+    procedure ToJson(RenderingPayload: JsonObject): JsonObject
+    begin
+        exit(PDFDocumentImpl.ToJson(RenderingPayload));
     end;
 }

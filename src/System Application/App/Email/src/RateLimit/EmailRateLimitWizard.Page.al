@@ -50,6 +50,19 @@ page 8898 "Email Rate Limit Wizard"
                     UpdateRateLimitDisplay();
                 end;
             }
+
+            field(EmailConcurrencyLimit; EmailConcurrencyLimit)
+            {
+                ApplicationArea = All;
+                Caption = 'Concurrency Limit';
+                ToolTip = 'Specifies the maximum number of concurrent emails that can be sent using this account.';
+                Numeric = true;
+
+                trigger OnValidate()
+                begin
+                    UpdateConcurrencyLimitLimitDisplay();
+                end;
+            }
         }
     }
     actions
@@ -76,12 +89,22 @@ page 8898 "Email Rate Limit Wizard"
     trigger OnOpenPage()
     begin
         EmailRateLimitDisplay := Format(Rec."Rate Limit");
+        EmailConcurrencyLimit := Format(Rec."Concurrency Limit");
         UpdateRateLimitDisplay();
+        UpdateConcurrencyLimitLimitDisplay();
     end;
 
     internal procedure SetEmailAccountName(EmailAccountName: Text[250])
     begin
         EmailName := EmailAccountName;
+    end;
+
+    local procedure UpdateConcurrencyLimitLimitDisplay()
+    var
+        CurrLimit: Integer;
+    begin
+        Evaluate(CurrLimit, EmailConcurrencyLimit);
+        Rec.Validate("Concurrency Limit", CurrLimit);
     end;
 
     internal procedure UpdateRateLimitDisplay()
@@ -93,6 +116,7 @@ page 8898 "Email Rate Limit Wizard"
 
     var
         EmailRateLimitDisplay: Text[250];
+        EmailConcurrencyLimit: Text[250];
         EmailName: Text[250];
         NoLimitTxt: Label 'No limit';
 }

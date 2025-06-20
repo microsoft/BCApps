@@ -130,7 +130,6 @@ codeunit 132605 "Checklist Banner Test"
     end;
 
     [Test]
-    [HandlerFunctions('ChecklistBannerHandler,AssistedSetupWizardHandler,HyperlinkHandler,RequestPageHandler')]
     procedure TestChecklistBannerVisibilityAfterDelete()
     var
         GuidedExperienceItem: Record "Guided Experience Item";

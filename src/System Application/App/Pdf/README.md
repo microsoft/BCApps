@@ -10,7 +10,12 @@ You can use this module to:
 
 - Retrieve PDF metadata (author, title, page size, etc.)
 
-- Number of pages 
+- Count number of pages
+
+- Add attachments and append files to the rendered PDF
+
+- Protect PDF documents with user/admin codes
+
 
 ### Extract an embedded invoice from a PDF
 ```
@@ -76,5 +81,97 @@ var
 begin
     PageCount := PDFDocument.GetPdfPageCount(PdfStream);
     Message('PDF has %1 pages', PageCount);
+end;
+```
+
+### Add an attachment to the PDF
+```
+procedure Example()
+var
+    PDFDocument: Codeunit "PDF Document";
+begin
+    PDFDocument.AddAttachment(
+        'factur-x.xml',
+        Enum::"PDF Attach. Data Relationship"::Data,
+        'application/xml',
+        'factur-x.xml',
+        'Embedded e-invoice',
+        false);
+end;
+```
+
+### Append a file to the rendered PDF
+```
+procedure Example()
+var
+    PDFDocument: Codeunit "PDF Document";
+begin
+    PDFDocument.AddFileToAppend('c:\temp\appendix.pdf');
+end;
+
+```
+
+### Append a stream to the rendered PDF
+```
+procedure Example(FileInStream: InStream)
+var
+    PDFDocument: Codeunit "PDF Document";
+begin
+    PDFDocument.AddStreamToAppend(FileInStream);
+end;
+```
+
+### Protect the PDF with user and admin codes
+```
+procedure Example()
+var
+    PDFDocument: Codeunit "PDF Document";
+begin
+    PDFDocument.ProtectDocument('user123', 'admin456');
+end;
+```
+
+### Convert PDF to image
+```
+procedure Example(ImageStream: InStream)
+var
+    PDFDocument: Codeunit "PDF Document";
+begin
+    PDFDocument.ConvertToImage(ImageStream, Enum::"Image Format"::PNG, 1);
+end;
+```
+
+### Generate JSON rendering payload
+```
+procedure Example(RenderingPayload: JsonObject)
+var
+    PDFDocument: Codeunit "PDF Document";
+    FinalPayload: JsonObject;
+begin
+    FinalPayload := PDFDocument.ToJson(RenderingPayload);
+end;
+```
+
+### Count configured attachments
+```
+procedure Example()
+var
+    PDFDocument: Codeunit "PDF Document";
+    Count: Integer;
+begin
+    Count := PDFDocument.AttachmentCount();
+    Message('There are %1 attachments.', Count);
+end;
+```
+
+### Count appended documents
+```
+procedure Example()
+var
+    PDFDocument: Codeunit "PDF Document";
+    Count: Integer;
+begin
+    Count := PDFDocument.AppendedDocumentCount();
+    Message('There are %1 appended documents.', Count);
 end;
 ```
