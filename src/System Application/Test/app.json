@@ -68,6 +68,6 @@
     }
   ],
   "resourceFolders": [
-    ".resources"
+    "Pdf/.resources"
   ]
 }
