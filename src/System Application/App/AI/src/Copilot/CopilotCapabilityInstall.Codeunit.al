@@ -26,20 +26,20 @@ codeunit 7760 "Copilot Capability Install"
 
     internal procedure RegisterCapabilities()
     begin
-        RegisterSaaSCapability(Enum::"Copilot Capability"::"Analyze List", Enum::"Copilot Availability"::Preview, AnalyzeListLearnMoreLbl);
-        RegisterSaaSCapability(Enum::"Copilot Capability"::Autofill, Enum::"Copilot Availability"::Preview, AutofillLearnMoreLbl);
-        RegisterSaaSCapability(Enum::"Copilot Capability"::Chat, Enum::"Copilot Availability"::Preview, ChatLearnMoreLbl);
-        RegisterSaaSCapability(Enum::"Copilot Capability"::Summarize, Enum::"Copilot Availability"::Preview, SummarizeLearnMoreLbl);
+        RegisterSaaSCapability(Enum::"Copilot Capability"::"Analyze List", Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", AnalyzeListLearnMoreLbl);
+        RegisterSaaSCapability(Enum::"Copilot Capability"::Autofill, Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", AutofillLearnMoreLbl);
+        RegisterSaaSCapability(Enum::"Copilot Capability"::Chat, Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", ChatLearnMoreLbl);
+        RegisterSaaSCapability(Enum::"Copilot Capability"::Summarize, Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", SummarizeLearnMoreLbl);
     end;
 
-    local procedure RegisterSaaSCapability(Capability: Enum "Copilot Capability"; Availability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048])
+    local procedure RegisterSaaSCapability(Capability: Enum "Copilot Capability"; Availability: Enum "Copilot Availability"; BillingType: Enum "Copilot Billing Type"; LearnMoreUrl: Text[2048])
     var
         CopilotCapability: Codeunit "Copilot Capability";
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         if EnvironmentInformation.IsSaaSInfrastructure() then
             if not CopilotCapability.IsCapabilityRegistered(Capability) then
-                CopilotCapability.RegisterCapability(Capability, Availability, LearnMoreUrl);
+                CopilotCapability.RegisterCapability(Capability, Availability, BillingType, LearnMoreUrl);
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", 'OnRegisterCopilotCapability', '', false, false)]
