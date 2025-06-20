@@ -350,7 +350,7 @@ codeunit 7774 "Copilot Capability Impl"
         Telemetry.LogMessage('0000LDY', TelemetryActivatedCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
     end;
 
-    procedure SendDeactivateTelemetry(CopilotCapability: Enum "Copilot Capability"; AppId: Guid)
+    procedure SendDeactivateTelemetry(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; Reason: Option; FeedbackEnabled: Boolean)
     var
         Language: Codeunit Language;
         SavedGlobalLanguageId: Integer;
@@ -361,24 +361,11 @@ codeunit 7774 "Copilot Capability Impl"
         SavedGlobalLanguageId := GlobalLanguage();
         GlobalLanguage(Language.GetDefaultApplicationLanguageId());
 
-        CustomDimensions.Add('Reason', FeedbackDisabledLbl);
-        Telemetry.LogMessage('0000LDZ', TelemetryDeactivatedCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+        if FeedbackEnabled then
+            CustomDimensions.Add('Reason', Format(Reason))
+        else
+            CustomDimensions.Add('Feedback', FeedbackDisabledLbl);
 
-        GlobalLanguage(SavedGlobalLanguageId);
-    end;
-
-    procedure SendDeactivateTelemetry(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; Reason: Option)
-    var
-        Language: Codeunit Language;
-        SavedGlobalLanguageId: Integer;
-        CustomDimensions: Dictionary of [Text, Text];
-    begin
-        AddTelemetryDimensions(CopilotCapability, AppId, CustomDimensions);
-
-        SavedGlobalLanguageId := GlobalLanguage();
-        GlobalLanguage(Language.GetDefaultApplicationLanguageId());
-
-        CustomDimensions.Add('Reason', Format(Reason));
         Telemetry.LogMessage('0000LDZ', TelemetryDeactivatedCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
 
         GlobalLanguage(SavedGlobalLanguageId);
@@ -472,14 +459,14 @@ codeunit 7774 "Copilot Capability Impl"
                 CopilotSettingsLocal.Status := CopilotSettingsLocal.Status::Inactive;
                 CopilotSettingsLocal.Modify(true);
 
-                SendDeactivateTelemetry(CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", CopilotDeactivate.GetReason());
+                SendDeactivateTelemetry(CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", CopilotDeactivate.GetReason(), true);
                 Session.LogAuditMessage(StrSubstNo(CopilotFeatureDeactivatedLbl, CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
             end;
         end else begin
             CopilotSettingsLocal.Status := CopilotSettingsLocal.Status::Inactive;
             CopilotSettingsLocal.Modify(true);
 
-            SendDeactivateTelemetry(CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id");
+            SendDeactivateTelemetry(CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", CopilotDeactivate.GetReason(), false);
             Session.LogAuditMessage(StrSubstNo(CopilotFeatureDeactivatedLbl, CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
         end;
     end;
