@@ -72,7 +72,7 @@ codeunit 139021 "Azure OpenAI Test Partner"
 
         // [THEN] GenerateTextCompletion returns an error [CAPI with Partner Billed - Not allowed for Partner published capabilities]
         LibraryAssert.AreEqual(AOAIOperationResponse.IsSuccess(), false, 'AOAI Operation Response should be an error');
-        ErrorMessage := StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Billing Type"::"Custom Billed");
+        ErrorMessage := StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Text Partner Capability", Enum::"Copilot Billing Type"::"Custom Billed");
         LibraryAssert.ExpectedError(ErrorMessage);
     end;
 
