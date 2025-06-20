@@ -452,23 +452,21 @@ codeunit 7774 "Copilot Capability Impl"
     var
         CopilotDeactivate: Page "Copilot Deactivate Capability";
         ALCopilotFunctions: DotNet ALCopilotFunctions;
+        FeedbackEnabled: Boolean;
     begin
-        if ALCopilotFunctions.IsCopilotFeedbackEnabled() then begin
+        FeedbackEnabled := ALCopilotFunctions.IsCopilotFeedbackEnabled();
+
+        if FeedbackEnabled then begin
             CopilotDeactivate.SetCaption(Format(CopilotSettingsLocal.Capability));
-            if CopilotDeactivate.RunModal() = Action::OK then begin
-                CopilotSettingsLocal.Status := CopilotSettingsLocal.Status::Inactive;
-                CopilotSettingsLocal.Modify(true);
-
-                SendDeactivateTelemetry(CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", CopilotDeactivate.GetReason(), true);
-                Session.LogAuditMessage(StrSubstNo(CopilotFeatureDeactivatedLbl, CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
-            end;
-        end else begin
-            CopilotSettingsLocal.Status := CopilotSettingsLocal.Status::Inactive;
-            CopilotSettingsLocal.Modify(true);
-
-            SendDeactivateTelemetry(CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", CopilotDeactivate.GetReason(), false);
-            Session.LogAuditMessage(StrSubstNo(CopilotFeatureDeactivatedLbl, CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
+            if CopilotDeactivate.RunModal() <> Action::OK then
+                exit;
         end;
+
+        CopilotSettingsLocal.Status := CopilotSettingsLocal.Status::Inactive;
+        CopilotSettingsLocal.Modify(true);
+
+        SendDeactivateTelemetry(CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", CopilotDeactivate.GetReason(), FeedbackEnabled);
+        Session.LogAuditMessage(StrSubstNo(CopilotFeatureDeactivatedLbl, CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetCopilotCapabilityStatus', '', false, false)]
