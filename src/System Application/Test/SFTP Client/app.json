@@ -1,0 +1,37 @@
+{
+    "id": "d367ef25-dc5e-4585-b5ec-915b78878799",
+    "name": "SFTP Client Test",
+    "publisher": "Microsoft",
+    "brief": "Tests for the SFTP Client module",
+    "description": "Tests for the SFTP Client module.",
+    "version": "26.0.0.0",
+    "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+    "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help": "",
+    "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+    "logo": "",
+    "dependencies": [
+        {
+            "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+            "name": "Library Assert",
+            "publisher": "Microsoft",
+            "version": "26.0.0.0"
+        },
+        {
+            "id": "016a19f8-20b7-4c7a-8259-658d67e40129",
+            "name": "SFTP Client",
+            "publisher": "Microsoft",
+            "version": "27.0.0.0"
+        }
+    ],
+    "screenshots": [],
+    "platform": "21.0.0.0",
+    "application": "26.0.0.0",
+    "idRanges": [
+        {
+            "from": 60000,
+            "to": 61000
+        }
+    ],
+    "target": "OnPrem"
+}
