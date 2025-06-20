@@ -17,8 +17,6 @@ codeunit 139021 "Azure OpenAI Test Partner"
     TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
-        CopilotTestLibrary: Codeunit "Copilot Test Library";
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         LibraryAssert: Codeunit "Library Assert";
         Any: Codeunit Any;
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
@@ -37,9 +35,9 @@ codeunit 139021 "Azure OpenAI Test Partner"
         AzureOpenAI: Codeunit "Azure OpenAI";
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         PrivacyNotice: Codeunit "Privacy Notice";
-        Metaprompt: Text;
-        CurrentModuleInfo: ModuleInfo;
         CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
+        CurrentModuleInfo: ModuleInfo;
+        Metaprompt: Text;
         ErrorMessage: Text;
     begin
         // Initialize the Copilot Settings Test Library
@@ -145,14 +143,6 @@ codeunit 139021 "Azure OpenAI Test Partner"
             exit;
 
         CopilotCapability.RegisterCapability(Capability, Availability, BillingType, LearMoreUrlLbl);
-    end;
-
-    local procedure GetModuleAppId(): Guid
-    var
-        CurrentModuleInfo: ModuleInfo;
-    begin
-        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-        exit(CurrentModuleInfo.Id());
     end;
 
     // HttpClient Mock Handler

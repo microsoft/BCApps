@@ -7,7 +7,7 @@ namespace System.AI;
 /// <summary>
 /// The billable type of the Copilot Capability.
 /// </summary>
-enum 8000 "Copilot Billing Type"
+enum 7786 "Copilot Billing Type"
 {
     Access = Public;
     Extensible = false;

@@ -92,8 +92,6 @@ codeunit 132683 "Copilot Test"
     [Test]
     procedure TestRegisterCapabilityWithInvalidBillingType()
     var
-        CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
-        CurrentModuleInfo: ModuleInfo;
         ErrorMessage: Text;
     begin
         // [SCENARIO] Register a copilot capability with invalid billing type

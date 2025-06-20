@@ -298,8 +298,8 @@ codeunit 132684 "Azure OpenAI Test"
         AzureOpenAI: Codeunit "Azure OpenAI";
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         PrivacyNotice: Codeunit "Privacy Notice";
-        Metaprompt: Text;
         CopilotCapability: Codeunit "Copilot Capability";
+        Metaprompt: Text;
         ErrorMessage: Text;
     begin
         // [SCENARIO] GenerateTextCompletion returns an error when generate complete is called

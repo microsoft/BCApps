@@ -48,8 +48,6 @@ codeunit 139022 "Copilot Test Partner"
     [Test]
     procedure TestRegisterCapabilityWithInvalidBillingType()
     var
-        CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
-        CurrentModuleInfo: ModuleInfo;
         ErrorMessage: Text;
     begin
         // [SCENARIO] Register a copilot capability with billing type set to Undefined
