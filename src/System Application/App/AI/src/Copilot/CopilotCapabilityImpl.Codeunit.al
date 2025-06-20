@@ -364,7 +364,7 @@ codeunit 7774 "Copilot Capability Impl"
         if FeedbackEnabled then
             CustomDimensions.Add('Reason', Format(Reason))
         else
-            CustomDimensions.Add('Feedback', FeedbackDisabledLbl);
+            CustomDimensions.Add('Reason', FeedbackDisabledLbl);
 
         Telemetry.LogMessage('0000LDZ', TelemetryDeactivatedCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
 
