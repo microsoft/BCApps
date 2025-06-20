@@ -8,7 +8,6 @@ namespace System.Test.AI;
 using System.AI;
 using System.Privacy;
 using System.TestLibraries.AI;
-using System.TestLibraries.Environment;
 using System.TestLibraries.Utilities;
 
 codeunit 139021 "Azure OpenAI Test Partner"
@@ -52,12 +51,12 @@ codeunit 139021 "Azure OpenAI Test Partner"
         AzureOpenAI.SetManagedResourceAuthorization(Enum::"AOAI Model Type"::"Text Completions", AccountNameTxt, Any.AlphanumericText(10), ManagedResourceDeploymentTxt);
 
         // [GIVEN] Capability is set
-        RegisterCapabilityWithBillingType(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::"Custom Billed");
-        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Text Capability");
+        RegisterCapabilityWithBillingType(Enum::"Copilot Capability"::"Text Partner Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::"Custom Billed");
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Text Partner Capability");
 
         // [THEN] Copilot capability is registered
         LibraryAssert.IsTrue(CopilotSettingsTestLibrary.FindFirst(), 'Copilot capability should be registered');
-        LibraryAssert.AreEqual(Enum::"Copilot Capability"::"Text Capability", CopilotSettingsTestLibrary.GetCapability(), 'Copilot capability is not "Text Capability"');
+        LibraryAssert.AreEqual(Enum::"Copilot Capability"::"Text Partner Capability", CopilotSettingsTestLibrary.GetCapability(), 'Copilot capability is not "Text Capability"');
         LibraryAssert.AreEqual(Enum::"Copilot Billing Type"::"Custom Billed", CopilotSettingsTestLibrary.GetBillingType(), 'Billing type is not "Custom Billed"');
 
         // [THEN] Registered capability is associated with the current module
@@ -93,15 +92,15 @@ codeunit 139021 "Azure OpenAI Test Partner"
         AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::Embeddings, EndpointTxt, DeploymentTxt, Any.AlphanumericText(10));
 
         // [GIVEN] Capability is set
-        RegisterCapabilityWithBillingType(Enum::"Copilot Capability"::"Embedding Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::"Microsoft Billed");
-        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Embedding Capability");
+        RegisterCapabilityWithBillingType(Enum::"Copilot Capability"::"Embedding Partner Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::"Microsoft Billed");
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Embedding Partner Capability");
 
         // [WHEN] GenerateEmbeddings is called
         AzureOpenAI.GenerateEmbeddings(Any.AlphanumericText(10), AOAIOperationResponse);
 
         // [THEN] GenerateEmbeddings returns an error [BYO with Microsoft Billed - Not allowed for Partner published capabilities]
         LibraryAssert.AreEqual(AOAIOperationResponse.IsSuccess(), false, 'AOAI Operation Response should be an error');
-        ErrorMessage := StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Embedding Capability", Enum::"Copilot Billing Type"::"Microsoft Billed");
+        ErrorMessage := StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Embedding Partner Capability", Enum::"Copilot Billing Type"::"Microsoft Billed");
         LibraryAssert.ExpectedError(ErrorMessage);
     end;
 
@@ -123,15 +122,15 @@ codeunit 139021 "Azure OpenAI Test Partner"
         AzureOpenAI.SetManagedResourceAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AccountNameTxt, Any.AlphanumericText(10), ManagedResourceDeploymentTxt);
 
         // [GIVEN] Capability is set
-        RegisterCapabilityWithBillingType(Enum::"Copilot Capability"::"Chat Capability", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Not Billed");
-        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Chat Capability");
+        RegisterCapabilityWithBillingType(Enum::"Copilot Capability"::"Chat Partner Capability", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Not Billed");
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Chat Partner Capability");
 
         // [WHEN] GenerateChatCompletion is called
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIOperationResponse);
 
         // [THEN] GenerateChatCompletion fails [CAPI with Free billing type - Not allowed for Partner published capabilities]
         LibraryAssert.AreEqual(AOAIOperationResponse.IsSuccess(), false, 'AOAI Operation Response should be an error');
-        ErrorMessage := StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Chat Capability", Enum::"Copilot Billing Type"::"Not Billed");
+        ErrorMessage := StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Chat Partner Capability", Enum::"Copilot Billing Type"::"Not Billed");
         LibraryAssert.ExpectedError(ErrorMessage);
     end;
 

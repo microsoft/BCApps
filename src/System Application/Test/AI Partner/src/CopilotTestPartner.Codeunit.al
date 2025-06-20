@@ -28,11 +28,11 @@ codeunit 139022 "Copilot Test Partner"
         Initialize();
 
         // [WHEN] RegisterCapability is called
-        CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::"Microsoft Billed", LearnMoreUrlLbl);
+        CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Partner Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::"Microsoft Billed", LearnMoreUrlLbl);
 
         // [THEN] Copilot capability is registered
         LibraryAssert.IsTrue(CopilotSettingsTestLibrary.FindFirst(), 'Copilot capability should be registered');
-        LibraryAssert.AreEqual(Enum::"Copilot Capability"::"Text Capability", CopilotSettingsTestLibrary.GetCapability(), 'Copilot capability is not "Text Capability"');
+        LibraryAssert.AreEqual(Enum::"Copilot Capability"::"Text Partner Capability", CopilotSettingsTestLibrary.GetCapability(), 'Copilot capability is not "Text Partner Capability"');
         LibraryAssert.AreEqual(Enum::"Copilot Billing Type"::"Microsoft Billed", CopilotSettingsTestLibrary.GetBillingType(), 'Billing type is not "Microsoft Billed"');
 
         // [THEN] Registered capability is associated with the current module
@@ -56,10 +56,10 @@ codeunit 139022 "Copilot Test Partner"
         Initialize();
 
         // [WHEN] RegisterCapability is called
-        asserterror CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::Undefined, LearnMoreUrlLbl);
+        asserterror CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Partner Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::Undefined, LearnMoreUrlLbl);
 
         // [THEN] Register capability should throw an error
-        ErrorMessage := StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Capability");
+        ErrorMessage := StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Partner Capability");
         LibraryAssert.ExpectedError(ErrorMessage);
     end;
 
@@ -73,11 +73,11 @@ codeunit 139022 "Copilot Test Partner"
 
         // [GIVEN] Copilot capability is registered
         Initialize();
-        CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Early Preview", Enum::"Copilot Billing Type"::"Custom Billed", LearnMoreUrlLbl);
+        CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Partner Capability", Enum::"Copilot Availability"::"Early Preview", Enum::"Copilot Billing Type"::"Custom Billed", LearnMoreUrlLbl);
 
         // [THEN] Copilot capability is registered
         LibraryAssert.IsTrue(CopilotSettingsTestLibrary.FindFirst(), 'Copilot capability should be registered');
-        LibraryAssert.AreEqual(Enum::"Copilot Capability"::"Text Capability", CopilotSettingsTestLibrary.GetCapability(), 'Copilot capability is not "Text Capability"');
+        LibraryAssert.AreEqual(Enum::"Copilot Capability"::"Text Partner Capability", CopilotSettingsTestLibrary.GetCapability(), 'Copilot capability is not "Text Partner Capability"');
         LibraryAssert.AreEqual(Enum::"Copilot Billing Type"::"Custom Billed", CopilotSettingsTestLibrary.GetBillingType(), 'Billing type is not "Custom Billed"');
 
         // [THEN] Registered capability is associated with the current module
@@ -87,7 +87,7 @@ codeunit 139022 "Copilot Test Partner"
         LibraryAssert.AreEqual(CurrentModuleInfo.Publisher(), 'Partner', 'CurrentModule Publisher is Microsoft');
 
         // [WHEN] ModifyCapability is called
-        CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::"Microsoft Billed", LearnMoreUrl2Lbl);
+        CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Text Partner Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::"Microsoft Billed", LearnMoreUrl2Lbl);
 
         // [THEN] Copilot capability is modified
         CopilotSettingsTestLibrary.FindFirst();
@@ -108,11 +108,11 @@ codeunit 139022 "Copilot Test Partner"
 
         // [GIVEN] Copilot capability is registered
         Initialize();
-        CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Early Preview", Enum::"Copilot Billing Type"::"Custom Billed", LearnMoreUrlLbl);
+        CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Partner Capability", Enum::"Copilot Availability"::"Early Preview", Enum::"Copilot Billing Type"::"Custom Billed", LearnMoreUrlLbl);
 
         // [THEN] Copilot capability is registered
         LibraryAssert.IsTrue(CopilotSettingsTestLibrary.FindFirst(), 'Copilot capability should be registered');
-        LibraryAssert.AreEqual(Enum::"Copilot Capability"::"Text Capability", CopilotSettingsTestLibrary.GetCapability(), 'Copilot capability is not "Text Capability"');
+        LibraryAssert.AreEqual(Enum::"Copilot Capability"::"Text Partner Capability", CopilotSettingsTestLibrary.GetCapability(), 'Copilot capability is not "Text Partner Capability"');
         LibraryAssert.AreEqual(Enum::"Copilot Billing Type"::"Custom Billed", CopilotSettingsTestLibrary.GetBillingType(), 'Billing type is not "Custom Billed"');
 
         // [THEN] Registered capability is associated with the current module
@@ -122,8 +122,8 @@ codeunit 139022 "Copilot Test Partner"
         LibraryAssert.AreEqual(CurrentModuleInfo.Publisher(), 'Partner', 'CurrentModule Publisher is Microsoft');
 
         // [WHEN] ModifyCapability is called
-        asserterror CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::Undefined, LearnMoreUrl2Lbl);
-        ErrorMessage := StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Capability");
+        asserterror CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Text Partner Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::Undefined, LearnMoreUrl2Lbl);
+        ErrorMessage := StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Partner Capability");
         LibraryAssert.ExpectedError(ErrorMessage);
 
         // [THEN] Copilot capability is modified
