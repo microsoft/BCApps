@@ -5,7 +5,6 @@
 namespace System.AI;
 
 using System;
-using System.Azure.Identity;
 using System.Azure.KeyVault;
 using System.Environment;
 using System.Privacy;
@@ -38,7 +37,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         EmptyMetapromptErr: Label 'The metaprompt has not been set, please provide a metaprompt.';
         MetapromptLoadingErr: Label 'Metaprompt not found.';
         FunctionCallingFunctionNotFoundErr: Label 'Function call not found, %1.', Comment = '%1 is the name of the function';
-        AllowlistedTenantsAkvKeyTok: Label 'AOAI-Allow-1P-Auth', Locked = true;
         TelemetryGenerateTextCompletionLbl: Label 'Text completion generated.', Locked = true;
         TelemetryGenerateEmbeddingLbl: Label 'Embedding generated.', Locked = true;
         TelemetryGenerateChatCompletionLbl: Label 'Chat Completion generated.', Locked = true;
@@ -48,8 +46,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         TelemetryTokenCountLbl: Label 'Metaprompt token count: %1, Prompt token count: %2, Total token count: %3', Comment = '%1 is the number of tokens in the metaprompt, %2 is the number of tokens in the prompt, %3 is the total number of tokens', Locked = true;
         TelemetryMetapromptRetrievalErr: Label 'Unable to retrieve metaprompt from Azure Key Vault.', Locked = true;
         TelemetryFunctionCallingFailedErr: Label 'Function calling failed for function: %1', Comment = '%1 is the name of the function', Locked = true;
-        TelemetryEmptyTenantIdErr: Label 'Empty or malformed tenant ID.', Locked = true;
-        TelemetryTenantAllowlistedMsg: Label 'Current tenant allowlisted for first party auth.', Locked = true;
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
@@ -595,41 +591,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     procedure GetTotalServerSessionTokensConsumed(): Integer
     begin
         exit(SessionInformation.AITokensUsed);
-    end;
-
-    [NonDebuggable]
-    internal procedure IsTenantAllowlistedForFirstPartyCopilotCalls(): Boolean
-    var
-        EnvironmentInformation: Codeunit "Environment Information";
-        AzureKeyVault: Codeunit "Azure Key Vault";
-        AzureAdTenant: Codeunit "Azure AD Tenant";
-        AllowlistedTenants: Text;
-        EntraTenantIdAsText: Text;
-        EntraTenantIdAsGuid: Guid;
-        ModuleInfo: ModuleInfo;
-    begin
-        if not EnvironmentInformation.IsSaaSInfrastructure() then
-            exit(false);
-
-        NavApp.GetCurrentModuleInfo(ModuleInfo);
-        if ModuleInfo.Publisher <> 'Microsoft' then
-            exit(true);
-
-        if (not AzureKeyVault.GetAzureKeyVaultSecret(AllowlistedTenantsAkvKeyTok, AllowlistedTenants)) or (AllowlistedTenants.Trim() = '') then
-            exit(false);
-
-        EntraTenantIdAsText := AzureAdTenant.GetAadTenantId();
-
-        if (EntraTenantIdAsText = '') or not Evaluate(EntraTenantIdAsGuid, EntraTenantIdAsText) or IsNullGuid(EntraTenantIdAsGuid) then begin
-            Session.LogMessage('0000MLN', TelemetryEmptyTenantIdErr, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetAzureOpenAICategory());
-            exit(false);
-        end;
-
-        if not AllowlistedTenants.Contains(EntraTenantIdAsText) then
-            exit(false);
-
-        Session.LogMessage('0000MLE', TelemetryTenantAllowlistedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetAzureOpenAICategory());
-        exit(true);
     end;
 
     procedure GetAzureOpenAICategory(): Code[50]
