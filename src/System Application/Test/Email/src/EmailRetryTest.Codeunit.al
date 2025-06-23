@@ -47,7 +47,7 @@ codeunit 134703 "Email Retry Test"
     begin
         // [Scenario] User can resend an email from the Email Outbox page when the email is failed and the retry process has completed.
         // When Status Failed and no retry records -> Re-sendable and not showing retry details
-        PermissionsMock.Set('Super');
+        PermissionsMock.Set('SUPER');
         ConnectorMock.Initialize();
         ConnectorMock.AddAccount(TempAccount);
         EmailRetry.DeleteAll();
@@ -85,7 +85,7 @@ codeunit 134703 "Email Retry Test"
         // [Scenario] User can resend an email from the Email Outbox page when the email is failed and the retry process has completed
         // When Status Failed and Retry No. = 3 -> Not re-sendable and showing retry details
         // There are four email outbox records with different statuses and retry records are created:
-        PermissionsMock.Set('Super');
+        PermissionsMock.Set('SUPER');
         ConnectorMock.Initialize();
         ConnectorMock.AddAccount(TempAccount);
         EmailRetry.DeleteAll();
@@ -121,7 +121,7 @@ codeunit 134703 "Email Retry Test"
     begin
         // [Scenario] User can resend an email from the Email Outbox page when the email is failed and the retry process has completed
         // When Status Queued and Retry No. = 5 -> Not re-sendable and showing retry details
-        PermissionsMock.Set('Super');
+        PermissionsMock.Set('SUPER');
         ConnectorMock.Initialize();
         ConnectorMock.AddAccount(TempAccount);
         EmailRetry.DeleteAll();
@@ -158,7 +158,7 @@ codeunit 134703 "Email Retry Test"
         // [Scenario] User can resend an email from the Email Outbox page when the email is failed and the retry process has completed
         // When Status Failed and Retry No. = 10 -> Re-sendable and showing retry details
         // When the user clicks on the Send Email action, the retry records should be deleted, and the "Retry No." should be set with 0.
-        PermissionsMock.Set('Super');
+        PermissionsMock.Set('SUPER');
         ConnectorMock.Initialize();
         ConnectorMock.AddAccount(TempAccount);
         EmailRetry.DeleteAll();
@@ -212,7 +212,7 @@ codeunit 134703 "Email Retry Test"
         EmailRetry.DeleteAll();
         EmailOutbox.DeleteAll();
 
-        PermissionsMock.Set('Super');
+        PermissionsMock.Set('SUPER');
         ConnectorMock.Initialize();
         ConnectorMock.AddAccount(TempAccount);
         TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Background);
@@ -271,7 +271,7 @@ codeunit 134703 "Email Retry Test"
         ScheduledDateTime: DateTime;
     begin
         // [Scenario] When sending an email on the foreground and the process fails, an error is shown and the email is not rescheduled for retry
-        PermissionsMock.Set('Super');
+        PermissionsMock.Set('SUPER');
         EmailRetry.DeleteAll();
         EmailOutbox.DeleteAll();
 
@@ -324,7 +324,7 @@ codeunit 134703 "Email Retry Test"
         OriginalTaskId: Guid;
     begin
         // [Scenario] When there are already too many emails being sent in the background, sending an email from the foreground should be rescheduled
-        PermissionsMock.Set('Super');
+        PermissionsMock.Set('SUPER');
         ConnectorMock.Initialize();
         ConnectorMock.AddAccount(TempAccount);
 
@@ -365,7 +365,7 @@ codeunit 134703 "Email Retry Test"
         // [Scenario] When there are already too many emails being sent in the background, sending an email from the background should be rescheduled
         BindSubscription(TestClientTypeSubscriber);
 
-        PermissionsMock.Set('Super');
+        PermissionsMock.Set('SUPER');
         ConnectorMock.Initialize();
         ConnectorMock.AddAccount(TempAccount);
         TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Background);
