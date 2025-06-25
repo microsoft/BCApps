@@ -60,7 +60,7 @@ page 8898 "Email Rate Limit Wizard"
 
                 trigger OnValidate()
                 begin
-                    UpdateConcurrencyLimitLimitDisplay();
+                    UpdateConcurrencyLimitDisplay();
                 end;
             }
         }
@@ -91,7 +91,7 @@ page 8898 "Email Rate Limit Wizard"
         EmailRateLimitDisplay := Format(Rec."Rate Limit");
         EmailConcurrencyLimit := Format(Rec."Concurrency Limit");
         UpdateRateLimitDisplay();
-        UpdateConcurrencyLimitLimitDisplay();
+        UpdateConcurrencyLimitDisplay();
     end;
 
     internal procedure SetEmailAccountName(EmailAccountName: Text[250])
@@ -99,7 +99,7 @@ page 8898 "Email Rate Limit Wizard"
         EmailName := EmailAccountName;
     end;
 
-    local procedure UpdateConcurrencyLimitLimitDisplay()
+    local procedure UpdateConcurrencyLimitDisplay()
     var
         CurrLimit: Integer;
     begin

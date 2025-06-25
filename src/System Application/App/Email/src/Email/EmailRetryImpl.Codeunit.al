@@ -109,4 +109,13 @@ codeunit 8909 "Email Retry Impl."
 
         EmailRetry.Modify();
     end;
+
+    internal procedure HasRetryDetail(EmailMessageId: Guid): Boolean
+    var
+        EmailRetryDetail: Record "Email Retry";
+    begin
+        EmailRetryDetail.SetRange("Message Id", EmailMessageId);
+        exit(not EmailRetryDetail.IsEmpty());
+    end;
+
 }

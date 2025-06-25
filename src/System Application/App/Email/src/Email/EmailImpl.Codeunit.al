@@ -611,14 +611,6 @@ codeunit 8900 "Email Impl"
             Error(SourceRecordErr);
     end;
 
-    procedure HasRetryDetail(EmailMessageId: Guid): Boolean
-    var
-        EmailRetryDetail: Record "Email Retry";
-    begin
-        EmailRetryDetail.SetRange("Message Id", EmailMessageId);
-        exit(not EmailRetryDetail.IsEmpty());
-    end;
-
     procedure HasSourceRecord(EmailMessageId: Guid): Boolean;
     var
         EmailRelatedRecord: Record "Email Related Record";

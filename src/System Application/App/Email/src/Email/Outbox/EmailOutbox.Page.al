@@ -272,7 +272,7 @@ page 8882 "Email Outbox"
         end;
 
         FailedStatus := Rec.Status = Rec.Status::Failed;
-        HasRetryDetail := EmailImpl.HasRetryDetail(Rec."Message Id");
+        HasRetryDetail := EmailRetryImpl.HasRetryDetail(Rec."Message Id");
         CanSendEmail := ((Rec.Status = Rec.Status::Failed) or (Rec.Status = Rec.Status::Draft)) and not TaskScheduler.TaskExists(Rec."Task Scheduler Id");
         NoEmailsInOutbox := false;
     end;
@@ -367,6 +367,7 @@ page 8882 "Email Outbox"
 
     var
         EmailImpl: Codeunit "Email Impl";
+        EmailRetryImpl: Codeunit "Email Retry Impl.";
         EmailStatus: Enum "Email Status";
         EmailAccountId: Guid;
         RefreshOutbox: Boolean;
