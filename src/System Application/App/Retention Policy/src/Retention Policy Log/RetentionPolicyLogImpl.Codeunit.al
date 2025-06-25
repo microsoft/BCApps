@@ -58,7 +58,7 @@ codeunit 3909 "Retention Policy Log Impl."
         TempRetentionPolicyLogEntry.Insert();
 
         RetenPolicyTelemetryImpl.SendLogEntryToTelemetry(TempRetentionPolicyLogEntry);
-        if (not SystemInitialization.IsInProgress()) and (Session.GetExecutionContext() = ExecutionContext::Normal) then begin // no background logging during OnCompanyOpen() or during install/upgrade
+        if (CurrentClientType = ClientType::ChildSession) or ((EntryMessageType = Enum::"Retention Policy Log Message Type"::Error) and (not SystemInitialization.IsInProgress()) and (Session.GetExecutionContext() = ExecutionContext::Normal)) then begin // no background logging during OnCompanyOpen() or during install/upgrade
             // add log entry in background session to avoid rollback
             if not InsertLogEntryInBackgroundSession(TempRetentionPolicyLogEntry) then
                 RetenPolicyTelemetryImpl.SendTelemetryOnInsertLogEntryInBackgroundSessionFailed(SystemInitialization.IsInProgress(), Session.GetExecutionContext());

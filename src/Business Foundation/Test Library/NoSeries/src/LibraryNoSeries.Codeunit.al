@@ -14,6 +14,17 @@ codeunit 134510 "Library - No. Series"
         NoSeries.Insert();
     end;
 
+    procedure CreateNoSeries(NoSeriesCode: Code[20]; Default: Boolean; Manual: Boolean; DateOrder: Boolean)
+    var
+        NoSeries: Record "No. Series";
+    begin
+        NoSeries.Validate(Code, NoSeriesCode);
+        NoSeries.Validate("Default Nos.", Default);
+        NoSeries.Validate("Manual Nos.", Manual);
+        NoSeries.Validate("Date Order", DateOrder);
+        NoSeries.Insert();
+    end;
+
     procedure CreateNoSeriesLine(NoSeriesCode: Code[20]; IncrementBy: Integer; StartingNo: Text[20]; EndingNo: Text[20])
     begin
         CreateNormalNoSeriesLine(NoSeriesCode, IncrementBy, StartingNo, EndingNo);
@@ -66,6 +77,15 @@ codeunit 134510 "Library - No. Series"
         NoSeriesLine.Validate("Starting Date", StartingDate);
         NoSeriesLine.Validate(Implementation, Implementation);
         NoSeriesLine.Insert(true);
+    end;
+
+    procedure CreateNoSeriesRelationship(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])
+    var
+        NoSeriesRelationship: Record "No. Series Relationship";
+    begin
+        NoSeriesRelationship.Validate(Code, DefaultNoSeriesCode);
+        NoSeriesRelationship.Validate("Series Code", RelatedNoSeriesCode);
+        NoSeriesRelationship.Insert(true);
     end;
 
     procedure GetTempCurrentSequenceNo(NoSeriesLine: Record "No. Series Line"): integer

@@ -29,7 +29,7 @@ codeunit 130464 "Test Input Json"
     begin
         TestInputJson := ElementExists(ElementName, ElementSearchedExist);
         if not ElementSearchedExist then
-            Error(ElementDoesNotExistErr);
+            Error(ElementDoesNotExistErr, ElementName);
 
         exit(TestInputJson);
     end;
@@ -112,6 +112,9 @@ codeunit 130464 "Test Input Json"
         TextOutput: Text;
     begin
         TestJson.WriteTo(TextOutput);
+
+        TextOutput := TextOutput.TrimStart('"').TrimEnd('"');
+
         if TextOutput = 'null' then
             exit('');
 
@@ -119,7 +122,7 @@ codeunit 130464 "Test Input Json"
     end;
 
     var
-        ElementDoesNotExistErr: Label 'DataInput - The element does not exist.';
+        ElementDoesNotExistErr: Label 'DataInput - The element %1 does not exist.', Comment = '%1 = Element name';
         TheElementIsNotAnArrayErr: Label 'DataInput - The element is not an array, use a different method.';
         TestJson: JsonToken;
 }

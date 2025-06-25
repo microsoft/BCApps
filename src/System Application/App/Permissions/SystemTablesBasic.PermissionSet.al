@@ -39,11 +39,6 @@ permissionset 66 "System Tables - Basic"
     Permissions = tabledata "Add-in" = R,
                   tabledata "Aggregate Permission Set" = Rimd,
                   tabledata "All Profile Page Metadata" = Rimd,
-#if not CLEAN22
-#pragma warning disable AL0432
-                  tabledata Chart = R,
-#pragma warning restore AL0432
-#endif
                   tabledata "Code Coverage" = Rimd,
                   tabledata "Configuration Package File" = RIMD,
                   tabledata "Document Service" = R,

@@ -1,3 +1,4 @@
+#if not CLEAN26
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -15,6 +16,9 @@ page 149035 "AIT Test Method Lines Compare"
     InsertAllowed = false;
     DeleteAllowed = false;
     UsageCategory = None;
+    ObsoleteState = Pending;
+    ObsoleteTag = '26.0';
+    ObsoleteReason = 'Replaced with page AIT Run History';
 
     layout
     {
@@ -74,11 +78,16 @@ page 149035 "AIT Test Method Lines Compare"
                             Caption = 'Total Duration (ms)';
                             ToolTip = 'Specifies Total Duration of the test for given version.';
                         }
+                        label(TokensConsumed)
+                        {
+                            Caption = 'Total Tokens Consumed';
+                            ToolTip = 'Specifies the aggregated number of tokens consumed by the test. This is applicable only when using Microsoft AI Module.';
+                        }
                     }
                     group("Latest Version")
                     {
                         Caption = 'Latest Version';
-                        field("No. of Tests"; Rec."No. of Tests")
+                        field("No. of Tests Executed"; Rec."No. of Tests Executed")
                         {
                             ShowCaption = false;
                         }
@@ -87,7 +96,7 @@ page 149035 "AIT Test Method Lines Compare"
                             Style = Favorable;
                             ShowCaption = false;
                         }
-                        field("No. of Tests Failed"; Rec."No. of Tests" - Rec."No. of Tests Passed")
+                        field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
                         {
                             Editable = false;
                             Caption = 'Number of Tests Failed';
@@ -107,11 +116,15 @@ page 149035 "AIT Test Method Lines Compare"
                             ToolTip = 'Specifies Total Duration of the tests for this version.';
                             ShowCaption = false;
                         }
+                        field("Tokens Consumed"; Rec."Tokens Consumed")
+                        {
+                            ShowCaption = false;
+                        }
                     }
                     group("Base Version")
                     {
                         Caption = 'Base Version';
-                        field("No. of Tests - Base"; Rec."No. of Tests - Base")
+                        field("No. of Tests Executed - Base"; Rec."No. of Tests Executed - Base")
                         {
                             ToolTip = 'Specifies the number of tests in this Line for the base version.';
                             ShowCaption = false;
@@ -121,7 +134,7 @@ page 149035 "AIT Test Method Lines Compare"
                             Style = Favorable;
                             ShowCaption = false;
                         }
-                        field("No. of Tests Failed - Base"; Rec."No. of Tests - Base" - Rec."No. of Tests Passed - Base")
+                        field("No. of Tests Failed - Base"; Rec."No. of Tests Executed - Base" - Rec."No. of Tests Passed - Base")
                         {
                             Editable = false;
                             Caption = 'No. of Tests Failed - Base';
@@ -140,6 +153,10 @@ page 149035 "AIT Test Method Lines Compare"
                         {
                             ToolTip = 'Specifies Total Duration of the tests for the base version.';
                             Caption = 'Total Duration Base (ms)';
+                            ShowCaption = false;
+                        }
+                        field("Tokens Consumed - Base"; Rec."Tokens Consumed - Base")
+                        {
                             ShowCaption = false;
                         }
                     }
@@ -174,3 +191,4 @@ page 149035 "AIT Test Method Lines Compare"
         CurrPage.Update(false);
     end;
 }
+#endif

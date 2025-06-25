@@ -45,8 +45,8 @@ page 130462 "Test Input Groups"
             {
                 Caption = 'Import data-driven test inputs';
                 AllowMultipleFiles = true;
-                ToolTip = 'Import data-driven test inputs from a JSON or JSONL file';
-                AllowedFileExtensions = '.jsonl', '.json';
+                ToolTip = 'Import data-driven test inputs from a JSON, JSONL or YAML file';
+                AllowedFileExtensions = '.jsonl', '.json', '.yaml';
                 Image = Attach;
 
                 trigger OnAction(Files: List of [FileUpload])
@@ -55,9 +55,9 @@ page 130462 "Test Input Groups"
                     CurrentFile: FileUpload;
                     FileDataInStream: InStream;
                 begin
-                    foreach CurrentFile in files do begin
+                    foreach CurrentFile in Files do begin
                         CurrentFile.CreateInStream(FileDataInStream, TextEncoding::UTF8);
-                        TestInputsManagement.UploadAndImportDataInputsFromJson(CurrentFile.FileName, FileDataInStream);
+                        TestInputsManagement.UploadAndImportDataInputs(CurrentFile.FileName, FileDataInStream);
                     end;
                 end;
             }

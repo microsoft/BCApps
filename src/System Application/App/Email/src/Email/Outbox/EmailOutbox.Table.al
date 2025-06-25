@@ -115,6 +115,20 @@ table 8888 "Email Outbox"
             DataClassification = SystemMetadata;
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
+        field(16; "External Id"; Text[2048])
+        {
+            Access = Internal;
+            DataClassification = CustomerContent;
+            Description = 'The field is marked as internal in order to prevent modifying it from code.';
+        }
+        field(17; "Retry No."; Integer)
+        {
+            Access = Internal;
+            DataClassification = SystemMetadata;
+            MinValue = 1;
+            InitValue = 1;
+            Description = 'The field is marked as internal in order to prevent modifying it from code.';
+        }
     }
 
     keys

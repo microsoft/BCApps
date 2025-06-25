@@ -5,7 +5,7 @@
 
 namespace System.TestTools.AITestToolkit;
 
-using System.Environment;
+using System.Telemetry;
 using System.TestTools.TestRunner;
 
 page 149031 "AIT Test Suite"
@@ -14,7 +14,7 @@ page 149031 "AIT Test Suite"
     ApplicationArea = All;
     PageType = Document;
     SourceTable = "AIT Test Suite";
-    Extensible = false;
+    Extensible = true;
     DataCaptionExpression = PageCaptionLbl + ' - ' + Rec."Code";
     UsageCategory = None;
 
@@ -29,21 +29,33 @@ page 149031 "AIT Test Suite"
 
                 field("Code"; Rec."Code")
                 {
-                    ToolTip = 'Specifies the ID of the test suite.';
                 }
                 field(Description; Rec.Description)
                 {
-                    ToolTip = 'Specifies the description of the test suite.';
                 }
                 field(Dataset; Rec."Input Dataset")
                 {
-                    ToolTip = 'Specifies the dataset to be used by the tests.';
                     ShowMandatory = true;
                     NotBlank = true;
-                }
-                field("Model Version"; Rec."Model Version")
-                {
-                    ToolTip = 'Specifies the model version to be used by the tests.';
+
+                    trigger OnValidate()
+                    var
+                        AITTestMethodLine: Record "AIT Test Method Line";
+                    begin
+                        if Rec."Input Dataset" = xRec."Input Dataset" then
+                            exit;
+
+                        AITTestMethodLine.SetRange("Test Suite Code", Rec.Code);
+
+                        if AITTestMethodLine.IsEmpty() then
+                            exit;
+
+                        if GuiAllowed() then
+                            if not Dialog.Confirm(InputDatasetChangedQst) then
+                                exit;
+
+                        AITTestMethodLine.ModifyAll("Input Dataset", Rec."Input Dataset", true);
+                    end;
                 }
                 field("Test Runner Id"; TestRunnerDisplayName)
                 {
@@ -68,23 +80,19 @@ page 149031 "AIT Test Suite"
                 group(StatusGroup)
                 {
                     Caption = 'Suite Status';
+
                     field(Status; Rec.Status)
                     {
-                        ToolTip = 'Specifies the status of the test.';
                     }
                     field(Started; Rec."Started at")
                     {
-                        ToolTip = 'Specifies when the test was started.';
                     }
                     field(Version; Rec.Version)
                     {
-                        ToolTip = 'Specifies the current version of the test run. Log entries will get this version no.';
                         Editable = false;
                     }
-
                     field(Tag; Rec.Tag)
                     {
-                        ToolTip = 'Specifies the tag for a test run. The Tag will be transferred to the log entries and enables comparison between tests.';
                     }
                 }
             }
@@ -100,15 +108,9 @@ page 149031 "AIT Test Suite"
 
                 field("No. of Tests Executed"; Rec."No. of Tests Executed")
                 {
-                    Caption = 'No. of Tests Executed';
-                    ToolTip = 'Specifies the number of tests executed in the current version.';
-                    Editable = false;
                 }
                 field("No. of Tests Passed"; Rec."No. of Tests Passed")
                 {
-                    Caption = 'No. of Tests Passed';
-                    ToolTip = 'Specifies the number of tests passed in the current version.';
-                    Editable = false;
                     Style = Favorable;
                 }
                 field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
@@ -116,7 +118,7 @@ page 149031 "AIT Test Suite"
                     Editable = false;
                     Style = Unfavorable;
                     Caption = 'No. of Tests Failed';
-                    ToolTip = 'Specifies the number of tests failed in the current version.';
+                    ToolTip = 'Specifies the number of tests failed for the test suite.';
 
                     trigger OnDrillDown()
                     var
@@ -125,10 +127,11 @@ page 149031 "AIT Test Suite"
                         AITLogEntry.DrillDownFailedAITLogEntries(Rec.Code, 0, Rec.Version);
                     end;
                 }
+                field(Accuracy; Rec.Accuracy)
+                {
+                }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
-                    Caption = 'No. of Operations';
-                    ToolTip = 'Specifies the number of operations executed in the current version.';
                     Visible = false;
                     Enabled = false;
                 }
@@ -136,13 +139,22 @@ page 149031 "AIT Test Suite"
                 {
                     Editable = false;
                     Caption = 'Total Duration';
-                    ToolTip = 'Specifies the total duration (ms) for executing all the selected tests in the current version.';
+                    ToolTip = 'Specifies the time taken for executing the tests in the test suite.';
                 }
                 field("Average Duration"; AvgTimeDuration)
                 {
                     Editable = false;
                     Caption = 'Average Duration';
-                    ToolTip = 'Specifies the average time (ms) taken by the tests in the last run.';
+                    ToolTip = 'Specifies the average time taken by the tests in the test suite.';
+                }
+                field("Tokens Consumed"; Rec."Tokens Consumed")
+                {
+                }
+                field("Average Tokens Consumed"; AvgTokensConsumed)
+                {
+                    Editable = false;
+                    Caption = 'Average Tokens Consumed';
+                    ToolTip = 'Specifies the average number of tokens consumed by the tests in the last run.';
                 }
             }
 
@@ -154,7 +166,7 @@ page 149031 "AIT Test Suite"
         {
             action(Start)
             {
-                Enabled = (EnableActions and (Rec.Status <> Rec.Status::Running));
+                Enabled = Rec.Status <> Rec.Status::Running;
                 Caption = 'Start';
                 Image = Start;
                 ToolTip = 'Starts running the AI Test Suite.';
@@ -163,6 +175,30 @@ page 149031 "AIT Test Suite"
                 begin
                     CurrPage.Update(false);
                     AITTestSuiteMgt.StartAITSuite(Rec);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(StartBatch)
+            {
+                Enabled = Rec.Status <> Rec.Status::Running;
+                Caption = 'Start Batch';
+                Image = ExecuteBatch;
+                ToolTip = 'Starts running the AI Test Suite, the specified number of times.';
+
+                trigger OnAction()
+                var
+                    AITBatchRunDialog: Page "AIT Batch Run Dialog";
+                    Iterations: Integer;
+                begin
+                    CurrPage.Update(false);
+
+                    AITBatchRunDialog.LookupMode := true;
+                    if AITBatchRunDialog.RunModal() <> ACTION::LookupOK then
+                        exit;
+
+                    Iterations := AITBatchRunDialog.GetNumberOfIterations();
+                    AITTestSuiteMgt.StartAITSuite(Iterations, Rec);
+
                     CurrPage.Update(false);
                 end;
             }
@@ -180,38 +216,63 @@ page 149031 "AIT Test Suite"
             }
             action(ResetStatus)
             {
-                Enabled = Rec.Status = Rec.Status::Running;
-                Caption = 'Reset Status';
-                ToolTip = 'Reset the status.';
-                Image = ResetStatus;
+                Visible = Rec.Status = Rec.Status::Running;
+                Caption = 'Cancel';
+                ToolTip = 'Cancels the run and marks the run as Cancelled.';
+                Image = Cancel;
 
                 trigger OnAction()
                 begin
-                    AITTestSuiteMgt.ResetStatus(Rec);
+                    AITTestSuiteMgt.CancelRun(Rec);
                 end;
             }
 
             action(Compare)
             {
-                Caption = 'Compare Versions';
-                Image = CompareCOA;
-                ToolTip = 'Compare results of the suite to a base version.';
+                Caption = 'View Runs';
+                Image = History;
+                ToolTip = 'View the run history of the suite.';
                 Scope = Repeater;
 
                 trigger OnAction()
                 var
-                    TemporaryAITTestSuiteRec: Record "AIT Test Suite" temporary;
-                    AITTestSuiteComparePage: Page "AIT Test Suite Compare";
+                    AITRunHistory: Page "AIT Run History";
                 begin
-                    TemporaryAITTestSuiteRec.Code := Rec.Code;
-                    TemporaryAITTestSuiteRec.Version := Rec.Version;
-                    TemporaryAITTestSuiteRec."Base Version" := Rec."Version" - 1;
-                    TemporaryAITTestSuiteRec.Insert();
+                    AITRunHistory.SetTestSuite(Rec.Code);
+                    AITRunHistory.Run();
+                end;
+            }
+            action(ExportAIT)
+            {
+                Caption = 'Export';
+                Image = Export;
+                Enabled = Rec.Code <> '';
+                ToolTip = 'Exports the AI Test Suite configuration.';
 
-                    AITTestSuiteComparePage.SetBaseVersion(Rec."Version" - 1);
-                    AITTestSuiteComparePage.SetVersion(Rec.Version);
-                    AITTestSuiteComparePage.SetRecord(TemporaryAITTestSuiteRec);
-                    AITTestSuiteComparePage.Run();
+                trigger OnAction()
+                var
+                    AITTestSuite: Record "AIT Test Suite";
+                begin
+                    if Rec.Code <> '' then begin
+                        AITTestSuite := Rec;
+                        AITTestSuite.SetRecFilter();
+                        AITTestSuiteMgt.ExportAITTestSuite(AITTestSuite);
+                    end;
+                end;
+            }
+            action("Download Test Summary")
+            {
+                Caption = 'Download Test Summary';
+                Image = Export;
+                ToolTip = 'Downloads a summary of the test results.';
+
+                trigger OnAction()
+                var
+                    AITLogEntry: Record "AIT Log Entry";
+                    AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+                begin
+                    AITLogEntry.SetRange(Version, Rec.Version);
+                    AITTestSuiteMgt.DownloadTestSummary(AITLogEntry);
                 end;
             }
         }
@@ -237,7 +298,13 @@ page 149031 "AIT Test Suite"
         {
             group(Category_Process)
             {
+                actionref(ResetStatus_Promoted; ResetStatus)
+                {
+                }
                 actionref(Start_Promoted; Start)
+                {
+                }
+                actionref(StartBatch_Promoted; StartBatch)
                 {
                 }
                 actionref(LogEntries_Promoted; LogEntries)
@@ -249,23 +316,27 @@ page 149031 "AIT Test Suite"
                 actionref(Datasets_Promoted; Datasets)
                 {
                 }
+                actionref(ExportAIT_Promoted; ExportAIT)
+                {
+                }
             }
         }
     }
 
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
-        EnableActions: Boolean;
         AvgTimeDuration: Duration;
+        AvgTokensConsumed: Integer;
         TotalDuration: Duration;
         PageCaptionLbl: Label 'AI Test';
         TestRunnerDisplayName: Text;
+        InputDatasetChangedQst: Label 'You have modified the input dataset.\\Do you want to update the lines?';
 
     trigger OnOpenPage()
     var
-        EnvironmentInformation: Codeunit "Environment Information";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        EnableActions := (EnvironmentInformation.IsSaaS() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
+        FeatureTelemetry.LogUptake('0000NEV', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -278,7 +349,7 @@ page 149031 "AIT Test Suite"
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
         UpdateTotalDuration();
-        UpdateAverageExecutionTime();
+        UpdateAverages();
         TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner Id");
     end;
 
@@ -288,12 +359,17 @@ page 149031 "AIT Test Suite"
         TotalDuration := Rec."Total Duration (ms)";
     end;
 
-    local procedure UpdateAverageExecutionTime()
+    local procedure UpdateAverages()
     begin
-        Rec.CalcFields("No. of Tests Executed", "Total Duration (ms)", "No. of Tests Executed - Base", "Total Duration (ms) - Base");
+        Rec.CalcFields("No. of Tests Executed", "Total Duration (ms)", "Tokens Consumed");
         if Rec."No. of Tests Executed" > 0 then
             AvgTimeDuration := Rec."Total Duration (ms)" div Rec."No. of Tests Executed"
         else
             AvgTimeDuration := 0;
+
+        if Rec."No. of Tests Executed" > 0 then
+            AvgTokensConsumed := Rec."Tokens Consumed" div Rec."No. of Tests Executed"
+        else
+            AvgTokensConsumed := 0;
     end;
 }

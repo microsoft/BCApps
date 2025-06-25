@@ -96,7 +96,7 @@ function OpenPR {
 
     $shortTargetBranch = $TargetBranch -replace 'releases/',''
     $Category = "$shortTargetBranch/$Category".ToLower().Replace(' ', '_')
-    $branch = New-TopicBranchIfNeeded -Category "$shortTargetBranch/$Category" -Repository $Repository
+    $branch = New-TopicBranchIfNeeded -Category $Category -Repository $Repository
 
     # Open PR with a commit for each update
     $prDescription = "This PR contains the following changes:"
@@ -122,7 +122,7 @@ function OpenPR {
 
     git push -u origin $branch | Out-Null
 
-    $prDescription += "`n`nFixes AB#420000." # Add link to a work item
+    $prDescription += "`n`nAB#539394" # Add link to a work item
     return New-GitHubPullRequest -Repository $Repository -BranchName $branch -TargetBranch $TargetBranch -Title $prTitle -Description $prDescription
 }
 

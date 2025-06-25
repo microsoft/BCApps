@@ -9,6 +9,7 @@ using System.Azure.Identity;
 using System.Environment.Configuration;
 using System.Email;
 using System.Apps;
+using System.Integration;
 
 entitlement "Dynamics 365 Admin - Partner"
 {

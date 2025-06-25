@@ -13,7 +13,7 @@ using System.Tooling;
 /// Provides functionality to embed hyperlinks that send requests to VS Code to navigate to an object's definition in source code
 /// and to open the source code of an extension from Git.
 /// </summary>
-codeunit 8034 "VS Code Integration"
+codeunit 8334 "VS Code Integration"
 {
     Access = Public;
     InherentEntitlements = X;
@@ -31,6 +31,36 @@ codeunit 8034 "VS Code Integration"
     procedure OpenExtensionSourceInVSCode(var PublishedApplication: Record "Published Application")
     begin
         VsCodeIntegrationImpl.OpenExtensionSourceInVSCode(PublishedApplication);
+    end;
+
+    /// <summary>
+    /// Opens an URL that sends a request to VS Code to update the launch configurations to match the current environment to publish and debug.
+    /// </summary>
+    [Scope('OnPrem')]
+    procedure UpdateConfigurationsInVSCode()
+    begin
+        VsCodeIntegrationImpl.UpdateConfigurationsInVSCode();
+    end;
+
+    /// <summary>
+    /// Opens an URL that sends a request to VS Code to add and download the selected extensions as dependencies.
+    /// </summary>
+    /// <param name="PublishedApplication">The selected extensions.</param>
+    [Scope('OnPrem')]
+    procedure UpdateDependenciesInVSCode(var PublishedApplication: Record "Published Application")
+    begin
+        VsCodeIntegrationImpl.UpdateDependenciesInVSCode(PublishedApplication);
+    end;
+
+    /// <summary>
+    /// Returns the selected extensions as a JSON array of dependencies.
+    /// </summary>
+    /// <param name="PublishedApplication">The selected extensions.</param>
+    /// <returns>The JSON array.</returns>
+    [Scope('OnPrem')]
+    procedure GetDependenciesAsJson(var PublishedApplication: Record "Published Application"): Text
+    begin
+        exit(VsCodeIntegrationImpl.GetDependenciesAsSerializedJsonArray(PublishedApplication));
     end;
 
     /// <summary>

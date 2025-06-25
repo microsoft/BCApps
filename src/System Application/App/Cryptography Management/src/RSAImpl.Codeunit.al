@@ -1,13 +1,7 @@
 namespace System.Security.Encryption;
 
 using System;
-#if not CLEAN24
-#pragma warning disable AL0432
-codeunit 1476 "RSA Impl." implements SignatureAlgorithm, "Signature Algorithm v2"
-#pragma warning restore AL0432
-#else
 codeunit 1476 "RSA Impl." implements "Signature Algorithm v2"
-#endif
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -170,22 +164,16 @@ codeunit 1476 "RSA Impl." implements "Signature Algorithm v2"
 
 
     #region XmlString
-#if not CLEAN24
     [NonDebuggable]
-    [Obsolete('Replaced by ToSecretXmlString with SecretText data type for XmlString.', '25.0')]
-    procedure ToXmlString(IncludePrivateParameters: Boolean): Text
-    begin
-        exit(DotNetRSA.ToXmlString(IncludePrivateParameters));
-    end;
-
-    [NonDebuggable]
-    [Obsolete('Replaced by FromSecretXmlString with SecretText data type for XmlString.', '25.0')]
-    procedure FromXmlString(XmlString: Text)
+    procedure ToSecretXmlString(PrivateKey: SecretText; IncludePrivateParameters: Boolean): SecretText
+    var
+        RSAEncryptionHelper: DotNet RSAEncryptionHelper;
     begin
         RSA();
-        DotNetRSA.FromXmlString(XmlString);
+        RSAEncryptionHelper.ImportFromPem(DotNetRSA, PrivateKey.Unwrap());
+        exit(ToSecretXmlString(IncludePrivateParameters));
     end;
-#endif
+    
     procedure ToSecretXmlString(IncludePrivateParameters: Boolean): SecretText
     begin
         exit(DotNetRSA.ToXmlString(IncludePrivateParameters));
@@ -246,5 +234,11 @@ codeunit 1476 "RSA Impl." implements "Signature Algorithm v2"
             RSASignaturePadding::Pss:
                 DotNetRSASignaturePadding := DotNetRSASignaturePadding.Pss;
         end;
+    end;
+
+    [NonDebuggable]
+    internal procedure ExportRSAPrivateKeyPem(): SecretText
+    begin
+        exit(DotNetRSA.ExportRSAPrivateKeyPem());
     end;
 }

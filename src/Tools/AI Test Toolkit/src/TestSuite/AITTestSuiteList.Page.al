@@ -52,7 +52,7 @@ page 149040 "AIT Test Suite List"
                 {
                     Caption = 'Import';
                     Image = Import;
-                    ToolTip = 'Import a file with AI Test Suite details.';
+                    ToolTip = 'Import the AI Test Suite configuration.';
 
                     trigger OnAction()
                     var
@@ -68,15 +68,16 @@ page 149040 "AIT Test Suite List"
                     Image = Export;
                     Enabled = ValidRecord;
                     Scope = Repeater;
-                    ToolTip = 'Exports a file with AI Test Suite details.';
+                    ToolTip = 'Exports the AI Test Suite configuration.';
 
                     trigger OnAction()
                     var
                         AITTestSuite: Record "AIT Test Suite";
+                        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
                     begin
                         CurrPage.SetSelectionFilter(AITTestSuite);
-                        XmlPort.Run(XmlPort::"AIT Test Suite Import/Export", false, false, AITTestSuite);
-                        CurrPage.Update(false);
+                        if AITTestSuite.FindFirst() then
+                            AITTestSuiteMgt.ExportAITTestSuite(AITTestSuite);
                     end;
                 }
             }

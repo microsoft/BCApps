@@ -83,6 +83,8 @@ codeunit 1927 "Media Cleanup"
 
     /// <summary>
     /// Deletes all detached tenant media sets.
+    /// Note: This function will delete detached media set in batches of 10 and commit in between each batch.
+    /// This is to ensure we don't get stuck always trying to delete the same media and time out.
     /// </summary>
     procedure DeleteDetachedTenantMediaSet()
     begin

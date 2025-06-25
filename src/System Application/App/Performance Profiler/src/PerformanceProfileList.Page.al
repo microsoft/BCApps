@@ -51,17 +51,17 @@ page 1931 "Performance Profile List"
                     ToolTip = 'Specifies a short description of the activity that was profiled.';
                     AboutText = 'A description of the activity that was profiled.';
                 }
-                field("Object Display Name"; Rec."Object Display Name")
-                {
-                    Caption = 'Object';
-                    ToolTip = 'Specifies the object that contains the entry point for this profile.';
-                    AboutText = 'The object that contains the entry point for this profile.';
-                }
-                field(Duration; Rec.Duration)
+                field(ActivityDuration; Rec."Activity Duration")
                 {
                     Caption = 'Activity Duration';
-                    ToolTip = 'Specifies the duration of the activity that was profiled in milliseconds.';
-                    AboutText = 'The duration of the activity that was profiled.';
+                    ToolTip = 'Specifies the duration of the recorded activity including system operations and waiting for input.';
+                    AboutText = 'The duration of the recorded activity including system operations and waiting for input.';
+                }
+                field(ALExecutionTime; Rec.Duration)
+                {
+                    Caption = 'AL Execution Duration';
+                    ToolTip = 'Specifies the total duration of the sampled AL code in the recorded activity. This measurement is approximate as it depends on the selected sampling frequency.';
+                    AboutText = 'The duration of the sampled AL code in this activity.';
                 }
                 field("Http Call Duration"; Rec."Http Call Duration")
                 {
@@ -75,18 +75,49 @@ page 1931 "Performance Profile List"
                     ToolTip = 'Specifies the number of http calls during the activity that was profiled.';
                     AboutText = 'The number of external http calls during the activity that was profiled.';
                 }
+                field("Correlation ID"; Rec."Activity ID")
+                {
+                    Caption = 'Correlation ID';
+                    ToolTip = 'Specifies the ID of the activity that was profiled.';
+                    AboutText = 'The ID of the activity that was profiled.';
+                }
                 field("Client Session ID"; Rec."Client Session ID")
                 {
                     Caption = 'Client Session ID';
                     ToolTip = 'Specifies the ID of the client session that was profiled.';
                     AboutText = 'The ID of the client session that was profiled.';
                 }
+#if not CLEAN27
                 field("Schedule ID"; Rec."Schedule ID")
                 {
                     Caption = 'Schedule ID';
                     ToolTip = 'Specifies the ID of the schedule that was used to profile the activity.';
                     AboutText = 'The ID of the schedule that was used to profile the activity.';
                     TableRelation = "Performance Profile Scheduler"."Schedule ID";
+                    DrillDown = true;
+                    Visible = false;
+                    ObsoleteReason = 'This field is obsolete.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '27.0';
+
+                    trigger OnDrillDown()
+                    var
+                        PerfProfileSchedule: Record "Performance Profile Scheduler";
+                        PerfProfileScheduleCard: Page "Perf. Profiler Schedule Card";
+                    begin
+                        if not PerfProfileSchedule.Get(Rec."Schedule ID") then
+                            exit;
+
+                        PerfProfileScheduleCard.SetRecord(PerfProfileSchedule);
+                        PerfProfileScheduleCard.Run();
+                    end;
+                }
+#endif
+                field("Schedule Description"; ScheduleDescription)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Schedule Description';
+                    ToolTip = 'Specifies the description of the schedule that was used to profile the activity.';
                     DrillDown = true;
 
                     trigger OnDrillDown()
@@ -200,6 +231,7 @@ page 1931 "Performance Profile List"
     trigger OnAfterGetCurrRecord()
     begin
         this.MapClientTypeToActivityType();
+        ScheduleDescription := ScheduleDisplayName();
     end;
 
     local procedure MapClientTypeToActivityType()
@@ -208,10 +240,19 @@ page 1931 "Performance Profile List"
         PerfProfActivityMapper.MapClientTypeToActivityType(rec."Client Type", ActivityType);
     end;
 
+    local procedure ScheduleDisplayName(): Text
+    var
+        PerformanceProfileScheduler: Record "Performance Profile Scheduler";
+    begin
+        if PerformanceProfileScheduler.Get(Rec."Schedule ID") then
+            exit(PerformanceProfileScheduler.Description);
+    end;
+
     var
         PerfProfActivityMapper: Codeunit "Perf. Prof. Activity Mapper";
         ScheduledPerfProfilerImpl: Codeunit "Scheduled Perf. Profiler Impl.";
         ActivityType: Enum "Perf. Profile Activity Type";
+        ScheduleDescription: Text;
         ProfileFileNameTxt: Label 'PerformanceProfile_Activity%1_Session%2', Locked = true;
         ProfileFileExtensionTxt: Label '.alcpuprofile', Locked = true;
 }

@@ -78,7 +78,7 @@ codeunit 1568 "Power Automate Privacy Notice"
         if Handled then
             exit;
 
-        if PrivacyNotice.ID <> SystemPrivacyNoticeReg.GetPowerAutomatePrivacyNoticeId() then
+        if UpperCase(PrivacyNotice.ID) <> UpperCase(SystemPrivacyNoticeReg.GetPowerAutomatePrivacyNoticeId()) then
             exit;
 
         Session.LogMessage('0000I58', ShowingPrivacyNoticeTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);

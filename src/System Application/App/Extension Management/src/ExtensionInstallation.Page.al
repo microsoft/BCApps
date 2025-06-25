@@ -34,12 +34,14 @@ page 2503 "Extension Installation"
         MarketplaceExtnDeployment.SetPreviewKey(Rec.PreviewKey);
         MarketplaceExtnDeployment.RunModal();
         if MarketplaceExtnDeployment.GetInstalledSelected() then
-            if not IsNullGuid(Rec.ID) then
+            if not IsNullGuid(Rec.ID) then begin
                 ExtensionMarketplace.InstallMarketplaceExtension(
                     Rec.ID,
                     Rec.ResponseUrl,
                     MarketplaceExtnDeployment.GetLanguageId(),
                     Rec.PreviewKey);
+                MarketplaceExtnDeployment.Close();
+            end;
         CurrPage.Close();
     end;
 

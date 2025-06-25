@@ -1,24 +1,41 @@
 {
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/ab2f5319ed073c542e03914f8ae6c0fda029ee1e/Actions/settings.schema.json",
   "type": "PTE",
-  "templateUrl": "https://github.com/microsoft/AL-Go-PTE@main",
+  "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/25.0.21703.0/base",
+  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/27.0.35821.0/base",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "25.0",
-  "cleanModePreprocessorSymbols": [
-    "CLEAN17",
-    "CLEAN18",
-    "CLEAN19",
-    "CLEAN20",
-    "CLEAN21",
-    "CLEAN22",
-    "CLEAN23",
-    "CLEAN24",
-    "CLEAN25"
+  "repoVersion": "27.0",
+  "conditionalSettings": [
+    {
+      "buildModes": [
+        "Clean"
+      ],
+      "settings": {
+        "preprocessorSymbols": [
+          "CLEAN23",
+          "CLEAN24",
+          "CLEAN25",
+          "CLEAN26",
+          "CLEAN27"
+        ]
+      }
+    },
+    {
+      "branches": [
+        "main",
+        "releases/*.x"
+      ],
+      "settings": {
+        "buildModes": [
+          "Clean"
+        ]
+      }
+    }
   ],
   "unusedALGoSystemFiles": [
     "AddExistingAppOrTestApp.yaml",
@@ -31,14 +48,15 @@
     "NextMajor.yaml",
     "NextMinor.yaml",
     "PublishToEnvironment.yaml",
-    "Test Current.settings.json"
+    "Test Current.settings.json",
+    "Test Next Minor.settings.json",
+    "Test Next Major.settings.json"
   ],
   "excludeEnvironments": [
     "Official-Build"
   ],
   "buildModes": [
-    "Default",
-    "Clean"
+    "Default"
   ],
   "CICDPushBranches": [
     "main",
@@ -56,7 +74,6 @@
   "enableCodeAnalyzersOnTestApps": true,
   "rulesetFile": "../../../src/rulesets/ruleset.json",
   "skipUpgrade": true,
-  "PartnerTelemetryConnectionString": "InstrumentationKey=403ba4d3-ad2b-4ca1-8602-b7746de4c048;IngestionEndpoint=https://swedencentral-0.in.applicationinsights.azure.com/",
   "fullBuildPatterns": [
     "build/*",
     "src/rulesets/*",
@@ -73,5 +90,12 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "81cff3d03e8fe6b88ee3fc0848594bfd4d9039a4"
+  "templateSha": "e74753260f6cc4bc3009c414b8e84b328cb282c9",
+  "commitOptions": {
+    "messageSuffix": "Related to AB#539394",
+    "pullRequestAutoMerge": true,
+    "pullRequestLabels": [
+      "Automation"
+    ]
+  }
 }

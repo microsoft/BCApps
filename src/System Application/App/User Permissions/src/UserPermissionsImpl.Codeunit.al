@@ -219,20 +219,6 @@ codeunit 153 "User Permissions Impl."
         exit(HasUserPermissionSetAssigned(UserSID, CompanyName(), SECURITYPermissionSetTxt, DummyAccessControl.Scope::System, NullGuid));
     end;
 
-#if not CLEAN22
-    procedure HasUserCustomPermissions(UserSecId: Guid): Boolean
-    var
-        AccessControl: Record "Access Control";
-        BlankGuid: Guid;
-    begin
-        // Check if the user is assigned any custom permission sets
-        AccessControl.SetRange("User Security ID", UserSecId);
-        AccessControl.SetRange(Scope, AccessControl.Scope::Tenant);
-        AccessControl.SetRange("App ID", BlankGuid);
-        if not AccessControl.IsEmpty() then
-            exit(true);
-    end;
-#endif
 
     procedure HasUserPermissionSetAssigned(UserSecurityId: Guid; Company: Text; RoleId: Code[20]; ItemScope: Option; AppId: Guid): Boolean
     var
@@ -288,6 +274,33 @@ codeunit 153 "User Permissions Impl."
         Evaluate(TempExpandedPermission."Modify Permission", SelectStr(3, PermissionMask));
         Evaluate(TempExpandedPermission."Delete Permission", SelectStr(4, PermissionMask));
         Evaluate(TempExpandedPermission."Execute Permission", SelectStr(5, PermissionMask));
+    end;
+
+    procedure AssignPermissionSets(var UserSecurityId: Guid; CompanyName: Text; var AggregatePermissionSet: Record "Aggregate Permission Set")
+    begin
+        if not AggregatePermissionSet.FindSet() then
+            exit;
+
+        repeat
+            AssignPermissionSet(UserSecurityId, CompanyName, AggregatePermissionSet);
+        until AggregatePermissionSet.Next() = 0;
+    end;
+
+    procedure AssignPermissionSet(var UserSecurityId: Guid; CompanyName: Text; var AggregatePermissionSet: Record "Aggregate Permission Set")
+    var
+        AccessControl: Record "Access Control";
+    begin
+        if AccessControl.Get(UserSecurityId, AggregatePermissionSet."Role ID", '', AggregatePermissionSet.Scope, AggregatePermissionSet."App ID") then
+            exit;
+
+        AccessControl."App ID" := AggregatePermissionSet."App ID";
+        AccessControl."User Security ID" := UserSecurityId;
+        AccessControl."Role ID" := AggregatePermissionSet."Role ID";
+        AccessControl.Scope := AggregatePermissionSet.Scope;
+#pragma warning disable AA0139
+        AccessControl."Company Name" := CompanyName;
+#pragma warning restore AA0139
+        AccessControl.Insert();
     end;
 
     /// <summary>

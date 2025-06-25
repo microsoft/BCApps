@@ -317,12 +317,53 @@ codeunit 310 "No. Series"
     /// <param name="NoSeriesCode">The No. Series code to lookup.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
     /// <param name="HideErrorsAndWarnings">Whether errors should be ignored.</param>
+    /// <remarks>NoSeriesCode must not be empty.</remarks>
     /// <returns>True if the No. Series line was found, false otherwise.</returns>
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         exit(NoSeriesImpl.GetNoSeriesLine(NoSeriesLine, NoSeriesCode, UsageDate, HideErrorsAndWarnings));
+    end;
+
+    /// <summary>
+    /// Filters the No Series Lines and selects the currently applicable line based on the workdate.
+    /// </summary>
+    /// <param name="NoSeries">The No. Series for which to select a line.</param>
+    /// <param name="NoSeriesLine">The No Series Line is returned filtered and the currently applicable line is selected</param>
+    /// <param name="ResetFilters">If set to true, the filters on the Starting Date and Open fields are reset. The currently applicable line is still selected in the table.</param>
+    /// <returns>Returns true if a line was selected, false if no line was selected.</returns>
+    procedure SelectCurrentNoSeriesLine(NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line"; ResetFilters: Boolean): Boolean
+    var
+        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+    begin
+        exit(NoSeriesSetupImpl.SelectCurrentNoSeriesLine(NoSeries, NoSeriesLine, ResetFilters));
+    end;
+
+    /// <summary>
+    /// Returns true if the number series has Date Order set.
+    /// </summary>
+    /// <param name="NoSeriesCode">The No. Series code to check.</param>
+    /// <returns>True if the number series is marked for date order, false otherwise.</returns>
+    /// <Remarks>If Date Order is true, numbers must be retrieved in chronological order.</Remarks>
+    procedure IsNoSeriesInDateOrder(NoSeriesCode: Code[20]): Boolean
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.IsNoSeriesInDateOrder(NoSeriesCode));
+    end;
+
+    /// <summary>
+    /// Returns true if the number series has Date Order set.
+    /// </summary>
+    /// <param name="NoSeries">The No. Series to check.</param>
+    /// <returns>True if the number series is marked for date order, false otherwise.</returns>
+    /// <Remarks>If Date Order is true, numbers must be retrieved in chronological order.</Remarks>
+    procedure IsNoSeriesInDateOrder(NoSeries: Record "No. Series"): Boolean
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.IsNoSeriesInDateOrder(NoSeries));
     end;
 
     /// <summary>
@@ -333,6 +374,16 @@ codeunit 310 "No. Series"
     /// <param name="IsDrillDown">Specifies whether the filters are being set for a drill down.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnAfterSetNoSeriesCurrentLineFilters(NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line"; IsDrillDown: Boolean);
+    begin
+    end;
+
+    /// <summary>
+    /// Use this event to set additional filters on the No. Series Line record. These filters are used when searching the No. Series.
+    /// </summary>
+    /// <remarks>Changing the filter on the "Series Code" field is not allowed and will result in an error.</remarks>
+    /// <param name="NoSeriesLine">The No. Series Line to set filters on.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnSetNoSeriesLineFilters(var NoSeriesLine: Record "No. Series Line");
     begin
     end;
 }

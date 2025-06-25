@@ -34,7 +34,6 @@ page 8887 "Email Accounts"
         {
             repeater(Accounts)
             {
-                Visible = ShowLogo;
                 FreezeColumn = NameField;
 #pragma warning disable AW0009
                 field(LogoField; Rec.LogoBlob)
@@ -43,7 +42,6 @@ page 8887 "Email Accounts"
                     ApplicationArea = All;
                     ShowCaption = false;
                     Caption = ' ';
-                    Visible = ShowLogo;
                     ToolTip = 'Specifies the logo for the type of email account.';
                     Width = 1;
                 }
@@ -102,6 +100,19 @@ page 8887 "Email Accounts"
                 }
 
                 field(EmailRateLimit; RateLimit)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Email Rate Limit';
+                    ToolTip = 'Specifies the rate limit per minute for the email account.';
+                    Visible = true;
+
+                    trigger OnDrillDown()
+                    begin
+                        EmailRateLimitImpl.UpdateRateLimit(Rec);
+                    end;
+                }
+
+                field(EmailConcurrencyLimit; ConcurrencyLimit)
                 {
                     ApplicationArea = All;
                     Caption = 'Email Rate Limit';
@@ -355,7 +366,6 @@ page 8887 "Email Accounts"
         CanUserManageEmailSetup := EmailAccountImpl.IsUserEmailAdmin();
         Rec.SetCurrentKey("Account Id", Connector);
         UpdateEmailAccounts();
-        ShowLogo := true;
     end;
 
     trigger OnAfterGetRecord()
@@ -367,6 +377,7 @@ page 8887 "Email Accounts"
         end;
 
         RateLimit := EmailRateLimitImpl.GetRateLimit(Rec."Account Id", Rec.Connector, Rec."Email Address");
+        ConcurrencyLimit := EmailRateLimitImpl.GetConcurrencyLimit(Rec."Account Id", Rec.Connector, Rec."Email Address");
 
         DefaultTxt := '';
 
@@ -387,6 +398,11 @@ page 8887 "Email Accounts"
         IsSelected := not IsNullGuid(SelectedAccountId);
 
         EmailAccount.GetAllAccounts(true, Rec); // Refresh the email accounts
+        if V2V3Filter then
+            FilterToConnectorv2v3Accounts(Rec);
+        if V3Filter then
+            FilterToConnectorv3Accounts(Rec);
+
         EmailScenario.GetDefaultEmailAccount(DefaultEmailAccount); // Refresh the default email account
 
         if IsSelected then begin
@@ -398,6 +414,43 @@ page 8887 "Email Accounts"
         HasEmailAccount := not Rec.IsEmpty();
 
         CurrPage.Update(false);
+    end;
+
+    local procedure FilterToConnectorv3Accounts(var EmailAccounts: Record "Email Account")
+    var
+        IConnector: Interface "Email Connector";
+    begin
+        if EmailAccounts.IsEmpty() then
+            exit;
+
+        if EmailAccounts.FindSet() then
+            repeat
+                IConnector := EmailAccounts.Connector;
+                if not (IConnector is "Email Connector v3") then
+                    EmailAccounts.Delete();
+            until EmailAccounts.Next() = 0;
+    end;
+
+    local procedure FilterToConnectorv2v3Accounts(var EmailAccounts: Record "Email Account")
+    var
+        IConnector: Interface "Email Connector";
+    begin
+        if EmailAccounts.IsEmpty() then
+            exit;
+
+        repeat
+            IConnector := EmailAccounts.Connector;
+
+#if not CLEAN26
+#pragma warning disable AL0432
+            if not (IConnector is "Email Connector v2") and not (IConnector is "Email Connector v3") then
+#pragma warning restore AL0432
+#else
+            if not (IConnector is "Email Connector v3") then
+#endif
+                EmailAccounts.Delete();
+
+        until EmailAccounts.Next() = 0;
     end;
 
     local procedure ShowAccountInformation()
@@ -440,17 +493,48 @@ page 8887 "Email Accounts"
         CurrPage.LookupMode(true);
     end;
 
+    /// <summary>
+    /// Filters the email accounts to only show accounts that are using the Email Connector v2 or v3.
+    /// </summary>
+    /// <param name="Filter">True to filter the email accounts, false to show all email accounts</param>
+#if not CLEAN26
+    [Obsolete('Replaced by FilterConnectorV3Accounts. In addition, this function now returns both v2 and v3 accounts.', '26.0')]
+    procedure FilterConnectorV2Accounts(UseFilter: Boolean)
+    begin
+        V2V3Filter := UseFilter;
+    end;
+#endif
+
+    /// <summary>
+    /// Filters the email accounts to only show accounts that are using the Email Connector v2 or v3.
+    /// </summary>
+    /// <param name="UseFilter">True to filter the email accounts, false to show all email accounts</param>
+    procedure FilterConnectorV3Accounts(UseFilter: Boolean)
+    begin
+        V2V3Filter := UseFilter;
+    end;
+
+    /// <summary>
+    /// Filters the email accounts to only show accounts using the Email Connector v3.
+    /// </summary>
+    /// <param name="Version3">Show accounts using the Email Connector v3</param>
+    procedure FilterConnectorV3AccountsOnly(Version3: Boolean)
+    begin
+        V3Filter := Version3;
+    end;
+
     var
         DefaultEmailAccount: Record "Email Account";
         EmailAccountImpl: Codeunit "Email Account Impl.";
         EmailRateLimitImpl: Codeunit "Email Rate Limit Impl.";
         IsDefault: Boolean;
         RateLimit: Integer;
+        ConcurrencyLimit: Integer;
         CanUserManageEmailSetup: Boolean;
         DefaultTxt: Text;
         UpdateAccounts: Boolean;
-        ShowLogo: Boolean;
         IsLookupMode: Boolean;
         HasEmailAccount: Boolean;
+        V2V3Filter, V3Filter : Boolean;
         EmailConnectorHasBeenUninstalledMsg: Label 'The selected email extension has been uninstalled. To view information about the email account, you must reinstall the extension.';
 }

@@ -160,19 +160,6 @@ page 2610 "Feature Management"
                 }
             }
         }
-#if not CLEAN23
-        area(FactBoxes)
-        {
-            part("Upcoming Changes FactBox"; "Upcoming Changes Factbox")
-            {
-                ApplicationArea = All;
-                Visible = false;
-                ObsoleteReason = 'Replaced by teaching tips';
-                ObsoleteState = Pending;
-                ObsoleteTag = '23.0';
-            }
-        }
-#endif
     }
     actions
     {

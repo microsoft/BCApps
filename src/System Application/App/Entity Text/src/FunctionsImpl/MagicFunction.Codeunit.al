@@ -15,7 +15,7 @@ codeunit 2018 "Magic Function" implements "AOAI Function"
 
     var
         FunctionNameLbl: Label 'magic_function', Locked = true;
-        CompletionDeniedPhraseErr: Label 'Sorry, we could not generate a good suggestion for this. Review the information provided, consider your choice of words, and try again.', Locked = true;
+        CompletionDeniedPhraseErr: Label 'Sorry, we could not generate a good suggestion for this. Review the information provided, consider your choice of words, and try again.';
 
     [NonDebuggable]
     procedure GetPrompt(): JsonObject

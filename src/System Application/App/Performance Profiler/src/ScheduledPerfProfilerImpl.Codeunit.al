@@ -65,15 +65,26 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         RecordRef.FilterGroup(0);
     end;
 
+    procedure ValidateScheduleCreationPermissions(UserID: Guid; ScheduleUserID: Guid)
+    var
+        UserPermissions: Codeunit "User Permissions";
+    begin
+        if (UserID = ScheduleUserID) then
+            exit;
+
+        if (not UserPermissions.CanManageUsersOnTenant(UserID)) then
+            Error(CannotCreateSchedulesForOtherUsersErr);
+    end;
+
     procedure InitializeFields(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; var ActivityType: Enum "Perf. Profile Activity Type")
     var
-        OneHour: Duration;
+        FourHours: Duration;
     begin
-        OneHour := 1000 * 60 * 60;
+        FourHours := 1000 * 60 * 60 * 4;
         PerformanceProfileScheduler.Init();
         PerformanceProfileScheduler."Schedule ID" := CreateGuid();
         PerformanceProfileScheduler."Starting Date-Time" := CurrentDateTime;
-        PerformanceProfileScheduler."Ending Date-Time" := PerformanceProfileScheduler."Starting Date-Time" + OneHour;
+        PerformanceProfileScheduler."Ending Date-Time" := PerformanceProfileScheduler."Starting Date-Time" + FourHours;
         PerformanceProfileScheduler.Enabled := true;
         PerformanceProfileScheduler."Profile Creation Threshold" := 500;
         PerformanceProfileScheduler.Frequency := PerformanceProfileScheduler.Frequency::"100 milliseconds";
@@ -86,11 +97,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     var
         ScheduleDuration: Duration;
     begin
-        if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Ending Date-Time" < CurrentDateTime())) then
-            Error(ProfileCannotBeInThePastErr);
-
-        if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Starting Date-Time" > PerformanceProfileScheduler."Ending Date-Time")) then
-            Error(ProfileStartingDateLessThenEndingDateErr);
+        this.ValidatePerformanceProfileSchedulerDatesRelation(PerformanceProfileScheduler);
 
         if (MaxRetentionPeriod = 0) then
             exit;
@@ -98,6 +105,15 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         ScheduleDuration := PerformanceProfileScheduler."Ending Date-Time" - PerformanceProfileScheduler."Starting Date-Time";
         if (ScheduleDuration > MaxRetentionPeriod) then
             Error(ScheduleDurationCannotExceedRetentionPeriodErr);
+    end;
+
+    procedure ValidatePerformanceProfileSchedulerDatesRelation(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
+    begin
+        if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Ending Date-Time" < CurrentDateTime())) then
+            Error(ProfileCannotBeInThePastErr);
+
+        if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Starting Date-Time" > PerformanceProfileScheduler."Ending Date-Time")) then
+            Error(ProfileStartingDateLessThenEndingDateErr);
     end;
 
     procedure ValidatePerformanceProfileEndTime(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
@@ -149,8 +165,8 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         RetentionPolicySetupRec: Record "Retention Policy Setup";
         RetentionPolicySetup: Codeunit "Retention Policy Setup";
     begin
-        this.CreateRetentionPolicySetup(Database::"Performance Profiles", RetentionPolicySetup.FindOrCreateRetentionPeriod("Retention Period Enum"::"1 Week"));
-        if RetentionPolicySetupRec.Get(Database::"Performance Profiles") then
+        this.CreateRetentionPolicySetup(Database::"Performance Profile Scheduler", RetentionPolicySetup.FindOrCreateRetentionPeriod("Retention Period Enum"::"1 Week"));
+        if RetentionPolicySetupRec.Get(Database::"Performance Profile Scheduler") then
             Page.Run(Page::"Retention Policy Setup Card", RetentionPolicySetupRec);
     end;
 
@@ -202,6 +218,16 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         exit(PerformanceProfileSchedulerRecord.IsProfiling());
     end;
 
+    internal procedure GetStatus(PerformanceProfileScheduler: Record "Performance Profile Scheduler"): Text
+    begin
+        if PerformanceProfileScheduler.Enabled then
+            if (PerformanceProfileScheduler."Starting Date-Time" <= CurrentDateTime) and (PerformanceProfileScheduler."Ending Date-Time" >= CurrentDateTime) then
+                exit(ActiveLbl)
+            else
+                exit(InactiveOutsideTimeWindowLbl)
+        else
+            exit(InactiveLbl);
+    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetProfilerSchedulesPageId, '', false, false)]
     local procedure GetProfilerSchedulesPageId(var PageId: Integer)
@@ -210,9 +236,13 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     end;
 
     var
+        ActiveLbl: Label 'Active';
+        InactiveLbl: Label 'Inactive';
+        InactiveOutsideTimeWindowLbl: Label 'Inactive (outside time window)';
         ProfileStartingDateLessThenEndingDateErr: Label 'The performance profile starting date must be set before the ending date.';
         ProfileHasAlreadyBeenScheduledErr: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
         ProfileCannotBeInThePastErr: Label 'A schedule cannot be set to run in the past.';
         ScheduleDurationCannotExceedRetentionPeriodErr: Label 'The performance profile schedule duration cannot exceed the retention period.';
         ScheduleEndTimeCannotBeEmptyErr: Label 'The performance profile schedule must have an end time.';
+        CannotCreateSchedulesForOtherUsersErr: Label 'You do not have sufficient permissions to create profiler schedules for other users. Please contact your administrator.';
 }

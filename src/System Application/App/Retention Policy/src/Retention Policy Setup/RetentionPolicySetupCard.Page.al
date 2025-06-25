@@ -24,6 +24,7 @@ page 3901 "Retention Policy Setup Card"
         {
             group(General)
             {
+                Caption = 'General';
                 field(TableID; Rec."Table Id")
                 {
                     ApplicationArea = All;
@@ -190,7 +191,7 @@ page 3901 "Retention Policy Setup Card"
             }
             action(RestoreAllowedTables)
             {
-                Caption = 'Refresh allowed tables';
+                Caption = 'Refresh Allowed Tables';
                 ApplicationArea = All;
                 Image = Refresh;
                 ToolTip = 'Refreshes the list of tables that can be selected.';

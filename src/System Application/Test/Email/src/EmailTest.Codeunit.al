@@ -20,6 +20,7 @@ codeunit 134685 "Email Test"
                   tabledata "Email Message Attachment" = rd,
                   tabledata "Email Recipient" = rd,
                   tabledata "Email Outbox" = rimd,
+                  tabledata "Email Inbox" = rimd,
                   tabledata "Scheduled Task" = rd,
                   tabledata "Sent Email" = rid;
 
@@ -389,7 +390,6 @@ codeunit 134685 "Email Test"
         Assert.ExpectedError(EmailMessageCannotBeEditedErr);
     end;
 
-
     [Test]
     [HandlerFunctions('EmailEditorHandler,OnEmailEditorClose')]
     procedure OpenInEditorModallyDiscardAOptionTest()
@@ -720,7 +720,7 @@ codeunit 134685 "Email Test"
         ConnectorMock: Codeunit "Connector Mock";
         Connector: Enum "Email Connector";
     begin
-        // [Scenario] When successfuly sending an email, a recond is added on the Sent Emails table
+        // [Scenario] When successfully sending an email, a record is added on the Sent Emails table
         PermissionsMock.Set('Email Edit');
 
         // [Given] An email message and an email account
@@ -735,7 +735,7 @@ codeunit 134685 "Email Test"
         // [When] The email is Sent
         Assert.IsTrue(Email.Send(EmailMessage, EmailAccount), 'Sending an email should have succeeded');
 
-        // [Then] There is a Sent Mail recond and no Outbox record
+        // [Then] There is a Sent Mail record and no Outbox record
         SentEmail.SetRange("Account Id", EmailAccount."Account Id");
         SentEmail.SetRange("Message Id", EmailMessage.GetId());
 
@@ -801,7 +801,7 @@ codeunit 134685 "Email Test"
         EmailOutboxTestPage.ShowSourceRecord.Invoke();
 
         // [Then] No error appears
-        Assert.AreEqual('', GetLastErrorText, 'An error occured');
+        Assert.AreEqual('', GetLastErrorText, 'An error occurred');
     end;
 
     [Test]
@@ -929,7 +929,7 @@ codeunit 134685 "Email Test"
         TableId, NumberOfEmails, i : Integer;
         MessageIds: List of [Guid];
     begin
-        // [Scenario] When successfuly sending an email with source, a record is added to the email source document table and sent emails table. 
+        // [Scenario] When successfully sending an email with source, a record is added to the email source document table and sent emails table. 
         PermissionsMock.Set('Email Edit');
 
         // [Given] An email with source and an email account
@@ -1000,7 +1000,7 @@ codeunit 134685 "Email Test"
         // [Then] The related attachment is added as an attachment to the email 
         EmailMessageAttachments.SetRange("Email Message Id", EmailMessage.GetId());
         EmailMessageAttachments.FindSet();
-        Assert.AreEqual(1, EmailMessageAttachments.Count(), 'Related attachment wasnt attached to the email.');
+        Assert.AreEqual(1, EmailMessageAttachments.Count(), 'Related attachment was not attached to the email.');
         Assert.AreEqual('Attachment1', EmailMessageAttachments."Attachment Name", 'Wrong attachment was attached to email.');
         AssertVariableStorageEmpty();
     end;
@@ -1037,7 +1037,7 @@ codeunit 134685 "Email Test"
         EmailEditor.GetRelatedAttachments(EmailMessage.GetId(), EmailRelatedAttachment);
 
         Assert.AreEqual(1, EmailRelatedAttachment.Count(), 'Wrong number of attachments.');
-        Assert.AreEqual('Attachment1', EmailRelatedAttachment."Attachment Name", 'Wrong attachmentname');
+        Assert.AreEqual('Attachment1', EmailRelatedAttachment."Attachment Name", 'Wrong attachment name');
     end;
 
     [Test]
@@ -1076,7 +1076,7 @@ codeunit 134685 "Email Test"
         Status: Boolean;
         MessageID: Guid;
     begin
-        // [Scenario] When Sending the email in the background an event is fired to nothify for the status of the email
+        // [Scenario] When Sending the email in the background an event is fired to notify for the status of the email
         PermissionsMock.Set('Email Edit');
 
         TestClientType.SetClientType(ClientType::Background);
@@ -1121,7 +1121,7 @@ codeunit 134685 "Email Test"
         Status: Boolean;
         MessageID: Guid;
     begin
-        // [Scenario] When Sending the email in the background an event is fired to nothify for the status of the email
+        // [Scenario] When Sending the email in the background an event is fired to notify for the status of the email
         PermissionsMock.Set('Email Edit');
 
         TestClientType.SetClientType(ClientType::Background);
@@ -1366,7 +1366,7 @@ codeunit 134685 "Email Test"
         TableId, NumberOfEmails, i : Integer;
         MessageIds: List of [Guid];
     begin
-        // [Scenario] When successfuly sending an email with source, GetSentEmailsForRecord return related Sent Emails. 
+        // [Scenario] When successfully sending an email with source, GetSentEmailsForRecord return related Sent Emails. 
         PermissionsMock.Set('Email Edit');
         SentEmail.DeleteAll();
 
@@ -1397,6 +1397,632 @@ codeunit 134685 "Email Test"
         end;
     end;
 
+    [Test]
+    procedure RetrieveEmailsWithV1Connector()
+    var
+        EmailAccount: Record "Email Account";
+        EmailInbox: Record "Email Inbox";
+        TempFilters: Record "Email Retrieval Filters" temporary;
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] Retrieving emails with a V1 connector should fail
+        // [Given] An email account with a V1 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount);
+
+        // [When] Retrieving emails
+        // [Then] An error is thrown that the connector does not support this operation
+        asserterror Email.RetrieveEmails(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox, TempFilters);
+        Assert.ExpectedError('The selected email connector does not support retrieving emails');
+    end;
+
+#if not CLEAN26
+    [Test]
+    [Obsolete('v2 connector is replaced by v3 connector.', '26.0')]
+    procedure RetrieveEmailsv2()
+    var
+        EmailAccount: Record "Email Account";
+        EmailInbox: Record "Email Inbox";
+        ConnectorMock: Codeunit "Connector Mock";
+        InitialId: Integer;
+    begin
+        // [Scenario] Retrieving emails with a V2 connector will succeed and the EmailInbox will be filled only with new emails and not existing ones
+        PermissionsMock.Set('Email Edit');
+
+        // [Given] An email account with a V1 connector
+        // [Given] Existing emails in Email Inbox
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
+
+        EmailInbox.DeleteAll();
+        ConnectorMock.CreateEmailInbox(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
+        Assert.AreEqual(1, EmailInbox.Count(), 'Wrong number of emails in the inbox');
+        InitialId := EmailInbox.Id;
+
+        // [When] Retrieving emails
+#pragma warning disable AL0432
+        Email.RetrieveEmails(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
+#pragma warning restore AL0432
+
+        // [Then] The EmailInbox will be filled only with new emails and not existing ones
+        EmailInbox.FindSet();
+        Assert.AreEqual(2, EmailInbox.Count(), 'Wrong number of emails in the inbox');
+
+        repeat
+            Assert.AreNotEqual(InitialId, EmailInbox.Id, 'The email should not be the same as the initial one');
+        until EmailInbox.Next() = 0;
+    end;
+
+    [Test]
+    [Obsolete('v2 connector is replaced by v3 connector.', '26.0')]
+    procedure RetrieveEmailsFailv2()
+    var
+        EmailAccount: Record "Email Account";
+        EmailInbox: Record "Email Inbox";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] Retrieving emails with a V2 connector fails due to some error
+        PermissionsMock.Set('Email Edit');
+
+        // [Given] An email account with a V1 connector
+        // [Given] Existing emails in Email Inbox
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
+
+        EmailInbox.DeleteAll();
+        ConnectorMock.CreateEmailInbox(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
+        Assert.AreEqual(1, EmailInbox.Count(), 'Wrong number of emails in the inbox');
+
+        // [Given] An error occurs when retrieving emails
+        ConnectorMock.FailOnRetrieveEmails(true);
+
+        // [When] Retrieving emails
+#pragma warning disable AL0432
+        asserterror Email.RetrieveEmails(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
+#pragma warning restore AL0432
+
+        // [Then] The EmailInbox will be filled only with new emails and not existing ones
+        Assert.ExpectedError('Failed to retrieve emails');
+    end;
+#endif
+    [Test]
+    procedure RetrieveEmailsv3()
+    var
+        EmailAccount: Record "Email Account";
+        EmailInbox: Record "Email Inbox";
+        TempFilters: Record "Email Retrieval Filters" temporary;
+        ConnectorMock: Codeunit "Connector Mock";
+        InitialId: Integer;
+    begin
+        // [Scenario] Retrieving emails with a V3 connector will succeed and the EmailInbox will be filled only with new emails and not existing ones
+        PermissionsMock.Set('Email Edit');
+
+        // [Given] An email account with a V3 connector
+        // [Given] Existing emails in Email Inbox
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v3");
+
+        EmailInbox.DeleteAll();
+        ConnectorMock.CreateEmailInbox(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
+        Assert.AreEqual(1, EmailInbox.Count(), 'Wrong number of emails in the inbox');
+        InitialId := EmailInbox.Id;
+
+        // [When] Retrieving emails
+        Email.RetrieveEmails(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox, TempFilters);
+
+        // [Then] The EmailInbox will be filled only with new emails and not existing ones
+        EmailInbox.FindSet();
+        Assert.AreEqual(2, EmailInbox.Count(), 'Wrong number of emails in the inbox');
+
+        repeat
+            Assert.AreNotEqual(InitialId, EmailInbox.Id, 'The email should not be the same as the initial one');
+        until EmailInbox.Next() = 0;
+    end;
+
+    [Test]
+    procedure RetrieveEmailsFailv3()
+    var
+        EmailAccount: Record "Email Account";
+        EmailInbox: Record "Email Inbox";
+        TempFilters: Record "Email Retrieval Filters" temporary;
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] Retrieving emails with a V3 connector fails due to some error
+        PermissionsMock.Set('Email Edit');
+
+        // [Given] An email account with a V3 connector
+        // [Given] Existing emails in Email Inbox
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v3");
+
+        EmailInbox.DeleteAll();
+        ConnectorMock.CreateEmailInbox(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
+        Assert.AreEqual(1, EmailInbox.Count(), 'Wrong number of emails in the inbox');
+
+        // [Given] An error occurs when retrieving emails
+        ConnectorMock.FailOnRetrieveEmails(true);
+
+        // [When] Retrieving emails
+        asserterror Email.RetrieveEmails(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox, TempFilters);
+
+        // [Then] The EmailInbox will be filled only with new emails and not existing ones
+        Assert.ExpectedError('Failed to retrieve emails');
+    end;
+
+    [Test]
+    procedure MarkEmailAsReadWithV1Connector()
+    var
+        EmailAccount: Record "Email Account";
+        ConnectorMock: Codeunit "Connector Mock";
+        Any: Codeunit Any;
+    begin
+        // [Scenario] Marking email as read with a V1 connector should fail
+        // [Given] An email account with a V1 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount);
+
+        // [When] Mark email as read
+        // [Then] An error is thrown that the connector does not support this operation
+        asserterror Email.MarkAsRead(EmailAccount."Account Id", EmailAccount.Connector, Any.AlphabeticText(10));
+        Assert.ExpectedError('The selected email connector does not support marking emails as read');
+    end;
+#if not CLEAN26
+    [Test]
+    [Obsolete('v2 connector is replaced by v3 connector.', '26.0')]
+    procedure MarkEmailAsRead()
+    var
+        EmailAccount: Record "Email Account";
+        ConnectorMock: Codeunit "Connector Mock";
+        Any: Codeunit Any;
+    begin
+        // [Scenario] Marking email as read with a V2 connector should succeed with no errors
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
+
+        // [When] Mark email as read
+        // [Then] No error occurs
+        Email.MarkAsRead(EmailAccount."Account Id", EmailAccount.Connector, Any.AlphabeticText(10));
+    end;
+
+    [Test]
+    [Obsolete('v2 connector is replaced by v3 connector.', '26.0')]
+    procedure MarkEmailAsReadFail()
+    var
+        EmailAccount: Record "Email Account";
+        ConnectorMock: Codeunit "Connector Mock";
+        Any: Codeunit Any;
+    begin
+        // [Scenario] Marking email as read with a V2 connector fails due to some error
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
+
+        // [Given] Force an error to occur when marking email as read
+        ConnectorMock.FailOnMarkAsRead(true);
+
+        // [When] Mark email as read
+        // [Then] An error occurs
+        asserterror Email.MarkAsRead(EmailAccount."Account Id", EmailAccount.Connector, Any.AlphabeticText(10));
+        Assert.ExpectedError('Failed to mark email as read');
+    end;
+#endif
+
+    [Test]
+    procedure MarkEmailAsReadv3()
+    var
+        EmailAccount: Record "Email Account";
+        ConnectorMock: Codeunit "Connector Mock";
+        Any: Codeunit Any;
+    begin
+        // [Scenario] Marking email as read with a V3 connector should succeed with no errors
+        // [Given] An email account with a V3 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v3");
+
+        // [When] Mark email as read
+        // [Then] No error occurs
+        Email.MarkAsRead(EmailAccount."Account Id", EmailAccount.Connector, Any.AlphabeticText(10));
+    end;
+
+    [Test]
+    procedure MarkEmailAsReadFailv3()
+    var
+        EmailAccount: Record "Email Account";
+        ConnectorMock: Codeunit "Connector Mock";
+        Any: Codeunit Any;
+    begin
+        // [Scenario] Marking email as read with a V3 connector fails due to some error
+        // [Given] An email account with a V3 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v3");
+
+        // [Given] Force an error to occur when marking email as read
+        ConnectorMock.FailOnMarkAsRead(true);
+
+        // [When] Mark email as read
+        // [Then] An error occurs
+        asserterror Email.MarkAsRead(EmailAccount."Account Id", EmailAccount.Connector, Any.AlphabeticText(10));
+        Assert.ExpectedError('Failed to mark email as read');
+    end;
+
+    [Test]
+    procedure ReplyToEmailWithV1Connector()
+    var
+        EmailAccount: Record "Email Account";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] Replying to an email with a V1 connector should fail
+        // [Given] An email account with a V1 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount);
+        CreateEmailReply(EmailMessage);
+
+        // [When] Reply to email
+        // [Then] An error is thrown that the connector does not support this operation
+        asserterror Email.Reply(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector);
+        Assert.ExpectedError('The selected email connector does not support replying to emails');
+    end;
+
+#if not CLEAN26
+    [Test]
+    [Obsolete('v2 connector is replaced by v3 connector.', '26.0')]
+    procedure ReplyToEmail()
+    var
+        EmailAccount: Record "Email Account";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+        Any: Codeunit Any;
+    begin
+        // [Scenario] Replying to an email with a V2 connector should succeed with no errors
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
+        CreateEmailReply(EmailMessage);
+
+        // [When] Reply to email
+        // [Then] No error occurs and reply returns true
+        Assert.IsTrue(Email.Reply(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector), 'Did not succeed in replying the email');
+    end;
+
+    [Test]
+    [Obsolete('v2 connector is replaced by v3 connector.', '26.0')]
+    procedure ReplyToEmailWithNoRecipients()
+    var
+        EmailAccount: Record "Email Account";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+        Any: Codeunit Any;
+    begin
+        // [Scenario] Replying to an email with a V2 connector should succeed with no errors
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
+        CreateEmailReply(EmailMessage, '');
+
+        // [When] Reply to email
+        // [Then] No error occurs and reply returns true
+        asserterror Email.Reply(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector);
+        Assert.ExpectedError('You must specify a valid email account to send the message to');
+    end;
+#endif
+    [Test]
+    procedure ReplyToEmailv3()
+    var
+        EmailAccount: Record "Email Account";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] Replying to an email with a V2 connector should succeed with no errors
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v3");
+        CreateEmailReply(EmailMessage);
+
+        // [When] Reply to email
+        // [Then] No error occurs and reply returns true
+        Assert.IsTrue(Email.Reply(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector), 'Did not succeed in replying the email');
+    end;
+
+    [Test]
+    procedure ReplyToEmailWithNoRecipientsv3()
+    var
+        EmailAccount: Record "Email Account";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] Replying to an email with a V2 connector should succeed with no errors
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v3");
+        CreateEmailReply(EmailMessage, '');
+
+        // [When] Reply to email
+        // [Then] No error occurs and reply returns true
+        asserterror Email.Reply(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector);
+        Assert.ExpectedError('You must specify a valid email account to send the message to');
+    end;
+
+    [Test]
+    procedure ReplyAllToEmailWithV1Connector()
+    var
+        EmailAccount: Record "Email Account";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] Replying to an email with a V1 connector should fail
+        // [Given] An email account with a V1 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount);
+        CreateEmailReplyAll(EmailMessage);
+
+        // [When] Reply to email
+        // [Then] An error is thrown that the connector does not support this operation
+        asserterror Email.ReplyAll(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector);
+        Assert.ExpectedError('The selected email connector does not support replying to emails');
+    end;
+
+#if not CLEAN26
+    [Test]
+    [Obsolete('v2 connector is replaced by v3 connector.', '26.0')]
+    procedure ReplyAllToEmail()
+    var
+        EmailAccount: Record "Email Account";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+        Any: Codeunit Any;
+    begin
+        // [Scenario] Replying to an email with a V2 connector should succeed with no errors
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
+        CreateEmailReplyAll(EmailMessage);
+
+        // [When] Reply to email
+        // [Then] No error occurs and reply returns true
+        Assert.IsTrue(Email.ReplyAll(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector), 'Did not succeed in replying the email');
+    end;
+
+    [Test]
+    [Obsolete('v2 connector is replaced by v3 connector.', '26.0')]
+    procedure ReplyAllToEmailFail()
+    var
+        EmailAccount: Record "Email Account";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+        Any: Codeunit Any;
+    begin
+        // [Scenario] Replying to an email with a V2 connector fails due to some error
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
+        CreateEmailReplyAll(EmailMessage);
+
+        // [Given] Force the connector to fail on reply
+        ConnectorMock.FailOnReply(true);
+
+        // [When] Reply to email
+        // [Then] No error occurs and reply returns true
+        Assert.IsFalse(Email.ReplyAll(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector), 'Did succeed in replying the email when it should fail');
+    end;
+#endif
+
+    [Test]
+    procedure ReplyAllToEmailv3()
+    var
+        EmailAccount: Record "Email Account";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] Replying to an email with a V2 connector should succeed with no errors
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v3");
+        CreateEmailReplyAll(EmailMessage);
+
+        // [When] Reply to email
+        // [Then] No error occurs and reply returns true
+        Assert.IsTrue(Email.ReplyAll(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector), 'Did not succeed in replying the email');
+    end;
+
+    [Test]
+    procedure ReplyAllToEmailFailv3()
+    var
+        EmailAccount: Record "Email Account";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] Replying to an email with a V2 connector fails due to some error
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v3");
+        CreateEmailReplyAll(EmailMessage);
+
+        // [Given] Force the connector to fail on reply
+        ConnectorMock.FailOnReply(true);
+
+        // [When] Reply to email
+        // [Then] No error occurs and reply returns true
+        Assert.IsFalse(Email.ReplyAll(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector), 'Did succeed in replying the email when it should fail');
+    end;
+
+    [Test]
+    procedure EnqueueReplyToEmailWithV1Connector()
+    var
+        EmailAccount: Record "Email Account";
+        EmailOutbox: Record "Email Outbox";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] Replying to an email with a V1 connector should fail
+        // [Given] An email account with a V1 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount);
+        CreateEmailReply(EmailMessage);
+
+        // [When] Reply to email
+        // [Then] An error is thrown that the connector does not support this operation
+        asserterror Email.EnqueueReply(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
+        Assert.ExpectedError('The selected email connector does not support replying to emails');
+    end;
+#if not CLEAN26
+    [Test]
+    [Obsolete('v2 connector is replaced by v3 connector.', '26.0')]
+    procedure EnqueueReplyToEmail()
+    var
+        EmailAccount: Record "Email Account";
+        EmailOutbox: Record "Email Outbox";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+        Any: Codeunit Any;
+    begin
+        // [Scenario] Replying to an email with a V2 connector should succeed with no errors
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
+        CreateEmailReply(EmailMessage);
+
+        // [When] Reply to email
+        // [Then] No error occurs and reply returns true
+        Assert.IsTrue(IsNullGuid(EmailOutbox."Message Id"), 'The email message id in the outbox should be empty');
+        Email.EnqueueReply(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
+
+        Assert.AreEqual(EmailMessage.GetId(), EmailOutbox."Message Id", 'The email message id should be the same as the one in the outbox');
+    end;
+
+    [Test]
+    [Obsolete('v2 connector is replaced by v3 connector.', '26.0')]
+    procedure EnqueueReplyToEmailWithNoRecipients()
+    var
+        EmailAccount: Record "Email Account";
+        EmailOutbox: Record "Email Outbox";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+        Any: Codeunit Any;
+    begin
+        // [Scenario] Replying to an email with a V2 connector should succeed with no errors
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
+        CreateEmailReply(EmailMessage, '');
+
+        // [When] Reply to email
+        // [Then] No error occurs and reply returns true
+        asserterror Email.EnqueueReply(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
+        Assert.ExpectedError('You must specify a valid email account to send the message to');
+    end;
+#endif
+
+    [Test]
+    procedure EnqueueReplyToEmailv3()
+    var
+        EmailAccount: Record "Email Account";
+        EmailOutbox: Record "Email Outbox";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] Replying to an email with a V2 connector should succeed with no errors
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v3");
+        CreateEmailReply(EmailMessage);
+
+        // [When] Reply to email
+        // [Then] No error occurs and reply returns true
+        Assert.IsTrue(IsNullGuid(EmailOutbox."Message Id"), 'The email message id in the outbox should be empty');
+        Email.EnqueueReply(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
+
+        Assert.AreEqual(EmailMessage.GetId(), EmailOutbox."Message Id", 'The email message id should be the same as the one in the outbox');
+    end;
+
+    [Test]
+    procedure EnqueueReplyToEmailWithNoRecipientsv3()
+    var
+        EmailAccount: Record "Email Account";
+        EmailOutbox: Record "Email Outbox";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] Replying to an email with a V2 connector should succeed with no errors
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v3");
+        CreateEmailReply(EmailMessage, '');
+
+        // [When] Reply to email
+        // [Then] No error occurs and reply returns true
+        asserterror Email.EnqueueReply(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
+        Assert.ExpectedError('You must specify a valid email account to send the message to');
+    end;
+
+    [Test]
+    procedure EnqueueReplyAllToEmailWithV1Connector()
+    var
+        EmailAccount: Record "Email Account";
+        EmailOutbox: Record "Email Outbox";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] Replying to an email with a V1 connector should fail
+        // [Given] An email account with a V1 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount);
+        CreateEmailReplyAll(EmailMessage);
+
+        // [When] Reply to email
+        // [Then] An error is thrown that the connector does not support this operation
+        asserterror Email.EnqueueReplyAll(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
+        Assert.ExpectedError('The selected email connector does not support replying to emails');
+    end;
+
+#if not CLEAN26
+    [Test]
+    [Obsolete('v2 connector is replaced by v3 connector.', '26.0')]
+    procedure EnqueueReplyAllToEmailFail()
+    var
+        EmailAccount: Record "Email Account";
+        EmailOutbox: Record "Email Outbox";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] Replying to an email with a V2 connector fails due to some error
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
+        CreateEmailReplyAll(EmailMessage);
+
+        // [Given] Force the connector to fail on reply
+        ConnectorMock.FailOnReply(true);
+
+        // [When] Reply to email
+        // [Then] No error occurs and reply returns true
+        Email.EnqueueReplyAll(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
+    end;
+#endif
+
+    [Test]
+    procedure EnqueueReplyAllToEmailFailv3()
+    var
+        EmailAccount: Record "Email Account";
+        EmailOutbox: Record "Email Outbox";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] Replying to an email with a V2 connector fails due to some error
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v3");
+        CreateEmailReplyAll(EmailMessage);
+
+        // [Given] Force the connector to fail on reply
+        ConnectorMock.FailOnReply(true);
+
+        // [When] Reply to email
+        // [Then] No error occurs and reply returns true
+        Email.EnqueueReplyAll(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
+    end;
+
     local procedure CreateEmail(var EmailMessage: Codeunit "Email Message")
     var
         Any: Codeunit Any;
@@ -1410,6 +2036,27 @@ codeunit 134685 "Email Test"
     begin
         EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
         Email.AddRelation(EmailMessage, TableId, SystemId, Enum::"Email Relation Type"::"Primary Source", Enum::"Email Relation Origin"::"Compose Context");
+    end;
+
+    local procedure CreateEmailReply(var EmailMessage: Codeunit "Email Message")
+    var
+        Any: Codeunit Any;
+    begin
+        EmailMessage.CreateReply(Any.Email(), Any.UnicodeText(250), Any.UnicodeText(50), true, Any.UnicodeText(250));
+    end;
+
+    local procedure CreateEmailReply(var EmailMessage: Codeunit "Email Message"; Recipients: Text)
+    var
+        Any: Codeunit Any;
+    begin
+        EmailMessage.CreateReply(Recipients, Any.UnicodeText(250), Any.UnicodeText(50), true, Any.UnicodeText(250));
+    end;
+
+    local procedure CreateEmailReplyAll(var EmailMessage: Codeunit "Email Message")
+    var
+        Any: Codeunit Any;
+    begin
+        EmailMessage.CreateReplyAll(Any.UnicodeText(250), Any.UnicodeText(50), true, Any.UnicodeText(250));
     end;
 
     [StrMenuHandler]
@@ -1437,7 +2084,7 @@ codeunit 134685 "Email Test"
         ClearLastError();
         EmailRelationPickerTestPage."Source Name".Lookup();
 
-        Assert.AreEqual('', GetLastErrorText, 'An error occured - opening email relation from picker');
+        Assert.AreEqual('', GetLastErrorText, 'An error occurred - opening email relation from picker');
     end;
 
     [ModalPageHandler]

@@ -631,13 +631,6 @@ page 9859 "Tenant Permission Subform"
         CurrPageIsEditable := true;
     end;
 
-#if not CLEAN22
-    [Obsolete('No longer used.', '22.0')]
-    procedure SetPageVariables(AppId: Guid)
-    begin
-        CurrentAppID := AppId;
-    end;
-#endif
 
     internal procedure SetPermissionSet(RoleId: Code[30]; AppId: Guid; Tenant: Boolean)
     begin

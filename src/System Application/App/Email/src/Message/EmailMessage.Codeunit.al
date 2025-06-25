@@ -38,13 +38,31 @@ codeunit 8904 "Email Message"
     /// <summary>
     /// Creates the email with recipients, subject, and body.
     /// </summary>
+    /// <param name="ToRecipients">The recipient(s) of the email. A string containing the email addresses of the recipients separated by semicolon.</param>
+    /// <param name="Subject">The subject of the email.</param>
+    /// <param name="Body">The body of the email.</param>
+    /// <param name="HtmlFormatted">Whether the body is HTML formatted.</param>
+    /// <param name="Sanitize">If the body is of HTML formatting, most of it will be sanitized. Keeping only tags and no styling.</param>
+    /// <remarks>Sanitize is only applicable if the body is HTML formatted. It also helps prevent potential email messages from hiding images and text from the user.</remarks>
+    procedure Create(ToRecipients: Text; Subject: Text; Body: Text; HtmlFormatted: Boolean; Sanitize: Boolean)
+    begin
+        EmailMessageImpl.Create(ToRecipients, Subject, Body, HtmlFormatted, Sanitize);
+    end;
+
+
+    /// <summary>
+    /// Creates the email with recipients, subject, and body.
+    /// </summary>
     /// <param name="ToRecipients">The recipient(s) of the email. A list of email addresses the email will be send directly to.</param>
     /// <param name="Subject">The subject of the email.</param>
     /// <param name="Body">The body of the email</param>
     /// <param name="HtmlFormatted">Whether the body is HTML formatted</param>
     procedure Create(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean)
+    var
+        CCRecipients: List of [Text];
+        BCCRecipients: List of [Text];
     begin
-        EmailMessageImpl.Create(ToRecipients, Subject, Body, HtmlFormatted);
+        EmailMessageImpl.Create(ToRecipients, Subject, Body, HtmlFormatted, CCRecipients, BCCRecipients, false);
     end;
 
     /// <summary>
@@ -58,7 +76,63 @@ codeunit 8904 "Email Message"
     /// <param name="BCCRecipients">TThe BCC recipient(s) of the email. A list of email addresses that will be listed as BCC.</param>
     procedure Create(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
     begin
-        EmailMessageImpl.Create(ToRecipients, Subject, Body, HtmlFormatted, CCRecipients, BCCRecipients);
+        EmailMessageImpl.Create(ToRecipients, Subject, Body, HtmlFormatted, CCRecipients, BCCRecipients, false);
+    end;
+
+    /// <summary>
+    /// Creates the email reply with recipients, subject, and body.
+    /// </summary>
+    /// <param name="ToRecipients">The recipient(s) of the email. A string containing the email addresses of the recipients separated by semicolon.</param>
+    /// <param name="Subject">The subject of the email.</param>
+    /// <param name="Body">The body of the email.</param>
+    /// <param name="HtmlFormatted">Whether the body is HTML formatted.</param>
+    /// <param name="ExternalId">The external message id to reply to.</param>
+    procedure CreateReply(ToRecipients: Text; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    begin
+        EmailMessageImpl.CreateReply(ToRecipients, Subject, Body, HtmlFormatted, ExternalId);
+    end;
+
+    /// <summary>
+    /// Creates the email reply with recipients, subject, and body.
+    /// </summary>
+    /// <param name="ToRecipients">The recipient(s) of the email. A list of email addresses the email will be send directly to.</param>
+    /// <param name="Subject">The subject of the email.</param>
+    /// <param name="Body">The body of the email.</param>
+    /// <param name="HtmlFormatted">Whether the body is HTML formatted.</param>
+    /// <param name="ExternalId">The external message id to reply to.</param>
+    procedure CreateReply(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    var
+        CCRecipients: List of [Text];
+        BCCRecipients: List of [Text];
+    begin
+        EmailMessageImpl.CreateReply(ToRecipients, Subject, Body, HtmlFormatted, ExternalId, CCRecipients, BCCRecipients);
+    end;
+
+    /// <summary>
+    /// Creates the email reply with recipients, subject, and body.
+    /// </summary>
+    /// <param name="ToRecipients">The recipient(s) of the email. A list of email addresses the email will be send directly to.</param>
+    /// <param name="Subject">The subject of the email.</param>
+    /// <param name="Body">The body of the email.</param>
+    /// <param name="HtmlFormatted">Whether the body is HTML formatted.</param>
+    /// <param name="ExternalId">The external message id to reply to.</param>
+    /// <param name="CCRecipients">The CC recipient(s) of the email. A list of email addresses that will be listed as CC.</param>
+    /// <param name="BCCRecipients">TThe BCC recipient(s) of the email. A list of email addresses that will be listed as BCC.</param>
+    procedure CreateReply(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
+    begin
+        EmailMessageImpl.CreateReply(ToRecipients, Subject, Body, HtmlFormatted, ExternalId, CCRecipients, BCCRecipients);
+    end;
+
+    /// <summary>
+    /// Creates the email replying to all existing recipents on the mail thread, subject, and body.
+    /// </summary>
+    /// <param name="Subject">The subject of the email.</param>
+    /// <param name="Body">The body of the email.</param>
+    /// <param name="HtmlFormatted">Whether the body is HTML formatted.</param>
+    /// <param name="ExternalId">The external message id to reply to.</param>
+    procedure CreateReplyAll(Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    begin
+        EmailMessageImpl.CreateReplyAll(Subject, Body, HtmlFormatted, ExternalId);
     end;
 
     /// <summary>
@@ -81,6 +155,19 @@ codeunit 8904 "Email Message"
     procedure DeleteOrphanedMessages(StartMessageId: Guid; MessagesToIterate: Integer) NextMessageId: Guid
     begin
         exit(EmailMessageImpl.DeleteOrphanedMessages(StartMessageId, MessagesToIterate));
+    end;
+
+    /// <summary>
+    /// Deletes email recipients that do not have a reference from email message.
+    /// This functionality is only needed if email recipients have been created without any email message referencing it, otherwise they will be cleaned up automatically.
+    /// </summary>
+    /// <param name="StartMessageId">The email message id to start from. Using empty guid will start from the beginning.</param>
+    /// <param name="MessagesToIterate">Number of email messages to loop over.</param>
+    /// <returns>The next email message id to be checked. Returns empty guid if there are no more messages.</returns>
+    /// <remarks>Only the recipients that are not referenced by any email message will be deleted.</remarks>
+    procedure DeleteEmailRecipientsIfOrphaned(StartMessageId: Guid; MessagesToIterate: Integer) NextMessageId: Guid
+    begin
+        exit(EmailMessageImpl.DeleteEmailRecipientsIfOrphaned(StartMessageId, MessagesToIterate));
     end;
 
     /// <summary>
@@ -108,6 +195,11 @@ codeunit 8904 "Email Message"
     procedure AppendToBody(Value: Text)
     begin
         EmailMessageImpl.AppendToBody(Value);
+    end;
+
+    procedure GetExternalId(): Text[2048]
+    begin
+        exit(EmailMessageImpl.GetExternalId());
     end;
 
     /// <summary>
@@ -296,6 +388,15 @@ codeunit 8904 "Email Message"
     procedure Attachments_Next(): Integer
     begin
         exit(EmailMessageImpl.Attachments_Next());
+    end;
+
+    /// <summary>
+    /// Gets the Id of the current attachment
+    /// </summary>
+    /// <returns>The ID of the current attachment.</returns>
+    procedure Attachments_GetId(): BigInteger
+    begin
+        exit(EmailMessageImpl.Attachments_GetId());
     end;
 
     /// <summary>

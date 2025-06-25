@@ -30,11 +30,6 @@ permissionset 162 "SECURITY (System)"
                   tabledata "All Profile Page Metadata" = IMD,
                   tabledata AllObj = imd,
                   tabledata AllObjWithCaption = Rimd,
-#if not CLEAN22
-#pragma warning disable AL0432
-                  tabledata Chart = imd,
-#pragma warning restore AL0432
-#endif
                   tabledata "Code Coverage" = Rimd,
                   tabledata "Data Sensitivity" = RIMD,
                   tabledata Date = imd,

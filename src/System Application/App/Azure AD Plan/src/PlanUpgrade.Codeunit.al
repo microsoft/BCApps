@@ -31,6 +31,7 @@ codeunit 9057 "Plan Upgrade"
         AddEssentialAttach();
         AddD365Admin();
         AddBCAdmin();
+        AddDelegatedD365Admin();
 
         AddDefaultPlanConfigurations();
     end;
@@ -265,6 +266,32 @@ codeunit 9057 "Plan Upgrade"
         CreatePlan(PlanId, PlanName, RoleCenterId);
 
         UpgradeTag.SetUpgradeTag(PlanUpgradeTag.GetMD365AdminUpgradeTag());
+    end;
+
+    [NonDebuggable]
+    local procedure AddDelegatedD365Admin()
+    var
+        Plan: Record Plan;
+        UpgradeTag: Codeunit "Upgrade Tag";
+        PlanUpgradeTag: Codeunit "Plan Upgrade Tag";
+        PlanIds: Codeunit "Plan Ids";
+        PlanId: Guid;
+        PlanName: Text[50];
+        RoleCenterId: Integer;
+    begin
+        if UpgradeTag.HasUpgradeTag(PlanUpgradeTag.GetDelegatedD365AdminUpgradeTag()) then
+            exit;
+
+        PlanId := PlanIds.GetD365AdminPartnerPlanId();
+        PlanName := 'Delegated Dynamics 365 Admin agent - Partner';
+        RoleCenterId := 9022;
+
+        if Plan.Get(PlanId) then
+            exit;
+
+        CreatePlan(PlanId, PlanName, RoleCenterId);
+
+        UpgradeTag.SetUpgradeTag(PlanUpgradeTag.GetDelegatedD365AdminUpgradeTag());
     end;
 
     local procedure AddDefaultPlanConfigurations()

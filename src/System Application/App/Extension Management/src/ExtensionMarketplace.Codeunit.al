@@ -42,8 +42,9 @@ codeunit 2501 "Extension Marketplace"
         MarketPlaceSuccInstallTxt: Label 'The extension was successfully installed.';
         MarketPlaceUnsuccInstallTxt: Label 'The market place extension installation has failed with the result ''%1''. Error message: ''%2''', Comment = '%1 - OperationResult parameter value, %2 - Error message';
         AlreadyInstalledMsg: Label 'The extension %1 is already installed.', Comment = '%1=name of app';
+#if not CLEAN25
         AppsourceTxt: Label 'https://appsource.microsoft.com', Locked = true;
-        EmbedRelativeTxt: Label '/embed/en-us/marketplace?product=dynamics-365-business-central', Locked = true;
+#endif        
         ExtensionNotFoundErr: Label 'Selected extension could not be installed because a valid App Id is not passed.', Comment = 'Error message for trying to install an extension where a valid id is not passed;';
         TelemetryExtensionNotFoundErr: Label 'Selected extension could not be installed because a valid App Id is not passed. Application ID : %1.', Comment = 'Telemetry error message for trying to install an extension a valid id is not passed; %1 is the applicaiton id recieved from appsource.';
         MissingAppIdErr: Label 'Selected extension could not be installed because the extension is not published and a valid App Id is not passed. Application ID : %1.', Comment = 'Telemetry error message for trying to install an extension a valid id is not passed; %1 is the applicaiton id recieved from appsource.';
@@ -451,11 +452,14 @@ codeunit 2501 "Extension Marketplace"
         exit(false);
     end;
 
+#if not CLEAN25
+    [Obsolete('Microsoft AppSource apps feature will replace the Extension Marketplace.', '25.0')]
     procedure GetMarketplaceEmbeddedUrl(): Text;
     begin
-        exit(AppsourceTxt + EmbedRelativeTxt);
+        exit(AppsourceTxt);
     end;
 
+#endif
     procedure GetMessageType(JObject: DotNet JObject): Text;
     begin
         // Extracts the 'msgType' property from the
@@ -482,17 +486,5 @@ codeunit 2501 "Extension Marketplace"
     internal procedure OnOverrideUrl(var Url: Text)
     begin
         // Provides an option to rewrite URL in non SaaS environments.
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", OpenAppSourceMarket, '', false, false)]
-    local procedure OpenAppSourceMarket()
-    begin
-#if not CLEAN24        
-#pragma warning disable AL0432
-        Page.Run(Page::"Extension Marketplace");
-#pragma warning restore AL0432
-#else        
-        Hyperlink('https://aka.ms/BCAppSource');
-#endif        
     end;
 }

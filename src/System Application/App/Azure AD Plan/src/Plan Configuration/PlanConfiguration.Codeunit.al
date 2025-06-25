@@ -5,9 +5,6 @@
 
 namespace System.Azure.Identity;
 
-#if not CLEAN22
-using System.Security.AccessControl;
-#endif
 
 /// <summary>
 /// Provides functionality to operation with plan configurations and customized permission sets related to a plan.
@@ -188,61 +185,4 @@ codeunit 9825 "Plan Configuration"
         PlanConfigurationImpl.VerifyUserHasRequiredPermissionSet(RoleId, AppId, Scope, Company);
     end;
 
-#if not CLEAN22
-    /// <summary>
-    /// Indicates whether a custom permission set assign to a plan has changed.
-    /// </summary>
-    /// <param name="PlanId">The ID of the plan for which a permission set has changed.</param>
-    /// <param name="RoleId">The ID of the role(permission set) which changed</param>
-    /// <param name="Scope">The scope of the permission set.</param>
-    /// <param name="AppId">The ID of the app from which the permission set originates.</param>
-    /// <param name="Company">The company for which to check.</param>
-    [Obsolete('Not needed when the user groups are removed.', '22.0')]
-    [IntegrationEvent(false, false)]
-    internal procedure OnCustomPermissionSetChange(PlanId: Guid; RoleId: Code[20]; AppId: Guid; Scope: Option; Company: Text[30]);
-    begin
-    end;
-
-    /// <summary>
-    /// Event for after default permissions has been transferred to custom.
-    /// </summary>
-    /// <param name="PlanId">The ID of the plan.</param>
-    [Obsolete('Not needed when the user groups are removed.', '22.0')]
-    [IntegrationEvent(false, false)]
-    internal procedure OnAfterTransferPermissions(PlanId: Guid)
-    begin
-    end;
-
-    /// <summary>
-    /// Event for after custom permissions have been deleted and the corresponding plan configuration is no longer customized.
-    /// </summary>
-    /// <param name="PlanId">The ID of the plan.</param>
-    [Obsolete('Not needed when the user groups are removed.', '22.0')]
-    [IntegrationEvent(false, false)]
-    internal procedure OnAfterDeleteCustomPermissions(PlanId: Guid)
-    begin
-    end;
-
-    /// <summary>
-    /// Event for checking if a permission set assigned to the user is a part of any user group assigned to the user.
-    /// </summary>
-    /// <param name="AccessControl">The record about to be deleted.</param>
-    /// <param name="IsAssignedViaUserGroups">Out parameter specifying if the permission set about to be removed is a part of a user group assigned to the user.</param>
-    [Obsolete('Not needed when the user groups are removed.', '22.0')]
-    [IntegrationEvent(false, false)]
-    internal procedure OnBeforeRemoveDefaultPermissionsFromUser(AccessControl: Record "Access Control"; var IsAssignedViaUserGroups: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Event for checking if a permission set assigned to the user is a part of any user group assigned to the user.
-    /// </summary>
-    /// <param name="AccessControl">The record about to be deleted.</param>
-    /// <param name="IsAssignedViaUserGroups">Out parameter specifying if the permission set about to be removed is a part of a user group assigned to the user.</param>
-    [Obsolete('Not needed when the user groups are removed.', '22.0')]
-    [IntegrationEvent(false, false)]
-    internal procedure OnBeforeRemoveCustomPermissionsFromUser(AccessControl: Record "Access Control"; var IsAssignedViaUserGroups: Boolean)
-    begin
-    end;
-#endif
 }

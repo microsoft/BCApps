@@ -19,7 +19,7 @@ interface "AOAI Function"
     procedure GetPrompt(): JsonObject;
 
     /// <summary>
-    /// This function is invoked as a response from Azure Open AI.
+    /// This function is invoked as a response from Azure OpenAI.
     ///  -Arguments: The expected parameters of the Function defined.
     /// The function returns a variant, and it's up to the implementation to decide what to return.
     /// </summary>

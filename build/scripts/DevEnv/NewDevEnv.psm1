@@ -20,6 +20,22 @@ function GetRootedFolder {
     return $folder
 }
 
+<#
+    .SYNOPSIS
+    Creates a new Business Central container.
+    .PARAMETER ContainerName
+    The name of the container to create.
+    .PARAMETER Authentication
+    The authentication type to use. Can be 'Windows' or 'NavUserPassword'.
+    .PARAMETER Credential
+    The credential to use when creating the container.
+    .PARAMETER backgroundJob
+    If specified, the container creation will be done in a background job.
+    .OUTPUTS
+    The job that was started if the backgroundJob parameter was specified.
+    .EXAMPLE
+    Create-BCContainer -ContainerName "MyContainer" -Authentication "Windows" -Credential (Get-Credential)
+#>
 function Create-BCContainer {
     param(
         [string] $ContainerName,

@@ -23,45 +23,32 @@ codeunit 2202 "Azure Key Vault Impl."
         NavAzureKeyVaultClient: DotNet AzureKeyVaultClientHelper;
         [NonDebuggable]
         AzureKeyVaultSecretProvider: DotNet IAzureKeyVaultSecretProvider;
-        SecretNotFoundErr: Label '%1 is not an application secret.', Comment = '%1 = Secret Name.';
         [NonDebuggable]
         CachedSecretsDictionary: Dictionary of [Text, Text];
         [NonDebuggable]
         CachedCertificatesDictionary: Dictionary of [Text, Text];
-        AllowedApplicationSecretsSecretNameTxt: Label 'AllowedApplicationSecrets', Locked = true;
-        [NonDebuggable]
-        AllowedSecretNamesList: List of [Text];
         IsKeyVaultClientInitialized: Boolean;
-        NoSecretsErr: Label 'The key vault did not have any secrets that are allowed to be fetched.';
-        AllowedApplicationSecretsSecretNotFetchedMsg: Label 'The list of allowed secret names could not be fetched.', Locked = true;
         AzureKeyVaultTxt: Label 'Azure Key Vault', Locked = true;
-        InitializeAllowedSecretNamesErr: Label 'Initialization of allowed secret names failed.';
         CertificateInfoTxt: Label 'Successfully constructed certificate from secret %1. Certificate thumbprint %2', Locked = true;
+        MissingSecretErr: Label 'The secret %1 is either missing or empty.', Comment = '%1 = Secret Name.';
 
     [NonDebuggable]
     procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: Text)
     begin
         // Gets the secret as a Text from the key vault, given a SecretName.
-
-        if not InitializeAllowedSecretNames() then
-            Error(InitializeAllowedSecretNamesErr);
-
-        if not IsSecretNameAllowed(SecretName) then
-            Error(SecretNotFoundErr, SecretName);
-
         Secret := GetSecretFromClient(SecretName);
+
+        if Secret.Trim() = '' then
+            Error(MissingSecretErr, SecretName);
     end;
 
     [NonDebuggable]
     procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText)
     begin
-        if not InitializeAllowedSecretNames() then
-            Error(InitializeAllowedSecretNamesErr);
-
-        if not IsSecretNameAllowed(SecretName) then
-            Error(SecretNotFoundErr, SecretName);
-
         Secret := GetSecretFromClient(SecretName);
+
+        if Secret.IsEmpty() then
+            Error(MissingSecretErr, SecretName);
     end;
 
     [NonDebuggable]
@@ -96,15 +83,7 @@ codeunit 2202 "Azure Key Vault Impl."
         Clear(AzureKeyVaultSecretProvider);
         Clear(CachedSecretsDictionary);
         Clear(CachedCertificatesDictionary);
-        Clear(AllowedSecretNamesList);
         IsKeyVaultClientInitialized := false;
-    end;
-
-    [TryFunction]
-    [NonDebuggable]
-    local procedure TryGetSecretFromClient(SecretName: Text; var Secret: Text)
-    begin
-        Secret := GetSecretFromClient(SecretName);
     end;
 
     [NonDebuggable]
@@ -150,38 +129,6 @@ codeunit 2202 "Azure Key Vault Impl."
                 Session.LogMessage('0000C17', StrSubstNo(CertificateInfoTxt, CertificateName, CertificateThumbprint), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AzureKeyVaultTxt);
         end;
         CachedCertificatesDictionary.Add(CertificateName, Certificate);
-    end;
-
-    [NonDebuggable]
-    local procedure IsSecretNameAllowed(SecretName: Text): Boolean
-    var
-        UppercaseSecretName: Text;
-    begin
-        UppercaseSecretName := UpperCase(SecretName);
-        exit(AllowedSecretNamesList.Contains(UppercaseSecretName));
-    end;
-
-    [NonDebuggable]
-    local procedure InitializeAllowedSecretNames(): Boolean
-    var
-        AllowedSecretNames: Text;
-    begin
-        if AllowedSecretNamesList.Count() > 0 then
-            exit(true);
-
-        if not TryGetSecretFromClient(AllowedApplicationSecretsSecretNameTxt, AllowedSecretNames) then begin
-            Session.LogMessage('0000970', AllowedApplicationSecretsSecretNotFetchedMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AzureKeyVaultTxt);
-            exit(false);
-        end;
-
-        AllowedSecretNames := UpperCase(AllowedSecretNames);
-        if StrLen(AllowedSecretNames) = 0 then begin
-            Session.LogMessage('00008E8', NoSecretsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AzureKeyVaultTxt);
-            exit(false);
-        end;
-
-        AllowedSecretNamesList := AllowedSecretNames.Split(',');
-        exit(true);
     end;
 }
 

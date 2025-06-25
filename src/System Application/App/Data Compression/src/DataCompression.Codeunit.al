@@ -94,7 +94,7 @@ codeunit 425 "Data Compression"
         DataCompressionImpl.GetEntryList(EntryList);
     end;
 
-#if not CLEAN23
+#if not CLEAN26
     /// <summary>
     /// Extracts an entry from the ZipArchive.
     /// </summary>
@@ -189,4 +189,3 @@ codeunit 425 "Data Compression"
         DataCompressionImpl.GZipDecompress(InputInStream, DecompressedOutStream);
     end;
 }
-
