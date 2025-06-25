@@ -87,7 +87,7 @@ page 4317 "Agent User Settings"
                     {
                         ApplicationArea = All;
                         Caption = 'Time Zone';
-                        ToolTip = 'Specifies the time zone that you work in.';
+                        ToolTip = 'Specifies the time zone that the agent works in.';
 
                         trigger OnAssistEdit()
                         begin
