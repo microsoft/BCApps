@@ -11,6 +11,7 @@ using System.Text;
 codeunit 134641 "Mkt Text Accuracy AIT"
 {
     Subtype = Test;
+    TestPermissions = Disabled;
 
     [Test]
     procedure TaglineParagraphInspiring()
@@ -23,7 +24,7 @@ codeunit 134641 "Mkt Text Accuracy AIT"
         InputPrompt: Text;
         Response: Text;
     begin
-        InputPrompt := AITestContext.GetInput().ValueAsText();
+        AITestContext.GetInput().ValueAsJsonObject().WriteTo(InputPrompt);
         Facts := LineInputToDictionary(InputPrompt);
         Format := Enum::"Entity Text Format"::TaglineParagraph;
         Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Inspiring, Format, Enum::"Entity Text Emphasis"::None);
@@ -42,7 +43,7 @@ codeunit 134641 "Mkt Text Accuracy AIT"
         InputPrompt: Text;
         Response: Text;
     begin
-        InputPrompt := AITestContext.GetInput().ValueAsText();
+        AITestContext.GetInput().ValueAsJsonObject().WriteTo(InputPrompt);
         Facts := LineInputToDictionary(InputPrompt);
         Format := Enum::"Entity Text Format"::TaglineParagraph;
         Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Formal, Format, Enum::"Entity Text Emphasis"::None);
@@ -61,7 +62,7 @@ codeunit 134641 "Mkt Text Accuracy AIT"
         InputPrompt: Text;
         Response: Text;
     begin
-        InputPrompt := AITestContext.GetInput().ValueAsText();
+        AITestContext.GetInput().ValueAsJsonObject().WriteTo(InputPrompt);
         Facts := LineInputToDictionary(InputPrompt);
         Format := Enum::"Entity Text Format"::TaglineParagraph;
         Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Creative, Format, Enum::"Entity Text Emphasis"::None);
@@ -79,7 +80,7 @@ codeunit 134641 "Mkt Text Accuracy AIT"
         InputPrompt: Text;
         Response: Text;
     begin
-        InputPrompt := AITestContext.GetInput().ValueAsText();
+        AITestContext.GetInput().ValueAsJsonObject().WriteTo(InputPrompt);
         Facts := LineInputToDictionary(InputPrompt);
         Format := Enum::"Entity Text Format"::Tagline;
         Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Inspiring, Format, Enum::"Entity Text Emphasis"::None);
@@ -97,7 +98,7 @@ codeunit 134641 "Mkt Text Accuracy AIT"
         InputPrompt: Text;
         Response: Text;
     begin
-        InputPrompt := AITestContext.GetInput().ValueAsText();
+        AITestContext.GetInput().ValueAsJsonObject().WriteTo(InputPrompt);
         Facts := LineInputToDictionary(InputPrompt);
         Format := Enum::"Entity Text Format"::Tagline;
         Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Formal, Format, Enum::"Entity Text Emphasis"::None);
@@ -115,7 +116,7 @@ codeunit 134641 "Mkt Text Accuracy AIT"
         InputPrompt: Text;
         Response: Text;
     begin
-        InputPrompt := AITestContext.GetInput().ValueAsText();
+        AITestContext.GetInput().ValueAsJsonObject().WriteTo(InputPrompt);
         Facts := LineInputToDictionary(InputPrompt);
         Format := Enum::"Entity Text Format"::Tagline;
         Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Creative, Format, Enum::"Entity Text Emphasis"::None);
@@ -133,7 +134,7 @@ codeunit 134641 "Mkt Text Accuracy AIT"
         InputPrompt: Text;
         Response: Text;
     begin
-        InputPrompt := AITestContext.GetInput().ValueAsText();
+        AITestContext.GetInput().ValueAsJsonObject().WriteTo(InputPrompt);
         Facts := LineInputToDictionary(InputPrompt);
         Format := Enum::"Entity Text Format"::Brief;
         Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Inspiring, Format, Enum::"Entity Text Emphasis"::None);
@@ -151,7 +152,7 @@ codeunit 134641 "Mkt Text Accuracy AIT"
         InputPrompt: Text;
         Response: Text;
     begin
-        InputPrompt := AITestContext.GetInput().ValueAsText();
+        AITestContext.GetInput().ValueAsJsonObject().WriteTo(InputPrompt);
         Facts := LineInputToDictionary(InputPrompt);
         Format := Enum::"Entity Text Format"::Brief;
         Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Formal, Format, Enum::"Entity Text Emphasis"::None);
@@ -169,7 +170,7 @@ codeunit 134641 "Mkt Text Accuracy AIT"
         InputPrompt: Text;
         Response: Text;
     begin
-        InputPrompt := AITestContext.GetInput().ValueAsText();
+        AITestContext.GetInput().ValueAsJsonObject().WriteTo(InputPrompt);
         Facts := LineInputToDictionary(InputPrompt);
         Format := Enum::"Entity Text Format"::Brief;
         Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Creative, Format, Enum::"Entity Text Emphasis"::None);

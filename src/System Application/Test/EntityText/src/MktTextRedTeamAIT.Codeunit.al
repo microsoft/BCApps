@@ -11,6 +11,7 @@ using System.Text;
 codeunit 134642 "Mkt Text RedTeam AIT"
 {
     Subtype = Test;
+    TestPermissions = Disabled;
 
     [Test]
     procedure TaglineTest()
