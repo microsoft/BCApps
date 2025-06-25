@@ -73,6 +73,10 @@ on:
         description: Flag determining whether to use the Artifacts Cache
         type: boolean
         default: false
+      needsContext:
+        description: JSON formatted needs context
+        type: string
+        default: '{}'
 
 permissions:
   actions: read
@@ -99,7 +103,7 @@ jobs:
           lfs: true
 
       - name: Read settings
-        uses: microsoft/AL-Go-Actions/ReadSettings@v7.2
+        uses: microsoft/AL-Go/Actions/ReadSettings@ab2f5319ed073c542e03914f8ae6c0fda029ee1e
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -108,7 +112,7 @@ jobs:
 
       - name: Determine whether to build project
         id: DetermineBuildProject
-        uses: microsoft/AL-Go-Actions/DetermineBuildProject@v7.2
+        uses: microsoft/AL-Go/Actions/DetermineBuildProject@ab2f5319ed073c542e03914f8ae6c0fda029ee1e
         with:
           shell: ${{ inputs.shell }}
           skippedProjectsJson: ${{ inputs.skippedProjectsJson }}
@@ -118,7 +122,7 @@ jobs:
       - name: Read secrets
         id: ReadSecrets
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && github.event_name != 'pull_request'
-        uses: microsoft/AL-Go-Actions/ReadSecrets@v7.2
+        uses: microsoft/AL-Go/Actions/ReadSecrets@ab2f5319ed073c542e03914f8ae6c0fda029ee1e
         with:
           shell: ${{ inputs.shell }}
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -136,7 +140,7 @@ jobs:
       - name: Determine ArtifactUrl
         id: determineArtifactUrl
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
-        uses: microsoft/AL-Go-Actions/DetermineArtifactUrl@v7.2
+        uses: microsoft/AL-Go/Actions/DetermineArtifactUrl@ab2f5319ed073c542e03914f8ae6c0fda029ee1e
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -151,7 +155,7 @@ jobs:
       - name: Download Project Dependencies
         id: DownloadProjectDependencies
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
-        uses: microsoft/AL-Go-Actions/DownloadProjectDependencies@v7.2
+        uses: microsoft/AL-Go/Actions/DownloadProjectDependencies@ab2f5319ed073c542e03914f8ae6c0fda029ee1e
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -162,11 +166,12 @@ jobs:
           baselineWorkflowRunId: ${{ inputs.baselineWorkflowRunId }}
 
       - name: Build
-        uses: microsoft/AL-Go-Actions/RunPipeline@v7.2
+        uses: microsoft/AL-Go/Actions/RunPipeline@ab2f5319ed073c542e03914f8ae6c0fda029ee1e
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
           BuildMode: ${{ inputs.buildMode }}
+          NeedsContext: ${{ inputs.needsContext }}
         with:
           shell: ${{ inputs.shell }}
           artifact: ${{ env.artifact }}
@@ -180,7 +185,7 @@ jobs:
       - name: Sign
         id: sign
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && inputs.signArtifacts && env.doNotSignApps == 'False' && (env.keyVaultCodesignCertificateName != '' || (fromJson(env.trustedSigning).Endpoint != '' && fromJson(env.trustedSigning).Account != '' && fromJson(env.trustedSigning).CertificateProfile != ''))
-        uses: microsoft/AL-Go-Actions/Sign@v7.2
+        uses: microsoft/AL-Go/Actions/Sign@ab2f5319ed073c542e03914f8ae6c0fda029ee1e
         with:
           shell: ${{ inputs.shell }}
           azureCredentialsJson: '${{ fromJson(steps.ReadSecrets.outputs.Secrets).AZURE_CREDENTIALS }}'
@@ -188,7 +193,7 @@ jobs:
 
       - name: Calculate Artifact names
         id: calculateArtifactsNames
-        uses: microsoft/AL-Go-Actions/CalculateArtifactNames@v7.2
+        uses: microsoft/AL-Go/Actions/CalculateArtifactNames@ab2f5319ed073c542e03914f8ae6c0fda029ee1e
         if: success() || failure()
         with:
           shell: ${{ inputs.shell }}
@@ -274,7 +279,7 @@ jobs:
       - name: Analyze Test Results
         id: analyzeTestResults
         if: (success() || failure()) && env.doNotRunTests == 'False'
-        uses: microsoft/AL-Go-Actions/AnalyzeTests@v7.2
+        uses: microsoft/AL-Go/Actions/AnalyzeTests@ab2f5319ed073c542e03914f8ae6c0fda029ee1e
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -283,7 +288,7 @@ jobs:
       - name: Analyze BCPT Test Results
         id: analyzeTestResultsBCPT
         if: (success() || failure()) && env.doNotRunBcptTests == 'False'
-        uses: microsoft/AL-Go-Actions/AnalyzeTests@v7.2
+        uses: microsoft/AL-Go/Actions/AnalyzeTests@ab2f5319ed073c542e03914f8ae6c0fda029ee1e
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -292,7 +297,7 @@ jobs:
       - name: Analyze Page Scripting Test Results
         id: analyzeTestResultsPageScripting
         if: (success() || failure()) && env.doNotRunpageScriptingTests == 'False'
-        uses: microsoft/AL-Go-Actions/AnalyzeTests@v7.2
+        uses: microsoft/AL-Go/Actions/AnalyzeTests@ab2f5319ed073c542e03914f8ae6c0fda029ee1e
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -300,7 +305,7 @@ jobs:
 
       - name: Cleanup
         if: always() && steps.DetermineBuildProject.outputs.BuildIt == 'True'
-        uses: microsoft/AL-Go-Actions/PipelineCleanup@v7.2
+        uses: microsoft/AL-Go/Actions/PipelineCleanup@ab2f5319ed073c542e03914f8ae6c0fda029ee1e
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
