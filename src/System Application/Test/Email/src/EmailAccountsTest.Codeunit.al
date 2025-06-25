@@ -41,15 +41,18 @@ codeunit 134686 "Email Accounts Test"
         // [When] The accounts page is open
         AccountsPage.OpenView();
 
-        // [Then] The email entry is visible on the page
+        // [Then] The email entry is visible on the page, the Concurrency Limit is set to 3 by default, and the Email Rate Limit is set to 0 (no limit).
         Assert.IsTrue(AccountsPage.GoToKey(EmailAccount."Account Id", EmailAccount.Connector), 'The email account should be on the page');
 
         Assert.AreEqual(EmailAccount."Email Address", Format(AccountsPage.EmailAddress), 'The email address on the page is wrong');
         Assert.AreEqual(EmailAccount.Name, Format(AccountsPage.NameField), 'The account name on the page is wrong');
+        Assert.AreEqual(3, AccountsPage.EmailConcurrencyLimit.AsInteger(), 'The email concurrency limit on the page is wrong');
+        Assert.AreEqual(0, AccountsPage.EmailRateLimit.AsInteger(), 'The email rate limit on the page is wrong');
     end;
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('UpdateCurrencyLimitToFive')]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TwoAccountsAppearOnThePageTest()
     var
@@ -57,7 +60,7 @@ codeunit 134686 "Email Accounts Test"
         ConnectorMock: Codeunit "Connector Mock";
         AccountsPage: TestPage "Email Accounts";
     begin
-        // [Scenario] When there's a email account for a connector, it appears on the accounts page
+        // [Scenario] When there's two email account for a connector, it appears on the accounts page. Then change the concurrency limit for both accounts to check if the change is applied correctly.
 
         // [Given] Two email accounts
         ConnectorMock.Initialize();
@@ -69,14 +72,66 @@ codeunit 134686 "Email Accounts Test"
         // [When] The accounts page is open
         AccountsPage.OpenView();
 
-        // [Then] The email entries are visible on the page
+        // [Then] The email entries are visible on the page, the Concurrency Limit is set to 3 by default, and the Email Rate Limit is set to 0 (no limit).
         Assert.IsTrue(AccountsPage.GoToKey(FirstEmailAccount."Account Id", Enum::"Email Connector"::"Test Email Connector"), 'The first email account should be on the page');
         Assert.AreEqual(FirstEmailAccount."Email Address", Format(AccountsPage.EmailAddress), 'The first email address on the page is wrong');
         Assert.AreEqual(FirstEmailAccount.Name, Format(AccountsPage.NameField), 'The first account name on the page is wrong');
+        Assert.AreEqual(3, AccountsPage.EmailConcurrencyLimit.AsInteger(), 'The email concurrency limit on the page is wrong');
+        Assert.AreEqual(0, AccountsPage.EmailRateLimit.AsInteger(), 'The email rate limit on the page is wrong');
 
         Assert.IsTrue(AccountsPage.GoToKey(SecondEmailAccount."Account Id", Enum::"Email Connector"::"Test Email Connector"), 'The second email account should be on the page');
         Assert.AreEqual(SecondEmailAccount."Email Address", Format(AccountsPage.EmailAddress), 'The second email address on the page is wrong');
         Assert.AreEqual(SecondEmailAccount.Name, Format(AccountsPage.NameField), 'The second account name on the page is wrong');
+        Assert.AreEqual(3, AccountsPage.EmailConcurrencyLimit.AsInteger(), 'The email concurrency limit on the page is wrong');
+        Assert.AreEqual(0, AccountsPage.EmailRateLimit.AsInteger(), 'The email rate limit on the page is wrong');
+
+        // [When] The Email Rate Limit Wizard page is shown, the concurrency limit is changed to 5
+        AccountsPage.GoToKey(FirstEmailAccount."Account Id", Enum::"Email Connector"::"Test Email Connector");
+        AccountsPage.EmailConcurrencyLimit.Drilldown();
+        AccountsPage.Close();
+        AccountsPage.OpenNew();
+
+        // [Then] First email account concurrency limit is changed to 5 and the other field is not changed
+        Assert.IsTrue(AccountsPage.GoToKey(FirstEmailAccount."Account Id", Enum::"Email Connector"::"Test Email Connector"), 'The first email account should be on the page');
+        Assert.AreEqual(FirstEmailAccount."Email Address", Format(AccountsPage.EmailAddress), 'The first email address on the page is wrong');
+        Assert.AreEqual(FirstEmailAccount.Name, Format(AccountsPage.NameField), 'The first account name on the page is wrong');
+        Assert.AreEqual(5, AccountsPage.EmailConcurrencyLimit.AsInteger(), 'The email concurrency limit on the page is wrong');
+        Assert.AreEqual(0, AccountsPage.EmailRateLimit.AsInteger(), 'The email rate limit on the page is wrong');
+
+        // [Then] Second email account concurrency limit is not changed
+        Assert.IsTrue(AccountsPage.GoToKey(SecondEmailAccount."Account Id", Enum::"Email Connector"::"Test Email Connector"), 'The second email account should be on the page');
+        Assert.AreEqual(SecondEmailAccount."Email Address", Format(AccountsPage.EmailAddress), 'The second email address on the page is wrong');
+        Assert.AreEqual(SecondEmailAccount.Name, Format(AccountsPage.NameField), 'The second account name on the page is wrong');
+        Assert.AreEqual(3, AccountsPage.EmailConcurrencyLimit.AsInteger(), 'The email concurrency limit on the page is wrong');
+        Assert.AreEqual(0, AccountsPage.EmailRateLimit.AsInteger(), 'The email rate limit on the page is wrong');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('UpdateCurrencyLimitOutOfRange')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure ChangeCurrencyLimitOverRangeTest()
+    var
+        EmailAccount: Record "Email Account";
+        ConnectorMock: Codeunit "Connector Mock";
+        AccountsPage: TestPage "Email Accounts";
+    begin
+        // [Scenario] When there's a email account for a connector, it appears on the accounts page. Change the concurrency limit to a value over the range to check if the error is shown.
+
+        // [Given] A email account
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount);
+
+        PermissionsMock.Set('Email Edit');
+
+        // [When] The accounts page is open
+        AccountsPage.OpenView();
+
+        // [Then] The email entry is visible on the page. Change the concurrency limit to a value over the range to check if the error is shown.
+        Assert.IsTrue(AccountsPage.GoToKey(EmailAccount."Account Id", EmailAccount.Connector), 'The email account should be on the page');
+        AccountsPage.EmailConcurrencyLimit.Drilldown();
+
+        // [Then] The error is shown when the concurrency limit is set to 20
     end;
 
     [Test]
@@ -601,6 +656,28 @@ codeunit 134686 "Email Accounts Test"
     procedure AddAccountModalPageHandler(var AccountWizardTestPage: TestPage "Email Account Wizard")
     begin
 
+    end;
+
+    [ModalPageHandler]
+    procedure UpdateCurrencyLimitToFive(var RateLimitWizardTestPage: TestPage "Email Rate Limit Wizard")
+    begin
+        RateLimitWizardTestPage.EmailConcurrencyLimit.SetValue(5);
+        RateLimitWizardTestPage.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure UpdateCurrencyLimitOutOfRange(var RateLimitWizardTestPage: TestPage "Email Rate Limit Wizard")
+    begin
+        asserterror RateLimitWizardTestPage.EmailConcurrencyLimit.SetValue(20);
+        Assert.ExpectedError('Concurrency Limit must be between 0 and 10');
+
+        asserterror RateLimitWizardTestPage.EmailConcurrencyLimit.SetValue(0);
+        Assert.ExpectedError('Concurrency Limit must be between 0 and 10');
+
+        asserterror RateLimitWizardTestPage.EmailConcurrencyLimit.SetValue(-1);
+
+        RateLimitWizardTestPage.EmailConcurrencyLimit.SetValue(10);
+        RateLimitWizardTestPage.OK().Invoke();
     end;
 
     [PageHandler]
