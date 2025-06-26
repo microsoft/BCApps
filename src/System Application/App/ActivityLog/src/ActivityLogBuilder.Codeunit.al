@@ -41,7 +41,7 @@ codeunit 3111 "Activity Log Builder"
     /// Allowed values are "AI" for AI-related activities and "AL" for general activities
     /// </summary>
     [Scope('OnPrem')]
-    procedure SetType(Type: Text): Codeunit "Activity Log Builder"
+    procedure SetType(Type: Enum "Activity Log Type"): Codeunit "Activity Log Builder"
     begin
         ActivityLogBuilderImpl := ActivityLogBuilderImpl.SetType(Type);
         exit(this);
