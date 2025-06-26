@@ -16,11 +16,11 @@ enum 3111 "Activity Log Type"
 
     value(0; "AL")
     {
-        Caption = 'AI', Locked = true;
+        Caption = 'AL', Locked = true;
     }
     value(1; "AI")
     {
-        Caption = 'AL', Locked = true;
+        Caption = 'AI', Locked = true;
     }
 
 }
