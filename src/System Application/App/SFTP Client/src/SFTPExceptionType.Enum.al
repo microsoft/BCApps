@@ -1,6 +1,11 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace System.SFTPClient;
 
-enum 50100 "SFTP Exception Type"
+enum 9760 "SFTP Exception Type"
 {
     Extensible = false;
     Access = Public;

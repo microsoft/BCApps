@@ -1,6 +1,11 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace System.SFTPClient;
 
-codeunit 50104 "Dotnet SFTP File" implements "ISFTP File"
+codeunit 9761 "Dotnet SFTP File" implements "ISFTP File"
 {
     Access = Internal;
 

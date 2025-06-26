@@ -1,4 +1,14 @@
-codeunit 60001 "Mock SFTP Client" implements "ISFTP Client"
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.Test.SFTPClient;
+
+using System;
+using System.SFTPClient;
+
+codeunit 139075 "Mock SFTP Client" implements "ISFTP Client"
 {
     Access = Internal;
 
@@ -75,7 +85,7 @@ codeunit 60001 "Mock SFTP Client" implements "ISFTP Client"
         exit(IsConnectedVar);
     end;
 
-    procedure Exists(Path: Text; var Exists: Boolean): Boolean
+    procedure Exists(Path: Text; var ExistResult: Boolean): Boolean
     begin
         if not IsConnectedVar then
             exit(false);
@@ -84,9 +94,9 @@ codeunit 60001 "Mock SFTP Client" implements "ISFTP Client"
             exit(false);
 
         if FilesExist.ContainsKey(Path) then
-            Exists := FilesExist.Get(Path)
+            ExistResult := FilesExist.Get(Path)
         else
-            Exists := false;
+            ExistResult := false;
 
         exit(true);
     end;
@@ -167,7 +177,6 @@ codeunit 60001 "Mock SFTP Client" implements "ISFTP Client"
 
     procedure ReadAllBytes(Path: Text; Bytes: Dotnet Array): Boolean
     var
-        DotNetString: DotNet String;
         Encoding: DotNet Encoding;
         ContentList: List of [Text];
         Content: Text;
@@ -193,7 +202,6 @@ codeunit 60001 "Mock SFTP Client" implements "ISFTP Client"
 
     procedure WriteAllBytes(Path: Text; Bytes: Dotnet Array): Boolean
     var
-        DotNetString: DotNet String;
         Encoding: DotNet Encoding;
         ContentList: List of [Text];
         Content: Text;

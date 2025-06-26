@@ -1,4 +1,15 @@
-codeunit 60000 "SFTP Client Test"
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.Test.SFTPClient;
+
+using System.SFTPClient;
+using System.TestLibraries.Utilities;
+using System.Utilities;
+
+codeunit 139077 "SFTP Client Test"
 {
     Subtype = Test;
 
@@ -107,7 +118,6 @@ codeunit 60000 "SFTP Client Test"
         MockSFTPClient: Codeunit "Mock SFTP Client";
         SFTPClientImpl: Codeunit "SFTP Client Implementation";
         Response: Codeunit "SFTP Operation Response";
-        ExpectedErrorMessage: Text;
         GenericMessage: Text;
     begin
         // [GIVEN] A Mock SFTP client configured to fail with Generic Exception
@@ -261,7 +271,6 @@ codeunit 60000 "SFTP Client Test"
         SFTPClientImpl: Codeunit "SFTP Client Implementation";
         Response: Codeunit "SFTP Operation Response";
         FileList: List of [Interface "ISFTP File"];
-        ISFTPFile: Interface "ISFTP File";
         InStr: InStream;
         IsFileExists: Boolean;
     begin

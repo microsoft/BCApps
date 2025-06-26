@@ -1,9 +1,13 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace System.SFTPClient;
 
 using System;
-using System.Utilities;
 
-codeunit 50103 "Dotnet SFTP Client" implements "ISFTP Client"
+codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
 {
     Access = Internal;
 
@@ -21,16 +25,16 @@ codeunit 50103 "Dotnet SFTP Client" implements "ISFTP Client"
         exit(RenciSFTPClient.IsConnected());
     end;
 
-    procedure Exists(Path: Text; var Exists: Boolean): Boolean
+    procedure Exists(Path: Text; var ExistResult: Boolean): Boolean
     begin
-        LastOperationSuccessful := InternalExists(Path, Exists);
+        LastOperationSuccessful := InternalExists(Path, ExistResult);
         exit(LastOperationSuccessful);
     end;
 
     [TryFunction]
-    local procedure InternalExists(var Path: Text; var Exists: Boolean)
+    local procedure InternalExists(Path: Text; var ExistResult: Boolean)
     begin
-        Exists := RenciSFTPClient.Exists(Path);
+        ExistResult := RenciSFTPClient.Exists(Path);
     end;
 
     procedure Delete(Path: Text): Boolean
@@ -69,7 +73,6 @@ codeunit 50103 "Dotnet SFTP Client" implements "ISFTP Client"
     var
         PrivateKeyFile: DotNet RenciPrivateKeyFile;
         Arr: DotNet Array;
-        PrivateKeyText: text;
     begin
         PrivateKeyFile := PrivateKeyFile.PrivateKeyFile(PrivateKey);
         Arr := Arr.CreateInstance(GetDotNetType(PrivateKeyFile), 1);
@@ -99,13 +102,10 @@ codeunit 50103 "Dotnet SFTP Client" implements "ISFTP Client"
         RenciSFTPClient.Connect();
     end;
 
-
     procedure ListDirectory(Path: Text; var Result: List of [Interface "ISFTP File"]): Boolean
     var
         IEnumerable: DotNet IEnumerable;
         RenciISftpFile: DotNet "RenciISftpFile";
-        ALFile: Codeunit "Dotnet SFTP File";
-        DotNetExceptionHandler: Codeunit "DotNet Exception Handler";
     begin
         LastOperationSuccessful := InternalListDirectory(Path, IEnumerable);
         if not LastOperationSuccessful then
@@ -172,44 +172,43 @@ codeunit 50103 "Dotnet SFTP Client" implements "ISFTP Client"
 
     procedure GetOperationException(var ExceptionType: Enum "SFTP Exception Type"; var ExceptionMessage: Text)
     var
-        DotNetExceptionHandler: Codeunit "DotNet Exception Handler";
         SocketException: DotNet SocketException;
         InvalidOperationException: DotNet InvalidOperationException;
         SshConnectionException: DotNet SshConnectionException;
         SshAuthenticationException: DotNet SshAuthenticationException;
         SftpPathNotFoundException: DotNet SftpPathNotFoundException;
+        OuterException: DotNet Exception;
+        BaseException: Dotnet Exception;
+        BaseExceptionType: DotNet Type;
     begin
         ExceptionType := ExceptionType::None;
         if LastOperationSuccessful then
             exit;
-        DotNetExceptionHandler.Collect();
-        if DotNetExceptionHandler.TryCastToType(GetDotNetType(SocketException)) then begin
+        OuterException := GetLastErrorObject();
+        BaseException := OuterException.GetBaseException();
+        BaseExceptionType := BaseException.GetType();
+        ExceptionMessage := BaseException.Message;
+        if BaseExceptionType.Equals(GetDotNetType(SocketException)) then begin
             ExceptionType := ExceptionType::"Socket Exception";
-            ExceptionMessage := DotNetExceptionHandler.GetMessage();
             exit;
         end;
-        if DotNetExceptionHandler.TryCastToType(GetDotNetType(InvalidOperationException)) then begin
+        if BaseExceptionType.Equals(GetDotNetType(InvalidOperationException)) then begin
             ExceptionType := ExceptionType::"Invalid Operation Exception";
-            ExceptionMessage := DotNetExceptionHandler.GetMessage();
             exit;
         end;
-        if DotNetExceptionHandler.TryCastToType(GetDotNetType(SshConnectionException)) then begin
+        if BaseExceptionType.Equals(GetDotNetType(SshConnectionException)) then begin
             ExceptionType := ExceptionType::"SSH Connection Exception";
-            ExceptionMessage := DotNetExceptionHandler.GetMessage();
             exit;
         end;
-        if DotNetExceptionHandler.TryCastToType(GetDotNetType(SshAuthenticationException)) then begin
+        if BaseExceptionType.Equals(GetDotNetType(SshAuthenticationException)) then begin
             ExceptionType := ExceptionType::"SSH Authentication Exception";
-            ExceptionMessage := DotNetExceptionHandler.GetMessage();
             exit;
         end;
-        if DotNetExceptionHandler.TryCastToType(GetDotNetType(SftpPathNotFoundException)) then begin
+        if BaseExceptionType.Equals(GetDotNetType(SftpPathNotFoundException)) then begin
             ExceptionType := ExceptionType::"SFTP Path Not Found Exception";
-            ExceptionMessage := DotNetExceptionHandler.GetMessage();
             exit;
         end;
         ExceptionType := ExceptionType::"Generic Exception";
-        ExceptionMessage := DotNetExceptionHandler.GetMessage();
     end;
 
     procedure SetWorkingDirectory(Path: Text): Boolean

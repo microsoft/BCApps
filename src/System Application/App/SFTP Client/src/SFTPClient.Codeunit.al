@@ -1,8 +1,15 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace System.SFTPClient;
 
-codeunit 50100 "SFTP Client"
+codeunit 9762 "SFTP Client"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     /// <summary>
     /// Initializes the SFTP client with the specified parameters. The client is connected to the server.

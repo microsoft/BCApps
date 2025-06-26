@@ -1,4 +1,13 @@
-codeunit 60002 "Mock SFTP File" implements "ISFTP File"
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.Test.SFTPClient;
+
+using System.SFTPClient;
+
+codeunit 139076 "Mock SFTP File" implements "ISFTP File"
 {
     Access = Internal;
 

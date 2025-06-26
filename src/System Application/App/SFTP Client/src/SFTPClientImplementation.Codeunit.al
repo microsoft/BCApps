@@ -1,9 +1,14 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace System.SFTPClient;
 
 using System;
 using System.Utilities;
 
-codeunit 50101 "SFTP Client Implementation"
+codeunit 9763 "SFTP Client Implementation"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -90,11 +95,12 @@ codeunit 50101 "SFTP Client Implementation"
         if not ISFTPClient.ListDirectory(Path, Files) then
             exit(ParseException());
         FileList.DeleteAll();
+        Index := 1;
         foreach ISftpFile in Files do begin
             FileList.Init();
             FileList."Entry No." := Index;
-            FileList.Name := ISftpFile.Name();
-            FileList."Full Name" := ISftpFile.FullName();
+            FileList.Name := CopyStr(ISftpFile.Name(), 1, MaxStrLen(FileList.Name));
+            FileList."Full Name" := CopyStr(ISftpFile.FullName(), 1, MaxStrLen(FileList."Full Name"));
             FileList."Is Directory" := ISftpFile.IsDirectory();
             FileList.Length := ISftpFile.Length();
             FileList.Insert();

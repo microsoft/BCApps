@@ -1,12 +1,13 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace System.SFTPClient;
 
-using System.Azure.Storage;
-using System.SFTPClient;
-using System.IO;
 using System.Security.AccessControl;
-using System.Utilities;
 
-page 50100 "SFTP Client - Debug"
+page 9760 "SFTP Client - Debug"
 {
     Caption = 'SFTP Client - Debug';
     PageType = Card;
@@ -25,33 +26,33 @@ page 50100 "SFTP Client - Debug"
                 {
                     ApplicationArea = All;
                     Caption = 'Host Name';
-                    ToolTip = 'The hostname or IP address of the SFTP server.';
+                    ToolTip = 'Specifies the hostname or IP address of the SFTP server.';
                 }
                 field(Port; Port)
                 {
                     ApplicationArea = All;
                     Caption = 'Port';
-                    ToolTip = 'The port number of the SFTP server.';
+                    ToolTip = 'Specifies the port number of the SFTP server.';
                 }
                 field(UserName; UserName)
                 {
                     ApplicationArea = All;
                     Caption = 'User Name';
-                    ToolTip = 'The username for authentication on the SFTP server.';
+                    ToolTip = 'Specifies the username for authentication on the SFTP server.';
                 }
                 field(Password; Password)
                 {
                     ApplicationArea = All;
                     ExtendedDatatype = Masked;
                     Caption = 'Password';
-                    ToolTip = 'The password for authentication on the SFTP server.';
+                    ToolTip = 'Specifies the password for authentication on the SFTP server.';
                     ShowMandatory = true;
                 }
                 field(WorkingDirectory; WorkingDirectory)
                 {
                     ApplicationArea = All;
                     Caption = 'Working Directory';
-                    ToolTip = 'The working directory on the SFTP server.';
+                    ToolTip = 'Specifies the working directory on the SFTP server.';
                     Editable = false;
                 }
             }
@@ -62,19 +63,19 @@ page 50100 "SFTP Client - Debug"
                 {
                     ApplicationArea = All;
                     Caption = 'New Directory';
-                    ToolTip = 'The new directory to change to on the SFTP server.';
+                    ToolTip = 'Specifies the new directory to change to on the SFTP server.';
                 }
                 field(SourceFile; SourceFile)
                 {
                     ApplicationArea = All;
                     Caption = 'Source File';
-                    ToolTip = 'The path of the original file on the SFTP server.';
+                    ToolTip = 'Specifies the path of the original file on the SFTP server.';
                 }
                 field(DestinationFile; DestinationFile)
                 {
                     ApplicationArea = All;
                     Caption = 'Destination File';
-                    ToolTip = 'The path of the destination file on the SFTP server.';
+                    ToolTip = 'Specifies the path of the destination file on the SFTP server.';
                 }
             }
         }
@@ -129,12 +130,9 @@ page 50100 "SFTP Client - Debug"
 
                 trigger OnAction()
                 var
-                    FileManagement: Codeunit "File Management";
-                    TempBlob: Codeunit "Temp Blob";
                     Instream: InStream;
                 begin
-                    FileManagement.BLOBImport(TempBlob, SourceFile);
-                    Instream := TempBlob.CreateInStream();
+                    UploadIntoStream('', Instream);
                     ShowException(SFTPClient.PutFileStream(DestinationFile, Instream));
                 end;
             }
@@ -147,14 +145,12 @@ page 50100 "SFTP Client - Debug"
 
                 trigger OnAction()
                 var
-                    Filemanagement: Codeunit "File Management";
-                    TempBlob: Codeunit "Temp Blob";
-                    ABSBlobClient: Codeunit "ABS Blob Client";
                     InStream: InStream;
+                    DestinationFile: Text;
                 begin
                     ShowException(SFTPClient.GetFileAsStream(SourceFile, InStream));
-                    CopyStream(TempBlob.CreateOutStream(), InStream);
-                    Filemanagement.BLOBExport(TempBlob, DestinationFile, true);
+                    DestinationFile := SourceFile;
+                    DownloadFromStream(Instream, '', '', '', DestinationFile);
                 end;
             }
             action(DeleteFile)
@@ -196,14 +192,13 @@ page 50100 "SFTP Client - Debug"
                     ISFTPFileList: List of [Interface "ISFTP File"];
                     ISFTPFile: Interface "ISFTP File";
                     TextBuilder: TextBuilder;
-                    FileExistsLbl: Label 'Files in %1:';
-                    FilePlaceHolderLbl: Label '%1 (%2)';
+                    FileExistsLbl: Label 'Files in %1:', Comment = '%1 is the directory path';
+                    FilePlaceHolderLbl: Label '%1 (%2)', Locked = true;
                 begin
                     ShowException(SFTPClient.ListFiles(NewDirectory, ISFTPFileList));
                     TextBuilder.AppendLine(StrSubstNo(FileExistsLbl, NewDirectory));
-                    foreach ISftpFile in ISFTPFileList do begin
+                    foreach ISftpFile in ISFTPFileList do
                         TextBuilder.AppendLine(StrSubstNo(FilePlaceHolderLbl, ISftpFile.Name(), ISftpFile.FullName()));
-                    end;
                     Message(TextBuilder.ToText());
                 end;
             }
@@ -217,7 +212,7 @@ page 50100 "SFTP Client - Debug"
                 trigger OnAction()
                 var
                     IsFileExists: Boolean;
-                    FileExistsLbl: Label 'File %1 exists: %2';
+                    FileExistsLbl: Label 'File %1 exists: %2', Comment = '%1 is the file path, %2 is a boolean indicating existence';
                 begin
                     ShowException(SFTPClient.FileExists(SourceFile, IsFileExists));
                     Message(FileExistsLbl, SourceFile, IsFileExists);
@@ -244,7 +239,7 @@ page 50100 "SFTP Client - Debug"
 
                 trigger OnAction()
                 var
-                    IsConnectedLbl: Label 'Is connected: %1';
+                    IsConnectedLbl: Label 'Is connected: %1', Comment = '%1 is a boolean indicating connection status';
                 begin
                     Message(IsConnectedLbl, SFTPClient.IsConnected());
                 end;
@@ -271,7 +266,7 @@ page 50100 "SFTP Client - Debug"
 
                 trigger OnAction()
                 var
-                    CurrentWorkingDirectoryLbl: Label 'Current working directory: %1';
+                    CurrentWorkingDirectoryLbl: Label 'Current working directory: %1', Comment = '%1 is the current working directory';
                 begin
                     ShowException(SFTPClient.GetWorkingDirectory(WorkingDirectory));
                     Message(CurrentWorkingDirectoryLbl, WorkingDirectory);
@@ -369,13 +364,11 @@ page 50100 "SFTP Client - Debug"
 
     local procedure TestSftpClientPrivateKey()
     var
-        FileManagement: Codeunit "File Management";
-        TempBlob: Codeunit "Temp Blob";
         SFTPOperationResponse: Codeunit "SFTP Operation Response";
-        SFTPClientImplementation: Codeunit "SFTP Client Implementation";
+        PrivateKeyInStream: InStream;
     begin
-        FileManagement.BLOBImport(Tempblob, 'PrivateKeyFile');
-        SFTPOperationResponse := SFTPClient.Initialize(HostName, Port, UserName, TempBlob.CreateInStream());
+        UploadIntoStream('', PrivateKeyInStream);
+        SFTPOperationResponse := SFTPClient.Initialize(HostName, Port, UserName, PrivateKeyInStream);
         if SFTPOperationResponse.IsError() then
             Error(SFTPOperationResponse.GetError());
         ShowException(SFTPClient.GetWorkingDirectory(WorkingDirectory));
@@ -385,15 +378,14 @@ page 50100 "SFTP Client - Debug"
 
     local procedure TestSftpClientPrivateKeyPasspharse()
     var
-        FileManagement: Codeunit "File Management";
         PasswordDialogManagement: Codeunit "Password Dialog Management";
-        TempBlob: Codeunit "Temp Blob";
         SFTPOperationResponse: Codeunit "SFTP Operation Response";
         Passphrase: SecretText;
+        PrivateKeyInStream: InStream;
     begin
-        FileManagement.BLOBImport(Tempblob, 'PrivateKeyFile');
+        UploadIntoStream('', PrivateKeyInStream);
         Passphrase := PasswordDialogManagement.OpenSecretPasswordDialog(true);
-        SFTPOperationResponse := SFTPClient.Initialize(HostName, Port, UserName, TempBlob.CreateInStream(), Passphrase);
+        SFTPOperationResponse := SFTPClient.Initialize(HostName, Port, UserName, PrivateKeyInStream, Passphrase);
         if SFTPOperationResponse.IsError() then
             Error(SFTPOperationResponse.GetError());
         ShowException(SFTPClient.GetWorkingDirectory(WorkingDirectory));
@@ -409,14 +401,14 @@ page 50100 "SFTP Client - Debug"
 
     local procedure ShowException(SFTPOperationResponse: Codeunit "SFTP Operation Response")
     var
-        ExceptionTypeErr: Label 'Exception type: %1. Message: %2';
+        ExceptionTypeErr: Label 'Exception type: %1. Message: %2', Comment = '%1 is the exception type, %2 is the error message';
         SFTPExceptionTypeUnsetMsg: Label 'SFTP Exception Type is not set. This is a programming error in SFTP Client.';
     begin
         if not SFTPOperationResponse.IsError() then
             exit;
         if SFTPOperationResponse.GetErrorType() = "SFTP Exception Type"::None then
             Message(SFTPExceptionTypeUnsetMsg);
-        Error(StrSubstNo(ExceptionTypeErr, SFTPOperationResponse.GetErrorType(), SFTPOperationResponse.GetError()));
+        Error(ExceptionTypeErr, SFTPOperationResponse.GetErrorType(), SFTPOperationResponse.GetError());
     end;
 
     var
