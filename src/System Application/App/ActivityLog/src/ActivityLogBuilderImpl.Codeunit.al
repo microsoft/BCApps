@@ -17,7 +17,6 @@ codeunit 3112 "Activity Log Builder Impl."
         AttributeType: DotNet ActivityLogAttribute;
         GlobalFieldNo: Integer;
         BuilderNotInitializedErr: Label 'Activity Log Builder not initialized.';
-        WrongTypeErr: Label 'Invalid Type. Allowed values are "AI" or "AL".';
 
     procedure Init(TableNo: Integer; FieldNo: Integer; RecSystemId: Guid): Codeunit "Activity Log Builder Impl."
     begin
@@ -33,11 +32,9 @@ codeunit 3112 "Activity Log Builder Impl."
         exit(this);
     end;
 
-    procedure SetType(Type: Text): Codeunit "Activity Log Builder Impl."
+    procedure SetType(Type: Enum "Activity Log Type"): Codeunit "Activity Log Builder Impl."
     begin
-        if not (Type in ['AI', 'AL']) then
-            Error(WrongTypeErr);
-        LogEntry.AddFieldAttribute(this.GlobalFieldNo, AttributeType::Type, Type);
+        LogEntry.AddFieldAttribute(this.GlobalFieldNo, AttributeType::Type, Format(Type));
         exit(this);
     end;
 
