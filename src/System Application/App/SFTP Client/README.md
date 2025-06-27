@@ -15,10 +15,28 @@ The authentication methods are as follow:
 
 Please note that the connection is stateful. That means, when you have created a connection, you should always use `SFTPClient.Disconnect()` when finished.
 
+Example for uploading a file via SFTP:
+```al
+local procedure UploadMyFirstFile()
+var
+    SFTPClient: Codeunit "SFTP Client";
+    InStream: InStream;
+    ClearTextPassword: Text;
+    Password: SecretText;
+begin
+    ClearTextPassword := 'password'; // Please dont hardcode credentials
+    Password := ClearTextPassword;
+    SFTPClient.Initialize('example.com', 22, 'username', Password); // Please dont hardcode credentials
+    UploadIntoStream('', InStream);
+    SFTPClient.PutFileStream('data.txt', InStream);
+    SFTPClient.Disconnect();
+end;
+```
+
 ## Why is there no Copy-File function?
 SSH.NET does not support it since it's not part of the specification for SFTP.
 If you still want a copy-file functionality, then you have to download it to BC and upload it under a different name.
 
 ## Debug connection
-Since SSH supports many different encryptions, key exchange methods, public key authentication, etc. a page is included for debugging purposes. 
-The page has ID XXX. It cannot be found via the Search Functionality, but only via `?page=XXX` in the URL of the client.
+Since SSH supports many different encryptions, key exchange methods, public key authentication and etc., a page is included for debugging purposes. 
+The page has ID 9760. It cannot be found via the Search Functionality, but only via `?page=9760` in the URL of the client.
