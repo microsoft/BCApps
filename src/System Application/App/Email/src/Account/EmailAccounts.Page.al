@@ -115,8 +115,8 @@ page 8887 "Email Accounts"
                 field(EmailConcurrencyLimit; ConcurrencyLimit)
                 {
                     ApplicationArea = All;
-                    Caption = 'Email Rate Limit';
-                    ToolTip = 'Specifies the rate limit per minute for the email account.';
+                    Caption = 'Email Concurrency Limit';
+                    ToolTip = 'Specifies the maximum number of emails that can be sent simultaneously from this account.';
                     Visible = true;
 
                     trigger OnDrillDown()

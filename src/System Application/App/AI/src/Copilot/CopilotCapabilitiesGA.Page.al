@@ -109,17 +109,8 @@ page 7774 "Copilot Capabilities GA"
                 Scope = Repeater;
 
                 trigger OnAction()
-                var
-                    CopilotDeactivate: Page "Copilot Deactivate Capability";
                 begin
-                    CopilotDeactivate.SetCaption(Format(Rec.Capability));
-                    if CopilotDeactivate.RunModal() = Action::OK then begin
-                        Rec.Status := Rec.Status::Inactive;
-                        Rec.Modify(true);
-
-                        CopilotCapabilityImpl.SendDeactivateTelemetry(Rec.Capability, Rec."App Id", CopilotDeactivate.GetReason());
-                        Session.LogAuditMessage(StrSubstNo(CopilotFeatureDeactivatedLbl, Rec.Capability, Rec."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
-                    end;
+                    CopilotCapabilityImpl.DeactivateCapability(Rec);
                 end;
             }
 #if not CLEAN26
@@ -170,7 +161,6 @@ page 7774 "Copilot Capabilities GA"
 #if not CLEAN26
         SupplementalTermsLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2236010', Locked = true;
 #endif
-        CopilotFeatureDeactivatedLbl: Label 'The copilot/AI capability %1, App Id %2 has been deactivated by UserSecurityId %3.', Locked = true;
         CopilotFeatureActivatedLbl: Label 'The copilot/AI capability %1, App Id %2 has been activated by UserSecurityId %3.', Locked = true;
 
     internal procedure SetDataMovement(Value: Boolean)
