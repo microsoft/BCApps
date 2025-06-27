@@ -25,32 +25,32 @@ codeunit 4303 "Agent Task"
     end;
 
     /// <summary>
-    /// Create a new task message for the given agent user and conversation.
-    /// If task does not exist, it will be created.
+    /// Set the status of the task to ready if the task is in the state that it can be started again.
+    /// The agent task will be be picked up for processing shortly after updating the status.
     /// </summary>
-    /// <param name="From">Specifies from address.</param>
-    /// <param name="MessageText">The message text for the task.</param>
-    /// <param name="CurrentAgentTask">Current Agent Task to which the message will be added.</param>
+    /// <param name="AgentTask">The agent task to set to ready.</param>
+    /// <returns>
+    /// The agent task with the status set to ready.
+    /// </returns>
     [Scope('OnPrem')]
-    procedure CreateTaskMessage(From: Text[250]; MessageText: Text; ExternalMessageId: Text[2048]; var CurrentAgentTask: Record "Agent Task")
+    procedure SetStatusToReady(AgentTask: Record "Agent Task")
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        AgentTaskImpl.CreateTaskMessage(From, MessageText, ExternalMessageId, CurrentAgentTask);
+        AgentTaskImpl.SetTaskStatusToReadyIfPossible(AgentTask);
     end;
 
     /// <summary>
-    /// Create a new task  for the given agent user. No message is added to the task.
+    /// Checks if the task can be set to ready and started again.
     /// </summary>
-    /// <param name="AgentSecurityID">The security ID of the agent to create the task for.</param>
-    /// <param name="TaskTitle">The title of the task.</param>
-    /// <param name="ExternalId">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
-    /// <param name="NewAgentTask">The new agent task record that was created.</param>
-    [Scope('OnPrem')]
-    procedure CreateTaskWithoutMessage(AgentSecurityID: Guid; TaskTitle: Text[150]; ExternalId: Text[2048]; var NewAgentTask: Record "Agent Task")
+    /// <param name="AgentTask">
+    /// The agent task to check.
+    /// </param>
+    /// <returns>True if agent task can be set to ready, false otherwise</returns>
+    procedure CanSetStatusToReady(AgentTask: Record "Agent Task"): Boolean
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        AgentTaskImpl.CreateTask(AgentSecurityID, TaskTitle, ExternalId, NewAgentTask);
+        exit(AgentTaskImpl.CanAgentTaskBeSetToReady(AgentTask));
     end;
 }

@@ -63,6 +63,7 @@ page 4306 "Agent Tasks"
                 field(TaskLastStepCompletedOn; Rec."Last Step Timestamp")
                 {
                     Caption = 'Last Step Completed On';
+                    ToolTip = 'Specifies the date and time when the last step for the task was completed.';
                 }
                 field(TaskStepType; Rec."Current Step Type")
                 {
