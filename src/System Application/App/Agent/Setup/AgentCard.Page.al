@@ -122,8 +122,8 @@ page 4315 "Agent Card"
             action(UserSettingsAction)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'User Settings';
-                ToolTip = 'Set up the profile and regional settings for the agent.';
+                Caption = 'Agent User Settings';
+                ToolTip = 'Set up the user settings for the agent.';
                 Image = SetupLines;
 
                 trigger OnAction()
@@ -132,7 +132,7 @@ page 4315 "Agent Card"
                 begin
                     Rec.TestField("User Security ID");
                     UserSettings.GetUserSettings(Rec."User Security ID", UserSettingsRecord);
-                    Page.RunModal(Page::"User Settings", UserSettingsRecord);
+                    Page.RunModal(Page::"Agent User Settings", UserSettingsRecord);
                 end;
             }
             action(AgentTasks)
@@ -167,6 +167,16 @@ page 4315 "Agent Card"
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        AgentSessionImpl: Codeunit "Agent Session Impl.";
+    begin
+        AgentSessionImpl.BlockPageFromBeingOpenedByAgent();
+
+        if not Rec.WritePermission() then
+            Error(YouDoNotHavePermissionToModifyThisAgentErr);
+    end;
 
     local procedure UpdateControls()
     var
@@ -225,4 +235,5 @@ page 4315 "Agent Card"
         ControlsEditable: Boolean;
         OpenConfigurationPageQst: Label 'To activate the agent, use the setup page. Would you like to open this page now?';
         YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to set up and activate the agent.';
+        YouDoNotHavePermissionToModifyThisAgentErr: Label 'You do not have permission to modify this agent. Contact your system administrator to update your permissions or to mark you as one of the administrators for the agent.';
 }
