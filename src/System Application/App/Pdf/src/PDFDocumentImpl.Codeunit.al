@@ -283,7 +283,6 @@ codeunit 3109 "PDF Document Impl."
     local procedure CreateDataFileFromStream(FileInStream: InStream) FileName: Text
     var
         TempFile: File;
-        TempFileName: Text;
         LocalInStream: InStream;
         FileOutStream: OutStream;
     begin
@@ -292,14 +291,14 @@ codeunit 3109 "PDF Document Impl."
         LocalInStream := FileInStream;
         LocalInStream.ResetPosition();
         TempFile.CreateTempFile();
-        TempFileName := TempFile.Name;
+        FileName := TempFile.Name;
         TempFile.Close();
-        TempFile.Create(TempFileName);
+        TempFile.Create(FileName);
         TempFile.CreateOutStream(FileOutStream);
 
         CopyStream(FileOutStream, LocalInStream);
         TempFile.Close();
-        exit(TempFileName);
+        exit(FileName);
     end;
 
     [NonDebuggable]
