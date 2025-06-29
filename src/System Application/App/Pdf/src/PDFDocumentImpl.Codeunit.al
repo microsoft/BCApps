@@ -226,6 +226,17 @@ codeunit 3109 "PDF Document Impl."
         PdfDocumentInfoInstance := PdfConverterInstance.DocumentInfo();
     end;
 
+    procedure AddAttachment(AttachmentName: Text; PDFAttachmentDataType: Enum "PDF Attach. Data Relationship"; MimeType: Text; FileInStream: InStream; Description: Text; PrimaryDocument: Boolean)
+    var
+        TempFileName: Text;
+    begin
+        if FileInStream.Length = 0 then
+            exit;
+        TempFileName := this.CreateDataFileFromStream(FileInStream);
+        this.AddAttachment(AttachmentName, PDFAttachmentDataType, MimeType, TempFileName, Description, PrimaryDocument);
+    end;
+
+    [Scope('OnPrem')]
     procedure AddAttachment(AttachmentName: Text; PDFAttachmentDataType: Enum "PDF Attach. Data Relationship"; MimeType: Text; FileName: Text; Description: Text; PrimaryDocument: Boolean)
     var
         AttachmentNameErr: Label 'Attachment with name %1 already exists.', Comment = '%1 = attachment name';
@@ -263,13 +274,21 @@ codeunit 3109 "PDF Document Impl."
 
     procedure AddStreamToAppend(FileInStream: InStream)
     var
+        TempFileName: Text;
+    begin
+        TempFileName := this.CreateDataFileFromStream(FileInStream);
+        this.AddFileToAppend(TempFileName);
+    end;
+
+    local procedure CreateDataFileFromStream(FileInStream: InStream) FileName: Text
+    var
         TempFile: File;
         TempFileName: Text;
         LocalInStream: InStream;
         FileOutStream: OutStream;
     begin
         if FileInStream.Length = 0 then
-            exit;
+            exit('');
         LocalInStream := FileInStream;
         LocalInStream.ResetPosition();
         TempFile.CreateTempFile();
@@ -280,7 +299,7 @@ codeunit 3109 "PDF Document Impl."
 
         CopyStream(FileOutStream, LocalInStream);
         TempFile.Close();
-        this.AddFileToAppend(TempFileName);
+        exit(TempFileName);
     end;
 
     [NonDebuggable]
