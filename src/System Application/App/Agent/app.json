@@ -22,20 +22,32 @@
   ],
   "dependencies": [
     {
+        "id": "5c36f279-480c-451b-b513-c1af8cfb0744",
+        "name": "Language",
+        "publisher": "Microsoft",
+        "version": "26.3.0.0"
+    },
+    {
       "id": "dd4b9f8a-b018-4f69-a614-efdb744c5330",
       "name": "Page Summary Provider",
       "publisher": "Microsoft",
       "version": "26.3.0.0"
     },
     {
-      "id": "7b9b59f5-a68d-4271-b11a-0d3b9c0938dd",
-      "name": "User Settings",
+      "id": "fa2b571d-3f92-4685-9113-421ea9c0b5f5",
+      "name": "Time Zone Selection",
       "publisher": "Microsoft",
       "version": "26.3.0.0"
     },
     {
       "id": "c56e3ef4-7ab0-4636-ae87-013a62f12213",
       "name": "User Permissions",
+      "publisher": "Microsoft",
+      "version": "26.3.0.0"
+    },
+    {
+      "id": "7b9b59f5-a68d-4271-b11a-0d3b9c0938dd",
+      "name": "User Settings",
       "publisher": "Microsoft",
       "version": "26.3.0.0"
     }
