@@ -32,6 +32,12 @@ codeunit 3112 "Activity Log Builder Impl."
         exit(this);
     end;
 
+    procedure SetType(Type: Enum "Activity Log Type"): Codeunit "Activity Log Builder Impl."
+    begin
+        LogEntry.AddFieldAttribute(this.GlobalFieldNo, AttributeType::Type, Format(Type));
+        exit(this);
+    end;
+
     procedure SetReferenceSource(PageId: Integer; var Rec: RecordRef): Codeunit "Activity Log Builder Impl."
     var
         TextURL: Text;

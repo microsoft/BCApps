@@ -46,22 +46,25 @@ page 4317 "Agent User Settings"
                     {
                         ApplicationArea = All;
                         AssistEdit = true;
-                        Caption = 'Role';
+                        Caption = 'Profile (Role)';
                         Editable = false;
                         Importance = Promoted;
-                        ToolTip = 'Specifies the role that defines your home page with links to the most common tasks.';
+                        ToolTip = 'Specifies the role that defines the agent''s home page with links to the most common tasks.';
 
                         trigger OnAssistEdit()
                         begin
+                            if not Confirm(ProfileChangedQst, false) then
+                                exit;
+
                             UserSettings.LookupProfile(Rec);
-                            CurrPage.Update();
+                            CurrPage.Update()
                         end;
                     }
                     field(Region; Language.GetWindowsLanguageName(Rec."Locale ID"))
                     {
                         ApplicationArea = All;
                         Caption = 'Region';
-                        ToolTip = 'Specifies the regional settings, such as date and numeric format, on all devices. You must sign out and then sign in again for the change to take effect.';
+                        ToolTip = 'Specifies the regional settings, such as date and numeric format, on all devices.';
 
                         trigger OnAssistEdit()
                         begin
@@ -73,7 +76,7 @@ page 4317 "Agent User Settings"
                         ApplicationArea = All;
                         Caption = 'Language';
                         Importance = Promoted;
-                        ToolTip = 'Specifies the display language, on all devices. You must sign out and then sign in again for the change to take effect.';
+                        ToolTip = 'Specifies the display language, on all devices.';
 
                         trigger OnAssistEdit()
                         begin
@@ -84,7 +87,7 @@ page 4317 "Agent User Settings"
                     {
                         ApplicationArea = All;
                         Caption = 'Time Zone';
-                        ToolTip = 'Specifies the time zone that you work in. You must sign out and then sign in again for the change to take effect.';
+                        ToolTip = 'Specifies the time zone that the agent works in.';
 
                         trigger OnAssistEdit()
                         begin
@@ -120,4 +123,5 @@ page 4317 "Agent User Settings"
         TimeZoneSelection: Codeunit "Time Zone Selection";
         UserSettings: Codeunit "User Settings";
         ProfileDisplayName: Text;
+        ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions. Do you want to continue?';
 }
