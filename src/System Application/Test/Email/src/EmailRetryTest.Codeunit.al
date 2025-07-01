@@ -459,7 +459,80 @@ codeunit 134703 "Email Retry Test"
         Codeunit.Run(Codeunit::"Email Dispatcher", EmailOutbox);
 
         // [Then] The sending task is rescheduled, and the email outbox entry is updated with the error message and status
-        Assert.AreEqual(EmailOutbox.Status, EmailOutbox.Status::Processing, 'The status should be Processing');
+        Assert.AreEqual(EmailOutbox.Status::Processing, EmailOutbox.Status, 'The status should be Processing');
+        Assert.AreEqual(OriginalScheduledDateTime, EmailOutbox."Date Sending", 'The Date Sending should not be updated');
+        Assert.AreEqual(OriginalTaskId, EmailOutbox."Task Scheduler Id", 'The Task Scheduler Id should not be updated');
+        UnBindSubscription(TestClientTypeSubscriber);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SendEmailMessageBackgroundExceedingMaxConcurrencyForDifferentAccountsTest()
+    var
+        TempAccount1: Record "Email Account" temporary;
+        TempAccount2: Record "Email Account" temporary;
+        EmailOutbox: Record "Email Outbox";
+        EmailRateLimit: Record "Email Rate Limit";
+        Any: Codeunit Any;
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
+        OriginalScheduledDateTime: DateTime;
+        OriginalTaskId: Guid;
+    begin
+        // [Scenario] When two users are created, the account1's concurrency limit is changed to 10, and the account2's is 3.
+        //  Then when the account1 tries to send 11 email at the same time, the 11st email should be rescheduled.
+        // Then when the account2 tries to send 1 email, it should be sent immediately because the concurrency limit is 3.
+        // Account1 and account2 are different accounts, so the concurrency limit is not shared between them.
+        BindSubscription(TestClientTypeSubscriber);
+
+        PermissionsMock.Set('Email Edit');
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(TempAccount1);
+        ConnectorMock.AddAccount(TempAccount2);
+        TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Background);
+
+        // [Given] The Email Rate Limit is set to 10 for the account1
+        EmailRateLimit.SetRange("Account Id", TempAccount1."Account Id");
+        Assert.IsTrue(EmailRateLimit.FindFirst(), 'The Email Rate Limit entry should exist');
+        EmailRateLimit.Validate("Concurrency Limit", 10);
+        EmailRateLimit.Modify();
+
+        // [Given] 10 email messages and an email account are created
+        CreateEmailMessageAndEmailOutboxRecord(10, TempAccount1);
+
+        // [Given] The 11st email is created
+        EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+        SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount1."Account Id", 'Test Subject', TempAccount1."Email Address", UserSecurityId(), Enum::"Email Status"::Queued, 0);
+
+        // [When] The 11st email is sent from the background
+        EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
+        EmailOutbox.FindFirst();
+        OriginalScheduledDateTime := EmailOutbox."Date Sending";
+        OriginalTaskId := EmailOutbox."Task Scheduler Id";
+        Codeunit.Run(Codeunit::"Email Dispatcher", EmailOutbox);
+
+        // [Then] The sending task is rescheduled because of exceeding max concurrency limit, and the email outbox entry is updated with the error message and status
+        Assert.AreNotEqual(OriginalScheduledDateTime, EmailOutbox."Date Sending", 'The Date Sending should be updated');
+        Assert.AreNotEqual(OriginalTaskId, EmailOutbox."Task Scheduler Id", 'The Task Scheduler Id should be updated');
+        Assert.AreEqual(EmailOutbox.Status::Queued, EmailOutbox.Status, 'The status should not be Processing');
+
+        // [Given] A new email message is created for the account2
+        EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+        SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount2."Account Id", 'Test Subject', TempAccount2."Email Address", UserSecurityId(), Enum::"Email Status"::Queued, 0);
+
+        // [When] This email is sent from the background
+        EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
+        Assert.IsTrue(EmailOutbox.FindFirst(), 'The Email Rate Limit entry should exist');
+        OriginalScheduledDateTime := EmailOutbox."Date Sending";
+        OriginalTaskId := EmailOutbox."Task Scheduler Id";
+        Codeunit.Run(Codeunit::"Email Dispatcher", EmailOutbox);
+
+        // [Then] The sending task is processing correctly, and the email outbox entry is updated with the error message and status
+        Assert.AreEqual(EmailOutbox.Status::Processing, EmailOutbox.Status, 'The status should be Processing');
+        Assert.AreEqual(OriginalScheduledDateTime, EmailOutbox."Date Sending", 'The Date Sending should not be updated');
+        Assert.AreEqual(OriginalTaskId, EmailOutbox."Task Scheduler Id", 'The Task Scheduler Id should not be updated');
+
         UnBindSubscription(TestClientTypeSubscriber);
     end;
 
