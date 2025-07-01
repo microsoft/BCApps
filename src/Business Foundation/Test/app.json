@@ -93,6 +93,6 @@
   },
   "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/",
   "resourceFolders": [
-    "NoSeriesCopilot/.resources"
+    "NoSeriesCopilot\\.resources"
   ]
 }

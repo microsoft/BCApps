@@ -13,18 +13,14 @@ codeunit 134542 "No. Series Test Install"
 
     trigger OnInstallAppPerCompany()
     var
-        NoSeriesYamlProcessMgt: Codeunit NoSeriesYamlProcessMgt;
         DatasetPaths: List of [Text];
         TestSuitePaths: List of [Text];
         ResourcePath: Text;
     begin
         // Load Datasets
-        DatasetPaths := NavApp.ListResources('*.jsonl');
+        DatasetPaths := NavApp.ListResources('*.yaml');
         foreach ResourcePath in DatasetPaths do
             SetupDataInput(ResourcePath);
-
-        // Load YAML Input Datasets
-        NoSeriesYamlProcessMgt.LoadInputDatasets();
 
         // Load Test Suites
         TestSuitePaths := NavApp.ListResources('*.xml');
