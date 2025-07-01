@@ -5,7 +5,7 @@ param (
 )
 
 Import-Module $PSScriptRoot\..\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1
-$appExtensionsSettings = Join-Path (Get-BaseFolder) "build/projects/Add-Ons (W1)/.AL-Go/settings.json" -Resolve
+$appExtensionsSettings = Join-Path (Get-BaseFolder) "build/projects/Apps (W1)/.AL-Go/settings.json" -Resolve
 $settings = Get-Content -Path $appExtensionsSettings -Raw | ConvertFrom-Json
 
 # Initialize the result object
