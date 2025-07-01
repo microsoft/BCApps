@@ -70,6 +70,7 @@ page 8700 "Table Information"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the average record size (in bytes).';
+                    AutoFormatType = 0;
                 }
 
                 field("Size (KB)"; Rec."Size (KB)")

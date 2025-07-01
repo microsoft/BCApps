@@ -231,13 +231,7 @@ codeunit 132601 "PDF Document Test"
 
         // [WHEN] Add the attachment
         PDFDocument.Initialize();
-        PDFDocument.AddAttachment(
-            AttachmentName,
-            Enum::"PDF Attach. Data Relationship"::Data,
-            MimeType,
-            FileInStream,
-            Description,
-            false);
+        PDFDocument.AddAttachment(AttachmentName, Enum::"PDF Attach. Data Relationship"::Data, MimeType, FileInStream, Description, false);
 
         // [THEN] Assert that the attachment count is 1
         Count := PDFDocument.AttachmentCount();
