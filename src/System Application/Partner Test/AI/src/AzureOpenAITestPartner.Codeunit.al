@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Test.AI;
+namespace Partner.Test.AI;
 
 using System.AI;
 using System.Privacy;

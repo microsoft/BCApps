@@ -1,4 +1,4 @@
-namespace System.Test.AI;
+namespace Partner.Test.AI;
 
 using System.AI;
 
