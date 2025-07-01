@@ -27,7 +27,6 @@ codeunit 134540 "No. Series Copilot Accu. Tests"
         NoSeriesGenerationDetail: Record "No. Series Generation Detail";
         TestInputJsonQuestion: Codeunit "Test Input Json";
         TestInputJsonAnswer: Codeunit "Test Input Json";
-        ExactJson: Codeunit "Test Input Json";
         ExpectedNumberJson: Codeunit "Test Input Json";
         Found: Boolean;
     begin
@@ -35,17 +34,12 @@ codeunit 134540 "No. Series Copilot Accu. Tests"
         NoSeriesCopilotTestLib.Generate(NoSeriesGeneration, NoSeriesGenerationDetail, TestInputJsonQuestion.ValueAsText());
 
         TestInputJsonAnswer := AITTestContext.GetExpectedData();
-        ExactJson := TestInputJsonAnswer.ElementAt(0).ElementExists('exact', Found);
-        if not Found then
-            Assert.Fail('Expected "exact" field not found in the test input JSON answer.');
 
-        ExpectedNumberJson := TestInputJsonAnswer.ElementAt(1).ElementExists('expected_number', Found);
+        ExpectedNumberJson := TestInputJsonAnswer.ElementAt(0).ElementExists('expected_number', Found);
         if not Found then
             Assert.Fail('Expected "expected_number" field not found in the test input JSON answer.');
 
-        if ExactJson.ValueAsBoolean() then
-            Assert.AreNearlyEqual(TestInputJsonAnswer.ElementAt(1).Element('expected_number').ValueAsInteger(), NoSeriesGenerationDetail.Count, 1.0, 'No. Series Copilot failed to generate the expected number of No. Series.');
-
+        Assert.AreNearlyEqual(ExpectedNumberJson.ValueAsInteger(), NoSeriesGenerationDetail.Count, 1.0, 'No. Series Copilot failed to generate the expected number of No. Series.');
         Assert.IsTrue(NoSeriesGenerationDetail.Count > 0, 'No. Series Copilot did not generate any No. Series, but expected some.');
 
         AITTestContext.SetTestOutput('Test succeeded. ' + Format(NoSeriesGenerationDetail.Count) + ' new No. Series generated based on the input.');
