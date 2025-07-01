@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Test library for the External File Storage module",
   "description": "Test library for the External File Storage module",
-  "version": "26.3.0.0",
+  "version": "26.4.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2103698",
@@ -15,13 +15,13 @@
       "id": "c9c54414-80c3-4cc9-98c6-589158882774",
       "name": "External File Storage",
       "publisher": "Microsoft",
-      "version": "26.3.0.0"
+      "version": "26.4.0.0"
     },
     {
       "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
       "name": "Any",
       "publisher": "Microsoft",
-      "version": "26.3.0.0"
+      "version": "26.4.0.0"
     }
   ],
   "screenshots": [],
