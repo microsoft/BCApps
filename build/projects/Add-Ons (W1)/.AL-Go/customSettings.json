@@ -5,7 +5,8 @@
         "Base Application", 
         "Application",
         "Statistical Accounts",
-        "Sustainability"
+        "Sustainability",
+        "Power BI Report embeddings for Dynamics 365 Business Central"
     ],
     "ExternalTestAppDependencies" : [
         "Permissions Mock",
