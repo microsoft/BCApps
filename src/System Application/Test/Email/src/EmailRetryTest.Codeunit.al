@@ -501,7 +501,7 @@ codeunit 134703 "Email Retry Test"
         // [Given] 10 email messages and an email account are created
         CreateEmailMessageAndEmailOutboxRecord(10, TempAccount1);
 
-        // [Given] The 11st email is created
+        // [Given] The 11th email is created
         EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
         SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount1."Account Id", 'Test Subject', TempAccount1."Email Address", UserSecurityId(), Enum::"Email Status"::Queued, 0);
 
