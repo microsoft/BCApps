@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Test.Agents.SalesOrderAgent;
+namespace Microsoft.Foundation.NoSeries.Test;
 
 using System.TestTools.AITestToolkit;
 
-codeunit 134542 "No. Series Test Install"
+codeunit 133688 "No. Series Test Install"
 {
     Subtype = Install;
 

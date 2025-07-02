@@ -11,7 +11,7 @@ using System.TestLibraries.Utilities;
 using System.TestTools.AITestToolkit;
 using System.TestTools.TestRunner;
 
-codeunit 134541 "No. Series Copilot Harms Tests"
+codeunit 133690 "No. Series Copilot Harms Tests"
 {
     Subtype = Test;
     SingleInstance = true;
