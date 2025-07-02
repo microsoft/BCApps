@@ -113,6 +113,7 @@ function Build-App() {
     $CompilationParameters["EnableCodeCop"] = $false
     $CompilationParameters["EnableUICop"] = $false
     $CompilationParameters["EnablePerTenantExtensionCop"] = $false
+    $CompilationParameters["GenerateReportLayout"] = "No"
     $CompilationParameters.Remove("ruleset")
 
     Write-Host "Recompile $AppName with parameters"
