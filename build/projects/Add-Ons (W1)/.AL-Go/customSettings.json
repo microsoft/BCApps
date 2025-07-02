@@ -5,7 +5,8 @@
         "Base Application", 
         "Application",
         "Statistical Accounts",
-        "Sustainability"
+        "Sustainability",
+        "E-Document Core"
     ],
     "ExternalTestAppDependencies" : [
         "Permissions Mock",
