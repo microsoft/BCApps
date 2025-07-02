@@ -205,6 +205,40 @@ codeunit 132601 "PDF Document Test"
     end;
 
     [Test]
+    procedure AddAttachmentFromStream_Success()
+    var
+        PDFDocument: Codeunit "PDF Document";
+        TempBlob: Codeunit "Temp Blob";
+        FileOutStream: OutStream;
+        FileInStream: InStream;
+        AttachmentName: Text;
+        MimeType: Text;
+        FileName: Text;
+        Description: Text;
+        Count: Integer;
+    begin
+        // [GIVEN] A non-empty stream
+        TempBlob.CreateOutStream(FileOutStream);
+        FileOutStream.WriteText('Test content');
+        TempBlob.CreateInStream(FileInStream);
+
+        // [WHEN] Add the stream to append list
+        PDFDocument.Initialize();
+        AttachmentName := 'factur-x.xml';
+        MimeType := 'application/xml';
+        FileName := 'factur-x.xml';
+        Description := 'Test e-invoice attachment';
+
+        // [WHEN] Add the attachment
+        PDFDocument.Initialize();
+        PDFDocument.AddAttachment(AttachmentName, Enum::"PDF Attach. Data Relationship"::Data, MimeType, FileInStream, Description, false);
+
+        // [THEN] Assert that the attachment count is 1
+        Count := PDFDocument.AttachmentCount();
+        Assert.AreEqual(1, Count, 'Expected one attachment to be added.');
+    end;
+
+    [Test]
     procedure AddAttachment_DuplicateName_ThrowsError()
     var
         PDFDocument: Codeunit "PDF Document";

@@ -168,6 +168,7 @@ table 149030 "AIT Test Suite"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            AutoFormatType = 0;
         }
         field(50; "Test Runner Id"; Integer)
         {
