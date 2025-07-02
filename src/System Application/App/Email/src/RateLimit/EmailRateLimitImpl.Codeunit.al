@@ -64,18 +64,19 @@ codeunit 8999 "Email Rate Limit Impl."
 
     procedure IsConcurrencyLimitExceeded(AccountId: Guid; Connector: Enum "Email Connector"; EmailAddress: Text[250]): Boolean
     begin
-        exit(GetEmailOutboxCurrentProcessingCount() > GetConcurrencyLimit(AccountId, Connector, EmailAddress))
+        exit(GetEmailOutboxCurrentProcessingCount(AccountId) > GetConcurrencyLimit(AccountId, Connector, EmailAddress))
     end;
 
     /// <summary>
-    /// Returns the current count of emails in the outbox that are being processed.
+    /// Returns the current count of emails in the outbox that are being processed for current user.
     /// </summary>
-    /// <returns>The count of the email which is being sending</returns>
-    internal procedure GetEmailOutboxCurrentProcessingCount(): Integer
+    /// <returns>The count of the email which is being sending for the account</returns>
+    internal procedure GetEmailOutboxCurrentProcessingCount(AccountId: Guid): Integer
     var
         EmailOutbox: Record "Email Outbox";
     begin
         EmailOutbox.SetRange(Status, EmailOutbox.Status::Processing);
+        EmailOutbox.SetRange("Account Id", AccountId);
         if EmailOutbox.IsEmpty() then
             exit(0);
 
