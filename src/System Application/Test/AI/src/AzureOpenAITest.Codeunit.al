@@ -310,6 +310,7 @@ codeunit 132684 "Azure OpenAI Test"
         AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Text Completions", EndpointTxt, DeploymentTxt, Any.AlphanumericText(10));
 
         // [GIVEN] Capability is set
+        CopilotCapability.UnregisterCapability(Enum::"Copilot Capability"::"Text Capability");
         CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::"Custom Billed", '');
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Text Capability");
         Metaprompt := 'metaprompt';
