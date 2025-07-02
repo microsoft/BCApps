@@ -3,12 +3,16 @@
   "projectName": "Apps (W1)",
   "projectName": "Apps (W1)",
   "appFolders": [
-    "../../../src/Apps/W1/**/App"
+    "../../../src/Apps/W1/*/App",
+    "../../../src/Apps/W1/*/*/App"
   ],
   "testFolders": [
-    "../../../src/Apps/W1/**/Test",
-    "../../../src/Apps/W1/**/Test Library",
-    "../../../src/Apps/W1/**/Demo Data"
+    "../../../src/Apps/W1/*/Test",
+    "../../../src/Apps/W1/*/Test Library",
+    "../../../src/Apps/W1/*/Demo Data",
+    "../../../src/Apps/W1/*/*/Test",
+    "../../../src/Apps/W1/*/*/Test Library",
+    "../../../src/Apps/W1/*/*/Demo Data"
   ],
   "buildModes": [
     "Translated"
