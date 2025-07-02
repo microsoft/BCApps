@@ -10,7 +10,7 @@ using System.TestLibraries.Utilities;
 using System.TestTools.TestRunner;
 using System.TestTools.AITestToolkit;
 
-codeunit 134540 "No. Series Copilot Accu. Tests"
+codeunit 133689 "No. Series Copilot Accu. Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
