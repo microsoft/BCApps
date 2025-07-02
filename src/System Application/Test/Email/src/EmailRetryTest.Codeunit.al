@@ -481,7 +481,7 @@ codeunit 134703 "Email Retry Test"
         OriginalTaskId: Guid;
     begin
         // [Scenario] When two users are created, the account1's concurrency limit is changed to 10, and the account2's is 3.
-        //  Then when the account1 tries to send 11 email at the same time, the 11st email should be rescheduled.
+        // Then when the account1 tries to send 11 emails at the same time, the 11th email should be rescheduled.
         // Then when the account2 tries to send 1 email, it should be sent immediately because the concurrency limit is 3.
         // Account1 and account2 are different accounts, so the concurrency limit is not shared between them.
         BindSubscription(TestClientTypeSubscriber);
