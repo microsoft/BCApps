@@ -1,13 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/ab2f5319ed073c542e03914f8ae6c0fda029ee1e/Actions/settings.schema.json",
-  "projectName": "Add-Ons (W1)",
+  "projectName": "Apps (W1)",
   "appFolders": [
-    "../../../src/Add-Ons/W1/**/App"
+    "../../../src/Apps/W1/**/App"
   ],
   "testFolders": [
-    "../../../src/Add-Ons/W1/**/Test",
-    "../../../src/Add-Ons/W1/**/Test Library",
-    "../../../src/Add-Ons/W1/**/Demo Data"
+    "../../../src/Apps/W1/**/Test",
+    "../../../src/Apps/W1/**/Test Library",
+    "../../../src/Apps/W1/**/Demo Data"
   ],
   "buildModes": [
     "Translated"
