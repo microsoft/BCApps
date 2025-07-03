@@ -49,14 +49,12 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
         BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.', Comment = '%1 is the capability name, %2 is the billing type';
 
-    procedure IsEnabled(Capability: Enum "Copilot Capability";
-        CallerModuleInfo: ModuleInfo): Boolean
+    procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
         exit(CopilotCapabilityImpl.IsCapabilityEnabled(Capability, CallerModuleInfo));
     end;
 
-    procedure IsEnabled(Capability: Enum "Copilot Capability"; Silent: Boolean;
-                                        CallerModuleInfo: ModuleInfo): Boolean
+    procedure IsEnabled(Capability: Enum "Copilot Capability"; Silent: Boolean; CallerModuleInfo: ModuleInfo): Boolean
     begin
         exit(CopilotCapabilityImpl.IsCapabilityEnabled(Capability, Silent, CallerModuleInfo));
     end;
@@ -80,8 +78,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         end;
     end;
 
-    procedure IsInitialized(Capability: Enum "Copilot Capability"; ModelType: Enum "AOAI Model Type";
-                                            CallerModuleInfo: ModuleInfo): Boolean
+    procedure IsInitialized(Capability: Enum "Copilot Capability"; ModelType: Enum "AOAI Model Type"; CallerModuleInfo: ModuleInfo): Boolean
     begin
         exit(IsEnabled(Capability, CallerModuleInfo) and IsAuthorizationConfigured(ModelType, CallerModuleInfo));
     end;
@@ -102,9 +99,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     end;
 
     [NonDebuggable]
-    procedure SetAuthorization(ModelType: Enum "AOAI Model Type"; Endpoint: Text;
-                                              Deployment: Text;
-                                              ApiKey: SecretText)
+    procedure SetAuthorization(ModelType: Enum "AOAI Model Type"; Endpoint: Text; Deployment: Text; ApiKey: SecretText)
     begin
         case ModelType of
             Enum::"AOAI Model Type"::"Text Completions":
@@ -120,10 +115,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
 
 #if not CLEAN26
     [NonDebuggable]
-    procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; Endpoint: Text;
-                                                             Deployment: Text;
-                                                             ApiKey: SecretText;
-                                                             ManagedResourceDeployment: Text)
+    procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; Endpoint: Text; Deployment: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
     begin
         case ModelType of
             Enum::"AOAI Model Type"::"Text Completions":
@@ -139,9 +131,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
 #endif
 
     [NonDebuggable]
-    procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; AOAIAccountName: Text;
-                                                             ApiKey: SecretText;
-                                                             ManagedResourceDeployment: Text)
+    procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; AOAIAccountName: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
     begin
         case ModelType of
             Enum::"AOAI Model Type"::"Text Completions":
@@ -459,8 +449,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
 
     [TryFunction]
     [NonDebuggable]
-    local procedure SendRequest(ModelType: Enum "AOAI Model Type"; AOAIAuthorization: Codeunit "AOAI Authorization";
-                                               Payload: Text; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
+    local procedure SendRequest(ModelType: Enum "AOAI Model Type"; AOAIAuthorization: Codeunit "AOAI Authorization"; Payload: Text; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
         CopilotNotifications: Codeunit "Copilot Notifications";
         ALCopilotAuthorization: DotNet ALCopilotAuthorization;
