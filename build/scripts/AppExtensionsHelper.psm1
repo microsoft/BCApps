@@ -120,7 +120,12 @@ function Build-App() {
         Write-Host "$key : $($CompilationParameters[$key])"
     }
 
-    Compile-AppWithBcCompilerFolder @CompilationParameters
+    # Check if compilationparameters contains containerName
+    if (-not $CompilationParameters.ContainsKey("containerName")) {
+        Compile-AppInBcContainer @CompilationParameters
+    } else {
+        Compile-AppWithBcCompilerFolder @CompilationParameters
+    }
 }
 
 <#
