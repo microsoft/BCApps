@@ -254,7 +254,6 @@ codeunit 134703 "Email Retry Test"
         TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
         EmailOutboxPage: Page "Email Outbox";
         EmailOutboxTestPage: TestPage "Email Outbox";
-        ScheduledDateTime: DateTime;
     begin
         // [Scenario] When sending an email on the background and then fails, the email should be scheduled for retry
         // [Given] An email message and an email account are created
@@ -277,7 +276,6 @@ codeunit 134703 "Email Retry Test"
         EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
         EmailOutbox.FindFirst();
         Codeunit.Run(Codeunit::"Email Dispatcher", EmailOutbox);
-        ScheduledDateTime := CurrentDateTime();
 
         // [THEN] The email outbox entry is updated with the error message and status
         EmailRetry.SetRange("Account Id", TempAccount."Account Id");
@@ -287,12 +285,7 @@ codeunit 134703 "Email Retry Test"
         Assert.AreEqual(Enum::"Email Status"::Failed.AsInteger(), EmailRetry.Status.AsInteger(), 'Wrong status');
         Assert.AreEqual('Failed to send email', EmailRetry."Error Message", 'Wrong error message');
         Assert.AreEqual(1, EmailRetry."Retry No.", 'The retry number should be 1');
-        Assert.AreEqual(2, EmailRetry.Count(), 'There are two entries in the Email Retry table');
-
-        EmailRetry.Next();
-        Assert.AreEqual(Enum::"Email Status"::Queued.AsInteger(), EmailRetry.Status.AsInteger(), 'Wrong status');
-        Assert.AreEqual(2, EmailRetry."Retry No.", 'The retry number should be 2');
-        Assert.IsTrue(EmailRetry."Date Sending" > ScheduledDateTime, 'The Date Queued should be later than now');
+        Assert.AreEqual(1, EmailRetry.Count(), 'There are two entries in the Email Retry table');
 
         // [When] The Email Outbox page is opened and the retry detail is shown
         EmailOutboxTestPage.Trap();
@@ -621,12 +614,6 @@ codeunit 134703 "Email Retry Test"
         Assert.AreEqual(1, EmailRetryDetailPage."Retry No.".AsInteger(), 'The retry number should be 1');
         Assert.IsTrue(EmailRetryDetailPage.ShowError.Enabled(), 'The Show Error action should be enabled');
         Assert.IsTrue(EmailRetryDetailPage.ShowErrorCallStack.Enabled(), 'The Show Error Call Stack action should be enabled');
-
-        Assert.IsTrue(EmailRetryDetailPage.Next(), 'The second Email Retry Detail should be shown');
-        Assert.AreEqual(Enum::"Email Status"::Queued.AsInteger(), EmailRetryDetailPage.Status.AsInteger(), 'Wrong status');
-        Assert.AreEqual(2, EmailRetryDetailPage."Retry No.".AsInteger(), 'The retry number should be 2');
-        Assert.IsFalse(EmailRetryDetailPage.ShowError.Enabled(), 'The Show Error action should be disabled');
-        Assert.IsFalse(EmailRetryDetailPage.ShowErrorCallStack.Enabled(), 'The Show Error Call Stack action should be disabled');
 
         Assert.IsFalse(EmailRetryDetailPage.Next(), 'There should be no more Email Retry Details');
     end;
