@@ -113,7 +113,7 @@ codeunit 8888 "Email Dispatcher"
 
     procedure GetMaximumRetryCount(): Integer
     begin
-        exit(10); // Maximum retry count for sending emails
+        exit(0); // Maximum retry count for sending emails
     end;
 
     local procedure RetrySendEmail(var EmailOutbox: Record "Email Outbox"): Boolean
