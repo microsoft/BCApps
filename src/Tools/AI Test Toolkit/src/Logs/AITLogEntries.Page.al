@@ -70,6 +70,7 @@ page 149033 "AIT Log Entries"
                 }
                 field(Accuracy; Rec."Test Method Line Accuracy")
                 {
+                    AutoFormatType = 0;
                 }
                 field("No. of Turns Passed"; Rec."No. of Turns Passed")
                 {
