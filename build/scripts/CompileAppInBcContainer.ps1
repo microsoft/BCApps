@@ -1,5 +1,6 @@
 Param(
-    [Hashtable] $parameters
+    [Hashtable] $parameters,
+    [string[]] $recompileDependencies = @()
 )
 
 # $app, $testApp and $bcptTestApp are boolean variables to determine the app type
@@ -11,7 +12,7 @@ $appType = switch ($true) {
 }
 
 $PreCompileApp = (Get-Command "$PSScriptRoot\PreCompileApp.ps1" | Select-Object -ExpandProperty ScriptBlock)
-Invoke-Command -ScriptBlock $PreCompileApp -ArgumentList $appType, ([ref] $parameters)
+Invoke-Command -ScriptBlock $PreCompileApp -ArgumentList $appType, ([ref] $parameters), $recompileDependencies
 
 $appFile = Compile-AppInBcContainer @parameters
 
