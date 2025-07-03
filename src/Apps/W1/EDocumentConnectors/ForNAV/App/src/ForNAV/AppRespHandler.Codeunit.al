@@ -34,9 +34,10 @@ codeunit 6410 "ForNAV App. Resp. Handler"
     var
         EDocument: Record "E-Document";
         EDocumentService: Record "E-Document Service";
+        Setup: Record "ForNAV Peppol Setup";
         EDocLogHelper: Codeunit "E-Document Log Helper";
     begin
-        if not EDocumentService.Get('FORNAV') then
+        if not Setup.GetEDocumentService(EDocumentService) then
             exit(false);
 
         EDocument.SetRange("Document No.", DocNo);

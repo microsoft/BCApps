@@ -5,7 +5,7 @@ using Microsoft.eServices.EDocument.Integration.Send;
 codeunit 6425 "ForNAV Peppol SMP"
 {
     Access = internal;
-    procedure CallSMP(Req: Text; var Input: JsonObject; action: Text; var Error: integer; var Message: Text) Output: JsonObject;
+    procedure CallSMP(Req: Text; var InputObject: JsonObject; action: Text; var Error: integer; var Message: Text) OutputObject: JsonObject;
     var
         Setup: Record "ForNAV Peppol Setup";
         SendContext: Codeunit SendContext;
@@ -16,20 +16,20 @@ codeunit 6425 "ForNAV Peppol SMP"
         httpContent: HttpContent;
         StatusCode: Integer;
         InStr: InStream;
-        Response: JsonObject;
-        jToken: JsonToken;
+        ResponseObject: JsonObject;
+        Token: JsonToken;
         Url: Text;
         HttpHeaders: HttpHeaders;
-        ServiceErrorLbl: Label 'SMP %1 service error : %2 %3', Locked = true;
+        ServiceErr: Label 'SMP %1 service error : %2 %3', Comment = '%1 = action %2 = status code %3 = message';
     begin
         Setup.InitSetup();
 
         Url := PeppolSetup.GetBaseUrl('SMP');
         case Req of
             'Post':
-                httpContent.WriteFrom(Format(Input));
+                httpContent.WriteFrom(Format(InputObject));
             'Put':
-                httpContent.WriteFrom(Format(Input));
+                httpContent.WriteFrom(Format(InputObject));
         end;
 
         httpRequestMessage.SetRequestUri(Url);
@@ -54,46 +54,46 @@ codeunit 6425 "ForNAV Peppol SMP"
         SendContext.GetTempBlob().CreateInStream(InStr);
         SendContext.Http().GetHttpResponseMessage().Content.ReadAs(InStr);
 
-        if Response.ReadFrom(InStr) then begin
-            if (StatusCode = 200) and Response.Get('statuscode', jToken) then
-                StatusCode := jToken.AsValue().AsInteger();
-            if Response.Get('message', jToken) and jToken.IsValue and not jToken.AsValue().IsNull then
-                Message := jToken.AsValue().AsText();
+        if ResponseObject.ReadFrom(InStr) then begin
+            if (StatusCode = 200) and ResponseObject.Get('statuscode', Token) then
+                StatusCode := Token.AsValue().AsInteger();
+            if ResponseObject.Get('message', Token) and Token.IsValue and not Token.AsValue().IsNull then
+                Message := Token.AsValue().AsText();
             if (StatusCode >= 300) and (Error <> -1) and (StatusCode <> Error) then begin
-                if Response.Get('payload', jToken) then
-                    Message += ': ' + jToken.AsValue().AsText();
-                error(ServiceErrorLbl, action, StatusCode, Message);
+                if ResponseObject.Get('payload', Token) then
+                    Message += ': ' + Token.AsValue().AsText();
+                error(ServiceErr, action, StatusCode, Message);
             end else
                 Error := StatusCode;
-            if Response.Get('payload', jToken) then
-                if jToken.IsObject then
-                    Output := jToken.AsObject()
+            if ResponseObject.Get('payload', Token) then
+                if Token.IsObject then
+                    OutputObject := Token.AsObject()
                 else
-                    if jToken.IsValue and not jToken.AsValue().IsNull then
-                        Output.ReadFrom(jToken.AsValue().AsText());
+                    if Token.IsValue and not Token.AsValue().IsNull then
+                        OutputObject.ReadFrom(Token.AsValue().AsText());
         end else
-            error(ServiceErrorLbl, action, StatusCode, Message);
+            error(ServiceErr, action, StatusCode, Message);
     end;
 
-    procedure CallSMP(req: Text; action: Text; var error: Integer; var message: Text) output: JsonObject;
+    procedure CallSMP(Req: Text; Action: Text; var Error: Integer; var Message: Text): JsonObject;
     var
-        dummy: JsonObject;
+        DummyObject: JsonObject;
     begin
-        exit(CallSMP(req, dummy, action, error, message));
+        exit(CallSMP(Req, DummyObject, Action, Error, Message));
     end;
 
     internal procedure ParticipantExists(var Setup: record "ForNAV Peppol Setup")
     var
-        output: JsonObject;
-        message: Text;
-        result: Integer;
-        LicenseLbl: Label 'You need a valid ForNAV license to use this App "%1"', Comment = '%1 = meessage', Locked = true;
-        ConnectionLbl: Label 'You are not authorized to use the ForNAV Peppol network. Please authorize./Error: %1', Comment = '%1 = error', Locked = true;
-        LicensePeppolAccessLbl: Label 'You need update your ForNAV license to be able to use this app, please contavt your partner', Locked = true;
-        SetupInAnotherBCInstanceLbl: Label 'This peppolid is alrady published in another company or Business Central installation - you need upublish it to use it with this company', Locked = true;
+        OutputObject: JsonObject;
+        Message: Text;
+        Result: Integer;
+        LicenseLbl: Label 'You need a valid ForNAV license to use this App "%1"', Comment = '%1 = meessage';
+        ConnectionLbl: Label 'You are not authorized to use the ForNAV Peppol network. Please authorize./Error: %1', Comment = '%1 = error';
+        LicensePeppolAccessLbl: Label 'You need update your ForNAV license to be able to use this app, please contavt your partner';
+        SetupInAnotherBCInstanceLbl: Label 'This peppolid is alrady published in another company or Business Central installation - you need upublish it to use it with this company';
     begin
-        result := -1; // Any
-        output := CallSMP('Get', 'participant', result, message);
+        Result := -1; // Any
+        OutputObject := CallSMP('Get', 'participant', Result, Message);
         case result of
             0:
                 Setup.Status := Setup.Status::"Offline";
@@ -105,7 +105,7 @@ codeunit 6425 "ForNAV Peppol SMP"
             402:
                 begin
                     Setup.Status := Setup.Status::"Unlicensed";
-                    Message(LicenseLbl, message);
+                    Message(LicenseLbl, Message);
                 end;
             403:
                 begin
@@ -128,26 +128,26 @@ codeunit 6425 "ForNAV Peppol SMP"
             428:
                 Setup.Status := Setup.Status::"Waiting for approval";
             else
-                Error('Unknown error %1', result);
+                Error('Unknown error %1', Result);
         end;
-        Setup.SetValues(output);
+        Setup.SetValues(OutputObject);
         Setup.Modify();
     end;
 
     internal procedure CreateParticipant(var Setup: record "ForNAV Peppol Setup")
     var
         PeppolSetup: Codeunit "ForNAV Peppol Setup";
-        input, output : JsonObject;
-        error: Integer;
-        message: Text;
+        InputObject, OutputObject : JsonObject;
+        Error: Integer;
+        Message: Text;
     begin
         // Used by Azure function - do not modify
-        input.Add('Identifier', Setup.ID());
-        input.Add('IncomingDocsUrl', GetUrl(ClientType::Api, Setup.CurrentCompany(), ObjectType::Page, Page::"ForNAV Incoming E-Docs Api"));
-        input.Add('BusinessEntity', Setup.CreateBusinessEntity());
-        input.Add('License', PeppolSetup.GetJLicense());
+        InputObject.Add('Identifier', Setup.ID());
+        InputObject.Add('IncomingDocsUrl', GetUrl(ClientType::Api, Setup.CurrentCompany(), ObjectType::Page, Page::"ForNAV Incoming E-Docs Api"));
+        InputObject.Add('BusinessEntity', Setup.CreateBusinessEntity());
+        InputObject.Add('License', PeppolSetup.GetJLicense());
         error := 409;
-        output := CallSMP('Post', input, 'participant', error, message);
+        OutputObject := CallSMP('Post', InputObject, 'participant', error, message);
         if error = 409 then
             error('Conflict');
         Setup.Status := Setup.Status::Published;

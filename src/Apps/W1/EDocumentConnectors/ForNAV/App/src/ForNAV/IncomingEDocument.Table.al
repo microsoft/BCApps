@@ -14,58 +14,58 @@ table 6415 "ForNAV Incoming E-Document"
         field(1; ID; Text[80]) // Needs to have same length as tableextension "ForNAV EDocument"."ForNAV ID"
         {
             DataClassification = SystemMetadata;
-            Caption = 'ID', Locked = true;
+            Caption = 'ID';
         }
         field(6; DocNo; Text[20])
         {
             DataClassification = SystemMetadata;
-            Caption = 'DocNo', Locked = true;
+            Caption = 'DocNo';
         }
         field(2; DocType; Option)
         {
             OptionMembers = Invoice,ApplicationResponse,CreditNote,Evidence;
             DataClassification = SystemMetadata;
-            Caption = 'DocType', Locked = true;
+            Caption = 'DocType';
         }
         field(3; DocCode; Integer)
         {
             DataClassification = SystemMetadata;
-            Caption = 'DocCode', Locked = true;
+            Caption = 'DocCode';
         }
         field(4; Doc; Blob)
         {
             DataClassification = CustomerContent;
-            Caption = 'Doc', Locked = true;
+            Caption = 'Doc';
         }
         field(5; Status; Enum "ForNAV Incoming E-Doc Status")
         {
             DataClassification = SystemMetadata;
-            Caption = 'Status', Locked = true;
+            Caption = 'Status';
         }
         field(11; EDocumentType; Enum "E-Document Type")
         {
             DataClassification = SystemMetadata;
-            Caption = 'EDocumentType', Locked = true;
+            Caption = 'EDocumentType';
         }
         field(7; Message; Blob)
         {
             DataClassification = CustomerContent;
-            Caption = 'Message', Locked = true;
+            Caption = 'Message';
         }
         field(8; SchemeID; Text[4])
         {
             DataClassification = CustomerContent;
-            Caption = 'SchemeID', Locked = true;
+            Caption = 'SchemeID';
         }
         field(9; EndpointID; Text[20]) // Size of VAT Reg#
         {
             DataClassification = CustomerContent;
-            Caption = 'EndpointID', Locked = true;
+            Caption = 'EndpointID';
         }
         field(10; "HTML Preview"; Blob)
         {
             DataClassification = CustomerContent;
-            Caption = 'HTML Preview', Locked = true;
+            Caption = 'HTML Preview';
         }
     }
 
@@ -87,7 +87,7 @@ table 6415 "ForNAV Incoming E-Document"
         Rec.CalcFields(Doc);
         Rec.Doc.CreateInStream(InStr, TextEncoding::UTF8);
         Document.Read(InStr);
-        Exit(Format(Document));
+        exit(Format(Document));
     end;
 
     procedure GetHtml(): Text;
@@ -98,7 +98,7 @@ table 6415 "ForNAV Incoming E-Document"
         CalcFields("HTML Preview");
         "HTML Preview".CreateInStream(InStr, TextEncoding::UTF8);
         Document.Read(InStr);
-        Exit(Format(Document));
+        exit(Format(Document));
     end;
 
     procedure GetComment(): Text;
@@ -109,6 +109,6 @@ table 6415 "ForNAV Incoming E-Document"
         Rec.CalcFields(Message);
         Rec.Message.CreateInStream(InStr, TextEncoding::UTF8);
         _Message.Read(InStr);
-        Exit(Format(_Message));
+        exit(Format(_Message));
     end;
 }

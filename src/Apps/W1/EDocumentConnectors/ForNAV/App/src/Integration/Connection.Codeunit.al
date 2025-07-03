@@ -3,8 +3,6 @@ namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 using Microsoft.EServices.EDocument;
 using System.Utilities;
 using System.Environment;
-using Microsoft.Purchases.Posting;
-using Microsoft.Purchases.Document;
 using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.eServices.EDocument.Integration.Receive;
 codeunit 6416 "ForNAV Connection"
@@ -62,29 +60,8 @@ codeunit 6416 "ForNAV Connection"
             EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(UnsuccessfulResponseErr, HttpResponse.HttpStatusCode, HttpResponse.ReasonPhrase));
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterCheckAndUpdate', '', false, false)]
-    local procedure CheckOnPosting(var PurchaseHeader: Record "Purchase Header"; CommitIsSuppressed: Boolean; PreviewMode: Boolean)
-    var
-        EDocument: Record "E-Document";
-        EDocumentService: Record "E-Document Service";
-        EDocumentServiceStatus: Record "E-Document Service Status";
-    begin
-        EDocument.SetRange("Document Record ID", PurchaseHeader.RecordId);
-        if not EDocument.FindFirst() then
-            exit;
-
-        EDocumentService.SetRange("Service Integration V2", EDocumentService.ForNAVServiceIntegration());
-        if EDocumentService.FindFirst() then;
-        EDocumentServiceStatus.SetRange("E-Document Entry No", EDocument."Entry No");
-        EDocumentServiceStatus.SetRange("E-Document Service Code", EDocumentService.Code);
-        if EDocumentServiceStatus.FindSet() then
-            repeat
-                EDocumentServiceStatus.TestField(EDocumentServiceStatus.Status, EDocumentServiceStatus.Status::Approved);
-            until EDocumentServiceStatus.Next() = 0;
-    end;
-
     var
         ForNAVAPIRequests: Codeunit "ForNAV API Requests";
-        UnsuccessfulResponseErr: Label 'There was an error sending the request. Response code: %1 and error message: %2', Comment = '%1 - http response status code, e.g. 400, %2- error message', Locked = true;
-        EnvironmentBlocksErr: Label 'The request to send documents has been blocked. To resolve the problem, enable outgoing HTTP requests for the E-Document apps on the Extension Management page.', Locked = true;
+        UnsuccessfulResponseErr: Label 'There was an error sending the request. Response code: %1 and error message: %2', Comment = '%1 - http response status code, e.g. 400, %2- error message';
+        EnvironmentBlocksErr: Label 'The request to send documents has been blocked. To resolve the problem, enable outgoing HTTP requests for the E-Document apps on the Extension Management page.';
 }

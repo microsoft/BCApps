@@ -33,10 +33,10 @@ codeunit 6417 "ForNAV Inbox"
     internal procedure DeleteDocs(var DocumentIds: JsonArray; SendContext: Codeunit SendContext): Boolean
     var
         Incoming: Record "ForNAV Incoming E-Document";
-        DocumentId: JsonToken;
+        DocumentIdToken: JsonToken;
     begin
-        foreach DocumentId in DocumentIds do begin
-            Incoming.SetRange(ID, DocumentId.AsValue().AsText());
+        foreach DocumentIdToken in DocumentIds do begin
+            Incoming.SetRange(ID, DocumentIdToken.AsValue().AsText());
             Incoming.SetFilter(Status, '%1|%2|%3', Incoming.Status::Received, Incoming.Status::Approved, Incoming.Status::Rejected);
             if Incoming.FindSet() then
                 repeat
@@ -118,32 +118,32 @@ codeunit 6417 "ForNAV Inbox"
                 exit(Fref.GetEnumValueOrdinal(Index))
     end;
 
-    local procedure InsertDocFromJson(RecRef: RecordRef; JsonRec: JsonObject)
+    local procedure InsertDocFromJson(RecRef: RecordRef; RecordObject: JsonObject)
     var
         TempBlob: Codeunit "Temp Blob";
         BT: BigText;
         Fref: FieldRef;
         i: Integer;
-        JToken: JsonToken;
-        JValue: JsonValue;
+        Token: JsonToken;
+        Value: JsonValue;
         OutStr: OutStream;
     begin
         for i := 1 to RecRef.FieldCount do begin
             Fref := RecRef.Field(i);
-            if JsonRec.Get(Fref.Name, JToken) then begin
-                JValue := JToken.AsValue();
-                if not JValue.IsNull then
+            if RecordObject.Get(Fref.Name, Token) then begin
+                Value := Token.AsValue();
+                if not Value.IsNull then
                     case Fref.Type of
                         FieldType::Integer:
-                            Fref.Value := JValue.AsInteger();
+                            Fref.Value := Value.AsInteger();
                         FieldType::Text:
-                            Fref.Value := JValue.AsText();
+                            Fref.Value := Value.AsText();
                         FieldType::Option:
-                            Fref.Value := GetOptionValue(Fref, JValue.AsText());
+                            Fref.Value := GetOptionValue(Fref, Value.AsText());
                         FieldType::Blob:
                             begin
                                 Clear(BT);
-                                BT.AddText(JValue.AsText());
+                                BT.AddText(Value.AsText());
                                 TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
                                 BT.Write(OutStr);
                                 TempBlob.ToFieldRef(Fref);
@@ -157,20 +157,20 @@ codeunit 6417 "ForNAV Inbox"
             RecRef.Insert();
     end;
 
-    internal procedure GetDocsFromJson(var RecKeys: JsonArray; JsonRecs: JsonObject) More: Boolean
+    internal procedure GetDocsFromJson(var RecKeys: JsonArray; RecordObject: JsonObject) More: Boolean
     var
         RecRef: RecordRef;
         DocId: Text;
-        JToken: JsonToken;
+        Token: JsonToken;
     begin
         RecRef.Open(Database::"ForNAV Incoming E-Document");
-        foreach DocId in JsonRecs.Keys do
+        foreach DocId in RecordObject.Keys do
             if DocId = 'Next' then
                 More := true
             else begin
-                JsonRecs.Get(DocId, JToken);
+                RecordObject.Get(DocId, Token);
                 RecKeys.Add(DocId);
-                InsertDocFromJson(RecRef, JToken.AsObject());
+                InsertDocFromJson(RecRef, Token.AsObject());
             end;
     end;
 }

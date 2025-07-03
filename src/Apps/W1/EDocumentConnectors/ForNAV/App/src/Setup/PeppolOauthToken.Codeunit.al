@@ -1,8 +1,6 @@
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
-
 using System.Text;
 using System.Reflection;
-
 codeunit 6423 "ForNAV Peppol Oauth Token"
 {
     Access = Internal;
@@ -33,10 +31,10 @@ codeunit 6423 "ForNAV Peppol Oauth Token"
         HttpContent: HttpContent;
         Payload: SecretText;
         Response: Text;
-        jObject: JsonObject;
-        jToken: JsonToken;
+        ResponseObject: JsonObject;
+        JsonToken: JsonToken;
         i: Integer;
-        AuthorizationErr: Label 'Cannot get accesstoken\Status: %1\Reason: %2', Comment = '%1= statuscode %2= reasonphrase', Locked = true;
+        AuthorizationErr: Label 'Cannot get accesstoken\Status: %1\Reason: %2', Comment = '%1= statuscode %2= reasonphrase';
         PayloadLbl: Label 'client_id=%1&client_secret=%2&scope=%3&grant_type=client_credentials', Comment = '%1= client id %2= client secret %3= scope', Locked = true;
         RedirectLbl: Label '%1&redirect_uri=%2', Comment = '%1=payload %2= redirect url', Locked = true;
     begin
@@ -57,11 +55,11 @@ codeunit 6423 "ForNAV Peppol Oauth Token"
             HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
             HttpResponseMessage.Content.ReadAs(Response);
             if HttpResponseMessage.HttpStatusCode = 200 then begin
-                if not jObject.ReadFrom(Response) then
+                if not ResponseObject.ReadFrom(Response) then
                     Error(HttpResponseMessage.ReasonPhrase);
 
-                jObject.Get('access_token', jToken);
-                Token := jToken.AsValue().AsText();
+                ResponseObject.Get('access_token', JsonToken);
+                Token := JsonToken.AsValue().AsText();
                 exit;
             end;
 
@@ -81,9 +79,9 @@ codeunit 6423 "ForNAV Peppol Oauth Token"
         Base64: Codeunit "Base64 Convert";
         TypeHelper: Codeunit "Type Helper";
         SplitToken: List of [Text];
-        jArray: JsonArray;
-        jObject: JsonObject;
-        jToken: JsonToken;
+        RolesArray: JsonArray;
+        PayloadObject: JsonObject;
+        JsonToken: JsonToken;
         Payload: Text;
     begin
         AccessTokenExpires := CurrentDateTime + (3000 * 1000);
@@ -96,17 +94,17 @@ codeunit 6423 "ForNAV Peppol Oauth Token"
             Payload := Payload + '=';
 
         Payload := Base64.FromBase64(Payload);
-        if not jObject.ReadFrom(Payload) then
+        if not PayloadObject.ReadFrom(Payload) then
             exit;
 
-        if jObject.Get('roles', jToken) then begin
-            jArray := jToken.AsArray();
-            foreach jToken in jArray do
-                Roles.Add(jToken.AsValue().AsText());
+        if PayloadObject.Get('roles', JsonToken) then begin
+            RolesArray := JsonToken.AsArray();
+            foreach JsonToken in RolesArray do
+                Roles.Add(JsonToken.AsValue().AsText());
         end;
 
-        if jObject.Get('exp', jToken) then
-            AccessTokenExpires := TypeHelper.EvaluateUnixTimestamp(jToken.AsValue().AsInteger());
+        if PayloadObject.Get('exp', JsonToken) then
+            AccessTokenExpires := TypeHelper.EvaluateUnixTimestamp(JsonToken.AsValue().AsInteger());
     end;
 
     internal procedure GetAccessToken(var NewAccessToken: SecretText; var NewAccessTokenExpires: DateTime)

@@ -15,13 +15,14 @@ codeunit 6415 "ForNAV Application Response"
     var
         EDocumentService: Record "E-Document Service";
         EDocumentServiceStatus: Record "E-Document Service Status";
+        Setup: Record "ForNAV Peppol Setup";
         ForNAVAPIRequests: Codeunit "ForNAV API Requests";
         SendContext: Codeunit SendContext;
         HttpRequest: HttpRequestMessage;
         HttpResponse: HttpResponseMessage;
-        SendApproveRejectCheckStatusErr: Label 'You cannot send %1 response with the E-Socument in this current status %2. You can send response when E-document status is ''Imported Document Created''.', Comment = '%1 - Action response, %2 - Status', Locked = true;
+        SendApproveRejectCheckStatusErr: Label 'You cannot send %1 response with the E-Socument in this current status %2. You can send response when E-document status is ''Imported Document Created''.', Comment = '%1 - Action response, %2 - Status';
     begin
-        if not EDocumentService.Get('FORNAV') then
+        if not Setup.GetEDocumentService(EDocumentService) then
             exit;
 
         EDocumentServiceStatus.Get(EDocument."Entry No", EDocumentService.Code);
@@ -50,13 +51,14 @@ codeunit 6415 "ForNAV Application Response"
         EDocumentService: Record "E-Document Service";
         EDocumentServiceStatus: Record "E-Document Service Status";
         ReasonCode: Record "Reason Code";
+        Setup: Record "ForNAV Peppol Setup";
         SendContext: Codeunit SendContext;
         ForNAVAPIRequests: Codeunit "ForNAV API Requests";
         ReasonCodes: Page "Reason Codes";
         HttpRequest: HttpRequestMessage;
         HttpResponse: HttpResponseMessage;
     begin
-        if not EDocumentService.Get('FORNAV') then
+        if not Setup.GetEDocumentService(EDocumentService) then
             exit;
 
         EDocumentServiceStatus.Get(EDocument."Entry No", EDocumentService.Code);

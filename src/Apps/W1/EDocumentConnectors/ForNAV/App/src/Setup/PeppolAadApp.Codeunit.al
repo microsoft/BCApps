@@ -10,7 +10,7 @@ codeunit 6420 "ForNAV Peppol AAD App"
 
     var
         ClientIdTok: Label 'f04e6f6d-8b10-473f-98b1-3cd820b3c90f', Locked = true;
-        DescriptionLbl: Label 'Integration with ForNAV Peppol', Locked = true;
+        DescriptionLbl: Label 'Integration with ForNAV Peppol';
 
 
     procedure CreateAADApplication(deleteIfExist: Boolean)
@@ -50,7 +50,7 @@ codeunit 6420 "ForNAV Peppol AAD App"
         OAuth2: Codeunit OAuth2;
         HasGrantConsentSucceeded: Boolean;
         PermissionGrantError: Text;
-        ConsentFailedErr: Label 'Failed to give consent', Locked = true;
+        ConsentFailedErr: Label 'Failed to give consent';
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit;

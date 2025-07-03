@@ -3,8 +3,8 @@ namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 using System.Environment;
 using System.Azure.Identity;
 using System.Security.AccessControl;
-using System.Reflection;
 using Microsoft.eServices.EDocument.Integration.Send;
+using System.Reflection;
 
 codeunit 6422 "ForNAV Peppol Oauth"
 {
@@ -25,7 +25,7 @@ codeunit 6422 "ForNAV Peppol Oauth"
         EndpointKeyLbl: Label 'EndpointKey', Locked = true;
         SecretValidFromKeyLbl: Label 'SecretValidFromKey', Locked = true;
         SecretValidToKeyLbl: Label 'SecretValidToKey', Locked = true;
-        InvalidCLientIdErr: Label 'Invalid client id. Contact your ForNAV partner.', Locked = true;
+        InvalidCLientIdErr: Label 'Invalid client id. Contact your ForNAV partner.';
 
 
 
@@ -296,7 +296,7 @@ codeunit 6422 "ForNAV Peppol Oauth"
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
         EndpointLbl: Label '%1Test', Locked = true;
-        HttpErrLbl: Label 'Http error: %1\Reason: %2', Comment = '%1= statuscode %2= reasonphrase', Locked = true;
+        HttpErr: Label 'Http error: %1\Reason: %2', Comment = '%1= statuscode %2= reasonphrase';
     begin
         Setup.ClearAccessToken();
         if GetClientID() = '' then
@@ -311,7 +311,7 @@ codeunit 6422 "ForNAV Peppol Oauth"
 
         HttpResponseMessage := SendContex.Http().GetHttpResponseMessage();
         if GetLastErrorText() = '' then
-            Error(HttpErrLbl, HttpResponseMessage.HttpStatusCode, HttpResponseMessage.ReasonPhrase)
+            Error(HttpErr, HttpResponseMessage.HttpStatusCode, HttpResponseMessage.ReasonPhrase)
         else
             Error(GetLastErrorText());
     end;
@@ -359,8 +359,8 @@ codeunit 6422 "ForNAV Peppol Oauth"
         HttpResponseMessage: HttpResponseMessage;
         HashText: Text;
         Response: Text;
-        jObject: JsonObject;
-        jToken: JsonToken;
+        ResponseObject: JsonObject;
+        Token: JsonToken;
     begin
         HttpRequestMessage.SetRequestUri(GetPeppolSetupURL() + RequestConfigFileLbl);
 
@@ -373,25 +373,25 @@ codeunit 6422 "ForNAV Peppol Oauth"
             exit(false);
 
         HttpResponseMessage.Content.ReadAs(Response);
-        if not jObject.ReadFrom(Response) then
+        if not ResponseObject.ReadFrom(Response) then
             Error(HttpResponseMessage.ReasonPhrase);
 
-        jObject.Get('hash', jToken);
-        HashText := jToken.AsValue().AsText();
+        ResponseObject.Get('hash', Token);
+        HashText := Token.AsValue().AsText();
         PeppolCrypto.TestHash(HashText, StrSubstNo('%1-%2', CompanyName, IdentificationValue), GetInstallationId());
 
-        jObject.Get('clientId', jToken);
-        ValidateClientId(jToken.AsValue().AsText());
-        jObject.Get('clientSecret', jToken);
-        ValidateSecret(jToken.AsValue().AsText());
-        jObject.Get('scope', jToken);
-        ValidateScope(jToken.AsValue().AsText());
-        jObject.Get('endpoint', jToken);
-        ValidateEndpoint(jToken.AsValue().AsText(), false);
-        jObject.Get('tenantId', jToken);
-        ValidateForNAVTenantID(jToken.AsValue().AsText());
-        jObject.Get('expires', jToken);
-        ValidateSecretValidTo(jToken.AsValue().AsDateTime());
+        ResponseObject.Get('clientId', Token);
+        ValidateClientId(Token.AsValue().AsText());
+        ResponseObject.Get('clientSecret', Token);
+        ValidateSecret(Token.AsValue().AsText());
+        ResponseObject.Get('scope', Token);
+        ValidateScope(Token.AsValue().AsText());
+        ResponseObject.Get('endpoint', Token);
+        ValidateEndpoint(Token.AsValue().AsText(), false);
+        ResponseObject.Get('tenantId', Token);
+        ValidateForNAVTenantID(Token.AsValue().AsText());
+        ResponseObject.Get('expires', Token);
+        ValidateSecretValidTo(Token.AsValue().AsDateTime());
         exit(true);
     end;
 
@@ -405,9 +405,9 @@ codeunit 6422 "ForNAV Peppol Oauth"
         AccessToken: SecretText;
         AccessTokenExpires: DateTime;
         Response: Text;
-        jObject: JsonObject;
-        jToken: JsonToken;
-        CannotRotateKeyErr: Label 'Cannot rotate key. Contact your ForNAV partner.\%1', Comment = '%1 = reason', Locked = true;
+        ResponseObject: JsonObject;
+        Token: JsonToken;
+        CannotRotateKeyErr: Label 'Cannot rotate key. Contact your ForNAV partner.\%1', Comment = '%1 = reason';
     begin
         HttpRequestMessage.SetRequestUri(GetPeppolSetupURL() + RotateSecretLbl);
 
@@ -425,17 +425,17 @@ codeunit 6422 "ForNAV Peppol Oauth"
             error(CannotRotateKeyErr, HttpResponseMessage.ReasonPhrase);
 
         HttpResponseMessage.Content.ReadAs(Response);
-        if not jObject.ReadFrom(Response) then
+        if not ResponseObject.ReadFrom(Response) then
             Error(HttpResponseMessage.ReasonPhrase);
 
-        jObject.Get('clientId', jToken);
-        if GetClientID() <> jToken.AsValue().AsText() then
+        ResponseObject.Get('clientId', Token);
+        if GetClientID() <> Token.AsValue().AsText() then
             Error(InvalidCLientIdErr);
 
-        jObject.Get('clientSecret', jToken);
-        ValidateSecret(jToken.AsValue().AsText());
-        jObject.Get('expires', jToken);
-        ValidateSecretValidTo(jToken.AsValue().AsDateTime());
+        ResponseObject.Get('clientSecret', Token);
+        ValidateSecret(Token.AsValue().AsText());
+        ResponseObject.Get('expires', Token);
+        ValidateSecretValidTo(Token.AsValue().AsDateTime());
         exit(true);
     end;
 
@@ -473,9 +473,9 @@ codeunit 6422 "ForNAV Peppol Oauth"
         AccessToken: SecretText;
         AccessTokenExpires: DateTime;
         Response: Text;
-        jObject: JsonObject;
-        jToken: JsonToken;
-        CannotSwapEndpointErr: Label 'Cannot swap endpoint. Contact your ForNAV partner.\%1', Comment = '%1 = reason', Locked = true;
+        ResponseObject: JsonObject;
+        Token: JsonToken;
+        CannotSwapEndpointErr: Label 'Cannot swap endpoint. Contact your ForNAV partner.\%1', Comment = '%1 = reason';
     begin
         case true of
             GetEndpoint() = NewEndpoint,
@@ -500,17 +500,17 @@ codeunit 6422 "ForNAV Peppol Oauth"
             error(CannotSwapEndpointErr, HttpResponseMessage.ReasonPhrase);
 
         HttpResponseMessage.Content.ReadAs(Response);
-        if not jObject.ReadFrom(Response) then
+        if not ResponseObject.ReadFrom(Response) then
             Error(HttpResponseMessage.ReasonPhrase);
 
-        jObject.Get('clientId', jToken);
-        if GetClientID() <> jToken.AsValue().AsText() then
+        ResponseObject.Get('clientId', Token);
+        if GetClientID() <> Token.AsValue().AsText() then
             Error(InvalidCLientIdErr);
 
-        jObject.Get('endpoint', jToken);
-        ValidateEndpoint(jToken.AsValue().AsText(), false);
-        jObject.Get('scope', jToken);
-        ValidateScope(jToken.AsValue().AsText());
+        ResponseObject.Get('endpoint', Token);
+        ValidateEndpoint(Token.AsValue().AsText(), false);
+        ResponseObject.Get('scope', Token);
+        ValidateScope(Token.AsValue().AsText());
         exit(true);
     end;
 

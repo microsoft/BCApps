@@ -15,7 +15,7 @@ codeunit 6424 "ForNAV Peppol Setup"
         AccessTokenExpires: DateTime;
         InitCalled: Boolean;
         License: Text;
-        jLicense: JsonObject;
+        LicenseObject: JsonObject;
 
     internal procedure NotificationLink(Notification: Notification)
     var
@@ -63,7 +63,7 @@ codeunit 6424 "ForNAV Peppol Setup"
     begin
         if License = '' then
             InitLicens();
-        exit(jLicense);
+        exit(LicenseObject);
     end;
 
     internal procedure GetLicense(): Text
@@ -162,10 +162,10 @@ codeunit 6424 "ForNAV Peppol Setup"
         Plan: Query Plan;
         UsersInPlans: Query "Users in Plans";
         UserCount: Integer;
-        jPlans: JsonObject;
+        PlansObject: JsonObject;
         AppModuleInfo: ModuleInfo;
     begin
-        Clear(jLicense);
+        Clear(LicenseObject);
         Plan.Open();
         while Plan.Read() do begin
             UserCount := 0;
@@ -173,25 +173,24 @@ codeunit 6424 "ForNAV Peppol Setup"
             UsersInPlans.Open();
             while UsersInPlans.Read() do
                 UserCount += 1;
-            if (UserCount <> 0) and not jPlans.Keys.Contains(Plan.Plan_Name) then
-                jPlans.Add(Plan.Plan_Name, UserCount);
+            if (UserCount <> 0) and not PlansObject.Keys.Contains(Plan.Plan_Name) then
+                PlansObject.Add(Plan.Plan_Name, UserCount);
         end;
-        jLicense.Add('plans', jPlans);
+        LicenseObject.Add('plans', PlansObject);
         if EnvironmentInformation.IsSaaSInfrastructure() then begin
-            jLicense.Add('AadTenantDomainName', AzureADTenant.GetAadTenantDomainName());
-            jLicense.Add('AadTenantId', AzureADTenant.GetAadTenantId());
-            jLicense.Add('TenantId', TenantInformation.GetTenantId());
-            jLicense.Add('TenantDisplayName', TenantInformation.GetTenantDisplayName());
-            jLicense.Add('IsSandbox', EnvironmentInformation.IsSandbox());
-            jLicense.Add('IsProduction', EnvironmentInformation.IsProduction());
-            jLicense.Add('EnvironmentName', EnvironmentInformation.GetEnvironmentName());
+            LicenseObject.Add('AadTenantDomainName', AzureADTenant.GetAadTenantDomainName());
+            LicenseObject.Add('AadTenantId', AzureADTenant.GetAadTenantId());
+            LicenseObject.Add('TenantId', TenantInformation.GetTenantId());
+            LicenseObject.Add('TenantDisplayName', TenantInformation.GetTenantDisplayName());
+            LicenseObject.Add('IsSandbox', EnvironmentInformation.IsSandbox());
+            LicenseObject.Add('IsProduction', EnvironmentInformation.IsProduction());
+            LicenseObject.Add('EnvironmentName', EnvironmentInformation.GetEnvironmentName());
         end else
-            jLicense.Add('SerialNumber', Database.SerialNumber);
-        if NavApp.GetModuleInfo('63ca2fa4-4f03-4f2b-a480-172fef340d3f', AppModuleInfo) then
-            jLicense.Add('AppVersion', Format(AppModuleInfo.AppVersion));
+            LicenseObject.Add('SerialNumber', Database.SerialNumber);
         NavApp.GetCurrentModuleInfo(AppModuleInfo);
-        jLicense.Add('CurrAppVersion', Format(AppModuleInfo.AppVersion));
+        LicenseObject.Add('AppVersion', Format(AppModuleInfo.AppVersion));
+        LicenseObject.Add('CurrAppVersion', Format(AppModuleInfo.AppVersion));
 
-        jLicense.WriteTo(License);
+        LicenseObject.WriteTo(License);
     end;
 }

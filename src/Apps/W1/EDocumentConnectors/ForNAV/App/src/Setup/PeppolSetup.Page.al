@@ -1,5 +1,4 @@
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
-
 using System.EMail;
 using System.Utilities;
 using Microsoft.eServices.EDocument;
@@ -30,53 +29,57 @@ page 6413 "ForNAV Peppol Setup"
                 field(Code; Rec."Identification Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the Identification Code.', Locked = true;
                 }
                 field(Value; Rec."Identification Value")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the Identification Value.', Locked = true;
                 }
                 field(Test; Rec.Test)
                 {
                     Caption = 'Test';
                     ApplicationArea = All;
-                    ToolTip = 'Specifies if the setup is for testing purposes.', Locked = true;
                     Editable = not Rec."Demo Company";
                 }
             }
             group("Business Card")
             {
                 Editable = Rec.Status <> Rec.Status::Published;
-                Caption = 'Business Card', Locked = true;
+                Caption = 'Business Card';
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the name of the company.', Locked = true;
                 }
 
                 field(Address; Rec.Address)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the address of the company.', Locked = true;
                 }
 
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the country/region code of the company.', Locked = true;
                 }
 
                 field(Language; Rec.Language)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the two letter ISO 639-1 language code', Locked = true;
                 }
 
                 field("Home Page"; Rec."Home Page")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the home page of the company.', Locked = true;
+                }
+            }
+            group(Defaults)
+            {
+                Caption = 'Defaults';
+                field("E-Document Service"; Rec."E-Document Service")
+                {
+                    ApplicationArea = All;
+                }
+                field("Document Sending Profile"; Rec."Document Sending Profile")
+                {
+                    ApplicationArea = All;
                 }
             }
             group(ConnectionSetup)
@@ -84,10 +87,10 @@ page 6413 "ForNAV Peppol Setup"
                 Caption = 'Connection Setup';
                 field(ClientId; ClientId)
                 {
-                    Caption = 'Client Id', Locked = true;
+                    Caption = 'Client Id';
+                    ToolTip = 'Specifies the Oauth Client Id. You can get this from your ForNAV partner.';
                     ApplicationArea = All;
                     Editable = ShowConnectionSetup;
-                    ToolTip = 'Specifies the Oauth Client Id. You can get this from your ForNAV partner.';
 
                     trigger OnValidate()
                     begin
@@ -96,10 +99,9 @@ page 6413 "ForNAV Peppol Setup"
                 }
                 field(PeppolEndpoint; PeppolEndpoint)
                 {
-                    Caption = 'Peppol Endpoint', Locked = true;
-                    ApplicationArea = All;
-                    Editable = ShowConnectionSetup;
+                    Caption = 'Peppol Endpoint';
                     ToolTip = 'Specifies the Peppol Endpoint. You can get this from your ForNAV partner.';
+                    ApplicationArea = All;
 
                     trigger OnValidate()
                     begin
@@ -108,7 +110,7 @@ page 6413 "ForNAV Peppol Setup"
                 }
                 field(ForNAVTenantId; ForNAVTenantId)
                 {
-                    Caption = 'ForNAV Tenant Id', Locked = true;
+                    Caption = 'ForNAV Tenant Id';
                     ApplicationArea = All;
                     ToolTip = 'Specifies the Oauth Tenant Id. You can get this from your ForNAV partner.';
                     Visible = ShowConnectionSetup;
@@ -121,7 +123,7 @@ page 6413 "ForNAV Peppol Setup"
                 }
                 field(ClientSecret; ClientSecret)
                 {
-                    Caption = 'Client Secret', Locked = true;
+                    Caption = 'Client Secret';
                     ApplicationArea = All;
                     ToolTip = 'Specifies the Oauth Client Secret. You can get this from your ForNAV partner.';
                     ExtendedDatatype = Masked;
@@ -135,7 +137,7 @@ page 6413 "ForNAV Peppol Setup"
                 }
                 field(Scope; Scope)
                 {
-                    Caption = 'Scope', Locked = true;
+                    Caption = 'Scope';
                     ApplicationArea = All;
                     ToolTip = 'Specifies the Oauth Scope. You can get this from your ForNAV partner.';
                     ExtendedDatatype = Masked;
@@ -149,18 +151,16 @@ page 6413 "ForNAV Peppol Setup"
                 }
                 field(SecretValidFrom; SecretValidFrom)
                 {
-                    Caption = 'Secret Valid From', Locked = true;
+                    Caption = 'Secret Valid From';
                     ApplicationArea = All;
                     ToolTip = 'Specifies the Oauth Secret Valid From. The secret will renew automatically, if a secret is expired please contact your ForNAV partner.';
                     Editable = false;
-                    Visible = ShowConnectionSetup;
                 }
                 field(SecretValidTo; SecretValidTo)
                 {
-                    Caption = 'Secret Expiration', Locked = true;
+                    Caption = 'Secret Expiration';
                     ApplicationArea = All;
                     ToolTip = 'Specifies the Oauth Secret Expiration. The secret will renew automatically, if a secret is expired please contact your ForNAV partner.';
-                    Visible = ShowConnectionSetup;
                     Editable = false;
                     trigger OnValidate()
                     begin
@@ -189,7 +189,7 @@ page 6413 "ForNAV Peppol Setup"
             {
                 ApplicationArea = All;
                 Enabled = not Rec.Authorized;
-                Caption = 'Authorize', Locked = true;
+                Caption = 'Authorize';
                 Image = ApprovalSetup;
                 ToolTip = 'Authorize the company to use the ForNAV Peppol endpoints.';
                 trigger OnAction()
@@ -211,12 +211,13 @@ page 6413 "ForNAV Peppol Setup"
             {
                 ApplicationArea = All;
                 Enabled = Rec.Authorized and (Rec.Status = Rec.Status::"Not published");
-                Caption = 'Publish', Locked = true;
+                Caption = 'Publish';
                 Image = Approve;
                 ToolTip = 'Publish the company to the ForNAV Peppol SMP.';
                 trigger OnAction()
                 var
                     SMP: Codeunit "ForNAV Peppol SMP";
+                    PeppolJobQueue: Codeunit "ForNAV Peppol Job Queue";
                 begin
                     if not Rec.TermsAccepted and Rec.PublishMsg.HasValue then
                         if not Confirm(Rec.GetPublishMsg(), true) then
@@ -224,8 +225,7 @@ page 6413 "ForNAV Peppol Setup"
 
                     Rec.TermsAccepted := true;
                     SMP.CreateParticipant(Rec);
-                    if (Rec.Status = Rec.Status::Published) and Rec.IsTest() then
-                        CreateTestSetup();
+                    PeppolJobQueue.SetupJobQueue();
                 end;
             }
             action(CompanyInformationFld)
@@ -233,8 +233,8 @@ page 6413 "ForNAV Peppol Setup"
                 Enabled = Rec.Status <> Rec.Status::Published;
                 ApplicationArea = All;
                 Image = CompanyInformation;
-                Caption = 'Edit Company Information', Locked = true;
-                ToolTip = 'Edit company information', Locked = true;
+                Caption = 'Edit Company Information';
+                ToolTip = 'Edit company information';
                 trigger OnAction()
                 begin
                     if Page.RunModal(Page::"Company Information") = Action::LookupOK then begin
@@ -253,8 +253,8 @@ page 6413 "ForNAV Peppol Setup"
                 ToolTip = 'Test the connection to the ForNAV Peppol endpoints.';
                 trigger OnAction()
                 var
-                    ConnectionFailedErr: Label 'Connection failed', Locked = true;
-                    ConnectionOkMsg: Label 'Connection succeeded', Locked = true;
+                    ConnectionFailedErr: Label 'Connection failed';
+                    ConnectionOkMsg: Label 'Connection succeeded';
                 begin
                     if not PeppolOauth.TestOAuth() then
                         Error(ConnectionFailedErr);
@@ -272,15 +272,14 @@ page 6413 "ForNAV Peppol Setup"
                 ToolTip = 'Gets a new client secret and deletes the old one. May take a long time to run.';
                 trigger OnAction()
                 var
-                    SureQst: Label 'Are you sure you want to rotate the client secret? This process may run a long time and will delete the old secret.', Locked = true;
-                    CannotRotateErr: Label 'Cannot rotate secret if it is less than one week old.', Locked = true;
+                    SureQst: Label 'Are you sure you want to rotate the client secret? This process may run a long time and will delete the old secret.';
+                    CannotRotateErr: Label 'Cannot rotate secret if it is less than one week old.';
                 begin
                     if PeppolOauth.GetSecretValidFrom() > CreateDateTime(CalcDate('<-1w>', Today), Time) then
                         Error(CannotRotateErr);
 
                     if not Confirm(SureQst) then
                         exit;
-
                     Rec.RotateClientSecret();
                     CurrPage.Update();
                 end;
@@ -289,17 +288,27 @@ page 6413 "ForNAV Peppol Setup"
             {
                 ApplicationArea = All;
                 Image = ServiceSetup;
-                Caption = 'Service Setup', Locked = true;
-                RunPageView = where(Code = const('FORNAV'));
-                RunObject = page "E-Document Service";
+                Caption = 'Service Setup';
                 ToolTip = 'Setup the E-Document service for the company.';
+
+                trigger OnAction()
+                var
+                    EDocumentService: Record "E-Document Service";
+                    Setup: Record "ForNAV Peppol Setup";
+                begin
+                    if not Setup.GetEDocumentService(EDocumentService) then
+                        exit;
+
+                    EDocumentService.SetRecFilter();
+                    Page.Run(Page::"E-Document Service", EDocumentService);
+                end;
             }
             action(OrderLicense)
             {
                 ApplicationArea = All;
                 Visible = Rec.Status = Rec.Status::Unlicensed;
                 Image = MakeOrder;
-                Caption = 'Order License', Locked = true;
+                Caption = 'Order License';
                 ToolTip = 'Send mail to order a license from ForNAV';
                 trigger OnAction()
                 begin
@@ -309,18 +318,18 @@ page 6413 "ForNAV Peppol Setup"
             action(Roles)
             {
                 ApplicationArea = All;
-                Visible = Rec.Authorized;
+                Visible = false;
                 Image = Permission;
-                Caption = 'Roles', Locked = true;
+                Caption = 'Roles';
                 ToolTip = 'Setup the roles for the ForNAV Peppol setup.';
                 RunObject = page "ForNAV Peppol Roles";
             }
-            Action(RecreateJobQueue)
+            action(RecreateJobQueue)
             {
                 ApplicationArea = All;
                 Visible = Rec.Authorized;
                 Image = Task;
-                Caption = 'Recreate Job Queue', Locked = true;
+                Caption = 'Recreate Job Queue';
                 ToolTip = 'Recreate the job queue for the ForNAV Peppol setup.';
                 trigger OnAction()
                 var
@@ -333,7 +342,7 @@ page 6413 "ForNAV Peppol Setup"
             {
                 ApplicationArea = All;
                 Enabled = (Rec.Status = Rec.Status::Published) or (Rec.Status = Rec.Status::"Published in another company or installation");
-                Caption = 'Unpublish', Locked = true;
+                Caption = 'Unpublish';
                 Image = Undo;
                 ToolTip = 'Unpublish the company from the ForNAV Peppol SMP.';
                 trigger OnAction()
@@ -352,7 +361,7 @@ page 6413 "ForNAV Peppol Setup"
                 ToolTip = 'Unauthorize the company to use the ForNAV Peppol endpoints.';
                 trigger OnAction()
                 var
-                    SureQst: Label 'Are you sure you want to reset the setup request? You will need to redo the authorization setup. Too many setup requests may result in blocked service.', Locked = true;
+                    SureQst: Label 'Are you sure you want to reset the setup request? You will need to redo the authorization setup. Too many setup requests may result in blocked service.';
                 begin
                     if not Confirm(SureQst) then
                         exit;
@@ -376,7 +385,7 @@ page 6413 "ForNAV Peppol Setup"
         SecretValidTo: DateTime;
         ShowConnectionSetup: Boolean;
         EnableUnauthorize: Boolean;
-        AuthorizeLbl: Label 'Please Authorize', Locked = true;
+        AuthorizeLbl: Label 'Please Authorize';
 
     trigger OnInit()
     begin
@@ -416,12 +425,12 @@ page 6413 "ForNAV Peppol Setup"
         TempBlob: Codeunit "Temp Blob";
         AzureADTenant: Codeunit "Azure AD Tenant";
         EnvironmentInformation: Codeunit "Environment Information";
-        BodyText: BigText;
+        BodyText: TextBuilder;
         OutStr: OutStream;
         InStr: InStream;
         CRLF: Text;
-        BodyTextLbl: Label 'Please order a license for %1 %2', Locked = true;
-        Attachment: JsonObject;
+        BodyTextLbl: Label 'Please order a license for %1 %2', Comment = '%1 = AadTenantId %2 = SerialNumber';
+        AttachmentObject: JsonObject;
     begin
         CompanyInformation.Get();
         if not Country.Get(CompanyInformation.GetCompanyCountryRegionCode()) then
@@ -431,26 +440,26 @@ page 6413 "ForNAV Peppol Setup"
         TempEmailItem."Plaintext Formatted" := true;
 
         CRLF := '</br></br>';
-        BodyText.AddText('Hi' + CRLF);
+        BodyText.AppendLine('Hi' + CRLF);
 
         if EnvironmentInformation.IsSaaSInfrastructure() then
-            BodyText.AddText(StrSubstNo(BodyTextLbl, 'AadTenantId', AzureADTenant.GetAadTenantId()) + CRLF)
+            BodyText.AppendLine(StrSubstNo(BodyTextLbl, 'AadTenantId', AzureADTenant.GetAadTenantId()) + CRLF)
         else
-            BodyText.AddText(StrSubstNo(BodyTextLbl, 'SerialNumber', Database.SerialNumber) + CRLF);
+            BodyText.AppendLine(StrSubstNo(BodyTextLbl, 'SerialNumber', Database.SerialNumber) + CRLF);
 
-        BodyText.AddText('Participant ID ' + Rec.PeppolId() + CRLF);
-        BodyText.AddText(CompanyInformation.Name + CRLF);
-        BodyText.AddText(CompanyInformation.Address + CRLF);
-        BodyText.AddText(CompanyInformation."Post Code" + ' ' + CompanyInformation.City + CRLF);
-        BodyText.AddText(Country.Name + CRLF);
-        BodyText.AddText(CompanyInformation.GetVATRegistrationNumber() + CRLF);
+        BodyText.AppendLine('Participant ID ' + Rec.PeppolId() + CRLF);
+        BodyText.AppendLine(CompanyInformation.Name + CRLF);
+        BodyText.AppendLine(CompanyInformation.Address + CRLF);
+        BodyText.AppendLine(CompanyInformation."Post Code" + ' ' + CompanyInformation.City + CRLF);
+        BodyText.AppendLine(Country.Name + CRLF);
+        BodyText.AppendLine(CompanyInformation.GetVATRegistrationNumber() + CRLF);
 
         TempEmailItem.SetBodyText(Format(BodyText));
 
-        Attachment.Add('BusinessEntity', Rec.CreateBusinessEntity());
-        Attachment.Add('License', Setup.GetJLicense());
+        AttachmentObject.Add('BusinessEntity', Rec.CreateBusinessEntity());
+        AttachmentObject.Add('License', Setup.GetJLicense());
         TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
-        Attachment.WriteTo(OutStr);
+        AttachmentObject.WriteTo(OutStr);
         TempBlob.CreateInStream(InStr, TextEncoding::UTF8);
         TempEmailItem.AddAttachment(InStr, 'license.json');
 
@@ -476,11 +485,5 @@ page 6413 "ForNAV Peppol Setup"
     begin
         if Rec.Authorized then
             exit('********');
-    end;
-
-    [BusinessEvent(false)]
-    procedure CreateTestSetup()
-    begin
-
     end;
 }

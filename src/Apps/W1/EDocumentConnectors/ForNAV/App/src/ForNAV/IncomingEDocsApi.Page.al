@@ -2,18 +2,17 @@ namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using System.Threading;
 using Microsoft.EServices.EDocument;
-
 page 6417 "ForNAV Incoming E-Docs Api"
 {
     PageType = API;
     APIPublisher = 'microsoft';
+    EntityName = 'eDocConnectorForNav';
+    EntitySetName = 'eDocConnectorsForNav';
     APIGroup = 'peppol';
     APIVersion = 'v1.0';
-    EntityName = 'eDoc';
-    EntitySetName = 'eDocs';
     SourceTable = "ForNAV Incoming E-Document";
     DelayedInsert = true;
-    Caption = 'ForNavPeppolE-Doc', Locked = true;
+    Caption = 'ForNavPeppolE-Doc';
     InsertAllowed = true;
     DeleteAllowed = false;
     ModifyAllowed = false;
@@ -110,6 +109,7 @@ page 6417 "ForNAV Incoming E-Docs Api"
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     var
         EDocumentService: Record "E-Document Service";
+        Setup: Record "ForNAV Peppol Setup";
         BlankRecordId: RecordId;
         DocOs, MessageOs : OutStream;
     begin
@@ -122,7 +122,7 @@ page 6417 "ForNAV Incoming E-Docs Api"
                     SetErrorMessage(Message);
             Rec.DocType::Invoice, Rec.DocType::CreditNote:
                 begin
-                    if not EDocumentService.Get('FORNAV') then
+                    if not Setup.GetEDocumentService(EDocumentService) then
                         exit(false);
 
                     if not ScheduleJob(6147, EDocumentService.RecordId()) then // Codeunit::"E-Document Import Job"

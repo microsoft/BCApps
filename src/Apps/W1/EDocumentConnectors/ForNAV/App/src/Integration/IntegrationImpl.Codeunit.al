@@ -21,6 +21,7 @@ codeunit 6418 "ForNAV Integration Impl." implements IDocumentSender, IDocumentRe
 
     procedure GetResponse(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; SendContext: Codeunit SendContext): Boolean
     begin
+        // Use a dummy label because the URL is mandatory but we don't use it
         SendContext.Http().GetHttpRequestMessage().SetRequestUri('https://GetResponse');
         exit(ForNAVProcessing.GetResponse(EDocument, SendContext));
     end;
@@ -49,11 +50,13 @@ codeunit 6418 "ForNAV Integration Impl." implements IDocumentSender, IDocumentRe
     procedure GetApprovalStatus(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; ActionContext: Codeunit ActionContext): Boolean
     begin
         ActionContext.Http().GetHttpRequestMessage().SetRequestUri('https://GetApprovalStatus');
+        // Use a dummy label because the URL is mandatory but we don't use it
         exit(ForNAVProcessing.GetDocumentApproval(EDocument) = "ForNAV Incoming E-Doc Status"::Approved);
     end;
 
     procedure GetCancellationStatus(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; ActionContext: Codeunit ActionContext): Boolean
     begin
+        // Use a dummy label because the URL is mandatory but we don't use it
         ActionContext.Http().GetHttpRequestMessage().SetRequestUri('https://GetCancellationStatus');
         exit(ForNAVProcessing.GetDocumentApproval(EDocument) = "ForNAV Incoming E-Doc Status"::Rejected);
     end;
@@ -61,7 +64,7 @@ codeunit 6418 "ForNAV Integration Impl." implements IDocumentSender, IDocumentRe
     procedure ObtainPrivacyConsent(): Boolean
     var
         CustConsentMgt: Codeunit "Customer Consent Mgt.";
-        CustomConsentMessageLbl: Label 'Please agree to the ForNAV EULA: https://www.fornav.com/documents/EULA.pdf', Locked = true;
+        CustomConsentMessageLbl: Label 'Please agree to the ForNAV EULA: https://www.fornav.com/documents/EULA.pdf';
     begin
         exit(CustConsentMgt.ConfirmCustomConsent(CustomConsentMessageLbl));
     end;

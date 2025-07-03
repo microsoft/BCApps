@@ -4,14 +4,14 @@ page 6411 "ForNAV Peppol Oauth API"
 {
     PageType = API;
     APIPublisher = 'microsoft';
+    EntityName = 'peppolOauthForNav';
+    EntitySetName = 'peppolOauthsForNav';
     APIGroup = 'peppol';
     APIVersion = 'v1.0';
-    EntityName = 'peppolOauth';
-    EntitySetName = 'peppolOauths';
     SourceTable = "ForNAV Peppol Setup";
     SourceTableTemporary = true;
     DelayedInsert = true;
-    Caption = 'ForNavPeppolOauth', Locked = true;
+    Caption = 'ForNavPeppolOauth';
     Extensible = false;
 
     layout

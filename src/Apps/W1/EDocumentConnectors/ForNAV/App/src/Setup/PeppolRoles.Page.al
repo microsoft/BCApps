@@ -1,5 +1,4 @@
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
-
 page 6412 "ForNAV Peppol Roles"
 {
     PageType = List;
@@ -20,7 +19,6 @@ page 6412 "ForNAV Peppol Roles"
                 field(Role; Rec.Role)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the roles that you have on the ForNAV Peppol network.';
                 }
             }
         }

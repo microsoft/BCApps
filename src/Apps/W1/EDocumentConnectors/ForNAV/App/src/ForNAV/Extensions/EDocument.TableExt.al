@@ -1,4 +1,4 @@
-namespace ForNAV;
+namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using Microsoft.EServices.EDocument;
 tableextension 6412 "ForNAV EDocument" extends "E-Document"
@@ -9,7 +9,8 @@ tableextension 6412 "ForNAV EDocument" extends "E-Document"
         {
             Access = Internal;
             DataClassification = CustomerContent;
-            Caption = 'ForNAV Edocument ID', Locked = true;
+            Caption = 'ForNAV Edocument ID';
+            ToolTip = 'Specifies the ForNAV E-Document ID.';
         }
     }
     internal procedure DocumentLog() Log: Record "E-Document Integration Log";
@@ -17,11 +18,13 @@ tableextension 6412 "ForNAV EDocument" extends "E-Document"
         Log.SetRange(Log."E-Doc. Entry No", Rec."Entry No");
         if Rec.Direction = Rec.Direction::Outgoing then begin
             Log.SetRange(Method, 'POST');
+            // Use a dummy label because the URL is mandatory but we don't use it
             Log.SetRange("Request URL", 'https://sendfilepostrequest/');
             if not Log.FindLast() then
                 Clear(Log);
         end else begin
             Log.SetRange(Method, 'GET');
+            // Use a dummy label because the URL is mandatory but we don't use it
             Log.SetRange("Request URL", 'https://gettargetdocumentrequest/');
             if not Log.FindLast() then
                 Clear(Log);

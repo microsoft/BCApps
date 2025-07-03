@@ -1,5 +1,4 @@
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
-
 using System.Threading;
 using System.Environment;
 using System.Security.User;
@@ -41,7 +40,7 @@ codeunit 6412 "ForNAV Peppol Job Queue"
     local procedure SetupJobQueueCategory()
     var
         JobQueueCategory: Record "Job Queue Category";
-        JobQueueDescriptionLbl: Label 'ForNAV Job Queue', Locked = true;
+        JobQueueDescriptionLbl: Label 'ForNAV Job Queue';
     begin
         if JobQueueCategory.Get(GetForNAVCategoryCode()) then
             exit;
@@ -56,7 +55,7 @@ codeunit 6412 "ForNAV Peppol Job Queue"
         JobQueueEntry: Record "Job Queue Entry";
         Enqueue: Codeunit "Job Queue - Enqueue";
         EnvironmentInformation: Codeunit "Environment Information";
-        JobQueueDescriptionLbl: Label 'Used by ForNAV to process incoming e-documents', Locked = true;
+        JobQueueDescriptionLbl: Label 'Used by ForNAV to process incoming e-documents';
     begin
         JobQueueEntry.SetRange("Job Queue Category Code", GetForNAVCategoryCode());
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
@@ -78,13 +77,13 @@ codeunit 6412 "ForNAV Peppol Job Queue"
         JobQueueEntry.Validate("Run on Saturdays", true);
         JobQueueEntry.Validate("Run on Sundays", true);
 
-        JobQueueEntry."No. of Minutes between Runs" := EnvironmentInformation.IsSaaSInfrastructure() ? 1 : 60;
+        JobQueueEntry."No. of Minutes between Runs" := EnvironmentInformation.IsSaaSInfrastructure() ? 30 : 60;
         Enqueue.Run(JobQueueEntry);
     end;
 
     internal procedure GetForNAVCategoryCode() Result: Code[10]
     var
-        JobQueueCategoryLbl: Label 'ForNAV', Locked = true;
+        JobQueueCategoryLbl: Label 'FORNAV', Locked = true;
     begin
         Result := CopyStr(JobQueueCategoryLbl, 1, MaxStrLen(Result));
     end;

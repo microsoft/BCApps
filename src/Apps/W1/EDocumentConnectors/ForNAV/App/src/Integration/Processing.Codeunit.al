@@ -159,19 +159,19 @@ codeunit 6419 "ForNAV Processing"
 
     procedure ParseJsonString(HttpContentResponse: HttpContent): Text
     var
-        ResponseJObject: JsonObject;
-        ResponseJson: Text;
+        ResponseObject: JsonObject;
+        Response: Text;
         Result: Text;
         IsJsonResponse: Boolean;
     begin
         HttpContentResponse.ReadAs(Result);
-        IsJsonResponse := ResponseJObject.ReadFrom(Result);
+        IsJsonResponse := ResponseObject.ReadFrom(Result);
         if IsJsonResponse then
-            ResponseJObject.WriteTo(ResponseJson)
+            ResponseObject.WriteTo(Response)
         else
             exit('');
 
-        if not TryInitJson(ResponseJson) then
+        if not TryInitJson(Response) then
             exit('');
 
         exit(Result);
@@ -187,6 +187,7 @@ codeunit 6419 "ForNAV Processing"
 
     procedure GetDocument(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; DocumentMetadata: codeunit "Temp Blob"; ReceiveContext: Codeunit ReceiveContext)
     var
+        Setup: Record "ForNAV Peppol Setup";
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
         DocumentOutStream: OutStream;
@@ -212,14 +213,16 @@ codeunit 6419 "ForNAV Processing"
         FetchDocument(EDocument, EDocumentService, DocumentId);
 
         EDocument."ForNAV Edoc. ID" := CopyStr(DocumentId, 1, MaxStrLen(EDocument."ForNAV Edoc. ID"));
-        EDocument."Document Sending Profile" := 'FORNAV';
+        EDocument."Document Sending Profile" := Setup.GetDocumentSendingProfile();
         EDocument.Modify();
         EDocumentLogHelper.InsertLog(EDocument, EDocumentService, TempBlob, "E-Document Service Status"::Imported);
     end;
 
     local procedure GetEdocumentService() EDocumentService: Record "E-Document Service"
+    var
+        Setup: Record "ForNAV Peppol Setup";
     begin
-        if not EDocumentService.Get('FORNAV') then
+        if not Setup.GetEDocumentService(EDocumentService) then
             exit;
     end;
 
@@ -227,5 +230,5 @@ codeunit 6419 "ForNAV Processing"
         ForNAVConnection: Codeunit "ForNAV Connection";
         EDocumentLogHelper: Codeunit "E-Document Log Helper";
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
-        CouldNotRetrieveDocumentErr: Label 'Could not retrieve document with id: %1 from the service', Comment = '%1 - Document ID', Locked = true;
+        CouldNotRetrieveDocumentErr: Label 'Could not retrieve document with id: %1 from the service', Comment = '%1 - Document ID';
 }

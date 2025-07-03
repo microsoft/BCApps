@@ -40,58 +40,55 @@ page 6414 "ForNAV Peppol Setup Wizard"
             }
             group(Step1)
             {
-                Caption = 'Setup the ForNAV Peppol connector.', Locked = true;
+                Caption = 'Setup the ForNAV Peppol connector.';
                 Visible = Step1Visible;
-                InstructionalText = 'Set up the ForNAV Peppol connection.', Locked = true;
+                InstructionalText = 'Set up the ForNAV Peppol connection.';
                 group(welcome)
                 {
                     ShowCaption = false;
-                    InstructionalText = 'This wizard will help you to connect to the ForNAV Peppol network.', Locked = true;
+                    InstructionalText = 'This wizard will help you to connect to the ForNAV Peppol network.';
                 }
             }
             group(Step2)
             {
                 Visible = Step2Visible;
-                Caption = 'Grant Access', Locked = true;
-                InstructionalText = 'Step 1 - Grant Access.', Locked = true;
+                Caption = 'Grant Access';
+                InstructionalText = 'Step 1 - Grant Access.';
                 group(Go1)
                 {
                     ShowCaption = false;
-                    InstructionalText = 'In order to publish you need to give concent to allow for Incoming Pepol documents', Locked = true;
+                    InstructionalText = 'In order to publish you need to give concent to allow for Incoming Pepol documents';
                 }
                 group(AdminNote)
                 {
                     ShowCaption = false;
-                    InstructionalText = 'NOTE: You will be asked to log in as an ADMIN user on AZURE. It is not enough to be admin in Business Central.', Locked = true;
+                    InstructionalText = 'NOTE: You will be asked to log in as an ADMIN user on AZURE. It is not enough to be admin in Business Central.';
                 }
             }
             group(Step3)
             {
                 Visible = Step3Visible;
-                Caption = 'Oauth Setup', Locked = true;
-                InstructionalText = 'Step 2 - Oauth Setup.', Locked = true;
+                Caption = 'Oauth Setup';
+                InstructionalText = 'Step 2 - Oauth Setup.';
                 group(Go2)
                 {
                     ShowCaption = false;
-                    InstructionalText = 'We need some additional information so we can connect you to the ForNAV Peppol network.', Locked = true;
+                    InstructionalText = 'We need some additional information so we can connect you to the ForNAV Peppol network.';
                 }
                 field(CompanyName; Rec.Name)
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the company.';
                 }
                 field("Identification Code"; Rec."Identification Code")
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies the identification code of the company.';
                 }
                 field("Identification Value"; Rec."Identification Value")
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies the identification value of the company.';
                 }
                 field(SerialNumber; Database.SerialNumber())
                 {
@@ -128,25 +125,25 @@ page 6414 "ForNAV Peppol Setup Wizard"
                 {
                     ShowCaption = false;
                     Visible = not ManualSetupEnabled;
-                    InstructionalText = 'We will now add the Oauth keys so you can connect to the ForNAV Peppol network. This may take a while.', Locked = true;
+                    InstructionalText = 'We will now add the Oauth keys so you can connect to the ForNAV Peppol network. This may take a while.';
                 }
                 group(ManualOauthSetup)
                 {
                     ShowCaption = false;
                     Visible = ManualSetupEnabled;
-                    InstructionalText = 'We will now sned your information to ForNAV. When you have been approved you will receive an Oauth setup file so you can connect to the ForNAV Peppol network.', Locked = true;
+                    InstructionalText = 'We will now sned your information to ForNAV. When you have been approved you will receive an Oauth setup file so you can connect to the ForNAV Peppol network.';
                 }
             }
             group(Step4)
             {
                 Visible = Step4Visible;
-                InstructionalText = 'Step 3 - Upload setupfile.', Locked = true;
-                Caption = 'Done', Locked = true;
+                InstructionalText = 'Step 3 - Upload setupfile.';
+                Caption = 'Done';
                 group(Go3)
                 {
                     ShowCaption = false;
                     Visible = Rec.Authorized;
-                    InstructionalText = 'Please upload the setup file you have received.', Locked = true;
+                    InstructionalText = 'Please upload the setup file you have received.';
                 }
                 field(SetupPasscode; SetupPasscode)
                 {
@@ -163,19 +160,19 @@ page 6414 "ForNAV Peppol Setup Wizard"
             group(FinalStep)
             {
                 Visible = FinalStepVisible;
-                InstructionalText = 'Done - Test Setup.', Locked = true;
-                Caption = 'Done', Locked = true;
+                InstructionalText = 'Done - Test Setup.';
+                Caption = 'Done';
                 group(Go4)
                 {
                     ShowCaption = false;
                     Visible = Rec.Authorized;
-                    InstructionalText = 'That''s it, you are now ready to connect to the ForNAV Peppol network.', Locked = true;
+                    InstructionalText = 'That''s it, you are now ready to connect to the ForNAV Peppol network.';
                 }
                 group(Fault)
                 {
                     ShowCaption = false;
                     Visible = not Rec.Authorized;
-                    InstructionalText = 'We were unable to connect to the ForNAV Peppol network. Contact your ForNAV Partner for help.', Locked = true;
+                    InstructionalText = 'We were unable to connect to the ForNAV Peppol network. Contact your ForNAV Partner for help.';
                 }
                 field(ClientId; GetClientID())
                 {
@@ -188,7 +185,6 @@ page 6414 "ForNAV Peppol Setup Wizard"
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies if the Oauth setup has been tested.';
                 }
             }
         }
@@ -201,7 +197,7 @@ page 6414 "ForNAV Peppol Setup Wizard"
             action(ActionBack)
             {
                 ApplicationArea = All;
-                Caption = 'Back', Locked = true;
+                Caption = 'Back';
                 Enabled = BackActionEnabled;
                 Image = PreviousRecord;
                 InFooterBar = true;
@@ -213,7 +209,7 @@ page 6414 "ForNAV Peppol Setup Wizard"
             action(ActionNext)
             {
                 ApplicationArea = All;
-                Caption = 'Next', Locked = true;
+                Caption = 'Next';
                 Enabled = NextActionEnabled;
                 Image = NextRecord;
                 InFooterBar = true;
@@ -225,7 +221,7 @@ page 6414 "ForNAV Peppol Setup Wizard"
             action(ActionFinish)
             {
                 ApplicationArea = All;
-                Caption = 'Finish', Locked = true;
+                Caption = 'Finish';
                 Enabled = FinishActionEnabled;
                 Image = Approve;
                 InFooterBar = true;
@@ -280,7 +276,7 @@ page 6414 "ForNAV Peppol Setup Wizard"
         if MediaRepositoryStandard.Get('AssistedSetup-NoText-400px.png', Format(CurrentClientType())) and
             MediaRepositoryDone.Get('AssistedSetupDone-NoText-400px.png', Format(CurrentClientType()))
         then
-            if MediaResourcesStandard.Get(MediaRepositoryStandard."Media Resources Ref") AND
+            if MediaResourcesStandard.Get(MediaRepositoryStandard."Media Resources Ref") and
                 MediaResourcesDone.Get(MediaRepositoryDone."Media Resources Ref")
             then
                 TopBannerVisible := MediaResourcesDone."Media Reference".HasValue();
@@ -424,7 +420,7 @@ page 6414 "ForNAV Peppol Setup Wizard"
 
     local procedure ValidateSetupPasscode()
     var
-        PasscodeErr: Label 'Invalid setup passcode', Locked = true;
+        PasscodeErr: Label 'Invalid setup passcode';
     begin
         case false of
             StrLen(SetupPasscode) = 30:

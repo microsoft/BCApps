@@ -7,7 +7,7 @@ codeunit 6421 "ForNAV Peppol Crypto"
 
     internal procedure TestHash(NewHash: Text; InputString: Text; KeyValue: SecretText)
     var
-        InvalidKeyErr: Label 'Invalid setup key. Contact your ForNAV partner.', Locked = true;
+        InvalidKeyErr: Label 'Invalid setup key. Contact your ForNAV partner.';
     begin
         if NewHash <> Hash(InputString, KeyValue) then
             Error(InvalidKeyErr);

@@ -2,7 +2,6 @@ namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
-
 tableextension 6411 "ForNAV E-Document Service" extends "E-Document Service"
 {
     internal procedure ForNAVIsServiceIntegration(): Boolean

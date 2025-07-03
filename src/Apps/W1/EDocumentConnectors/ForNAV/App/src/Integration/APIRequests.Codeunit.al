@@ -12,7 +12,6 @@ codeunit 6414 "ForNAV API Requests"
 {
     Access = Internal;
 
-    // OnPrem only 
     internal procedure SendDocumentsDeleteRequest(Http: Codeunit "Http Message State"; RecKeys: JsonArray): Boolean
     var
         Setup: Codeunit "ForNAV Peppol Setup";
@@ -20,13 +19,13 @@ codeunit 6414 "ForNAV API Requests"
         HttpClient: HttpClient;
         HttpHeaders: HttpHeaders;
         HttpContent: HttpContent;
-        JObject: JsonObject;
+        PayloadObject: JsonObject;
     begin
         ResetRequest('Inbox', 'DELETE', Http);
         HttpContent.GetHeaders(HttpHeaders);
 
-        JObject.Add('ids', RecKeys);
-        JObject.WriteTo(Payload);
+        PayloadObject.Add('ids', RecKeys);
+        PayloadObject.WriteTo(Payload);
         HttpContent.WriteFrom(Payload);
         Http.GetHttpRequestMessage().Content := HttpContent;
         if HttpHeaders.Contains('Content-Type') then
@@ -41,8 +40,8 @@ codeunit 6414 "ForNAV API Requests"
         Setup: Codeunit "ForNAV Peppol Setup";
         Inbox: Codeunit "ForNAV Inbox";
         HttpClient: HttpClient;
-        Json: Text;
-        JObject: JsonObject;
+        Response: Text;
+        ResponseObject: JsonObject;
         RecKeys: JsonArray;
         More: Boolean;
     begin
@@ -50,20 +49,23 @@ codeunit 6414 "ForNAV API Requests"
             ResetRequest('Inbox', 'GET', Http);
 
             if Setup.Send(HttpClient, Http) = 200 then begin
-                Http.GetHttpResponseMessage().Content.ReadAs(Json);
-                JObject.ReadFrom(Json);
-                More := Inbox.GetDocsFromJson(RecKeys, JObject);
+                Http.GetHttpResponseMessage().Content.ReadAs(Response);
+                ResponseObject.ReadFrom(Response);
+                More := Inbox.GetDocsFromJson(RecKeys, ResponseObject);
                 SendDocumentsDeleteRequest(Http, RecKeys);
             end;
         until not More;
 
+        // Use a dummy label because the URL is mandatory but we don't use it
         Http.GetHttpRequestMessage().SetRequestUri('https://SendDocumentsGetRequest');
         exit(Http.GetHttpResponseMessage().IsSuccessStatusCode);
     end;
 
     internal procedure SendFilePostRequest(var EDocument: Record "E-Document"; SendContext: Codeunit SendContext): Boolean
     var
+        EDocumentService: Record "E-Document Service";
         ServiceParticipant: Record "Service Participant";
+        PeppolSetup: Record "ForNAV Peppol Setup";
         Setup: Codeunit "ForNAV Peppol Setup";
         Payload: Text;
         HttpClient: HttpClient;
@@ -77,14 +79,16 @@ codeunit 6414 "ForNAV API Requests"
         ResetRequest('Outgoing', 'POST', SendContext.Http());
         SendContext.Http().GetHttpRequestMessage().GetHeaders(HttpHeaders);
         HttpHeaders.Add('Accept', '*/*');
-        case EDocument."Source Type" of
-            EDocument."Source Type"::Customer:
-                if ServiceParticipant.Get('FORNAV', "E-Document Source Type"::Customer, EDocument."Bill-to/Pay-to No.") then
-                    HttpHeaders.Add('receiver-peppolid', ServiceParticipant."Participant Identifier");
-            EDocument."Source Type"::Vendor:
-                if ServiceParticipant.Get('FORNAV', "E-Document Source Type"::Vendor, EDocument."Bill-to/Pay-to No.") then
-                    HttpHeaders.Add('receiver-peppolid', ServiceParticipant."Participant Identifier");
-        end;
+
+        if PeppolSetup.GetEDocumentService(EDocumentService) then
+            case EDocument."Source Type" of
+                EDocument."Source Type"::Customer:
+                    if ServiceParticipant.Get(EDocumentService.Code, "E-Document Source Type"::Customer, EDocument."Bill-to/Pay-to No.") then
+                        HttpHeaders.Add('receiver-peppolid', ServiceParticipant."Participant Identifier");
+                EDocument."Source Type"::Vendor:
+                    if ServiceParticipant.Get(EDocumentService.Code, "E-Document Source Type"::Vendor, EDocument."Bill-to/Pay-to No.") then
+                        HttpHeaders.Add('receiver-peppolid', ServiceParticipant."Participant Identifier");
+            end;
 
         SendContext.Http().GetHttpRequestMessage().Method('POST');
 
@@ -98,6 +102,7 @@ codeunit 6414 "ForNAV API Requests"
 
         Setup.Send(HttpClient, SendContext.Http());
 
+        // Use a dummy label because the URL is mandatory but we don't use it
         SendContext.Http().GetHttpRequestMessage().SetRequestUri('https://SendFilePostRequest');
         exit(SendContext.Http().GetHttpResponseMessage().IsSuccessStatusCode);
     end;
@@ -107,6 +112,7 @@ codeunit 6414 "ForNAV API Requests"
         Log: Record "E-Document Integration Log";
         Processing: Codeunit "ForNAV Processing";
     begin
+        // Use a dummy label because the URL is mandatory but we don't use it
         ClearRequest(SendContext.Http(), 'https://SendActionPostRequest');
         if ActionName = 'Restart' then begin
             Log := EDocument.DocumentLog();
@@ -123,6 +129,7 @@ codeunit 6414 "ForNAV API Requests"
     var
         IncomingDoc: Codeunit "ForNAV Inbox";
     begin
+        // Use a dummy label because the URL is mandatory but we don't use it
         ClearRequest(ReceiveContext.Http(), 'https://GetReceivedDocumentsRequest');
         exit(IncomingDoc.GetIncomingBussinessDocs(DocumentsMetadata));
     end;
@@ -131,6 +138,7 @@ codeunit 6414 "ForNAV API Requests"
     var
         IncomingDoc: Codeunit "ForNAV Inbox";
     begin
+        // Use a dummy label because the URL is mandatory but we don't use it
         ClearRequest(ReceiveContext.Http(), 'https://GetTargetDocumentRequest');
         exit(IncomingDoc.GetIncomingDoc(DocumentId, ReceiveContext));
     end;
@@ -139,7 +147,8 @@ codeunit 6414 "ForNAV API Requests"
     var
         IncomingDoc: Codeunit "ForNAV Inbox";
     begin
-        ClearRequest(SendContext.Http(), 'https://SendFetchDocumentRequest');
+        // Use a dummy label because the URL is mandatory but we don't use it
+        ClearRequest(SendContext.Http(), 'https://SendFetchDocumentRequest'); // TODO add comment to why we do this
         exit(IncomingDoc.DeleteDocs(DocumentId, SendContext));
     end;
 
