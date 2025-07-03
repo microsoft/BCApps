@@ -29,7 +29,7 @@ codeunit 2015 "Entity Text AI Upgrade"
         if not UpgradeTag.HasUpgradeTag(GetRegisterMarketingTextCapabilityTag()) then begin
             if EnvironmentInformation.IsSaaSInfrastructure() then
                 if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Entity Text") then
-                    CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Entity Text", Enum::"Copilot Availability"::"Generally Available", LearnMoreUrlTxt);
+                    CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Entity Text", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Not Billed", LearnMoreUrlTxt);
 
             UpgradeTag.SetUpgradeTag(GetRegisterMarketingTextCapabilityTag());
         end;
