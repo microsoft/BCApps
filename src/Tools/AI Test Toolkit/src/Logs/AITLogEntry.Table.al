@@ -173,6 +173,8 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'Test Method Line Accuracy';
             ToolTip = 'Specifies the accuracy of the test line. The accuracy is calculated as the percentage of turns that passed or can be set manually in the test.';
+            AutoFormatType = 0;
+
         }
         field(50; "Tokens Consumed"; Integer)
         {

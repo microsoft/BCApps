@@ -113,6 +113,7 @@ function Build-App() {
     $CompilationParameters["EnableCodeCop"] = $false
     $CompilationParameters["EnableUICop"] = $false
     $CompilationParameters["EnablePerTenantExtensionCop"] = $false
+    $CompilationParameters["GenerateReportLayout"] = "No"
     $CompilationParameters.Remove("ruleset")
 
     Write-Host "Recompile $AppName with parameters"
@@ -234,7 +235,7 @@ function Get-ExternalDependencies() {
         [switch] $TestAppDependencies
     )
     Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
-    $appExtensionsSettings = Join-Path (Get-BaseFolder) "build/projects/Add-Ons (W1)/.AL-Go/customSettings.json" -Resolve
+    $appExtensionsSettings = Join-Path (Get-BaseFolder) "build/projects/Apps (W1)/.AL-Go/customSettings.json" -Resolve
     $customSettings = Get-Content -Path $appExtensionsSettings | ConvertFrom-Json
 
     if ($AppDependencies) {
