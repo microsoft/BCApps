@@ -170,7 +170,8 @@ codeunit 153 "User Permissions Impl."
     var
         AccessControl: Record "Access Control";
         User: Record User;
-        isUserEnabled: Boolean;
+        IsUserEnabled: Boolean;
+        IsSecurityGroup: Boolean;
     begin
         if User.IsEmpty() then
             exit(true);
@@ -185,8 +186,9 @@ codeunit 153 "User Permissions Impl."
         if AccessControl.FindSet() then
             repeat
                 if User.Get(AccessControl."User Security ID") then begin
-                    isUserEnabled := (User.State = User.State::Enabled);
-                    if isUserEnabled and (not IsSyncDaemon(User)) then
+                    IsUserEnabled := (User.State = User.State::Enabled);
+                    IsSecurityGroup := (User."License Type" = User."License Type"::"AAD Group") or (User."License Type" = User."License Type"::"Windows Group");
+                    if IsUserEnabled and (not IsSyncDaemon(User)) and (not IsSecurityGroup) then
                         exit(true);
                 end;
             until AccessControl.Next() = 0;
