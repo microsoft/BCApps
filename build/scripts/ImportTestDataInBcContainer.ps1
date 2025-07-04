@@ -8,7 +8,7 @@ function Invoke-ContosoDemoTool() {
     param(
         [string]$ContainerName,
         [string]$CompanyName = (Get-NavDefaultCompanyName),
-        [switch]$SetupData = $false
+        [bool]$SetupData = $false
     )
     Write-Host "Initializing company in container $ContainerName"
     Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName

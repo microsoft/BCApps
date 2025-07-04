@@ -7,8 +7,7 @@ $parameters["testType"] = "UnitTest"
 $script = Join-Path $PSScriptRoot "../../../scripts/RunTestsInBcContainer.ps1" -Resolve
 . $script -parameters $parameters
 
-
-# Integration Tests should run with TestData = Contoso Demo Data (Setup Data) 
+# Integration Tests should run with TestData = Contoso Demo Data (Setup Data)
 $parameters["testType"] = "IntegrationTest"
 $parameters["SetupData"] = $true
 
