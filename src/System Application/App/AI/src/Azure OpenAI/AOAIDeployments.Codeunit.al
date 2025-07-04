@@ -108,10 +108,12 @@ codeunit 7768 "AOAI Deployments"
         exit(AOAIDeploymentsImpl.GetGPT4Preview(CallerModuleInfo));
     end;
 #endif
+#if not CLEAN27
     /// <summary>
     /// Returns the name of the latest AOAI deployment model of GPT4o.
     /// </summary>
     /// <returns>The deployment name.</returns>
+    [Obsolete('GPT4o deployment name is no longer supported from 15 July 2025. Use GetGPT41Latest instead (or GetGPT41Preview for testing upcoming versions).', '27.0')]
     procedure GetGPT4oLatest(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -124,6 +126,7 @@ codeunit 7768 "AOAI Deployments"
     /// Returns the name of preview AOAI deployment model of GPT4o.
     /// </summary>
     /// <returns>The deployment name.</returns>
+    [Obsolete('GPT4o deployment name is no longer supported from 15 July 2025. Use GetGPT41Latest instead (or GetGPT41Preview for testing upcoming versions).', '27.0')]
     procedure GetGPT4oPreview(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -136,6 +139,7 @@ codeunit 7768 "AOAI Deployments"
     /// Returns the name of the latest AOAI deployment model of GPT4o-Mini.
     /// </summary>
     /// <returns>The deployment name.</returns>
+    [Obsolete('GPT4o deployment name is no longer supported from 15 July 2025. Use GetGPT41Latest instead (or GetGPT41Preview for testing upcoming versions).', '27.0')]
     procedure GetGPT4oMiniLatest(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -148,6 +152,7 @@ codeunit 7768 "AOAI Deployments"
     /// Returns the name of preview AOAI deployment model of GPT4o-Mini.
     /// </summary>
     /// <returns>The deployment name.</returns>
+    [Obsolete('GPT4o deployment name is no longer supported from 15 July 2025. Use GetGPT41Latest instead (or GetGPT41Preview for testing upcoming versions).', '27.0')]
     procedure GetGPT4oMiniPreview(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -155,6 +160,7 @@ codeunit 7768 "AOAI Deployments"
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         exit(AOAIDeploymentsImpl.GetGPT4oMiniPreview(CallerModuleInfo));
     end;
+#endif
 
     /// <summary>
     /// Returns the name of the latest AOAI deployment model of GPT-4.1.

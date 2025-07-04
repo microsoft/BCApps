@@ -17,10 +17,12 @@ codeunit 7769 "AOAI Deployments Impl"
 
     var
         Telemetry: Codeunit Telemetry;
+#if not CLEAN27
         GPT4oLatestLbl: Label 'gpt-4o-latest', Locked = true;
         GPT4oPreviewLbl: Label 'gpt-4o-preview', Locked = true;
         GPT4oMiniLatestLbl: Label 'gpt-4o-mini-latest', Locked = true;
         GPT4oMiniPreviewLbl: Label 'gpt-4o-mini-preview', Locked = true;
+#endif
         GPT41LatestLbl: Label 'gpt-41-latest', Locked = true;
         GPT41PreviewLbl: Label 'gpt-41-preview', Locked = true;
         GPT41MiniLatestLbl: Label 'gpt-41-mini-latest', Locked = true;
@@ -90,6 +92,7 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(GetDeploymentName(GPT4LatestLbl));
     end;
 #endif
+#if not CLEAN27
     procedure GetGPT4oPreview(CallerModuleInfo: ModuleInfo): Text
     begin
         exit(GetDeploymentName(GPT4oPreviewLbl));
@@ -109,7 +112,7 @@ codeunit 7769 "AOAI Deployments Impl"
     begin
         exit(GetDeploymentName(GPT4oMiniLatestLbl));
     end;
-
+#endif
     procedure GetGPT41Preview(CallerModuleInfo: ModuleInfo): Text
     begin
         exit(GetDeploymentName(GPT41PreviewLbl));
