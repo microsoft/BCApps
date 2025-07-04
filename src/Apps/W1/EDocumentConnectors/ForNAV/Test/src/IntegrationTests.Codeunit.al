@@ -1,7 +1,3 @@
-// ------------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License. See License.txt in the project root for license information.
-// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using Microsoft.eServices.EDocument;
@@ -9,11 +5,10 @@ using Microsoft.Sales.Customer;
 using Microsoft.Purchases.Document;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Vendor;
-using System.Threading;
 using Microsoft.Sales.History;
 using Microsoft.eServices.EDocument.Integration;
 
-codeunit 6246280 "Integration Tests"
+codeunit 6429 "Integration Tests"
 {
     Subtype = Test;
     Permissions = tabledata "E-Document" = r;
@@ -21,11 +16,10 @@ codeunit 6246280 "Integration Tests"
     [Test]
     procedure SubmitDocument()
     var
+        Header: Record "Sales Invoice Header";
         EDocument: Record "E-Document";
-        JobQueueEntry: Record "Job Queue Entry";
         EDocumentPage: TestPage "E-Document";
         EDocLogList: List of [Enum "E-Document Service Status"];
-        Header: Record "Sales Invoice Header";
     begin
         // Steps:
         // Pending response -> Sent 
@@ -43,7 +37,7 @@ codeunit 6246280 "Integration Tests"
         EDocument.FindLast();
 
         // [Then] Document Id has been correctly set on E-Document, parsed from Integration response.
-        Assert.AreEqual(Test.MockServiceDocumentId(), EDocument."ForNAV ID", 'ForNAV integration failed to set Document Id on E-Document');
+        Assert.AreEqual(Test.MockServiceDocumentId(), EDocument."ForNAV Edoc. ID", 'ForNAV integration failed to set Document Id on E-Document');
         Assert.AreEqual(Enum::"E-Document Status"::"In Progress", EDocument.Status, 'E-Document should be set to in progress');
 
         // [THEN] Open E-Document page
@@ -110,7 +104,6 @@ codeunit 6246280 "Integration Tests"
     procedure SubmitDocument_Pending_Sent()
     var
         EDocument: Record "E-Document";
-        JobQueueEntry: Record "Job Queue Entry";
         EDocumentPage: TestPage "E-Document";
         EDocLogList: List of [Enum "E-Document Service Status"];
     begin
@@ -131,7 +124,7 @@ codeunit 6246280 "Integration Tests"
         EDocument.FindLast();
 
         // [Then] Document Id has been correctly set on E-Document, parsed from Integration response
-        Assert.AreEqual(Test.MockServiceDocumentId(), EDocument."ForNAV ID", 'ForNAV integration failed to set Document Id on E-Document');
+        Assert.AreEqual(Test.MockServiceDocumentId(), EDocument."ForNAV Edoc. ID", 'ForNAV integration failed to set Document Id on E-Document');
 
         // [Then] E-Document is pending response as ForNAV is async
         Assert.AreEqual(Enum::"E-Document Status"::"In Progress", EDocument.Status, 'E-Document should be set to in progress');
@@ -231,7 +224,6 @@ codeunit 6246280 "Integration Tests"
     procedure SubmitDocument_Error_Sent()
     var
         EDocument: Record "E-Document";
-        JobQueueEntry: Record "Job Queue Entry";
         EDocumentPage: TestPage "E-Document";
         EDocLogList: List of [Enum "E-Document Service Status"];
     begin
@@ -252,7 +244,7 @@ codeunit 6246280 "Integration Tests"
         EDocument.FindLast();
 
         // [Then] Document Id has been correctly set on E-Document, parsed from Integration response
-        Assert.AreEqual(Test.MockServiceDocumentId(), EDocument."ForNAV ID", 'ForNAV integration failed to set Document Id on E-Document');
+        Assert.AreEqual(Test.MockServiceDocumentId(), EDocument."ForNAV Edoc. ID", 'ForNAV integration failed to set Document Id on E-Document');
 
         // [Then] E-Document is pending response as ForNAV is async
         Assert.AreEqual(Enum::"E-Document Status"::"In Progress", EDocument.Status, 'E-Document should be set to in progress');
@@ -412,7 +404,7 @@ codeunit 6246280 "Integration Tests"
         EDocument.FindLast();
 
         Assert.AreEqual(Enum::"E-Document Status"::Error, EDocument.Status, 'E-Document should be set to error state when service is down.');
-        Assert.AreEqual('', EDocument."ForNAV ID", 'Document Id on E-Document should not be set.');
+        Assert.AreEqual('', EDocument."ForNAV Edoc. ID", 'Document Id on E-Document should not be set.');
 
         EDocumentPage.OpenView();
         EDocumentPage.GoToRecord(EDocument);
@@ -480,7 +472,6 @@ codeunit 6246280 "Integration Tests"
     local procedure Initialize()
     var
         CompanyInformation: Record "Company Information";
-        KeyGuid: Guid;
     begin
         Test.CreateMockServiceDocumentId();
         LibraryPermission.SetOutsideO365Scope();
@@ -498,7 +489,7 @@ codeunit 6246280 "Integration Tests"
         EDocumentService."Import Start Time" := Time();
         EDocumentService.Modify();
 
-        Vendor."VAT Registration No." := 'GB' + Vendor."No.";
+        Vendor."VAT Registration No." := CopyStr('GB' + Vendor."No.", 1, MaxStrLen(Vendor."VAT Registration No."));
         Vendor."Receive E-Document To" := Enum::"E-Document Type"::"Purchase Invoice";
         Vendor."Document Sending Profile" := 'FORNAV';
         Vendor.Modify();
@@ -526,9 +517,8 @@ codeunit 6246280 "Integration Tests"
         EDocumentService: Record "E-Document Service";
         LibraryEDocument: Codeunit "Library - E-Document";
         LibraryPermission: Codeunit "Library - Lower Permissions";
-        LibraryJobQueue: Codeunit "Library - Job Queue";
         Assert: Codeunit Assert;
+        Test: Codeunit "ForNAV Peppol Test";
         IsInitialized: Boolean;
         IncorrectValueErr: Label 'Wrong value';
-        Test: Codeunit "ForNAV Peppol Test";
 }

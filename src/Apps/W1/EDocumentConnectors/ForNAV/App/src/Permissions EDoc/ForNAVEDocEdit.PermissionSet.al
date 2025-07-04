@@ -6,5 +6,5 @@ permissionset 6413 "ForNAV EDoc Edit"
     Access = Public;
     Assignable = true;
 
-    IncludedPermissionSets = "E-Doc. Core - Edit", "ForNAV EDoc Inc Read";
+    IncludedPermissionSets = "E-Doc. Core - User", "ForNAV EDoc Inc Read";
 }
