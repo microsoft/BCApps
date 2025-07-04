@@ -16,6 +16,7 @@ codeunit 132683 "Copilot Test"
         LearnMoreUrl2Lbl: Label 'http://LearnMore2.com', Locked = true;
         NotRegisteredErr: Label 'Copilot capability has not been registered by the module.';
         AlreadyRegisteredErr: Label 'Capability has already been registered.';
+        InvalidBillingTypeErr: Label 'Invalid billing type for Copilot capability ''%1''', Comment = '%1 is the name of the Copilot Capability';
 
     [Test]
     procedure TestRegisterCapability()
@@ -74,7 +75,7 @@ codeunit 132683 "Copilot Test"
         Initialize();
 
         // [WHEN] RegisterCapability is called
-        CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Generally Available", LearnMoreUrlLbl);
+        CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Not Billed", LearnMoreUrlLbl);
 
         // [THEN] Copilot capability is registered
         LibraryAssert.IsTrue(CopilotSettingsTestLibrary.FindFirst(), 'Copilot capability should be registered');
@@ -89,6 +90,24 @@ codeunit 132683 "Copilot Test"
     end;
 
     [Test]
+    procedure TestRegisterCapabilityWithInvalidBillingType()
+    var
+        ErrorMessage: Text;
+    begin
+        // [SCENARIO] Register a copilot capability with invalid billing type
+
+        // [GIVEN] Copilot capability is not registered
+        Initialize();
+
+        // [WHEN] RegisterCapability is called
+        asserterror CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::Undefined, LearnMoreUrlLbl);
+
+        // [THEN] Registered capability should throw an error
+        ErrorMessage := StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Capability");
+        LibraryAssert.ExpectedError(ErrorMessage);
+    end;
+
+    [Test]
     procedure TestModifyCapability()
     var
         CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
@@ -100,13 +119,14 @@ codeunit 132683 "Copilot Test"
         CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", LearnMoreUrlLbl);
 
         // [WHEN] ModifyCapability is called
-        CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Generally Available", LearnMoreUrl2Lbl);
+        CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Not Billed", LearnMoreUrl2Lbl);
 
         // [THEN] Copilot capability is modified
         CopilotSettingsTestLibrary.FindFirst();
         LibraryAssert.AreEqual(Enum::"Copilot Availability"::"Generally Available", CopilotSettingsTestLibrary.GetAvailability(), 'Availability is not Generally Available');
         LibraryAssert.AreEqual(LearnMoreUrl2Lbl, CopilotSettingsTestLibrary.GetLearnMoreUrl(), 'Learn More Url is not updated');
         LibraryAssert.AreEqual(Enum::"Copilot Status"::Active, CopilotSettingsTestLibrary.GetStatus(), 'Status is not Active');
+        LibraryAssert.AreEqual(Enum::"Copilot Billing Type"::"Not Billed", CopilotSettingsTestLibrary.GetBillingType(), 'Billing Type is not Not Billed');
     end;
 
     [Test]
@@ -125,12 +145,36 @@ codeunit 132683 "Copilot Test"
         LibraryAssert.AreEqual(Enum::"Copilot Status"::Inactive, CopilotSettingsTestLibrary.GetStatus(), 'Status is not Inactive');
 
         // [WHEN] ModifyCapability is called
-        CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Generally Available", LearnMoreUrl2Lbl);
+        CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Not Billed", LearnMoreUrl2Lbl);
 
         // [THEN] Copilot capability is modified
         CopilotSettingsTestLibrary.FindFirst();
         LibraryAssert.AreEqual(Enum::"Copilot Availability"::"Generally Available", CopilotSettingsTestLibrary.GetAvailability(), 'Availability is not Generally Available');
         LibraryAssert.AreEqual(LearnMoreUrl2Lbl, CopilotSettingsTestLibrary.GetLearnMoreUrl(), 'Learn More Url is not updated');
+        LibraryAssert.AreEqual(Enum::"Copilot Status"::Active, CopilotSettingsTestLibrary.GetStatus(), 'Status is not Active');
+        LibraryAssert.AreEqual(Enum::"Copilot Billing Type"::"Not Billed", CopilotSettingsTestLibrary.GetBillingType(), 'Billing Type is not Not Billed');
+    end;
+
+    [Test]
+    procedure TestModifyCapabilityWithInvalidBillingType()
+    var
+        CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
+        ErrorMessage: Text;
+    begin
+        // [SCENARIO] Modify a copilot capability
+
+        // [GIVEN] Copilot capability is registered
+        Initialize();
+        //CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", LearnMoreUrlLbl);
+        CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", LearnMoreUrlLbl);
+        // [WHEN] ModifyCapability is called
+        asserterror CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::Undefined, LearnMoreUrl2Lbl);
+        ErrorMessage := StrSubstNo(InvalidBillingTypeErr, Enum::"Copilot Capability"::"Text Capability");
+        LibraryAssert.ExpectedError(ErrorMessage);
+        // Copilot capability is not modified
+        CopilotSettingsTestLibrary.FindFirst();
+        LibraryAssert.AreEqual(Enum::"Copilot Availability"::Preview, CopilotSettingsTestLibrary.GetAvailability(), 'Availability is updated to Generally Available');
+        LibraryAssert.AreEqual(LearnMoreUrlLbl, CopilotSettingsTestLibrary.GetLearnMoreUrl(), 'Learn More Url is updated');
         LibraryAssert.AreEqual(Enum::"Copilot Status"::Active, CopilotSettingsTestLibrary.GetStatus(), 'Status is not Active');
     end;
 
