@@ -18,6 +18,7 @@ codeunit 139146 "User Permissions Test"
     var
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         SUPERTok: Label 'SUPER', Locked = true;
         NotSUPERTok: Label 'NOTSUPER', Locked = true;
         SUPERPermissionErr: Label 'There should be at least one enabled ''SUPER'' user.', Locked = true;
@@ -210,7 +211,6 @@ codeunit 139146 "User Permissions Test"
     var
         AccessControl: Record "Access Control";
         UserPermissions: Codeunit "User Permissions";
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         Any: Codeunit Any;
         UserId: Guid;
     begin
@@ -242,7 +242,6 @@ codeunit 139146 "User Permissions Test"
     procedure DeleteNonSuperAccessControlTest()
     var
         AccessControl: Record "Access Control";
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         Any: Codeunit Any;
         UserId: Guid;
     begin
@@ -271,7 +270,6 @@ codeunit 139146 "User Permissions Test"
     procedure DeleteAccessControlNotSaasTest()
     var
         AccessControl: Record "Access Control";
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         Any: Codeunit Any;
         UserId: Guid;
     begin
@@ -295,7 +293,6 @@ codeunit 139146 "User Permissions Test"
     procedure DeleteAccessControlFromNonSuperUserTest()
     var
         AccessControl: Record "Access Control";
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         Any: Codeunit Any;
         UserId: Guid;
     begin
@@ -321,7 +318,6 @@ codeunit 139146 "User Permissions Test"
     procedure DisableNonSuperUserTest()
     var
         User: Record User;
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         Any: Codeunit Any;
         UserId: Guid;
     begin
@@ -349,7 +345,6 @@ codeunit 139146 "User Permissions Test"
     procedure DisableSuperUserWhenAnotherIsSuperTest()
     var
         User: Record User;
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         Any: Codeunit Any;
         FirstUserId: Guid;
         SecondUserId: Guid;
@@ -381,7 +376,6 @@ codeunit 139146 "User Permissions Test"
     procedure DisableSuperUserWhenAnotherNonSuperUserTest()
     var
         User: Record User;
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         Any: Codeunit Any;
         FirstUserId: Guid;
         SecondUserId: Guid;
@@ -413,7 +407,6 @@ codeunit 139146 "User Permissions Test"
     procedure EnableSuperUserTest()
     var
         User: Record User;
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         Any: Codeunit Any;
         UserId: Guid;
     begin
@@ -442,7 +435,6 @@ codeunit 139146 "User Permissions Test"
     procedure DisableSuperUserFailsTest()
     var
         User: Record User;
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         Any: Codeunit Any;
         UserId: Guid;
     begin
@@ -472,7 +464,6 @@ codeunit 139146 "User Permissions Test"
     procedure DeleteNonSuperUserTest()
     var
         User: Record User;
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         Any: Codeunit Any;
         UserId: Guid;
     begin
@@ -499,7 +490,6 @@ codeunit 139146 "User Permissions Test"
     procedure DeleteSuperUserFailsTest()
     var
         User: Record User;
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         Any: Codeunit Any;
         UserId: Guid;
     begin
@@ -526,7 +516,6 @@ codeunit 139146 "User Permissions Test"
     procedure DeleteSuperUserWhenAnotherUserIsSuperTest()
     var
         User: Record User;
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         Any: Codeunit Any;
         FirstUserId: Guid;
         SecondUserId: Guid;
@@ -594,5 +583,38 @@ codeunit 139146 "User Permissions Test"
         AccessControl."Role ID" := Role;
         AccessControl."Company Name" := CompanyName;
         AccessControl.Insert();
+    end;
+
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DeleteSuperUserWhenAnotherUserIsSuperGroupTest()
+    var
+        User: Record User;
+        Any: Codeunit Any;
+        FirstUserId: Guid;
+        SecondUserId: Guid;
+    begin
+        // [Given] two SUPER users
+        // PermissionsMock.Set('SUPER');
+        DeleteAllUsersAndPermissions();
+        FirstUserId := AddUser(Any.AlphabeticText(10), true, false);
+        SecondUserId := AddUser(Any.AlphabeticText(10), true, false);
+
+        AddPermissions(FirstUserId, SUPERTok, '');
+        AddPermissions(SecondUserId, SUPERTok, '');
+
+        User.Get(FirstUserId);
+
+        User."License Type" := User."License Type"::"AAD Group";
+        User.Modify();
+
+        User.Get(SecondUserId);
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+
+        // [When] try to delete the second user
+        User.Delete(true);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
 }
