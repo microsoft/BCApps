@@ -23,7 +23,19 @@ codeunit 9843 "User Selection"
     var
         UserSelectionImpl: Codeunit "User Selection Impl.";
     begin
-        exit(UserSelectionImpl.Open(SelectedUser));
+        exit(UserSelectionImpl.Open(SelectedUser, false));
+    end;
+
+    /// <summary>
+    /// Opens the user lookup page and assigns the selected users on the <paramref name="SelectedUser"/> parameter.
+    /// </summary>
+    /// <param name="SelectedUser">The variable to return the selected users. Any filters on this record will influence the page view.</param>
+    /// <returns>Returns true if a user was selected.</returns>
+    procedure OpenWithExternalUsers(var SelectedUser: Record User): Boolean
+    var
+        UserSelectionImpl: Codeunit "User Selection Impl.";
+    begin
+        exit(UserSelectionImpl.Open(SelectedUser, true));
     end;
 
     /// <summary>

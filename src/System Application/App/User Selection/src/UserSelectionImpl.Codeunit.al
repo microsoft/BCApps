@@ -30,10 +30,11 @@ codeunit 9844 "User Selection Impl."
         User.FilterGroup(0);
     end;
 
-    procedure Open(var SelectedUser: Record User): Boolean
+    procedure Open(var SelectedUser: Record User; ShowExternalUsers: Boolean): Boolean
     var
         UserLookup: Page "User Lookup";
     begin
+        UserLookup.SetShowExternalUsers(ShowExternalUsers);
         UserLookup.SetTableView(SelectedUser);
         UserLookup.LookupMode := true;
         if UserLookup.RunModal() = Action::LookupOK then begin

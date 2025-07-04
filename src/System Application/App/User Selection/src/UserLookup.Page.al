@@ -66,13 +66,15 @@ page 9843 "User Lookup"
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
-        UserSelectionImpl.HideExternalUsers(Rec);
+        if not ShowExternalUsers then
+            UserSelectionImpl.HideExternalUsers(Rec);
         IsSaaS := EnvironmentInformation.IsSaaS();
     end;
 
     var
         UserSelectionImpl: Codeunit "User Selection Impl.";
         IsSaaS: Boolean;
+        ShowExternalUsers: Boolean;
 
     /// <summary>
     /// Gets the currently selected users.
@@ -96,6 +98,11 @@ page 9843 "User Lookup"
             CurrPage.SetSelectionFilter(SelectedUser);
             SelectedUser.FindSet();
         end;
+    end;
+
+    internal procedure SetShowExternalUsers(ShowAllUsers: Boolean)
+    begin
+        ShowExternalUsers := ShowAllUsers;
     end;
 }
 

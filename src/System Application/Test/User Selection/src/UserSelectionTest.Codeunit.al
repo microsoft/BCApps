@@ -159,6 +159,28 @@ codeunit 135035 "User Selection Test"
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
 
+    [Test]
+    [HandlerFunctions('UserLookupExternalUsersPageHandler')]
+    procedure ExternalUsersAreNotVisibleIfRequestedTest()
+    var
+        User: Record User;
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        UserSelection: Codeunit "User Selection";
+    begin
+        // [SCENARIO] External users are visible on the Lookup page if opened with ShowExternalUsers = true.
+        // [GIVEN] There are some users in the system
+        Initialize();
+        PermissionsMock.Set('User Selection Read');
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+
+        // [WHEN] Open function is called
+        // [THEN] External users are visible
+        UserSelection.OpenWithExternalUsers(User);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+    end;
+
     [ModalPageHandler]
     procedure UserLookupPageOKHandler(var UserLookup: TestPage 9843)
     var
@@ -187,6 +209,18 @@ codeunit 135035 "User Selection Test"
         UserLookup.First();
         Assert.AreEqual('D', UserLookup."User Name".Value(), 'A different User was expected');
         Assert.IsFalse(UserLookup.Next(), 'Only one user was expected to be visible on the page')
+    end;
+
+    [ModalPageHandler]
+    procedure UserLookupExternalUsersPageHandler(var UserLookup: TestPage 9843)
+    begin
+        UserLookup.First();
+        repeat
+            if UserLookup."User Name".Value() = 'EXTERNAL' then
+                exit;
+        until not UserLookup.Next();
+
+        Assert.Fail('External user should have been visible on the page');
     end;
 
     local procedure Initialize();
