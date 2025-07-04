@@ -63,7 +63,6 @@ table 8700 "Table Information Cache"
         {
             Caption = 'Growth % (30D)';
             AutoFormatType = 0;
-            ExtendedDatatype = Ratio;
         }
         field(8701; "Last Period No. of Records"; Integer)
         {

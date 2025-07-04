@@ -78,7 +78,6 @@ page 130460 "AL Code Coverage"
                     Editable = false;
                     ToolTip = 'Specifies the extent to which the application code is covered by tests.';
                     AutoFormatType = 0;
-                    ExtendedDatatype = Ratio;
                 }
             }
             repeater("Object")
@@ -102,7 +101,6 @@ page 130460 "AL Code Coverage"
                     StyleExpr = CoveragePercentStyle;
                     ToolTip = 'Specifies the percentage applied to the code coverage line.';
                     AutoFormatType = 0;
-                    ExtendedDatatype = Ratio;
                 }
                 field(LineType; Rec."Line Type")
                 {

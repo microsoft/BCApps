@@ -184,7 +184,6 @@ page 149034 "AIT Test Method Lines"
                     ToolTip = 'Specifies difference in average test execution time compared to the base version.';
                     Visible = false;
                     AutoFormatType = 0;
-                    ExtendedDatatype = Ratio;
                 }
             }
         }
