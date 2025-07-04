@@ -23,7 +23,7 @@ table 3563 "Allowed Language"
             Caption = 'Language Id';
             NotBlank = true;
             BlankZero = true;
-            TableRelation = "Windows Language" where("Localization Exist" = const(true), "Globally Enabled" = const(true));
+            TableRelation = "Windows Language";
             ToolTip = 'Specifies the language id(s) that should be available for this environment.';
         }
         field(2; Language; Text[80])
