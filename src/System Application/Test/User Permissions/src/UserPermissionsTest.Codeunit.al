@@ -595,25 +595,25 @@ codeunit 139146 "User Permissions Test"
         FirstUserId: Guid;
         SecondUserId: Guid;
     begin
-        // [Given] two SUPER users
-        // PermissionsMock.Set('SUPER');
+        // [Scenario] Where there is one SUPER user and one SUPER security group, delete the SUPER user is not allowed because there must be at least one SUPER user enabled. Super security groups are not considered as SUPER users.
+
+        // [Given] Create one SUPER user and one SUPER security group
         DeleteAllUsersAndPermissions();
         FirstUserId := AddUser(Any.AlphabeticText(10), true, false);
         SecondUserId := AddUser(Any.AlphabeticText(10), true, false);
-
         AddPermissions(FirstUserId, SUPERTok, '');
         AddPermissions(SecondUserId, SUPERTok, '');
-
         User.Get(FirstUserId);
-
         User."License Type" := User."License Type"::"AAD Group";
         User.Modify();
 
+        // [When] try to delete the second user
         User.Get(SecondUserId);
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
 
-        // [When] try to delete the second user
-        User.Delete(true);
+        // [Then] an error occurs
+        asserterror User.Delete(true);
+        Assert.ExpectedError('There should be at least one enabled ''SUPER'' user.');
 
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
