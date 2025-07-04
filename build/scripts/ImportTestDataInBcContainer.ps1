@@ -40,4 +40,4 @@ foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSp
 }
 
 # Generate demo data in the container
-Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName
+Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName -SetupData $parameters.SetupData
