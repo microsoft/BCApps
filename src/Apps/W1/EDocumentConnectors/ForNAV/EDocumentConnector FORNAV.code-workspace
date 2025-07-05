@@ -2,11 +2,11 @@
     "folders": [
         {
             "name": "EDocumentConnector ForNav",
-            "path": "Apps/W1/EDocumentConnectors/ForNav/App"
+            "path": "App"
         },
         {
             "name": "EDocumentConnector ForNav",
-            "path": "Apps/W1/EDocumentConnectors/ForNav/Test"
+            "path": "Test"
         }
     ],
     "settings": {
