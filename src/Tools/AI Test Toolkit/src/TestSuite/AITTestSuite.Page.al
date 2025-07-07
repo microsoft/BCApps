@@ -98,14 +98,14 @@ page 149031 "AIT Test Suite"
                             AITEvaluatorPage.Run();
                         end;
                     }
-                    field(Evaluators; Rec."Number of Evaluators2")
+                    field(Evaluators; Rec."Number of Evaluators")
                     {
                         ApplicationArea = All;
                         Caption = 'Number of Evaluators';
                         ToolTip = 'Specifies evaluators for the evaluation.';
                     }
 
-                    field("Column Mappings"; Rec."Number of Column Mappings2")
+                    field("Column Mappings"; Rec."Number of Column Mappings")
                     {
                         ApplicationArea = All;
                         Caption = 'Column Mappings';

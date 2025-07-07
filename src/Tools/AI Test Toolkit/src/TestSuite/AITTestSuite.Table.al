@@ -169,7 +169,7 @@ table 149030 "AIT Test Suite"
             FieldClass = FlowField;
             CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
-        field(30; "Number of Evaluators2"; Integer)
+        field(30; "Number of Evaluators"; Integer)
         {
             Caption = 'Evaluators';
             ToolTip = 'Specifies the number of evaluators to use in the test suite.';
@@ -177,7 +177,7 @@ table 149030 "AIT Test Suite"
             FieldClass = FlowField;
             CalcFormula = count("AIT Evaluator" where("Test Suite Code" = field("Code")));
         }
-        field(31; "Number of Column Mappings2"; Integer)
+        field(31; "Number of Column Mappings"; Integer)
         {
             Caption = 'Column Mappings';
             ToolTip = 'Specifies the number of evaluators to use in the test suite.';

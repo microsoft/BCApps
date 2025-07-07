@@ -63,7 +63,6 @@ page 149034 "AIT Test Method Lines"
                         AITEvaluatorPage.SetTableView(AITEvaluator);
                         AITEvaluatorPage.SetTestMethodLine(Rec."Line No.");
                         AITEvaluatorPage.Run();
-                        //Page.Run(Page::"AIT Evaluators", AITEvaluator);
                     end;
                 }
                 field(Status; Rec.Status)
