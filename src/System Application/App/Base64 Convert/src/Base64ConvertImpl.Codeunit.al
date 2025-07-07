@@ -105,6 +105,66 @@ codeunit 4111 "Base64 Convert Impl."
         exit(Convert.ToBase64String(Encoding.UTF8().GetBytes(SecretString.Unwrap()), Base64FormattingOptions));
     end;
 
+    procedure ToBase64Url(String: Text; TextEncoding: TextEncoding; Codepage: Integer): Text
+    var
+        Base64String: Text;
+    begin
+        Base64String := ToBase64(String, false, TextEncoding, Codepage);
+        exit(RemoveUrlUnsafeChars(Base64String));
+    end;
+
+    procedure ToBase64Url(String: Text): Text
+    begin
+        exit(ToBase64Url(String, TextEncoding::UTF8, 0));
+    end;
+
+    procedure ToBase64Url(String: Text; TextEncoding: TextEncoding): Text
+    begin
+        exit(ToBase64Url(String, TextEncoding, 0));
+    end;
+
+    procedure ToBase64Url(InStream: InStream): Text
+    var
+        Base64String: Text;
+    begin
+        Base64String := ToBase64(InStream, false);
+        exit(RemoveUrlUnsafeChars(Base64String));
+    end;
+
+    [NonDebuggable]
+    procedure ToBase64Url(SecretString: SecretText): SecretText
+    var
+        Base64SecretString: SecretText;
+        Base64String: Text;
+    begin
+        Base64SecretString := ToBase64(SecretString);
+        if Base64SecretString.IsEmpty() then
+            exit;
+        Base64String := Base64SecretString.Unwrap();
+        exit(RemoveUrlUnsafeChars(Base64String));
+    end;
+
+    [NonDebuggable]
+    local procedure RemoveUrlUnsafeChars(Base64String: Text): Text
+    var
+        TB: TextBuilder;
+        Ch: Char;
+    begin
+        foreach Ch in Base64String do
+            case Ch of
+                '+':
+                    TB.Append('-');
+                '/':
+                    TB.Append('_');
+                '=':
+                    continue;
+                else
+                    TB.Append(Ch);
+            end;
+
+        exit(TB.ToText());
+    end;
+
     procedure FromBase64(Base64String: Text; TextEncoding: TextEncoding): Text
     begin
         exit(FromBase64(Base64String, TextEncoding, 1252));

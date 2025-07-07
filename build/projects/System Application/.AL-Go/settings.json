@@ -1,23 +1,29 @@
 {
-    "projectName": "System Application and Tools",
-    "appFolders":  [
-        "../../../src/System Application/App",
-        "../../../src/Tools/AI Test Toolkit",
-        "../../../src/Tools/Test Framework/Test Libraries/*",
-        "../../../src/Tools/Test Framework/Test Runner"
-    ],
-    "buildModes": [ "Translated" ],
-    "doNotRunTests": true,
-    "useCompilerFolder": true,
-    "doNotPublishApps": true,
-    "ConditionalSettings": [
-        {
-            "branches": [
-                "releases/*.[0-5]"
-            ],
-            "settings": {
-                "buildModes": [ "Translated", "Strict"]
-            }
-        }
-    ]
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/ab2f5319ed073c542e03914f8ae6c0fda029ee1e/Actions/settings.schema.json",
+  "projectName": "System Application and Tools",
+  "appFolders": [
+    "../../../src/System Application/App",
+    "../../../src/Tools/AI Test Toolkit",
+    "../../../src/Tools/Test Framework/Test Libraries/*",
+    "../../../src/Tools/Test Framework/Test Runner"
+  ],
+  "buildModes": [
+    "Translated"
+  ],
+  "doNotRunTests": true,
+  "useCompilerFolder": true,
+  "doNotPublishApps": true,
+  "ConditionalSettings": [
+    {
+      "branches": [
+        "releases/*.[0-5]"
+      ],
+      "settings": {
+        "buildModes": [
+          "Translated",
+          "Strict"
+        ]
+      }
+    }
+  ]
 }

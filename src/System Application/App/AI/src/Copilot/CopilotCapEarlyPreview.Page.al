@@ -55,6 +55,13 @@ page 7770 "Copilot Cap. Early Preview"
                     ToolTip = 'Specifies the publisher of this Copilot.';
                     Editable = false;
                 }
+                field("Billing Type"; Rec."Billing Type")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Billing Type';
+                    ToolTip = 'Specifies the billing type of this Copilot.';
+                    Editable = false;
+                }
                 field("Learn More"; LearnMore)
                 {
                     ApplicationArea = All;
@@ -109,16 +116,8 @@ page 7770 "Copilot Cap. Early Preview"
                 Scope = Repeater;
 
                 trigger OnAction()
-                var
-                    CopilotDeactivate: Page "Copilot Deactivate Capability";
                 begin
-                    CopilotDeactivate.SetCaption(Format(Rec.Capability));
-                    if CopilotDeactivate.RunModal() = Action::OK then begin
-                        Rec.Status := Rec.Status::Inactive;
-                        Rec.Modify(true);
-
-                        CopilotCapabilityImpl.SendDeactivateTelemetry(Rec.Capability, Rec."App Id", CopilotDeactivate.GetReason());
-                    end;
+                    CopilotCapabilityImpl.DeactivateCapability(Rec);
                 end;
             }
             action(SupplementalTerms)

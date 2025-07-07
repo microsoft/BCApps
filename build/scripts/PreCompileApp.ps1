@@ -1,10 +1,12 @@
 Param(
     [ValidateSet('app', 'testApp', 'bcptApp')]
     [string] $appType = 'app',
-    [ref] $parameters
+    [ref] $parameters,
+    [string[]] $recompileDependencies = @()
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
+Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
 
 $appBuildMode = Get-BuildMode
 
@@ -26,6 +28,15 @@ if($appType -eq 'app')
         Restore-TranslationsForApp -AppProjectFolder $parameters.Value["appProjectFolder"]
     }
 
+    if(($appBuildMode -eq 'Clean') -and ($recompileDependencies.Count -gt 0)) {
+        # In CLEAN mode we might need to recompile some of the dependencies before we can compile the app (in case the dependencies are not within the repository)
+        $recompileDependencies | ForEach-Object {
+            $dependenciesParameters = $parameters.Value.Clone()
+            $dependenciesParameters["appOutputFolder"] = $dependenciesParameters["appSymbolsFolder"] # Output the apps into the symbols folder so we can use them for the clean build later
+            Build-App -App $_ -CompilationParameters $dependenciesParameters
+        }
+    }
+
     # Restore the baseline app and generate the AppSourceCop.json file
     if($gitHubActions) {
         if (($parameters.Value.ContainsKey("EnableAppSourceCop") -and $parameters.Value["EnableAppSourceCop"]) -or ($parameters.Value.ContainsKey("EnablePerTenantExtensionCop") -and $parameters.Value["EnablePerTenantExtensionCop"])) {
@@ -34,18 +45,27 @@ if($appType -eq 'app')
             if($appBuildMode -eq 'Clean') {
                 Write-Host "Compile the app without any preprocessor symbols to generate a baseline app to use for breaking changes check"
 
+                # Create a new empty folder for the apps without preprocessor symbols
+                $defaultSymbolsPath = Join-Path (Split-Path $parameters.Value["appSymbolsFolder"] -Parent) "DefaultModeSymbols"
+                if (-not (Test-Path $defaultSymbolsPath)) {
+                    New-Item -Path $defaultSymbolsPath -ItemType Directory -Force | Out-Null
+                }
+
+                # Recompile dependencies if needed and place them in the default symbols folder
+                if ($recompileDependencies.Count -gt 0) {
+                    $recompileDependencies | ForEach-Object {
+                        $dependenciesParameters = $parameters.Value.Clone()
+                        $dependenciesParameters["preprocessorsymbols"] = @() # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
+                        $dependenciesParameters["appOutputFolder"] = $defaultSymbolsPath # Use the default symbols folder as appOutputFolder
+                        $dependenciesParameters["appSymbolsFolder"] = $defaultSymbolsPath # Use the default symbols folder as appSymbolsFolder
+                        Build-App -App $_ -CompilationParameters $dependenciesParameters
+                    }
+                }
+
                 $tempParameters = $parameters.Value.Clone()
-
-                # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
-                $tempParameters["preprocessorsymbols"] = @()
-
-                # Place the app directly in the symbols folder
-                $tempParameters["appOutputFolder"] = $tempParameters["appSymbolsFolder"]
-
-                # Rename the app to avoid overwriting the app that will be generated with preprocessor symbols
-                $appJson = Join-Path $tempParameters["appProjectFolder"] "app.json"
-                $appName = (Get-Content -Path $appJson | ConvertFrom-Json).Name
-                $tempParameters["appName"] = "$($appName)_clean.app"
+                $tempParameters["preprocessorsymbols"] = @() # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
+                $tempParameters["appOutputFolder"] = $defaultSymbolsPath # Output the default app into the default symbols folder
+                $tempParameters["appSymbolsFolder"] = $defaultSymbolsPath # Use the default symbols folder as appSymbolsFolder
 
                 if($useCompilerFolder) {
                     Compile-AppWithBcCompilerFolder @tempParameters | Out-Null
@@ -53,6 +73,13 @@ if($appType -eq 'app')
                 else {
                     Compile-AppInBcContainer @tempParameters | Out-Null
                 }
+
+                # Copy the the generated app to the symbols folder for the CLEAN mode build
+                $appName = (Get-Content -Path (Join-Path $tempParameters["appProjectFolder"] "app.json" -Resolve) | ConvertFrom-Json).Name
+                $appFile = Get-ChildItem -Path $tempParameters["appOutputFolder"] -Filter "Microsoft_$($appName)*.app" | Select-Object -First 1
+                $location = Join-Path $parameters.Value["appSymbolsFolder"] "$($appName)_clean.app"
+                Write-Host "Copying $($appFile.FullName) to $location"
+                Copy-Item -Path $appFile.FullName -Destination $location -Force
             }
 
             if($appBuildMode -eq 'Strict') {

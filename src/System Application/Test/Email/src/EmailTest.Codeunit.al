@@ -720,7 +720,7 @@ codeunit 134685 "Email Test"
         ConnectorMock: Codeunit "Connector Mock";
         Connector: Enum "Email Connector";
     begin
-        // [Scenario] When successfuly sending an email, a recond is added on the Sent Emails table
+        // [Scenario] When successfully sending an email, a record is added on the Sent Emails table
         PermissionsMock.Set('Email Edit');
 
         // [Given] An email message and an email account
@@ -735,7 +735,7 @@ codeunit 134685 "Email Test"
         // [When] The email is Sent
         Assert.IsTrue(Email.Send(EmailMessage, EmailAccount), 'Sending an email should have succeeded');
 
-        // [Then] There is a Sent Mail recond and no Outbox record
+        // [Then] There is a Sent Mail record and no Outbox record
         SentEmail.SetRange("Account Id", EmailAccount."Account Id");
         SentEmail.SetRange("Message Id", EmailMessage.GetId());
 
@@ -801,7 +801,7 @@ codeunit 134685 "Email Test"
         EmailOutboxTestPage.ShowSourceRecord.Invoke();
 
         // [Then] No error appears
-        Assert.AreEqual('', GetLastErrorText, 'An error occured');
+        Assert.AreEqual('', GetLastErrorText, 'An error occurred');
     end;
 
     [Test]
@@ -929,7 +929,7 @@ codeunit 134685 "Email Test"
         TableId, NumberOfEmails, i : Integer;
         MessageIds: List of [Guid];
     begin
-        // [Scenario] When successfuly sending an email with source, a record is added to the email source document table and sent emails table. 
+        // [Scenario] When successfully sending an email with source, a record is added to the email source document table and sent emails table. 
         PermissionsMock.Set('Email Edit');
 
         // [Given] An email with source and an email account
@@ -1000,7 +1000,7 @@ codeunit 134685 "Email Test"
         // [Then] The related attachment is added as an attachment to the email 
         EmailMessageAttachments.SetRange("Email Message Id", EmailMessage.GetId());
         EmailMessageAttachments.FindSet();
-        Assert.AreEqual(1, EmailMessageAttachments.Count(), 'Related attachment wasnt attached to the email.');
+        Assert.AreEqual(1, EmailMessageAttachments.Count(), 'Related attachment was not attached to the email.');
         Assert.AreEqual('Attachment1', EmailMessageAttachments."Attachment Name", 'Wrong attachment was attached to email.');
         AssertVariableStorageEmpty();
     end;
@@ -1037,7 +1037,7 @@ codeunit 134685 "Email Test"
         EmailEditor.GetRelatedAttachments(EmailMessage.GetId(), EmailRelatedAttachment);
 
         Assert.AreEqual(1, EmailRelatedAttachment.Count(), 'Wrong number of attachments.');
-        Assert.AreEqual('Attachment1', EmailRelatedAttachment."Attachment Name", 'Wrong attachmentname');
+        Assert.AreEqual('Attachment1', EmailRelatedAttachment."Attachment Name", 'Wrong attachment name');
     end;
 
     [Test]
@@ -1076,7 +1076,7 @@ codeunit 134685 "Email Test"
         Status: Boolean;
         MessageID: Guid;
     begin
-        // [Scenario] When Sending the email in the background an event is fired to nothify for the status of the email
+        // [Scenario] When Sending the email in the background an event is fired to notify for the status of the email
         PermissionsMock.Set('Email Edit');
 
         TestClientType.SetClientType(ClientType::Background);
@@ -1121,7 +1121,7 @@ codeunit 134685 "Email Test"
         Status: Boolean;
         MessageID: Guid;
     begin
-        // [Scenario] When Sending the email in the background an event is fired to nothify for the status of the email
+        // [Scenario] When Sending the email in the background an event is fired to notify for the status of the email
         PermissionsMock.Set('Email Edit');
 
         TestClientType.SetClientType(ClientType::Background);
@@ -1366,7 +1366,7 @@ codeunit 134685 "Email Test"
         TableId, NumberOfEmails, i : Integer;
         MessageIds: List of [Guid];
     begin
-        // [Scenario] When successfuly sending an email with source, GetSentEmailsForRecord return related Sent Emails. 
+        // [Scenario] When successfully sending an email with source, GetSentEmailsForRecord return related Sent Emails. 
         PermissionsMock.Set('Email Edit');
         SentEmail.DeleteAll();
 
@@ -2084,7 +2084,7 @@ codeunit 134685 "Email Test"
         ClearLastError();
         EmailRelationPickerTestPage."Source Name".Lookup();
 
-        Assert.AreEqual('', GetLastErrorText, 'An error occured - opening email relation from picker');
+        Assert.AreEqual('', GetLastErrorText, 'An error occurred - opening email relation from picker');
     end;
 
     [ModalPageHandler]
