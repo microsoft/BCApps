@@ -66,7 +66,9 @@ page 9843 "User Lookup"
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
-        if not ShowExternalUsers then
+        if HideOnlyExternalUsers then
+            UserSelectionImpl.HideOnlyExternalUsers(Rec)
+        else
             UserSelectionImpl.HideExternalUsers(Rec);
         IsSaaS := EnvironmentInformation.IsSaaS();
     end;
@@ -74,7 +76,7 @@ page 9843 "User Lookup"
     var
         UserSelectionImpl: Codeunit "User Selection Impl.";
         IsSaaS: Boolean;
-        ShowExternalUsers: Boolean;
+        HideOnlyExternalUsers: Boolean;
 
     /// <summary>
     /// Gets the currently selected users.
@@ -100,9 +102,9 @@ page 9843 "User Lookup"
         end;
     end;
 
-    internal procedure SetShowExternalUsers(ShowAllUsers: Boolean)
+    internal procedure SetHideOnlyExternalUsers(HideOnlyExternal: Boolean)
     begin
-        ShowExternalUsers := ShowAllUsers;
+        HideOnlyExternalUsers := HideOnlyExternal;
     end;
 }
 

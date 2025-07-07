@@ -160,8 +160,8 @@ codeunit 135035 "User Selection Test"
     end;
 
     [Test]
-    [HandlerFunctions('UserLookupExternalUsersPageHandler')]
-    procedure ExternalUsersAreNotVisibleIfRequestedTest()
+    [HandlerFunctions('UserLookupApplicationUsersPageHandler')]
+    procedure ApplicationUsersAreVisibleIfRequestedTest()
     var
         User: Record User;
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
@@ -174,9 +174,9 @@ codeunit 135035 "User Selection Test"
 
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
 
-        // [WHEN] Open function is called
-        // [THEN] External users are visible
-        UserSelection.OpenWithExternalUsers(User);
+        // [WHEN] OpenWithAllUsers function is called
+        // [THEN] Application user is visible but external user is not visible
+        UserSelection.OpenWithAllUsers(User);
 
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
@@ -212,15 +212,18 @@ codeunit 135035 "User Selection Test"
     end;
 
     [ModalPageHandler]
-    procedure UserLookupExternalUsersPageHandler(var UserLookup: TestPage 9843)
+    procedure UserLookupApplicationUsersPageHandler(var UserLookup: TestPage 9843)
+    var
+        ApplicationUserVisible: Boolean;
     begin
         UserLookup.First();
         repeat
-            if UserLookup."User Name".Value() = 'EXTERNAL' then
-                exit;
+            Assert.AreNotEqual(UserLookup."User Name".Value(), 'EXTERNAL', 'External user should have been hidden.');
+            if UserLookup."User Name".Value() = 'APP' then
+                ApplicationUserVisible := true;
         until not UserLookup.Next();
 
-        Assert.Fail('External user should have been visible on the page');
+        Assert.IsTrue(ApplicationUserVisible, 'Application user should be visible on the page.');
     end;
 
     local procedure Initialize();
@@ -269,6 +272,13 @@ codeunit 135035 "User Selection Test"
         User."User Name" := 'EXTERNAL';
         User."Full Name" := 'External user';
         User."License Type" := User."License Type"::"External User";
+        User.Insert();
+
+        User.Init();
+        User."User Security ID" := CreateGuid();
+        User."User Name" := 'APP';
+        User."Full Name" := 'Application user';
+        User."License Type" := User."License Type"::Application;
         User.Insert();
 
         IsInitialized := true;

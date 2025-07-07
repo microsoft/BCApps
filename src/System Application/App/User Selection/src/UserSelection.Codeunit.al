@@ -31,7 +31,7 @@ codeunit 9843 "User Selection"
     /// </summary>
     /// <param name="SelectedUser">The variable to return the selected users. Any filters on this record will influence the page view.</param>
     /// <returns>Returns true if a user was selected.</returns>
-    procedure OpenWithExternalUsers(var SelectedUser: Record User): Boolean
+    procedure OpenWithAllUsers(var SelectedUser: Record User): Boolean
     var
         UserSelectionImpl: Codeunit "User Selection Impl.";
     begin
