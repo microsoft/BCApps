@@ -174,9 +174,9 @@ codeunit 135035 "User Selection Test"
 
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
 
-        // [WHEN] OpenWithAllUsers function is called
+        // [WHEN] OpenWithSystemUsers function is called
         // [THEN] Application user is visible but external user is not visible
-        UserSelection.OpenWithAllUsers(User);
+        UserSelection.OpenWithSystemUsers(User);
 
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
