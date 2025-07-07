@@ -1,7 +1,7 @@
 {
   "id": "f0fbbff8-0442-47f5-8141-62522f02259b",
   "name": "System Application Partner Test",
-  "publisher": "Partner",
+  "publisher": "Microsoft",
   "brief": "Partner Test suite for the System Application.",
   "description": "Contains an partner centric tests for the System Application.",
   "version": "27.0.0.0",
