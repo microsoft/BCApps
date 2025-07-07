@@ -18,7 +18,7 @@ codeunit 9844 "User Selection Impl."
     var
         UserNameDoesNotExistErr: Label 'The user name %1 does not exist.', Comment = '%1 username';
 
-    procedure HideExternalUsers(var User: Record User)
+    procedure HideExternalAndSystemUsers(var User: Record User)
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin

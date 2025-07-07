@@ -69,7 +69,7 @@ page 9843 "User Lookup"
         if HideOnlyExternalUsers then
             UserSelectionImpl.HideOnlyExternalUsers(Rec)
         else
-            UserSelectionImpl.HideExternalUsers(Rec);
+            UserSelectionImpl.HideExternalAndSystemUsers(Rec);
         IsSaaS := EnvironmentInformation.IsSaaS();
     end;
 
