@@ -343,15 +343,7 @@ codeunit 2012 "Entity Text Impl."
             AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", Endpoint, Deployment, ApiKey)
         else
             if (not IsNullGuid(CallerModuleInfo.Id())) and (CallerModuleInfo.Publisher() = EntityTextModuleInfo.Publisher()) then
-#if not CLEAN27
-#pragma warning disable AS0105
-#pragma warning disable AL0432
-                AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT4oLatest())
-#pragma warning restore AL0432
-#pragma warning restore AS0105
-#else
                 AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest())
-#endif
             else begin
                 TelemetryCD.Add('CallerModuleInfo', Format(CallerModuleInfo.Publisher()));
                 TelemetryCD.Add('EntityTextModuleInfo', Format(EntityTextModuleInfo.Publisher()));
