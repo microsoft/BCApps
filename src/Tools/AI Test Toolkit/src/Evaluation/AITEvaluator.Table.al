@@ -55,9 +55,4 @@ table 149039 "AIT Evaluator"
             Clustered = true;
         }
     }
-
-    fieldgroups
-    {
-        // Add changes to field groups here
-    }
 }

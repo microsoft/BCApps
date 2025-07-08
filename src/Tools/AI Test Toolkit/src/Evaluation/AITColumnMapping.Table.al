@@ -54,9 +54,4 @@ table 149038 "AIT Column Mapping"
             Clustered = true;
         }
     }
-
-    fieldgroups
-    {
-        // Add changes to field groups here
-    }
 }

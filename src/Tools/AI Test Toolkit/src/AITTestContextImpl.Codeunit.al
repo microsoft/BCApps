@@ -147,7 +147,7 @@ codeunit 149043 "AIT Test Context Impl."
     /// </summary>
     /// <param name="Content">The content of the message.</param>
     /// <param name="Role">The role of the message (e.g., 'user', 'assistant').</param>
-    /// <param name="Context">The context of the message (optional).</param>
+    /// <param name="Context">The context of the message (can be blank).</param>
     procedure AddMessage(Content: Text; Role: Text; Context: Text)
     var
         CurrentTestOutputJson: Codeunit "Test Output Json";

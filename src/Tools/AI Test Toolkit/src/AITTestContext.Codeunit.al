@@ -122,7 +122,7 @@ codeunit 149044 "AIT Test Context"
     /// </summary>
     /// <param name="Content">The content of the message.</param>
     /// <param name="Role">The role of the message (e.g., 'user', 'assistant').</param>
-    /// <param name="Context">The context of the message (optional).</param>
+    /// <param name="Context">The context of the message.</param>
     procedure AddMessage(Content: Text; Role: Text; Context: Text)
     begin
         AITTestContextImpl.AddMessage(Content, Role, Context);

@@ -30,7 +30,7 @@ page 149045 "AIT Evaluators"
                     ApplicationArea = All;
                     Caption = 'Test Method Line';
                     ToolTip = 'Specifies the line number of the test method.';
-                    //Visible = false;
+                    Visible = false;
                 }
                 field(Evaluator; Rec.Evaluator)
                 {
@@ -54,11 +54,11 @@ page 149045 "AIT Evaluators"
         Rec."Test Method Line" := TestMethodLineNo;
     end;
 
+    var
+        TestMethodLineNo: Integer;
+
     internal procedure SetTestMethodLine(LineNo: Integer)
     begin
         TestMethodLineNo := LineNo;
     end;
-
-    var
-        TestMethodLineNo: Integer;
 }
