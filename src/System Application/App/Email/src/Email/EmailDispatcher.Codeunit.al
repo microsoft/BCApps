@@ -111,9 +111,14 @@ codeunit 8888 "Email Dispatcher"
             Email.OnAfterEmailSendFailed(EmailOutbox);
     end;
 
-    procedure GetMaximumRetryCount(): Integer
+    procedure GetMaximumRetryCount(var EmailOutbox: Record "Email Outbox"): Integer
+    var
+        EmailRateLimit: Record "Email Rate Limit";
     begin
-        exit(0); // Maximum retry count for sending emails
+        if EmailRateLimit.Get(EmailOutbox."Account Id", EmailOutbox.Connector) then
+            exit(EmailRateLimit."Max. Retry Limit");
+
+        exit(0);
     end;
 
     local procedure RetrySendEmail(var EmailOutbox: Record "Email Outbox"): Boolean
@@ -128,7 +133,7 @@ codeunit 8888 "Email Dispatcher"
         FeatureTelemetry.LogUsage('0000PMT', EmailFeatureNameLbl, 'Email Retry - Start to retry failed email', Dimensions);
         EmailOutbox.Validate("Retry No.", EmailOutbox."Retry No." + 1);
 
-        if EmailOutbox."Retry No." > GetMaximumRetryCount() then begin
+        if EmailOutbox."Retry No." > GetMaximumRetryCount(EmailOutbox) then begin
             FeatureTelemetry.LogError('0000PMU', EmailFeatureNameLbl, 'Email Retry - Retry reached maximum times', '', '', Dimensions);
             exit(false);
         end;
