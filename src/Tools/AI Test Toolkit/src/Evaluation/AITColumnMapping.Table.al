@@ -31,14 +31,14 @@ table 149038 "AIT Column Mapping"
             ValidateTableRelation = true;
         }
 
-        field(10; "Column"; Text[100])
+        field(10; "Column"; Text[1024])
         {
             DataClassification = SystemMetadata;
             Caption = 'Column';
             ToolTip = 'Specifies the column from the test output data to use in evaluation.';
         }
 
-        field(11; "Target Column"; Text[100])
+        field(11; "Target Column"; Text[1024])
         {
             DataClassification = SystemMetadata;
             Caption = 'Target Column';
