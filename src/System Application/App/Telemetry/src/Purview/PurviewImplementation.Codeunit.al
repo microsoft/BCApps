@@ -12,7 +12,7 @@ codeunit 8715 "Purview Implementation"
     InherentPermissions = X;
 
     var
-        CallExternalErr: Label 'Purview module can only be used internally.';
+        CallExternalErr: Label 'Purview module can only be called by Microsoft.';
 
     internal procedure AssertInternalCall(CallerModuleInfo: ModuleInfo)
     begin
