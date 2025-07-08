@@ -51,7 +51,7 @@ table 8912 "Email Rate Limit"
 
             trigger OnValidate()
             begin
-                if (Rec."Max. Retry Limit" < 0) or (Rec."Max. Retry Limit" > 20) then
+                if (Rec."Max. Retry Limit" < 1) or (Rec."Max. Retry Limit" > 20) then
                     Error(MaxRetryLimitErrLbl);
             end;
         }
@@ -71,5 +71,5 @@ table 8912 "Email Rate Limit"
 
     var
         ConcurrencyLimitErrLbl: Label 'Concurrency Limit must be between 1 and 10.';
-        MaxRetryLimitErrLbl: Label 'Max. Retry Limit must be between 0 and 20.';
+        MaxRetryLimitErrLbl: Label 'Max. Attempt Limit must be between 1 and 20.';
 }

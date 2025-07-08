@@ -98,10 +98,11 @@ page 8882 "Email Outbox"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the date when this email is scheduled for sending.';
                 }
-                field("Retry No."; Rec."Retry No.")
+                field("Attempt No."; Rec."Retry No.")
                 {
+                    Caption = 'Attempt No.';
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the number of times this email has been retried for sending.';
+                    ToolTip = 'Specifies the total number of sending attempts for this email.';
                 }
             }
         }
@@ -185,8 +186,8 @@ page 8882 "Email Outbox"
             {
                 ApplicationArea = All;
                 Image = ShowList;
-                Caption = 'Retry Detail';
-                ToolTip = 'View the retry detail of the email.';
+                Caption = 'Attempt Detail';
+                ToolTip = 'View the attempt detail of the email.';
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedOnly = true;
