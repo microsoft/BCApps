@@ -125,11 +125,11 @@ codeunit 8888 "Email Dispatcher"
         RetryTime: DateTime;
         RandomDelay: Integer;
     begin
-        FeatureTelemetry.LogError('0000PMT', EmailFeatureNameLbl, 'Retry failed email', StrSubstNo(FailedToFindEmailMessageMsg, EmailOutbox."Message Id"), '', Dimensions);
+        FeatureTelemetry.LogUsage('0000PMT', EmailFeatureNameLbl, 'Email Retry - Start to retry failed email', Dimensions);
         EmailOutbox.Validate("Retry No.", EmailOutbox."Retry No." + 1);
 
         if EmailOutbox."Retry No." > GetMaximumRetryCount() then begin
-            FeatureTelemetry.LogError('0000PMU', EmailFeatureNameLbl, 'Email retry reached maximum times', '', '', Dimensions);
+            FeatureTelemetry.LogError('0000PMU', EmailFeatureNameLbl, 'Email Retry - Retry reached maximum times', '', '', Dimensions);
             exit(false);
         end;
 
