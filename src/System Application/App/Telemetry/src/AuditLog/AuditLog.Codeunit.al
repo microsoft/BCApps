@@ -6,16 +6,16 @@
 namespace System.Telemetry;
 
 /// <summary>
-/// Provides methods to log audit messages to purview.
+/// Provides methods to log audit messages.
 /// </summary>
-codeunit 8714 Purview
+codeunit 8714 "Audit Log"
 {
     Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 
     var
-        PurviewImplementation: Codeunit "Purview Implementation";
+        AuditLogImplementation: Codeunit "Audit Log Implementation";
         CallerModuleInfo: ModuleInfo;
 
     /// <summary>
@@ -29,8 +29,7 @@ codeunit 8714 Purview
     procedure LogAuditMessage(SecurityAuditDescription: Text; SecurityAuditOperationResult: SecurityOperationResult; SecurityAuditCategory: AuditCategory; AuditMessageOperation: Integer; AuditMessageOperationResult: Integer)
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        PurviewImplementation.AssertInternalCall(CallerModuleInfo);
-        PurviewImplementation.LogAuditMessage(SecurityAuditDescription, SecurityAuditOperationResult, SecurityAuditCategory, AuditMessageOperation, AuditMessageOperationResult);
+        AuditLogImplementation.LogAuditMessage(SecurityAuditDescription, SecurityAuditOperationResult, SecurityAuditCategory, AuditMessageOperation, AuditMessageOperationResult, CallerModuleInfo);
     end;
 
     /// <summary>
@@ -45,7 +44,6 @@ codeunit 8714 Purview
     procedure LogAuditMessage(SecurityAuditDescription: Text; SecurityAuditOperationResult: SecurityOperationResult; SecurityAuditCategory: AuditCategory; AuditMessageOperation: Integer; AuditMessageOperationResult: Integer; CustomDimensions: Dictionary of [Text, Text])
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        PurviewImplementation.AssertInternalCall(CallerModuleInfo);
-        PurviewImplementation.LogAuditMessage(SecurityAuditDescription, SecurityAuditOperationResult, SecurityAuditCategory, AuditMessageOperation, AuditMessageOperationResult, CustomDimensions);
+        AuditLogImplementation.LogAuditMessage(SecurityAuditDescription, SecurityAuditOperationResult, SecurityAuditCategory, AuditMessageOperation, AuditMessageOperationResult, CustomDimensions, CallerModuleInfo);
     end;
 }
