@@ -14,7 +14,7 @@ page 149045 "AIT Evaluators"
     {
         area(Content)
         {
-            repeater(ControlName)
+            repeater(Evaluators)
             {
                 field("Test Suite Code"; Rec."Test Suite Code")
                 {

@@ -14,7 +14,7 @@ page 149044 "AIT Column Mappings"
     {
         area(Content)
         {
-            repeater(ControlName)
+            repeater(ColumnMappings)
             {
                 field("Test Suite Code"; Rec."Test Suite Code")
                 {
