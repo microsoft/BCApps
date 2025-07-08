@@ -128,8 +128,8 @@ page 8887 "Email Accounts"
                 field(EmailMaxRetryLimit; MaxRetryLimit)
                 {
                     ApplicationArea = All;
-                    Caption = 'Email Max. Retry Limit';
-                    ToolTip = 'Specifies the maximum number of retries for sending an email from this account.';
+                    Caption = 'Email Max. Attempt Limit';
+                    ToolTip = 'Specifies the maximum number of attempts for sending an email from this account.';
                     Visible = true;
 
                     trigger OnDrillDown()
