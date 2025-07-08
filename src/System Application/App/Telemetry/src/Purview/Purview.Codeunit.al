@@ -6,7 +6,7 @@
 namespace System.Telemetry;
 
 /// <summary>
-/// Provides methods to to log audit messages to purview.
+/// Provides methods to log audit messages to purview.
 /// </summary>
 codeunit 8714 Purview
 {
