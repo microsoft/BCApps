@@ -209,7 +209,7 @@ page 8882 "Email Outbox"
             {
                 ApplicationArea = All;
                 Caption = 'Send';
-                ToolTip = 'Send the email for processing. The status will change to Pending until it''s processed. If the email is successfully sent, it will no longer display in your Outbox.';
+                ToolTip = 'Send the email for processing in background. The status will change to Pending until it''s processed. If the email is successfully sent, it will no longer display in your Outbox.';
                 Image = Email;
                 Promoted = true;
                 PromotedCategory = Process;
