@@ -47,7 +47,7 @@ table 8912 "Email Rate Limit"
         field(6; "Max. Retry Limit"; Integer)
         {
             DataClassification = SystemMetadata;
-            InitValue = 10;
+            InitValue = 1;
 
             trigger OnValidate()
             begin

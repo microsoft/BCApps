@@ -14,7 +14,8 @@ codeunit 8888 "Email Dispatcher"
     Permissions = tabledata "Sent Email" = ri,
                   tabledata "Email Outbox" = rimd,
                   tabledata "Email Message" = r,
-                  tabledata "Email Error" = ri;
+                  tabledata "Email Error" = ri,
+                  tabledata "Email Rate Limit" = r;
 
     var
         EmailMessageImpl: Codeunit "Email Message Impl.";
