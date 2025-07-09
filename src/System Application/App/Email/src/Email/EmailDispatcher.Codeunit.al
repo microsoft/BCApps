@@ -6,7 +6,6 @@
 namespace System.Email;
 
 using System.Telemetry;
-using System.Environment;
 
 codeunit 8888 "Email Dispatcher"
 {
@@ -54,7 +53,6 @@ codeunit 8888 "Email Dispatcher"
         EmailMessage: Record "Email Message";
         SentEmail: Record "Sent Email";
         SendEmailCodeunit: Codeunit "Send Email";
-        ClientTypeManagement: Codeunit "Client Type Management";
         EmailRetryImpl: Codeunit "Email Retry Impl.";
         Email: Codeunit Email;
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -64,7 +62,6 @@ codeunit 8888 "Email Dispatcher"
         // -----------
         // NB: Avoid adding events here as any error would cause a roll-back and possibly an inconsistent state of the Email Outbox.
         // -----------
-
         UpdateOutboxStatus(EmailOutbox, EmailOutbox.Status::Processing);
 
         if EmailMessageImpl.Get(EmailOutbox."Message Id") then begin
@@ -89,13 +86,13 @@ codeunit 8888 "Email Dispatcher"
                 UpdateOutboxError(LastErrorText, EmailOutbox);
                 UpdateOutboxStatus(EmailOutbox, EmailOutbox.Status::Failed);
 
-                // if email is not rescheduled, it means it has exceeded the retry limit, stop retrying
-                if ClientTypeManagement.GetCurrentClientType() = CLIENTTYPE::Background then begin
+                if EmailOutbox."Is Background Task" then begin
                     if EmailOutbox."Retry No." = 1 then
                         EmailRetryImpl.CreateEmailRetry(EmailOutbox);
 
                     EmailRetryImpl.UpdateEmailRetryRecord(EmailOutbox."Message Id", EmailOutbox."Retry No.", EmailOutbox.Status::Failed, LastErrorText, EmailOutbox."Date Queued", EmailOutbox."Date Failed", EmailOutbox."Date Sending");
 
+                    // if email is not rescheduled, it means it has exceeded the retry limit, stop retrying
                     if RetrySendEmail(EmailOutbox) then exit;
                 end;
             end;
