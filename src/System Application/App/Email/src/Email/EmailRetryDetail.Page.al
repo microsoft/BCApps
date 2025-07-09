@@ -24,7 +24,7 @@ page 8892 "Email Retry Detail"
         {
             repeater(RetryDetail)
             {
-                field("Attempt No."; Rec."Retry No.")
+                field("Retry No."; Rec."Retry No.")
                 {
                     ApplicationArea = All;
                     Caption = 'Attempt No.';

@@ -759,14 +759,14 @@ codeunit 134703 "Email Retry Test"
         Assert.IsTrue(EmailRetryDetailPage.First(), 'The first Email Retry Detail should be shown');
         Assert.AreEqual(Enum::"Email Status"::Failed.AsInteger(), EmailRetryDetailPage.Status.AsInteger(), 'Wrong status');
         Assert.AreEqual('Failed to send email', EmailRetryDetailPage."Error Message".Value(), 'Wrong error message');
-        Assert.AreEqual(1, EmailRetryDetailPage."Attempt No.".AsInteger(), 'The retry number should be 1');
+        Assert.AreEqual(1, EmailRetryDetailPage."Retry No.".AsInteger(), 'The retry number should be 1');
         Assert.IsTrue(EmailRetryDetailPage.ShowError.Enabled(), 'The Show Error action should be enabled');
         Assert.IsTrue(EmailRetryDetailPage.ShowErrorCallStack.Enabled(), 'The Show Error Call Stack action should be enabled');
 
         Assert.IsTrue(EmailRetryDetailPage.Next(), 'The second Email Retry Detail should be shown');
         Assert.AreEqual(Enum::"Email Status"::Queued.AsInteger(), EmailRetryDetailPage.Status.AsInteger(), 'Wrong status');
         Assert.AreEqual('', EmailRetryDetailPage."Error Message".Value(), 'Wrong error message');
-        Assert.AreEqual(2, EmailRetryDetailPage."Attempt No.".AsInteger(), 'The retry number should be 1');
+        Assert.AreEqual(2, EmailRetryDetailPage."Retry No.".AsInteger(), 'The retry number should be 1');
         Assert.AreEqual('', EmailRetryDetailPage."Date Failed".Value(), 'The Date Failed should be empty');
         Assert.IsFalse(EmailRetryDetailPage.ShowError.Enabled(), 'The Show Error action should be enabled');
         Assert.IsFalse(EmailRetryDetailPage.ShowErrorCallStack.Enabled(), 'The Show Error Call Stack action should be enabled');
