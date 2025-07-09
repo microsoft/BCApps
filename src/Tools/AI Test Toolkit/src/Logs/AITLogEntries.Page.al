@@ -12,7 +12,7 @@ page 149033 "AIT Log Entries"
     ApplicationArea = All;
     Editable = false;
     SourceTable = "AIT Log Entry";
-    Extensible = false;
+    Extensible = true;
     UsageCategory = None;
 
     layout

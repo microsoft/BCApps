@@ -194,6 +194,26 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         end;
     end;
 
+    procedure GetTestOutputAsJson(var AITLogEntry: Record "AIT Log Entry"): JsonArray
+    var
+        OutputJsonArray: JsonArray;
+        OutputJson: JsonObject;
+        TestOutput: Text;
+    begin
+        AITLogEntry.SetLoadFields("Test Suite Code", "Output Data");
+        AITLogEntry.ReadIsolation := IsolationLevel::ReadUncommitted;
+        if AITLogEntry.FindSet() then
+            repeat
+                TestOutput := AITLogEntry.GetOutputBlob();
+                if TestOutput <> '' then begin
+                    OutputJson.ReadFrom(TestOutput);
+                    OutputJsonArray.Add(OutputJson);
+                end;
+            until AITLogEntry.Next() = 0;
+
+        exit(OutputJsonArray);
+    end;
+
     /// <summary>
     /// Import the Test Input Dataset from an InStream of a dataset in a supported format.
     /// Overwrite the dataset if the dataset with same filename is already imported by the same app
