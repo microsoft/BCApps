@@ -79,34 +79,51 @@ page 2613 "API - Feature Management"
     }
 
     [ServiceEnabled]
-    procedure EnableFeature() IsEnabled: Boolean
+    [Scope('Cloud')]
+    procedure EnableFeature(UpdateInBackground: Boolean; StartDateTime: DateTime)
     var
         FeatureDataUpdateStatus: Record "Feature Data Update Status";
         FeatureManagementFacade: Codeunit "Feature Management Facade";
     begin
         if Rec.Enabled = Rec.Enabled::"All Users" then
-            Error('Feature with ID %1 is already enabled.', Rec.ID);
+            Error(AlreadyEnabledErr);
+
+        if UpdateInBackground and Rec."Data Update Required" then
+            if not TaskScheduler.CanCreateTask() then
+                Error(CantScheduleTaskErr);
 
         Rec.Enabled := Rec.Enabled::"All Users";
-        IsEnabled := Rec.Modify(true);
+        Rec.Modify(true);
 
         // Update data if needed
-        // Probably need to change the logic to run this in the background
-        FeatureManagementFacade.Update(FeatureDataUpdateStatus);
+        FeatureManagementFacade.GetFeatureDataUpdateStatus(Rec, FeatureDataUpdateStatus);
+
+        if FeatureDataUpdateStatus."Data Update Required" then begin
+            FeatureDataUpdateStatus."Background Task" := UpdateInBackground;
+            FeatureDataUpdateStatus."Start Date/Time" := CurrentDateTime();
+            FeatureDataUpdateStatus.Confirmed := true;
+            FeatureDataUpdateStatus.Modify(true);
+            FeatureManagementFacade.UpdateSilently(FeatureDataUpdateStatus);
+        end;
     end;
 
     [ServiceEnabled]
-    procedure DisableFeature(): Text
+    [Scope('Cloud')]
+    procedure DisableFeature()
     begin
         if Rec.Enabled = Rec.Enabled::None then
-            Error('Feature with ID %1 is already disabled.', Rec.ID);
+            Error(AlreadyDisabledErr);
 
         if Rec."Is One Way" then
-            Error('Feature with ID %1 is one way and cannot be disabled.', Rec.ID);
+            Error(OneWayAlreadyEnabledErr);
 
         Rec.Enabled := Rec.Enabled::None;
         Rec.Modify(true);
-
-        exit(rec.ID + Format(Rec.Enabled));
     end;
+
+    var
+        OneWayAlreadyEnabledErr: Label 'This feature has already been enabled and cannot be disabled.';
+        AlreadyEnabledErr: Label 'This feature has already been enabled';
+        AlreadyDisabledErr: Label 'This feature has already been disabled.';
+        CantScheduleTaskErr: Label 'Cannot create a background task. Please check your permissions or run it in the same session.';
 }
