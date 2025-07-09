@@ -98,7 +98,8 @@ page 8882 "Email Outbox"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the date when this email is scheduled for sending.';
                 }
-                field("Attempt No."; Rec."Retry No.")
+
+                field("Retry No."; Rec."Retry No.")
                 {
                     Caption = 'Attempt No.';
                     ApplicationArea = All;
