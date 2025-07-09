@@ -24,8 +24,8 @@ table 149038 "AIT Column Mapping"
 
         field(2; "Test Method Line"; Integer)
         {
-            Caption = 'Test Suite Code';
-            ToolTip = 'Specifies the code of the test suite.';
+            Caption = 'Test Method Line';
+            ToolTip = 'Specifies the line number of the test method.';
             DataClassification = SystemMetadata;
             TableRelation = "AIT Test Method Line"."Line No.";
             ValidateTableRelation = true;
@@ -35,14 +35,14 @@ table 149038 "AIT Column Mapping"
         {
             DataClassification = SystemMetadata;
             Caption = 'Column';
-            ToolTip = 'Specifies the column from the test output data to use in evaluation.';
+            ToolTip = 'Specifies the column that needs to be mapped from the output.';
         }
 
         field(11; "Target Column"; Text[1024])
         {
             DataClassification = SystemMetadata;
             Caption = 'Target Column';
-            ToolTip = 'Specifies the target column from the test output data to use in evaluation.';
+            ToolTip = 'Specifies the target column that needs to be mapped to externally.';
         }
 
     }
