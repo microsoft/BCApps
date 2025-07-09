@@ -72,8 +72,8 @@
   "target": "OnPrem",
   "idRanges": [
     {
-      "from": 134540,
-      "to": 134541
+      "from": 133688,
+      "to": 133690
     }
   ],
   "features": [
@@ -87,5 +87,8 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/",
+  "resourceFolders": [
+    ".resources"
+  ]
 }
