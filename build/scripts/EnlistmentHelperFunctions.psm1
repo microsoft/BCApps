@@ -436,6 +436,28 @@ function Install-PackageFromConfig
 
     while (-not $success -and $retryCount -lt $maxRetries) {
         try {
+            # Clear NuGet cache for this specific package before retry to handle corrupted downloads
+            if ($retryCount -gt 0) {
+                Write-Host "Clearing NuGet cache for package $PackageName to ensure fresh download..."
+                try {
+                    # Clear global packages cache for this specific package
+                    $globalPackagesPath = (& dotnet nuget locals global-packages --list 2>$null | Select-String "global-packages:" | ForEach-Object { $_.Line.Split(': ', 2)[1].Trim() })
+                    if ($globalPackagesPath -and (Test-Path $globalPackagesPath)) {
+                        $packageCachePath = Join-Path $globalPackagesPath $PackageName.ToLower()
+                        if (Test-Path $packageCachePath) {
+                            Remove-Item -Path $packageCachePath -Recurse -Force -ErrorAction SilentlyContinue
+                            Write-Host "Cleared cache for package $PackageName"
+                        }
+                    }
+                    
+                    # Also clear the http cache
+                    & dotnet nuget locals http-cache --clear 2>$null | Out-Null
+                }
+                catch {
+                    Write-Host "Warning: Could not clear NuGet cache: $($_.Exception.Message)"
+                }
+            }
+            
             Install-Package $PackageName -Source $packageSource -RequiredVersion $packageVersion -Destination $OutputPath -Force | Out-Null
             $success = $true
         }
