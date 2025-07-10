@@ -13,9 +13,6 @@
     "../../../src/Apps/W1/*/*/Test Library",
     "../../../src/Apps/W1/*/*/Demo Data"
   ],
-  "buildModes": [
-    "Translated"
-  ],
   "installOnlyReferencedApps": false,
   "ConditionalSettings": [
     {
