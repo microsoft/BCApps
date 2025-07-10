@@ -428,7 +428,31 @@ function Install-PackageFromConfig
     }
 
     Write-Host "Installing package $PackageName; source $packageSource; version: $packageVersion; destination: $OutputPath"
-    Install-Package $PackageName -Source $packageSource -RequiredVersion $packageVersion -Destination $OutputPath -Force | Out-Null
+    
+    # Retry logic to handle transient failures like "End of Central Directory record could not be found"
+    $maxRetries = 3
+    $retryCount = 0
+    $success = $false
+    
+    while (-not $success -and $retryCount -lt $maxRetries) {
+        try {
+            Install-Package $PackageName -Source $packageSource -RequiredVersion $packageVersion -Destination $OutputPath -Force | Out-Null
+            $success = $true
+        }
+        catch {
+            $retryCount++
+            if ($retryCount -lt $maxRetries) {
+                $waitTime = [Math]::Pow(2, $retryCount) # Exponential backoff: 2, 4, 8 seconds
+                Write-Host "Package installation failed (attempt $retryCount/$maxRetries): $($_.Exception.Message)"
+                Write-Host "Retrying in $waitTime seconds..."
+                Start-Sleep -Seconds $waitTime
+            }
+            else {
+                Write-Host "Package installation failed after $maxRetries attempts: $($_.Exception.Message)"
+                throw $_
+            }
+        }
+    }
 
     return $packagePath
 }
