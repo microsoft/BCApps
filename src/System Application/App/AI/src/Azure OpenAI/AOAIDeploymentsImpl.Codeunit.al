@@ -134,26 +134,6 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(GetDeploymentName(GPT41MiniLatestLbl));
     end;
 
-    procedure GetGPT41Preview(CallerModuleInfo: ModuleInfo): Text
-    begin
-        exit(GetDeploymentName(GPT41PreviewLbl));
-    end;
-
-    procedure GetGPT41Latest(CallerModuleInfo: ModuleInfo): Text
-    begin
-        exit(GetDeploymentName(GPT41LatestLbl));
-    end;
-
-    procedure GetGPT41MiniPreview(CallerModuleInfo: ModuleInfo): Text
-    begin
-        exit(GetDeploymentName(GPT41MiniPreviewLbl));
-    end;
-
-    procedure GetGPT41MiniLatest(CallerModuleInfo: ModuleInfo): Text
-    begin
-        exit(GetDeploymentName(GPT41MiniLatestLbl));
-    end;
-
     // Initializes dictionary of deprecated models
     local procedure InitializeDeploymentDeprecationDates()
     begin
