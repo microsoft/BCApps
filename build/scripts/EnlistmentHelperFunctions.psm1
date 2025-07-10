@@ -428,12 +428,12 @@ function Install-PackageFromConfig
     }
 
     Write-Host "Installing package $PackageName; source $packageSource; version: $packageVersion; destination: $OutputPath"
-    
+
     # Retry logic to handle transient failures like "End of Central Directory record could not be found"
     $maxRetries = 3
     $retryCount = 0
     $success = $false
-    
+
     while (-not $success -and $retryCount -lt $maxRetries) {
         try {
             Install-Package $PackageName -Source $packageSource -RequiredVersion $packageVersion -Destination $OutputPath -Force | Out-Null
