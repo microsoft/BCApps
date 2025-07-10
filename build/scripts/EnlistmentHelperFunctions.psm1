@@ -442,7 +442,7 @@ function Install-PackageFromConfig
         catch {
             $retryCount++
             if ($retryCount -lt $maxRetries) {
-                $waitTime = [Math]::Pow(2, $retryCount) # Exponential backoff: 2, 4, 8 seconds
+                $waitTime = 15 * $retryCount # Linear backoff: 15, 30, 45 seconds
                 Write-Host "Package installation failed (attempt $retryCount/$maxRetries): $($_.Exception.Message)"
                 Write-Host "Retrying in $waitTime seconds..."
                 Start-Sleep -Seconds $waitTime
