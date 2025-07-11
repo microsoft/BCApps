@@ -372,7 +372,7 @@ table 8061 "Billing Line"
         end;
     end;
 
-    internal procedure GetBillingDocumentTypeFromSalesDocumentType(SalesDocumentType: Enum "Sales Document Type") RecurringBillingDocumentType: Enum "Rec. Billing Document Type"
+    procedure GetBillingDocumentTypeFromSalesDocumentType(SalesDocumentType: Enum "Sales Document Type") RecurringBillingDocumentType: Enum "Rec. Billing Document Type"
     begin
         case SalesDocumentType of
             SalesDocumentType::Invoice:
@@ -382,7 +382,7 @@ table 8061 "Billing Line"
         end;
     end;
 
-    internal procedure GetBillingDocumentTypeFromPurchaseDocumentType(PurchaseDocumentType: Enum "Purchase Document Type") RecurringBillingDocumentType: Enum "Rec. Billing Document Type"
+    procedure GetBillingDocumentTypeFromPurchaseDocumentType(PurchaseDocumentType: Enum "Purchase Document Type") RecurringBillingDocumentType: Enum "Rec. Billing Document Type"
     begin
         case PurchaseDocumentType of
             PurchaseDocumentType::Invoice:
@@ -477,7 +477,7 @@ table 8061 "Billing Line"
         exit('');
     end;
 
-    internal procedure FilterBillingLineOnDocumentLine(DocumentType: Enum "Rec. Billing Document Type"; DocumentNo: Code[20]; DocumentLineNo: Integer)
+    procedure FilterBillingLineOnDocumentLine(DocumentType: Enum "Rec. Billing Document Type"; DocumentNo: Code[20]; DocumentLineNo: Integer)
     begin
         Rec.SetRange("Document Type", DocumentType);
         Rec.SetRange("Document No.", DocumentNo);
