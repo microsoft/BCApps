@@ -14,7 +14,7 @@ page 149031 "AIT Test Suite"
     ApplicationArea = All;
     PageType = Document;
     SourceTable = "AIT Test Suite";
-    Extensible = false;
+    Extensible = true;
     DataCaptionExpression = PageCaptionLbl + ' - ' + Rec."Code";
     UsageCategory = None;
 
@@ -76,6 +76,41 @@ page 149031 "AIT Test Suite"
                         AITALTestSuiteMgt.AssistEditTestRunner(Rec);
                         CurrPage.Update(true);
                     end;
+                }
+                group(Evaluation)
+                {
+                    field("Evaluation Setup"; EvaluationSetupTxt)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Evaluators';
+                        ToolTip = 'Specifies whether the evaluation is setup.';
+                        Editable = false;
+
+                        trigger OnAssistEdit()
+                        var
+                            AITEvaluator: Record "AIT Evaluator";
+                            AITEvaluatorPage: Page "AIT Evaluators";
+                        begin
+                            AITEvaluator.SetRange("Test Suite Code", Rec.Code);
+                            AITEvaluator.SetRange("Test Method Line", 0);
+                            AITEvaluatorPage.SetTableView(AITEvaluator);
+                            AITEvaluatorPage.SetTestMethodLine(0);
+                            AITEvaluatorPage.Run();
+                        end;
+                    }
+                    field(Evaluators; Rec."Number of Evaluators")
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Number of Evaluators';
+                        ToolTip = 'Specifies evaluators for the evaluation.';
+                    }
+
+                    field("Column Mappings"; Rec."Number of Column Mappings")
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Column Mappings';
+                        ToolTip = 'Specifies column mappings for the evaluation.';
+                    }
                 }
                 group(StatusGroup)
                 {
@@ -331,6 +366,7 @@ page 149031 "AIT Test Suite"
         PageCaptionLbl: Label 'AI Test';
         TestRunnerDisplayName: Text;
         InputDatasetChangedQst: Label 'You have modified the input dataset.\\Do you want to update the lines?';
+        EvaluationSetupTxt: Text;
 
     trigger OnOpenPage()
     var
@@ -351,6 +387,7 @@ page 149031 "AIT Test Suite"
         UpdateTotalDuration();
         UpdateAverages();
         TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner Id");
+        EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(Rec.Code, 0);
     end;
 
     local procedure UpdateTotalDuration()

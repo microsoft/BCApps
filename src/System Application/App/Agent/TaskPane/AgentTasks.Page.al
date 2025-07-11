@@ -63,6 +63,7 @@ page 4306 "Agent Tasks"
                 field(TaskLastStepCompletedOn; Rec."Last Step Timestamp")
                 {
                     Caption = 'Last Step Completed On';
+                    ToolTip = 'Specifies the date and time when the last step for the task was completed.';
                 }
                 field(TaskStepType; Rec."Current Step Type")
                 {
@@ -129,7 +130,7 @@ page 4306 "Agent Tasks"
 
         Rec.CalcFields("Summary");
         if Rec."Summary".HasValue() then begin
-            Rec."Summary".CreateInStream(InStream);
+            Rec."Summary".CreateInStream(InStream, AgentTaskImpl.GetDefaultEncoding());
             TaskSummary.Read(InStream);
         end;
 
@@ -142,6 +143,7 @@ page 4306 "Agent Tasks"
     end;
 
     var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
         TaskSummary: BigText;
         GlobalCreatedBy: Text[250];
 }

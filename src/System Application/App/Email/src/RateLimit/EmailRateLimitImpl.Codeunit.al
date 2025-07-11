@@ -62,6 +62,27 @@ codeunit 8999 "Email Rate Limit Impl."
         exit((EmailOutboxCurrent.Count() + SentEmail.Count()) >= RateLimit);
     end;
 
+    procedure IsConcurrencyLimitExceeded(AccountId: Guid; Connector: Enum "Email Connector"; EmailAddress: Text[250]): Boolean
+    begin
+        exit(GetEmailOutboxCurrentProcessingCount(AccountId) > GetConcurrencyLimit(AccountId, Connector, EmailAddress))
+    end;
+
+    /// <summary>
+    /// Returns the current count of emails in the outbox that are being processed for current user.
+    /// </summary>
+    /// <returns>The count of the email which is being sending for the account</returns>
+    internal procedure GetEmailOutboxCurrentProcessingCount(AccountId: Guid): Integer
+    var
+        EmailOutbox: Record "Email Outbox";
+    begin
+        EmailOutbox.SetRange(Status, EmailOutbox.Status::Processing);
+        EmailOutbox.SetRange("Account Id", AccountId);
+        if EmailOutbox.IsEmpty() then
+            exit(0);
+
+        exit(EmailOutbox.Count());
+    end;
+
     [InherentPermissions(PermissionObjectType::TableData, Database::"Email Rate Limit", 'ri')]
     procedure GetRateLimit(AccountId: Guid; Connector: Enum "Email Connector"; EmailAddress: Text[250]): Integer
     var
@@ -70,11 +91,41 @@ codeunit 8999 "Email Rate Limit Impl."
         if EmailRateLimit.Get(AccountId, Connector) then
             exit(EmailRateLimit."Rate Limit");
 
-        EmailRateLimit."Account Id" := AccountId;
-        EmailRateLimit.Connector := Connector;
-        EmailRateLimit."Email Address" := EmailAddress;
-        EmailRateLimit."Rate Limit" := 0;
-        EmailRateLimit.Insert();
+        InitEmailRateLimitRecord(EmailRateLimit, AccountId, Connector, EmailAddress);
+
         exit(EmailRateLimit."Rate Limit");
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Email Rate Limit", 'ri')]
+    procedure GetConcurrencyLimit(AccountId: Guid; Connector: Enum "Email Connector"; EmailAddress: Text[250]): Integer
+    var
+        EmailRateLimit: Record "Email Rate Limit";
+    begin
+        if EmailRateLimit.Get(AccountId, Connector) then
+            exit(EmailRateLimit."Concurrency Limit");
+
+        InitEmailRateLimitRecord(EmailRateLimit, AccountId, Connector, EmailAddress);
+
+        exit(EmailRateLimit."Concurrency Limit");
+    end;
+
+    local procedure GetDefaultRateLimit(): Integer
+    begin
+        exit(0); // Default rate limit is 0, meaning no limit.
+    end;
+
+    local procedure GetDefaultConcurrencyLimit(): Integer
+    begin
+        exit(3);
+    end;
+
+    local procedure InitEmailRateLimitRecord(var EmailRateLimit: Record "Email Rate Limit"; AccountId: Guid; Connector: Enum "Email Connector"; EmailAddress: Text[250])
+    begin
+        EmailRateLimit.Validate("Account Id", AccountId);
+        EmailRateLimit.Validate(Connector, Connector);
+        EmailRateLimit.Validate("Email Address", EmailAddress);
+        EmailRateLimit.Validate("Rate Limit", GetDefaultRateLimit());
+        EmailRateLimit.Validate("Concurrency Limit", GetDefaultConcurrencyLimit());
+        EmailRateLimit.Insert();
     end;
 }
