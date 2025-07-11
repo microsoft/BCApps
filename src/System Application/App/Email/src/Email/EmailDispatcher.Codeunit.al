@@ -109,7 +109,7 @@ codeunit 8888 "Email Dispatcher"
             Email.OnAfterEmailSendFailed(EmailOutbox);
     end;
 
-    procedure GetMaximumRetryCount(var EmailOutbox: Record "Email Outbox"): Integer
+    local procedure GetMaximumRetryCount(var EmailOutbox: Record "Email Outbox"): Integer
     var
         EmailRateLimit: Record "Email Rate Limit";
     begin
