@@ -133,11 +133,10 @@ codeunit 9351 "Graph Client Impl."
         exit(HttpResponseMessage.GetIsSuccessStatusCode());
     end;
 
-    procedure GetAllPages(RelativeUriToResource: Text; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; var JsonResults: JsonArray): Boolean
+    procedure GetAllPages(RelativeUriToResource: Text; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; var HttpResponseMessage: Codeunit "Http Response Message"; var JsonResults: JsonArray): Boolean
     var
         GraphPaginationHelper: Codeunit "Graph Pagination Helper";
         GraphPaginationData: Codeunit "Graph Pagination Data";
-        HttpResponseMessage: Codeunit "Http Response Message";
         IterationCount: Integer;
     begin
         // First request with pagination

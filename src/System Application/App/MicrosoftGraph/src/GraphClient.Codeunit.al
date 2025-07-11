@@ -176,12 +176,13 @@ codeunit 9350 "Graph Client"
     /// <remarks>Does not require UI interaction. This method fetches all pages automatically and returns the combined results.</remarks>
     /// <param name="RelativeUriToResource">A relativ uri including the resource segments</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters</param>
+    /// <param name="HttpResponseMessage">The last response message object.</param>
     /// <param name="JsonResults">A JSON array containing all results from all pages</param>
     /// <returns>True if the operation was successful; otherwise - false.</returns>
     /// <error>Authentication failed.</error>
-    procedure GetAllPages(RelativeUriToResource: Text; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; var JsonResults: JsonArray): Boolean
+    procedure GetAllPages(RelativeUriToResource: Text; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; var HttpResponseMessage: Codeunit "Http Response Message"; var JsonResults: JsonArray): Boolean
     begin
-        exit(GraphClientImpl.GetAllPages(RelativeUriToResource, GraphOptionalParameters, JsonResults));
+        exit(GraphClientImpl.GetAllPages(RelativeUriToResource, GraphOptionalParameters, HttpResponseMessage, JsonResults));
     end;
 
     #endregion
