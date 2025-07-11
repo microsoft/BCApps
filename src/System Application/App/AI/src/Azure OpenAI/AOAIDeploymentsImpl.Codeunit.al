@@ -21,6 +21,10 @@ codeunit 7769 "AOAI Deployments Impl"
         GPT4oPreviewLbl: Label 'gpt-4o-preview', Locked = true;
         GPT4oMiniLatestLbl: Label 'gpt-4o-mini-latest', Locked = true;
         GPT4oMiniPreviewLbl: Label 'gpt-4o-mini-preview', Locked = true;
+        GPT41LatestLbl: Label 'gpt-41-latest', Locked = true;
+        GPT41PreviewLbl: Label 'gpt-41-preview', Locked = true;
+        GPT41MiniLatestLbl: Label 'gpt-41-mini-latest', Locked = true;
+        GPT41MiniPreviewLbl: Label 'gpt-41-mini-preview', Locked = true;
         DeprecatedDeployments: Dictionary of [Text, Date];
         DeprecationDatesInitialized: Boolean;
         DeprecationMessageLbl: Label 'We detected usage of the Azure OpenAI deployment "%1". This model is obsoleted starting %2 and the quality of your results might vary after that date. Check out codeunit 7768 AOAI Deployments to find the supported deployments.', Comment = 'Telemetry message where %1 is the name of the deployment and %2 is the date of deprecation';
@@ -86,7 +90,6 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(GetDeploymentName(GPT4LatestLbl));
     end;
 #endif
-
     procedure GetGPT4oPreview(CallerModuleInfo: ModuleInfo): Text
     begin
         exit(GetDeploymentName(GPT4oPreviewLbl));
@@ -107,6 +110,26 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(GetDeploymentName(GPT4oMiniLatestLbl));
     end;
 
+    procedure GetGPT41Preview(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT41PreviewLbl));
+    end;
+
+    procedure GetGPT41Latest(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT41LatestLbl));
+    end;
+
+    procedure GetGPT41MiniPreview(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT41MiniPreviewLbl));
+    end;
+
+    procedure GetGPT41MiniLatest(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT41MiniLatestLbl));
+    end;
+
     // Initializes dictionary of deprecated models
     local procedure InitializeDeploymentDeprecationDates()
     begin
@@ -122,6 +145,12 @@ codeunit 7769 "AOAI Deployments Impl"
         DeprecatedDeployments.Add(Turbo0301SaasLbl, DMY2Date(1, 11, 2024));
         DeprecatedDeployments.Add(GPT40613SaasLbl, DMY2Date(1, 11, 2024));
         DeprecatedDeployments.Add(Turbo0613SaasLbl, DMY2Date(1, 11, 2024));
+#endif
+#if not CLEAN27
+        DeprecatedDeployments.Add(GPT4oLatestLbl, DMY2Date(15, 7, 2025));
+        DeprecatedDeployments.Add(GPT4oPreviewLbl, DMY2Date(15, 7, 2025));
+        DeprecatedDeployments.Add(GPT4oMiniLatestLbl, DMY2Date(15, 7, 2025));
+        DeprecatedDeployments.Add(GPT4oMiniPreviewLbl, DMY2Date(15, 7, 2025));
 #endif
         DeprecationDatesInitialized := true;
     end;
