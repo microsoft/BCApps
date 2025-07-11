@@ -1,0 +1,9 @@
+{
+    "variables": {
+        "app_currentVersion": "27.0.0.0",
+        "app_minimumVersion": "27.0.0.0",
+        "app_platformVersion": "27.0.0.0"
+    },
+    "properties": {
+    }
+}
