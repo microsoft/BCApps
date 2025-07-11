@@ -96,7 +96,7 @@ page 4313 "Agent Task Details"
 
         if Rec.CalcFields("Client Context") then
             if Rec."Client Context".HasValue() then begin
-                Rec."Client Context".CreateInStream(InStream);
+                Rec."Client Context".CreateInStream(InStream, AgentTaskImpl.GetDefaultEncoding());
                 ClientContext.Read(InStream);
             end;
     end;
