@@ -173,15 +173,7 @@ codeunit 324 "No. Series Copilot Impl."
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"No. Series Copilot") then
             exit;
 
-#if not CLEAN27
-#pragma warning disable AS0105    
-#pragma warning disable AL0432
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT4oLatest());
-#pragma warning restore AL0432
-#pragma warning restore AS0105            
-#else
         AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
-#endif    
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"No. Series Copilot");
         AOAIChatCompletionParams.SetMaxTokens(MaxOutputTokens());
         AOAIChatCompletionParams.SetTemperature(0);
