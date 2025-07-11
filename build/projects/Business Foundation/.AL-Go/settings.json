@@ -8,9 +8,6 @@
     "..\\..\\..\\src\\Business Foundation\\Test",
     "..\\..\\..\\src\\Business Foundation\\Test Library"
   ],
-  "buildModes": [
-    "Translated"
-  ],
   "installOnlyReferencedApps": false,
   "ConditionalSettings": [
     {

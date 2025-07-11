@@ -4,9 +4,6 @@
   "appFolders": [
     "..\\..\\..\\src\\System Application\\App"
   ],
-  "buildModes": [
-    "Translated"
-  ],
   "doNotRunTests": true,
   "useCompilerFolder": true,
   "doNotPublishApps": true,
@@ -17,7 +14,6 @@
       ],
       "settings": {
         "buildModes": [
-          "Translated",
           "Strict"
         ]
       }
