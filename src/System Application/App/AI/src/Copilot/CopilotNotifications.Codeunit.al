@@ -25,16 +25,19 @@ codeunit 7757 "Copilot Notifications"
         BillingInTheFutureLearnMoreLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2302317', Locked = true;
         AIQuotaUsedUpNotificationGuidTok: Label 'eced148b-4721-4ff9-b4c8-a8b5b1209692', Locked = true;
         AIQuotaUsedUpNotificationMsg: Label 'AI capabilities are currently unavailable because your organization has used up its AI quota.';
+        BCAdminCenterSaaSLinkTxt: Label '%1/admin', Comment = '%1 - BC url', Locked = true;
+        LearnMoreLbl: Label 'Learn more', Locked = true;
         AIQuotaUsedUpLearnMoreLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2302511', Locked = true;
         AIQuotaUsedUpAdminMsg: Label 'AI capabilities in Business Central require AI quota.\\Your organization has used up its AI quota, so AI capabilities are currently unavailable.\\Would you like to open the Business Central administration center to set up billing?';
         AIQuotaNearlyUsedUpNotificationGuidTok: Label '4a15b17c-1f88-4cc6-a342-4300ba400c8a', Locked = true;
         AIQuotaNearlyUsedUpNotificationMsg: Label 'The AI quota in this environment is nearly used up. When it is, AI capabilities will be unavailable.';
         AIQuotaNearlyUsedUpLearnMoreLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2302603', Locked = true;
         AIQuotaNearlyUsedUpAdminMsg: Label 'AI capabilities in Business Central require AI quota, and your organization has a limited amount remaining.\\When it''s used up, AI capabilities will be unavailable until AI quota is available again.\\Would you like to open the Business Central administration center to set up billing?';
-        BingNudgeLbl: Label 'You''re missing out! Enabling Bing Search offers enhanced results';
+        BingNudgeLbl: Label 'You''re missing out! Enabling Bing Search offers enhanced results.';
         BingNudgeGuidLbl: Label 'b08194f4-7904-4e2b-a08a-421da4391971', Locked = true;
-        BCAdminCenterSaaSLinkTxt: Label '%1/admin', Comment = '%1 - BC url', Locked = true;
-        LearnMoreLbl: Label 'Learn more', Locked = true;
+        CapabilityChangeGuidLbl: Label '84a72fe7-e157-47a1-ac83-9ec2fe3649d1', Locked = true;
+        CapabilityChangeLbl: Label 'You must sign out and then sign in again to make the changes take effect.';
+        CapabilityChangeLearnMoreUrlLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2316643', Locked = true;
 
     procedure CheckAIQuotaAndShowNotification()
     var
@@ -144,7 +147,18 @@ codeunit 7757 "Copilot Notifications"
         BingSearchNudgeNotification.Send();
     end;
 
-    procedure ShowAIQuotaNearlyUsedUpLearnMore(AIQuotaNearlyUsedUpNotification: Notification)
+    procedure ShowCapabilityChange()
+    var
+        CapabilityChangeNotification: Notification;
+    begin
+        CapabilityChangeNotification.Id := CapabilityChangeGuidLbl;
+        CapabilityChangeNotification.Message := CapabilityChangeLbl;
+        CapabilityChangeNotification.Scope := NotificationScope::LocalScope;
+        CapabilityChangeNotification.AddAction(LearnMoreLbl, Codeunit::"Copilot Notifications", 'ShowCapabilityChangeLearnMore');
+        CapabilityChangeNotification.Send();
+    end;
+
+    procedure ShowAIQuotaNearlyUsedUpLearnMore(BingSearchNudgeNotification: Notification)
     begin
         if CopilotCapabilityImpl.IsAdmin() then begin
             if Dialog.Confirm(AIQuotaNearlyUsedUpAdminMsg) then
@@ -152,6 +166,11 @@ codeunit 7757 "Copilot Notifications"
         end
         else
             Hyperlink(AIQuotaNearlyUsedUpLearnMoreLinkLbl);
+    end;
+
+    procedure ShowCapabilityChangeLearnMore(CapabilityChangeNotification: Notification)
+    begin
+        Hyperlink(CapabilityChangeLearnMoreUrlLbl);
     end;
 
     local procedure OpenBCAdminCenter()
