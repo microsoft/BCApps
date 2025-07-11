@@ -195,22 +195,22 @@ page 4307 "Agent Task Timeline"
 
         if Rec.CalcFields("Primary Page Summary", "Primary Page Query", "Annotations", "Last User Intervention Details") then begin
             if Rec."Primary Page Summary".HasValue() then begin
-                Rec."Primary Page Summary".CreateInStream(InStream, TextEncoding::UTF8);
+                Rec."Primary Page Summary".CreateInStream(InStream, AgentTaskImpl.GetDefaultEncoding());
                 GlobalPageSummary.Read(InStream);
                 Clear(InStream);
             end;
             if Rec."Primary Page Query".HasValue() then begin
-                Rec."Primary Page Query".CreateInStream(InStream, TextEncoding::UTF8);
+                Rec."Primary Page Query".CreateInStream(InStream, AgentTaskImpl.GetDefaultEncoding());
                 GlobalPageQuery.Read(InStream);
                 Clear(InStream);
             end;
             if Rec."Annotations".HasValue() then begin
-                Rec."Annotations".CreateInStream(InStream, TextEncoding::UTF8);
+                Rec."Annotations".CreateInStream(InStream, AgentTaskImpl.GetDefaultEncoding());
                 GlobalAnnotations.Read(InStream);
                 Clear(InStream);
             end;
             if Rec."Last User Intervention Details".HasValue() then begin
-                Rec."Last User Intervention Details".CreateInStream(InStream, TextEncoding::UTF8);
+                Rec."Last User Intervention Details".CreateInStream(InStream, AgentTaskImpl.GetDefaultEncoding());
                 GlobalUserInterventionDetails.Read(InStream);
                 Clear(InStream);
             end;
@@ -219,7 +219,7 @@ page 4307 "Agent Task Timeline"
         if Rec.Type = Rec.Type::UserInterventionRequest then begin
             Rec.CalcFields("Suggestions");
             if Rec.Suggestions.HasValue then begin
-                Rec.Suggestions.CreateInStream(InStream, TextEncoding::UTF8);
+                Rec.Suggestions.CreateInStream(InStream, AgentTaskImpl.GetDefaultEncoding());
                 GlobalSuggestions.Read(InStream);
                 Clear(InStream);
             end;
@@ -345,6 +345,7 @@ page 4307 "Agent Task Timeline"
     end;
 
     var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
         GlobalPageSummary: BigText;
         GlobalPageQuery: BigText;
         GlobalAnnotations: BigText;
