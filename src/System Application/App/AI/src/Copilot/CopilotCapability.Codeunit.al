@@ -165,4 +165,18 @@ codeunit 7773 "Copilot Capability"
     procedure OnGetRequiredPrivacyNotices(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; var RequiredPrivacyNotices: List of [Code[50]])
     begin
     end;
+
+    /// <summary>
+    /// Check if Billing Type has been defined
+    /// </summary>
+    /// <param name="CopilotCapability">The capability.</param>
+    /// <returns>True if the billing type has been defined.</returns>
+    /// <remarks>Capabilities are tied to the module registering it. Checking for a capability will check if the enum and app id of your module exists.</remarks>
+    procedure IsBillingTypeDefined(CopilotCapability: Enum "Copilot Capability"): Boolean
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(CopilotCapabilityImpl.IsBillingTypeDefined(CopilotCapability, CallerModuleInfo));
+    end;
 }
