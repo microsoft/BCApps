@@ -130,7 +130,7 @@ page 4306 "Agent Tasks"
 
         Rec.CalcFields("Summary");
         if Rec."Summary".HasValue() then begin
-            Rec."Summary".CreateInStream(InStream);
+            Rec."Summary".CreateInStream(InStream, AgentTaskImpl.GetDefaultEncoding());
             TaskSummary.Read(InStream);
         end;
 
@@ -143,6 +143,7 @@ page 4306 "Agent Tasks"
     end;
 
     var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
         TaskSummary: BigText;
         GlobalCreatedBy: Text[250];
 }
