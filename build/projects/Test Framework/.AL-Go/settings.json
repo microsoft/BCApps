@@ -5,9 +5,6 @@
     "..\\..\\..\\src\\Tools\\Test Framework\\Test Libraries\\*",
     "..\\..\\..\\src\\Tools\\Test Framework\\Test Runner"
   ],
-  "buildModes": [
-    "Translated"
-  ],
   "doNotRunTests": true,
   "useCompilerFolder": true,
   "doNotPublishApps": true,
@@ -18,7 +15,6 @@
       ],
       "settings": {
         "buildModes": [
-          "Translated",
           "Strict"
         ]
       }
