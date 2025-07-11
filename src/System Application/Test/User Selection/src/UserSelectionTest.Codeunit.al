@@ -159,6 +159,28 @@ codeunit 135035 "User Selection Test"
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
 
+    [Test]
+    [HandlerFunctions('UserLookupApplicationUsersPageHandler')]
+    procedure ApplicationUsersAreVisibleIfRequestedTest()
+    var
+        User: Record User;
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        UserSelection: Codeunit "User Selection";
+    begin
+        // [SCENARIO] External users are visible on the Lookup page if opened with ShowExternalUsers = true.
+        // [GIVEN] There are some users in the system
+        Initialize();
+        PermissionsMock.Set('User Selection Read');
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+
+        // [WHEN] OpenWithSystemUsers function is called
+        // [THEN] Application user is visible but external user is not visible
+        UserSelection.OpenWithSystemUsers(User);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+    end;
+
     [ModalPageHandler]
     procedure UserLookupPageOKHandler(var UserLookup: TestPage 9843)
     var
@@ -187,6 +209,21 @@ codeunit 135035 "User Selection Test"
         UserLookup.First();
         Assert.AreEqual('D', UserLookup."User Name".Value(), 'A different User was expected');
         Assert.IsFalse(UserLookup.Next(), 'Only one user was expected to be visible on the page')
+    end;
+
+    [ModalPageHandler]
+    procedure UserLookupApplicationUsersPageHandler(var UserLookup: TestPage 9843)
+    var
+        ApplicationUserVisible: Boolean;
+    begin
+        UserLookup.First();
+        repeat
+            Assert.AreNotEqual(UserLookup."User Name".Value(), 'EXTERNAL', 'External user should have been hidden.');
+            if UserLookup."User Name".Value() = 'APP' then
+                ApplicationUserVisible := true;
+        until not UserLookup.Next();
+
+        Assert.IsTrue(ApplicationUserVisible, 'Application user should be visible on the page.');
     end;
 
     local procedure Initialize();
@@ -235,6 +272,13 @@ codeunit 135035 "User Selection Test"
         User."User Name" := 'EXTERNAL';
         User."Full Name" := 'External user';
         User."License Type" := User."License Type"::"External User";
+        User.Insert();
+
+        User.Init();
+        User."User Security ID" := CreateGuid();
+        User."User Name" := 'APP';
+        User."Full Name" := 'Application user';
+        User."License Type" := User."License Type"::Application;
         User.Insert();
 
         IsInitialized := true;
