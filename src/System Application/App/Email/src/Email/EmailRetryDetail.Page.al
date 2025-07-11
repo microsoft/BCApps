@@ -8,7 +8,7 @@ namespace System.Email;
 page 8892 "Email Retry Detail"
 {
     PageType = List;
-    Caption = 'Email Retry Detail';
+    Caption = 'Email Attempt Detail';
     ApplicationArea = All;
     UsageCategory = None;
     SourceTable = "Email Retry";
@@ -27,7 +27,8 @@ page 8892 "Email Retry Detail"
                 field("Retry No."; Rec."Retry No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the retry number of the email.';
+                    Caption = 'Attempt No.';
+                    ToolTip = 'Specifies how many times the email has been attempted.';
                 }
                 field("Status"; Rec.Status)
                 {

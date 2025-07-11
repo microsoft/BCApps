@@ -100,7 +100,7 @@ page 8883 "Sent Emails"
             {
                 ApplicationArea = All;
                 Caption = 'Resend';
-                ToolTip = 'Resend the email.';
+                ToolTip = 'Resend the email in background.';
                 Image = Email;
                 Enabled = not NoSentEmails;
                 Promoted = true;

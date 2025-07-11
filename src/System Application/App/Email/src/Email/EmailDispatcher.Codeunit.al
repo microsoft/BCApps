@@ -6,7 +6,6 @@
 namespace System.Email;
 
 using System.Telemetry;
-using System.Environment;
 
 codeunit 8888 "Email Dispatcher"
 {
@@ -15,7 +14,8 @@ codeunit 8888 "Email Dispatcher"
     Permissions = tabledata "Sent Email" = ri,
                   tabledata "Email Outbox" = rimd,
                   tabledata "Email Message" = r,
-                  tabledata "Email Error" = ri;
+                  tabledata "Email Error" = ri,
+                  tabledata "Email Rate Limit" = r;
 
     var
         EmailMessageImpl: Codeunit "Email Message Impl.";
@@ -54,7 +54,6 @@ codeunit 8888 "Email Dispatcher"
         EmailMessage: Record "Email Message";
         SentEmail: Record "Sent Email";
         SendEmailCodeunit: Codeunit "Send Email";
-        ClientTypeManagement: Codeunit "Client Type Management";
         EmailRetryImpl: Codeunit "Email Retry Impl.";
         Email: Codeunit Email;
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -64,7 +63,6 @@ codeunit 8888 "Email Dispatcher"
         // -----------
         // NB: Avoid adding events here as any error would cause a roll-back and possibly an inconsistent state of the Email Outbox.
         // -----------
-
         UpdateOutboxStatus(EmailOutbox, EmailOutbox.Status::Processing);
 
         if EmailMessageImpl.Get(EmailOutbox."Message Id") then begin
@@ -89,13 +87,13 @@ codeunit 8888 "Email Dispatcher"
                 UpdateOutboxError(LastErrorText, EmailOutbox);
                 UpdateOutboxStatus(EmailOutbox, EmailOutbox.Status::Failed);
 
-                // if email is not rescheduled, it means it has exceeded the retry limit, stop retrying
-                if ClientTypeManagement.GetCurrentClientType() = CLIENTTYPE::Background then begin
+                if EmailOutbox."Is Background Task" then begin
                     if EmailOutbox."Retry No." = 1 then
                         EmailRetryImpl.CreateEmailRetry(EmailOutbox);
 
                     EmailRetryImpl.UpdateEmailRetryRecord(EmailOutbox."Message Id", EmailOutbox."Retry No.", EmailOutbox.Status::Failed, LastErrorText, EmailOutbox."Date Queued", EmailOutbox."Date Failed", EmailOutbox."Date Sending");
 
+                    // if email is not rescheduled, it means it has exceeded the retry limit, stop retrying
                     if RetrySendEmail(EmailOutbox) then exit;
                 end;
             end;
@@ -111,9 +109,14 @@ codeunit 8888 "Email Dispatcher"
             Email.OnAfterEmailSendFailed(EmailOutbox);
     end;
 
-    procedure GetMaximumRetryCount(): Integer
+    local procedure GetMaximumRetryCount(var EmailOutbox: Record "Email Outbox"): Integer
+    var
+        EmailRateLimit: Record "Email Rate Limit";
     begin
-        exit(0); // Maximum retry count for sending emails
+        if EmailRateLimit.Get(EmailOutbox."Account Id", EmailOutbox.Connector) then
+            exit(EmailRateLimit."Max. Retry Limit");
+
+        exit(0);
     end;
 
     local procedure RetrySendEmail(var EmailOutbox: Record "Email Outbox"): Boolean
@@ -125,11 +128,11 @@ codeunit 8888 "Email Dispatcher"
         RetryTime: DateTime;
         RandomDelay: Integer;
     begin
-        FeatureTelemetry.LogError('0000PMT', EmailFeatureNameLbl, 'Retry failed email', StrSubstNo(FailedToFindEmailMessageMsg, EmailOutbox."Message Id"), '', Dimensions);
+        FeatureTelemetry.LogUsage('0000PMT', EmailFeatureNameLbl, 'Email Retry - Start to retry failed email', Dimensions);
         EmailOutbox.Validate("Retry No.", EmailOutbox."Retry No." + 1);
 
-        if EmailOutbox."Retry No." > GetMaximumRetryCount() then begin
-            FeatureTelemetry.LogError('0000PMU', EmailFeatureNameLbl, 'Email retry reached maximum times', '', '', Dimensions);
+        if EmailOutbox."Retry No." > GetMaximumRetryCount(EmailOutbox) then begin
+            FeatureTelemetry.LogError('0000PMU', EmailFeatureNameLbl, 'Email Retry - Retry reached maximum times', '', '', Dimensions);
             exit(false);
         end;
 

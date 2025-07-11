@@ -124,6 +124,19 @@ page 8887 "Email Accounts"
                         EmailRateLimitImpl.UpdateRateLimit(Rec);
                     end;
                 }
+
+                field(EmailMaxRetryLimit; MaxRetryLimit)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Email Max. Attempt Limit';
+                    ToolTip = 'Specifies the maximum number of attempts for sending an email from this account.';
+                    Visible = true;
+
+                    trigger OnDrillDown()
+                    begin
+                        EmailRateLimitImpl.UpdateRateLimit(Rec);
+                    end;
+                }
             }
         }
 
@@ -378,6 +391,7 @@ page 8887 "Email Accounts"
 
         RateLimit := EmailRateLimitImpl.GetRateLimit(Rec."Account Id", Rec.Connector, Rec."Email Address");
         ConcurrencyLimit := EmailRateLimitImpl.GetConcurrencyLimit(Rec."Account Id", Rec.Connector, Rec."Email Address");
+        MaxRetryLimit := EmailRateLimitImpl.GetMaxRetryLimit(Rec."Account Id", Rec.Connector, Rec."Email Address");
 
         DefaultTxt := '';
 
@@ -530,6 +544,7 @@ page 8887 "Email Accounts"
         IsDefault: Boolean;
         RateLimit: Integer;
         ConcurrencyLimit: Integer;
+        MaxRetryLimit: Integer;
         CanUserManageEmailSetup: Boolean;
         DefaultTxt: Text;
         UpdateAccounts: Boolean;
