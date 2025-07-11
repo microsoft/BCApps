@@ -273,7 +273,7 @@ codeunit 8004 "Post Sub. Contract Renewal"
             until TempPlannedServiceCommitment.Next() = 0;
     end;
 
-    local procedure ProcessPlannedServiceCommitment(PlannedServiceCommitment: Record "Planned Subscription Line")
+    procedure ProcessPlannedServiceCommitment(PlannedServiceCommitment: Record "Planned Subscription Line")
     var
         ServiceCommitment: Record "Subscription Line";
         IsHandled: Boolean;
