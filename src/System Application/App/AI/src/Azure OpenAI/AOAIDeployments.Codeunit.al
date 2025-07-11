@@ -156,4 +156,52 @@ codeunit 7768 "AOAI Deployments"
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         exit(AOAIDeploymentsImpl.GetGPT4oMiniPreview(CallerModuleInfo));
     end;
+
+    /// <summary>
+    /// Returns the name of the latest AOAI deployment model of GPT-4.1.
+    /// </summary>
+    /// <returns>The deployment name.</returns>
+    procedure GetGPT41Latest(): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AOAIDeploymentsImpl.GetGPT41Latest(CallerModuleInfo));
+    end;
+
+    /// <summary>
+    /// Returns the name of the preview AOAI deployment model of GPT-4.1.
+    /// </summary>
+    /// <returns>The deployment name.</returns>
+    procedure GetGPT41Preview(): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AOAIDeploymentsImpl.GetGPT41Preview(CallerModuleInfo));
+    end;
+
+    /// <summary>
+    /// Returns the name of the latest AOAI deployment model of GPT-4.1 mini.
+    /// </summary>
+    /// <returns>The deployment name.</returns>
+    procedure GetGPT41MiniLatest(): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AOAIDeploymentsImpl.GetGPT41MiniLatest(CallerModuleInfo));
+    end;
+
+    /// <summary>
+    /// Returns the name of the preview AOAI deployment model of GPT-4.1 mini.
+    /// </summary>
+    /// <returns>The deployment name.</returns>
+    procedure GetGPT41MiniPreview(): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AOAIDeploymentsImpl.GetGPT41MiniPreview(CallerModuleInfo));
+    end;
 }
