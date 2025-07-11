@@ -26,7 +26,7 @@ codeunit 135143 "Graph Pagination Data Test"
         // [WHEN] GraphPaginationData is initialized
         // [THEN] Should have no next link and default page size
         LibraryAssert.AreEqual('', GraphPaginationData.GetNextLink(), 'Initial next link should be empty');
-        LibraryAssert.AreEqual(false, GraphPaginationData.HasMorePages(), 'Should not have more pages initially');
+        LibraryAssert.IsFalse(GraphPaginationData.HasMorePages(), 'Should not have more pages initially');
         LibraryAssert.AreEqual(100, GraphPaginationData.GetPageSize(), 'Default page size should be 100');
     end;
 
@@ -44,7 +44,7 @@ codeunit 135143 "Graph Pagination Data Test"
 
         // [THEN] Should store and return the next link
         LibraryAssert.AreEqual(NextLink, GraphPaginationData.GetNextLink(), 'Should return the set next link');
-        LibraryAssert.AreEqual(true, GraphPaginationData.HasMorePages(), 'Should have more pages when next link is set');
+        LibraryAssert.IsTrue(GraphPaginationData.HasMorePages(), 'Should have more pages when next link is set');
     end;
 
     [Test]
@@ -60,7 +60,7 @@ codeunit 135143 "Graph Pagination Data Test"
 
         // [THEN] Should have no more pages
         LibraryAssert.AreEqual('', GraphPaginationData.GetNextLink(), 'Next link should be empty');
-        LibraryAssert.AreEqual(false, GraphPaginationData.HasMorePages(), 'Should not have more pages');
+        LibraryAssert.IsFalse(GraphPaginationData.HasMorePages(), 'Should not have more pages');
     end;
 
     [Test]
@@ -121,7 +121,7 @@ codeunit 135143 "Graph Pagination Data Test"
 
         // [THEN] Should reset to initial state
         LibraryAssert.AreEqual('', GraphPaginationData.GetNextLink(), 'Next link should be empty after reset');
-        LibraryAssert.AreEqual(false, GraphPaginationData.HasMorePages(), 'Should not have more pages after reset');
+        LibraryAssert.IsFalse(GraphPaginationData.HasMorePages(), 'Should not have more pages after reset');
         LibraryAssert.AreEqual(100, GraphPaginationData.GetPageSize(), 'Should return default page size after reset');
     end;
 

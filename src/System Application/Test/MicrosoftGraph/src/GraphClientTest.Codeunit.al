@@ -38,7 +38,7 @@ codeunit 135140 "Graph Client Test"
         GraphClient.Get('groups', HttpResponseMessage);
 
         // [THEN] Verify authorization of request is triggered
-        LibraryAssert.AreEqual(true, GraphAuthSpy.IsInvoked(), 'Authorization should be invoked.');
+        LibraryAssert.IsTrue(GraphAuthSpy.IsInvoked(), 'Authorization should be invoked.');
     end;
 
     [Test]
@@ -118,7 +118,7 @@ codeunit 135140 "Graph Client Test"
         GraphClient.Get('groups', HttpResponseMessage);
 
         // [THEN] Verify response is correct
-        LibraryAssert.AreEqual(true, HttpResponseMessage.GetIsSuccessStatusCode(), 'Should be success status code.');
+        LibraryAssert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'Should be success status code.');
         HttpContent := HttpResponseMessage.GetContent();
         ResponseInStream := HttpContent.AsInStream();
         ResponseJsonObject.ReadFrom(ResponseInStream);
@@ -154,11 +154,11 @@ codeunit 135140 "Graph Client Test"
         Success := GraphClient.GetWithPagination('users', GraphOptionalParameters, GraphPaginationData, HttpResponseMessage);
 
         // [THEN] Should be successful
-        LibraryAssert.AreEqual(true, Success, 'GetWithPagination should succeed');
+        LibraryAssert.IsTrue(Success, 'GetWithPagination should succeed');
         LibraryAssert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'Should return 200 status');
 
         // [THEN] Should have no more pages
-        LibraryAssert.AreEqual(false, GraphPaginationData.HasMorePages(), 'Should not have more pages');
+        LibraryAssert.IsFalse(GraphPaginationData.HasMorePages(), 'Should not have more pages');
     end;
 
     [Test]
@@ -186,8 +186,8 @@ codeunit 135140 "Graph Client Test"
         Success := GraphClient.GetWithPagination('users', GraphOptionalParameters, GraphPaginationData, HttpResponseMessage);
 
         // [THEN] Should be successful and have more pages
-        LibraryAssert.AreEqual(true, Success, 'GetWithPagination should succeed');
-        LibraryAssert.AreEqual(true, GraphPaginationData.HasMorePages(), 'Should have more pages');
+        LibraryAssert.IsTrue(Success, 'GetWithPagination should succeed');
+        LibraryAssert.IsTrue(GraphPaginationData.HasMorePages(), 'Should have more pages');
         LibraryAssert.AreNotEqual('', GraphPaginationData.GetNextLink(), 'Should have next link');
     end;
 
@@ -216,7 +216,7 @@ codeunit 135140 "Graph Client Test"
 
         // [GIVEN] Get first page
         Success := GraphClient.GetWithPagination('users', GraphOptionalParameters, GraphPaginationData, HttpResponseMessage);
-        LibraryAssert.AreEqual(true, Success, 'First page should succeed');
+        LibraryAssert.IsTrue(Success, 'First page should succeed');
 
         // [GIVEN] Mock second page response
         MockHttpResponseMessage2.SetHttpStatusCode(200);
@@ -228,11 +228,11 @@ codeunit 135140 "Graph Client Test"
         Success := GraphClient.GetNextPage(GraphPaginationData, HttpResponseMessage);
 
         // [THEN] Should be successful
-        LibraryAssert.AreEqual(true, Success, 'GetNextPage should succeed');
+        LibraryAssert.IsTrue(Success, 'GetNextPage should succeed');
         LibraryAssert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'Should return 200 status');
 
         // [THEN] Should have no more pages (last page)
-        LibraryAssert.AreEqual(false, GraphPaginationData.HasMorePages(), 'Should not have more pages after last page');
+        LibraryAssert.IsFalse(GraphPaginationData.HasMorePages(), 'Should not have more pages after last page');
     end;
 
     [Test]
@@ -263,7 +263,7 @@ codeunit 135140 "Graph Client Test"
         Success := GraphClient.GetAllPages('users', GraphOptionalParameters, HttpResponseMessage, AllResults);
 
         // [THEN] Should be successful
-        LibraryAssert.AreEqual(true, Success, 'GetAllPages should succeed');
+        LibraryAssert.IsTrue(Success, 'GetAllPages should succeed');
         LibraryAssert.AreNotEqual(0, AllResults.Count(), 'Should have results');
     end;
 

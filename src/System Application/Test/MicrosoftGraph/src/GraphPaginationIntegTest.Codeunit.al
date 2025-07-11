@@ -60,7 +60,7 @@ codeunit 135146 "Graph Pagination Integ. Test"
         Success := GraphClient.GetAllPages('users', GraphOptionalParameters, HttpResponseMessage, AllResults);
 
         // [THEN] Should retrieve all pages successfully
-        LibraryAssert.AreEqual(true, Success, 'GetAllPages should succeed');
+        LibraryAssert.IsTrue(Success, 'GetAllPages should succeed');
         LibraryAssert.AreEqual(6, AllResults.Count(), 'Should have 6 total users (2 per page)');
         LibraryAssert.AreEqual(3, MockHttpClientHandler.GetRequestCount(), 'Should make 3 requests');
     end;
@@ -108,7 +108,7 @@ codeunit 135146 "Graph Pagination Integ. Test"
 
         // [WHEN] Process pages manually
         Success := GraphClient.GetWithPagination('users', GraphOptionalParameters, GraphPaginationData, HttpResponseMessage);
-        LibraryAssert.AreEqual(true, Success, 'First page should succeed');
+        LibraryAssert.IsTrue(Success, 'First page should succeed');
         PageCount := 1;
         TotalItems += CountItemsInResponse(HttpResponseMessage);
 
@@ -122,7 +122,7 @@ codeunit 135146 "Graph Pagination Integ. Test"
         // [THEN] Should process all pages
         LibraryAssert.AreEqual(3, PageCount, 'Should process 3 pages');
         LibraryAssert.AreEqual(6, TotalItems, 'Should have 6 total items');
-        LibraryAssert.AreEqual(false, GraphPaginationData.HasMorePages(), 'Should have no more pages');
+        LibraryAssert.IsFalse(GraphPaginationData.HasMorePages(), 'Should have no more pages');
     end;
 
     [Test]
@@ -197,8 +197,8 @@ codeunit 135146 "Graph Pagination Integ. Test"
 
         // [WHEN] Process pages
         Success := GraphClient.GetWithPagination('users', GraphOptionalParameters, GraphPaginationData, HttpResponseMessage);
-        LibraryAssert.AreEqual(true, Success, 'First page should succeed');
-        LibraryAssert.AreEqual(true, GraphPaginationData.HasMorePages(), 'Should have more pages');
+        LibraryAssert.IsTrue(Success, 'First page should succeed');
+        LibraryAssert.IsTrue(GraphPaginationData.HasMorePages(), 'Should have more pages');
 
         // [WHEN] Second page fails
         Success := GraphClient.GetNextPage(GraphPaginationData, HttpResponseMessage);
@@ -237,7 +237,7 @@ codeunit 135146 "Graph Pagination Integ. Test"
         Success := GraphClient.GetAllPages('users', GraphOptionalParameters, HttpResponseMessage, AllResults);
 
         // [THEN] Should stop at max iterations (1000)
-        LibraryAssert.AreEqual(true, Success, 'Should succeed even with max iterations');
+        LibraryAssert.IsTrue(Success, 'Should succeed even with max iterations');
         LibraryAssert.AreEqual(1001, MockHttpClientHandler.GetRequestCount(), 'Should make 1001 requests (1 initial + 1000 iterations)');
     end;
 

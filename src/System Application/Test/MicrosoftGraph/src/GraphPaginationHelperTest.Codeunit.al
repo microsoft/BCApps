@@ -39,7 +39,7 @@ codeunit 135144 "Graph Pagination Helper Test"
 
         // [THEN] Should extract and set the next link
         LibraryAssert.AreEqual('https://graph.microsoft.com/v1.0/users?$skiptoken=123', GraphPaginationData.GetNextLink(), 'Should extract next link');
-        LibraryAssert.AreEqual(true, GraphPaginationData.HasMorePages(), 'Should have more pages');
+        LibraryAssert.IsTrue(GraphPaginationData.HasMorePages(), 'Should have more pages');
     end;
 
     [Test]
@@ -62,7 +62,7 @@ codeunit 135144 "Graph Pagination Helper Test"
 
         // [THEN] Should have empty next link
         LibraryAssert.AreEqual('', GraphPaginationData.GetNextLink(), 'Should have empty next link');
-        LibraryAssert.AreEqual(false, GraphPaginationData.HasMorePages(), 'Should not have more pages');
+        LibraryAssert.IsFalse(GraphPaginationData.HasMorePages(), 'Should not have more pages');
     end;
 
     [Test]
@@ -80,7 +80,7 @@ codeunit 135144 "Graph Pagination Helper Test"
 
         // [THEN] Should have empty next link
         LibraryAssert.AreEqual('', GraphPaginationData.GetNextLink(), 'Should have empty next link on error');
-        LibraryAssert.AreEqual(false, GraphPaginationData.HasMorePages(), 'Should not have more pages on error');
+        LibraryAssert.IsFalse(GraphPaginationData.HasMorePages(), 'Should not have more pages on error');
     end;
 
     [Test]
@@ -103,7 +103,7 @@ codeunit 135144 "Graph Pagination Helper Test"
         Success := GraphPaginationHelper.ExtractValueArray(HttpResponseMessage, ValueArray);
 
         // [THEN] Should extract value array successfully
-        LibraryAssert.AreEqual(true, Success, 'Should extract value array successfully');
+        LibraryAssert.IsTrue(Success, 'Should extract value array successfully');
         LibraryAssert.AreEqual(2, ValueArray.Count(), 'Should have 2 items in value array');
     end;
 
@@ -127,7 +127,7 @@ codeunit 135144 "Graph Pagination Helper Test"
         Success := GraphPaginationHelper.ExtractValueArray(HttpResponseMessage, ValueArray);
 
         // [THEN] Should fail to extract
-        LibraryAssert.AreEqual(false, Success, 'Should fail when no value array');
+        LibraryAssert.IsFalse(Success, 'Should fail when no value array');
         LibraryAssert.AreEqual(0, ValueArray.Count(), 'Should have empty array');
     end;
 
@@ -147,7 +147,7 @@ codeunit 135144 "Graph Pagination Helper Test"
 
         // [THEN] Should set $top parameter
         ODataParams := GraphOptionalParameters.GetODataQueryParameters();
-        LibraryAssert.AreEqual(true, ODataParams.ContainsKey('$top'), 'Should contain $top parameter');
+        LibraryAssert.IsTrue(ODataParams.ContainsKey('$top'), 'Should contain $top parameter');
         LibraryAssert.AreEqual('25', ODataParams.Get('$top'), 'Should set correct page size');
     end;
 
@@ -174,7 +174,7 @@ codeunit 135144 "Graph Pagination Helper Test"
         Success := GraphPaginationHelper.CombineValueArrays(HttpResponseMessage, JsonResults);
 
         // [THEN] Should combine arrays successfully
-        LibraryAssert.AreEqual(true, Success, 'Should combine arrays successfully');
+        LibraryAssert.IsTrue(Success, 'Should combine arrays successfully');
         LibraryAssert.AreEqual(3, JsonResults.Count(), 'Should have 3 total items');
     end;
 
@@ -192,7 +192,7 @@ codeunit 135144 "Graph Pagination Helper Test"
         WithinLimit := GraphPaginationHelper.IsWithinIterationLimit(IterationCount, 5);
 
         // [THEN] Should be within limit and increment count
-        LibraryAssert.AreEqual(true, WithinLimit, 'Should be within limit');
+        LibraryAssert.IsTrue(WithinLimit, 'Should be within limit');
         LibraryAssert.AreEqual(1, IterationCount, 'Should increment iteration count');
 
         // [GIVEN] Iteration count at limit
@@ -202,7 +202,7 @@ codeunit 135144 "Graph Pagination Helper Test"
         WithinLimit := GraphPaginationHelper.IsWithinIterationLimit(IterationCount, 5);
 
         // [THEN] Should not be within limit
-        LibraryAssert.AreEqual(false, WithinLimit, 'Should not be within limit');
+        LibraryAssert.IsFalse(WithinLimit, 'Should not be within limit');
         LibraryAssert.AreEqual(5, IterationCount, 'Should not increment when at limit');
     end;
 
