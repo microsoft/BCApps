@@ -168,7 +168,7 @@ codeunit 7757 "Copilot Notifications"
             Hyperlink(AIQuotaNearlyUsedUpLearnMoreLinkLbl);
     end;
 
-    procedure ShowCapabilityChangeLearnMore(TheNotification: Notification)
+    procedure ShowCapabilityChangeLearnMore(CapabilityChangeNotification: Notification)
     begin
         Hyperlink(CapabilityChangeLearnMoreUrlLbl);
     end;

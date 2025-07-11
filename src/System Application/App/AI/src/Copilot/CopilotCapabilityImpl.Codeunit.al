@@ -488,6 +488,7 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure DeactivateCapability(var CopilotSettingsLocal: Record "Copilot Settings")
     var
+        CopilotNotifications: Codeunit "Copilot Notifications";
         CopilotDeactivate: Page "Copilot Deactivate Capability";
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         FeedbackEnabled: Boolean;
@@ -503,6 +504,7 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotSettingsLocal.Status := CopilotSettingsLocal.Status::Inactive;
         CopilotSettingsLocal.Modify(true);
 
+        CopilotNotifications.ShowCapabilityChange();
         SendDeactivateTelemetry(CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", CopilotDeactivate.GetReason(), FeedbackEnabled);
         Session.LogAuditMessage(StrSubstNo(CopilotFeatureDeactivatedLbl, CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
     end;
