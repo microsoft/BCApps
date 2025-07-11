@@ -83,7 +83,6 @@ page 2613 "API - Feature Management"
     procedure EnableFeature(UpdateInBackground: Boolean; StartDateTime: DateTime)
     var
         FeatureDataUpdateStatus: Record "Feature Data Update Status";
-        FeatureManagementFacade: Codeunit "Feature Management Facade";
     begin
         if Rec.Enabled = Rec.Enabled::"All Users" then
             Error(AlreadyEnabledErr);
@@ -94,6 +93,7 @@ page 2613 "API - Feature Management"
 
         Rec.Enabled := Rec.Enabled::"All Users";
         Rec.Modify(true);
+        FeatureManagementFacade.OnAfterFeatureEnableConfirmed(Rec);
 
         // Update data if needed
         FeatureManagementFacade.GetFeatureDataUpdateStatus(Rec, FeatureDataUpdateStatus);
@@ -119,9 +119,11 @@ page 2613 "API - Feature Management"
 
         Rec.Enabled := Rec.Enabled::None;
         Rec.Modify(true);
+        FeatureManagementFacade.OnAfterFeatureDisableConfirmed(Rec);
     end;
 
     var
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
         OneWayAlreadyEnabledErr: Label 'This feature has already been enabled and cannot be disabled.';
         AlreadyEnabledErr: Label 'This feature has already been enabled';
         AlreadyDisabledErr: Label 'This feature has already been disabled.';
