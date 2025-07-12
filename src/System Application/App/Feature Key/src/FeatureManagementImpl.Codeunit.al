@@ -219,6 +219,23 @@ codeunit 2610 "Feature Management Impl."
     end;
 
     /// <summary>
+    /// Schedules or starts update without any UI interaction.
+    /// </summary>
+    /// <param name="FeatureDataUpdateStatus">The current status record</param>
+    /// <returns>true if user picked Update or Schedule and the task is scheduled or executed.</returns>
+    procedure UpdateSilently(var FeatureDataUpdateStatus: Record "Feature Data Update Status"): Boolean;
+    begin
+        if not FeatureDataUpdateStatus."Data Update Required" then
+            exit(true);
+
+        if FeatureDataUpdateStatus."Background Task" then
+            exit(ScheduleTask(FeatureDataUpdateStatus));
+        Codeunit.Run(Codeunit::"Update Feature Data", FeatureDataUpdateStatus);
+        exit(true);
+    end;
+
+
+    /// <summary>
     /// Schedules or starts update depending on the options picked on the wizard page.
     /// </summary>
     /// <param name="FeatureDataUpdateStatus">The current status record</param>
@@ -230,10 +247,7 @@ codeunit 2610 "Feature Management Impl."
         if not ConfirmDataUpdate(FeatureDataUpdateStatus) then
             exit(false);
 
-        if FeatureDataUpdateStatus."Background Task" then
-            exit(ScheduleTask(FeatureDataUpdateStatus));
-        Codeunit.Run(Codeunit::"Update Feature Data", FeatureDataUpdateStatus);
-        exit(true);
+        exit(UpdateSilently(FeatureDataUpdateStatus));
     end;
 
     /// <summary>
