@@ -27,6 +27,8 @@ page 2613 "API - Feature Management"
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
+    Permissions = tabledata "Feature Data Update Status" = r,
+                  tabledata "Feature Key" = rm;
 
     layout
     {
