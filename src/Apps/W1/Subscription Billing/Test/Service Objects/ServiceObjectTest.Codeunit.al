@@ -1578,25 +1578,6 @@ codeunit 148157 "Service Object Test"
         ModifyCurrentServiceCommPackageLine(InitialTermDateFormulaText, ExtensionTermDateFormulaText, NoticePeriodDateFormulaText, ServiceCommPackageLine);
     end;
 
-    local procedure CreateCustomerSalesPrice(SourceItem: Record Item; SourceCustomer: Record Customer; StartingDate: Date; Quantity: Decimal; CustomerPrice: Decimal; var PriceListLine: Record "Price List Line")
-    var
-        PriceListHeader: Record "Price List Header";
-    begin
-        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Sale, "Price Source Type"::Customer, SourceCustomer."No.");
-        PriceListHeader.Status := "Price Status"::Active;
-        PriceListHeader."Allow Updating Defaults" := true;
-        PriceListHeader."Currency Code" := '';
-        PriceListHeader.Modify(true);
-
-        LibraryPriceCalculation.CreatePriceListLine(PriceListLine, PriceListHeader, "Price Amount Type"::Price, "Price Asset Type"::Item, SourceItem."No.");
-        PriceListLine.Validate("Starting Date", StartingDate);
-        PriceListLine.Validate("Minimum Quantity", Quantity);
-        PriceListLine."Currency Code" := '';
-        PriceListLine.Validate("Unit Price", CustomerPrice);
-        PriceListLine.Status := "Price Status"::Active;
-        PriceListLine.Modify(true);
-    end;
-
     local procedure CreateCustomerSalesPriceWithVariantCode(SourceItem: Record Item; SourceCustomer: Record Customer; StartingDate: Date; Quantity: Decimal; CustomerPrice: Decimal; EndingDate: Date; VariantCode: Code[10])
     begin
         CreateCustomerSalesPriceWithVariantCode(SourceItem, SourceCustomer, StartingDate, EndingDate, Quantity, CustomerPrice, VariantCode);
