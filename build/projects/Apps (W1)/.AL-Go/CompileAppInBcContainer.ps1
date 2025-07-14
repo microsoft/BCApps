@@ -2,7 +2,7 @@ Param(
     [Hashtable] $parameters
 )
 
-$parameters["GenerateReportLayout"] = "Yes"
+$parameters["GenerateReportLayout"] = "No"
 
 $scriptPath = Join-Path $PSScriptRoot "../../../scripts/CompileAppInBcContainer.ps1" -Resolve
 . $scriptPath -parameters $parameters
