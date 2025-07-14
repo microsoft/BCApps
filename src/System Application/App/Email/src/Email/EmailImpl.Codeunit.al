@@ -195,6 +195,7 @@ codeunit 8900 "Email Impl"
             TaskId := TaskScheduler.CreateTask(Codeunit::"Email Dispatcher", Codeunit::"Email Error Handler", true, CompanyName(), NotBefore, EmailOutbox.RecordId());
             EmailOutbox."Task Scheduler Id" := TaskId;
             EmailOutbox."Date Sending" := NotBefore;
+            EmailOutbox."Is Background Task" := true;
             EmailOutbox.Modify();
         end else begin // Send the email in foreground
             Commit();
@@ -467,6 +468,7 @@ codeunit 8900 "Email Impl"
             TaskId := TaskScheduler.CreateTask(Codeunit::"Email Dispatcher", Codeunit::"Email Error Handler", true, CompanyName(), NotBefore, EmailOutbox.RecordId());
             EmailOutbox."Task Scheduler Id" := TaskId;
             EmailOutbox."Date Sending" := NotBefore;
+            EmailOutbox."Is Background Task" := true;
             EmailOutbox.Modify();
         end else begin // Send the email in foreground
             Commit();
