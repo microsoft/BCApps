@@ -28,7 +28,6 @@
     {
       "branches": [
         "main",
-        "private/aholstrup/*",
         "releases/*.x"
       ],
       "settings": {
