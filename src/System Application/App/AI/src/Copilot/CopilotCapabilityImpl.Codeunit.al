@@ -44,6 +44,8 @@ codeunit 7774 "Copilot Capability Impl"
         TelemetryUnregisteredCopilotCapabilityLbl: Label 'Copilot capability unregistered.', Locked = true;
         TelemetryActivatedCopilotCapabilityLbl: Label 'Copilot capability activated.', Locked = true;
         TelemetryDeactivatedCopilotCapabilityLbl: Label 'Copilot capability deactivated.', Locked = true;
+        CopilotFeatureDeactivatedLbl: Label 'The copilot/AI capability %1, App Id %2 has been deactivated by UserSecurityId %3.', Locked = true;
+        FeedbackDisabledLbl: Label 'Copilot feedback is disabled.', Locked = true;
 
     procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     begin
@@ -348,7 +350,7 @@ codeunit 7774 "Copilot Capability Impl"
         Telemetry.LogMessage('0000LDY', TelemetryActivatedCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
     end;
 
-    procedure SendDeactivateTelemetry(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; Reason: Option)
+    procedure SendDeactivateTelemetry(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; Reason: Option; FeedbackEnabled: Boolean)
     var
         Language: Codeunit Language;
         SavedGlobalLanguageId: Integer;
@@ -359,7 +361,11 @@ codeunit 7774 "Copilot Capability Impl"
         SavedGlobalLanguageId := GlobalLanguage();
         GlobalLanguage(Language.GetDefaultApplicationLanguageId());
 
-        CustomDimensions.Add('Reason', Format(Reason));
+        if FeedbackEnabled then
+            CustomDimensions.Add('Reason', Format(Reason))
+        else
+            CustomDimensions.Add('Reason', FeedbackDisabledLbl);
+
         Telemetry.LogMessage('0000LDZ', TelemetryDeactivatedCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
 
         GlobalLanguage(SavedGlobalLanguageId);
@@ -440,6 +446,27 @@ codeunit 7774 "Copilot Capability Impl"
             GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Copilot AI Capabilities")
         else
             GuidedExperience.ResetAssistedSetup(ObjectType::Page, Page::"Copilot AI Capabilities");
+    end;
+
+    procedure DeactivateCapability(var CopilotSettingsLocal: Record "Copilot Settings")
+    var
+        CopilotDeactivate: Page "Copilot Deactivate Capability";
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+        FeedbackEnabled: Boolean;
+    begin
+        FeedbackEnabled := ALCopilotFunctions.IsCopilotFeedbackEnabled();
+
+        if FeedbackEnabled then begin
+            CopilotDeactivate.SetCaption(Format(CopilotSettingsLocal.Capability));
+            if CopilotDeactivate.RunModal() <> Action::OK then
+                exit;
+        end;
+
+        CopilotSettingsLocal.Status := CopilotSettingsLocal.Status::Inactive;
+        CopilotSettingsLocal.Modify(true);
+
+        SendDeactivateTelemetry(CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", CopilotDeactivate.GetReason(), FeedbackEnabled);
+        Session.LogAuditMessage(StrSubstNo(CopilotFeatureDeactivatedLbl, CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetCopilotCapabilityStatus', '', false, false)]
