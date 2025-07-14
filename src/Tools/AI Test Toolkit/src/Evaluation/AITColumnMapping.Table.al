@@ -9,6 +9,7 @@ table 149038 "AIT Column Mapping"
     DataClassification = SystemMetadata;
     InherentEntitlements = RIMDX;
     InherentPermissions = RIMDX;
+    ReplicateData = false;
     DrillDownPageId = "AIT Column Mappings";
 
     fields
