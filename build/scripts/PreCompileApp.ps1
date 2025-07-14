@@ -24,7 +24,7 @@ if($appType -eq 'app')
     }
 
     # Disable report layout generation for the app compilation to how apps are built internally
-    $parameters["GenerateReportLayout"] = "No"
+    $parameters.Value["GenerateReportLayout"] = "No"
 
     if($appBuildMode -eq 'Translated') {
         Import-Module $PSScriptRoot\AppTranslations.psm1
