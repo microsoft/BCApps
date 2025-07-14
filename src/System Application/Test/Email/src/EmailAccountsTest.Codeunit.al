@@ -669,10 +669,10 @@ codeunit 134686 "Email Accounts Test"
     procedure UpdateCurrencyLimitOutOfRange(var RateLimitWizardTestPage: TestPage "Email Rate Limit Wizard")
     begin
         asserterror RateLimitWizardTestPage.EmailConcurrencyLimit.SetValue(20);
-        Assert.ExpectedError('Concurrency Limit must be between 0 and 10');
+        Assert.ExpectedError('Concurrency Limit must be between 1 and 10');
 
         asserterror RateLimitWizardTestPage.EmailConcurrencyLimit.SetValue(0);
-        Assert.ExpectedError('Concurrency Limit must be between 0 and 10');
+        Assert.ExpectedError('Concurrency Limit must be between 1 and 10');
 
         asserterror RateLimitWizardTestPage.EmailConcurrencyLimit.SetValue(-1);
 
