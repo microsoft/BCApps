@@ -1597,17 +1597,6 @@ codeunit 148157 "Service Object Test"
         PriceListLine.Modify(true);
     end;
 
-    local procedure CreateCustomerSalesPrice(SourceItem: Record Item; SourceCustomer: Record Customer; StartingDate: Date; Quantity: Decimal; CustomerPrice: Decimal; EndingDate: Date)
-    var
-        PriceListLine: Record "Price List Line";
-    begin
-        CreateCustomerSalesPrice(SourceItem, SourceCustomer, StartingDate, Quantity, CustomerPrice, PriceListLine);
-        PriceListLine.Status := "Price Status"::Draft;
-        PriceListLine.Validate("Ending Date", EndingDate);
-        PriceListLine.Status := "Price Status"::Active;
-        PriceListLine.Modify(true);
-    end;
-
     local procedure CreateCustomerSalesPriceWithVariantCode(SourceItem: Record Item; SourceCustomer: Record Customer; StartingDate: Date; Quantity: Decimal; CustomerPrice: Decimal; EndingDate: Date; VariantCode: Code[10])
     begin
         CreateCustomerSalesPriceWithVariantCode(SourceItem, SourceCustomer, StartingDate, EndingDate, Quantity, CustomerPrice, VariantCode);
@@ -1762,19 +1751,6 @@ codeunit 148157 "Service Object Test"
         else
             ContractTestLibrary.CreateServiceObjectForItemWithServiceCommitments(ServiceObject, Enum::"Invoicing Via"::Contract, SNSpecificTracking, Item, 1, 0);
         ServiceObject.SetHideValidationDialog(true);
-    end;
-
-    local procedure TestCalculationBaseAmount(ServiceObjectQuantity: Decimal; ReferenceDate: Date; ExpectedPrice: Decimal; var ServiceObject: Record "Subscription Header"; var ServiceCommitmentPackage: Record "Subscription Package")
-    var
-        ServiceCommitment: Record "Subscription Line";
-    begin
-        ServiceObject.Validate(Quantity, ServiceObjectQuantity);
-        ServiceObject.Modify(false);
-        ServiceObject.InsertServiceCommitmentsFromServCommPackage(ReferenceDate, ServiceCommitmentPackage);
-        FindServiceCommitment(ServiceCommitment, ServiceObject."No.");
-        ServiceCommitment.FindFirst();
-        ServiceCommitment.TestField("Calculation Base Amount", ExpectedPrice);
-        ServiceCommitment.DeleteAll(false);
     end;
 
     local procedure TestServiceCommitmentTerminationDates(ServiceAndCalculationStartDate: Date; SourceServiceCommitment: Record "Subscription Line")
