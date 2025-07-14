@@ -273,6 +273,9 @@ codeunit 8004 "Post Sub. Contract Renewal"
             until TempPlannedServiceCommitment.Next() = 0;
     end;
 
+    /// <summary>
+    /// In Order to access the function directly, ProcessPlannedServiceCommitment(PlannedServiceCommitment: Record "Planned Subscription Line") is defined as global function
+    /// </summary>
     procedure ProcessPlannedServiceCommitment(PlannedServiceCommitment: Record "Planned Subscription Line")
     var
         ServiceCommitment: Record "Subscription Line";
