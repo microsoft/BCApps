@@ -24,7 +24,7 @@ reportextension 8010 "Contract Sales Order Conf." extends "Standard Sales - Orde
                 SalesReportPrintoutMgmt.ExcludeItemFromTotals(Line, TotalSubTotal, TotalInvDiscAmount, TotalAmount, TotalAmountVAT, TotalAmountInclVAT);
             end;
         }
-        addbefore(AssemblyLine)
+        addlast(AssemblyLine)
         {
             dataitem(ServiceCommitmentHeaderForSalesLine; "Integer")
             {
