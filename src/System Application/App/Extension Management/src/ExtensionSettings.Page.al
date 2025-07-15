@@ -149,7 +149,8 @@ page 2511 "Extension Settings"
         PublishedApplication.SetRange("Tenant Visible", true);
 
         // If the app is installed on the tenant, filter by this app package. Otherwise, retrieve the first occurrence of the app.
-        if NavAppInstalledApp.Get(Rec."App ID") then
+        NavAppInstalledApp.SetRange("App ID", Rec."App ID");
+        if NavAppInstalledApp.FindFirst() then
             PublishedApplication.SetRange("Package ID", NavAppInstalledApp."Package ID");
 
         if PublishedApplication.FindFirst() then begin
