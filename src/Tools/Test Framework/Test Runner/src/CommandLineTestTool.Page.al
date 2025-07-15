@@ -100,7 +100,7 @@ page 130455 "Command Line Test Tool"
             {
                 ApplicationArea = All;
                 Caption = 'Required Test Isolation';
-                ToolTip = 'Specifies the RequiredTestIsolation for test filtering, test methods will only be updated after TestType is set';
+                ToolTip = 'Specifies the RequiredTestIsolation for test filtering. Test methods will only be updated after TestType is set.';
                 BlankZero = true;
                 MinValue = 0;
             }
