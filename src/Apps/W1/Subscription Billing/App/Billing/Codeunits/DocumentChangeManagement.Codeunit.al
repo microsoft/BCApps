@@ -325,7 +325,7 @@ codeunit 8074 "Document Change Management"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", OnBeforeModifyEvent, '', false, false)]
-    local procedure PreventChangeSalesHeader(var Rec: Record "Sales Header")
+    local procedure PreventChangeSalesHeader(var Rec: Record "Sales Header"; RunTrigger: Boolean)
     var
         xSalesHeader: Record "Sales Header";
         ContractRenewalMgt: Codeunit "Sub. Contract Renewal Mgt.";
@@ -333,9 +333,8 @@ codeunit 8074 "Document Change Management"
         if Rec.IsTemporary() then
             exit;
 
-        if not Rec."Recurring Billing" then
-            if not ContractRenewalMgt.IsContractRenewal(Rec) then
-                exit;
+        if not RunTrigger then
+            exit;
 
         if SkipContractSalesHeaderModifyCheck then
             exit;
@@ -904,11 +903,14 @@ codeunit 8074 "Document Change Management"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnBeforeModifyEvent, '', false, false)]
-    local procedure PreventChangePurchaseHeader(var Rec: Record "Purchase Header")
+    local procedure PreventChangePurchaseHeader(var Rec: Record "Purchase Header"; RunTrigger: Boolean)
     var
         xPurchaseHeader: Record "Purchase Header";
     begin
         if Rec.IsTemporary() then
+            exit;
+
+        if not RunTrigger then
             exit;
 
         if not Rec."Recurring Billing" then
