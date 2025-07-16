@@ -197,6 +197,8 @@ table 8002 "Planned Subscription Line"
                 if Format("Extension Term") = '' then
                     TestField("Notice Period", "Extension Term");
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Extension Term");
+                if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
+                    DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
             end;
         }
         field(23; "Billing Rhythm"; DateFormula)
@@ -206,6 +208,8 @@ table 8002 "Planned Subscription Line"
             begin
                 DateFormulaManagement.ErrorIfDateFormulaEmpty("Billing Rhythm", FieldCaption("Billing Rhythm"));
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Billing Rhythm");
+                if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
+                    DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
             end;
         }
         field(24; "Cancellation Possible Until"; Date)
@@ -397,12 +401,6 @@ table 8002 "Planned Subscription Line"
         key(Contract; "Subscription Contract No.", "Subscription Contract Line No.") { }
         key(Quote; "Sales Quote No.", "Sales Quote Line No.") { }
     }
-    trigger OnModify()
-    begin
-        xRec.Get(xRec."Entry No.");
-        if ((xRec."Billing Base Period" <> Rec."Billing Base Period") or (xRec."Billing Rhythm" <> Rec."Billing Rhythm")) then
-            DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
-    end;
 
     local procedure CheckServiceDates()
     begin

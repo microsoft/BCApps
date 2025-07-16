@@ -24,6 +24,7 @@ codeunit 148156 "Service Commitment Test"
         LibrarySales: Codeunit "Library - Sales";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         PackageLineMissingInvoicingItemNoErr: Label 'The %1 %2 can not be used with Item %3, because at least one of the Service Commitment Package lines is missing an %4.', Locked = true;
+        NaturalNumberRatioErr: Label 'The ratio of ''%1'' and ''%2'' or vice versa must give a natural number.', Comment = '%1=Field Caption, %2=Field Caption', Locked = true;
 
     #region Tests
 
@@ -306,6 +307,54 @@ codeunit 148156 "Service Commitment Test"
         ServiceCommitment."Next Billing Date" := CalcDate('<1D>', ServiceCommitment."Next Billing Date");
         asserterror ServiceCommitment.Modify(true);
     end;
+
+    [Test]
+    procedure PreventInvalidDateFormulaRatioForSubscriptionLine()
+    var
+        FifteenMonthsDateFormula: DateFormula;
+    begin
+        // [SCENARIO] When Subscription Line has been created with a Billing Base Period and Billing Rhythm that do not have a valid ratio, the error is thrown as soon as invalid date formula is entered
+
+        // [GIVEN] A single Subscription Line with Billing Base Period and Billing Rhythm equal to 12M has been created
+        Initialize();
+        ContractTestLibrary.CreateServiceObjectForItemWithServiceCommitments(ServiceObject, Enum::"Invoicing Via"::Contract, false, Item, 1, 0, '<12M>', '<12M>');
+
+        Commit(); // retain data after asserterror
+
+        // [WHEN] A invalid date formula is created for the purpose of validating Billing Base Period and Billing Rhythm
+        Evaluate(FifteenMonthsDateFormula, '<15M>');
+
+        // [THEN] Error expected when invalid date formula is entered for Billing Base Period or Billing Rhythm
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.FindFirst();
+        asserterror ServiceCommitment.Validate("Billing Base Period", FifteenMonthsDateFormula);
+        Assert.ExpectedError(StrSubstNo(NaturalNumberRatioErr, ServiceCommitment.FieldCaption("Billing Base Period"), ServiceCommitment.FieldCaption("Billing Rhythm")));
+        asserterror ServiceCommitment.Validate("Billing Rhythm", FifteenMonthsDateFormula);
+        Assert.ExpectedError(StrSubstNo(NaturalNumberRatioErr, ServiceCommitment.FieldCaption("Billing Base Period"), ServiceCommitment.FieldCaption("Billing Rhythm")));
+    end;
+
+    [Test]
+    procedure PreventInvalidDateFormulaRatioForSubscriptionPackageLine()
+    var
+        FifteenMonthsDateFormula: DateFormula;
+    begin
+        // [SCENARIO] When Subscription Package Line has been created with a Billing Base Period and Billing Rhythm that do not have a valid ratio, the error is thrown as soon as invalid date formula is entered
+
+        // [GIVEN] A single Subscription Package Line with Billing Base Period and Billing Rhythm equal to 12M has been created
+        Initialize();
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine('', ServiceCommitmentPackage, ServiceCommPackageLine);
+        Commit(); // retain data after asserterror
+
+        // [WHEN] A invalid date formula is created for the purpose of validating Billing Base Period and Billing Rhythm
+        Evaluate(FifteenMonthsDateFormula, '<15M>');
+
+        // [THEN] Error expected when invalid date formula is entered for Billing Base Period or Billing Rhythm
+        asserterror ServiceCommPackageLine.Validate("Billing Base Period", FifteenMonthsDateFormula);
+        Assert.ExpectedError(StrSubstNo(NaturalNumberRatioErr, ServiceCommPackageLine.FieldCaption("Billing Base Period"), ServiceCommPackageLine.FieldCaption("Billing Rhythm")));
+        asserterror ServiceCommPackageLine.Validate("Billing Rhythm", FifteenMonthsDateFormula);
+        Assert.ExpectedError(StrSubstNo(NaturalNumberRatioErr, ServiceCommPackageLine.FieldCaption("Billing Base Period"), ServiceCommPackageLine.FieldCaption("Billing Rhythm")));
+    end;
+
 
     [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]

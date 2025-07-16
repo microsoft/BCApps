@@ -108,6 +108,8 @@ table 8056 "Subscription Package Line"
             trigger OnValidate()
             begin
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Billing Base Period");
+                if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
+                    DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
             end;
         }
         field(11; "Billing Rhythm"; DateFormula)
@@ -117,6 +119,8 @@ table 8056 "Subscription Package Line"
             begin
                 DateFormulaManagement.ErrorIfDateFormulaEmpty("Billing Rhythm", FieldCaption("Billing Rhythm"));
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Billing Rhythm");
+                if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
+                    DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
             end;
         }
         field(12; "Sub. Line Start Formula"; DateFormula)
@@ -221,12 +225,6 @@ table 8056 "Subscription Package Line"
             Clustered = true;
         }
     }
-    trigger OnModify()
-    begin
-        xRec.Get(xRec."Subscription Package Code", xRec."Line No.");
-        if ((xRec."Billing Base Period" <> Rec."Billing Base Period") or (xRec."Billing Rhythm" <> Rec."Billing Rhythm")) then
-            DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
-    end;
 
     var
         DateFormulaManagement: Codeunit "Date Formula Management";
