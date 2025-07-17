@@ -97,8 +97,9 @@ function GetPlatformVersion
     }
     catch {
         Write-Host "Failed to get platform version: $_"
-        Write-Host "Using the same version as application version."
-        return GetApplicationVersion
+        Write-Host "Using the major.0.0.0 as the platform version."
+        [System.Version] $repoVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-GO
+        return "$($repoVersion.Major).0.0.0"
     }
 }
 

@@ -24,4 +24,4 @@ jobs:
 
       - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main
 
-      - uses: microsoft/BCApps/.github/actions/TestApplicationManifestConsistency@b1e84d2d1605a3ae2af6535901f1973d801a0854
+      - uses: ./.github/actions/TestApplicationManifestConsistency
