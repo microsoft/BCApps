@@ -3,6 +3,7 @@ name: 'Verify App Changes'
 on:
   pull_request:
     branches: [ 'main', 'releases/*']
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
@@ -22,3 +23,5 @@ jobs:
           ref: ${{ github.sha }}
 
       - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main
+
+      - uses: microsoft/BCApps/.github/actions/TestApplicationManifestConsistency@private/aholstrup/VerifyApplicationChanges
