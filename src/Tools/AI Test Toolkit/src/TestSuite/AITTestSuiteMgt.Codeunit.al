@@ -516,27 +516,6 @@ codeunit 149034 "AIT Test Suite Mgt."
         exit(FeatureNameLbl);
     end;
 
-    internal procedure DownloadTestSummary(var AITLogEntries: Record "AIT Log Entry")
-    var
-        AITResults: Report "AIT Test Summary";
-        ResultsTempBlob: Codeunit "Temp Blob";
-        ResultsOutStream: OutStream;
-        ResultsInStream: InStream;
-        FilenameTxt: Text;
-    begin
-        if not AITLogEntries.FindFirst() then
-            Error(EmptyLogEntriesErr);
-
-        ResultsTempBlob.CreateOutStream(ResultsOutStream);
-
-        AITResults.SetTableView(AITLogEntries);
-        AITResults.SaveAs('', ReportFormat::Excel, ResultsOutStream);
-
-        FilenameTxt := StrSubstNo(SummaryFileNameLbl, AITLogEntries."Test Suite Code");
-        ResultsTempBlob.CreateInStream(ResultsInStream);
-        DownloadFromStream(ResultsInStream, DownloadResultsLbl, '', 'xlsx', FilenameTxt);
-    end;
-
     [EventSubscriber(ObjectType::Table, Database::"AIT Test Suite", OnBeforeDeleteEvent, '', false, false)]
     local procedure DeleteLinesOnDeleteAITTestSuite(var Rec: Record "AIT Test Suite"; RunTrigger: Boolean)
     var
