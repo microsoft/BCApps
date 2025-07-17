@@ -320,9 +320,6 @@ page 149033 "AIT Log Entries"
                 actionref("View Test Data_Promoted"; "View Test Data")
                 {
                 }
-                actionref("Export Results_Promoted"; "Download Test Summary")
-                {
-                }
             }
         }
     }
