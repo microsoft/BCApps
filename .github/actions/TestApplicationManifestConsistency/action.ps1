@@ -45,7 +45,7 @@ function Test-ApplicationManifestConsistency
 
     if ($errors)
     {
-        $errors | Write-Log
+        $errors | Write-Host
         throw "Found $($errors.Count) error(s) in application manifest versions"
     }
 }
