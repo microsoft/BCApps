@@ -25,13 +25,7 @@ function Test-ApplicationManifestConsistency
         }
         if ($manifest.platform -and ($ExpectedPlatformVersion -ne $manifest.platform))
         {
-            # If path is under App\BCApps, it means the app in the BCApps repository. In that case, do not fail if platform version do not match, as platform version is uptaken in BCApps at a later stage.
-            if($path -like "$env:InetRoot\App\BCApps\*") {
-                Write-Host "Skip checking platform version in $path as it is part of the BCApps repository."
-            }
-            else {
-                $errors += "ERROR: Wrong platform version in manifest $path. Expected: $ExpectedPlatformVersion. Actual: $($manifest.platform)"
-            }
+            $errors += "ERROR: Wrong platform version in manifest $path. Expected: $ExpectedPlatformVersion. Actual: $($manifest.platform)"
         }
         if ($manifest.publisher -ne "Microsoft")
         {

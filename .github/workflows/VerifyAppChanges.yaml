@@ -3,7 +3,6 @@ name: 'Verify App Changes'
 on:
   pull_request:
     branches: [ 'main', 'releases/*']
-  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
