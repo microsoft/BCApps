@@ -28,8 +28,15 @@ codeunit 149034 "AIT Test Suite Mgt."
         CannotRunMultipleSuitesInParallelErr: Label 'There is already a test run in progress. You need to wait for it to finish or cancel it before starting a new test run.';
         FeatureNameLbl: Label 'AI Test Toolkit', Locked = true;
         LineNoFilterLbl: Label 'Codeunit %1 "%2" (Input: %3)', Locked = true;
+        TurnsLbl: Label '%1/%2', Comment = '%1 - No. of turns that passed, %2 - Total no. of turns';
+        EmptyLogEntriesErr: Label 'Cannot download test summary as there is no log entries within the filter.';
+        DownloadResultsLbl: Label 'Download Test Summary';
+        SummaryFileNameLbl: Label '%1_Test_Summary.xlsx', Locked = true;
         ConfirmCancelQst: Label 'This action will mark the run as Cancelled. Are you sure you want to continue?';
+        TestMethodLineNotFoundErr: Label 'The test suite %1 does not contain the test line %2. Run the suite again.', Comment = '%1 = test suite code, %2 = line number';
+        TestSuiteChangedErr: Label 'The test suite %1 has been changed since test line %2 was run. Run the suite again.', Comment = '%1 = test suite code, %2 = line number';
         NoEvaluatorsLbl: Label 'Configure...';
+
 
     procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
     var
@@ -90,6 +97,28 @@ codeunit 149034 "AIT Test Suite Mgt."
             until AITTestMethodLine.Next() = 0;
 
         LogRunHistory(AITTestSuite.Code, AITTestSuite.Version, AITTestSuite.Tag);
+    end;
+
+    internal procedure RerunTest(var AITLogEntry: Record "AIT Log Entry"): Integer
+    var
+        AITTestSuite: Record "AIT Test Suite";
+        AITTestMethodLineForLogEntry: Record "AIT Test Method Line";
+        AITTestRunInputHandler: Codeunit "AIT Test Run Input Handler";
+    begin
+        if not AITTestMethodLineForLogEntry.Get(AITLogEntry."Test Suite Code", AITLogEntry."Test Method Line No.") then
+            Error(TestMethodLineNotFoundErr, AITLogEntry."Test Method Line No.", AITLogEntry."Test Suite Code");
+
+        if AITTestMethodLineForLogEntry."Codeunit ID" <> AITLogEntry."Codeunit ID" then
+            Error(TestSuiteChangedErr);
+
+        AITTestRunInputHandler.SetInput(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code");
+
+        BindSubscription(AITTestRunInputHandler);
+        RunAITestLine(AITTestMethodLineForLogEntry, false);
+        UnbindSubscription(AITTestRunInputHandler);
+
+        AITTestSuite.Get(AITTestMethodLineForLogEntry."Test Suite Code");
+        exit(AITTestSuite.Version);
     end;
 
     internal procedure RunAITestLine(AITTestMethodLine: Record "AIT Test Method Line"; IsExecutedFromTestSuiteHeader: Boolean)
@@ -366,6 +395,9 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITLogEntry."Procedure Name" := CurrentTestMethodLine.Function;
         AITLogEntry."Tokens Consumed" := AITTestRunIteration.GetAITokenUsedByLastTestMethodLine();
+        AITLogEntry."No. of Turns" := AITTestRunIteration.GetNumberOfTurnsForLastTestMethodLine();
+        AITLogEntry."No. of Turns Passed" := AITTestRunIteration.GetNumberOfTurnsPassedForLastTestMethodLine();
+        AITLogEntry."Test Method Line Accuracy" := AITTestRunIteration.GetAccuracyForLastTestMethodLine();
         AITLogEntry.Insert(true);
 
         Commit();
@@ -482,6 +514,27 @@ codeunit 149034 "AIT Test Suite Mgt."
     internal procedure GetFeatureName(): Text
     begin
         exit(FeatureNameLbl);
+    end;
+
+    internal procedure DownloadTestSummary(var AITLogEntries: Record "AIT Log Entry")
+    var
+        AITResults: Report "AIT Test Summary";
+        ResultsTempBlob: Codeunit "Temp Blob";
+        ResultsOutStream: OutStream;
+        ResultsInStream: InStream;
+        FilenameTxt: Text;
+    begin
+        if not AITLogEntries.FindFirst() then
+            Error(EmptyLogEntriesErr);
+
+        ResultsTempBlob.CreateOutStream(ResultsOutStream);
+
+        AITResults.SetTableView(AITLogEntries);
+        AITResults.SaveAs('', ReportFormat::Excel, ResultsOutStream);
+
+        FilenameTxt := StrSubstNo(SummaryFileNameLbl, AITLogEntries."Test Suite Code");
+        ResultsTempBlob.CreateInStream(ResultsInStream);
+        DownloadFromStream(ResultsInStream, DownloadResultsLbl, '', 'xlsx', FilenameTxt);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"AIT Test Suite", OnBeforeDeleteEvent, '', false, false)]

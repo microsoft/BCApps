@@ -178,6 +178,15 @@ codeunit 149044 "AIT Test Context"
     end;
 
     /// <summary>
+    /// Sets the accuracy of the test.
+    /// </summary>
+    /// <param name="Accuracy">The accuracy as a decimal between 0 and 1.</param>
+    procedure SetAccuracy(Accuracy: Decimal)
+    begin
+        AITTestContextImpl.SetAccuracy(Accuracy);
+    end;
+
+    /// <summary>
     /// Gets the AITTestSuite associated with the run.
     /// </summary>
     /// <param name="AITTestSuite">AITTestSuite associated with the run.</param>

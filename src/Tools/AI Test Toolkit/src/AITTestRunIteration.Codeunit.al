@@ -20,7 +20,12 @@ codeunit 149042 "AIT Test Run Iteration"
         ActiveAITTestSuite: Record "AIT Test Suite";
         GlobalTestMethodLine: Record "Test Method Line";
         NoOfInsertedLogEntries: Integer;
+        UpdateTestSuite: Boolean;
+        RunAllTests: Boolean;
         GlobalAITokenUsedByLastTestMethodLine: Integer;
+        GlobalNumberOfTurnsForLastTestMethodLine: Integer;
+        GlobalNumberOfTurnsPassedForLastTestMethodLine: Integer;
+        GlobalTestAccuracy: Decimal;
         GlobalSessionAITokenUsed: Integer;
 
     trigger OnRun()
@@ -31,6 +36,8 @@ codeunit 149042 "AIT Test Run Iteration"
 
         NoOfInsertedLogEntries := 0;
         GlobalAITokenUsedByLastTestMethodLine := 0;
+        UpdateTestSuite := true;
+        RunAllTests := true;
 
         InitializeAITTestMethodLineForRun(Rec, ActiveAITTestSuite);
         SetAITTestSuite(ActiveAITTestSuite);
@@ -52,7 +59,7 @@ codeunit 149042 "AIT Test Run Iteration"
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
-        OnBeforeRunIteration(AITTestSuite, AITTestMethodLine);
+        OnBeforeRunIteration(AITTestSuite, AITTestMethodLine, RunAllTests, UpdateTestSuite);
         RunIteration(AITTestMethodLine);
         Commit();
 
@@ -66,14 +73,23 @@ codeunit 149042 "AIT Test Run Iteration"
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
         AITTestMethodLine.Find();
-        AITALTestSuiteMgt.UpdateALTestSuite(AITTestMethodLine);
+
+        if UpdateTestSuite then
+            AITALTestSuiteMgt.UpdateALTestSuite(AITTestMethodLine);
+
         SetAITTestMethodLine(AITTestMethodLine);
 
         TestMethodLine.SetRange("Test Codeunit", AITTestMethodLine."Codeunit ID");
         TestMethodLine.SetRange("Test Suite", AITTestMethodLine."AL Test Suite");
         TestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Codeunit);
+        OnBeforeRunTestMethodLine(TestMethodLine);
+
         TestMethodLine.FindFirst();
-        TestSuiteMgt.RunAllTests(TestMethodLine);
+
+        if RunAllTests then
+            TestSuiteMgt.RunAllTests(TestMethodLine)
+        else
+            TestSuiteMgt.RunSelectedTests(TestMethodLine);
     end;
 
     procedure GetAITTestSuiteTag(): Text[20]
@@ -124,8 +140,28 @@ codeunit 149042 "AIT Test Run Iteration"
         exit(GlobalAITokenUsedByLastTestMethodLine);
     end;
 
+    procedure GetNumberOfTurnsForLastTestMethodLine(): Integer
+    begin
+        exit(GlobalNumberOfTurnsForLastTestMethodLine);
+    end;
+
+    procedure GetNumberOfTurnsPassedForLastTestMethodLine(): Integer
+    begin
+        exit(GlobalNumberOfTurnsPassedForLastTestMethodLine);
+    end;
+
+    procedure GetAccuracyForLastTestMethodLine(): Decimal
+    begin
+        exit(GlobalTestAccuracy);
+    end;
+
     [InternalEvent(false)]
-    procedure OnBeforeRunIteration(var AITTestSuite: Record "AIT Test Suite"; var AITTestMethodLine: Record "AIT Test Method Line")
+    procedure OnBeforeRunIteration(var AITTestSuite: Record "AIT Test Suite"; var AITTestMethodLine: Record "AIT Test Method Line"; var RunAllTests: Boolean; var UpdateTestSuite: Boolean)
+    begin
+    end;
+
+    [InternalEvent(false)]
+    procedure OnBeforeRunTestMethodLine(var TestMethodLine: Record "Test Method Line")
     begin
     end;
 
@@ -144,6 +180,14 @@ codeunit 149042 "AIT Test Run Iteration"
 
         // Update AI Token Consumption
         GlobalAITokenUsedByLastTestMethodLine := 0;
+
+        // Update Turns
+        GlobalNumberOfTurnsPassedForLastTestMethodLine := 0;
+        GlobalNumberOfTurnsForLastTestMethodLine := 1;
+
+        // Update Test Accuracy
+        GlobalTestAccuracy := 0;
+
         GlobalSessionAITokenUsed := AOAIToken.GetTotalServerSessionTokensConsumed();
 
         AITContextCU.StartRunProcedureScenario();
@@ -154,6 +198,7 @@ codeunit 149042 "AIT Test Run Iteration"
     var
         AITContextCU: Codeunit "AIT Test Context Impl.";
         AOAIToken: Codeunit "AOAI Token";
+        Accuracy: Decimal;
     begin
         if ActiveAITTestSuite.Code = '' then
             exit;
@@ -165,6 +210,19 @@ codeunit 149042 "AIT Test Run Iteration"
 
         // Update AI Token Consumption
         GlobalAITokenUsedByLastTestMethodLine := AOAIToken.GetTotalServerSessionTokensConsumed() - GlobalSessionAITokenUsed;
+
+        // Update Turns
+        GlobalNumberOfTurnsForLastTestMethodLine := AITContextCU.GetNumberOfTurns();
+        GlobalNumberOfTurnsPassedForLastTestMethodLine := AITContextCU.GetCurrentTurn();
+
+        if not IsSuccess then
+            GlobalNumberOfTurnsPassedForLastTestMethodLine -= 1;
+
+        // Update Test Accuracy
+        if AITContextCU.GetAccuracy(Accuracy) then
+            GlobalTestAccuracy := Accuracy
+        else
+            GlobalTestAccuracy := GlobalNumberOfTurnsPassedForLastTestMethodLine / GlobalNumberOfTurnsForLastTestMethodLine;
 
         AITContextCU.EndRunProcedureScenario(CurrentTestMethodLine, IsSuccess);
         Commit();
