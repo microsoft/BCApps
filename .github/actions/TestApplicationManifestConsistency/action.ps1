@@ -32,7 +32,7 @@ function Test-ApplicationManifestConsistency
             # Allow Partner publisher if path contains 'Partner Test' and is under App\BCApps
             if ($path -like "*Partner Test*" -and $manifest.publisher -eq "Partner")
             {
-                Write-Host "Allowing Partner publisher in $path as it contains 'Partner Test' and is under BCApps."
+                Write-Host "Allowing Partner publisher in $path as it contains 'Partner Test'."
             }
             else
             {
