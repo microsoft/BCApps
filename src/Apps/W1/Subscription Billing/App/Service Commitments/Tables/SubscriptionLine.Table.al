@@ -182,8 +182,7 @@ table 8059 "Subscription Line"
             begin
                 DateFormulaManagement.ErrorIfDateFormulaEmpty("Billing Base Period", FieldCaption("Billing Base Period"));
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Billing Base Period");
-                if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
-                    DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
+                CheckRatioBetweenBillingBasePeriodAndRhythm();
             end;
         }
         field(16; "Invoicing via"; Enum "Invoicing Via")
@@ -256,8 +255,7 @@ table 8059 "Subscription Line"
             begin
                 DateFormulaManagement.ErrorIfDateFormulaEmpty("Billing Rhythm", FieldCaption("Billing Rhythm"));
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Billing Rhythm");
-                if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
-                    DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
+                CheckRatioBetweenBillingBasePeriodAndRhythm();
             end;
         }
         field(24; "Cancellation Possible Until"; Date)
@@ -1924,6 +1922,13 @@ table 8059 "Subscription Line"
                     exit(not VendSubContractDeferral.IsEmpty());
                 end;
         end;
+    end;
+
+    local procedure CheckRatioBetweenBillingBasePeriodAndRhythm()
+    var
+    begin
+        if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
+            DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
     end;
 
     [IntegrationEvent(false, false)]

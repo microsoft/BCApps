@@ -197,8 +197,7 @@ table 8002 "Planned Subscription Line"
                 if Format("Extension Term") = '' then
                     TestField("Notice Period", "Extension Term");
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Extension Term");
-                if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
-                    DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
+                CheckRatioBetweenBillingBasePeriodAndRhythm();
             end;
         }
         field(23; "Billing Rhythm"; DateFormula)
@@ -209,7 +208,7 @@ table 8002 "Planned Subscription Line"
                 DateFormulaManagement.ErrorIfDateFormulaEmpty("Billing Rhythm", FieldCaption("Billing Rhythm"));
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Billing Rhythm");
                 if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
-                    DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
+                    CheckRatioBetweenBillingBasePeriodAndRhythm();
             end;
         }
         field(24; "Cancellation Possible Until"; Date)
@@ -433,6 +432,13 @@ table 8002 "Planned Subscription Line"
             Validate(Price, Round("Calculation Base Amount" * "Calculation Base %" / 100, Currency."Unit-Amount Rounding Precision"));
         end else
             Validate(Price, 0);
+    end;
+
+    local procedure CheckRatioBetweenBillingBasePeriodAndRhythm()
+    var
+    begin
+        if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
+            DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
     end;
 
     var

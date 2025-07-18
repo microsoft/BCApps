@@ -214,8 +214,7 @@ table 8068 "Sales Subscription Line"
                 TestIfSalesOrderIsReleased();
                 DateFormulaManagement.ErrorIfDateFormulaEmpty("Billing Base Period", FieldCaption("Billing Base Period"));
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Billing Base Period");
-                if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
-                    DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
+                CheckRatioBetweenBillingBasePeriodAndRhythm();
             end;
         }
         field(27; "Billing Rhythm"; DateFormula)
@@ -228,8 +227,7 @@ table 8068 "Sales Subscription Line"
                 TestIfSalesOrderIsReleased();
                 DateFormulaManagement.ErrorIfDateFormulaEmpty("Billing Rhythm", FieldCaption("Billing Rhythm"));
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Billing Rhythm");
-                if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
-                    DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
+                CheckRatioBetweenBillingBasePeriodAndRhythm();
             end;
         }
         field(28; "Invoicing via"; Enum "Invoicing Via")
@@ -840,6 +838,13 @@ table 8068 "Sales Subscription Line"
     procedure SetSalesLine(var NewSalesLine: Record "Sales Line")
     begin
         SalesLine := NewSalesLine;
+    end;
+
+    local procedure CheckRatioBetweenBillingBasePeriodAndRhythm()
+    var
+    begin
+        if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
+            DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
     end;
 
     [IntegrationEvent(false, false)]

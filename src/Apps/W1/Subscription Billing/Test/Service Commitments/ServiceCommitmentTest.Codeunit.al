@@ -24,7 +24,7 @@ codeunit 148156 "Service Commitment Test"
         LibrarySales: Codeunit "Library - Sales";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         PackageLineMissingInvoicingItemNoErr: Label 'The %1 %2 can not be used with Item %3, because at least one of the Service Commitment Package lines is missing an %4.', Locked = true;
-        NaturalNumberRatioErr: Label 'The ratio of ''%1'' and ''%2'' or vice versa must give a natural number.', Comment = '%1=Field Caption, %2=Field Caption', Locked = true;
+        NaturalNumberRatioErr: Label 'The ratio of ''%1'' and ''%2'' or vice versa must give a natural number.', Comment = '%1=Field Caption, %2=Field Caption';
 
     #region Tests
 
@@ -313,7 +313,7 @@ codeunit 148156 "Service Commitment Test"
     var
         FifteenMonthsDateFormula: DateFormula;
     begin
-        // [SCENARIO] When Subscription Line has been created with a Billing Base Period and Billing Rhythm that do not have a valid ratio, the error is thrown as soon as invalid date formula is entered
+        // [SCENARIO] When a Subscription Line has been created with a Billing Base Period and a Billing Rhythm that do not have a valid ratio, the error is thrown as soon as an invalid date formula is entered
 
         // [GIVEN] A single Subscription Line with Billing Base Period and Billing Rhythm equal to 12M has been created
         Initialize();
@@ -321,7 +321,7 @@ codeunit 148156 "Service Commitment Test"
 
         Commit(); // retain data after asserterror
 
-        // [WHEN] A invalid date formula is created for the purpose of validating Billing Base Period and Billing Rhythm
+        // [WHEN] An invalid date formula is created for the purpose of validating Billing Base Period and Billing Rhythm
         Evaluate(FifteenMonthsDateFormula, '<15M>');
 
         // [THEN] Error expected when invalid date formula is entered for Billing Base Period or Billing Rhythm
@@ -338,14 +338,14 @@ codeunit 148156 "Service Commitment Test"
     var
         FifteenMonthsDateFormula: DateFormula;
     begin
-        // [SCENARIO] When Subscription Package Line has been created with a Billing Base Period and Billing Rhythm that do not have a valid ratio, the error is thrown as soon as invalid date formula is entered
+        // [SCENARIO] When a Subscription Package Line has been created with a Billing Base Period and a Billing Rhythm that do not have a valid ratio, the error is thrown as soon as an invalid date formula is entered
 
         // [GIVEN] A single Subscription Package Line with Billing Base Period and Billing Rhythm equal to 12M has been created
         Initialize();
         ContractTestLibrary.CreateServiceCommitmentPackageWithLine('', ServiceCommitmentPackage, ServiceCommPackageLine);
         Commit(); // retain data after asserterror
 
-        // [WHEN] A invalid date formula is created for the purpose of validating Billing Base Period and Billing Rhythm
+        // [WHEN] An invalid date formula is created for the purpose of validating Billing Base Period and Billing Rhythm
         Evaluate(FifteenMonthsDateFormula, '<15M>');
 
         // [THEN] Error expected when invalid date formula is entered for Billing Base Period or Billing Rhythm
@@ -511,14 +511,14 @@ codeunit 148156 "Service Commitment Test"
 
     local procedure ValidateDateFormulaCombinations(DateFormulaText1: Text; DateFormulaText2: Text)
     var
-        DateFormula1: DateFormula;
+        EvaluatedDateFormula: DateFormula;
     begin
         ServiceCommPackageLine.Get(ServiceCommPackageLine."Subscription Package Code", ServiceCommPackageLine."Line No.");
-        Evaluate(DateFormula1, DateFormulaText1);
-        ServiceCommPackageLine."Billing Base Period" := DateFormula1;
-        Evaluate(DateFormula1, DateFormulaText2);
-        ServiceCommPackageLine."Billing Rhythm" := DateFormula1;
-        ServiceCommPackageLine.Modify(true);
+        Evaluate(EvaluatedDateFormula, DateFormulaText1);
+        ServiceCommPackageLine."Billing Base Period" := EvaluatedDateFormula;
+        Evaluate(EvaluatedDateFormula, DateFormulaText2);
+        ServiceCommPackageLine.Validate("Billing Rhythm", EvaluatedDateFormula);
+        ServiceCommPackageLine.Modify(false);
     end;
 
     #endregion Procedures
