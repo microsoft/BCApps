@@ -32,4 +32,4 @@ if ($disabledTests)
     $parameters["disabledTests"] = $disabledTests
 }
 
-Run-TestsInBcContainer @parameters
+Run-TestsInBcContainer @parameters -debugMode
