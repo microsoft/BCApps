@@ -5,7 +5,6 @@
 
 namespace System.Tooling;
 
-using System.Environment.Configuration;
 using System.DataAdministration;
 using System.PerformanceProfile;
 using System.Upgrade;
@@ -55,11 +54,5 @@ codeunit 1933 "Performance Profiler Installer"
     local procedure AddAllowedTablesOnRefreshAllowedTables()
     begin
         AddRetentionPolicyAllowedTables(true);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Initialization", OnAfterLogin, '', false, false)]
-    local procedure AddAllowedTablesOnAfterSystemInitialization()
-    begin
-        AddRetentionPolicyAllowedTables(false);
     end;
 }
