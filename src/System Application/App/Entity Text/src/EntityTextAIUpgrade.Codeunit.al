@@ -33,6 +33,14 @@ codeunit 2015 "Entity Text AI Upgrade"
 
             UpgradeTag.SetUpgradeTag(GetRegisterMarketingTextCapabilityTag());
         end;
+
+        if not UpgradeTag.HasUpgradeTag(GetAddBillingTypeToMarketingTextCapabilityTag()) then begin
+            if EnvironmentInformation.IsSaaSInfrastructure() then
+                if not CopilotCapability.IsBillingTypeDefined(Enum::"Copilot Capability"::"Entity Text") then
+                    CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Entity Text", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Not Billed", LearnMoreUrlTxt);
+
+            UpgradeTag.SetUpgradeTag(GetAddBillingTypeToMarketingTextCapabilityTag());
+        end;
     end;
 
     internal procedure GetRegisterMarketingTextCapabilityTag(): Code[250]
@@ -40,4 +48,8 @@ codeunit 2015 "Entity Text AI Upgrade"
         exit('MS-490070-RegisterMarketingTextCapability-20231031');
     end;
 
+    internal procedure GetAddBillingTypeToMarketingTextCapabilityTag(): Code[250]
+    begin
+        exit('MS-581366-AddBillingTypeToMarketingTextCapability-20250731');
+    end;
 }
