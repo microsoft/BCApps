@@ -28,7 +28,12 @@ codeunit 149034 "AIT Test Suite Mgt."
         CannotRunMultipleSuitesInParallelErr: Label 'There is already a test run in progress. You need to wait for it to finish or cancel it before starting a new test run.';
         FeatureNameLbl: Label 'AI Test Toolkit', Locked = true;
         LineNoFilterLbl: Label 'Codeunit %1 "%2" (Input: %3)', Locked = true;
+        TurnsLbl: Label '%1/%2', Comment = '%1 - No. of turns that passed, %2 - Total no. of turns';
         ConfirmCancelQst: Label 'This action will mark the run as Cancelled. Are you sure you want to continue?';
+        TestMethodLineNotFoundErr: Label 'The test suite %1 does not contain the test line %2. Run the suite again.', Comment = '%1 = test suite code, %2 = line number';
+        TestSuiteChangedErr: Label 'The test suite %1 has been changed since test line %2 was run. Run the suite again.', Comment = '%1 = test suite code, %2 = line number';
+        NoEvaluatorsLbl: Label 'Configure...';
+
 
     procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
     var
@@ -55,7 +60,6 @@ codeunit 149034 "AIT Test Suite Mgt."
     local procedure RunAITests(AITTestSuite: Record "AIT Test Suite")
     var
         AITTestMethodLine: Record "AIT Test Method Line";
-        AITRunHistory: Record "AIT Run History";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         FeatureTelemetryCD: Dictionary of [Text, Text];
@@ -89,10 +93,29 @@ codeunit 149034 "AIT Test Suite Mgt."
                 RunAITestLine(AITTestMethodLine, true);
             until AITTestMethodLine.Next() = 0;
 
-        AITRunHistory."Test Suite Code" := AITTestSuite.Code;
-        AITRunHistory.Version := AITTestSuite.Version;
-        AITRunHistory.Tag := AITTestSuite.Tag;
-        AITRunHistory.Insert();
+        LogRunHistory(AITTestSuite.Code, AITTestSuite.Version, AITTestSuite.Tag);
+    end;
+
+    internal procedure RerunTest(var AITLogEntry: Record "AIT Log Entry"): Integer
+    var
+        AITTestSuite: Record "AIT Test Suite";
+        AITTestMethodLineForLogEntry: Record "AIT Test Method Line";
+        AITTestRunInputHandler: Codeunit "AIT Test Run Input Handler";
+    begin
+        if not AITTestMethodLineForLogEntry.Get(AITLogEntry."Test Suite Code", AITLogEntry."Test Method Line No.") then
+            Error(TestMethodLineNotFoundErr, AITLogEntry."Test Method Line No.", AITLogEntry."Test Suite Code");
+
+        if AITTestMethodLineForLogEntry."Codeunit ID" <> AITLogEntry."Codeunit ID" then
+            Error(TestSuiteChangedErr);
+
+        AITTestRunInputHandler.SetInput(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code");
+
+        BindSubscription(AITTestRunInputHandler);
+        RunAITestLine(AITTestMethodLineForLogEntry, false);
+        UnbindSubscription(AITTestRunInputHandler);
+
+        AITTestSuite.Get(AITTestMethodLineForLogEntry."Test Suite Code");
+        exit(AITTestSuite.Version);
     end;
 
     internal procedure RunAITestLine(AITTestMethodLine: Record "AIT Test Method Line"; IsExecutedFromTestSuiteHeader: Boolean)
@@ -131,8 +154,22 @@ codeunit 149034 "AIT Test Suite Mgt."
                 AITTestMethodLine.CalcFields("No. of Tests Executed", "No. of Tests Passed", "Total Duration (ms)");
                 TelemetryCustomDimensions := GetFeatureUsedInsights(EmptyGuid, AITTestSuite.Version, AITTestMethodLine."No. of Tests Executed", AITTestMethodLine."No. of Tests Passed", AITTestMethodLine."Total Duration (ms)");
                 FeatureTelemetry.LogUptake('0000NEY', GetFeatureName(), Enum::"Feature Uptake Status"::Used, TelemetryCustomDimensions);
+                LogRunHistory(AITTestSuite.Code, AITTestSuite.Version, AITTestSuite.Tag);
             end;
         end;
+    end;
+
+    local procedure LogRunHistory(Code: Code[10]; Version: Integer; Tag: Text[20])
+    var
+        AITRunHistory: Record "AIT Run History";
+        AITTestContext: Codeunit "AIT Test Context";
+    begin
+        AITRunHistory."Test Suite Code" := Code;
+        AITRunHistory.Version := Version;
+        AITRunHistory.Tag := Tag;
+        AITRunHistory.Insert();
+
+        AITTestContext.OnAfterRunComplete(Code, Version, Tag);
     end;
 
     local procedure ValidateAITestSuite(AITTestSuite: Record "AIT Test Suite")
@@ -355,6 +392,9 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITLogEntry."Procedure Name" := CurrentTestMethodLine.Function;
         AITLogEntry."Tokens Consumed" := AITTestRunIteration.GetAITokenUsedByLastTestMethodLine();
+        AITLogEntry."No. of Turns" := AITTestRunIteration.GetNumberOfTurnsForLastTestMethodLine();
+        AITLogEntry."No. of Turns Passed" := AITTestRunIteration.GetNumberOfTurnsPassedForLastTestMethodLine();
+        AITLogEntry."Test Method Line Accuracy" := AITTestRunIteration.GetAccuracyForLastTestMethodLine();
         AITLogEntry.Insert(true);
 
         Commit();
@@ -369,6 +409,39 @@ codeunit 149034 "AIT Test Suite Mgt."
         TelemetryCustomDimensions.Add('NoOfTestsExecuted', Format(NoOfTestsExecuted));
         TelemetryCustomDimensions.Add('NoOfTestsPassed', Format(NoOfTestsPassed));
         TelemetryCustomDimensions.Add('TotalDurationInMs', Format(TotalDurationInMs));
+    end;
+
+    internal procedure GetEvaluationSetupText(TestSuiteCode: Code[10]; LineNo: Integer): Text
+    var
+        AITEvaluators: Record "AIT Evaluator";
+        TextBuilder: TextBuilder;
+    begin
+        AITEvaluators.SetRange("Test Suite Code", TestSuiteCode);
+        AITEvaluators.SetRange("Test Method Line", LineNo);
+
+        if AITEvaluators.IsEmpty() then
+            exit(NoEvaluatorsLbl);
+
+        TextBuilder.Append('{');
+        if AITEvaluators.FindSet() then begin
+            repeat
+                TextBuilder.Append('"' + AITEvaluators.Evaluator + '",');
+            until AITEvaluators.Next() = 0;
+            TextBuilder.Remove(TextBuilder.Length(), 1); // Remove the last comma 
+        end;
+        TextBuilder.Append('}');
+        exit(TextBuilder.ToText());
+    end;
+
+    internal procedure GetTurnsAsText(var AITTestMethodLine: Record "AIT Test Method Line"): Text
+    begin
+        AITTestMethodLine.CalcFields("No. of Turns Passed", "No. of Turns");
+        exit(StrSubstNo(TurnsLbl, AITTestMethodLine."No. of Turns Passed", AITTestMethodLine."No. of Turns"));
+    end;
+
+    internal procedure GetTurnsAsText(var AITLogEntry: Record "AIT Log Entry"): Text
+    begin
+        exit(StrSubstNo(TurnsLbl, AITLogEntry."No. of Turns Passed", AITLogEntry."No. of Turns"));
     end;
 
     internal procedure GetAvgDuration(AITTestMethodLine: Record "AIT Test Method Line"): Integer
@@ -444,6 +517,8 @@ codeunit 149034 "AIT Test Suite Mgt."
     local procedure DeleteLinesOnDeleteAITTestSuite(var Rec: Record "AIT Test Suite"; RunTrigger: Boolean)
     var
         AITTestMethodLine: Record "AIT Test Method Line";
+        AITEvaluator: Record "AIT Evaluator";
+        AITColumnMapping: Record "AIT Column Mapping";
         AITLogEntry: Record "AIT Log Entry";
         AITRunHistory: Record "AIT Run History";
     begin
@@ -452,6 +527,12 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITTestMethodLine.SetRange("Test Suite Code", Rec."Code");
         AITTestMethodLine.DeleteAll(true);
+
+        AITEvaluator.SetRange("Test Suite Code", Rec."Code");
+        AITEvaluator.DeleteAll(true);
+
+        AITColumnMapping.SetRange("Test Suite Code", Rec."Code");
+        AITColumnMapping.DeleteAll(true);
 
         AITLogEntry.SetRange("Test Suite Code", Rec."Code");
         AITLogEntry.DeleteAll(true);
@@ -480,9 +561,19 @@ codeunit 149034 "AIT Test Suite Mgt."
     local procedure DeleteLogEntriesOnDeleteAITTestMethodLine(var Rec: Record "AIT Test Method Line"; RunTrigger: Boolean)
     var
         AITLogEntry: Record "AIT Log Entry";
+        AITEvaluator: Record "AIT Evaluator";
+        AITColumnMapping: Record "AIT Column Mapping";
     begin
         if Rec.IsTemporary() then
             exit;
+
+        AITEvaluator.SetRange("Test Suite Code", Rec."Test Suite Code");
+        AITEvaluator.SetRange("Test Method Line", Rec."Line No.");
+        AITEvaluator.DeleteAll(true);
+
+        AITColumnMapping.SetRange("Test Suite Code", Rec."Test Suite Code");
+        AITColumnMapping.SetRange("Test Method Line", Rec."Line No.");
+        AITColumnMapping.DeleteAll(true);
 
         AITLogEntry.SetRange("Test Suite Code", Rec."Test Suite Code");
         AITLogEntry.SetRange("Test Method Line No.", Rec."Line No.");

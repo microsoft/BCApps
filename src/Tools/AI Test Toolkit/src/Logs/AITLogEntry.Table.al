@@ -15,8 +15,8 @@ table 149034 "AIT Log Entry"
     DrillDownPageId = "AIT Log Entries";
     LookupPageId = "AIT Log Entries";
     DataCaptionFields = "Codeunit Name", "Procedure Name", "Test Input Code";
-    Extensible = false;
-    Access = Internal;
+    Extensible = true;
+    Access = Public;
     ReplicateData = false;
 
     fields
@@ -158,6 +158,23 @@ table 149034 "AIT Log Entry"
         field(29; "Output Data"; Blob)
         {
             Caption = 'Output Data';
+        }
+        field(40; "No. of Turns"; Integer)
+        {
+            Caption = 'Total number of turns';
+            ToolTip = 'Specifies the total number of turns.';
+        }
+        field(41; "No. of Turns Passed"; Integer)
+        {
+            Caption = 'Number of turns passed';
+            ToolTip = 'Specifies the number of turns passed.';
+        }
+        field(45; "Test Method Line Accuracy"; Decimal)
+        {
+            Caption = 'Test Method Line Accuracy';
+            ToolTip = 'Specifies the accuracy of the test line. The accuracy is calculated as the percentage of turns that passed or can be set manually in the test.';
+            AutoFormatType = 0;
+
         }
         field(50; "Tokens Consumed"; Integer)
         {

@@ -12,8 +12,8 @@ table 149032 "AIT Test Method Line"
 {
     Caption = 'AI Test Method Line';
     DataClassification = SystemMetadata;
-    Extensible = false;
-    Access = Internal;
+    Extensible = true;
+    Access = Public;
     ReplicateData = false;
 
     fields
@@ -165,6 +165,31 @@ table 149032 "AIT Test Method Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter")));
+        }
+        field(40; "No. of Turns"; Integer)
+        {
+            Caption = 'No. of Turns Executed';
+            ToolTip = 'Specifies the total number of turns for the test line.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = sum("AIT Log Entry"."No. of Turns" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+        }
+        field(41; "No. of Turns Passed"; Integer)
+        {
+            Caption = 'No. of Turns Passed';
+            ToolTip = 'Specifies the total number of passed turns for the test line.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = sum("AIT Log Entry"."No. of Turns Passed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+        }
+        field(45; "Test Method Line Accuracy"; Decimal)
+        {
+            Caption = 'Accuracy';
+            ToolTip = 'Specifies the average accuracy of the test line. The accuracy is calculated as the percentage of turns that passed or can be set manually by the test.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            AutoFormatType = 0;
         }
         field(101; "AL Test Suite"; Code[10])
         {

@@ -12,7 +12,7 @@ page 149033 "AIT Log Entries"
     ApplicationArea = All;
     Editable = false;
     SourceTable = "AIT Log Entry";
-    Extensible = false;
+    Extensible = true;
     UsageCategory = None;
 
     layout
@@ -67,6 +67,24 @@ page 149033 "AIT Log Entries"
                 field(Status; Rec.Status)
                 {
                     StyleExpr = StatusStyleExpr;
+                }
+                field(Accuracy; Rec."Test Method Line Accuracy")
+                {
+                    AutoFormatType = 0;
+                }
+                field("No. of Turns Passed"; Rec."No. of Turns Passed")
+                {
+                    Visible = false;
+                }
+                field("No. of Turns"; Rec."No. of Turns")
+                {
+                    Visible = false;
+                }
+                field(TurnsText; TurnsText)
+                {
+                    StyleExpr = TurnsStyleExpr;
+                    Caption = 'No. of Turns Passed';
+                    ToolTip = 'Specifies the number of turns that passed out of the total number of turns.';
                 }
                 field("Orig. Status"; Rec."Original Status")
                 {
@@ -253,11 +271,34 @@ page 149033 "AIT Log Entries"
                     Page.Run(Page::"AIT Test Data Compare", Rec);
                 end;
             }
+
+            action(RerunTest)
+            {
+                Caption = 'Rerun test';
+                Image = Redo;
+                ToolTip = 'Rerun the test for the selected line.';
+
+                trigger OnAction()
+                var
+                    AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+                    Version: Integer;
+                begin
+                    Version := AITTestSuiteMgt.RerunTest(Rec);
+
+                    Rec.Reset();
+                    Rec.SetRange(Version, Version);
+                    CurrPage.Update(false);
+                end;
+            }
         }
         area(Promoted)
         {
             group(Category_Process)
             {
+
+                actionref("RerunTest_Promoted"; "RerunTest")
+                {
+                }
                 actionref(DeleteAll_Promoted; DeleteAll)
                 {
                 }
@@ -287,20 +328,26 @@ page 149033 "AIT Log Entries"
         ClickToShowLbl: Label 'Show data input';
         DoYouWantToDeleteQst: Label 'Do you want to delete all entries within the filter?';
         InputText: Text;
+        TurnsText: Text;
         OutputText: Text;
         ErrorMessage: Text;
         ErrorCallStack: Text;
         StatusStyleExpr: Text;
+        TurnsStyleExpr: Text;
         TestRunDuration: Duration;
         IsFilteredToErrors: Boolean;
         ShowSensitiveData: Boolean;
 
     trigger OnAfterGetRecord()
+    var
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
         TestRunDuration := Rec."Duration (ms)";
+        TurnsText := AITTestSuiteMgt.GetTurnsAsText(Rec);
         SetInputOutputDataFields();
         SetErrorFields();
         SetStatusStyleExpr();
+        SetTurnsStyleExpr();
     end;
 
     local procedure SetStatusStyleExpr()
@@ -312,6 +359,18 @@ page 149033 "AIT Log Entries"
                 StatusStyleExpr := 'Unfavorable';
             else
                 StatusStyleExpr := '';
+        end;
+    end;
+
+    local procedure SetTurnsStyleExpr()
+    begin
+        case Rec."No. of Turns Passed" of
+            Rec."No. of Turns":
+                TurnsStyleExpr := 'Favorable';
+            0:
+                TurnsStyleExpr := 'Unfavorable';
+            else
+                TurnsStyleExpr := 'Ambiguous';
         end;
     end;
 

@@ -18,9 +18,13 @@ codeunit 149043 "AIT Test Context Impl."
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         GlobalTestOutputJson: Codeunit "Test Output Json";
+        GlobalAccuracy: Decimal;
         CurrentTurn: Integer;
         NumberOfTurns: Integer;
         IsMultiTurn: Boolean;
+        AccuracySetManually: Boolean;
+        AccuracyErr: Label 'Accuracy must be between 0 and 1.';
+        OnlySingleTurnErr: Label 'A query-and-response pair cannot be used in multi-turn tests. Use AddMessage instead.';
         AnswerTok: Label 'answer', Locked = true;
         ContextTok: Label 'context', Locked = true;
         GroundTruthTok: Label 'ground_truth', Locked = true;
@@ -29,6 +33,12 @@ codeunit 149043 "AIT Test Context Impl."
         TestSetupTok: Label 'test_setup', Locked = true;
         QuestionTok: Label 'question', Locked = true;
         TurnsTok: Label 'turns', Locked = true;
+        MessagesTok: Label 'messages', Locked = true;
+        QueryTok: Label 'query', Locked = true;
+        ResponseTok: Label 'response', Locked = true;
+        RoleTok: Label 'role', Locked = true;
+        ContentTok: Label 'content', Locked = true;
+        ConversationTok: Label 'conversation', Locked = true;
 
     /// <summary>
     /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
@@ -104,6 +114,64 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
+    /// Sets the query and respone for a single-turn evaluation.
+    /// Optionally, a context can be provided.
+    /// </summary>
+    /// <param name="Query">The query as text.</param>
+    /// <param name="Response">The response as text.</param>
+    /// <param name="Context">The context as text.</param>
+    procedure SetQueryResponse(Query: Text; Response: Text; Context: Text)
+    var
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+        CurrentTestOutputJson: Codeunit "Test Output Json";
+        TestOutputCU: Codeunit "Test Output";
+    begin
+        if IsMultiTurn then
+            Error(OnlySingleTurnErr);
+
+        CurrentTestOutputJson.Initialize();
+        CurrentTestOutputJson.Add(QueryTok, Query);
+        CurrentTestOutputJson.Add(ResponseTok, Response);
+
+        if Context <> '' then
+            CurrentTestOutputJson.Add(ContextTok, Context);
+
+        TestOutputCU.TestData().Initialize(CurrentTestOutputJson.ToText());
+
+        AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.Testdata().ToText());
+    end;
+
+    /// <summary>
+    /// Adds a message to the current test iteration.
+    /// This is used for multi-turn tests to add messages to the output.
+    /// </summary>
+    /// <param name="Content">The content of the message.</param>
+    /// <param name="Role">The role of the message (e.g., 'user', 'assistant').</param>
+    /// <param name="Context">The context of the message (can be blank).</param>
+    procedure AddMessage(Content: Text; Role: Text; Context: Text)
+    var
+        CurrentTestOutputJson: Codeunit "Test Output Json";
+    begin
+        CurrentTestOutputJson.Initialize();
+        CurrentTestOutputJson.Add(ContentTok, Content);
+        CurrentTestOutputJson.Add(RoleTok, Role);
+
+        if Context <> '' then
+            CurrentTestOutputJson.Add(ContextTok, Context);
+
+        AddMessageToOutput(CurrentTestOutputJson.ToText());
+    end;
+
+    /// <summary>
+    /// Sets the test output for the current iteration.
+    /// </summary>
+    /// <param name="TestOutputJson">The test output.</param>
+    procedure SetTestOutput(TestOutputJson: Codeunit "Test Output Json")
+    begin
+        SetSuiteTestOutput(TestOutputJson.ToText());
+    end;
+
+    /// <summary>
     /// Sets the test output for the current iteration.
     /// </summary>
     /// <param name="TestOutputText">The test output as text.</param>
@@ -147,6 +215,34 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
+    /// Sets the accuracy of the test.
+    /// </summary>
+    /// <param name="Accuracy">The accuracy as a decimal between 0 and 1.</param>
+    procedure SetAccuracy(Accuracy: Decimal)
+    begin
+        if (Accuracy < 0) or (Accuracy > 1) then
+            Error(AccuracyErr);
+
+        AccuracySetManually := true;
+        GlobalAccuracy := Accuracy;
+    end;
+
+    /// <summary>
+    /// Gets the accuracy of the test. Can only be retrieved if the accuracy of the test was already set manually.
+    /// </summary>
+    /// <param name="Accuracy">The accuracy as a decimal between 0 and 1.</param>
+    /// <returns>True if it was possible to get the accuracy, false otherwise.</returns>
+    procedure GetAccuracy(var Accuracy: Decimal): Boolean
+    begin
+        if AccuracySetManually then begin
+            Accuracy := GlobalAccuracy;
+            exit(true);
+        end;
+
+        exit(false);
+    end;
+
+    /// <summary>
     /// Sets to next turn for multiturn testing.
     /// </summary>
     /// <returns>True if another turn exists, otherwise false.</returns>
@@ -164,12 +260,32 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
-    /// Gets the current turn for multiturn testing. Turns start from turn 0.
+    /// Gets the current turn for multiturn testing. Turns start from turn 1.
     /// </summary>
     /// <returns>The current turn number.</returns>
     procedure GetCurrentTurn(): Integer
     begin
         exit(CurrentTurn);
+    end;
+
+    /// <summary>
+    /// Gets the total number of turns for multiturn testing.
+    /// </summary>
+    /// <returns>The total number of turns for the line.</returns>
+    procedure GetNumberOfTurns(): Integer
+    begin
+        exit(NumberOfTurns);
+    end;
+
+    /// <summary>
+    /// Returns the AITTestSuite associated with the run.
+    /// </summary>
+    /// <param name="AITTestSuite">AITTestSuite associated with the run.</param>
+    procedure GetAITTestSuite(var AITTestSuite: Record "AIT Test Suite")
+    var
+        AITTestRunIteration: Codeunit "AIT Test Run Iteration";
+    begin
+        AITTestRunIteration.GetAITTestSuite(AITTestSuite);
     end;
 
     /// <summary>
@@ -205,12 +321,16 @@ codeunit 149043 "AIT Test Context Impl."
         TestInput: Codeunit "Test Input";
         TurnsInputJson: Codeunit "Test Input Json";
     begin
-        CurrentTurn := 0;
+        AccuracySetManually := false;
+        GlobalAccuracy := 0;
+        CurrentTurn := 1;
         GlobalTestOutputJson.Initialize();
         TurnsInputJson := TestInput.GetTestInput().ElementExists(TurnsTok, IsMultiTurn);
 
         if IsMultiTurn then
-            NumberOfTurns := TurnsInputJson.GetElementCount() - 1;
+            NumberOfTurns := TurnsInputJson.GetElementCount()
+        else
+            NumberOfTurns := 1;
     end;
 
     /// <summary>
@@ -223,9 +343,27 @@ codeunit 149043 "AIT Test Context Impl."
         TestInput: Codeunit "Test Input";
     begin
         if IsMultiTurn then
-            TestInputJson := TestInput.GetTestInput(TurnsTok).ElementAt(CurrentTurn).Element(ElementName)
+            TestInputJson := TestInput.GetTestInput(TurnsTok).ElementAt(CurrentTurn - 1).Element(ElementName)
         else
             TestInputJson := TestInput.GetTestInput(ElementName);
+    end;
+
+    /// <summary>
+    /// Adds a message to the test output for the current iteration.
+    /// </summary>
+    local procedure AddMessageToOutput(Output: Text)
+    var
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+        TestOutputCU: Codeunit "Test Output";
+    begin
+        if not TestOutputCU.TestData().ElementExists(ConversationTok) then begin
+            TestOutputCU.TestData().Add(ConversationTok, '');
+            TestOutputCU.TestData().Element(ConversationTok).AddArray(MessagesTok);
+        end;
+
+        TestOutputCU.TestData().Element(ConversationTok).Element(MessagesTok).Add(Output);
+
+        AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.Testdata().ToText());
     end;
 
     /// <summary>
