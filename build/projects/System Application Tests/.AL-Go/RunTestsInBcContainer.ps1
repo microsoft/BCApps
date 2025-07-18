@@ -6,3 +6,6 @@ $parameters["testType"] = "UnitTest"
 
 $script = Join-Path $PSScriptRoot "../../../scripts/RunTestsInBcContainer.ps1" -Resolve
 . $script -parameters $parameters
+
+$parameters["debugMode "] = $true
+. $script -parameters $parameters -DisableTestIsolation
