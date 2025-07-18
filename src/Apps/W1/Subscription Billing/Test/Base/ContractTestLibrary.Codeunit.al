@@ -1145,7 +1145,6 @@ codeunit 139685 "Contract Test Library"
         Clear(ServiceCommitment."Billing Base Period");
         Clear(ServiceCommitment."Billing Rhythm");
         Evaluate(ServiceCommitment."Billing Base Period", BillingBasePeriodText);
-        ServiceCommitment.Validate("Billing Base Period");
         Evaluate(ServiceCommitment."Billing Rhythm", BillingRhythmText);
         ServiceCommitment.Validate("Billing Rhythm");
     end;
