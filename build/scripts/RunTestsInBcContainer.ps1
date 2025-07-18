@@ -1,7 +1,6 @@
 Param(
     [Hashtable] $parameters,
-    [switch] $DisableTestIsolation,
-    [switch] $renewClientContextBetweenTests
+    [switch] $DisableTestIsolation
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
@@ -33,4 +32,4 @@ if ($disabledTests)
     $parameters["disabledTests"] = $disabledTests
 }
 
-Run-TestsInBcContainer @parameters -renewClientContextBetweenTests:$renewClientContextBetweenTests
+Run-TestsInBcContainer @parameters -debugMode -renewClientContextBetweenTests
