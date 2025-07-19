@@ -149,7 +149,7 @@ table 130450 "Test Method Line"
             Editable = false;
             OptionMembers = None,Disabled,Codeunit,Function;
             Caption = 'Required Test Isolation';
-            ToolTip = 'Specifies which Test Runner is required for the codeunit.';
+            ToolTip = 'Specifies which Test Runner (Test Isolation) is required for the codeunit.';
             FieldClass = FlowField;
             CalcFormula = lookup("Codeunit Metadata".RequiredTestIsolation where(ID = field("Test Codeunit")));
         }
