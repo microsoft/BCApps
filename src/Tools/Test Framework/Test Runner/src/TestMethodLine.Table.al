@@ -133,6 +133,26 @@ table 130450 "Test Method Line"
             CalcFormula = count("Test Method Line" where("Test Suite" = field("Test Suite"), "Test Codeunit" = field("Test Codeunit"), "Line Type" = const(Function)));
             Editable = false;
         }
+        field(57; "Test Type"; Option)
+        {
+            Access = Internal;
+            Editable = false;
+            OptionMembers = None,UnitTest,IntegrationTest,Uncategorized;
+            Caption = 'Test Type';
+            ToolTip = 'Specifies the type of the test, indicating the context in which it runs.';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Codeunit Metadata".TestType where(ID = field("Test Codeunit")));
+        }
+        field(58; "Required Test Isolation"; Option)
+        {
+            Access = Internal;
+            Editable = false;
+            OptionMembers = None,Disabled,Codeunit,Function;
+            Caption = 'Required Test Isolation';
+            ToolTip = 'Specifies which Test Runner is required for the codeunit.';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Codeunit Metadata".RequiredTestIsolation where(ID = field("Test Codeunit")));
+        }
     }
 
     keys
