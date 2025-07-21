@@ -288,16 +288,18 @@ codeunit 130456 "Test Suite Mgt."
     /// Selects test methods by range and test categorization (only the overlapping ones).
     /// This procedure is mostly needed during the transition period when the test categorization is not yet fully implemented.
     /// </summary>
-    internal procedure SelectTestMethodsByRangeAndTestCategorization(var ALTestSuite: Record "AL Test Suite"; TestCodeunitFilter: Text; TestType: Integer; RequiredTestIsolation: Integer)
+    internal procedure SelectTestMethodsByRange(var ALTestSuite: Record "AL Test Suite"; TestCodeunitFilter: Text; TestType: Integer; RequiredTestIsolation: Integer)
     var
         CodeunitMetadata: Record "CodeUnit Metadata";
     begin
         CodeunitMetadata.SetFilter(ID, TestCodeunitFilter);
         CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::Test);
 
-        // inexplicit conversion from Integer to Option
-        CodeunitMetadata.SetRange(TestType, TestType);
-        CodeunitMetadata.SetRange(RequiredTestIsolation, RequiredTestIsolation);
+        if TestType > 0 then begin
+            // inexplicit conversion from Integer to Option
+            CodeunitMetadata.SetRange(TestType, TestType);
+            CodeunitMetadata.SetRange(RequiredTestIsolation, RequiredTestIsolation);
+        end;
 
         GetTestMethods(ALTestSuite, CodeunitMetadata);
     end;
