@@ -329,10 +329,17 @@ codeunit 130456 "Test Suite Mgt."
         GetTestMethods(ALTestSuite, CodeunitMetadata);
     end;
 
-    internal procedure SelectTestMethodsByTestCategorization(var ALTestSuite: Record "AL Test Suite"; TestType: Integer; RequiredTestIsolation: Integer)
+    internal procedure SelectTestMethodsByExtensionAndTestCategorization(var ALTestSuite: Record "AL Test Suite"; ExtensionID: Text; TestType: Integer; RequiredTestIsolation: Integer)
     var
         CodeunitMetadata: Record "CodeUnit Metadata";
+        AppExtensionId: Guid;
     begin
+        if ExtensionID <> '' then begin
+            Evaluate(AppExtensionId, ExtensionID);
+
+            CodeunitMetadata.SetRange("App ID", AppExtensionId);
+        end;
+
         CodeunitMetadata.SetRange(SubType, CodeunitMetadata.SubType::Test);
 
         // inexplicit conversion from Integer to Option
