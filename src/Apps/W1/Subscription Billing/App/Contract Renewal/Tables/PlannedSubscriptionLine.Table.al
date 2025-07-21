@@ -207,8 +207,7 @@ table 8002 "Planned Subscription Line"
             begin
                 DateFormulaManagement.ErrorIfDateFormulaEmpty("Billing Rhythm", FieldCaption("Billing Rhythm"));
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Billing Rhythm");
-                if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
-                    CheckRatioBetweenBillingBasePeriodAndRhythm();
+                CheckRatioBetweenBillingBasePeriodAndRhythm();
             end;
         }
         field(24; "Cancellation Possible Until"; Date)
