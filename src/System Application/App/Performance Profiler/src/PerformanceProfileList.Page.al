@@ -272,9 +272,13 @@ page 1931 "Performance Profile List"
 
 local procedure ComputePlatformCallDuration(): Duration
     var
-        Math: Codeunit Math;
+        diff: Duration;
     begin
-        exit(Math.Max(0, Rec."Activity Duration" - Rec.Duration - Rec."Sql Call Duration" - Rec."Http Call Duration"));
+        diff := Rec.Duration + Rec."Sql Call Duration" + Rec."Http Call Duration";
+        if Rec."Activity Duration" >= diff then
+            exit(Rec."Activity Duration" - diff);
+
+        exit(0);
     end;
 
     var
