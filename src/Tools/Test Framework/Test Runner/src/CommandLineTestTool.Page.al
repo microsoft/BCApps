@@ -123,7 +123,7 @@ page 130455 "Command Line Test Tool"
                     TestSuiteMgt: Codeunit "Test Suite Mgt.";
                 begin
                     TestSuiteMgt.DeleteAllMethods(GlobalALTestSuite);
-                    TestSuiteMgt.SelectTestMethodsByExtensionAndTestCategorization(GlobalALTestSuite, ExtensionId, TestType, RequiredTestIsolation);
+                    TestSuiteMgt.SelectTestMethodsByTestCategorization(GlobalALTestSuite, TestType, RequiredTestIsolation);
                     if Rec.FindSet() then;
                 end;
             }
