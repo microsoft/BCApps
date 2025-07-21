@@ -141,12 +141,6 @@ page 130451 "AL Test Tool"
                     StyleExpr = NameEmphasize;
                     ToolTip = 'Specifies the name of the test tool.';
                 }
-                field(TestType; Rec."Test Type")
-                {
-                }
-                field("Required Test Isolation"; Rec."Required Test Isolation")
-                {
-                }
                 field(Run; Rec.Run)
                 {
                     ApplicationArea = All;
