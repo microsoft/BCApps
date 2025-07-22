@@ -13,6 +13,5 @@ permissionset 2609 "Feature Key - Objects"
     Permissions = codeunit "Feature Management Facade" = X,
                   page "Feature Management" = X,
                   page "Schedule Feature Data Update" = X,
-                  page "API - Feature Management" = X,
                   table "Feature Data Update Status" = X;
 }

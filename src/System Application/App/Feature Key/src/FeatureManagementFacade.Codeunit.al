@@ -115,7 +115,7 @@ codeunit 2611 "Feature Management Facade"
         FeatureManagementImpl.UpdateData(FeatureDataUpdateStatus);
     end;
 
-    internal procedure GetFeatureDataUpdateStatus(FeatureKey: Record "Feature Key"; var FeatureDataUpdateStatus: Record "Feature Data Update Status")
+    procedure GetFeatureDataUpdateStatus(FeatureKey: Record "Feature Key"; var FeatureDataUpdateStatus: Record "Feature Data Update Status")
     begin
         FeatureManagementImpl.GetFeatureDataUpdateStatus(FeatureKey, FeatureDataUpdateStatus);
     end;
