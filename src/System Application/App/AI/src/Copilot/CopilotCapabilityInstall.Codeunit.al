@@ -65,22 +65,4 @@ codeunit 7760 "Copilot Capability Install"
         if not RequiredPrivacyNotices.Contains(SystemPrivacyNoticeReg.GetMicrosoftLearnID()) then
             RequiredPrivacyNotices.Add(SystemPrivacyNoticeReg.GetMicrosoftLearnID());
     end;
-
-    internal procedure ModifyCapabilities()
-    begin
-        ModifySaaSCapability(Enum::"Copilot Capability"::"Analyze List", Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", AnalyzeListLearnMoreLbl);
-        ModifySaaSCapability(Enum::"Copilot Capability"::Autofill, Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", AutofillLearnMoreLbl);
-        ModifySaaSCapability(Enum::"Copilot Capability"::Chat, Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", ChatLearnMoreLbl);
-        ModifySaaSCapability(Enum::"Copilot Capability"::Summarize, Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", SummarizeLearnMoreLbl);
-    end;
-
-    local procedure ModifySaaSCapability(Capability: Enum "Copilot Capability"; Availability: Enum "Copilot Availability"; BillingType: Enum "Copilot Billing Type"; LearnMoreUrl: Text[2048])
-    var
-        CopilotCapability: Codeunit "Copilot Capability";
-        EnvironmentInformation: Codeunit "Environment Information";
-    begin
-        if EnvironmentInformation.IsSaaSInfrastructure() then
-            if not (CopilotCapability.IsBillingTypeDefined(Capability)) then
-                CopilotCapability.ModifyCapability(Capability, Availability, BillingType, LearnMoreUrl);
-    end;
 }

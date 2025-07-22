@@ -40,25 +40,6 @@ codeunit 327 "No. Series Copilot Register"
         UpgradeTag.SetUpgradeTag(NoSeriesCopilotUpgradeTags.GetImplementationUpgradeTag());
     end;
 
-    procedure ModifyCapability()
-    var
-        CopilotCapability: Codeunit "Copilot Capability";
-        EnvironmentInformation: Codeunit "Environment Information";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        NoSeriesCopilotUpgradeTags: Codeunit "No. Series Copilot Upgr. Tags";
-    begin
-        if not EnvironmentInformation.IsSaaSInfrastructure() then
-            exit;
-
-        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"No. Series Copilot") then
-            exit;
-
-        if not UpgradeTag.HasUpgradeTag(NoSeriesCopilotUpgradeTags.GetModifyCapabilityUpgradeTag()) then begin
-            CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"No. Series Copilot", Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", LearnMoreUrlTxt);
-            UpgradeTag.SetUpgradeTag(NoSeriesCopilotUpgradeTags.GetModifyCapabilityUpgradeTag());
-        end;
-    end;
-
     var
         LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2294514', Locked = true;
 
