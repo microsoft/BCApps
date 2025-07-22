@@ -89,7 +89,6 @@ page 1931 "Performance Profile List"
                 }
                 field("Platform Call Duration"; PlatformCallDuration)
                 {
-                    ApplicationArea = All;
                     Caption = 'Duration of Platform Calls';
                     ToolTip = 'Specifies the duration of platform calls during the activity that was profiled in milliseconds.';
                     AboutText = 'The duration of platform calls during the activity that was profiled.';
