@@ -82,7 +82,7 @@ codeunit 8999 "Email Rate Limit Impl."
         EmailOutbox.SetRange("Account Id", AccountId);
         if EmailOutbox.IsEmpty() then
             exit(0);
-        tes
+
         exit(EmailOutbox.Count());
     end;
 
