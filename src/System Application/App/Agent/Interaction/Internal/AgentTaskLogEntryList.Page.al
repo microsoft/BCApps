@@ -17,7 +17,7 @@ page 4303 "Agent Task Log Entry List"
     DeleteAllowed = false;
     Editable = false;
     SourceTableView = sorting("ID") order(descending);
-    Extensible = false;
+    Extensible = true;
     InherentEntitlements = X;
     InherentPermissions = X;
 
