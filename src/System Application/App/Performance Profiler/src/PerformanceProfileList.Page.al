@@ -63,16 +63,16 @@ page 1931 "Performance Profile List"
                     ToolTip = 'Specifies the total duration of the sampled AL code in the recorded activity. This measurement is approximate as it depends on the selected sampling frequency.';
                     AboutText = 'The duration of the sampled AL code in this activity.';
                 }
-                field(SqlExecutionTime; Rec."Sql Call Duration")
+                field("Sql Call Duration"; Rec."Sql Call Duration")
                 {
-                    Caption = 'SQL Execution Duration';
-                    ToolTip = 'Specifies the total duration of the SQL code in the recorded activity. This measurement is approximate as it depends on the selected sampling frequency.';
-                    AboutText = 'The duration of the SQL code in this activity.';
+                    Caption = 'Duration of captured SQL calls';
+                    ToolTip = 'Specifies the duration of SQL calls during the activity that was profiled in milliseconds.';
+                    AboutText = 'The duration of SQL calls during the activity that was profiled.';
                 }
                 field("Sql Call Number"; Rec."Sql Statement Number")
                 {
                     Caption = 'Number of SQL Calls';
-                    ToolTip = 'Specifies the number of SQL calls during the activity that was profiled.';
+                    ToolTip = 'Specifies the number of SQL calls during the activity that was profiled in milliseconds.';
                     AboutText = 'The number of SQL calls during the activity that was profiled.';
                 }
                 field("Http Call Duration"; Rec."Http Call Duration")
