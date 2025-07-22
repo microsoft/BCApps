@@ -54,6 +54,8 @@ codeunit 8999 "Email Rate Limit Impl."
         EmailImpl: Codeunit "Email Impl";
         RateLimit: Integer;
     begin
+        SentEmail.ReadIsolation := ReadIsolation::Uncommitted;
+        EmailOutboxCurrent.ReadIsolation := ReadIsolation::Uncommitted;
         RateLimit := GetRateLimit(AccountId, Connector, EmailAddress);
         if RateLimit = 0 then
             exit(false);
@@ -75,6 +77,7 @@ codeunit 8999 "Email Rate Limit Impl."
     var
         EmailOutbox: Record "Email Outbox";
     begin
+        EmailOutbox.ReadIsolation := ReadIsolation::Uncommitted;
         EmailOutbox.SetRange(Status, EmailOutbox.Status::Processing);
         EmailOutbox.SetRange("Account Id", AccountId);
         if EmailOutbox.IsEmpty() then
