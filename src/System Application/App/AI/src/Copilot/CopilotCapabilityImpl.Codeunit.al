@@ -539,10 +539,4 @@ codeunit 7774 "Copilot Capability Impl"
     begin
         exit(EnvironmentInformation.IsProduction());
     end;
-
-    procedure IsBillingTypeDefined(CopilotCapability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
-    begin
-        if IsCapabilityRegistered(CopilotCapability, CallerModuleInfo) then
-            exit(CopilotSettings."Billing Type" <> Enum::"Copilot Billing Type"::Undefined);
-    end;
 }
