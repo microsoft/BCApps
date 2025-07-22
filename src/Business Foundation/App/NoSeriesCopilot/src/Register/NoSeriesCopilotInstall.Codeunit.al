@@ -18,5 +18,6 @@ codeunit 290 "No. Series Copilot Install"
         NoSeriesCopilotRegister: Codeunit "No. Series Copilot Register";
     begin
         NoSeriesCopilotRegister.RegisterCapability();
+        NoSeriesCopilotRegister.ModifyCapability();
     end;
 }
