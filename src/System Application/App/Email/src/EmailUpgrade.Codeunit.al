@@ -46,7 +46,8 @@ codeunit 1597 "Email Upgrade"
             exit;
 
         EmailRateLimit.SetRange("Concurrency Limit", 0);
-        if EmailRateLimit.FindSet() then EmailRateLimit.ModifyAll("Concurrency Limit", EmailRateLimitImpl.GetDefaultConcurrencyLimit());
+        if not EmailRateLimit.IsEmpty() then
+            EmailRateLimit.ModifyAll("Concurrency Limit", EmailRateLimitImpl.GetDefaultConcurrencyLimit());
 
         UpgradeTag.SetUpgradeTag(GetDefaultEmailMaxConcurrencyLimitUpgradeTag());
     end;
