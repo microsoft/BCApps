@@ -44,12 +44,13 @@ codeunit 1597 "Email Upgrade"
     begin
         if UpgradeTag.HasUpgradeTag(GetDefaultEmailMaxConcurrencyLimitUpgradeTag()) then
             exit;
-        // go through the record and set the default value
+
         if EmailRateLimit.FindSet() then
             repeat
-                if (EmailRateLimit."Concurrency Limit" = 0) then
+                if (EmailRateLimit."Concurrency Limit" = 0) then begin
                     EmailRateLimit."Concurrency Limit" := EmailRateLimitImpl.GetDefaultConcurrencyLimit(); // set default value
-                EmailRateLimit.Modify();
+                    EmailRateLimit.Modify();
+                end;
             until EmailRateLimit.Next() = 0;
 
         UpgradeTag.SetUpgradeTag(GetDefaultEmailMaxConcurrencyLimitUpgradeTag());
