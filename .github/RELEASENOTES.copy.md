@@ -6,10 +6,38 @@ Note that when using the preview version of AL-Go for GitHub, we recommend you U
 
 AL-Go now offers a dataexplorer dashboard to get started with AL-Go telemetry. Additionally, we've updated the documentation to include a couple of kusto queries if you would rather build your own reports.
 
+### Support for AL-Go settings as GitHub environment variable: ALGoEnvSettings
+
+AL-Go settings can now be defined in GitHub environment variables. To use this feature, create a new variable under your GitHub environment called `ALGoEnvironmentSettings`. Please note that this variable should not include your environment name.
+
+Settings loaded this way, will only be available during the Deploy step of the CI/CD or Publish to Environment actions, but not the Build step, making it most suitable for the [DeployTo setting](https://aka.ms/algosettings#deployto). Settings defined in this variable will take priority over any setting defined in AL-Go repo, org or settings files.
+
+The contents of the variable should be a JSON block, similar to any other settings file or variable. When defining the `DeployTo\<EnvName>` setting in this variable, it should still include the environment name. Eg:
+
+```
+{
+  DeployToProduction {
+    "Branches": [
+        "*"
+    ],
+    "includeTestAppsInSandboxEnvironment": false,
+    "excludeAppIds": [ 1234 ]
+  }
+}
+```
+
+Please note, that due to certain security limitations, the properties `runs-on`, `shell` and `ContinousDeployment` of the `DeployTo` setting will <ins>**NOT**</ins> be respected if defined in a GitHub environment variable. To use these properties, please keep them defined elsewhere, such as your AL-Go settings file or Org/Repo settings variables.
+
 ### Issues
 
 - Issue 1770 Wrong type of _projects_ setting in settings schema
-- Issue 1787: Publish to Environment from PR fails in private repos
+- Issue 1787 Publish to Environment from PR fails in private repos
+- Issue 1722 Check if apps are already installed on a higher version before deploying
+- Issue 1774 Increment Version Number with +0.1 can increment some version numbers twice
+
+### Additional debug logging functionality
+
+We have improved how logging is handled in AL-Go, and now make better use of GitHub built-in extended debug logging functionality. Extended debug logging can be enabled when re-running actions by clicking the 'Enable debug logging' checkbox in the pop-up window. This can be done both for jobs that failed and jobs that succeeded, but did not produce the correct result.
 
 ### Add custom jobs to AL-Go workflows
 
