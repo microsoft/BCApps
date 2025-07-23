@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA27
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -52,57 +53,5 @@ tableextension 308 NoSeriesObsolete extends "No. Series"
         }
     }
 
-#if not CLEAN24
-#pragma warning disable AL0432
-    [Obsolete('The method has been moved to codeunit "No. Series Setup Impl."', '24.0')]
-    procedure DrillDown()
-    var
-        NoSeries: Codeunit "No. Series";
-    begin
-        NoSeries.DrillDown(Rec);
-    end;
-
-    [Obsolete('The method has been moved to codeunit "No. Series Setup Impl."', '24.0')]
-    procedure UpdateLine(var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date)
-    var
-        AllowGaps: Boolean;
-    begin
-        UpdateLine(StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
-    end;
-
-    [Obsolete('The method has been moved to codeunit "No. Series Setup Impl."', '24.0')]
-    procedure UpdateLine(var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var AllowGaps: Boolean)
-    var
-        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
-        NoSeriesSingle: Interface "No. Series - Single";
-        NoSeriesImplementation: Enum "No. Series Implementation";
-    begin
-        NoSeriesSetupImpl.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, NoSeriesImplementation);
-        NoSeriesSingle := NoSeriesImplementation;
-        AllowGaps := NoSeriesSingle.MayProduceGaps();
-    end;
-
-    [Obsolete('The method has been moved to codeunit NoSeriesManagement', '24.0')]
-    procedure FindNoSeriesLineToShow(var NoSeriesLine: Record "No. Series Line")
-    var
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-    begin
-        NoSeriesManagement.FindNoSeriesLineToShow(Rec, NoSeriesLine)
-    end;
-
-    [Obsolete('The event has been removed. There is no replacement.', '24.0')]
-    // Symbol usage indicates no subscribers.
-    [IntegrationEvent(false, false)]
-    internal procedure OnBeforeValidateDefaultNos(var NoSeries: Record "No. Series"; var IsHandled: Boolean)
-    begin
-    end;
-
-    [Obsolete('The event has been removed. There is no replacement.', '24.0')]
-    // Symbol usage indicates no subscribers.
-    [IntegrationEvent(false, false)]
-    internal procedure OnBeforeValidateManualNos(var NoSeries: Record "No. Series"; var IsHandled: Boolean)
-    begin
-    end;
-#pragma warning restore AL0432
-#endif
 }
+#endif

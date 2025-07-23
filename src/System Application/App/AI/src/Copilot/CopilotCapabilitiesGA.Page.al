@@ -55,6 +55,13 @@ page 7774 "Copilot Capabilities GA"
                     ToolTip = 'Specifies the publisher of this Copilot.';
                     Editable = false;
                 }
+                field("Billing Type"; Rec."Billing Type")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Billing Type';
+                    ToolTip = 'Specifies the billing type of this Copilot.';
+                    Editable = false;
+                }
                 field("Learn More"; LearnMore)
                 {
                     ApplicationArea = All;
@@ -93,10 +100,11 @@ page 7774 "Copilot Capabilities GA"
                         exit;
 
                     Rec.Status := Rec.Status::Active;
-                    Rec.Modify(true);
-
-                    CopilotCapabilityImpl.SendActivateTelemetry(Rec.Capability, Rec."App Id");
-                    Session.LogAuditMessage(StrSubstNo(CopilotFeatureActivatedLbl, Rec.Capability, Rec."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
+                    if Rec.Modify(true) then begin
+                        CopilotCapabilityImpl.SendActivateTelemetry(Rec.Capability, Rec."App Id");
+                        Session.LogAuditMessage(StrSubstNo(CopilotFeatureActivatedLbl, Rec.Capability, Rec."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
+                        CopilotNotifications.ShowCapabilityChange();
+                    end;
                 end;
             }
             action(Deactivate)
@@ -109,17 +117,8 @@ page 7774 "Copilot Capabilities GA"
                 Scope = Repeater;
 
                 trigger OnAction()
-                var
-                    CopilotDeactivate: Page "Copilot Deactivate Capability";
                 begin
-                    CopilotDeactivate.SetCaption(Format(Rec.Capability));
-                    if CopilotDeactivate.RunModal() = Action::OK then begin
-                        Rec.Status := Rec.Status::Inactive;
-                        Rec.Modify(true);
-
-                        CopilotCapabilityImpl.SendDeactivateTelemetry(Rec.Capability, Rec."App Id", CopilotDeactivate.GetReason());
-                        Session.LogAuditMessage(StrSubstNo(CopilotFeatureDeactivatedLbl, Rec.Capability, Rec."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
-                    end;
+                    CopilotCapabilityImpl.DeactivateCapability(Rec);
                 end;
             }
 #if not CLEAN26
@@ -161,6 +160,7 @@ page 7774 "Copilot Capabilities GA"
 
     var
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
+        CopilotNotifications: Codeunit "Copilot Notifications";
         StatusStyleExpr: Text;
         LearnMore: Text;
         LearnMoreLbl: Label 'Learn More';
@@ -170,7 +170,6 @@ page 7774 "Copilot Capabilities GA"
 #if not CLEAN26
         SupplementalTermsLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2236010', Locked = true;
 #endif
-        CopilotFeatureDeactivatedLbl: Label 'The copilot/AI capability %1, App Id %2 has been deactivated by UserSecurityId %3.', Locked = true;
         CopilotFeatureActivatedLbl: Label 'The copilot/AI capability %1, App Id %2 has been activated by UserSecurityId %3.', Locked = true;
 
     internal procedure SetDataMovement(Value: Boolean)

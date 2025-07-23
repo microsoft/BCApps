@@ -245,43 +245,6 @@ codeunit 9016 "Azure AD Plan"
         exit(AzureAdPlanImpl.GetUserPlanExperience());
     end;
 
-#if not CLEAN24
-    /// <summary>
-    /// Checks whether the plan configuration mixes different plans.
-    /// </summary>
-    [Scope('OnPrem')]
-    [NonDebuggable]
-    [Obsolete('Replaced with CheckMixedPlansExist', '24.0')]
-    procedure CheckMixedPlans()
-    begin
-        AzureAdPlanImpl.CheckMixedPlansExist();
-    end;
-
-    /// <summary>
-    /// Checks whether the plan configuration mixes different plans.
-    /// </summary>
-    /// <param name="PlanNamesPerUser">A mapping of new plans for user identifiers.</param>
-    /// <param name="ErrorOutForAdmin">Specifies if an error (instead of a message) should be shown for an admin when this function is called.</param>
-    [Scope('OnPrem')]
-    [NonDebuggable]
-    [Obsolete('Replaced with CheckMixedPlansExist', '24.0')]
-    procedure CheckMixedPlans(PlanNamesPerUser: Dictionary of [Text, List of [Text]]; ErrorOutForAdmin: Boolean)
-    begin
-        AzureAdPlanImpl.CheckMixedPlansExist(PlanNamesPerUser);
-    end;
-
-    /// <summary>
-    /// Checks whether the plan configuration mixes different plans.
-    /// </summary>
-    /// <param name="PlanNamesPerUser">A mapping of new plans for user identifiers.</param>
-    [Scope('OnPrem')]
-    [NonDebuggable]
-    [Obsolete('Replaced with CheckMixedPlansExist', '24.0')]
-    procedure CheckMixedPlans(PlanNamesPerUser: Dictionary of [Text, List of [Text]])
-    begin
-        AzureAdPlanImpl.CheckMixedPlansExist(PlanNamesPerUser);
-    end;
-#endif
 
     /// <summary>
     /// Checks whether the plan configuration mixes different plans.

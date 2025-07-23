@@ -5,7 +5,6 @@
 namespace System.AI;
 
 using System;
-using System.Azure.Identity;
 using System.Azure.KeyVault;
 using System.Environment;
 using System.Privacy;
@@ -33,11 +32,11 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         ChatCompletionsFailedWithCodeErr: Label 'Chat completions failed to be generated.';
         AuthenticationNotConfiguredErr: Label 'The authentication was not configured.';
         CapabilityBackgroundErr: Label 'Microsoft Copilot Capabilities are not allowed in the background.';
+        CapabilityODataErr: Label 'Microsoft Copilot Capabilities are not allowed in API and OData Web Services sessions.';
         MessagesMustContainJsonWordWhenResponseFormatIsJsonErr: Label 'The messages must contain the word ''json'' in some form, to use ''response format'' of type ''json_object''.';
         EmptyMetapromptErr: Label 'The metaprompt has not been set, please provide a metaprompt.';
         MetapromptLoadingErr: Label 'Metaprompt not found.';
         FunctionCallingFunctionNotFoundErr: Label 'Function call not found, %1.', Comment = '%1 is the name of the function';
-        AllowlistedTenantsAkvKeyTok: Label 'AOAI-Allow-1P-Auth', Locked = true;
         TelemetryGenerateTextCompletionLbl: Label 'Text completion generated.', Locked = true;
         TelemetryGenerateEmbeddingLbl: Label 'Embedding generated.', Locked = true;
         TelemetryGenerateChatCompletionLbl: Label 'Chat Completion generated.', Locked = true;
@@ -47,9 +46,8 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         TelemetryTokenCountLbl: Label 'Metaprompt token count: %1, Prompt token count: %2, Total token count: %3', Comment = '%1 is the number of tokens in the metaprompt, %2 is the number of tokens in the prompt, %3 is the total number of tokens', Locked = true;
         TelemetryMetapromptRetrievalErr: Label 'Unable to retrieve metaprompt from Azure Key Vault.', Locked = true;
         TelemetryFunctionCallingFailedErr: Label 'Function calling failed for function: %1', Comment = '%1 is the name of the function', Locked = true;
-        TelemetryEmptyTenantIdErr: Label 'Empty or malformed tenant ID.', Locked = true;
-        TelemetryTenantAllowlistedMsg: Label 'Current tenant allowlisted for first party auth.', Locked = true;
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
+        BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.', Comment = '%1 is the capability name, %2 is the billing type';
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
@@ -462,6 +460,12 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         EmptySecretText: SecretText;
     begin
         ClearLastError();
+
+        if not IsBillingTypeAuthorized(AOAIAuthorization, CallerModuleInfo) then begin
+            Error := StrSubstNo(BillingTypeAuthorizationErr, CopilotCapabilityImpl.GetCapabilityName(), CopilotCapabilityImpl.GetCopilotBillingType());
+            Error(Error);
+        end;
+
         case AOAIAuthorization.GetResourceUtilization() of
             Enum::"AOAI Resource Utilization"::"Microsoft Managed":
                 ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
@@ -502,14 +506,17 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     end;
 
     local procedure GuiCheck(AOAIAuthorization: Codeunit "AOAI Authorization")
+    var
+        ClientTypeManagement: Codeunit "Client Type Management";
     begin
-        if GuiAllowed() then
-            exit;
-
         if AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed" then
             exit;
 
-        Error(CapabilityBackgroundErr);
+        if ClientTypeManagement.GetCurrentClientType() in [ClientType::Api, ClientType::OData, ClientType::ODataV4, ClientType::SOAP, ClientType::Management] then
+            Error(CapabilityODataErr);
+
+        if (not GuiAllowed()) and (AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Microsoft Managed") then
+            Error(CapabilityBackgroundErr);
     end;
 
     local procedure CheckAuthorizationEnabled(AOAIAuthorization: Codeunit "AOAI Authorization"; CallerModuleInfo: ModuleInfo)
@@ -565,21 +572,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
                 Error(EmptyMetapromptErr);
         end;
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [Obsolete('Use the function GetTokenCount() instead.', '24.0')]
-    procedure ApproximateTokenCount(Input: Text): Decimal
-    var
-        AverageWordsPerToken: Decimal;
-        TokenCount: Integer;
-        WordsInInput: Integer;
-    begin
-        AverageWordsPerToken := 0.6; // Based on OpenAI estimate
-        WordsInInput := Input.Split(' ', ',', '.', '!', '?', ';', ':', '/n').Count;
-        TokenCount := Round(WordsInInput / AverageWordsPerToken, 1);
-        exit(TokenCount);
-    end;
-#endif
 
     procedure GetTokenCount(Input: SecretText; Encoding: Text) TokenCount: Integer
     var
@@ -591,41 +583,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     procedure GetTotalServerSessionTokensConsumed(): Integer
     begin
         exit(SessionInformation.AITokensUsed);
-    end;
-
-    [NonDebuggable]
-    internal procedure IsTenantAllowlistedForFirstPartyCopilotCalls(): Boolean
-    var
-        EnvironmentInformation: Codeunit "Environment Information";
-        AzureKeyVault: Codeunit "Azure Key Vault";
-        AzureAdTenant: Codeunit "Azure AD Tenant";
-        AllowlistedTenants: Text;
-        EntraTenantIdAsText: Text;
-        EntraTenantIdAsGuid: Guid;
-        ModuleInfo: ModuleInfo;
-    begin
-        if not EnvironmentInformation.IsSaaSInfrastructure() then
-            exit(false);
-
-        NavApp.GetCurrentModuleInfo(ModuleInfo);
-        if ModuleInfo.Publisher <> 'Microsoft' then
-            exit(true);
-
-        if (not AzureKeyVault.GetAzureKeyVaultSecret(AllowlistedTenantsAkvKeyTok, AllowlistedTenants)) or (AllowlistedTenants.Trim() = '') then
-            exit(false);
-
-        EntraTenantIdAsText := AzureAdTenant.GetAadTenantId();
-
-        if (EntraTenantIdAsText = '') or not Evaluate(EntraTenantIdAsGuid, EntraTenantIdAsText) or IsNullGuid(EntraTenantIdAsGuid) then begin
-            Session.LogMessage('0000MLN', TelemetryEmptyTenantIdErr, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetAzureOpenAICategory());
-            exit(false);
-        end;
-
-        if not AllowlistedTenants.Contains(EntraTenantIdAsText) then
-            exit(false);
-
-        Session.LogMessage('0000MLE', TelemetryTenantAllowlistedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetAzureOpenAICategory());
-        exit(true);
     end;
 
     procedure GetAzureOpenAICategory(): Code[50]
@@ -652,4 +609,34 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         if not TempPrivacyNotice.Insert() then;
     end;
 
+    procedure IsBillingTypeAuthorized(AOAIAuthorization: Codeunit "AOAI Authorization"; CallerModuleInfo: ModuleInfo): Boolean
+    var
+        BillingType: Enum "Copilot Billing Type";
+    begin
+        BillingType := CopilotCapabilityImpl.GetCopilotBillingType();
+        if (CopilotCapabilityImpl.IsPublisherMicrosoft(CallerModuleInfo)) then begin
+            if (AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"First Party") then
+                exit(BillingType <> Enum::"Copilot Billing Type"::"Custom Billed")
+        end else
+            case BillingType of
+                Enum::"Copilot Billing Type"::"Custom Billed":
+                    exit(AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed");
+                Enum::"Copilot Billing Type"::"Microsoft Billed":
+                    case AOAIAuthorization.GetResourceUtilization() of
+                        Enum::"AOAI Resource Utilization"::"Microsoft Managed":
+                            exit(true);
+                        Enum::"AOAI Resource Utilization"::"Self-Managed":
+                            if CopilotCapabilityImpl.IsProductionEnvironment() then
+                                exit(false)
+                            else
+                                exit(true);
+                        else
+                            exit(false);
+                    end;
+                Enum::"Copilot Billing Type"::"Not Billed":
+                    exit(AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed");
+                else
+                    exit(true);
+            end;
+    end;
 }

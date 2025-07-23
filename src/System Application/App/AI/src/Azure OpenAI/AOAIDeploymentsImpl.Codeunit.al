@@ -17,11 +17,16 @@ codeunit 7769 "AOAI Deployments Impl"
 
     var
         Telemetry: Codeunit Telemetry;
-        UnableToGetDeploymentNameErr: Label 'Unable to get deployment name, if this is a third party capability you must specify your own deployment name. You may need to contact your partner.';
+#if not CLEAN27
         GPT4oLatestLbl: Label 'gpt-4o-latest', Locked = true;
         GPT4oPreviewLbl: Label 'gpt-4o-preview', Locked = true;
         GPT4oMiniLatestLbl: Label 'gpt-4o-mini-latest', Locked = true;
         GPT4oMiniPreviewLbl: Label 'gpt-4o-mini-preview', Locked = true;
+#endif
+        GPT41LatestLbl: Label 'gpt-41-latest', Locked = true;
+        GPT41PreviewLbl: Label 'gpt-41-preview', Locked = true;
+        GPT41MiniLatestLbl: Label 'gpt-41-mini-latest', Locked = true;
+        GPT41MiniPreviewLbl: Label 'gpt-41-mini-preview', Locked = true;
         DeprecatedDeployments: Dictionary of [Text, Date];
         DeprecationDatesInitialized: Boolean;
         DeprecationMessageLbl: Label 'We detected usage of the Azure OpenAI deployment "%1". This model is obsoleted starting %2 and the quality of your results might vary after that date. Check out codeunit 7768 AOAI Deployments to find the supported deployments.', Comment = 'Telemetry message where %1 is the name of the deployment and %2 is the date of deprecation';
@@ -42,7 +47,7 @@ codeunit 7769 "AOAI Deployments Impl"
         EnviromentInformation: Codeunit "Environment Information";
     begin
         if EnviromentInformation.IsSaaS() then
-            exit(GetDeploymentName(Turbo0301SaasLbl, CallerModuleInfo));
+            exit(GetDeploymentName(Turbo0301SaasLbl));
 
         exit(Turbo0301Lbl);
     end;
@@ -52,7 +57,7 @@ codeunit 7769 "AOAI Deployments Impl"
         EnviromentInformation: Codeunit "Environment Information";
     begin
         if EnviromentInformation.IsSaaS() then
-            exit(GetDeploymentName(GPT40613SaasLbl, CallerModuleInfo));
+            exit(GetDeploymentName(GPT40613SaasLbl));
 
         exit(GPT40613Lbl);
     end;
@@ -62,50 +67,71 @@ codeunit 7769 "AOAI Deployments Impl"
         EnviromentInformation: Codeunit "Environment Information";
     begin
         if EnviromentInformation.IsSaaS() then
-            exit(GetDeploymentName(Turbo0613SaasLbl, CallerModuleInfo));
+            exit(GetDeploymentName(Turbo0613SaasLbl));
 
         exit(Turbo031316kLbl);
     end;
 
     procedure GetGPT35TurboPreview(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT35TurboPreviewLbl, CallerModuleInfo));
+        exit(GetDeploymentName(GPT35TurboPreviewLbl));
     end;
 
     procedure GetGPT35TurboLatest(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT35TurboLatestLbl, CallerModuleInfo));
+        exit(GetDeploymentName(GPT35TurboLatestLbl));
     end;
 
     procedure GetGPT4Preview(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT4PreviewLbl, CallerModuleInfo));
+        exit(GetDeploymentName(GPT4PreviewLbl));
     end;
 
     procedure GetGPT4Latest(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT4LatestLbl, CallerModuleInfo));
+        exit(GetDeploymentName(GPT4LatestLbl));
     end;
 #endif
-
+#if not CLEAN27
     procedure GetGPT4oPreview(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT4oPreviewLbl, CallerModuleInfo));
+        exit(GetDeploymentName(GPT4oPreviewLbl));
     end;
 
     procedure GetGPT4oLatest(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT4oLatestLbl, CallerModuleInfo));
+        exit(GetDeploymentName(GPT4oLatestLbl));
     end;
 
     procedure GetGPT4oMiniPreview(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT4oMiniPreviewLbl, CallerModuleInfo));
+        exit(GetDeploymentName(GPT4oMiniPreviewLbl));
     end;
 
     procedure GetGPT4oMiniLatest(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT4oMiniLatestLbl, CallerModuleInfo));
+        exit(GetDeploymentName(GPT4oMiniLatestLbl));
+    end;
+#endif
+
+    procedure GetGPT41Preview(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT41PreviewLbl));
+    end;
+
+    procedure GetGPT41Latest(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT41LatestLbl));
+    end;
+
+    procedure GetGPT41MiniPreview(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT41MiniPreviewLbl));
+    end;
+
+    procedure GetGPT41MiniLatest(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT41MiniLatestLbl));
     end;
 
     // Initializes dictionary of deprecated models
@@ -123,6 +149,12 @@ codeunit 7769 "AOAI Deployments Impl"
         DeprecatedDeployments.Add(Turbo0301SaasLbl, DMY2Date(1, 11, 2024));
         DeprecatedDeployments.Add(GPT40613SaasLbl, DMY2Date(1, 11, 2024));
         DeprecatedDeployments.Add(Turbo0613SaasLbl, DMY2Date(1, 11, 2024));
+#endif
+#if not CLEAN27
+        DeprecatedDeployments.Add(GPT4oLatestLbl, DMY2Date(15, 7, 2025));
+        DeprecatedDeployments.Add(GPT4oPreviewLbl, DMY2Date(15, 7, 2025));
+        DeprecatedDeployments.Add(GPT4oMiniLatestLbl, DMY2Date(15, 7, 2025));
+        DeprecatedDeployments.Add(GPT4oMiniPreviewLbl, DMY2Date(15, 7, 2025));
 #endif
         DeprecationDatesInitialized := true;
     end;
@@ -149,17 +181,13 @@ codeunit 7769 "AOAI Deployments Impl"
         end;
     end;
 
-    local procedure GetDeploymentName(DeploymentName: Text; CallerModuleInfo: ModuleInfo): Text
+    local procedure GetDeploymentName(DeploymentName: Text): Text
     var
-        AzureOpenAiImpl: Codeunit "Azure OpenAI Impl";
         CurrentModuleInfo: ModuleInfo;
     begin
         LogDeprecationTelemetry(DeploymentName);
 
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-
-        if (CallerModuleInfo.Publisher <> CurrentModuleInfo.Publisher) and not AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls() then
-            Error(UnableToGetDeploymentNameErr);
 
         exit(DeploymentName);
     end;

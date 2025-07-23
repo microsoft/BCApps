@@ -12,12 +12,11 @@
   "logo": "",
   "screenshots": [],
   "platform": "27.0.0.0",
-  "dependencies": [
+  "internalsVisibleTo": [
     {
-      "id": "fd3d0b8e-61fa-4f87-b2fc-c4a1f3e53a63",
-      "name": "Math",
-      "publisher": "Microsoft",
-      "version": "27.0.0.0"
+      "id": "6d4dab82-dc5c-4c77-8e1e-d9aaeb7d0420",
+      "name": "Data Administration Test",
+      "publisher": "Microsoft"
     }
   ],
   "idRanges": [

@@ -13,9 +13,9 @@ table 149030 "AIT Test Suite"
 {
     Caption = 'AI Test Suite';
     DataClassification = SystemMetadata;
-    Extensible = false;
     ReplicateData = false;
-    Access = Internal;
+    Extensible = true;
+    Access = Public;
 
     fields
     {
@@ -160,6 +160,31 @@ table 149030 "AIT Test Suite"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+        }
+        field(25; Accuracy; Decimal)
+        {
+            Caption = 'Accuracy';
+            ToolTip = 'Specifies the average accuracy of the test suite. The accuracy is calculated as the percentage of turns that passed or can be set manually by the test.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            AutoFormatType = 0;
+        }
+        field(30; "Number of Evaluators"; Integer)
+        {
+            Caption = 'Evaluators';
+            ToolTip = 'Specifies the number of evaluators to use in the test suite.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("AIT Evaluator" where("Test Suite Code" = field("Code")));
+        }
+        field(31; "Number of Column Mappings"; Integer)
+        {
+            Caption = 'Column Mappings';
+            ToolTip = 'Specifies the number of evaluators to use in the test suite.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("AIT Column Mapping" where("Test Suite Code" = field("Code")));
         }
         field(50; "Test Runner Id"; Integer)
         {

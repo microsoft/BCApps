@@ -367,7 +367,7 @@ function Update-PackageVersion
     Write-Host "Latest $PackageName version found: $latestVersion"
 
     $result = $null
-    if ([System.Version] $latestVersion -gt [System.Version] $currentVersion) {
+    if ([System.Version] $latestVersion -ne [System.Version] $currentVersion) {
         Write-Host "Updating $PackageName version from $currentVersion to $latestVersion"
 
         $currentPackage.Version = $latestVersion
@@ -515,6 +515,41 @@ function Invoke-CommandWithRetry {
             }
         }
     }
+}
+
+<#
+.SYNOPSIS
+    Checks if a branch is in support by checking the rulesets in the repository.
+.DESCRIPTION
+    This function checks if a branch is in support by checking the rulesets in the repository.
+    Out of support branches will have a ruleset with the name "Branch is out of support".
+.PARAMETER BranchName
+    The name of the branch to check.
+.PARAMETER Repository
+    The name of the repository to check.
+#>
+function Test-IsBranchInSupport() {
+    param(
+        [parameter(Mandatory = $true)]
+        [string] $BranchName,
+        [parameter(Mandatory = $true)]
+        [string] $Repository
+    )
+    $isSupported = $true
+    $rulesets = gh api "/repos/$Repository/rules/branches/$BranchName" | ConvertFrom-Json
+    if ($null -eq $rulesets) {
+        Write-Host "Could not find any rulesets for $BranchName"
+        return $isSupported
+    }
+
+    $rulesets = $rulesets | Where-Object type -eq required_status_checks
+    foreach ($ruleset in $rulesets) {
+        if ($ruleset.parameters.required_status_checks.context -eq "Branch is out of support") {
+            $isSupported = $false
+            break
+        }
+    }
+    return $isSupported
 }
 
 Export-ModuleMember -Function *-*

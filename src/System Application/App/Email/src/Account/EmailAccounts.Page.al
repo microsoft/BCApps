@@ -111,6 +111,32 @@ page 8887 "Email Accounts"
                         EmailRateLimitImpl.UpdateRateLimit(Rec);
                     end;
                 }
+
+                field(EmailConcurrencyLimit; ConcurrencyLimit)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Email Concurrency Limit';
+                    ToolTip = 'Specifies the maximum number of emails that can be sent simultaneously from this account.';
+                    Visible = true;
+
+                    trigger OnDrillDown()
+                    begin
+                        EmailRateLimitImpl.UpdateRateLimit(Rec);
+                    end;
+                }
+
+                field(EmailMaxRetryLimit; MaxRetryLimit)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Email Max. Attempt Limit';
+                    ToolTip = 'Specifies the maximum number of attempts for sending an email from this account.';
+                    Visible = true;
+
+                    trigger OnDrillDown()
+                    begin
+                        EmailRateLimitImpl.UpdateRateLimit(Rec);
+                    end;
+                }
             }
         }
 
@@ -364,6 +390,8 @@ page 8887 "Email Accounts"
         end;
 
         RateLimit := EmailRateLimitImpl.GetRateLimit(Rec."Account Id", Rec.Connector, Rec."Email Address");
+        ConcurrencyLimit := EmailRateLimitImpl.GetConcurrencyLimit(Rec."Account Id", Rec.Connector, Rec."Email Address");
+        MaxRetryLimit := EmailRateLimitImpl.GetMaxRetryLimit(Rec."Account Id", Rec.Connector, Rec."Email Address");
 
         DefaultTxt := '';
 
@@ -386,6 +414,9 @@ page 8887 "Email Accounts"
         EmailAccount.GetAllAccounts(true, Rec); // Refresh the email accounts
         if V2V3Filter then
             FilterToConnectorv2v3Accounts(Rec);
+        if V3Filter then
+            FilterToConnectorv3Accounts(Rec);
+
         EmailScenario.GetDefaultEmailAccount(DefaultEmailAccount); // Refresh the default email account
 
         if IsSelected then begin
@@ -399,6 +430,21 @@ page 8887 "Email Accounts"
         CurrPage.Update(false);
     end;
 
+    local procedure FilterToConnectorv3Accounts(var EmailAccounts: Record "Email Account")
+    var
+        IConnector: Interface "Email Connector";
+    begin
+        if EmailAccounts.IsEmpty() then
+            exit;
+
+        if EmailAccounts.FindSet() then
+            repeat
+                IConnector := EmailAccounts.Connector;
+                if not (IConnector is "Email Connector v3") then
+                    EmailAccounts.Delete();
+            until EmailAccounts.Next() = 0;
+    end;
+
     local procedure FilterToConnectorv2v3Accounts(var EmailAccounts: Record "Email Account")
     var
         IConnector: Interface "Email Connector";
@@ -408,6 +454,7 @@ page 8887 "Email Accounts"
 
         repeat
             IConnector := EmailAccounts.Connector;
+
 #if not CLEAN26
 #pragma warning disable AL0432
             if not (IConnector is "Email Connector v2") and not (IConnector is "Email Connector v3") then
@@ -416,6 +463,7 @@ page 8887 "Email Accounts"
             if not (IConnector is "Email Connector v3") then
 #endif
                 EmailAccounts.Delete();
+
         until EmailAccounts.Next() = 0;
     end;
 
@@ -480,17 +528,28 @@ page 8887 "Email Accounts"
         V2V3Filter := UseFilter;
     end;
 
+    /// <summary>
+    /// Filters the email accounts to only show accounts using the Email Connector v3.
+    /// </summary>
+    /// <param name="Version3">Show accounts using the Email Connector v3</param>
+    procedure FilterConnectorV3AccountsOnly(Version3: Boolean)
+    begin
+        V3Filter := Version3;
+    end;
+
     var
         DefaultEmailAccount: Record "Email Account";
         EmailAccountImpl: Codeunit "Email Account Impl.";
         EmailRateLimitImpl: Codeunit "Email Rate Limit Impl.";
         IsDefault: Boolean;
         RateLimit: Integer;
+        ConcurrencyLimit: Integer;
+        MaxRetryLimit: Integer;
         CanUserManageEmailSetup: Boolean;
         DefaultTxt: Text;
         UpdateAccounts: Boolean;
         IsLookupMode: Boolean;
         HasEmailAccount: Boolean;
-        V2V3Filter: Boolean;
+        V2V3Filter, V3Filter : Boolean;
         EmailConnectorHasBeenUninstalledMsg: Label 'The selected email extension has been uninstalled. To view information about the email account, you must reinstall the extension.';
 }

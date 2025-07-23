@@ -33,6 +33,28 @@ table 8912 "Email Rate Limit"
         {
             DataClassification = SystemMetadata;
         }
+        field(5; "Concurrency Limit"; Integer)
+        {
+            DataClassification = SystemMetadata;
+            InitValue = 3;
+
+            trigger OnValidate()
+            begin
+                if (Rec."Concurrency Limit" < 1) or (Rec."Concurrency Limit" > 10) then
+                    Error(ConcurrencyLimitErrLbl);
+            end;
+        }
+        field(6; "Max. Retry Limit"; Integer)
+        {
+            DataClassification = SystemMetadata;
+            InitValue = 1;
+
+            trigger OnValidate()
+            begin
+                if (Rec."Max. Retry Limit" < 1) or (Rec."Max. Retry Limit" > 20) then
+                    Error(MaxRetryLimitErrLbl);
+            end;
+        }
     }
 
     keys
@@ -46,4 +68,8 @@ table 8912 "Email Rate Limit"
             Description = 'Used for sorting by Email Address.';
         }
     }
+
+    var
+        ConcurrencyLimitErrLbl: Label 'Concurrency Limit must be between 1 and 10.';
+        MaxRetryLimitErrLbl: Label 'Max. Attempt Limit must be between 1 and 20.';
 }

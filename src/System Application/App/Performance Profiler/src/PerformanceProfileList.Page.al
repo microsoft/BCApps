@@ -63,6 +63,18 @@ page 1931 "Performance Profile List"
                     ToolTip = 'Specifies the total duration of the sampled AL code in the recorded activity. This measurement is approximate as it depends on the selected sampling frequency.';
                     AboutText = 'The duration of the sampled AL code in this activity.';
                 }
+                field("Sql Call Duration"; Rec."Sql Call Duration")
+                {
+                    Caption = 'Duration of captured SQL calls';
+                    ToolTip = 'Specifies the duration of SQL calls during the activity that was profiled in milliseconds.';
+                    AboutText = 'The duration of SQL calls during the activity that was profiled.';
+                }
+                field("Sql Call Number"; Rec."Sql Statement Number")
+                {
+                    Caption = 'Number of SQL Calls';
+                    ToolTip = 'Specifies the number of SQL calls during the activity that was profiled in milliseconds.';
+                    AboutText = 'The number of SQL calls during the activity that was profiled.';
+                }
                 field("Http Call Duration"; Rec."Http Call Duration")
                 {
                     Caption = 'Duration of Http Calls';
@@ -74,6 +86,12 @@ page 1931 "Performance Profile List"
                     Caption = 'Number of Http Calls';
                     ToolTip = 'Specifies the number of http calls during the activity that was profiled.';
                     AboutText = 'The number of external http calls during the activity that was profiled.';
+                }
+                field("Platform Call Duration"; PlatformCallDuration)
+                {
+                    Caption = 'Duration of Platform Calls';
+                    ToolTip = 'Specifies the duration of platform calls during the activity that was profiled in milliseconds.';
+                    AboutText = 'The duration of platform calls during the activity that was profiled.';
                 }
                 field("Correlation ID"; Rec."Activity ID")
                 {
@@ -87,12 +105,37 @@ page 1931 "Performance Profile List"
                     ToolTip = 'Specifies the ID of the client session that was profiled.';
                     AboutText = 'The ID of the client session that was profiled.';
                 }
+#if not CLEAN27
                 field("Schedule ID"; Rec."Schedule ID")
                 {
                     Caption = 'Schedule ID';
                     ToolTip = 'Specifies the ID of the schedule that was used to profile the activity.';
                     AboutText = 'The ID of the schedule that was used to profile the activity.';
                     TableRelation = "Performance Profile Scheduler"."Schedule ID";
+                    DrillDown = true;
+                    Visible = false;
+                    ObsoleteReason = 'This field is obsolete.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '27.0';
+
+                    trigger OnDrillDown()
+                    var
+                        PerfProfileSchedule: Record "Performance Profile Scheduler";
+                        PerfProfileScheduleCard: Page "Perf. Profiler Schedule Card";
+                    begin
+                        if not PerfProfileSchedule.Get(Rec."Schedule ID") then
+                            exit;
+
+                        PerfProfileScheduleCard.SetRecord(PerfProfileSchedule);
+                        PerfProfileScheduleCard.Run();
+                    end;
+                }
+#endif
+                field("Schedule Description"; ScheduleDescription)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Schedule Description';
+                    ToolTip = 'Specifies the description of the schedule that was used to profile the activity.';
                     DrillDown = true;
 
                     trigger OnDrillDown()
@@ -201,11 +244,14 @@ page 1931 "Performance Profile List"
     var
     begin
         this.MapClientTypeToActivityType();
+        PlatformCallDuration := this.ComputePlatformCallDuration();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
         this.MapClientTypeToActivityType();
+        ScheduleDescription := ScheduleDisplayName();
+        PlatformCallDuration := this.ComputePlatformCallDuration();
     end;
 
     local procedure MapClientTypeToActivityType()
@@ -214,10 +260,31 @@ page 1931 "Performance Profile List"
         PerfProfActivityMapper.MapClientTypeToActivityType(rec."Client Type", ActivityType);
     end;
 
+    local procedure ScheduleDisplayName(): Text
+    var
+        PerformanceProfileScheduler: Record "Performance Profile Scheduler";
+    begin
+        if PerformanceProfileScheduler.Get(Rec."Schedule ID") then
+            exit(PerformanceProfileScheduler.Description);
+    end;
+
+local procedure ComputePlatformCallDuration(): Duration
+    var
+        diff: Duration;
+    begin
+        diff := Rec.Duration + Rec."Sql Call Duration" + Rec."Http Call Duration";
+        if Rec."Activity Duration" >= diff then
+            exit(Rec."Activity Duration" - diff);
+
+        exit(0);
+    end;
+
     var
         PerfProfActivityMapper: Codeunit "Perf. Prof. Activity Mapper";
         ScheduledPerfProfilerImpl: Codeunit "Scheduled Perf. Profiler Impl.";
         ActivityType: Enum "Perf. Profile Activity Type";
+        ScheduleDescription: Text;
+        PlatformCallDuration: Duration;
         ProfileFileNameTxt: Label 'PerformanceProfile_Activity%1_Session%2', Locked = true;
         ProfileFileExtensionTxt: Label '.alcpuprofile', Locked = true;
 }

@@ -18,6 +18,7 @@ pageextension 324 "No. Series Ext." extends "No. Series"
                 Image = Sparkle;
                 ApplicationArea = All;
                 Visible = CopilotActionsVisible;
+                Enabled = CopilotActionsVisible;
 
                 trigger OnAction()
                 var
@@ -38,5 +39,4 @@ pageextension 324 "No. Series Ext." extends "No. Series"
 
     var
         CopilotActionsVisible: Boolean;
-
 }

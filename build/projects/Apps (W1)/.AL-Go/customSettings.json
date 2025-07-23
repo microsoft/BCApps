@@ -1,0 +1,21 @@
+{
+    "ExternalAppDependencies" : [
+        "System Application",
+        "Business Foundation", 
+        "Base Application", 
+        "Application",
+        "Statistical Accounts",
+        "Sustainability",
+        "Power BI Report embeddings for Dynamics 365 Business Central"
+    ],
+    "ExternalTestAppDependencies" : [
+        "Permissions Mock",
+        "Any",
+        "Library Assert",
+        "Library Variable Storage",
+        "System Application Test Library",
+        "Business Foundation Test Libraries",
+        "Tests-TestLibraries",
+        "Contoso Coffee Demo Dataset"
+    ]
+}

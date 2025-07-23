@@ -50,7 +50,7 @@ page 130455 "Command Line Test Tool"
                     TestSuiteMgt: Codeunit "Test Suite Mgt.";
                 begin
                     TestSuiteMgt.DeleteAllMethods(GlobalALTestSuite);
-                    TestSuiteMgt.SelectTestMethodsByRange(GlobalALTestSuite, TestCodeunitRangeFilter);
+                    TestSuiteMgt.SelectTestMethodsByRange(GlobalALTestSuite, TestCodeunitRangeFilter, TestType, RequiredTestIsolation);
                     if Rec.FindFirst() then;
                 end;
             }
@@ -94,6 +94,31 @@ page 130455 "Command Line Test Tool"
                     TestSuiteMgt.DeleteAllMethods(GlobalALTestSuite);
                     TestSuiteMgt.SelectTestMethodsByExtension(GlobalALTestSuite, ExtensionId);
                     if Rec.FindFirst() then;
+                end;
+            }
+            field(RequiredTestIsolation; RequiredTestIsolation)
+            {
+                ApplicationArea = All;
+                Caption = 'Required Test Isolation';
+                ToolTip = 'Specifies the RequiredTestIsolation for test filtering. Test methods will only be updated after TestType is set.';
+                BlankZero = true;
+                MinValue = 0;
+            }
+            field(TestType; TestType)
+            {
+                ApplicationArea = All;
+                Caption = 'Test Type';
+                ToolTip = 'Specifies the Test Type';
+                BlankZero = true;
+                MinValue = 1;
+
+                trigger OnValidate()
+                var
+                    TestSuiteMgt: Codeunit "Test Suite Mgt.";
+                begin
+                    TestSuiteMgt.DeleteAllMethods(GlobalALTestSuite);
+                    TestSuiteMgt.SelectTestMethodsByExtensionAndTestCategorization(GlobalALTestSuite, ExtensionId, TestType, RequiredTestIsolation);
+                    if Rec.FindSet() then;
                 end;
             }
             field(DisableTestMethod; RemoveTestMethod)
@@ -202,6 +227,27 @@ page 130455 "Command Line Test Tool"
                 begin
                     TestSuiteMgt.ChangeStabilityRun(GlobalALTestSuite, StabilityRun);
                 end;
+            }
+            field(CurrentCompanyName; CurrentCompanyName)
+            {
+                ApplicationArea = All;
+                Caption = 'Company Name';
+                Editable = false;
+                ToolTip = 'Specifies the current company name';
+            }
+            field(CurrentTenant; CurrentTenant)
+            {
+                ApplicationArea = All;
+                Caption = 'Tenant ID';
+                Editable = false;
+                ToolTip = 'Specifies the current tenant ID';
+            }
+            field(CurrentLanguage; CurrentLanguage)
+            {
+                ApplicationArea = All;
+                Caption = 'Language ID';
+                Editable = false;
+                ToolTip = 'Specifies the current language ID';
             }
             repeater(Control1)
             {
@@ -448,11 +494,16 @@ page 130455 "Command Line Test Tool"
         FullErrorMessage: Text;
         StackTrace: Text;
         ExtensionId: Text;
+        TestType: Integer;
+        RequiredTestIsolation: Integer;
         RemoveTestMethod: Text;
         TestResultsJSONText: Text;
         CCResultsCSVText: Text;
         CCMapCSVText: Text;
         CCInfo: Text;
+        CurrentCompanyName: Text;
+        CurrentTenant: Text;
+        CurrentLanguage: Integer;
         AllTestsExecutedTxt: Label 'All tests executed.', Locked = true;
         DoneLbl: Label 'Done.', Locked = true;
         CCTrackingType: Integer;
@@ -503,6 +554,9 @@ page 130455 "Command Line Test Tool"
         CCTrackingType := GlobalALTestSuite."CC Tracking Type";
         CodeCoverageExporterID := GlobalALTestSuite."CC Exporter ID";
         CCMap := GlobalALTestSuite."CC Coverage Map";
+        CurrentCompanyName := CompanyName();
+        CurrentTenant := TenantID();
+        CurrentLanguage := GlobalLanguage();
     end;
 
     local procedure UpdateLine()

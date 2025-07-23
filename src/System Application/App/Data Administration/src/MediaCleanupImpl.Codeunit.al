@@ -5,7 +5,6 @@
 
 namespace System.DataAdministration;
 
-using System.Utilities;
 using System.Environment;
 
 codeunit 1928 "Media Cleanup Impl."
@@ -245,20 +244,24 @@ codeunit 1928 "Media Cleanup Impl."
     end;
 
     // 322, 100 will result in [[1, 100], [101, 200], [201, 300], [301, 322]]
-    local procedure SplitListIntoSubLists(var InputList: List of [Guid]; SubListCount: Integer; var SplitList: List of [List of [Guid]])
+    procedure SplitListIntoSubLists(var InputList: List of [Guid]; SubListCount: Integer; var SplitList: List of [List of [Guid]])
     var
-        Math: Codeunit Math;
         ListNumber: Integer;
-        SubList: List of [Guid];
-        From: Integer;
-        ToInt: Integer;
+        FromIndex: Integer;
+        SubSize: Integer;
+        NumberOfBatches: Integer;
+        TempSubList: List of [Guid];
     begin
-        for ListNumber := 0 to Round(InputList.Count() / SubListCount, 1) do begin
-            Clear(SubList);
-            From := ListNumber * SubListCount + 1;
-            ToInt := Math.Min(SubListCount, InputList.Count() - ListNumber * SubListCount);
-            SubList := InputList.GetRange(From, ToInt);
-            SplitList.Add(SubList);
+        NumberOfBatches := (InputList.Count() + SubListCount - 1) div SubListCount;
+
+        for ListNumber := 1 to NumberOfBatches do begin
+            Clear(TempSubList);
+            FromIndex := (ListNumber - 1) * SubListCount + 1;
+            SubSize := InputList.Count() - (FromIndex - 1);
+            if SubSize > SubListCount then
+                SubSize := SubListCount;
+            TempSubList := InputList.GetRange(FromIndex, SubSize);
+            SplitList.Add(TempSubList);
         end;
     end;
 }

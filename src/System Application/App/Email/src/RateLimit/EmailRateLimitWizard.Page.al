@@ -50,6 +50,32 @@ page 8898 "Email Rate Limit Wizard"
                     UpdateRateLimitDisplay();
                 end;
             }
+
+            field(EmailConcurrencyLimit; EmailConcurrencyLimit)
+            {
+                ApplicationArea = All;
+                Caption = 'Concurrency Limit';
+                ToolTip = 'Specifies the maximum number of concurrent emails that can be sent using this account.';
+                Numeric = true;
+
+                trigger OnValidate()
+                begin
+                    UpdateConcurrencyLimitLimitDisplay();
+                end;
+            }
+
+            field(EmailMaxAttemptLimit; EmailMaxAttemptLimit)
+            {
+                ApplicationArea = All;
+                Caption = 'Max. Attempt Limit';
+                ToolTip = 'Specifies the maximum number of attempts for sending an email.';
+                Numeric = true;
+
+                trigger OnValidate()
+                begin
+                    UpdateMaxRetryLimitLimitDisplay();
+                end;
+            }
         }
     }
     actions
@@ -76,12 +102,31 @@ page 8898 "Email Rate Limit Wizard"
     trigger OnOpenPage()
     begin
         EmailRateLimitDisplay := Format(Rec."Rate Limit");
+        EmailConcurrencyLimit := Format(Rec."Concurrency Limit");
+        EmailMaxAttemptLimit := Format(Rec."Max. Retry Limit");
         UpdateRateLimitDisplay();
+        UpdateConcurrencyLimitLimitDisplay();
     end;
 
     internal procedure SetEmailAccountName(EmailAccountName: Text[250])
     begin
         EmailName := EmailAccountName;
+    end;
+
+    local procedure UpdateConcurrencyLimitLimitDisplay()
+    var
+        CurrLimit: Integer;
+    begin
+        Evaluate(CurrLimit, EmailConcurrencyLimit);
+        Rec.Validate("Concurrency Limit", CurrLimit);
+    end;
+
+    local procedure UpdateMaxRetryLimitLimitDisplay()
+    var
+        CurrLimit: Integer;
+    begin
+        Evaluate(CurrLimit, EmailMaxAttemptLimit);
+        Rec.Validate("Max. Retry Limit", CurrLimit);
     end;
 
     internal procedure UpdateRateLimitDisplay()
@@ -93,6 +138,8 @@ page 8898 "Email Rate Limit Wizard"
 
     var
         EmailRateLimitDisplay: Text[250];
+        EmailConcurrencyLimit: Text[250];
+        EmailMaxAttemptLimit: Text[250];
         EmailName: Text[250];
         NoLimitTxt: Label 'No limit';
 }
