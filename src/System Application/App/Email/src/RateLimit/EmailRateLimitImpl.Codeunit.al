@@ -130,7 +130,7 @@ codeunit 8999 "Email Rate Limit Impl."
         exit(0); // Default rate limit is 0, meaning no limit.
     end;
 
-    local procedure GetDefaultConcurrencyLimit(): Integer
+    internal procedure GetDefaultConcurrencyLimit(): Integer
     begin
         exit(3);
     end;
