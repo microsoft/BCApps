@@ -5,7 +5,6 @@
 
 namespace System.DataAdministration;
 
-using System.Environment.Configuration;
 using System.Upgrade;
 using System.Environment;
 
@@ -107,11 +106,5 @@ codeunit 3907 "Retention Policy Installer"
     local procedure AddAllowedTablesOnRefreshAllowedTables()
     begin
         AddAllowedTables(true);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Initialization", OnAfterLogin, '', false, false)]
-    local procedure AddAllowedTablesOnAfterLogin()
-    begin
-        AddAllowedTables();
     end;
 }
