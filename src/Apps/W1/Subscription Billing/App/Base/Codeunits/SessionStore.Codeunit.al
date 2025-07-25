@@ -1,3 +1,4 @@
+#if not CLEAN27
 namespace Microsoft.SubscriptionBilling;
 
 codeunit 8014 "Session Store"
@@ -28,3 +29,4 @@ codeunit 8014 "Session Store"
             BooleanDictionary.Remove(KeyName);
     end;
 }
+#endif
