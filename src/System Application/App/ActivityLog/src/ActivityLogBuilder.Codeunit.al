@@ -8,7 +8,7 @@ namespace System.Log;
 /// Codeunit to build and log activity entries for a specific table and field.
 /// Currently first party applications only to allow for future API changes. 
 /// </summary>
-codeunit 3111 "Activity Log Builder"
+codeunit 3111 "Activity Log Builder" implements "Activity Log Builder"
 {
     InherentPermissions = X;
     InherentEntitlements = X;
