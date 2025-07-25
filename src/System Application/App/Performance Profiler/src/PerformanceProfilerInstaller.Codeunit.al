@@ -55,4 +55,13 @@ codeunit 1933 "Performance Profiler Installer"
     begin
         AddRetentionPolicyAllowedTables(true);
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
+    local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if not UpgradeTag.HasUpgradeTag(GetPerformanceProfileAddedToAllowedListUpgradeTag()) then
+            PerCompanyUpgradeTags.Add(GetPerformanceProfileAddedToAllowedListUpgradeTag());
+    end;
 }
