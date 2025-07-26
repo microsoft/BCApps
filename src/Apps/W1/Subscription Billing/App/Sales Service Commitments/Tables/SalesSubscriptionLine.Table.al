@@ -181,7 +181,7 @@ table 8068 "Sales Subscription Line"
             trigger OnValidate()
             begin
                 TestIfSalesOrderIsReleased();
-                DateFormulaManagementGlobal.ErrorIfDateFormulaNegative("Initial Term");
+                DateFormulaManagement.ErrorIfDateFormulaNegative("Initial Term");
             end;
         }
         field(24; "Notice Period"; DateFormula)
@@ -190,7 +190,7 @@ table 8068 "Sales Subscription Line"
             trigger OnValidate()
             begin
                 TestIfSalesOrderIsReleased();
-                DateFormulaManagementGlobal.ErrorIfDateFormulaNegative("Notice Period");
+                DateFormulaManagement.ErrorIfDateFormulaNegative("Notice Period");
             end;
         }
         field(25; "Extension Term"; DateFormula)
@@ -201,7 +201,7 @@ table 8068 "Sales Subscription Line"
                 TestIfSalesOrderIsReleased();
                 if Format("Extension Term") = '' then
                     TestField("Notice Period", "Extension Term");
-                DateFormulaManagementGlobal.ErrorIfDateFormulaNegative("Extension Term");
+                DateFormulaManagement.ErrorIfDateFormulaNegative("Extension Term");
             end;
         }
         field(26; "Billing Base Period"; DateFormula)
@@ -212,8 +212,9 @@ table 8068 "Sales Subscription Line"
             trigger OnValidate()
             begin
                 TestIfSalesOrderIsReleased();
-                DateFormulaManagementGlobal.ErrorIfDateFormulaEmpty("Billing Base Period", FieldCaption("Billing Base Period"));
-                DateFormulaManagementGlobal.ErrorIfDateFormulaNegative("Billing Base Period");
+                DateFormulaManagement.ErrorIfDateFormulaEmpty("Billing Base Period", FieldCaption("Billing Base Period"));
+                DateFormulaManagement.ErrorIfDateFormulaNegative("Billing Base Period");
+                CheckRatioBetweenBillingBasePeriodAndRhythm();
             end;
         }
         field(27; "Billing Rhythm"; DateFormula)
@@ -224,8 +225,9 @@ table 8068 "Sales Subscription Line"
             trigger OnValidate()
             begin
                 TestIfSalesOrderIsReleased();
-                DateFormulaManagementGlobal.ErrorIfDateFormulaEmpty("Billing Rhythm", FieldCaption("Billing Rhythm"));
-                DateFormulaManagementGlobal.ErrorIfDateFormulaNegative("Billing Rhythm");
+                DateFormulaManagement.ErrorIfDateFormulaEmpty("Billing Rhythm", FieldCaption("Billing Rhythm"));
+                DateFormulaManagement.ErrorIfDateFormulaNegative("Billing Rhythm");
+                CheckRatioBetweenBillingBasePeriodAndRhythm();
             end;
         }
         field(28; "Invoicing via"; Enum "Invoicing Via")
@@ -393,9 +395,6 @@ table 8068 "Sales Subscription Line"
     trigger OnModify()
     begin
         TestIfSalesOrderIsReleased();
-        xRec.Get(xRec."Line No.");
-        if ((xRec."Billing Base Period" <> Rec."Billing Base Period") or (xRec."Billing Rhythm" <> Rec."Billing Rhythm")) then
-            DateFormulaManagementGlobal.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
     end;
 
     trigger OnDelete()
@@ -688,7 +687,6 @@ table 8068 "Sales Subscription Line"
     var
         SalesLineVAT: Record "Sales Line";
         ContractRenewalMgt: Codeunit "Sub. Contract Renewal Mgt.";
-        DateFormulaManagement: Codeunit "Date Formula Management";
         IsHandled: Boolean;
         RhythmIdentifier: Code[20];
         ContractRenewalPriceCalculationRatio: Decimal;
@@ -842,6 +840,13 @@ table 8068 "Sales Subscription Line"
         SalesLine := NewSalesLine;
     end;
 
+    local procedure CheckRatioBetweenBillingBasePeriodAndRhythm()
+    var
+    begin
+        if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
+            DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnCalculateBaseTypeElseCaseOnCalculateCalculationBaseAmountCustomer(SalesSubscriptionLine: Record "Sales Subscription Line"; SalesLine: Record "Sales Line"; var CalculatedBaseAmount: Decimal; var IsHandled: Boolean)
     begin
@@ -876,7 +881,7 @@ table 8068 "Sales Subscription Line"
         Currency: Record Currency;
         CurrExchRate: Record "Currency Exchange Rate";
         SalesLine: Record "Sales Line";
-        DateFormulaManagementGlobal: Codeunit "Date Formula Management";
+        DateFormulaManagement: Codeunit "Date Formula Management";
         ServiceAmountIncreaseErr: Label '%1 cannot be greater than %2.', Comment = '%1 and %2 are numbers';
         ReleasedSalesOrderExistsErr: Label 'Subscription Lines cannot be edited on orders with status = Released.';
         CalculateBaseTypeOptionNotImplementedErr: Label 'Unknown option %1 for %2.\\ Object Name: %3, Procedure: %4', Comment = '%1=Format("Calculation Base Type"), %2 = Fieldcaption for "Calculation Base Type", %3 = Current object name, %4 = Current procedure name';

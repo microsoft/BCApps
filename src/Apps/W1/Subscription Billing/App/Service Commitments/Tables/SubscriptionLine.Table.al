@@ -182,6 +182,7 @@ table 8059 "Subscription Line"
             begin
                 DateFormulaManagement.ErrorIfDateFormulaEmpty("Billing Base Period", FieldCaption("Billing Base Period"));
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Billing Base Period");
+                CheckRatioBetweenBillingBasePeriodAndRhythm();
             end;
         }
         field(16; "Invoicing via"; Enum "Invoicing Via")
@@ -254,6 +255,7 @@ table 8059 "Subscription Line"
             begin
                 DateFormulaManagement.ErrorIfDateFormulaEmpty("Billing Rhythm", FieldCaption("Billing Rhythm"));
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Billing Rhythm");
+                CheckRatioBetweenBillingBasePeriodAndRhythm();
             end;
         }
         field(24; "Cancellation Possible Until"; Date)
@@ -595,9 +597,6 @@ table 8059 "Subscription Line"
 
     trigger OnModify()
     begin
-        xRec.Get(xRec."Entry No.");
-        if ((xRec."Billing Base Period" <> Rec."Billing Base Period") or (xRec."Billing Rhythm" <> Rec."Billing Rhythm")) then
-            DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
         DisplayErrorIfContractLinesExist(ClosedContractLineExistErr, true);
         SetUpdateRequiredOnBillingLines();
         UpdateCustomerContractLineServiceCommitmentDescription();
@@ -1923,6 +1922,13 @@ table 8059 "Subscription Line"
                     exit(not VendSubContractDeferral.IsEmpty());
                 end;
         end;
+    end;
+
+    local procedure CheckRatioBetweenBillingBasePeriodAndRhythm()
+    var
+    begin
+        if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
+            DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
     end;
 
     [IntegrationEvent(false, false)]
