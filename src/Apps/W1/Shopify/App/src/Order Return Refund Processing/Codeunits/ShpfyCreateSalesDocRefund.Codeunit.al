@@ -223,6 +223,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                                     SalesLine.Description := RefundLine.Description;
                                 end else begin
                                     SalesLine.Validate(Type, "Sales Line Type"::Item);
+                                    SalesLine.Validate("No.", RefundLine."Item No.");
                                     if RefundLine."Unit of Measure Code" <> '' then
                                         SalesLine.Validate("Unit of Measure Code", RefundLine."Unit of Measure Code");
 
