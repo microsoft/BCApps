@@ -1,14 +1,16 @@
 {
-    "ExternalAppDependencies" : [
+    "ExternalAppDependencies": [
         "System Application",
-        "Business Foundation", 
-        "Base Application", 
+        "Business Foundation",
+        "Base Application",
         "Application",
         "Statistical Accounts",
         "Sustainability",
-        "Power BI Report embeddings for Dynamics 365 Business Central"
+        "Power BI Report embeddings for Dynamics 365 Business Central",
+        "E-Document Core",
+        "E-Document Connector - Pagero"
     ],
-    "ExternalTestAppDependencies" : [
+    "ExternalTestAppDependencies": [
         "Permissions Mock",
         "Any",
         "Library Assert",
