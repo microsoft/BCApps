@@ -7,6 +7,9 @@
     "../../../src/Tools/Test Framework/Test Libraries/*",
     "../../../src/Tools/Test Framework/Test Runner"
   ],
+  "testFolders": [
+    "../../../src/System Application/Test Library"
+  ],
   "doNotRunTests": true,
   "useCompilerFolder": true,
   "doNotPublishApps": true,
