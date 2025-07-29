@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/2cc8f6277433dbc2d7e066f9037d2084637c6347/Actions/settings.schema.json",
-  "projectName": "System Application and Tools",
+  "projectName": "System Application, Business Foundation and Tools",
   "appFolders": [
     "../../../src/System Application/App",
     "../../../src/Business Foundation/App",
