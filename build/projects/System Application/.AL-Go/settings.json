@@ -19,8 +19,7 @@
   "ConditionalSettings": [
     {
       "branches": [
-        "releases/*.[0-5]",
-        "aholstrup/*"
+        "releases/*.[0-5]"
       ],
       "settings": {
         "buildModes": [
