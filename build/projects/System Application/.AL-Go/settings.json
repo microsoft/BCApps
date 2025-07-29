@@ -7,7 +7,8 @@
     "../../../src/Tools/AI Test Toolkit",
     "../../../src/Tools/Performance Toolkit/App",
     "../../../src/Tools/Test Framework/Test Libraries/*",
-    "../../../src/Tools/Test Framework/Test Runner"
+    "../../../src/Tools/Test Framework/Test Runner",
+    "../../../src/Tools/Test Framework/Test Stability Tools/Prevent Metadata Updates"
   ],
   "testFolders": [
     "../../../src/System Application/Test Library",
