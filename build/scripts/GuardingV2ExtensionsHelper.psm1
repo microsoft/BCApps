@@ -48,7 +48,7 @@ function Enable-BreakingChangesCheck {
             Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
             $majorMinor = Get-ConfigValue -Key "repoVersion" -ConfigType "AL-GO"
-            $strictModeVersion = ((Get-BCArtifactUrl -type Sandbox -country W1 -version $majorMinor -select Latest) -split "/")[-2]
+            $strictModeVersion = ((Get-BCArtifactUrl -type Sandbox -country W1 -version $majorMinor -select Latest -storageAccount bcinsider -accept_insiderEula) -split "/")[-2]
 
             if (-not $strictModeVersion) {
                 Write-Host "::Warning:: Unable to find baseline version for Strict Mode"
