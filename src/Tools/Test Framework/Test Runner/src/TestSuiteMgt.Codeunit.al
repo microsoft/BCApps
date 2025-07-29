@@ -344,7 +344,12 @@ codeunit 130456 "Test Suite Mgt."
 
         // inexplicit conversion from Integer to Option
         CodeunitMetadata.SetRange(TestType, TestType);
-        CodeunitMetadata.SetRange(RequiredTestIsolation, RequiredTestIsolation);
+
+        if RequiredTestIsolation = 0 then
+            // test codeunits with RequiredTestIsolation set to None will be run together with Codeunit ones
+            CodeunitMetadata.SetFilter(RequiredTestIsolation, '%1|%2', CodeunitMetadata.RequiredTestIsolation::None, CodeunitMetadata.RequiredTestIsolation::Codeunit)
+        else
+            CodeunitMetadata.SetRange(RequiredTestIsolation, RequiredTestIsolation);
 
         GetTestMethods(ALTestSuite, CodeunitMetadata);
     end;
