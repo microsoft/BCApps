@@ -18,6 +18,8 @@
         "System Application Test Library",
         "Business Foundation Test Libraries",
         "Tests-TestLibraries",
-        "Contoso Coffee Demo Dataset"
+        "Contoso Coffee Demo Dataset",
+        "E-Document Core Tests",
+        "E-Document Connector - Pagero Tests"
     ]
 }
