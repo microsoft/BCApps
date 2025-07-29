@@ -5,6 +5,7 @@
     "../../../src/System Application/App",
     "../../../src/Business Foundation/App",
     "../../../src/Tools/AI Test Toolkit",
+    "../../../src/Tools/Performance Toolkit/App",
     "../../../src/Tools/Test Framework/Test Libraries/*",
     "../../../src/Tools/Test Framework/Test Runner"
   ],
