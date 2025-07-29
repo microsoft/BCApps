@@ -55,12 +55,12 @@ Write-Host -ForegroundColor Yellow @'
 
 $tmpFolder = Join-Path ([System.IO.Path]::GetTempPath()) "$([Guid]::NewGuid().ToString())"
 New-Item -Path $tmpFolder -ItemType Directory -Force | Out-Null
-$GitHubHelperPath = DownloadHelperFile -url 'https://raw.githubusercontent.com/microsoft/AL-Go/1598a2b57bfbf523c09d70b47177965180a70e9c/Actions/Github-Helper.psm1' -folder $tmpFolder -notifyAuthenticatedAttempt
-$ReadSettingsModule = DownloadHelperFile -url 'https://raw.githubusercontent.com/microsoft/AL-Go/1598a2b57bfbf523c09d70b47177965180a70e9c/Actions/.Modules/ReadSettings.psm1' -folder $tmpFolder
-$debugLoggingModule = DownloadHelperFile -url 'https://raw.githubusercontent.com/microsoft/AL-Go/1598a2b57bfbf523c09d70b47177965180a70e9c/Actions/.Modules/DebugLogHelper.psm1' -folder $tmpFolder
-$ALGoHelperPath = DownloadHelperFile -url 'https://raw.githubusercontent.com/microsoft/AL-Go/1598a2b57bfbf523c09d70b47177965180a70e9c/Actions/AL-Go-Helper.ps1' -folder $tmpFolder
-DownloadHelperFile -url 'https://raw.githubusercontent.com/microsoft/AL-Go/1598a2b57bfbf523c09d70b47177965180a70e9c/Actions/settings.schema.json' -folder $tmpFolder | Out-Null
-DownloadHelperFile -url 'https://raw.githubusercontent.com/microsoft/AL-Go/1598a2b57bfbf523c09d70b47177965180a70e9c/Actions/Packages.json' -folder $tmpFolder | Out-Null
+$GitHubHelperPath = DownloadHelperFile -url 'https://raw.githubusercontent.com/microsoft/AL-Go/2cc8f6277433dbc2d7e066f9037d2084637c6347/Actions/Github-Helper.psm1' -folder $tmpFolder -notifyAuthenticatedAttempt
+$ReadSettingsModule = DownloadHelperFile -url 'https://raw.githubusercontent.com/microsoft/AL-Go/2cc8f6277433dbc2d7e066f9037d2084637c6347/Actions/.Modules/ReadSettings.psm1' -folder $tmpFolder
+$debugLoggingModule = DownloadHelperFile -url 'https://raw.githubusercontent.com/microsoft/AL-Go/2cc8f6277433dbc2d7e066f9037d2084637c6347/Actions/.Modules/DebugLogHelper.psm1' -folder $tmpFolder
+$ALGoHelperPath = DownloadHelperFile -url 'https://raw.githubusercontent.com/microsoft/AL-Go/2cc8f6277433dbc2d7e066f9037d2084637c6347/Actions/AL-Go-Helper.ps1' -folder $tmpFolder
+DownloadHelperFile -url 'https://raw.githubusercontent.com/microsoft/AL-Go/2cc8f6277433dbc2d7e066f9037d2084637c6347/Actions/settings.schema.json' -folder $tmpFolder | Out-Null
+DownloadHelperFile -url 'https://raw.githubusercontent.com/microsoft/AL-Go/2cc8f6277433dbc2d7e066f9037d2084637c6347/Actions/Packages.json' -folder $tmpFolder | Out-Null
 
 Import-Module $GitHubHelperPath
 Import-Module $ReadSettingsModule
