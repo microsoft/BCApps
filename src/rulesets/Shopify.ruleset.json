@@ -4,7 +4,7 @@
     "includedRuleSets": [
 		{
 			"action": "Default",
-			"path": "./minorrelease.ruleset.json"
+			"path": "./ruleset.json"
 		}
 	],
     "rules": [
