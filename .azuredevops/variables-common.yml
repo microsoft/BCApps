@@ -10,3 +10,6 @@ variables:
   readonly: true
 - name: runCodesignValidationInjection
   value: false
+- name: ServiceConnectionId
+  value: 'b3e8a26e-6acd-4fdb-a986-2dad66a4c2c9'
+  readonly: true
