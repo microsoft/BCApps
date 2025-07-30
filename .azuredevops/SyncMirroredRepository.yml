@@ -29,11 +29,9 @@ jobs:
   dependsOn: []
   displayName: Sync mirror with upstream
   steps:
-  - task: AzureCLI@2
-    env:
-      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+  - task: AzureCLI@2    
     inputs:
-      azureSubscription: 'b3e8a26e-6acd-4fdb-a986-2dad66a4c2c9'
+      azureSubscription: $(ServiceConnectionId)
       workingDirectory: $(System.DefaultWorkingDirectory)
       useGlobalConfig: true
       scriptType: pscore
@@ -43,19 +41,11 @@ jobs:
         git config --global user.email "BCApps-Sync@microsoft.com"
         git config --global user.name "BCApps-Sync"
         & build\scripts\SyncMirror.ps1 -SourceRepository "https://github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -Branch $(Build.SourceBranch)
-        throw "Fail this to test Report status stage"
     displayName: Sync mirror with upstream
-- job: ReportBuildStatus
-  dependsOn:
-  - SyncMirror  
-  condition: failed()
-  displayName: Report build status
-  steps:
-  - checkout: none
   - template: workitem-build-tracking-sc.yml@PipelineTemplates
     parameters:
       Priority: '2'
       Severity: '2'
       Issue: 'Build Break'
       SecurityImpact: 'No'
-      Condition: always()
+      Condition: failed()
