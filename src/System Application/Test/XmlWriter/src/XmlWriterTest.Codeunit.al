@@ -116,7 +116,7 @@ codeunit 139911 "Xml Writer Test"
 
         // [THEN] Get XmlDocument to text
         XmlWriter.ToBigText(XmlBigText);
-        Assert.AreEqual('<?xml version="1.0" encoding="utf-16"?><TestLocalName />', Format(XmlBigText), 'Unexpected text when creating a Xml Document with XmlWriter');
+        Assert.AreEqual('TEST', Format(XmlBigText), 'Unexpected text when creating a Xml Document with XmlWriter');
     end;
 
     [Test]
