@@ -22,7 +22,9 @@ enum 30138 "Shpfy Return Reason"
     }
     value(3; "Not as Described")
     {
+#pragma warning disable AS0087
         Caption = 'Not as Described';
+#pragma warning restore AS0087
     }
     value(4; Other)
     {
