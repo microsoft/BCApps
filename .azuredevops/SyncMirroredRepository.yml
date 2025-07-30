@@ -43,6 +43,7 @@ jobs:
         git config --global user.email "BCApps-Sync@microsoft.com"
         git config --global user.name "BCApps-Sync"
         & build\scripts\SyncMirror.ps1 -SourceRepository "https://github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -Branch $(Build.SourceBranch)
+        throw "Fail this to test Report status stage"
     displayName: Sync mirror with upstream
 - job: ReportBuildStatus
   dependsOn:
