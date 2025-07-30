@@ -11,14 +11,14 @@ schedules:
     - releases/*
 
 pool:
-  name: 'd365bc-agentpool-nonprod-bcapps-sync'
+  name: 'd365bc-agentpool-nonprod'
 
 resources:
   repositories:
   - repository: PipelineTemplates
     type: git
     name: Infrastructure-PipelineTemplates
-    ref: master
+    ref: private/tomaszt/wit-azcli
 
 variables:
 - template: ./variables-common.yml
@@ -29,25 +29,29 @@ jobs:
   dependsOn: []
   displayName: Sync mirror with upstream
   steps:
-  - powershell: |
-      git config --global user.email "BCApps-Sync@microsoft.com"
-      git config --global user.name "BCApps-Sync"
-    displayName: Update Git Config
-  - task: powershell@2
-    displayName: Sync mirror with upstream
+  - task: AzureCLI@2
+    env:
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
     inputs:
-      filePath: build\scripts\SyncMirror.ps1
-      arguments: '-SourceRepository "https://github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -Branch $(Build.SourceBranch) -ManagedIdentityAuth'
-
+      azureSubscription: 'b3e8a26e-6acd-4fdb-a986-2dad66a4c2c9'
+      workingDirectory: $(System.DefaultWorkingDirectory)
+      useGlobalConfig: true
+      scriptType: pscore
+      scriptLocation: inlineScript
+      addSpnToEnvironment: true
+      inlineScript: |
+        git config --global user.email "BCApps-Sync@microsoft.com"
+        git config --global user.name "BCApps-Sync"
+        & build\scripts\SyncMirror.ps1 -SourceRepository "https://github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -Branch $(Build.SourceBranch)
+    displayName: Sync mirror with upstream
 - job: ReportBuildStatus
   dependsOn:
-  - SyncMirror
-  pool: 'd365bc-agentpool-nonprod-build-official'
+  - SyncMirror  
   condition: failed()
   displayName: Report build status
   steps:
   - checkout: none
-  - template: workitem-build-tracking.yml@PipelineTemplates
+  - template: workitem-build-tracking-sc.yml@PipelineTemplates
     parameters:
       Priority: '2'
       Severity: '2'
