@@ -22,7 +22,10 @@ enum 30138 "Shpfy Return Reason"
     }
     value(3; "Not as Described")
     {
-        Caption = 'Not as Described';
+        // Caption = 'Not as Described';
+#pragma warning disable AL0424
+        CaptionML = ENU = 'Not as Described', CSY = 'Not as Described';
+#pragma warning restore AL0424
     }
     value(4; Other)
     {
