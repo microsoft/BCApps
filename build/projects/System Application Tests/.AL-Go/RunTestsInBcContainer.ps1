@@ -3,9 +3,12 @@ Param(
 )
 
 $parameters["testType"] = "UnitTest"
+$parameters["returnTrueIfAllPassed"] = $true
 
 $script = Join-Path $PSScriptRoot "../../../scripts/RunTestsInBcContainer.ps1" -Resolve
-. $script -parameters $parameters
+$AllTestsPassed = (. $script -parameters $parameters)
 
 # run test codeunits with RequiredTestIsolation set to Disabled
-. $script -parameters $parameters -DisableTestIsolation
+$AllTestsPassedIsolation = (. $script -parameters $parameters -DisableTestIsolation)
+
+return $AllTestsPassed -and $AllTestsPassedIsolation
