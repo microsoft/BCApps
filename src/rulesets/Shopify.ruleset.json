@@ -1,0 +1,17 @@
+{
+    "name": "Ruleset for Shopify connector",
+    "description": "Temporary ruleset for Shopify connector to allow migration to BcApps repo",
+    "includedRuleSets": [
+		{
+			"action": "Default",
+			"path": "./minorrelease.ruleset.json"
+		}
+	],
+    "rules": [
+        {
+            "justification": "Temporary disabling until translation file is updated",
+            "id": "AS0087",
+            "action": "None"
+        }
+    ]
+}
