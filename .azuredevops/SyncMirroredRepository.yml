@@ -31,7 +31,7 @@ jobs:
   steps:
   - task: AzureCLI@2    
     inputs:
-      azureSubscription: 'd365bc-agentpool-nonprod-bcapps-sync'
+      azureSubscription: '1es-d365bc-agentpool-nonprod-bcapps-sync'
       workingDirectory: $(System.DefaultWorkingDirectory)
       useGlobalConfig: true
       scriptType: pscore
