@@ -11,10 +11,12 @@
         "E-Document Connector - Pagero"
     ],
     "ExternalTestAppDependencies": [
+        "Test Runner",
         "Permissions Mock",
         "Any",
         "Library Assert",
         "Library Variable Storage",
+        "AI Test Toolkit",
         "System Application Test Library",
         "Business Foundation Test Libraries",
         "Tests-TestLibraries",
