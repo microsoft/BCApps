@@ -62,6 +62,11 @@ codeunit 1597 "Email Upgrade"
         exit('MS-592720-DefaultEmailMaxConcurrencyLimitChanged-20250723');
     end;
 
+    procedure GetEmailTablesAddedToAllowedListUpgradeTag(): Code[250]
+    begin
+        exit('MS-373161-EmailLogEntryAdded-20201005');
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     var
@@ -71,5 +76,7 @@ codeunit 1597 "Email Upgrade"
             PerCompanyUpgradeTags.Add(GetDefaultEmailViewPolicyUpgradeTag());
         if not UpgradeTag.HasUpgradeTag(GetDefaultEmailMaxConcurrencyLimitUpgradeTag()) then
             PerCompanyUpgradeTags.Add(GetDefaultEmailMaxConcurrencyLimitUpgradeTag());
+        if not UpgradeTag.HasUpgradeTag(GetEmailTablesAddedToAllowedListUpgradeTag()) then
+            PerCompanyUpgradeTags.Add(GetEmailTablesAddedToAllowedListUpgradeTag());
     end;
 }
