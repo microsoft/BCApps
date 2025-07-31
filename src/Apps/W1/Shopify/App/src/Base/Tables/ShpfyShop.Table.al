@@ -791,6 +791,11 @@ table 30102 "Shpfy Shop"
         {
             Caption = 'Posted Invoice Sync';
         }
+        field(204; "Archive Processed Orders"; Boolean)
+        {
+            Caption = 'Archive Processed Shopify Orders';
+            InitValue = true;
+        }
     }
 
     keys
