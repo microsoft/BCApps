@@ -490,13 +490,6 @@ page 30113 "Shpfy Order"
                 Caption = 'Linked Documents';
                 SubPageLink = "Shopify Document Type" = const("Shpfy Shop Document Type"::"Shopify Shop Order"), "Shopify Document Id" = field("Shopify Order Id");
             }
-            part(OrderTotals; "Shpfy Order Totals FactBox")
-            {
-                ApplicationArea = All;
-                Caption = 'Order Totals';
-                SubPageLink = "Shopify Order Id" = field("Shopify Order Id");
-                Visible = (Rec."Sales Order No." <> '') or (Rec."Sales Invoice No." <> '');
-            }
             part(SalesHistory; "Sales Hist. Sell-to FactBox")
             {
                 ApplicationArea = All;
@@ -835,6 +828,7 @@ page 30113 "Shpfy Order"
                     SalesHeader.Get(SalesHeader."Document Type"::Order, Rec."Sales Order No.");
                     SalesOrder.SetRecord(SalesHeader);
                     SalesOrder.Run();
+                    ;
                 end;
             }
             action(Refunds)
