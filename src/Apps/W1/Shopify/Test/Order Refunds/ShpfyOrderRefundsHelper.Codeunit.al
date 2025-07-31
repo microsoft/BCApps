@@ -227,11 +227,22 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         RefundHeader."Shop Code" := ShopCode;
         RefundHeader."Updated At" := CurrentDateTime;
         RefundHeader."Total Refunded Amount" := Amount;
-        RefundHeader.Insert();
+        RefundHeader.Insert(false);
         exit(RefundHeader."Refund Id");
     end;
 
-    internal procedure CreateRefundLine(RefundId: BigInteger; OrderLineId: BigInteger)
+    internal procedure CreateRefundHeaderWithPresentmentCurrency(OrderId: BigInteger; Amount: Decimal; ShopCode: Code[20]; PresentmentCurrencyCode: Code[10]; PresentmentAmount: Decimal): BigInteger
+    var
+        RefundHeader: Record "Shpfy Refund Header";
+    begin
+        RefundHeader.Get(this.CreateRefundHeader(OrderId, 0, Amount, ShopCode));
+        RefundHeader."Presentment Currency Code" := PresentmentCurrencyCode;
+        RefundHeader."Pres. Tot. Refunded Amount" := PresentmentAmount;
+        RefundHeader.Modify(false);
+        exit(RefundHeader."Refund Id");
+    end;
+
+    internal procedure CreateRefundLine(RefundId: BigInteger; OrderLineId: BigInteger): BigInteger
     var
         RefundLine: Record "Shpfy Refund Line";
         RefundHeader: Record "Shpfy Refund Header";
@@ -248,7 +259,8 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         RefundLine.Amount := 156.38;
         RefundLine."Subtotal Amount" := 156.38;
         RefundLine."Can Create Credit Memo" := RefundsAPI.IsNonZeroOrReturnRefund(RefundHeader);
-        RefundLine.Insert();
+        RefundLine.Insert(false);
+        exit(RefundLine."Refund Line Id");
     end;
 
     internal procedure CreateRefundLine(RefundId: BigInteger; OrderLineId: BigInteger; LocationId: BigInteger)
@@ -270,6 +282,18 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         RefundLine."Can Create Credit Memo" := RefundsAPI.IsNonZeroOrReturnRefund(RefundHeader);
         RefundLine."Location Id" := LocationId;
         RefundLine.Insert();
+    end;
+
+    internal procedure CreateRefundLineWithPresentmentCurrency(RefundId: BigInteger; OrderLineId: BigInteger; Amount: Decimal; PresentmentAmount: Decimal)
+    var
+        RefundLine: Record "Shpfy Refund Line";
+    begin
+        RefundLine.Get(RefundId, CreateRefundLine(RefundId, OrderLineId));
+        RefundLine.Amount := Amount;
+        RefundLine."Subtotal Amount" := Amount;
+        RefundLine."Presentment Amount" := PresentmentAmount;
+        RefundLine."Presentment Subtotal Amount" := PresentmentAmount;
+        RefundLine.Modify(false);
     end;
 
     local procedure GetItem(): Record Item
