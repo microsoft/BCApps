@@ -791,6 +791,11 @@ table 30102 "Shpfy Shop"
         {
             Caption = 'Posted Invoice Sync';
         }
+        field(203; "Cash Roundings Account"; Code[20])
+        {
+            Caption = 'Cash Roundings Account';
+            TableRelation = "G/L Account"."No.";
+        }
     }
 
     keys
