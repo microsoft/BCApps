@@ -49,3 +49,4 @@ jobs:
       Issue: 'Build Break'
       SecurityImpact: 'No'
       Condition: failed()
+      UseAzureCliAuth: true
