@@ -329,6 +329,18 @@ codeunit 30177 "Shpfy Product Events"
     begin
     end;
 
+    /// <summary>
+    /// Raised Before Add Default Collections to Graph Query.
+    /// </summary>
+    /// <param name="ShopifyShop">Parameter of type Record "Shopify Shop".</param>
+    /// <param name="ShopifyProduct">Parameter of type Record "Shopify Product".</param>
+    /// <param name="GraphQuery">Parameter of type TextBuilder.</param>
+    /// <param name="IsHandled">Parameter of type Boolean.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnBeforeAddDefaultCollectionsToGraphQuery(ShopifyShop: Record "Shpfy Shop"; ShopifyProduct: Record "Shpfy Product"; var GraphQuery: TextBuilder; var IsHandled: Boolean)
+    begin
+    end;
+
     /// <summary> 
     /// Raised Before Send Add Shopify Product Variant.
     /// </summary>

@@ -58,6 +58,7 @@ permissionset 30102 "Shpfy - Edit"
         tabledata "Shpfy Payment Transaction" = IMD,
         tabledata "Shpfy Payout" = IMD,
         tabledata "Shpfy Product" = IMD,
+        tabledata "Shpfy Product Collection" = IMD,
         tabledata "Shpfy Refund Header" = IMD,
         tabledata "Shpfy Refund Line" = IMD,
         tabledata "Shpfy Refund Shipping Line" = IMD,
