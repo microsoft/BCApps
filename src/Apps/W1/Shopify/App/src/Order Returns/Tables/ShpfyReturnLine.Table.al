@@ -94,10 +94,11 @@ table 30141 "Shpfy Return Line"
         field(13; "Presentment Disc. Total Amt."; Decimal)
         {
             Caption = 'Presentment Discounted Total Amount';
+            ToolTip = 'Specifies the total line price in the presentment currency after all discounts on the line item, including both line item level discounts and code-based line item discounts, are applied.';
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = OrderPresentmentCurrencyCode();
+            AutoFormatExpression = this.OrderPresentmentCurrencyCode();
         }
         field(14; "Customer Note"; Blob)
         {
@@ -126,13 +127,6 @@ table 30141 "Shpfy Return Line"
         {
             Caption = 'Location Id';
             DataClassification = SystemMetadata;
-            Editable = false;
-        }
-        field(105; "Unit of Measure Code"; Code[10])
-        {
-            Caption = 'Unit of Measure Code';
-            FieldClass = FlowField;
-            CalcFormula = lookup("Shpfy Order Line"."Unit of Measure Code" where("Line Id" = field("Order Line Id")));
             Editable = false;
         }
     }

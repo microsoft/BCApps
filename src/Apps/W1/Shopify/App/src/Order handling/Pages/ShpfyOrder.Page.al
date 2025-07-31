@@ -242,6 +242,20 @@ page 30113 "Shpfy Order"
                     Editable = false;
                     ToolTip = 'Specifies whether a sales order has been created for the Shopify Order.';
                 }
+                group(ProcessedCurrHanndling)
+                {
+                    ShowCaption = false;
+                    Visible = Rec.Processed;
+
+                    field(ProcessedCurrencyHandling; Rec."Processed Currency Handling")
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Processed Currency Handling';
+                        Importance = Additional;
+                        Editable = false;
+                        ToolTip = 'Specifies how the currency was handled when processing the order.';
+                    }
+                }
                 field(FinancialStatus; Rec."Financial Status")
                 {
                     ApplicationArea = All;
@@ -358,6 +372,43 @@ page 30113 "Shpfy Order"
                     ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the currency of amounts on the document.';
+                }
+                group(PresentementCurrency)
+                {
+                    ShowCaption = false;
+                    Visible = this.PresentmentVisible;
+
+                    field("Presentment Subtotal Amount"; Rec."Presentment Subtotal Amount")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
+                    field("Pres. Shipping Charges Amount"; Rec."Pres. Shipping Charges Amount")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
+                    field("Presentment Total Amount"; Rec."Presentment Total Amount")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                        Importance = Promoted;
+                    }
+                    field("Presentment VAT Amount"; Rec."Presentment VAT Amount")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
+                    field("Presentment Discount Amount"; Rec."Presentment Discount Amount")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
+                    field("Presentment Currency Code"; Rec."Presentment Currency Code")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
                 }
             }
             group(ShippingAndBilling)
@@ -490,13 +541,6 @@ page 30113 "Shpfy Order"
                 Caption = 'Linked Documents';
                 SubPageLink = "Shopify Document Type" = const("Shpfy Shop Document Type"::"Shopify Shop Order"), "Shopify Document Id" = field("Shopify Order Id");
             }
-            part(OrderTotals; "Shpfy Order Totals FactBox")
-            {
-                ApplicationArea = All;
-                Caption = 'Order Totals';
-                SubPageLink = "Shopify Order Id" = field("Shopify Order Id");
-                Visible = (Rec."Sales Order No." <> '') or (Rec."Sales Invoice No." <> '');
-            }
             part(SalesHistory; "Sales Hist. Sell-to FactBox")
             {
                 ApplicationArea = All;
@@ -598,6 +642,7 @@ page 30113 "Shpfy Order"
 
                     trigger OnAction();
                     var
+                        Shop: Record "Shpfy Shop";
                         ShopifyOrderHeader: Record "Shpfy Order Header";
                         ProcessShopifyOrders: Codeunit "Shpfy Process Orders";
                     begin
@@ -609,6 +654,8 @@ page 30113 "Shpfy Order"
                             Commit();
                             ShopifyOrderHeader.Get(Rec."Shopify Order Id");
                             ShopifyOrderHeader.SetRecFilter();
+                            Shop.Get(Rec."Shop Code");
+                            ProcessShopifyOrders.SetShop(Shop);
                             ProcessShopifyOrders.ProcessShopifyOrders(ShopifyOrderHeader);
                             Rec.Get(Rec."Shopify Order Id");
                         end;
@@ -835,6 +882,7 @@ page 30113 "Shpfy Order"
                     SalesHeader.Get(SalesHeader."Document Type"::Order, Rec."Sales Order No.");
                     SalesOrder.SetRecord(SalesHeader);
                     SalesOrder.Run();
+                    ;
                 end;
             }
             action(Refunds)
@@ -998,14 +1046,23 @@ page 30113 "Shpfy Order"
         OrderCancelFailedErr: Label 'Specifies the order could not be cancelled. You can see the error message from Shopify Log Entries.';
         LogEntriesLbl: Label 'Log Entries';
         WorkDescription: Text;
+        TotalAmount, SubtotalAmount : Decimal;
+        PresentmentVisible: Boolean;
 
     trigger OnAfterGetRecord()
     begin
-        WorkDescription := Rec.GetWorkDescription();
+        this.SetPresentmentCurrencyVisibility();
+        this.WorkDescription := Rec.GetWorkDescription();
     end;
 
-    trigger OnOpenPage()
+    local procedure SetPresentmentCurrencyVisibility()
     begin
+        this.PresentmentVisible := Rec.IsPresentmentCurrencyOrder();
+
+        if this.PresentmentVisible then
+            CurrPage.ShopifyOrderLines.Page.SetShowPresentmentCurrency(true)
+        else
+            CurrPage.ShopifyOrderLines.Page.SetShowPresentmentCurrency(false);
     end;
 }
 

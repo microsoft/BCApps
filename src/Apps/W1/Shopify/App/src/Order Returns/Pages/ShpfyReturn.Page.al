@@ -118,6 +118,18 @@ page 30151 "Shpfy Return"
     trigger OnAfterGetCurrRecord()
     begin
         HasNote := Rec."Decline Note".HasValue();
+
+        this.SetPresentmentCurrencyVisibleOnLines();
+    end;
+
+    local procedure SetPresentmentCurrencyVisibleOnLines()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+    begin
+        if not OrderHeader.Get(Rec."Order Id") then
+            exit;
+
+        CurrPage.Lines.Page.ShowPresentmentCurrency(OrderHeader.IsPresentmentCurrencyOrder());
     end;
 
 }

@@ -88,6 +88,20 @@ table 30133 "Shpfy Order Transaction"
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        field(12; "Presentment Currency"; Code[20])
+        {
+            Caption = 'Presentment Currency';
+            ToolTip = 'Specifies the currency of the transaction in the presentment currency.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(13; "Presentment Amount"; Decimal)
+        {
+            Caption = 'Presentment Amount';
+            ToolTip = 'Specifies the amount of money included in the transaction in the presentment currency.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
         field(14; "Gift Card Id"; BigInteger)
         {
             Caption = 'Gift Card Id';
@@ -175,6 +189,18 @@ table 30133 "Shpfy Order Transaction"
         field(25; "Rounding Currency"; Code[20])
         {
             Caption = 'Rounding Currency';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(26; "Presentment Rounding Amount"; Decimal)
+        {
+            Caption = 'Presentment Rounding Amount';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(27; "Presentment Rounding Currency"; Code[20])
+        {
+            Caption = 'Presentment Rounding Currency';
             DataClassification = SystemMetadata;
             Editable = false;
         }

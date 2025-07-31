@@ -77,12 +77,23 @@ page 30122 "Shpfy Order Subform"
                     Editable = false;
                     ToolTip = 'Specifies the prices for one unit on the line.';
                 }
+                field("Presentment Unit Price"; Rec."Presentment Unit Price")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    Visible = this.PresentmentCurrencyVisible;
+                }
                 field(DiscountAmount; Rec."Discount Amount")
                 {
                     ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
 
+                }
+                field("Presentment Discount Amount"; Rec."Presentment Discount Amount")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
                 }
                 field(FullfillableQuantity; Rec."Fulfillable Quantity")
                 {
@@ -117,4 +128,12 @@ page 30122 "Shpfy Order Subform"
             }
         }
     }
+
+    var
+        PresentmentCurrencyVisible: Boolean;
+
+    internal procedure SetShowPresentmentCurrency(Show: Boolean)
+    begin
+        this.PresentmentCurrencyVisible := Show;
+    end;
 }

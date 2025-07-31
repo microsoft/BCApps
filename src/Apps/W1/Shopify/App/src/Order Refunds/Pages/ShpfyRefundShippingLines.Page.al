@@ -28,10 +28,20 @@ page 30169 "Shpfy Refund Shipping Lines"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the subtotal price of a refund shipping line.';
                 }
+                field("Presentment Subtotal Amount"; Rec."Presentment Subtotal Amount")
+                {
+                    ApplicationArea = All;
+                    Visible = this.PresentmentCurrencyVisible;
+                }
                 field("Tax Amount"; Rec."Tax Amount")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the total tax amount of a refund shipping line.';
+                }
+                field("Presentment Tax Amount"; Rec."Presentment Tax Amount")
+                {
+                    ApplicationArea = All;
+                    Visible = this.PresentmentCurrencyVisible;
                 }
             }
         }
@@ -64,4 +74,26 @@ page 30169 "Shpfy Refund Shipping Lines"
             actionref(PromotedRetrievedShopifyData; RetrievedShopifyData) { }
         }
     }
+
+    var
+        PresentmentCurrencyVisible: Boolean;
+
+    trigger OnAfterGetRecord()
+    begin
+        this.SetPresentmentCurrencyVisibility();
+    end;
+
+    local procedure SetPresentmentCurrencyVisibility()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        RefundHeader: Record "Shpfy Refund Header";
+    begin
+        if not RefundHeader.Get(Rec."Refund Id") then
+            exit;
+
+        if not OrderHeader.Get(RefundHeader."Order Id") then
+            exit;
+
+        this.PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+    end;
 }

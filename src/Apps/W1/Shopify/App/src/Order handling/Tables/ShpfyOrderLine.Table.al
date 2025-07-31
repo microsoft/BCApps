@@ -122,18 +122,20 @@ table 30119 "Shpfy Order Line"
         field(18; "Presentment Unit Price"; Decimal)
         {
             Caption = 'Presentment Unit Price';
+            ToolTip = 'Specifies the prices in presentment currrency for one unit on the line.';
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = OrderPresentmentCurrencyCode();
+            AutoFormatExpression = this.OrderPresentmentCurrencyCode();
         }
         field(19; "Presentment Discount Amount"; Decimal)
         {
             Caption = 'Presentment Discount Amount';
+            ToolTip = 'Specifies the discount amount in presentment currrency that is granted for the item on the line.';
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = OrderPresentmentCurrencyCode();
+            AutoFormatExpression = this.OrderPresentmentCurrencyCode();
         }
         field(20; "Delivery Method Type"; Enum "Shpfy Delivery Method Type")
         {
