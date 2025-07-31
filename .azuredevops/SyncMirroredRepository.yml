@@ -46,7 +46,7 @@ jobs:
     parameters:
       Priority: '2'
       Severity: '2'
+      UseAzureCliAuth: true
       Issue: 'Build Break'
       SecurityImpact: 'No'
       Condition: failed()
-      UseAzureCliAuth: true
