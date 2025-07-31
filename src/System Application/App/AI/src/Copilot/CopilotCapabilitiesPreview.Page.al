@@ -100,9 +100,11 @@ page 7773 "Copilot Capabilities Preview"
                         exit;
 
                     Rec.Status := Rec.Status::Active;
-                    Rec.Modify(true);
+                    if Rec.Modify(true) then begin
+                        CopilotCapabilityImpl.SendActivateTelemetry(Rec.Capability, Rec."App Id");
+                        CopilotNotifications.ShowCapabilityChange();
 
-                    CopilotCapabilityImpl.SendActivateTelemetry(Rec.Capability, Rec."App Id");
+                    end;
                 end;
             }
             action(Deactivate)
@@ -151,6 +153,7 @@ page 7773 "Copilot Capabilities Preview"
 
     var
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
+        CopilotNotifications: Codeunit "Copilot Notifications";
         StatusStyleExpr: Text;
         LearnMore: Text;
         LearnMoreLbl: Label 'Learn More';

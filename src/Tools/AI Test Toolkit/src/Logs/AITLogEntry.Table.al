@@ -15,8 +15,8 @@ table 149034 "AIT Log Entry"
     DrillDownPageId = "AIT Log Entries";
     LookupPageId = "AIT Log Entries";
     DataCaptionFields = "Codeunit Name", "Procedure Name", "Test Input Code";
-    Extensible = false;
-    Access = Internal;
+    Extensible = true;
+    Access = Public;
     ReplicateData = false;
 
     fields

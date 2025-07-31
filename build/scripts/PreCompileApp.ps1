@@ -23,6 +23,9 @@ if($appType -eq 'app')
         $parameters.Value["Features"] += @("lcgtranslationfile")
     }
 
+    # Disable report layout generation for the app compilation to how apps are built internally
+    $parameters.Value["GenerateReportLayout"] = "No"
+
     if($appBuildMode -eq 'Translated') {
         Import-Module $PSScriptRoot\AppTranslations.psm1
         Restore-TranslationsForApp -AppProjectFolder $parameters.Value["appProjectFolder"]

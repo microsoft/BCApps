@@ -155,7 +155,6 @@ page 149004 "BCPT Lines"
                     Caption = 'Change in No. of SQL Statements (%)';
                     ApplicationArea = All;
                     AutoFormatType = 0;
-                    ExtendedDatatype = Ratio;
                 }
                 field(AvgDurationDeltaPct; GetDiffPct(GetAvg(Rec."No. of Iterations - Base", Rec."Total Duration - Base (ms)"), GetAvg(Rec."No. of Iterations", Rec."Total Duration (ms)")))
                 {
@@ -163,7 +162,6 @@ page 149004 "BCPT Lines"
                     Caption = 'Change in Duration (%)';
                     ApplicationArea = All;
                     AutoFormatType = 0;
-                    ExtendedDatatype = Ratio;
                 }
             }
         }
