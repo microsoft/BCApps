@@ -42,7 +42,7 @@ jobs:
         git config --global user.name "BCApps-Sync"
         & build\scripts\SyncMirror.ps1 -SourceRepository "https://github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -Branch $(Build.SourceBranch)
     displayName: Sync mirror with upstream
-  - template: workitem-build-tracking-sc.yml@PipelineTemplates
+  - template: workitem-build-tracking.yml@PipelineTemplates
     parameters:
       Priority: '2'
       Severity: '2'
