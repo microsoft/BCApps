@@ -102,6 +102,11 @@ codeunit 5239 "Contoso Account Schedule"
     end;
 
     procedure InsertAccScheduleName(Name: Code[10]; Description: Text[80]; AnalysisViewName: Code[10])
+    begin
+        InsertAccScheduleName(Name, Description, AnalysisViewName, '');
+    end;
+
+    procedure InsertAccScheduleName(Name: Code[10]; Description: Text[80]; AnalysisViewName: Code[10]; InternalDescription: Text[250])
     var
         AccScheduleName: Record "Acc. Schedule Name";
         Exists: Boolean;
@@ -116,6 +121,9 @@ codeunit 5239 "Contoso Account Schedule"
         AccScheduleName.Validate(Name, Name);
         AccScheduleName.Validate(Description, Description);
         AccScheduleName.Validate("Analysis View Name", AnalysisViewName);
+        if InternalDescription <> '' then begin
+            AccScheduleName.Validate("Internal Description", InternalDescription);
+        end;
 
         if Exists then
             AccScheduleName.Modify(true)
@@ -278,5 +286,17 @@ codeunit 5239 "Contoso Account Schedule"
         ChartDefinition.Validate(Enabled, Enabled);
 
         ChartDefinition.Insert(true);
+    end;
+
+    procedure UpdateAccScheduleName(Name: Code[10]; InternalDescription: Text[250])
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+    begin
+        if AccScheduleName.Get(Name) then begin
+            if AccScheduleName."Internal Description" = '' then begin
+                AccScheduleName.Validate("Internal Description", InternalDescription);
+                AccScheduleName.Modify(true);
+            end;
+        end;
     end;
 }
