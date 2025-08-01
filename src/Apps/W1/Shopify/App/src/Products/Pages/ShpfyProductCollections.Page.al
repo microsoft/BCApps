@@ -6,9 +6,9 @@
 namespace Microsoft.Integration.Shopify;
 
 /// <summary>
-/// Page Shpfy Product Collections (ID 30172).
+/// Page Shpfy Product Collections (ID 30173).
 /// </summary>
-page 30172 "Shpfy Product Collections"
+page 30173 "Shpfy Product Collections"
 {
     ApplicationArea = All;
     Caption = 'Shopify Custom Product Collections';

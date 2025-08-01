@@ -316,7 +316,6 @@ codeunit 30166 "Shpfy Process Order"
             SalesLine.Insert(true);
 
             SalesLine.Validate(Type, SalesLine.Type::"G/L Account");
-            // SalesLine.Validate("No.", SalesLine.GetCPGInvRoundAcc(SalesHeader)); TODONAT
             SalesLine.Validate("No.", ShopifyShop."Tip Account");
             SalesLine.Validate(Quantity, 1);
             SalesLine.Validate("Unit Price", ShopifyOrderHeader."Payment Rounding Amount");
