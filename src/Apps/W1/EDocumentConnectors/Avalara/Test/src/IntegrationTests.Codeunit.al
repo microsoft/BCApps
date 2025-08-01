@@ -4,20 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
-using System.Utilities;
-
 codeunit 148191 "Integration Tests"
 {
 
     Subtype = Test;
     TestType = Uncategorized;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
-
-    [Test]
-    procedure SubmitDocument()
-    begin
-        Assert.AreEqual('Test', 'Test', 'This is a placeholder test to ensure the codeunit compiles and runs.');
-    end;
 
     /*[Test]
     [HandlerFunctions('HttpSubmitHandler')]
