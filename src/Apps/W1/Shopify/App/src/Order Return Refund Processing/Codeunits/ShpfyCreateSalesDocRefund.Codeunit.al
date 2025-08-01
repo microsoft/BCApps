@@ -150,14 +150,14 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
         RoundingAmount: Decimal;
     begin
         RefundLine.SetRange("Refund Id", RefundHeader."Refund Id");
-        RefundLine.SetAutoCalcFields("Item No.", "Variant Code", Description, "Gift Card");
+        RefundLine.SetAutoCalcFields("Item No.", "Variant Code", Description, "Gift Card", "Unit of Measure Code");
         LineNo := GetLastLineNo(SalesHeader."Document Type", SalesHeader."No.");
         if RefundLine.FindSet(false) then
             CreateSalesLinesFromRefundLines(RefundLine, RefundHeader, SalesHeader, LineNo)
         else
             if RefundHeader."Return Id" > 0 then begin
                 ReturnLine.SetRange("Return Id", RefundHeader."Return Id");
-                ReturnLine.SetAutoCalcFields("Item No.", "Variant Code", Description);
+                ReturnLine.SetAutoCalcFields("Item No.", "Variant Code", Description, "Unit of Measure Code");
                 if ReturnLine.FindSet(false) then
                     CreateSalesLinesFromReturnLines(ReturnLine, RefundHeader, SalesHeader, LineNo);
             end;
@@ -224,6 +224,8 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                                 end else begin
                                     SalesLine.Validate(Type, "Sales Line Type"::Item);
                                     SalesLine.Validate("No.", RefundLine."Item No.");
+                                    if RefundLine."Unit of Measure Code" <> '' then
+                                        SalesLine.Validate("Unit of Measure Code", RefundLine."Unit of Measure Code");
                                     if RefundLine."Variant Code" <> '' then
                                         SalesLine.Validate("Variant Code", RefundLine."Variant Code");
 
@@ -301,6 +303,8 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
 
                 SalesLine.Validate(Type, "Sales Line Type"::Item);
                 SalesLine.Validate("No.", ReturnLine."Item No.");
+                if ReturnLine."Unit of Measure Code" <> '' then
+                    SalesLine.Validate("Unit of Measure Code", ReturnLine."Unit of Measure Code");
                 if ReturnLine."Variant Code" <> '' then
                     SalesLine.Validate("Variant Code", ReturnLine."Variant Code");
 
@@ -367,7 +371,6 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
             SalesLine.Insert(true);
 
             SalesLine.Validate(Type, SalesLine.Type::"G/L Account");
-            // SalesLine.Validate("No.", SalesLine.GetCPGInvRoundAcc(SalesHeader)); TODONAT
             SalesLine.Validate("No.", Shop."Refund Account");
             SalesLine.Validate(Quantity, 1);
             SalesLine.Validate("Unit Price", OrderHeader."Refund Rounding Amount");
