@@ -39,5 +39,8 @@ foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSp
     Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - $($app.IsInstalled) / $($app.IsPublished)"
 }
 
+UnInstall-BcContainerApp -containerName $ContainerName -name "E-Document Connector - Avalara Tests" -publisher "Microsoft" -doNotSaveSchema -Force
+UnInstall-BcContainerApp -containerName $ContainerName -name "E-Document Connector - Avalara" -publisher "Microsoft" -doNotSaveSchema -Force
+
 # Generate demo data in the container
 Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName
