@@ -4,24 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
-using Microsoft.eServices.EDocument;
-using Microsoft.Sales.Customer;
-using Microsoft.Purchases.Document;
-using Microsoft.Foundation.Company;
-using Microsoft.Purchases.Vendor;
-using System.Threading;
-using Microsoft.eServices.EDocument.Integration;
-using Microsoft.eServices.EDocument.Service;
-using Microsoft.Finance.Currency;
-using System.Utilities;
-
 codeunit 148191 "Integration Tests"
 {
 
     Subtype = Test;
     TestType = Uncategorized;
-    Permissions = tabledata "Connection Setup" = rimd,
-                  tabledata "E-Document" = r;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
 
     [Test]
