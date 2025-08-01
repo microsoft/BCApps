@@ -162,10 +162,12 @@ page 30172 "Shpfy Order Totals FactBox"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         if Rec."Sales Order No." <> '' then
-            SalesHeader.Get(SalesHeader."Document Type"::Order, Rec."Sales Order No.");
+            if not SalesHeader.Get(SalesHeader."Document Type"::Order, Rec."Sales Order No.") then
+                exit;
 
         if Rec."Sales Invoice No." <> '' then
-            SalesHeader.Get(SalesHeader."Document Type"::Invoice, Rec."Sales Invoice No.");
+            if not SalesHeader.Get(SalesHeader."Document Type"::Invoice, Rec."Sales Invoice No.") then
+                exit;
 
         DocumentNo := SalesHeader."No.";
         PricesIncludingVAT := SalesHeader."Prices Including VAT";

@@ -721,6 +721,9 @@ codeunit 30161 "Shpfy Import Order"
     var
         SalesLine: Record "Sales Line";
     begin
+        if not Shop."Archive Processed Orders" then
+            exit(false);
+
         if ((OrderHeader."Sales Order No." <> '') and (OrderHeader."Fulfillment Status" = OrderHeader."Fulfillment Status"::Fulfilled))
             and (OrderHeader."Fully Paid") then begin
             SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);

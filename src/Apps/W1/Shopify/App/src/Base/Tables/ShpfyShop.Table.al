@@ -796,6 +796,11 @@ table 30102 "Shpfy Shop"
             Caption = 'Cash Roundings Account';
             TableRelation = "G/L Account"."No.";
         }
+        field(204; "Archive Processed Orders"; Boolean)
+        {
+            Caption = 'Archive Processed Shopify Orders';
+            InitValue = true;
+        }
     }
 
     keys
