@@ -304,7 +304,7 @@ codeunit 2515 "AppSource Product Manager"
         UriBuilder.AddQueryParameter(CatalogLanguageQueryParamNameLbl, Language);
 
         UriBuilder.AddODataQueryParameter(CatalogApiFilterQueryParamNameLbl, 'productType eq ''DynamicsBC''');
-        UriBuilder.AddODataQueryParameter(CatalogApiSelectQueryParamNameLbl, 'uniqueProductID,displayName,publisherID,publisherDisplayName,publisherType,ratingAverage,ratingCount,productType,popularity,privacyPolicyUri,lastModifiedDateTime');
+        UriBuilder.AddODataQueryParameter(CatalogApiSelectQueryParamNameLbl, 'uniqueProductID,displayName,publisherID,publisherDisplayName,publisherType,ratingAverage,ratingCount,productType,popularity,privacyPolicyUri,lastModifiedDateTime,shortDescription');
         UriBuilder.AddODataQueryParameter(CatalogApiOrderByQueryParamNameLbl, 'displayName asc');
 
         UriBuilder.GetUri(Uri);
@@ -362,6 +362,7 @@ codeunit 2515 "AppSource Product Manager"
         AppSourceProduct.ProductType := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'productType'), 1, MaxStrLen(AppSourceProduct.ProductType));
         AppSourceProduct.Popularity := AppSourceJsonUtilities.GetDecimalValue(Offer, 'popularity');
         AppSourceProduct.LastModifiedDateTime := AppSourceJsonUtilities.GetDateTimeValue(Offer, 'lastModifiedDateTime');
+        AppSourceProduct.ShortDescription := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'shortDescription'), 1, MaxStrLen(AppSourceProduct.ShortDescription));
 
         AppSourceProduct.AppID := ExtractAppIDFromUniqueProductID(AppSourceProduct.UniqueProductID);
 

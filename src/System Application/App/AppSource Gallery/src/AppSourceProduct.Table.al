@@ -64,6 +64,10 @@ table 2515 "AppSource Product"
         {
             Caption = 'Last Modified Date Time';
         }
+        field(15; ShortDescription; Text[250])
+        {
+            Caption = 'Short Description';
+        }
     }
 
     keys

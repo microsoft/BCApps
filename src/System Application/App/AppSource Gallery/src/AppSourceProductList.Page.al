@@ -62,6 +62,10 @@ page 2515 "AppSource Product List"
                     Caption = 'Installed';
                     ToolTip = 'Specifies whether this app is installed.';
                 }
+                field(ShortDescription; Rec.ShortDescription)
+                {
+                    ToolTip = 'Specifies a single sentence summarizing the purpose or function of the offer.';
+                }
                 field(Popularity; Rec.Popularity)
                 {
                     ToolTip = 'Specifies a value from 0-10 indicating the popularity of the offer.';
