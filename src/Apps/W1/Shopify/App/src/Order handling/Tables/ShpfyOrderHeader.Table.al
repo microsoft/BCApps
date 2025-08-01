@@ -549,6 +549,7 @@ table 30118 "Shpfy Order Header"
         field(110; "Presentment Subtotal Amount"; Decimal)
         {
             Caption = 'Presentment Subtotal Amount';
+            ToolTip = 'Specifies the sum of the line amounts on all lines in the document minus any discount amounts in presentment currency.';
             DataClassification = SystemMetadata;
             AutoFormatType = 1;
             AutoFormatExpression = "Presentment Currency Code";
