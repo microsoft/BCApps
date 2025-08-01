@@ -489,6 +489,11 @@ page 30101 "Shpfy Shop Card"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the G/L Account for post the received tip amount.';
                 }
+                field(CashRoundingsAccount; Rec."Cash Roundings Account")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the general ledger account to use when you post cash rounding differences from Shopify POS transactions.';
+                }
                 field(ShopifyOrderNoOnDocLine; Rec."Shopify Order No. on Doc. Line")
                 {
                     ApplicationArea = All;
@@ -500,7 +505,7 @@ page 30101 "Shpfy Shop Card"
                     ApplicationArea = All;
                     ToolTip = 'Specifies whether orders may be created automatically.';
                 }
-                field(AutoReleaseSalesOrders; rec."Auto Release Sales Orders")
+                field(AutoReleaseSalesOrders; Rec."Auto Release Sales Orders")
                 {
                     Caption = 'Auto Release Sales Orders';
                     ApplicationArea = All;
