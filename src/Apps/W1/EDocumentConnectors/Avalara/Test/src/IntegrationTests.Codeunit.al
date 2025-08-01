@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+using System.Utilities;
+
 codeunit 148191 "Integration Tests"
 {
 
