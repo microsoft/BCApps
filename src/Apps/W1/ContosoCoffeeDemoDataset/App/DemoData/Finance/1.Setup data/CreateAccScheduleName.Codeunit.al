@@ -32,10 +32,29 @@ codeunit 5223 "Create Acc. Schedule Name"
     var
         ContosoAccountSchedule: Codeunit "Contoso Account Schedule";
     begin
-        ContosoAccountSchedule.InsertAccScheduleName(CashCycle(), CashCycleDataLbl, '');
-        ContosoAccountSchedule.InsertAccScheduleName(CashFlow(), CashFlowDataLbl, '');
-        ContosoAccountSchedule.InsertAccScheduleName(IncomeExpense(), IncomeExpenseDataLbl, '');
-        ContosoAccountSchedule.InsertAccScheduleName(ReducedTrialBalance(), ReducedTrialBalanceDataLbl, '');
+        ContosoAccountSchedule.InsertAccScheduleName(CashCycle(), CashCycleDataLbl, '', CashCycleInternalDescLbl);
+        ContosoAccountSchedule.InsertAccScheduleName(CashFlow(), CashFlowDataLbl, '', CashFlowInternalDescLbl);
+        ContosoAccountSchedule.InsertAccScheduleName(IncomeExpense(), IncomeExpenseDataLbl, '', IncomeExpenseInternalDescLbl);
+        ContosoAccountSchedule.InsertAccScheduleName(ReducedTrialBalance(), ReducedTrialBalanceDataLbl, '', ReducedTrialBalanceInternalDescLbl);
+    end;
+
+    procedure UpdateInternalDescriptions()
+    var
+        ContosoAccountSchedule: Codeunit "Contoso Account Schedule";
+        BalanceSheetCodeTok: Label 'M-BALANCE', MaxLength = 10;
+        IncomeStmdCodeTok: Label 'M-INCOME', MaxLength = 10;
+        CashFlowCodeTok: Label 'M-CASHFLOW', MaxLength = 10;
+        RetainedEarnCodeTok: Label 'M-RETAIND', MaxLength = 10;
+        InternalDescriptionLbl: Label 'Generated from the G/L Account Categories page.', MaxLength = 250;
+    begin
+        ContosoAccountSchedule.UpdateAccScheduleName(CashCycle(), CashCycleInternalDescLbl);
+        ContosoAccountSchedule.UpdateAccScheduleName(CashFlow(), CashFlowInternalDescLbl);
+        ContosoAccountSchedule.UpdateAccScheduleName(IncomeExpense(), IncomeExpenseInternalDescLbl);
+        ContosoAccountSchedule.UpdateAccScheduleName(ReducedTrialBalance(), ReducedTrialBalanceInternalDescLbl);
+        ContosoAccountSchedule.UpdateAccScheduleName(BalanceSheetCodeTok, InternalDescriptionLbl);
+        ContosoAccountSchedule.UpdateAccScheduleName(IncomeStmdCodeTok, InternalDescriptionLbl);
+        ContosoAccountSchedule.UpdateAccScheduleName(CashFlowCodeTok, InternalDescriptionLbl);
+        ContosoAccountSchedule.UpdateAccScheduleName(RetainedEarnCodeTok, InternalDescriptionLbl);
     end;
 
     procedure AccountCategoriesOverview(): Code[10]
@@ -129,5 +148,9 @@ codeunit 5223 "Create Acc. Schedule Name"
         CashFlowDataLbl: Label 'Data for Cash Flow Chart', MaxLength = 80;
         IncomeExpenseDataLbl: Label 'Data for Income & Expense Chart', MaxLength = 80;
         ReducedTrialBalanceDataLbl: Label 'Data for Reduced Trial Balance Info Part', MaxLength = 80;
+        CashCycleInternalDescLbl: Label 'Used for generating data for the Cash Cycle Chart.', MaxLength = 250;
+        CashFlowInternalDescLbl: Label 'Used for generating data for the Cash Flow Chart.', MaxLength = 250;
+        IncomeExpenseInternalDescLbl: Label 'Used for generating data for the Income & Expense Chart.', MaxLength = 250;
+        ReducedTrialBalanceInternalDescLbl: Label 'Used for generating data for the Reduced Trial Balance Info Part.', MaxLength = 250;
         RevenuesLbl: Label 'Revenues', MaxLength = 80;
 }

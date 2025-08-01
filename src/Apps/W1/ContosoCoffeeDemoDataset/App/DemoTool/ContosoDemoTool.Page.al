@@ -5,6 +5,7 @@
 
 namespace Microsoft.DemoTool;
 
+using Microsoft.DemoData.Finance;
 using System.Telemetry;
 
 page 5194 "Contoso Demo Tool"
@@ -86,6 +87,27 @@ page 5194 "Contoso Demo Tool"
                         FeatureTelemetry.LogUsage('0000L01', ContosoCoffeeDemoDatasetFeatureNameTok, 'Contoso demo Data generated for Setup');
                     end;
                 }
+                action(UpdateInternalDescriptions)
+                {
+                    Caption = 'Update Internal Descriptions';
+                    ToolTip = 'Update internal definitions for financial report defintions in the existing demo company.';
+                    Image = Create;
+
+                    trigger OnAction()
+                    var
+                        CreateColumnLayoutName: Codeunit "Create Column Layout Name";
+                        CreateAccScheduleName: Codeunit "Create Acc. Schedule Name";
+                        UpdateNewColumnDefinitionsMsg: Label 'Would you like to update internal descriptions for financial report definitions in the existing demo company?';
+                    begin
+                        Rec.TestField(Module, Rec.Module::Finance);
+                        Rec.TestField("Data Level", Rec."Data Level"::All);
+
+                        if not Confirm(UpdateNewColumnDefinitionsMsg) then
+                            exit;
+
+                        CreateAccScheduleName.UpdateInternalDescriptions();
+                    end;
+                }
             }
             action(Configuration)
             {
@@ -115,6 +137,7 @@ page 5194 "Contoso Demo Tool"
             }
 
             actionref(Configuration_Promoted; Configuration) { }
+            actionref(UpdateInternalDescriptions_Promoted; UpdateInternalDescriptions) { }
         }
     }
 
