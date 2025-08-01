@@ -226,6 +226,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                                     SalesLine.Validate("No.", RefundLine."Item No.");
                                     if RefundLine."Unit of Measure Code" <> '' then
                                         SalesLine.Validate("Unit of Measure Code", RefundLine."Unit of Measure Code");
+
                                     if RefundLine."Variant Code" <> '' then
                                         SalesLine.Validate("Variant Code", RefundLine."Variant Code");
 
@@ -305,6 +306,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                 SalesLine.Validate("No.", ReturnLine."Item No.");
                 if ReturnLine."Unit of Measure Code" <> '' then
                     SalesLine.Validate("Unit of Measure Code", ReturnLine."Unit of Measure Code");
+
                 if ReturnLine."Variant Code" <> '' then
                     SalesLine.Validate("Variant Code", ReturnLine."Variant Code");
 
