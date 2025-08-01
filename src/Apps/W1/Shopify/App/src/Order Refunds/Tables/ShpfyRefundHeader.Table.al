@@ -53,7 +53,6 @@ table 30142 "Shpfy Refund Header"
             Editable = false;
             AutoFormatType = 1;
             AutoFormatExpression = OrderCurrencyCode();
-
         }
         field(7; "Pres. Tot. Refunded Amount"; Decimal)
         {

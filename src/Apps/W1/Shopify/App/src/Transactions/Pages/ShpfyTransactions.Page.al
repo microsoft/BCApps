@@ -66,7 +66,6 @@ page 30134 "Shpfy Transactions"
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = All;
-                    Caption = 'Amount';
                     ToolTip = 'Specifies the amount of money included in the transaction.';
                 }
                 field(Currency; Rec.Currency)

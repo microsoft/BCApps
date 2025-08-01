@@ -46,25 +46,21 @@ page 30128 "Shpfy Order Shipping Charges"
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = All;
-                    Caption = 'Amount';
                     ToolTip = 'Specifies the shipping cost amount.';
                 }
                 field(PresentmentAmount; Rec."Presentment Amount")
                 {
                     ApplicationArea = All;
-                    Caption = 'Presentment Amount';
                     Visible = this.PresentmentCurrencyVisible;
                 }
                 field("Discount Amount"; Rec."Discount Amount")
                 {
                     ApplicationArea = All;
-                    Caption = 'Discount Amount';
                     ToolTip = 'Specifies the shipping cost discount amount.';
                 }
                 field("Presentment Discount Amount"; Rec."Presentment Discount Amount")
                 {
                     ApplicationArea = All;
-                    Caption = 'Presentment Discount Amount';
                     Visible = this.PresentmentCurrencyVisible;
                 }
                 field(Source; Rec.Source)
