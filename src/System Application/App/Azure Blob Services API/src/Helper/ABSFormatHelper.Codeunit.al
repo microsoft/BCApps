@@ -214,7 +214,7 @@ codeunit 9044 "ABS Format Helper"
         NewDateTime := 0DT;
         // PropertyValue is something like the following: 'Mon, 24 May 2021 12:25:27 GMT'
         // 'Evaluate' converts these correctly
-        Evaluate(NewDateTime, PropertyValue);
+        if Evaluate(NewDateTime, PropertyValue) then;
         exit(NewDateTime);
     end;
 
