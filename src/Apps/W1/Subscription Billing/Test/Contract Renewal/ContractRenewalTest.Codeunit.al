@@ -11,6 +11,7 @@ using Microsoft.Purchases.Vendor;
 codeunit 139692 "Contract Renewal Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 

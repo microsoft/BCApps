@@ -16,6 +16,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 codeunit 139913 "Vendor Deferrals Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 
