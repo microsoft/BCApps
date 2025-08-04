@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'App' or '$(Configuration)' == 'All'">
+    <PackageReference Include="Microsoft.Application" />
+    <PackageReference Include="Microsoft.PowerBIReports.e4e86220-cac0-4ec3-b853-7c2fa610399d" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Test' or '$(Configuration)' == 'All'">
+    <PackageReference Include="Microsoft.Tests-TestLibraries.5d86850b-0d76-4eca-bd7b-951ad998e997" />
+    <PackageReference Include="Microsoft.ContosoCoffeeDemoDataset.5a0b41e9-7a42-4123-d521-2265186cfb31" />
+  </ItemGroup>
+</Project>
