@@ -1,10 +1,9 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'parameters', Justification = 'The parameter is not used, but the script needs to match this format')]
 Param(
     [hashtable] $parameters,
-    [string] $configuration
+    [string[]] $dependenciesToInstall = @()
 )
 
-<#
 Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
 
 # Step 1: If the app is published to the container then we can install it from there
@@ -13,29 +12,4 @@ $remainingDependenciesToInstall = Install-AppFromContainer -ContainerName $conta
 # Step 2: If the app is not published to the container then we need to install it from the file system
 foreach ($dependency in $remainingDependenciesToInstall) {
     Install-AppFromFile -ContainerName $containerName -AppName $dependency
-}
-#>
-
-Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
-
-$baseFolder = Get-BaseFolder
-$outFolder = Join-Path $baseFolder 'NugetCache'
-$projectFolder = (Join-Path $baseFolder 'build\projects\Apps (W1)\.AL-Go\')
-
-Write-Host "Restoring dependencies for configuration: $configuration"
-
-Write-Host "dotnet restore $(Join-Path $baseFolder 'build\projects\Apps (W1)\.AL-Go\') -p:Configuration=$configuration --packages $outFolder"
-dotnet restore "$projectFolder" -p:Configuration=$configuration --packages "$outFolder"
-# Get all .app files under the out directory
-$AppFiles = Get-ChildItem -Path $outFolder -Filter '*.app' -Recurse | Select-Object -ExpandProperty FullName
-
-if ($AppFiles) {
-    Write-Host "Found $(($AppFiles | Measure-Object).Count) .app files in $outFolder"
-    $AppFiles = Sort-AppFilesByDependencies -appFiles $appfiles
-    foreach($AppFilePath in $AppFiles) {
-        Write-Host "Publishing app: $AppFilePath"
-        #Publish-BcContainerApp -containerName $ContainerName -appFile "$($AppFilePath)" -skipVerification -scope Global -install -sync
-    }
-} else {
-    Write-Host "No .app files found in $outFolder"
 }
