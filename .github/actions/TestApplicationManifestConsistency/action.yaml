@@ -1,0 +1,13 @@
+name: Test Application Manifest Consistency
+author: Microsoft Corporation
+description: Verifies the consistency of application manifests in the repository.
+runs:
+  using: composite
+  steps:
+    - name: Test Application Manifest Consistency
+      shell: pwsh
+      run: |
+        ${{ github.action_path }}/action.ps1
+branding:
+  icon: terminal
+  color: blue
