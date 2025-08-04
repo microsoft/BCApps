@@ -23,11 +23,18 @@ $outFolder = Join-Path $baseFolder 'out'
 
 Write-Host "Restoring dependencies for configuration: $configuration"
 
+Write-Host "dotnet restore $(Join-Path $baseFolder 'build\projects\Apps (W1)\.AL-Go\') -p:Configuration=$configuration --packages $outFolder"
 dotnet restore (Join-Path $baseFolder 'build\projects\Apps (W1)\.AL-Go\') -p:Configuration=$configuration --packages $outFolder
 # Get all .app files under the out directory
 $AppFiles = Get-ChildItem -Path $outFolder -Filter '*.app' -Recurse | Select-Object -ExpandProperty FullName
 
-foreach($AppFilePath in $AppFiles) {
-    Write-Host "Publishing app: $AppFilePath"
-    Publish-BcContainerApp -containerName $ContainerName -appFile "$($AppFilePath)" -skipVerification -scope Global -install -sync
+if ($AppFiles) {
+    Write-Host "Found $(($AppFiles | Measure-Object).Count) .app files in $outFolder"
+    $AppFiles = Sort-AppFilesByDependencies -appFiles $appfiles
+    foreach($AppFilePath in $AppFiles) {
+        Write-Host "Publishing app: $AppFilePath"
+        Publish-BcContainerApp -containerName $ContainerName -appFile "$($AppFilePath)" -skipVerification -scope Global -install -sync
+    }
+} else {
+    Write-Host "No .app files found in $outFolder"
 }
