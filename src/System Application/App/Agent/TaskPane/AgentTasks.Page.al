@@ -100,7 +100,7 @@ page 4306 "Agent Tasks"
             {
                 Caption = 'Stop task';
                 ToolTip = 'Stops the task.';
-                Enabled = true;
+                Enabled = TaskSelected;
                 Scope = Repeater;
                 trigger OnAction()
                 var
@@ -116,7 +116,7 @@ page 4306 "Agent Tasks"
 
     trigger OnAfterGetCurrRecord()
     begin
-
+        TaskSelected := Rec."Task ID" <> 0;
     end;
 
     trigger OnAfterGetRecord()
