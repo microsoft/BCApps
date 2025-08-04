@@ -19,12 +19,13 @@ foreach ($dependency in $remainingDependenciesToInstall) {
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
 $baseFolder = Get-BaseFolder
-$outFolder = Join-Path $baseFolder 'out'
+$outFolder = Join-Path $baseFolder 'NugetCache'
+$projectFolder = (Join-Path $baseFolder 'build\projects\Apps (W1)\.AL-Go\')
 
 Write-Host "Restoring dependencies for configuration: $configuration"
 
 Write-Host "dotnet restore $(Join-Path $baseFolder 'build\projects\Apps (W1)\.AL-Go\') -p:Configuration=$configuration --packages $outFolder"
-dotnet restore (Join-Path $baseFolder 'build\projects\Apps (W1)\.AL-Go\') -p:Configuration=$configuration --packages $outFolder
+dotnet restore "$projectFolder" -p:Configuration=$configuration --packages "$outFolder"
 # Get all .app files under the out directory
 $AppFiles = Get-ChildItem -Path $outFolder -Filter '*.app' -Recurse | Select-Object -ExpandProperty FullName
 
@@ -33,7 +34,7 @@ if ($AppFiles) {
     $AppFiles = Sort-AppFilesByDependencies -appFiles $appfiles
     foreach($AppFilePath in $AppFiles) {
         Write-Host "Publishing app: $AppFilePath"
-        Publish-BcContainerApp -containerName $ContainerName -appFile "$($AppFilePath)" -skipVerification -scope Global -install -sync
+        #Publish-BcContainerApp -containerName $ContainerName -appFile "$($AppFilePath)" -skipVerification -scope Global -install -sync
     }
 } else {
     Write-Host "No .app files found in $outFolder"
