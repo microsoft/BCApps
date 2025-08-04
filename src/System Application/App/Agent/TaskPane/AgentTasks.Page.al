@@ -114,6 +114,11 @@ page 4306 "Agent Tasks"
         }
     }
 
+    trigger OnAfterGetCurrRecord()
+    begin
+
+    end;
+
     trigger OnAfterGetRecord()
     begin
         SetTaskDetails();
@@ -146,5 +151,7 @@ page 4306 "Agent Tasks"
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         TaskSummary: BigText;
         GlobalCreatedBy: Text[250];
+
+        TaskSelected: Boolean;
 }
 
