@@ -36,5 +36,5 @@
       }
     }
   ],
-  "useProjectDependencies": false
+  "useProjectDependencies": true
 }
