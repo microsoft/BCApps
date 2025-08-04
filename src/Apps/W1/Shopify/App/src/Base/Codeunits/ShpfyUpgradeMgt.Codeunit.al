@@ -440,11 +440,8 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         if UpgradeTag.HasUpgradeTag(GetArchiveProcessedOrdersUpgradeTag()) then
             exit;
 
-        if Shop.FindSet(true) then
-            repeat
-                Shop."Archive Processed Orders" := true;
-                Shop.Modify();
-            until Shop.Next() = 0;
+        if not Shop.IsEmpty() then
+            Shop.ModifyAll("Archive Processed Orders", true);
 
         UpgradeTag.SetUpgradeTag(GetArchiveProcessedOrdersUpgradeTag());
     end;
