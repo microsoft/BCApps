@@ -809,4 +809,56 @@ codeunit 30189 "Shpfy Variant API"
             if JsonHelper.GetJsonArray(JNode, JMetafields, 'edges') then
                 MetafieldAPI.UpdateMetafieldsFromShopify(JMetafields, Database::"Shpfy Variant", ShopifyVariant.Id);
     end;
+
+    /// <summary>
+    /// Check if Shopify Variant Image Exists.
+    /// </summary>
+    /// <param name="VariantId">Parameter of type BigInteger.</param>
+    /// <returns>Return value of type Boolean.</returns>
+    internal procedure CheckShopifyVariantImageExists(VariantId: BigInteger): Boolean
+    var
+        Parameters: Dictionary of [Text, Text];
+        GraphQLType: Enum "Shpfy GraphQL Type";
+        JMedias: JsonArray;
+        JResponse: JsonToken;
+    begin
+        Parameters.Add('VariantId', Format(VariantId));
+        JResponse := this.CommunicationMgt.ExecuteGraphQL(GraphQLType::GetVariantImage, Parameters);
+        if this.JsonHelper.GetJsonArray(JResponse, JMedias, 'data.productVariant.media.edges') then
+            if JMedias.Count = 1 then
+                exit(true);
+    end;
+
+
+    /// <summary>
+    /// Set Variant Image.
+    /// </summary>
+    /// <param name="ShopifyVariant">Parameter of type Record "Shpfy Variant".
+    /// <param name="ImageId">Parameter of type BigInteger.</param>
+    /// </param>
+    /// <param name="ImageId">Parameter of type BigInteger.</param>
+    internal procedure SetVariantImage(ShopifyVariant: Record "Shpfy Variant"; ResourceUrl: Text): BigInteger
+    var
+        Parameters: Dictionary of [Text, Text];
+        JResponse: JsonToken;
+        JArray: JsonArray;
+    begin
+        Parameters.Add('ProductId', Format(ShopifyVariant."Product Id"));
+        Parameters.Add('VariantId', Format(ShopifyVariant.Id));
+        Parameters.Add('ResourceUrl', ResourceUrl);
+        JResponse := this.CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::AddVariantImage, Parameters);
+
+        if not this.JsonHelper.GetJsonArray(JResponse, JArray, 'data.productVariantsBulkUpdate.productVariants') then
+            exit;
+        if JArray.Count <> 1 then
+            exit;
+        if not JArray.Get(0, JResponse) then
+            exit;
+        if not this.JsonHelper.GetJsonArray(JResponse, JArray, 'media.edges') then
+            exit;
+        if JArray.Count <> 1 then
+            exit;
+        if JArray.Get(0, JResponse) then
+            exit(this.CommunicationMgt.GetIdOfGId(this.JsonHelper.GetValueAsText(JResponse, 'node.id')));
+    end;
 }

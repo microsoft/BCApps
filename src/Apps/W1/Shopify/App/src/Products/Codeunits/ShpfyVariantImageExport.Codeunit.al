@@ -1,0 +1,114 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Integration.Shopify;
+
+using Microsoft.Inventory.Item;
+using System.Environment;
+
+/// <summary>
+/// Codeunit Shpfy Variant Image Export (ID 30403).
+/// </summary>
+codeunit 30403 "Shpfy Variant Image Export"
+{
+    Access = Internal;
+    Permissions = tabledata Item = r;
+    TableNo = "Shpfy Variant";
+
+    trigger OnRun()
+    var
+        ItemVariant: Record "Item Variant";
+        TenantMedia: Record "Tenant Media";
+        HashCalc: Codeunit "Shpfy Hash";
+        NewImageId: BigInteger;
+        Hash: Integer;
+        ImageExists: Boolean;
+        JRequest: JsonObject;
+        ResourceUrl: Text;
+    begin
+        if this.Shop."Sync Item Images" <> this.Shop."Sync Item Images"::"To Shopify" then
+            exit;
+
+        if Rec."Item SystemId" <> this.NullGuid then
+            if ItemVariant.GetBySystemId(Rec."Item Variant SystemId") then
+                Hash := HashCalc.CalcItemVariantImageHash(ItemVariant);
+
+        if (Hash = Rec."Image Hash") then
+            exit;
+
+        if Rec."Image Id" <> 0 then begin
+            ImageExists := this.VariantApi.CheckShopifyVariantImageExists(Rec.Id);
+            if not ImageExists then
+                Rec."Image Id" := 0;
+        end;
+
+        if not ImageExists then begin
+            if ItemVariant.Picture.Count > 0 then
+                if Rec."Image Id" = 0 then
+                    if TenantMedia.Get(ItemVariant.Picture.Item(1)) then begin
+                        this.ProductApi.UploadShopifyImage(TenantMedia, ResourceUrl);
+                        NewImageId := this.VariantApi.SetVariantImage(Rec, ResourceUrl);
+                    end;
+
+            if NewImageId <> Rec."Image Id" then
+                Rec."Image Id" := NewImageId;
+            Rec."Image Hash" := Hash;
+            Rec.Modify();
+        end else begin
+            if ItemVariant.Picture.Count > 0 then
+                if Rec."Image Id" > 0 then
+                    if TenantMedia.Get(ItemVariant.Picture.Item(1)) then
+                        this.ProductApi.UpdateShopifyProductImage(Rec."Product Id", Rec."Image Id", TenantMedia, this.BulkOperationInput, this.ParametersList, this.CurrRecordCount);
+            JRequest.Add('id', Rec.Id);
+            JRequest.Add('imageHash', Rec."Image Hash");
+            this.JRequestData.Add(JRequest);
+            Rec."Image Hash" := Hash;
+            Rec.Modify();
+        end;
+    end;
+
+    var
+        Shop: Record "Shpfy Shop";
+        ProductApi: Codeunit "Shpfy Product API";
+        VariantApi: Codeunit "Shpfy Variant API";
+        CurrRecordCount: Integer;
+        NullGuid: Guid;
+        ParametersList: List of [Dictionary of [Text, Text]];
+        BulkOperationInput: TextBuilder;
+        JRequestData: JsonArray;
+
+    /// <summary> 
+    /// Set Shop.
+    /// </summary>
+    /// <param name="Code">Parameter of type Code[20].</param>
+    internal procedure SetShop(Code: Code[20])
+    begin
+        if (this.Shop.Code <> Code) then begin
+            Clear(this.Shop);
+            this.Shop.Get(Code);
+            this.SetShop(this.Shop);
+        end;
+    end;
+
+    /// <summary> 
+    /// Set Shop.
+    /// </summary>
+    /// <param name="ShopifyShop">Parameter of type Record "Shopify Shop".</param>
+    internal procedure SetShop(ShopifyShop: Record "Shpfy Shop")
+    begin
+        this.Shop := ShopifyShop;
+        this.ProductApi.SetShop(this.Shop);
+        this.VariantApi.SetShop(this.Shop);
+    end;
+
+    /// <summary>
+    /// Set Record Count.
+    /// </summary>
+    /// <param name="RecordCount">Parameter of type Integer.</param>
+    internal procedure SetRecordCount(RecordCount: Integer)
+    begin
+        this.CurrRecordCount := RecordCount;
+    end;
+}
