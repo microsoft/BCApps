@@ -20,6 +20,7 @@ using Microsoft.Pricing.PriceList;
 codeunit 148157 "Service Object Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     Access = Internal;
 
     var

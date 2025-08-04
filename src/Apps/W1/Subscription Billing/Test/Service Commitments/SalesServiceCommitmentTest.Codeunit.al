@@ -29,6 +29,7 @@ using System.TestLibraries.Utilities;
 codeunit 139915 "Sales Service Commitment Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     Access = Internal;
 
     var
