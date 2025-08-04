@@ -8,7 +8,8 @@
         "Sustainability",
         "Power BI Report embeddings for Dynamics 365 Business Central",
         "E-Document Core",
-        "E-Document Connector - Pagero"
+        "E-Document Connector - Pagero",
+        "E-Document Connector - Avalara"
     ],
     "ExternalTestAppDependencies": [
         "Test Runner",
@@ -22,6 +23,7 @@
         "Tests-TestLibraries",
         "Contoso Coffee Demo Dataset",
         "E-Document Core Tests",
-        "E-Document Connector - Pagero Tests"
+        "E-Document Connector - Pagero Tests",
+        "E-Document Connector - Avalara Tests"
     ]
 }
