@@ -101,6 +101,8 @@ codeunit 148191 "Integration Tests"
         Assert.AreEqual('', EDocumentPage.ErrorMessagesPart."Message Type".Value(), IncorrectValueErr);
         Assert.AreEqual('', EDocumentPage.ErrorMessagesPart.Description.Value(), IncorrectValueErr);
         EDocumentPage.Close();
+
+        TearDown();
     end;
 
     [Test]
@@ -215,6 +217,8 @@ codeunit 148191 "Integration Tests"
         Assert.AreEqual('', EDocumentPage.ErrorMessagesPart."Message Type".Value(), IncorrectValueErr);
         Assert.AreEqual('', EDocumentPage.ErrorMessagesPart.Description.Value(), IncorrectValueErr);
         EDocumentPage.Close();
+
+        TearDown();
     end;
 
     [Test]
@@ -377,6 +381,8 @@ codeunit 148191 "Integration Tests"
         Assert.AreEqual('', EDocumentPage.ErrorMessagesPart."Message Type".Value(), IncorrectValueErr);
         Assert.AreEqual('', EDocumentPage.ErrorMessagesPart.Description.Value(), IncorrectValueErr);
         EDocumentPage.Close();
+
+        TearDown();
     end;
 
     [Test]
@@ -422,6 +428,8 @@ codeunit 148191 "Integration Tests"
         // [THEN] E-Document Errors and Warnings has correct status
         Assert.AreEqual('Error', EDocumentPage.ErrorMessagesPart."Message Type".Value(), IncorrectValueErr);
         Assert.AreEqual('Error Code: 500, Error Message: The HTTP request is not successful. An internal server error occurred.', EDocumentPage.ErrorMessagesPart.Description.Value(), IncorrectValueErr);
+
+        TearDown();
     end;
 
     [Test]
@@ -467,6 +475,8 @@ codeunit 148191 "Integration Tests"
         EDocument.FindLast();
         PurchaseHeader.Get(EDocument."Document Record ID");
         Assert.AreEqual(Vendor."No.", PurchaseHeader."Buy-from Vendor No.", 'Wrong Vendor');
+
+        TearDown();
     end;
 
     [Test]
@@ -496,6 +506,8 @@ codeunit 148191 "Integration Tests"
         ConnectionSetup.Get();
         Assert.AreEqual('610f55f3-76b6-42eb-a697-2b0b2e02a5bf', ConnectionSetup."Company Id", 'Has to be empty before selecting company');
         Assert.AreEqual('MS Business Central Ltd - ELR SBX', ConnectionSetup."Company Name", 'Has to be empty before selecting company');
+
+        TearDown();
     end;
 
     local procedure VerifyOutboundFactboxValuesForSingleService(EDocument: Record "E-Document"; Status: Enum "E-Document Service Status"; Logs: Integer);
@@ -538,6 +550,11 @@ codeunit 148191 "Integration Tests"
         ConnectionSetup."Client Secret - Key" := KeyGuid;
         ConnectionSetup.Modify(true);
 
+        CompanyInformation.Get();
+        OriginalVATNumber := CompanyInformation."VAT Registration No.";
+        CompanyInformation."VAT Registration No." := 'GB777777771';
+        CompanyInformation.Modify();
+
         if IsInitialized then
             exit;
 
@@ -555,12 +572,10 @@ codeunit 148191 "Integration Tests"
         Vendor."Receive E-Document To" := Enum::"E-Document Type"::"Purchase Invoice";
         Vendor.Modify();
 
-        CompanyInformation.Get();
-        CompanyInformation."VAT Registration No." := 'GB777777771';
-        CompanyInformation.Modify();
-
         IsInitialized := true;
     end;
+
+
 
     local procedure SetCompanyIdInConnectionSetup(Id: Text[100]; Name: Text[100])
     var
@@ -640,6 +655,15 @@ codeunit 148191 "Integration Tests"
         end;
     end;
 
+    local procedure TearDown()
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        CompanyInformation.Get();
+        CompanyInformation."VAT Registration No." := OriginalVATNumber;
+        CompanyInformation.Modify();
+    end;
+
     [HttpClientHandler]
     internal procedure ServiceDownHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
@@ -680,6 +704,7 @@ codeunit 148191 "Integration Tests"
     var
         Customer: Record Customer;
         Vendor: Record Vendor;
+        OriginalVATNumber: Text;
         EDocumentService: Record "E-Document Service";
         LibraryEDocument: Codeunit "Library - E-Document";
         LibraryPermission: Codeunit "Library - Lower Permissions";
