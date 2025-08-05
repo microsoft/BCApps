@@ -522,9 +522,9 @@ codeunit 7774 "Copilot Capability Impl"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetCopilotCapabilityInfo, '', false, false)]
     local procedure GetCopilotCapabilityInfo(Capability: Integer; AppId: Guid; var CapabilityInfo: JsonObject)
     var
+        CopilotSettings: Record "Copilot Settings";
         AzureOpenAI: Codeunit "Azure OpenAI";
         CopilotCapability: Enum "Copilot Capability";
-        CopilotSettings: Record "Copilot Settings";
         LearnMoreUrlLbl: Label 'learnMoreUrl', Locked = true;
         IsEnabledLbl: Label 'isEnabled', Locked = true;
         IsPreviewLbl: Label 'isPreview', Locked = true;
