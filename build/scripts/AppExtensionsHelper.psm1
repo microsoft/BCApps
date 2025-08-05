@@ -287,14 +287,24 @@ function Get-ExternalDependencies() {
 
     $nugetCache = Join-Path (Get-BaseFolder) "NugetCache"
     $dependencies = @()
-    Push-Location (Get-BaseFolder)
+
+    # Debugging - Print the current path and files in the path
+    Write-Host "Current path: $(Get-Location)"
+    Get-ChildItem -Path (Get-Location) | ForEach-Object {
+        Write-Host "- $($_.Name)"
+    }
+    # Debugging end
+
     try {
         if ($AppDependencies) {
-            dotnet restore ".\build\projects\Apps (W1)\.AL-Go\" -p:Configuration=App --packages $nugetCache
+            dotnet restore -p:Configuration=App --packages "$nugetCache"
         } elseif ($TestAppDependencies) {
-            dotnet restore ".\build\projects\Apps (W1)\.AL-Go\" -p:Configuration=Test --packages $nugetCache
+            dotnet restore -p:Configuration=Test --packages "$nugetCache"
         } else {
-            dotnet restore ".\build\projects\Apps (W1)\.AL-Go\" -p:Configuration=All --packages $nugetCache
+            dotnet restore -p:Configuration=All --packages "$nugetCache"
+        }
+        if ($LASTEXITCODE -ne 0) {
+            throw "Failed to restore dependencies. Please check the output for errors."
         }
 
         $appFiles = Get-ChildItem -Path $nugetCache -Filter "*.app" -Recurse | Select-Object -ExpandProperty FullName
@@ -302,7 +312,6 @@ function Get-ExternalDependencies() {
 
         $dependencies = $sortedAppFiles | ForEach-Object { Get-BcContainerAppInfo -appFilePath $_ -containerName $ContainerName } | Select-Object -ExpandProperty Name
     } finally {
-        Pop-Location
         # Clean up the out folder
         Remove-Item -Path $nugetCache -Recurse -Force -ErrorAction SilentlyContinue
     }
