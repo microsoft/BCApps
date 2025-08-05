@@ -527,6 +527,11 @@ page 30101 "Shpfy Shop Card"
                     ToolTip = 'Specifies if Business Central document no. is synchronized to Shopify as order attribute.';
                     Enabled = Rec."Allow Outgoing Requests" or Rec."Order Attributes To Shopify";
                 }
+                field(ArchiveProcessOrders; Rec."Archive Processed Orders")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether Shopify orders are automatically archived when they are paid, fulfilled, and have associated sales documents with all lines shipped.';
+                }
                 field("Posted Invoice Sync"; Rec."Posted Invoice Sync")
                 {
                     ApplicationArea = All;
