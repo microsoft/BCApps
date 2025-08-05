@@ -287,6 +287,7 @@ function Get-ExternalDependencies() {
 
     $nugetCache = Join-Path (Get-BaseFolder) "NugetCache"
     $dependencies = @()
+    Push-Location (Get-BaseFolder)
     try {
         if ($AppDependencies) {
             dotnet restore ".\build\projects\Apps (W1)\.AL-Go\" -p:Configuration=App --packages $nugetCache
@@ -301,6 +302,7 @@ function Get-ExternalDependencies() {
 
         $dependencies = $sortedAppFiles | ForEach-Object { Get-BcContainerAppInfo -appFilePath $_ -containerName $ContainerName } | Select-Object -ExpandProperty Name
     } finally {
+        Pop-Location
         # Clean up the out folder
         Remove-Item -Path $nugetCache -Recurse -Force -ErrorAction SilentlyContinue
     }
