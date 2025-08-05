@@ -149,9 +149,9 @@ page 4300 "Agent Task List"
 
         area(Navigation)
         {
-            action(Agent)
+            action(AgentSetup)
             {
-                Caption = 'Agent';
+                Caption = 'Agent setup';
                 ToolTip = 'Opens the agent card page for the agent who has been assigned the selected task.';
                 Image = Setup;
                 Enabled = TaskSelected;
