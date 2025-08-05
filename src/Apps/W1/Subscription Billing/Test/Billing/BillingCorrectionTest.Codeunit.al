@@ -9,6 +9,7 @@ using Microsoft.Purchases.History;
 codeunit 139686 "Billing Correction Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 

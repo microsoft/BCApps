@@ -115,9 +115,9 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                 SalesHeader."Ship-to County" := CopyStr(OrderHeader."Ship-to County", 1, MaxStrLen(SalesHeader."Ship-to County"));
                 SalesHeader."Ship-to Contact" := OrderHeader."Ship-to Contact Name";
                 SalesHeader."Prices Including VAT" := OrderHeader."VAT Included";
-                case Order."Processed Currency Handling" of
+                case this.Order."Processed Currency Handling" of
                     "Shpfy Currency Handling"::"Shop Currency":
-                        SalesHeader.Validate("Currency Code", Shop."Currency Code");
+                        SalesHeader.Validate("Currency Code", this.Shop."Currency Code");
                     "Shpfy Currency Handling"::"Presentment Currency":
                         SalesHeader.Validate("Currency Code", OrderHeader."Presentment Currency Code");
                 end;
@@ -227,7 +227,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
 
                                 end;
                             SalesLine.Validate(Quantity, RefundLine.Quantity);
-                            case Shop."Currency Handling" of
+                            case this.Shop."Currency Handling" of
                                 "Shpfy Currency Handling"::"Shop Currency":
                                     begin
                                         SalesLine.Validate("Unit Price", RefundLine.Amount);
@@ -273,9 +273,9 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                         SalesLine.Insert(true);
 
                         SalesLine.Validate(Type, "Sales Line Type"::"G/L Account");
-                        SalesLine.Validate("No.", Shop."Refund Account");
+                        SalesLine.Validate("No.", this.Shop."Refund Account");
                         SalesLine.Validate(Quantity, 1);
-                        case Shop."Currency Handling" of
+                        case this.Shop."Currency Handling" of
                             "Shpfy Currency Handling"::"Shop Currency":
                                 SalesLine.Validate("Unit Price", RefundLine."Subtotal Amount");
                             "Shpfy Currency Handling"::"Presentment Currency":
@@ -449,22 +449,21 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
         OrderHeader.Get(RefundHeader."Order Id");
         case OrderHeader."Processed Currency Handling" of
             "Shpfy Currency Handling"::"Shop Currency":
-                exit(this.CreateRoundingLine(SalesHeader, LineNo, OrderHeader."Payment Rounding Amount", OrderHeader."Refund Rounding Amount"));
+                exit(this.CreateRoundingLine(SalesHeader, LineNo, OrderHeader."Refund Rounding Amount"));
             "Shpfy Currency Handling"::"Presentment Currency":
-                exit(this.CreateRoundingLine(SalesHeader, LineNo, OrderHeader."Pres. Payment Rounding Amount", OrderHeader."Pres. Refund Rounding Amount"));
+                exit(this.CreateRoundingLine(SalesHeader, LineNo, OrderHeader."Pres. Refund Rounding Amount"));
         end;
     end;
 
     local procedure CreateRoundingLine(
         SalesHeader: Record "Sales Header";
         var LineNo: Integer;
-        PaymentRoundingAmount: Decimal;
         RefundRoundingAmount: Decimal): Decimal
     var
         SalesLine: Record "Sales Line";
         CashRoundingLbl: Label 'Cash rounding';
     begin
-        if PaymentRoundingAmount <> 0 then begin
+        if RefundRoundingAmount <> 0 then begin
             LineNo += 10000;
             SalesLine.Init();
             SalesLine.SetHideValidationDialog(true);
@@ -474,7 +473,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
             SalesLine.Insert(true);
 
             SalesLine.Validate(Type, SalesLine.Type::"G/L Account");
-            SalesLine.Validate("No.", Shop."Refund Account");
+            SalesLine.Validate("No.", Shop."Cash Roundings Account");
             SalesLine.Validate(Quantity, 1);
             SalesLine.Validate("Unit Price", RefundRoundingAmount);
             SalesLine.Validate(Description, CashRoundingLbl);

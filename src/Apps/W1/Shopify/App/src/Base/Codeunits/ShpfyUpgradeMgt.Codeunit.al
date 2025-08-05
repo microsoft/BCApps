@@ -38,6 +38,7 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         SendShippingConfirmationUpgrade();
         OrderAttributeValueUpgrade();
         CreditMemoCanBeCreatedUpgrade();
+        ArchiveProcessedOrdersUpgrade();
     end;
 
     internal procedure UpgradeTemplatesData()
@@ -431,6 +432,20 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         WebhookSubscription.Delete();
     end;
 
+    local procedure ArchiveProcessedOrdersUpgrade()
+    var
+        Shop: Record "Shpfy Shop";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetArchiveProcessedOrdersUpgradeTag()) then
+            exit;
+
+        if not Shop.IsEmpty() then
+            Shop.ModifyAll("Archive Processed Orders", true);
+
+        UpgradeTag.SetUpgradeTag(GetArchiveProcessedOrdersUpgradeTag());
+    end;
+
     internal procedure GetAllowOutgoingRequestseUpgradeTag(): Code[250]
     begin
         exit('MS-445989-AllowOutgoingRequestseUpgradeTag-20220816');
@@ -486,6 +501,11 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         exit('MS-574620-WebHookSubscriptionUpgradeTag-20250419');
     end;
 
+    local procedure GetArchiveProcessedOrdersUpgradeTag(): Code[250]
+    begin
+        exit('MS-593841-ArchiveProcessedOrdersUpgradeTag-20250731');
+    end;
+
     local procedure GetDateBeforeFeature(): DateTime
     begin
         exit(CreateDateTime(DMY2Date(1, 8, 2022), 0T));
@@ -501,5 +521,6 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         PerCompanyUpgradeTags.Add(GetLoggingModeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetLocationUpgradeTag());
         PerCompanyUpgradeTags.Add(GetSyncPricesWithProductsUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetArchiveProcessedOrdersUpgradeTag());
     end;
 }

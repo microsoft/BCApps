@@ -6,6 +6,7 @@ using Microsoft.Sales.Customer;
 codeunit 139916 "Service Comm. Archive Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     Access = Internal;
 
     var

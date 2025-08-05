@@ -11,6 +11,7 @@ using Microsoft.Purchases.Document;
 codeunit 148154 "Vendor Contracts Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 

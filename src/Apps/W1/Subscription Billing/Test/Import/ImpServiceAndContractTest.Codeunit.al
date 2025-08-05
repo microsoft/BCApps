@@ -9,6 +9,7 @@ using Microsoft.Purchases.Vendor;
 codeunit 139914 "Imp. Service And Contract Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     Access = Internal;
 
     var

@@ -489,6 +489,11 @@ page 30101 "Shpfy Shop Card"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the G/L Account for post the received tip amount.';
                 }
+                field(CashRoundingsAccount; Rec."Cash Roundings Account")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the general ledger account to use when you post cash rounding differences from Shopify POS transactions.';
+                }
                 field(ShopifyOrderNoOnDocLine; Rec."Shopify Order No. on Doc. Line")
                 {
                     ApplicationArea = All;
@@ -500,7 +505,7 @@ page 30101 "Shpfy Shop Card"
                     ApplicationArea = All;
                     ToolTip = 'Specifies whether orders may be created automatically.';
                 }
-                field(AutoReleaseSalesOrders; rec."Auto Release Sales Orders")
+                field(AutoReleaseSalesOrders; Rec."Auto Release Sales Orders")
                 {
                     Caption = 'Auto Release Sales Orders';
                     ApplicationArea = All;
@@ -521,6 +526,11 @@ page 30101 "Shpfy Shop Card"
                     ApplicationArea = All;
                     ToolTip = 'Specifies if Business Central document no. is synchronized to Shopify as order attribute.';
                     Enabled = Rec."Allow Outgoing Requests" or Rec."Order Attributes To Shopify";
+                }
+                field(ArchiveProcessOrders; Rec."Archive Processed Orders")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether Shopify orders are automatically archived when they are paid, fulfilled, and have associated sales documents with all lines shipped.';
                 }
                 field("Posted Invoice Sync"; Rec."Posted Invoice Sync")
                 {
