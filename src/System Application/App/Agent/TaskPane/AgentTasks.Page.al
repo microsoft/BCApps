@@ -100,7 +100,6 @@ page 4306 "Agent Tasks"
             {
                 Caption = 'Stop task';
                 ToolTip = 'Stops the task.';
-                Enabled = TaskSelected;
                 Scope = Repeater;
                 trigger OnAction()
                 var
@@ -112,26 +111,7 @@ page 4306 "Agent Tasks"
                 end;
             }
         }
-
-        area(Navigation)
-        {
-            action(Agent)
-            {
-                Caption = 'Agent';
-                ToolTip = 'Opens the agent card page for the agent who has been assigned the selected task.';
-                Enabled = TaskSelected;
-                Scope = Repeater;
-
-                RunObject = page "Agent Card";
-                RunPageLink = "User Security ID" = field("Agent User Security ID");
-            }
-        }
     }
-
-    trigger OnAfterGetCurrRecord()
-    begin
-        TaskSelected := Rec."Task ID" <> 0;
-    end;
 
     trigger OnAfterGetRecord()
     begin
@@ -165,6 +145,5 @@ page 4306 "Agent Tasks"
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         TaskSummary: BigText;
         GlobalCreatedBy: Text[250];
-        TaskSelected: Boolean;
 }
 
