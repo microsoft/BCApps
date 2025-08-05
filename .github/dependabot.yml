@@ -16,3 +16,16 @@ updates:
     - dependency-name: "microsoft/AL-Go/*"
   labels:
     - "Automation"
+  
+- package-ecosystem: nuget
+  directory: "/"
+  schedule:
+    interval: weekly
+  allow:
+    - dependency-type: "all"
+  groups:
+    NuGet-Dependencies:
+      applies-to: version-updates
+      dependency-type: "all"
+  labels:
+    - "Automation"

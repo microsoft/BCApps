@@ -259,7 +259,7 @@ function Install-AppFromContainer() {
     .Parameter TestAppDependencies
         If this switch is set, only the test app dependencies will be returned.
 #>
-function Get-ExternalDependencies() {
+<#function Get-ExternalDependencies() {
     param(
         [switch] $AppDependencies,
         [switch] $TestAppDependencies
@@ -275,6 +275,38 @@ function Get-ExternalDependencies() {
     } else {
         return $customSettings.ExternalAppDependencies + $customSettings.ExternalTestAppDependencies
     }
+}#>
+
+function Get-ExternalDependencies() {
+    param(
+        [string] $ContainerName,
+        [switch] $AppDependencies,
+        [switch] $TestAppDependencies
+    )
+    Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
+
+    $nugetCache = Join-Path (Get-BaseFolder) "NugetCache"
+    $dependencies = @()
+    try {
+        if ($AppDependencies) {
+            dotnet restore ".\build\projects\Apps (W1)\.AL-Go\" -p:Configuration=App --packages $nugetCache
+        } elseif ($TestAppDependencies) {
+            dotnet restore ".\build\projects\Apps (W1)\.AL-Go\" -p:Configuration=Test --packages $nugetCache
+        } else {
+            dotnet restore ".\build\projects\Apps (W1)\.AL-Go\" -p:Configuration=All --packages $nugetCache
+        }
+
+        $appFiles = Get-ChildItem -Path $nugetCache -Filter "*.app" -Recurse | Select-Object -ExpandProperty FullName
+        $sortedAppFiles = Sort-appFilesByDependencies -appFiles $appfiles
+
+        $dependencies = $sortedAppFiles | ForEach-Object { Get-BcContainerAppInfo -appFilePath $_ -containerName $ContainerName } | Select-Object -ExpandProperty Name
+    } finally {
+        # Clean up the out folder
+        Remove-Item -Path $nugetCache -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
+    Write-Host "Found the following dependencies: $($dependencies -join ', ')"
+    return $dependencies | Where-Object { $_ -ne "System" }
 }
 
 Export-ModuleMember -Function *-*

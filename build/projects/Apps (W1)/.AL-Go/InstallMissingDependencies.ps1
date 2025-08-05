@@ -8,10 +8,10 @@ Import-Module (Join-Path $PSScriptRoot "../../../scripts/AppExtensionsHelper.psm
 $isBaseAppInstalled = Get-BcContainerAppInfo -containerName $parameters.containerName -tenantSpecificProperties | Where-Object { ($_.Name -eq "Base Application") -and ($_.IsInstalled -eq $true) }
 if (-not $isBaseAppInstalled) {
     Write-Host "Installing App Dependencies"
-    $dependenciesToInstall = Get-ExternalDependencies -AppDependencies
+    $dependenciesToInstall = Get-ExternalDependencies -AppDependencies -ContainerName $parameters.containerName
 } else {
     Write-Host "Installing Test App Dependencies"
-    $dependenciesToInstall = Get-ExternalDependencies -TestAppDependencies
+    $dependenciesToInstall = Get-ExternalDependencies -TestAppDependencies -ContainerName $parameters.containerName
 }
 
 $script = Join-Path $PSScriptRoot "../../../scripts/InstallMissingDependencies.ps1" -Resolve
