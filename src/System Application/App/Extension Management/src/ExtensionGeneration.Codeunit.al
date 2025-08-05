@@ -9,6 +9,8 @@ namespace System.Apps;
 codeunit 2507 "Extension Generation"
 {
     SingleInstance = true;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     procedure StartCDSExtensionGeneration(OverwriteExisting: Boolean)
     begin
