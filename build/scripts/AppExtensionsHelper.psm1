@@ -1,3 +1,28 @@
+function Update-VersionInAppJson {
+    param (
+        [string]$Path,
+        [string]$CurrentVersion,
+        [string]$MinimumVersion,
+        [string]$PlatformVersion
+    )
+    $appJsonFiles = Get-ChildItem -Path $Path -Filter app.json -Recurse
+    foreach ($appJsonFile in $appJsonFiles) {
+        $appJson = Get-Content $appJsonFile.FullName | ConvertFrom-Json
+        $appJson.version = $CurrentVersion
+        foreach ($dependency in $appJson.dependencies) {
+            $dependency.version = $MinimumVersion
+        }
+        if ($null -ne $appJson.application) {
+            $appJson.application = $MinimumVersion
+        }
+        if ($null -ne $appJson.platform) {
+            $appJson.platform = $PlatformVersion
+        }
+        $appJson | ConvertTo-Json -Depth 10 | Set-Content $appJsonFile.FullName
+    }
+    Write-Host "Updated app.json files in $Path with version $CurrentVersion, minimum version $MinimumVersion, and platform version $PlatformVersion"
+}
+
 function GetSourceCodeFromArtifact() {
     param(
         [string] $AppName,
@@ -42,6 +67,11 @@ function GetSourceCodeFromArtifact() {
         Write-Error "Could not find the source code for $AppName"
         throw
     }
+
+    # Update the version in the app.json file (temporary fix until we have versions in a Directory.App.Props.json)
+    $majorMinorVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
+    $fullVersion = "$($majorMinorVersion).0.0"
+    Update-VersionInAppJson -Path $sourceCodeFolder -CurrentVersion $fullVersion -MinimumVersion $fullVersion -PlatformVersion $fullVersion
 
     return $sourceCodeFolder
 }
@@ -113,6 +143,7 @@ function Build-App() {
     $CompilationParameters["EnableCodeCop"] = $false
     $CompilationParameters["EnableUICop"] = $false
     $CompilationParameters["EnablePerTenantExtensionCop"] = $false
+    $CompilationParameters["GenerateReportLayout"] = "No"
     $CompilationParameters.Remove("ruleset")
 
     Write-Host "Recompile $AppName with parameters"
@@ -234,7 +265,7 @@ function Get-ExternalDependencies() {
         [switch] $TestAppDependencies
     )
     Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
-    $appExtensionsSettings = Join-Path (Get-BaseFolder) "build/projects/Add-Ons (W1)/.AL-Go/customSettings.json" -Resolve
+    $appExtensionsSettings = Join-Path (Get-BaseFolder) "build/projects/Apps (W1)/.AL-Go/customSettings.json" -Resolve
     $customSettings = Get-Content -Path $appExtensionsSettings | ConvertFrom-Json
 
     if ($AppDependencies) {

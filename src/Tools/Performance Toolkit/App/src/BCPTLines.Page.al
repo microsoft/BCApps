@@ -154,12 +154,14 @@ page 149004 "BCPT Lines"
                     ToolTip = 'Specifies difference in number of sql statements of the BCPT for this role compared to the base version.';
                     Caption = 'Change in No. of SQL Statements (%)';
                     ApplicationArea = All;
+                    AutoFormatType = 0;
                 }
                 field(AvgDurationDeltaPct; GetDiffPct(GetAvg(Rec."No. of Iterations - Base", Rec."Total Duration - Base (ms)"), GetAvg(Rec."No. of Iterations", Rec."Total Duration (ms)")))
                 {
                     ToolTip = 'Specifies difference in duration of the BCPT for this role compared to the base version.';
                     Caption = 'Change in Duration (%)';
                     ApplicationArea = All;
+                    AutoFormatType = 0;
                 }
             }
         }
