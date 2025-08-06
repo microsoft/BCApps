@@ -55,7 +55,7 @@ codeunit 30403 "Shpfy Variant Image Export"
             if NewImageId <> Rec."Image Id" then
                 Rec."Image Id" := NewImageId;
             Rec."Image Hash" := Hash;
-            Rec.Modify();
+            Rec.Modify(false);
         end else begin
             if ItemVariant.Picture.Count > 0 then
                 if Rec."Image Id" > 0 then
@@ -65,7 +65,7 @@ codeunit 30403 "Shpfy Variant Image Export"
             JRequest.Add('imageHash', Rec."Image Hash");
             this.JRequestData.Add(JRequest);
             Rec."Image Hash" := Hash;
-            Rec.Modify();
+            Rec.Modify(false);
         end;
     end;
 

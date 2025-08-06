@@ -77,7 +77,7 @@ codeunit 30184 "Shpfy Sync Product Image"
         ShopifyVariant.SetRange("Product Id", ProductId);
         if ShopifyVariant.FindSet() then
             repeat
-                Commit();
+                Commit();// commit  to avoid  error when executing VariantImageExport.Run()
                 if this.VariantImageExport.Run(ShopifyVariant) then;
             until ShopifyVariant.Next() = 0;
     end;
