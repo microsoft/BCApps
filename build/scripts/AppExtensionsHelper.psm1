@@ -297,11 +297,11 @@ function Get-ExternalDependencies() {
 
     try {
         if ($AppDependencies) {
-            dotnet restore -p:Configuration=App --packages "$nugetCache"
+            dotnet restore -p:Configuration=App --packages "$nugetCache" | Out-Null
         } elseif ($TestAppDependencies) {
-            dotnet restore -p:Configuration=Test --packages "$nugetCache"
+            dotnet restore -p:Configuration=Test --packages "$nugetCache" | Out-Null
         } else {
-            dotnet restore -p:Configuration=All --packages "$nugetCache"
+            dotnet restore -p:Configuration=All --packages "$nugetCache"| Out-Null
         }
         if ($LASTEXITCODE -ne 0) {
             throw "Failed to restore dependencies. Please check the output for errors."
