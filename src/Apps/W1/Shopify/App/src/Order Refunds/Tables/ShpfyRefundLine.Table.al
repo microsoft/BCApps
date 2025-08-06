@@ -178,7 +178,11 @@ table 30145 "Shpfy Refund Line"
                 exit(OrderHeader."Currency Code");
     end;
 
-    local procedure OrderPresentmentCurrencyCode(): Code[10]
+    /// <summary>
+    /// Returns the presentment currency code for the order line associated with this refund line.
+    /// </summary>
+    /// <returns>Currency code</returns>
+    internal procedure OrderPresentmentCurrencyCode(): Code[10]
     var
         OrderHeader: Record "Shpfy Order Header";
         OrderLine: Record "Shpfy Order Line";

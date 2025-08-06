@@ -66,6 +66,8 @@ page 30146 "Shpfy Refund Lines"
                     Editable = false;
                     BlankZero = true;
                     Visible = this.PresentmentCurrencyVisible;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec.OrderPresentmentCurrencyCode();
                 }
                 field("Subtotal Amount"; Rec."Subtotal Amount")
                 {

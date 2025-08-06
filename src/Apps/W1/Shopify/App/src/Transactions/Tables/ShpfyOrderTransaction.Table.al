@@ -98,9 +98,11 @@ table 30133 "Shpfy Order Transaction"
         field(13; "Presentment Amount"; Decimal)
         {
             Caption = 'Presentment Amount';
-            ToolTip = 'Specifies the amount of money included in the transaction in the presentment currency.';
             DataClassification = SystemMetadata;
             Editable = false;
+            ToolTip = 'Specifies the amount of money included in the transaction in the presentment currency.';
+            AutoFormatType = 1;
+            AutoFormatExpression = "Presentment Currency";
         }
         field(14; "Gift Card Id"; BigInteger)
         {
@@ -197,6 +199,8 @@ table 30133 "Shpfy Order Transaction"
             Caption = 'Presentment Rounding Amount';
             DataClassification = SystemMetadata;
             Editable = false;
+            AutoFormatType = 1;
+            AutoFormatExpression = "Presentment Rounding Currency";
         }
         field(27; "Presentment Rounding Currency"; Code[20])
         {
