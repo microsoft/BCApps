@@ -1,8 +1,8 @@
 [
     {
-        "bug":  "596209",
+        "bug": "596209",
         "codeunitId": 139605,
-        "CodeunitName": "Shopify Connector Test",
+        "CodeunitName": "Shpfy Product Price Calc. Test",
         "Method": "UnitTestCalcPriceTest"
     }
 ]
