@@ -316,6 +316,9 @@ function Get-ExternalDependencies() {
         Remove-Item -Path $nugetCache -Recurse -Force -ErrorAction SilentlyContinue
     }
 
+    # Temporary fix for PowerBI Reports dependency name
+    $dependencies = $dependencies | ForEach-Object { if ($_ -eq "PowerBI Reports") { "Power BI Report embeddings for Dynamics 365 Business Central" } else { $_ } }
+
     Write-Host "Found the following dependencies: $($dependencies -join ', ')"
     return $dependencies | Where-Object { $_ -ne "System" }
 }
