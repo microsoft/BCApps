@@ -704,7 +704,6 @@ codeunit 148191 "Integration Tests"
     var
         Customer: Record Customer;
         Vendor: Record Vendor;
-        OriginalVATNumber: Text;
         EDocumentService: Record "E-Document Service";
         LibraryEDocument: Codeunit "Library - E-Document";
         LibraryPermission: Codeunit "Library - Lower Permissions";
@@ -712,6 +711,7 @@ codeunit 148191 "Integration Tests"
         LibraryERM: Codeunit "Library - ERM";
         Assert: Codeunit Assert;
         IsInitialized: Boolean;
+        OriginalVATNumber: Text[20];
         IncorrectValueErr: Label 'Wrong value';
         DocumentStatus: Option Completed,Pending,Error;
 }
