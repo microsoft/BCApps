@@ -9,6 +9,7 @@ table 149039 "AIT Evaluator"
     DataClassification = SystemMetadata;
     InherentEntitlements = RIMDX;
     InherentPermissions = RIMDX;
+    ReplicateData = false;
     DrillDownPageId = "AIT Evaluators";
 
     fields

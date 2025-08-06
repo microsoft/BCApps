@@ -6,6 +6,7 @@ using Microsoft.Sales.Document;
 codeunit 139895 "Usage Based Service Comm. Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     Access = Internal;
 
     var

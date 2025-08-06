@@ -16,6 +16,7 @@ using System.TestLibraries.Utilities;
 codeunit 148155 "Contracts Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 
