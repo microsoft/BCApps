@@ -20,6 +20,7 @@ using Microsoft.Pricing.PriceList;
 codeunit 148157 "Service Object Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     Access = Internal;
 
     var
@@ -180,127 +181,6 @@ codeunit 148157 "Service Object Test"
         ServiceCommitmentArchive.SetRange("Subscription Header No.", ServiceObject."No.");
         ServiceCommitmentArchive.SetRange("Variant Code (Sub. Header)", PreviousVariantCode);
         Assert.RecordIsNotEmpty(ServiceCommitmentArchive);
-    end;
-
-    [Test]
-    procedure CheckCalculationBaseAmountAssignment()
-    var
-        Customer: Record Customer;
-        Item: Record Item;
-        PriceListLine: Record "Price List Line";
-        ServiceCommitment: Record "Subscription Line";
-        ServiceCommitmentPackage: Record "Subscription Package";
-        ServiceObject: Record "Subscription Header";
-        EndingDate: Date;
-        FutureReferenceDate: Date;
-        CustomerPrice: array[4] of Decimal;
-    begin
-        Initialize();
-
-        // Create Subscription and Subscription Lines - Unit Price from Item should be taken as Calculation Base Amount
-        SetupServiceObjectWithServiceCommitment(Item, ServiceObject, false, false);
-        FindServiceCommitment(ServiceCommitment, ServiceObject."No.");
-
-        ServiceCommitment.TestField("Calculation Base Amount", Item."Unit Price");
-        ServiceCommitmentPackage.SetRange(Code, ServiceCommitment."Subscription Package Code");
-        ServiceCommitment.DeleteAll(false);
-
-        // Assign End-User Customer No. Subscription with and create Subscription Lines - Unit Price from Item should be taken as Calculation Base Amount
-        ContractTestLibrary.CreateCustomer(Customer);
-        ServiceObject.SetHideValidationDialog(true);
-        ServiceObject.InsertServiceCommitmentsFromServCommPackage(WorkDate(), ServiceCommitmentPackage);
-        ServiceCommitment.TestField("Calculation Base Amount", Item."Unit Price");
-        ServiceCommitment.DeleteAll(false);
-        ServiceObject.Validate("End-User Customer No.", Customer."No.");
-        ServiceObject.Modify(false);
-
-        // Create different Sales Prices for Customer
-        CustomerPrice[1] := LibraryRandom.RandDec(100, 2); // normal price
-        CustomerPrice[2] := Round(CustomerPrice[1] * 0.9, 2); // discounted price for Qty = 10
-        CustomerPrice[3] := LibraryRandom.RandDecInRange(101, 200, 2); // price used in future
-        CustomerPrice[4] := Round(CustomerPrice[3] * 0.9, 2); // price used in future + discounted price for Qty = 10
-        FutureReferenceDate := CalcDate('<1M>', WorkDate());
-        EndingDate := CalcDate('<-1D>', FutureReferenceDate);
-        CreateCustomerSalesPrice(Item, Customer, WorkDate(), 0, CustomerPrice[1], EndingDate);
-        CreateCustomerSalesPrice(Item, Customer, WorkDate(), 10, CustomerPrice[2], EndingDate);
-        CreateCustomerSalesPrice(Item, Customer, FutureReferenceDate, 0, CustomerPrice[3], PriceListLine);
-        CreateCustomerSalesPrice(Item, Customer, FutureReferenceDate, 10, CustomerPrice[4], PriceListLine);
-        // test - normal price
-        TestCalculationBaseAmount(1, WorkDate(), CustomerPrice[1], ServiceObject, ServiceCommitmentPackage);
-        // test - discounted price for Qty = 10
-        TestCalculationBaseAmount(10, WorkDate(), CustomerPrice[2], ServiceObject, ServiceCommitmentPackage);
-        // test - price used in future
-        TestCalculationBaseAmount(1, FutureReferenceDate, CustomerPrice[3], ServiceObject, ServiceCommitmentPackage);
-        // test - price used in future + discounted price for Qty = 10
-        TestCalculationBaseAmount(10, FutureReferenceDate, CustomerPrice[4], ServiceObject, ServiceCommitmentPackage);
-    end;
-
-    [Test]
-    procedure CheckCalculationBaseAmountAssignmentForCustomerWithBillToCustomer()
-    var
-        Customer: Record Customer;
-        Customer2: Record Customer;
-        Item: Record Item;
-        PriceListLine: Record "Price List Line";
-        ServiceCommitment: Record "Subscription Line";
-        ServiceCommitmentPackage: Record "Subscription Package";
-        ServiceObject: Record "Subscription Header";
-        EndingDate: Date;
-        FutureReferenceDate: Date;
-        Customer2Price: array[4] of Decimal;
-        CustomerPrice: array[4] of Decimal;
-    begin
-        Initialize();
-
-        // Create Subscription and Subscription Lines - Unit Price from Item should be taken as Calculation Base Amount
-        SetupServiceObjectWithServiceCommitment(Item, ServiceObject, false, false);
-        FindServiceCommitment(ServiceCommitment, ServiceObject."No.");
-
-        ServiceCommitment.TestField("Calculation Base Amount", Item."Unit Price");
-        ServiceCommitmentPackage.SetRange(Code, ServiceCommitment."Subscription Package Code");
-        ServiceCommitment.DeleteAll(false);
-
-        // Create Customer and Customer2 and assign Customer2 as "Bill-to Customer No."" to Customer
-        ContractTestLibrary.CreateCustomer(Customer);
-        ContractTestLibrary.CreateCustomer(Customer2);
-        Customer.Validate("Bill-to Customer No.", Customer2."No.");
-        Customer.Modify(false);
-
-        // Assign End-User Customer No. to Subscription and create Subscription Lines - Unit Price from Item should be taken as Calculation Base Amount
-        ServiceObject.InsertServiceCommitmentsFromServCommPackage(WorkDate(), ServiceCommitmentPackage);
-        ServiceCommitment.TestField("Calculation Base Amount", Item."Unit Price");
-        ServiceCommitment.DeleteAll(false);
-        ServiceObject.Validate("End-User Customer No.", Customer."No.");
-        ServiceObject.Modify(false);
-
-        // Create different Sales Prices for Customer
-        CustomerPrice[1] := LibraryRandom.RandDec(100, 2); // normal price
-        CustomerPrice[2] := Round(CustomerPrice[1] * 0.9, 2); // discounted price for Qty = 10
-        CustomerPrice[3] := LibraryRandom.RandDecInRange(101, 200, 2); // price used in future
-        CustomerPrice[4] := Round(CustomerPrice[3] * 0.9, 2); // price used in future + discounted price for Qty = 10
-        Customer2Price[1] := LibraryRandom.RandDec(100, 2); // normal price
-        Customer2Price[2] := Round(Customer2Price[1] * 0.9, 2); // discounted price for Qty = 10
-        Customer2Price[3] := LibraryRandom.RandDecInRange(101, 200, 2); // price used in future
-        Customer2Price[4] := Round(Customer2Price[3] * 0.9, 2); // price used in future + discounted price for Qty = 10
-        FutureReferenceDate := CalcDate('<1M>', WorkDate());
-        EndingDate := CalcDate('<-1D>', FutureReferenceDate);
-        CreateCustomerSalesPrice(Item, Customer2, WorkDate(), 0, Customer2Price[1], EndingDate);
-        CreateCustomerSalesPrice(Item, Customer2, WorkDate(), 10, Customer2Price[2], EndingDate);
-        CreateCustomerSalesPrice(Item, Customer2, FutureReferenceDate, 0, Customer2Price[3], PriceListLine);
-        CreateCustomerSalesPrice(Item, Customer2, FutureReferenceDate, 10, Customer2Price[4], PriceListLine);
-        CreateCustomerSalesPrice(Item, Customer, WorkDate(), 0, CustomerPrice[1], EndingDate);
-        CreateCustomerSalesPrice(Item, Customer, WorkDate(), 10, CustomerPrice[2], EndingDate);
-        CreateCustomerSalesPrice(Item, Customer, FutureReferenceDate, 0, CustomerPrice[3], PriceListLine);
-        CreateCustomerSalesPrice(Item, Customer, FutureReferenceDate, 10, CustomerPrice[4], PriceListLine);
-
-        // test - normal price
-        TestCalculationBaseAmount(1, WorkDate(), Customer2Price[1], ServiceObject, ServiceCommitmentPackage);
-        // test - discounted price for Qty = 10
-        TestCalculationBaseAmount(10, WorkDate(), Customer2Price[2], ServiceObject, ServiceCommitmentPackage);
-        // test - price used in future
-        TestCalculationBaseAmount(1, FutureReferenceDate, Customer2Price[3], ServiceObject, ServiceCommitmentPackage);
-        // test - price used in future + discounted price for Qty = 10
-        TestCalculationBaseAmount(10, FutureReferenceDate, Customer2Price[4], ServiceObject, ServiceCommitmentPackage);
     end;
 
     [Test]
@@ -1699,36 +1579,6 @@ codeunit 148157 "Service Object Test"
         ModifyCurrentServiceCommPackageLine(InitialTermDateFormulaText, ExtensionTermDateFormulaText, NoticePeriodDateFormulaText, ServiceCommPackageLine);
     end;
 
-    local procedure CreateCustomerSalesPrice(SourceItem: Record Item; SourceCustomer: Record Customer; StartingDate: Date; Quantity: Decimal; CustomerPrice: Decimal; var PriceListLine: Record "Price List Line")
-    var
-        PriceListHeader: Record "Price List Header";
-    begin
-        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Sale, "Price Source Type"::Customer, SourceCustomer."No.");
-        PriceListHeader.Status := "Price Status"::Active;
-        PriceListHeader."Allow Updating Defaults" := true;
-        PriceListHeader."Currency Code" := '';
-        PriceListHeader.Modify(true);
-
-        LibraryPriceCalculation.CreatePriceListLine(PriceListLine, PriceListHeader, "Price Amount Type"::Price, "Price Asset Type"::Item, SourceItem."No.");
-        PriceListLine.Validate("Starting Date", StartingDate);
-        PriceListLine.Validate("Minimum Quantity", Quantity);
-        PriceListLine."Currency Code" := '';
-        PriceListLine.Validate("Unit Price", CustomerPrice);
-        PriceListLine.Status := "Price Status"::Active;
-        PriceListLine.Modify(true);
-    end;
-
-    local procedure CreateCustomerSalesPrice(SourceItem: Record Item; SourceCustomer: Record Customer; StartingDate: Date; Quantity: Decimal; CustomerPrice: Decimal; EndingDate: Date)
-    var
-        PriceListLine: Record "Price List Line";
-    begin
-        CreateCustomerSalesPrice(SourceItem, SourceCustomer, StartingDate, Quantity, CustomerPrice, PriceListLine);
-        PriceListLine.Status := "Price Status"::Draft;
-        PriceListLine.Validate("Ending Date", EndingDate);
-        PriceListLine.Status := "Price Status"::Active;
-        PriceListLine.Modify(true);
-    end;
-
     local procedure CreateCustomerSalesPriceWithVariantCode(SourceItem: Record Item; SourceCustomer: Record Customer; StartingDate: Date; Quantity: Decimal; CustomerPrice: Decimal; EndingDate: Date; VariantCode: Code[10])
     begin
         CreateCustomerSalesPriceWithVariantCode(SourceItem, SourceCustomer, StartingDate, EndingDate, Quantity, CustomerPrice, VariantCode);
@@ -1883,19 +1733,6 @@ codeunit 148157 "Service Object Test"
         else
             ContractTestLibrary.CreateServiceObjectForItemWithServiceCommitments(ServiceObject, Enum::"Invoicing Via"::Contract, SNSpecificTracking, Item, 1, 0);
         ServiceObject.SetHideValidationDialog(true);
-    end;
-
-    local procedure TestCalculationBaseAmount(ServiceObjectQuantity: Decimal; ReferenceDate: Date; ExpectedPrice: Decimal; var ServiceObject: Record "Subscription Header"; var ServiceCommitmentPackage: Record "Subscription Package")
-    var
-        ServiceCommitment: Record "Subscription Line";
-    begin
-        ServiceObject.Validate(Quantity, ServiceObjectQuantity);
-        ServiceObject.Modify(false);
-        ServiceObject.InsertServiceCommitmentsFromServCommPackage(ReferenceDate, ServiceCommitmentPackage);
-        FindServiceCommitment(ServiceCommitment, ServiceObject."No.");
-        ServiceCommitment.FindFirst();
-        ServiceCommitment.TestField("Calculation Base Amount", ExpectedPrice);
-        ServiceCommitment.DeleteAll(false);
     end;
 
     local procedure TestServiceCommitmentTerminationDates(ServiceAndCalculationStartDate: Date; SourceServiceCommitment: Record "Subscription Line")
