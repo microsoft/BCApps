@@ -77,6 +77,7 @@ codeunit 9018 "Azure AD Plan Impl."
     end;
 
     [NonDebuggable]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"User Plan", 'r')]
     procedure IsPlanAssignedToUser(PlanGUID: Guid; UserGUID: Guid): Boolean
     var
         UserPlan: Record "User Plan";
@@ -651,7 +652,8 @@ codeunit 9018 "Azure AD Plan Impl."
     end;
 
     [NonDebuggable]
-    procedure AssignPlanToUserWithDelegatedRole(UserSID: Guid)
+    [InherentPermissions(PermissionObjectType::TableData, Database::"User Plan", 'rimd')]
+    procedure AssignPlanToUserWithDelegatedRole(UserSID: Guid; SkipUpdateUserAccess: Boolean)
     var
         UserPlan: Record "User Plan";
         AzureADPlan: Codeunit "Azure AD Plan";
@@ -672,13 +674,25 @@ codeunit 9018 "Azure AD Plan Impl."
             end;
         end;
 
+        // Exit if the user already has the plan assigned
+        if IsPlanAssignedToUser(PlanId, UserSID) then
+            exit;
+
         Session.LogMessage('0000IC4', StrSubstNo(AssigningPlanForDelegatedRoleTxt, PlanId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+
+        // Delete any existing plans for the user
+        UserPlan.SetRange("User Security ID", UserSID);
+        UserPlan.DeleteAll();
 
         // Assign a plan for the user
         UserPlan.Init();
         UserPlan."Plan ID" := PlanId;
         UserPlan."User Security ID" := UserSID;
         UserPlan.Insert();
+
+        // Exit if user access should not be updated
+        if SkipUpdateUserAccess then
+            exit;
 
         // Assign user groups for the user
         AzureADPlan.OnUpdateUserAccessForSaaS(UserPlan."User Security ID", UserGroupsAdded);
