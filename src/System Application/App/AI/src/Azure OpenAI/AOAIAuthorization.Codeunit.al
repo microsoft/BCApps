@@ -5,8 +5,6 @@
 namespace System.AI;
 
 using System;
-using System.Telemetry;
-using System.Utilities;
 
 /// <summary>
 /// Store the authorization information for the AOAI service.
@@ -18,7 +16,6 @@ codeunit 7767 "AOAI Authorization"
     InherentPermissions = X;
 
     var
-        AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
         [NonDebuggable]
         Endpoint: Text;
         [NonDebuggable]
