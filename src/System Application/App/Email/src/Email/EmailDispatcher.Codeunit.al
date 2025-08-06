@@ -166,7 +166,6 @@ codeunit 8888 "Email Dispatcher"
 
         // Jitter - Random delay between 0 and 10000 milliseconds (10 seconds)
         RandomDelay := Random(10000);
-
         RescheduleTime := CurrentDateTime() + Delay + RandomDelay;
 
         TaskId := TaskScheduler.CreateTask(Codeunit::"Email Dispatcher", Codeunit::"Email Error Handler", true, CompanyName(), RescheduleTime, EmailOutbox.RecordId());
