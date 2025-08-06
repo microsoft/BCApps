@@ -208,6 +208,7 @@ function EmbedPowerBIReport(reportLink, reportId, pageName) {
         Promise.all(promises).then(
             function (values) {
                 embed.off("rendered");
+                CopilotSummary();
                 RaiseReportLoaded(reportFilters, reportPages, pageFilters, embedCorrelationId);
             },
             function (error) {
@@ -301,6 +302,34 @@ function EmbedPowerBIReportVisual(reportVisualLink, reportId, pageName, visualNa
 
 function FullScreen() {
     embed.fullscreen();
+}
+
+function CopilotSummary() {
+    const summaryRequest = {
+        prompt: "Summarize this.",
+        reportSelection: {
+            isEntireReportSelected: true,
+        }
+    };
+
+    console.log(embed);
+    const uid = embed.config.uniqueId;  // Correct usage of UID
+    console.log("🔁 Sending summary request:", summaryRequest);
+    console.log("🆔 UID:", uid);
+
+    embed.service.hpm.post(
+        "/report/copilotSummary",
+        summaryRequest,
+        uid ? { uid } : {},
+        embed.iframe.contentWindow
+    )
+    .then((response) => {
+        console.log("📄 Summary response:\n" + JSON.stringify(response));
+    })
+    .catch((err) => {
+        console.error("❌ Error calling /report/copilotSummary:", err);
+        console.log("Summary error:\n" + JSON.stringify(err));
+    });
 }
 
 function UpdateReportFilters(filters) {
