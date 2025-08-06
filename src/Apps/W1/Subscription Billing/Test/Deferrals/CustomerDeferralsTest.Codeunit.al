@@ -14,6 +14,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 codeunit 139912 "Customer Deferrals Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 

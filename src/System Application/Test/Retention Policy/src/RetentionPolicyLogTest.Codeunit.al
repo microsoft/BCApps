@@ -10,11 +10,10 @@ using System.TestLibraries.DataAdministration;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
 
-// This codeunit must be executed by a test-runnner which has test-isolation disabled.
-
 codeunit 138705 "Retention Policy Log Test"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
 
     var
         Assert: Codeunit "Library Assert";

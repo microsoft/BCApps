@@ -10,6 +10,7 @@ using Microsoft.Purchases.Vendor;
 codeunit 148159 "Usage Based Extend Contr. Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 

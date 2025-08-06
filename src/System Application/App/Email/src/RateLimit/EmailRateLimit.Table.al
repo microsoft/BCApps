@@ -44,6 +44,17 @@ table 8912 "Email Rate Limit"
                     Error(ConcurrencyLimitErrLbl);
             end;
         }
+        field(6; "Max. Retry Limit"; Integer)
+        {
+            DataClassification = SystemMetadata;
+            InitValue = 1;
+
+            trigger OnValidate()
+            begin
+                if (Rec."Max. Retry Limit" < 1) or (Rec."Max. Retry Limit" > 20) then
+                    Error(MaxRetryLimitErrLbl);
+            end;
+        }
     }
 
     keys
@@ -59,5 +70,6 @@ table 8912 "Email Rate Limit"
     }
 
     var
-        ConcurrencyLimitErrLbl: Label 'Concurrency Limit must be between 0 and 10.';
+        ConcurrencyLimitErrLbl: Label 'Concurrency Limit must be between 1 and 10.';
+        MaxRetryLimitErrLbl: Label 'Max. Attempt Limit must be between 1 and 20.';
 }
