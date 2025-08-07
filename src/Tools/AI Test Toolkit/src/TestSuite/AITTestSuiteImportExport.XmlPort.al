@@ -83,6 +83,12 @@ xmlport 149031 "AIT Test Suite Import/Export"
                     {
                         Occurrence = Required;
                     }
+
+                    trigger OnAfterInitRecord()
+                    begin
+                        if SkipTestSuites.Contains(AITSuite.Code) then
+                            currXMLport.Skip();
+                    end;
                 }
                 tableelement(AITestMethodLine; "AIT Test Method Line")
                 {
@@ -118,6 +124,12 @@ xmlport 149031 "AIT Test Suite Import/Export"
                         {
                             Occurrence = Required;
                         }
+
+                        trigger OnAfterInitRecord()
+                        begin
+                            if SkipTestSuites.Contains(AITSuite.Code) then
+                                currXMLport.Skip();
+                        end;
 
                         trigger OnBeforeInsertRecord()
                         begin

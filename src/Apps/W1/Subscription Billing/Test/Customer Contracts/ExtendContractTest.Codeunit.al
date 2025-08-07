@@ -10,6 +10,7 @@ using Microsoft.Purchases.Vendor;
 codeunit 148152 "Extend Contract Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     Access = Internal;
 
     var

@@ -19,6 +19,7 @@ using System.TestLibraries.Utilities;
 codeunit 148153 "Usage Based Billing Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 

@@ -54,6 +54,8 @@ codeunit 8999 "Email Rate Limit Impl."
         EmailImpl: Codeunit "Email Impl";
         RateLimit: Integer;
     begin
+        SentEmail.ReadIsolation := IsolationLevel::ReadUncommitted;
+        EmailOutboxCurrent.ReadIsolation := IsolationLevel::ReadUncommitted;
         RateLimit := GetRateLimit(AccountId, Connector, EmailAddress);
         if RateLimit = 0 then
             exit(false);
@@ -75,6 +77,7 @@ codeunit 8999 "Email Rate Limit Impl."
     var
         EmailOutbox: Record "Email Outbox";
     begin
+        EmailOutbox.ReadIsolation := IsolationLevel::ReadUncommitted;
         EmailOutbox.SetRange(Status, EmailOutbox.Status::Processing);
         EmailOutbox.SetRange("Account Id", AccountId);
         if EmailOutbox.IsEmpty() then
@@ -127,7 +130,7 @@ codeunit 8999 "Email Rate Limit Impl."
         exit(0); // Default rate limit is 0, meaning no limit.
     end;
 
-    local procedure GetDefaultConcurrencyLimit(): Integer
+    internal procedure GetDefaultConcurrencyLimit(): Integer
     begin
         exit(3);
     end;

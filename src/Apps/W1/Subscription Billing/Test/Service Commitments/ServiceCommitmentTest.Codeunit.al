@@ -6,6 +6,7 @@ using Microsoft.Sales.Document;
 codeunit 148156 "Service Commitment Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     Access = Internal;
 
     var

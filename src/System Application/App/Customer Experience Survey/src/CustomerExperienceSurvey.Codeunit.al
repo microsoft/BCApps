@@ -1,3 +1,4 @@
+#if not CLEAN27
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,10 +14,9 @@ codeunit 9260 "Customer Experience Survey"
     Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
-
-    var
-        CustomerExpSurveyImpl: Codeunit "Customer Exp. Survey Impl.";
-        CallerModuleInfo: ModuleInfo;
+    ObsoleteReason = 'This module is no longer used.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '27.0';
 
     /// <summary>
     /// Pushes a new event entry to the CES back-end for the current user.
@@ -25,11 +25,9 @@ codeunit 9260 "Customer Experience Survey"
     /// <returns>Returns true if the request was successful.</returns>
     procedure RegisterEvent(EventName: Text): Boolean
     begin
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        CustomerExpSurveyImpl.AssertInternalCall(CallerModuleInfo);
-        exit(CustomerExpSurveyImpl.RegisterEvent(EventName));
     end;
 
+#pragma warning disable AA0150
     /// <summary>
     /// Gets the eligibility of the current user for the indicated survey. Making this API call resets the eligibility flag (this avoids double prompting).
     /// </summary>
@@ -40,9 +38,6 @@ codeunit 9260 "Customer Experience Survey"
     /// <returns>Returns true if the request was successful.</returns>
     procedure GetEligibility(SurveyName: Text; var FormsProId: Text; var FormsProEligibilityId: Text; var IsEligible: Boolean): Boolean
     begin
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        CustomerExpSurveyImpl.AssertInternalCall(CallerModuleInfo);
-        exit(CustomerExpSurveyImpl.GetEligibility(SurveyName, FormsProId, FormsProEligibilityId, IsEligible));
     end;
 
     /// <summary>
@@ -54,10 +49,8 @@ codeunit 9260 "Customer Experience Survey"
     /// <returns>Returns true if the request was successful.</returns>
     procedure RegisterEventAndGetEligibility(EventName: Text; SurveyName: Text; var FormsProId: Text; var FormsProEligibilityId: Text; var IsEligible: Boolean): Boolean
     begin
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        CustomerExpSurveyImpl.AssertInternalCall(CallerModuleInfo);
-        exit(CustomerExpSurveyImpl.RegisterEventAndGetEligibility(EventName, SurveyName, FormsProId, FormsProEligibilityId, IsEligible));
     end;
+#pragma warning restore AA0150
 
     /// <summary>
     /// Returns the details for a single survey
@@ -67,9 +60,6 @@ codeunit 9260 "Customer Experience Survey"
     /// <returns>Returns true if the request was successful.</returns>
     procedure GetSurvey(SurveyName: Text; var CustomerExperienceSurvey: Record "Customer Experience Survey"): Boolean
     begin
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        CustomerExpSurveyImpl.AssertInternalCall(CallerModuleInfo);
-        exit(CustomerExpSurveyImpl.GetSurvey(SurveyName, CustomerExperienceSurvey));
     end;
 
     /// <summary>
@@ -80,8 +70,6 @@ codeunit 9260 "Customer Experience Survey"
     /// <param name="Locale">Survey localization.</param>
     procedure RenderSurvey(SurveyName: Text; FormsProId: Text; FormsProEligibilityId: Text)
     begin
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        CustomerExpSurveyImpl.AssertInternalCall(CallerModuleInfo);
-        CustomerExpSurveyImpl.RenderSurvey(SurveyName, FormsProId, FormsProEligibilityId);
     end;
 }
+#endif
