@@ -42,9 +42,6 @@ permissionset 8001 "Sub. Billing Objects"
         codeunit "Sales Documents" = X,
         codeunit "Sales Report Printout Mgmt." = X,
         codeunit "Sales Subscription Line Mgmt." = X,
-#if not CLEAN27
-        codeunit "Session Store" = X,
-#endif
         codeunit "Sub. Billing Activities Cue" = X,
         codeunit "Sub. Billing Installation" = X,
         codeunit "Sub. Contr. Renewal Subcribers" = X,
