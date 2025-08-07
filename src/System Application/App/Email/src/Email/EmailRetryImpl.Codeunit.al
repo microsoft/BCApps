@@ -60,6 +60,7 @@ codeunit 8909 "Email Retry Impl."
         exit(true);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Email Retry", 'rd')]
     internal procedure CleanEmailRetry(MessageId: Guid)
     var
         EmailRetry: Record "Email Retry";
