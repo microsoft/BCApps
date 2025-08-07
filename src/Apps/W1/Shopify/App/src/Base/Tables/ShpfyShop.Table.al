@@ -54,9 +54,7 @@ table 30102 "Shpfy Shop"
             begin
                 if ("Shopify URL" <> '') then begin
                     AuthenticationMgt.CorrectShopUrl("Shopify URL");
-
-                    if not AuthenticationMgt.IsValidShopUrl("Shopify URL") then
-                        Error(InvalidShopUrlErr);
+                    AuthenticationMgt.AssertValidShopUrl("Shopify URL");
                 end;
                 Rec.CalcShopId();
             end;
@@ -823,7 +821,6 @@ table 30102 "Shpfy Shop"
     end;
 
     var
-        InvalidShopUrlErr: Label 'The URL must refer to the internal shop location at myshopify.com. It must not be the public URL that customers use, such as myshop.com.';
         CurrencyExchangeRateNotDefinedErr: Label 'The specified currency must have exchange rates configured. If your online shop uses the same currency as Business Central then leave the field empty.';
         AutoCreateErrorMsg: Label 'You cannot turn "%1" off if "%2" is set to the value of "%3".', Comment = '%1 = Field Caption of "Auto Create Orders", %2 = Field Caption of "Return and Refund Process", %3 = Field Value of "Return and Refund Process"';
         ExpirationNotificationTxt: Label 'Shopify API version 30 days before expiry notification sent.', Locked = true;
