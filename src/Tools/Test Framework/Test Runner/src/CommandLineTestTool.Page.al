@@ -50,7 +50,7 @@ page 130455 "Command Line Test Tool"
                     TestSuiteMgt: Codeunit "Test Suite Mgt.";
                 begin
                     TestSuiteMgt.DeleteAllMethods(GlobalALTestSuite);
-                    TestSuiteMgt.SelectTestMethodsByRange(GlobalALTestSuite, TestCodeunitRangeFilter);
+                    TestSuiteMgt.SelectTestMethodsByRange(GlobalALTestSuite, TestCodeunitRangeFilter, TestType, RequiredTestIsolation);
                     if Rec.FindFirst() then;
                 end;
             }

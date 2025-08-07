@@ -23,6 +23,7 @@ using System.TestLibraries.Utilities;
 codeunit 139687 "Recurring Billing Docs Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 

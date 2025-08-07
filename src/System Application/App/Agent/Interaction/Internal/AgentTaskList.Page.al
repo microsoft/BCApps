@@ -106,6 +106,7 @@ page 4300 "Agent Task List"
                 ApplicationArea = All;
                 Caption = 'View messages';
                 ToolTip = 'Show messages for the selected task.';
+                Enabled = TaskSelected;
                 Image = ShowList;
 
                 trigger OnAction()
@@ -118,6 +119,7 @@ page 4300 "Agent Task List"
                 ApplicationArea = All;
                 Caption = 'View log entries';
                 ToolTip = 'Show log entries for the selected task.';
+                Enabled = TaskSelected;
                 Image = TaskList;
 
                 trigger OnAction()
@@ -132,6 +134,7 @@ page 4300 "Agent Task List"
                 ApplicationArea = All;
                 Caption = 'Stop';
                 ToolTip = 'Stop the selected task.';
+                Enabled = TaskSelected;
                 Image = Stop;
 
                 trigger OnAction()
@@ -143,6 +146,21 @@ page 4300 "Agent Task List"
                 end;
             }
         }
+
+        area(Navigation)
+        {
+            action(AgentSetup)
+            {
+                Caption = 'Agent setup';
+                ToolTip = 'Opens the agent card page for the agent who has been assigned the selected task.';
+                Image = Setup;
+                Enabled = TaskSelected;
+
+                RunObject = page "Agent Card";
+                RunPageLink = "User Security ID" = field("Agent User Security ID");
+            }
+        }
+
         area(Promoted)
         {
             group(Category_Process)
@@ -172,6 +190,7 @@ page 4300 "Agent Task List"
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
         NumberOfStepsDone := AgentTaskImpl.GetStepsDoneCount(Rec);
+        TaskSelected := Rec.ID <> 0;
     end;
 
     local procedure ShowTaskMessages()
@@ -184,4 +203,5 @@ page 4300 "Agent Task List"
 
     var
         NumberOfStepsDone: Integer;
+        TaskSelected: Boolean;
 }

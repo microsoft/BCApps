@@ -509,7 +509,7 @@ codeunit 7774 "Copilot Capability Impl"
         Session.LogAuditMessage(StrSubstNo(CopilotFeatureDeactivatedLbl, CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetCopilotCapabilityStatus', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetCopilotCapabilityStatus, '', false, false)]
     local procedure GetCopilotCapabilityStatus(Capability: Integer; var IsEnabled: Boolean; AppId: Guid; Silent: Boolean)
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
@@ -517,6 +517,25 @@ codeunit 7774 "Copilot Capability Impl"
     begin
         CopilotCapability := Enum::"Copilot Capability".FromInteger(Capability);
         IsEnabled := AzureOpenAI.IsEnabled(CopilotCapability, Silent, AppId);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetCopilotCapabilityInfo, '', false, false)]
+    local procedure GetCopilotCapabilityInfo(Capability: Integer; AppId: Guid; var CapabilityInfo: JsonObject)
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        CopilotCapability: Enum "Copilot Capability";
+        LearnMoreUrlLbl: Label 'learnMoreUrl', Locked = true;
+        IsEnabledLbl: Label 'isEnabled', Locked = true;
+        IsPreviewLbl: Label 'isPreview', Locked = true;
+    begin
+        CopilotCapability := Enum::"Copilot Capability".FromInteger(Capability);
+        CapabilityInfo.Add(IsEnabledLbl, AzureOpenAI.IsEnabled(CopilotCapability, true, AppId));
+
+        CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
+        if not CopilotSettings.Get(CopilotCapability, AppId) then
+            exit;
+        CapabilityInfo.Add(LearnMoreUrlLbl, CopilotSettings."Learn More Url");
+        CapabilityInfo.Add(IsPreviewLbl, CopilotSettings.Availability <> Enum::"Copilot Availability"::"Generally Available");
     end;
 
     procedure IsPublisherMicrosoft(CallerModuleInfo: ModuleInfo): Boolean

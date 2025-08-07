@@ -13,6 +13,7 @@ using Microsoft.Finance.Dimension;
 codeunit 148160 "Service Comm. Dimensions"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 
