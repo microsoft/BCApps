@@ -3,7 +3,7 @@
   "type": "PTE",
   "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
   "bcContainerHelperVersion": "preview",
-  "runs-on": "windows-latest",
+  "runs-on": "windows-2025",
   "cacheImageName": "",
   "UsePsSession": false,
   "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/27.0.37749.0/base",
