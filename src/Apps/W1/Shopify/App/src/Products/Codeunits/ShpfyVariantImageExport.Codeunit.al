@@ -19,24 +19,38 @@ codeunit 30403 "Shpfy Variant Image Export"
 
     trigger OnRun()
     var
+        Item: Record Item;
         ItemVariant: Record "Item Variant";
         TenantMedia: Record "Tenant Media";
+        Product: Record "Shpfy Product";
         HashCalc: Codeunit "Shpfy Hash";
         NewImageId: BigInteger;
         Hash: Integer;
         ImageExists: Boolean;
         JRequest: JsonObject;
         ResourceUrl: Text;
+        ItemAsVariant: Boolean;
+        PictureGuid: Guid;
     begin
         if this.Shop."Sync Item Images" <> this.Shop."Sync Item Images"::"To Shopify" then
             exit;
 
-        if Rec."Item SystemId" <> this.NullGuid then
+        if Rec."Item Variant SystemId" <> this.NullGuid then begin
             if ItemVariant.GetBySystemId(Rec."Item Variant SystemId") then
                 Hash := HashCalc.CalcItemVariantImageHash(ItemVariant);
+        end else begin
+            Product.Get(Rec."Product Id");
+            if Rec."Item SystemId" <> Product."Item SystemId" then
+                if Item.GetBySystemId(Rec."Item SystemId") then begin
+                    Hash := HashCalc.CalcItemImageHash(Item);
+                    ItemAsVariant := true;
+                end;
+        end;
 
         if (Hash = Rec."Image Hash") then
             exit;
+
+        PictureGuid := GetPictureGuid(Item, ItemVariant, ItemAsVariant);
 
         if Rec."Image Id" <> 0 then begin
             ImageExists := this.VariantApi.CheckShopifyVariantImageExists(Rec.Id);
@@ -45,22 +59,19 @@ codeunit 30403 "Shpfy Variant Image Export"
         end;
 
         if not ImageExists then begin
-            if ItemVariant.Picture.Count > 0 then
-                if Rec."Image Id" = 0 then
-                    if TenantMedia.Get(ItemVariant.Picture.Item(1)) then begin
-                        this.ProductApi.UploadShopifyImage(TenantMedia, ResourceUrl);
-                        NewImageId := this.VariantApi.SetVariantImage(Rec, ResourceUrl);
-                    end;
+            if TenantMedia.Get(PictureGuid) then begin
+                this.ProductApi.UploadShopifyImage(TenantMedia, ResourceUrl);
+                NewImageId := this.VariantApi.SetVariantImage(Rec, ResourceUrl);
+            end;
 
             if NewImageId <> Rec."Image Id" then
                 Rec."Image Id" := NewImageId;
             Rec."Image Hash" := Hash;
             Rec.Modify(false);
         end else begin
-            if ItemVariant.Picture.Count > 0 then
-                if Rec."Image Id" > 0 then
-                    if TenantMedia.Get(ItemVariant.Picture.Item(1)) then
-                        this.ProductApi.UpdateShopifyProductImage(Rec."Product Id", Rec."Image Id", TenantMedia, this.BulkOperationInput, this.ParametersList, this.CurrRecordCount);
+            if Rec."Image Id" > 0 then
+                if TenantMedia.Get(PictureGuid) then
+                    this.ProductApi.UpdateShopifyProductImage(Rec."Product Id", Rec."Image Id", TenantMedia, this.BulkOperationInput, this.ParametersList, this.CurrRecordCount);
             JRequest.Add('id', Rec.Id);
             JRequest.Add('imageHash', Rec."Image Hash");
             this.JRequestData.Add(JRequest);
@@ -110,5 +121,15 @@ codeunit 30403 "Shpfy Variant Image Export"
     internal procedure SetRecordCount(RecordCount: Integer)
     begin
         this.CurrRecordCount := RecordCount;
+    end;
+
+    local procedure GetPictureGuid(Item: Record Item; ItemVariant: Record "Item Variant"; ItemAsVariant: Boolean): Guid
+    begin
+        if ItemAsVariant then begin
+            if Item.Picture.Count > 0 then
+                exit(Item.Picture.Item(1));
+        end else
+            if ItemVariant.Picture.Count > 0 then
+                exit(ItemVariant.Picture.Item(1));
     end;
 }
