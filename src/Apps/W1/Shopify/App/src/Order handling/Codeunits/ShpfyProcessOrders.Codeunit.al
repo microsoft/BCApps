@@ -22,7 +22,7 @@ codeunit 30167 "Shpfy Process Orders"
     var
         ShopifyOrderHeader: Record "Shpfy Order Header";
     begin
-        Shop := Rec;
+        SetShop(Rec);
         ShopifyOrderHeader.Reset();
         if ShopifyOrderFilter <> '' then
             ShopifyOrderHeader.SetView(ShopifyOrderFilter);
@@ -63,6 +63,9 @@ codeunit 30167 "Shpfy Process Orders"
                 ShopifyOrderHeader."Has Error" := false;
                 ShopifyOrderHeader."Error Message" := '';
                 ShopifyOrderHeader.Processed := true;
+                if not this.Shop.Get(this.Shop.Code) then
+                    this.Shop.Get(ShopifyOrderHeader."Shop Code");
+                ShopifyOrderHeader."Processed Currency Handling" := this.Shop."Currency Handling";
             end;
             ShopifyOrderHeader.Modify(true);
             Commit();
@@ -106,6 +109,12 @@ codeunit 30167 "Shpfy Process Orders"
                 until RefundHeader.Next() = 0;
         end;
     end;
+
+    internal procedure SetShop(NewShop: Record "Shpfy Shop")
+    begin
+        this.Shop := NewShop;
+    end;
+
 }
 
 
