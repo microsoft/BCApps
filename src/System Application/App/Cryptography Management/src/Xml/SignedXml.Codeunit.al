@@ -101,6 +101,15 @@ codeunit 1460 SignedXml
     end;
 
     /// <summary>
+    /// Adds a XmlDsigC14NTransform object to the list of transforms to be performed on the data before passing it to the digest algorithm.
+    /// </summary>
+    /// <param name="IncludeComment">true to include comments; otherwise, false.</param>
+    procedure AddXmlDsigC14NTransformToReference(IncludeComments: Boolean)
+    begin
+        SignedXmlImpl.AddXmlDsigC14NTransformToReference(IncludeComments);
+    end;
+
+    /// <summary>
     /// Adds a XmlDsigExcC14NTransform object to the list of transforms to be performed on the data before passing it to the digest algorithm.
     /// </summary>
     /// <param name="InclusiveNamespacesPrefixList">A string that contains namespace prefixes to canonicalize using the standard canonicalization algorithm.</param>
@@ -260,6 +269,16 @@ codeunit 1460 SignedXml
     procedure GetXmlDsigDSAUrl(): Text[250]
     begin
         exit(SignedXmlImpl.GetXmlDsigDSAUrl());
+    end;
+
+    /// <summary>
+    /// Represents the Uniform Resource Identifier (URI) for canonical XML form.
+    /// </summary>
+    /// <returns>The value http://www.w3.org/TR/2001/REC-xml-c14n-20010315.</returns>
+    /// <see cref="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+    procedure GetXmlDsigC14NTransformUrl(): Text[250]
+    begin
+        exit(SignedXmlImpl.GetXmlDsigC14NTransformUrl());
     end;
 
     /// <summary>
