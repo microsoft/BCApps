@@ -259,12 +259,4 @@ table 30142 "Shpfy Refund Header"
         if OrderHeader.Get("Order Id") then
             exit(OrderHeader."Currency Code");
     end;
-
-    local procedure OrderPresentmentCurrencyCode(): Code[10]
-    var
-        OrderHeader: Record "Shpfy Order Header";
-    begin
-        if OrderHeader.Get("Order Id") then
-            exit(OrderHeader."Presentment Currency Code");
-    end;
 }
