@@ -126,6 +126,8 @@ codeunit 139648 "Shpfy Suggest Payment Test"
         Amount := Any.IntegerInRange(10000, 99999);
         OrderId1 := Any.IntegerInRange(30000, 40000);
         OrderId2 := Any.IntegerInRange(40000, 50000);
+        CreateOrder(OrderId1);
+        CreateOrder(OrderId2);
         CreateItem(Item, Amount);
         LibrarySales.CreateCustomer(Customer);
         SalesInvoiceNo := CreateAndPostSalesInvoice(Item, Customer, 2, 0);
