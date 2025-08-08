@@ -99,5 +99,63 @@ codeunit 9351 "Graph Client Impl."
         exit(HttpResponseMessage.GetIsSuccessStatusCode());
     end;
 
+    procedure GetWithPagination(RelativeUriToResource: Text; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; var GraphPaginationData: Codeunit "Graph Pagination Data"; var HttpResponseMessage: Codeunit "Http Response Message"): Boolean
+    var
+        GraphPaginationHelper: Codeunit "Graph Pagination Helper";
+    begin
+        // Apply page size if set
+        GraphPaginationHelper.ApplyPageSize(GraphOptionalParameters, GraphPaginationData);
+
+        // Make the request
+        if not Get(RelativeUriToResource, GraphOptionalParameters, HttpResponseMessage) then
+            exit(false);
+
+        // Extract pagination data
+        GraphPaginationHelper.ExtractNextLink(HttpResponseMessage, GraphPaginationData);
+        exit(HttpResponseMessage.GetIsSuccessStatusCode());
+    end;
+
+    procedure GetNextPage(var GraphPaginationData: Codeunit "Graph Pagination Data"; var HttpResponseMessage: Codeunit "Http Response Message"): Boolean
+    var
+        GraphPaginationHelper: Codeunit "Graph Pagination Helper";
+        NextLink: Text;
+    begin
+        NextLink := GraphPaginationData.GetNextLink();
+
+        if NextLink = '' then
+            exit(false);
+
+        GraphRequestHelper.SetRestClient(RestClient);
+        HttpResponseMessage := GraphRequestHelper.GetByFullUrl(NextLink);
+
+        // Update pagination data
+        GraphPaginationHelper.ExtractNextLink(HttpResponseMessage, GraphPaginationData);
+        exit(HttpResponseMessage.GetIsSuccessStatusCode());
+    end;
+
+    procedure GetAllPages(RelativeUriToResource: Text; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; var HttpResponseMessage: Codeunit "Http Response Message"; var JsonResults: JsonArray): Boolean
+    var
+        GraphPaginationHelper: Codeunit "Graph Pagination Helper";
+        GraphPaginationData: Codeunit "Graph Pagination Data";
+        IterationCount: Integer;
+    begin
+        // First request with pagination
+        if not GetWithPagination(RelativeUriToResource, GraphOptionalParameters, GraphPaginationData, HttpResponseMessage) then
+            exit(false);
+
+        // Process first page
+        GraphPaginationHelper.CombineValueArrays(HttpResponseMessage, JsonResults);
+
+        // Fetch remaining pages
+        while GraphPaginationData.HasMorePages() and GraphPaginationHelper.IsWithinIterationLimit(IterationCount, GraphPaginationHelper.GetMaxIterations()) do begin
+            if not GetNextPage(GraphPaginationData, HttpResponseMessage) then
+                exit(false);
+
+            GraphPaginationHelper.CombineValueArrays(HttpResponseMessage, JsonResults);
+        end;
+
+        exit(true);
+    end;
+
 }
 
