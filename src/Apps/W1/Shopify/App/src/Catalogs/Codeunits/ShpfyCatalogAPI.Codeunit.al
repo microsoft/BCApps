@@ -44,6 +44,7 @@ codeunit 30290 "Shpfy Catalog API"
             Catalog.Name := ShopifyCompany.Name;
             Catalog."Company SystemId" := ShopifyCompany.SystemId;
             Catalog."Customer No." := Customer."No.";
+            Catalog."Catalog Type" := CatalogType::Company;
             Catalog.Insert();
             CreatePublication(Catalog);
             CreatePriceList(Catalog);
