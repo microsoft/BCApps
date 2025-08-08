@@ -40,7 +40,7 @@ permissions:
 jobs:
   IncrementVersionNumber:
     needs: [ ]
-    runs-on: [ windows-latest ]
+    runs-on: [ windows-2025 ]
     permissions:
       actions: read
       contents: write

@@ -19,7 +19,7 @@ env:
 
 jobs:
   DeployALDoc:
-    runs-on: [ windows-latest ]
+    runs-on: [ windows-2025 ]
     name: Deploy Reference Documentation
     environment:
       name: github-pages
