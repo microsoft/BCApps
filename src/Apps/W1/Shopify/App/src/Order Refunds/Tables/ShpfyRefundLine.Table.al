@@ -64,7 +64,7 @@ table 30145 "Shpfy Refund Line"
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = this.OrderPresentmentCurrencyCode();
+            AutoFormatExpression = "Presentment Currency Code";
             ToolTip = 'Specifies the price in presentment currency of a refunded line item.';
         }
         field(9; "Subtotal Amount"; Decimal)

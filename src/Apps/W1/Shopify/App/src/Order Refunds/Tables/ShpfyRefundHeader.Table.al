@@ -60,7 +60,7 @@ table 30142 "Shpfy Refund Header"
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = this.OrderPresentmentCurrencyCode();
+            AutoFormatExpression = "Presentment Currency Code";
             ToolTip = 'Specifies the total amount in presentment currency across all transactions for the refund.';
         }
         field(8; Note; Blob)

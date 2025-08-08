@@ -31,7 +31,7 @@ page 30169 "Shpfy Refund Shipping Lines"
                 field("Presentment Subtotal Amount"; Rec."Presentment Subtotal Amount")
                 {
                     ApplicationArea = All;
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field("Tax Amount"; Rec."Tax Amount")
                 {
@@ -41,7 +41,7 @@ page 30169 "Shpfy Refund Shipping Lines"
                 field("Presentment Tax Amount"; Rec."Presentment Tax Amount")
                 {
                     ApplicationArea = All;
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
                 }
             }
         }
@@ -80,7 +80,7 @@ page 30169 "Shpfy Refund Shipping Lines"
 
     trigger OnAfterGetRecord()
     begin
-        this.SetPresentmentCurrencyVisibility();
+        SetPresentmentCurrencyVisibility();
     end;
 
     local procedure SetPresentmentCurrencyVisibility()
@@ -94,6 +94,6 @@ page 30169 "Shpfy Refund Shipping Lines"
         if not OrderHeader.Get(RefundHeader."Order Id") then
             exit;
 
-        this.PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+        PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
     end;
 }

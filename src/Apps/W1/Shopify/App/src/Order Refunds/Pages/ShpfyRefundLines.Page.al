@@ -46,7 +46,7 @@ page 30146 "Shpfy Refund Lines"
                 field("Presentment Amount"; Rec."Presentment Amount")
                 {
                     ApplicationArea = All;
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field(LineDiscount; (Rec.Quantity * Rec.Amount) - Rec."Subtotal Amount")
                 {
@@ -65,9 +65,9 @@ page 30146 "Shpfy Refund Lines"
                     ToolTip = 'Specifies the line discount in presentment currency of a refunded line item.';
                     Editable = false;
                     BlankZero = true;
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
                     AutoFormatType = 1;
-                    AutoFormatExpression = Rec.OrderPresentmentCurrencyCode();
+                    AutoFormatExpression = Rec."Presentment Currency Code";
                 }
                 field("Subtotal Amount"; Rec."Subtotal Amount")
                 {
@@ -132,6 +132,6 @@ page 30146 "Shpfy Refund Lines"
 
     internal procedure SetShowPresentmentCurrency(Show: Boolean)
     begin
-        this.PresentmentCurrencyVisible := Show;
+        PresentmentCurrencyVisible := Show;
     end;
 }

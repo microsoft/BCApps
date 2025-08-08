@@ -83,7 +83,7 @@ page 30145 "Shpfy Refund"
                 group(PresentmentCurrency)
                 {
                     ShowCaption = false;
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
 
                     field("Pres. Tot. Refunded Amount"; Rec."Pres. Tot. Refunded Amount") { }
                     field("Presentment Currency Code"; Rec."Presentment Currency Code") { }
@@ -214,17 +214,18 @@ page 30145 "Shpfy Refund"
 
     trigger OnAfterGetRecord()
     begin
-        this.SetPresentmentCurrencyVisibility();
+        SetPresentmentCurrencyVisibility();
     end;
 
     local procedure SetPresentmentCurrencyVisibility()
     var
         OrderHeader: Record "Shpfy Order Header";
     begin
-        if OrderHeader.Get(Rec."Order Id") then;
+        if not OrderHeader.Get(Rec."Order Id") then
+            exit;
 
-        this.PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
-        if this.PresentmentCurrencyVisible then
+        PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+        if PresentmentCurrencyVisible then
             CurrPage.Lines.Page.SetShowPresentmentCurrency(true)
         else
             CurrPage.Lines.Page.SetShowPresentmentCurrency(false);
