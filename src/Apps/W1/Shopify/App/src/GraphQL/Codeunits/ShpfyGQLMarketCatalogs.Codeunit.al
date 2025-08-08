@@ -1,6 +1,15 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace Microsoft.Integration.Shopify;
 
-codeunit 30400 "Shpfy GQL Market Catalogs" implements "Shpfy IGraphQL"
+/// <summary>
+/// Codeunit Shpfy GQL Market Catalogs (ID 30404).
+/// Implements the IGraphQL interface for retrieving Shopify market catalogs using GraphQL.
+/// </summary>
+codeunit 30404 "Shpfy GQL Market Catalogs" implements "Shpfy IGraphQL"
 {
     Access = Internal;
 

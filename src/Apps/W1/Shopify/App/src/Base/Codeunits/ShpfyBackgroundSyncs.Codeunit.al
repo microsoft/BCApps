@@ -460,7 +460,7 @@ codeunit 30101 "Shpfy Background Syncs"
 
     internal procedure CatalogPricesSync(ShopCode: Code[20]; ShopifyCatalogType: Enum "Shpfy Catalog Type")
     begin
-        this.CatalogPricesSync(ShopCode, '', ShopifyCatalogType);
+        CatalogPricesSync(ShopCode, '', ShopifyCatalogType);
     end;
 
     internal procedure CatalogPricesSync(ShopCode: Code[20]; CompanyId: Text; ShopifyCatalogType: Enum "Shpfy Catalog Type")
@@ -482,13 +482,13 @@ codeunit 30101 "Shpfy Background Syncs"
         Shop.SetRange("Allow Background Syncs", true);
         if not Shop.IsEmpty then begin
             Parameters := StrSubstNo(CatalogPricesParametersTxt, CompanyId, ShopifyCatalogType.AsInteger(), Shop.GetView());
-            this.EnqueueJobEntry(Report::"Shpfy Sync Catalog Prices", Parameters, StrSubstNo(this.SyncDescriptionTxt, SyncTypeLbl, Shop.GetFilter(Code)), true, true);
+            EnqueueJobEntry(Report::"Shpfy Sync Catalog Prices", Parameters, StrSubstNo(SyncDescriptionTxt, SyncTypeLbl, Shop.GetFilter(Code)), true, true);
         end;
 
         Shop.SetRange("Allow Background Syncs", false);
         if not Shop.IsEmpty then begin
             Parameters := StrSubstNo(CatalogPricesParametersTxt, CompanyId, ShopifyCatalogType.AsInteger(), Shop.GetView());
-            this.EnqueueJobEntry(Report::"Shpfy Sync Catalog Prices", Parameters, StrSubstNo(this.SyncDescriptionTxt, SyncTypeLbl, Shop.GetFilter(Code)), false, true);
+            EnqueueJobEntry(Report::"Shpfy Sync Catalog Prices", Parameters, StrSubstNo(SyncDescriptionTxt, SyncTypeLbl, Shop.GetFilter(Code)), false, true);
         end;
     end;
 

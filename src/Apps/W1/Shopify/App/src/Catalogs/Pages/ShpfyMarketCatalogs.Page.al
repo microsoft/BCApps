@@ -1,9 +1,14 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace Microsoft.Integration.Shopify;
 
 /// <summary>
-/// Page Shpfy Market Catalogs (ID 30171).
+/// Page Shpfy Market Catalogs (ID 30174).
 /// </summary>
-page 30171 "Shpfy Market Catalogs"
+page 30174 "Shpfy Market Catalogs"
 {
     ApplicationArea = All;
     Caption = 'Shopify Market Catalogs';

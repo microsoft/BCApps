@@ -452,13 +452,13 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         Catalog: Record "Shpfy Catalog";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        if UpgradeTag.HasUpgradeTag(this.GetShopifyCatalogsTypeUpgradeTag()) then
+        if UpgradeTag.HasUpgradeTag(GetShopifyCatalogsTypeUpgradeTag()) then
             exit;
 
         Catalog.SetRange("Catalog Type", Catalog."Catalog Type"::" ");
         Catalog.ModifyAll("Catalog Type", Catalog."Catalog Type"::"Company", false);
 
-        UpgradeTag.SetUpgradeTag(this.GetShopifyCatalogsTypeUpgradeTag());
+        UpgradeTag.SetUpgradeTag(GetShopifyCatalogsTypeUpgradeTag());
     end;
 
     internal procedure GetAllowOutgoingRequestseUpgradeTag(): Code[250]
@@ -523,7 +523,7 @@ codeunit 30106 "Shpfy Upgrade Mgt."
 
     local procedure GetShopifyCatalogsTypeUpgradeTag(): Code[250]
     begin
-        exit('MS-471880-ShopifyCatalogsTypeUpgradeTag-20250423');
+        exit('MS-581129-ShopifyCatalogsTypeUpgradeTag-20250807');
     end;
 
     local procedure GetDateBeforeFeature(): DateTime

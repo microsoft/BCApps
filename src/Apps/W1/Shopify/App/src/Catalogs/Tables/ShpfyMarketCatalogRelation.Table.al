@@ -1,11 +1,16 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace Microsoft.Integration.Shopify;
 
 /// <summary>
-/// Table Shpfy Catalog (ID 30400).
+/// Table Shpfy Market Catalog Relation (ID 30400).
 /// </summary>
 table 30400 "Shpfy Market Catalog Relation"
 {
-    Caption = 'Shopify Catalog';
+    Caption = 'Shopify Market Catalog Relation';
     DataClassification = CustomerContent;
 
     fields

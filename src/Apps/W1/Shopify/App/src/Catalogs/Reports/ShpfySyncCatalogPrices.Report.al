@@ -29,9 +29,9 @@ report 30116 "Shpfy Sync Catalog Prices"
 
             trigger OnAfterGetRecord()
             begin
-                this.SetCatalogType(this.CatalogType);
-                this.SyncCatalogPrices.SetCompanyId(this.CompanyId);
-                this.SyncCatalogPrices.Run(Shop);
+                SetCatalogType(CatalogType);
+                SyncCatalogPrices.SetCompanyId(CompanyId);
+                SyncCatalogPrices.Run(Shop);
             end;
         }
     }
@@ -67,7 +67,7 @@ report 30116 "Shpfy Sync Catalog Prices"
 
     internal procedure SetCatalogType(ShpfyCatalogType: Enum "Shpfy Catalog Type")
     begin
-        this.CatalogType := ShpfyCatalogType;
-        this.SyncCatalogPrices.SetCatalogType(ShpfyCatalogType);
+        CatalogType := ShpfyCatalogType;
+        SyncCatalogPrices.SetCatalogType(ShpfyCatalogType);
     end;
 }

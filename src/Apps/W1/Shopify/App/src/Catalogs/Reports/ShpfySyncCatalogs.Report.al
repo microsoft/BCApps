@@ -23,7 +23,7 @@ report 30115 "Shpfy Sync Catalogs"
 
             trigger OnAfterGetRecord()
             begin
-                this.SyncShopifyShopCatalogs();
+                SyncShopifyShopCatalogs();
             end;
         }
     }
@@ -36,15 +36,15 @@ report 30115 "Shpfy Sync Catalogs"
 
     local procedure SyncShopifyShopCatalogs()
     begin
-        case this.CatalogType of
-            this.CatalogType::Company:
-                this.SyncCompanyCatalogs();
-            this.CatalogType::Market:
-                this.SyncMarketCatalogs();
-            this.CatalogType::" ":
+        case CatalogType of
+            CatalogType::Company:
+                SyncCompanyCatalogs();
+            CatalogType::Market:
+                SyncMarketCatalogs();
+            CatalogType::" ":
                 begin
-                    this.SyncCompanyCatalogs();
-                    this.SyncMarketCatalogs();
+                    SyncCompanyCatalogs();
+                    SyncMarketCatalogs();
                 end;
         end;
     end;
@@ -53,38 +53,38 @@ report 30115 "Shpfy Sync Catalogs"
     var
         ShopifyCompany: Record "Shpfy Company";
     begin
-        if this.RunForOneCompany then
+        if RunForOneCompany then
             exit;
-        if this.CompanyId <> 0 then begin
-            ShopifyCompany.SetRange(Id, this.CompanyId);
-            this.RunForOneCompany := true;
+        if CompanyId <> 0 then begin
+            ShopifyCompany.SetRange(Id, CompanyId);
+            RunForOneCompany := true;
         end else begin
-            this.CatalogAPI.SetShop(Shop);
+            CatalogAPI.SetShop(Shop);
             ShopifyCompany.SetRange("Shop Id", Shop."Shop Id");
         end;
 
         if ShopifyCompany.FindSet() then
             repeat
-                this.CatalogAPI.GetCatalogs(ShopifyCompany);
+                CatalogAPI.GetCatalogs(ShopifyCompany);
             until ShopifyCompany.Next() = 0;
     end;
 
     local procedure SyncMarketCatalogs()
     begin
-        this.CatalogAPI.SetShop(Shop);
-        this.CatalogAPI.GetMarketCatalogs();
+        CatalogAPI.SetShop(Shop);
+        CatalogAPI.GetMarketCatalogs();
     end;
 
     internal procedure SetCompany(ShopifyCompany: Record "Shpfy Company")
     begin
-        this.CompanyId := ShopifyCompany.Id;
+        CompanyId := ShopifyCompany.Id;
         Shop.Get(ShopifyCompany."Shop Code");
-        this.CatalogAPI.SetShop(Shop);
+        CatalogAPI.SetShop(Shop);
     end;
 
     internal procedure SetCatalogType(ShopifyCatalogType: Enum "Shpfy Catalog Type")
     begin
-        this.CatalogType := ShopifyCatalogType;
-        this.CatalogAPI.SetCatalogType(this.CatalogType);
+        CatalogType := ShopifyCatalogType;
+        CatalogAPI.SetCatalogType(CatalogType);
     end;
 }
