@@ -14,7 +14,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
     var
         OrderSalesHeader: Record "Sales Header";
         Shop: Record "Shpfy Shop";
-        Order: Record "Shpfy Order Header";
+        OrderHeader: Record "Shpfy Order Header";
         RefundProcessEvents: Codeunit "Shpfy Refund Process Events";
         RefundId: BigInteger;
         SalesDocumentType: Enum "Sales Document Type";
