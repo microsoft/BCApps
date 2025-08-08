@@ -474,6 +474,54 @@ codeunit 134703 "Email Retry Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure SendEmailMessageFailedFirstTryThenRetryTest()
+    var
+        TempAccount: Record "Email Account" temporary;
+        EmailOutbox: Record "Email Outbox";
+        EmailRetry: Record "Email Retry";
+        Any: Codeunit Any;
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // [Scenario] When the first attempt to send an email fails, and after that the retry is successful, the email retry record should be deleted
+        PermissionsMock.Set('Email Edit');
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(TempAccount);
+        UpdateEmailMaxAttemptNo(TempAccount."Account Id", 10);
+
+        // [Given] Ten email messages and an email account are created
+        CreateEmailMessageAndEmailOutboxRecord(1, TempAccount, false);
+
+        // [Given] The email is created and sent
+        EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+        SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Queued, 0, false);
+
+        // [When] The first attempt to send the email fails
+        EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
+        EmailOutbox.FindFirst();
+
+        // [Then] The first email retry record is created
+        EmailRetry.Init();
+        EmailRetry."Message Id" := EmailMessage.GetId();
+        EmailRetry."Account Id" := TempAccount."Account Id";
+        EmailRetry."Connector" := Enum::"Email Connector"::"Test Email Connector";
+        EmailRetry."Retry No." := 0;
+        EmailRetry."Status" := Enum::"Email Status"::Failed;
+        EmailRetry."Error Message" := 'Test error message';
+        EmailRetry.Insert();
+
+        EmailRetry.SetRange("Message Id", EmailMessage.GetId());
+        Assert.IsFalse(EmailRetry.IsEmpty, 'Email retry record should be empty');
+
+        Codeunit.Run(Codeunit::"Email Dispatcher", EmailOutbox);
+
+        // [Then] The email retry record should be clean
+        EmailRetry.SetRange("Message Id", EmailMessage.GetId());
+        Assert.IsTrue(EmailRetry.IsEmpty, 'Email retry record should be empty');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure SendEmailMessageBackgroundExceedingMaxConcurrencyTest()
     var
         TempAccount: Record "Email Account" temporary;
