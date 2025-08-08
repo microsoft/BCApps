@@ -6,12 +6,12 @@
 namespace Microsoft.Integration.Shopify;
 
 /// <summary>
-/// Page Shpfy Catalogs (ID 30159).
+/// Page Shpfy Market Catalogs (ID 30174).
 /// </summary>
-page 30159 "Shpfy Catalogs"
+page 30174 "Shpfy Market Catalogs"
 {
     ApplicationArea = All;
-    Caption = 'Shopify B2B Catalogs';
+    Caption = 'Shopify Market Catalogs';
     InsertAllowed = false;
     PageType = List;
     SourceTable = "Shpfy Catalog";
@@ -25,14 +25,10 @@ page 30159 "Shpfy Catalogs"
             repeater(General)
             {
                 field(Id; Rec.Id) { }
-                field("Customer No."; Rec."Customer No.") { }
                 field(Name; Rec.Name) { }
-                field("Company Name"; Rec."Company Name")
-                {
-                    Caption = 'Company';
-                    Editable = false;
-                }
                 field(SyncPrices; Rec."Sync Prices") { }
+                field("Customer No."; Rec."Customer No.") { }
+                field("Currency Code"; Rec."Currency Code") { }
                 field(CustomerPriceGroup; Rec."Customer Price Group") { }
                 field(CustomerDiscountGroup; Rec."Customer Discount Group") { }
                 field("Prices Including VAT"; Rec."Prices Including VAT") { }
@@ -48,6 +44,14 @@ page 30159 "Shpfy Catalogs"
                 field("Tax Liable"; Rec."Tax Liable") { }
             }
         }
+        area(factboxes)
+        {
+            part(Markets; "Shpfy Market Catalog Relations")
+            {
+                Caption = 'Markets';
+                SubPageLink = "Shop Code" = field("Shop Code"), "Catalog Id" = field(Id);
+            }
+        }
     }
 
     actions
@@ -56,13 +60,12 @@ page 30159 "Shpfy Catalogs"
         {
             action(Products)
             {
-                ApplicationArea = All;
                 Caption = 'Products';
                 Image = ItemGroup;
                 Promoted = true;
                 PromotedOnly = true;
                 PromotedCategory = Category4;
-                ToolTip = 'View a list of Shopify products for the catalog.';
+                ToolTip = 'View a list of Shopify products for the market catalog.';
 
                 trigger OnAction()
                 var
@@ -71,7 +74,7 @@ page 30159 "Shpfy Catalogs"
                 begin
                     if Shop.Get(Rec."Shop Code") then begin
                         CatalogAPI.SetShop(Shop);
-                        CatalogAPI.SetCatalogType("Shpfy Catalog Type"::Company);
+                        CatalogAPI.SetCatalogType("Shpfy Catalog Type"::Market);
                         Hyperlink(CatalogAPI.GetCatalogProductsURL(Rec.Id));
                     end;
                 end;
@@ -80,33 +83,31 @@ page 30159 "Shpfy Catalogs"
 
         area(Processing)
         {
-            action(GetCatalogs)
+            action(GetMarketCatalogs)
             {
-                ApplicationArea = All;
-                Caption = 'Get Catalogs';
+                Caption = 'Get Market Catalogs';
                 Image = Import;
                 Promoted = true;
                 PromotedOnly = true;
                 PromotedCategory = Process;
-                ToolTip = 'Get catalogs from Shopify.';
+                ToolTip = 'Get market catalogs from Shopify.';
 
                 trigger OnAction()
                 var
-                    ShopifyCompany: Record "Shpfy Company";
+                    Shop: Record "Shpfy Shop";
                     SyncCatalogs: Report "Shpfy Sync Catalogs";
                 begin
-                    if Rec.GetFilter("Company SystemId") <> '' then begin
-                        ShopifyCompany.GetBySystemId(Rec.GetFilter("Company SystemId"));
-                        SyncCatalogs.SetCompany(ShopifyCompany);
+                    if Rec.GetFilter("Shop Code") <> '' then begin
+                        Shop.SetRange(Code, Rec.GetFilter("Shop Code"));
+                        SyncCatalogs.SetTableView(Shop);
                         SyncCatalogs.UseRequestPage(false);
                     end;
-                    SyncCatalogs.SetCatalogType("Shpfy Catalog Type"::Company);
+                    SyncCatalogs.SetCatalogType("Shpfy Catalog Type"::Market);
                     SyncCatalogs.Run();
                 end;
             }
             action(PriceSync)
             {
-                ApplicationArea = All;
                 Caption = 'Sync Prices';
                 Image = ImportExport;
                 Promoted = true;
@@ -120,13 +121,17 @@ page 30159 "Shpfy Catalogs"
                     SyncCatalogsPrices: Report "Shpfy Sync Catalog Prices";
                     BackgroundSyncs: Codeunit "Shpfy Background Syncs";
                 begin
-                    if Rec.GetFilter("Company SystemId") <> '' then
-                        BackgroundSyncs.CatalogPricesSync(Rec."Shop Code", Rec.GetFilter("Company SystemId"), "Shpfy Catalog Type"::Company)
-                    else begin
-                        Shop.SetRange(Code, Rec."Shop Code");
-                        SyncCatalogsPrices.SetTableView(Shop);
-                        SyncCatalogsPrices.SetCatalogType("Shpfy Catalog Type"::Company);
-                        SyncCatalogsPrices.Run();
+                    if Rec.GetFilter("Shop Code") <> '' then begin
+                        Shop.Get(Rec."Shop Code");
+                        if Shop."Allow Background Syncs" then
+                            BackgroundSyncs.CatalogPricesSync(Rec."Shop Code", "Shpfy Catalog Type"::Market)
+                        else begin
+                            Shop.SetRange(Code, Rec.GetFilter("Shop Code"));
+                            SyncCatalogsPrices.SetTableView(Shop);
+                            SyncCatalogsPrices.UseRequestPage(false);
+                            SyncCatalogsPrices.SetCatalogType("Shpfy Catalog Type"::Market);
+                            SyncCatalogsPrices.Run();
+                        end;
                     end;
                 end;
             }
@@ -135,6 +140,6 @@ page 30159 "Shpfy Catalogs"
 
     trigger OnOpenPage()
     begin
-        Rec.SetRange("Catalog Type", "Shpfy Catalog Type"::"Company");
+        Rec.SetRange("Catalog Type", "Shpfy Catalog Type"::Market);
     end;
 }

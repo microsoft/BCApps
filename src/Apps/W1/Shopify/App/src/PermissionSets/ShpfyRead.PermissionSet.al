@@ -40,6 +40,7 @@ permissionset 30100 "Shpfy - Read"
         tabledata "Shpfy Invoice Header" = R,
         tabledata "Shpfy Language" = R,
         tabledata "Shpfy Log Entry" = R,
+        tabledata "Shpfy Market Catalog Relation" = R,
         tabledata "Shpfy Metafield" = R,
         tabledata "Shpfy Order Attribute" = R,
         tabledata "Shpfy Order Disc.Appl." = R,
