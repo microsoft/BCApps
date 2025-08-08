@@ -64,7 +64,7 @@ table 30145 "Shpfy Refund Line"
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = this.OrderPresentmentCurrencyCode();
+            AutoFormatExpression = RefundPresentmentCurrencyCode();
             ToolTip = 'Specifies the price in presentment currency of a refunded line item.';
         }
         field(9; "Subtotal Amount"; Decimal)
@@ -81,7 +81,7 @@ table 30145 "Shpfy Refund Line"
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = this.OrderPresentmentCurrencyCode();
+            AutoFormatExpression = RefundPresentmentCurrencyCode();
             ToolTip = 'Specifies the subtotal price of a refunded line item in presentment currency.';
         }
         field(11; "Total Tax Amount"; Decimal)
@@ -98,7 +98,7 @@ table 30145 "Shpfy Refund Line"
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = this.OrderPresentmentCurrencyCode();
+            AutoFormatExpression = RefundPresentmentCurrencyCode();
             ToolTip = 'Specifies the total tax charged on a refunded line item in presentment currency.';
         }
         field(13; "Can Create Credit Memo"; Boolean)
@@ -182,13 +182,11 @@ table 30145 "Shpfy Refund Line"
     /// Returns the presentment currency code for the order line associated with this refund line.
     /// </summary>
     /// <returns>Currency code</returns>
-    internal procedure OrderPresentmentCurrencyCode(): Code[10]
+    internal procedure RefundPresentmentCurrencyCode(): Code[10]
     var
-        OrderHeader: Record "Shpfy Order Header";
-        OrderLine: Record "Shpfy Order Line";
+        RefundHeader: Record "Shpfy Refund Header";
     begin
-        if OrderLine.Get("Order Line Id") then
-            if OrderHeader.Get(OrderLine."Shopify Order Id") then
-                exit(OrderHeader."Presentment Currency Code");
+        if RefundHeader.Get("Refund Id") then
+            exit(RefundHeader."Presentment Currency Code");
     end;
 }

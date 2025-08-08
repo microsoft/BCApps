@@ -784,7 +784,6 @@ codeunit 139608 "Shpfy Orders API Test"
         ProcessOrders: Codeunit "Shpfy Process Orders";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         LibraryERM: Codeunit "Library - ERM";
-        OrderHeaderId: BigInteger;
         Amount: Decimal;
         PresentmentAmount: Decimal;
         PresentmentCurrencyCode: Code[10];
@@ -815,7 +814,6 @@ codeunit 139608 "Shpfy Orders API Test"
         this.CreatePresentmentShopifyOrder(
             Shop,
             OrderHeader,
-            OrderHeaderId,
             ShopifyCustomer,
             Item,
             Amount,
@@ -828,8 +826,8 @@ codeunit 139608 "Shpfy Orders API Test"
         ProcessOrders.ProcessShopifyOrder(OrderHeader);
 
         // [THEN] Sales document is created from Shopify order and order line is reserved
-        SalesHeader.SetRange("Shpfy Order Id", OrderHeaderId);
-        SalesHeader.FindLast();
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
         LibraryAssert.AreEqual(SalesHeader."Currency Code", PresentmentCurrencyCode, 'Sales document is created with presentment currency');
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         SalesLine.SetRange("No.", Item."No.");
@@ -894,7 +892,6 @@ codeunit 139608 "Shpfy Orders API Test"
     local procedure CreatePresentmentShopifyOrder(
         Shop: Record "Shpfy Shop";
         var OrderHeader: Record "Shpfy Order Header";
-        var OrderHeaderId: BigInteger;
         ShopifyCustomer: Record "Shpfy Customer";
         Item: Record Item;
         Amount: Decimal;
@@ -911,7 +908,6 @@ codeunit 139608 "Shpfy Orders API Test"
         OrderHeader."Total Amount" := Amount;
 
         OrderHeader."Shopify Order Id" := LibraryRandom.RandIntInRange(100000, 999999);
-        OrderHeaderId := OrderHeader."Shopify Order Id";
         OrderHeader.Insert(false);
 
         ShopifyVariant."Item SystemId" := Item.SystemId;

@@ -65,9 +65,9 @@ page 30146 "Shpfy Refund Lines"
                     ToolTip = 'Specifies the line discount in presentment currency of a refunded line item.';
                     Editable = false;
                     BlankZero = true;
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
                     AutoFormatType = 1;
-                    AutoFormatExpression = Rec.OrderPresentmentCurrencyCode();
+                    AutoFormatExpression = Rec.RefundPresentmentCurrencyCode();
                 }
                 field("Subtotal Amount"; Rec."Subtotal Amount")
                 {
