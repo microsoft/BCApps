@@ -444,6 +444,32 @@ codeunit 30171 "Shpfy Create Item"
             end;
     end;
 
+    /// <summary>
+    /// Create Items from Shopify Products.
+    /// </summary>
+    /// <param name="Product">Parameter of type Record "Shpfy Product".</param>
+    internal procedure CreateItemsFromShopifyProducts(var Product: Record "Shpfy Product")
+    begin
+        if Product.FindSet() then
+            repeat
+                this.CreateItemFromShopifyProduct(Product);
+            until Product.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Create Item from Shopify Product.
+    /// </summary>
+    /// <param name="Product">Parameter of type Record "Shpfy Product".</param>
+    internal procedure CreateItemFromShopifyProduct(Product: Record "Shpfy Product")
+    var
+        ProductImport: Codeunit "Shpfy Product Import";
+    begin
+        ProductImport.SetShop(Product."Shop Code");
+        ProductImport.SetProduct(Product);
+        Commit();  // Ensure product/variant creation is committed before running the item create/update
+        ProductImport.Run();
+    end;
+
     /// <summary> 
     /// Set Shop.
     /// </summary>

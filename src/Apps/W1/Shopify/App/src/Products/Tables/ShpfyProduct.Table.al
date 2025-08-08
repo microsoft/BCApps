@@ -144,6 +144,20 @@ table 30127 "Shpfy Product"
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        field(107; "Has Error"; Boolean)
+        {
+            Caption = 'Has Error';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies whether there is an error when creating an item.';
+        }
+        field(108; "Error Message"; Text[2048])
+        {
+            Caption = 'Error Message';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies the error message if an error has occurred.';
+        }
     }
     keys
     {
