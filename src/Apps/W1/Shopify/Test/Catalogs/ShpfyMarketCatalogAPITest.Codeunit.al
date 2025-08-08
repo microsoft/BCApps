@@ -1,8 +1,21 @@
-codeunit 139542 "Shpfy Market Catalog API Test"
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Integration.Shopify.Test;
+
+using Microsoft.Integration.Shopify;
+using Microsoft.Inventory.Item;
+using System.Utilities;
+using System.TestLibraries.Utilities;
+
+codeunit 134247 "Shpfy Market Catalog API Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
     TestHttpRequestPolicy = BlockOutboundRequests;
+    TestType = IntegrationTest;
 
     var
         LibraryAssert: Codeunit "Library Assert";
@@ -28,27 +41,27 @@ codeunit 139542 "Shpfy Market Catalog API Test"
         Shop: Record "Shpfy Shop";
         CatalogAPI: Codeunit "Shpfy Catalog API";
     begin
-        this.Initialize();
+        Initialize();
 
         // [SCENARIO] Get Market Catalogs and linked markets from the Shopify.
 
         // [GIVEN] Market Catalogs and Linked Catalog Markets JResponses
 
         // [GIVEN] Register Expected Outbound API Requests
-        this.RegExpectedOutboundHttpRequestsForGetMarketCatalogs();
+        RegExpectedOutboundHttpRequestsForGetMarketCatalogs();
 
         // [WHEN] Invoke CatalogAPI.GetMarketCatalogs to get Market Catalogs and linked markets
-        Shop.Get(this.ShopifyShop.PeekText(1));
+        Shop.Get(ShopifyShop.PeekText(1));
         CatalogAPI.SetShop(Shop);
         CatalogAPI.GetMarketCatalogs();
 
         // [THEN] Verify that market catalogs are created
         Catalog.SetRange("Catalog Type", Catalog."Catalog Type"::Market);
         Catalog.SetRange("Shop Code", Shop.Code);
-        this.LibraryAssert.AreEqual(3, Catalog.Count(), 'Incorrect number of Market Catalogs has been created');
+        LibraryAssert.AreEqual(3, Catalog.Count(), 'Incorrect number of Market Catalogs has been created');
 
         // [THEN] Verify that all expected outbound HTTP requests were executed
-        this.OutboundHttpRequests.AssertEmpty();
+        OutboundHttpRequests.AssertEmpty();
     end;
 
     [Test]
@@ -59,30 +72,30 @@ codeunit 139542 "Shpfy Market Catalog API Test"
         Shop: Record "Shpfy Shop";
         SyncCatalogPrices: Codeunit "Shpfy Sync Catalog Prices";
     begin
-        this.Initialize();
+        Initialize();
 
         // [SCENARIO] Synchronize Market Catalog Prices from the Business Central.
 
         // [GIVEN] Market Catalogs and Linked Catalog Markets JResponses
 
         // [GIVEN] Create Shopify Shop
-        Shop.Get(this.ShopifyShop.PeekText(1));
+        Shop.Get(ShopifyShop.PeekText(1));
 
         // [GIVEN] Shopify Products and Pruduct Variants
-        this.CreateProductsWithVariants(Shop);
+        CreateProductsWithVariants(Shop);
 
         // [GIVEN] Create Market Catalog
-        this.CreateMarketCatalog(Catalog, Shop);
+        CreateMarketCatalog(Catalog, Shop);
 
         // [GIVEN] Register Expected Outbound API Requests for Catalog Prices Synchronization
-        this.RegExpectedOutboundHttpRequestsForSyncCatalogPrices();
+        RegExpectedOutboundHttpRequestsForSyncCatalogPrices();
 
         // [WHEN] Invoke CatalogAPI.SynchronizeMarketCatalogPrices to synchronize Market Catalog Prices
         SyncCatalogPrices.SetCatalogType("Shpfy Catalog Type"::Market);
         SyncCatalogPrices.SyncCatalogPrices(Catalog);
 
         // [THEN] Verify that all expected outbound HTTP requests were executed
-        this.LibraryAssert.IsTrue(this.OutboundHttpRequests.Length() = 0, 'Not all Http requests were executed');
+        LibraryAssert.IsTrue(OutboundHttpRequests.Length() = 0, 'Not all Http requests were executed');
     end;
 
     [HttpClientHandler]
@@ -97,17 +110,17 @@ codeunit 139542 "Shpfy Market Catalog API Test"
         if not Regex.IsMatch(Request.Path, ShopifyShopUrlTok) then
             exit(true);
 
-        case this.OutboundHttpRequests.Length() of
+        case OutboundHttpRequests.Length() of
             4:
-                this.LoadResourceIntoHttpResponse(MarketCatalogsResponseTok, Response);
+                LoadResourceIntoHttpResponse(MarketCatalogsResponseTok, Response);
             3:
-                this.LoadResourceIntoHttpResponse(CatalogMarketsResponse1Tok, Response);
+                LoadResourceIntoHttpResponse(CatalogMarketsResponse1Tok, Response);
             2:
-                this.LoadResourceIntoHttpResponse(CatalogMarketsResponse2Tok, Response);
+                LoadResourceIntoHttpResponse(CatalogMarketsResponse2Tok, Response);
             1:
-                this.LoadResourceIntoHttpResponse(CatalogMarketsResponse3Tok, Response);
+                LoadResourceIntoHttpResponse(CatalogMarketsResponse3Tok, Response);
             0:
-                Error(this.UnexpectedAPICallsErr);
+                Error(UnexpectedAPICallsErr);
         end;
         exit(false);
     end;
@@ -123,15 +136,15 @@ codeunit 139542 "Shpfy Market Catalog API Test"
         if not Regex.IsMatch(Request.Path, ShopifyShopUrlTok) then
             exit(true);
 
-        case this.OutboundHttpRequests.Length() of
+        case OutboundHttpRequests.Length() of
             3:
-                this.LoadCatalogProductsHttpResponse(CatalogProductsResponseTok, Response);
+                LoadCatalogProductsHttpResponse(CatalogProductsResponseTok, Response);
             2:
-                this.LoadCatalogProductsPriceListHttpResponse(CatalogPricesResponseTok, Response);
+                LoadCatalogProductsPriceListHttpResponse(CatalogPricesResponseTok, Response);
             1:
-                this.LoadResourceIntoHttpResponse(CatalogPriceUpdateResponseTok, Response);
+                LoadResourceIntoHttpResponse(CatalogPriceUpdateResponseTok, Response);
             0:
-                Error(this.UnexpectedAPICallsErr);
+                Error(UnexpectedAPICallsErr);
         end;
         exit(false);
     end;
@@ -143,51 +156,51 @@ codeunit 139542 "Shpfy Market Catalog API Test"
         InitializeTest: Codeunit "Shpfy Initialize Test";
         AccessToken: SecretText;
     begin
-        this.LibraryTestInitialize.OnTestInitialize(Codeunit::"Shpfy Market Catalog API Test");
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Shpfy Market Catalog API Test");
         ClearLastError();
-        this.OutboundHttpRequests.Clear();
-        this.LibraryVariableStorage.Clear();
-        if this.IsInitialized then
+        OutboundHttpRequests.Clear();
+        LibraryVariableStorage.Clear();
+        if IsInitialized then
             exit;
 
-        this.LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Shpfy Market Catalog API Test");
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Shpfy Market Catalog API Test");
 
-        this.LibraryRandom.Init();
+        LibraryRandom.Init();
 
-        this.IsInitialized := true;
+        IsInitialized := true;
         Commit();
 
         // Creating Shopify Shop
         Shop := InitializeTest.CreateShop();
-        this.ShopifyShop.Enqueue(Shop.Code);
+        ShopifyShop.Enqueue(Shop.Code);
         // Disable Event Mocking 
         CommunicationMgt.SetTestInProgress(false);
         //Register Shopify Access Token
-        AccessToken := this.LibraryRandom.RandText(20);
+        AccessToken := LibraryRandom.RandText(20);
         InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
 
-        this.LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Shpfy Market Catalog API Test");
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Shpfy Market Catalog API Test");
     end;
 
     local procedure RegExpectedOutboundHttpRequestsForGetMarketCatalogs()
     begin
-        this.OutboundHttpRequests.Enqueue('GQL Get Catalogs');
-        this.OutboundHttpRequests.Enqueue('GQL Get Catalog Markets 1');
-        this.OutboundHttpRequests.Enqueue('GQL Get Catalog Markets 2');
-        this.OutboundHttpRequests.Enqueue('GQL Get Catalog Markets 3');
+        OutboundHttpRequests.Enqueue('GQL Get Catalogs');
+        OutboundHttpRequests.Enqueue('GQL Get Catalog Markets 1');
+        OutboundHttpRequests.Enqueue('GQL Get Catalog Markets 2');
+        OutboundHttpRequests.Enqueue('GQL Get Catalog Markets 3');
     end;
 
     local procedure RegExpectedOutboundHttpRequestsForSyncCatalogPrices()
     begin
-        this.OutboundHttpRequests.Enqueue('GQL Get Catalog Products');
-        this.OutboundHttpRequests.Enqueue('GQL Get Catalog Prices');
-        this.OutboundHttpRequests.Enqueue('GQL Update Catalog Prices');
+        OutboundHttpRequests.Enqueue('GQL Get Catalog Products');
+        OutboundHttpRequests.Enqueue('GQL Get Catalog Prices');
+        OutboundHttpRequests.Enqueue('GQL Update Catalog Prices');
     end;
 
     local procedure LoadResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
     begin
         Response.Content.WriteFrom(NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8));
-        this.OutboundHttpRequests.DequeueText();
+        OutboundHttpRequests.DequeueText();
     end;
 
     local procedure LoadCatalogProductsHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
@@ -195,11 +208,11 @@ codeunit 139542 "Shpfy Market Catalog API Test"
         ResultTxt: Text;
     begin
         ResultTxt := NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8);
-        ResultTxt := ResultTxt.Replace('{{ProductId1}}', this.GetIdValueFromVariableStorage(1));
-        ResultTxt := ResultTxt.Replace('{{ProductId2}}', this.GetIdValueFromVariableStorage(3));
-        ResultTxt := ResultTxt.Replace('{{ProductId3}}', this.GetIdValueFromVariableStorage(5));
+        ResultTxt := ResultTxt.Replace('{{ProductId1}}', GetIdValueFromVariableStorage(1));
+        ResultTxt := ResultTxt.Replace('{{ProductId2}}', GetIdValueFromVariableStorage(3));
+        ResultTxt := ResultTxt.Replace('{{ProductId3}}', GetIdValueFromVariableStorage(5));
         Response.Content.WriteFrom(ResultTxt);
-        this.OutboundHttpRequests.DequeueText();
+        OutboundHttpRequests.DequeueText();
     end;
 
     local procedure LoadCatalogProductsPriceListHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
@@ -207,29 +220,29 @@ codeunit 139542 "Shpfy Market Catalog API Test"
         ResultTxt: Text;
     begin
         ResultTxt := NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8);
-        ResultTxt := ResultTxt.Replace('{{ProductId1}}', this.GetIdValueFromVariableStorage(1));
-        ResultTxt := ResultTxt.Replace('{{ProductVariantId1}}', this.GetIdValueFromVariableStorage(2));
-        ResultTxt := ResultTxt.Replace('{{ProductId2}}', this.GetIdValueFromVariableStorage(3));
-        ResultTxt := ResultTxt.Replace('{{ProductVariantId2}}', this.GetIdValueFromVariableStorage(4));
-        ResultTxt := ResultTxt.Replace('{{ProductId3}}', this.GetIdValueFromVariableStorage(5));
-        ResultTxt := ResultTxt.Replace('{{ProductVariantId3}}', this.GetIdValueFromVariableStorage(6));
+        ResultTxt := ResultTxt.Replace('{{ProductId1}}', GetIdValueFromVariableStorage(1));
+        ResultTxt := ResultTxt.Replace('{{ProductVariantId1}}', GetIdValueFromVariableStorage(2));
+        ResultTxt := ResultTxt.Replace('{{ProductId2}}', GetIdValueFromVariableStorage(3));
+        ResultTxt := ResultTxt.Replace('{{ProductVariantId2}}', GetIdValueFromVariableStorage(4));
+        ResultTxt := ResultTxt.Replace('{{ProductId3}}', GetIdValueFromVariableStorage(5));
+        ResultTxt := ResultTxt.Replace('{{ProductVariantId3}}', GetIdValueFromVariableStorage(6));
         Response.Content.WriteFrom(ResultTxt);
-        this.OutboundHttpRequests.DequeueText();
+        OutboundHttpRequests.DequeueText();
     end;
 
     local procedure GetIdValueFromVariableStorage(Index: Integer): Text
     var
         IdValue: Variant;
     begin
-        this.LibraryVariableStorage.Peek(IdValue, Index);
+        LibraryVariableStorage.Peek(IdValue, Index);
         exit(Format(IdValue));
     end;
 
     local procedure CreateMarketCatalog(var Catalog: Record "Shpfy Catalog"; Shop: Record "Shpfy Shop")
     var
-        ShpfyCatalogInitialize: Codeunit "Shpfy Catalog Initialize";
+        CatalogInitialize: Codeunit "Shpfy Catalog Initialize";
     begin
-        Catalog := ShpfyCatalogInitialize.CreateCatalog(Catalog."Catalog Type"::Market);
+        Catalog := CatalogInitialize.CreateCatalog(Catalog."Catalog Type"::Market);
         Catalog."Shop Code" := Shop.Code;
         Catalog."Sync Prices" := true;
         Catalog.Modify(false);
@@ -237,26 +250,26 @@ codeunit 139542 "Shpfy Market Catalog API Test"
 
     local procedure CreateProductsWithVariants(Shop: Record "Shpfy Shop")
     var
-        ShpfyVariant: Record "Shpfy Variant";
+        ShopifyVariant: Record "Shpfy Variant";
         ProductInitTest: Codeunit "Shpfy Product Init Test";
         i: Integer;
     begin
         for i := 1 to 3 do begin
-            ShpfyVariant := ProductInitTest.CreateStandardProduct(Shop);
-            this.AssignItemToShpfyVariant(ShpfyVariant);
-            this.LibraryVariableStorage.Enqueue(ShpfyVariant."Product Id");
-            this.LibraryVariableStorage.Enqueue(ShpfyVariant."Id");
+            ShopifyVariant := ProductInitTest.CreateStandardProduct(Shop);
+            AssignItemToShopifyVariant(ShopifyVariant);
+            LibraryVariableStorage.Enqueue(ShopifyVariant."Product Id");
+            LibraryVariableStorage.Enqueue(ShopifyVariant."Id");
         end;
     end;
 
-    local procedure AssignItemToShpfyVariant(var ShpfyVariant: Record "Shpfy Variant")
+    local procedure AssignItemToShopifyVariant(var ShopifyVariant: Record "Shpfy Variant")
     var
         Item: Record Item;
         LibraryInventory: Codeunit "Library - Inventory";
     begin
         if not Item.FindFirst() then
             LibraryInventory.CreateItem(Item);
-        ShpfyVariant."Item SystemId" := Item.SystemId;
-        ShpfyVariant.Modify(false);
+        ShopifyVariant."Item SystemId" := Item.SystemId;
+        ShopifyVariant.Modify(false);
     end;
 }

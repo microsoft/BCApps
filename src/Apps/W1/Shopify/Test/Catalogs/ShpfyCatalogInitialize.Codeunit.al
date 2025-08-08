@@ -19,14 +19,13 @@ codeunit 139639 "Shpfy Catalog Initialize"
     var
         Company: Record "Shpfy Company";
     begin
-        exit(this.CreateCatalog(Company, CatalogType));
+        exit(CreateCatalog(Company, CatalogType));
     end;
 
     internal procedure CreateCatalog(Company: Record "Shpfy Company"; CatalogType: Enum "Shpfy Catalog Type"): Record "Shpfy Catalog"
     var
         Catalog: Record "Shpfy Catalog";
     begin
-
         Catalog.DeleteAll();
         Catalog.Init();
         Catalog.Id := Any.IntegerInRange(1, 99999);
