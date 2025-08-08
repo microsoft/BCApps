@@ -398,7 +398,6 @@ codeunit 134703 "Email Retry Test"
     var
         TempAccount: Record "Email Account" temporary;
         EmailOutbox: Record "Email Outbox";
-        EmailRateLimit: Record "Email Rate Limit";
         EmailRetry: Record "Email Retry";
         Any: Codeunit Any;
         EmailMessage: Codeunit "Email Message";
@@ -408,12 +407,6 @@ codeunit 134703 "Email Retry Test"
         PermissionsMock.Set('Email Edit');
         ConnectorMock.Initialize();
         ConnectorMock.AddAccount(TempAccount);
-
-        EmailRateLimit.SetRange("Account Id", TempAccount."Account Id");
-        Assert.IsTrue(EmailRateLimit.FindFirst(), 'The Email Rate Limit entry should exist');
-        EmailRateLimit.Validate("Max. Retry Limit", 10);
-        EmailRateLimit.Modify();
-
 
         // [Given] One email messages and an email account are created
         EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
