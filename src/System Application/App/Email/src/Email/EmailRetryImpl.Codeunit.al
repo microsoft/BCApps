@@ -66,7 +66,7 @@ codeunit 8909 "Email Retry Impl."
         EmailRetry: Record "Email Retry";
     begin
         EmailRetry.SetRange("Message Id", MessageId);
-        if not EmailRetry.IsEmpty() then
+        if EmailRetry.IsEmpty() then
             exit;
 
         EmailRetry.DeleteAll();
