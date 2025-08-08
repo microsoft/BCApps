@@ -60,12 +60,13 @@ codeunit 8909 "Email Retry Impl."
         exit(true);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Email Retry", 'rd')]
     internal procedure CleanEmailRetry(MessageId: Guid)
     var
         EmailRetry: Record "Email Retry";
     begin
         EmailRetry.SetRange("Message Id", MessageId);
-        if not EmailRetry.IsEmpty() then
+        if EmailRetry.IsEmpty() then
             exit;
 
         EmailRetry.DeleteAll();
