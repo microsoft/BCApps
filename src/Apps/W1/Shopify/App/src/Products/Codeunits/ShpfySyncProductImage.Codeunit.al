@@ -118,16 +118,38 @@ codeunit 30184 "Shpfy Sync Product Image"
         VariantApi.SetShop(Shop);
         VariantApi.RetrieveShopifyProductVariantImages(VariantImages);
         foreach Id in VariantImages.Keys do
-            if ShopifyVariant.Get(Id) and ItemVariant.GetBySystemId(ShopifyVariant."Item Variant SystemId") then begin
-                VariantImageData := VariantImages.Get(Id);
-                if VariantImageData.Keys.Count > 0 then
-                    foreach ImageId in VariantImageData.Keys do
-                        if ImageId <> ShopifyVariant."Image Id" then
-                            if UpdateItemVariantImage(ItemVariant, VariantImageData.Get(ImageId)) then begin
-                                ShopifyVariant."Image Id" := ImageId;
-                                ShopifyVariant.Modify();
-                            end;
-            end;
+            if ShopifyVariant.Get(Id) then
+                case true of
+                    ItemVariant.GetBySystemId(ShopifyVariant."Item Variant SystemId"):
+                        begin
+                            VariantImageData := VariantImages.Get(Id);
+                            if VariantImageData.Keys.Count > 0 then
+                                foreach ImageId in VariantImageData.Keys do
+                                    if ImageId <> ShopifyVariant."Image Id" then
+                                        if UpdateItemVariantImage(ItemVariant, VariantImageData.Get(ImageId)) then begin
+                                            ShopifyVariant."Image Id" := ImageId;
+                                            ShopifyVariant.Modify(false);
+                                        end;
+                        end;
+                    (Item.GetBySystemId(ShopifyVariant."Item SystemId")):
+                        begin
+                            ShopifyProduct.Get(ShopifyVariant."Product Id");
+                            if ShopifyProduct."Item SystemId" = ShopifyVariant."Item SystemId" then
+                                continue
+                            else
+                                Item.GetBySystemId(ShopifyVariant."Item SystemId");
+
+                            VariantImageData := VariantImages.Get(Id);
+                            if VariantImageData.Keys.Count > 0 then
+                                foreach ImageId in VariantImageData.Keys do
+                                    if ImageId <> ShopifyVariant."Image Id" then
+                                        if UpdateItemImage(Item, VariantImageData.Get(ImageId)) then begin
+                                            UpdatedItems.Add(Item.SystemId);
+                                            ShopifyVariant."Image Id" := ImageId;
+                                            ShopifyVariant.Modify(false);
+                                        end;
+                        end;
+                end;
     end;
 
     /// <summary> 
