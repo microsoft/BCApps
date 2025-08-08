@@ -398,6 +398,7 @@ codeunit 134703 "Email Retry Test"
     var
         TempAccount: Record "Email Account" temporary;
         EmailOutbox: Record "Email Outbox";
+        EmailRateLimit: Record "Email Rate Limit";
         EmailRetry: Record "Email Retry";
         Any: Codeunit Any;
         EmailMessage: Codeunit "Email Message";
@@ -407,14 +408,17 @@ codeunit 134703 "Email Retry Test"
         PermissionsMock.Set('Email Edit');
         ConnectorMock.Initialize();
         ConnectorMock.AddAccount(TempAccount);
-        UpdateEmailMaxAttemptNo(TempAccount."Account Id", 10);
 
-        // [Given] Ten email messages and an email account are created
-        CreateEmailMessageAndEmailOutboxRecord(1, TempAccount, false);
+        EmailRateLimit.SetRange("Account Id", TempAccount."Account Id");
+        Assert.IsTrue(EmailRateLimit.FindFirst(), 'The Email Rate Limit entry should exist');
+        EmailRateLimit.Validate("Max. Retry Limit", 10);
+        EmailRateLimit.Modify();
 
-        // [Given] The email is created and sent
+
+        // [Given] One email messages and an email account are created
         EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
-        SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Queued, 0, false);
+        // [Given] The email is enqueued in the outbox
+        SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Processing, 1);
 
         // [When] The first attempt to send the email fails
         EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
