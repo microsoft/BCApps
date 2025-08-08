@@ -138,8 +138,7 @@ page 30136 "Shpfy Connector Guide"
                             NextActionEnabled := false
                         else begin
                             AuthenticationMgt.CorrectShopUrl(ShopUrl);
-                            if not AuthenticationMgt.IsValidShopUrl(ShopUrl) then
-                                Error(InvalidShopUrlErr);
+                            AuthenticationMgt.AssertValidShopUrl(ShopUrl);
                             NextActionEnabled := true;
                         end;
                         CurrPage.Update();
@@ -544,7 +543,6 @@ page 30136 "Shpfy Connector Guide"
         ItemTemplateNotFoundErr: Label 'No item template was found, please visit Configuration Templates page to create an item template.';
         InitialImportWaitMsg: Label 'We''re still importing data from your shop.';
         InitialImportTakingLongerMsg: Label 'It looks like this may take a while. You can look around Business Central while we continue to import in the background. Please visit the Shopify Initial Import page to check the status.', Comment = 'Shopify Initial Import is page 30137 "Shpfy Initial Import"';
-        InvalidShopUrlErr: Label 'The URL must refer to the internal shop location at myshopify.com. It must not be the public URL that customers use, such as myshop.com.';
 
     local procedure LoadTopBanners()
     begin
