@@ -19,7 +19,7 @@ permissions:
   pull-requests: read
 
 env:
-  workflowDepth: 3
+  workflowDepth: 2
   ALGoOrgSettings: ${{ vars.ALGoOrgSettings }}
   ALGoRepoSettings: ${{ vars.ALGoRepoSettings }}
 
@@ -33,7 +33,7 @@ jobs:
   Initialization:
     needs: [ PregateCheck ]
     if: (!failure() && !cancelled())
-    runs-on: [ windows-latest ]
+    runs-on: [ windows-2025 ]
     outputs:
       projects: ${{ steps.determineProjectsToBuild.outputs.ProjectsJson }}
       projectDependenciesJson: ${{ steps.determineProjectsToBuild.outputs.ProjectDependenciesJson }}
@@ -107,7 +107,7 @@ jobs:
       needsContext:  ${{ toJson(needs) }}
       useArtifactCache: true
 
-  Build2:
+  Build:
     needs: [ Initialization, Build1 ]
     if: (!failure()) && (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && fromJson(needs.Initialization.outputs.buildOrderJson)[1].projectsCount > 0
     strategy:
@@ -133,36 +133,10 @@ jobs:
       needsContext:  ${{ toJson(needs) }}
       useArtifactCache: true
 
-  Build:
-    needs: [ Initialization, Build2, Build1 ]
-    if: (!failure()) && (!cancelled()) && (needs.Build2.result == 'success' || needs.Build2.result == 'skipped') && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && fromJson(needs.Initialization.outputs.buildOrderJson)[2].projectsCount > 0
-    strategy:
-      matrix:
-        include: ${{ fromJson(needs.Initialization.outputs.buildOrderJson)[2].buildDimensions }}
-      fail-fast: false
-    name: Build ${{ matrix.projectName }} (${{ matrix.buildMode }})
-    uses: ./.github/workflows/_BuildALGoProject.yaml
-    secrets: inherit
-    with:
-      shell: ${{ matrix.githubRunnerShell }}
-      runsOn: ${{ matrix.githubRunner }}
-      checkoutRef: ${{ github.event_name == 'pull_request' && github.sha || format('refs/pull/{0}/merge', github.event.pull_request.number) }}
-      project: ${{ matrix.project }}
-      projectName: ${{ matrix.projectName }}
-      buildMode: ${{ matrix.buildMode }}
-      projectDependenciesJson: ${{ needs.Initialization.outputs.projectDependenciesJson }}
-      baselineWorkflowRunId: ${{ needs.Initialization.outputs.baselineWorkflowRunId }}
-      baselineWorkflowSHA: ${{ needs.Initialization.outputs.baselineWorkflowSHA }}
-      secrets: 'licenseFileUrl,keyVaultCertificateUrl,*keyVaultCertificatePassword,keyVaultClientId,gitHubPackagesContext,applicationInsightsConnectionString'
-      artifactsRetentionDays: ${{ fromJson(needs.Initialization.outputs.artifactsRetentionDays) }}
-      artifactsNameSuffix: 'PR${{ github.event.number }}'
-      needsContext:  ${{ toJson(needs) }}
-      useArtifactCache: true
-
   StatusCheck:
     needs: [ Initialization, Build ]
     if: (!cancelled())
-    runs-on: [ windows-latest ]
+    runs-on: [ windows-2025 ]
     name: Pull Request Status Check
     steps:
       - name: Pull Request Status Check

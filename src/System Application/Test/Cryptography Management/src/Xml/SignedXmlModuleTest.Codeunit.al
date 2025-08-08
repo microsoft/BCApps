@@ -113,6 +113,44 @@ codeunit 132612 "Signed Xml Module Test"
 
         Signature.SelectSingleNode('./ns:SignedInfo/ns:Reference/ns:Transforms/ns:Transform/@Algorithm', NamespaceMgr, Node);
         LibraryAssert.AreEqual(C14NTransformUriTok, Node.AsXmlAttribute().Value, 'Incorrect transform was applied.');
+
+    procedure SignXmlDocumentWithSigningKeyAsSecretText()
+    var
+        XmlToSign: XmlDocument;
+        SignedXmlElement: XmlElement;
+        SigningKey: SecretText;
+    begin
+        XmlDocument.ReadFrom('<TestXml Id="ID01">XML to sign</TestXml>', XmlToSign);
+        SignedXml.InitializeSignedXml(XmlToSign);
+
+        GetSignatureKeyXmlString(SigningKey);
+        SignedXml.SetSigningKey(SigningKey);
+        SignedXml.InitializeReference('#ID01');
+
+        SignedXml.ComputeSignature();
+
+        SignedXmlElement := SignedXml.GetXml();
+        LibraryAssert.AreEqual('Signature', SignedXmlElement.LocalName, 'Signature was not computed.');
+    end;
+
+    [Test]
+    procedure SignXmlDocumentWithSigningKeyAsSecretTextAndRsaAlgorithm()
+    var
+        XmlToSign: XmlDocument;
+        SignedXmlElement: XmlElement;
+        SigningKey: SecretText;
+    begin
+        XmlDocument.ReadFrom('<TestXml Id="ID01">XML to sign</TestXml>', XmlToSign);
+        SignedXml.InitializeSignedXml(XmlToSign);
+
+        GetSignatureKeyXmlString(SigningKey);
+        SignedXml.SetSigningKey(SigningKey, Enum::SignatureAlgorithm::RSA);
+        SignedXml.InitializeReference('#ID01');
+
+        SignedXml.ComputeSignature();
+
+        SignedXmlElement := SignedXml.GetXml();
+        LibraryAssert.AreEqual('Signature', SignedXmlElement.LocalName, 'Signature was not computed.');
     end;
 
     local procedure GetSignatureElement(SignedXmlDocument: XmlDocument; var SignatureElement: XmlElement)
