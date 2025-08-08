@@ -60,7 +60,7 @@ page 30149 "Shpfy Return Lines"
                 field("Presentment Disc. Total Amt."; Rec."Presentment Disc. Total Amt.")
                 {
                     ApplicationArea = All;
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field(Weight; Rec.Weight)
                 {
@@ -139,6 +139,6 @@ page 30149 "Shpfy Return Lines"
 
     internal procedure ShowPresentmentCurrency(Visible: Boolean)
     begin
-        this.PresentmentCurrencyVisible := Visible;
+        PresentmentCurrencyVisible := Visible;
     end;
 }

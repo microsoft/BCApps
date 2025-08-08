@@ -61,7 +61,7 @@ table 30130 "Shpfy Order Shipping Charges"
             ToolTip = 'Specifies the shipping cost amount in presentment currency.';
             DataClassification = SystemMetadata;
             AutoFormatType = 1;
-            AutoFormatExpression = this.OrderPresentmentCurrencyCode();
+            AutoFormatExpression = OrderPresentmentCurrencyCode();
         }
         field(9; "Presentment Discount Amount"; Decimal)
         {
@@ -69,7 +69,7 @@ table 30130 "Shpfy Order Shipping Charges"
             ToolTip = 'Specifies the shipping cost discount amount in presentment currency.';
             DataClassification = SystemMetadata;
             AutoFormatType = 1;
-            AutoFormatExpression = this.OrderPresentmentCurrencyCode();
+            AutoFormatExpression = OrderPresentmentCurrencyCode();
         }
         field(10; "Code Value"; Text[2048])
         {

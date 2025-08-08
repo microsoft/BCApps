@@ -98,7 +98,7 @@ table 30141 "Shpfy Return Line"
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = this.OrderPresentmentCurrencyCode();
+            AutoFormatExpression = OrderPresentmentCurrencyCode();
         }
         field(14; "Customer Note"; Blob)
         {

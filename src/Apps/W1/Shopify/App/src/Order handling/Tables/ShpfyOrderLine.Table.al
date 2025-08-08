@@ -126,7 +126,7 @@ table 30119 "Shpfy Order Line"
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = this.OrderPresentmentCurrencyCode();
+            AutoFormatExpression = OrderPresentmentCurrencyCode();
         }
         field(19; "Presentment Discount Amount"; Decimal)
         {
@@ -135,7 +135,7 @@ table 30119 "Shpfy Order Line"
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = this.OrderPresentmentCurrencyCode();
+            AutoFormatExpression = OrderPresentmentCurrencyCode();
         }
         field(20; "Delivery Method Type"; Enum "Shpfy Delivery Method Type")
         {

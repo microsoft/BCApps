@@ -51,7 +51,7 @@ page 30128 "Shpfy Order Shipping Charges"
                 field(PresentmentAmount; Rec."Presentment Amount")
                 {
                     ApplicationArea = All;
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field("Discount Amount"; Rec."Discount Amount")
                 {
@@ -61,7 +61,7 @@ page 30128 "Shpfy Order Shipping Charges"
                 field("Presentment Discount Amount"; Rec."Presentment Discount Amount")
                 {
                     ApplicationArea = All;
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field(Source; Rec.Source)
                 {
@@ -116,7 +116,7 @@ page 30128 "Shpfy Order Shipping Charges"
 
     trigger OnAfterGetRecord()
     begin
-        this.SetShowPresentmentCurrencyVisibility();
+        SetShowPresentmentCurrencyVisibility();
     end;
 
     local procedure SetShowPresentmentCurrencyVisibility()
@@ -126,7 +126,7 @@ page 30128 "Shpfy Order Shipping Charges"
         if not OrderHeader.Get(Rec."Shopify Order Id") then
             exit;
 
-        this.PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+        PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
     end;
 }
 

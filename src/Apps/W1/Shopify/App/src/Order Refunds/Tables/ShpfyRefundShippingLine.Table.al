@@ -50,7 +50,7 @@ table 30162 "Shpfy Refund Shipping Line"
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = this.OrderPresentmentCurrencyCode();
+            AutoFormatExpression = PresentmentCurrencyCode();
         }
         field(6; "Tax Amount"; Decimal)
         {
@@ -67,7 +67,7 @@ table 30162 "Shpfy Refund Shipping Line"
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = this.OrderPresentmentCurrencyCode();
+            AutoFormatExpression = PresentmentCurrencyCode();
         }
     }
     keys
@@ -99,13 +99,11 @@ table 30162 "Shpfy Refund Shipping Line"
                 exit(OrderHeader."Currency Code");
     end;
 
-    local procedure OrderPresentmentCurrencyCode(): Code[10]
+    local procedure PresentmentCurrencyCode(): Code[10]
     var
         RefundHeader: Record "Shpfy Refund Header";
-        OrderHeader: Record "Shpfy Order Header";
     begin
         if RefundHeader.Get("Refund Id") then
-            if OrderHeader.Get(RefundHeader."Order Id") then
-                exit(OrderHeader."Presentment Currency Code");
+            exit(RefundHeader."Presentment Currency Code");
     end;
 }

@@ -119,7 +119,7 @@ page 30151 "Shpfy Return"
     begin
         HasNote := Rec."Decline Note".HasValue();
 
-        this.SetPresentmentCurrencyVisibleOnLines();
+        SetPresentmentCurrencyVisibleOnLines();
     end;
 
     local procedure SetPresentmentCurrencyVisibleOnLines()

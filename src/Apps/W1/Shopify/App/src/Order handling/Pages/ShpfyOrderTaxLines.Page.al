@@ -46,7 +46,7 @@ page 30168 "Shpfy Order Tax Lines"
                     ApplicationArea = All;
                     Caption = 'Presentment Amount';
                     ToolTip = 'Specifies the amount of the tax line in presentment currency.';
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field("Rate %"; Rec."Rate %")
                 {
@@ -76,6 +76,6 @@ page 30168 "Shpfy Order Tax Lines"
         if not OrderHeader.Get(OrderLine."Shopify Order Id") then
             exit;
 
-        this.PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+        PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
     end;
 }

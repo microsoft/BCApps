@@ -81,7 +81,7 @@ page 30122 "Shpfy Order Subform"
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field(DiscountAmount; Rec."Discount Amount")
                 {
@@ -94,6 +94,7 @@ page 30122 "Shpfy Order Subform"
                 {
                     ApplicationArea = All;
                     Editable = false;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field(FullfillableQuantity; Rec."Fulfillable Quantity")
                 {
@@ -134,6 +135,6 @@ page 30122 "Shpfy Order Subform"
 
     internal procedure SetShowPresentmentCurrency(Show: Boolean)
     begin
-        this.PresentmentCurrencyVisible := Show;
+        PresentmentCurrencyVisible := Show;
     end;
 }

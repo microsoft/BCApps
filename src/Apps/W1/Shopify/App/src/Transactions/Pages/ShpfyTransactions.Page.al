@@ -76,12 +76,12 @@ page 30134 "Shpfy Transactions"
                 field("Presentment Amount"; Rec."Presentment Amount")
                 {
                     ApplicationArea = All;
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field("Presentment Currency"; Rec."Presentment Currency")
                 {
                     ApplicationArea = All;
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field(Test; Rec.Test)
                 {
@@ -231,7 +231,7 @@ page 30134 "Shpfy Transactions"
 
     trigger OnAfterGetRecord()
     begin
-        this.SetPresentmentCurrencyVisibility();
+        SetPresentmentCurrencyVisibility();
     end;
 
     local procedure SetPresentmentCurrencyVisibility()
@@ -241,6 +241,6 @@ page 30134 "Shpfy Transactions"
         if not OrderHeader.Get(Rec."Shopify Order Id") then
             exit;
 
-        this.PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+        PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
     end;
 }

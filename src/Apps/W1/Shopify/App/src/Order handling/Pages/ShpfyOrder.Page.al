@@ -376,7 +376,7 @@ page 30113 "Shpfy Order"
                 group(PresentementCurrency)
                 {
                     ShowCaption = false;
-                    Visible = this.PresentmentVisible;
+                    Visible = PresentmentVisible;
 
                     field("Presentment Subtotal Amount"; Rec."Presentment Subtotal Amount")
                     {
@@ -1057,15 +1057,15 @@ page 30113 "Shpfy Order"
 
     trigger OnAfterGetRecord()
     begin
-        this.SetPresentmentCurrencyVisibility();
-        this.WorkDescription := Rec.GetWorkDescription();
+        SetPresentmentCurrencyVisibility();
+        WorkDescription := Rec.GetWorkDescription();
     end;
 
     local procedure SetPresentmentCurrencyVisibility()
     begin
-        this.PresentmentVisible := Rec.IsPresentmentCurrencyOrder();
+        PresentmentVisible := Rec.IsPresentmentCurrencyOrder();
 
-        if this.PresentmentVisible then
+        if PresentmentVisible then
             CurrPage.ShopifyOrderLines.Page.SetShowPresentmentCurrency(true)
         else
             CurrPage.ShopifyOrderLines.Page.SetShowPresentmentCurrency(false);
