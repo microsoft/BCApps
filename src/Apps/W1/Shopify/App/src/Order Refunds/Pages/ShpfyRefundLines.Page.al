@@ -46,7 +46,7 @@ page 30146 "Shpfy Refund Lines"
                 field("Presentment Amount"; Rec."Presentment Amount")
                 {
                     ApplicationArea = All;
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field(LineDiscount; (Rec.Quantity * Rec.Amount) - Rec."Subtotal Amount")
                 {
@@ -67,7 +67,7 @@ page 30146 "Shpfy Refund Lines"
                     BlankZero = true;
                     Visible = PresentmentCurrencyVisible;
                     AutoFormatType = 1;
-                    AutoFormatExpression = Rec.RefundPresentmentCurrencyCode();
+                    AutoFormatExpression = Rec.PresentmentCurrencyCode();
                 }
                 field("Subtotal Amount"; Rec."Subtotal Amount")
                 {
@@ -77,7 +77,7 @@ page 30146 "Shpfy Refund Lines"
                 field("Presentment Subtotal Amount"; Rec."Presentment Subtotal Amount")
                 {
                     ApplicationArea = All;
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field("Total Tax Amount"; Rec."Total Tax Amount")
                 {
@@ -87,7 +87,7 @@ page 30146 "Shpfy Refund Lines"
                 field("Presentment Total Tax Amount"; Rec."Presentment Total Tax Amount")
                 {
                     ApplicationArea = All;
-                    Visible = this.PresentmentCurrencyVisible;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field("Restock Type"; Rec."Restock Type")
                 {
@@ -132,6 +132,6 @@ page 30146 "Shpfy Refund Lines"
 
     internal procedure SetShowPresentmentCurrency(Show: Boolean)
     begin
-        this.PresentmentCurrencyVisible := Show;
+        PresentmentCurrencyVisible := Show;
     end;
 }

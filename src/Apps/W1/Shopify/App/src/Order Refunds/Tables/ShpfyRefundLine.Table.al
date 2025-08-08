@@ -64,7 +64,7 @@ table 30145 "Shpfy Refund Line"
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = RefundPresentmentCurrencyCode();
+            AutoFormatExpression = PresentmentCurrencyCode();
             ToolTip = 'Specifies the price in presentment currency of a refunded line item.';
         }
         field(9; "Subtotal Amount"; Decimal)
@@ -81,7 +81,7 @@ table 30145 "Shpfy Refund Line"
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = RefundPresentmentCurrencyCode();
+            AutoFormatExpression = PresentmentCurrencyCode();
             ToolTip = 'Specifies the subtotal price of a refunded line item in presentment currency.';
         }
         field(11; "Total Tax Amount"; Decimal)
@@ -98,7 +98,7 @@ table 30145 "Shpfy Refund Line"
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = RefundPresentmentCurrencyCode();
+            AutoFormatExpression = PresentmentCurrencyCode();
             ToolTip = 'Specifies the total tax charged on a refunded line item in presentment currency.';
         }
         field(13; "Can Create Credit Memo"; Boolean)
@@ -182,7 +182,7 @@ table 30145 "Shpfy Refund Line"
     /// Returns the presentment currency code for the order line associated with this refund line.
     /// </summary>
     /// <returns>Currency code</returns>
-    internal procedure RefundPresentmentCurrencyCode(): Code[10]
+    internal procedure PresentmentCurrencyCode(): Code[10]
     var
         RefundHeader: Record "Shpfy Refund Header";
     begin
