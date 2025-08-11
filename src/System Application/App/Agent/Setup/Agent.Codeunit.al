@@ -18,6 +18,7 @@ codeunit 4321 Agent
     /// The agent will be in the disabled state, with the users that can interact with the agent setup.
     /// </summary>
     /// <param name="AgentMetadataProvider">The metadata provider of the agent.</param>
+    /// <param name="UserName">User name for the agent.</param>
     /// <param name="UserDisplayName">Display name for the agent.</param>
     /// <param name="Instructions">Instructions for the agent that will be used to complete the tasks.</param>
     /// <param name="TempAgentAccessControl">The list of users that can configure or interact with the agent.</param>
