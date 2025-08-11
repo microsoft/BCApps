@@ -113,6 +113,7 @@ codeunit 132612 "Signed Xml Module Test"
 
         Signature.SelectSingleNode('./ns:SignedInfo/ns:Reference/ns:Transforms/ns:Transform/@Algorithm', NamespaceMgr, Node);
         LibraryAssert.AreEqual(C14NTransformUriTok, Node.AsXmlAttribute().Value, 'Incorrect transform was applied.');
+    end;
 
     procedure SignXmlDocumentWithSigningKeyAsSecretText()
     var
