@@ -57,6 +57,25 @@ codeunit 1460 SignedXml
     /// <summary>
     /// Sets the key used for signing a SignedXml object.
     /// </summary>
+    /// <param name="XmlString">The XML string containing key information.</param>
+    procedure SetSigningKey(XmlString: SecretText)
+    begin
+        SignedXmlImpl.SetSigningKey(XmlString);
+    end;
+
+    /// <summary>
+    /// Sets the key used for signing a SignedXml object.
+    /// </summary>
+    /// <param name="XmlString">The XML string containing key information.</param>
+    /// <param name="SignatureAlgorithm">The type of asymmetric algorithms.</param>
+    procedure SetSigningKey(XmlString: SecretText; SignatureAlgorithm: Enum SignatureAlgorithm)
+    begin
+        SignedXmlImpl.SetSigningKey(XmlString, SignatureAlgorithm);
+    end;
+    
+    /// <summary>
+    /// Sets the key used for signing a SignedXml object.
+    /// </summary>
     /// <param name="SignatureKey">The key used for signing the SignedXml object.</param>
     procedure SetSigningKey(SignatureKey: Codeunit "Signature Key")
     begin

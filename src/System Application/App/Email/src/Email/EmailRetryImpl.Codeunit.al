@@ -8,6 +8,8 @@ namespace System.Email;
 codeunit 8909 "Email Retry Impl."
 {
     Access = Internal;
+    InherentPermissions = X;
+    InherentEntitlements = X;
     TableNo = "Email Retry";
     Permissions = tabledata "Sent Email" = ri,
                   tabledata "Email Outbox" = rimd,
