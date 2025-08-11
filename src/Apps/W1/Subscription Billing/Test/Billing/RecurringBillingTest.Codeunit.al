@@ -1098,24 +1098,24 @@ codeunit 139688 "Recurring Billing Test"
         CheckNextToDate("Period Calculation"::"Align to End of Month", '1Y', 20230228D, 20240228D);
 
         CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240128D, 20240227D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240129D, 20240226D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240130D, 20240227D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240131D, 20240228D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240129D, 20240227D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240130D, 20240228D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240131D, 20240229D);
         CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240225D, 20240324D);
         CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240226D, 20240325D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240227D, 20240328D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240228D, 20240329D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240229D, 20240330D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240329D, 20240427D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240330D, 20240428D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240331D, 20240429D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '2M', 20240131D, 20240330D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '2M', 20240229D, 20240429D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '1Q', 20240131D, 20240429D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '1Q', 20240229D, 20240530D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '1Y', 20240131D, 20250130D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '1Y', 20240229D, 20250227D);
-        CheckNextToDate("Period Calculation"::"Align to End of Month", '1Y', 20240228D, 20250226D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240227D, 20240329D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240228D, 20240330D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240229D, 20240331D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240329D, 20240428D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240330D, 20240429D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '1M', 20240331D, 20240430D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '2M', 20240131D, 20240331D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '2M', 20240229D, 20240430D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '1Q', 20240131D, 20240430D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '1Q', 20240229D, 20240531D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '1Y', 20240131D, 20250131D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '1Y', 20240229D, 20250228D);
+        CheckNextToDate("Period Calculation"::"Align to End of Month", '1Y', 20240228D, 20250227D);
     end;
 
     [Test]
