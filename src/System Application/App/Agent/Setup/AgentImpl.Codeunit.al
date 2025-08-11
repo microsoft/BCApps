@@ -22,8 +22,8 @@ codeunit 4301 "Agent Impl."
                   tabledata "Application User Settings" = rim,
                   tabledata User = r,
                   tabledata "User Personalization" = rim;
-    internal procedure CreateAgent(AgentMetadataProvider: Enum "Agent Metadata Provider"; var UserName: Code[50]; AgentUserDisplayName: Text[80]; var TempAgentAccessControl: Record "Agent Access Control" temporary): Guid
 
+    internal procedure CreateAgent(AgentMetadataProvider: Enum "Agent Metadata Provider"; var UserName: Code[50]; AgentUserDisplayName: Text[80]; var TempAgentAccessControl: Record "Agent Access Control" temporary): Guid
     var
         Agent: Record Agent;
     begin
@@ -436,7 +436,6 @@ codeunit 4301 "Agent Impl."
         AgentNumberSeparatorTok: Label '-', Locked = true;
     begin
         // Check if the user name is already unique
-        User.Ascending(false);
         User.SetRange("User Name", AgentUserName);
         User.ReadIsolation := IsolationLevel::ReadUncommitted;
         if User.IsEmpty() then
