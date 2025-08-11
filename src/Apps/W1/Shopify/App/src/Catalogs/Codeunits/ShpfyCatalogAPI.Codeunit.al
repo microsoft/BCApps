@@ -208,22 +208,23 @@ codeunit 30290 "Shpfy Catalog API"
         JEdge: JsonToken;
         JNode: JsonObject;
     begin
-        if JsonHelper.GetJsonArray(JResponse, JCatalogs, 'data.catalog.priceList.prices.edges') then begin
-            foreach JEdge in JCatalogs do begin
-                Cursor := JsonHelper.GetValueAsText(JEdge.AsObject(), 'cursor');
-                if JsonHelper.GetJsonObject(JEdge.AsObject(), JNode, 'node') then
-                    if ProductList.Contains(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode, 'variant.product.id'))) then begin
-                        TempCatalogPrice."Variant Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode, 'variant.id'));
-                        TempCatalogPrice."Shop Code" := Shop.Code;
-                        TempCatalogPrice."Price List Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JResponse, 'data.catalog.priceList.id'));
-                        TempCatalogPrice."Price List Currency" := StrSubstNo(JsonHelper.GetValueAsCode(JResponse, 'data.catalog.priceList.currency'), 1, MaxStrLen(TempCatalogPrice."Price List Currency"));
-                        TempCatalogPrice.Price := JsonHelper.GetValueAsDecimal(JNode, 'price.amount');
-                        TempCatalogPrice."Compare At Price" := JsonHelper.GetValueAsDecimal(JNode, 'compareAtPrice.amount');
-                        TempCatalogPrice.Insert();
-                    end;
-            end;
-            exit(true);
+        if not JsonHelper.GetJsonArray(JResponse, JCatalogs, 'data.catalog.priceList.prices.edges') then
+            exit(false);
+
+        foreach JEdge in JCatalogs do begin
+            Cursor := JsonHelper.GetValueAsText(JEdge.AsObject(), 'cursor');
+            if JsonHelper.GetJsonObject(JEdge.AsObject(), JNode, 'node') then
+                if ProductList.Contains(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode, 'variant.product.id'))) then begin
+                    TempCatalogPrice."Variant Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode, 'variant.id'));
+                    TempCatalogPrice."Shop Code" := Shop.Code;
+                    TempCatalogPrice."Price List Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JResponse, 'data.catalog.priceList.id'));
+                    TempCatalogPrice."Price List Currency" := StrSubstNo(JsonHelper.GetValueAsCode(JResponse, 'data.catalog.priceList.currency'), 1, MaxStrLen(TempCatalogPrice."Price List Currency"));
+                    TempCatalogPrice.Price := JsonHelper.GetValueAsDecimal(JNode, 'price.amount');
+                    TempCatalogPrice."Compare At Price" := JsonHelper.GetValueAsDecimal(JNode, 'compareAtPrice.amount');
+                    TempCatalogPrice.Insert();
+                end;
         end;
+        exit(true);
     end;
 
     internal procedure ExtractShopifyCatalogs(var ShopifyCompany: Record "Shpfy Company"; JResponse: JsonObject; var Cursor: Text): Boolean
@@ -234,28 +235,29 @@ codeunit 30290 "Shpfy Catalog API"
         JNode: JsonObject;
         CatalogId: BigInteger;
     begin
-        if JsonHelper.GetJsonArray(JResponse, JCatalogs, 'data.catalogs.edges') then begin
-            foreach JEdge in JCatalogs do begin
-                Cursor := JsonHelper.GetValueAsText(JEdge.AsObject(), 'cursor');
-                if JsonHelper.GetJsonObject(JEdge.AsObject(), JNode, 'node') then begin
-                    CatalogId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode, 'id'));
-                    Catalog.SetRange(Id, CatalogId);
-                    Catalog.SetRange("Company SystemId", ShopifyCompany.SystemId);
-                    Catalog.SetRange("Catalog Type", "Shpfy Catalog Type"::Company);
-                    if not Catalog.FindFirst() then begin
-                        Catalog.Id := CatalogId;
-                        Catalog."Company SystemId" := ShopifyCompany.SystemId;
-                        Catalog."Sync Prices" := false;
-                        Catalog."Catalog Type" := "Shpfy Catalog Type"::Company;
-                        Catalog.Insert(true);
-                    end;
-                    Catalog."Shop Code" := Shop.Code;
-                    Catalog.Name := CopyStr(JsonHelper.GetValueAsText(JNode, 'title'), 1, MaxStrLen(Catalog.Name));
-                    Catalog.Modify(true);
+        if not JsonHelper.GetJsonArray(JResponse, JCatalogs, 'data.catalogs.edges') then
+            exit(false);
+
+        foreach JEdge in JCatalogs do begin
+            Cursor := JsonHelper.GetValueAsText(JEdge.AsObject(), 'cursor');
+            if JsonHelper.GetJsonObject(JEdge.AsObject(), JNode, 'node') then begin
+                CatalogId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode, 'id'));
+                Catalog.SetRange(Id, CatalogId);
+                Catalog.SetRange("Company SystemId", ShopifyCompany.SystemId);
+                Catalog.SetRange("Catalog Type", "Shpfy Catalog Type"::Company);
+                if not Catalog.FindFirst() then begin
+                    Catalog.Id := CatalogId;
+                    Catalog."Company SystemId" := ShopifyCompany.SystemId;
+                    Catalog."Sync Prices" := false;
+                    Catalog."Catalog Type" := "Shpfy Catalog Type"::Company;
+                    Catalog.Insert(true);
                 end;
+                Catalog."Shop Code" := Shop.Code;
+                Catalog.Name := CopyStr(JsonHelper.GetValueAsText(JNode, 'title'), 1, MaxStrLen(Catalog.Name));
+                Catalog.Modify(true);
             end;
-            exit(true);
         end;
+        exit(true);
     end;
 
     internal procedure ExtractShopifyMarketCatalogs(JResponse: JsonObject; var Cursor: Text): Boolean
@@ -267,29 +269,30 @@ codeunit 30290 "Shpfy Catalog API"
         CatalogId: BigInteger;
         CurrencyCode: Text;
     begin
-        if JsonHelper.GetJsonArray(JResponse, JCatalogs, 'data.catalogs.edges') then begin
-            foreach JEdge in JCatalogs do begin
-                Cursor := JsonHelper.GetValueAsText(JEdge.AsObject(), 'cursor');
-                if JsonHelper.GetJsonObject(JEdge.AsObject(), JNode, 'node') then begin
-                    CatalogId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode, 'id'));
-                    CurrencyCode := JsonHelper.GetValueAsText(JNode, 'priceList.currency');
-                    Catalog.SetRange(Id, CatalogId);
-                    Catalog.SetRange("Catalog Type", "Shpfy Catalog Type"::Market);
-                    if not Catalog.FindFirst() then begin
-                        Catalog.Id := CatalogId;
-                        Catalog."Catalog Type" := "Shpfy Catalog Type"::Market;
-                        Catalog.Insert(true);
-                    end;
-                    Catalog."Shop Code" := Shop.Code;
-                    Catalog.Name := CopyStr(JsonHelper.GetValueAsText(JNode, 'title'), 1, MaxStrLen(Catalog.Name));
-                    Catalog."Currency Code" := CopyStr(CurrencyCode, 1, MaxStrLen(Catalog."Currency Code"));
-                    Catalog.Modify(true);
+        if not JsonHelper.GetJsonArray(JResponse, JCatalogs, 'data.catalogs.edges') then
+            exit(false);
 
-                    GetMarketsLinkedToCatalog(Catalog);
+        foreach JEdge in JCatalogs do begin
+            Cursor := JsonHelper.GetValueAsText(JEdge.AsObject(), 'cursor');
+            if JsonHelper.GetJsonObject(JEdge.AsObject(), JNode, 'node') then begin
+                CatalogId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode, 'id'));
+                CurrencyCode := JsonHelper.GetValueAsText(JNode, 'priceList.currency');
+                Catalog.SetRange(Id, CatalogId);
+                Catalog.SetRange("Catalog Type", "Shpfy Catalog Type"::Market);
+                if not Catalog.FindFirst() then begin
+                    Catalog.Id := CatalogId;
+                    Catalog."Catalog Type" := "Shpfy Catalog Type"::Market;
+                    Catalog.Insert(true);
                 end;
+                Catalog."Shop Code" := Shop.Code;
+                Catalog.Name := CopyStr(JsonHelper.GetValueAsText(JNode, 'title'), 1, MaxStrLen(Catalog.Name));
+                Catalog."Currency Code" := CopyStr(CurrencyCode, 1, MaxStrLen(Catalog."Currency Code"));
+                Catalog.Modify(true);
+
+                GetMarketsLinkedToCatalog(Catalog);
             end;
-            exit(true);
         end;
+        exit(true);
     end;
 
     internal procedure GetMarketsLinkedToCatalog(Catalog: Record "Shpfy Catalog")
@@ -333,27 +336,28 @@ codeunit 30290 "Shpfy Catalog API"
         JEdge: JsonToken;
         JNode: JsonObject;
     begin
-        if JsonHelper.GetJsonArray(JResponse, JMarkets, 'data.catalog.markets.edges') then begin
-            foreach JEdge in JMarkets do begin
-                Cursor := JsonHelper.GetValueAsText(JEdge.AsObject(), 'cursor');
-                if JsonHelper.GetJsonObject(JEdge.AsObject(), JNode, 'node') then begin
-                    MarketId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode, 'id'));
+        if not JsonHelper.GetJsonArray(JResponse, JMarkets, 'data.catalog.markets.edges') then
+            exit(false);
 
-                    MarketCatalogRelation.SetRange("Market Id", MarketId);
-                    MarketCatalogRelation.SetRange("Catalog Id", Catalog.Id);
-                    if not MarketCatalogRelation.FindFirst() then begin
-                        MarketCatalogRelation."Market Id" := MarketId;
-                        MarketCatalogRelation."Catalog Id" := Catalog.Id;
-                        MarketCatalogRelation.Insert(true);
-                    end;
-                    MarketCatalogRelation."Shop Code" := Shop.Code;
-                    MarketCatalogRelation."Market Name" := CopyStr(JsonHelper.GetValueAsText(JNode, 'name'), 1, MaxStrLen(MarketCatalogRelation."Market Name"));
-                    MarketCatalogRelation."Catalog Title" := Catalog.Name;
-                    MarketCatalogRelation.Modify(true);
+        foreach JEdge in JMarkets do begin
+            Cursor := JsonHelper.GetValueAsText(JEdge.AsObject(), 'cursor');
+            if JsonHelper.GetJsonObject(JEdge.AsObject(), JNode, 'node') then begin
+                MarketId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode, 'id'));
+
+                MarketCatalogRelation.SetRange("Market Id", MarketId);
+                MarketCatalogRelation.SetRange("Catalog Id", Catalog.Id);
+                if not MarketCatalogRelation.FindFirst() then begin
+                    MarketCatalogRelation."Market Id" := MarketId;
+                    MarketCatalogRelation."Catalog Id" := Catalog.Id;
+                    MarketCatalogRelation.Insert(true);
                 end;
+                MarketCatalogRelation."Shop Code" := Shop.Code;
+                MarketCatalogRelation."Market Name" := CopyStr(JsonHelper.GetValueAsText(JNode, 'name'), 1, MaxStrLen(MarketCatalogRelation."Market Name"));
+                MarketCatalogRelation."Catalog Title" := Catalog.Name;
+                MarketCatalogRelation.Modify(true);
             end;
-            exit(true);
         end;
+        exit(true);
     end;
 
     internal procedure GetIncludedProductsInCatalog(Catalog: Record "Shpfy Catalog"; var ProductList: List of [BigInteger])
