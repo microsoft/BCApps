@@ -8,6 +8,7 @@ namespace Microsoft.Integration.Shopify.Test;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.Archive;
 
 codeunit 139609 "Shpfy Order Test"
 {
@@ -33,21 +34,49 @@ codeunit 139609 "Shpfy Order Test"
     [Test]
     procedure TestSalesOrderWithShopifyOrderNo()
     var
-        ShpfyOrderNo: Code[50];
+        ShopifyOrderNo: Code[50];
     begin
         Initialize();
-        ShpfyOrderNo := CopyStr(LibraryRandom.RandText(MaxStrLen(ShpfyOrderNo)), 1, MaxStrLen(ShpfyOrderNo));
-        Assert.AreEqual(ShpfyOrderNo, CreateSalesOrder(ShpfyOrderNo), 'Shpfy Order No. must be the same as on the order');
-        ShpfyOrderNo := '';
-        Assert.AreEqual(ShpfyOrderNo, CreateSalesOrder(ShpfyOrderNo), 'Shpfy Order No. must be blank');
+        ShopifyOrderNo := CopyStr(LibraryRandom.RandText(MaxStrLen(ShopifyOrderNo)), 1, MaxStrLen(ShopifyOrderNo));
+        Assert.AreEqual(ShopifyOrderNo, CreateSalesOrder(ShopifyOrderNo), 'Shpfy Order No. must be the same as on the order');
+        ShopifyOrderNo := '';
+        Assert.AreEqual(ShopifyOrderNo, CreateSalesOrder(ShopifyOrderNo), 'Shpfy Order No. must be blank');
 
     end;
 
-    local procedure CreateSalesOrder(ShpfyOrderNo: Code[50]): Code[50]
+    [Test]
+    procedure TestSalesOrderArchive()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesHeaderArchive: Record "Sales Header Archive";
+        SalesLineArchive: Record "Sales Line Archive";
+        ShopifyOrderNo: Code[50];
+    begin
+        Initialize();
+        LibrarySales.SetArchiveOrders(true);
+        ShopifyOrderNo := CopyStr(LibraryRandom.RandText(MaxStrLen(ShopifyOrderNo)), 1, MaxStrLen(ShopifyOrderNo));
+        CreateSalesOrder(ShopifyOrderNo, SalesHeader);
+        SalesHeaderArchive.SetRange("Document Type", SalesHeaderArchive."Document Type"::Order);
+        SalesHeaderArchive.SetRange("No.", SalesHeader."No.");
+        SalesHeaderArchive.FindLast();
+        Assert.AreEqual(ShopifyOrderNo, SalesHeaderArchive."Shpfy Order No.", 'Shpfy Order No. must be the same as on the order header');
+        SalesLineArchive.SetRange("Document Type", SalesLineArchive."Document Type"::Order);
+        SalesLineArchive.SetRange("Document No.", SalesHeaderArchive."No.");
+        SalesLineArchive.FindLast();
+        Assert.AreEqual(ShopifyOrderNo, SalesLineArchive."Shpfy Order No.", 'Shpfy Order No. must be the same as on the order line');
+    end;
+
+    local procedure CreateSalesOrder(ShopifyOrderNo: Code[50]): Code[50]
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        exit(CreateSalesOrder(ShopifyOrderNo, SalesHeader));
+    end;
+
+    local procedure CreateSalesOrder(ShopifyOrderNo: Code[50]; var SalesHeader: Record "Sales Header"): Code[50]
     var
         Customer: Record Customer;
         SalesShipmentHeader: Record "Sales Shipment Header";
-        SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         OrderNo: Code[50];
     begin
@@ -55,7 +84,10 @@ codeunit 139609 "Shpfy Order Test"
         LibrarySales.CreateSalesOrder(SalesHeader);
         OrderNo := SalesHeader."No.";
         LibrarySales.CreateSalesLineSimple(SalesLine, SalesHeader);
-        SalesHeader."Shpfy Order No." := ShpfyOrderNo;
+        SalesHeader."Shpfy Order No." := ShopifyOrderNo;
+        SalesHeader.Modify();
+        SalesLine."Shpfy Order No." := ShopifyOrderNo;
+        SalesLine.Modify();
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
         SalesShipmentHeader.SetRange("Order No.", OrderNo);
         SalesShipmentHeader.FindFirst();

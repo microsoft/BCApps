@@ -119,6 +119,7 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy Company Export" = X,
         codeunit "Shpfy Company Import" = X,
         codeunit "Shpfy Company Mapping" = X,
+        codeunit "Shpfy Copy Sales Document" = X,
         codeunit "Shpfy County Code" = X,
         codeunit "Shpfy County From Json Code" = X,
         codeunit "Shpfy County From Json Name" = X,
