@@ -137,7 +137,7 @@ table 30152 "Shpfy Catalog"
             Caption = 'Customer No.';
             DataClassification = CustomerContent;
             TableRelation = "Customer";
-            ToolTip = 'Specifies the customer''s no.  When Customer No. is Selected: Parameters like ''Customer Discount Group'', ''Customer Price Group'', and ''Allow Line Discount'' on the customer card take precedence over catalog settings';
+            ToolTip = 'Specifies the customer number assigned to the catalog. When a customer no. is assigned, ''Customer Discount Group'', ''Customer Price Group'', and ''Allow Line Discount'' settings of the customer take precedence over catalog settings.';
         }
         field(18; "Catalog Type"; Enum "Shpfy Catalog Type")
         {
