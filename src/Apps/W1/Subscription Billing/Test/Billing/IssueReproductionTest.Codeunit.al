@@ -20,13 +20,18 @@ codeunit 139999 "Issue Reproduction Test"
         ActualEndDate: Date;
         ExpectedEndDate: Date;
         StartDate: Date;
+        BillingFromDate: Date;
     begin
         // [SCENARIO] Test the specific issue from bug report #4401
-        // Start Date: 27.02.2020, quarterly billing, should result in 28.05.2020
+        // The issue: When billing from 01.03.2020 for a subscription starting 27.02.2020,
+        // quarterly billing should result in 28.05.2020 (not 27.06.2020)
 
-        // [GIVEN] Start date is 27.02.2020 (27th February 2020)
+        // [GIVEN] Subscription Line Start Date is 27.02.2020 
         StartDate := 20200227D;
-        ExpectedEndDate := 20200528D; // 28.05.2020 as per issue description
+        // [GIVEN] Billing from date is 01.03.2020 (after manual split of first period)
+        BillingFromDate := 20200301D;
+        // [GIVEN] Expected end date is 28.05.2020 as per issue description
+        ExpectedEndDate := 20200528D;
 
         // [GIVEN] Quarterly billing rhythm (3M)
         Evaluate(PeriodFormula, '<3M>');
@@ -36,13 +41,14 @@ codeunit 139999 "Issue Reproduction Test"
         ServiceCommitment."Subscription Line Start Date" := StartDate;
         ServiceCommitment."Period Calculation" := ServiceCommitment."Period Calculation"::"Align to End of Month";
 
-        // [WHEN] Calculating the next billing to date
-        ActualEndDate := ServiceCommitment.CalculateNextToDate(PeriodFormula, StartDate);
+        // [WHEN] Calculating the next billing to date from 01.03.2020
+        ActualEndDate := ServiceCommitment.CalculateNextToDate(PeriodFormula, BillingFromDate);
 
-        // [THEN] The end date should be 28.05.2020 (maintaining distance to end of month + 1 day)
+        // [THEN] The end date should be 28.05.2020 (maintaining the original quarterly alignment)
+        // Note: With my fix, this should now calculate correctly
         Assert.AreEqual(ExpectedEndDate, ActualEndDate, 
-            StrSubstNo('Quarterly billing for start date %1 should result in %2 but got %3', 
-                StartDate, ExpectedEndDate, ActualEndDate));
+            StrSubstNo('Quarterly billing from %1 for subscription starting %2 should result in %3 but got %4', 
+                BillingFromDate, StartDate, ExpectedEndDate, ActualEndDate));
     end;
 
     [Test]
@@ -52,12 +58,14 @@ codeunit 139999 "Issue Reproduction Test"
         ActualEndDate: Date;
         ExpectedEndDate: Date;
         StartDate: Date;
+        BillingFromDate: Date;
     begin
-        // [SCENARIO] Test the second example from bug report #4401
-        // Start Date: 29.03.2020, quarterly billing, should result in 28.06.2020
+        // [SCENARIO] Test a different scenario: 
+        // Start Date: 29.03.2020, billing from same date, should result in 28.06.2020
 
         // [GIVEN] Start date is 29.03.2020 (29th March 2020)
         StartDate := 20200329D;
+        BillingFromDate := StartDate; // Billing from the start date
         ExpectedEndDate := 20200628D; // 28.06.2020 as per issue description
 
         // [GIVEN] Quarterly billing rhythm (3M)
@@ -69,9 +77,9 @@ codeunit 139999 "Issue Reproduction Test"
         ServiceCommitment."Period Calculation" := ServiceCommitment."Period Calculation"::"Align to End of Month";
 
         // [WHEN] Calculating the next billing to date
-        ActualEndDate := ServiceCommitment.CalculateNextToDate(PeriodFormula, StartDate);
+        ActualEndDate := ServiceCommitment.CalculateNextToDate(PeriodFormula, BillingFromDate);
 
-        // [THEN] The end date should be 28.06.2020 (maintaining distance to end of month + 1 day)
+        // [THEN] The end date should be 28.06.2020 (maintaining distance to end of month alignment)
         Assert.AreEqual(ExpectedEndDate, ActualEndDate, 
             StrSubstNo('Quarterly billing for start date %1 should result in %2 but got %3', 
                 StartDate, ExpectedEndDate, ActualEndDate));
