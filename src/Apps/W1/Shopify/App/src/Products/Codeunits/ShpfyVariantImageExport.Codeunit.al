@@ -60,8 +60,8 @@ codeunit 30403 "Shpfy Variant Image Export"
 
         if not ImageExists then begin
             if TenantMedia.Get(PictureGuid) then begin
-                this.ProductApi.UploadShopifyImage(TenantMedia, ResourceUrl);
-                NewImageId := this.VariantApi.SetVariantImage(Rec, ResourceUrl);
+                NewImageId := this.ProductApi.AddImageToProduct(Rec."Product Id", TenantMedia);
+                this.VariantApi.SetVariantImage(Rec, ResourceUrl);
             end;
 
             if NewImageId <> Rec."Image Id" then

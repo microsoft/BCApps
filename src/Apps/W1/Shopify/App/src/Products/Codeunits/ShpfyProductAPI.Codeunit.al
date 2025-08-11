@@ -277,6 +277,20 @@ codeunit 30176 "Shpfy Product API"
                     exit(SetProductImage(Product, ResourceUrl));
     end;
 
+    /// <summary>
+    /// Adds image to Shopify product media set.
+    /// </summary>
+    /// <param name="ProductId"></param>
+    /// <param name="TenantMedia"></param>
+    /// <returns></returns>
+    internal procedure AddImageToProduct(ProductId: BigInteger; var TenantMedia: Record "Tenant Media"): BigInteger
+    var
+        ResourceUrl: Text;
+    begin
+        if UploadShopifyImage(TenantMedia, ResourceUrl) then
+            exit(UpdateProductWithNewImage(ProductId, ResourceUrl));
+    end;
+
     /// <summary> 
     /// Get Image Data.
     /// </summary>
@@ -674,5 +688,27 @@ codeunit 30176 "Shpfy Product API"
         Parameters.Add('OptionId', Format(OptionId));
         Parameters.Add('OptionName', NewOptionName);
         CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::UpdateProductOption, Parameters);
+    end;
+
+    /// <summary>
+    /// Updates the product with a new image.
+    /// </summary>
+    /// <param name="ProductId">Updated product id</param>
+    /// <param name="ResourceUrl">URL of the new image</param>
+    local procedure UpdateProductWithNewImage(ProductId: BigInteger; ResourceUrl: Text): BigInteger
+    var
+        Parameters: Dictionary of [Text, Text];
+        JMedias: JsonArray;
+        JMedia: JsonToken;
+        JResponse: JsonToken;
+    begin
+        Parameters.Add('ProductId', Format(ProductId));
+        Parameters.Add('ResourceUrl', ResourceUrl);
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::UpdateProdWithImage, Parameters);
+
+        if JsonHelper.GetJsonArray(JResponse, JMedias, 'data.product.media.nodes') then
+            if JMedias.Count = 1 then
+                if JMedias.Get(0, JMedia) then
+                    exit(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JResponse, 'id')));
     end;
 }
