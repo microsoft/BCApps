@@ -455,10 +455,7 @@ codeunit 4301 "Agent Impl."
         // Generate a unique user name by appending digits
         User.SetFilter("User Name", '%1', AgentNamePrefix + '*');
 #pragma warning disable AA0139
-        if User.Count() = 0 then
-            UniqueUserName := AgentNamePrefix + Format(2)
-        else
-            UniqueUserName := AgentNamePrefix + Format(User.Count() + 1);
+        UniqueUserName := AgentNamePrefix + Format(User.Count() + 2);
 #pragma warning restore AA0139
 
         exit(UniqueUserName);
