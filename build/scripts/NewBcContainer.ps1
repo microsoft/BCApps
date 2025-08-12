@@ -24,6 +24,11 @@ foreach($app in $installedApps) {
         Write-Host "Unpublishing $($app.Name)"
         Unpublish-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -unInstall -doNotSaveData -doNotSaveSchema -force
     }
+
+    # Temp fix
+    if ($app.Name -like "*Shopify*") {
+        Unpublish-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -unInstall -doNotSaveData -doNotSaveSchema -force
+    }
 }
 
 Write-Host "Current installed apps in container $($parameters.ContainerName)"
