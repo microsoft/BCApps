@@ -876,10 +876,25 @@ codeunit 30189 "Shpfy Variant API"
         Parameters.Add('ProductId', Format(ShopifyVariant."Product Id"));
         Parameters.Add('VariantId', Format(ShopifyVariant.Id));
         Parameters.Add('ImageId', Format(ImageId));
-        JResponse := this.CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::AppendVariantMedia, Parameters);
+        JResponse := this.CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::AppendVariantImage, Parameters);
         if this.JsonHelper.GetJsonArray(JResponse, JErrors, 'data.productVariantAppendMedia.userErrors') then
             if JErrors.Count > 0 then
                 if this.JsonHelper.GetArrayAsText(JErrors).Contains('NON_READY_MEDIA') then
                     AppendVariantImage(ShopifyVariant, ImageId);
+    end;
+
+    /// <summary>
+    /// Detach image from Shopify variant.
+    /// </summary>
+    /// <param name="ShopifyVariant">Shopify Variant record</param>
+    /// <param name="ImageId">Shopify id of image to detach</param>
+    internal procedure DetachVariantImage(ShopifyVariant: Record "Shpfy Variant")
+    var
+        Parameters: Dictionary of [Text, Text];
+    begin
+        Parameters.Add('ProductId', Format(ShopifyVariant."Product Id"));
+        Parameters.Add('VariantId', Format(ShopifyVariant.Id));
+        Parameters.Add('ImageId', Format(ShopifyVariant."Image Id"));
+        this.CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::DetachVariantImage, Parameters);
     end;
 }

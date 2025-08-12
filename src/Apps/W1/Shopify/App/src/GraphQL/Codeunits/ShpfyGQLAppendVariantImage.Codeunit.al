@@ -5,6 +5,9 @@
 
 namespace Microsoft.Integration.Shopify;
 
+/// <summary>
+/// Codeunit Shpfy GQL Append Variant Image (ID 30407) implements Interface Shpfy IGraphQL.
+/// </summary>
 codeunit 30407 "Shpfy GQL Append Variant Image" implements "Shpfy IGraphQL"
 {
     procedure GetGraphQL(): Text

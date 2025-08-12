@@ -28,7 +28,6 @@ codeunit 30403 "Shpfy Variant Image Export"
         Hash: Integer;
         ImageExists: Boolean;
         JRequest: JsonObject;
-        ResourceUrl: Text;
         ItemAsVariant: Boolean;
         PictureGuid: Guid;
     begin
@@ -70,8 +69,11 @@ codeunit 30403 "Shpfy Variant Image Export"
             Rec.Modify(false);
         end else begin
             if Rec."Image Id" > 0 then
-                if TenantMedia.Get(PictureGuid) then
-                    this.ProductApi.UpdateShopifyProductImage(Rec."Product Id", Rec."Image Id", TenantMedia, this.BulkOperationInput, this.ParametersList, this.CurrRecordCount);
+                if TenantMedia.Get(PictureGuid) then begin
+                    NewImageId := this.ProductApi.AddImageToProduct(Rec."Product Id", TenantMedia);
+                    this.VariantApi.DetachVariantImage(Rec);
+                    this.VariantApi.AppendVariantImage(Rec, NewImageId);
+                end;
             JRequest.Add('id', Rec.Id);
             JRequest.Add('imageHash', Rec."Image Hash");
             this.JRequestData.Add(JRequest);
