@@ -8,7 +8,7 @@ namespace Microsoft.Integration.Shopify;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 
-codeunit 30402 "Shpfy Copy Sales Document"
+codeunit 30408 "Shpfy Copy Sales Document"
 {
     Access = Internal;
 
