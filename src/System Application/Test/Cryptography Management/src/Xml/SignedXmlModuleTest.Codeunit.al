@@ -82,6 +82,39 @@ codeunit 132612 "Signed Xml Module Test"
     end;
 
     [Test]
+    procedure SetXmlDSigC14NTranform()
+    var
+        SignatureKey: Codeunit "Signature Key";
+        XmlToSign: XmlDocument;
+        KeyText: SecretText;
+        Signature: XmlElement;
+        NamespaceMgr: XmlNamespaceManager;
+        Node: XmlNode;
+        SignatureNamespaceUriTok: Label 'http://www.w3.org/2000/09/xmldsig#', Locked = true;
+        C14NTransformUriTok: Label 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315', Locked = true;
+    begin
+        XmlDocument.ReadFrom('<XmlData Id="ID01">This is a document</XmlData>', XmlToSign);
+        GetSignatureKeyXmlString(KeyText);
+        SignatureKey.FromXmlString(KeyText);
+
+        SignedXml.InitializeSignedXml(XmlToSign);
+        SignedXml.SetSigningKey(SignatureKey);
+        SignedXml.InitializeReference('#ID01');
+        SignedXml.SetCanonicalizationMethod(SignedXml.GetXmlDsigC14NTransformUrl());
+        SignedXml.AddXmlDsigC14NTransformToReference(false);
+        SignedXml.AddReferenceToSignedXML();
+
+        SignedXml.ComputeSignature();
+        Signature := SignedXml.GetXml();
+
+        NamespaceMgr.AddNamespace('ns', SignatureNamespaceUriTok);
+        Signature.SelectSingleNode('./ns:SignedInfo/ns:CanonicalizationMethod/@Algorithm', NamespaceMgr, Node);
+        LibraryAssert.AreEqual(C14NTransformUriTok, Node.AsXmlAttribute().Value, 'Incorrect canonicalization method was applied.');
+
+        Signature.SelectSingleNode('./ns:SignedInfo/ns:Reference/ns:Transforms/ns:Transform/@Algorithm', NamespaceMgr, Node);
+        LibraryAssert.AreEqual(C14NTransformUriTok, Node.AsXmlAttribute().Value, 'Incorrect transform was applied.');
+    end;
+
     procedure SignXmlDocumentWithSigningKeyAsSecretText()
     var
         XmlToSign: XmlDocument;
