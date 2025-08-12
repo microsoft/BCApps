@@ -33,7 +33,7 @@ jobs:
   Initialization:
     needs: [ PregateCheck ]
     if: (!failure() && !cancelled())
-    runs-on: [ windows-latest ]
+    runs-on: [ windows-2025 ]
     outputs:
       projects: ${{ steps.determineProjectsToBuild.outputs.ProjectsJson }}
       projectDependenciesJson: ${{ steps.determineProjectsToBuild.outputs.ProjectDependenciesJson }}
@@ -136,7 +136,7 @@ jobs:
   StatusCheck:
     needs: [ Initialization, Build ]
     if: (!cancelled())
-    runs-on: [ windows-latest ]
+    runs-on: [ windows-2025 ]
     name: Pull Request Status Check
     steps:
       - name: Pull Request Status Check

@@ -645,27 +645,47 @@ enum 30111 "Shpfy GraphQL Type" implements "Shpfy IGraphQL"
         Caption = 'Get Next Staff Members';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextStaffMembers";
     }
-    value(129; GetVariantImage)
+    value(129; GetMarketCatalogs)
+    {
+        Caption = 'Get Market Catalogs';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Market Catalogs";
+    }
+    value(130; GetNextMarketCatalogs)
+    {
+        Caption = 'Next Get Market Catalogs';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextMarketCatalogs";
+    }
+    value(131; GetCatalogMarkets)
+    {
+        Caption = 'Get Catalog Markets';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Catalog Markets";
+    }
+    value(132; GetNextCatalogMarkets)
+    {
+        Caption = 'Next Get Catalog Markets';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextCatalogMarkets";
+    }
+    value(133; GetVariantImage)
     {
         Caption = 'Get Variant Image';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL GetVariantImage";
     }
-    value(130; AddVariantImage)
+    value(134; AddVariantImage)
     {
         Caption = 'Add Variant Image';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL AddVariantImage";
     }
-    value(131; UpdateProdWithImage)
+    value(135; UpdateProdWithImage)
     {
         Caption = 'Update Product With Image';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL AddImageToProduct";
     }
-    value(132; AppendVariantImage)
+    value(136; AppendVariantImage)
     {
         Caption = 'Append Variant Image';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL Append Variant Image";
     }
-    value(133; DetachVariantImage)
+    value(137; DetachVariantImage)
     {
         Caption = 'Detach Variant Image';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL Detach Variant Img.";
