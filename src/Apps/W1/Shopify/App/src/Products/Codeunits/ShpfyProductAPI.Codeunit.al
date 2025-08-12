@@ -706,9 +706,9 @@ codeunit 30176 "Shpfy Product API"
         Parameters.Add('ResourceUrl', ResourceUrl);
         JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::UpdateProdWithImage, Parameters);
 
-        if JsonHelper.GetJsonArray(JResponse, JMedias, 'data.product.media.nodes') then
+        if JsonHelper.GetJsonArray(JResponse, JMedias, 'data.productUpdate.product.media.nodes') then
             if JMedias.Count = 1 then
                 if JMedias.Get(0, JMedia) then
-                    exit(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JResponse, 'id')));
+                    exit(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JMedia, 'id')));
     end;
 }

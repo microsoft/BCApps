@@ -861,4 +861,25 @@ codeunit 30189 "Shpfy Variant API"
         if JArray.Get(0, JResponse) then
             exit(this.CommunicationMgt.GetIdOfGId(this.JsonHelper.GetValueAsText(JResponse, 'node.id')));
     end;
+
+    /// <summary>
+    /// Append image to Shopify variant.
+    /// </summary>
+    /// <param name="ShopifyVariant">Shopify Variant record</param>
+    /// <param name="ImageId">Shopify id of image to append</param>
+    internal procedure AppendVariantImage(ShopifyVariant: Record "Shpfy Variant"; ImageId: BigInteger)
+    var
+        Parameters: Dictionary of [Text, Text];
+        JResponse: JsonToken;
+        JErrors: JsonArray;
+    begin
+        Parameters.Add('ProductId', Format(ShopifyVariant."Product Id"));
+        Parameters.Add('VariantId', Format(ShopifyVariant.Id));
+        Parameters.Add('ImageId', Format(ImageId));
+        JResponse := this.CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::AppendVariantMedia, Parameters);
+        if this.JsonHelper.GetJsonArray(JResponse, JErrors, 'data.productVariantAppendMedia.userErrors') then
+            if JErrors.Count > 0 then
+                if this.JsonHelper.GetArrayAsText(JErrors).Contains('NON_READY_MEDIA') then
+                    AppendVariantImage(ShopifyVariant, ImageId);
+    end;
 }

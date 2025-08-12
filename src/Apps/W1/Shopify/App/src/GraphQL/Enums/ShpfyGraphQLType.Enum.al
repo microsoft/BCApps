@@ -655,4 +655,14 @@ enum 30111 "Shpfy GraphQL Type" implements "Shpfy IGraphQL"
         Caption = 'Add Variant Image';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL AddVariantImage";
     }
+    value(131; UpdateProdWithImage)
+    {
+        Caption = 'Update Product With Image';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL AddImageToProduct";
+    }
+    value(132; AppendVariantMedia)
+    {
+        Caption = 'Append Variant Media';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Append Variant Image";
+    }
 }

@@ -61,7 +61,7 @@ codeunit 30403 "Shpfy Variant Image Export"
         if not ImageExists then begin
             if TenantMedia.Get(PictureGuid) then begin
                 NewImageId := this.ProductApi.AddImageToProduct(Rec."Product Id", TenantMedia);
-                this.VariantApi.SetVariantImage(Rec, ResourceUrl);
+                this.VariantApi.AppendVariantImage(Rec, NewImageId);
             end;
 
             if NewImageId <> Rec."Image Id" then
