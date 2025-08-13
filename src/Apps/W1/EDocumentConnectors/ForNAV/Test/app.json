@@ -69,5 +69,9 @@
 		"allowDebugging": false,
 		"allowDownloadingSource": false,
 		"includeSourceInSymbolFile": false
-	}
+	},
+	"features": [
+		"TranslationFile",
+		"NoImplicitWith"
+	]
 }
