@@ -552,5 +552,29 @@ function Test-IsBranchInSupport() {
     return $isSupported
 }
 
+<#
+.SYNOPSIS
+    Gets the list of apps in a folder.
+.DESCRIPTION
+    This function gets the list of apps in a folder by reading the app.json files in the folder and returning the names of the apps.
+.PARAMETER RelativePath
+    The relative path to the folder containing the apps.
+#>
+function Get-AppsInFolder() {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $RelativePath
+    )
+    $Path = Join-Path (Get-BaseFolder) $RelativePath -Resolve
+
+    $apps = @()
+    $appJsons = Get-ChildItem -Path $Path -Recurse -Filter "app.json"
+    foreach ($appJson in $appJsons) {
+        $app = Get-Content -Path $appJson.FullName | ConvertFrom-Json
+        $apps += $app.name
+    }
+    return $apps
+}
+
 Export-ModuleMember -Function *-*
 Export-ModuleMember -Function RunAndCheck

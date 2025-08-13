@@ -157,15 +157,21 @@ codeunit 8888 "Email Dispatcher"
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         TaskId: Guid;
+        RandomDelay: Integer;
+        RescheduleTime: DateTime;
     begin
         // -----------
         // NB: Avoid adding events here as any error would cause a roll-back and possibly an inconsistent state of the Email Outbox.
         // -----------
 
-        TaskId := TaskScheduler.CreateTask(Codeunit::"Email Dispatcher", Codeunit::"Email Error Handler", true, CompanyName(), CurrentDateTime() + Delay, EmailOutbox.RecordId());
+        // Jitter - Random delay between 0 and 10000 milliseconds (10 seconds)
+        RandomDelay := Random(10000);
+        RescheduleTime := CurrentDateTime() + Delay + RandomDelay;
+
+        TaskId := TaskScheduler.CreateTask(Codeunit::"Email Dispatcher", Codeunit::"Email Error Handler", true, CompanyName(), RescheduleTime, EmailOutbox.RecordId());
 
         EmailOutbox."Task Scheduler Id" := TaskId;
-        EmailOutbox."Date Sending" := CurrentDateTime() + Delay;
+        EmailOutbox."Date Sending" := RescheduleTime;
         EmailOutbox.Modify();
 
         Dimensions.Add('TaskId', Format(TaskId));

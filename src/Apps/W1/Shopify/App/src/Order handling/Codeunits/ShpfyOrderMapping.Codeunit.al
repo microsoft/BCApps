@@ -117,7 +117,7 @@ codeunit 30163 "Shpfy Order Mapping"
                 JCustomer.Add('County', OrderHeader."Bill-to County");
                 JCustomer.Add('CountryCode', OrderHeader."Bill-to Country/Region Code");
                 OrderHeader."Bill-to Customer No." := CustomerMapping.DoMapping(OrderHeader."Customer Id", JCustomer, OrderHeader."Shop Code", CustomerTemplateCode, AllowCreateCustomer);
-                if (OrderHeader."Bill-to Customer No." = '') and (not Shop."Auto Create Unknown Customers") and (Shop."Default Customer No." <> '') then
+                if (OrderHeader."Bill-to Customer No." = '') and (Shop."Default Customer No." <> '') then
                     OrderHeader."Bill-to Customer No." := Shop."Default Customer No.";
 
                 if OrderHeader."Sell-to Customer No." = '' then
@@ -161,7 +161,7 @@ codeunit 30163 "Shpfy Order Mapping"
                     OrderHeader."Bill-to Customer No." := OrderHeader."Sell-to Customer No.";
                 end;
 
-                if (OrderHeader."Bill-to Customer No." = '') and (not Shop."Auto Create Unknown Customers") and (Shop."Default Company No." <> '') then
+                if (OrderHeader."Bill-to Customer No." = '') and (Shop."Default Company No." <> '') then
                     OrderHeader."Bill-to Customer No." := Shop."Default Company No.";
                 if OrderHeader."Sell-to Customer No." = '' then
                     OrderHeader."Sell-to Customer No." := OrderHeader."Bill-to Customer No.";

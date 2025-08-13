@@ -23,12 +23,13 @@ codeunit 4301 "Agent Impl."
                   tabledata User = r,
                   tabledata "User Personalization" = rim;
 
-    internal procedure CreateAgent(AgentMetadataProvider: Enum "Agent Metadata Provider"; AgentUserName: Code[50]; AgentUserDisplayName: Text[80]; var TempAgentAccessControl: Record "Agent Access Control" temporary): Guid
+    internal procedure CreateAgent(AgentMetadataProvider: Enum "Agent Metadata Provider"; var UserName: Code[50]; AgentUserDisplayName: Text[80]; var TempAgentAccessControl: Record "Agent Access Control" temporary): Guid
     var
         Agent: Record Agent;
     begin
         Agent."Agent Metadata Provider" := AgentMetadataProvider;
-        Agent."User Name" := AgentUserName;
+        Agent."User Name" := GenerateUniqueUserName(UserName);
+        UserName := Agent."User Name";
         Agent."Display Name" := AgentUserDisplayName;
         Agent.Insert(true);
 
@@ -423,6 +424,40 @@ codeunit 4301 "Agent Impl."
     procedure OpenNoAgentsLearnMore(Notification: Notification)
     begin
         Hyperlink(NoAgentsAvailableNotificationLearnMoreUrlLbl);
+    end;
+
+    local procedure GenerateUniqueUserName(AgentUserName: Code[50]): Code[50]
+    var
+        User: Record User;
+        UniqueUserName: Text[50];
+        AgentNamePrefix: Text[50];
+        NumberOfAgentDigits: Integer;
+        MaximumPrefixLength: Integer;
+        AgentNumberSeparatorTok: Label '-', Locked = true;
+    begin
+        // Check if the user name is already unique
+        User.SetRange("User Name", AgentUserName);
+        User.ReadIsolation := IsolationLevel::ReadUncommitted;
+        if User.IsEmpty() then
+            exit(AgentUserName);
+
+        // If not check if there is a user with digits at the end of the name
+        NumberOfAgentDigits := 2;
+        MaximumPrefixLength := MaxStrLen(User."User Name") - NumberOfAgentDigits - StrLen(AgentNumberSeparatorTok);
+        if StrLen(AgentUserName) < MaximumPrefixLength then
+#pragma warning disable AA0139
+            AgentNamePrefix := AgentUserName + AgentNumberSeparatorTok
+#pragma warning restore AA0139
+        else
+            AgentNamePrefix := CopyStr(AgentUserName, 1, MaximumPrefixLength) + AgentNumberSeparatorTok;
+
+        // Generate a unique user name by appending digits
+        User.SetFilter("User Name", '%1', AgentNamePrefix + '*');
+#pragma warning disable AA0139
+        UniqueUserName := AgentNamePrefix + Format(User.Count() + 2);
+#pragma warning restore AA0139
+
+        exit(UniqueUserName);
     end;
 
     var
