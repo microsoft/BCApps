@@ -6,6 +6,7 @@
         "Application",
         "Statistical Accounts",
         "Sustainability",
+        "Power BI Report embeddings for Dynamics 365 Business Central",
         "E-Document Core"
     ],
     "ExternalTestAppDependencies" : [
