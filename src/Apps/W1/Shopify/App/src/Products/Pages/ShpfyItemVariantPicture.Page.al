@@ -12,9 +12,9 @@ using System.IO;
 using System.Text;
 
 /// <summary>
-/// Page Shpfy Item Variant Picture (ID 30414).
+/// Page Shpfy Item Variant Picture (ID 30175).
 /// </summary>
-page 30414 "Shpfy Item Variant Picture"
+page 30175 "Shpfy Item Variant Picture"
 {
     Caption = 'Item Variant Picture';
     DeleteAllowed = false;
