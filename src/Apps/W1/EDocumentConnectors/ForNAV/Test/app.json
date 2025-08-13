@@ -50,8 +50,8 @@
 		},
 		{
 			"id": "0addc017-80c4-40ad-bac6-5852f4fc4c55",
-			"name": "Peppol Core",
-			"publisher": "ForNAV",
+			"name": "E-Document Connector - FORNAV",
+			"publisher": "Microsoft",
 			"version": "1.0.0.0"
 		}
 	],
