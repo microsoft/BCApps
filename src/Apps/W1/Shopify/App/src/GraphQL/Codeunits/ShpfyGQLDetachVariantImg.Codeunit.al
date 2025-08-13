@@ -6,9 +6,9 @@
 namespace Microsoft.Integration.Shopify;
 
 /// <summary>
-/// Codeunit Shpfy GQL Detatch Variant Img. (ID 30408) implements Interface Shpfy IGraphQL.
+/// Codeunit Shpfy GQL Detatch Variant Img. (ID 30410) implements Interface Shpfy IGraphQL.
 /// </summary>
-codeunit 30408 "Shpfy GQL Detach Variant Img." implements "Shpfy IGraphQL"
+codeunit 30410 "Shpfy GQL Detach Variant Img." implements "Shpfy IGraphQL"
 {
 
     /// <summary>

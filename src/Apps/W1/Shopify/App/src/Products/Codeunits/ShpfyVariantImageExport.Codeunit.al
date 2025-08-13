@@ -9,9 +9,9 @@ using Microsoft.Inventory.Item;
 using System.Environment;
 
 /// <summary>
-/// Codeunit Shpfy Variant Image Export (ID 30403).
+/// Codeunit Shpfy Variant Image Export (ID 30413).
 /// </summary>
-codeunit 30403 "Shpfy Variant Image Export"
+codeunit 30413 "Shpfy Variant Image Export"
 {
     Access = Internal;
     Permissions = tabledata Item = r;

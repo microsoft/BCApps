@@ -12,9 +12,9 @@ using System.IO;
 using System.Text;
 
 /// <summary>
-/// Page Shpfy Item Variant Picture (ID 30173).
+/// Page Shpfy Item Variant Picture (ID 30414).
 /// </summary>
-page 30173 "Shpfy Item Variant Picture"
+page 30414 "Shpfy Item Variant Picture"
 {
     Caption = 'Item Variant Picture';
     DeleteAllowed = false;
@@ -87,7 +87,7 @@ page 30173 "Shpfy Item Variant Picture"
                     Rec.TestField("Code");
                     Rec.TestField(Description);
                     ConvertedCodeType := Format(Rec."Code");
-                    ToFile := DummyPictureEntity.GetDefaultMediaDescription(Rec); 
+                    ToFile := DummyPictureEntity.GetDefaultMediaDescription(Rec);
                     ConvertedCodeType := StringConversionManager.RemoveNonAlphaNumericCharacters(ConvertedCodeType);
                     ExportPath := TemporaryPath + ConvertedCodeType + Format(Rec.Picture.MediaId);
                     Rec.Picture.ExportFile(ExportPath + '.' + DummyPictureEntity.GetDefaultExtension());
