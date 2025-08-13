@@ -14,8 +14,8 @@
 	"screenshots": [],
 	"resourceExposurePolicy": {
 		"allowDebugging": true,
-		"allowDownloadingSource": false,
-		"includeSourceInSymbolFile": false
+		"allowDownloadingSource": true,
+		"includeSourceInSymbolFile": true
 	},
 	"applicationInsightsConnectionString": "InstrumentationKey=fc504ced-39ce-4473-b5e4-a7142ef614ac;IngestionEndpoint=https://northeurope-0.in.applicationinsights.azure.com/",
 	"dependencies": [
