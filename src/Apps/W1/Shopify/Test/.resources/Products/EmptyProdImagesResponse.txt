@@ -1,0 +1,10 @@
+{
+    "data": {
+        "products": {
+            "pageInfo": {
+                "hasNextPage": false
+            },
+            "edges": []
+        }
+    }
+}
