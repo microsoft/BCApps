@@ -148,7 +148,12 @@ codeunit 30176 "Shpfy Product API"
         Headers: HttpHeaders;
         Response: HttpResponseMessage;
         InStream: InStream;
+        IsHandled: Boolean;
     begin
+        OnBeforeUploadImage(TenantMedia, Url, IsHandled);
+        if IsHandled then
+            exit;
+
         Content.GetHeaders(Headers);
         if Headers.Contains('Content-Type') then
             Headers.Remove('Content-Type');
@@ -710,5 +715,10 @@ codeunit 30176 "Shpfy Product API"
             if JMedias.Count = 1 then
                 if JMedias.Get(0, JMedia) then
                     exit(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JMedia, 'id')));
+    end;
+
+    [IntegrationEvent(false, false)]
+    procedure OnBeforeUploadImage(var TenantMedia: Record "Tenant Media"; var ResourceUrl: Text; var IsHandled: Boolean)
+    begin
     end;
 }

@@ -1,0 +1,17 @@
+{
+    "data": {
+        "productUpdate": {
+            "product": {
+                "media": {
+                    "nodes": [
+                        {
+                            "id": "gid://shopify/MediaImage/1234567891011",
+                            "mediaErrors": []
+                        }
+                    ]
+                }
+            },
+            "userErrors": []
+        }
+    }
+}

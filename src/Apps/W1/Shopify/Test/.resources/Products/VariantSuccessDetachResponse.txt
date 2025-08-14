@@ -1,0 +1,11 @@
+{
+    "data": {
+        "productVariantDetachMedia": {
+            "product": null,
+            "userErrors": [
+                {
+                }
+            ]
+        }
+    }
+}
