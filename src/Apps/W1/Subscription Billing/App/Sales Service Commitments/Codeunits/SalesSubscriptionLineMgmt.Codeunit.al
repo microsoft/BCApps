@@ -15,7 +15,7 @@ codeunit 8069 "Sales Subscription Line Mgmt."
     [EventSubscriber(ObjectType::Table, Database::"Sales Line", OnAfterInsertEvent, '', false, false)]
     local procedure SalesLineOnAfterInsertEvent(var Rec: Record "Sales Line"; RunTrigger: Boolean)
     begin
-        if IsSalesLineRestoreInProgress(Rec) then
+        if SalesLineRestoreInProgress then
             exit;
         if RunTrigger then
             AddSalesServiceCommitmentsForSalesLine(Rec, false);
@@ -344,21 +344,16 @@ codeunit 8069 "Sales Subscription Line Mgmt."
         TransferServiceCommitments(BlanketOrderSalesLine, SalesOrderLine);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::ArchiveManagement, OnRestoreSalesLinesOnBeforeSalesLineInsert, '', false, false)]
-    local procedure SetSalesLineRestoreInProgressOnRestoreSalesLinesOnBeforeSalesLineInsert(var SalesLine: Record "Sales Line")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::ArchiveManagement, OnRestoreDocumentOnBeforeDeleteSalesHeader, '', false, false)]
+    local procedure SetSalesLineRestoreInProgressOnRestoreDocumentOnBeforeDeleteSalesHeader()
     begin
-        SessionStore.SetBooleanKey('SalesLineRestoreInProgress ' + Format(SalesLine.RecordId()), true);
+        SalesLineRestoreInProgress := true;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::ArchiveManagement, OnRestoreSalesLinesOnAfterSalesLineInsert, '', false, false)]
-    local procedure RemoveSalesLineRestoreInProgressOnRestoreSalesLinesOnAfterSalesLineInsert(var SalesLine: Record "Sales Line")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::ArchiveManagement, OnAfterRestoreSalesDocument, '', false, false)]
+    local procedure RemoveSalesLineRestoreInProgressOnAfterRestoreSalesDocument()
     begin
-        SessionStore.RemoveBooleanKey('SalesLineRestoreInProgress ' + Format(SalesLine.RecordId()));
-    end;
-
-    local procedure IsSalesLineRestoreInProgress(var SalesLine: Record "Sales Line"): Boolean
-    begin
-        exit(SessionStore.GetBooleanKey('SalesLineRestoreInProgress ' + Format(SalesLine.RecordId())));
+        SalesLineRestoreInProgress := false;
     end;
 
     internal procedure GetItemNoForSalesServiceCommitment(var SalesLine: Record "Sales Line"; ServiceCommitmentPackageLine: Record "Subscription Package Line"): Code[20]
@@ -521,8 +516,8 @@ codeunit 8069 "Sales Subscription Line Mgmt."
     end;
 
     var
-        SessionStore: Codeunit "Session Store";
         ItemManagement: Codeunit "Sub. Contracts Item Management";
         ServiceCommitmentWithNegativeQtyMessageThrown: Boolean;
+        SalesLineRestoreInProgress: Boolean;
         ServiceObjectNotCreatedMsg: Label 'For negative quantity the Subscription is not created.';
 }
