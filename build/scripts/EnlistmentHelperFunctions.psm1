@@ -428,7 +428,76 @@ function Install-PackageFromConfig
     }
 
     Write-Host "Installing package $PackageName; source $packageSource; version: $packageVersion; destination: $OutputPath"
-    Install-Package $PackageName -Source $packageSource -RequiredVersion $packageVersion -Destination $OutputPath -Force | Out-Null
+
+    # Custom implementation to avoid "End of Central Directory record could not be found" errors
+    # Use direct download and .NET extraction instead of Install-Package cmdlet
+    $maxRetries = 3
+    $retryCount = 0
+    $success = $false
+
+    # Ensure output directory exists
+    if (-not (Test-Path $OutputPath)) {
+        New-Item -Path $OutputPath -ItemType Directory -Force | Out-Null
+    }
+
+    while (-not $success -and $retryCount -lt $maxRetries) {
+        try {
+            $retryCount++
+            if ($retryCount -gt 1) {
+                $waitTime = 15 * ($retryCount - 1) # Linear backoff: 0, 15, 30 seconds
+                Write-Host "Retrying package installation (attempt $retryCount/$maxRetries) in $waitTime seconds..."
+                Start-Sleep -Seconds $waitTime
+            } else {
+                Write-Host "Attempting package installation (attempt $retryCount/$maxRetries)..."
+            }
+
+            # Download package directly using Invoke-WebRequest
+            $packageUrl = "https://api.nuget.org/v3-flatcontainer/$($PackageName.ToLower())/$packageVersion/$($PackageName.ToLower()).$packageVersion.nupkg"
+            $tempFile = [System.IO.Path]::GetTempFileName() + ".nupkg"
+            
+            Write-Host "Downloading package from: $packageUrl"
+            Invoke-WebRequest -Uri $packageUrl -OutFile $tempFile -UseBasicParsing -TimeoutSec 300
+            
+            # Verify the downloaded file exists and has content
+            if (-not (Test-Path $tempFile) -or (Get-Item $tempFile).Length -eq 0) {
+                throw "Downloaded package file is empty or missing"
+            }
+            
+            Write-Host "Package downloaded successfully ($(((Get-Item $tempFile).Length / 1KB).ToString('F1')) KB)"
+            
+            # Extract using .NET ZipFile class for better reliability
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            
+            # Remove existing package directory if it exists
+            if (Test-Path $packagePath) {
+                Remove-Item -Path $packagePath -Recurse -Force
+            }
+            
+            Write-Host "Extracting package to: $packagePath"
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($tempFile, $packagePath)
+            
+            # Verify extraction was successful
+            if (-not (Test-Path $packagePath) -or (Get-ChildItem $packagePath).Count -eq 0) {
+                throw "Package extraction failed - destination directory is empty"
+            }
+            
+            Write-Host "Package installed successfully"
+            $success = $true
+        }
+        catch {
+            Write-Host "Package installation failed (attempt $retryCount/$maxRetries): $($_.Exception.Message)"
+            if ($retryCount -eq $maxRetries) {
+                Write-Host "Package installation failed after $maxRetries attempts"
+                throw $_
+            }
+        }
+        finally {
+            # Clean up temporary file
+            if ($tempFile -and (Test-Path $tempFile)) {
+                Remove-Item -Path $tempFile -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
 
     return $packagePath
 }
