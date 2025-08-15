@@ -3,7 +3,7 @@ using System.Utilities;
 using Microsoft.eServices.EDocument;
 using Microsoft.Inventory.Item;
 using Microsoft.eServices.EDocument.Integration;
-codeunit 6430 "ForNAV Peppol Test"
+codeunit 6428 "ForNAV Peppol Test"
 {
     Access = Internal;
     SingleInstance = true;
