@@ -1,0 +1,8 @@
+[
+    {
+        "bug": "<BUG>",
+        "codeunitId": 139692,
+        "CodeunitName": "Contract Renewal Test",
+        "Method": "TestIfContractRenewalSelectionIsUpdateOnAfterValidateCalcBasePercentage"
+    }
+]
