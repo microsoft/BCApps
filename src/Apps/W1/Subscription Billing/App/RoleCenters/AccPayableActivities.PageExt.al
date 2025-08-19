@@ -16,9 +16,13 @@ pageextension 8014 "Acc. Payable Activities" extends "Acc. Payable Activities"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Vendor Contracts';
-                DrillDownPageID = "Vendor Contracts";
                 Editable = false;
                 Tooltip = 'Specifies the number of vendor contracts.';
+
+                trigger OnDrillDown()
+                begin
+                    Page.Run(Page::"Vendor Contracts");
+                end;
             }
         }
     }
