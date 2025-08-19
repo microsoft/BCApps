@@ -814,7 +814,7 @@ codeunit 30189 "Shpfy Variant API"
     /// Check if Shopify Variant Image Exists.
     /// </summary>
     /// <param name="VariantId">Parameter of type BigInteger.</param>
-    /// <returns>Return value of type Boolean.</returns>
+    /// <returns>Return value of type Boolean. True if image exists, false otherwise.</returns>
     internal procedure CheckShopifyVariantImageExists(VariantId: BigInteger): Boolean
     var
         Parameters: Dictionary of [Text, Text];
@@ -831,12 +831,13 @@ codeunit 30189 "Shpfy Variant API"
 
 
     /// <summary>
-    /// Set Variant Image.
+    /// Set variant image using resource URL.
     /// </summary>
     /// <param name="ShopifyVariant">Parameter of type Record "Shpfy Variant".
     /// <param name="ImageId">Parameter of type BigInteger.</param>
     /// </param>
     /// <param name="ImageId">Parameter of type BigInteger.</param>
+    /// <returns>Return value of type BigInteger representing the new image ID.</returns>
     internal procedure SetVariantImage(ShopifyVariant: Record "Shpfy Variant"; ResourceUrl: Text): BigInteger
     var
         Parameters: Dictionary of [Text, Text];
@@ -863,24 +864,18 @@ codeunit 30189 "Shpfy Variant API"
     end;
 
     /// <summary>
-    /// Append image to Shopify variant.
+    /// Set variant image using media id.
     /// </summary>
     /// <param name="ShopifyVariant">Shopify Variant record</param>
     /// <param name="ImageId">Shopify id of image to append</param>
-    internal procedure AppendVariantImage(ShopifyVariant: Record "Shpfy Variant"; ImageId: BigInteger)
+    internal procedure SetVariantImage(ShopifyVariant: Record "Shpfy Variant"; ImageId: BigInteger)
     var
         Parameters: Dictionary of [Text, Text];
-        JResponse: JsonToken;
-        JErrors: JsonArray;
     begin
         Parameters.Add('ProductId', Format(ShopifyVariant."Product Id"));
         Parameters.Add('VariantId', Format(ShopifyVariant.Id));
         Parameters.Add('ImageId', Format(ImageId));
-        JResponse := this.CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::AppendVariantImage, Parameters);
-        if this.JsonHelper.GetJsonArray(JResponse, JErrors, 'data.productVariantAppendMedia.userErrors') then
-            if JErrors.Count > 0 then
-                if this.JsonHelper.GetArrayAsText(JErrors).Contains('NON_READY_MEDIA') then
-                    AppendVariantImage(ShopifyVariant, ImageId);
+        this.CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::SetVariantImage, Parameters);
     end;
 
     /// <summary>

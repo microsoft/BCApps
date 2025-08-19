@@ -30,6 +30,7 @@ codeunit 30413 "Shpfy Variant Image Export"
         JRequest: JsonObject;
         ItemAsVariant: Boolean;
         PictureGuid: Guid;
+        ResourceUrl: Text;
     begin
         if this.Shop."Sync Item Images" <> this.Shop."Sync Item Images"::"To Shopify" then
             exit;
@@ -59,8 +60,8 @@ codeunit 30413 "Shpfy Variant Image Export"
 
         if not ImageExists then begin
             if TenantMedia.Get(PictureGuid) then begin
-                NewImageId := this.ProductApi.AddImageToProduct(Rec."Product Id", TenantMedia);
-                this.VariantApi.AppendVariantImage(Rec, NewImageId);
+                this.ProductApi.UploadShopifyImage(TenantMedia, ResourceUrl);
+                NewImageId := this.VariantApi.SetVariantImage(Rec, ResourceUrl);
             end;
 
             if NewImageId <> Rec."Image Id" then
@@ -71,8 +72,7 @@ codeunit 30413 "Shpfy Variant Image Export"
             if Rec."Image Id" > 0 then
                 if TenantMedia.Get(PictureGuid) then begin
                     NewImageId := this.ProductApi.AddImageToProduct(Rec."Product Id", TenantMedia);
-                    this.VariantApi.DetachVariantImage(Rec);
-                    this.VariantApi.AppendVariantImage(Rec, NewImageId);
+                    this.VariantApi.SetVariantImage(Rec, NewImageId);
                 end;
             JRequest.Add('id', Rec.Id);
             JRequest.Add('imageHash', Rec."Image Hash");
