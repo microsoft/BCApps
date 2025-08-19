@@ -6,13 +6,13 @@ namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.RoleCenters;
 
-pageextension 8013 "A/P Admin Activities" extends "A/P Admin Activities"
+pageextension 8014 "Acc. Payable Activities" extends "Acc. Payable Activities"
 {
     layout
     {
         addafter("Purch. Invoices Due Next Week")
         {
-            field("Vendor Contracts"; this.VendorContracts)
+            field("Vendor Contracts"; VendorContracts)
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Vendor Contracts';
@@ -30,6 +30,6 @@ pageextension 8013 "A/P Admin Activities" extends "A/P Admin Activities"
     var
         VendorContract: Record "Vendor Subscription Contract";
     begin
-        this.VendorContracts := VendorContract.Count();
+        VendorContracts := VendorContract.Count();
     end;
 }
