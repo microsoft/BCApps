@@ -29,7 +29,7 @@ codeunit 130459 "Expand Data Driven Tests"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Get Methods", 'OnAfterAddTestMethodLine', '', false, false)]
-    local procedure ExpandDataDrivenTests(var TestMethodLine: Record "Test Method Line"; var MaxLineNo: Integer)
+    local procedure ExpandDataDrivenTests(var TestMethodLine: Record "Test Method Line"; var MaxLineNo: Integer; IsUpdating: Boolean)
     begin
         TempTestMethodLine.Reset();
         TempTestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");
@@ -56,7 +56,11 @@ codeunit 130459 "Expand Data Driven Tests"
         if TempTestMethodLine.FindSet() then
             repeat
                 TestMethodLine."Line No." := MaxLineNo;
-                MaxLineNo += 10000;
+                if IsUpdating then
+                    MaxLineNo += 100
+                else
+                    MaxLineNo += 10000;
+    
                 TestMethodLine."Data Input" := TempTestMethodLine."Data Input";
                 TestMethodLine."Data Input Group Code" := TempTestMethodLine."Data Input Group Code";
                 TestMethodLine.Insert(true);
