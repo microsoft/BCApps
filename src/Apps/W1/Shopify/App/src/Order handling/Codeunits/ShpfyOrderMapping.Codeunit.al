@@ -341,28 +341,40 @@ codeunit 30163 "Shpfy Order Mapping"
             OrderHeader."Bill-to Customer No." := CompanyLocation."Bill-to Customer No.";
         end;
 
-
         if OrderHeader."Sell-to Customer No." <> '' then begin
             Customer.Get(OrderHeader."Sell-to Customer No.");
-            CopyCustomerAddressFieldsFromCustomer(OrderHeader, Customer);
+            CopySellToAddressFieldsFromCustomer(OrderHeader, Customer);
         end;
 
         if OrderHeader."Bill-to Customer No." <> '' then begin
             Customer.Get(OrderHeader."Bill-to Customer No.");
-            CopyCustomerAddressFieldsFromCustomer(OrderHeader, Customer);
+            CopyBillToAddressFieldsFromCustomer(OrderHeader, Customer);
         end;
         exit(true);
     end;
 
-    local procedure CopyCustomerAddressFieldsFromCustomer(var OrderHeader: Record "Shpfy Order Header"; Customer: Record Customer)
+    local procedure CopySellToAddressFieldsFromCustomer(var OrderHeader: Record "Shpfy Order Header"; Customer: Record Customer)
     begin
+        OrderHeader."Sell-to Customer Name" := CopyStr(Customer.Name, 1, MaxStrLen(OrderHeader."Sell-to Customer Name"));
+        OrderHeader."Sell-to Customer Name 2" := Customer."Name 2";
         OrderHeader."Sell-to Address" := Customer.Address;
         OrderHeader."Sell-to Address 2" := Customer."Address 2";
         OrderHeader."Sell-to City" := Customer.City;
         OrderHeader."Sell-to Country/Region Code" := Customer."Country/Region Code";
-        OrderHeader."Bill-to Country/Region Name" := GetCountryRegionName(Customer."Country/Region Code");
         OrderHeader."Sell-to County" := Customer.County;
         OrderHeader."Sell-to Post Code" := Customer."Post Code";
+    end;
+
+    local procedure CopyBillToAddressFieldsFromCustomer(var OrderHeader: Record "Shpfy Order Header"; Customer: Record Customer)
+    begin
+        OrderHeader."Bill-to Name" := CopyStr(Customer.Name, 1, MaxStrLen(OrderHeader."Bill-to Name"));
+        OrderHeader."Bill-to Name 2" := Customer."Name 2";
+        OrderHeader."Bill-to Address" := Customer.Address;
+        OrderHeader."Bill-to Address 2" := Customer."Address 2";
+        OrderHeader."Bill-to City" := Customer.City;
+        OrderHeader."Bill-to County" := Customer.County;
+        OrderHeader."Bill-to Post Code" := Customer."Post Code";
+        OrderHeader."Bill-to Country/Region Name" := GetCountryRegionName(Customer."Country/Region Code");
     end;
 
     local procedure GetCountryRegionName(CountryRegionCode: Code[10]): Text[50]
