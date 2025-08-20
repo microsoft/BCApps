@@ -3,6 +3,12 @@
         "bug": "597430",
         "codeunitId": 139688,
         "CodeunitName": "Recurring Billing Test",
-        "Method": "ExpectSingleServiceCommitmentArchiveOnModifyMultipleFieldsOnCustomerContractLine"
+        "Method": "CheckBillingLineUpdateRequiredOnModifyCustomerContractLine"
+    },
+    {
+        "bug": "597430",
+        "codeunitId": 139688,
+        "CodeunitName": "Recurring Billing Test",
+        "Method": "CheckBillingLineUpdateRequiredOnModifyVendorContractLine"
     }
 ]
