@@ -104,16 +104,20 @@ page 30174 "Shpfy Market Catalogs"
                     end;
                     SyncCatalogs.SetCatalogType("Shpfy Catalog Type"::Market);
                     SyncCatalogs.Run();
+
+                    if not Rec.IsEmpty() then
+                        PriceSyncEnabled := true;
                 end;
             }
             action(PriceSync)
             {
                 Caption = 'Sync Prices';
                 Image = ImportExport;
+                Enabled = PriceSyncEnabled;
                 Promoted = true;
                 PromotedOnly = true;
                 PromotedCategory = Process;
-                ToolTip = 'Sync prices to Shopify.';
+                ToolTip = 'Sync the latest prices to Shopify. Only lines with Sync Prices enabled will be processed.';
 
                 trigger OnAction()
                 var
@@ -121,17 +125,13 @@ page 30174 "Shpfy Market Catalogs"
                     SyncCatalogsPrices: Report "Shpfy Sync Catalog Prices";
                     BackgroundSyncs: Codeunit "Shpfy Background Syncs";
                 begin
-                    if Rec.GetFilter("Shop Code") <> '' then begin
-                        Shop.Get(Rec."Shop Code");
-                        if Shop."Allow Background Syncs" then
-                            BackgroundSyncs.CatalogPricesSync(Rec."Shop Code", "Shpfy Catalog Type"::Market)
-                        else begin
-                            Shop.SetRange(Code, Rec.GetFilter("Shop Code"));
-                            SyncCatalogsPrices.SetTableView(Shop);
-                            SyncCatalogsPrices.UseRequestPage(false);
-                            SyncCatalogsPrices.SetCatalogType("Shpfy Catalog Type"::Market);
-                            SyncCatalogsPrices.Run();
-                        end;
+                    if Rec.GetFilter("Shop Code") <> '' then
+                        BackgroundSyncs.CatalogPricesSync(CopyStr(Rec.GetFilter("Shop Code"), 1, 20), "Shpfy Catalog Type"::Market)
+                    else begin
+                        Shop.SetRange(Code, Rec."Shop Code");
+                        SyncCatalogsPrices.SetTableView(Shop);
+                        SyncCatalogsPrices.SetCatalogType("Shpfy Catalog Type"::Market);
+                        SyncCatalogsPrices.Run();
                     end;
                 end;
             }
@@ -141,5 +141,10 @@ page 30174 "Shpfy Market Catalogs"
     trigger OnOpenPage()
     begin
         Rec.SetRange("Catalog Type", "Shpfy Catalog Type"::Market);
+        if not Rec.IsEmpty() then
+            PriceSyncEnabled := true;
     end;
+
+    var
+        PriceSyncEnabled: Boolean;
 }
