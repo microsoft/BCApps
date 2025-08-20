@@ -146,7 +146,7 @@ codeunit 9350 "Graph Client"
     /// Get any request to the microsoft graph API with pagination support
     /// </summary>
     /// <remarks>Does not require UI interaction. This method handles pagination automatically.</remarks>
-    /// <param name="RelativeUriToResource">A relativ uri including the resource segments</param>
+    /// <param name="RelativeUriToResource">A relative uri including the resource segments</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters</param>
     /// <param name="GraphPaginationData">The pagination data object to track pagination state</param>
     /// <param name="HttpResponseMessage">The response message object.</param>
@@ -174,7 +174,7 @@ codeunit 9350 "Graph Client"
     /// Get all pages of results automatically
     /// </summary>
     /// <remarks>Does not require UI interaction. This method fetches all pages automatically and returns the combined results.</remarks>
-    /// <param name="RelativeUriToResource">A relativ uri including the resource segments</param>
+    /// <param name="RelativeUriToResource">A relative uri including the resource segments</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters</param>
     /// <param name="HttpResponseMessage">The last response message object.</param>
     /// <param name="JsonResults">A JSON array containing all results from all pages</param>
