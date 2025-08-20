@@ -76,6 +76,8 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         ProductPriceCalculation.CalcPrice(Item, '', '', UnitCost, Price, ComparePrice);
         // [THEN] InitUnitCost = UnitCost
         LibraryAssert.AreEqual(InitUnitCost, UnitCost, 'Unit Cost');
+        // [THEN] InitPrice = ComparePrice. ComparePrice is the price without the discount.
+        LibraryAssert.AreEqual(InitPrice, ComparePrice, 'Compare Price');
         // [THEN] InitPrice - InitDiscountPerc = Price
         LibraryAssert.AreNearlyEqual(InitPrice * (1 - InitDiscountPerc / 100), Price, 0.01, 'Discount Price');
     end;
