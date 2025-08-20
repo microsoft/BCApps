@@ -32,7 +32,7 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         TempVendorContractDeferral.DeleteAll(false);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Post Invoice Events", 'OnPrepareLineOnBeforeSetAccount', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Post Invoice Events", OnPrepareLineOnBeforeSetAccount, '', false, false)]
     local procedure OnPrepareLineOnBeforeSetAccount(PurchLine: Record "Purchase Line"; var SalesAccount: Code[20])
     var
         GeneralPostingSetup: Record "General Posting Setup";
@@ -50,7 +50,7 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Post Invoice Events", 'OnAfterInitTotalAmounts', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Post Invoice Events", OnAfterInitTotalAmounts, '', false, false)]
     local procedure SetVendorContractDeferralLinePosting(PurchLine: Record "Purchase Line")
     begin
         VendorContractDeferralLinePosting := false;
