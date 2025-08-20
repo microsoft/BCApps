@@ -12,7 +12,7 @@ page 149033 "AIT Log Entries"
     ApplicationArea = All;
     Editable = false;
     SourceTable = "AIT Log Entry";
-    Extensible = false;
+    Extensible = true;
     UsageCategory = None;
 
     layout
@@ -70,6 +70,7 @@ page 149033 "AIT Log Entries"
                 }
                 field(Accuracy; Rec."Test Method Line Accuracy")
                 {
+                    AutoFormatType = 0;
                 }
                 field("No. of Turns Passed"; Rec."No. of Turns Passed")
                 {

@@ -1,0 +1,63 @@
+name: Update AL-Go Projects
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '55 5 * * *' # Daily at 05:55 UTC
+
+defaults:
+  run:
+    shell: powershell
+
+permissions: read-all
+
+jobs:
+  GetBranches:
+    name: Get Official Branches
+    if: github.repository_owner == 'microsoft'
+    runs-on: ubuntu-latest
+    outputs:
+      updateBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
+      - name: Get Official Branches
+        id: getOfficialBranches
+        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        with:
+          include: "['main', 'releases/*']"
+
+  UpdateALGoProjects:
+    name: "[${{ matrix.branch }}] Update AL-Go projects"
+    if: github.repository_owner == 'microsoft'
+    permissions:
+      contents: write
+    environment: Official-Build
+    runs-on: windows-latest
+    needs: GetBranches
+    strategy:
+      matrix:
+        branch: ${{ fromJson(needs.GetBranches.outputs.updateBranches) }}
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: ${{ matrix.branch }}
+
+      - uses: actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b # v2.1.1
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+
+      - name: Update AL-Go Project Dependencies
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        uses: microsoft/BCApps/.github/actions/RunAutomation@main
+        with:
+          automations: UpdateUseProjectDependencies
+          targetBranch: ${{ matrix.branch }}

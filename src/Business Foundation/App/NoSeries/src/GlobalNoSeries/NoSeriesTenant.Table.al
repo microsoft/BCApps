@@ -14,7 +14,9 @@ table 1263 "No. Series Tenant"
     Caption = 'No. Series Tenant';
     DataClassification = CustomerContent;
     DataPerCompany = false;
+#if not CLEANSCHEMA27
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+#endif
     ReplicateData = false;
     InherentEntitlements = rX;
     InherentPermissions = rX;

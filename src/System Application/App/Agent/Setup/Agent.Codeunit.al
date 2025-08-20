@@ -25,7 +25,7 @@ codeunit 4321 Agent
     /// <returns>The ID of the agent.</returns>
 #pragma warning disable AS0026
     [Scope('OnPrem')]
-    procedure Create(AgentMetadataProvider: Enum "Agent Metadata Provider"; UserName: Code[50]; UserDisplayName: Text[80]; var TempAgentAccessControl: Record "Agent Access Control" temporary): Guid
+    procedure Create(AgentMetadataProvider: Enum "Agent Metadata Provider"; var UserName: Code[50]; UserDisplayName: Text[80]; var TempAgentAccessControl: Record "Agent Access Control" temporary): Guid
 #pragma warning restore AS0026
     var
         AgentImpl: Codeunit "Agent Impl.";

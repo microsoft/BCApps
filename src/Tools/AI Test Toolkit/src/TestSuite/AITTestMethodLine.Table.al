@@ -12,8 +12,8 @@ table 149032 "AIT Test Method Line"
 {
     Caption = 'AI Test Method Line';
     DataClassification = SystemMetadata;
-    Extensible = false;
-    Access = Internal;
+    Extensible = true;
+    Access = Public;
     ReplicateData = false;
 
     fields
@@ -189,6 +189,7 @@ table 149032 "AIT Test Method Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            AutoFormatType = 0;
         }
         field(101; "AL Test Suite"; Code[10])
         {

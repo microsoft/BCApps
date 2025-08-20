@@ -23,6 +23,7 @@ codeunit 132684 "Azure OpenAI Test"
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
         EndpointTxt: Label 'https://resourcename.openai.azure.com/', Locked = true;
         DeploymentTxt: Label 'deploymentid', Locked = true;
+        BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.', Comment = '%1 is the capability name, %2 is the billing type';
 
     [Test]
     [HandlerFunctions('HandleCopilotNotAvailable')]
@@ -289,6 +290,38 @@ codeunit 132684 "Azure OpenAI Test"
 
         // [THEN] GenerateTextCompletion should not be successful
         LibraryAssert.IsFalse(AOAIOperationResponse.IsSuccess(), 'The text completions generation succeeded when it should fail.');
+    end;
+
+    [Test]
+    procedure GenerateTextCompletionsBillingTypeAuthorizationErr()
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        CopilotCapability: Codeunit "Copilot Capability";
+        Metaprompt: Text;
+        ErrorMessage: Text;
+    begin
+        // [SCENARIO] GenerateTextCompletion returns an error when generate complete is called
+
+        // [GIVEN] The privacy notice is agreed to
+        // [GIVEN] The authorization key is set
+        PrivacyNotice.SetApprovalState(AzureOpenAITxt, "Privacy Notice Approval State"::Agreed);
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Text Completions", EndpointTxt, DeploymentTxt, Any.AlphanumericText(10));
+
+        // [GIVEN] Capability is set
+        CopilotCapability.UnregisterCapability(Enum::"Copilot Capability"::"Text Capability");
+        CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::"Custom Billed", '');
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Text Capability");
+        Metaprompt := 'metaprompt';
+
+        // [WHEN] GenerateTextCompletion is called
+        AzureOpenAI.GenerateTextCompletion(Metaprompt, Any.AlphanumericText(10), AOAIOperationResponse);
+
+        // [THEN] GenerateTextCompletion shall fail [CAPI with Custom Billed - Not allowed for Microsoft published capabilities]
+        LibraryAssert.AreEqual(false, AOAIOperationResponse.IsSuccess(), 'The text completions generation succeeded when it should fail.');
+        ErrorMessage := StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Text Capability", Enum::"Copilot Billing Type"::"Custom Billed");
+        LibraryAssert.ExpectedError(ErrorMessage);
     end;
 
     [Test]

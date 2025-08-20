@@ -449,13 +449,12 @@ codeunit 134692 "Email E2E Tests"
         OutboxPage.Desc.Drilldown();
 
         // [WHEN] The email is sent again
-
         Editor.Send.Invoke();
 
         // [THEN] The mail is sent and the info is correct and the outbox record for the previous failure is deleted
         EmailMessage.Get(ConnectorMock.GetEmailMessageID());
         Outbox.SetRange("Message Id", EmailMessage.GetId());
-        Assert.AreEqual(0, Outbox.Count(), 'No Oubox records were expected.');
+        Assert.AreEqual(0, Outbox.Count(), 'No Outbox records were expected.');
 
         SentEmail.SetRange("Message Id", EmailMessage.GetId());
         Assert.IsTrue(SentEmail.FindFirst(), 'A Sent Email record should have been inserted.');

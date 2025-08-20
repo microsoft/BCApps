@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/2cc8f6277433dbc2d7e066f9037d2084637c6347/Actions/settings.schema.json",
+  "projectName": "Apps (W1)",
+  "appFolders": [
+    "../../../src/Apps/W1/*/App",
+    "../../../src/Apps/W1/*/*/App"
+  ],
+  "testFolders": [
+    "../../../src/Apps/W1/*/Test",
+    "../../../src/Apps/W1/*/Test Library",
+    "../../../src/Apps/W1/*/Demo Data",
+    "../../../src/Apps/W1/*/*/Test",
+    "../../../src/Apps/W1/*/*/Test Library",
+    "../../../src/Apps/W1/*/*/Demo Data"
+  ],
+  "installOnlyReferencedApps": false,
+  "ConditionalSettings": [
+    {
+      "buildModes": [
+        "Clean"
+      ],
+      "settings": {
+        "doNotRunTests": true,
+        "useCompilerFolder": true,
+        "doNotPublishApps": true
+      }
+    },
+    {
+      "branches": [
+        "releases/*.[0-5]"
+      ],
+      "settings": {
+        "buildModes": [
+          "Strict"
+        ]
+      }
+    }
+  ],
+  "useProjectDependencies": true
+}
