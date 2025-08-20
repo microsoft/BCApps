@@ -333,5 +333,7 @@ codeunit 8032 "Upgrade Subscription Billing"
         PerCompanyUpgradeTags.Add(GetMoveCustContrDimensionUpgradeTag());
 #endif
         PerCompanyUpgradeTags.Add(GetUpdateCreateContractDeferralsFlag());
+        PerCompanyUpgradeTags.Add(DeleteSalesSubscriptionLinesConnectedToDeletedQuoteTag());
+        PerCompanyUpgradeTags.Add(RemoveDocumentNoFromBillingLinesTag());
     end;
 }
