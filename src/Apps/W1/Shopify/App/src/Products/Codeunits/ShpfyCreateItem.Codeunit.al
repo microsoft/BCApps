@@ -452,7 +452,7 @@ codeunit 30171 "Shpfy Create Item"
     begin
         if Product.FindSet() then
             repeat
-                this.CreateItemFromShopifyProduct(Product);
+                CreateItemFromShopifyProduct(Product);
             until Product.Next() = 0;
     end;
 

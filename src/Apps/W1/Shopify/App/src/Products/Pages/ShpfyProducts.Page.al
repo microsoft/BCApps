@@ -359,7 +359,7 @@ page 30126 "Shpfy Products"
                     Product: Record "Shpfy Product";
                     CreateItem: Codeunit "Shpfy Create Item";
                 begin
-                    if Confirm(this.CreateItemConfirmLbl) then begin
+                    if Confirm(CreateItemConfirmLbl) then begin
                         CurrPage.SetSelectionFilter(Product);
                         CreateItem.CreateItemsFromShopifyProducts(Product);
                         CurrPage.Update(false);

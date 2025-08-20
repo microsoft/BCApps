@@ -12,6 +12,7 @@ using System.Utilities;
 codeunit 139544 "Shpfy Create Item API Test"
 {
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
     TestHttpRequestPolicy = BlockOutboundRequests;
     EventSubscriberInstance = Manual;
