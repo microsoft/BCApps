@@ -77,7 +77,7 @@ codeunit 148156 "Service Commitment Test"
 
     [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
-    procedure CheckDeleteServiceCommitmentAfterDeleteCustomerContractLine()
+    procedure DeleteServiceCommitmentAfterDeleteCustomerContractLine()
     begin
         Initialize();
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '', true);
@@ -90,7 +90,7 @@ codeunit 148156 "Service Commitment Test"
 
     [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
-    procedure CheckDeleteServiceCommitmentAfterDeleteVendorContractLine()
+    procedure DeleteServiceCommitmentAfterDeleteVendorContractLine()
     var
         VendorContractLine: Record "Vend. Sub. Contract Line";
     begin
@@ -257,13 +257,13 @@ codeunit 148156 "Service Commitment Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
-    procedure ExpectErrorDeleteServiceCommitmentAfterCustomerContractLineSetToClosed()
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,ConfirmHandlerYes')]
+    procedure DeleteServiceCommitmentAfterCustomerContractLineSetToClosed()
     var
     begin
         Initialize();
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '', true);
-        UpdateServiceDatesAndCloseCustomerContractLines();
+        UpdateServiceDatesAndCloseContractLines();
 
         ServiceCommitment.Reset();
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
@@ -272,24 +272,90 @@ codeunit 148156 "Service Commitment Test"
 
     [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
-    procedure ExpectErrorWhenDeleteServiceCommitment()
+    procedure ExpectErrorWhenDeleteServiceCommitmentIfOpenContractLineExists()
     var
+        OpenContractLinesExistErr: Label 'The Subscription Line cannot be deleted because it is linked to a contract line which is not yet marked as "Closed".';
     begin
         Initialize();
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '', true);
         ServiceCommitment.Reset();
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
         asserterror ServiceCommitment.DeleteAll(true);
+        Assert.ExpectedError(OpenContractLinesExistErr);
+    end;
+
+    [Test]
+    procedure ExpectErrorWhenDeleteServiceCommitmentServiceStartDateAndNextBillingDateAreDifferent()
+    var
+        SubscriptionLineStartDateDifferentThanNextBillingDateErr: Label 'The %1 must be the same as the %2 to delete the %3.', Comment = '%1 = Service Start Date; %2 = Next Billing Date; %3 = Service Commitment', Locked = true;
+    begin
+        ClearAll();
+        ContractTestLibrary.CreateServiceObjectForItem(ServiceObject, Item, false);
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, ServiceCommitmentPackage, ServiceCommPackageLine);
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, ServiceCommitmentPackage.Code);
+        ServiceObject.InsertServiceCommitmentsFromServCommPackage(WorkDate(), ServiceCommitmentPackage);
+
+        ServiceCommitment.Reset();
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.ModifyAll("Subscription Line Start Date", CalcDate('<-1D>', WorkDate()), false);
+        ServiceCommitment.ModifyAll("Next Billing Date", CalcDate('<+1D>', WorkDate()), false);
+        asserterror ServiceCommitment.DeleteAll(true);
+        Assert.ExpectedError(StrSubstNo(SubscriptionLineStartDateDifferentThanNextBillingDateErr,
+            ServiceCommitment.FieldCaption("Subscription Line Start Date"),
+            ServiceCommitment.FieldCaption("Next Billing Date"),
+            ServiceCommitment.TableCaption()));
     end;
 
     [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
-    procedure ExpectDeleteServiceCommitmentAfterVendorContractLineSetToClosed()
+    procedure ExpectErrorWhenDeleteServiceCommitmentAndOpenCustomerContractDeferralsExist()
+    var
+        UnreleasedCustSubContractDeferralExistsErr: Label 'Contract lines cannot be deleted as long as open Contract Deferrals exists. Please release the Contract Deferrals before deleting the Contract line.', Locked = true;
+    begin
+        // [SCENARIO]: When deleting a service commitment, expect an error if there are open deferrals for the service commitment
+
+        // [GIVEN]: Create a customer contract and service commitments
+        Initialize();
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '', true);
+        UpdateServiceDatesAndCloseContractLines();
+
+        // [GIVEN]: Create open deferrals for the customer contract lines
+        MockContractDeferralForServiceObject(ServiceObject."No.");
+
+        // [THEN]: expect an error when trying to delete the service commitment
+        asserterror ServiceCommitment.DeleteAll(true);
+        Assert.ExpectedError(UnreleasedCustSubContractDeferralExistsErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure ExpectErrorWhenDeleteServiceCommitmentAndOpenVendorContractDeferralsExist()
+    var
+        UnreleasedVendorContractDeferralExistsErr: Label 'Contract lines cannot be deleted as long as open Contract Deferrals exists. Please release the Contract Deferrals before deleting the Contract line.', Locked = true;
+    begin
+        // [SCENARIO]: When deleting a service commitment, expect an error if there are open deferrals for the service commitment
+
+        // [GIVEN]: Create a Vendor contract and service commitments
+        Initialize();
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, '', true);
+        UpdateServiceDatesAndCloseContractLines();
+
+        // [GIVEN]: Create open deferrals for the customer contract lines
+        MockContractDeferralForServiceObject(ServiceObject."No.");
+
+        // [THEN]: expect an error when trying to delete the service commitment
+        asserterror ServiceCommitment.DeleteAll(true);
+        Assert.ExpectedError(UnreleasedVendorContractDeferralExistsErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,ConfirmHandlerYes')]
+    procedure DeleteServiceCommitmentAfterVendorContractLineSetToClosed()
     var
     begin
         Initialize();
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, '', true);
-        UpdateServiceDatesAndCloseCustomerContractLines();
+        UpdateServiceDatesAndCloseContractLines();
 
         ServiceCommitment.Reset();
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
@@ -303,7 +369,7 @@ codeunit 148156 "Service Commitment Test"
     begin
         Initialize();
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '', true);
-        UpdateServiceDatesAndCloseCustomerContractLines();
+        UpdateServiceDatesAndCloseContractLines();
 
         ServiceCommitment."Next Billing Date" := CalcDate('<1D>', ServiceCommitment."Next Billing Date");
         asserterror ServiceCommitment.Modify(true);
@@ -375,7 +441,7 @@ codeunit 148156 "Service Commitment Test"
 
         // Create closed Subscription Lines that should not be considered
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '', true); // ExchangeRateSelectionModalPageHandler,MessageHandler
-        UpdateServiceDatesAndCloseCustomerContractLines();
+        UpdateServiceDatesAndCloseContractLines();
 
         // Create Subscription Lines to consider
         MaxInsertCount := LibraryRandom.RandIntInRange(2, 9);
@@ -496,7 +562,24 @@ codeunit 148156 "Service Commitment Test"
         InsertCounter += 1;
     end;
 
-    local procedure UpdateServiceDatesAndCloseCustomerContractLines()
+    local procedure MockContractDeferralForServiceObject(SubscriptionHeaderNo: Code[20])
+    begin
+        ServiceCommitment.Reset();
+        ServiceCommitment.SetRange("Subscription Header No.", SubscriptionHeaderNo);
+        ServiceCommitment.FindSet();
+        repeat
+            ServiceCommitment.TestField("Subscription Contract No.");
+            ServiceCommitment.TestField("Subscription Contract Line No.");
+            case ServiceCommitment.Partner of
+                ServiceCommitment.Partner::Customer:
+                    ContractTestLibrary.MockCustomerContractDeferralLine(ServiceCommitment."Subscription Contract No.", ServiceCommitment."Subscription Contract Line No.");
+                ServiceCommitment.Partner::Vendor:
+                    ContractTestLibrary.MockVendorContractDeferralLine(ServiceCommitment."Subscription Contract No.", ServiceCommitment."Subscription Contract Line No.");
+            end;
+        until ServiceCommitment.Next() = 0;
+    end;
+
+    local procedure UpdateServiceDatesAndCloseContractLines()
     begin
         ServiceCommitment.Reset();
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
@@ -525,6 +608,12 @@ codeunit 148156 "Service Commitment Test"
     #endregion Procedures
 
     #region Handlers
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerYes(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
+    end;
 
     [ModalPageHandler]
     procedure ExchangeRateSelectionModalPageHandler(var ExchangeRateSelectionPage: TestPage "Exchange Rate Selection")

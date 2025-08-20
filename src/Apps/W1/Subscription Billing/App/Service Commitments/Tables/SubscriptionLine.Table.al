@@ -605,6 +605,7 @@ table 8059 "Subscription Line"
 
     trigger OnDelete()
     begin
+        DisplayErrorIfStartDateIsDifferentThanNextBillingDate();
         DisplayErrorIfContractLinesExist(OpenContractLinesExistErr, false);
         DeleteContractLine();
         SetUpdateRequiredOnBillingLines();
@@ -634,6 +635,7 @@ table 8059 "Subscription Line"
         BillingLineArchiveForServiceCommitmentExistErr: Label 'The contract line has already been billed. The Subscription Line start date can no longer be changed.';
         NoManualEntryOfUnitCostLCYForVendorServCommErr: Label 'Please use the fields "Calculation Base Amount" and "Calculation Base %" in order to update the unit cost.';
         DeferralsExistErr: Label 'The creation of contract deferrals cannot be changed as there are still unreleased deferrals for this contract line.';
+        SubscriptionLineStartDateDifferentThanNextBillingDateErr: Label 'The %1 must be the same as the %2 to delete the %3.', Comment = '%1 = Service Start Date; %2 = Next Billing Date; %3 = Service Commitment';
 
     internal procedure CheckServiceDates()
     begin
@@ -667,19 +669,13 @@ table 8059 "Subscription Line"
     begin
         case Partner of
             Partner::Customer:
-                begin
-                    CustomerContractLine.FilterOnServiceCommitment(Rec);
-                    if CustomerContractLine.FindFirst() then
-                        if ((CheckContractLineClosed and CustomerContractLine.Closed) or (not CustomerContractLine.Closed and not CheckContractLineClosed)) then
-                            Error(ErrorTxt);
-                end;
+                if CustomerContractLine.FindFirstSubscriptionLine(Rec) then
+                    if ((CheckContractLineClosed and CustomerContractLine.Closed) or (not CustomerContractLine.Closed and not CheckContractLineClosed)) then
+                        Error(ErrorTxt);
             Partner::Vendor:
-                begin
-                    VendorContractLine.FilterOnServiceCommitment(Rec);
-                    if VendorContractLine.FindFirst() then
-                        if ((CheckContractLineClosed and VendorContractLine.Closed) or (not VendorContractLine.Closed and not CheckContractLineClosed)) then
-                            Error(ErrorTxt);
-                end;
+                if VendorContractLine.FindFirstSubscriptionLine(Rec) then
+                    if ((CheckContractLineClosed and VendorContractLine.Closed) or (not VendorContractLine.Closed and not CheckContractLineClosed)) then
+                        Error(ErrorTxt);
         end;
     end;
 
@@ -1120,12 +1116,12 @@ table 8059 "Subscription Line"
             Enum::"Service Partner"::Customer:
                 if CustomerContractLine.Get(Rec."Subscription Contract No.", Rec."Subscription Contract Line No.") then
                     if CustomerContractLine.Closed then
-                        CustomerContractLine.Delete(false);
+                        CustomerContractLine.Delete(true);
 
             Enum::"Service Partner"::Vendor:
                 if VendorContractLine.Get(Rec."Subscription Contract No.", Rec."Subscription Contract Line No.") then
                     if VendorContractLine.Closed then
-                        VendorContractLine.Delete(false);
+                        VendorContractLine.Delete(true);
         end;
     end;
 
@@ -1929,6 +1925,29 @@ table 8059 "Subscription Line"
     begin
         if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
             DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
+    end;
+
+    local procedure DisplayErrorIfStartDateIsDifferentThanNextBillingDate()
+    begin
+        if IsContractLineClosed() then
+            exit;
+        if Rec."Subscription Line Start Date" <> Rec."Next Billing Date" then
+            Error(SubscriptionLineStartDateDifferentThanNextBillingDateErr, Rec.FieldCaption("Subscription Line Start Date"), Rec.FieldCaption("Next Billing Date"), Rec.TableCaption());
+    end;
+
+    local procedure IsContractLineClosed(): Boolean
+    var
+        CustomerContractLine: Record "Cust. Sub. Contract Line";
+        VendorContractLine: Record "Vend. Sub. Contract Line";
+    begin
+        case Partner of
+            Enum::"Service Partner"::Customer:
+                if CustomerContractLine.FindFirstSubscriptionLine(Rec) then
+                    exit(CustomerContractLine.Closed);
+            Enum::"Service Partner"::Vendor:
+                if VendorContractLine.FindFirstSubscriptionLine(Rec) then
+                    exit(VendorContractLine.Closed);
+        end;
     end;
 
     [IntegrationEvent(false, false)]
