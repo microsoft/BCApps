@@ -13,11 +13,11 @@ codeunit 135145 "Mock Http Client Handler Multi" implements "Http Client Handler
     InherentPermissions = X;
 
     var
-        _httpRequestMessages: List of [Text];
-        _httpResponseBodies: List of [Text];
-        _httpResponseStatusCodes: List of [Integer];
-        _currentResponseIndex: Integer;
-        _sendError: Text;
+        httpRequestMessages: List of [Text];
+        httpResponseBodies: List of [Text];
+        httpResponseStatusCodes: List of [Integer];
+        currentResponseIndex: Integer;
+        sendError: Text;
 
     procedure Send(HttpClient: HttpClient; HttpRequestMessage: Codeunit System.RestClient."Http Request Message"; var HttpResponseMessage: Codeunit System.RestClient."Http Response Message") Success: Boolean;
     begin
@@ -25,15 +25,15 @@ codeunit 135145 "Mock Http Client Handler Multi" implements "Http Client Handler
         exit(TrySend(HttpRequestMessage, HttpResponseMessage));
     end;
 
-    procedure ExpectSendToFailWithError(SendError: Text)
+    procedure ExpectSendToFailWithError(NewSendError: Text)
     begin
-        _sendError := SendError;
+        this.SendError := NewSendError;
     end;
 
     procedure AddResponse(StatusCode: Integer; ResponseBody: Text)
     begin
-        _httpResponseStatusCodes.Add(StatusCode);
-        _httpResponseBodies.Add(ResponseBody);
+        this.httpResponseStatusCodes.Add(StatusCode);
+        this.httpResponseBodies.Add(ResponseBody);
     end;
 
     procedure AddResponse(var NewHttpResponseMessage: Codeunit System.RestClient."Http Response Message")
@@ -46,22 +46,22 @@ codeunit 135145 "Mock Http Client Handler Multi" implements "Http Client Handler
 
     procedure GetHttpRequestUri(Index: Integer): Text
     begin
-        if (Index > 0) and (Index <= _httpRequestMessages.Count()) then
-            exit(_httpRequestMessages.Get(Index));
+        if (Index > 0) and (Index <= this.httpRequestMessages.Count()) then
+            exit(this.httpRequestMessages.Get(Index));
     end;
 
     procedure GetRequestCount(): Integer
     begin
-        exit(_httpRequestMessages.Count());
+        exit(this.httpRequestMessages.Count());
     end;
 
     procedure Reset()
     begin
-        Clear(_httpRequestMessages);
-        Clear(_httpResponseBodies);
-        Clear(_httpResponseStatusCodes);
-        _currentResponseIndex := 0;
-        _sendError := '';
+        Clear(this.httpRequestMessages);
+        Clear(this.httpResponseBodies);
+        Clear(this.httpResponseStatusCodes);
+        this.currentResponseIndex := 0;
+        this.sendError := '';
     end;
 
     [TryFunction]
@@ -69,17 +69,17 @@ codeunit 135145 "Mock Http Client Handler Multi" implements "Http Client Handler
     var
         HttpContent: Codeunit "Http Content";
     begin
-        _httpRequestMessages.Add(HttpRequestMessage.GetRequestUri());
+        this.httpRequestMessages.Add(HttpRequestMessage.GetRequestUri());
 
-        if _sendError <> '' then
-            Error(_sendError);
+        if this.sendError <> '' then
+            Error(this.sendError);
 
-        _currentResponseIndex += 1;
-        if (_currentResponseIndex > 0) and (_currentResponseIndex <= _httpResponseBodies.Count()) then begin
-            HttpResponseMessage.SetHttpStatusCode(_httpResponseStatusCodes.Get(_currentResponseIndex));
-            HttpContent := HttpContent.Create(_httpResponseBodies.Get(_currentResponseIndex));
+        this.currentResponseIndex += 1;
+        if (this.currentResponseIndex > 0) and (this.currentResponseIndex <= this.httpResponseBodies.Count()) then begin
+            HttpResponseMessage.SetHttpStatusCode(this.httpResponseStatusCodes.Get(this.currentResponseIndex));
+            HttpContent := HttpContent.Create(this.httpResponseBodies.Get(this.currentResponseIndex));
             HttpResponseMessage.SetContent(HttpContent);
         end else
-            Error('No more mock responses available. Request index: %1, Available responses: %2', _currentResponseIndex, _httpResponseBodies.Count());
+            Error('No more mock responses available. Request index: %1, Available responses: %2', this.currentResponseIndex, this.httpResponseBodies.Count());
     end;
 }
