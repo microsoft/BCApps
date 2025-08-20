@@ -3,6 +3,6 @@
         "bug": "597430",
         "codeunitId": 139692,
         "CodeunitName": "Contract Renewal Test",
-        "Method": "*"
+        "Method": "TestIfContractRenewalSelectionIsUpdateOnAfterValidateCalcBasePercentage"
     }
 ]
