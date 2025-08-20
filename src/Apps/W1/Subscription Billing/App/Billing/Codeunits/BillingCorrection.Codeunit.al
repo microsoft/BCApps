@@ -130,7 +130,8 @@ codeunit 8061 "Billing Correction"
 
     local procedure GetAndCheckServiceCommitmentIfNewerInvoiceExists(var ServiceCommitment: Record "Subscription Line"; SubscriptionLineEntryNo: Integer; RecurringBillingToDate: Date)
     begin
-        ServiceCommitment.Get(SubscriptionLineEntryNo);
+        if not ServiceCommitment.Get(SubscriptionLineEntryNo) then
+            exit;
         if ServiceCommitment."Next Billing Date" - 1 > RecurringBillingToDate then
             Error(NewerInvoiceExistErr, ServiceCommitment."Next Billing Date");
     end;
@@ -195,43 +196,6 @@ codeunit 8061 "Billing Correction"
             Error(RelatedDocumentLineExistErr, BillingLine."Document Type", BillingLine."Document No.");
         CreateBillingLineFromBillingLineArchive(ToSalesLine, SubscriptionLine, FromSalesHeader."No.", DocLineNo);
     end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnCopyPurchInvLinesToDocOnAfterTransferFields, '', false, false)]
-    local procedure FindSubscriptionLineFromBillingLineArchiveForPurchase(var FromPurchaseLine: Record "Purchase Line"; var FromPurchInvLine: Record "Purch. Inv. Line")
-    var
-        BillingLineArchive: Record "Billing Line Archive";
-        SubscriptionLine: Record "Subscription Line";
-    begin
-        if FromPurchInvLine."Subscription Contract No." = '' then
-            exit;
-        if FromPurchInvLine."Subscription Contract Line No." = 0 then
-            exit;
-        BillingLineArchive.FilterBillingLineArchiveOnDocument("Rec. Billing Document Type"::Invoice, FromPurchInvLine."Document No.");
-        BillingLineArchive.FilterBillingLineArchiveOnContractLine("Service Partner"::Vendor, FromPurchInvLine."Subscription Contract No.", FromPurchInvLine."Subscription Contract Line No.");
-        if not BillingLineArchive.FindFirst() then
-            exit;
-        if not SubscriptionLine.Get(BillingLineArchive."Subscription Line Entry No.") then
-            exit;
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnBeforeCopySalesInvLinesToBuffer, '', false, false)]
-    local procedure FindSubscriptionLineFromBillingLineArchiveForSales(var FromSalesLine: Record "Sales Line"; var FromSalesInvLine: Record "Sales Invoice Line")
-    var
-        BillingLineArchive: Record "Billing Line Archive";
-        SubscriptionLine: Record "Subscription Line";
-    begin
-        if FromSalesInvLine."Subscription Contract No." = '' then
-            exit;
-        if FromSalesInvLine."Subscription Contract Line No." = 0 then
-            exit;
-        BillingLineArchive.FilterBillingLineArchiveOnDocument("Rec. Billing Document Type"::Invoice, FromSalesInvLine."Document No.");
-        BillingLineArchive.FilterBillingLineArchiveOnContractLine("Service Partner"::Customer, FromSalesInvLine."Subscription Contract No.", FromSalesInvLine."Subscription Contract Line No.");
-        if not BillingLineArchive.FindFirst() then
-            exit;
-        if not SubscriptionLine.Get(BillingLineArchive."Subscription Line Entry No.") then
-            exit;
-    end;
-
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnBeforeUpdatePurchLine, '', false, false)]
     local procedure TransferContractFieldsBeforeUpdatePurchaseLine(var ToPurchLine: Record "Purchase Line"; var FromPurchHeader: Record "Purchase Header"; FromPurchDocType: Option)
