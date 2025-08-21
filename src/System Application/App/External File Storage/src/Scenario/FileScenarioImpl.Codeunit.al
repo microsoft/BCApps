@@ -173,7 +173,9 @@ codeunit 9453 "File Scenario Impl."
     var
         TempSelectedFileAccScenarios: Record "File Account Scenario" temporary;
         FileScenario: Record "File Scenario";
+        FileScenarioMgt: Codeunit "File Scenario";
         FileScenariosForAccount: Page "File Scenarios for Account";
+        IsHandled: Boolean;
     begin
         FileAccountImpl.CheckPermissions();
 
@@ -193,6 +195,11 @@ codeunit 9453 "File Scenario Impl."
             exit;
 
         repeat
+            IsHandled := false;
+            FileScenarioMgt.BeforeAddOrModifyFileScenarioCheck(TempSelectedFileAccScenarios.Scenario, TempSelectedFileAccScenarios.Connector, IsHandled);
+            if IsHandled then
+                exit;
+
             if not FileScenario.Get(TempSelectedFileAccScenarios.Scenario) then begin
                 FileScenario."Account Id" := TempFileAccountScenario."Account Id";
                 FileScenario.Connector := TempFileAccountScenario.Connector;
@@ -289,6 +296,8 @@ codeunit 9453 "File Scenario Impl."
     procedure DeleteScenario(var TempFileAccountScenario: Record "File Account Scenario" temporary): Boolean
     var
         FileScenario: Record "File Scenario";
+        FileScenarioMgt: Codeunit "File Scenario";
+        IsHandled: Boolean;
     begin
         FileAccountImpl.CheckPermissions();
 
@@ -301,7 +310,10 @@ codeunit 9453 "File Scenario Impl."
                 FileScenario.SetRange("Account Id", TempFileAccountScenario."Account Id");
                 FileScenario.SetRange(Connector, TempFileAccountScenario.Connector);
 
-                FileScenario.DeleteAll();
+                IsHandled := false;
+                FileScenarioMgt.BeforeDeleteFileScenarioCheck(TempFileAccountScenario.Scenario, TempFileAccountScenario.Connector, IsHandled);
+                if not IsHandled then
+                    FileScenario.DeleteAll();
             end;
         until TempFileAccountScenario.Next() = 0;
 
