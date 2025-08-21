@@ -226,6 +226,7 @@ page 4315 "Agent Card"
         Agent: Codeunit Agent;
     begin
         Agent.OpenSetupPageId(Rec."Agent Metadata Provider", Rec."User Security ID");
+        CurrPage.Update(false);
     end;
 
     var
