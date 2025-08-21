@@ -171,6 +171,7 @@ codeunit 6415 "ForNAV Application Response"
     begin
         VendorNo := CopyStr(VendorNo, 1, MaxStrLen(Vendor."No."));
         Vendor.Get(VendorNo);
+
         if not Country.Get(Vendor."Country/Region Code") or (StrLen(Country."VAT Scheme") <> 4) then
             Error(InvalidVATSchemeErr, Vendor.TableCaption(), Vendor."Country/Region Code", Country."VAT Scheme");
 

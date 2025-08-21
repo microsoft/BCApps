@@ -2,6 +2,7 @@ namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using System.Threading;
 using Microsoft.EServices.EDocument;
+
 page 6417 "ForNAV Incoming E-Docs Api"
 {
     PageType = API;
@@ -79,19 +80,17 @@ page 6417 "ForNAV Incoming E-Docs Api"
     [TryFunction]
     local procedure ScheduleJob(JobQueueCodeunit: Integer; RecId: RecordId)
     var
+        Setup: Record "ForNAV Peppol Setup";
         QueueEntry: Record "Job Queue Entry";
-        // Enqueue: Codeunit "Job Queue - Enqueue";
-        PeppolJobQueue: Codeunit "ForNAV Peppol Job Queue";
     begin
         QueueEntry.ID := CreateGuid();
         QueueEntry."Record ID to Process" := RecId;
         QueueEntry."Object ID to Run" := JobQueueCodeunit;
         QueueEntry."Object Type to Run" := QueueEntry."Object Type to Run"::Codeunit;
-        QueueEntry."Job Queue Category Code" := PeppolJobQueue.GetForNAVCategoryCode();
+        QueueEntry."Job Queue Category Code" := Setup.GetForNAVCode();
         QueueEntry.Description := 'Used by ForNAV to process incoming e-documents';
         QueueEntry.Status := QueueEntry.Status::"On Hold";
         QueueEntry.Insert();
-        // Enqueue.Run(QueueEntry);
     end;
 
     local procedure SetErrorMessage(var NewMessage: BigText)
@@ -142,4 +141,3 @@ page 6417 "ForNAV Incoming E-Docs Api"
         exit(false);
     end;
 }
-

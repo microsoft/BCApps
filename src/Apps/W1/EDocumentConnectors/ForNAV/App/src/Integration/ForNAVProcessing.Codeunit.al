@@ -5,6 +5,7 @@ using System.Text;
 using System.Utilities;
 using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.eServices.EDocument.Integration.Receive;
+
 codeunit 6419 "ForNAV Processing"
 {
     Access = Internal;

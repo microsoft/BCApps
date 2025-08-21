@@ -5,5 +5,7 @@ permissionset 6412 "ForNAV EDoc Inc Read"
     Access = Public;
     Assignable = false;
 
-    Permissions = tabledata "ForNAV Incoming E-Document" = R;
+    Permissions =
+        tabledata "ForNAV Peppol Setup" = R,
+        tabledata "ForNAV Incoming E-Document" = RIMD;
 }

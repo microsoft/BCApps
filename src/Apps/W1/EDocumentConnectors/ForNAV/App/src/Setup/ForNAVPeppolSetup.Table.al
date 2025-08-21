@@ -8,7 +8,6 @@ using System.EMail;
 using Microsoft.eServices.EDocument;
 using Microsoft.Foundation.Reporting;
 using System.Automation;
-
 table 6414 "ForNAV Peppol Setup"
 {
     DataClassification = CustomerContent;
@@ -414,8 +413,8 @@ table 6414 "ForNAV Peppol Setup"
     begin
         if not FindFirst() then begin
             Rec.PK := CreateGuid();
-            Rec."E-Document Service" := 'FORNAV';
-            Rec."Document Sending Profile" := 'FORNAV';
+            Rec."E-Document Service" := GetForNAVCode();
+            Rec."Document Sending Profile" := GetForNAVCode();
             SetupDocumentSendingProfile();
             UpdateFromCompanyInformation();
             CompanyInformation.Get();
@@ -459,23 +458,23 @@ table 6414 "ForNAV Peppol Setup"
         DocumentSendingProfile.Description := 'ForNAV eDocument';
         DocumentSendingProfile."Electronic Format" := 'PEPPOL BIS3';
         DocumentSendingProfile."Electronic Document" := "Doc. Sending Profile Elec.Doc."::"Extended E-Document Service Flow";
-        DocumentSendingProfile."Electronic Service Flow" := 'FORNAV';
+        DocumentSendingProfile."Electronic Service Flow" := GetForNAVCode();
         DocumentSendingProfile.Insert();
 
-        if Workflow.Get('FORNAV') then
+        if Workflow.Get(GetForNAVCode()) then
             Workflow.Delete();
 
-        Workflow.Code := 'FORNAV';
+        Workflow.Code := GetForNAVCode();
         Workflow.Description := 'ForNAV eDocument workflow';
         Workflow.Category := 'EDOC';
         Workflow.Enabled := true;
         Workflow.Insert();
 
-        WorkflowStep.SetRange("Workflow Code", 'FORNAV');
+        WorkflowStep.SetRange("Workflow Code", GetForNAVCode());
         WorkflowStep.DeleteAll();
         WorkflowStep.Init();
         WorkflowStep."Sequence No." := 1;
-        WorkflowStep."Workflow Code" := 'FORNAV';
+        WorkflowStep."Workflow Code" := GetForNAVCode();
         WorkflowStep.Type := WorkflowStep.Type::"Event";
         WorkflowStep."Function Name" := 'EDOCCREATEDEVENT';
         WorkflowStep."Entry Point" := true;
@@ -484,19 +483,19 @@ table 6414 "ForNAV Peppol Setup"
         WorkflowStep."Previous Workflow Step ID" := WorkflowStep.ID;
         WorkflowStep.ID += 1;
         WorkflowStep."Sequence No." := 0;
-        WorkflowStep."Workflow Code" := 'FORNAV';
+        WorkflowStep."Workflow Code" := GetForNAVCode();
         WorkflowStep.Type := WorkflowStep.Type::"Response";
         WorkflowStep."Function Name" := 'EDOCSENDEDOCRESPONSE';
         WorkflowStep."Entry Point" := false;
 
         WorkflowStepArgument.SetRange("Response Function Name", 'EDOCSENDEDOCRESPONSE');
-        WorkflowStepArgument.SetRange("E-Document Service", 'FORNAV');
+        WorkflowStepArgument.SetRange("E-Document Service", GetForNAVCode());
         WorkflowStepArgument.DeleteAll();
 
         WorkflowStepArgument.Init();
         WorkflowStepArgument."Table No." := Database::"E-Document";
         WorkflowStepArgument."Response Function Name" := 'EDOCSENDEDOCRESPONSE';
-        WorkflowStepArgument."E-Document Service" := 'FORNAV';
+        WorkflowStepArgument."E-Document Service" := GetForNAVCode();
         WorkflowStepArgument.ID := CreateGuid();
         WorkflowStepArgument.Insert();
 
@@ -534,28 +533,35 @@ table 6414 "ForNAV Peppol Setup"
 
     internal procedure GetEDocumentService(var EDocumentService: Record "E-Document Service"): Boolean
     begin
-        if not this.FindFirst() then
+        if not FindFirst() then
             exit(false);
 
-        this.TestField("E-Document Service");
-        exit(EDocumentService.Get(this."E-Document Service") and (EDocumentService.ForNAVIsServiceIntegration()));
+        TestField("E-Document Service");
+        exit(EDocumentService.Get("E-Document Service") and (EDocumentService.ForNAVIsServiceIntegration()));
     end;
 
     internal procedure GetEDocumentService() EDocumentService: Record "E-Document Service"
     begin
-        if not this.FindFirst() then
+        if not FindFirst() then
             exit;
 
-        this.TestField("E-Document Service");
-        EDocumentService.Get(this."E-Document Service");
+        TestField("E-Document Service");
+        EDocumentService.Get("E-Document Service");
         exit(EDocumentService);
     end;
 
     internal procedure GetDocumentSendingProfile(): Code[20]
     begin
-        this.FindFirst();
+        FindFirst();
 
-        this.TestField("Document Sending Profile");
+        TestField("Document Sending Profile");
         exit("Document Sending Profile");
+    end;
+
+    internal procedure GetForNAVCode() Result: Code[10]
+    var
+        ForNAVLbl: Label 'FORNAVEDOC', Locked = true;
+    begin
+        Result := CopyStr(ForNAVLbl, 1, MaxStrLen(Result));
     end;
 }

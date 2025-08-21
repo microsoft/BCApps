@@ -13,6 +13,7 @@ tableextension 6412 "ForNAV EDocument" extends "E-Document"
             ToolTip = 'Specifies the ForNAV E-Document ID.';
         }
     }
+
     internal procedure DocumentLog() Log: Record "E-Document Integration Log";
     begin
         Log.SetRange(Log."E-Doc. Entry No", Rec."Entry No");
