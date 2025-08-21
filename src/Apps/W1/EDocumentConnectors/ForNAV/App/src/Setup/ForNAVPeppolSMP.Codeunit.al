@@ -89,7 +89,7 @@ codeunit 6425 "ForNAV Peppol SMP"
         Result: Integer;
         LicenseLbl: Label 'You need a valid ForNAV license to use this App "%1"', Comment = '%1 = meessage';
         ConnectionLbl: Label 'You are not authorized to use the ForNAV Peppol network. Please authorize./Error: %1', Comment = '%1 = error';
-        LicensePeppolAccessLbl: Label 'You need update your ForNAV license to be able to use this app, please contavt your partner';
+        LicensePeppolAccessLbl: Label 'You need update your ForNAV license to be able to use this app, please contact your partner';
         SetupInAnotherBCInstanceLbl: Label 'This peppolid is already published in another company or Business Central installation - you need to unpublish it to use it with this company';
     begin
         Result := -1; // Any
