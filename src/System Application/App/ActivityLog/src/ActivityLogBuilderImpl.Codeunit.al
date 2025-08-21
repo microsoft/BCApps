@@ -55,7 +55,7 @@ codeunit 3112 "Activity Log Builder Impl."
 
     procedure SetConfidence(Confidence: Integer): Codeunit "Activity Log Builder Impl."
     begin
-        LogEntry.AddFieldAttribute(this.GlobalFieldNo, AttributeType::Confidence, Format(Confidence))
+        LogEntry.AddFieldAttribute(this.GlobalFieldNo, AttributeType::Confidence, Format(Confidence));
         exit(this);
     end;
 
