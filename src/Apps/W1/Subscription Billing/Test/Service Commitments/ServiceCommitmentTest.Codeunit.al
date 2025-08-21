@@ -25,7 +25,10 @@ codeunit 148156 "Service Commitment Test"
         LibrarySales: Codeunit "Library - Sales";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         PackageLineMissingInvoicingItemNoErr: Label 'The %1 %2 can not be used with Item %3, because at least one of the Service Commitment Package lines is missing an %4.', Locked = true;
-        NaturalNumberRatioErr: Label 'The ratio of ''%1'' and ''%2'' or vice versa must give a natural number.', Comment = '%1=Field Caption, %2=Field Caption';
+        NaturalNumberRatioErr: Label 'The ratio of ''%1'' and ''%2'' or vice versa must give a natural number.', Comment = '%1=Field Caption, %2=Field Caption', Locked = true;
+        DiscountCanBeInvoicedViaContractErr: Label 'Recurring discounts can only be granted for Invoicing via Contract.', Locked = true;
+        DiscountCannotBeAssignedErr: Label 'Subscription Package Lines, which are discounts can only be assigned to Subscription Items.', Locked = true;
+        RecurringDiscountCannotBeGrantedErr: Label 'Recurring discounts cannot be granted be granted in conjunction with Usage Based Billing.', Locked = true;
 
     #region Tests
 
@@ -271,6 +274,37 @@ codeunit 148156 "Service Commitment Test"
     end;
 
     [Test]
+    procedure ExpectErrorOnChangeItemServiceCommTypeFromSrvCommToSalesWithSrvComm()
+    var
+        SrvCommItem: Record Item;
+        ServCommPackage: Record "Subscription Package";
+        ServCommPackageLine: Record "Subscription Package Line";
+    begin
+        // [SCENARIO] When changing the Service Commitment Option of an Item from "Service Commitment Item" to "Sales with Service Commitment", error is thrown if the item is assigned to a Service Commitment Package with "Invoicing via" = Contract and "Invoicing Item No." is blank
+
+        // [GIVEN] Item with Service Commitment Option = Service Commitment Item
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(SrvCommItem, Enum::"Item Service Commitment Type"::"Service Commitment Item");
+
+        // [GIVEN] Service Commitment Package with a line where "Invoicing Via" = Sales
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine('', ServCommPackage, ServCommPackageLine);
+        ServCommPackageLine.Validate("Invoicing via", Enum::"Invoicing Via"::Sales);
+        ServCommPackageLine.Modify(false);
+
+        // [GIVEN] Assigning an Item to the Service Commitment Package
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(SrvCommItem, ServCommPackage.Code);
+
+        // [GIVEN] Service Commitment Package Line has been updated in the meantime (mistakenly) to "Invoicing Via" = Contract with a blank "Invoicing Item No."
+        ServCommPackageLine.Validate("Invoicing via", Enum::"Invoicing Via"::Contract);
+        ServCommPackageLine.Modify(false);
+
+        // [WHEN] Changing the Service Commitment Option of the Item to "Sales with Service Commitment"
+        asserterror SrvCommItem.Validate("Subscription Option", Enum::"Item Service Commitment Type"::"Sales with Service Commitment");
+
+        // [THEN] Error expected that the item cannot be used with a package while there is a package line with "Invoicing Via" = Contract and "Invoicing Item No." is blank
+        Assert.ExpectedError(StrSubstNo(PackageLineMissingInvoicingItemNoErr, ServCommPackage.TableCaption, ServCommPackage.Code, SrvCommItem."No.", ServCommPackageLine.FieldCaption("Invoicing Item No.")));
+    end;
+
+    [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure ExpectErrorWhenDeleteServiceCommitmentIfOpenContractLineExists()
     var
@@ -346,6 +380,28 @@ codeunit 148156 "Service Commitment Test"
         // [THEN]: expect an error when trying to delete the service commitment
         asserterror ServiceCommitment.DeleteAll(true);
         Assert.ExpectedError(UnreleasedVendorContractDeferralExistsErr);
+    end;
+
+    [Test]
+    procedure ExpectErrorWhenItemAssignedToServCommPackageWhenInvoicingItemIsEmptyForPackageLine()
+    var
+        SalesWithServCommItem: Record Item;
+        ServCommPackage: Record "Subscription Package";
+        ServCommPackageLine: Record "Subscription Package Line";
+    begin
+        // [SCENARIO] When Service Commitment Package has one line with "Invoice Via" = Contract and "Invoicing Item No." is empty, then the item cannot be assigned to the package
+
+        // [GIVEN] Service Commitment Package with a line where Invoicing Item is empty and "Invoicing Via" = Contract
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine('', ServCommPackage, ServCommPackageLine);
+        ServCommPackageLine.Validate("Invoicing via", Enum::"Invoicing Via"::Contract);
+        ServCommPackageLine.Modify(false);
+
+        // [WHEN] Assigning an Item with Service Commitment Option = Sales with Service Commitment to the Service Commitment Package
+        ContractTestLibrary.CreateItemForServiceObject(SalesWithServCommItem, false);
+        asserterror ContractTestLibrary.AssignItemToServiceCommitmentPackage(SalesWithServCommItem."No.", ServCommPackage.Code, true, true);
+
+        // [THEN] Error expected that the item cannot be used with a package while there is a package line with "Invoicing Via" = Contract and "Invoicing Item No." is blank
+        Assert.ExpectedError(StrSubstNo(PackageLineMissingInvoicingItemNoErr, ServCommPackage.TableCaption, ServCommPackage.Code, SalesWithServCommItem."No.", ServCommPackageLine.FieldCaption("Invoicing Item No.")));
     end;
 
     [Test]
@@ -488,57 +544,59 @@ codeunit 148156 "Service Commitment Test"
     end;
 
     [Test]
-    procedure ExpectErrorWhenItemAssignedToServCommPackageWhenInvoicingItemIsEmptyForPackageLine()
+    procedure UT_PreventMarkingSubscriptionLineAsDiscountWhenInvoicingViaSales()
     var
-        SalesWithServCommItem: Record Item;
-        ServCommPackage: Record "Subscription Package";
-        ServCommPackageLine: Record "Subscription Package Line";
+        SubscriptionLine: Record "Subscription Line";
     begin
-        // [SCENARIO] When Service Commitment Package has one line with "Invoice Via" = Contract and "Invoicing Item No." is empty, then the item cannot be assigned to the package
+        // [SCENARIO] Subscription line cannot be marked as discount when invoicing via sales
 
-        // [GIVEN] Service Commitment Package with a line where Invoicing Item is empty and "Invoicing Via" = Contract
-        ContractTestLibrary.CreateServiceCommitmentPackageWithLine('', ServCommPackage, ServCommPackageLine);
-        ServCommPackageLine.Validate("Invoicing via", Enum::"Invoicing Via"::Contract);
-        ServCommPackageLine.Modify(false);
+        // [GIVEN] A mocked subscription line set up for sales invoicing
+        MockSubscriptionLine(SubscriptionLine);
+        SubscriptionLine."Invoicing via" := SubscriptionLine."Invoicing via"::Sales;
 
-        // [WHEN] Assigning an Item with Service Commitment Option = Sales with Service Commitment to the Service Commitment Package
-        ContractTestLibrary.CreateItemForServiceObject(SalesWithServCommItem, false);
-        asserterror ContractTestLibrary.AssignItemToServiceCommitmentPackage(SalesWithServCommItem."No.", ServCommPackage.Code, true, true);
-
-        // [THEN] Error expected that the item cannot be used with a package while there is a package line with "Invoicing Via" = Contract and "Invoicing Item No." is blank
-        Assert.ExpectedError(StrSubstNo(PackageLineMissingInvoicingItemNoErr, ServCommPackage.TableCaption, ServCommPackage.Code, SalesWithServCommItem."No.", ServCommPackageLine.FieldCaption("Invoicing Item No.")));
+        // [WHEN] Attempting to mark the line as discount
+        // [THEN] The operation should be prevented
+        asserterror SubscriptionLine.Validate(Discount, true);
+        Assert.ExpectedError(DiscountCanBeInvoicedViaContractErr);
     end;
 
     [Test]
-    procedure ExpectErrorOnChangeItemServiceCommTypeFromSrvCommToSalesWithSrvComm()
+    procedure UT_PreventMarkingSubscriptionLineAsDiscountForNonSubscriptionItem()
     var
-        SrvCommItem: Record Item;
-        ServCommPackage: Record "Subscription Package";
-        ServCommPackageLine: Record "Subscription Package Line";
+        SubscriptionLine: Record "Subscription Line";
     begin
-        // [SCENARIO] When changing the Service Commitment Option of an Item from "Service Commitment Item" to "Sales with Service Commitment", error is thrown if the item is assigned to a Service Commitment Package with "Invoicing via" = Contract and "Invoicing Item No." is blank
+        // [SCENARIO] Subscription line cannot be marked as discount for non-subscription item
 
-        // [GIVEN] Item with Service Commitment Option = Service Commitment Item
-        ContractTestLibrary.CreateItemWithServiceCommitmentOption(SrvCommItem, Enum::"Item Service Commitment Type"::"Service Commitment Item");
+        // [GIVEN]  Create Subscription Item
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Invoicing Item");
 
-        // [GIVEN] Service Commitment Package with a line where "Invoicing Via" = Sales
-        ContractTestLibrary.CreateServiceCommitmentPackageWithLine('', ServCommPackage, ServCommPackageLine);
-        ServCommPackageLine.Validate("Invoicing via", Enum::"Invoicing Via"::Sales);
-        ServCommPackageLine.Modify(false);
+        // [GIVEN] A mocked subscription line with subscription item
+        MockSubscriptionLine(SubscriptionLine);
+        SubscriptionLine."Invoicing Item No." := Item."No.";
 
-        // [GIVEN] Assigning an Item to the Service Commitment Package
-        ContractTestLibrary.AssignItemToServiceCommitmentPackage(SrvCommItem, ServCommPackage.Code);
-
-        // [GIVEN] Service Commitment Package Line has been updated in the meantime (mistakenly) to "Invoicing Via" = Contract with a blank "Invoicing Item No."
-        ServCommPackageLine.Validate("Invoicing via", Enum::"Invoicing Via"::Contract);
-        ServCommPackageLine.Modify(false);
-
-        // [WHEN] Changing the Service Commitment Option of the Item to "Sales with Service Commitment"
-        asserterror SrvCommItem.Validate("Subscription Option", Enum::"Item Service Commitment Type"::"Sales with Service Commitment");
-
-        // [THEN] Error expected that the item cannot be used with a package while there is a package line with "Invoicing Via" = Contract and "Invoicing Item No." is blank
-        Assert.ExpectedError(StrSubstNo(PackageLineMissingInvoicingItemNoErr, ServCommPackage.TableCaption, ServCommPackage.Code, SrvCommItem."No.", ServCommPackageLine.FieldCaption("Invoicing Item No.")));
+        // [WHEN] Attempting to mark the line as discount
+        // [THEN] The operation should be prevented
+        asserterror SubscriptionLine.Validate(Discount, true);
+        Assert.ExpectedError(DiscountCannotBeAssignedErr);
     end;
+
+    [Test]
+    procedure UT_PreventMarkingSubscriptionLineAsDiscountForUsageBasedBilling()
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        // [SCENARIO] Subscription line cannot be marked as discount for usage-based billing
+
+        // [GIVEN] A mocked subscription line with usage-based billing
+        MockSubscriptionLine(SubscriptionLine);
+        SubscriptionLine."Usage Based Billing" := true;
+
+        // [WHEN] Attempting to mark the line as discount
+        // [THEN] The operation should be prevented
+        asserterror SubscriptionLine.Validate(Discount, true);
+        Assert.ExpectedError(RecurringDiscountCannotBeGrantedErr);
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -577,6 +635,14 @@ codeunit 148156 "Service Commitment Test"
                     ContractTestLibrary.MockVendorContractDeferralLine(ServiceCommitment."Subscription Contract No.", ServiceCommitment."Subscription Contract Line No.");
             end;
         until ServiceCommitment.Next() = 0;
+    end;
+
+    local procedure MockSubscriptionLine(var SubscriptionLine: Record "Subscription Line")
+    begin
+        SubscriptionLine.Init();
+        SubscriptionLine."Entry No." := 0;
+        SubscriptionLine."Invoicing via" := SubscriptionLine."Invoicing via"::Contract;
+        SubscriptionLine.Insert(false);
     end;
 
     local procedure UpdateServiceDatesAndCloseContractLines()
