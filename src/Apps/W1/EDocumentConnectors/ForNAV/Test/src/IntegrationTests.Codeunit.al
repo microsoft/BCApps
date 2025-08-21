@@ -361,7 +361,6 @@ codeunit 6429 "Integration Tests"
     /// Test needs MockService running to work. 
     /// </summary>
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
     procedure SubmitGetDocuments()
     var
         EDocument: Record "E-Document";
