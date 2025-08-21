@@ -20,7 +20,7 @@ codeunit 6415 "ForNAV Application Response"
         SendContext: Codeunit SendContext;
         HttpRequest: HttpRequestMessage;
         HttpResponse: HttpResponseMessage;
-        SendApproveRejectCheckStatusErr: Label 'You cannot send %1 response with the E-Socument in this current status %2. You can send response when E-document status is ''Imported Document Created''.', Comment = '%1 - Action response, %2 - Status';
+        SendApproveRejectCheckStatusErr: Label 'You cannot send %1 response with the E-Document in this current status %2. You can send response when E-document status is ''Imported Document Created''.', Comment = '%1 - Action response, %2 - Status';
     begin
         if not Setup.GetEDocumentService(EDocumentService) then
             exit;
