@@ -223,14 +223,10 @@ page 4315 "Agent Card"
 
     local procedure OpenSetupPage()
     var
-        TempAgent: Record Agent temporary;
+        Agent: Codeunit Agent;
     begin
-        TempAgent.Copy(Rec);
-        TempAgent.Insert();
-        Page.RunModal(Rec."Setup Page ID", TempAgent);
-        CurrPage.Update(false);
+        Agent.OpenSetupPageId(Rec."Agent Metadata Provider", Rec."User Security ID");
     end;
-
 
     var
         UserSettingsRecord: Record "User Settings";

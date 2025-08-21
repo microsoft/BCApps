@@ -54,13 +54,12 @@ page 4316 "Agent List"
 
                 trigger OnAction()
                 var
-                    TempAgent: Record Agent temporary;
+                    Agent: Codeunit Agent;
                 begin
                     if Rec.IsEmpty() then
                         Error(NoAgentSetupErr);
-                    TempAgent.Copy(Rec);
-                    TempAgent.Insert();
-                    Page.RunModal(Rec."Setup Page ID", TempAgent);
+
+                    Agent.OpenSetupPageId(Rec."Agent Metadata Provider", Rec."User Security ID");
                 end;
             }
             action(AgentTasks)
