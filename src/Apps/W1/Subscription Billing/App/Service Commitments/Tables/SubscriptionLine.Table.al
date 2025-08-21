@@ -377,7 +377,12 @@ table 8059 "Subscription Line"
         field(38; Discount; Boolean)
         {
             Caption = 'Discount';
-            Editable = false;
+            trigger OnValidate()
+            begin
+                ErrorIfInvoicingViaIsNotContractForDiscount();
+                ErrorIfInvoicingItemIsNotServiceCommitmentItemForDiscount();
+                ErrorIfDiscountUsedWithUsageBasedBilling();
+            end;
         }
         field(39; Quantity; Decimal)
         {
@@ -636,6 +641,36 @@ table 8059 "Subscription Line"
         NoManualEntryOfUnitCostLCYForVendorServCommErr: Label 'Please use the fields "Calculation Base Amount" and "Calculation Base %" in order to update the unit cost.';
         DeferralsExistErr: Label 'The creation of contract deferrals cannot be changed as there are still unreleased deferrals for this contract line.';
         SubscriptionLineStartDateDifferentThanNextBillingDateErr: Label 'The %1 must be the same as the %2 to delete the %3.', Comment = '%1 = Service Start Date; %2 = Next Billing Date; %3 = Service Commitment';
+        DiscountCanBeInvoicedViaContractErr: Label 'Recurring discounts can only be granted for Invoicing via Contract.';
+        DiscountCannotBeAssignedErr: Label 'Subscription Package Lines, which are discounts can only be assigned to Subscription Items.';
+        RecurringDiscountCannotBeGrantedErr: Label 'Recurring discounts cannot be granted be granted in conjunction with Usage Based Billing.';
+
+    local procedure ErrorIfInvoicingViaIsNotContractForDiscount()
+    begin
+        if not Rec.Discount then
+            exit;
+        if Rec."Invoicing via" <> Enum::"Invoicing Via"::Contract then
+            Error(DiscountCanBeInvoicedViaContractErr);
+    end;
+
+    local procedure ErrorIfInvoicingItemIsNotServiceCommitmentItemForDiscount()
+    var
+        Item: Record Item;
+    begin
+        if not Rec.Discount then
+            exit;
+        if not Item.Get(Rec."Invoicing Item No.") then
+            exit;
+        if Item."Subscription Option" <> Enum::"Item Service Commitment Type"::"Service Commitment Item" then
+            Error(DiscountCannotBeAssignedErr);
+    end;
+
+    local procedure ErrorIfDiscountUsedWithUsageBasedBilling()
+    begin
+        if Rec.Discount then
+            if Rec."Usage Based Billing" then
+                Error(RecurringDiscountCannotBeGrantedErr);
+    end;
 
     internal procedure CheckServiceDates()
     begin
@@ -993,6 +1028,8 @@ table 8059 "Subscription Line"
                         Validate("Cancellation Possible Until", "Cancellation Possible Until");
                     FieldNo("Term Until"):
                         Validate("Term Until", "Term Until");
+                    FieldNo(Discount):
+                        Validate(Discount);
                     FieldNo("Currency Code"):
                         Validate("Currency Code", "Currency Code");
                     FieldNo("Exclude from Price Update"):
