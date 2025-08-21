@@ -480,10 +480,10 @@ codeunit 4301 "Agent Impl."
         FieldMetadata.SetRange(TableNo, PageMetadata.SourceTable);
         FieldMetadata.SetRange(FieldName, UserSecurityIdTok);
         FieldMetadata.FindFirst();
+
         UserSecurityIdFieldRef := SetupPageRecordRef.Field(FieldMetadata."No.");
         UserSecurityIdFieldRef.SetFilter(AgentUserSecurityID);
         SourceRecordVariant := SetupPageRecordRef;
-
         Page.RunModal(SetupPageId, SourceRecordVariant);
     end;
 
