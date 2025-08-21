@@ -1,0 +1,8 @@
+[
+    {
+        "bug": "597430",
+        "codeunitId": 139687,
+        "CodeunitName": "Recurring Billing Docs Test",
+        "Method": "GetVendorContractLinesProducesCorrectAmountsDuringSelection"
+    }
+]

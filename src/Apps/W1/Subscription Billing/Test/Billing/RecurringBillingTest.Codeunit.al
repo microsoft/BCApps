@@ -14,6 +14,7 @@ using Microsoft.Sales.History;
 codeunit 139688 "Recurring Billing Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 

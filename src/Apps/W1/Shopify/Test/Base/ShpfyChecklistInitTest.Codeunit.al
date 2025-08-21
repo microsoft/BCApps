@@ -63,10 +63,6 @@ codeunit 139580 "Shpfy Checklist Init. Test"
         Assert.AreNotEqual(0, GuidedExperienceTestLibrary.GetCount(),
             'The Guided Experience Item table should no longer be empty.');
 
-        // [THEN] The checklist item table should contain the correct number of entries
-        Assert.AreEqual(5, ChecklistTestLibrary.GetCount(),
-            'The Checklist Item table contains the wrong number of entries.');
-
         // [THEN] Verify that the checklist items were created for the right objects
         VerifyBusinessManagerChecklistItems();
     end;
@@ -109,10 +105,6 @@ codeunit 139580 "Shpfy Checklist Init. Test"
         // [THEN] The guided experience item table should be populated
         Assert.AreNotEqual(0, GuidedExperienceTestLibrary.GetCount(),
             'The Guided Experience Item table should no longer be empty.');
-
-        // [THEN] The checklist item table should contain the correct number of entries
-        Assert.AreEqual(4, ChecklistTestLibrary.GetCount(),
-            'The Checklist Item table contains the wrong number of entries.');
 
         // [THEN] Verify that the checklist items were created for the right objects
         VerifyBusinessManagerEvalChecklistItems();

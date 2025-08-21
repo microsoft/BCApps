@@ -5,6 +5,7 @@ using System.IO;
 codeunit 139888 "Generic Import Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 

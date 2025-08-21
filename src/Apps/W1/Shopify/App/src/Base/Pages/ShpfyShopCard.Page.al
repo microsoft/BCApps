@@ -527,6 +527,11 @@ page 30101 "Shpfy Shop Card"
                     ToolTip = 'Specifies if Business Central document no. is synchronized to Shopify as order attribute.';
                     Enabled = Rec."Allow Outgoing Requests" or Rec."Order Attributes To Shopify";
                 }
+                field(ArchiveProcessOrders; Rec."Archive Processed Orders")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether Shopify orders are automatically archived when they are paid, fulfilled, and have associated sales documents with all lines shipped.';
+                }
                 field("Posted Invoice Sync"; Rec."Posted Invoice Sync")
                 {
                     ApplicationArea = All;
@@ -793,6 +798,20 @@ page 30101 "Shpfy Shop Card"
                 RunObject = Page "Shpfy Catalogs";
                 RunPageLink = "Shop Code" = field(Code);
                 ToolTip = 'View a list of Shopify catalogs for the shop.';
+                Visible = Rec."B2B Enabled";
+            }
+            action(MarketCatalogs)
+            {
+                ApplicationArea = All;
+                Caption = 'Market Catalogs';
+                Image = ItemGroup;
+                Promoted = true;
+                PromotedCategory = Category4;
+                PromotedIsBig = true;
+                PromotedOnly = true;
+                RunObject = Page "Shpfy Market Catalogs";
+                RunPageLink = "Shop Code" = field(Code);
+                ToolTip = 'View a list of Shopify market catalogs for the shop.';
                 Visible = Rec."B2B Enabled";
             }
             action(Languages)
@@ -1111,7 +1130,7 @@ page 30101 "Shpfy Shop Card"
                         BackgroundSyncs.ProductPricesSync(Rec);
                         if Rec."B2B Enabled" then begin
                             BackgroundSyncs.CompanySync(Rec);
-                            BackgroundSyncs.CatalogPricesSync(Rec, '');
+                            BackgroundSyncs.CatalogPricesSync(Rec, '', "Shpfy Catalog Type"::" ");
                         end;
                     end;
                 }

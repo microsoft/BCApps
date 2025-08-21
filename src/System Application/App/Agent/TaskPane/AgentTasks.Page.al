@@ -100,7 +100,6 @@ page 4306 "Agent Tasks"
             {
                 Caption = 'Stop task';
                 ToolTip = 'Stops the task.';
-                Enabled = true;
                 Scope = Repeater;
                 trigger OnAction()
                 var

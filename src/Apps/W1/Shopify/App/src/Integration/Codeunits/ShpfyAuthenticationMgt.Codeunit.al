@@ -20,7 +20,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
     var
         // https://shopify.dev/api/usage/access-scopes
-        ScopeTxt: Label 'write_orders,read_all_orders,write_assigned_fulfillment_orders,read_checkouts,write_customers,read_discounts,write_files,write_merchant_managed_fulfillment_orders,write_fulfillments,write_inventory,read_locations,write_products,write_shipping,read_shopify_payments_disputes,read_shopify_payments_payouts,write_returns,write_translations,write_third_party_fulfillment_orders,write_order_edits,write_companies,write_publications,write_payment_terms,write_draft_orders,read_locales,read_shopify_payments_accounts,read_users', Locked = true;
+        ScopeTxt: Label 'write_orders,read_all_orders,write_assigned_fulfillment_orders,read_checkouts,write_customers,read_discounts,write_files,write_merchant_managed_fulfillment_orders,write_fulfillments,write_inventory,read_locations,write_products,write_shipping,read_shopify_payments_disputes,read_shopify_payments_payouts,write_returns,write_translations,write_third_party_fulfillment_orders,write_order_edits,write_publications,write_payment_terms,write_draft_orders,read_locales,read_shopify_payments_accounts,read_users,read_markets', Locked = true;
         ShopifyAPIKeyAKVSecretNameLbl: Label 'ShopifyApiKey', Locked = true;
         ShopifyAPISecretAKVSecretNameLbl: Label 'ShopifyApiSecret', Locked = true;
         MissingAPIKeyTelemetryTxt: Label 'The api key has not been initialized.', Locked = true;
@@ -29,6 +29,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         NoCallbackErr: Label 'No callback was received from Shopify. Make sure that you haven''t closed the page that says "Waiting for a response - do not close this page", and then try again.';
         HttpRequestBlockedErr: Label 'Shopify connector is not allowed to make HTTP requests when running in a non-production environment.';
         EnableHttpRequestActionLbl: Label 'Allow HTTP requests';
+        InvalidShopUrlErr: Label 'The URL must refer to the internal shop location at myshopify.com. It must not be the public URL that customers use, such as myshop.com.';
         NotSupportedOnPremErr: Label 'Shopify connector is only supported in SaaS environments.';
 
     [NonDebuggable]
@@ -172,7 +173,13 @@ codeunit 30199 "Shpfy Authentication Mgt."
                 exit(not RegisteredStoreNew.GetAccessToken().IsEmpty());
     end;
 
-    procedure IsValidShopUrl(ShopUrl: Text): Boolean
+    internal procedure AssertValidShopUrl(ShopUrl: Text)
+    begin
+        if not IsValidShopUrl(ShopUrl) then
+            Error(InvalidShopUrlErr);
+    end;
+
+    local procedure IsValidShopUrl(ShopUrl: Text): Boolean
     var
         Regex: Codeunit Regex;
         PatternLbl: Label '^(https)\:\/\/[a-zA-Z0-9][a-zA-Z0-9\-]*\.myshopify\.com[\/]*$', Locked = true;

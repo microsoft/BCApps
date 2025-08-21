@@ -40,6 +40,7 @@ permissionset 30102 "Shpfy - Edit"
         tabledata "Shpfy Invoice Header" = IMD,
         tabledata "Shpfy Language" = IMD,
         tabledata "Shpfy Log Entry" = IMD,
+        tabledata "Shpfy Market Catalog Relation" = IMD,
         tabledata "Shpfy Metafield" = IMD,
         tabledata "Shpfy Order Attribute" = IMD,
         tabledata "Shpfy Order Disc.Appl." = IMD,

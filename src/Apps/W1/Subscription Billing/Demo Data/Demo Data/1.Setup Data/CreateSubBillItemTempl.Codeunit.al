@@ -9,10 +9,10 @@ codeunit 8122 "Create Sub. Bill. Item Templ."
     trigger OnRun()
     var
         CreatePostingGroup: Codeunit "Create Posting Groups";
-        CreateVATPostingGroups: Codeunit "Create VAT Posting Groups";
+        // CreateVATPostingGroups: Codeunit "Create VAT Posting Groups";
         ContosoSubscriptionBilling: Codeunit "Contoso Subscription Billing";
     begin
-        ContosoSubscriptionBilling.InsertItemTemplateData(SubscriptionItem(), SubscriptionItemLbl, Enum::"Item Service Commitment Type"::"Service Commitment Item", '', CreatePostingGroup.RetailPostingGroup(), CreateVATPostingGroups.Standard());
+        ContosoSubscriptionBilling.InsertItemTemplateData(SubscriptionItem(), SubscriptionItemLbl, Enum::"Item Service Commitment Type"::"Service Commitment Item", '', CreatePostingGroup.RetailPostingGroup(), '');
     end;
 
     procedure SubscriptionItem(): Code[20]

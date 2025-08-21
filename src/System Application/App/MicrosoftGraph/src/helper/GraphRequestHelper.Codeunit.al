@@ -62,4 +62,9 @@ codeunit 9354 "Graph Request Helper"
         PrepareRestClient(GraphOptionalParameters);
         HttpResponseMessage := RestClient.Send(HttpMethod, GraphUriBuilder.GetUri(), HttpContent);
     end;
+
+    procedure GetByFullUrl(FullUrl: Text) HttpResponseMessage: Codeunit "Http Response Message"
+    begin
+        HttpResponseMessage := RestClient.Get(FullUrl);
+    end;
 }
