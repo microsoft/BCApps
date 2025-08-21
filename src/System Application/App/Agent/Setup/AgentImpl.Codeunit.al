@@ -460,6 +460,33 @@ codeunit 4301 "Agent Impl."
         exit(UniqueUserName);
     end;
 
+    internal procedure OpenSetupPageId(AgentMetadataProvider: Enum "Agent Metadata Provider"; AgentUserSecurityID: Guid)
+    var
+        PageMetadata: Record "Page Metadata";
+        FieldMetadata: Record Field;
+        SetupPageRecordRef: RecordRef;
+        UserSecurityIdFieldRef: FieldRef;
+        AgentMetadata: Interface IAgentMetadata;
+        SourceRecordVariant: Variant;
+        SetupPageId: Integer;
+        UserSecurityIdTok: Label 'User Security ID', Locked = true;
+    begin
+        AgentMetadata := AgentMetadataProvider;
+        SetupPageId := AgentMetadata.GetSetupPageId(AgentUserSecurityID);
+
+        PageMetadata.Get(SetupPageId);
+        SetupPageRecordRef.Open(PageMetadata.SourceTable);
+
+        FieldMetadata.SetRange(TableNo, PageMetadata.SourceTable);
+        FieldMetadata.SetRange(FieldName, UserSecurityIdTok);
+        FieldMetadata.FindFirst();
+        UserSecurityIdFieldRef := SetupPageRecordRef.Field(FieldMetadata."No.");
+        UserSecurityIdFieldRef.SetFilter(AgentUserSecurityID);
+        SourceRecordVariant := SetupPageRecordRef;
+
+        Page.RunModal(SetupPageId, SourceRecordVariant);
+    end;
+
     var
         OneOwnerMustBeDefinedForAgentErr: Label 'One owner must be defined for the agent.';
         AgentDoesNotExistErr: Label 'Agent does not exist.';
