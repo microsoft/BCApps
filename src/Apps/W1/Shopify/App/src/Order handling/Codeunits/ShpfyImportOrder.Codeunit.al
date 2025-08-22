@@ -632,7 +632,7 @@ codeunit 30161 "Shpfy Import Order"
             end;
     end;
 
-    local procedure TranslateCurrencyCode(ShopifyCurrencyCode: Text): Code[10]
+    internal procedure TranslateCurrencyCode(ShopifyCurrencyCode: Text): Code[10]
     var
         Currency: Record Currency;
         GeneralLedgerSetup: Record "General Ledger Setup";
