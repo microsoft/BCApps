@@ -171,4 +171,17 @@ codeunit 4321 Agent
     begin
         AgentImpl.UpdateAgentAccessControl(AgentUserSecurityID, TempAgentAccessControl);
     end;
+
+    /// <summary>
+    /// Opens the setup page for the specified agent.
+    /// </summary>
+    /// <param name="AgentMetadataProvider">The metadata provider of the agent.</param>
+    /// <param name="AgentUserSecurityID">Security ID of the agent.</param>
+    [Scope('OnPrem')]
+    procedure OpenSetupPageId(AgentMetadataProvider: Enum "Agent Metadata Provider"; AgentUserSecurityID: Guid)
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        AgentImpl.OpenSetupPageId(AgentMetadataProvider, AgentUserSecurityID);
+    end;
 }
