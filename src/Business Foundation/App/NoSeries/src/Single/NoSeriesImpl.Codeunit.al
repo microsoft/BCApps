@@ -141,7 +141,7 @@ codeunit 304 "No. Series - Impl."
         if not LineFound then
             LineFound := NoSeriesLine.FindLast();
 
-        if LineFound and NoSeries.MayProduceGaps(NoSeriesLine) then begin
+        if LineFound and NoSeriesLine.Open and NoSeries.MayProduceGaps(NoSeriesLine) then begin
             NoSeriesLine.Validate(Open);
             if not NoSeriesLine.Open then
                 NoSeriesLine.Modify(true);
