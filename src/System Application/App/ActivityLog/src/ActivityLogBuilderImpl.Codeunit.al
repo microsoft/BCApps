@@ -53,6 +53,12 @@ codeunit 3112 "Activity Log Builder Impl."
         exit(this);
     end;
 
+    procedure SetConfidence(Confidence: Integer): Codeunit "Activity Log Builder Impl."
+    begin
+        LogEntry.AddFieldAttribute(this.GlobalFieldNo, AttributeType::Confidence, Format(Confidence));
+        exit(this);
+    end;
+
     procedure SetReferenceTitle(ReferenceTitle: Text): Codeunit "Activity Log Builder Impl."
     begin
         LogEntry.AddFieldAttribute(this.GlobalFieldNo, AttributeType::ReferenceTitle, ReferenceTitle);

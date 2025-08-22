@@ -789,7 +789,7 @@ page 30101 "Shpfy Shop Card"
             action(Catalogs)
             {
                 ApplicationArea = All;
-                Caption = 'Catalogs';
+                Caption = 'B2B Catalogs';
                 Image = ItemGroup;
                 Promoted = true;
                 PromotedCategory = Category4;
@@ -797,7 +797,7 @@ page 30101 "Shpfy Shop Card"
                 PromotedOnly = true;
                 RunObject = Page "Shpfy Catalogs";
                 RunPageLink = "Shop Code" = field(Code);
-                ToolTip = 'View a list of Shopify catalogs for the shop.';
+                ToolTip = 'View a list of Shopify B2B catalogs for the shop.';
                 Visible = Rec."B2B Enabled";
             }
             action(MarketCatalogs)

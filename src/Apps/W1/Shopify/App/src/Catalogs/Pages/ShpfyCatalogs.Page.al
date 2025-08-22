@@ -102,17 +102,21 @@ page 30159 "Shpfy Catalogs"
                     end;
                     SyncCatalogs.SetCatalogType("Shpfy Catalog Type"::Company);
                     SyncCatalogs.Run();
+
+                    if not Rec.IsEmpty() then
+                        PriceSyncEnabled := true;
                 end;
             }
             action(PriceSync)
             {
                 ApplicationArea = All;
                 Caption = 'Sync Prices';
+                Enabled = PriceSyncEnabled;
                 Image = ImportExport;
                 Promoted = true;
                 PromotedOnly = true;
                 PromotedCategory = Process;
-                ToolTip = 'Sync prices to Shopify.';
+                ToolTip = 'Sync the latest prices to Shopify. Only lines with Sync Prices enabled will be processed.';
 
                 trigger OnAction()
                 var
@@ -136,5 +140,10 @@ page 30159 "Shpfy Catalogs"
     trigger OnOpenPage()
     begin
         Rec.SetRange("Catalog Type", "Shpfy Catalog Type"::"Company");
+        if not Rec.IsEmpty() then
+            PriceSyncEnabled := true;
     end;
+
+    var
+        PriceSyncEnabled: Boolean;
 }
