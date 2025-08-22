@@ -17,6 +17,7 @@ codeunit 30180 "Shpfy Product Import"
         ProductMapping: Codeunit "Shpfy Product Mapping";
         UpdateItem: Codeunit "Shpfy Update Item";
         NullGuid: Guid;
+        ItemCreated: Boolean;
     begin
         if ShopifyProduct.Id = 0 then
             exit;
@@ -38,7 +39,8 @@ codeunit 30180 "Shpfy Product Import"
                         ShopifyVariant.SetRange("Item Variant SystemId", NullGuid);
                         if ShopifyVariant.FindSet() then
                             repeat
-                                CreateItem.Run(ShopifyVariant);
+                                ItemCreated := CreateItem.Run(ShopifyVariant);
+                                SetProductConflict(ShopifyProduct.Id, ItemCreated);
                             until ShopifyVariant.Next() = 0;
                     end;
             until ShopifyVariant.Next() = 0;
@@ -129,5 +131,28 @@ codeunit 30180 "Shpfy Product Import"
         Shop := ShopifyShop;
         ProductApi.SetShop(Shop);
         VariantApi.SetShop(Shop);
+    end;
+
+    /// <summary>
+    /// Set Product Conflict.
+    /// </summary>
+    /// <param name="ProductId">Parameter of type BigInteger.</param>
+    /// <param name="ItemCreated">Parameter of type Boolean.</param>
+    local procedure SetProductConflict(ProductId: BigInteger; ItemCreated: Boolean)
+    var
+        Product: Record "Shpfy Product";
+    begin
+        Product.Get(ProductId);
+        if ItemCreated and not Product."Has Error" then
+            exit;
+
+        if not ItemCreated then begin
+            Product.Validate("Has Error", true);
+            Product.Validate("Error Message", CopyStr(Format(Time) + ' ' + GetLastErrorText(), 1, MaxStrLen(Product."Error Message")));
+        end else begin
+            Product.Validate("Has Error", false);
+            Product.Validate("Error Message", '');
+        end;
+        Product.Modify(true);
     end;
 }
