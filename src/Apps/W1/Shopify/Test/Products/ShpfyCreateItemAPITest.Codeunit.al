@@ -9,7 +9,7 @@ using Microsoft.Integration.Shopify;
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
-codeunit 139544 "Shpfy Create Item API Test"
+codeunit 139552 "Shpfy Create Item API Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
