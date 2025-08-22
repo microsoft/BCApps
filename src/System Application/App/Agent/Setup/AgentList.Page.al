@@ -60,6 +60,7 @@ page 4316 "Agent List"
                         Error(NoAgentSetupErr);
 
                     Agent.OpenSetupPageId(Rec."Agent Metadata Provider", Rec."User Security ID");
+                    CurrPage.Update(false);
                 end;
             }
             action(AgentTasks)
