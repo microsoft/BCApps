@@ -77,6 +77,7 @@ codeunit 30413 "Shpfy Variant Image Export"
             JRequest.Add('id', Rec.Id);
             JRequest.Add('imageHash', Rec."Image Hash");
             this.JRequestData.Add(JRequest);
+            Rec."Image Id" := NewImageId;
             Rec."Image Hash" := Hash;
             Rec.Modify(false);
         end;

@@ -253,15 +253,13 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
     var
         CreateUploadUrlTok: Label 'Products/CreateUploadUrl.txt', Locked = true;
         UploadImageTok: Label 'Products/UploadImageToProductResponse.txt', Locked = true;
-        VariantSuccessAttachResponseTok: Label 'Products/VariantSuccessAttachResponse.txt', Locked = true;
+        UploadVariantImageResponseTok: Label 'Products/UploadVariantImageResponse.txt', Locked = true;
     begin
         case OutboundHttpRequests.Length() of
-            3:
-                LoadResourceIntoHttpResponse(CreateUploadUrlTok, Response);
             2:
-                LoadResourceIntoHttpResponse(UploadImageTok, Response);
+                LoadResourceIntoHttpResponse(CreateUploadUrlTok, Response);
             1:
-                LoadResourceIntoHttpResponse(VariantSuccessAttachResponseTok, Response);
+                LoadResourceIntoHttpResponse(UploadVariantImageResponseTok, Response);
             0:
                 Error(UnexpectedAPICallsErr);
         end;
@@ -273,20 +271,17 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         GetVariantImageResponseTok: Label 'Products/GetVariantImageResponse.txt', Locked = true;
         CreateUploadUrlTok: Label 'Products/CreateUploadUrl.txt', Locked = true;
         UploadImageTok: Label 'Products/UploadImageToProductResponse.txt', Locked = true;
-        VariantSuccessAttachResponseTok: Label 'Products/VariantSuccessAttachResponse.txt', Locked = true;
-        VariantSuccessDetachResponseTok: Label 'Products/VariantSuccessDetachResponse.txt', Locked = true;
+        UploadVariantImageResponseTok: Label 'Products/UploadVariantImageResponse.txt', Locked = true;
     begin
         case OutboundHttpRequests.Length() of
-            5:
-                LoadVariantResourceIntoHttpResponse(GetVariantImageResponseTok, Response);
             4:
-                LoadResourceIntoHttpResponse(CreateUploadUrlTok, Response);
+                LoadVariantResourceIntoHttpResponse(GetVariantImageResponseTok, Response);
             3:
-                LoadResourceIntoHttpResponse(UploadImageTok, Response);
+                LoadResourceIntoHttpResponse(CreateUploadUrlTok, Response);
             2:
-                LoadResourceIntoHttpResponse(VariantSuccessDetachResponseTok, Response);
+                LoadResourceIntoHttpResponse(UploadImageTok, Response);
             1:
-                LoadResourceIntoHttpResponse(VariantSuccessAttachResponseTok, Response);
+                LoadResourceIntoHttpResponse(UploadVariantImageResponseTok, Response);
             0:
                 Error(UnexpectedAPICallsErr);
         end;
@@ -302,8 +297,7 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
     local procedure RegExpectedOutboundHttpRequestsForUploadVariantImage()
     begin
         OutboundHttpRequests.Enqueue('GQL Create Upload URL');
-        OutboundHttpRequests.Enqueue('GQL Upload Product Image');
-        OutboundHttpRequests.Enqueue('GQL Attach Image to Variant');
+        OutboundHttpRequests.Enqueue('GQL Upload Image to Variant');
     end;
 
     local procedure RegExpectedOutboundHttpRequestsForUpdateVariantPicture()
@@ -311,8 +305,7 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         OutboundHttpRequests.Enqueue('GQL Get Variant Image');
         OutboundHttpRequests.Enqueue('GQL Create Upload URL');
         OutboundHttpRequests.Enqueue('GQL Upload Product Image');
-        OutboundHttpRequests.Enqueue('GQL Detach Image from Variant');
-        OutboundHttpRequests.Enqueue('GQL Attach Image to Variant');
+        OutboundHttpRequests.Enqueue('GQL Set Image to Variant');
 
     end;
 
