@@ -121,12 +121,26 @@ codeunit 4321 Agent
     end;
 
     /// <summary>
+    /// Populates the temporary profile record with the specified information.
+    /// </summary>
+    /// <param name="ProfileID">The profile ID.</param>
+    /// <param name="ProfileAppID">The profile App ID.</param>
+    /// <param name="TempAllProfile">The profile record.</param>
+    [Scope('OnPrem')]
+    procedure PopulateProfile(ProfileID: Text[30]; ProfileAppID: Guid; var TempAllProfile: Record "All Profile" temporary)
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        AgentImpl.PopulateProfile(ProfileID, ProfileAppID, TempAllProfile);
+    end;
+
+    /// <summary>
     /// Assigns the permission set to the agent.
     /// </summary>
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
     /// <param name="AllProfile">Profile to set to the agent.</param>
     [Scope('OnPrem')]
-    procedure SetProfile(AgentUserSecurityID: Guid; var AllProfile: Record "All Profile")
+    procedure SetProfile(AgentUserSecurityID: Guid; var AllProfile: Record "All Profile") // TODO(qutreson) to be removed.
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
