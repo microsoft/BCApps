@@ -13,6 +13,7 @@ using System.TestTools.AITestToolkit;
 codeunit 133689 "No. Series Copilot Accu. Tests"
 {
     Subtype = Test;
+    TestType = AITest;
     TestPermissions = Disabled;
 
     var
