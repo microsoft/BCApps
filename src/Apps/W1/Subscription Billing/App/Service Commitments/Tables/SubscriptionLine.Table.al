@@ -194,13 +194,19 @@ table 8059 "Subscription Line"
                     "Create Contract Deferrals" := "Create Contract Deferrals"::No
                 else
                     "Create Contract Deferrals" := "Create Contract Deferrals"::"Contract-dependent";
-
+                ErrorIfInvoicingViaIsNotContractForDiscount();
             end;
         }
         field(17; "Invoicing Item No."; Code[20])
         {
             Caption = 'Invoicing Item No.';
             TableRelation = Item."No." where("Subscription Option" = filter("Invoicing Item" | "Service Commitment Item"));
+            trigger OnValidate()
+            begin
+                if "Invoicing via" = "Invoicing via"::Sales then
+                    Error(InvoicingItemNoErr);
+                ErrorIfInvoicingItemIsNotServiceCommitmentItemForDiscount();
+            end;
         }
         field(18; Partner; Enum "Service Partner")
         {
@@ -641,9 +647,10 @@ table 8059 "Subscription Line"
         NoManualEntryOfUnitCostLCYForVendorServCommErr: Label 'Please use the fields "Calculation Base Amount" and "Calculation Base %" in order to update the unit cost.';
         DeferralsExistErr: Label 'The creation of contract deferrals cannot be changed as there are still unreleased deferrals for this contract line.';
         SubscriptionLineStartDateDifferentThanNextBillingDateErr: Label 'The %1 must be the same as the %2 to delete the %3.', Comment = '%1 = Service Start Date; %2 = Next Billing Date; %3 = Service Commitment';
+        InvoicingItemNoErr: Label 'Subscription Lines for a sales document are not invoiced. No value may be entered in the Invoicing Item No..';
         DiscountCanBeInvoicedViaContractErr: Label 'Recurring discounts can only be granted for Invoicing via Contract.';
-        DiscountCannotBeAssignedErr: Label 'Subscription Package Lines, which are discounts can only be assigned to Subscription Items.';
-        RecurringDiscountCannotBeGrantedErr: Label 'Recurring discounts cannot be granted be granted in conjunction with Usage Based Billing.';
+        DiscountCannotBeAssignedErr: Label 'Subscription Package Lines, which are discounts, can only be assigned to Subscription Items.';
+        RecurringDiscountCannotBeGrantedErr: Label 'Recurring discounts cannot be granted in conjunction with Usage Based Billing';
 
     local procedure ErrorIfInvoicingViaIsNotContractForDiscount()
     begin
