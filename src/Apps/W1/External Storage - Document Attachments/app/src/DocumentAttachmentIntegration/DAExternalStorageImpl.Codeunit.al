@@ -11,6 +11,8 @@ using System.Utilities;
 codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 {
     Access = Internal;
+    InherentPermissions = X;
+    InherentEntitlements = X;
     Permissions = tabledata "DA External Storage Setup" = r;
 
     /// <summary>

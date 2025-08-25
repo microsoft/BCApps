@@ -7,6 +7,9 @@ namespace System.ExternalFileStorage;
 
 codeunit 9459 "Default File Scenario Impl." implements "File Scenario"
 {
+    Access = Internal;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     /// <summary>
     /// Called before adding or modifying a file scenario.
