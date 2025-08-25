@@ -18,6 +18,7 @@ page 8750 "DA External Storage Setup"
     ApplicationArea = Basic, Suite;
     InsertAllowed = false;
     DeleteAllowed = false;
+    Extensible = false;
 
     layout
     {

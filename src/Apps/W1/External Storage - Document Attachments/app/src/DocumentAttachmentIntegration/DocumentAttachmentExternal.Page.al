@@ -19,6 +19,7 @@ page 8751 "Document Attachment - External"
     UsageCategory = None;
     ApplicationArea = Basic, Suite;
     Editable = false;
+    Extensible = false;
 
     layout
     {
