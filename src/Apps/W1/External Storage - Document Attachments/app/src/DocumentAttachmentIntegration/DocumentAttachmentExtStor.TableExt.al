@@ -18,14 +18,14 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
         field(8750; "Uploaded Externally"; Boolean)
         {
             Caption = 'Uploaded Externally';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
             Editable = false;
             ToolTip = 'Specifies if the file has been uploaded to external storage.';
         }
         field(8751; "External Upload Date"; DateTime)
         {
             Caption = 'External Upload Date';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
             Editable = false;
             ToolTip = 'Specifies when the file was uploaded to external storage.';
         }
@@ -39,7 +39,7 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
         field(8753; "Deleted Internally"; Boolean)
         {
             Caption = 'Deleted Internally';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
             Editable = false;
             ToolTip = 'Specifies the value of the Deleted Internally field.';
         }
