@@ -90,12 +90,15 @@ table 30159 "Shpfy Skipped Record"
 
     local procedure GetRecDescription() Result: Text[250]
     var
+        Catalog: Record "Shpfy Catalog";
         RecRef: RecordRef;
         PKFilter: Text;
         Delimiter: Text;
         Pos: Integer;
     begin
         if RecRef.Get("Record ID") then begin
+            if RecRef.Number = Database::"Shpfy Catalog" then
+                exit(RecRef.Field(Catalog.FieldNo(Catalog.Name)).Value());
             RecRef.SetRecFilter();
             PKFilter := RecRef.GetView();
             repeat

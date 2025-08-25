@@ -18,7 +18,7 @@ codeunit 30309 "Shpfy GQL CatalogProducts" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Text.</returns>
     internal procedure GetGraphQL(): Text
     begin
-        exit('{"query":"{catalog(id: \"gid://shopify/Catalog/{{CatalogId}}\"){ id publication { id products(first: 250) { edges { cursor node { id }} pageInfo { hasNextPage }}}}}"}');
+        exit('{"query":"{catalog(id: \"gid://shopify/Catalog/{{CatalogId}}\"){ id priceList { currency } publication { id products(first: 250) { edges { cursor node { id }} pageInfo { hasNextPage }}}}}"}');
     end;
 
     /// <summary>

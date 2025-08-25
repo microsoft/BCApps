@@ -33,6 +33,10 @@ page 30159 "Shpfy Catalogs"
                     Editable = false;
                 }
                 field(SyncPrices; Rec."Sync Prices") { }
+                field("Currency Code"; Rec."Currency Code")
+                {
+                    Editable = false;
+                }
                 field(CustomerPriceGroup; Rec."Customer Price Group") { }
                 field(CustomerDiscountGroup; Rec."Customer Discount Group") { }
                 field("Prices Including VAT"; Rec."Prices Including VAT") { }

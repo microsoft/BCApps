@@ -25,6 +25,7 @@ codeunit 30290 "Shpfy Catalog API"
         ShopifyMarketCatalogURLLbl: Label 'https://admin.shopify.com/store/%1/settings/markets/%2/pricing', Comment = '%1 - Shop Name, %2 - Market Catalog Id', Locked = true;
         ShopifyUnifiedMarketCatalogURLLbl: Label 'https://admin.shopify.com/store/%1/catalogs/%2/editor', Comment = '%1 - Shop Name, %2 - Catalog Id', Locked = true;
         CatalogNotFoundLbl: Label 'Catalog is not found.';
+        CurrencyMismatchLbl: Label 'Catalog currency does not match with Shopify. Reimport the catalog.';
 
     internal procedure CreateCatalog(ShopifyCompany: Record "Shpfy Company"; Customer: Record Customer)
     var
@@ -230,10 +231,12 @@ codeunit 30290 "Shpfy Catalog API"
     internal procedure ExtractShopifyCatalogs(var ShopifyCompany: Record "Shpfy Company"; JResponse: JsonObject; var Cursor: Text): Boolean
     var
         Catalog: Record "Shpfy Catalog";
+        ImportOrder: Codeunit "Shpfy Import Order";
         JCatalogs: JsonArray;
         JEdge: JsonToken;
         JNode: JsonObject;
         CatalogId: BigInteger;
+        CurrencyCode: Text;
     begin
         if not JsonHelper.GetJsonArray(JResponse, JCatalogs, 'data.catalogs.edges') then
             exit(false);
@@ -242,18 +245,19 @@ codeunit 30290 "Shpfy Catalog API"
             Cursor := JsonHelper.GetValueAsText(JEdge.AsObject(), 'cursor');
             if JsonHelper.GetJsonObject(JEdge.AsObject(), JNode, 'node') then begin
                 CatalogId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode, 'id'));
+                CurrencyCode := JsonHelper.GetValueAsText(JNode, 'priceList.currency');
                 Catalog.SetRange(Id, CatalogId);
                 Catalog.SetRange("Company SystemId", ShopifyCompany.SystemId);
                 Catalog.SetRange("Catalog Type", "Shpfy Catalog Type"::Company);
                 if not Catalog.FindFirst() then begin
                     Catalog.Id := CatalogId;
                     Catalog."Company SystemId" := ShopifyCompany.SystemId;
-                    Catalog."Sync Prices" := false;
                     Catalog."Catalog Type" := "Shpfy Catalog Type"::Company;
                     Catalog.Insert(true);
                 end;
                 Catalog."Shop Code" := Shop.Code;
                 Catalog.Name := CopyStr(JsonHelper.GetValueAsText(JNode, 'title'), 1, MaxStrLen(Catalog.Name));
+                Catalog."Currency Code" := ImportOrder.TranslateCurrencyCode(CurrencyCode);
                 Catalog.Modify(true);
             end;
         end;
@@ -386,14 +390,22 @@ codeunit 30290 "Shpfy Catalog API"
 
     internal procedure ExtractShopifyCatalogProducts(var ProductList: List of [BigInteger]; JResponse: JsonObject; Catalog: Record "Shpfy Catalog"; var Cursor: Text): Boolean
     var
+        ImportOrder: Codeunit "Shpfy Import Order";
         JCatalogProducts: JsonArray;
         JEdge: JsonToken;
         JCatalog: JsonObject;
         JNode: JsonObject;
         ProductId: BigInteger;
+        CurrencyCode: Text;
     begin
         if not JsonHelper.GetJsonObject(JResponse, JCatalog, 'data.catalog') then begin
             SkippedRecord.LogSkippedRecord(Catalog.Id, Catalog.RecordId, CatalogNotFoundLbl, Shop);
+            exit(false);
+        end;
+
+        CurrencyCode := JsonHelper.GetValueAsText(JCatalog, 'priceList.currency');
+        if Catalog."Currency Code" <> ImportOrder.TranslateCurrencyCode(CurrencyCode) then begin
+            SkippedRecord.LogSkippedRecord(Catalog.Id, Catalog.RecordId, CurrencyMismatchLbl, Shop);
             exit(false);
         end;
 
