@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.AI;
+using System.Environment;
+using System.Utilities;
 
 /// <summary>
 /// Helper functions for the AOAI Chat Message table.
@@ -57,6 +59,70 @@ codeunit 7763 "AOAI Chat Messages"
     procedure AddUserMessage(NewMessage: Text; NewName: Text[2048])
     begin
         AOAIChatMessagesImpl.AddUserMessage(NewMessage, NewName);
+    end;
+
+    /// <summary>
+    /// Adds a user message containing text and an image from a URL to the chat messages history.
+    /// </summary>
+    /// <param name="UserText">The text part of the message.</param>
+    /// <param name="ImageUrl">The URL of the image (HTTPS recommended).</param>
+    /// <param name="DetailLevel">The detail level for image processing.</param>
+    [NonDebuggable]
+    procedure AddUserMessage(UserText: Text; ImageUrl: Text; DetailLevel: Enum "AOAI Image Detail Level")
+    begin
+        AOAIChatMessagesImpl.AddUserMessage(UserText, ImageUrl, DetailLevel);
+    end;
+
+    /// <summary>
+    /// Adds a user message containing text and an image from a stream to the chat messages history.
+    /// The image stream will be Base64 encoded.
+    /// </summary>
+    /// <param name="UserText">The text part of the message.</param>
+    /// <param name="ImageStream">The InStream containing the image data.</param>
+    /// <param name="FileExtension">The file extension of the image (e.g., 'png', 'jpg') used to determine the MIME type.</param>
+    /// <param name="DetailLevel">The detail level for image processing.</param>
+    [NonDebuggable]
+    procedure AddUserMessage(UserText: Text; var ImageStream: InStream; FileExtension: Text; DetailLevel: Enum "AOAI Image Detail Level")
+    begin
+        AOAIChatMessagesImpl.AddUserMessage(UserText, ImageStream, FileExtension, DetailLevel);
+    end;
+
+    /// <summary>
+    /// Adds a user message containing text and images from a MediaSet to the chat messages history.
+    /// </summary>
+    /// <param name="UserText">The text part of the message.</param>
+    /// <param name="MediaSetId">The Guid of the MediaSet containing the images.</param>
+    /// <param name="DetailLevel">The detail level for image processing.</param>
+    [NonDebuggable]
+    procedure AddUserMessage(UserText: Text; MediaSetId: Guid; DetailLevel: Enum "AOAI Image Detail Level")
+    begin
+        AOAIChatMessagesImpl.AddUserMessage(UserText, MediaSetId, DetailLevel);
+    end;
+
+
+    /// <summary>
+    /// Adds a user message containing text and an image from a Tenant Media record to the chat messages history.
+    /// </summary>
+    /// <param name="UserText">The text part of the message.</param>
+    /// <param name="TenantMedia">The Tenant Media record containing the image.</param>
+    /// <param name="DetailLevel">The detail level for image processing.</param>
+    [NonDebuggable]
+    procedure AddUserMessage(UserText: Text; TenantMedia: Record "Tenant Media"; DetailLevel: Enum "AOAI Image Detail Level")
+    begin
+        AOAIChatMessagesImpl.AddUserMessage(UserText, TenantMedia, DetailLevel);
+    end;
+
+    /// <summary>
+    /// Adds a user message containing text and an image from a Temp Blob to the chat messages history.
+    /// </summary>
+    /// <param name="UserText">The text part of the message.</param>
+    /// <param name="TempBlob">The Temp Blob codeunit containing the image data.</param>
+    /// <param name="FileExtension">The file extension of the image in the Temp Blob (e.g., 'png', 'jpg').</param>
+    /// <param name="DetailLevel">The detail level for image processing.</param>
+    [NonDebuggable]
+    procedure AddUserMessage(UserText: Text; var TempBlob: Codeunit "Temp Blob"; FileExtension: Text; DetailLevel: Enum "AOAI Image Detail Level")
+    begin
+        AOAIChatMessagesImpl.AddUserMessage(UserText, TempBlob, FileExtension, DetailLevel);
     end;
 
     /// <summary>
