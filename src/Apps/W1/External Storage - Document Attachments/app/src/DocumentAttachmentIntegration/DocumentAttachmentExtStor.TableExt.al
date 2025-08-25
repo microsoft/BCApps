@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace Microsoft.ExternalStorage.DocumentAttachments;
+
+using Microsoft.Foundation.Attachment;
+
 /// <summary>
 /// Extends the Document Attachment table with external storage functionality.
 /// Adds fields and procedures to track attachments in external storage systems.

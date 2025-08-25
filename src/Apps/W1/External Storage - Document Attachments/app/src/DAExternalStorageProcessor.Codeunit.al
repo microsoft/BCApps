@@ -1,14 +1,14 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace Microsoft.ExternalStorage.DocumentAttachments;
 
 using Microsoft.Foundation.Attachment;
 using System.Environment;
 using System.ExternalFileStorage;
 using System.Utilities;
-
-// ------------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License. See License.txt in the project root for license information.
-// ------------------------------------------------------------------------------------------------
 
 /// <summary>
 /// Provides functionality to manage document attachments in external storage systems.

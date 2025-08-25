@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace Microsoft.ExternalStorage.DocumentAttachments;
+
+using Microsoft.Foundation.Attachment;
+
 /// <summary>
 /// List page for managing document attachments with external storage information.
 /// Provides actions for upload, download, and deletion operations.

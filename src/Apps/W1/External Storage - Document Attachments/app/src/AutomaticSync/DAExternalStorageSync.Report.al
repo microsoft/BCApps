@@ -1,11 +1,11 @@
-namespace Microsoft.ExternalStorage.DocumentAttachments;
-
-using Microsoft.Foundation.Attachment;
-
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.ExternalStorage.DocumentAttachments;
+
+using Microsoft.Foundation.Attachment;
 
 /// <summary>
 /// Report for synchronizing document attachments between internal and external storage.

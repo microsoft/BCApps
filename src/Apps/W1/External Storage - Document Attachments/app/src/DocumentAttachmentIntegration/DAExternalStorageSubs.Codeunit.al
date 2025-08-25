@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace Microsoft.ExternalStorage.DocumentAttachments;
+
+using Microsoft.Foundation.Attachment;
+using System.Utilities;
+
 /// <summary>
 /// Event subscribers for External Storage functionality.
 /// Handles automatic upload of new attachments and cleanup operations.

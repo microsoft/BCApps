@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace Microsoft.ExternalStorage.DocumentAttachments;
+
+using System.ExternalFileStorage;
+using System.Utilities;
+
 codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 {
     Permissions = tabledata "DA External Storage Setup" = r;

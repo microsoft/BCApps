@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace Microsoft.ExternalStorage.DocumentAttachments;
+
+using System.ExternalFileStorage;
+
 /// <summary>
 /// Extends File Scenario enum with External Storage option.
 /// Allows File Account framework to recognize external storage scenarios.
