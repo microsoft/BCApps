@@ -17,7 +17,7 @@ codeunit 8051 "Sub. Billing Installation"
         UpgradeTag.SetAllUpgradeTags();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnCompanyInitialize', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", OnCompanyInitialize, '', false, false)]
     local procedure OnCompanyInitialize()
     var
         ServiceContractSetup: Record "Subscription Contract Setup";

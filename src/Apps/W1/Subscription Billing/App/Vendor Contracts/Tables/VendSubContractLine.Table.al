@@ -131,12 +131,18 @@ table 8065 "Vend. Sub. Contract Line"
     }
 
     trigger OnDelete()
-    var
     begin
+        ErrorIfUnreleasedVendSubContractDeferralExists();
         AskIfClosedContractLineCanBeDeleted();
         UpdateServiceCommitmentDimensions();
         ErrorIfUsageDataBillingIsLinkedToContractLine();
         CheckAndDisconnectContractLine();
+    end;
+
+    trigger OnModify()
+    begin
+        if Rec."Contract Line Type" <> xRec."Contract Line Type" then
+            ErrorIfUnreleasedVendSubContractDeferralExists();
     end;
 
     var
@@ -154,6 +160,7 @@ table 8065 "Vend. Sub. Contract Line"
         EntityDoesNotExistErr: Label '%1 with the No. %2 does not exist.', Comment = '%1 = Item or GL Account, %2 = Entity No.';
         ItemBlockedOrWithoutServiceCommitmentsErr: Label 'The item %1 cannot be blocked and must be of type "Non-Inventory" with the Subscription Option set to "Sales with Subscription" or "Subscription Item".', Comment = '%1=Item No.';
         GLAccountBlockedOrNotForDirectPostingErr: Label 'The G/L Account %1 cannot be blocked and must allow direct posting to it.', Comment = '%1=G/L Account No.';
+        UnreleasedVendSubContractDeferralExistsErr: Label 'Contract lines cannot be deleted as long as open Contract Deferrals exists. Please release the Contract Deferrals before deleting the Contract line.';
 
     local procedure CreateServiceObjectWithServiceCommitment()
     var
@@ -303,7 +310,6 @@ table 8065 "Vend. Sub. Contract Line"
             if CustomerContract.Get(CustomerServiceCommitment."Subscription Contract No.") then
                 ServiceCommitment.GetCombinedDimensionSetID(ServiceCommitment."Dimension Set ID", CustomerContract."Dimension Set ID");
         ServiceCommitment.Modify(false);
-
     end;
 
     local procedure AskIfClosedContractLineCanBeDeleted()
@@ -325,6 +331,12 @@ table 8065 "Vend. Sub. Contract Line"
     internal procedure FilterOnServiceObjectContractLineType()
     begin
         SetRange("Contract Line Type", "Contract Line Type"::Item, "Contract Line Type"::"G/L Account");
+    end;
+
+    internal procedure FindFirstSubscriptionLine(SubscriptionLine: Record "Subscription Line"): Boolean
+    begin
+        Rec.FilterOnServiceCommitment(SubscriptionLine);
+        exit(Rec.FindFirst());
     end;
 
     internal procedure MergeContractLines(var VendorContractLine: Record "Vend. Sub. Contract Line")
@@ -504,5 +516,16 @@ table 8065 "Vend. Sub. Contract Line"
     internal procedure IsCommentLine(): Boolean
     begin
         exit("Contract Line Type" = "Contract Line Type"::Comment);
+    end;
+
+    local procedure ErrorIfUnreleasedVendSubContractDeferralExists()
+    var
+        VendSubContractDeferral: Record "Vend. Sub. Contract Deferral";
+    begin
+        VendSubContractDeferral.SetRange("Subscription Contract No.", Rec."Subscription Contract No.");
+        VendSubContractDeferral.SetRange("Subscription Contract Line No.", Rec."Line No.");
+        VendSubContractDeferral.SetRange(Released, false);
+        if not VendSubContractDeferral.IsEmpty() then
+            Error(UnreleasedVendSubContractDeferralExistsErr);
     end;
 }

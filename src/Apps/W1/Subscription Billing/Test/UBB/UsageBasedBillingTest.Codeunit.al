@@ -1125,7 +1125,40 @@ codeunit 148153 "Usage Based Billing Test"
 
     [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateVendorBillingDocumentPageHandler,MessageHandler')]
-    procedure TestUpdateUsageBasedAfterDeletePurchaseHeader()
+    procedure TestUpdateUsageBasedAfterDeletePurchaseCreditMemo()
+    var
+        PurchaseInvoiceHeader: Record "Purch. Inv. Header";
+    begin
+        //[SCENARIO]: Check that usage data billing is deleted after deleting purchase credit memo
+        ResetAll();
+
+        //[GIVEN] Usage Data import with Usage Data Billing
+        CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+        UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
+
+        //[GIVEN] Create sales invoice from Usage Data Import
+        UsageDataImport.CollectVendorContractsAndCreateInvoices(UsageDataImport);
+        PostPurchaseDocuments();
+        PurchaseInvoiceHeader.FindLast();
+
+        //[GIVEN] Create sales credit memo from sales invoice
+        CorrectPostedPurchaseInvoice.CreateCreditMemoCopyDocument(PurchaseInvoiceHeader, PurchaseHeader);
+
+        //[GIVEN] Usage Data Billing for sales credit memo
+        UsageDataBilling.FilterOnDocumentTypeAndDocumentNo("Service Partner"::Vendor, Enum::"Usage Based Billing Doc. Type"::"Credit Memo", PurchaseHeader."No.");
+        UsageDataBilling.FindSet();
+
+        //[WHEN] Delete Purchase Credit Memo
+        PurchaseHeader.Delete(true);
+
+        //[THEN] Usage Data billing is deleted
+        asserterror UsageDataBilling.Get(UsageDataBilling."Entry No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateVendorBillingDocumentPageHandler,MessageHandler')]
+    procedure TestUpdateUsageBasedAfterDeletePurchaseInvoice()
     begin
         Initialize();
         CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
@@ -1168,7 +1201,41 @@ codeunit 148153 "Usage Based Billing Test"
 
     [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateCustomerBillingDocumentPageHandler,MessageHandler')]
-    procedure TestUpdateUsageBasedAfterDeleteSalesHeader()
+    procedure TestUpdateUsageBasedAfterDeleteSalesCreditMemo()
+    begin
+        //[SCENARIO]: Check that usage data billing is deleted after deleting sales credit memo
+        ResetAll();
+
+        //[GIVEN] Usage Data Import with Usage Data Billing
+        CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
+        PostDocument := true;
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+        UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
+
+        //[GIVEN] Create sales invoice from Usage Data Import
+        UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
+        FilterUsageDataBillingOnUsageDataImport(UsageDataImport."Entry No.", "Service Partner"::Customer, UsageDataBilling."Document Type"::"Posted Invoice");
+        UsageDataBilling.FindSet();
+        SalesInvoiceHeader.Get(UsageDataBilling."Document No.");
+
+        //[GIVEN] Create sales credit memo from sales invoice
+        CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesCrMemoHeader);
+
+        //[GIVEN] Usage Data Billing for sales credit memo
+        UsageDataBilling.FilterOnDocumentTypeAndDocumentNo("Service Partner"::Customer, Enum::"Usage Based Billing Doc. Type"::"Credit Memo", SalesCrMemoHeader."No.");
+        UsageDataBilling.FindSet();
+
+        //[WHEN] Delete sales credit memo
+        SalesCrMemoHeader.Delete(true);
+
+        //[THEN] Usage Data Billing is deleted
+        asserterror UsageDataBilling.Get(UsageDataBilling."Entry No.");
+    end;
+
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateCustomerBillingDocumentPageHandler,MessageHandler')]
+    procedure TestUpdateUsageBasedAfterDeleteSalesInvoice()
     begin
         Initialize();
         CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
