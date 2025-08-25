@@ -7,6 +7,7 @@ namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
+using Microsoft.Finance.GeneralLedger.Setup;
 using System.TestLibraries.Utilities;
 
 codeunit 134247 "Shpfy Market Catalog API Test"
@@ -89,6 +90,46 @@ codeunit 134247 "Shpfy Market Catalog API Test"
 
         // [THEN] Verify that all expected outbound HTTP requests were executed
         LibraryAssert.IsTrue(OutboundHttpRequests.Length() = 0, 'Not all Http requests were executed');
+    end;
+
+    [Test]
+    [HandlerFunctions('HttpSubmitHandler_GetMarketCatalogs')]
+    procedure UnitTestExtractShopifyMarketCatalogCurrency()
+    var
+        Catalog: Record "Shpfy Catalog";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        CatalogAPI: Codeunit "Shpfy Catalog API";
+    begin
+        Initialize();
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."LCY Code" := 'EUR';
+        GeneralLedgerSetup.Modify();
+        Catalog.DeleteAll();
+
+        // [SCENARIO] Get Market Catalogs and linked markets from the Shopify.
+
+        // [GIVEN] Market Catalogs and Linked Catalog Markets JResponses
+
+        // [GIVEN] Register Expected Outbound API Requests
+        RegExpectedOutboundHttpRequestsForGetMarketCatalogs();
+
+        // [WHEN] Invoke CatalogAPI.GetMarketCatalogs to get Market Catalogs and linked markets
+        CatalogAPI.SetShop(Shop);
+        CatalogAPI.GetMarketCatalogs();
+
+        // [THEN] Verify that market catalogs are created
+        Catalog.SetRange("Catalog Type", Catalog."Catalog Type"::Market);
+        Catalog.SetRange("Shop Code", Shop.Code);
+        LibraryAssert.AreEqual(3, Catalog.Count(), 'Incorrect number of Market Catalogs has been created');
+
+        // [THEN] Two catalogs with empty currency code (LCY), one with USD
+        Catalog.SetRange("Currency Code", '');
+        LibraryAssert.AreEqual(2, Catalog.Count(), 'Incorrect number of Market Catalogs with empty currency code has been created');
+        Catalog.SetRange("Currency Code", 'USD');
+        LibraryAssert.AreEqual(1, Catalog.Count(), 'Incorrect number of Market Catalogs with USD currency code has been created');
+
+        // [THEN] Verify that all expected outbound HTTP requests were executed
+        OutboundHttpRequests.AssertEmpty();
     end;
 
     [HttpClientHandler]

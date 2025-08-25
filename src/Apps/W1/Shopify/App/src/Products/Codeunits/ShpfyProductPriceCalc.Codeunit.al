@@ -129,16 +129,13 @@ codeunit 30182 "Shpfy Product Price Calc."
         TempSalesHeader."Prices Including VAT" := PricesIncludingVAT;
         TempSalesHeader.Validate("Document Date", WorkDate());
         TempSalesHeader.Validate("Order Date", WorkDate());
-        if CurrencyCode <> '' then
-            TempSalesHeader.Validate("Currency Code", CurrencyCode)
-        else
-            TempSalesHeader.Validate("Currency Code", Shop."Currency Code");
+        TempSalesHeader.Validate("Currency Code", CurrencyCode);
         TempSalesHeader.Insert(false);
     end;
 
     internal procedure GetCurrencyCode(): Code[10]
     begin
-        exit(Shop."Currency Code");
+        exit(CurrencyCode);
     end;
 
     internal procedure GetAllowLineDisc(): Boolean
@@ -208,6 +205,7 @@ codeunit 30182 "Shpfy Product Price Calc."
                     CustomerPostingGroup := ShopifyShop."Customer Posting Group";
                     PricesIncludingVAT := ShopifyShop."Prices Including VAT";
                     AllowLineDisc := ShopifyShop."Allow Line Disc.";
+                    CurrencyCode := ShopifyShop."Currency Code";
                 end;
             Database::"Shpfy Catalog":
                 begin
@@ -223,7 +221,10 @@ codeunit 30182 "Shpfy Product Price Calc."
                     PricesIncludingVAT := ShopifyCatalog."Prices Including VAT";
                     AllowLineDisc := ShopifyCatalog."Allow Line Disc.";
                     CustomerNo := ShopifyCatalog."Customer No.";
-                    CurrencyCode := ShopifyCatalog."Currency Code";
+                    if ShopifyCatalog."Catalog Type" = ShopifyCatalog."Catalog Type"::Market then
+                        CurrencyCode := ShopifyCatalog."Currency Code"
+                    else
+                        CurrencyCode := ShopifyShop."Currency Code";
                 end;
         end;
     end;
