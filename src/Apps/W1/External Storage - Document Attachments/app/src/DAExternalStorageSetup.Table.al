@@ -1,3 +1,7 @@
+namespace Microsoft.ExternalStorage.DocumentAttachments;
+
+using Microsoft.Foundation.Attachment;
+
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -23,20 +27,17 @@ table 8750 "DA External Storage Setup"
         field(5; "Delete After"; Enum "DA Ext. Storage - Delete After")
         {
             Caption = 'Delete After';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies when files should be automatically deleted.';
         }
         field(6; "Auto Upload"; Boolean)
         {
             Caption = 'Auto Upload';
-            DataClassification = CustomerContent;
             InitValue = true;
             ToolTip = 'Specifies if new attachments should be automatically uploaded to external storage.';
         }
         field(7; "Auto Delete"; Boolean)
         {
             Caption = 'Auto Delete';
-            DataClassification = CustomerContent;
             InitValue = false;
             ToolTip = 'Specifies if files should be automatically deleted from external storage.';
         }
@@ -46,7 +47,7 @@ table 8750 "DA External Storage Setup"
             FieldClass = FlowField;
             CalcFormula = exist("Document Attachment" where("Uploaded Externally" = const(true)));
             Editable = false;
-            ToolTip = 'Indicates if files have been uploaded using this configuration.';
+            ToolTip = 'Specifies if files have been uploaded using this configuration.';
         }
     }
 

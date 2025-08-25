@@ -61,39 +61,6 @@ codeunit 9452 "File Scenario"
     end;
 
     /// <summary>
-    /// Event for additional setup of a file scenario.
-    /// </summary>
-    /// <param name="Scenario">The scenario to set up.</param>
-    /// <param name="Connector">The connector to use.</param>
-    /// <param name="IsHandled">Indicates whether the event was handled.</param>
-    procedure GetAdditionalScenarioSetup(Scenario: Integer; Connector: Enum System.ExternalFileStorage."Ext. File Storage Connector"; var IsHandled: Boolean)
-    begin
-        OnScenarioSetupAction(Scenario, Connector, IsHandled);
-    end;
-
-    /// <summary>
-    /// Checks whether a file scenario can be deleted.
-    /// </summary>
-    /// <param name="Scenario">The scenario to check.</param>
-    /// <param name="Connector">The connector to use.</param>
-    /// <param name="IsHandled">Indicates whether the event was handled.</param>
-    procedure BeforeDeleteFileScenarioCheck(Scenario: Integer; Connector: Enum System.ExternalFileStorage."Ext. File Storage Connector"; var IsHandled: Boolean)
-    begin
-        OnBeforeFileScenarioDelete(Scenario, Connector, IsHandled);
-    end;
-
-    /// <summary>
-    /// Checks whether a file scenario can be added or modified.
-    /// </summary>
-    /// <param name="Scenario">The scenario to check.</param>
-    /// <param name="Connector">The connector to use.</param>
-    /// <param name="IsHandled">Indicates whether the event was handled.</param>
-    procedure BeforeAddOrModifyFileScenarioCheck(Scenario: Integer; Connector: Enum System.ExternalFileStorage."Ext. File Storage Connector"; var IsHandled: Boolean)
-    begin
-        OnBeforeAddOrModifyFileScenario(Scenario, Connector, IsHandled);
-    end;
-
-    /// <summary>
     /// Event for changing whether an file scenario should be added to the list of assignable scenarios.
     /// If the scenario has already been assigned or is the default scenario, this event won't be published.
     /// </summary>
@@ -101,39 +68,6 @@ codeunit 9452 "File Scenario"
     /// <param name="IsAvailable">The return for whether this scenario should be listed in the assignable scenarios list.</param>
     [IntegrationEvent(false, false, true)]
     internal procedure OnBeforeInsertAvailableFileScenario(Scenario: Enum "File Scenario"; var IsAvailable: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Event for additional setup of a file scenario.
-    /// </summary>
-    /// <param name="Scenario">The scenario to set up.</param>
-    /// <param name="Connector">The connector to use.</param>
-    /// <param name="IsHandled">Indicates whether the event was handled.</param>
-    [IntegrationEvent(false, false, true)]
-    internal procedure OnScenarioSetupAction(Scenario: Integer; Connector: Enum System.ExternalFileStorage."Ext. File Storage Connector"; var IsHandled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Event that is raised before a file scenario is added or modified.
-    /// </summary>
-    /// <param name="Scenario">The scenario to add or modify.</param>
-    /// <param name="Connector">The connector to use.</param>
-    /// <param name="IsHandled">Indicates whether the event was handled.</param>
-    [IntegrationEvent(false, false, true)]
-    internal procedure OnBeforeAddOrModifyFileScenario(Scenario: Integer; Connector: Enum System.ExternalFileStorage."Ext. File Storage Connector"; var IsHandled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Event that is raised before a file scenario is deleted.
-    /// </summary>
-    /// <param name="Scenario">The scenario to delete.</param>
-    /// <param name="Connector">The connector to use.</param>
-    /// <param name="IsHandled">Indicates whether the event was handled.</param>
-    [IntegrationEvent(false, false, true)]
-    internal procedure OnBeforeFileScenarioDelete(Scenario: Integer; Connector: Enum System.ExternalFileStorage."Ext. File Storage Connector"; var IsHandled: Boolean)
     begin
     end;
 

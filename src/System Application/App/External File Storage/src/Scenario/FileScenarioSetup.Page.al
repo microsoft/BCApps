@@ -89,13 +89,13 @@ page 9452 "File Scenario Setup"
                     Scope = Repeater;
                     trigger OnAction()
                     var
-                        FileScenario: Codeunit "File Scenario";
+                        FileScenarioInterface: Interface "File Scenario";
+                        FileScenarioEnum: Enum "File Scenario";
                         NoSetupAvailableMsg: Label 'No additional setup is available for this scenario.';
-                        IsHandled: Boolean;
                     begin
-                        IsHandled := false;
-                        FileScenario.GetAdditionalScenarioSetup(Rec.Scenario, Rec.Connector, IsHandled);
-                        if not IsHandled then
+                        FileScenarioEnum := Enum::"File Scenario".FromInteger(Rec.Scenario);
+                        FileScenarioInterface := FileScenarioEnum;
+                        if not FileScenarioInterface.GetAdditionalScenarioSetup(Rec.Scenario, Rec.Connector) then
                             Message(NoSetupAvailableMsg);
                     end;
                 }

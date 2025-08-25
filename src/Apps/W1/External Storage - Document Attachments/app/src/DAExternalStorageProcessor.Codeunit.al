@@ -1,3 +1,10 @@
+namespace Microsoft.ExternalStorage.DocumentAttachments;
+
+using Microsoft.Foundation.Attachment;
+using System.Environment;
+using System.ExternalFileStorage;
+using System.Utilities;
+
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -10,7 +17,9 @@
 codeunit 8750 "DA External Storage Processor"
 {
     Access = Internal;
-    Permissions = tabledata "Tenant Media" = rimd;
+    Permissions = tabledata "Tenant Media" = rimd,
+                  tabledata "Document Attachment" = rimd,
+                  tabledata "DA External Storage Setup" = r;
 
     /// <summary>
     /// Uploads a document attachment to external storage.
@@ -20,14 +29,13 @@ codeunit 8750 "DA External Storage Processor"
     internal procedure UploadToExternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
     var
         FileAccount: Record "File Account";
-        TenantMedia: Record "Tenant Media";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
         TempBlob: Codeunit "Temp Blob";
         FileScenario: Enum "File Scenario";
         InStream: InStream;
         OutStream: OutStream;
-        FileName: Text;
+        FileName: Text[2048];
     begin
         // Validate input parameters
         if not DocumentAttachment."Document Reference ID".HasValue() then
@@ -107,10 +115,8 @@ codeunit 8750 "DA External Storage Processor"
         FileAccount: Record "File Account";
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
-        TempBlob: Codeunit "Temp Blob";
         FileScenario: Enum "File Scenario";
         InStream: InStream;
-        OutStream: OutStream;
         ExternalFilePath, FileName : Text;
     begin
         // Validate input parameters
@@ -138,45 +144,6 @@ codeunit 8750 "DA External Storage Processor"
         DocumentAttachment."Deleted Internally" := false;
         DocumentAttachment.Modify();
 
-        exit(true);
-    end;
-
-    /// <summary>
-    /// Downloads and previews a document attachment from external storage.
-    /// </summary>
-    /// <param name="DocumentAttachment">The document attachment record to preview.</param>
-    /// <returns>True if preview was successful, false otherwise.</returns>
-    internal procedure DownloadFromExternalStorageAndPreview(var DocumentAttachment: Record "Document Attachment"): Boolean
-    var
-        FileAccount: Record "File Account";
-        ExternalFileStorage: Codeunit "External File Storage";
-        FileScenarioCU: Codeunit "File Scenario";
-        FileScenario: Enum "File Scenario";
-        InStream: InStream;
-        ExternalFilePath, FileName : Text;
-    begin
-        // Validate input parameters
-        if DocumentAttachment."External File Path" = '' then
-            exit(false);
-
-        if not DocumentAttachment."Uploaded Externally" then
-            exit(false);
-
-        // Use the stored external file path
-        ExternalFilePath := DocumentAttachment."External File Path";
-        FileName := DocumentAttachment."File Name" + '.' + DocumentAttachment."File Extension";
-
-        // Search for External Storage assigned File Scenario
-        FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetFileAccount(FileScenario, FileAccount) then
-            exit(false);
-
-        // Get the file with connector using the File Account framework
-        ExternalFileStorage.Initialize(FileScenario);
-        ExternalFileStorage.GetFile(ExternalFilePath, InStream);
-
-        // Preview the file
-        File.ViewFromStream(InStream, FileName, true);
         exit(true);
     end;
 
@@ -210,10 +177,11 @@ codeunit 8750 "DA External Storage Processor"
     end;
 
     /// <summary>
-    /// Downloads a document attachment from external storage to a temporary blob.
+    /// Downloads a document attachment from external storage to a Temp Blob.
     /// </summary>
     /// <param name="ExternalFilePath">The path of the external file to download.</param>
     /// <param name="TempBlob">The temporary blob to store the downloaded content.</param>
+    /// <returns>True if the download was successful, false otherwise.</returns>
     internal procedure DownloadFromExternalStorageToTempBlob(ExternalFilePath: Text; var TempBlob: Codeunit "Temp Blob"): Boolean
     var
         FileAccount: Record "File Account";
@@ -250,7 +218,6 @@ codeunit 8750 "DA External Storage Processor"
         ExternalFileStorage: Codeunit "External File Storage";
         FileScenarioCU: Codeunit "File Scenario";
         FileScenario: Enum "File Scenario";
-        InStream: InStream;
     begin
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
@@ -318,7 +285,7 @@ codeunit 8750 "DA External Storage Processor"
             exit(false);
 
         // Delete from Tenant Media
-        if TenantMedia.Get(DocumentAttachment."Document Reference ID".MediaId) then begin
+        if TenantMedia.Get(DocumentAttachment."Document Reference ID".MediaId()) then begin
             TenantMedia.Delete();
 
             // Mark Document Attachment as Deleted Internally

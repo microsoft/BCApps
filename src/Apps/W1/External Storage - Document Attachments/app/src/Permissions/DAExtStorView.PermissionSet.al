@@ -9,7 +9,7 @@
 permissionset 8750 "DA Ext. Stor. View"
 {
     Assignable = true;
-    Caption = 'Document Attachments - External Storage View';
+    Caption = 'DA - External Storage View';
     Permissions = tabledata "DA External Storage Setup" = R,
         table "DA External Storage Setup" = X,
         page "DA External Storage Setup" = X,

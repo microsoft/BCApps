@@ -1,3 +1,7 @@
+namespace Microsoft.ExternalStorage.DocumentAttachments;
+
+using Microsoft.Foundation.Attachment;
+
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,6 +17,9 @@ report 8752 "DA External Storage Sync"
     ProcessingOnly = true;
     UseRequestPage = true;
     Extensible = false;
+    UsageCategory = None;
+    Permissions = tabledata "DA External Storage Setup" = r,
+                  tabledata "Document Attachment" = r;
 
     dataset
     {
@@ -24,7 +31,7 @@ report 8752 "DA External Storage Sync"
                 TotalCount := Count();
 
                 if TotalCount = 0 then begin
-                    if GuiAllowed then
+                    if GuiAllowed() then
                         Message(NoRecordsMsg);
                     CurrReport.Break();
                 end;
@@ -38,7 +45,7 @@ report 8752 "DA External Storage Sync"
                 DeleteCount := 0;
                 DeleteFailedCount := 0;
 
-                if GuiAllowed then
+                if GuiAllowed() then
                     Dialog.Open(ProcessingMsg, TotalCount);
             end;
 
@@ -46,7 +53,7 @@ report 8752 "DA External Storage Sync"
             begin
                 ProcessedCount += 1;
 
-                if GuiAllowed then
+                if GuiAllowed() then
                     Dialog.Update(1, ProcessedCount);
 
                 case SyncDirection of
@@ -60,7 +67,7 @@ report 8752 "DA External Storage Sync"
                             FailedCount += 1;
                 end;
                 if DeleteExpiredFiles then
-                    if CalcDate('<+' + GetDateFormulaFromExternalStorageSetup() + '>', DT2Date(DocumentAttachment."External Upload Date")) >= Today() then
+                    if CalcDate('<+' + GetDateFormulaFromExternalStorageSetup() + '>', DocumentAttachment."External Upload Date".Date()) >= Today() then
                         if ExternalStorageProcessor.DeleteFromInternalStorage(DocumentAttachment) then
                             DeleteCount += 1
                         else
@@ -72,7 +79,7 @@ report 8752 "DA External Storage Sync"
 
             trigger OnPostDataItem()
             begin
-                if GuiAllowed then begin
+                if GuiAllowed() then begin
                     if TotalCount <> 0 then
                         Dialog.Close();
                     if DeleteExpiredFiles then
@@ -99,19 +106,20 @@ report 8752 "DA External Storage Sync"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Sync Direction';
-                        ToolTip = 'Select whether to sync to external storage, from external storage, or delete expired files.';
+                        OptionCaption = 'To External Storage,From External Storage';
+                        ToolTip = 'Specifies whether to sync to external storage, from external storage, or delete expired files.';
                     }
-                    field(DeleteExpiredFiles; DeleteExpiredFiles)
+                    field(DeleteExpiredFilesField; DeleteExpiredFiles)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Delete Expired Files';
-                        ToolTip = 'Select whether to delete expired files from internal storage.';
+                        ToolTip = 'Specifies whether to delete expired files from internal storage.';
                     }
                     field(MaxRecordsToProcessField; MaxRecordsToProcess)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Maximum Records to Process';
-                        ToolTip = 'Specify the maximum number of records to process in one run. Leave 0 for unlimited.';
+                        ToolTip = 'Specifies the maximum number of records to process in one run. Leave 0 for unlimited.';
                         MinValue = 0;
                     }
                 }

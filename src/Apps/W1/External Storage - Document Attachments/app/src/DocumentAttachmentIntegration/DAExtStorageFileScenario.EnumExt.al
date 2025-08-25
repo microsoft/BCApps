@@ -12,5 +12,6 @@ enumextension 8750 "DA Ext. Storage-File Scenario" extends "File Scenario"
     value(8750; "Doc. Attach. - External Storage")
     {
         Caption = 'Document Attachments - External Storage';
+        Implementation = "File Scenario" = "DA External Storage Impl.";
     }
 }

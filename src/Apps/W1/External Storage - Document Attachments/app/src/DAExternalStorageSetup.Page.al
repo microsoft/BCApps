@@ -1,3 +1,5 @@
+namespace Microsoft.ExternalStorage.DocumentAttachments;
+
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -19,33 +21,21 @@ page 8750 "DA External Storage Setup"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(General)
             {
                 Caption = 'General';
-                field("Delete After"; Rec."Delete After")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                field("Auto Upload"; Rec."Auto Upload")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                field("Auto Delete"; Rec."Auto Delete")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
+                field("Delete After"; Rec."Delete After") { }
+                field("Auto Upload"; Rec."Auto Upload") { }
+                field("Auto Delete"; Rec."Auto Delete") { }
             }
 
             group(Status)
             {
                 Caption = 'Status';
 
-                field("Has Uploaded Files"; Rec."Has Uploaded Files")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
+                field("Has Uploaded Files"; Rec."Has Uploaded Files") { }
             }
         }
     }

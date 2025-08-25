@@ -24,51 +24,41 @@ page 8751 "Document Attachment - External"
             {
                 field("Table ID"; Rec."Table ID")
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the table ID the attachment belongs to.';
                 }
                 field("No."; Rec."No.")
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the record number the attachment belongs to.';
                 }
                 field("File Name"; Rec."File Name")
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the name of the attached file.';
                 }
                 field("File Extension"; Rec."File Extension")
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the file extension of the attached file.';
                 }
                 field("Attached Date"; Rec."Attached Date")
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the date the file was attached.';
                 }
                 field("Attached By"; Rec."Attached By")
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the user who attached the file.';
                 }
                 field("Deleted Internally"; Rec."Deleted Internally")
                 {
-                    ApplicationArea = Basic, Suite;
                 }
                 field("Uploaded to External"; Rec."Uploaded Externally")
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Uploaded to External';
                 }
                 field("External Upload Date"; Rec."External Upload Date")
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Upload Date';
                 }
                 field("External File Path"; Rec."External File Path")
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'External File Path';
                 }
             }
@@ -189,7 +179,7 @@ page 8751 "Document Attachment - External"
         {
             actionref(UploadToExternalStoragePromoted; "Upload to External Storage") { }
             actionref(DownloadFromExternalStoragePromoted; "Download from External Storage") { }
-            actionref(DownloadFromExternalToInternalStoragePromoted; "Download from External to Internal Storage") { }
+            actionref(DownloadFromExternalToInternalStoragePromoted; "Download from External To Internal Storage") { }
             actionref(DeleteFromExternalStoragePromoted; "Delete from External Storage") { }
             actionref(DeleteFromInternalStoragePromoted; "Delete from Internal Storage") { }
         }
