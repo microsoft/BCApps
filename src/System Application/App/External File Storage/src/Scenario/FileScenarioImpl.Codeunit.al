@@ -174,6 +174,8 @@ codeunit 9453 "File Scenario Impl."
         TempSelectedFileAccScenarios: Record "File Account Scenario" temporary;
         FileScenario: Record "File Scenario";
         FileScenariosForAccount: Page "File Scenarios for Account";
+        FileScenarioInterface: Interface "File Scenario";
+        FileScenarioEnum: Enum "File Scenario";
     begin
         FileAccountImpl.CheckPermissions();
 
@@ -193,6 +195,11 @@ codeunit 9453 "File Scenario Impl."
             exit;
 
         repeat
+            FileScenarioEnum := Enum::"File Scenario".FromInteger(TempSelectedFileAccScenarios.Scenario);
+            FileScenarioInterface := FileScenarioEnum;
+            if FileScenarioInterface.BeforeAddOrModifyFileScenarioCheck(TempSelectedFileAccScenarios.Scenario, TempSelectedFileAccScenarios.Connector) then
+                exit;
+
             if not FileScenario.Get(TempSelectedFileAccScenarios.Scenario) then begin
                 FileScenario."Account Id" := TempFileAccountScenario."Account Id";
                 FileScenario.Connector := TempFileAccountScenario.Connector;
@@ -289,6 +296,8 @@ codeunit 9453 "File Scenario Impl."
     procedure DeleteScenario(var TempFileAccountScenario: Record "File Account Scenario" temporary): Boolean
     var
         FileScenario: Record "File Scenario";
+        FileScenarioInterface: Interface "File Scenario";
+        FileScenarioEnum: Enum "File Scenario";
     begin
         FileAccountImpl.CheckPermissions();
 
@@ -301,7 +310,10 @@ codeunit 9453 "File Scenario Impl."
                 FileScenario.SetRange("Account Id", TempFileAccountScenario."Account Id");
                 FileScenario.SetRange(Connector, TempFileAccountScenario.Connector);
 
-                FileScenario.DeleteAll();
+                FileScenarioEnum := Enum::"File Scenario".FromInteger(TempFileAccountScenario.Scenario);
+                FileScenarioInterface := FileScenarioEnum;
+                if not FileScenarioInterface.BeforeDeleteFileScenarioCheck(TempFileAccountScenario.Scenario, TempFileAccountScenario.Connector) then
+                    FileScenario.DeleteAll();
             end;
         until TempFileAccountScenario.Next() = 0;
 
