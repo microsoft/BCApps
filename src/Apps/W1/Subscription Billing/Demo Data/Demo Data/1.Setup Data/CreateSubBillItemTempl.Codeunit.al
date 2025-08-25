@@ -8,11 +8,13 @@ codeunit 8122 "Create Sub. Bill. Item Templ."
     InherentPermissions = X;
     trigger OnRun()
     var
+        FinanceModuleSetup: Record "Finance Module Setup";
         CreatePostingGroup: Codeunit "Create Posting Groups";
-        // CreateVATPostingGroups: Codeunit "Create VAT Posting Groups";
         ContosoSubscriptionBilling: Codeunit "Contoso Subscription Billing";
     begin
-        ContosoSubscriptionBilling.InsertItemTemplateData(SubscriptionItem(), SubscriptionItemLbl, Enum::"Item Service Commitment Type"::"Service Commitment Item", '', CreatePostingGroup.RetailPostingGroup(), '');
+        FinanceModuleSetup.Get();
+
+        ContosoSubscriptionBilling.InsertItemTemplateData(SubscriptionItem(), SubscriptionItemLbl, Enum::"Item Service Commitment Type"::"Service Commitment Item", '', CreatePostingGroup.RetailPostingGroup(), FinanceModuleSetup."VAT Prod. Post Grp. Standard");
     end;
 
     procedure SubscriptionItem(): Code[20]
