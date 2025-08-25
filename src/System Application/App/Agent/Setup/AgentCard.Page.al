@@ -80,7 +80,7 @@ page 4315 "Agent Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Standard;
                     Caption = 'State';
-                    ToolTip = 'Specifies if the agent is enabled or disabled.';
+                    ToolTip = 'Specifies if the agent is active or inactive.';
 
                     trigger OnValidate()
                     begin
