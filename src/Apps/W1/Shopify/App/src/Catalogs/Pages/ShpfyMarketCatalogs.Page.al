@@ -28,7 +28,10 @@ page 30174 "Shpfy Market Catalogs"
                 field(Name; Rec.Name) { }
                 field(SyncPrices; Rec."Sync Prices") { }
                 field("Customer No."; Rec."Customer No.") { }
-                field("Currency Code"; Rec."Currency Code") { }
+                field("Currency Code"; Rec."Currency Code")
+                {
+                    Editable = false;
+                }
                 field(CustomerPriceGroup; Rec."Customer Price Group") { }
                 field(CustomerDiscountGroup; Rec."Customer Discount Group") { }
                 field("Prices Including VAT"; Rec."Prices Including VAT") { }
