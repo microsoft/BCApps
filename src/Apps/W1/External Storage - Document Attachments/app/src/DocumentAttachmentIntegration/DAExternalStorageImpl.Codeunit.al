@@ -56,7 +56,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// Called before deleting a file scenario.
     /// </summary>
     /// <param name="Scenario">The ID of the file scenario.</param>
-    /// <param name="Connector">The file storage connector.</param> 
+    /// <param name="Connector">The file storage connector.</param>
     /// <returns>True if the delete operation is handled and should not proceed, otherwise false.</returns>
     procedure BeforeDeleteFileScenarioCheck(Scenario: Integer; Connector: Enum System.ExternalFileStorage."Ext. File Storage Connector") SkipDelete: Boolean
     var
