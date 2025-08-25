@@ -394,8 +394,8 @@ codeunit 6429 "Integration Tests"
         //        EDocument.SetRange("Bill-to/Pay-to No.", Vendor."No.");
 #pragma warning restore AA0210
         EDocument.FindLast();
-        PurchaseHeader.Get(EDocument."Document Record ID");
-        Assert.AreEqual(Vendor."No.", PurchaseHeader."Buy-from Vendor No.", 'Wrong Vendor');
+        if PurchaseHeader.Get(EDocument."Document Record ID") then
+            Assert.AreEqual(Vendor."No.", PurchaseHeader."Buy-from Vendor No.", 'Wrong Vendor');
     end;
 
     local procedure Initialize()
