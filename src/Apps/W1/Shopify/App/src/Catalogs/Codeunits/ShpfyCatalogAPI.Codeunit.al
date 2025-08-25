@@ -263,6 +263,7 @@ codeunit 30290 "Shpfy Catalog API"
     internal procedure ExtractShopifyMarketCatalogs(JResponse: JsonObject; var Cursor: Text): Boolean
     var
         Catalog: Record "Shpfy Catalog";
+        ImportOrder: Codeunit "Shpfy Import Order";
         JCatalogs: JsonArray;
         JEdge: JsonToken;
         JNode: JsonObject;
@@ -286,7 +287,7 @@ codeunit 30290 "Shpfy Catalog API"
                 end;
                 Catalog."Shop Code" := Shop.Code;
                 Catalog.Name := CopyStr(JsonHelper.GetValueAsText(JNode, 'title'), 1, MaxStrLen(Catalog.Name));
-                Catalog."Currency Code" := CopyStr(CurrencyCode, 1, MaxStrLen(Catalog."Currency Code"));
+                Catalog."Currency Code" := ImportOrder.TranslateCurrencyCode(CurrencyCode);
                 Catalog.Modify(true);
 
                 GetMarketsLinkedToCatalog(Catalog);

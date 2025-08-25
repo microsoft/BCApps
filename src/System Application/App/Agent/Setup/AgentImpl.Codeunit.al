@@ -460,6 +460,40 @@ codeunit 4301 "Agent Impl."
         exit(UniqueUserName);
     end;
 
+    internal procedure OpenSetupPageId(AgentMetadataProvider: Enum "Agent Metadata Provider"; AgentUserSecurityID: Guid)
+    var
+        PageMetadata: Record "Page Metadata";
+        FieldMetadata: Record Field;
+        SetupPageRecordRef: RecordRef;
+        UserSecurityIdFieldRef: FieldRef;
+        AgentMetadata: Interface IAgentMetadata;
+        SourceRecordVariant: Variant;
+        SetupPageId: Integer;
+        UserSecurityIdTok: Label 'User Security ID', Locked = true;
+    begin
+        AgentMetadata := AgentMetadataProvider;
+        SetupPageId := AgentMetadata.GetSetupPageId(AgentUserSecurityID);
+
+        PageMetadata.Get(SetupPageId);
+        if (PageMetadata.SourceTable = 0) then
+            Error(SetupPageMissingSourceTableErr, SetupPageId);
+
+        SetupPageRecordRef.Open(PageMetadata.SourceTable);
+
+        FieldMetadata.SetRange(TableNo, PageMetadata.SourceTable);
+        FieldMetadata.SetRange(FieldName, UserSecurityIdTok);
+        if not FieldMetadata.FindFirst() then
+            Error(SetupPageSourceTableMissingFieldErr, SetupPageId, UserSecurityIdTok);
+
+        if (FieldMetadata.Type <> FieldMetadata.Type::Guid) then
+            Error(SetupPageSourceTableFieldWrongTypeErr, UserSecurityIdTok, SetupPageId, FieldMetadata.Type::Guid);
+
+        UserSecurityIdFieldRef := SetupPageRecordRef.Field(FieldMetadata."No.");
+        UserSecurityIdFieldRef.SetFilter(AgentUserSecurityID);
+        SourceRecordVariant := SetupPageRecordRef;
+        Page.RunModal(SetupPageId, SourceRecordVariant);
+    end;
+
     var
         OneOwnerMustBeDefinedForAgentErr: Label 'One owner must be defined for the agent.';
         AgentDoesNotExistErr: Label 'Agent does not exist.';
@@ -468,5 +502,7 @@ codeunit 4301 "Agent Impl."
         NoAgentsAvailableNotificationGuidLbl: Label 'bde1d653-40e6-4081-b2cf-f21b1a8622d1', Locked = true;
         NoAgentsAvailableNotificationLearnMoreLbl: Label 'Learn more';
         NoAgentsAvailableNotificationLearnMoreUrlLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2303876', Locked = true;
-
+        SetupPageMissingSourceTableErr: Label 'Setup page with ID %1 must specify a source table.', Comment = '%1 = Setup page ID.';
+        SetupPageSourceTableMissingFieldErr: Label 'The source table for setup page %1 must include a field named ''%2''.', Comment = '%1 = Setup page ID, %2 = Required field name.';
+        SetupPageSourceTableFieldWrongTypeErr: Label 'Field ''%1'' on the source table for setup page %2 must be of type %3.', Comment = '%1 = Field name, %2 = Setup page ID, %3 = Required field type.';
 }
