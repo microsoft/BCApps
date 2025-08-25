@@ -23,8 +23,8 @@ codeunit 139895 "Usage Based Service Comm. Test"
         LibrarySales: Codeunit "Library - Sales";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         Assert: Codeunit Assert;
-        DiscountCannotBeAssignedErr: Label 'Subscription Package Lines, which are discounts can only be assigned to Subscription Items.', Locked = true;
-        RecurringDiscountCannotBeGrantedErr: Label 'Recurring discounts cannot be granted be granted in conjunction with Usage Based Billing.', Locked = true;
+        DiscountCannotBeAssignedErr: Label 'Subscription Package Lines, which are discounts, can only be assigned to Subscription Items.', Locked = true;
+        RecurringDiscountCannotBeGrantedErr: Label 'Recurring discounts cannot be granted in conjunction with Usage Based Billing', Locked = true;
 
     #region Tests
 
