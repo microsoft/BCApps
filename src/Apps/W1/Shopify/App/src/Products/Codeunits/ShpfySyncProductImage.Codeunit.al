@@ -51,7 +51,6 @@ codeunit 30184 "Shpfy Sync Product Image"
         if ProductFilter <> '' then
             ShopifyProduct.SetFilter(Id, ProductFilter);
         ProductImageExport.SetRecordCount(ShopifyProduct.Count());
-        VariantImageExport.SetRecordCount(ShopifyProduct.Count());
         if ShopifyProduct.FindSet() then
             repeat
                 Commit();
@@ -72,13 +71,22 @@ codeunit 30184 "Shpfy Sync Product Image"
     local procedure ExportVariantsImages(ProductId: BigInteger)
     var
         ShopifyVariant: Record "Shpfy Variant";
+        ProductApi: Codeunit "Shpfy Product API";
+        VariantImageUrls: Dictionary of [BigInteger, Text];
+        VariantImageIds: Dictionary of [BigInteger, BigInteger];
+        BulkOperationInput: TextBuilder;
     begin
         ShopifyVariant.SetRange("Shop Code", this.Shop.Code);
         ShopifyVariant.SetRange("Product Id", ProductId);
+        VariantImageExport.SetRecordCount(ShopifyVariant.Count());
         if ShopifyVariant.FindSet() then
             repeat
                 if this.VariantImageExport.Run(ShopifyVariant) then;
             until ShopifyVariant.Next() = 0;
+        VariantImageUrls := VariantImageExport.GetVariantImageUrls();
+        if VariantImageUrls.Count > 0 then begin
+            VariantImageIds := ProductApi.UpdateProductWithMultipleImages(ProductId, VariantImageUrls);
+        end;
     end;
 
     /// <summary> 

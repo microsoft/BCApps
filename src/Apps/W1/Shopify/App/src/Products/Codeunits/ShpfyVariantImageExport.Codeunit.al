@@ -21,7 +21,6 @@ codeunit 30413 "Shpfy Variant Image Export"
     var
         Item: Record Item;
         ItemVariant: Record "Item Variant";
-        TenantMedia: Record "Tenant Media";
         Product: Record "Shpfy Product";
         HashCalc: Codeunit "Shpfy Hash";
         NewImageId: BigInteger;
@@ -30,7 +29,6 @@ codeunit 30413 "Shpfy Variant Image Export"
         JRequest: JsonObject;
         ItemAsVariant: Boolean;
         PictureGuid: Guid;
-        ResourceUrl: Text;
     begin
         if this.Shop."Sync Item Images" <> this.Shop."Sync Item Images"::"To Shopify" then
             exit;
@@ -59,21 +57,14 @@ codeunit 30413 "Shpfy Variant Image Export"
         end;
 
         if not ImageExists then begin
-            if TenantMedia.Get(PictureGuid) then begin
-                this.ProductApi.UploadShopifyImage(TenantMedia, ResourceUrl);
-                NewImageId := this.VariantApi.SetVariantImage(Rec, ResourceUrl);
-            end;
+            NewImageId := VariantApi.CreateShopifyVariantImage(Rec, PictureGuid);
 
             if NewImageId <> Rec."Image Id" then
                 Rec."Image Id" := NewImageId;
             Rec."Image Hash" := Hash;
             Rec.Modify(false);
         end else begin
-            if Rec."Image Id" > 0 then
-                if TenantMedia.Get(PictureGuid) then begin
-                    NewImageId := this.ProductApi.AddImageToProduct(Rec."Product Id", TenantMedia);
-                    this.VariantApi.SetVariantImage(Rec, NewImageId);
-                end;
+            NewImageId := VariantApi.UpdateShopifyVariantImage(Rec, PictureGuid, this.CurrRecordCount, this.VariantImageUrls);
             JRequest.Add('id', Rec.Id);
             JRequest.Add('imageHash', Rec."Image Hash");
             this.JRequestData.Add(JRequest);
@@ -90,6 +81,7 @@ codeunit 30413 "Shpfy Variant Image Export"
         CurrRecordCount: Integer;
         NullGuid: Guid;
         ParametersList: List of [Dictionary of [Text, Text]];
+        VariantImageUrls: Dictionary of [BigInteger, Text];
         BulkOperationInput: TextBuilder;
         JRequestData: JsonArray;
 
@@ -126,6 +118,24 @@ codeunit 30413 "Shpfy Variant Image Export"
         this.CurrRecordCount := RecordCount;
     end;
 
+    /// <summary>
+    /// Get Bulk Operation Input.
+    /// </summary>
+    /// <returns>TextBuilder type containing the bulk operation input.</returns>
+    internal procedure GetBulkOperationInput(): TextBuilder
+    begin
+        exit(this.BulkOperationInput);
+    end;
+
+    /// <summary>
+    /// Get variant ids together with resource urls in Shopify.
+    /// </summary>
+    /// <returns>Dictionary of pairs of variant ids and resource urls.</returns>
+    internal procedure GetVariantImageUrls(): Dictionary of [BigInteger, Text]
+    begin
+        exit(this.VariantImageUrls);
+    end;
+
     local procedure GetPictureGuid(Item: Record Item; ItemVariant: Record "Item Variant"; ItemAsVariant: Boolean): Guid
     begin
         if ItemAsVariant then begin
@@ -134,5 +144,17 @@ codeunit 30413 "Shpfy Variant Image Export"
         end else
             if ItemVariant.Picture.Count > 0 then
                 exit(ItemVariant.Picture.Item(1));
+    end;
+
+    local procedure UpdateShopifyVariantImage(Variant: Record "Shpfy Variant"; PictureGuid: Guid): BigInteger
+    var
+        TenantMedia: Record "Tenant Media";
+        NewImageId: BigInteger;
+    begin
+        if TenantMedia.Get(PictureGuid) then begin
+            NewImageId := this.ProductApi.AddImageToProduct(Variant."Product Id", TenantMedia);
+            this.VariantApi.SetVariantImage(Variant, NewImageId);
+            exit(NewImageId);
+        end;
     end;
 }

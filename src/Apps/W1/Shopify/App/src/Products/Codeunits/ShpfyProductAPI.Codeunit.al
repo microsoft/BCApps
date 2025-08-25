@@ -114,7 +114,14 @@ codeunit 30176 "Shpfy Product API"
         exit(NewShopifyProduct.Id);
     end;
 
-    local procedure CreateImageUploadUrl(var Url: Text; var ResourceUrl: Text; var TenantMedia: Record "Tenant Media"): boolean
+    /// <summary>
+    /// Create image upload URL.
+    /// </summary>
+    /// <param name="Url"></param>
+    /// <param name="ResourceUrl"></param>
+    /// <param name="TenantMedia">Tenant media record containing image</param>
+    /// <returns></returns>
+    internal procedure CreateImageUploadUrl(var Url: Text; var ResourceUrl: Text; var TenantMedia: Record "Tenant Media"): boolean
     var
         MimeType: Text;
         Filename: Text;
@@ -700,7 +707,7 @@ codeunit 30176 "Shpfy Product API"
     /// </summary>
     /// <param name="ProductId">Updated product id</param>
     /// <param name="ResourceUrl">URL of the new image</param>
-    local procedure UpdateProductWithNewImage(ProductId: BigInteger; ResourceUrl: Text): BigInteger
+    internal procedure UpdateProductWithNewImage(ProductId: BigInteger; ResourceUrl: Text): BigInteger
     var
         Parameters: Dictionary of [Text, Text];
         JMedias: JsonArray;
@@ -715,6 +722,49 @@ codeunit 30176 "Shpfy Product API"
             if JMedias.Count = 1 then
                 if JMedias.Get(0, JMedia) then
                     exit(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JMedia, 'id')));
+    end;
+
+
+    internal procedure UpdateProductWithMultipleImages(ProductId: BigInteger; VariantImageUrls: Dictionary of [BigInteger, Text]): Dictionary of [BigInteger, BigInteger]
+    var
+        MediasTok: Label '{ media(reverse: true, first: %1 ){', Locked = true;
+        JResponse: JsonToken;
+        GraphQuery: TextBuilder;
+        JMediaArray: JsonArray;
+        JMedia: JsonToken;
+        VariantImageIds: Dictionary of [BigInteger, BigInteger];
+        VariantIds: List of [BigInteger];
+        ImageIds: List of [BigInteger];
+        VariantId: BigInteger;
+        ImageId: BigInteger;
+    begin
+        GraphQuery.Append('{"query":"mutation {productUpdate(product: {id: \"gid://shopify/Product/');
+        GraphQuery.Append(Format(ProductId));
+        GraphQuery.Append('\"}');
+        GraphQuery.Append(', media:[');
+        foreach VariantId in VariantImageUrls.Keys() do begin
+            GraphQuery.Append('{mediaContentType: IMAGE, originalSource: \"');
+            GraphQuery.Append(VariantImageUrls.Get(VariantId));
+            GraphQuery.Append('\"},');
+            VariantIds.Add(VariantId);
+        end;
+        GraphQuery.Remove(GraphQuery.Length, 1);
+        GraphQuery.Append('])');
+        GraphQuery.Append('{product');
+        GraphQuery.Append(StrSubstNo(MediasTok, VariantIds.Count()));
+        GraphQuery.Append('edges { cursor node { ... on MediaImage { id } } } } }');
+        GraphQuery.Append('userErrors { field message } } }"');
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQuery.ToText());
+        JMediaArray := JsonHelper.GetJsonArray(JResponse, 'data.productUpdate.product.media.edges');
+        foreach JMedia in JMediaArray do
+            ImageIds.Add(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JMedia, 'node.id')));
+
+        ImageIds.Reverse();
+
+        foreach ImageId in ImageIds do
+            VariantImageIds.Add(VariantIds.Get(VariantImageIds.Count + 1), ImageId);
+
+        exit(VariantImageIds);
     end;
 
     [IntegrationEvent(false, false)]

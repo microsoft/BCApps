@@ -24,4 +24,9 @@ enum 30146 "Shpfy Bulk Operation Type" implements "Shpfy IBulk Operation"
         Caption = 'Update Product Price';
         Implementation = "Shpfy IBulk Operation" = "Shpfy Bulk UpdateProductPrice";
     }
+    value(2; UpdateVariantImage)
+    {
+        Caption = 'Update Variant Image';
+        Implementation = "Shpfy IBulk Operation" = "Shpfy Bulk UpdateVariantImage";
+    }
 }

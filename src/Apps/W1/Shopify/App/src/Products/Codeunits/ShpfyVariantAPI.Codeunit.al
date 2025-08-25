@@ -5,6 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using System.Environment;
+
 /// <summary>
 /// Codeunit Shpfy Variant API (ID 30189).
 /// </summary>
@@ -613,6 +615,16 @@ codeunit 30189 "Shpfy Variant API"
         end;
     end;
 
+    local procedure UpdateVariantImage(var Variant: Record "Shpfy Variant"; ResourceUrl: Text): BigInteger
+    var
+        ProductApi: Codeunit "Shpfy Product API";
+        NewImageId: BigInteger;
+    begin
+        NewImageId := ProductApi.UpdateProductWithNewImage(Variant."Product Id", ResourceUrl);
+        this.SetVariantImage(Variant, NewImageId);
+        exit(NewImageId);
+    end;
+
     internal procedure UpdateProductPrice(ShopifyVariant: Record "Shpfy Variant"; xShopifyVariant: Record "Shpfy Variant"; var BulkOperationInput: TextBuilder; var GraphQueryList: Dictionary of [BigInteger, TextBuilder]; RecordCount: Integer; var JRequestData: JsonArray)
     var
         BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
@@ -891,5 +903,34 @@ codeunit 30189 "Shpfy Variant API"
         Parameters.Add('VariantId', Format(ShopifyVariant.Id));
         Parameters.Add('ImageId', Format(ShopifyVariant."Image Id"));
         this.CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::DetachVariantImage, Parameters);
+    end;
+
+    internal procedure CreateShopifyVariantImage(Variant: Record "Shpfy Variant"; PictureGuid: Guid): BigInteger
+    var
+        TenantMedia: Record "Tenant Media";
+        ProductApi: Codeunit "Shpfy Product API";
+        ResourceUrl: Text;
+    begin
+        if TenantMedia.Get(PictureGuid) then begin
+            ProductApi.UploadShopifyImage(TenantMedia, ResourceUrl);
+            exit(this.SetVariantImage(Variant, ResourceUrl));
+        end;
+    end;
+
+    internal procedure UpdateShopifyVariantImage(Variant: Record "Shpfy Variant"; PictureGuid: Guid; RecordCount: Integer; VariantImageUrls: Dictionary of [BigInteger, Text]): BigInteger
+    var
+        TenantMedia: Record "Tenant Media";
+        ProductApi: Codeunit "Shpfy Product API";
+        BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
+        ResourceUrl: Text;
+    begin
+        if not TenantMedia.Get(PictureGuid) then
+            exit;
+
+        if ProductApi.UploadShopifyImage(TenantMedia, ResourceUrl) then
+            if RecordCount <= BulkOperationMgt.GetBulkOperationThreshold() then
+                UpdateVariantImage(Variant, ResourceUrl)
+            else
+                VariantImageUrls.Add(Variant.Id, ResourceUrl);
     end;
 }
