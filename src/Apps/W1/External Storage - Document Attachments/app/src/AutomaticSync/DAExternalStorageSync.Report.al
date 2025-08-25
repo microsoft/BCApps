@@ -107,7 +107,7 @@ report 8752 "DA External Storage Sync"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Sync Direction';
                         OptionCaption = 'To External Storage,From External Storage';
-                        ToolTip = 'Specifies whether to sync to external storage, from external storage, or delete expired files.';
+                        ToolTip = 'Specifies whether to sync to external storage or from external storage.';
                     }
                     field(DeleteExpiredFilesField; DeleteExpiredFiles)
                     {
