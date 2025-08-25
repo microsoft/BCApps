@@ -10,6 +10,7 @@ using System.Utilities;
 
 codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 {
+    Access = Internal;
     Permissions = tabledata "DA External Storage Setup" = r;
 
     /// <summary>
