@@ -62,6 +62,7 @@ permissionset 30104 "Shpfy - Objects"
         table "Shpfy Return Line" = X,
         table "Shpfy Shipment Method Mapping" = X,
         table "Shpfy Shop" = X,
+        table "Shpfy Shop Collection Map" = X,
         table "Shpfy Shop Inventory" = X,
         table "Shpfy Shop Location" = X,
         table "Shpfy Skipped Record" = X,
