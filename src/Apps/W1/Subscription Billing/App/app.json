@@ -2,7 +2,7 @@
   "id": "3099ffc7-4cf7-4df6-9b96-7e4bc2bb587c",
   "name": "Subscription Billing",
   "publisher": "Microsoft",
-  "version": "27.0.0.0",
+  "version": "27.1.0.0",
   "brief": "Sell and manage recurring subscriptions",
   "description": "The app enables the selling of recurring subscriptions and provides accurate billing for a wide range of pricing models.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
