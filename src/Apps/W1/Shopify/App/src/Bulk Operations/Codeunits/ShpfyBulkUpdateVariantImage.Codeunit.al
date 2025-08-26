@@ -19,7 +19,7 @@ codeunit 30415 "Shpfy Bulk UpdateVariantImage" implements "Shpfy IBulk Operation
 
     procedure GetInput(): Text
     begin
-        exit('{ "productId": "gid://shopify/Product/%1", "variants": [{ "id": "gid://shopify/ProductVariant/%2", "imageId": "gid://shopify/mediaId/%3" }]}')
+        exit('{ "productId": "gid://shopify/Product/%1", "variants": [{ "id": "gid://shopify/ProductVariant/%2", "mediaId": "gid://shopify/MediaImage/%3" }]}')
     end;
 
     procedure GetName(): Text[250]

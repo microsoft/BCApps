@@ -725,7 +725,13 @@ codeunit 30176 "Shpfy Product API"
     end;
 
 
-    internal procedure UpdateProductWithMultipleImages(ProductId: BigInteger; VariantImageUrls: Dictionary of [BigInteger, Text]): Dictionary of [BigInteger, BigInteger]
+    /// <summary>
+    /// Updates the product with multiple new images.
+    /// </summary>
+    /// <param name="ProductId"></param>
+    /// <param name="VariantImageUrls"></param>
+    /// <returns>Dictionary of variant IDs to image IDs</returns>
+    internal procedure UpdateProductWithMultipleVariantImages(ProductId: BigInteger; VariantImageUrls: Dictionary of [BigInteger, Text]): Dictionary of [BigInteger, BigInteger]
     var
         MediasTok: Label '{ media(reverse: true, first: %1 ){', Locked = true;
         JResponse: JsonToken;
@@ -753,7 +759,7 @@ codeunit 30176 "Shpfy Product API"
         GraphQuery.Append('{product');
         GraphQuery.Append(StrSubstNo(MediasTok, VariantIds.Count()));
         GraphQuery.Append('edges { cursor node { ... on MediaImage { id } } } } }');
-        GraphQuery.Append('userErrors { field message } } }"');
+        GraphQuery.Append('userErrors { field message } } }"}');
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQuery.ToText());
         JMediaArray := JsonHelper.GetJsonArray(JResponse, 'data.productUpdate.product.media.edges');
         foreach JMedia in JMediaArray do

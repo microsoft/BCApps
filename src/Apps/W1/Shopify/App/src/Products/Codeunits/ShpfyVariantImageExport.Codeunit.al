@@ -119,12 +119,12 @@ codeunit 30413 "Shpfy Variant Image Export"
     end;
 
     /// <summary>
-    /// Get Bulk Operation Input.
+    /// Get Request Data required to potenatial bulk operation revert.
     /// </summary>
-    /// <returns>TextBuilder type containing the bulk operation input.</returns>
-    internal procedure GetBulkOperationInput(): TextBuilder
+    /// <returns>JsonArray with request data.</returns>
+    internal procedure GetRequestData(): JsonArray
     begin
-        exit(this.BulkOperationInput);
+        exit(this.JRequestData);
     end;
 
     /// <summary>
@@ -144,17 +144,5 @@ codeunit 30413 "Shpfy Variant Image Export"
         end else
             if ItemVariant.Picture.Count > 0 then
                 exit(ItemVariant.Picture.Item(1));
-    end;
-
-    local procedure UpdateShopifyVariantImage(Variant: Record "Shpfy Variant"; PictureGuid: Guid): BigInteger
-    var
-        TenantMedia: Record "Tenant Media";
-        NewImageId: BigInteger;
-    begin
-        if TenantMedia.Get(PictureGuid) then begin
-            NewImageId := this.ProductApi.AddImageToProduct(Variant."Product Id", TenantMedia);
-            this.VariantApi.SetVariantImage(Variant, NewImageId);
-            exit(NewImageId);
-        end;
     end;
 }

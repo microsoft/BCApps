@@ -615,13 +615,13 @@ codeunit 30189 "Shpfy Variant API"
         end;
     end;
 
-    local procedure UpdateVariantImage(var Variant: Record "Shpfy Variant"; ResourceUrl: Text): BigInteger
+    local procedure UpdateVariantImage(Variant: Record "Shpfy Variant"; ResourceUrl: Text): BigInteger
     var
         ProductApi: Codeunit "Shpfy Product API";
         NewImageId: BigInteger;
     begin
         NewImageId := ProductApi.UpdateProductWithNewImage(Variant."Product Id", ResourceUrl);
-        this.SetVariantImage(Variant, NewImageId);
+        this.SetVariantImage(Variant."Product Id", Variant.Id, NewImageId);
         exit(NewImageId);
     end;
 
@@ -880,12 +880,13 @@ codeunit 30189 "Shpfy Variant API"
     /// </summary>
     /// <param name="ShopifyVariant">Shopify Variant record</param>
     /// <param name="ImageId">Shopify id of image to append</param>
-    internal procedure SetVariantImage(ShopifyVariant: Record "Shpfy Variant"; ImageId: BigInteger)
+    [TryFunction]
+    internal procedure SetVariantImage(ProductId: BigInteger; VariantId: BigInteger; ImageId: BigInteger)
     var
         Parameters: Dictionary of [Text, Text];
     begin
-        Parameters.Add('ProductId', Format(ShopifyVariant."Product Id"));
-        Parameters.Add('VariantId', Format(ShopifyVariant.Id));
+        Parameters.Add('ProductId', Format(ProductId));
+        Parameters.Add('VariantId', Format(VariantId));
         Parameters.Add('ImageId', Format(ImageId));
         this.CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::SetVariantImage, Parameters);
     end;
@@ -917,7 +918,11 @@ codeunit 30189 "Shpfy Variant API"
         end;
     end;
 
-    internal procedure UpdateShopifyVariantImage(Variant: Record "Shpfy Variant"; PictureGuid: Guid; RecordCount: Integer; VariantImageUrls: Dictionary of [BigInteger, Text]): BigInteger
+    internal procedure UpdateShopifyVariantImage(
+        Variant: Record "Shpfy Variant";
+        PictureGuid: Guid;
+        RecordCount: Integer;
+        VariantImageUrls: Dictionary of [BigInteger, Text]): BigInteger
     var
         TenantMedia: Record "Tenant Media";
         ProductApi: Codeunit "Shpfy Product API";

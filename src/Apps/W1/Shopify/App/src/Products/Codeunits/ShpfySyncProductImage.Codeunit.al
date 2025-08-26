@@ -64,7 +64,7 @@ codeunit 30184 "Shpfy Sync Product Image"
                 ParametersList := ProductImageExport.GetParametersList();
                 foreach Parameters in ParametersList do
                     if not ProductAPI.UpdateProductImage(Parameters) then
-                        RevertImageChanges(Parameters.Get('ProductId'), JRequestData);
+                        RevertProductImageChanges(Parameters.Get('ProductId'), JRequestData);
             end;
     end;
 
@@ -72,9 +72,14 @@ codeunit 30184 "Shpfy Sync Product Image"
     var
         ShopifyVariant: Record "Shpfy Variant";
         ProductApi: Codeunit "Shpfy Product API";
+        VariantApi: Codeunit "Shpfy Variant API";
+        BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
+        IBulkOperation: Interface "Shpfy IBulk Operation";
         VariantImageUrls: Dictionary of [BigInteger, Text];
         VariantImageIds: Dictionary of [BigInteger, BigInteger];
         BulkOperationInput: TextBuilder;
+        JRequestData: JsonArray;
+        VariantId: BigInteger;
     begin
         ShopifyVariant.SetRange("Shop Code", this.Shop.Code);
         ShopifyVariant.SetRange("Product Id", ProductId);
@@ -85,9 +90,20 @@ codeunit 30184 "Shpfy Sync Product Image"
             until ShopifyVariant.Next() = 0;
         VariantImageUrls := VariantImageExport.GetVariantImageUrls();
         if VariantImageUrls.Count > 0 then begin
-            VariantImageIds := ProductApi.UpdateProductWithMultipleImages(ProductId, VariantImageUrls);
+            IBulkOperation := Enum::"Shpfy Bulk Operation Type"::UpdateVariantImage;
+            VariantImageIds := ProductApi.UpdateProductWithMultipleVariantImages(ProductId, VariantImageUrls);
+            foreach VariantId in VariantImageIds.Keys do
+                BulkOperationInput.AppendLine(StrSubstNo(IBulkOperation.GetInput(), ProductId, VariantId, VariantImageIds.Get(VariantId)));
+            JRequestData := VariantImageExport.GetRequestData();
+            if not BulkOperationMgt.SendBulkMutation(Shop, Enum::"Shpfy Bulk Operation Type"::UpdateVariantImage, BulkOperationInput.ToText(), JRequestData) then
+                foreach VariantId in VariantImageIds.Keys() do
+                    if not VariantApi.SetVariantImage(ProductId, VariantId, VariantImageIds.Get(VariantId)) then
+                        RevertVariantImageChanges(VariantId, JRequestData);
+
+
         end;
     end;
+
 
     /// <summary> 
     /// Import Images.
@@ -213,7 +229,7 @@ codeunit 30184 "Shpfy Sync Product Image"
         ProductFilter := FilterText;
     end;
 
-    local procedure RevertImageChanges(ProductId: Text; JRequestData: JsonArray)
+    local procedure RevertProductImageChanges(ProductId: Text; JRequestData: JsonArray)
     var
         Product: Record "Shpfy Product";
         JRequest: JsonToken;
@@ -224,7 +240,25 @@ codeunit 30184 "Shpfy Sync Product Image"
             if Format(JProduct.GetBigInteger('id')) = ProductId then begin
                 if Product.Get(JProduct.GetBigInteger('id')) then begin
                     Product."Image Hash" := JProduct.GetInteger('imageHash');
-                    Product.Modify();
+                    Product.Modify(false);
+                end;
+                exit;
+            end;
+        end;
+    end;
+
+    local procedure RevertVariantImageChanges(VariantId: BigInteger; JRequestData: JsonArray)
+    var
+        Variant: Record "Shpfy Variant";
+        JRequest: JsonToken;
+        JVariant: JsonObject;
+    begin
+        foreach JRequest in JRequestData do begin
+            JVariant := JRequest.AsObject();
+            if Format(JVariant.GetBigInteger('id')) = Format(VariantId) then begin
+                if Variant.Get(JVariant.GetBigInteger('id')) then begin
+                    Variant."Image Hash" := JVariant.GetInteger('imageHash');
+                    Variant.Modify(false);
                 end;
                 exit;
             end;
