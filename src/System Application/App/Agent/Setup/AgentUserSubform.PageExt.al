@@ -22,33 +22,18 @@ pageextension 4318 "Agent User Subfrom" extends "User Subform"
     {
         addlast(Processing)
         {
-            action(AgentShowCompany)
+            action(AgentShowHideCompany)
             {
                 ApplicationArea = All;
-                Caption = 'Show Company';
-                Enabled = not ShowCompanyField;
+                Caption = 'Show/hide company';
+                Enabled = IsAgent;
                 Image = CompanyInformation;
                 Visible = IsAgent;
 
                 trigger OnAction()
                 begin
                     ShowCompanyOverride := true;
-                    ShowCompanyField := true;
-                end;
-            }
-
-            action(AgentHideCompany)
-            {
-                ApplicationArea = All;
-                Caption = 'Hide Company';
-                Enabled = ShowCompanyField;
-                Image = CompanyInformation;
-                Visible = IsAgent;
-
-                trigger OnAction()
-                begin
-                    ShowCompanyOverride := true;
-                    ShowCompanyField := false;
+                    ShowCompanyField := not ShowCompanyField;
                 end;
             }
         }
