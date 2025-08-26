@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/82c1b5411ec5f36699702c03723175b06ee7ee6e/Actions/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/mazhelez/custom-template-fixes/Actions/settings.schema.json",
   "type": "PTE",
   "templateUrl": "https://github.com/mazhelez/MyALGOPTETemplate@main",
   "bcContainerHelperVersion": "preview",
@@ -90,7 +90,7 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "38f06937a2ac43bd13aae1be6e37fd566c64c684",
+  "templateSha": "3ca82bc2c7d180a6aa3feeba64a8681c71826143",
   "commitOptions": {
     "messageSuffix": "Related to AB#539394",
     "pullRequestAutoMerge": true,
