@@ -457,7 +457,7 @@ page 8887 "Email Accounts"
 
 #if not CLEAN26
 #pragma warning disable AL0432
-            if not (IConnector is "Email Connector v2") and not (IConnector is "Email Connector v3") then
+            if not (IConnector is "Email Connector v2") and not (IConnector is "Email Connector v3") and not (IConnector is "Email Connector v4") then
 #pragma warning restore AL0432
 #else
             if not (IConnector is "Email Connector v3") then

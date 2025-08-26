@@ -220,8 +220,16 @@ codeunit 8900 "Email Impl"
 #pragma warning restore AL0432
 #endif
         EmailConnectorv3: Interface "Email Connector v3";
+        EmailConnectorv4: Interface "Email Connector v4";
     begin
         CheckRequiredPermissions();
+
+        if CheckAndGetEmailConnectorv4(Connector, EmailConnectorv4) then begin
+            TelemetryAppsAndPublishers(TelemetryRetrieveEmailsUsedTxt);
+            EmailConnectorv4.RetrieveEmails(EmailAccountId, EmailInbox, Filters);
+            EmailInbox.MarkedOnly(true);
+            exit;
+        end;
 
         if CheckAndGetEmailConnectorv3(Connector, EmailConnectorv3) then begin
             TelemetryAppsAndPublishers(TelemetryRetrieveEmailsUsedTxt);
@@ -241,6 +249,17 @@ codeunit 8900 "Email Impl"
 #endif
 
         Error(EmailConnectorDoesNotSupportRetrievingEmailsErr);
+    end;
+
+    procedure GetMailFolders(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailFolders: Record "Email Folders" temporary)
+    var
+        EmailConnectorv4: Interface "Email Connector v4";
+    begin
+        CheckRequiredPermissions();
+
+        CheckAndGetEmailConnectorv4(Connector, EmailConnectorv4);
+
+        EmailConnectorv4.GetEmailFolders(EmailAccountId, EmailFolders);
     end;
 
     local procedure TelemetryAppsAndPublishers(Message: Text)
@@ -273,12 +292,17 @@ codeunit 8900 "Email Impl"
 #pragma warning restore AL0432
 #endif
         EmailConnectorv3: Interface "Email Connector v3";
+        EmailConnectorv4: Interface "Email Connector v4";
     begin
         CheckRequiredPermissions();
 
         if ExternalId = '' then
             Error(ExternalIdCannotBeEmptyErr);
 
+        if CheckAndGetEmailConnectorv4(Connector, EmailConnectorv4) then begin
+            EmailConnectorv4.MarkAsRead(EmailAccountId, ExternalId);
+            exit;
+        end;
         if CheckAndGetEmailConnectorv3(Connector, EmailConnectorv3) then begin
             EmailConnectorv3.MarkAsRead(EmailAccountId, ExternalId);
             exit;
@@ -303,8 +327,11 @@ codeunit 8900 "Email Impl"
 #pragma warning restore AL0432
 #endif
         EmailConnectorv3: Interface "Email Connector v3";
+        EmailConnectorv4: Interface "Email Connector v4";
     begin
         if CheckAndGetEmailConnectorv3(Connector, EmailConnectorv3) then
+            exit(true);
+        if CheckAndGetEmailConnectorv4(Connector, EmailConnectorv4) then
             exit(true);
 #if not CLEAN26
 #pragma warning disable AL0432
@@ -333,6 +360,15 @@ codeunit 8900 "Email Impl"
     begin
         if Connector is "Email Connector v3" then begin
             Connectorv3 := Connector as "Email Connector v3";
+            exit(true);
+        end else
+            exit(false);
+    end;
+
+    procedure CheckAndGetEmailConnectorv4(Connector: Interface "Email Connector"; var Connectorv3: Interface "Email Connector v4"): Boolean
+    begin
+        if Connector is "Email Connector v4" then begin
+            Connectorv3 := Connector as "Email Connector v4";
             exit(true);
         end else
             exit(false);
