@@ -15,7 +15,7 @@
       "id": "e4e86220-cac0-4ec3-b853-7c2fa610399d",
       "name": "Power BI Report embeddings for Dynamics 365 Business Central",
       "publisher": "Microsoft",
-      "version": "27.0.0.0"
+      "version": "27.1.0.0"
     }
   ],
   "screenshots": [],
@@ -33,7 +33,7 @@
     }
   ],
   "platform": "27.0.0.0",
-  "application": "27.0.0.0",
+  "application": "27.1.0.0",
   "idRanges": [
     {
       "from": 8000,
