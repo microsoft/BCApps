@@ -6,7 +6,6 @@
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Inventory.Item;
-using System.Environment;
 
 /// <summary>
 /// Codeunit Shpfy Variant Image Export (ID 30413).
@@ -68,7 +67,8 @@ codeunit 30413 "Shpfy Variant Image Export"
             JRequest.Add('id', Rec.Id);
             JRequest.Add('imageHash', Rec."Image Hash");
             this.JRequestData.Add(JRequest);
-            Rec."Image Id" := NewImageId;
+            if NewImageId <> 0 then
+                Rec."Image Id" := NewImageId;
             Rec."Image Hash" := Hash;
             Rec.Modify(false);
         end;
@@ -80,9 +80,7 @@ codeunit 30413 "Shpfy Variant Image Export"
         VariantApi: Codeunit "Shpfy Variant API";
         CurrRecordCount: Integer;
         NullGuid: Guid;
-        ParametersList: List of [Dictionary of [Text, Text]];
         VariantImageUrls: Dictionary of [BigInteger, Text];
-        BulkOperationInput: TextBuilder;
         JRequestData: JsonArray;
 
     /// <summary> 
