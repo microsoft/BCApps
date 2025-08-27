@@ -131,11 +131,11 @@ codeunit 134247 "Shpfy Market Catalog API Test"
         Catalog.SetRange("Shop Code", Shop.Code);
         LibraryAssert.AreEqual(3, Catalog.Count(), 'Incorrect number of Market Catalogs has been created');
 
-        // [THEN] Two catalogs with empty currency code (LCY), one with USD
+        // [THEN] Two catalogs with empty currency code (LCY), one with RSD
         Catalog.SetRange("Currency Code", '');
         LibraryAssert.AreEqual(2, Catalog.Count(), 'Incorrect number of Market Catalogs with empty currency code has been created');
-        Catalog.SetRange("Currency Code", 'USD');
-        LibraryAssert.AreEqual(1, Catalog.Count(), 'Incorrect number of Market Catalogs with USD currency code has been created');
+        Catalog.SetRange("Currency Code", 'RSD');
+        LibraryAssert.AreEqual(1, Catalog.Count(), 'Incorrect number of Market Catalogs with RSD currency code has been created');
 
         // [THEN] Verify that all expected outbound HTTP requests were executed
         OutboundHttpRequests.AssertEmpty();
