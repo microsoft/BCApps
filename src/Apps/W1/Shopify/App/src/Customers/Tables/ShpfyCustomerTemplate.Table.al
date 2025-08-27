@@ -15,7 +15,7 @@ table 30107 "Shpfy Customer Template"
 {
     Access = Internal;
     DataClassification = CustomerContent;
-    Caption = 'Shopify Customer Template';
+    Caption = 'Shopify Customer Setup by Country/Region';
 
     fields
     {
