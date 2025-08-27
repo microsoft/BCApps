@@ -10,7 +10,7 @@ namespace Microsoft.Integration.Shopify;
 /// </summary>
 page 30108 "Shpfy Customer Templates"
 {
-    Caption = 'Shopify Customer Templates';
+    Caption = 'Shopify Customer Setup by Country/Region';
     PageType = List;
     SourceTable = "Shpfy Customer Template";
     UsageCategory = None;
