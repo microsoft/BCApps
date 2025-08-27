@@ -281,7 +281,7 @@ codeunit 8032 "Upgrade Subscription Billing"
 
     local procedure DeleteSalesSubscriptionLinesConnectedToDeletedQuoteTag(): Text[250]
     begin
-        exit('MS-XXXXXX-DeleteSalesSubscriptionLinesConnectedToDeletedQuoteTag-20250819');
+        exit('MS-598518-DeleteSalesSubscriptionLinesConnectedToDeletedQuoteTag-20250819');
     end;
 
     local procedure RemoveDocumentNoFromBillingLines()
