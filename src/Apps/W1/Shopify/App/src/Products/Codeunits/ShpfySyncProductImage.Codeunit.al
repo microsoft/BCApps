@@ -99,8 +99,6 @@ codeunit 30184 "Shpfy Sync Product Image"
                 foreach VariantId in VariantImageIds.Keys() do
                     if not VariantApi.SetVariantImage(ProductId, VariantId, VariantImageIds.Get(VariantId)) then
                         RevertVariantImageChanges(VariantId, JRequestData);
-
-
         end;
     end;
 
