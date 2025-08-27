@@ -27,7 +27,15 @@ page 30174 "Shpfy Market Catalogs"
                 field(Id; Rec.Id) { }
                 field(Name; Rec.Name) { }
                 field(SyncPrices; Rec."Sync Prices") { }
-                field("Customer No."; Rec."Customer No.") { }
+#if not CLEAN28
+                field("Customer No."; Rec."Customer No.")
+                {
+                    Visible = false;
+                    ObsoleteReason = 'Customer No. is not used for market catalogs.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '28.0';
+                }
+#endif
                 field("Currency Code"; Rec."Currency Code")
                 {
                     Editable = false;
