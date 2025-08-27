@@ -97,13 +97,13 @@ jobs:
     name: ${{ inputs.projectName }} (${{ inputs.buildMode }})
     steps:
       - name: Checkout
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           ref: ${{ inputs.checkoutRef }}
           lfs: true
 
       - name: Read settings
-        uses: microsoft/AL-Go/Actions/ReadSettings@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/ReadSettings@82c1b5411ec5f36699702c03723175b06ee7ee6e
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -112,7 +112,7 @@ jobs:
 
       - name: Determine whether to build project
         id: DetermineBuildProject
-        uses: microsoft/AL-Go/Actions/DetermineBuildProject@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/DetermineBuildProject@82c1b5411ec5f36699702c03723175b06ee7ee6e
         with:
           shell: ${{ inputs.shell }}
           skippedProjectsJson: ${{ inputs.skippedProjectsJson }}
@@ -122,7 +122,7 @@ jobs:
       - name: Read secrets
         id: ReadSecrets
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && github.event_name != 'pull_request'
-        uses: microsoft/AL-Go/Actions/ReadSecrets@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/ReadSecrets@82c1b5411ec5f36699702c03723175b06ee7ee6e
         with:
           shell: ${{ inputs.shell }}
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -130,7 +130,7 @@ jobs:
 
       - name: Checkout Submodules
         if: env.useGitSubmodules != 'false' && env.useGitSubmodules != ''
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           ref: ${{ inputs.checkoutRef }}
           lfs: true
@@ -140,7 +140,7 @@ jobs:
       - name: Determine ArtifactUrl
         id: determineArtifactUrl
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
-        uses: microsoft/AL-Go/Actions/DetermineArtifactUrl@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/DetermineArtifactUrl@82c1b5411ec5f36699702c03723175b06ee7ee6e
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -155,7 +155,7 @@ jobs:
       - name: Download Project Dependencies
         id: DownloadProjectDependencies
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
-        uses: microsoft/AL-Go/Actions/DownloadProjectDependencies@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/DownloadProjectDependencies@82c1b5411ec5f36699702c03723175b06ee7ee6e
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -166,7 +166,7 @@ jobs:
           baselineWorkflowRunId: ${{ inputs.baselineWorkflowRunId }}
 
       - name: Build
-        uses: microsoft/AL-Go/Actions/RunPipeline@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/RunPipeline@82c1b5411ec5f36699702c03723175b06ee7ee6e
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
@@ -185,7 +185,7 @@ jobs:
       - name: Sign
         id: sign
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && inputs.signArtifacts && env.doNotSignApps == 'False' && (env.keyVaultCodesignCertificateName != '' || (fromJson(env.trustedSigning).Endpoint != '' && fromJson(env.trustedSigning).Account != '' && fromJson(env.trustedSigning).CertificateProfile != ''))
-        uses: microsoft/AL-Go/Actions/Sign@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/Sign@82c1b5411ec5f36699702c03723175b06ee7ee6e
         with:
           shell: ${{ inputs.shell }}
           azureCredentialsJson: '${{ fromJson(steps.ReadSecrets.outputs.Secrets).AZURE_CREDENTIALS }}'
@@ -193,7 +193,7 @@ jobs:
 
       - name: Calculate Artifact names
         id: calculateArtifactsNames
-        uses: microsoft/AL-Go/Actions/CalculateArtifactNames@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/CalculateArtifactNames@82c1b5411ec5f36699702c03723175b06ee7ee6e
         if: success() || failure()
         with:
           shell: ${{ inputs.shell }}
@@ -279,7 +279,7 @@ jobs:
       - name: Analyze Test Results
         id: analyzeTestResults
         if: (success() || failure()) && env.doNotRunTests == 'False'
-        uses: microsoft/AL-Go/Actions/AnalyzeTests@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/AnalyzeTests@82c1b5411ec5f36699702c03723175b06ee7ee6e
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -288,7 +288,7 @@ jobs:
       - name: Analyze BCPT Test Results
         id: analyzeTestResultsBCPT
         if: (success() || failure()) && env.doNotRunBcptTests == 'False'
-        uses: microsoft/AL-Go/Actions/AnalyzeTests@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/AnalyzeTests@82c1b5411ec5f36699702c03723175b06ee7ee6e
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -297,7 +297,7 @@ jobs:
       - name: Analyze Page Scripting Test Results
         id: analyzeTestResultsPageScripting
         if: (success() || failure()) && env.doNotRunpageScriptingTests == 'False'
-        uses: microsoft/AL-Go/Actions/AnalyzeTests@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/AnalyzeTests@82c1b5411ec5f36699702c03723175b06ee7ee6e
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -305,7 +305,7 @@ jobs:
 
       - name: Cleanup
         if: always() && steps.DetermineBuildProject.outputs.BuildIt == 'True'
-        uses: microsoft/AL-Go/Actions/PipelineCleanup@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/PipelineCleanup@82c1b5411ec5f36699702c03723175b06ee7ee6e
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
