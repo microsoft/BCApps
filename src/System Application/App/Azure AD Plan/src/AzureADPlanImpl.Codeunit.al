@@ -216,6 +216,7 @@ codeunit 9018 "Azure AD Plan Impl."
     end;
 
     [NonDebuggable]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"User Plan", 'r')]
     procedure DoesUserHavePlans(UserSecurityId: Guid): Boolean
     var
         UserPlan: Record "User Plan";
@@ -656,6 +657,7 @@ codeunit 9018 "Azure AD Plan Impl."
     procedure AssignPlanToUserWithDelegatedRole(UserSID: Guid; SkipUpdateUserAccess: Boolean)
     var
         UserPlan: Record "User Plan";
+        UserProperty: Record "User Property";
         AzureADPlan: Codeunit "Azure AD Plan";
         PlanIds: Codeunit "Plan Ids";
         PlanConfigurationImpl: Codeunit "Plan Configuration Impl.";
@@ -692,6 +694,12 @@ codeunit 9018 "Azure AD Plan Impl."
 
         // Exit if user access should not be updated
         if SkipUpdateUserAccess then
+            exit;
+
+        if not UserProperty.Get(UserSID) then
+            exit;
+
+        if DoesUserHavePlans(UserSID) then
             exit;
 
         // Assign user groups for the user
