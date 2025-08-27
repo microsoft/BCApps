@@ -71,7 +71,8 @@ function GetSourceCodeFromArtifact() {
     # Update the version in the app.json file (temporary fix until we have versions in a Directory.App.Props.json)
     $majorMinorVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
     $fullVersion = "$($majorMinorVersion).0.0"
-    Update-VersionInAppJson -Path $sourceCodeFolder -CurrentVersion $fullVersion -MinimumVersion $fullVersion -PlatformVersion $fullVersion
+    $platformVersion = "27.0.0.0" # Temporary workaround. Needs to be updated once platform version is updated
+    Update-VersionInAppJson -Path $sourceCodeFolder -CurrentVersion $fullVersion -MinimumVersion $fullVersion -PlatformVersion $platformVersion
 
     return $sourceCodeFolder
 }
