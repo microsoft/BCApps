@@ -32,17 +32,19 @@ pageextension 4318 "Agent User Subfrom" extends "User Subform"
 
                 trigger OnAction()
                 begin
-                    ShowCompanyOverride := true;
+                    if (not ShowCompanyField and (GlobalSingleCompanyName <> '')) then
+                        // A confirmation dialog is raised when the user shows the company field
+                        // for an agent that operates in a single company.
+                        if not Confirm(ShowSingleCompanyQst, false) then
+                            exit;
+
+                    ShowCompanyFieldOverride := true;
                     ShowCompanyField := not ShowCompanyField;
+                    CurrPage.Update(false);
                 end;
             }
         }
     }
-
-    trigger OnAfterGetCurrRecord()
-    begin
-        UpdateGlobalVariables();
-    end;
 
     trigger OnAfterGetRecord()
     begin
@@ -51,11 +53,20 @@ pageextension 4318 "Agent User Subfrom" extends "User Subform"
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
-        if (IsAgent and (Rec."Company Name" = '') and (GlobalSingleCompanyName <> '') and not ShowCompanyField) then
-            // If the company name is not specified, the agent operates in single company,
-            // and the user didn't toggle to view the company names, default the inserted record
-            // to the single known company name.
-            Rec."Company Name" := GlobalSingleCompanyName;
+        if (IsAgent and (GlobalSingleCompanyName <> '')) then begin
+            if (Rec."Company Name" = '') and not ShowCompanyField then
+                // Default the company name for the inserted record when all these conditions are met:
+                // 1. The agent operates in a single company,
+                // 2. The company name is not explicit specified,
+                // 3. The user didn't toggle to view the company name field on permissions.
+                Rec."Company Name" := GlobalSingleCompanyName;
+
+            if (Rec."Company Name" <> GlobalSingleCompanyName) then
+                // The agent used to operation in a single company, but operates in multiple ones now.
+                // Ideally, other scenarios should also trigger an update (delete, modify), but insert
+                // was identified as the main one.
+                GlobalSingleCompanyName := '';
+        end;
     end;
 
     local procedure UpdateGlobalVariables()
@@ -67,9 +78,7 @@ pageextension 4318 "Agent User Subfrom" extends "User Subform"
         else
             IsAgent := false;
 
-        // var UserSettings: Codeunit "User Settings";
-        // UserSettings.GetAllowedCompaniesForCurrentUser(Rec);
-        if not ShowCompanyOverride then begin
+        if not ShowCompanyFieldOverride then begin
             ShowCompanyField := not AccessControlForSingleCompany(GlobalSingleCompanyName);
             CurrPage.Update(false);
         end;
@@ -79,6 +88,9 @@ pageextension 4318 "Agent User Subfrom" extends "User Subform"
     var
         AccessControl: Record "Access Control";
     begin
+        // var UserSettings: Codeunit "User Settings";
+        // UserSettings.GetAllowedCompaniesForCurrentUser(Rec);
+
         if not IsAgent then
             exit(false);
 
@@ -104,6 +116,7 @@ pageextension 4318 "Agent User Subfrom" extends "User Subform"
     var
         IsAgent: Boolean;
         ShowCompanyField: Boolean;
-        ShowCompanyOverride: Boolean;
+        ShowCompanyFieldOverride: Boolean;
         GlobalSingleCompanyName: Text[30];
+        ShowSingleCompanyQst: Label 'This agent currently has permissions in only one company. By showing the Company field, you will be able to assign permissions in other companies, making the agent available there. The agent may not have been designed to work cross companies.\\Do you want to continue?';
 }
