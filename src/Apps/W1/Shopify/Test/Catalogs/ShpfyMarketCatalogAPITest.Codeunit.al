@@ -7,7 +7,6 @@ namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
-using System.Utilities;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.TestLibraries.Utilities;
 
@@ -19,15 +18,15 @@ codeunit 134247 "Shpfy Market Catalog API Test"
     TestType = IntegrationTest;
 
     var
+        Shop: Record "Shpfy Shop";
         LibraryAssert: Codeunit "Library Assert";
         LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         OutboundHttpRequests: Codeunit "Library - Variable Storage";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        ShopifyShop: Codeunit "Library - Variable Storage";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
         UnexpectedAPICallsErr: Label 'More than expected API calls to Shopify detected.';
-        ShopifyShopUrlTok: Label 'admin\/api\/.+\/graphql.json', Locked = true;
 
     trigger OnRun()
     begin
@@ -39,7 +38,6 @@ codeunit 134247 "Shpfy Market Catalog API Test"
     procedure UnitTestExtractShopifyMarketCatalogs()
     var
         Catalog: Record "Shpfy Catalog";
-        Shop: Record "Shpfy Shop";
         CatalogAPI: Codeunit "Shpfy Catalog API";
     begin
         Initialize();
@@ -52,7 +50,6 @@ codeunit 134247 "Shpfy Market Catalog API Test"
         RegExpectedOutboundHttpRequestsForGetMarketCatalogs();
 
         // [WHEN] Invoke CatalogAPI.GetMarketCatalogs to get Market Catalogs and linked markets
-        Shop.Get(ShopifyShop.PeekText(1));
         CatalogAPI.SetShop(Shop);
         CatalogAPI.GetMarketCatalogs();
 
@@ -70,7 +67,6 @@ codeunit 134247 "Shpfy Market Catalog API Test"
     procedure UnitTestSynchronizeMarketCatalogPrices()
     var
         Catalog: Record "Shpfy Catalog";
-        Shop: Record "Shpfy Shop";
         SyncCatalogPrices: Codeunit "Shpfy Sync Catalog Prices";
     begin
         Initialize();
@@ -78,9 +74,6 @@ codeunit 134247 "Shpfy Market Catalog API Test"
         // [SCENARIO] Synchronize Market Catalog Prices from the Business Central.
 
         // [GIVEN] Market Catalogs and Linked Catalog Markets JResponses
-
-        // [GIVEN] Create Shopify Shop
-        Shop.Get(ShopifyShop.PeekText(1));
 
         // [GIVEN] Shopify Products and Pruduct Variants
         CreateProductsWithVariants(Shop);
@@ -104,7 +97,6 @@ codeunit 134247 "Shpfy Market Catalog API Test"
     procedure UnitTestExtractShopifyMarketCatalogCurrency()
     var
         Catalog: Record "Shpfy Catalog";
-        Shop: Record "Shpfy Shop";
         GeneralLedgerSetup: Record "General Ledger Setup";
         CatalogAPI: Codeunit "Shpfy Catalog API";
     begin
@@ -122,7 +114,6 @@ codeunit 134247 "Shpfy Market Catalog API Test"
         RegExpectedOutboundHttpRequestsForGetMarketCatalogs();
 
         // [WHEN] Invoke CatalogAPI.GetMarketCatalogs to get Market Catalogs and linked markets
-        Shop.Get(ShopifyShop.PeekText(1));
         CatalogAPI.SetShop(Shop);
         CatalogAPI.GetMarketCatalogs();
 
@@ -144,13 +135,12 @@ codeunit 134247 "Shpfy Market Catalog API Test"
     [HttpClientHandler]
     internal procedure HttpSubmitHandler_GetMarketCatalogs(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
-        Regex: Codeunit Regex;
         MarketCatalogsResponseTok: Label 'Catalogs/MarketCatalogResponse.txt', Locked = true;
         CatalogMarketsResponse1Tok: Label 'Catalogs/CatalogMarkets1.txt', Locked = true;
         CatalogMarketsResponse2Tok: Label 'Catalogs/CatalogMarkets2.txt', Locked = true;
         CatalogMarketsResponse3Tok: Label 'Catalogs/CatalogMarkets3.txt', Locked = true;
     begin
-        if not Regex.IsMatch(Request.Path, ShopifyShopUrlTok) then
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
             exit(true);
 
         case OutboundHttpRequests.Length() of
@@ -171,12 +161,11 @@ codeunit 134247 "Shpfy Market Catalog API Test"
     [HttpClientHandler]
     internal procedure HttpSubmitHandler_UpdateCatalogPrices(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
-        Regex: Codeunit Regex;
         CatalogProductsResponseTok: Label 'Catalogs/CatalogProducts.txt', Locked = true;
         CatalogPricesResponseTok: Label 'Catalogs/CatalogPrices.txt', Locked = true;
         CatalogPriceUpdateResponseTok: Label 'Catalogs/CatalogPricesUpdate.txt', Locked = true;
     begin
-        if not Regex.IsMatch(Request.Path, ShopifyShopUrlTok) then
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
             exit(true);
 
         case OutboundHttpRequests.Length() of
@@ -194,9 +183,7 @@ codeunit 134247 "Shpfy Market Catalog API Test"
 
     local procedure Initialize()
     var
-        Shop: Record "Shpfy Shop";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
-        InitializeTest: Codeunit "Shpfy Initialize Test";
         AccessToken: SecretText;
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Shpfy Market Catalog API Test");
@@ -215,7 +202,6 @@ codeunit 134247 "Shpfy Market Catalog API Test"
 
         // Creating Shopify Shop
         Shop := InitializeTest.CreateShop();
-        ShopifyShop.Enqueue(Shop.Code);
         // Disable Event Mocking 
         CommunicationMgt.SetTestInProgress(false);
         //Register Shopify Access Token
@@ -281,24 +267,24 @@ codeunit 134247 "Shpfy Market Catalog API Test"
         exit(Format(IdValue));
     end;
 
-    local procedure CreateMarketCatalog(var Catalog: Record "Shpfy Catalog"; Shop: Record "Shpfy Shop")
+    local procedure CreateMarketCatalog(var Catalog: Record "Shpfy Catalog"; ShopifyShop: Record "Shpfy Shop")
     var
         CatalogInitialize: Codeunit "Shpfy Catalog Initialize";
     begin
         Catalog := CatalogInitialize.CreateCatalog(Catalog."Catalog Type"::Market);
-        Catalog."Shop Code" := Shop.Code;
+        Catalog."Shop Code" := ShopifyShop.Code;
         Catalog."Sync Prices" := true;
         Catalog.Modify(false);
     end;
 
-    local procedure CreateProductsWithVariants(Shop: Record "Shpfy Shop")
+    local procedure CreateProductsWithVariants(ShopifyShop: Record "Shpfy Shop")
     var
         ShopifyVariant: Record "Shpfy Variant";
         ProductInitTest: Codeunit "Shpfy Product Init Test";
         i: Integer;
     begin
         for i := 1 to 3 do begin
-            ShopifyVariant := ProductInitTest.CreateStandardProduct(Shop);
+            ShopifyVariant := ProductInitTest.CreateStandardProduct(ShopifyShop);
             AssignItemToShopifyVariant(ShopifyVariant);
             LibraryVariableStorage.Enqueue(ShopifyVariant."Product Id");
             LibraryVariableStorage.Enqueue(ShopifyVariant."Id");
