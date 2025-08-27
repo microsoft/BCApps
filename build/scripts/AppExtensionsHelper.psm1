@@ -69,11 +69,15 @@ function GetSourceCodeFromArtifact() {
     }
 
     # Find Directory.App.Props.json in the source code folder and copy to the parent folder
-    $directoryAppProps = Get-ChildItem -Path $sourceCodeFolder -Filter "Directory.App.Props.json" -ErrorAction SilentlyContinue | Select-Object -First 1
-    if (-not $directoryAppProps) {
+    $directoryAppPropsPath = Get-ChildItem -Path $sourceCodeFolder -Filter "Directory.App.Props.json" -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $directoryAppPropsPath) {
         throw "Could not find Directory.App.Props.json in the source code for $AppName"
     }
-    Copy-Item -Path $directoryAppProps.FullName -Destination (Split-Path $sourceCodeFolder -Parent) -Force
+    $directoryAppProps = Get-Content -Path $directoryAppPropsPath.FullName | ConvertFrom-Json
+    Update-VersionInAppJson -Path $sourceCodeFolder `
+                             -CurrentVersion $directoryAppProps.variables.app_currentVersion `
+                             -MinimumVersion $directoryAppProps.variables.app_minimumVersion `
+                             -PlatformVersion $directoryAppProps.variables.app_platformVersion
 
     return $sourceCodeFolder
 }
