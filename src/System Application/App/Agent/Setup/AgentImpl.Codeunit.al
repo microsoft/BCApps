@@ -151,17 +151,13 @@ codeunit 4301 "Agent Impl."
     var
         Agent: Record Agent;
         TempAllProfile: Record "All Profile" temporary;
-        UserSettingsRecord: Record "User Settings";
         AgentFactory: Interface IAgentFactory;
-        UserSettings: Codeunit "User Settings";
     begin
         GetAgent(Agent, AgentUserSecurityID);
 
         AgentFactory := Agent."Agent Metadata Provider";
         AgentFactory.GetDefaultProfile(TempAllProfile);
-        UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
-        UpdateProfile(TempAllProfile, UserSettingsRecord);
-        UpdateAgentUserSettings(UserSettingsRecord);
+        SetProfile(AgentUserSecurityID, TempAllProfile);
     end;
 
     internal procedure SetProfile(AgentUserSecurityID: Guid; var AllProfile: Record "All Profile") // TODO(qutreson) to be removed.

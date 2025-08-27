@@ -140,7 +140,7 @@ codeunit 4321 Agent
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
     /// <param name="AllProfile">Profile to set to the agent.</param>
     [Scope('OnPrem')]
-    procedure SetProfile(AgentUserSecurityID: Guid; var AllProfile: Record "All Profile") // TODO(qutreson) to be removed.
+    procedure SetProfile(AgentUserSecurityID: Guid; var AllProfile: Record "All Profile")
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
