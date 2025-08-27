@@ -26,22 +26,22 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Initialize the workflow
         id: init
-        uses: microsoft/AL-Go/Actions/WorkflowInitialize@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/WorkflowInitialize@82c1b5411ec5f36699702c03723175b06ee7ee6e
         with:
           shell: powershell
 
       - name: Read settings
-        uses: microsoft/AL-Go/Actions/ReadSettings@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/ReadSettings@82c1b5411ec5f36699702c03723175b06ee7ee6e
         with:
           shell: powershell
 
       - name: Determine Deployment Environments
         id: DetermineDeploymentEnvironments
-        uses: microsoft/AL-Go/Actions/DetermineDeploymentEnvironments@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/DetermineDeploymentEnvironments@82c1b5411ec5f36699702c03723175b06ee7ee6e
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -54,13 +54,13 @@ jobs:
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
 
       - name: Build Reference Documentation
-        uses: microsoft/AL-Go/Actions/BuildReferenceDocumentation@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/BuildReferenceDocumentation@82c1b5411ec5f36699702c03723175b06ee7ee6e
         with:
           shell: powershell
           artifacts: 'latest'
 
       - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:
           path: ".aldoc/_site/"
 
@@ -71,7 +71,7 @@ jobs:
 
       - name: Finalize the workflow
         if: always()
-        uses: microsoft/AL-Go/Actions/WorkflowPostProcess@250d7baaa7ad675616c6465fb764eb2494e9639b
+        uses: microsoft/AL-Go/Actions/WorkflowPostProcess@82c1b5411ec5f36699702c03723175b06ee7ee6e
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
