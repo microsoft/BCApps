@@ -841,7 +841,6 @@ codeunit 30189 "Shpfy Variant API"
                 exit(true);
     end;
 
-
     /// <summary>
     /// Set variant image using resource URL.
     /// </summary>
@@ -863,13 +862,13 @@ codeunit 30189 "Shpfy Variant API"
 
         if not this.JsonHelper.GetJsonArray(JResponse, JArray, 'data.productVariantsBulkUpdate.productVariants') then
             exit;
-        if JArray.Count <> 1 then
+        if JArray.Count() <> 1 then
             exit;
         if not JArray.Get(0, JResponse) then
             exit;
         if not this.JsonHelper.GetJsonArray(JResponse, JArray, 'media.edges') then
             exit;
-        if JArray.Count <> 1 then
+        if JArray.Count() <> 1 then
             exit;
         if JArray.Get(0, JResponse) then
             exit(this.CommunicationMgt.GetIdOfGId(this.JsonHelper.GetValueAsText(JResponse, 'node.id')));
@@ -880,32 +879,26 @@ codeunit 30189 "Shpfy Variant API"
     /// </summary>
     /// <param name="ShopifyVariant">Shopify Variant record</param>
     /// <param name="ImageId">Shopify id of image to append</param>
-    [TryFunction]
-    internal procedure SetVariantImage(ProductId: BigInteger; VariantId: BigInteger; ImageId: BigInteger)
+    internal procedure SetVariantImage(ProductId: BigInteger; VariantId: BigInteger; ImageId: BigInteger): Boolean
     var
         Parameters: Dictionary of [Text, Text];
+        JResponse: JsonToken;
+        JErrors: JsonArray;
     begin
         Parameters.Add('ProductId', Format(ProductId));
         Parameters.Add('VariantId', Format(VariantId));
         Parameters.Add('ImageId', Format(ImageId));
-        this.CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::SetVariantImage, Parameters);
+        JResponse := this.CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::SetVariantImage, Parameters);
+        if this.JsonHelper.GetJsonArray(JResponse, JErrors, 'data.productVariantUpdate.userErrors') then
+            exit((JErrors.Count() = 0));
     end;
 
     /// <summary>
-    /// Detach image from Shopify variant.
+    /// Create a new Shopify variant image.
     /// </summary>
-    /// <param name="ShopifyVariant">Shopify Variant record</param>
-    /// <param name="ImageId">Shopify id of image to detach</param>
-    internal procedure DetachVariantImage(ShopifyVariant: Record "Shpfy Variant")
-    var
-        Parameters: Dictionary of [Text, Text];
-    begin
-        Parameters.Add('ProductId', Format(ShopifyVariant."Product Id"));
-        Parameters.Add('VariantId', Format(ShopifyVariant.Id));
-        Parameters.Add('ImageId', Format(ShopifyVariant."Image Id"));
-        this.CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::DetachVariantImage, Parameters);
-    end;
-
+    /// <param name="Variant">Related variant record</param>
+    /// <param name="PictureGuid">GUID of the picture to upload</param>
+    /// <returns>Returns the new image ID</returns>
     internal procedure CreateShopifyVariantImage(Variant: Record "Shpfy Variant"; PictureGuid: Guid): BigInteger
     var
         TenantMedia: Record "Tenant Media";
@@ -918,11 +911,19 @@ codeunit 30189 "Shpfy Variant API"
         end;
     end;
 
+    /// <summary>
+    /// Update variant image.
+    /// </summary>
+    /// <param name="Variant">Related variant record</param>
+    /// <param name="PictureGuid">GUID of the picture to upload</param>
+    /// <param name="RecordCount">Number of records to process</param>
+    /// <param name="VariantImageUrls">Return value:Dictionary to hold uploaded variant image URLs</param>
+    /// <returns>Returns the new image ID in case update is in non bulk mode</returns>
     internal procedure UpdateShopifyVariantImage(
         Variant: Record "Shpfy Variant";
         PictureGuid: Guid;
         RecordCount: Integer;
-        VariantImageUrls: Dictionary of [BigInteger, Text]): BigInteger
+        var VariantImageUrls: Dictionary of [BigInteger, Text]): BigInteger
     var
         TenantMedia: Record "Tenant Media";
         ProductApi: Codeunit "Shpfy Product API";
