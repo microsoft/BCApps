@@ -8,7 +8,7 @@ namespace System.Agents;
 using System.Security.User;
 using System.Security.AccessControl;
 
-pageextension 4318 "Agent User Subfrom" extends "User Subform"
+pageextension 4318 "Agent User Subform" extends "User Subform"
 {
     layout
     {
@@ -29,6 +29,7 @@ pageextension 4318 "Agent User Subfrom" extends "User Subform"
                 Enabled = IsAgent;
                 Image = CompanyInformation;
                 Visible = IsAgent;
+                ToolTip = 'Show or hide the company name.';
 
                 trigger OnAction()
                 begin
@@ -103,12 +104,11 @@ pageextension 4318 "Agent User Subfrom" extends "User Subform"
             // The agent has access to all companies.
             exit(false);
 
-        while AccessControl.Next() <> 0 do begin
+        while AccessControl.Next() <> 0 do
             if SingleCompanyName <> AccessControl."Company Name" then begin
                 SingleCompanyName := '';
                 exit(false);
             end;
-        end;
 
         exit(true);
     end;
