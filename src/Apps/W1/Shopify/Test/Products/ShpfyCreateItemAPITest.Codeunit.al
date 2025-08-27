@@ -7,7 +7,6 @@ namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
 using System.TestLibraries.Utilities;
-using System.Utilities;
 
 codeunit 139552 "Shpfy Create Item API Test"
 {
@@ -18,52 +17,50 @@ codeunit 139552 "Shpfy Create Item API Test"
     EventSubscriberInstance = Manual;
 
     var
+        Shop: Record "Shpfy Shop";
         LibraryAssert: Codeunit "Library Assert";
         LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         OutboundHttpRequests: Codeunit "Library - Variable Storage";
         ShpfyCreateItemAPITest: Codeunit "Shpfy Create Item API Test";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
-        ShopCode: Code[20];
         ProductId: BigInteger;
         VariantId: BigInteger;
         CreateItemErr: Label 'Item not created', Locked = true;
         UnexpectedAPICallsErr: Label 'More than expected API calls to Shopify detected.';
-        ShopifyShopUrlTok: Label 'admin\/api\/.+\/graphql.json', Locked = true;
 
     trigger OnRun()
     begin
-        this.IsInitialized := false;
+        IsInitialized := false;
     end;
 
     [Test]
     [HandlerFunctions('GetProductsHttpHandler')]
     procedure UnitTestErrorClearOnSuccessfulItemCreation()
     var
-        Shop: Record "Shpfy Shop";
         Product: Record "Shpfy Product";
         ShopifyVariant: Record "Shpfy Variant";
         ProductInitTest: Codeunit "Shpfy Product Init Test";
         CreateItem: Codeunit "Shpfy Create Item";
         EmptyGuid: Guid;
     begin
-        this.Initialize();
+        Initialize();
 
         // [SCENARIO] Clear error on Shopify Product when Item from a Shopify Product creation is successful.
 
         // [GIVEN] Register Expected Outbound API Requests.
-        this.RegExpectedOutboundHttpRequestsForGetProducts();
+        RegExpectedOutboundHttpRequestsForGetProducts();
 
         // [GIVEN] A Shopify variant record of a standard shopify product. (The variant record always exists, even if the products don't have any variants.)
-        Shop.Get(this.ShopCode);
         ShopifyVariant := ProductInitTest.CreateStandardProduct(Shop);
-        this.ProductId := ShopifyVariant."Product Id";
-        this.VariantId := ShopifyVariant."Id";
+        ProductId := ShopifyVariant."Product Id";
+        VariantId := ShopifyVariant."Id";
 
         // [GIVEN] A Shopify product record has error logged.
         Product.Get(ShopifyVariant."Product Id");
         Product."Has Error" := true;
-        Product."Error Message" := this.CreateItemErr;
+        Product."Error Message" := CreateItemErr;
         Product.Modify(false);
 
         // [WHEN] Invoke ShpfyCreateItem.CreateItemFromShopifyProduct to create items from Shopify product.
@@ -71,104 +68,99 @@ codeunit 139552 "Shpfy Create Item API Test"
 
         // [THEN] On the "Shpfy Product" record, the field "Item SystemId" must be filled.
         Product.Get(ShopifyVariant."Product Id");
-        this.LibraryAssert.AreNotEqual(Product."Item SystemId", EmptyGuid, '"Item SystemId" value must not be empty');
+        LibraryAssert.AreNotEqual(Product."Item SystemId", EmptyGuid, '"Item SystemId" value must not be empty');
 
         // [THEN] On the "Shpfy Product" record, the field "Has Error" must have value false.
-        this.LibraryAssert.IsFalse(Product."Has Error", '"Has Error" value must be false');
+        LibraryAssert.IsFalse(Product."Has Error", '"Has Error" value must be false');
 
         // [THEN] On the "Shpfy Product" record, the field "Error Message" must be empty.
-        this.LibraryAssert.AreEqual(Product."Error Message", '', '"Error Message" value must be empty');
+        LibraryAssert.AreEqual(Product."Error Message", '', '"Error Message" value must be empty');
     end;
 
     [Test]
     [HandlerFunctions('GetProductsHttpHandler')]
     procedure UnitTestLogErrorOnUnsuccessfulItemCreation()
     var
-        Shop: Record "Shpfy Shop";
         Product: Record "Shpfy Product";
         ShopifyVariant: Record "Shpfy Variant";
         ProductInitTest: Codeunit "Shpfy Product Init Test";
         CreateItem: Codeunit "Shpfy Create Item";
         EmptyGuid: Guid;
     begin
-        this.Initialize();
+        Initialize();
 
         // [SCENARIO] Inserts error on Shopify Product when Item from a Shopify Product creation is unsuccessful.
 
         // [GIVEN] Register Expected Outbound API Requests.
-        this.RegExpectedOutboundHttpRequestsForGetProducts();
+        RegExpectedOutboundHttpRequestsForGetProducts();
 
         // [GIVEN] A Shopify variant record of a standard shopify product. (The variant record always exists, even if the products don't have any variants.)
-        Shop.Get(this.ShopCode);
         ShopifyVariant := ProductInitTest.CreateStandardProduct(Shop);
-        this.ProductId := ShopifyVariant."Product Id";
-        this.VariantId := ShopifyVariant."Id";
+        ProductId := ShopifyVariant."Product Id";
+        VariantId := ShopifyVariant."Id";
 
         // [WHEN] Invoke ShpfyCreateItem.CreateItemFromShopifyProduct to unsuccessfully create item from Shopify product.
         Product.Get(ShopifyVariant."Product Id");
-        BindSubscription(this.ShpfyCreateItemAPITest);
+        BindSubscription(ShpfyCreateItemAPITest);
         CreateItem.CreateItemFromShopifyProduct(Product);
-        UnbindSubscription(this.ShpfyCreateItemAPITest);
+        UnbindSubscription(ShpfyCreateItemAPITest);
 
         // [THEN] On the "Shpfy Product" record, the field "Item SystemId" must be empty.
         Product.Get(ShopifyVariant."Product Id");
-        this.LibraryAssert.AreEqual(Product."Item SystemId", EmptyGuid, '"Item SystemId" value must be empty');
+        LibraryAssert.AreEqual(Product."Item SystemId", EmptyGuid, '"Item SystemId" value must be empty');
 
         // [THEN] On the "Shpfy Product" record, the field "Has Error" must have value true.
-        this.LibraryAssert.IsTrue(Product."Has Error", '"Has Error" value must be true');
+        LibraryAssert.IsTrue(Product."Has Error", '"Has Error" value must be true');
 
         // [THEN] On the "Shpfy Product" record, the field "Error Message" must be filled.
-        this.LibraryAssert.IsTrue(Product."Error Message".contains(this.CreateItemErr), '"Error Message" must contain error text');
+        LibraryAssert.IsTrue(Product."Error Message".contains(CreateItemErr), '"Error Message" must contain error text');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Product Events", OnBeforeCreateItem, '', true, false)]
     local procedure OnBeforeCreateItem()
     begin
-        Error(this.CreateItemErr);
+        Error(CreateItemErr);
     end;
 
     [HttpClientHandler]
     internal procedure GetProductsHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
-        Regex: Codeunit Regex;
         ProductResponseTok: Label 'Products/ProductDetailsResponse.txt', Locked = true;
         ProductVariantsResponseTok: Label 'Products/ProductVariantsResponse.txt', Locked = true;
         ProductVariantResponseTok: Label 'Products/ProductVariantDetailsResponse.txt', Locked = true;
     begin
-        if not Regex.IsMatch(Request.Path, this.ShopifyShopUrlTok) then
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
             exit(true);
 
-        case this.OutboundHttpRequests.Length() of
+        case OutboundHttpRequests.Length() of
             3:
-                this.LoadResourceIntoHttpResponse(ProductResponseTok, Response);
+                LoadResourceIntoHttpResponse(ProductResponseTok, Response);
             2:
-                this.LoadProductVariantsHttpResponse(ProductVariantsResponseTok, Response);
+                LoadProductVariantsHttpResponse(ProductVariantsResponseTok, Response);
             1:
-                this.LoadProductVariantHttpResponse(ProductVariantResponseTok, Response);
+                LoadProductVariantHttpResponse(ProductVariantResponseTok, Response);
             0:
-                Error(this.UnexpectedAPICallsErr);
+                Error(UnexpectedAPICallsErr);
         end;
         exit(false);
     end;
 
     local procedure Initialize()
     var
-        Shop: Record "Shpfy Shop";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
-        InitializeTest: Codeunit "Shpfy Initialize Test";
         AccessToken: SecretText;
     begin
-        this.LibraryTestInitialize.OnTestInitialize(Codeunit::"Shpfy Create Item API Test");
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Shpfy Create Item API Test");
         ClearLastError();
-        this.OutboundHttpRequests.Clear();
-        if this.IsInitialized then
+        OutboundHttpRequests.Clear();
+        if IsInitialized then
             exit;
 
-        this.LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Shpfy Create Item API Test");
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Shpfy Create Item API Test");
 
-        this.LibraryRandom.Init();
+        LibraryRandom.Init();
 
-        this.IsInitialized := true;
+        IsInitialized := true;
         Commit();
 
         // Creating Shopify Shop
@@ -176,27 +168,26 @@ codeunit 139552 "Shpfy Create Item API Test"
         Shop."Auto Create Unknown Items" := true;
         Shop.Modify(false);
 
-        this.ShopCode := Shop.Code;
         // Disable Event Mocking 
         CommunicationMgt.SetTestInProgress(false);
         //Register Shopify Access Token
-        AccessToken := this.LibraryRandom.RandText(20);
+        AccessToken := LibraryRandom.RandText(20);
         InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
 
-        this.LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Shpfy Create Item API Test");
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Shpfy Create Item API Test");
     end;
 
     local procedure RegExpectedOutboundHttpRequestsForGetProducts()
     begin
-        this.OutboundHttpRequests.Enqueue('GQL Get Product Details');
-        this.OutboundHttpRequests.Enqueue('GQL Get Product Variants');
-        this.OutboundHttpRequests.Enqueue('GQL Get Product Variant Details');
+        OutboundHttpRequests.Enqueue('GQL Get Product Details');
+        OutboundHttpRequests.Enqueue('GQL Get Product Variants');
+        OutboundHttpRequests.Enqueue('GQL Get Product Variant Details');
     end;
 
     local procedure LoadResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
     begin
         Response.Content.WriteFrom(NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8));
-        this.OutboundHttpRequests.DequeueText();
+        OutboundHttpRequests.DequeueText();
     end;
 
     local procedure LoadProductVariantHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
@@ -204,9 +195,9 @@ codeunit 139552 "Shpfy Create Item API Test"
         ResultTxt: Text;
     begin
         ResultTxt := NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8);
-        ResultTxt := ResultTxt.Replace('{{ProductId}}', this.ProductId.ToText());
+        ResultTxt := ResultTxt.Replace('{{ProductId}}', ProductId.ToText());
         Response.Content.WriteFrom(ResultTxt);
-        this.OutboundHttpRequests.DequeueText();
+        OutboundHttpRequests.DequeueText();
     end;
 
     local procedure LoadProductVariantsHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
@@ -214,9 +205,9 @@ codeunit 139552 "Shpfy Create Item API Test"
         ResultTxt: Text;
     begin
         ResultTxt := NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8);
-        ResultTxt := ResultTxt.Replace('{{ProductId}}', this.ProductId.ToText());
-        ResultTxt := ResultTxt.Replace('{{VariantId}}', this.VariantId.ToText());
+        ResultTxt := ResultTxt.Replace('{{ProductId}}', ProductId.ToText());
+        ResultTxt := ResultTxt.Replace('{{VariantId}}', VariantId.ToText());
         Response.Content.WriteFrom(ResultTxt);
-        this.OutboundHttpRequests.DequeueText();
+        OutboundHttpRequests.DequeueText();
     end;
 }
