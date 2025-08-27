@@ -79,6 +79,8 @@ page 149031 "AIT Test Suite"
                 }
                 group(Evaluation)
                 {
+                    ShowCaption = false;
+
                     field("Evaluation Setup"; EvaluationSetupTxt)
                     {
                         ApplicationArea = All;
