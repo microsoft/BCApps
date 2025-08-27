@@ -221,10 +221,7 @@ codeunit 30182 "Shpfy Product Price Calc."
                     PricesIncludingVAT := ShopifyCatalog."Prices Including VAT";
                     AllowLineDisc := ShopifyCatalog."Allow Line Disc.";
                     CustomerNo := ShopifyCatalog."Customer No.";
-                    if ShopifyCatalog."Catalog Type" = ShopifyCatalog."Catalog Type"::Market then
-                        CurrencyCode := ShopifyCatalog."Currency Code"
-                    else
-                        CurrencyCode := ShopifyShop."Currency Code";
+                    CurrencyCode := ShopifyCatalog."Currency Code";
                 end;
         end;
     end;
