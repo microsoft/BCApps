@@ -116,7 +116,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                 SalesHeader.Validate("Document Date", DT2Date(RefundHeader."Created At"));
                 if OrderMgt.FindTaxArea(OrderHeader, ShopifyTaxArea) and (ShopifyTaxArea."Tax Area Code" <> '') then
                     SalesHeader.Validate("Tax Area Code", ShopifyTaxArea."Tax Area Code");
-                MapPaymentMethodCode(RefundHeader."Order Id", SalesHeader);
+                MapPaymentMethodCode(SalesHeader);
             end;
             SalesHeader."Shpfy Refund Id" := RefundHeader."Refund Id";
             SalesHeader.Modify(true);
@@ -394,20 +394,20 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
             Shop.TestField("Cash Roundings Account");
             SalesLine.Validate("No.", Shop."Cash Roundings Account");
             SalesLine.Validate(Quantity, 1);
-            SalesLine.Validate("Unit Price", OrderHeader."Refund Rounding Amount");
+            SalesLine.Validate("Unit Price", GetRoundingAmountFromTransactions());
             SalesLine.Validate(Description, CashRoundingLbl);
             SalesLine.Modify();
-            exit(OrderHeader."Refund Rounding Amount");
+            exit(SalesLine."Unit Price");
         end;
     end;
 
-    local procedure MapPaymentMethodCode(OrderId: BigInteger; var SalesHeader: Record "Sales Header")
+    local procedure MapPaymentMethodCode(var SalesHeader: Record "Sales Header")
     var
         OrderTransaction: Record "Shpfy Order Transaction";
         PaymentMethods: List of [Code[10]];
     begin
         OrderTransaction.SetAutoCalcFields("Payment Method");
-        OrderTransaction.SetRange("Shopify Order Id", OrderId);
+        OrderTransaction.SetRange("Refund Id", RefundId);
         OrderTransaction.SetRange(Status, "Shpfy Transaction Status"::Success);
         OrderTransaction.SetRange(Type, "Shpfy Transaction Type"::Refund);
         if OrderTransaction.FindSet() then begin
@@ -420,5 +420,23 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
             until OrderTransaction.Next() = 0;
             SalesHeader.Validate("Payment Method Code", PaymentMethods.Get(1));
         end;
+    end;
+
+    local procedure GetRoundingAmountFromTransactions(): Decimal
+    var
+        OrderTransaction: Record "Shpfy Order Transaction";
+        TotalAmount: Decimal;
+    begin
+        OrderTransaction.SetRange("Refund Id", RefundId);
+        OrderTransaction.SetRange(Status, "Shpfy Transaction Status"::Success);
+        OrderTransaction.SetRange(Type, "Shpfy Transaction Type"::Refund);
+        if not OrderTransaction.FindSet() then
+            exit;
+
+        repeat
+            TotalAmount += OrderTransaction."Rounding Amount";
+        until OrderTransaction.Next() = 0;
+
+        exit(TotalAmount);
     end;
 }
