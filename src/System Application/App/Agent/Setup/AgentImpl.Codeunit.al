@@ -138,26 +138,29 @@ codeunit 4301 "Agent Impl."
         until AgentAccessControl.Next() = 0;
     end;
 
-    internal procedure PopulateProfile(ProfileID: Text[30]; ProfileAppID: Guid; var TempAllProfile: Record "All Profile" temporary)
+    internal procedure AddProfileToTemp(ProfileID: Text[30]; ProfileAppID: Guid; var TempAllProfile: Record "All Profile" temporary)
     begin
-        TempAllProfile.Init();
         TempAllProfile.Scope := TempAllProfile.Scope::Tenant;
         TempAllProfile."App ID" := ProfileAppID;
         TempAllProfile."Profile ID" := ProfileID;
         TempAllProfile.Insert();
     end;
 
-    internal procedure AssignDefaultProfile(AgentUserSecurityID: Guid)
+    local procedure AssignDefaultProfile(AgentUserSecurityID: Guid)
     var
         Agent: Record Agent;
         TempAllProfile: Record "All Profile" temporary;
+        UserSettingsRecord: Record "User Settings";
+        UserSettings: Codeunit "User Settings";
         AgentFactory: Interface IAgentFactory;
     begin
         GetAgent(Agent, AgentUserSecurityID);
 
         AgentFactory := Agent."Agent Metadata Provider";
         AgentFactory.GetDefaultProfile(TempAllProfile);
-        SetProfile(AgentUserSecurityID, TempAllProfile);
+        UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
+        UpdateProfile(TempAllProfile, UserSettingsRecord);
+        UpdateAgentUserSettings(UserSettingsRecord);
     end;
 
     internal procedure SetProfile(AgentUserSecurityID: Guid; var AllProfile: Record "All Profile") // TODO(qutreson) to be removed.
@@ -173,7 +176,7 @@ codeunit 4301 "Agent Impl."
         UpdateAgentUserSettings(UserSettingsRecord);
     end;
 
-    internal procedure AssignCompany(AgentUserSecurityID: Guid; CompanyName: Text)
+    local procedure AssignCompany(AgentUserSecurityID: Guid; CompanyName: Text)
     var
         Agent: Record Agent;
         UserSettingsRecord: Record "User Settings";
