@@ -7,6 +7,7 @@ namespace System.Agents;
 
 using System.Security.User;
 using System.Environment.Configuration;
+using System.Globalization;
 
 page 4315 "Agent Card"
 {
@@ -74,6 +75,23 @@ page 4315 "Agent Card"
                                 AgentImpl.UpdateAgentUserSettings(UserSettingsRecord);
                         end;
                     }
+                    field(Language; Language.GetWindowsLanguageName(UserSettingsRecord."Language ID"))
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Language';
+                        ToolTip = 'Specifies the display language for the agent.';
+                        Editable = false;
+
+                        trigger OnAssistEdit()
+                        var
+                            UserSettings: Codeunit "User Settings";
+                        begin
+                            UserSettings.GetUserSettings(Rec."User Security ID", UserSettingsRecord);
+                            Commit();
+                            Page.RunModal(Page::"Agent User Settings", UserSettingsRecord);
+                            CurrPage.Update(false);
+                        end;
+                    }
                 }
                 field(State; Rec.State)
                 {
@@ -135,6 +153,7 @@ page 4315 "Agent Card"
                 begin
                     Rec.TestField("User Security ID");
                     UserSettings.GetUserSettings(Rec."User Security ID", UserSettingsRecord);
+                    Commit();
                     Page.RunModal(Page::"Agent User Settings", UserSettingsRecord);
                 end;
             }
@@ -231,6 +250,7 @@ page 4315 "Agent Card"
 
     var
         UserSettingsRecord: Record "User Settings";
+        Language: Codeunit Language;
         ProfileDisplayName: Text;
         ControlsEditable: Boolean;
         ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions. Do you want to continue?';
