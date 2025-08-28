@@ -39,7 +39,8 @@ codeunit 30180 "Shpfy Product Import"
                         ShopifyVariant.SetRange("Item Variant SystemId", NullGuid);
                         if ShopifyVariant.FindSet() then
                             repeat
-                                ItemCreated := CreateItem.Run(ShopifyVariant);
+                                CreateItem.Run(ShopifyVariant);
+                                ItemCreated := not IsNullGuid(ShopifyVariant."Item SystemId");
                                 SetProductConflict(ShopifyProduct.Id, ItemCreated);
                             until ShopifyVariant.Next() = 0;
                     end;
