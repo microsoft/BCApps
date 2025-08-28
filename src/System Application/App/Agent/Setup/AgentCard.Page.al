@@ -87,6 +87,7 @@ page 4315 "Agent Card"
                             UserSettings: Codeunit "User Settings";
                         begin
                             UserSettings.GetUserSettings(Rec."User Security ID", UserSettingsRecord);
+                            Commit();
                             Page.RunModal(Page::"Agent User Settings", UserSettingsRecord);
                             CurrPage.Update(false);
                         end;
@@ -152,6 +153,7 @@ page 4315 "Agent Card"
                 begin
                     Rec.TestField("User Security ID");
                     UserSettings.GetUserSettings(Rec."User Security ID", UserSettingsRecord);
+                    Commit();
                     Page.RunModal(Page::"Agent User Settings", UserSettingsRecord);
                 end;
             }
