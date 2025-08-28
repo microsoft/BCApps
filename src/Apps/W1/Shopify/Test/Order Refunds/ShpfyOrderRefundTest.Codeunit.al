@@ -9,6 +9,7 @@ using Microsoft.Integration.Shopify;
 using System.TestLibraries.Utilities;
 using Microsoft.Sales.Document;
 using Microsoft.Inventory.Location;
+using Microsoft.Finance.Currency;
 
 codeunit 139611 "Shpfy Order Refund Test"
 {
@@ -321,6 +322,72 @@ codeunit 139611 "Shpfy Order Refund Test"
         LibraryAssert.AreEqual(Location.Code, SalesLine."Location Code", 'Sales line location not set');
     end;
 
+    [Test]
+    procedure UnitTestProcessRefundWithPresentmentCurrency()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Shop: Record "Shpfy Shop";
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        LibraryERM: Codeunit "Library - ERM";
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        RefundId: BigInteger;
+        OrderId, OrderLineId : BigInteger;
+        PresentmentCurrencyCode: Code[10];
+        Amount: Decimal;
+        PresentmentAmount: Decimal;
+    begin
+        // [SCENARIO] Create sales credit memo from refund with presentment currency
+        Initialize();
+
+        // [GIVEN] Shop with setup to use presentment currency handling in order processing
+        Shop := ShpfyInitializeTest.CreateShop();
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Presentment Currency";
+        Shop.Modify(false);
+        // [GIVEN] Presentment currency
+        PresentmentCurrencyCode := LibraryERM.CreateCurrencyWithRounding();
+        // [GIVEN] Amount and Presentment amount
+        Amount := Any.DecimalInRange(999, 2);
+        Currency.Get(PresentmentCurrencyCode);
+        PresentmentAmount := Round(CurrencyExchangeRate.ExchangeAmtLCYToFCY(
+                WorkDate(),
+                PresentmentCurrencyCode,
+                Amount,
+                CurrencyExchangeRate.ExchangeRate(WorkDate(), PresentmentCurrencyCode)),
+            Currency."Amount Rounding Precision");
+        //[GIVEN] Processed Shopify Order
+        CerateProcessedShopifyOrderWithPresenmentCurrency(
+            OrderId,
+            OrderLineId,
+            Amount,
+            PresentmentCurrencyCode,
+            PresentmentAmount
+        );
+        // [GIVEN] Refund Header with presentment currency and amount
+        RefundId := OrderRefundsHelper.CreateRefundHeaderWithPresentmentCurrency(
+            OrderId,
+            Amount,
+            Shop.Code,
+            PresentmentCurrencyCode,
+            PresentmentAmount);
+        // [GIVEN] Refund line with presenment amount
+        OrderRefundsHelper.CreateRefundLineWithPresentmentCurrency(RefundId, OrderLineId, Amount, PresentmentAmount);
+
+        // [WHEN] Execute create credit memo
+        IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId);
+
+        // [THEN] Sales header has presentment currency
+        LibraryAssert.AreEqual(PresentmentCurrencyCode, SalesHeader."Currency Code", 'Sales header should have presentment currency.');
+        // [THEN] Credit Memo Line with return location is created
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindFirst();
+        LibraryAssert.AreEqual(PresentmentAmount, SalesLine.Amount, 'Sales line amount should match presenment amount.')
+    end;
+
     local procedure Initialize()
     var
         OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
@@ -360,6 +427,38 @@ codeunit 139611 "Shpfy Order Refund Test"
         OrderRefundsHelper.SetDefaultSeed();
         OrderId := OrderRefundsHelper.CreateShopifyOrder();
         OrderLineId := OrderRefundsHelper.CreateOrderLine(OrderId, 10000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999));
+        OrderRefundsHelper.ProcessShopifyOrder(OrderId);
+    end;
+
+    local procedure CerateProcessedShopifyOrderWithPresenmentCurrency(
+        var OrderId: BigInteger;
+        var OrderLineId: BigInteger;
+        Amount: Decimal;
+        PresentmentCurrencyCode: Code[10];
+        PresentmentAmount: Decimal)
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderLine: Record "Shpfy Order Line";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+    begin
+        OrderRefundsHelper.SetDefaultSeed();
+        OrderId := OrderRefundsHelper.CreateShopifyOrder();
+        OrderHeader.Get(OrderId);
+        OrderHeader."Total Amount" := Amount;
+        OrderHeader."Subtotal Amount" := Amount;
+        OrderHeader."Presentment Currency Code" := PresentmentCurrencyCode;
+        OrderHeader."Presentment Total Amount" := PresentmentAmount;
+        OrderHeader."Presentment Subtotal Amount" := PresentmentAmount;
+        OrderHeader."Shipping Charges Amount" := 0;
+        OrderHeader."VAT Amount" := 0;
+        OrderHeader.Processed := true;
+        OrderHeader."Processed Currency Handling" := "Shpfy Currency Handling"::"Presentment Currency";
+        OrderHeader.Modify(false);
+
+        OrderLineId := OrderRefundsHelper.CreateOrderLine(OrderId, 10000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999));
+        OrderLine.Get(OrderId, OrderLineId);
+        OrderLine."Presentment Unit Price" := PresentmentAmount;
+        OrderLine.Modify(false);
         OrderRefundsHelper.ProcessShopifyOrder(OrderId);
     end;
 
