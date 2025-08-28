@@ -6,7 +6,7 @@
   "runs-on": "windows-2025",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/27.0.38455.0/base",
+  "artifact": "bcinsider/Sandbox/27.0/base/latest",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "27.0",
@@ -21,7 +21,8 @@
           "CLEAN24",
           "CLEAN25",
           "CLEAN26",
-          "CLEAN27"
+          "CLEAN27",
+          "CLEAN28"
         ]
       }
     },
