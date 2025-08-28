@@ -66,15 +66,30 @@ codeunit 9016 "Azure AD Plan"
         exit(AzureAdPlanImpl.IsGraphUserEntitledFromServicePlan(GraphUserInfo));
     end;
 
+#if not CLEAN27
     /// <summary>
     /// Assigns a plan to the user based on their delegated role.
     /// </summary>
     /// <param name="UserSecurityId">The security ID of the user</param>
     [Scope('OnPrem')]
     [NonDebuggable]
+    [Obsolete('Use AssignPlanToUserWithDelegatedRole with SkipUpdateUserAccess parameter instead.', '27.0')]
     procedure AssignPlanToUserWithDelegatedRole(UserSecurityId: Guid)
     begin
-        AzureAdPlanImpl.AssignPlanToUserWithDelegatedRole(UserSecurityId);
+        AzureAdPlanImpl.AssignPlanToUserWithDelegatedRole(UserSecurityId, true);
+    end;
+#endif
+
+    /// <summary>
+    /// Assigns a plan to the user based on their delegated role.
+    /// </summary>
+    /// <param name="UserSecurityId">The security ID of the user</param>
+    /// <param name="SkipUpdateUserAccess">If true, skips updating user access for the user after assigning the plan.</param>
+    [Scope('OnPrem')]
+    [NonDebuggable]
+    procedure AssignPlanToUserWithDelegatedRole(UserSecurityId: Guid; SkipUpdateUserAccess: Boolean)
+    begin
+        AzureAdPlanImpl.AssignPlanToUserWithDelegatedRole(UserSecurityId, SkipUpdateUserAccess);
     end;
 
     /// <summary>
