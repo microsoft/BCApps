@@ -149,8 +149,7 @@ codeunit 4321 Agent
     end;
 
     /// <summary>
-    /// Gets the user settings for the agent. Few properties are retrieved, like: Profile,
-    /// Language, Regional Settings and Time Zone.
+    /// Gets the user settings for the agent. Few properties are retrieved, like: Profile, Language, Regional Settings and Time Zone.
     /// </summary>
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
     /// <param name="UserSettingsRec">The user settings for the agent. If agent is not created yet, it will use the current user settings</param>
