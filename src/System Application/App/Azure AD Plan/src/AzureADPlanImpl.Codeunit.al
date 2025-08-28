@@ -55,7 +55,7 @@ codeunit 9018 "Azure AD Plan Impl."
         PremiumPlanNameTxt: Label 'Dynamics 365 Business Central Premium', Locked = true;
         ClearPersonalizationTxt: Label 'Clear company in User Personalization', Locked = true;
         NoDelegatedRoleTxt: Label 'User does not have a delegated role (e.g. Delegated Admin or Delegated Helpdesk)', Locked = true;
-        AssigningPlanForDelegatedRoleTxt: Label 'Assigning plan %1 for a user with a delegated role (e.g. Delegated Admin or Delegated Helpdesk)', Comment = '%1 = the plan ID', Locked = true;
+        AssigningPlanForDelegatedRoleTxt: Label 'Assigning plan %1 for a user with a delegated role (e.g. Delegated Admin or Delegated Helpdesk). Updating user access: %2', Comment = '%1 = the plan ID, %2 = whether to update user access', Locked = true;
         RemovedSUPERFromUserTxt: Label 'Removed SUPER from the current user', Locked = true;
 
     [NonDebuggable]
@@ -662,7 +662,7 @@ codeunit 9018 "Azure AD Plan Impl."
         PlanIds: Codeunit "Plan Ids";
         PlanConfigurationImpl: Codeunit "Plan Configuration Impl.";
         UserPermissions: Codeunit "User Permissions";
-        UserGroupsAdded, ShouldRemoveSuper : Boolean;
+        UserGroupsAdded, ShouldRemoveSuper, HasPlans : Boolean;
         PlanId: Guid;
     begin
         case true of
@@ -680,7 +680,10 @@ codeunit 9018 "Azure AD Plan Impl."
         if IsPlanAssignedToUser(PlanId, UserSID) then
             exit;
 
-        Session.LogMessage('0000IC4', StrSubstNo(AssigningPlanForDelegatedRoleTxt, PlanId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+        Session.LogMessage('0000IC4', StrSubstNo(AssigningPlanForDelegatedRoleTxt, PlanId, not SkipUpdateUserAccess), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+
+        // Check if the user have any plans assigned before removing
+        HasPlans := DoesUserHavePlans(UserSID);
 
         // Delete any existing plans for the user
         UserPlan.SetRange("User Security ID", UserSID);
@@ -699,7 +702,7 @@ codeunit 9018 "Azure AD Plan Impl."
         if not UserProperty.Get(UserSID) then
             exit;
 
-        if DoesUserHavePlans(UserSID) then
+        if HasPlans then
             exit;
 
         // Assign user groups for the user
