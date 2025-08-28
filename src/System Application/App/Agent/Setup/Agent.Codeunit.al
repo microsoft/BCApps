@@ -127,11 +127,11 @@ codeunit 4321 Agent
     /// <param name="ProfileAppID">The profile App ID.</param>
     /// <param name="TempAllProfile">The profile record.</param>
     [Scope('OnPrem')]
-    procedure AddProfileToTemp(ProfileID: Text[30]; ProfileAppID: Guid; var TempAllProfile: Record "All Profile" temporary)
+    procedure PopulateDefaultProfile(ProfileID: Text[30]; ProfileAppID: Guid; var TempAllProfile: Record "All Profile" temporary)
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        AgentImpl.AddProfileToTemp(ProfileID, ProfileAppID, TempAllProfile);
+        AgentImpl.PopulateDefaultProfile(ProfileID, ProfileAppID, TempAllProfile);
     end;
 
     /// <summary>
