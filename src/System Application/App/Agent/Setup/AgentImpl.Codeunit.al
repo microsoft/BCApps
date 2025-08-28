@@ -188,7 +188,7 @@ codeunit 4301 "Agent Impl."
 
         UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
 #pragma warning disable AA0139
-        UserSettingsRecord.Company := CompanyName();
+        UserSettingsRecord.Company := CompanyName;
 #pragma warning restore AA0139
         UpdateAgentUserSettings(UserSettingsRecord);
     end;
