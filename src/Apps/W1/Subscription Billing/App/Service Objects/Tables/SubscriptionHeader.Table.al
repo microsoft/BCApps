@@ -420,9 +420,11 @@ table 8057 "Subscription Header"
                 ServiceCommitment: Record "Subscription Line";
                 ContractsItemManagement: Codeunit "Sub. Contracts Item Management";
             begin
-                if "Source No." <> xRec."Source No." then
+                if "Source No." <> xRec."Source No." then begin
                     if ServiceCommitmentsExist() then
                         Error(CannotChangeWhileServiceCommitmentExistsErr, FieldCaption("Source No."), ServiceCommitment.TableCaption);
+                    "Variant Code" := '';
+                end;
                 if "Source No." <> '' then
                     case Type of
                         Type::Item:
@@ -724,7 +726,7 @@ table 8057 "Subscription Header"
             begin
                 Rec.ArchiveServiceCommitments();
                 if Rec."Variant Code" <> xRec."Variant Code" then
-                    RecalculateServiceCommitments(FieldCaption("Variant Code"), false);
+                    RecalculateServiceCommitments(FieldCaption("Variant Code"), true);
             end;
         }
         field(107; "No. Series"; Code[20])
@@ -2201,7 +2203,7 @@ table 8057 "Subscription Header"
     var
         RecalculateLinesQst: Label 'If you change %1, the existing Subscription Lines prices will be recalculated.\\Do you want to continue?', Comment = '%1: FieldCaption';
         RecalculateLinesFromQuantityQst: Label 'If you change %1, only the Amount for existing service commitments will be recalculated.\\Do you want to continue?', Comment = '%1= Changed Field Name.';
-        RecalculateLinesFromVariantCodeQst: Label 'The %1 has been changed.\\Do you want to update the price and description?', Comment = '%1= Changed Field Name.';
+        RecalculateLinesFromVariantCodeQst: Label 'The %1 has been changed.\\Do you want to update the price?', Comment = '%1= Changed Field Name.';
     begin
         case ChangedFieldName of
             Rec.FieldName(Rec."Variant Code"):

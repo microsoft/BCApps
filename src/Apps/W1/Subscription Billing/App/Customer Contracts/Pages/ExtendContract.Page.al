@@ -166,6 +166,29 @@ page 8002 "Extend Contract"
                     ToolTip = 'Specifies the item description for the Subscription Item to be created.';
                     Editable = false;
                 }
+                field(VariantCode; VariantCode)
+                {
+                    Caption = 'Variant Code';
+                    ToolTip = 'Specifies the variant of the item.';
+                    Visible = UsageDataSupplierNo = '';
+
+
+                    trigger OnValidate()
+                    var
+                        Item: Record Item;
+                        ItemVariant: Record "Item Variant";
+                    begin
+                        if ItemNo = '' then
+                            Error(ItemNoEmptyErr);
+                        if VariantCode <> '' then
+                            ItemVariant.Get(ItemNo, VariantCode)
+                    end;
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    begin
+                        LookupItemVariant();
+                    end;
+                }
                 field(AdditionalServiceCommitments; StrSubstNo(NoOfSelectedPackagesLbl, SelectedServiceCommitmentPackages, TotalServiceCommitmentPackage))
                 {
                     Caption = 'Additional Subscription Lines';
@@ -383,6 +406,7 @@ page 8002 "Extend Contract"
     local procedure ValidateItemNo()
     begin
         if ItemNo = '' then begin
+            VariantCode := '';
             UnitPrice := 0;
             UnitCostLCY := 0;
             Clear(Item);
@@ -401,6 +425,7 @@ page 8002 "Extend Contract"
         ContractItemMgt.GetSalesPriceForItem(UnitPrice, ItemNo, QuantityDecimal, CustomerContract."Currency Code", CustomerContract."Sell-to Customer No.", CustomerContract."Bill-to Customer No.");
         CountTotalServiceCommitmentPackage();
         ShowNotificationIfStandardSubscriptionPackageDoesNotContainUBBLine(ItemNo);
+        VariantCode := '';
         OnAfterValidateItemNo(ItemNo);
     end;
 
@@ -607,6 +632,16 @@ page 8002 "Extend Contract"
         ExtendCustomerContractParam := NewExtendCustomerContract;
     end;
 
+    local procedure LookupItemVariant()
+    var
+        ItemVariant: Record "Item Variant";
+    begin
+        ItemVariant.SetRange("Item No.", ItemNo);
+        if Page.RunModal(0, ItemVariant) = Action::LookupOK then
+            VariantCode := ItemVariant."Code";
+    end;
+
+
     local procedure LookupUsageDataSubscription(var UsageDataSubscription: Record "Usage Data Supp. Subscription")
     begin
         if Page.RunModal(0, UsageDataSubscription) = Action::LookupOK then begin
@@ -669,10 +704,12 @@ page 8002 "Extend Contract"
         OpenItemCardTxt: Label 'Open Item Card.';
         ItemMissingServCommPackageTxt: Label 'No Subscription Package is available for this item.';
         AssignServCommPackageToItemTxt: Label 'In order to extend the contract properly, please make sure that at least one package is assigned.';
+        ItemNoEmptyErr: Label 'Item No. must be specified.';
         ItemDescription: Text[100];
 
     protected var
         ItemNo: Code[20];
+        VariantCode: Code[20];
         QuantityDecimal: Decimal;
         ExtendCustomerContract: Boolean;
         ExtendVendorContract: Boolean;

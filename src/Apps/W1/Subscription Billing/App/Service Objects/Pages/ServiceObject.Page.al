@@ -3,6 +3,7 @@ namespace Microsoft.SubscriptionBilling;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Address;
 using Microsoft.Sales.Customer;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
 
 page 8060 "Service Object"
@@ -104,10 +105,15 @@ page 8060 "Service Object"
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
+                    ShowMandatory = VariantCodeMandatory;
                     Visible = false;
                     ToolTip = 'Specifies the Variant Code of the Subscription.';
                     trigger OnValidate()
+                    var
+                        Item: Record Item;
                     begin
+                        if Rec."Variant Code" = '' then
+                            VariantCodeMandatory := Item.IsVariantMandatory(Rec.Type = Rec.Type::Item, Rec."No.");
                         CurrPage.Update();
                     end;
                 }
@@ -642,10 +648,14 @@ page 8060 "Service Object"
     end;
 
     trigger OnAfterGetRecord()
+    var
+        Item: Record "Item";
     begin
         UpdateShipToBillToGroupVisibility();
         UpdateBillToFieldsEnabled();
         EndUserContactEditable := Rec."End-User Customer No." <> '';
+        if Rec."Variant Code" = '' then
+            VariantCodeMandatory := Item.IsVariantMandatory(Rec.Type = Rec.Type::Item, Rec."Source No.");
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -671,6 +681,7 @@ page 8060 "Service Object"
         EmptyShipToCodeErr: Label 'The Code field can only be empty if you select Custom Address in the Ship-to field.';
         PrimaryAttributeValue: Text[250];
         PrimaryAttributeValueCaption: Text;
+        VariantCodeMandatory: Boolean;
 
     protected var
         ShipToOptions: Option "Default (End-User Address)","Alternate Shipping Address","Custom Address";
