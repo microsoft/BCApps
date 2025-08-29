@@ -80,6 +80,8 @@ codeunit 134247 "Shpfy Market Catalog API Test"
 
         // [GIVEN] Create Market Catalog
         CreateMarketCatalog(Catalog, Shop);
+        Catalog."Currency Code" := 'RSD';
+        Catalog.Modify();
 
         // [GIVEN] Register Expected Outbound API Requests for Catalog Prices Synchronization
         RegExpectedOutboundHttpRequestsForSyncCatalogPrices();
