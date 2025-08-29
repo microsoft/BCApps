@@ -37,6 +37,7 @@ codeunit 4301 "Agent Impl."
             GetUserAccess(Agent, TempAgentAccessControl, true);
 
         AssignCompany(Agent."User Security ID", CompanyName());
+        AssignDefaultProfile(Agent."User Security ID");
         UpdateAgentAccessControl(TempAgentAccessControl, Agent);
 
         exit(Agent."User Security ID");
@@ -137,14 +138,41 @@ codeunit 4301 "Agent Impl."
         until AgentAccessControl.Next() = 0;
     end;
 
-    internal procedure SetProfile(AgentUserSecurityID: Guid; var AllProfile: Record "All Profile")
+    internal procedure PopulateDefaultProfile(ProfileID: Text[30]; ProfileAppID: Guid; var TempAllProfile: Record "All Profile" temporary)
+    begin
+        TempAllProfile.Scope := TempAllProfile.Scope::Tenant;
+        TempAllProfile."App ID" := ProfileAppID;
+        TempAllProfile."Profile ID" := ProfileID;
+        TempAllProfile.Insert();
+    end;
+
+    local procedure AssignDefaultProfile(AgentUserSecurityID: Guid)
     var
         Agent: Record Agent;
-        UserSettingsRecord: Record "User Settings";
-        UserSettings: Codeunit "User Settings";
+        TempAllProfile: Record "All Profile" temporary;
+        AgentFactory: Interface IAgentFactory;
     begin
         GetAgent(Agent, AgentUserSecurityID);
 
+        AgentFactory := Agent."Agent Metadata Provider";
+        AgentFactory.GetDefaultProfile(TempAllProfile);
+        SetProfile(Agent, TempAllProfile);
+    end;
+
+    internal procedure SetProfile(AgentUserSecurityID: Guid; var AllProfile: Record "All Profile")
+    var
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        SetProfile(Agent, AllProfile);
+    end;
+
+    local procedure SetProfile(Agent: Record Agent; var AllProfile: Record "All Profile")
+    var
+        UserSettingsRecord: Record "User Settings";
+        UserSettings: Codeunit "User Settings";
+    begin
         UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
         UpdateProfile(AllProfile, UserSettingsRecord);
         UpdateAgentUserSettings(UserSettingsRecord);
@@ -179,7 +207,7 @@ codeunit 4301 "Agent Impl."
         UserSettings.GetUserSettings(UserSecurityID, UserSettingsRec);
     end;
 
-    internal procedure AssignCompany(AgentUserSecurityID: Guid; CompanyName: Text)
+    local procedure AssignCompany(AgentUserSecurityID: Guid; CompanyName: Text)
     var
         Agent: Record Agent;
         UserSettingsRecord: Record "User Settings";
@@ -189,7 +217,7 @@ codeunit 4301 "Agent Impl."
 
         UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
 #pragma warning disable AA0139
-        UserSettingsRecord.Company := CompanyName();
+        UserSettingsRecord.Company := CompanyName;
 #pragma warning restore AA0139
         UpdateAgentUserSettings(UserSettingsRecord);
     end;
