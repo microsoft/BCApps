@@ -73,6 +73,30 @@ page 4303 "Agent Task Log Entry List"
         }
     }
 
+    actions
+    {
+        area(Promoted)
+        {
+            actionref(Refresh_Promoted; Refresh)
+            {
+            }
+        }
+        area(Creation)
+        {
+            action(Refresh)
+            {
+                Caption = 'Refresh';
+                Image = Refresh;
+                ToolTip = 'Refresh the page.';
+
+                trigger OnAction()
+                begin
+                    CurrPage.Update(false);
+                end;
+            }
+        }
+    }
+
     trigger OnAfterGetRecord()
     begin
         UpdateControls();

@@ -7,6 +7,7 @@ namespace System.Agents;
 
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Environment.Configuration;
 
 codeunit 4321 Agent
 {
@@ -121,6 +122,20 @@ codeunit 4321 Agent
     end;
 
     /// <summary>
+    /// Populates the temporary profile record with the specified information.
+    /// </summary>
+    /// <param name="ProfileID">The profile ID.</param>
+    /// <param name="ProfileAppID">The profile App ID.</param>
+    /// <param name="TempAllProfile">The profile record.</param>
+    [Scope('OnPrem')]
+    procedure PopulateDefaultProfile(ProfileID: Text[30]; ProfileAppID: Guid; var TempAllProfile: Record "All Profile" temporary)
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        AgentImpl.PopulateDefaultProfile(ProfileID, ProfileAppID, TempAllProfile);
+    end;
+
+    /// <summary>
     /// Assigns the permission set to the agent.
     /// </summary>
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
@@ -131,6 +146,33 @@ codeunit 4321 Agent
         AgentImpl: Codeunit "Agent Impl.";
     begin
         AgentImpl.SetProfile(AgentUserSecurityID, AllProfile);
+    end;
+
+    /// <summary>
+    /// Updates the region and language settings for the agent. Few properties are updated, like: Language, Regional Settings and Time Zone.
+    /// <remarks>Profile is not updated, use SetProfile function instead</remarks>
+    /// </summary>
+    /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
+    /// <param name="NewUserSettings">The new user settings for the agent.</param>
+    [Scope('OnPrem')]
+    procedure UpdateUserSettings(AgentUserSecurityID: Guid; var NewUserSettings: Record "User Settings")
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        AgentImpl.UpdateUserSettings(AgentUserSecurityID, NewUserSettings);
+    end;
+
+    /// <summary>
+    /// Gets the user settings for the agent. Few properties are retrieved, like: Profile, Language, Regional Settings and Time Zone.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
+    /// <param name="UserSettingsRec">The user settings for the agent. If agent is not created yet, it will use the current user settings</param>
+    [Scope('OnPrem')]
+    procedure GetUserSettings(AgentUserSecurityID: Guid; var UserSettingsRec: Record "User Settings")
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        AgentImpl.GetUserSettings(AgentUserSecurityID, UserSettingsRec);
     end;
 
     /// <summary>
