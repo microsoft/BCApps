@@ -108,6 +108,7 @@ codeunit 7771 "Azure OpenAI"
     end;
 #endif
 
+#if not CLEAN28
     /// <summary>
     /// Sets the managed Azure OpenAI API authorization to use for a specific model type.
     /// This will send the Azure OpenAI call to the deployment specified in <paramref name="ManagedResourceDeployment"/>, and will use the other parameters to verify that you have access to Azure OpenAI.
@@ -117,9 +118,23 @@ codeunit 7771 "Azure OpenAI"
     /// <param name="ApiKey">The API key to access the Azure Open AI resource. This is used only for verification of access, not for actual Azure Open AI calls.</param>
     /// <param name="ManagedResourceDeployment">The managed deployment to use for the model type.</param>
     [NonDebuggable]
+    [Obsolete('Using Managed AI resources now requires only Model Type & Deployment Text as input parameters. Use the other overload for SetManagedResourceAuthorization instead. AOAIAccountName & ApiKey are ignored in the current version of SetManagedResourceAuthorization.', '28.0')]
     procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; AOAIAccountName: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
     begin
         AzureOpenAIImpl.SetManagedResourceAuthorization(ModelType, AOAIAccountName, ApiKey, ManagedResourceDeployment);
+    end;
+#endif
+
+    /// <summary>
+    /// Sets the managed Azure OpenAI API authorization to use for a specific model type.
+    /// This will send the Azure OpenAI call to the deployment specified in <paramref name="ManagedResourceDeployment"/>, and will use the other parameters to verify that you have access to Azure OpenAI.
+    /// </summary>
+    /// <param name="ModelType">The model type to set authorization for.</param>
+    /// <param name="ManagedResourceDeployment">The managed deployment to use for the model type.</param>
+    [NonDebuggable]
+    procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; ManagedResourceDeployment: Text)
+    begin
+        AzureOpenAIImpl.SetManagedResourceAuthorization(ModelType, ManagedResourceDeployment);
     end;
 
     /// <summary>
