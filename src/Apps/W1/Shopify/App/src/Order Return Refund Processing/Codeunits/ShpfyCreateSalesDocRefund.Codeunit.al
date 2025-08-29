@@ -363,7 +363,8 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
         CashRoundingLbl: Label 'Cash rounding';
     begin
         OrderHeader.Get(RefundHeader."Order Id");
-        if OrderHeader."Payment Rounding Amount" <> 0 then begin
+        if OrderHeader."Refund Rounding Amount" <> 0 then begin
+            Shop.TestField("Cash Roundings Account");
             LineNo += 10000;
             SalesLine.Init();
             SalesLine.SetHideValidationDialog(true);
@@ -373,7 +374,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
             SalesLine.Insert(true);
 
             SalesLine.Validate(Type, SalesLine.Type::"G/L Account");
-            SalesLine.Validate("No.", Shop."Refund Account");
+            SalesLine.Validate("No.", Shop."Cash Roundings Account");
             SalesLine.Validate(Quantity, 1);
             SalesLine.Validate("Unit Price", OrderHeader."Refund Rounding Amount");
             SalesLine.Validate(Description, CashRoundingLbl);

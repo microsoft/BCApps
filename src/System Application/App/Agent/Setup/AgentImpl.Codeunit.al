@@ -23,12 +23,13 @@ codeunit 4301 "Agent Impl."
                   tabledata User = r,
                   tabledata "User Personalization" = rim;
 
-    internal procedure CreateAgent(AgentMetadataProvider: Enum "Agent Metadata Provider"; AgentUserName: Code[50]; AgentUserDisplayName: Text[80]; var TempAgentAccessControl: Record "Agent Access Control" temporary): Guid
+    internal procedure CreateAgent(AgentMetadataProvider: Enum "Agent Metadata Provider"; var UserName: Code[50]; AgentUserDisplayName: Text[80]; var TempAgentAccessControl: Record "Agent Access Control" temporary): Guid
     var
         Agent: Record Agent;
     begin
         Agent."Agent Metadata Provider" := AgentMetadataProvider;
-        Agent."User Name" := AgentUserName;
+        Agent."User Name" := GenerateUniqueUserName(UserName);
+        UserName := Agent."User Name";
         Agent."Display Name" := AgentUserDisplayName;
         Agent.Insert(true);
 
@@ -147,6 +148,35 @@ codeunit 4301 "Agent Impl."
         UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
         UpdateProfile(AllProfile, UserSettingsRecord);
         UpdateAgentUserSettings(UserSettingsRecord);
+    end;
+
+    internal procedure UpdateUserSettings(AgentUserSecurityID: Guid; var NewUserSettingsRec: Record "User Settings")
+    var
+        Agent: Record Agent;
+        UserSettingsRecord: Record "User Settings";
+        UserSettings: Codeunit "User Settings";
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
+        UserSettingsRecord."Language ID" := NewUserSettingsRec."Language ID";
+        UserSettingsRecord."Locale ID" := NewUserSettingsRec."Locale ID";
+        UserSettingsRecord."Time Zone" := NewUserSettingsRec."Time Zone";
+        UpdateAgentUserSettings(UserSettingsRecord);
+    end;
+
+    internal procedure GetUserSettings(AgentUserSecurityID: Guid; var UserSettingsRec: Record "User Settings")
+    var
+        Agent: Record Agent;
+        UserSettings: Codeunit "User Settings";
+        UserSecurityID: Guid;
+    begin
+        UserSecurityID := UserSecurityId();
+        if not IsNullGuid(AgentUserSecurityID) then
+            if Agent.Get(AgentUserSecurityID) then
+                UserSecurityID := Agent."User Security ID";
+
+        UserSettings.GetUserSettings(UserSecurityID, UserSettingsRec);
     end;
 
     internal procedure AssignCompany(AgentUserSecurityID: Guid; CompanyName: Text)
@@ -425,6 +455,74 @@ codeunit 4301 "Agent Impl."
         Hyperlink(NoAgentsAvailableNotificationLearnMoreUrlLbl);
     end;
 
+    local procedure GenerateUniqueUserName(AgentUserName: Code[50]): Code[50]
+    var
+        User: Record User;
+        UniqueUserName: Text[50];
+        AgentNamePrefix: Text[50];
+        NumberOfAgentDigits: Integer;
+        MaximumPrefixLength: Integer;
+        AgentNumberSeparatorTok: Label '-', Locked = true;
+    begin
+        // Check if the user name is already unique
+        User.SetRange("User Name", AgentUserName);
+        User.ReadIsolation := IsolationLevel::ReadUncommitted;
+        if User.IsEmpty() then
+            exit(AgentUserName);
+
+        // If not check if there is a user with digits at the end of the name
+        NumberOfAgentDigits := 2;
+        MaximumPrefixLength := MaxStrLen(User."User Name") - NumberOfAgentDigits - StrLen(AgentNumberSeparatorTok);
+        if StrLen(AgentUserName) < MaximumPrefixLength then
+#pragma warning disable AA0139
+            AgentNamePrefix := AgentUserName + AgentNumberSeparatorTok
+#pragma warning restore AA0139
+        else
+            AgentNamePrefix := CopyStr(AgentUserName, 1, MaximumPrefixLength) + AgentNumberSeparatorTok;
+
+        // Generate a unique user name by appending digits
+        User.SetFilter("User Name", '%1', AgentNamePrefix + '*');
+#pragma warning disable AA0139
+        UniqueUserName := AgentNamePrefix + Format(User.Count() + 2);
+#pragma warning restore AA0139
+
+        exit(UniqueUserName);
+    end;
+
+    internal procedure OpenSetupPageId(AgentMetadataProvider: Enum "Agent Metadata Provider"; AgentUserSecurityID: Guid)
+    var
+        PageMetadata: Record "Page Metadata";
+        FieldMetadata: Record Field;
+        SetupPageRecordRef: RecordRef;
+        UserSecurityIdFieldRef: FieldRef;
+        AgentMetadata: Interface IAgentMetadata;
+        SourceRecordVariant: Variant;
+        SetupPageId: Integer;
+        UserSecurityIdTok: Label 'User Security ID', Locked = true;
+    begin
+        AgentMetadata := AgentMetadataProvider;
+        SetupPageId := AgentMetadata.GetSetupPageId(AgentUserSecurityID);
+
+        PageMetadata.Get(SetupPageId);
+        if (PageMetadata.SourceTable = 0) then
+            Error(SetupPageMissingSourceTableErr, SetupPageId);
+
+        SetupPageRecordRef.Open(PageMetadata.SourceTable);
+
+        FieldMetadata.SetRange(TableNo, PageMetadata.SourceTable);
+        FieldMetadata.SetRange(FieldName, UserSecurityIdTok);
+        if not FieldMetadata.FindFirst() then
+            Error(SetupPageSourceTableMissingFieldErr, SetupPageId, UserSecurityIdTok);
+
+        if (FieldMetadata.Type <> FieldMetadata.Type::Guid) then
+            Error(SetupPageSourceTableFieldWrongTypeErr, UserSecurityIdTok, SetupPageId, FieldMetadata.Type::Guid);
+
+        UserSecurityIdFieldRef := SetupPageRecordRef.Field(FieldMetadata."No.");
+        UserSecurityIdFieldRef.SetFilter(AgentUserSecurityID);
+        SourceRecordVariant := SetupPageRecordRef;
+        Page.RunModal(SetupPageId, SourceRecordVariant);
+    end;
+
     var
         OneOwnerMustBeDefinedForAgentErr: Label 'One owner must be defined for the agent.';
         AgentDoesNotExistErr: Label 'Agent does not exist.';
@@ -433,5 +531,7 @@ codeunit 4301 "Agent Impl."
         NoAgentsAvailableNotificationGuidLbl: Label 'bde1d653-40e6-4081-b2cf-f21b1a8622d1', Locked = true;
         NoAgentsAvailableNotificationLearnMoreLbl: Label 'Learn more';
         NoAgentsAvailableNotificationLearnMoreUrlLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2303876', Locked = true;
-
+        SetupPageMissingSourceTableErr: Label 'Setup page with ID %1 must specify a source table.', Comment = '%1 = Setup page ID.';
+        SetupPageSourceTableMissingFieldErr: Label 'The source table for setup page %1 must include a field named ''%2''.', Comment = '%1 = Setup page ID, %2 = Required field name.';
+        SetupPageSourceTableFieldWrongTypeErr: Label 'Field ''%1'' on the source table for setup page %2 must be of type %3.', Comment = '%1 = Field name, %2 = Setup page ID, %3 = Required field type.';
 }

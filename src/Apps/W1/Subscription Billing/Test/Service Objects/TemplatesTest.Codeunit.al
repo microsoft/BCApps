@@ -6,6 +6,7 @@ using Microsoft.Inventory.Item.Catalog;
 codeunit 139887 "Templates Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     Access = Internal;
 
     var
