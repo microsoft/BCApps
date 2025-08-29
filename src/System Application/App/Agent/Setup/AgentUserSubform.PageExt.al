@@ -5,8 +5,10 @@
 
 namespace System.Agents;
 
-using System.Security.User;
 using System.Security.AccessControl;
+using System.Security.User;
+using System.Environment;
+using System.Environment.Configuration;
 
 pageextension 4318 "Agent User Subform" extends "User Subform"
 {
@@ -87,29 +89,17 @@ pageextension 4318 "Agent User Subform" extends "User Subform"
 
     local procedure AccessControlForSingleCompany(var SingleCompanyName: Text[30]): Boolean
     var
-        AccessControl: Record "Access Control";
+        TempCompany: Record Company temporary;
+        UserSettings: Codeunit "User Settings";
     begin
-        // var UserSettings: Codeunit "User Settings";
-        // UserSettings.GetAllowedCompaniesForCurrentUser(Rec);
-
         if not IsAgent then
             exit(false);
 
-        AccessControl.SetRange("User Security ID", Rec."User Security ID");
-        if not AccessControl.FindFirst() then
+        UserSettings.GetAllowedCompaniesForUser(Rec."User Security ID", TempCompany);
+        if TempCompany.Count() <> 1 then
             exit(false);
 
-        SingleCompanyName := AccessControl."Company Name";
-        if SingleCompanyName = '' then
-            // The agent has access to all companies.
-            exit(false);
-
-        while AccessControl.Next() <> 0 do
-            if SingleCompanyName <> AccessControl."Company Name" then begin
-                SingleCompanyName := '';
-                exit(false);
-            end;
-
+        SingleCompanyName := TempCompany.Name;
         exit(true);
     end;
 
