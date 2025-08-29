@@ -58,7 +58,6 @@ report 8752 "DA External Storage Sync"
 
                 case SyncDirection of
                     SyncDirection::"To External Storage":
-
                         if not ExternalStorageProcessor.UploadToExternalStorage(DocumentAttachment) then
                             FailedCount += 1;
                     SyncDirection::"From External Storage":
