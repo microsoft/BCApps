@@ -150,6 +150,35 @@ codeunit 4301 "Agent Impl."
         UpdateAgentUserSettings(UserSettingsRecord);
     end;
 
+    internal procedure UpdateUserSettings(AgentUserSecurityID: Guid; var NewUserSettingsRec: Record "User Settings")
+    var
+        Agent: Record Agent;
+        UserSettingsRecord: Record "User Settings";
+        UserSettings: Codeunit "User Settings";
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
+        UserSettingsRecord."Language ID" := NewUserSettingsRec."Language ID";
+        UserSettingsRecord."Locale ID" := NewUserSettingsRec."Locale ID";
+        UserSettingsRecord."Time Zone" := NewUserSettingsRec."Time Zone";
+        UpdateAgentUserSettings(UserSettingsRecord);
+    end;
+
+    internal procedure GetUserSettings(AgentUserSecurityID: Guid; var UserSettingsRec: Record "User Settings")
+    var
+        Agent: Record Agent;
+        UserSettings: Codeunit "User Settings";
+        UserSecurityID: Guid;
+    begin
+        UserSecurityID := UserSecurityId();
+        if not IsNullGuid(AgentUserSecurityID) then
+            if Agent.Get(AgentUserSecurityID) then
+                UserSecurityID := Agent."User Security ID";
+
+        UserSettings.GetUserSettings(UserSecurityID, UserSettingsRec);
+    end;
+
     internal procedure AssignCompany(AgentUserSecurityID: Guid; CompanyName: Text)
     var
         Agent: Record Agent;
