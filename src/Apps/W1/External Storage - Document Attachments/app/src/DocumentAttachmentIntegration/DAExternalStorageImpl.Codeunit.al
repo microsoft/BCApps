@@ -24,18 +24,12 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     procedure BeforeAddOrModifyFileScenarioCheck(Scenario: Integer; Connector: Enum System.ExternalFileStorage."Ext. File Storage Connector") SkipInsertOrModify: Boolean
     var
         ConfirmManagement: Codeunit "Confirm Management";
-        DisclaimerPart1Lbl: Label 'You are about to enable External Storage!!!';
-        DisclaimerPart2Lbl: Label '\\This feature is provided as-is, and you use it at your own risk.';
-        DisclaimerPart3Lbl: Label '\Microsoft is not responsible for any issues or data loss that may occur.';
-        DisclaimerPart4Lbl: Label '\\Do you wish to continue?';
+        DisclaimerMsg: Label 'You are about to enable External Storage!!!\\This feature is provided as-is, and you use it at your own risk.\Microsoft is not responsible for any issues or data loss that may occur.\\Do you wish to continue?';
     begin
         if not (Scenario = Enum::"File Scenario"::"Doc. Attach. - External Storage".AsInteger()) then
             exit;
 
-        SkipInsertOrModify := not ConfirmManagement.GetResponseOrDefault(DisclaimerPart1Lbl +
-                    DisclaimerPart2Lbl +
-                    DisclaimerPart3Lbl +
-                    DisclaimerPart4Lbl);
+        SkipInsertOrModify := not ConfirmManagement.GetResponseOrDefault(DisclaimerMsg);
     end;
 
     /// <summary>
