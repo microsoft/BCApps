@@ -130,7 +130,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     end;
 #endif
 
-#if not CLEAN27
+#if not CLEAN28
 #pragma warning disable AA0137
     [NonDebuggable]
     procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; AOAIAccountName: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
