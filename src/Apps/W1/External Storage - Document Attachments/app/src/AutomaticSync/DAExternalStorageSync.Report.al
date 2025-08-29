@@ -50,6 +50,8 @@ report 8752 "DA External Storage Sync"
             end;
 
             trigger OnAfterGetRecord()
+            var
+                DateFormulaLbl: Label '<+%1>', Locked = true;
             begin
                 ProcessedCount += 1;
 
@@ -66,7 +68,7 @@ report 8752 "DA External Storage Sync"
                             FailedCount += 1;
                 end;
                 if DeleteExpiredFiles then
-                    if CalcDate('<+' + GetDateFormulaFromExternalStorageSetup() + '>', DocumentAttachment."External Upload Date".Date()) >= Today() then
+                    if CalcDate(StrSubstNo(DateFormulaLbl, GetDateFormulaFromExternalStorageSetup()), DocumentAttachment."External Upload Date".Date()) >= Today() then
                         if ExternalStorageProcessor.DeleteFromInternalStorage(DocumentAttachment) then
                             DeleteCount += 1
                         else
