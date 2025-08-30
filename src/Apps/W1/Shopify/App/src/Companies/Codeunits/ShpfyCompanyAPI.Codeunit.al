@@ -47,7 +47,7 @@ codeunit 30286 "Shpfy Company API"
                         CompanyContactRoles.Add(JsonHelper.GetValueAsText(JItem, 'node.name'), CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JItem, 'node.id')));
             end;
         if ShopifyCompany.Id > 0 then begin
-            CompanyContactId := AssignCompanyMainContact(ShopifyCompany.Id, ShopifyCustomer.Id, ShopifyCompany."Location Id", CompanyContactRoles);
+            CompanyContactId := AssignCompanyContact(ShopifyCompany.Id, ShopifyCustomer.Id, ShopifyCompany."Location Id", CompanyContactRoles, true);
             ShopifyCompany."Main Contact Id" := CompanyContactId;
             exit(true);
         end else
@@ -156,7 +156,7 @@ codeunit 30286 "Shpfy Company API"
         exit(GraphQuery.ToText());
     end;
 
-    local procedure AssignCompanyMainContact(CompanyId: BigInteger; CustomerId: BigInteger; LocationId: BigInteger; CompanyContactRoles: Dictionary of [Text, BigInteger]): BigInteger
+    local procedure AssignCompanyContact(CompanyId: BigInteger; CustomerId: BigInteger; LocationId: BigInteger; CompanyContactRoles: Dictionary of [Text, BigInteger]; IsMainContact: Boolean): BigInteger
     var
         GraphQLType: Enum "Shpfy GraphQL Type";
         JResponse: JsonToken;
@@ -168,10 +168,12 @@ codeunit 30286 "Shpfy Company API"
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::CompanyAssignCustomerAsContact, Parameters);
         CompanyContactId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JResponse, 'data.companyAssignCustomerAsContact.companyContact.id'));
         if CompanyContactId > 0 then begin
-            Clear(Parameters);
-            Parameters.Add('CompanyId', Format(CompanyId));
-            Parameters.Add('CompanyContactId', Format(CompanyContactId));
-            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::CompanyAssignMainContact, Parameters);
+            if IsMainContact then begin
+                Clear(Parameters);
+                Parameters.Add('CompanyId', Format(CompanyId));
+                Parameters.Add('CompanyContactId', Format(CompanyContactId));
+                JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::CompanyAssignMainContact, Parameters);
+            end;
             AssignCompanyContactRoles(CompanyContactId, LocationId, CompanyContactRoles);
         end;
         exit(CompanyContactId);
@@ -420,7 +422,9 @@ codeunit 30286 "Shpfy Company API"
     internal procedure CreateCompanyLocation(Customer: Record Customer)
     var
         ShopifyCompany: Record "Shpfy Company";
+        ShopifyCustomer: Record "Shpfy Customer";
         CompanyLocation: Record "Shpfy Company Location";
+        CompanyExport: Codeunit "Shpfy Company Export";
         SkippedRecord: Codeunit "Shpfy Skipped Record";
         CustomerAlreadyExportedCompanyLbl: Label 'Customer %1 is already exported as a company', Comment = '%1 = Customer No.';
         CustomerAlreadyExportedLocationLbl: Label 'Customer %1 is already exported as a location', Comment = '%1 = Customer No.';
@@ -436,7 +440,9 @@ codeunit 30286 "Shpfy Company API"
             SkippedRecord.LogSkippedRecord(Customer.RecordId, StrSubstNo(CustomerAlreadyExportedLocationLbl, Customer."No."), Shop);
             exit;
         end;
-        CreateCustomerAsCompanyLocation(Customer, this.Company);
+        CompanyExport.SetShop(Shop.Code);
+        if CompanyExport.CreateCompanyContact(Customer, ShopifyCustomer) then
+            CreateCustomerAsCompanyLocation(Customer, this.Company, ShopifyCustomer);
     end;
 
     internal procedure SetCompany(ShopifyCompany: Record "Shpfy Company")
@@ -448,8 +454,9 @@ codeunit 30286 "Shpfy Company API"
     /// Creates a customer as a company location in Shopify using GraphQL API.
     /// This procedure handles the API communication and error processing.
     /// </summary>
-    /// <param name="CompanyLocation">The Shopify company location record containing the data to be sent to Shopify.</param>
     /// <param name="Customer">The Business Central customer record used to populate additional fields.</param>
+    /// <param name="ShopifyCompany">The Shopify company record used to populate additional fields.</param>
+    /// <param name="ShopifyCustomer">The Shopify customer record used to populate additional fields.</param>
     /// <remarks>
     /// This procedure:
     /// - Fills the Shopify company location with data from the customer
@@ -461,13 +468,18 @@ codeunit 30286 "Shpfy Company API"
     /// The procedure supports both billing and shipping addresses, with billing address used for both when billingSameAsShipping is true.
     /// Error handling includes field-specific error messages from Shopify API.
     /// </remarks>
-    local procedure CreateCustomerAsCompanyLocation(Customer: Record Customer; ShopifyCompany: Record "Shpfy Company")
+    internal procedure CreateCustomerAsCompanyLocation(Customer: Record Customer; ShopifyCompany: Record "Shpfy Company"; ShopifyCustomer: Record "Shpfy Customer")
     var
         CompanyLocation: Record "Shpfy Company Location";
         CompanyExport: Codeunit "Shpfy Company Export";
+        CatalogAPI: Codeunit "Shpfy Catalog API";
         GraphQuery: TextBuilder;
         JResponse: JsonToken;
         JCompanyLocation: JsonToken;
+        JContactRoles: JsonArray;
+        JItem: JsonToken;
+        LocationId: BigInteger;
+        CompanyContactRoles: Dictionary of [Text, BigInteger];
         CompanyIdTxt: Label 'gid://shopify/Company/%1', Comment = '%1 = Company Id', Locked = true;
         PaymentTermsTemplateIdTxt: Label 'gid://shopify/PaymentTermsTemplate/%1', Comment = '%1 = Payment Terms Template Id', Locked = true;
     begin
@@ -476,8 +488,6 @@ codeunit 30286 "Shpfy Company API"
 
         GraphQuery.Append('{"query": "mutation { companyLocationCreate( companyId: \"' + StrSubstNo(CompanyIdTxt, ShopifyCompany.Id) + '\", input: {');
 
-        if ShopifyCompany."External Id" <> '' then
-            AddFieldToGraphQuery(GraphQuery, 'externalId', ShopifyCompany."External Id");
         if CompanyLocation.Name <> '' then
             AddFieldToGraphQuery(GraphQuery, 'name', CompanyLocation.Name);
         if CompanyLocation."Phone No." <> '' then
@@ -505,15 +515,23 @@ codeunit 30286 "Shpfy Company API"
         if CompanyLocation."Shpfy Payment Terms Id" <> 0 then
             AddFieldToGraphQuery(GraphQuery, 'paymentTermsTemplateId', StrSubstNo(PaymentTermsTemplateIdTxt, CompanyLocation."Shpfy Payment Terms Id"));
         GraphQuery.Remove(GraphQuery.Length - 1, 2);
-        GraphQuery.Append('}}) { companyLocation { id name billingAddress { address1 address2 city countryCode phone province recipient zip zoneCode } ');
+        GraphQuery.Append('}}) { companyLocation { id name company { contactRoles(first:10) {edges {node {id name}}}} billingAddress { address1 address2 city countryCode phone province recipient zip zoneCode } ');
         GraphQuery.Append('shippingAddress { address1 address2 city countryCode phone province recipient zip zoneCode } ');
         GraphQuery.Append('buyerExperienceConfiguration { paymentTermsTemplate { id } checkoutToDraft editableShippingAddress } taxRegistrationId taxExemptions } ');
         GraphQuery.Append('userErrors { field message } } }"}');
 
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQuery.ToText());
         if JResponse.SelectToken('$.data.companyLocationCreate.companyLocation', JCompanyLocation) then
-            if not JsonHelper.IsTokenNull(JCompanyLocation) then
-                CreateCustomerLocation(JCompanyLocation.AsObject(), ShopifyCompany, Customer.SystemId);
+            if not JsonHelper.IsTokenNull(JCompanyLocation) then begin
+                LocationId := CreateCustomerLocation(JCompanyLocation.AsObject(), ShopifyCompany, Customer.SystemId);
+                if JsonHelper.GetJsonArray(JCompanyLocation, JContactRoles, 'company.contactRoles.edges') then begin
+                    foreach JItem in JContactRoles do
+                        CompanyContactRoles.Add(JsonHelper.GetValueAsText(JItem, 'node.name'), CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JItem, 'node.id')));
+                    AssignCompanyContact(ShopifyCompany.Id, ShopifyCustomer.Id, LocationId, CompanyContactRoles, false);
+                    if Shop."Auto Create Catalog" then
+                        CatalogAPI.CreateCatalog(LocationId, Customer.Name, ShopifyCompany, Customer);
+                end;
+            end;
     end;
 
     /// <summary>
@@ -534,7 +552,7 @@ codeunit 30286 "Shpfy Company API"
     /// The procedure assumes the JSON structure matches Shopify's companyLocationCreate response format.
     /// All text fields are properly truncated to match the field lengths in the table definition.
     /// </remarks>
-    local procedure CreateCustomerLocation(JCompanyLocation: JsonObject; ShopifyCompany: Record "Shpfy Company"; CustomerId: Guid)
+    local procedure CreateCustomerLocation(JCompanyLocation: JsonObject; ShopifyCompany: Record "Shpfy Company"; CustomerId: Guid): BigInteger
     var
         CompanyLocation: Record "Shpfy Company Location";
         CompanyLocationId: BigInteger;
@@ -564,6 +582,7 @@ codeunit 30286 "Shpfy Company API"
         CompanyLocation."Shpfy Payment Terms Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JCompanyLocation, 'buyerExperienceConfiguration.paymentTermsTemplate.id'));
         CompanyLocation."Customer Id" := CustomerId;
         CompanyLocation.Modify(true);
+        exit(CompanyLocationId);
     end;
 
     local procedure ExtractShopifyCompanyLocations(var ShopifyCompany: Record "Shpfy Company"; JResponse: JsonObject; var Cursor: Text; var IsDefaultCompanyLocation: Boolean): Boolean
