@@ -169,7 +169,7 @@ page 8052 "Customer Contract"
                 field("Dimension from Job No."; Rec."Dimension from Job No.")
                 {
                     Importance = Additional;
-                    ToolTip = 'Specifies the Project number from which the dimensions for the contract are transfered.';
+                    ToolTip = 'Specifies the Project number from which the dimensions for the contract are transferred.';
                 }
                 group(Description)
                 {

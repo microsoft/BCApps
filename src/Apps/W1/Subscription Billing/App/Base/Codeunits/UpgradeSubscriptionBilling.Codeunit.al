@@ -4,6 +4,7 @@ using System.Upgrade;
 #if not CLEANSCHEMA29
 using Microsoft.Finance.GeneralLedger.Setup;
 #endif
+using Microsoft.Sales.Document;
 
 codeunit 8032 "Upgrade Subscription Billing"
 {
@@ -25,6 +26,8 @@ codeunit 8032 "Upgrade Subscription Billing"
         MoveCustContrDimensionToServiceContractSetup();
 #endif
         UpdateCreateContractDeferralsFlag();
+        DeleteSalesSubscriptionLinesConnectedToDeletedQuote();
+        RemoveDocumentNoFromBillingLines();
     end;
 
 #if not CLEANSCHEMA29
@@ -257,8 +260,68 @@ codeunit 8032 "Upgrade Subscription Billing"
         exit('MS-XXXXXX-UpdateCreateContractDeferralsFlag-20250321');
     end;
 
+    local procedure DeleteSalesSubscriptionLinesConnectedToDeletedQuote()
+    var
+        SalesSubscriptionLine: Record "Sales Subscription Line";
+        SalesHeader: Record "Sales Header";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(DeleteSalesSubscriptionLinesConnectedToDeletedQuoteTag()) then
+            exit;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
+        SalesSubscriptionLine.SetRange("Document Type", "Sales Document Type"::Quote);
+        if SalesSubscriptionLine.FindSet() then
+            repeat
+                if not SalesHeader.Get(SalesHeader."Document Type"::Quote, SalesSubscriptionLine."Document No.") then
+                    SalesSubscriptionLine.Delete(false);
+            until SalesSubscriptionLine.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(DeleteSalesSubscriptionLinesConnectedToDeletedQuoteTag());
+    end;
+
+    local procedure DeleteSalesSubscriptionLinesConnectedToDeletedQuoteTag(): Text[250]
+    begin
+        exit('MS-598518-DeleteSalesSubscriptionLinesConnectedToDeletedQuoteTag-20250819');
+    end;
+
+    local procedure RemoveDocumentNoFromBillingLines()
+    var
+        BillingLine: Record "Billing Line";
+        SalesHeader: Record "Sales Header";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(RemoveDocumentNoFromBillingLinesTag()) then
+            exit;
+
+        BillingLine.SetRange(Partner, BillingLine.Partner::Customer);
+        BillingLine.SetFilter("Document No.", '<>%1', '');
+        if BillingLine.FindSet() then
+            repeat
+                case BillingLine."Document Type" of
+                    BillingLine."Document Type"::Invoice:
+                        if not SalesHeader.Get(SalesHeader."Document Type"::Invoice, BillingLine."Document No.") then begin
+                            BillingLine."Document Type" := BillingLine."Document Type"::None;
+                            BillingLine."Document No." := '';
+                            BillingLine.Modify(false);
+                        end;
+                    BillingLine."Document Type"::"Credit Memo":
+                        if not SalesHeader.Get(SalesHeader."Document Type"::"Credit Memo", BillingLine."Document No.") then begin
+                            BillingLine."Document Type" := BillingLine."Document Type"::None;
+                            BillingLine."Document No." := '';
+                            BillingLine.Modify(false);
+                        end;
+                end;
+            until BillingLine.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(RemoveDocumentNoFromBillingLinesTag());
+    end;
+
+    local procedure RemoveDocumentNoFromBillingLinesTag(): Text[250]
+    begin
+        exit('MS-XXXXXX-RemoveDocumentNoFromBillingLines-20250819');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
 #if not CLEANSCHEMA29
@@ -270,5 +333,7 @@ codeunit 8032 "Upgrade Subscription Billing"
         PerCompanyUpgradeTags.Add(GetMoveCustContrDimensionUpgradeTag());
 #endif
         PerCompanyUpgradeTags.Add(GetUpdateCreateContractDeferralsFlag());
+        PerCompanyUpgradeTags.Add(DeleteSalesSubscriptionLinesConnectedToDeletedQuoteTag());
+        PerCompanyUpgradeTags.Add(RemoveDocumentNoFromBillingLinesTag());
     end;
 }
