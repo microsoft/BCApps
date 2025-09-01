@@ -1038,8 +1038,8 @@ codeunit 8060 "Create Billing Documents"
 
     local procedure ShowFiltersIgnoredNotification()
     var
-        FiltersIgnoredMsg: Label 'You have set filters on the Recurring Billing page. The filters were ignored to maintain data consistency.';
         FiltersIgnoredNotification: Notification;
+        FiltersIgnoredMsg: Label 'You have set filters on the Recurring Billing page. The filters were ignored to maintain data consistency.';
     begin
         FiltersIgnoredNotification.Message(FiltersIgnoredMsg);
         FiltersIgnoredNotification.Scope := NotificationScope::LocalScope;
