@@ -132,7 +132,7 @@ codeunit 30176 "Shpfy Product API"
         Clear(Url);
         Clear(ResourceUrl);
         MimeType := TenantMedia."Mime Type";
-        Filename := 'BC_Upload.' + MimeType.Split('/').Get(MimeType.Split('/').Count);
+        Filename := 'BC_Upload.' + MimeType.Split('/').Get(MimeType.Split('/').Count());
         Parameters.Add('Filename', Filename);
         Parameters.Add('MimeType', MimeType);
         Parameters.Add('Resource', 'IMAGE');
@@ -719,9 +719,8 @@ codeunit 30176 "Shpfy Product API"
     /// <returns>Dictionary of variant IDs to image IDs</returns>
     internal procedure UpdateProductWithMultipleVariantImages(ProductId: BigInteger; VariantImageUrls: Dictionary of [BigInteger, Text]): Dictionary of [BigInteger, BigInteger]
     var
-        MediasTok: Label '{ media(reverse: true, first: %1 ){', Locked = true;
-        JResponse: JsonToken;
         GraphQuery: TextBuilder;
+        JResponse: JsonToken;
         JMediaArray: JsonArray;
         JMedia: JsonToken;
         VariantImageIds: Dictionary of [BigInteger, BigInteger];
@@ -729,6 +728,7 @@ codeunit 30176 "Shpfy Product API"
         ImageIds: List of [BigInteger];
         VariantId: BigInteger;
         ImageId: BigInteger;
+        MediasTok: Label '{ media(reverse: true, first: %1 ){', Locked = true;
     begin
         GraphQuery.Append('{"query":"mutation {productUpdate(product: {id: \"gid://shopify/Product/');
         GraphQuery.Append(Format(ProductId));

@@ -143,12 +143,10 @@ page 30175 "Shpfy Item Variant Picture"
         this.OnAfterTakeNewPicture(Rec, this.DoTakeNewPicture());
     end;
 
-    [Scope('OnPrem')]
     procedure ImportFromDevice()
     var
-        FileManagement: Codeunit "File Management";
+        ImageInStream: InStream;
         FileName: Text;
-        ClientFileName: Text;
     begin
         Rec.Find();
         Rec.TestField("Item No.");
@@ -160,17 +158,12 @@ page 30175 "Shpfy Item Variant Picture"
             if not Confirm(this.OverrideImageQst) then
                 Error('');
 
-        ClientFileName := '';
-        FileName := FileManagement.UploadFile(this.SelectPictureTxt, ClientFileName);
-        if FileName = '' then
-            Error('');
+        UploadIntoStream(SelectPictureTxt, '', '', FileName, ImageInStream);
 
         Clear(Rec.Picture);
-        Rec.Picture.ImportFile(FileName, ClientFileName);
+        Rec.Picture.ImportStream(ImageInStream, FileName);
         Rec.Modify(true);
         this.OnImportFromDeviceOnAfterModify(Rec);
-
-        if FileManagement.DeleteServerFile(FileName) then;
     end;
 
     local procedure DoTakeNewPicture(): Boolean

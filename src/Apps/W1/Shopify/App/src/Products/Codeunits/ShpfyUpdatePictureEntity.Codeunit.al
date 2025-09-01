@@ -18,7 +18,7 @@ codeunit 30412 "Shpfy Update Picture Entity"
     var
         ItemVariant: Record "Item Variant";
         PictureEntity: Record "Picture Entity";
-        MediaExtensionWithNumFullNameTxt: Label '%1 %2 %3.%4', Locked = true;
+        MediaExtensionWithNumFullNameTxt: Label '%1 %2 %3.%4', Comment = '%1 - Item No., %2 - Item Variant Code, %3 - Item Variant Description, %4 - File Extension', Locked = true;
     begin
         if ParentRecordRef.Number = Database::"Item Variant" then begin
             ParentRecordRef.SetTable(ItemVariant);
