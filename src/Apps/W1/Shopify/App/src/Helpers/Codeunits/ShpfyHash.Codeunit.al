@@ -103,7 +103,7 @@ codeunit 30156 "Shpfy Hash"
         TenantMedia: Record "Tenant Media";
         MediaId: Guid;
     begin
-        if ItemVariant.Picture.Count > 0 then begin
+        if ItemVariant.Picture.Count() > 0 then begin
             MediaId := ItemVariant.Picture.Item(1);
             if TenantMedia.Get(MediaId) then
                 exit(this.CalcHash(TenantMedia));

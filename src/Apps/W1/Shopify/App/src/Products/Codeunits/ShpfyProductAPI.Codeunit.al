@@ -117,10 +117,10 @@ codeunit 30176 "Shpfy Product API"
     /// <summary>
     /// Create image upload URL.
     /// </summary>
-    /// <param name="Url"></param>
+    /// <param name="Url">Url to upload the image.</param>
     /// <param name="ResourceUrl"></param>
     /// <param name="TenantMedia">Tenant media record containing image</param>
-    /// <returns></returns>
+    /// <returns>True if Image Upload Urls created succesfully.</returns>
     internal procedure CreateImageUploadUrl(var Url: Text; var ResourceUrl: Text; var TenantMedia: Record "Tenant Media"): boolean
     var
         MimeType: Text;
