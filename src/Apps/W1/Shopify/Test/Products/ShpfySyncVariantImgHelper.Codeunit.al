@@ -16,4 +16,10 @@ codeunit 139542 "Shpfy Sync Variant Img Helper"
     begin
         IsHandled := true;
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Bulk Operation API", OnBeforeUploadJsonl, '', false, false)]
+    local procedure OnBeforeUploadJsonl(var IsHandled: Boolean)
+    begin
+        IsHandled := true;
+    end;
 }

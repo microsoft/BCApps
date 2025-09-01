@@ -89,10 +89,10 @@ codeunit 30184 "Shpfy Sync Product Image"
                 if this.VariantImageExport.Run(ShopifyVariant) then;
             until ShopifyVariant.Next() = 0;
         VariantImageUrls := VariantImageExport.GetVariantImageUrls();
-        if VariantImageUrls.Count > 0 then begin
+        if VariantImageUrls.Count() > 0 then begin
             IBulkOperation := Enum::"Shpfy Bulk Operation Type"::UpdateVariantImage;
             VariantImageIds := ProductApi.UpdateProductWithMultipleVariantImages(ProductId, VariantImageUrls);
-            foreach VariantId in VariantImageIds.Keys do
+            foreach VariantId in VariantImageIds.Keys() do
                 BulkOperationInput.AppendLine(StrSubstNo(IBulkOperation.GetInput(), ProductId, VariantId, VariantImageIds.Get(VariantId)));
             JRequestData := VariantImageExport.GetRequestData();
             if not BulkOperationMgt.SendBulkMutation(Shop, Enum::"Shpfy Bulk Operation Type"::UpdateVariantImage, BulkOperationInput.ToText(), JRequestData) then
@@ -143,8 +143,8 @@ codeunit 30184 "Shpfy Sync Product Image"
                     ItemVariant.GetBySystemId(ShopifyVariant."Item Variant SystemId"):
                         begin
                             VariantImageData := VariantImages.Get(Id);
-                            if VariantImageData.Keys.Count > 0 then
-                                foreach ImageId in VariantImageData.Keys do
+                            if VariantImageData.Keys.Count() > 0 then
+                                foreach ImageId in VariantImageData.Keys() do
                                     if ImageId <> ShopifyVariant."Image Id" then
                                         if UpdateItemVariantImage(ItemVariant, VariantImageData.Get(ImageId)) then begin
                                             ShopifyVariant."Image Id" := ImageId;

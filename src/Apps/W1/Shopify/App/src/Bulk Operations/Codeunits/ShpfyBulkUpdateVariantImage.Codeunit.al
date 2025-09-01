@@ -38,7 +38,19 @@ codeunit 30415 "Shpfy Bulk UpdateVariantImage" implements "Shpfy IBulk Operation
     end;
 
     procedure RevertAllRequests(var BulkOperation: Record "Shpfy Bulk Operation")
+    var
+        Variant: Record "Shpfy Variant";
+        JRequestData: JsonArray;
+        JRequest: JsonToken;
+        JVariant: JsonObject;
     begin
-        exit; // TODO Implement
+        JRequestData := BulkOperation.GetRequestData();
+        foreach JRequest in JRequestData do begin
+            JVariant := JRequest.AsObject();
+            if Variant.Get(JVariant.GetBigInteger('id')) then begin
+                Variant."Image Hash" := JVariant.GetInteger('imageHash');
+                Variant.Modify(false);
+            end;
+        end;
     end;
 }

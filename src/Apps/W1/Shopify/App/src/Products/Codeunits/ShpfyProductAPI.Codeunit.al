@@ -773,7 +773,7 @@ codeunit 30176 "Shpfy Product API"
         exit(VariantImageIds);
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false, false)]
     procedure OnBeforeUploadImage(var TenantMedia: Record "Tenant Media"; var ResourceUrl: Text; var IsHandled: Boolean)
     begin
     end;
