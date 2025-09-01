@@ -825,7 +825,7 @@ codeunit 30189 "Shpfy Variant API"
     /// <summary>
     /// Check if Shopify Variant Image Exists.
     /// </summary>
-    /// <param name="VariantId">Parameter of type BigInteger.</param>
+    /// <param name="VariantId">Shopify variant id to check.</param>
     /// <returns>Return value of type Boolean. True if image exists, false otherwise.</returns>
     internal procedure CheckShopifyVariantImageExists(VariantId: BigInteger): Boolean
     var
@@ -837,17 +837,15 @@ codeunit 30189 "Shpfy Variant API"
         Parameters.Add('VariantId', Format(VariantId));
         JResponse := this.CommunicationMgt.ExecuteGraphQL(GraphQLType::GetVariantImage, Parameters);
         if this.JsonHelper.GetJsonArray(JResponse, JMedias, 'data.productVariant.media.edges') then
-            if JMedias.Count = 1 then
+            if JMedias.Count() = 1 then
                 exit(true);
     end;
 
     /// <summary>
     /// Set variant image using resource URL.
     /// </summary>
-    /// <param name="ShopifyVariant">Parameter of type Record "Shpfy Variant".
-    /// <param name="ImageId">Parameter of type BigInteger.</param>
-    /// </param>
-    /// <param name="ImageId">Parameter of type BigInteger.</param>
+    /// <param name="ShopifyVariant">Shopify Variant to set new image.</param>
+    /// <param name="ResourceUrl">Resource URL of the image to set.</param>
     /// <returns>Return value of type BigInteger representing the new image ID.</returns>
     internal procedure SetVariantImage(ShopifyVariant: Record "Shpfy Variant"; ResourceUrl: Text): BigInteger
     var
@@ -877,8 +875,10 @@ codeunit 30189 "Shpfy Variant API"
     /// <summary>
     /// Set variant image using media id.
     /// </summary>
-    /// <param name="ShopifyVariant">Shopify Variant record</param>
-    /// <param name="ImageId">Shopify id of image to append</param>
+    /// <param name="ProductId">Id of product related to variant</param>
+    /// <param name="VariantId">Id of variant to set new image.</param>
+    /// <param name="ImageId">Shopify media id to set as variant picture</param>
+    /// <returns>Return value of type Boolean. True if image was set successfully, false otherwise.</returns>
     internal procedure SetVariantImage(ProductId: BigInteger; VariantId: BigInteger; ImageId: BigInteger): Boolean
     var
         Parameters: Dictionary of [Text, Text];
@@ -889,7 +889,7 @@ codeunit 30189 "Shpfy Variant API"
         Parameters.Add('VariantId', Format(VariantId));
         Parameters.Add('ImageId', Format(ImageId));
         JResponse := this.CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::SetVariantImage, Parameters);
-        if this.JsonHelper.GetJsonArray(JResponse, JErrors, 'data.productVariantUpdate.userErrors') then
+        if this.JsonHelper.GetJsonArray(JResponse, JErrors, 'data.productVariantsBulkUpdate.userErrors') then
             exit((JErrors.Count() = 0));
     end;
 
@@ -935,7 +935,7 @@ codeunit 30189 "Shpfy Variant API"
 
         if ProductApi.UploadShopifyImage(TenantMedia, ResourceUrl) then
             if RecordCount <= BulkOperationMgt.GetBulkOperationThreshold() then
-                UpdateVariantImage(Variant, ResourceUrl)
+                exit(UpdateVariantImage(Variant, ResourceUrl))
             else
                 VariantImageUrls.Add(Variant.Id, ResourceUrl);
     end;

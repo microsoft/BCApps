@@ -118,10 +118,10 @@ codeunit 30176 "Shpfy Product API"
     /// Create image upload URL.
     /// </summary>
     /// <param name="Url">Url to upload the image.</param>
-    /// <param name="ResourceUrl"></param>
+    /// <param name="ResourceUrl">Url containing the image after upload.</param>
     /// <param name="TenantMedia">Tenant media record containing image</param>
     /// <returns>True if Image Upload Urls created succesfully.</returns>
-    internal procedure CreateImageUploadUrl(var Url: Text; var ResourceUrl: Text; var TenantMedia: Record "Tenant Media"): boolean
+    internal procedure CreateImageUploadUrl(var Url: Text; var ResourceUrl: Text; var TenantMedia: Record "Tenant Media"): Boolean
     var
         MimeType: Text;
         Filename: Text;
@@ -139,7 +139,7 @@ codeunit 30176 "Shpfy Product API"
         Parameters.Add('HttpMethod', 'PUT');
         JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::CreateUploadUrl, Parameters);
         JArray := JsonHelper.GetJsonArray(JResponse, 'data.stagedUploadsCreate.stagedTargets');
-        if JArray.Count = 1 then
+        if JArray.Count() = 1 then
             if JArray.Get(0, JResponse) then begin
                 Url := JsonHelper.GetValueAsText(JResponse, 'url');
                 ResourceUrl := JsonHelper.GetValueAsText(JResponse, 'resourceUrl');
@@ -215,7 +215,7 @@ codeunit 30176 "Shpfy Product API"
     var
         TenantMedia: Record "Tenant Media";
     begin
-        if Item.Picture.Count = 0 then
+        if Item.Picture.Count() = 0 then
             exit;
 
         if not TenantMedia.Get(Item.Picture.Item(1)) then
@@ -233,7 +233,7 @@ codeunit 30176 "Shpfy Product API"
     /// <param name="BulkOperationInput">Parameter of type TextBuilder.</param>
     /// <param name="ParametersList">Parameter of type List of [Dictionary of [Text, Text]].</param>
     /// <param name="RecordCount">Parameter of type Integer.</param>
-    /// <returns>Return value of type BigInteger.</returns>
+    /// <returns>Shopify ImageId</returns>
     internal procedure UpdateShopifyProductImage(ProductId: BigInteger; ImageId: BigInteger; TenantMedia: Record "Tenant Media"; var BulkOperationInput: TextBuilder; var ParametersList: List of [Dictionary of [Text, Text]]; RecordCount: Integer): BigInteger
     var
         BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
@@ -275,9 +275,9 @@ codeunit 30176 "Shpfy Product API"
     /// <summary> 
     /// Create Shopify Product Image.
     /// </summary>
-    /// <param name="Product">Parameter of type Record "Shopify Product".</param>
-    /// <param name="Item">Parameter of type Record Item.</param>
-    /// <returns>Return value of type BigInteger.</returns>
+    /// <param name="Product">Shopify Product which image is created.</param>
+    /// <param name="Item">Item from which image is taken.</param>
+    /// <returns>Id of created image in Shopify.</returns>
     internal procedure CreateShopifyProductImage(Product: Record "Shpfy Product"; Item: Record Item): BigInteger
     var
         TenantMedia: Record "Tenant Media";
@@ -287,20 +287,6 @@ codeunit 30176 "Shpfy Product API"
             if Product."Image Id" = 0 then
                 if UploadShopifyImage(TenantMedia, ResourceUrl) then
                     exit(SetProductImage(Product, ResourceUrl));
-    end;
-
-    /// <summary>
-    /// Adds image to Shopify product media set.
-    /// </summary>
-    /// <param name="ProductId"></param>
-    /// <param name="TenantMedia"></param>
-    /// <returns></returns>
-    internal procedure AddImageToProduct(ProductId: BigInteger; var TenantMedia: Record "Tenant Media"): BigInteger
-    var
-        ResourceUrl: Text;
-    begin
-        if UploadShopifyImage(TenantMedia, ResourceUrl) then
-            exit(UpdateProductWithNewImage(ProductId, ResourceUrl));
     end;
 
     /// <summary> 
@@ -719,7 +705,7 @@ codeunit 30176 "Shpfy Product API"
         JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::UpdateProdWithImage, Parameters);
 
         if JsonHelper.GetJsonArray(JResponse, JMedias, 'data.productUpdate.product.media.nodes') then
-            if JMedias.Count = 1 then
+            if JMedias.Count() = 1 then
                 if JMedias.Get(0, JMedia) then
                     exit(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JMedia, 'id')));
     end;
@@ -728,8 +714,8 @@ codeunit 30176 "Shpfy Product API"
     /// <summary>
     /// Updates the product with multiple new images.
     /// </summary>
-    /// <param name="ProductId"></param>
-    /// <param name="VariantImageUrls"></param>
+    /// <param name="ProductId">Shopify product which pictures will be added to.</param>
+    /// <param name="VariantImageUrls">Dictionary of variant IDs to image URLs.</param>
     /// <returns>Dictionary of variant IDs to image IDs</returns>
     internal procedure UpdateProductWithMultipleVariantImages(ProductId: BigInteger; VariantImageUrls: Dictionary of [BigInteger, Text]): Dictionary of [BigInteger, BigInteger]
     var
@@ -754,7 +740,7 @@ codeunit 30176 "Shpfy Product API"
             GraphQuery.Append('\"},');
             VariantIds.Add(VariantId);
         end;
-        GraphQuery.Remove(GraphQuery.Length, 1);
+        GraphQuery.Remove(GraphQuery.Length(), 1);
         GraphQuery.Append('])');
         GraphQuery.Append('{product');
         GraphQuery.Append(StrSubstNo(MediasTok, VariantIds.Count()));
@@ -768,7 +754,7 @@ codeunit 30176 "Shpfy Product API"
         ImageIds.Reverse();
 
         foreach ImageId in ImageIds do
-            VariantImageIds.Add(VariantIds.Get(VariantImageIds.Count + 1), ImageId);
+            VariantImageIds.Add(VariantIds.Get(VariantImageIds.Count() + 1), ImageId);
 
         exit(VariantImageIds);
     end;

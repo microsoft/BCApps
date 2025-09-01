@@ -89,7 +89,7 @@ page 30175 "Shpfy Item Variant Picture"
                     ConvertedCodeType := Format(Rec."Code");
                     ToFile := DummyPictureEntity.GetDefaultMediaDescription(Rec);
                     ConvertedCodeType := StringConversionManager.RemoveNonAlphaNumericCharacters(ConvertedCodeType);
-                    ExportPath := TemporaryPath + ConvertedCodeType + Format(Rec.Picture.MediaId);
+                    ExportPath := TemporaryPath + ConvertedCodeType + Format(Rec.Picture.MediaId());
                     Rec.Picture.ExportFile(ExportPath + '.' + DummyPictureEntity.GetDefaultExtension());
 
                     FileManagement.ExportImage(ExportPath, ToFile);
@@ -156,7 +156,7 @@ page 30175 "Shpfy Item Variant Picture"
         if Rec.Description = '' then
             Error(this.MustSpecifyDescriptionErr);
 
-        if Rec.Picture.Count > 0 then
+        if Rec.Picture.Count() > 0 then
             if not Confirm(this.OverrideImageQst) then
                 Error('');
 
@@ -194,7 +194,7 @@ page 30175 "Shpfy Item Variant Picture"
 
     local procedure SetEditableOnPictureActions()
     begin
-        this.DeleteExportEnabled := Rec.Picture.Count <> 0;
+        this.DeleteExportEnabled := Rec.Picture.Count() <> 0;
     end;
 
     procedure IsCameraAvailable(): Boolean

@@ -23,9 +23,7 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         Shop: Record "Shpfy Shop";
         Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
-        InitializeTest: Codeunit "Shpfy Initialize Test";
         OutboundHttpRequests: Codeunit "Library - Variable Storage";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         RequestVariantId, RequestProductId : BigInteger;
         BulkOperationId: BigInteger;
         Initialized: Boolean;
@@ -48,9 +46,9 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         Any.SetDefaultSeed();
         if Initialized then begin
             Product.SetRange("Shop Code", Shop.Code);
-            Product.DeleteAll();
+            Product.DeleteAll(false);
             Variant.SetRange("Shop Code", Shop.Code);
-            Variant.DeleteAll();
+            Variant.DeleteAll(false);
             exit;
         end;
         Shop := InitializeTest.CreateShop();
@@ -70,8 +68,6 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
     var
         Item: Record Item;
         ItemVariant: Record "Item Variant";
-        Variant: Record "Shpfy Variant";
-        Product: Record "Shpfy Product";
         LibraryInventory: Codeunit "Library - Inventory";
         VariantAPI: Codeunit "Shpfy Variant API";
         SyncProductImage: Codeunit "Shpfy Sync Product Image";
@@ -88,23 +84,9 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         LibraryInventory.CreateItem(Item);
         LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
         // [GIVEN] Shopify product
-        Product.Init();
-        Product.Id := Any.IntegerInRange(1000000, 9999999);
-        Product."Item No." := Item."No.";
-        Product."Item SystemId" := Item.SystemId;
-        Product."Shop Code" := Shop."Code";
-        Product.Insert(false);
-        RequestProductId := Product.Id;
+        RequestProductId := CreateProduct(Item);
         // [GIVEN] Shopify variant
-        Variant.Init();
-        Variant.Id := Any.IntegerInRange(1000000, 9999999);
-        Variant."Product Id" := Product.Id;
-        Variant."Item No." := Item."No.";
-        Variant."Item SystemId" := Item.SystemId;
-        Variant."Item Variant SystemId" := ItemVariant.SystemId;
-        Variant."Shop Code" := Shop."Code";
-        Variant.Insert(false);
-        RequestVariantId := Variant.Id;
+        RequestVariantId := CreateVariant(Item, ItemVariant, RequestProductId, 12345);
 
         // [WHEN] Execute sync product image
         SyncProductImage.Run(Shop);
@@ -121,11 +103,10 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         Item: Record Item;
         ItemVariant: Record "Item Variant";
         Variant: Record "Shpfy Variant";
-        Product: Record "Shpfy Product";
         LibraryInventory: Codeunit "Library - Inventory";
         SyncProductImage: Codeunit "Shpfy Sync Product Image";
         ShpfySyncVariantImgHelper: Codeunit "Shpfy Sync Variant Img Helper";
-        ImageId: BigInteger;
+        ImageId, ProductId, VariantId : BigInteger;
     begin
         // [SCENARIO] Set variant image in shopify when there is no image in shopify
         Initialize();
@@ -141,21 +122,9 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         // [GIVEN] Item variant has image
         ImportImageToItemVariant(ItemVariant);
         // [GIVEN] Shopify product
-        Product.Init();
-        Product.Id := Any.IntegerInRange(1000000, 9999999);
-        Product."Item No." := Item."No.";
-        Product."Item SystemId" := Item.SystemId;
-        Product."Shop Code" := Shop."Code";
-        Product.Insert(false);
+        ProductId := CreateProduct(Item);
         // [GIVEN] Shopify variant
-        Variant.Init();
-        Variant.Id := Any.IntegerInRange(1000000, 9999999);
-        Variant."Product Id" := Product.Id;
-        Variant."Item No." := Item."No.";
-        Variant."Item SystemId" := Item.SystemId;
-        Variant."Item Variant SystemId" := ItemVariant.SystemId;
-        Variant."Shop Code" := Shop."Code";
-        Variant.Insert(false);
+        VariantId := CreateVariant(Item, ItemVariant, ProductId);
 
         // [WHEN] Execute sync product image
         BindSubscription(ShpfySyncVariantImgHelper);
@@ -163,7 +132,7 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         UnbindSubscription(ShpfySyncVariantImgHelper);
 
         // [THEN] Variant image is updated in Shopify
-        Variant.GetBySystemId(Variant.SystemId);
+        Variant.Get(VariantId);
         Evaluate(ImageId, '1234567891011');
         LibraryAssert.IsTrue(Variant."Image Id" = ImageId, 'Variant image was not updated in Shopify.');
         LibraryAssert.IsTrue(Variant."Image Hash" <> 0, 'Variant image hash was not updated.');
@@ -176,11 +145,10 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         Item: Record Item;
         ItemVariant: Record "Item Variant";
         Variant: Record "Shpfy Variant";
-        Product: Record "Shpfy Product";
         LibraryInventory: Codeunit "Library - Inventory";
         SyncProductImage: Codeunit "Shpfy Sync Product Image";
         ShpfySyncVariantImgHelper: Codeunit "Shpfy Sync Variant Img Helper";
-        ImageId, ImageHash : BigInteger;
+        ImageId, ImageHash, ProductId : BigInteger;
     begin
         // [SCENARIO] Update variant picture in Shopify
         Initialize();
@@ -196,25 +164,10 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         // [GIVEN] Item variant has image
         ImportImageToItemVariant(ItemVariant);
         // [GIVEN] Shopify product
-        Product.Init();
-        Product.Id := Any.IntegerInRange(1000000, 9999999);
-        Product."Item No." := Item."No.";
-        Product."Item SystemId" := Item.SystemId;
-        Product."Shop Code" := Shop."Code";
-        Product.Insert(false);
-        // [GIVEN] Shopify variant
-        Variant.Init();
-        Variant.Id := Any.IntegerInRange(1000000, 9999999);
-        Variant."Product Id" := Product.Id;
-        Variant."Item No." := Item."No.";
-        Variant."Item SystemId" := Item.SystemId;
-        Variant."Item Variant SystemId" := ItemVariant.SystemId;
-        Variant."Shop Code" := Shop."Code";
-        Variant.Insert(false);
-        Variant."Image Id" := Any.IntegerInRange(1000000, 9999999);
-        Variant."Image Hash" := Any.IntegerInRange(1000000, 9999999);
-        Variant.Modify(false);
-        ImageHash := Variant."Image Hash";
+        ProductId := CreateProduct(Item);
+        // [GIVEN] Shopify variant with existing image
+        Variant.Get(CreateVariant(Item, ItemVariant, ProductId));
+        ImageHash := SetVariantImageFields(Variant);
 
         // [WHEN] Execute sync product image
         BindSubscription(ShpfySyncVariantImgHelper);
@@ -235,12 +188,11 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         Item: Record Item;
         ItemVariant: Record "Item Variant";
         Variant: Record "Shpfy Variant";
-        Product: Record "Shpfy Product";
         BulkOperation: Record "Shpfy Bulk Operation";
         LibraryInventory: Codeunit "Library - Inventory";
         SyncProductImage: Codeunit "Shpfy Sync Product Image";
         ShpfySyncVariantImgHelper: Codeunit "Shpfy Sync Variant Img Helper";
-        ImageId, ImageHash : BigInteger;
+        ImageId, ImageHash, ProductId : BigInteger;
         I: Integer;
     begin
         // [SCENARIO] Update variant picture in Shopify
@@ -254,41 +206,19 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         // [GIVEN] Item with variant
         LibraryInventory.CreateItem(Item);
         // [GIVEN] Shopify product
-        Product.Init();
-        Product.Id := Any.IntegerInRange(1000000, 9999999);
-        Product."Item No." := Item."No.";
-        Product."Item SystemId" := Item.SystemId;
-        Product."Shop Code" := Shop."Code";
-        Product.Insert(false);
-        // [GIVEN] Shopify variants to fulfill bulk update threshold
+        ProductId := CreateProduct(Item);
+        // [GIVEN] Item Variants and Shopify variants to fulfill bulk update threshold
         for I := 1 to 199 do begin
             LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
-            // [GIVEN] Shopify variant
-            Variant.Init();
-            Variant.Id := Any.IntegerInRange(1000000, 9999999);
-            Variant."Product Id" := Product.Id;
-            Variant."Item No." := Item."No.";
-            Variant."Item SystemId" := Item.SystemId;
-            Variant."Item Variant SystemId" := ItemVariant.SystemId;
-            Variant."Shop Code" := Shop."Code";
-            Variant.Insert(false);
+            CreateVariant(Item, ItemVariant, ProductId);
         end;
         // [GIVEN] Item variant which will have update image
         LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
         // [GIVEN] Item variant has image
         ImportImageToItemVariant(ItemVariant);
-        // [GIVEN] Shopify variant
-        Variant.Init();
-        Variant.Id := Any.IntegerInRange(1000000, 9999999);
-        Variant."Product Id" := Product.Id;
-        Variant."Item No." := Item."No.";
-        Variant."Item SystemId" := Item.SystemId;
-        Variant."Item Variant SystemId" := ItemVariant.SystemId;
-        Variant."Shop Code" := Shop."Code";
-        Variant.Insert(false);
-        Variant."Image Id" := Any.IntegerInRange(1000000, 9999999);
-        Variant."Image Hash" := Any.IntegerInRange(1000000, 9999999);
-        Variant.Modify(false);
+        // [GIVEN] Shopify variant with image
+        Variant.Get(CreateVariant(Item, ItemVariant, ProductId));
+        SetVariantImageFields(Variant);
         // [GIVEN] Bulk operation ID
         BulkOperationId := Any.IntegerInRange(1000000, 9999999);
 
@@ -299,7 +229,6 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
 
         // [THEN] Bulk operation is created
         BulkOperation.Get(BulkOperationId, Shop.Code, BulkOperation.Type::mutation);
-        BulkOperation.GetRequestData();
     end;
 
     [HttpClientHandler]
@@ -460,5 +389,49 @@ codeunit 139540 "Shpfy Sync Variant Images Test"
         OutStr.WriteText(NavApp.GetResourceAsText(ImageResponseTok, TextEncoding::UTF8));
         ItemVariant.Picture.ImportStream(InStr, 'test');
         ItemVariant.Modify(false);
+    end;
+
+    local procedure CreateProduct(Item: Record Item): BigInteger
+    var
+        Product: Record "Shpfy Product";
+    begin
+        Product.Init();
+        Product.Id := Any.IntegerInRange(1000000, 9999999);
+        Product."Item No." := Item."No.";
+        Product."Item SystemId" := Item.SystemId;
+        Product."Shop Code" := Shop."Code";
+        Product.Insert(false);
+        exit(Product.Id);
+    end;
+
+    local procedure CreateVariant(Item: Record Item; ItemVariant: Record "Item Variant"; ProductId: BigInteger): BigInteger
+    begin
+        exit(CreateVariant(Item, ItemVariant, ProductId, 0));
+    end;
+
+    local procedure CreateVariant(Item: Record Item; ItemVariant: Record "Item Variant"; ProductId: BigInteger; VariantId: BigInteger): BigInteger
+    var
+        Variant: Record "Shpfy Variant";
+    begin
+        Variant.Init();
+        if VariantId <> 0 then
+            Variant.Id := VariantId
+        else
+            Variant.Id := Any.IntegerInRange(1000000, 9999999);
+        Variant."Product Id" := ProductId;
+        Variant."Item No." := Item."No.";
+        Variant."Item SystemId" := Item.SystemId;
+        Variant."Item Variant SystemId" := ItemVariant.SystemId;
+        Variant."Shop Code" := Shop."Code";
+        Variant.Insert(false);
+        exit(Variant.Id);
+    end;
+
+    local procedure SetVariantImageFields(Variant: Record "Shpfy Variant"): BigInteger
+    begin
+        Variant."Image Id" := Any.IntegerInRange(1000000, 9999999);
+        Variant."Image Hash" := Any.IntegerInRange(1000000, 9999999);
+        Variant.Modify(false);
+        exit(Variant."Image Hash");
     end;
 }

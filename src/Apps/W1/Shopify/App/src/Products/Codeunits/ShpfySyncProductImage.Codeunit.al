@@ -160,8 +160,8 @@ codeunit 30184 "Shpfy Sync Product Image"
                                 Item.GetBySystemId(ShopifyVariant."Item SystemId");
 
                             VariantImageData := VariantImages.Get(Id);
-                            if VariantImageData.Keys.Count > 0 then
-                                foreach ImageId in VariantImageData.Keys do
+                            if VariantImageData.Keys.Count() > 0 then
+                                foreach ImageId in VariantImageData.Keys() do
                                     if ImageId <> ShopifyVariant."Image Id" then
                                         if UpdateItemImage(Item, VariantImageData.Get(ImageId)) then begin
                                             UpdatedItems.Add(Item.SystemId);

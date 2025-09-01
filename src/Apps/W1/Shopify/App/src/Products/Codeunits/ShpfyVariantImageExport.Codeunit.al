@@ -137,10 +137,10 @@ codeunit 30413 "Shpfy Variant Image Export"
     local procedure GetPictureGuid(Item: Record Item; ItemVariant: Record "Item Variant"; ItemAsVariant: Boolean): Guid
     begin
         if ItemAsVariant then begin
-            if Item.Picture.Count > 0 then
+            if Item.Picture.Count() > 0 then
                 exit(Item.Picture.Item(1));
         end else
-            if ItemVariant.Picture.Count > 0 then
+            if ItemVariant.Picture.Count() > 0 then
                 exit(ItemVariant.Picture.Item(1));
     end;
 }
