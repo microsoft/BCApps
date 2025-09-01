@@ -22,12 +22,12 @@ codeunit 30162 "Shpfy Order Events"
     begin
     end;
 
-    [IntegrationEvent(false, false)]
     /// <summary> 
     /// Raised after creating Shopify Order and Lines.
     /// </summary>
     /// <param name="ShopifyOrderHeader">Parameter of type Record "Shopify Order Header".</param>
     /// <param name="IsNew">Parameter of type boolean.</param>
+    [IntegrationEvent(false, false)]
     internal procedure OnAfterCreateShopifyOrderAndLines(var ShopifyOrderHeader: Record "Shpfy Order Header"; IsNew: Boolean)
     begin
     end;
