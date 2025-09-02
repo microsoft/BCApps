@@ -76,6 +76,18 @@ codeunit 4307 "Agent Message"
     end;
 
     /// <summary>
+    /// Sets whether to ignore attachments when adding them to a message.
+    /// </summary>
+    /// <param name="IgnoreAttachment">If true, attachments will be marked as ignored when added to a message.</param>
+    [Scope('OnPrem')]
+    procedure SetIgnoreAttachment(IgnoreAttachment: Boolean)
+    var
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
+    begin
+        AgentMessageImpl.SetIgnoreAttachment(IgnoreAttachment);
+    end;
+
+    /// <summary>
     /// Downloads the attachments for a specific message.
     /// </summary>
     /// <param name="AgentTaskMessage">Message to download attachments for.</param>
