@@ -173,7 +173,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        AgentImpl.ProfileLookup(UserSettingsRec);
+        exit(AgentImpl.ProfileLookup(UserSettingsRec));
     end;
 
     /// <summary>
