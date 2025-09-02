@@ -132,11 +132,11 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        AgentImpl.PopulateDefaultProfile(ProfileID, ProfileAppID, TempAllProfile);
+        AgentImpl.PopulateProfileTempRecord(ProfileID, ProfileAppID, TempAllProfile);
     end;
 
     /// <summary>
-    /// Assigns the permission set to the agent.
+    /// Assigns the profile to the agent.
     /// </summary>
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
     /// <param name="AllProfile">Profile to set to the agent.</param>
@@ -146,6 +146,22 @@ codeunit 4321 Agent
         AgentImpl: Codeunit "Agent Impl.";
     begin
         AgentImpl.SetProfile(AgentUserSecurityID, AllProfile);
+    end;
+
+    /// <summary>
+    /// Assigns the profile to the agent.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
+    /// <param name="ProfileID">The profile ID.</param>
+    /// <param name="ProfileAppID">The profile App ID.</param>
+    [Scope('OnPrem')]
+    procedure SetProfile(AgentUserSecurityID: Guid; ProfileID: Text[30]; ProfileAppID: Guid)
+    var
+        AllProfileTemp: Record "All Profile" temporary;
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        AgentImpl.PopulateProfileTempRecord(ProfileID, ProfileAppID, AllProfileTemp);
+        AgentImpl.SetProfile(AgentUserSecurityID, AllProfileTemp);
     end;
 
     /// <summary>

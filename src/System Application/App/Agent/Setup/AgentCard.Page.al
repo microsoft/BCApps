@@ -66,13 +66,13 @@ page 4315 "Agent Card"
 
                         trigger OnAssistEdit()
                         var
-                            AgentImpl: Codeunit "Agent Impl.";
+                            Agent: Codeunit Agent;
                         begin
                             if not Confirm(ProfileChangedQst, false) then
                                 exit;
 
-                            if AgentImpl.ProfileLookup(UserSettingsRecord) then
-                                AgentImpl.UpdateAgentUserSettings(UserSettingsRecord);
+                            if Agent.ProfileLookup(UserSettingsRecord) then
+                                Agent.SetProfile(UserSettingsRecord."User Security ID", UserSettingsRecord."Profile ID", UserSettingsRecord."App ID");
                         end;
                     }
                     field(Language; Language.GetWindowsLanguageName(UserSettingsRecord."Language ID"))

@@ -138,7 +138,7 @@ codeunit 4301 "Agent Impl."
         until AgentAccessControl.Next() = 0;
     end;
 
-    internal procedure PopulateDefaultProfile(ProfileID: Text[30]; ProfileAppID: Guid; var TempAllProfile: Record "All Profile" temporary)
+    internal procedure PopulateProfileTempRecord(ProfileID: Text[30]; ProfileAppID: Guid; var TempAllProfile: Record "All Profile" temporary)
     begin
         TempAllProfile.Scope := TempAllProfile.Scope::Tenant;
         TempAllProfile."App ID" := ProfileAppID;
