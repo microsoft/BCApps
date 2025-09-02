@@ -149,6 +149,18 @@ codeunit 4321 Agent
     end;
 
     /// <summary>
+    /// Allows the user to select the new profile for given User Settings for an agent.
+    /// </summary>
+    /// <param name="UserSettingsRec">User settings to update with the new profile</param>
+    [Scope('OnPrem')]
+    procedure ProfileLookup(var UserSettingsRec: Record "User Settings"): Boolean
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        AgentImpl.ProfileLookup(UserSettingsRec);
+    end;
+
+    /// <summary>
     /// Updates the region and language settings for the agent. Few properties are updated, like: Language, Regional Settings and Time Zone.
     /// <remarks>Profile is not updated, use SetProfile function instead</remarks>
     /// </summary>

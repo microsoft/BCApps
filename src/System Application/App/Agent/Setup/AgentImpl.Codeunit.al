@@ -302,14 +302,14 @@ codeunit 4301 "Agent Impl."
         exit(false);
     end;
 
-    internal procedure UpdateProfile(var TempAllProfile: Record "All Profile" temporary; var UserSettingsRec: Record "User Settings")
+    local procedure UpdateProfile(var TempAllProfile: Record "All Profile" temporary; var UserSettingsRec: Record "User Settings")
     begin
         UserSettingsRec."Profile ID" := TempAllProfile."Profile ID";
         UserSettingsRec."App ID" := TempAllProfile."App ID";
         UserSettingsRec.Scope := TempAllProfile.Scope;
     end;
 
-    procedure PopulateProfiles(var TempAllProfile: Record "All Profile" temporary)
+    local procedure PopulateProfiles(var TempAllProfile: Record "All Profile" temporary)
     var
         AllProfile: Record "All Profile";
         DescriptionFilterTxt: Label 'Navigation menu only.';
@@ -326,17 +326,6 @@ codeunit 4301 "Agent Impl."
                     TempAllProfile."App Name" := UserCreatedAppNameTxt;
                 TempAllProfile.Insert();
             until AllProfile.Next() = 0;
-    end;
-
-    procedure GetProfileName(Scope: Option System,Tenant; AppID: Guid; ProfileID: Code[30]) ProfileName: Text
-    var
-        AllProfile: Record "All Profile";
-    begin
-        // If current profile has been changed, then find it and update the description; else, get the default
-        if not AllProfile.Get(Scope, AppID, ProfileID) then
-            exit;
-
-        ProfileName := AllProfile.Caption;
     end;
 
     internal procedure AssignPermissionSets(var UserSID: Guid; PermissionCompanyName: Text; var AggregatePermissionSet: Record "Aggregate Permission Set")

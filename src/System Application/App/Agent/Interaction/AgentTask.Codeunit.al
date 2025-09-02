@@ -29,9 +29,7 @@ codeunit 4303 "Agent Task"
     /// The agent task will be be picked up for processing shortly after updating the status.
     /// </summary>
     /// <param name="AgentTask">The agent task to set to ready.</param>
-    /// <returns>
-    /// The agent task with the status set to ready.
-    /// </returns>
+    /// <returns>The agent task with the status set to ready.</returns>
     [Scope('OnPrem')]
     procedure SetStatusToReady(AgentTask: Record "Agent Task")
     var
@@ -43,14 +41,50 @@ codeunit 4303 "Agent Task"
     /// <summary>
     /// Checks if the task can be set to ready and started again.
     /// </summary>
-    /// <param name="AgentTask">
-    /// The agent task to check.
-    /// </param>
+    /// <param name="AgentTask">The agent task to check.</param>
     /// <returns>True if agent task can be set to ready, false otherwise</returns>
     procedure CanSetStatusToReady(AgentTask: Record "Agent Task"): Boolean
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
         exit(AgentTaskImpl.CanAgentTaskBeSetToReady(AgentTask));
+    end;
+
+    /// <summary>
+    /// Creates a user intervention without any additional context for the specified log entry.
+    /// </summary>
+    /// <param name="UserInterventionRequestEntry">The log entry for which to create an intervention request.</param>
+    [Scope('OnPrem')]
+    procedure CreateUserIntervention(UserInterventionRequestEntry: Record "Agent Task Log Entry")
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry);
+    end;
+
+    /// <summary>
+    /// Creates a user intervention with additional text context for the specified log entry.
+    /// </summary>
+    /// <param name="UserInterventionRequestEntry">The log entry for which to create an intervention request.</param>
+    /// <param name="UserInput">The user input for the intervention request.</param>
+    [Scope('OnPrem')]
+    procedure CreateUserIntervention(UserInterventionRequestEntry: Record "Agent Task Log Entry"; UserInput: Text)
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, UserInput);
+    end;
+
+    /// <summary>
+    /// Creates a user intervention refering to a suggestion ID for the specified log entry.
+    /// </summary>
+    /// <param name="UserInterventionRequestEntry">The log entry for which to create an intervention request.</param>
+    /// <param name="SelectedSuggestionId">The selected suggestion ID.</param>
+    [Scope('OnPrem')]
+    procedure CreateUserIntervention(UserInterventionRequestEntry: Record "Agent Task Log Entry"; SelectedSuggestionId: Integer)
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        AgentTaskImpl.CreateUserIntervention(UserInterventionRequestEntry, SelectedSuggestionId);
     end;
 }

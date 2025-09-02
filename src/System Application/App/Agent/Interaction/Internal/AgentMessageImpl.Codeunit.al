@@ -11,7 +11,7 @@ codeunit 4308 "Agent Message Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    procedure GetMessageText(var AgentTaskMessage: Record "Agent Task Message"): Text
+    procedure GetText(var AgentTaskMessage: Record "Agent Task Message"): Text
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         ContentInStream: InStream;
@@ -34,7 +34,7 @@ codeunit 4308 "Agent Message Impl."
         AgentTaskMessage.Modify(true);
     end;
 
-    procedure IsMessageEditable(var AgentTaskMessage: Record "Agent Task Message"): Boolean
+    procedure IsEditable(var AgentTaskMessage: Record "Agent Task Message"): Boolean
     begin
         if AgentTaskMessage.Type <> AgentTaskMessage.Type::Output then
             exit(false);
@@ -44,7 +44,7 @@ codeunit 4308 "Agent Message Impl."
 
     procedure SetStatusToSent(var AgentTaskMessage: Record "Agent Task Message")
     begin
-        UpdateAgentTaskMessageStatus(AgentTaskMessage, AgentTaskMessage.Status::Sent);
+        UpdateStatus(AgentTaskMessage, AgentTaskMessage.Status::Sent);
     end;
 
     procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; var TempAgentTaskFile: Record "Agent Task File" temporary)
@@ -161,7 +161,7 @@ codeunit 4308 "Agent Message Impl."
         until AgentTaskMessageAttachment.Next() = 0;
     end;
 
-    procedure UpdateAgentTaskMessageStatus(var AgentTaskMessage: Record "Agent Task Message"; Status: Option)
+    procedure UpdateStatus(var AgentTaskMessage: Record "Agent Task Message"; Status: Option)
     begin
         AgentTaskMessage.Status := Status;
         AgentTaskMessage.Modify(true);
