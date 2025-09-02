@@ -157,11 +157,11 @@ codeunit 4321 Agent
     [Scope('OnPrem')]
     procedure SetProfile(AgentUserSecurityID: Guid; ProfileID: Text[30]; ProfileAppID: Guid)
     var
-        AllProfileTemp: Record "All Profile" temporary;
+        TempAllProfile: Record "All Profile" temporary;
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        AgentImpl.PopulateProfileTempRecord(ProfileID, ProfileAppID, AllProfileTemp);
-        AgentImpl.SetProfile(AgentUserSecurityID, AllProfileTemp);
+        AgentImpl.PopulateProfileTempRecord(ProfileID, ProfileAppID, TempAllProfile);
+        AgentImpl.SetProfile(AgentUserSecurityID, TempAllProfile);
     end;
 
     /// <summary>

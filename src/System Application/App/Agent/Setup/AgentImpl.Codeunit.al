@@ -174,7 +174,7 @@ codeunit 4301 "Agent Impl."
         UserSettings: Codeunit "User Settings";
     begin
         UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
-        UpdateProfile(AllProfile, UserSettingsRecord);
+        UpdateUserSettingsWithProfile(AllProfile, UserSettingsRecord);
         UpdateAgentUserSettings(UserSettingsRecord);
     end;
 
@@ -296,13 +296,13 @@ codeunit 4301 "Agent Impl."
 
         if TempAllProfile.Get(UserSettingsRec.Scope, UserSettingsRec."App ID", UserSettingsRec."Profile ID") then;
         if Page.RunModal(Page::Roles, TempAllProfile) = Action::LookupOK then begin
-            UpdateProfile(TempAllProfile, UserSettingsRec);
+            UpdateUserSettingsWithProfile(TempAllProfile, UserSettingsRec);
             exit(true);
         end;
         exit(false);
     end;
 
-    local procedure UpdateProfile(var TempAllProfile: Record "All Profile" temporary; var UserSettingsRec: Record "User Settings")
+    local procedure UpdateUserSettingsWithProfile(var TempAllProfile: Record "All Profile" temporary; var UserSettingsRec: Record "User Settings")
     begin
         UserSettingsRec."Profile ID" := TempAllProfile."Profile ID";
         UserSettingsRec."App ID" := TempAllProfile."App ID";

@@ -112,8 +112,6 @@ page 4317 "Agent User Settings"
     end;
 
     trigger OnAfterGetCurrRecord()
-    var
-        UserSettings: Codeunit "User Settings";
     begin
         ProfileDisplayName := UserSettings.GetProfileName(Rec);
     end;
