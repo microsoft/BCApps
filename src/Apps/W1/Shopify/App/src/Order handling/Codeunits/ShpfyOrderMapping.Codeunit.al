@@ -292,6 +292,7 @@ codeunit 30163 "Shpfy Order Mapping"
                 OrderTransaction.SetAutoCalcFields("Payment Method");
                 OrderTransaction.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
                 OrderTransaction.SetRange(Status, "Shpfy Transaction Status"::Success);
+                OrderTransaction.SetFilter(Type, '%1|%2', "Shpfy Transaction Type"::Sale, "Shpfy Transaction Type"::Capture);
                 if OrderTransaction.FindSet() then begin
                     repeat
                         if not PaymentMethods.Contains(OrderTransaction."Payment Method") then

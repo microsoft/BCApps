@@ -17,7 +17,7 @@ codeunit 139611 "Shpfy Order Refund Test"
     TestPermissions = Disabled;
 
     var
-        ShpfyInitializeTest: Codeunit "Shpfy Initialize Test";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
         LibraryAssert: Codeunit "Library Assert";
         Any: Codeunit Any;
         ShopifyIds: Dictionary of [Text, List of [BigInteger]];
@@ -36,7 +36,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         RefundHeader: Record "Shpfy Refund Header";
         RefundId: BigInteger;
         IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
-        CanCreateDocument: boolean;
+        CanCreateDocument: Boolean;
         ErrorInfo: ErrorInfo;
     begin
         // [SCENARIO] Create a Credit Memo from a Shopify Refund where the item is totally refunded.
@@ -48,8 +48,8 @@ codeunit 139611 "Shpfy Order Refund Test"
         // [GIVEN] The RefundId of the refund for creating the credit Memo.
         RefundId := ShopifyIds.Get('Refund').Get(1);
 
-        // [WHEN] Execute IReturnRefundProcess.CanCreateSalesDocumentFor(enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo)
-        CanCreateDocument := IReturnRefundProcess.CanCreateSalesDocumentFor(enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo);
+        // [WHEN] Execute IReturnRefundProcess.CanCreateSalesDocumentFor(Enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo)
+        CanCreateDocument := IReturnRefundProcess.CanCreateSalesDocumentFor(Enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo);
         // [THEN] CancreateDocument must be true
         LibraryAssert.IsTrue(CanCreateDocument, 'The result of IReturnRefundProcess.CanCreateSalesDocumentFor must be true');
 
@@ -72,7 +72,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         RefundHeader: Record "Shpfy Refund Header";
         RefundId: BigInteger;
         IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
-        CanCreateDocument: boolean;
+        CanCreateDocument: Boolean;
         ErrorInfo: ErrorInfo;
     begin
         // [SCENARIO] Create a Credit Memo from a Shopify Refund where only the shipment is refunded.
@@ -84,8 +84,8 @@ codeunit 139611 "Shpfy Order Refund Test"
         // [GIVEN] The RefundId of the refund for creating the credit Memo.
         RefundId := ShopifyIds.Get('Refund').Get(2);
 
-        // [WHEN] Execute IReturnRefundProcess.CanCreateSalesDocumentFor(enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo)
-        CanCreateDocument := IReturnRefundProcess.CanCreateSalesDocumentFor(enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo);
+        // [WHEN] Execute IReturnRefundProcess.CanCreateSalesDocumentFor(Enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo)
+        CanCreateDocument := IReturnRefundProcess.CanCreateSalesDocumentFor(Enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo);
         // [THEN] CancreateDocument must be true
         LibraryAssert.IsTrue(CanCreateDocument, 'The result of IReturnRefundProcess.CanCreateSalesDocumentFor must be true');
 
@@ -108,7 +108,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         RefundHeader: Record "Shpfy Refund Header";
         RefundId: BigInteger;
         IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
-        CanCreateDocument: boolean;
+        CanCreateDocument: Boolean;
         ErrorInfo: ErrorInfo;
     begin
         // [SCENARIO] Create a Credit Memo from a Shopify Refund where the item is not refunded.
@@ -120,8 +120,8 @@ codeunit 139611 "Shpfy Order Refund Test"
         // [GIVEN] The RefundId of the refund for creating the credit Memo.
         RefundId := ShopifyIds.Get('Refund').Get(1);
 
-        // [WHEN] Execute IReturnRefundProcess.CanCreateSalesDocumentFor(enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo)
-        CanCreateDocument := IReturnRefundProcess.CanCreateSalesDocumentFor(enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo);
+        // [WHEN] Execute IReturnRefundProcess.CanCreateSalesDocumentFor(Enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo)
+        CanCreateDocument := IReturnRefundProcess.CanCreateSalesDocumentFor(Enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo);
         // [THEN] CancreateDocument must be true
         LibraryAssert.IsTrue(CanCreateDocument, 'The result of IReturnRefundProcess.CanCreateSalesDocumentFor must be true');
 
@@ -250,7 +250,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         CreateLocation(Location);
 
         // [GIVEN] Shop with setup to use default return location
-        Shop := ShpfyInitializeTest.CreateShop();
+        Shop := InitializeTest.CreateShop();
         Shop."Return Location Priority" := Enum::"Shpfy Return Location Priority"::"Default Return Location";
         Shop."Return Location" := Location.Code;
         Shop.Modify(false);
@@ -293,7 +293,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         Initialize();
 
         // [GIVEN] Shop with setup to use original return location
-        Shop := ShpfyInitializeTest.CreateShop();
+        Shop := InitializeTest.CreateShop();
         Shop."Return Location Priority" := Enum::"Shpfy Return Location Priority"::"Original -> Default Location";
         Shop."Return Location" := '';
         Shop.Modify(false);
@@ -321,6 +321,88 @@ codeunit 139611 "Shpfy Order Refund Test"
         LibraryAssert.AreEqual(Location.Code, SalesLine."Location Code", 'Sales line location not set');
     end;
 
+    [Test]
+    procedure UnitTestCreateCrMemoWithOrderLine()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        RefundHeader: Record "Shpfy Refund Header";
+        Shop: Record "Shpfy Shop";
+        RefundId: BigInteger;
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        CanCreateDocument: Boolean;
+        ErrorInfo: ErrorInfo;
+        ShopifyOrderNoLbl: Label 'Shopify Order No.: %1', Comment = '%1 = Order No.';
+    begin
+        // [SCENARIO] Create a Credit Memo from a Shopify Refund where the item is totally refunded.
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+        Shop."Shopify Order No. on Doc. Line" := true;
+        Shop.Modify(false);
+
+        // [GIVEN] Set the process of the document: "Auto Create Credit Memo";
+        IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        // [GIVEN] The document type Refund
+        // [GIVEN] The RefundId of the refund for creating the credit Memo.
+        RefundId := ShopifyIds.Get('Refund').Get(1);
+
+        // [WHEN] Execute IReturnRefundProcess.CanCreateSalesDocumentFor(Enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo)
+        CanCreateDocument := IReturnRefundProcess.CanCreateSalesDocumentFor(Enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo);
+        // [THEN] CancreateDocument must be true
+        LibraryAssert.IsTrue(CanCreateDocument, 'The result of IReturnRefundProcess.CanCreateSalesDocumentFor must be true');
+
+        // [WHEN] Execute IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId)
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId);
+        // [THEN] SalesHeader."Document Type" = Enum::"Sales Document Type"::"Credit Memo"
+        LibraryAssert.AreEqual(Enum::"Sales Document Type"::"Credit Memo", SalesHeader."Document Type", 'SalesHeader."Document Type" must be a Credit Memo');
+        // [THEN] Test if a line with order info is created
+        RefundHeader.Get(RefundId);
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Description, StrSubstNo(ShopifyOrderNoLbl, RefundHeader."Shopify Order No."));
+        LibraryAssert.RecordIsNotEmpty(SalesLine);
+        // Tear down
+        ResetProccesOnRefund(RefundId);
+    end;
+
+    [Test]
+    procedure UnitTestCreateCrMemoFailsIfNoAccountSet()
+    var
+        Shop: Record "Shpfy Shop";
+        SalesHeader: Record "Sales Header";
+        RefundHeader: Record "Shpfy Refund Header";
+        RefundId: BigInteger;
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        CanCreateDocument: Boolean;
+        ErrorInfo: ErrorInfo;
+    begin
+        // [SCENARIO] Create a Credit Memo from a Shopify Refund where only the shipment is refunded.
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+        Shop."Refund Account" := '';
+        Shop.Modify(false);
+
+        // [GIVEN] Set the process of the document: "Auto Create Credit Memo";
+        IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        // [GIVEN] The document type Refund
+        // [GIVEN] The RefundId of the refund for creating the credit Memo.
+        RefundId := ShopifyIds.Get('Refund').Get(2);
+
+        // [WHEN] Execute IReturnRefundProcess.CanCreateSalesDocumentFor(Enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo)
+        CanCreateDocument := IReturnRefundProcess.CanCreateSalesDocumentFor(Enum::"Shpfy Source Document Type"::Refund, RefundId, errorInfo);
+        // [THEN] CancreateDocument must be true
+        LibraryAssert.IsTrue(CanCreateDocument, 'The result of IReturnRefundProcess.CanCreateSalesDocumentFor must be true');
+
+        // [WHEN] Execute IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId)
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId);
+        // [THEN] Sales header is empty
+        LibraryAssert.AreEqual(SalesHeader."No.", '', 'SalesHeader."No." must be empty');
+        RefundHeader.Get(RefundId);
+        LibraryAssert.AreEqual(RefundHeader."Has Processing Error", true, 'RefundHeader."Has Processing Error" must be true');
+
+        // Tear down
+        ResetProccesOnRefund(RefundId);
+    end;
+
     local procedure Initialize()
     var
         OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
@@ -330,7 +412,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         if IsInitialized then
             exit;
 
-        ShpfyInitializeTest.Run();
+        InitializeTest.Run();
         ShopifyIds := OrderRefundsHelper.CreateShopifyDocuments();
 
         IsInitialized := true;
