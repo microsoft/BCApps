@@ -2,7 +2,7 @@ namespace Microsoft.PowerBIReports;
 
 using System.Integration.PowerBI;
 
-page 8101 "Customer Deferrals Power BI"
+page 8112 "Customer Deferrals Power BI"
 {
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
