@@ -5,6 +5,8 @@ using Microsoft.PowerBIReports;
 
 tableextension 8011 "Power BI Setup SubBilling" extends "PowerBI Reports Setup"
 {
+    fields
+    {
         field(37000; "Subs. Billing Report Name"; Text[200])
         {
             Caption = 'Subscription Billing Report Name';
@@ -17,5 +19,6 @@ tableextension 8011 "Power BI Setup SubBilling" extends "PowerBI Reports Setup"
             DataClassification = CustomerContent;
             MovedFrom = 'e4e86220-cac0-4ec3-b853-7c2fa610399d';
         }
+    }
 }
 #endif

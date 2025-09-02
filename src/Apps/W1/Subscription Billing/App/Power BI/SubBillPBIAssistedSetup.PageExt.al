@@ -12,6 +12,9 @@ pageextension 8014 "SubBill PBI Assisted Setup" extends "PowerBI Assisted Setup"
             {
                 Caption = 'Subscription Billing';
                 InstructionalText = 'Configure the Power BI Subscription Billing App.';
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
                 field("Subscription Bill. Report Name"; Rec."Subs. Billing Report Name")
                 {
                     Caption = 'Power BI Subscription Billing Report';
@@ -26,6 +29,9 @@ pageextension 8014 "SubBill PBI Assisted Setup" extends "PowerBI Assisted Setup"
                         SetupHelper.LookupPowerBIReport(Rec."Subscription Billing Report ID", Rec."Subs. Billing Report Name");
                     end;
                 }
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
             }
         }
     }

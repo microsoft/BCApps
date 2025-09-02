@@ -14,6 +14,9 @@ pageextension 8011 "SubBill PBI Reports Setup" extends "PowerBI Reports Setup"
                 group(SubscriptionBillingGeneralSetup)
                 {
                     ShowCaption = false;
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
                     field("Subscription Bill. Report Name"; Format(Rec."Subs. Billing Report Name"))
                     {
                         ApplicationArea = All;
@@ -28,6 +31,9 @@ pageextension 8011 "SubBill PBI Reports Setup" extends "PowerBI Reports Setup"
                             SetupHelper.LookupPowerBIReport(Rec."Subscription Billing Report ID", Rec."Subs. Billing Report Name");
                         end;
                     }
+#if not CLEAN28
+#pragma warning restore AL0801
+#endif
                 }
             }
         }
