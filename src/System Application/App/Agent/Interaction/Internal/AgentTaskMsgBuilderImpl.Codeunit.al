@@ -36,6 +36,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         GlobalFrom := From;
         GlobalMessageText := MessageText;
         GlobalRequiresReview := true;
+        GlobalIgnoreAttachment := false;
         exit(this);
     end;
 
