@@ -3,8 +3,6 @@ namespace Microsoft.SubscriptionBilling;
 using Microsoft.Utilities;
 using Microsoft.Sales.Document;
 using Microsoft.Purchases.Document;
-using Microsoft.Purchases.History;
-using Microsoft.Sales.History;
 
 codeunit 8061 "Billing Correction"
 {
