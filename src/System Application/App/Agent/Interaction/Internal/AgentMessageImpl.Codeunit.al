@@ -11,6 +11,9 @@ codeunit 4308 "Agent Message Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    var
+        GlobalIgnoreAttachment: Boolean;
+
     procedure GetMessageText(var AgentTaskMessage: Record "Agent Task Message"): Text
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
@@ -47,6 +50,11 @@ codeunit 4308 "Agent Message Impl."
         UpdateAgentTaskMessageStatus(AgentTaskMessage, AgentTaskMessage.Status::Sent);
     end;
 
+    procedure SetIgnoreAttachment(IgnoreAttachment: Boolean)
+    begin
+        GlobalIgnoreAttachment := IgnoreAttachment;
+    end;
+
     procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; var TempAgentTaskFile: Record "Agent Task File" temporary)
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
@@ -79,6 +87,7 @@ codeunit 4308 "Agent Message Impl."
         AgentTaskMessageAttachment."Task ID" := AgentTaskMessage."Task ID";
         AgentTaskMessageAttachment."Message ID" := AgentTaskMessage.ID;
         AgentTaskMessageAttachment."File ID" := AgentTaskFile.ID;
+        AgentTaskMessageAttachment.Ignored := GlobalIgnoreAttachment;
         AgentTaskMessageAttachment.Insert();
     end;
 
