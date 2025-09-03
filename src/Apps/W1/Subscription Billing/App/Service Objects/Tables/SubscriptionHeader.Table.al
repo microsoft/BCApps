@@ -401,6 +401,7 @@ table 8057 "Subscription Header"
                     if ServiceCommitmentsExist() then
                         Error(CannotChangeWhileServiceCommitmentExistsErr, FieldCaption(Type), ServiceCommitment.TableCaption);
                     "Source No." := '';
+                    "Variant Code" := '';
                     Description := '';
                     "Unit of Measure" := '';
                 end;
@@ -720,10 +721,19 @@ table 8057 "Subscription Header"
         field(96; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
-            TableRelation = "Item Variant".Code where("Item No." = field("Source No."));
+            TableRelation = "Item Variant".Code where("Item No." = field("Source No."), Blocked = const(false));
+            ValidateTableRelation = false;
 
             trigger OnValidate()
+            var
+                ItemVariant: Record "Item Variant";
             begin
+                TestField(Type, Type::Item);
+                if Rec."Variant Code" <> '' then begin
+                    ItemVariant.SetLoadFields(Description, Blocked);
+                    ItemVariant.Get("Source No.", "Variant Code");
+                    ItemVariant.TestField(Blocked, false);
+                end;
                 Rec.ArchiveServiceCommitments();
                 if Rec."Variant Code" <> xRec."Variant Code" then
                     RecalculateServiceCommitments(FieldCaption("Variant Code"), true);

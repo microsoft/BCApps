@@ -430,7 +430,6 @@ table 8059 "Subscription Line"
             FieldClass = FlowField;
             CalcFormula = lookup("Subscription Header"."Variant Code" where("No." = field("Subscription Header No.")));
             Editable = false;
-            AutoFormatType = 0;
         }
         field(107; "Closed"; Boolean)
         {

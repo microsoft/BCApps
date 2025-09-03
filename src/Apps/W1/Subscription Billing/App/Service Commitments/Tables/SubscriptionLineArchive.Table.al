@@ -267,15 +267,6 @@ table 8073 "Subscription Line Archive"
         {
             Caption = 'Perform Update On';
         }
-        field(60; "Variant Code"; Code[10])
-        {
-            Caption = 'Variant Code';
-            ToolTip = 'Specifies the Variant Code of the Subscription.';
-            FieldClass = FlowField;
-            CalcFormula = lookup("Subscription Header"."Variant Code" where("No." = field("Subscription Header No.")));
-            Editable = false;
-            AutoFormatType = 0;
-        }
         field(96; "Variant Code (Sub. Header)"; Code[10])
         {
             Caption = 'Variant Code (Subscription)';

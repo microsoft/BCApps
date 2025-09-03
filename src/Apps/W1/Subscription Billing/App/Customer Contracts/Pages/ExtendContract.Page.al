@@ -180,8 +180,11 @@ page 8002 "Extend Contract"
                     begin
                         if ItemNo = '' then
                             Error(ItemNoEmptyErr);
-                        if VariantCode <> '' then
-                            ItemVariant.Get(ItemNo, VariantCode)
+                        if VariantCode <> '' then begin
+                            ItemVariant.SetLoadFields("Blocked");
+                            ItemVariant.Get(ItemNo, VariantCode);
+                            ItemVariant.TestField(Blocked, false);
+                        end;
                     end;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -637,6 +640,7 @@ page 8002 "Extend Contract"
         ItemVariant: Record "Item Variant";
     begin
         ItemVariant.SetRange("Item No.", ItemNo);
+        ItemVariant.SetRange(Blocked, false);
         if Page.RunModal(0, ItemVariant) = Action::LookupOK then
             VariantCode := ItemVariant."Code";
     end;

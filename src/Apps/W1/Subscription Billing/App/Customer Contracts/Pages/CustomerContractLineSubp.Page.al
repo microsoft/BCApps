@@ -41,7 +41,7 @@ page 8068 "Customer Contract Line Subp."
                     Caption = 'Variant Code';
                     ToolTip = 'Specifies the Variant Code of the Subscription.';
                     Visible = false;
-                    TableRelation = "Item Variant".Code where("Item No." = field("No."));
+                    TableRelation = "Item Variant".Code where("Item No." = field("No."), Blocked = const(false));
 
                     trigger OnValidate()
                     begin
