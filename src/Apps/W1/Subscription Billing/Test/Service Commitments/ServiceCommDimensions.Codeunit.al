@@ -892,21 +892,6 @@ codeunit 148160 "Service Comm. Dimensions"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Service Comm. Dimensions");
     end;
 
-    local procedure AddDimensionToSalesLine(var SalesLine: Record "Sales Line"; NewDimensionCode: Code[20]; NewDimensionValueCode: Code[20])
-    var
-        TempDimensionSetEntry: Record "Dimension Set Entry" temporary;
-        DimensionManagement: Codeunit DimensionManagement;
-    begin
-        DimensionManagement.GetDimensionSet(TempDimensionSetEntry, SalesLine."Dimension Set ID");
-        TempDimensionSetEntry.Init();
-        TempDimensionSetEntry."Dimension Set ID" := SalesLine."Dimension Set ID";
-        TempDimensionSetEntry.Validate("Dimension Code", NewDimensionCode);
-        TempDimensionSetEntry.Validate("Dimension Value Code", NewDimensionValueCode);
-        TempDimensionSetEntry.Insert(false);
-        SalesLine.Validate("Dimension Set ID", DimensionManagement.GetDimensionSetID(TempDimensionSetEntry));
-        SalesLine.Modify(true);
-    end;
-
     local procedure CreateAndPostSalesOrder(var NewSalesHeader: Record "Sales Header"; var NewSalesLine: Record "Sales Line"; SellToCustomerNo: Code[20]; ItemNo: Code[20])
     begin
         LibrarySales.CreateSalesHeader(NewSalesHeader, NewSalesHeader."Document Type"::Order, SellToCustomerNo);
