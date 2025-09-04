@@ -22,8 +22,10 @@ codeunit 139539 "Shpfy Company Locations Test"
         CompanyLocation: Record "Shpfy Company Location";
         Customer: Record Customer;
         InitializeTest: Codeunit "Shpfy Initialize Test";
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         ResponseResourceUrl: Text;
+        UnexpectedAPICallsErr: Label 'More than expected API calls to Shopify detected.';
 
     trigger OnRun()
     begin
@@ -34,18 +36,20 @@ codeunit 139539 "Shpfy Company Locations Test"
     [HandlerFunctions('HttpSubmitHandler')]
     procedure TestCreateCompanyLocationSuccess()
     var
+        ShopifyCustomer: Record "Shpfy Customer";
         CompanyAPI: Codeunit "Shpfy Company API";
         ShopifyCompanies: TestPage "Shpfy Companies";
     begin
-        // [Given] A valid customer and company location setup
+        // [GIVEN] A valid customer and company location setup
+        RegExpectedOutboundHttpRequests();
         Initialize();
         ShopifyCompany.GetBySystemId(CompanyLocation."Company SystemId");
-        // [When] CreateCompanyLocation is called
+        // [WHEN] CreateCompanyLocation is called
         CompanyAPI.SetCompany(ShopifyCompany);
         CompanyAPI.SetShop(Shop);
-        CompanyAPI.CreateCompanyLocation(Customer);
+        CompanyAPI.CreateCustomerAsCompanyLocation(Customer, ShopifyCompany, ShopifyCustomer);
 
-        // [Then] Company location should be created successfully
+        // [THEN] Company location should be created successfully
 #pragma warning disable AA0210
         CompanyLocation.SetRange("Customer Id", Customer.SystemId);
 #pragma warning restore AA0210
@@ -63,20 +67,20 @@ codeunit 139539 "Shpfy Company Locations Test"
         LibraryAssert: Codeunit "Library Assert";
         CompanyAPI: Codeunit "Shpfy Company API";
     begin
-        // [Given] Customer already exported as a company
+        // [GIVEN] Customer already exported as a company
         Initialize();
         Company.GetBySystemId(CompanyLocation."Company SystemId");
         Company."Customer SystemId" := Customer.SystemId;
         Company.Modify(true);
-        // [Given] Ensure Shpfy Skipped Record is empty
+        // [GIVEN] Ensure Shpfy Skipped Record is empty
         SkippedRecord.DeleteAll(false);
 
-        // [When] CreateCompanyLocation is called
+        // [WHEN] CreateCompanyLocation is called
         CompanyAPI.SetCompany(Company);
         CompanyAPI.SetShop(Shop);
         CompanyAPI.CreateCompanyLocation(Customer);
 
-        // [Then] Operation should be skipped and record should be logged as skipped
+        // [THEN] Operation should be skipped and record should be logged as skipped
         SkippedRecord.SetRange("Table ID", Database::Customer);
         SkippedRecord.SetRange("Record ID", Customer.RecordId);
         LibraryAssert.IsTrue(SkippedRecord.FindFirst(), 'Expected skipped record to be logged');
@@ -90,23 +94,23 @@ codeunit 139539 "Shpfy Company Locations Test"
         LibraryAssert: Codeunit "Library Assert";
         CompanyAPI: Codeunit "Shpfy Company API";
     begin
-        // [Given] Customer already exported as a location
+        // [GIVEN] Customer already exported as a location
         Initialize();
         CompanyLocation."Customer Id" := Customer.SystemId;
         CompanyLocation.Modify(true);
-        // [Given] Ensure the customer was not previously exported as a company
+        // [GIVEN] Ensure the customer was not previously exported as a company
         ShopifyCompany.GetBySystemId(CompanyLocation."Company SystemId");
         Clear(ShopifyCompany."Customer SystemId");
         ShopifyCompany.Modify(false);
-        // [Given] Ensure Shpfy Skipped Record is empty
+        // [GIVEN] Ensure Shpfy Skipped Record is empty
         SkippedRecord.DeleteAll(false);
 
-        // [When] CreateCompanyLocation is called
+        // [WHEN] CreateCompanyLocation is called
         CompanyAPI.SetCompany(ShopifyCompany);
         CompanyAPI.SetShop(Shop);
         CompanyAPI.CreateCompanyLocation(Customer);
 
-        // [Then] Operation should be skipped and record should be logged as skipped
+        // [THEN] Operation should be skipped and record should be logged as skipped
         SkippedRecord.SetRange("Table ID", Database::Customer);
         SkippedRecord.SetRange("Record ID", Customer.RecordId);
         LibraryAssert.IsTrue(SkippedRecord.FindFirst(), 'Expected skipped record to be logged');
@@ -152,21 +156,37 @@ codeunit 139539 "Shpfy Company Locations Test"
 
     [HttpClientHandler]
     internal procedure HttpSubmitHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        CompanyLocationCreateResponseTok: Label 'Companies/CompanyLocations.txt', Locked = true;
+        CompanyAssignContactResponseTok: Label 'Companies/CompanyAssignContact.txt', Locked = true;
+        CompanyAssignContactRoleResponseTok: Label 'Companies/CompanyAssignContactRole.txt', Locked = true;
     begin
         if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
             exit(true);
 
-        MakeResponse(Response);
+        case OutboundHttpRequests.Length() of
+            3:
+                LoadResourceIntoHttpResponse(CompanyLocationCreateResponseTok, Response);
+            2:
+                LoadResourceIntoHttpResponse(CompanyAssignContactResponseTok, Response);
+            1:
+                LoadResourceIntoHttpResponse(CompanyAssignContactRoleResponseTok, Response);
+            0:
+                Error(UnexpectedAPICallsErr);
+        end;
         exit(false); // Prevents actual HTTP call
     end;
 
-    local procedure MakeResponse(var HttpResponseMessage: TestHttpResponseMessage): Boolean
+    local procedure RegExpectedOutboundHttpRequests()
     begin
-        LoadResourceIntoHttpResponse(ResponseResourceUrl, HttpResponseMessage);
+        OutboundHttpRequests.Enqueue('GQL Create Company Location');
+        OutboundHttpRequests.Enqueue('GQL Assign Company Contact');
+        OutboundHttpRequests.Enqueue('GQL Assign Company Contact Role');
     end;
 
     local procedure LoadResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
     begin
         Response.Content.WriteFrom(NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8));
+        OutboundHttpRequests.DequeueText();
     end;
 }
