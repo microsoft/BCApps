@@ -34,4 +34,16 @@ pageextension 30112 "Shpfy Sales Invoice List" extends "Sales Invoice List"
             }
         }
     }
+
+    views
+    {
+        addlast
+        {
+            view(FromShopify)
+            {
+                Caption = 'From Shopify';
+                Filters = where("Shpfy Order Id" = filter(<> 0));
+            }
+        }
+    }
 }
