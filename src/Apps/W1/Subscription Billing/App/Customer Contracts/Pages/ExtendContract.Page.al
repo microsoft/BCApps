@@ -189,7 +189,7 @@ page 8002 "Extend Contract"
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
-                        LookupItemVariant();
+                        exit(LookupItemVariant(Text));
                     end;
                 }
                 field(AdditionalServiceCommitments; StrSubstNo(NoOfSelectedPackagesLbl, SelectedServiceCommitmentPackages, TotalServiceCommitmentPackage))
@@ -635,14 +635,18 @@ page 8002 "Extend Contract"
         ExtendCustomerContractParam := NewExtendCustomerContract;
     end;
 
-    local procedure LookupItemVariant()
+    local procedure LookupItemVariant(var LookupResult: Text): Boolean
     var
         ItemVariant: Record "Item Variant";
     begin
+        if ItemNo = '' then
+            Error(ItemNoEmptyErr);
         ItemVariant.SetRange("Item No.", ItemNo);
         ItemVariant.SetRange(Blocked, false);
-        if Page.RunModal(0, ItemVariant) = Action::LookupOK then
-            VariantCode := ItemVariant."Code";
+        if Page.RunModal(0, ItemVariant) = Action::LookupOK then begin
+            LookupResult := ItemVariant."Code";
+            exit(true);
+        end;
     end;
 
 
