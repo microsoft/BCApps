@@ -466,6 +466,7 @@ codeunit 30171 "Shpfy Create Item"
     begin
         ProductImport.SetShop(Product."Shop Code");
         ProductImport.SetProduct(Product);
+        ProductImport.SetCreateNewItem(true);
         Commit();  // Ensure product/variant creation is committed before running the item create/update
         ProductImport.Run();
     end;
