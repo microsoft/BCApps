@@ -52,6 +52,14 @@ codeunit 1461 "SignedXml Impl."
         DotNetReference.DigestMethod := DigestMethod;
     end;
 
+    procedure AddXmlDsigC14NTransformToReference(IncludeComments: Boolean)
+    var
+        DotNetXmlDsigC14NTransform: DotNet XmlDsigC14NTransform;
+    begin
+        DotNetXmlDsigC14NTransform := DotNetXmlDsigC14NTransform.XmlDsigC14NTransform(IncludeComments);
+        DotNetReference.AddTransform(DotNetXmlDsigC14NTransform);
+    end;
+
     procedure AddXmlDsigExcC14NTransformToReference(InclusiveNamespacesPrefixList: Text)
     var
         DotNetXmlDsigExcC14NTransform: DotNet XmlDsigExcC14NTransform;
@@ -224,6 +232,13 @@ codeunit 1461 "SignedXml Impl."
         XmlDsigDSAUrlTok: Label 'XmlDsigDSAUrl', Locked = true;
     begin
         exit(GetFieldValue(XmlDsigDSAUrlTok));
+    end;
+
+    procedure GetXmlDsigC14NTransformUrl(): Text[250]
+    var
+        XmlDsigC14NTransformUrlTok: Label 'XmlDsigC14NTransformUrl', Locked = true;
+    begin
+        exit(GetFieldValue(XmlDsigC14NTransformUrlTok));
     end;
 
     procedure GetXmlDsigExcC14NTransformUrl(): Text[250]

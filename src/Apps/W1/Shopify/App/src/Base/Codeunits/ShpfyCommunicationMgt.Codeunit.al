@@ -56,8 +56,12 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <param name="Version">Parameter of type Text.</param>
     /// <returns>Return value of type Text.</returns>
     internal procedure CreateWebRequestURL(UrlPath: Text; Version: Text): Text
+    var
+        AuthenticationMgt: Codeunit "Shpfy Authentication Mgt.";
     begin
         Shop.TestField("Shopify URL");
+        AuthenticationMgt.AssertValidShopUrl(Shop."Shopify URL");
+
         if UrlPath.StartsWith('gift_cards') then
             if Shop."Shopify URL".EndsWith('/') then
                 exit(Shop."Shopify URL" + 'admin/' + UrlPath)
@@ -89,12 +93,25 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <param name="Parameters">Parameter of type Dictionary of [Text, Text].</param>
     /// <returns>Return variable "JsonToken".</returns>
     internal procedure ExecuteGraphQL(GraphQLType: Enum "Shpfy GraphQL Type"; Parameters: Dictionary of [Text, Text]): JsonToken
+    begin
+        exit(ExecuteGraphQL(GraphQLType, Parameters, true));
+    end;
+
+    /// <summary> 
+    /// Execute GraphQL.
+    /// </summary>
+    /// <param name="GraphQLType">Parameter of type Enum "Shopify GraphQL Type".</param>
+    /// <param name="Parameters">Parameter of type Dictionary of [Text, Text].</param>
+    /// <param name="CheckOutgoingRequest">Parameter of type Boolean.</param>
+    /// <returns>Return variable "JsonToken".</returns>
+    internal procedure ExecuteGraphQL(GraphQLType: Enum "Shpfy GraphQL Type"; Parameters: Dictionary of [Text, Text]; CheckOutgoingRequest: Boolean): JsonToken
     var
         ExpectedCost: Integer;
         GraphQLQuery: Text;
+        ResponseHeaders: HttpHeaders;
     begin
         GraphQLQuery := GraphQLQueries.GetQuery(GraphQLType, Parameters, ExpectedCost);
-        exit(ExecuteGraphQL(GraphQLQuery, ExpectedCost));
+        exit(ExecuteGraphQL(GraphQLQuery, ResponseHeaders, ExpectedCost, CheckOutgoingRequest));
     end;
 
     /// <summary> 
@@ -117,18 +134,7 @@ codeunit 30103 "Shpfy Communication Mgt."
     var
         ResponseHeaders: HttpHeaders;
     begin
-        exit(ExecuteGraphQL(GraphQLQuery, ResponseHeaders, ExpectedCost));
-    end;
-
-    /// <summary> 
-    /// Execute GraphQL.
-    /// </summary>
-    /// <param name="GraphQLQuery">Parameter of type Text.</param>
-    /// <param name="ResponseHeaders">Parameter of type HttpHeaders.</param>
-    /// <returns>Return variable "JResponse" of type JsonToken.</returns>
-    internal procedure ExecuteGraphQL(GraphQLQuery: Text; var ResponseHeaders: HttpHeaders) JResponse: JsonToken
-    begin
-        exit(ExecuteGraphQL(GraphQLQuery, ResponseHeaders, 0));
+        exit(ExecuteGraphQL(GraphQLQuery, ResponseHeaders, ExpectedCost, true));
     end;
 
     /// <summary> 
@@ -138,7 +144,7 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <param name="ResponseHeaders">Parameter of type HttpHeaders.</param>
     /// <param name="ExpectedCost">Parameter of type Decimal.</param>
     /// <returns>Return variable JResponse of type JsonToken.</returns>
-    internal procedure ExecuteGraphQL(GraphQLQuery: Text; var ResponseHeaders: HttpHeaders; ExpectedCost: Decimal) JResponse: JsonToken
+    internal procedure ExecuteGraphQL(GraphQLQuery: Text; var ResponseHeaders: HttpHeaders; ExpectedCost: Decimal; CheckOutgoingRequest: Boolean) JResponse: JsonToken
     var
         ShpfyGraphQLRateLimit: Codeunit "Shpfy GraphQL Rate Limit";
         ShpfyJsonHelper: Codeunit "Shpfy Json Helper";
@@ -148,74 +154,18 @@ codeunit 30103 "Shpfy Communication Mgt."
     begin
         CheckQueryLength(GraphQLQuery);
         ShpfyGraphQLRateLimit.WaitForRequestAvailable(ExpectedCost);
-        ReceivedData := ExecuteWebRequest(CreateWebRequestURL('graphql.json'), 'POST', GraphQLQuery, ResponseHeaders, 3);
+        ReceivedData := ExecuteWebRequest(CreateWebRequestURL('graphql.json'), 'POST', GraphQLQuery, ResponseHeaders, 3, CheckOutgoingRequest);
         if JResponse.ReadFrom(ReceivedData) then begin
             ShpfyGraphQLRateLimit.SetQueryCost(ShpfyJsonHelper.GetJsonToken(JResponse, 'extensions.cost.throttleStatus'));
             while JResponse.AsObject().Contains('errors') and Format(JResponse).Contains('THROTTLED') do begin
                 ShpfyGraphQLRateLimit.WaitForRequestAvailable(ExpectedCost);
-                if JResponse.ReadFrom(ExecuteWebRequest(CreateWebRequestURL('graphql.json'), 'POST', GraphQLQuery, ResponseHeaders, 3)) then
+                if JResponse.ReadFrom(ExecuteWebRequest(CreateWebRequestURL('graphql.json'), 'POST', GraphQLQuery, ResponseHeaders, 3, CheckOutgoingRequest)) then
                     ShpfyGraphQLRateLimit.SetQueryCost(ShpfyJsonHelper.GetJsonToken(JResponse, 'extensions.cost.throttleStatus'));
             end;
             if JResponse.AsObject().Contains('errors') then
                 Error(ErrorOnShopifyErr, Format(ShpfyJsonHelper.GetJsonToken(JResponse, 'errors')));
         end else
             Error(NoJsonErr, GraphQLQuery, ReceivedData);
-    end;
-
-    /// <summary> 
-    /// Execute WebRequest.
-    /// </summary>
-    /// <param name="Url">Parameter of type Text.</param>
-    /// <param name="Method">Parameter of type Text.</param>
-    /// <param name="JRequest">Parameter of type JsonToken.</param>
-    /// <returns>Return value of type JsonToken.</returns>
-    internal procedure ExecuteWebRequest(Url: Text; Method: Text; JRequest: JsonToken): JsonToken
-    var
-        ResponseHeaders: HttpHeaders;
-    begin
-        exit(ExecuteWebRequest(Url, Method, JRequest, ResponseHeaders));
-    end;
-
-    /// <summary> 
-    /// Execute Web Request.
-    /// </summary>
-    /// <param name="Url">Parameter of type Text.</param>
-    /// <param name="Method">Parameter of type Text.</param>
-    /// <param name="JRequest">Parameter of type JsonToken.</param>
-    /// <param name="nextPageUrl">Parameter of type Text.</param>
-    /// <returns>Return variable "JResponse" of type JsonToken.</returns>
-    internal procedure ExecuteWebRequest(Url: Text; Method: Text; JRequest: JsonToken; var nextPageUrl: Text) JResponse: JsonToken
-    var
-        ResponseHeaders: HttpHeaders;
-        LinkInfo: List of [Text];
-        Links: array[1] of Text;
-    begin
-        JResponse := ExecuteWebRequest(Url, Method, JRequest, ResponseHeaders);
-        Clear(nextPageUrl);
-        if ResponseHeaders.Contains('Link') then
-            if ResponseHeaders.GetValues('Link', Links) then
-                if Links[1] <> '' then begin
-                    LinkInfo := Links[1].Split(', ');
-                    LinkInfo := LinkInfo.Get(LinkInfo.Count).Split('; ');
-                    if LinkInfo.Get(2) = 'rel="next"' then
-                        nextPageUrl := CopyStr(LinkInfo.Get(1), 2, StrLen(LinkInfo.Get(1)) - 2);
-                end;
-    end;
-
-    /// <summary> 
-    /// Execute Web Request.
-    /// </summary>
-    /// <param name="Url">Parameter of type Text.</param>
-    /// <param name="Method">Parameter of type Text.</param>
-    /// <param name="JRequest">Parameter of type JsonToken.</param>
-    /// <param name="ResponseHeaders">Parameter of type HttpHeaders.</param>
-    /// <returns>Return variable "JResponse" of type JsonToken.</returns>
-    internal procedure ExecuteWebRequest(Url: Text; Method: Text; JRequest: JsonToken; var ResponseHeaders: HttpHeaders) JResponse: JsonToken
-    var
-        Request: Text;
-    begin
-        JRequest.WriteTo(Request);
-        if JResponse.ReadFrom(ExecuteWebRequest(Url, Method, Request, ResponseHeaders)) then;
     end;
 
     /// <summary> 
@@ -242,7 +192,7 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <returns>Return variable "Response" of type Text.</returns>
     internal procedure ExecuteWebRequest(Url: Text; Method: Text; Request: Text; var ResponseHeaders: HttpHeaders) Response: Text
     begin
-        exit(ExecuteWebRequest(Url, Method, Request, ResponseHeaders, 5));
+        exit(ExecuteWebRequest(Url, Method, Request, ResponseHeaders, 5, true));
     end;
 
     /// <summary>
@@ -253,8 +203,9 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <param name="Request">Text.</param>
     /// <param name="ResponseHeaders">VAR HttpHeaders.</param>
     /// <param name="MaxRetries">Integer.</param>
+    /// <param name="CheckOutgoingRequest">Boolean.</param>
     /// <returns>Return variable Response of type Text.</returns>
-    internal procedure ExecuteWebRequest(Url: Text; Method: Text; Request: Text; var ResponseHeaders: HttpHeaders; MaxRetries: Integer) Response: Text
+    internal procedure ExecuteWebRequest(Url: Text; Method: Text; Request: Text; var ResponseHeaders: HttpHeaders; MaxRetries: Integer; CheckOutgoingRequest: Boolean) Response: Text
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         Wait: Duration;
@@ -265,7 +216,8 @@ codeunit 30103 "Shpfy Communication Mgt."
     begin
         FeatureTelemetry.LogUptake('0000HUV', 'Shopify', Enum::"Feature Uptake Status"::Used);
         FeatureTelemetry.LogUsage('0000IF5', 'Shopify', 'Shopify web request executed.');
-        CheckOutgoingRequests(Url, Method, Request);
+        if CheckOutgoingRequest then
+            CheckOutgoingRequests(Url, Method, Request);
 
         CreateHttpRequestMessage(Url, Method, Request, HttpRequestMessage);
 

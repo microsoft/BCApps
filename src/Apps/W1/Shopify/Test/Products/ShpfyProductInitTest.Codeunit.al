@@ -227,7 +227,7 @@ codeunit 139603 "Shpfy Product Init Test"
         SalesLineDiscount: Record "Sales Line Discount";
 #pragma warning restore AL0432
     begin
-        if not CustDiscGrp.get(Code) then begin
+        if not CustDiscGrp.Get(Code) then begin
             CustDiscGrp.Init();
             CustDiscGrp.Code := Code;
             CustDiscGrp.Insert();

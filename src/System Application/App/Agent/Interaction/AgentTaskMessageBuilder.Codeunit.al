@@ -55,6 +55,19 @@ codeunit 4316 "Agent Task Message Builder"
     end;
 
     /// <summary>
+    /// Set whether to ignore attachments for the message.
+    /// When set to true, attachments will be marked as ignored and will not be processed by the agent.
+    /// The default value is false.
+    /// </summary>
+    /// <param name="IgnoreAttachment">Specifies if attachments should be ignored.</param>
+    [Scope('OnPrem')]
+    procedure SetIgnoreAttachment(IgnoreAttachment: Boolean): codeunit "Agent Task Message Builder"
+    begin
+        AgentTaskMsgBuilderImpl.SetIgnoreAttachment(IgnoreAttachment);
+        exit(this);
+    end;
+
+    /// <summary>
     /// Set the external ID of the task.
     /// </summary>
     /// <param name="ExternalId">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
