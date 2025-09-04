@@ -43,7 +43,9 @@ codeunit 30180 "Shpfy Product Import"
                                 ItemCreated := CreateItem.Run(ShopifyVariant);
                                 SetProductConflict(ShopifyProduct.Id, ItemCreated);
                             until ShopifyVariant.Next() = 0;
-                    end;
+                    end else
+                        if CreateNewItem then
+                            SetProductConflict(ShopifyProduct.Id, false, AutoCreateUnknownItemsDisabledErr);
             until ShopifyVariant.Next() = 0;
     end;
 
@@ -54,6 +56,8 @@ codeunit 30180 "Shpfy Product Import"
         ShopifyVariant: Record "Shpfy Variant";
         ProductApi: Codeunit "Shpfy Product API";
         VariantApi: Codeunit "Shpfy Variant API";
+        CreateNewItem: Boolean;
+        AutoCreateUnknownItemsDisabledErr: Label 'Auto Create Unknown Item must be enabled and an Item Template must be selected for the shop.';
 
     /// <summary> 
     /// Get Product.
@@ -134,12 +138,12 @@ codeunit 30180 "Shpfy Product Import"
         VariantApi.SetShop(Shop);
     end;
 
-    /// <summary>
-    /// Set Product Conflict.
-    /// </summary>
-    /// <param name="ProductId">Parameter of type BigInteger.</param>
-    /// <param name="ItemCreated">Parameter of type Boolean.</param>
     local procedure SetProductConflict(ProductId: BigInteger; ItemCreated: Boolean)
+    begin
+        SetProductConflict(ProductId, ItemCreated, '');
+    end;
+
+    local procedure SetProductConflict(ProductId: BigInteger; ItemCreated: Boolean; ErrorMessage: Text)
     var
         Product: Record "Shpfy Product";
     begin
@@ -149,11 +153,19 @@ codeunit 30180 "Shpfy Product Import"
 
         if not ItemCreated then begin
             Product.Validate("Has Error", true);
-            Product.Validate("Error Message", CopyStr(Format(Time) + ' ' + GetLastErrorText(), 1, MaxStrLen(Product."Error Message")));
+
+            if ErrorMessage = '' then
+                ErrorMessage := GetLastErrorText();
+            Product.Validate("Error Message", CopyStr(Format(Time) + ' ' + ErrorMessage, 1, MaxStrLen(Product."Error Message")));
         end else begin
             Product.Validate("Has Error", false);
             Product.Validate("Error Message", '');
         end;
         Product.Modify(true);
+    end;
+
+    internal procedure SetCreateNewItem(Value: Boolean)
+    begin
+        CreateNewItem := Value;
     end;
 }

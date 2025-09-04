@@ -29,6 +29,7 @@ codeunit 139552 "Shpfy Create Item API Test"
         VariantId: BigInteger;
         CreateItemErr: Label 'Item not created', Locked = true;
         UnexpectedAPICallsErr: Label 'More than expected API calls to Shopify detected.';
+        AutoCreateUnknownItemsDisabledErr: Label 'Auto Create Unknown Item must be enabled and an Item Template must be selected for the shop.';
 
     trigger OnRun()
     begin
@@ -114,6 +115,45 @@ codeunit 139552 "Shpfy Create Item API Test"
 
         // [THEN] On the "Shpfy Product" record, the field "Error Message" must be filled.
         LibraryAssert.IsTrue(Product."Error Message".contains(CreateItemErr), '"Error Message" must contain error text');
+    end;
+
+    [Test]
+    [HandlerFunctions('GetProductsHttpHandler')]
+    procedure UnitTestLogErrorOnSetttingDisabledItemCreation()
+    var
+        Product: Record "Shpfy Product";
+        ShopifyVariant: Record "Shpfy Variant";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        CreateItem: Codeunit "Shpfy Create Item";
+        EmptyGuid: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Inserts error on Shopify Product when Item from a Shopify Product creation is unsuccessful.
+
+        // [GIVEN] Register Expected Outbound API Requests.
+        RegExpectedOutboundHttpRequestsForGetProducts();
+        Shop."Auto Create Unknown Items" := false;
+        Shop.Modify(false);
+
+        // [GIVEN] A Shopify variant record of a standard shopify product. (The variant record always exists, even if the products don't have any variants.)
+        ShopifyVariant := ProductInitTest.CreateStandardProduct(Shop);
+        ProductId := ShopifyVariant."Product Id";
+        VariantId := ShopifyVariant."Id";
+
+        // [WHEN] Invoke ShpfyCreateItem.CreateItemFromShopifyProduct to unsuccessfully create item from Shopify product.
+        Product.Get(ShopifyVariant."Product Id");
+        CreateItem.CreateItemFromShopifyProduct(Product);
+
+        // [THEN] On the "Shpfy Product" record, the field "Item SystemId" must be empty.
+        Product.Get(ShopifyVariant."Product Id");
+        LibraryAssert.AreEqual(Product."Item SystemId", EmptyGuid, '"Item SystemId" value must be empty');
+
+        // [THEN] On the "Shpfy Product" record, the field "Has Error" must have value true.
+        LibraryAssert.IsTrue(Product."Has Error", '"Has Error" value must be true');
+
+        // [THEN] On the "Shpfy Product" record, the field "Error Message" must be filled.
+        LibraryAssert.IsTrue(Product."Error Message".contains(AutoCreateUnknownItemsDisabledErr), '"Error Message" must contain error text');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Product Events", OnBeforeCreateItem, '', true, false)]
