@@ -123,6 +123,8 @@ codeunit 30161 "Shpfy Import Order"
 
         if ShopifyInvoiceExists(OrderHeader) then
             MarkAsProcessed(OrderHeader);
+
+        OrderEvents.OnAfterCreateShopifyOrderAndLines(OrderHeader, not UpdatingOrderHeader);
     end;
 
     local procedure ShopifyInvoiceExists(OrderHeader: Record "Shpfy Order Header"): Boolean
