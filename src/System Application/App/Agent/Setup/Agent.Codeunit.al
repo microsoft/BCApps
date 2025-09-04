@@ -177,17 +177,16 @@ codeunit 4321 Agent
     end;
 
     /// <summary>
-    /// Updates the region and language settings for the agent. Few properties are updated, like: Language, Regional Settings and Time Zone.
-    /// <remarks>Profile is not updated, use SetProfile function instead</remarks>
+    /// Updates the Language, Regional Settings and Time Zone for the agent.
     /// </summary>
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
     /// <param name="NewUserSettings">The new user settings for the agent.</param>
     [Scope('OnPrem')]
-    procedure UpdateUserSettings(AgentUserSecurityID: Guid; var NewUserSettings: Record "User Settings")
+    procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; var NewUserSettings: Record "User Settings")
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        AgentImpl.UpdateUserSettings(AgentUserSecurityID, NewUserSettings);
+        AgentImpl.UpdateLocalizationSettings(AgentUserSecurityID, NewUserSettings);
     end;
 
     /// <summary>

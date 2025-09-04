@@ -178,7 +178,7 @@ codeunit 4301 "Agent Impl."
         UpdateAgentUserSettings(UserSettingsRecord);
     end;
 
-    internal procedure UpdateUserSettings(AgentUserSecurityID: Guid; var NewUserSettingsRec: Record "User Settings")
+    internal procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; var NewUserSettingsRec: Record "User Settings")
     var
         Agent: Record Agent;
         UserSettingsRecord: Record "User Settings";
