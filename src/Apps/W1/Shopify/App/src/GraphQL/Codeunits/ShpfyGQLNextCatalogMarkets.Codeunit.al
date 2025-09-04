@@ -5,7 +5,11 @@
 
 namespace Microsoft.Integration.Shopify;
 
-codeunit 30236 "Shpfy GQL NextOpenFFOrders" implements "Shpfy IGraphQL"
+/// <summary>
+/// Codeunit Shpfy GQL NextCatalogMarkets (ID 30403).
+/// Implements the IGraphQL interface for retrieving Shopify catalog markets using GraphQL.
+/// </summary>
+codeunit 30403 "Shpfy GQL NextCatalogMarkets" implements "Shpfy IGraphQL"
 {
     Access = Internal;
 
@@ -15,7 +19,7 @@ codeunit 30236 "Shpfy GQL NextOpenFFOrders" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Text.</returns>
     internal procedure GetGraphQL(): Text
     begin
-        exit('{"query":"{fulfillmentOrders(first: 25, after:\"{{After}}\", includeClosed: false) { pageInfo { hasNextPage } edges { cursor node { id updatedAt assignedLocation {location {legacyResourceId}} order {legacyResourceId} deliveryMethod {methodType}}}}}"}');
+        exit('{"query": "{ catalog (id: \"gid://shopify/Catalog/{{CatalogId}}\") { id title ... on MarketCatalog { markets(first: 5, after:\"{{After}}\") { pageInfo { hasNextPage } edges { cursor node { id name }}}}}}"}');
     end;
 
     /// <summary>
@@ -24,6 +28,6 @@ codeunit 30236 "Shpfy GQL NextOpenFFOrders" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(108);
+        exit(27);
     end;
 }

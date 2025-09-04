@@ -168,6 +168,12 @@ page 30126 "Shpfy Products"
                     ExtendedDatatype = URL;
                     ToolTip = 'Specifies the url to preview the product on the webshop.';
                 }
+                field("Error"; Rec."Has Error") { }
+                field(ErrorMessage; Rec."Error Message")
+                {
+                    Style = Attention;
+                    StyleExpr = true;
+                }
             }
             part(Variants; "Shpfy Variants")
             {
@@ -339,6 +345,27 @@ page 30126 "Shpfy Products"
                     Metafields.RunForResource(Database::"Shpfy Product", Rec.Id, Rec."Shop Code");
                 end;
             }
+            action(CreateItem)
+            {
+                Caption = 'Create Item';
+                Image = NewItem;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                ToolTip = 'Convert selected Shopify Products to Items.';
+
+                trigger OnAction();
+                var
+                    Product: Record "Shpfy Product";
+                    CreateItem: Codeunit "Shpfy Create Item";
+                begin
+                    if Confirm(CreateItemConfirmLbl) then begin
+                        CurrPage.SetSelectionFilter(Product);
+                        CreateItem.CreateItemsFromShopifyProducts(Product);
+                        CurrPage.Update(false);
+                    end;
+                end;
+            }
             group(Sync)
             {
                 action(SyncProducts)
@@ -458,4 +485,5 @@ page 30126 "Shpfy Products"
         AddItemsMsg: Label 'Add Items to Shopify';
         SyncProductsMsg: Label 'Sync Products';
         NoItemNotificationMsg: Label 'There isn''t data here yet. Do you want to synchronize products?';
+        CreateItemConfirmLbl: Label 'Do you want to create items from selected Shopify products?';
 }

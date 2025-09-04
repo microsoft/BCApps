@@ -194,7 +194,13 @@ table 30133 "Shpfy Order Transaction"
             DataClassification = SystemMetadata;
             Editable = false;
         }
-        field(26; "Presentment Rounding Amount"; Decimal)
+        field(26; "Refund Id"; BigInteger)
+        {
+            Caption = 'Refund Id';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(27; "Presentment Rounding Amount"; Decimal)
         {
             Caption = 'Presentment Rounding Amount';
             DataClassification = SystemMetadata;
@@ -202,7 +208,7 @@ table 30133 "Shpfy Order Transaction"
             AutoFormatType = 1;
             AutoFormatExpression = "Presentment Rounding Currency";
         }
-        field(27; "Presentment Rounding Currency"; Code[20])
+        field(28; "Presentment Rounding Currency"; Code[20])
         {
             Caption = 'Presentment Rounding Currency';
             DataClassification = SystemMetadata;
