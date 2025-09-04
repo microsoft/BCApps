@@ -6,6 +6,7 @@
 namespace System.Test.MCP;
 
 using System.MCP;
+using System.TestLibraries.Environment;
 using System.TestLibraries.MCP;
 using System.TestLibraries.Utilities;
 
@@ -75,7 +76,7 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
-    procedure TestEnableDynamicTooling()
+    procedure TestEnableToolSearchMode()
     var
         MCPConfiguration: Record "MCP Configuration";
         ConfigId: Guid;
@@ -83,16 +84,16 @@ codeunit 130130 "MCP Config Test"
         // [GIVEN] Configuration is created
         ConfigId := CreateMCPConfig(false, false);
 
-        // [WHEN] Enable dynamic tooling is called
-        MCPConfig.EnableDynamicTooling(ConfigId);
+        // [WHEN] Enable tool search mode is called
+        MCPConfig.EnableToolSearchMode(ConfigId);
 
-        // [THEN] Dynamic tooling is enabled
+        // [THEN] Tool search mode is enabled
         MCPConfiguration.GetBySystemId(ConfigId);
-        Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'Dynamic tooling is not enabled');
+        Assert.IsTrue(MCPConfiguration.UseToolSearchMode, 'Tool search mode is not enabled');
     end;
 
     [Test]
-    procedure TestDisableDynamicTooling()
+    procedure TestDisableToolSearchMode()
     var
         MCPConfiguration: Record "MCP Configuration";
         ConfigId: Guid;
@@ -100,12 +101,44 @@ codeunit 130130 "MCP Config Test"
         // [GIVEN] Configuration is created
         ConfigId := CreateMCPConfig(false, true);
 
-        // [WHEN] Disable dynamic tooling is called
-        MCPConfig.DisableDynamicTooling(ConfigId);
+        // [WHEN] Disable tool search mode is called
+        MCPConfig.DisableToolSearchMode(ConfigId);
 
-        // [THEN] Dynamic tooling is disabled
+        // [THEN] Tool search mode is disabled
         MCPConfiguration.GetBySystemId(ConfigId);
-        Assert.IsFalse(MCPConfiguration.EnableDynamicToolMode, 'Dynamic tooling is not disabled');
+        Assert.IsFalse(MCPConfiguration.UseToolSearchMode, 'Tool search mode is not disabled');
+    end;
+
+    [Test]
+    procedure TestAllowProdChanges()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and tool is created
+        ConfigId := CreateMCPConfig(false, false);
+        ToolId := CreateMCPConfigTool(ConfigId);
+        EnvironmentInfoTestLibrary.SetTestabilitySandbox(true);
+
+        // [WHEN] Allow create is called
+        asserterror MCPConfig.AllowCreate(ToolId, true);
+
+        // [THEN] Error message is returned
+        Assert.ExpectedError('Production changes are not allowed for this MCP configuration.');
+
+        // [GIVEN] Production changes are allowed
+        MCPConfig.AllowProdChanges(ConfigId);
+
+        // [WHEN] Allow create is called
+        MCPConfig.AllowCreate(ToolId, true);
+
+        // [THEN] Allow create is set to true
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsTrue(MCPConfigurationTool."Allow Create", 'Allow Create is not true');
+
+        EnvironmentInfoTestLibrary.SetTestabilitySandbox(false); // Reset to default
     end;
 
     [Test]
@@ -271,14 +304,14 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions is not true');
     end;
 
-    local procedure CreateMCPConfig(Active: Boolean; DynamicTooling: Boolean): Guid
+    local procedure CreateMCPConfig(Active: Boolean; ToolSearchMode: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
         MCPConfiguration.Name := CopyStr(Any.AlphabeticText(100), 1, 100);
         MCPConfiguration.Description := CopyStr(Any.AlphabeticText(250), 1, 250);
         MCPConfiguration.Active := Active;
-        MCPConfiguration.EnableDynamicToolMode := DynamicTooling;
+        MCPConfiguration.EnableDynamicToolMode := ToolSearchMode;
         MCPConfiguration.Insert();
         exit(MCPConfiguration.SystemId);
     end;

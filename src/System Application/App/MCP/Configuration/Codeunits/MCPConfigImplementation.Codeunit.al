@@ -5,6 +5,7 @@
 
 namespace System.MCP;
 
+using System.Environment;
 using System.Reflection;
 
 codeunit 8201 "MCP Config Implementation"
@@ -32,6 +33,17 @@ codeunit 8201 "MCP Config Implementation"
         MCPConfiguration.Modify();
     end;
 
+    internal procedure AllowProdChanges(ConfigId: Guid; Allow: Boolean)
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            exit;
+
+        MCPConfiguration.AllowProdChanges := Allow;
+        MCPConfiguration.Modify();
+    end;
+
     internal procedure DeleteConfiguration(ConfigId: Guid)
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -54,14 +66,14 @@ codeunit 8201 "MCP Config Implementation"
         exit(MCPConfigurationTool.SystemId);
     end;
 
-    internal procedure EnableDynamicTooling(ConfigId: Guid; Enable: Boolean)
+    internal procedure EnableToolSearchMode(ConfigId: Guid; Enable: Boolean)
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             exit;
 
-        MCPConfiguration.EnableDynamicToolMode := Enable;
+        MCPConfiguration.UseToolSearchMode := Enable;
         MCPConfiguration.Modify();
     end;
 
@@ -93,6 +105,9 @@ codeunit 8201 "MCP Config Implementation"
         if not MCPConfigurationTool.GetBySystemId(ToolId) then
             exit;
 
+        if Allow then
+            CheckAllowProdChanges(MCPConfigurationTool."Config Id");
+
         MCPConfigurationTool."Allow Create" := Allow;
         MCPConfigurationTool.Modify();
     end;
@@ -103,6 +118,9 @@ codeunit 8201 "MCP Config Implementation"
     begin
         if not MCPConfigurationTool.GetBySystemId(ToolId) then
             exit;
+
+        if Allow then
+            CheckAllowProdChanges(MCPConfigurationTool."Config Id");
 
         MCPConfigurationTool."Allow Modify" := Allow;
         MCPConfigurationTool.Modify();
@@ -115,6 +133,9 @@ codeunit 8201 "MCP Config Implementation"
         if not MCPConfigurationTool.GetBySystemId(ToolId) then
             exit;
 
+        if Allow then
+            CheckAllowProdChanges(MCPConfigurationTool."Config Id");
+
         MCPConfigurationTool."Allow Delete" := Allow;
         MCPConfigurationTool.Modify();
     end;
@@ -125,6 +146,9 @@ codeunit 8201 "MCP Config Implementation"
     begin
         if not MCPConfigurationTool.GetBySystemId(ToolId) then
             exit;
+
+        if Allow then
+            CheckAllowProdChanges(MCPConfigurationTool."Config Id");
 
         MCPConfigurationTool."Allow Bound Actions" := Allow;
         MCPConfigurationTool.Modify();
@@ -205,5 +229,21 @@ codeunit 8201 "MCP Config Implementation"
         if AllObjWithCaption.Get(ObjectType, MCPConfigurationTool."Object ID") then
             exit(CopyStr(AllObjWithCaption."Object Name", 1, 100));
         exit('');
+    end;
+
+    local procedure CheckAllowProdChanges(ConfigId: Guid)
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        EnvironmentInformation: Codeunit "Environment Information";
+        ProdChangesNotAllowedErr: Label 'Production changes are not allowed for this MCP configuration.';
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            exit;
+
+        if EnvironmentInformation.IsSandbox() then
+            exit;
+
+        if not MCPConfiguration.AllowProdChanges then
+            Error(ProdChangesNotAllowedErr);
     end;
 }

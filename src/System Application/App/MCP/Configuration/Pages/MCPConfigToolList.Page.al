@@ -5,6 +5,7 @@
 
 namespace System.MCP;
 
+using System.Environment;
 using System.Reflection;
 
 page 8202 "MCP Config Tool List"
@@ -25,6 +26,7 @@ page 8202 "MCP Config Tool List"
                 ShowCaption = false;
                 field("Object Type"; Rec."Object Type")
                 {
+                    ToolTip = 'Specifies the type of the object.';
                 }
                 field("Object Id"; Rec."Object Id")
                 {
@@ -53,21 +55,27 @@ page 8202 "MCP Config Tool List"
                 }
                 field("Allow Read"; Rec."Allow Read")
                 {
+                    ToolTip = 'Specifies whether read operations are allowed for this tool.';
                 }
                 field("Allow Create"; Rec."Allow Create")
                 {
-                    Editable = AllowCreateEditable;
+                    Editable = AllowCreateEditable and (IsSandbox or Rec.AllowProdChanges);
+                    ToolTip = 'Specifies whether create operations are allowed for this tool.';
                 }
                 field("Allow Modify"; Rec."Allow Modify")
                 {
-                    Editable = AllowModifyEditable;
+                    Editable = AllowModifyEditable and (IsSandbox or Rec.AllowProdChanges);
+                    ToolTip = 'Specifies whether modify operations are allowed for this tool.';
                 }
                 field("Allow Delete"; Rec."Allow Delete")
                 {
-                    Editable = AllowDeleteEditable;
+                    Editable = AllowDeleteEditable and (IsSandbox or Rec.AllowProdChanges);
+                    ToolTip = 'Specifies whether delete operations are allowed for this tool.';
                 }
                 field("Allow Bound Actions"; Rec."Allow Bound Actions")
                 {
+                    Editable = IsSandbox or Rec.AllowProdChanges;
+                    ToolTip = 'Specifies whether bound actions are allowed for this tool.';
                 }
             }
         }
@@ -102,8 +110,16 @@ page 8202 "MCP Config Tool List"
         SetPermissions();
     end;
 
+    trigger OnOpenPage()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        IsSandbox := EnvironmentInformation.IsSandbox();
+    end;
+
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
+        IsSandbox: Boolean;
         AllowCreateEditable: Boolean;
         AllowModifyEditable: Boolean;
         AllowDeleteEditable: Boolean;

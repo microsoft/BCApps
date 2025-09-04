@@ -43,6 +43,24 @@ codeunit 8200 "MCP Config"
     end;
 
     /// <summary>
+    /// Allows production changes for the specified MCP configuration.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    procedure AllowProdChanges(ConfigId: Guid)
+    begin
+        MCPConfigImplementation.AllowProdChanges(ConfigId, true);
+    end;
+
+    /// <summary>
+    /// Disallows production changes for the specified MCP configuration.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    procedure DisallowProdChanges(ConfigId: Guid)
+    begin
+        MCPConfigImplementation.AllowProdChanges(ConfigId, false);
+    end;
+
+    /// <summary>
     /// Deletes the specified MCP configuration.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration to delete.</param>
@@ -52,21 +70,21 @@ codeunit 8200 "MCP Config"
     end;
 
     /// <summary>
-    /// Enables dynamic tooling for the specified configuration.
+    /// Enables tool search mode for the specified configuration.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
-    procedure EnableDynamicTooling(ConfigId: Guid)
+    procedure EnableToolSearchMode(ConfigId: Guid)
     begin
-        MCPConfigImplementation.EnableDynamicTooling(ConfigId, true);
+        MCPConfigImplementation.EnableToolSearchMode(ConfigId, true);
     end;
 
     /// <summary>
-    /// Disables dynamic tooling for the specified configuration.
+    /// Disables tool search mode for the specified configuration.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
-    procedure DisableDynamicTooling(ConfigId: Guid)
+    procedure DisableToolSearchMode(ConfigId: Guid)
     begin
-        MCPConfigImplementation.EnableDynamicTooling(ConfigId, false);
+        MCPConfigImplementation.EnableToolSearchMode(ConfigId, false);
     end;
 
     /// <summary>

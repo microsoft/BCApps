@@ -29,12 +29,15 @@ page 8200 "MCP Config List"
                 }
                 field(Name; Rec.Name)
                 {
+                    ToolTip = 'Specifies the name of the MCP configuration.';
                 }
                 field(Description; Rec.Description)
                 {
+                    ToolTip = 'Specifies the description of the MCP configuration.';
                 }
                 field(Active; Rec.Active)
                 {
+                    ToolTip = 'Specifies whether the MCP configuration is active.';
                 }
             }
         }
