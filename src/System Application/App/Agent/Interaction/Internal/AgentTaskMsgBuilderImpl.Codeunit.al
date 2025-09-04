@@ -19,6 +19,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         GlobalMessageExternalID: Text[2048];
         GlobalMessageText: Text;
         GlobalRequiresReview: Boolean;
+        GlobalIgnoreAttachment: Boolean;
 
     [Scope('OnPrem')]
     procedure Initialize(MessageText: Text): codeunit "Agent Task Msg. Builder Impl."
@@ -35,6 +36,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         GlobalFrom := From;
         GlobalMessageText := MessageText;
         GlobalRequiresReview := true;
+        GlobalIgnoreAttachment := false;
         exit(this);
     end;
 
@@ -42,6 +44,13 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     procedure SetRequiresReview(RequiresReview: Boolean): codeunit "Agent Task Msg. Builder Impl."
     begin
         GlobalRequiresReview := RequiresReview;
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
+    procedure SetIgnoreAttachment(IgnoreAttachment: Boolean): codeunit "Agent Task Msg. Builder Impl."
+    begin
+        GlobalIgnoreAttachment := IgnoreAttachment;
         exit(this);
     end;
 
@@ -81,6 +90,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         TempAgentTaskFileToAttach.SetAutoCalcFields(Content);
         if TempAgentTaskFileToAttach.FindSet() then
             repeat
+                AgentMessageImpl.SetIgnoreAttachment(GlobalIgnoreAttachment);
                 AgentMessageImpl.AddAttachment(GlobalAgentTaskMessage, TempAgentTaskFileToAttach);
             until TempAgentTaskFileToAttach.Next() = 0;
 

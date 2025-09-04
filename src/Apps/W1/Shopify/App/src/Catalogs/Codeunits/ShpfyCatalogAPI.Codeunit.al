@@ -27,7 +27,7 @@ codeunit 30290 "Shpfy Catalog API"
         CatalogNotFoundLbl: Label 'Catalog is not found.';
         CurrencyMismatchLbl: Label 'Catalog currency does not match with Shopify. Reimport the catalog.';
 
-    internal procedure CreateCatalog(ShopifyCompany: Record "Shpfy Company"; Customer: Record Customer)
+    internal procedure CreateCatalog(LocationId: BigInteger; CatalogName: Text[500]; ShopifyCompany: Record "Shpfy Company"; Customer: Record Customer)
     var
         Catalog: Record "Shpfy Catalog";
         GraphQLType: Enum "Shpfy GraphQL Type";
@@ -35,14 +35,14 @@ codeunit 30290 "Shpfy Catalog API"
         JResponse: JsonToken;
         Parameters: Dictionary of [Text, Text];
     begin
-        Parameters.Add('Title', ShopifyCompany.Name);
-        Parameters.Add('CompanyLocationId', Format(ShopifyCompany."Location Id"));
+        Parameters.Add('Title', CatalogName);
+        Parameters.Add('CompanyLocationId', Format(LocationId));
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::CreateCatalog, Parameters);
         CatalogId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JResponse, 'data.catalogCreate.catalog.id'));
         if CatalogId > 0 then begin
             Catalog.Id := CatalogId;
             Catalog."Shop Code" := Shop.Code;
-            Catalog.Name := ShopifyCompany.Name;
+            Catalog.Name := CatalogName;
             Catalog."Company SystemId" := ShopifyCompany.SystemId;
             Catalog."Customer No." := Customer."No.";
             Catalog."Catalog Type" := CatalogType::Company;
@@ -50,6 +50,11 @@ codeunit 30290 "Shpfy Catalog API"
             CreatePublication(Catalog);
             CreatePriceList(Catalog);
         end;
+    end;
+
+    internal procedure CreateCatalog(ShopifyCompany: Record "Shpfy Company"; Customer: Record Customer)
+    begin
+        CreateCatalog(ShopifyCompany."Location Id", ShopifyCompany.Name, ShopifyCompany, Customer);
     end;
 
     internal procedure CreatePublication(var Catalog: Record "Shpfy Catalog")
