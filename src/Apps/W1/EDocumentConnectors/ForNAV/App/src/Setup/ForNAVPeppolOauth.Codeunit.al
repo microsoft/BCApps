@@ -1,3 +1,7 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using System.Environment;
@@ -395,6 +399,7 @@ codeunit 6422 "ForNAV Peppol Oauth"
         exit(true);
     end;
 
+    [NonDebuggable]
     internal procedure GetNewSecurityKey(): Boolean
     var
         OAuthToken: Codeunit "ForNAV Peppol Oauth Token";
@@ -422,7 +427,7 @@ codeunit 6422 "ForNAV Peppol Oauth"
         HttpRequestMessage.Method('POST');
         HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
         if HttpResponseMessage.HttpStatusCode <> 200 then
-            error(CannotRotateKeyErr, HttpResponseMessage.ReasonPhrase);
+            Error(CannotRotateKeyErr, HttpResponseMessage.ReasonPhrase);
 
         HttpResponseMessage.Content.ReadAs(Response);
         if not ResponseObject.ReadFrom(Response) then
@@ -497,7 +502,7 @@ codeunit 6422 "ForNAV Peppol Oauth"
         HttpRequestMessage.Method('POST');
         HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
         if HttpResponseMessage.HttpStatusCode <> 200 then
-            error(CannotSwapEndpointErr, HttpResponseMessage.ReasonPhrase);
+            Error(CannotSwapEndpointErr, HttpResponseMessage.ReasonPhrase);
 
         HttpResponseMessage.Content.ReadAs(Response);
         if not ResponseObject.ReadFrom(Response) then

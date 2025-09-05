@@ -1,3 +1,7 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using System.Environment.Configuration;
@@ -26,7 +30,7 @@ codeunit 6420 "ForNAV Peppol AAD App"
             exit;
 
         if AADApplication.Get(GetClientId()) then
-            if deleteIfExist then
+            if DeleteIfExist then
                 AADApplication.Delete(true)
             else
                 exit;

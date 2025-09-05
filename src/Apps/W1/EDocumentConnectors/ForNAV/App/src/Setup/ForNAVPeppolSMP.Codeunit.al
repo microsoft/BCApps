@@ -1,3 +1,7 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using Microsoft.eServices.EDocument.Integration.Send;
@@ -12,8 +16,8 @@ codeunit 6425 "ForNAV Peppol SMP"
         PeppolSetup: Codeunit "ForNAV Peppol Setup";
         HttpClient: HttpClient;
         HttpResponse: HttpResponseMessage;
-        httpRequestMessage: HttpRequestMessage;
-        httpContent: HttpContent;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpContent: HttpContent;
         StatusCode: Integer;
         InStr: InStream;
         ResponseObject: JsonObject;
@@ -27,18 +31,18 @@ codeunit 6425 "ForNAV Peppol SMP"
         Url := PeppolSetup.GetBaseUrl('SMP');
         case Req of
             'Post':
-                httpContent.WriteFrom(Format(InputObject));
+                HttpContent.WriteFrom(Format(InputObject));
             'Put':
-                httpContent.WriteFrom(Format(InputObject));
+                HttpContent.WriteFrom(Format(InputObject));
         end;
 
-        httpRequestMessage.SetRequestUri(Url);
-        httpRequestMessage.GetHeaders(HttpHeaders);
+        HttpRequestMessage.SetRequestUri(Url);
+        HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('action', action);
 
-        httpRequestMessage.Content := HttpContent;
-        httpRequestMessage.Method(Req.ToUpper());
-        SendContext.Http().SetHttpRequestMessage(httpRequestMessage);
+        HttpRequestMessage.Content := HttpContent;
+        HttpRequestMessage.Method(Req.ToUpper());
+        SendContext.Http().SetHttpRequestMessage(HttpRequestMessage);
         if PeppolSetup.Send(HttpClient, SendContext.Http()) = 401 then begin
             Error := 401;
             exit;
@@ -62,7 +66,7 @@ codeunit 6425 "ForNAV Peppol SMP"
             if (StatusCode >= 300) and (Error <> -1) and (StatusCode <> Error) then begin
                 if ResponseObject.Get('payload', Token) then
                     Message += ': ' + Token.AsValue().AsText();
-                error(ServiceErr, action, StatusCode, Message);
+                Error(ServiceErr, action, StatusCode, Message);
             end else
                 Error := StatusCode;
             if ResponseObject.Get('payload', Token) then
@@ -72,7 +76,7 @@ codeunit 6425 "ForNAV Peppol SMP"
                     if Token.IsValue and not Token.AsValue().IsNull then
                         OutputObject.ReadFrom(Token.AsValue().AsText());
         end else
-            error(ServiceErr, action, StatusCode, Message);
+            Error(ServiceErr, action, StatusCode, Message);
     end;
 
     procedure CallSMP(Req: Text; Action: Text; var Error: Integer; var Message: Text): JsonObject;
@@ -143,13 +147,13 @@ codeunit 6425 "ForNAV Peppol SMP"
     begin
         // Used by Azure function - do not modify
         InputObject.Add('Identifier', Setup.ID());
-        InputObject.Add('IncomingDocsUrl', GetUrl(ClientType::Api, Setup.CurrentCompany(), ObjectType::Page, Page::"ForNAV Incoming E-Docs Api"));
+        InputObject.Add('ForNAVIncomingEDocumentsUrl', GetUrl(ClientType::Api, Setup.CurrentCompany(), ObjectType::Page, Page::"ForNAV Incoming E-Docs Api"));
         InputObject.Add('BusinessEntity', Setup.CreateBusinessEntity());
         InputObject.Add('License', PeppolSetup.GetJLicense());
         error := 409;
         OutputObject := CallSMP('Post', InputObject, 'participant', error, message);
         if error = 409 then
-            error('Conflict');
+            Error('Conflict');
         Setup.Status := Setup.Status::Published;
         Setup.Modify();
     end;

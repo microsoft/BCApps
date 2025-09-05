@@ -1,3 +1,7 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 page 6411 "ForNAV Peppol Oauth API"
@@ -32,7 +36,7 @@ page 6411 "ForNAV Peppol Oauth API"
                 {
                     ApplicationArea = All;
                 }
-                field(clientSecret; clientSecret)
+                field(clientSecret; ClientSecret)
                 {
                     ApplicationArea = All;
                 }
@@ -40,15 +44,15 @@ page 6411 "ForNAV Peppol Oauth API"
                 {
                     ApplicationArea = All;
                 }
-                field(scope; scope)
+                field(scope; Scope)
                 {
                     ApplicationArea = All;
                 }
-                field(endpoint; endpoint)
+                field(endpoint; Endpoint)
                 {
                     ApplicationArea = All;
                 }
-                field(hash; hash)
+                field(hash; Hash)
                 {
                     ApplicationArea = All;
                 }
@@ -57,12 +61,12 @@ page 6411 "ForNAV Peppol Oauth API"
     }
     var
         [NonDebuggable]
-        clientSecret: Text;
-        scope: Text;
-        tenantId: Text;
-        hash: Text;
+        ClientSecret: Text;
+        Scope: Text;
+        TenantId: Text;
+        Hash: Text;
         SecretValidTo: DateTime;
-        endpoint: Text[20];
+        Endpoint: Text[20];
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
@@ -77,13 +81,13 @@ page 6411 "ForNAV Peppol Oauth API"
         PeppolOauth: Codeunit "ForNAV Peppol Oauth";
     begin
         Setup.FindFirst();
-        PeppolCrypto.TestHash(hash, Rec."Client Id", clientSecret);
+        PeppolCrypto.TestHash(Hash, Rec."Client Id", ClientSecret);
         Setup.Validate("Client Id", Rec."Client Id");
-        PeppolOauth.ValidateSecret(clientSecret);
+        PeppolOauth.ValidateSecret(ClientSecret);
         PeppolOauth.ValidateSecretValidTo(SecretValidTo);
-        PeppolOauth.ValidateForNAVTenantID(tenantId);
-        PeppolOauth.ValidateScope(scope);
-        PeppolOauth.Validateendpoint(endpoint, false);
+        PeppolOauth.ValidateForNAVTenantID(TenantId);
+        PeppolOauth.ValidateScope(Scope);
+        PeppolOauth.ValidateEndpoint(Endpoint, false);
         Setup.Modify(true);
     end;
 }

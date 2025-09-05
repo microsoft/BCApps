@@ -1,3 +1,7 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using System.Threading;
@@ -20,7 +24,7 @@ page 6417 "ForNAV Incoming E-Docs Api"
     Extensible = false;
     Permissions = TableData "Job Queue Entry" = rimd,
                   TableData "Job Queue Log Entry" = RIMD,
-                  TableData "Job Queue Category" = rimd; //rm;
+                  TableData "Job Queue Category" = rimd;
     layout
     {
         area(Content)
@@ -44,7 +48,6 @@ page 6417 "ForNAV Incoming E-Docs Api"
                 field(docCode; Rec.DocCode)
                 {
                     ApplicationArea = All;
-
                 }
                 field(doc; Document)
                 {
@@ -78,7 +81,7 @@ page 6417 "ForNAV Incoming E-Docs Api"
         Document, Message : BigText;
 
     [TryFunction]
-    local procedure ScheduleJob(JobQueueCodeunit: Integer; RecId: RecordId)
+    local procedure CreateJob(JobQueueCodeunit: Integer; RecId: RecordId)
     var
         Setup: Record "ForNAV Peppol Setup";
         QueueEntry: Record "Job Queue Entry";
@@ -110,29 +113,29 @@ page 6417 "ForNAV Incoming E-Docs Api"
         EDocumentService: Record "E-Document Service";
         Setup: Record "ForNAV Peppol Setup";
         BlankRecordId: RecordId;
-        DocOs, MessageOs : OutStream;
+        DocumentOutStream, MessageOutStream : OutStream;
     begin
         case Rec.DocType of
             Rec.DocType::Evidence:
-                if not ScheduleJob(Codeunit::"E-Document Get Response", BlankRecordId) then
+                if not CreateJob(Codeunit::"E-Document Get Response", BlankRecordId) then
                     SetErrorMessage(Message);
             Rec.DocType::ApplicationResponse:
-                if not ScheduleJob(Codeunit::"ForNAV App. Resp. Handler", Rec.RecordId()) then
+                if not CreateJob(Codeunit::"ForNAV App. Resp. Handler", Rec.RecordId()) then
                     SetErrorMessage(Message);
             Rec.DocType::Invoice, Rec.DocType::CreditNote:
                 begin
                     if not Setup.GetEDocumentService(EDocumentService) then
                         exit(false);
 
-                    if not ScheduleJob(6147, EDocumentService.RecordId()) then // Codeunit::"E-Document Import Job"
+                    if not CreateJob(6147, EDocumentService.RecordId()) then // Codeunit 6147 "E-Document Import Job"
                         SetErrorMessage(Message);
                 end;
         end;
 
-        Rec.Doc.CreateOutStream(DocOs, TextEncoding::UTF8);
-        Document.Write(DocOs);
-        Rec.Message.CreateOutStream(MessageOs, TextEncoding::UTF8);
-        Message.Write(MessageOs);
+        Rec.Doc.CreateOutStream(DocumentOutStream, TextEncoding::UTF8);
+        Document.Write(DocumentOutStream);
+        Rec.Message.CreateOutStream(MessageOutStream, TextEncoding::UTF8);
+        Message.Write(MessageOutStream);
         exit(true);
     end;
 

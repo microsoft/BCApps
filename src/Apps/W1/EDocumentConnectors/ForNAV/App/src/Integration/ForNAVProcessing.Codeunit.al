@@ -1,3 +1,7 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using Microsoft.EServices.EDocument;
@@ -45,11 +49,11 @@ codeunit 6419 "ForNAV Processing"
 
     procedure GetDocumentApproval(EDocument: Record "E-Document") Status: Enum "ForNAV Incoming E-Doc Status"
     var
-        IncomingDoc: Codeunit "ForNAV Inbox";
+        ForNAVIncomingEDocument: Codeunit "ForNAV Inbox";
         StatusDescription: Text;
     begin
-        Status := IncomingDoc.GetApprovalStatus(EDocument, StatusDescription);
-        case IncomingDoc.GetApprovalStatus(EDocument, StatusDescription) of
+        Status := ForNAVIncomingEDocument.GetApprovalStatus(EDocument, StatusDescription);
+        case ForNAVIncomingEDocument.GetApprovalStatus(EDocument, StatusDescription) of
             "ForNAV Incoming E-Doc Status"::Rejected:
                 if StatusDescription <> '' then
                     EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, 'Reason: ' + StatusDescription);

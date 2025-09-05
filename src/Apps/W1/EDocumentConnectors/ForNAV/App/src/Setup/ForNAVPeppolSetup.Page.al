@@ -1,3 +1,7 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 using System.EMail;
 using System.Utilities;
@@ -379,6 +383,7 @@ page 6413 "ForNAV Peppol Setup"
         ClientId: Text;
         PeppolEndpoint: Text;
         ForNAVTenantId: Text;
+        [NonDebuggable]
         ClientSecret: Text;
         Scope: Text;
         SecretValidFrom: DateTime;

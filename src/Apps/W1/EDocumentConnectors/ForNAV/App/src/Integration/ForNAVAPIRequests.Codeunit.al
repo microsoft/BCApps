@@ -1,3 +1,7 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using Microsoft.EServices.EDocument;
@@ -127,29 +131,29 @@ codeunit 6414 "ForNAV API Requests"
 
     internal procedure GetReceivedDocumentsRequest(ReceiveContext: Codeunit ReceiveContext; DocumentsMetadata: Codeunit "Temp Blob List"): Boolean
     var
-        IncomingDoc: Codeunit "ForNAV Inbox";
+        ForNAVIncomingEDocument: Codeunit "ForNAV Inbox";
     begin
         // Use a dummy label because the URL is mandatory but we don't use it
         ClearRequest(ReceiveContext.Http(), 'https://GetReceivedDocumentsRequest');
-        exit(IncomingDoc.GetIncomingBussinessDocs(DocumentsMetadata));
+        exit(ForNAVIncomingEDocument.GetIncomingBussinessDocs(DocumentsMetadata));
     end;
 
     internal procedure GetTargetDocumentRequest(DocumentId: Text; ReceiveContext: Codeunit ReceiveContext): Boolean
     var
-        IncomingDoc: Codeunit "ForNAV Inbox";
+        ForNAVIncomingEDocument: Codeunit "ForNAV Inbox";
     begin
         // Use a dummy label because the URL is mandatory but we don't use it
         ClearRequest(ReceiveContext.Http(), 'https://GetTargetDocumentRequest');
-        exit(IncomingDoc.GetIncomingDoc(DocumentId, ReceiveContext));
+        exit(ForNAVIncomingEDocument.GetForNAVIncomingEDocument(DocumentId, ReceiveContext));
     end;
 
     internal procedure SendFetchDocumentRequest(DocumentId: JsonArray; SendContext: Codeunit SendContext): Boolean
     var
-        IncomingDoc: Codeunit "ForNAV Inbox";
+        ForNAVIncomingEDocument: Codeunit "ForNAV Inbox";
     begin
         // Use a dummy label because the URL is mandatory but we don't use it
-        ClearRequest(SendContext.Http(), 'https://SendFetchDocumentRequest'); // TODO add comment to why we do this
-        exit(IncomingDoc.DeleteDocs(DocumentId, SendContext));
+        ClearRequest(SendContext.Http(), 'https://SendFetchDocumentRequest');
+        exit(ForNAVIncomingEDocument.DeleteDocs(DocumentId, SendContext));
     end;
 
     local procedure ClearRequest(Http: Codeunit "Http Message State"; Url: Text)

@@ -1,3 +1,7 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using System.Utilities;
@@ -131,7 +135,7 @@ page 6414 "ForNAV Peppol Setup Wizard"
                 {
                     ShowCaption = false;
                     Visible = ManualSetupEnabled;
-                    InstructionalText = 'We will now sned your information to ForNAV. When you have been approved you will receive an Oauth setup file so you can connect to the ForNAV Peppol network.';
+                    InstructionalText = 'We will now send your information to ForNAV. When you have been approved you will receive an Oauth setup file so you can connect to the ForNAV Peppol network.';
                 }
             }
             group(Step4)
@@ -331,7 +335,6 @@ page 6414 "ForNAV Peppol Setup Wizard"
                 end;
             Step::Step3:
                 begin
-                    // TODO add processing bar
                     Rec.TestField(Name);
                     Rec.TestField("Identification Code");
                     Rec.TestField("Identification Value");
@@ -378,7 +381,6 @@ page 6414 "ForNAV Peppol Setup Wizard"
     begin
         Step := Step::Step4;
         Step4Visible := true;
-        // BackActionEnabled := false;
         NextActionEnabled := false;
     end;
 

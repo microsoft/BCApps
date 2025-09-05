@@ -1,3 +1,7 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 using System.Threading;
 using System.Environment;
@@ -80,7 +84,7 @@ codeunit 6412 "ForNAV Peppol Job Queue"
         JobQueueEntry.Validate("Run on Saturdays", true);
         JobQueueEntry.Validate("Run on Sundays", true);
 
-        JobQueueEntry."No. of Minutes between Runs" := EnvironmentInformation.IsSaaSInfrastructure() ? 30 : 60;
+        JobQueueEntry."No. of Minutes between Runs" := 30;
         Enqueue.Run(JobQueueEntry);
     end;
 

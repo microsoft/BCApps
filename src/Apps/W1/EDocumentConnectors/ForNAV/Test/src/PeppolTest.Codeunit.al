@@ -1,3 +1,7 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 using System.Utilities;
 using Microsoft.eServices.EDocument;
@@ -9,6 +13,14 @@ codeunit 6428 "ForNAV Peppol Test"
 {
     Access = Internal;
     SingleInstance = true;
+
+    var
+        PeppolSetup: Codeunit "ForNAV Peppol Setup";
+        InitCalled: Boolean;
+        StatusCode: Integer;
+        VendorNo: Code[20];
+        MockGuid: Guid;
+
     local procedure MockOutgoing(Http: Codeunit "Http Message State")
     var
         HttpClient: HttpClient;
@@ -112,13 +124,6 @@ codeunit 6428 "ForNAV Peppol Test"
     begin
         exit('FORNAVMOCKID' + Format(MockGuid));
     end;
-
-    var
-        PeppolSetup: Codeunit "ForNAV Peppol Setup";
-        InitCalled: Boolean;
-        StatusCode: Integer;
-        VendorNo: Code[20];
-        MockGuid: Guid;
 
     procedure SetStatusCode(NewStatusCode: Integer)
     begin

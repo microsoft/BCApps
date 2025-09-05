@@ -1,3 +1,7 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using Microsoft.EServices.EDocument;
@@ -48,7 +52,7 @@ codeunit 6417 "ForNAV Inbox"
         exit(true);
     end;
 
-    local procedure GetIncomingDocs(var Incoming: Record "ForNAV Incoming E-Document"; DocumentsMetadata: Codeunit "Temp Blob List"): Boolean
+    local procedure GetForNAVIncomingEDocuments(var Incoming: Record "ForNAV Incoming E-Document"; DocumentsMetadata: Codeunit "Temp Blob List"): Boolean
     var
         TempBlob: Codeunit "Temp Blob";
         OutStr: OutStream;
@@ -71,7 +75,7 @@ codeunit 6417 "ForNAV Inbox"
         Incoming: Record "ForNAV Incoming E-Document";
     begin
         Incoming.SetFilter(Incoming.DocType, '%1|%2', Incoming.DocType::CreditNote, Incoming.DocType::Invoice);
-        exit(GetIncomingDocs(Incoming, DocumentsMetadata));
+        exit(GetForNAVIncomingEDocuments(Incoming, DocumentsMetadata));
     end;
 
     internal procedure GetIncomingAppResponseDocs(EDocument: Record "E-Document"; DocumentsMetadata: Codeunit "Temp Blob List"): Boolean
@@ -79,10 +83,10 @@ codeunit 6417 "ForNAV Inbox"
         Incoming: Record "ForNAV Incoming E-Document";
     begin
         Incoming.SetRange(Incoming.DocType, Incoming.DocType::ApplicationResponse);
-        exit(GetIncomingDocs(Incoming, DocumentsMetadata));
+        exit(GetForNAVIncomingEDocuments(Incoming, DocumentsMetadata));
     end;
 
-    internal procedure GetIncomingDoc(DocumentId: Text; ReceiveContext: Codeunit ReceiveContext): Boolean
+    internal procedure GetForNAVIncomingEDocument(DocumentId: Text; ReceiveContext: Codeunit ReceiveContext): Boolean
     var
         Incoming: Record "ForNAV Incoming E-Document";
         output: Text;
@@ -109,44 +113,44 @@ codeunit 6417 "ForNAV Inbox"
         end;
     end;
 
-    local procedure GetOptionValue(Fref: FieldRef; StringValue: Text): Integer
+    local procedure GetOptionValue(FieldRef: FieldRef; StringValue: Text): Integer
     var
         Index: Integer;
     begin
-        for Index := 1 to Fref.EnumValueCount() do
-            if Fref.GetEnumValueName(Index) = StringValue then
-                exit(Fref.GetEnumValueOrdinal(Index))
+        for Index := 1 to FieldRef.EnumValueCount() do
+            if FieldRef.GetEnumValueName(Index) = StringValue then
+                exit(FieldRef.GetEnumValueOrdinal(Index))
     end;
 
     local procedure InsertDocFromJson(RecRef: RecordRef; RecordObject: JsonObject)
     var
         TempBlob: Codeunit "Temp Blob";
         BT: BigText;
-        Fref: FieldRef;
+        FieldRef: FieldRef;
         i: Integer;
         Token: JsonToken;
         Value: JsonValue;
         OutStr: OutStream;
     begin
         for i := 1 to RecRef.FieldCount do begin
-            Fref := RecRef.Field(i);
-            if RecordObject.Get(Fref.Name, Token) then begin
+            FieldRef := RecRef.Field(i);
+            if RecordObject.Get(FieldRef.Name, Token) then begin
                 Value := Token.AsValue();
                 if not Value.IsNull then
-                    case Fref.Type of
+                    case FieldRef.Type of
                         FieldType::Integer:
-                            Fref.Value := Value.AsInteger();
+                            FieldRef.Value := Value.AsInteger();
                         FieldType::Text:
-                            Fref.Value := Value.AsText();
+                            FieldRef.Value := Value.AsText();
                         FieldType::Option:
-                            Fref.Value := GetOptionValue(Fref, Value.AsText());
+                            FieldRef.Value := GetOptionValue(FieldRef, Value.AsText());
                         FieldType::Blob:
                             begin
                                 Clear(BT);
                                 BT.AddText(Value.AsText());
                                 TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
                                 BT.Write(OutStr);
-                                TempBlob.ToFieldRef(Fref);
+                                TempBlob.ToFieldRef(FieldRef);
                             end;
                     end;
             end;
