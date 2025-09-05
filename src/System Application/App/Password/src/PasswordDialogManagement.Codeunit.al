@@ -63,6 +63,16 @@ codeunit 9810 "Password Dialog Management"
     end;
 
     /// <summary>
+    /// Compare the passwords and return the error if the passwords do not match
+    /// </summary>
+    /// <param name="CurrentPasswordToCompare">In parameter, the current password to compare with the password user provided.</param>
+    /// <param name="PasswordToCompare">Thepassword user typed.</param>
+    procedure ValidatedPasswordMatch(CurrentPasswordToCompare: SecretText; PasswordToCompare: SecretText)
+    begin
+        PasswordDialogImpl.ValidatedPasswordMatch(CurrentPasswordToCompare, PasswordToCompare);
+    end;
+
+    /// <summary>
     /// Event to override the Minimum number of characters in the password.
     /// The Minimum length can only be increased not decreased. Default value is 8 characters long.
     /// </summary>
