@@ -616,7 +616,9 @@ codeunit 8060 "Create Billing Documents"
         PurchaseHeader."Receiving No." := OldPurchaseHeader."Receiving No.";
         PurchaseHeader."Receiving No. Series" := OldPurchaseHeader."Receiving No. Series";
         PurchaseHeader."No. Printed" := 0;
+        DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(true);
         PurchaseHeader.Validate("Posting Date", PostingDate);
+        DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(false);
         PurchaseHeader.Validate("Document Date", DocumentDate);
         PurchaseHeader.Validate("Currency Code");
         PurchaseHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesHeader."Assigned User ID"));
@@ -662,9 +664,11 @@ codeunit 8060 "Create Billing Documents"
         PurchaseHeader."No." := '';
         PurchaseHeader.Insert(true);
         PurchaseHeader."Recurring Billing" := true;
+        DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(true);
         PurchaseHeader.Validate("Pay-to Vendor No.", VendorNo);
         PurchaseHeader.Validate("Buy-from Vendor No.", VendorNo);
         PurchaseHeader.Validate("Posting Date", PostingDate);
+        DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(false);
         PurchaseHeader.Validate("Document Date", DocumentDate);
         PurchaseHeader.Validate("Currency Code");
         PurchaseHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesHeader."Assigned User ID"));
