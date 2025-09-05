@@ -332,7 +332,7 @@ page 8002 "Extend Contract"
         if ProvisionStartDate = 0D then
             Error(ProvisionStartDateEmptyErr);
 
-        ServiceObject.InsertFromItemNoAndCustomerContract(ServiceObject, ItemNo, QuantityDecimal, ProvisionStartDate, CustomerContract);
+        ServiceObject.InsertFromItemNoAndCustomerContract(ServiceObject, ItemNo, VariantCode, QuantityDecimal, ProvisionStartDate, CustomerContract);
         ServiceObject.SetUnitPriceAndUnitCostFromExtendContract(UnitPrice, UnitCostLCY);
         ExtendContractMgt.ExtendContract(ServiceObject, TempServiceCommitmentPackage, ExtendCustomerContract, CustomerContract, ExtendVendorContract, VendorContract, false, SupplierReferenceEntryNo);
         ServiceObject.ResetCalledFromExtendContract();
