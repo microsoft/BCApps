@@ -8,6 +8,7 @@ namespace Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
 using Microsoft.Foundation.UOM;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Finance.Currency;
 using Microsoft.Inventory.Item.Catalog;
 
 /// <summary>
@@ -230,6 +231,7 @@ codeunit 30171 "Shpfy Create Item"
         ItemCategory: Record "Item Category";
         ItemVariant: Record "Item Variant";
         Vendor: Record Vendor;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
         CurrentTemplateCode: Code[20];
         ItemNo: Code[20];
         Code: Text;
@@ -258,10 +260,16 @@ codeunit 30171 "Shpfy Create Item"
         CreateItemUnitOfMeasure(ShopifyVariant, Item);
 
         if ShopifyVariant."Unit Cost" <> 0 then
-            Item.Validate("Unit Cost", ShopifyVariant."Unit Cost");
+            if Shop."Currency Code" = '' then
+                Item.Validate("Unit Cost", ShopifyVariant."Unit Cost")
+            else
+                Item.Validate("Unit Cost", Round(CurrencyExchangeRate.ExchangeAmtFCYToLCY(WorkDate(), Shop."Currency Code", ShopifyVariant."Unit Cost", CurrencyExchangeRate.ExchangeRate(WorkDate(), Shop."Currency Code"))));
 
         if ShopifyVariant.Price <> 0 then
-            Item.Validate("Unit Price", ShopifyVariant.Price);
+            if Shop."Currency Code" = '' then
+                Item.Validate("Unit Price", ShopifyVariant.Price)
+            else
+                Item.Validate("Unit Price", Round(CurrencyExchangeRate.ExchangeAmtFCYToLCY(WorkDate(), Shop."Currency Code", ShopifyVariant.Price, CurrencyExchangeRate.ExchangeRate(WorkDate(), Shop."Currency Code"))));
 
         if ShopifyProduct."Product Type" <> '' then begin
             ItemCategory.SetFilter(Description, FilterMgt.CleanFilterValue(ShopifyProduct."Product Type", MaxStrLen(ItemCategory.Description)));
