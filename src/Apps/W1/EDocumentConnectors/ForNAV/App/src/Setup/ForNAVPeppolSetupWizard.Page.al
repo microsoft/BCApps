@@ -131,7 +131,7 @@ page 6414 "ForNAV Peppol Setup Wizard"
                 {
                     ShowCaption = false;
                     Visible = ManualSetupEnabled;
-                    InstructionalText = 'We will now sned your information to ForNAV. When you have been approved you will receive an Oauth setup file so you can connect to the ForNAV Peppol network.';
+                    InstructionalText = 'We will now send your information to ForNAV. When you have been approved you will receive an Oauth setup file so you can connect to the ForNAV Peppol network.';
                 }
             }
             group(Step4)
