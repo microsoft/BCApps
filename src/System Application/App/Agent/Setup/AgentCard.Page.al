@@ -66,13 +66,13 @@ page 4315 "Agent Card"
 
                         trigger OnAssistEdit()
                         var
-                            AgentImpl: Codeunit "Agent Impl.";
+                            Agent: Codeunit Agent;
                         begin
                             if not Confirm(ProfileChangedQst, false) then
                                 exit;
 
-                            if AgentImpl.ProfileLookup(UserSettingsRecord) then
-                                AgentImpl.UpdateAgentUserSettings(UserSettingsRecord);
+                            if Agent.ProfileLookup(UserSettingsRecord) then
+                                Agent.SetProfile(UserSettingsRecord."User Security ID", UserSettingsRecord."Profile ID", UserSettingsRecord."App ID");
                         end;
                     }
                     field(Language; Language.GetWindowsLanguageName(UserSettingsRecord."Language ID"))
@@ -202,12 +202,11 @@ page 4315 "Agent Card"
 
     local procedure UpdateControls()
     var
-        AgentImpl: Codeunit "Agent Impl.";
         UserSettings: Codeunit "User Settings";
     begin
         if not IsNullGuid(Rec."User Security ID") then begin
             UserSettings.GetUserSettings(Rec."User Security ID", UserSettingsRecord);
-            ProfileDisplayName := AgentImpl.GetProfileName(UserSettingsRecord.Scope, UserSettingsRecord."App ID", UserSettingsRecord."Profile ID");
+            ProfileDisplayName := UserSettings.GetProfileName(UserSettingsRecord);
         end;
 
         ControlsEditable := Rec.State = Rec.State::Disabled;
