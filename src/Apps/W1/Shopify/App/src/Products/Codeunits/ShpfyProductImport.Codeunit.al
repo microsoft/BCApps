@@ -85,6 +85,12 @@ codeunit 30180 "Shpfy Product Import"
                 ShopifyProduct."Shop Code" := Shop.Code;
                 ShopifyProduct.Insert(false);
             end;
+
+            if ShopifyProduct."Shop Code" <> Shop.Code then begin
+                ShopifyProduct."Shop Code" := Shop.Code;
+                ShopifyProduct.Modify(true);
+            end;
+
             if ProductApi.RetrieveShopifyProduct(ShopifyProduct) then begin
                 VariantApi.RetrieveShopifyProductVariantIds(ShopifyProduct, VariantIds);
                 ShopifyVariant.SetRange("Product Id", Id);
