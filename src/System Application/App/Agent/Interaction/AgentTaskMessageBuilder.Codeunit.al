@@ -138,6 +138,17 @@ codeunit 4316 "Agent Task Message Builder"
     end;
 
     /// <summary>
+    /// Set the task status to ready if possible.
+    /// </summary>
+    /// <param name="SetTaskStatusToReady">Specifies if the task status should be set to ready.</param>
+    /// <returns>The agent task message that was created.</returns>
+    [Scope('OnPrem')]
+    procedure SetTaskStatusToReadyIfPossible(): Record "Agent Task Message"
+    begin
+        exit(AgentTaskMsgBuilderImpl.SetTaskStatusToReadyIfPossible());
+    end;
+
+    /// <summary>
     /// Get the agent task message record.
     /// </summary>
     /// <returns>
