@@ -89,6 +89,7 @@ codeunit 30176 "Shpfy Product API"
             end;
             GraphQuery.Append(']');
         end;
+        AddDefaultCollectionsToGraphQuery(ShopifyProduct, GraphQuery);
         GraphQuery.Append('}) ');
         GraphQuery.Append('{product {legacyResourceId, onlineStoreUrl, onlineStorePreviewUrl, createdAt, updatedAt, tags}, userErrors {field, message}}');
         GraphQuery.Append('}"}');
@@ -112,6 +113,30 @@ codeunit 30176 "Shpfy Product API"
         PublishProduct(NewShopifyProduct);
 
         exit(NewShopifyProduct.Id);
+    end;
+
+    local procedure AddDefaultCollectionsToGraphQuery(ShopifyProduct: Record "Shpfy Product"; var GraphQuery: TextBuilder)
+    var
+        ProductCollection: Record "Shpfy Product Collection";
+        IsHandled: Boolean;
+    begin
+        this.ProductEvents.OnBeforeAddDefaultCollectionsToGraphQuery(this.Shop, ShopifyProduct, GraphQuery, IsHandled);
+        if IsHandled then
+            exit;
+
+        ProductCollection.SetRange("Shop Code", ShopifyProduct."Shop Code");
+        ProductCollection.SetRange(Default, true);
+        if not ProductCollection.FindSet() then
+            exit;
+
+        GraphQuery.Append(', collectionsToJoin: [');
+        repeat
+            GraphQuery.Append('\"gid://shopify/Collection/');
+            GraphQuery.Append(Format(ProductCollection.Id));
+            GraphQuery.Append('\", ');
+        until ProductCollection.Next() = 0;
+        GraphQuery.Remove(GraphQuery.Length - 1, 2);
+        GraphQuery.Append(']');
     end;
 
     local procedure CreateImageUploadUrl(Item: Record Item; var Url: Text; var ResourceUrl: Text; var TenantMedia: Record "Tenant Media"): boolean
