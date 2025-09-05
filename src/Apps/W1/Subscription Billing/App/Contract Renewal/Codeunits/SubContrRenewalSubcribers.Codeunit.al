@@ -1,18 +1,20 @@
 namespace Microsoft.SubscriptionBilling;
 
 using System.Utilities;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.Foundation.Attachment;
+using Microsoft.Inventory.Location;
 using Microsoft.Utilities;
 using Microsoft.Sales.Document;
-using Microsoft.Sales.Posting;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Posting;
 using Microsoft.Purchases.Posting;
-using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Document;
 using Microsoft.Warehouse.Document;
-using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Foundation.Attachment;
-using Microsoft.Finance.Currency;
-using Microsoft.Finance.GeneralLedger.Posting;
 
 codeunit 8001 "Sub. Contr. Renewal Subcribers"
 {
@@ -247,8 +249,8 @@ codeunit 8001 "Sub. Contr. Renewal Subcribers"
             IsHandled := true;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Post Invoice Events", 'OnBeforePrepareLine', '', false, false)]
-    local procedure OnBeforeFillInvoicePostingBuffer(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Post Invoice Events", OnBeforePrepareLine, '', false, false)]
+    local procedure OnBeforePrepareLine(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
         if SalesLine.IsContractRenewal() then
             IsHandled := true;
@@ -268,8 +270,8 @@ codeunit 8001 "Sub. Contr. Renewal Subcribers"
             IsHandled := true;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Post Invoice Events", 'OnBeforePostLedgerEntry', '', false, false)]
-    local procedure OnBeforeRunPostCustomerEntry(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Post Invoice Events", OnBeforePostLedgerEntry, '', false, false)]
+    local procedure OnBeforePostLedgerEntry(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
         if not SalesHeader.Ship then
             exit;
@@ -338,6 +340,83 @@ codeunit 8001 "Sub. Contr. Renewal Subcribers"
         if not NewSalesLine.IsContractRenewal() then
             exit;
         IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", OnBeforeValidateEvent, 'Responsibility Center', false, false)]
+    local procedure AllowChangingResponsibilityCenter(var Rec: Record "Sales Header")
+    var
+        ResponsibilityCenter: Record "Responsibility Center";
+        SubContractRenewalMgt: Codeunit "Sub. Contract Renewal Mgt.";
+        DocumentChangeManagement: Codeunit "Document Change Management";
+        GetShortcutDimensionValues: Codeunit "Get Shortcut Dimension Values";
+        ShortcutDimCode: array[2] of Code[20];
+    begin
+        if Rec.IsTemporary then
+            exit;
+        if not (Rec."Document Type" in ["Sales Document Type"::Quote, "Sales Document Type"::"Order"]) then
+            exit;
+        if not SubContractRenewalMgt.IsContractRenewal(Rec) then
+            exit;
+
+        // Allow setting the Responsibility Center to empty
+        if Rec."Responsibility Center" = '' then begin
+            Rec.SetHideValidationDialog(true);
+            DocumentChangeManagement.SetSkipContractSalesHeaderModifyCheck(true);
+            UpdateResponsibilityCenterOnSalesLines(Rec);
+            exit;
+        end;
+
+        if not ResponsibilityCenter.Get(Rec."Responsibility Center") then
+            exit;
+
+        // Allow the change if the Responsibility Center has no dimensions set
+        if (ResponsibilityCenter."Global Dimension 1 Code" = '') and (ResponsibilityCenter."Global Dimension 2 Code" = '') then begin
+            Rec.SetHideValidationDialog(true);
+            DocumentChangeManagement.SetSkipContractSalesHeaderModifyCheck(true);
+            UpdateResponsibilityCenterOnSalesLines(Rec);
+        end;
+
+        // Get the Dimension Set IDs
+        GetShortcutDimensionValues.GetGlobalDimensions(Rec."Dimension Set ID", ShortcutDimCode);
+        if (ResponsibilityCenter."Global Dimension 1 Code" = ShortcutDimCode[1]) and (ResponsibilityCenter."Global Dimension 2 Code" = ShortcutDimCode[2]) then begin
+            Rec.SetHideValidationDialog(true);
+            DocumentChangeManagement.SetSkipContractSalesHeaderModifyCheck(true);
+            UpdateResponsibilityCenterOnSalesLines(Rec);
+        end;
+    end;
+
+    local procedure UpdateResponsibilityCenterOnSalesLines(SalesHeader: Record "Sales Header")
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, "Sales Line Type"::"Service Object");
+        SalesLine.ModifyAll("Responsibility Center", SalesHeader."Responsibility Center", false);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", OnBeforeRecreateSalesLinesHandler, '', false, false)]
+    local procedure SkipDeletingExistingSalesLines(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; ChangedFieldName: Text[100]; var IsHandled: Boolean)
+    var
+        SubContractRenewalMgt: Codeunit "Sub. Contract Renewal Mgt.";
+    begin
+        if SalesHeader.IsTemporary then
+            exit;
+        if not (SalesHeader."Document Type" in ["Sales Document Type"::Quote, "Sales Document Type"::"Order"]) then
+            exit;
+        if not SubContractRenewalMgt.IsContractRenewal(SalesHeader) then
+            exit;
+
+        if ChangedFieldName = SalesHeader.FieldName("Responsibility Center") then
+            IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", OnAfterValidateEvent, 'Responsibility Center', false, false)]
+    local procedure ClearAllowChangingResponsibilityCenter()
+    var
+        DocumentChangeManagement: Codeunit "Document Change Management";
+    begin
+        DocumentChangeManagement.SetSkipContractSalesHeaderModifyCheck(false);
     end;
 
     var

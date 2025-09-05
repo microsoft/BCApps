@@ -62,9 +62,9 @@ codeunit 139915 "Sales Service Commitment Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         SerialNo: array[10] of Code[50];
         NoOfServiceObjects: Integer;
-        NotCreatedProperlyErr: Label 'Subscription Lines are not created properly.';
+        NotCreatedProperlyErr: Label 'Subscription Lines are not created properly.', Locked = true;
         SalesServiceCommitmentCannotBeDeletedErr: Label 'The Sales Subscription Line cannot be deleted, because it is the last line with Process Contract Renewal. Please delete the Sales line in order to delete the Sales Subscription Line.', Locked = true;
-        NaturalNumberRatioErr: Label 'The ratio of ''%1'' and ''%2'' or vice versa must give a natural number.', Comment = '%1=Field Caption, %2=Field Caption';
+        NaturalNumberRatioErr: Label 'The ratio of ''%1'' and ''%2'' or vice versa must give a natural number.', Comment = '%1=Field Caption, %2=Field Caption', Locked = true;
 
     #region Tests
 
