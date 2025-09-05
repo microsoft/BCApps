@@ -21,7 +21,8 @@ codeunit 30301 "Shpfy Company Import"
         SetCompany(Rec.Id);
 
         if not CompanyApi.RetrieveShopifyCompany(ShopifyCompany, TempShopifyCustomer) then begin
-            ShopifyCompany.Delete();
+            if IsNew then
+                ShopifyCompany.Delete();
             exit;
         end;
 
@@ -51,6 +52,7 @@ codeunit 30301 "Shpfy Company Import"
         CompanyMapping: Codeunit "Shpfy Company Mapping";
         TemplateCode: Code[20];
         AllowCreate: Boolean;
+        IsNew: Boolean;
 
     local procedure SetCompany(Id: BigInteger)
     begin
@@ -62,6 +64,7 @@ codeunit 30301 "Shpfy Company Import"
                 ShopifyCompany."Shop Id" := Shop."Shop Id";
                 ShopifyCompany."Shop Code" := Shop.Code;
                 ShopifyCompany.Insert(false);
+                IsNew := true;
             end;
         end;
     end;
