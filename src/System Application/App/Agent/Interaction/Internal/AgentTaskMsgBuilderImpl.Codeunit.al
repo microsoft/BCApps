@@ -101,6 +101,14 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     end;
 
     [Scope('OnPrem')]
+    procedure SetTaskStatusToReadyIfPossible(): Record "Agent Task Message"
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        AgentTaskImpl.SetTaskStatusToReadyIfPossible(GlobalAgentTask);
+    end;
+
+    [Scope('OnPrem')]
     procedure GetAgentTaskMessage(): Record "Agent Task Message"
     begin
         exit(GlobalAgentTaskMessage);
