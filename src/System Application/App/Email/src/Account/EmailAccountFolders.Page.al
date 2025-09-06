@@ -36,20 +36,6 @@ page 4444 "Email Account Folders"
                     ToolTip = 'Specifies the unique identifier of the email folder';
                     Visible = false;
                 }
-                field("Has Children"; Rec."Has Children")
-                {
-                    ApplicationArea = All;
-                    Caption = 'Has Children';
-                    ToolTip = 'Specifies whether the email folder has subfolders';
-                    Visible = false;
-                }
-                field(Ordering; Rec.Ordering)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Ordering';
-                    ToolTip = 'Specifies the ordering of the email folder';
-                    Visible = false;
-                }
             }
         }
     }
