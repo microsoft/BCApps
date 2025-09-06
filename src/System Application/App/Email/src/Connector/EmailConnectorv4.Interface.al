@@ -32,5 +32,10 @@ interface "Email Connector v4" extends "Email Connector"
     /// <param name="ExternalId">The external ID of the email.</param>
     procedure MarkAsRead(AccountId: Guid; ExternalId: Text);
 
+    /// <summary>
+    /// Get email folders from the provided account.
+    /// </summary>
+    /// <param name="AccountId">The email account ID.</param>
+    /// <param name="EmailFolders">The email folders retrieved.</param>
     procedure GetEmailFolders(AccountId: Guid; var EmailFolders: Record "Email Folders" temporary);
 }
