@@ -25,7 +25,7 @@ codeunit 134703 "Test Email Connector v4" implements "Email Connector v4"
 
     procedure GetAccounts(var Accounts: Record "Email Account")
     begin
-        ConnectorMock.GetAccounts(Accounts, Enum::"Email Connector"::"Test Email Connector v3");
+        ConnectorMock.GetAccounts(Accounts, Enum::"Email Connector"::"Test Email Connector v4");
     end;
 
     procedure ShowAccountInformation(AccountId: Guid)
@@ -101,9 +101,9 @@ codeunit 134703 "Test Email Connector v4" implements "Email Connector v4"
                 EmailInbox.Mark(true);
             until TempEmailInbox.Next() = 0
         else begin
-            ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v3", EmailInbox);
+            ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v4", EmailInbox);
             EmailInbox.Mark(true);
-            ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v3", EmailInbox);
+            ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v4", EmailInbox);
             EmailInbox.Mark(true);
         end;
     end;
