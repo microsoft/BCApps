@@ -113,4 +113,17 @@ codeunit 134703 "Test Email Connector v4" implements "Email Connector v4"
         if ConnectorMock.FailOnMarkAsRead() then
             Error('Failed to mark email as read');
     end;
+
+    procedure GetEmailFolders(AccountId: Guid; var EmailFolders: Record "Email Folders" temporary)
+    var
+        Index: Integer;
+    begin
+        if ConnectorMock.FailOnGetEmailFolders() then
+            Error('Failed to get email folders');
+
+        repeat
+            Index += 1;
+            ConnectorMock.CreateEmailFolder(Index, EmailFolders);
+        until EmailFolders.Count() >= 5;
+    end;
 }

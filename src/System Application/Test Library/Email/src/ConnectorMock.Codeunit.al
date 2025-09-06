@@ -117,6 +117,18 @@ codeunit 134688 "Connector Mock"
         Commit();
     end;
 
+    procedure CreateEmailFolder(Order: Integer; var EmailFolder: Record "Email Folder")
+    begin
+        EmailFolder.Init();
+        EmailFolder.Ordering := Order;
+        EmailFolder.Id := Any.AlphanumericText(10);
+        EmailFolder."Folder Name" := Any.AlphanumericText(10);
+        EmailFolder."Has Children" := false;
+        EmailFolder."Parent Folder Id" := '';
+        EmailFolder.Indent := 0;
+        EmailFolder.Insert();
+    end;
+
     procedure FailOnSend(): Boolean
     var
         TestEmailConnectorSetup: Record "Test Email Connector Setup";
@@ -216,6 +228,23 @@ codeunit 134688 "Connector Mock"
     begin
         TestEmailConnectorSetup.FindFirst();
         TestEmailConnectorSetup."Unsuccessful Register" := Fail;
+        TestEmailConnectorSetup.Modify();
+    end;
+
+    procedure FailOnGetEmailFolders(): Boolean
+    var
+        TestEmailConnectorSetup: Record "Test Email Connector Setup";
+    begin
+        TestEmailConnectorSetup.FindFirst();
+        exit(TestEmailConnectorSetup."Fail On Get Email Folders");
+    end;
+
+    procedure FailOnGetEmailFolders(Fail: Boolean)
+    var
+        TestEmailConnectorSetup: Record "Test Email Connector Setup";
+    begin
+        TestEmailConnectorSetup.FindFirst();
+        TestEmailConnectorSetup."Fail On Get Email Folders" := Fail;
         TestEmailConnectorSetup.Modify();
     end;
 
