@@ -7,7 +7,7 @@ namespace System.TestLibraries.Email;
 
 using System.Email;
 
-codeunit 134703 "Test Email Connector v4" implements "Email Connector v4"
+codeunit 134704 "Test Email Connector v4" implements "Email Connector v4"
 {
     SingleInstance = true;
 
