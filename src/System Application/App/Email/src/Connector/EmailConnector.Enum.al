@@ -13,7 +13,13 @@ namespace System.Email;
 enum 8889 "Email Connector" implements "Email Connector", "Email Connector v2", "Email Connector v3", "Email Connector v4", "Default Email Rate Limit"
 #pragma warning restore AL0432
 #else
-enum 8889 "Email Connector" implements "Email Connector", "Email Connector v3", "Email Connector v4","Default Email Rate Limit"
+#if not CLEAN28
+#pragma warning disable AL0432
+enum 8889 "Email Connector" implements "Email Connector", "Email Connector v3", "Email Connector v4", "Default Email Rate Limit"
+#pragma warning restore AL0432
+#else
+enum 8889 "Email Connector" implements "Email Connector", "Email Connector v4", "Default Email Rate Limit"
+#endif
 #endif
 {
     Extensible = true;
@@ -21,6 +27,8 @@ enum 8889 "Email Connector" implements "Email Connector", "Email Connector v3", 
 #if not CLEAN26
                             "Email Connector v2" = "Default Email Connector v2",
 #endif
+#if not CLEAN28
                             "Email Connector v3" = "Default Email Connector v2",
+#endif
                             "Email Connector v4" = "Default Email Connector v2";
 }

@@ -13,7 +13,13 @@ namespace System.Email;
 codeunit 8998 "Default Email Connector v2" implements "Email Connector v2", "Email Connector v3", "Email Connector v4"
 #pragma warning restore AL0432
 #else
+#if not CLEAN28
+#pragma warning disable AL0432
 codeunit 8998 "Default Email Connector v2" implements "Email Connector v3", "Email Connector v4"
+#pragma warning restore AL0432
+#else
+codeunit 8998 "Default Email Connector v2" implements "Email Connector v4"
+#endif
 #endif
 {
 

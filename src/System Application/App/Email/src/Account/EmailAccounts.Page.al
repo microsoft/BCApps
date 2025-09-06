@@ -585,9 +585,7 @@ page 8887 "Email Accounts"
         UpdateAccounts: Boolean;
         IsLookupMode: Boolean;
         HasEmailAccount: Boolean;
-#if not CLEAN28
         V2V3Filter, V3Filter : Boolean;
-#endif
         V4Filter: Boolean;
         EmailConnectorHasBeenUninstalledMsg: Label 'The selected email extension has been uninstalled. To view information about the email account, you must reinstall the extension.';
 }
