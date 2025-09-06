@@ -117,16 +117,16 @@ codeunit 134688 "Connector Mock"
         Commit();
     end;
 
-    procedure CreateEmailFolder(Order: Integer; var EmailFolder: Record "Email Folder")
+    procedure CreateEmailFolder(Order: Integer; var EmailFolders: Record "Email Folders")
     begin
-        EmailFolder.Init();
-        EmailFolder.Ordering := Order;
-        EmailFolder.Id := Any.AlphanumericText(10);
-        EmailFolder."Folder Name" := Any.AlphanumericText(10);
-        EmailFolder."Has Children" := false;
-        EmailFolder."Parent Folder Id" := '';
-        EmailFolder.Indent := 0;
-        EmailFolder.Insert();
+        EmailFolders.Init();
+        EmailFolders.Ordering := Order;
+        EmailFolders.Id := CopyStr(Any.AlphanumericText(10), 1, MaxStrLen(EmailFolders.Id));
+        EmailFolders."Folder Name" := CopyStr(Any.AlphanumericText(10), 1, MaxStrLen(EmailFolders."Folder Name"));
+        EmailFolders."Has Children" := false;
+        EmailFolders."Parent Folder Id" := '';
+        EmailFolders.Indent := 0;
+        EmailFolders.Insert();
     end;
 
     procedure FailOnSend(): Boolean
