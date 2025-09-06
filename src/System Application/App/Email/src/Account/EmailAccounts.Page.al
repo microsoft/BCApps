@@ -436,7 +436,7 @@ page 8887 "Email Accounts"
         CurrPage.Update(false);
     end;
 
-# if not CLEAN28
+#if not CLEAN28
     [Obsolete('Replaced by FilterToConnectorv4Accounts which only returns v4 accounts.', '28.0')]
     local procedure FilterToConnectorv3Accounts(var EmailAccounts: Record "Email Account")
     var
