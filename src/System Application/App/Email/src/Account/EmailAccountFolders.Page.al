@@ -41,30 +41,15 @@ page 4444 "Email Account Folders"
                     ApplicationArea = All;
                     Caption = 'Has Children';
                     ToolTip = 'Specifies whether the email folder has subfolders';
+                    Visible = false;
                 }
-                field(TestID; Rec.TestID)
+                field(Ordering; Rec.Ordering)
                 {
                     ApplicationArea = All;
-                    Caption = 'Test ID';
-                    ToolTip = 'Specifies the test ID of the email folder';
+                    Caption = 'Ordering';
+                    ToolTip = 'Specifies the ordering of the email folder';
+                    Visible = false;
                 }
-            }
-        }
-    }
-
-    actions
-    {
-        area(Processing)
-        {
-            action(ActionName)
-            {
-                Image = RollUpCosts;
-                ToolTip = 'Roll up costs for the selected email folder';
-
-                trigger OnAction()
-                begin
-                    Email.GetMailFolders(TempEmailAccountRec."Account Id", TempEmailAccountRec.Connector, Rec)
-                end;
             }
         }
     }

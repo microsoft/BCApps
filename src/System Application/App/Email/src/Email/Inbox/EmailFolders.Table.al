@@ -16,39 +16,41 @@ table 8884 "Email Folders"
 
     fields
     {
-        field(1; Id; Text[2048])
+        field(1; Ordering; Integer)
         {
+            Caption = 'Ordering';
+            DataClassification = SystemMetadata;
         }
-        field(2; "Folder Name"; Text[2048])
+        field(2; Id; Text[2048])
+        {
+            Caption = 'Folder Id';
+            DataClassification = CustomerContent;
+        }
+        field(3; "Folder Name"; Text[2048])
         {
             Caption = 'Folder Name';
             DataClassification = CustomerContent;
         }
-        field(3; "Has Children"; Boolean)
+        field(4; "Has Children"; Boolean)
         {
             Caption = 'Has Children';
             DataClassification = SystemMetadata;
         }
-        field(4; "Parent Folder Id"; Text[2048])
+        field(5; "Parent Folder Id"; Text[2048])
         {
             Caption = 'Parent Folder Id';
             DataClassification = SystemMetadata;
         }
-        field(5; Indent; Integer)
+        field(6; Indent; Integer)
         {
             Caption = 'Indent';
-            DataClassification = SystemMetadata;
-        }
-        field(6; "TestID"; Integer)
-        {
-            Caption = 'Test ID';
             DataClassification = SystemMetadata;
         }
     }
 
     keys
     {
-        key(PK; TestID)
+        key(PK; Ordering)
         {
             Clustered = true;
         }
