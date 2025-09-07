@@ -13,6 +13,9 @@ codeunit 134702 "Test Email Connector v3" implements "Email Connector v3"
 #pragma warning restore AL0432
 {
     SingleInstance = true;
+    ObsoleteReason = 'Use Test Email Connector v4.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
 
     var
         TempEmailInbox: Record "Email Inbox" temporary;
