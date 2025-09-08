@@ -19,13 +19,14 @@ codeunit 7776 "Copilot Capability Upgrade"
         CopilotCapability: Codeunit "Copilot Capability";
         EnvironmentInformation: Codeunit "Environment Information";
         UpgradeTag: Codeunit "Upgrade Tag";
+        AnalyzeListLearnMoreLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2252783', Locked = true;
     begin
         if EnvironmentInformation.IsSaaSInfrastructure() then begin
             CopilotCapabilityInstall.RegisterCapabilities();
 
-            if CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Bank Account Reconciliation") then begin
-                if not UpgradeTag.HasUpgradeTag(GetRegisterAnalyzeListCopilotGACapabilityUpgradeTag()) then
-                    UpgradeTag.SetUpgradeTag(GetRegisterAnalyzeListCopilotGACapabilityUpgradeTag());
+            if CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Analyze List") and not UpgradeTag.HasUpgradeTag(GetRegisterAnalyzeListCopilotGACapabilityUpgradeTag()) then begin
+                CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Analyze List", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Not Billed", AnalyzeListLearnMoreLbl);
+                UpgradeTag.SetUpgradeTag(GetRegisterAnalyzeListCopilotGACapabilityUpgradeTag());
             end;
         end;
     end;
