@@ -66,9 +66,8 @@ codeunit 3705 "Azure AD Tenant Impl."
     var
         PowerPlatformApiWrapper: dotnet "PowerPlatformApiWrapper";
     begin
-        if GetAadTenantId() = '' then begin
+        if GetAadTenantId() = '' then
             exit('');
-        end;
 
         exit(PowerPlatformApiWrapper.GetPowerPlatformTenantUrl(GetAadTenantId()));
     end;
