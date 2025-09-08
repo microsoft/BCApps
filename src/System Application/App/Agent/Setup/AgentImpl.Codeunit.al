@@ -138,7 +138,7 @@ codeunit 4301 "Agent Impl."
         until AgentAccessControl.Next() = 0;
     end;
 
-    internal procedure PopulateDefaultProfile(ProfileID: Text[30]; ProfileAppID: Guid; var TempAllProfile: Record "All Profile" temporary)
+    internal procedure PopulateProfileTempRecord(ProfileID: Text[30]; ProfileAppID: Guid; var TempAllProfile: Record "All Profile" temporary)
     begin
         TempAllProfile.Scope := TempAllProfile.Scope::Tenant;
         TempAllProfile."App ID" := ProfileAppID;
@@ -174,11 +174,11 @@ codeunit 4301 "Agent Impl."
         UserSettings: Codeunit "User Settings";
     begin
         UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
-        UpdateProfile(AllProfile, UserSettingsRecord);
+        UpdateUserSettingsWithProfile(AllProfile, UserSettingsRecord);
         UpdateAgentUserSettings(UserSettingsRecord);
     end;
 
-    internal procedure UpdateUserSettings(AgentUserSecurityID: Guid; var NewUserSettingsRec: Record "User Settings")
+    internal procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; var NewUserSettingsRec: Record "User Settings")
     var
         Agent: Record Agent;
         UserSettingsRecord: Record "User Settings";
@@ -296,20 +296,20 @@ codeunit 4301 "Agent Impl."
 
         if TempAllProfile.Get(UserSettingsRec.Scope, UserSettingsRec."App ID", UserSettingsRec."Profile ID") then;
         if Page.RunModal(Page::Roles, TempAllProfile) = Action::LookupOK then begin
-            UpdateProfile(TempAllProfile, UserSettingsRec);
+            UpdateUserSettingsWithProfile(TempAllProfile, UserSettingsRec);
             exit(true);
         end;
         exit(false);
     end;
 
-    internal procedure UpdateProfile(var TempAllProfile: Record "All Profile" temporary; var UserSettingsRec: Record "User Settings")
+    local procedure UpdateUserSettingsWithProfile(var TempAllProfile: Record "All Profile" temporary; var UserSettingsRec: Record "User Settings")
     begin
         UserSettingsRec."Profile ID" := TempAllProfile."Profile ID";
         UserSettingsRec."App ID" := TempAllProfile."App ID";
         UserSettingsRec.Scope := TempAllProfile.Scope;
     end;
 
-    procedure PopulateProfiles(var TempAllProfile: Record "All Profile" temporary)
+    local procedure PopulateProfiles(var TempAllProfile: Record "All Profile" temporary)
     var
         AllProfile: Record "All Profile";
         DescriptionFilterTxt: Label 'Navigation menu only.';
@@ -326,17 +326,6 @@ codeunit 4301 "Agent Impl."
                     TempAllProfile."App Name" := UserCreatedAppNameTxt;
                 TempAllProfile.Insert();
             until AllProfile.Next() = 0;
-    end;
-
-    procedure GetProfileName(Scope: Option System,Tenant; AppID: Guid; ProfileID: Code[30]) ProfileName: Text
-    var
-        AllProfile: Record "All Profile";
-    begin
-        // If current profile has been changed, then find it and update the description; else, get the default
-        if not AllProfile.Get(Scope, AppID, ProfileID) then
-            exit;
-
-        ProfileName := AllProfile.Caption;
     end;
 
     internal procedure AssignPermissionSets(var UserSID: Guid; PermissionCompanyName: Text; var AggregatePermissionSet: Record "Aggregate Permission Set")
