@@ -148,17 +148,6 @@ codeunit 3702 "Environment Information Impl."
         exit(NavTenantSettingsHelper.GetLinkedPowerPlatformEnvironmentId());
     end;
 
-    procedure GetPowerPlatformTenantURL(): Text
-    var
-        AzureADTenant: Codeunit "Azure AD Tenant";
-        PowerPlatformApiWrapper: dotnet "PowerPlatformApiWrapper";
-    begin
-        if AzureADTenant.GetAadTenantId() = '' then begin
-            exit('');
-        end;
-
-        exit(PowerPlatformApiWrapper.GetPowerPlatformTenantUrl(AzureADTenant.GetAadTenantId()));
-    end;
 
     procedure GetEnvironmentSetting(SettingName: Text; ModuleInfo: ModuleInfo): Text
     begin
