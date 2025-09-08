@@ -717,7 +717,7 @@ page 8002 "Extend Contract"
 
     protected var
         ItemNo: Code[20];
-        VariantCode: Code[20];
+        VariantCode: Code[10];
         QuantityDecimal: Decimal;
         ExtendCustomerContract: Boolean;
         ExtendVendorContract: Boolean;
