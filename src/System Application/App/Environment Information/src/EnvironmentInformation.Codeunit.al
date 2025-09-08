@@ -119,15 +119,6 @@ codeunit 457 "Environment Information"
     end;
 
     /// <summary>
-    /// Gets the Power Platform tenant URL.
-    /// </summary>
-    /// <returns>The Power Platform tenant URL. If AzureADTenantID is empty, it returns an empty string.</returns>
-    procedure GetPowerPlatformTenantURL(): Text
-    begin
-        exit(EnvironmentInformationImpl.GetPowerPlatformTenantURL());
-    end;
-
-    /// <summary>
     /// Gets the linked Power Platform environment id.
     /// </summary>
     /// <returns>The linked Power Platform environment id, if set.</returns>
