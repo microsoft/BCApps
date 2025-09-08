@@ -22,6 +22,12 @@
       "name": "Server Settings",
       "publisher": "Microsoft",
       "version": "28.0.0.0"
+    },
+    {
+      "id": "95025170-61fc-4808-9505-4ba1fe1d05d9",
+      "name": "Azure AD Tenant",
+      "publisher": "Microsoft",
+      "version": "28.0.0.0"
     }
   ],
   "internalsVisibleTo": [

@@ -148,6 +148,18 @@ codeunit 3702 "Environment Information Impl."
         exit(NavTenantSettingsHelper.GetLinkedPowerPlatformEnvironmentId());
     end;
 
+    procedure GetPowerPlatformTenantURL(): Text
+    var
+        AzureADTenant: Codeunit "Azure AD Tenant";
+        PowerPlatformApiWrapper: dotnet "PowerPlatformApiWrapper";
+    begin
+        if AzureADTenant.GetAadTenantId() = '' then begin
+            exit('');
+        end;
+
+        exit(PowerPlatformApiWrapper.GetPowerPlatformTenantUrl(AzureADTenant.GetAadTenantId()));
+    end;
+
     procedure GetEnvironmentSetting(SettingName: Text; ModuleInfo: ModuleInfo): Text
     begin
         if ModuleInfo.Publisher <> 'Microsoft' then
@@ -162,4 +174,3 @@ codeunit 3702 "Environment Information Impl."
         // Do not use this event in a production environment. This should be subscribed to only in tests.
     end;
 }
-
