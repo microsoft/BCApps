@@ -92,6 +92,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         TempAgentTaskFileToAttach.SetAutoCalcFields(Content);
         if TempAgentTaskFileToAttach.FindSet() then
             repeat
+                IgnoreAttachment := false;
                 if GlobalIgnoreAttachmentsList.ContainsKey(TempAgentTaskFileToAttach.ID) then
                     IgnoreAttachment := GlobalIgnoreAttachmentsList.Get(TempAgentTaskFileToAttach.ID);
                 AgentMessageImpl.SetIgnoreAttachment(GlobalIgnoreAttachment or IgnoreAttachment);

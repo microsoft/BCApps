@@ -173,7 +173,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <param name="FileName">The name of the file to attach.</param>
     /// <param name="FileMIMEType">The MIME type of the file to attach.</param>
     /// <param name="InStream">The stream of the file to attach.</param>
-    /// <param name="Ignored">Specifies if the attachment should be marked as ignored.</param>
+    /// <param name="Ignored">Specifies if the attachment should be marked as ignored, so that it is not processed.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     [Scope('OnPrem')]
     procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream; Ignored: Boolean): codeunit "Agent Task Message Builder"
