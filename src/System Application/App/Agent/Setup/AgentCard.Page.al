@@ -75,7 +75,7 @@ page 4315 "Agent Card"
                                 Agent.SetProfile(UserSettingsRecord."User Security ID", UserSettingsRecord."Profile ID", UserSettingsRecord."App ID");
                         end;
                     }
-                    field(Language; Language.GetWindowsLanguageName(UserSettingsRecord."Language ID"))
+                    field(LanguageField; Language.GetWindowsLanguageName(UserSettingsRecord."Language ID"))
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Language';
