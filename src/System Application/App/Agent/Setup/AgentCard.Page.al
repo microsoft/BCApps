@@ -66,13 +66,30 @@ page 4315 "Agent Card"
 
                         trigger OnAssistEdit()
                         var
-                            AgentImpl: Codeunit "Agent Impl.";
+                            Agent: Codeunit Agent;
                         begin
                             if not Confirm(ProfileChangedQst, false) then
                                 exit;
 
-                            if AgentImpl.ProfileLookup(UserSettingsRecord) then
-                                AgentImpl.UpdateAgentUserSettings(UserSettingsRecord);
+                            if Agent.ProfileLookup(UserSettingsRecord) then
+                                Agent.SetProfile(UserSettingsRecord."User Security ID", UserSettingsRecord."Profile ID", UserSettingsRecord."App ID");
+                        end;
+                    }
+                    field(Language; Language.GetWindowsLanguageName(UserSettingsRecord."Language ID"))
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Language';
+                        ToolTip = 'Specifies the display language for the agent.';
+                        Editable = false;
+
+                        trigger OnAssistEdit()
+                        var
+                            UserSettings: Codeunit "User Settings";
+                        begin
+                            UserSettings.GetUserSettings(Rec."User Security ID", UserSettingsRecord);
+                            Commit();
+                            Page.RunModal(Page::"Agent User Settings", UserSettingsRecord);
+                            CurrPage.Update(false);
                         end;
                     }
                     field(Language; Language.GetWindowsLanguageName(UserSettingsRecord."Language ID"))
@@ -98,7 +115,7 @@ page 4315 "Agent Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Standard;
                     Caption = 'State';
-                    ToolTip = 'Specifies if the agent is enabled or disabled.';
+                    ToolTip = 'Specifies if the agent is active or inactive.';
 
                     trigger OnValidate()
                     begin
@@ -202,12 +219,11 @@ page 4315 "Agent Card"
 
     local procedure UpdateControls()
     var
-        AgentImpl: Codeunit "Agent Impl.";
         UserSettings: Codeunit "User Settings";
     begin
         if not IsNullGuid(Rec."User Security ID") then begin
             UserSettings.GetUserSettings(Rec."User Security ID", UserSettingsRecord);
-            ProfileDisplayName := AgentImpl.GetProfileName(UserSettingsRecord.Scope, UserSettingsRecord."App ID", UserSettingsRecord."Profile ID");
+            ProfileDisplayName := UserSettings.GetProfileName(UserSettingsRecord);
         end;
 
         ControlsEditable := Rec.State = Rec.State::Disabled;
@@ -253,7 +269,7 @@ page 4315 "Agent Card"
         Language: Codeunit Language;
         ProfileDisplayName: Text;
         ControlsEditable: Boolean;
-        ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions. Do you want to continue?';
+        ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions.\\Do you want to continue?';
         OpenConfigurationPageQst: Label 'To activate the agent, use the setup page. Would you like to open this page now?';
         YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to set up and activate the agent.';
         YouDoNotHavePermissionToModifyThisAgentErr: Label 'You do not have permission to modify this agent. Contact your system administrator to update your permissions or to mark you as one of the administrators for the agent.';
