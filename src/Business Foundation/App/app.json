@@ -23,6 +23,11 @@
       "id": "bee8cf2f-494a-42f4-aabd-650e87934d39",
       "name": "Business Foundation Test Libraries",
       "publisher": "Microsoft"
+    },
+    {
+    "id": "0efd6b1b-f61b-4c04-b983-2e52f59bc3ab",
+    "name": "Business Foundation Test Libraries SaaS",
+      "publisher": "Microsoft"
     }
   ],
   "screenshots": [],
