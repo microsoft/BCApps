@@ -61,7 +61,6 @@ codeunit 6412 "ForNAV Peppol Job Queue"
         Setup: Record "ForNAV Peppol Setup";
         JobQueueEntry: Record "Job Queue Entry";
         Enqueue: Codeunit "Job Queue - Enqueue";
-        EnvironmentInformation: Codeunit "Environment Information";
         JobQueueDescriptionLbl: Label 'Used by ForNAV to process incoming e-documents';
     begin
         JobQueueEntry.SetRange("Job Queue Category Code", Setup.GetForNAVCode());
