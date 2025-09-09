@@ -22,10 +22,16 @@ codeunit 2508 "Dataverse Table Builder Impl."
     internal procedure StartGeneration(OverwriteExisting: Boolean): Boolean
     begin
         if OverwriteExisting then
-            NavDesignerALFunctions.Clear();
+            ClearGeneration();
 
         GenerationInProgress := NavDesignerALFunctions.StartCRMDesigner();
         exit(GenerationInProgress);
+    end;
+
+    internal procedure ClearGeneration()
+    begin
+        NavDesignerALFunctions.ClearAllTableExtensions();
+        NavDesignerALFunctions.SaveCRMDesigner();
     end;
 
     internal procedure UpdateExistingTable(TableId: Integer; FieldsToAdd: List of [Text]; DataverseSchema: Text): Boolean
