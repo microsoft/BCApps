@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Tests for the External File Storage - Azure Blob Service Connector app",
   "description": "Tests for the External File Storage - Azure Blob Service Connector app",
-  "version": "$(app_currentVersion)",
+  "version": "28.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2134520",

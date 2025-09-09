@@ -2,7 +2,7 @@
   "id": "f0eb8756-ea72-4ef8-b0de-686d2a44b259",
   "name": "Enforced Digital Vouchers Tests",
   "publisher": "Microsoft",
-  "version": "$(app_currentVersion)",
+  "version": "28.0.0.0",
   "brief": "Tests for the Enforced Digital Vouchers extension.",
   "description": "Tests for the Enforced Digital Vouchers extension.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",

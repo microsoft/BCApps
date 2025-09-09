@@ -2,7 +2,7 @@
   "id": "5e327e42-4ec3-4667-8d20-cccd38f867c6",
   "name": "Audit File Export Tests",
   "publisher": "Microsoft",
-  "version": "$(app_currentVersion)",
+  "version": "28.0.0.0",
   "brief": "Tests for the Audit File Export extension.",
   "description": "Tests for the Audit File Export extension.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",

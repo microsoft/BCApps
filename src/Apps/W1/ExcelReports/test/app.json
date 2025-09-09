@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Tests fot the Dynamics Business Central Excel Reports extension.",
   "description": "Tests fot the Dynamics Business Central Excel Reports extension.",
-  "version": "$(app_currentVersion)",
+  "version": "28.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2204541",

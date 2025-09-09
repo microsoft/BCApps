@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Enables a user to search data in predefined tables.",
   "description": "Enables a user to search data in predefined tables. An administrator can select which tables and fields to search",
-  "version": "$(app_currentVersion)",
+  "version": "28.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2182906",
   "help": "https://go.microsoft.com/fwlink/?linkid=2204037",
