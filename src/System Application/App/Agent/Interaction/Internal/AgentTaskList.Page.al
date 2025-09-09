@@ -19,6 +19,7 @@ page 4300 "Agent Task List"
     SourceTableView = sorting("Last Log Entry Timestamp") order(descending);
     InherentEntitlements = X;
     InherentPermissions = X;
+    Editable = false;
 
     layout
     {
@@ -68,7 +69,6 @@ page 4300 "Agent Task List"
                 {
                     Caption = 'Steps Done';
                     ToolTip = 'Specifies the number of steps that have been done for the specific task.';
-                    Editable = false;
 
                     trigger OnDrillDown()
                     var
