@@ -138,17 +138,6 @@ codeunit 4316 "Agent Task Message Builder"
     end;
 
     /// <summary>
-    /// Set the task status to ready if possible.
-    /// </summary>
-    /// <param name="SetTaskStatusToReady">Specifies if the task status should be set to ready.</param>
-    /// <returns>The agent task message that was created.</returns>
-    [Scope('OnPrem')]
-    procedure SetTaskStatusToReadyIfPossible(): Record "Agent Task Message"
-    begin
-        exit(AgentTaskMsgBuilderImpl.SetTaskStatusToReadyIfPossible());
-    end;
-
-    /// <summary>
     /// Get the agent task message record.
     /// </summary>
     /// <returns>
@@ -173,6 +162,23 @@ codeunit 4316 "Agent Task Message Builder"
     procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream): codeunit "Agent Task Message Builder"
     begin
         AgentTaskMsgBuilderImpl.AddAttachment(FileName, FileMIMEType, InStream);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Attach a file to the task message.
+    /// The file will be attached when the message is created.
+    /// It is possible to attach multiple files to the message.
+    /// </summary>
+    /// <param name="FileName">The name of the file to attach.</param>
+    /// <param name="FileMIMEType">The MIME type of the file to attach.</param>
+    /// <param name="InStream">The stream of the file to attach.</param>
+    /// <param name="Ignored">Specifies if the attachment should be marked as ignored.</param>
+    /// <returns>This instance of the Agent Task Message Builder.</returns>
+    [Scope('OnPrem')]
+    procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream; Ignored: Boolean): codeunit "Agent Task Message Builder"
+    begin
+        AgentTaskMsgBuilderImpl.AddAttachment(FileName, FileMIMEType, InStream, Ignored);
         exit(this);
     end;
 
