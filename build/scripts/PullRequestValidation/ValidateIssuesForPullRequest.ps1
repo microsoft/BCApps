@@ -85,6 +85,7 @@ function Test-GitHubIssue() {
 }
 
 Write-Host "Validating PR $PullRequestNumber"
+Write-Host "==== Injecting this comment ====="
 
 $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
 if (-not $pullRequest) {
