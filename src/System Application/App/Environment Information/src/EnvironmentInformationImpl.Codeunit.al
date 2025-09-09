@@ -162,3 +162,4 @@ codeunit 3702 "Environment Information Impl."
         // Do not use this event in a production environment. This should be subscribed to only in tests.
     end;
 }
+
