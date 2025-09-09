@@ -76,7 +76,7 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
-    procedure TestEnableToolSearchMode()
+    procedure TestEnableDynamicToolMode()
     var
         MCPConfiguration: Record "MCP Configuration";
         ConfigId: Guid;
@@ -85,15 +85,15 @@ codeunit 130130 "MCP Config Test"
         ConfigId := CreateMCPConfig(false, false);
 
         // [WHEN] Enable tool search mode is called
-        MCPConfig.EnableToolSearchMode(ConfigId);
+        MCPConfig.EnableDynamicToolMode(ConfigId);
 
-        // [THEN] Tool search mode is enabled
+        // [THEN] Dynamic tool mode is enabled
         MCPConfiguration.GetBySystemId(ConfigId);
-        Assert.IsTrue(MCPConfiguration.UseToolSearchMode, 'Tool search mode is not enabled');
+        Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'Dynamic tool mode is not enabled');
     end;
 
     [Test]
-    procedure TestDisableToolSearchMode()
+    procedure TestDisableDynamicToolMode()
     var
         MCPConfiguration: Record "MCP Configuration";
         ConfigId: Guid;
@@ -101,12 +101,12 @@ codeunit 130130 "MCP Config Test"
         // [GIVEN] Configuration is created
         ConfigId := CreateMCPConfig(false, true);
 
-        // [WHEN] Disable tool search mode is called
-        MCPConfig.DisableToolSearchMode(ConfigId);
+        // [WHEN] Disable dynamic tool mode is called
+        MCPConfig.DisableDynamicToolMode(ConfigId);
 
-        // [THEN] Tool search mode is disabled
+        // [THEN] Dynamic tool mode is disabled
         MCPConfiguration.GetBySystemId(ConfigId);
-        Assert.IsFalse(MCPConfiguration.UseToolSearchMode, 'Tool search mode is not disabled');
+        Assert.IsFalse(MCPConfiguration.EnableDynamicToolMode, 'Dynamic tool mode is not disabled');
     end;
 
     [Test]
@@ -156,7 +156,7 @@ codeunit 130130 "MCP Config Test"
 
         // [THEN] API tool is created
         MCPConfigurationTool.GetBySystemId(ToolId);
-        Assert.AreEqual(ConfigId, MCPConfigurationTool."Config Id", 'ConfigId mismatch');
+        Assert.AreEqual(ConfigId, MCPConfigurationTool.ID, 'ConfigId mismatch');
         Assert.AreEqual(Page::"Mock API", MCPConfigurationTool."Object Id", 'PageId mismatch');
         Assert.AreEqual(MCPConfigurationTool."Object Type"::Page, MCPConfigurationTool."Object Type", 'Object Type mismatch');
         Assert.AreEqual(MCPConfigurationTool."Allow Read", true, 'Allow Read mismatch');
@@ -320,7 +320,7 @@ codeunit 130130 "MCP Config Test"
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
-        MCPConfigurationTool."Config Id" := ConfigId;
+        MCPConfigurationTool.ID := ConfigId;
         MCPConfigurationTool."Object Id" := Any.IntegerInRange(1, 100);
         MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
         MCPConfigurationTool."Allow Read" := true;

@@ -5,6 +5,8 @@
 
 namespace System.MCP;
 
+using System.Environment;
+
 page 8201 "MCP Config Card"
 {
     ApplicationArea = All;
@@ -20,12 +22,6 @@ page 8201 "MCP Config Card"
             group(Control1)
             {
                 Caption = 'General';
-                field(SystemId; Rec.SystemId)
-                {
-                    Caption = 'Id';
-                    Editable = false;
-                    ToolTip = 'Specifies the unique identifier for the MCP configuration. Use this ID to setup your MCP clients.';
-                }
                 field(Name; Rec.Name)
                 {
                     ToolTip = 'Specifies the name of the MCP configuration.';
@@ -38,21 +34,32 @@ page 8201 "MCP Config Card"
                 {
                     ToolTip = 'Specifies whether the MCP configuration is active.';
                 }
-                field(UseToolSearchMode; Rec.UseToolSearchMode)
+                field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
                 {
-                    ToolTip = 'Specifies whether to enable tool search mode for this MCP configuration. When enabled, clients can search for tools dynamically.';
+                    ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools dynamically.';
                 }
                 field(AllowProdChanges; Rec.AllowProdChanges)
                 {
                     ToolTip = 'Specifies whether to allow production changes for this MCP configuration. When disabled, create, modify, and delete operations in production environments are restricted.';
+                    Visible = not IsSandbox;
                 }
             }
             part(ToolList; "MCP Config Tool List")
             {
                 ApplicationArea = All;
-                SubPageLink = "Config Id" = field(SystemId);
+                SubPageLink = ID = field(SystemId);
                 UpdatePropagation = Both;
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        IsSandbox := EnvironmentInformation.IsSandbox();
+    end;
+
+    var
+        IsSandbox: Boolean;
 }

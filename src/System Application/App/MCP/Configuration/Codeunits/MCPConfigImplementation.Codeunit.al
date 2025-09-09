@@ -59,21 +59,21 @@ codeunit 8201 "MCP Config Implementation"
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
         ValidateAPITool(APIPageId);
-        MCPConfigurationTool."Config Id" := ConfigId;
+        MCPConfigurationTool.ID := ConfigId;
         MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
         MCPConfigurationTool."Object ID" := APIPageId;
         MCPConfigurationTool.Insert();
         exit(MCPConfigurationTool.SystemId);
     end;
 
-    internal procedure EnableToolSearchMode(ConfigId: Guid; Enable: Boolean)
+    internal procedure EnableDynamicToolMode(ConfigId: Guid; Enable: Boolean)
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             exit;
 
-        MCPConfiguration.UseToolSearchMode := Enable;
+        MCPConfiguration.EnableDynamicToolMode := Enable;
         MCPConfiguration.Modify();
     end;
 
@@ -106,7 +106,7 @@ codeunit 8201 "MCP Config Implementation"
             exit;
 
         if Allow then
-            CheckAllowProdChanges(MCPConfigurationTool."Config Id");
+            CheckAllowProdChanges(MCPConfigurationTool.ID);
 
         MCPConfigurationTool."Allow Create" := Allow;
         MCPConfigurationTool.Modify();
@@ -120,7 +120,7 @@ codeunit 8201 "MCP Config Implementation"
             exit;
 
         if Allow then
-            CheckAllowProdChanges(MCPConfigurationTool."Config Id");
+            CheckAllowProdChanges(MCPConfigurationTool.ID);
 
         MCPConfigurationTool."Allow Modify" := Allow;
         MCPConfigurationTool.Modify();
@@ -134,7 +134,7 @@ codeunit 8201 "MCP Config Implementation"
             exit;
 
         if Allow then
-            CheckAllowProdChanges(MCPConfigurationTool."Config Id");
+            CheckAllowProdChanges(MCPConfigurationTool.ID);
 
         MCPConfigurationTool."Allow Delete" := Allow;
         MCPConfigurationTool.Modify();
@@ -148,7 +148,7 @@ codeunit 8201 "MCP Config Implementation"
             exit;
 
         if Allow then
-            CheckAllowProdChanges(MCPConfigurationTool."Config Id");
+            CheckAllowProdChanges(MCPConfigurationTool.ID);
 
         MCPConfigurationTool."Allow Bound Actions" := Allow;
         MCPConfigurationTool.Modify();

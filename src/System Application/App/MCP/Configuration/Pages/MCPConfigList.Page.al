@@ -22,11 +22,6 @@ page 8200 "MCP Config List"
         {
             repeater(Control1)
             {
-                field(SystemId; Rec.SystemId)
-                {
-                    Visible = false;
-                    ToolTip = 'Specifies the unique identifier for the MCP configuration.';
-                }
                 field(Name; Rec.Name)
                 {
                     ToolTip = 'Specifies the name of the MCP configuration.';

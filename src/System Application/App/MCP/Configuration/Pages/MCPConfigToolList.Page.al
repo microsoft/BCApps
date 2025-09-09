@@ -30,6 +30,8 @@ page 8202 "MCP Config Tool List"
                 }
                 field("Object Id"; Rec."Object Id")
                 {
+                    ToolTip = 'Specifies the ID of the object.';
+
                     trigger OnLookup(var Text: Text): Boolean
                     var
                         PageId: Integer;
@@ -59,22 +61,22 @@ page 8202 "MCP Config Tool List"
                 }
                 field("Allow Create"; Rec."Allow Create")
                 {
-                    Editable = AllowCreateEditable and (IsSandbox or Rec.AllowProdChanges);
+                    Editable = AllowCreateEditable and (IsSandbox or AllowProdChanges);
                     ToolTip = 'Specifies whether create operations are allowed for this tool.';
                 }
                 field("Allow Modify"; Rec."Allow Modify")
                 {
-                    Editable = AllowModifyEditable and (IsSandbox or Rec.AllowProdChanges);
+                    Editable = AllowModifyEditable and (IsSandbox or AllowProdChanges);
                     ToolTip = 'Specifies whether modify operations are allowed for this tool.';
                 }
                 field("Allow Delete"; Rec."Allow Delete")
                 {
-                    Editable = AllowDeleteEditable and (IsSandbox or Rec.AllowProdChanges);
+                    Editable = AllowDeleteEditable and (IsSandbox or AllowProdChanges);
                     ToolTip = 'Specifies whether delete operations are allowed for this tool.';
                 }
                 field("Allow Bound Actions"; Rec."Allow Bound Actions")
                 {
-                    Editable = IsSandbox or Rec.AllowProdChanges;
+                    Editable = IsSandbox or AllowProdChanges;
                     ToolTip = 'Specifies whether bound actions are allowed for this tool.';
                 }
             }
@@ -93,7 +95,7 @@ page 8202 "MCP Config Tool List"
 
                 trigger OnAction()
                 begin
-                    MCPConfigImplementation.AddToolsByAPIGroup(Rec."Config Id");
+                    MCPConfigImplementation.AddToolsByAPIGroup(Rec.ID);
                     CurrPage.Update();
                 end;
             }
@@ -103,11 +105,13 @@ page 8202 "MCP Config Tool List"
     trigger OnAfterGetRecord()
     begin
         SetPermissions();
+        GetAllowProdChanges();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
         SetPermissions();
+        GetAllowProdChanges();
     end;
 
     trigger OnOpenPage()
@@ -115,6 +119,7 @@ page 8202 "MCP Config Tool List"
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         IsSandbox := EnvironmentInformation.IsSandbox();
+        GetAllowProdChanges();
     end;
 
     var
@@ -123,6 +128,7 @@ page 8202 "MCP Config Tool List"
         AllowCreateEditable: Boolean;
         AllowModifyEditable: Boolean;
         AllowDeleteEditable: Boolean;
+        AllowProdChanges: Boolean;
 
     local procedure SetPermissions()
     var
@@ -134,5 +140,13 @@ page 8202 "MCP Config Tool List"
         AllowCreateEditable := PageMetadata.InsertAllowed;
         AllowModifyEditable := PageMetadata.ModifyAllowed;
         AllowDeleteEditable := PageMetadata.DeleteAllowed;
+    end;
+
+    local procedure GetAllowProdChanges(): Boolean
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if MCPConfiguration.GetBySystemId(Rec.ID) then
+            AllowProdChanges := MCPConfiguration.AllowProdChanges;
     end;
 }

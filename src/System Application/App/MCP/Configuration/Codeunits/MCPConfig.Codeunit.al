@@ -70,21 +70,21 @@ codeunit 8200 "MCP Config"
     end;
 
     /// <summary>
-    /// Enables tool search mode for the specified configuration.
+    /// Enables dynamic tool mode for the specified configuration.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
-    procedure EnableToolSearchMode(ConfigId: Guid)
+    procedure EnableDynamicToolMode(ConfigId: Guid)
     begin
-        MCPConfigImplementation.EnableToolSearchMode(ConfigId, true);
+        MCPConfigImplementation.EnableDynamicToolMode(ConfigId, true);
     end;
 
     /// <summary>
-    /// Disables tool search mode for the specified configuration.
+    /// Disables dynamic tool mode for the specified configuration.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
-    procedure DisableToolSearchMode(ConfigId: Guid)
+    procedure DisableDynamicToolMode(ConfigId: Guid)
     begin
-        MCPConfigImplementation.EnableToolSearchMode(ConfigId, false);
+        MCPConfigImplementation.EnableDynamicToolMode(ConfigId, false);
     end;
 
     /// <summary>
