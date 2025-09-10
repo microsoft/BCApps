@@ -68,10 +68,16 @@ function GetSourceCodeFromArtifact() {
         throw
     }
 
-    # Update the version in the app.json file (temporary fix until we have versions in a Directory.App.Props.json)
-    $majorMinorVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
-    $fullVersion = "$($majorMinorVersion).0.0"
-    Update-VersionInAppJson -Path $sourceCodeFolder -CurrentVersion $fullVersion -MinimumVersion $fullVersion -PlatformVersion $fullVersion
+    # Find Directory.App.Props.json in the source code folder and copy to the parent folder
+    $directoryAppPropsPath = Get-ChildItem -Path $sourceCodeFolder -Filter "Directory.App.Props.json" -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $directoryAppPropsPath) {
+        throw "Could not find Directory.App.Props.json in the source code for $AppName"
+    }
+    $directoryAppProps = Get-Content -Path $directoryAppPropsPath.FullName | ConvertFrom-Json
+    Update-VersionInAppJson -Path $sourceCodeFolder `
+                             -CurrentVersion $directoryAppProps.variables.app_currentVersion `
+                             -MinimumVersion $directoryAppProps.variables.app_minimumVersion `
+                             -PlatformVersion $directoryAppProps.variables.app_platformVersion
 
     return $sourceCodeFolder
 }

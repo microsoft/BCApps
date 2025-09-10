@@ -59,7 +59,7 @@ codeunit 30284 "Shpfy Company Export"
             exit;
         end;
 
-        if CreateCompanyMainContact(Customer, ShopifyCustomer) then
+        if CreateCompanyContact(Customer, ShopifyCustomer) then
             if FillInShopifyCompany(Customer, ShopifyCompany) or FillInShopifyCompanyLocation(Customer, CompanyLocation) then
                 if CompanyAPI.CreateCompany(ShopifyCompany, CompanyLocation, ShopifyCustomer) then begin
                     ShopifyCompany."Main Contact Customer Id" := ShopifyCustomer.Id;
@@ -78,7 +78,7 @@ codeunit 30284 "Shpfy Company Export"
                 end;
     end;
 
-    local procedure CreateCompanyMainContact(Customer: Record Customer; var ShopifyCustomer: Record "Shpfy Customer"): Boolean
+    internal procedure CreateCompanyContact(Customer: Record Customer; var ShopifyCustomer: Record "Shpfy Customer"): Boolean
     var
         CustomerExport: Codeunit "Shpfy Customer Export";
     begin
