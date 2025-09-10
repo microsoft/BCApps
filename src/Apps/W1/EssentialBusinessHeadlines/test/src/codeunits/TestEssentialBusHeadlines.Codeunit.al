@@ -967,7 +967,7 @@ codeunit 139600 "Test Essential Bus. Headlines"
     var
         VATReportSetup: Record "VAT Report Setup";
         DateFormaula: DateFormula;
-        DateOffsetLbl: Label '<-%1D>', Locked = true;
+        DateOffsetLbl: Label '<%1D>', Locked = true;
     begin
         VATReportSetup.Get();
         Evaluate(DateFormaula, StrSubstNo(DateOffsetLbl, NewPeriodReminderTime));
