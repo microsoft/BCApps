@@ -15,7 +15,7 @@ codeunit 2507 "Dataverse Table Builder"
     var
         DataverseTableBuilderImpl: Codeunit "Dataverse Table Builder Impl.";
 
-    procedure BeginGeneration(OverwriteExisting: Boolean): Boolean
+    procedure StartGeneration(OverwriteExisting: Boolean): Boolean
     begin
         exit(DataverseTableBuilderImpl.StartGeneration(OverwriteExisting));
     end;
@@ -28,5 +28,10 @@ codeunit 2507 "Dataverse Table Builder"
     procedure CommitGeneration(): Boolean
     begin
         exit(DataverseTableBuilderImpl.CommitGeneration());
+    end;
+
+    procedure ClearGeneration(): Boolean
+    begin
+        DataverseTableBuilderImpl.ClearGeneration();
     end;
 }
