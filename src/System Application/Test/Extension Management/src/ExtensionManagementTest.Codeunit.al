@@ -17,7 +17,7 @@ codeunit 133100 "Extension Management Test"
     // For the purpose of this test, two sample extensions are pre-published.
     // The condition for the tests to pass is that one of the extensions is holding a dependency on the other one, and they are both 1st Party Extensions, version 1.0.
     // The appIds' of the two extensions are set in the SetNavAppIds procedure.
-    // The two extensions are pre-build outside the testing extension , and it is only the resulting .app files that are moved to a "testArtifacts" folder within this test extension.
+    // The two extensions are pre-build outside the testing extension , and it is only the resulting .app files that are moved to a "testArtifacts" folder within the test library of this extension.
     // The tests script will therefore publish the two extensions separately so the tests in this codeunit can execute and complete succesfully.
 
     Subtype = Test;
