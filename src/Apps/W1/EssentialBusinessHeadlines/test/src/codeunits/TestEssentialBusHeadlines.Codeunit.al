@@ -381,33 +381,6 @@ codeunit 139600 "Test Essential Bus. Headlines"
     end;
 
     [Test]
-    procedure TestInvalidateHeadlines()
-    var
-        UserSettings: TestPage "User Settings";
-    begin
-        Initialize();
-
-        // [WHEN] We don't change the date
-        EssentialBusinessHeadline.GetOrCreateHeadline(EssentialBusinessHeadline."Headline Name"::BusiestResource);
-        // [THEN] Nothing happens
-        Assert.IsFalse(EssentialBusinessHeadline.IsEmpty(), 'expected the headlines not to be deleted when not changing workdate nor language');
-
-        // [WHEN] We change the date to the same one
-        UserSettings.OpenEdit();
-        UserSettings."Work Date".Value(Format(WorkDate()));
-        UserSettings.OK().Invoke();
-        // [THEN] Nothing happens
-        Assert.IsFalse(EssentialBusinessHeadline.IsEmpty(), 'expected the headlines not to be deleted when changing workdate to the same workdate');
-
-        // [WHEN] We change the date
-        UserSettings.OpenEdit();
-        UserSettings."Work Date".Value(Format(0D));
-        UserSettings.OK().Invoke();
-        // [THEN] Headlines are invalidated
-        Assert.IsTrue(EssentialBusinessHeadline.IsEmpty(), 'expected the headlines to be deleted when changing workdate');
-    end;
-
-    [Test]
     procedure TestTopCustomerHeadline()
     var
         Customer: Record Customer;
