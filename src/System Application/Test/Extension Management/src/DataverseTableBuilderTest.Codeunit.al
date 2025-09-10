@@ -84,11 +84,11 @@ codeunit 133103 "Dataverse Table Builder Test"
         // [THEN] The table extension is generated with only the fields from the second generation.
         DataverseTableBuilder.CommitGeneration();
         Field.SetRange(TableNo, Database::"Mock Proxy");
-        Field.SetRange(FieldName, Fields.Values().Get(1));
+        Field.SetRange(FieldName, Fields.Keys().Get(1));
         Assert.RecordIsEmpty(Field);
-        Field.SetRange(FieldName, Fields.Values().Get(2));
+        Field.SetRange(FieldName, Fields.Keys().Get(2));
         Field.FindFirst();
-        Assert.AreEqual(Fields.Get(Fields.Values().Get(2)), Field.ExternalName, 'Field is not generated correctly');
+        Assert.AreEqual(Fields.Get(Fields.Keys().Get(2)), Field.ExternalName, 'Field is not generated correctly');
     end;
 
     local procedure Initialize()
