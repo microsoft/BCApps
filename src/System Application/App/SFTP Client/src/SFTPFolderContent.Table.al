@@ -20,7 +20,6 @@ table 9760 "SFTP Folder Content"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.', Locked = true;
-            DataClassification = SystemMetadata;
             ToolTip = 'Specifies a unique identifier for each entry in the SFTP folder content.';
             Access = Internal;
         }
@@ -28,25 +27,21 @@ table 9760 "SFTP Folder Content"
         {
             Caption = 'Name', Locked = true;
             ToolTip = 'Specifies the name of the file or directory in the SFTP folder.';
-            DataClassification = SystemMetadata;
         }
         field(3; "Full Name"; Text[2048])
         {
             Caption = 'Full Name', Locked = true;
             ToolTip = 'Specifies the full path of the file or directory in the SFTP folder.';
-            DataClassification = SystemMetadata;
         }
         field(4; "Is Directory"; Boolean)
         {
             Caption = 'Is Directory', Locked = true;
             ToolTip = 'Specifies whether the entry is a directory (true) or a file (false).';
-            DataClassification = SystemMetadata;
         }
         field(5; Length; BigInteger)
         {
             Caption = 'Length', Locked = true;
             ToolTip = 'Specifies the size in bytes.';
-            DataClassification = SystemMetadata;
         }
 
     }

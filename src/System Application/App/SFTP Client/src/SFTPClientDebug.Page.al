@@ -11,7 +11,6 @@ page 9760 "SFTP Client - Debug"
 {
     Caption = 'SFTP Client - Debug';
     PageType = Card;
-    ApplicationArea = None;
     UsageCategory = None;
     SaveValues = true;
 

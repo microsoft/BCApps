@@ -8,6 +8,8 @@ namespace System.SFTPClient;
 codeunit 9761 "Dotnet SFTP File" implements "ISFTP File"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         RenciSFTPFile: DotNet RenciISftpFile;

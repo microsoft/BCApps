@@ -10,7 +10,6 @@ page 9761 "SFTP Folder Content"
     Caption = 'SFTP Folder Content';
     PageType = List;
     UsageCategory = None;
-    ApplicationArea = None;
     SourceTable = "SFTP Folder Content";
     InsertAllowed = false;
     ModifyAllowed = false;

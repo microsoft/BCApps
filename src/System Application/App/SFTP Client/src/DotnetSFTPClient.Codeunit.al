@@ -10,6 +10,8 @@ using System;
 codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         RenciSFTPClient: DotNet RenciSftpClient;
