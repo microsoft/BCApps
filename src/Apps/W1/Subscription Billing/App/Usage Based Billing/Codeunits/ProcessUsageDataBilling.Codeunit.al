@@ -235,12 +235,13 @@ codeunit 8026 "Process Usage Data Billing"
         ServiceCommitmentUnitCostLCY: Decimal;
         RoundingPrecision: Decimal;
         ServiceCommitmentUpdated: Boolean;
+        BillingReferenceDateChanged: Boolean;
     begin
         if UnitPrice = 0 then
             exit;
         SetCurrency(Currency, ServiceCommitment."Currency Code");
 
-        ServiceCommitment.UnitPriceAndCostForPeriod(ServiceCommitment."Billing Rhythm", LastUsageDataBilling."Charge Start Date", LastUsageDataBilling."Charge End Date", ServiceCommitmentUnitPrice, ServiceCommitmentUnitCost, ServiceCommitmentUnitCostLCY);
+        ServiceCommitment.UnitPriceAndCostForPeriod(ServiceCommitment."Billing Rhythm", LastUsageDataBilling."Charge Start Date", LastUsageDataBilling."Charge End Date", ServiceCommitmentUnitPrice, ServiceCommitmentUnitCost, ServiceCommitmentUnitCostLCY, BillingReferenceDateChanged);
 
         SetRoundingPrecision(RoundingPrecision, UnitPrice, Currency);
         if Round(ServiceCommitmentUnitPrice, RoundingPrecision) <> UnitPrice then begin
