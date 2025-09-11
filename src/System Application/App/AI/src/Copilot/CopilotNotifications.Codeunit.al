@@ -107,13 +107,13 @@ codeunit 7757 "Copilot Notifications"
 
     procedure ShowAIQuotaUsedUpNotification()
     var
-        AIQuotaUsedUpNotification: Notification;
+        CopilotCreditsCapacityUsedUpNotification: Notification;
     begin
-        AIQuotaUsedUpNotification.Id := CopilotCreditsCapacityUsedUpNotificationGuidTok;
-        AIQuotaUsedUpNotification.Message := CopilotCreditsCapacityUsedUpNotificationMsg;
-        AIQuotaUsedUpNotification.Scope := NotificationScope::LocalScope;
-        AIQuotaUsedUpNotification.AddAction(LearnMoreLbl, Codeunit::"Copilot Notifications", 'ShowAIQuotaUsedUpLearnMore');
-        AIQuotaUsedUpNotification.Send();
+        CopilotCreditsCapacityUsedUpNotification.Id := CopilotCreditsCapacityUsedUpNotificationGuidTok;
+        CopilotCreditsCapacityUsedUpNotification.Message := CopilotCreditsCapacityUsedUpNotificationMsg;
+        CopilotCreditsCapacityUsedUpNotification.Scope := NotificationScope::LocalScope;
+        CopilotCreditsCapacityUsedUpNotification.AddAction(LearnMoreLbl, Codeunit::"Copilot Notifications", 'ShowAIQuotaUsedUpLearnMore');
+        CopilotCreditsCapacityUsedUpNotification.Send();
     end;
 
     procedure ShowAIQuotaUsedUpLearnMore(AIQuotaUsedUpNotification: Notification)
@@ -128,13 +128,13 @@ codeunit 7757 "Copilot Notifications"
 
     procedure ShowAIQuotaNearlyUsedUpNotification()
     var
-        AIQuotaNearlyUsedUpNotification: Notification;
+        CopilotCreditsCapacityNearlyUsedUpNotification: Notification;
     begin
-        AIQuotaNearlyUsedUpNotification.Id := CopilotCreditsCapacityNearlyUsedUpNotificationGuidTok;
-        AIQuotaNearlyUsedUpNotification.Message := CopilotCreditsCapacityNearlyUsedUpNotificationMsg;
-        AIQuotaNearlyUsedUpNotification.Scope := NotificationScope::LocalScope;
-        AIQuotaNearlyUsedUpNotification.AddAction(LearnMoreLbl, Codeunit::"Copilot Notifications", 'ShowAIQuotaNearlyUsedUpLearnMore');
-        AIQuotaNearlyUsedUpNotification.Send();
+        CopilotCreditsCapacityNearlyUsedUpNotification.Id := CopilotCreditsCapacityNearlyUsedUpNotificationGuidTok;
+        CopilotCreditsCapacityNearlyUsedUpNotification.Message := CopilotCreditsCapacityNearlyUsedUpNotificationMsg;
+        CopilotCreditsCapacityNearlyUsedUpNotification.Scope := NotificationScope::LocalScope;
+        CopilotCreditsCapacityNearlyUsedUpNotification.AddAction(LearnMoreLbl, Codeunit::"Copilot Notifications", 'ShowAIQuotaNearlyUsedUpLearnMore');
+        CopilotCreditsCapacityNearlyUsedUpNotification.Send();
     end;
 
     procedure ShowBingSearchOptOutNudgeMessage()
