@@ -444,9 +444,14 @@ codeunit 134245 "Shpfy Company Mapping Test"
     end;
 
     local procedure CreateShopifyCompanyWithCustomerSysId(var ShopifyCompany: Record "Shpfy Company"; CustomerSystemId: Guid)
+    var
+        Id: BigInteger;
     begin
+        Id := Any.IntegerInRange(10000, 99999);
+        if ShopifyCompany.Get(Id) then
+            ShopifyCompany.Delete();
         ShopifyCompany.Init();
-        ShopifyCompany.Id := Any.IntegerInRange(10000, 99999);
+        ShopifyCompany.Id := Id;
         ShopifyCompany."Shop Code" := Shop."Code";
         ShopifyCompany."Customer SystemId" := CustomerSystemId;
         ShopifyCompany.Insert(false);
@@ -478,11 +483,12 @@ codeunit 134245 "Shpfy Company Mapping Test"
 
     local procedure CreateShopifyCustomer(var ShopifyCustomer: Record "Shpfy Customer"; Id: BigInteger)
     begin
+        if Id = 0 then
+            Id := Any.IntegerInRange(10000, 99999);
+        if ShopifyCustomer.Get(Id) then
+            ShopifyCustomer.Delete();
         ShopifyCustomer.Init();
-        if Id <> 0 then
-            ShopifyCustomer.Id := Id
-        else
-            ShopifyCustomer.Id := Any.IntegerInRange(10000, 99999);
+        ShopifyCustomer.Id := Id;
         ShopifyCustomer.Insert(false);
     end;
 
