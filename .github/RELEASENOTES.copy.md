@@ -1,6 +1,19 @@
-## preview
+## v7.3
 
-Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
+### Configurable merge method for pull request auto-merge
+
+A new setting `pullRequestMergeMethod` has been added to the `commitOptions` structure, allowing you to configure which merge method to use when `pullRequestAutoMerge` is enabled. Valid values are "merge" or "squash". The default value is "squash" to maintain backward compatibility.
+
+Example
+
+```json
+{
+  "commitOptions": {
+    "pullRequestAutoMerge": true,
+    "pullRequestMergeMethod": "merge"
+  }
+}
+```
 
 ### AL-Go Telemetry
 
@@ -35,6 +48,9 @@ Please note, that due to certain security limitations, the properties `runs-on`,
 - Issue 1722 Check if apps are already installed on a higher version before deploying
 - Issue 1774 Increment Version Number with +0.1 can increment some version numbers twice
 - Issue 1837 Deployment from PR builds fail if PR branch name includes forward slashes (e.g., `feature/branch-name`).
+- Issue 1852 Page Scripting Tests are not added to build summary
+- Issue 1829 Added custom jobs cannot be removed
+- Idea 1856 Include workflow name as input for action ReadSetting
 
 ### Additional debug logging functionality
 

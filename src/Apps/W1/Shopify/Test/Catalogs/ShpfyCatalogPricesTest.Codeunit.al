@@ -44,7 +44,7 @@ codeunit 139646 "Shpfy Catalog Prices Test"
         // Creating test data.
         Shop := InitializeTest.CreateShop();
         CompanyInitialize.CreateShopifyCompany(ShopifyCompany);
-        Catalog := CatalogInitialize.CreateCatalog(ShopifyCompany);
+        Catalog := CatalogInitialize.CreateCatalog(ShopifyCompany, "Shpfy Catalog Type"::Company);
         CatalogInitialize.CopyParametersFromShop(Catalog, Shop);
         InitUnitCost := Any.DecimalInRange(10, 100, 1);
         InitPrice := Any.DecimalInRange(2 * InitUnitCost, 4 * InitUnitCost, 1);
@@ -114,7 +114,7 @@ codeunit 139646 "Shpfy Catalog Prices Test"
         // [GIVEN] Initializing test environment and creating necessary test records.
         Shop := InitializeTest.CreateShop();
         CompanyInitialize.CreateShopifyCompany(ShopifyCompany);
-        Catalog := CatalogInitialize.CreateCatalog(ShopifyCompany);
+        Catalog := CatalogInitialize.CreateCatalog(ShopifyCompany, "Shpfy Catalog Type"::Company);
         CatalogInitialize.CopyParametersFromShop(Catalog, Shop);
         InitUnitCost := Any.DecimalInRange(10, 100, 1);
         InitPrice := Any.DecimalInRange(2 * InitUnitCost, 4 * InitUnitCost, 1);
@@ -177,7 +177,7 @@ codeunit 139646 "Shpfy Catalog Prices Test"
         // [GIVEN] Setting up the test environment: Shop, Catalog, Item, and Customer with specific pricing and discount.
         Shop := InitializeTest.CreateShop();
         CompanyInitialize.CreateShopifyCompany(ShopifyCompany);
-        Catalog := CatalogInitialize.CreateCatalog(ShopifyCompany);
+        Catalog := CatalogInitialize.CreateCatalog(ShopifyCompany, "Shpfy Catalog Type"::Company);
         CatalogInitialize.CopyParametersFromShop(Catalog, Shop);
         InitUnitCost := Any.DecimalInRange(10, 100, 1);
         InitPrice := Any.DecimalInRange(2 * InitUnitCost, 4 * InitUnitCost, 1);
@@ -237,7 +237,7 @@ codeunit 139646 "Shpfy Catalog Prices Test"
         // [GIVEN] Setting up shop, catalog, item, and customer-specific pricing.
         Shop := InitializeTest.CreateShop();
         CompanyInitialize.CreateShopifyCompany(ShopifyCompany);
-        Catalog := CatalogInitialize.CreateCatalog(ShopifyCompany);
+        Catalog := CatalogInitialize.CreateCatalog(ShopifyCompany, "Shpfy Catalog Type"::Company);
         CatalogInitialize.CopyParametersFromShop(Catalog, Shop);
         InitUnitCost := Any.DecimalInRange(10, 100, 1);
         InitPrice := Any.DecimalInRange(2 * InitUnitCost, 4 * InitUnitCost, 1);
@@ -302,7 +302,7 @@ codeunit 139646 "Shpfy Catalog Prices Test"
         // [GIVEN] Creating shop, catalog, item, and setting customer discount details.
         Shop := InitializeTest.CreateShop();
         CompanyInitialize.CreateShopifyCompany(ShopifyCompany);
-        Catalog := CatalogInitialize.CreateCatalog(ShopifyCompany);
+        Catalog := CatalogInitialize.CreateCatalog(ShopifyCompany, "Shpfy Catalog Type"::Company);
         CatalogInitialize.CopyParametersFromShop(Catalog, Shop);
         InitUnitCost := Any.DecimalInRange(10, 100, 1);
         InitPrice := Any.DecimalInRange(2 * InitUnitCost, 4 * InitUnitCost, 1);
@@ -334,5 +334,72 @@ codeunit 139646 "Shpfy Catalog Prices Test"
         LibraryAssert.AreEqual(InitPrice, ComparePrice, 'Compare Price should match initial settings.');
         LibraryAssert.AreNearlyEqual(InitPrice * (1 - InitDiscountPerc / 100), Price, 0.01, 'Accurate calculation of discounted price should be verified.');
 #endif
+    end;
+
+    [Test]
+    procedure UnitTestCalcMarketCatalogPrice()
+    var
+        Shop: Record "Shpfy Shop";
+        Catalog: Record "Shpfy Catalog";
+        ShopifyCompany: Record "Shpfy Company";
+        Item: Record Item;
+        CustomerDiscountGroup: Record "Customer Discount Group";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        CatalogInitialize: Codeunit "Shpfy Catalog Initialize";
+        CompanyInitialize: Codeunit "Shpfy Company Initialize";
+        ProductPriceCalculation: Codeunit "Shpfy Product Price Calc.";
+        InitUnitCost: Decimal;
+        InitPrice: Decimal;
+        InitDiscountPerc: Decimal;
+        UnitCost: Decimal;
+        Price: Decimal;
+        ComparePrice: Decimal;
+    begin
+        // Creating test data.
+        Shop := InitializeTest.CreateShop();
+        CompanyInitialize.CreateShopifyCompany(ShopifyCompany);
+        Catalog := CatalogInitialize.CreateCatalog(ShopifyCompany, "Shpfy Catalog Type"::Market);
+        CatalogInitialize.CopyParametersFromShop(Catalog, Shop);
+        InitUnitCost := Any.DecimalInRange(10, 100, 1);
+        InitPrice := Any.DecimalInRange(2 * InitUnitCost, 4 * InitUnitCost, 1);
+        InitDiscountPerc := Any.DecimalInRange(5, 20, 1);
+        Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", InitUnitCost, InitPrice);
+#if not CLEAN25
+        ProductInitTest.CreateSalesPrice(CopyStr(Shop.Code, 1, 10), Item."No.", InitPrice);
+        CustomerDiscountGroup := ProductInitTest.CreateSalesLineDiscount(CopyStr(Shop.Code, 1, 10), Item."No.", InitDiscountPerc);
+#else
+        CustomerDiscountGroup := ProductInitTest.CreatePriceList(CopyStr(Shop.Code, 1, 10), Item."No.", InitPrice, InitDiscountPerc);
+#endif
+
+        // [SCENARIO] Doing the price calculation of an product for a catalog where the fields "Customer Price Group" and Customer Discount Group" are not filled in.
+        // [SCENARIO] After modify the "Customer Discount Group" for the same catalog, we must get a discounted price.
+
+        // [GIVEN] the Catalog with the fields "Customer Price Group" and Customer Discount Group" not filled in.
+        ProductPriceCalculation.SetShopAndCatalog(Shop, Catalog);
+        // [GIVEN] The item and the variable UnitCost, Price and ComparePrice for storing the results.
+        // [WHEN] Invoking the procedure: CalcPrice(Item, '', '', UnitCost, Price, ComparePrice)
+        ProductPriceCalculation.CalcPrice(Item, '', '', UnitCost, Price, ComparePrice);
+
+        // [THEN] InitUnitCost = UnitCost
+        LibraryAssert.AreEqual(InitUnitCost, UnitCost, 'Unit Cost');
+        // [THEN] InitPrice = Price
+        LibraryAssert.AreEqual(InitPrice, Price, 'Price');
+
+        // [GIVEN] Update the Catalog."Customer Discount Group" field and set the catalog to the calculation codeunit.
+        Catalog."Customer Discount Group" := CustomerDiscountGroup.Code;
+        Catalog."Allow Line Disc." := true;
+        Catalog.Modify();
+        ProductPriceCalculation.SetShopAndCatalog(Shop, Catalog);
+
+        // [GIVEN] The item and the variable UnitCost, Price and ComparePrice for storing the results.
+        // [WHEN] Invoking the procedure: CalcPrice(Item, '', '', UnitCost, Price, ComparePrice)
+        ProductPriceCalculation.CalcPrice(Item, '', '', UnitCost, Price, ComparePrice);
+        // [THEN] InitUnitCost = UnitCost
+        LibraryAssert.AreEqual(InitUnitCost, UnitCost, 'Unit Cost');
+        // [THEN] InitPrice = ComparePrice. ComparePrice is the price without the discount.
+        LibraryAssert.AreEqual(InitPrice, ComparePrice, 'Compare Price');
+        // [THEN] InitPrice - InitDiscountPerc = Price
+        LibraryAssert.AreNearlyEqual(InitPrice * (1 - InitDiscountPerc / 100), Price, 0.01, 'Discount Price');
     end;
 }

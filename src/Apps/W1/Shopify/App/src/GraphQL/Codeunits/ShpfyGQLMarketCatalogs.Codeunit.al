@@ -5,7 +5,11 @@
 
 namespace Microsoft.Integration.Shopify;
 
-codeunit 30234 "Shpfy GQL OpenFulfillmOrders" implements "Shpfy IGraphQL"
+/// <summary>
+/// Codeunit Shpfy GQL Market Catalogs (ID 30404).
+/// Implements the IGraphQL interface for retrieving Shopify market catalogs using GraphQL.
+/// </summary>
+codeunit 30404 "Shpfy GQL Market Catalogs" implements "Shpfy IGraphQL"
 {
     Access = Internal;
 
@@ -15,7 +19,7 @@ codeunit 30234 "Shpfy GQL OpenFulfillmOrders" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Text.</returns>
     internal procedure GetGraphQL(): Text
     begin
-        exit('{"query":"{fulfillmentOrders(first: 25, includeClosed: false) { pageInfo { hasNextPage } edges { cursor node { id updatedAt assignedLocation {location {legacyResourceId}} order {legacyResourceId} deliveryMethod {methodType}}}}}"}');
+        exit('{"query": "{ catalogs (first:25, type: MARKET, query: \"status:ACTIVE\"){ pageInfo{ hasNextPage } edges { cursor node { id title priceList { currency }}}}}"}');
     end;
 
     /// <summary>
@@ -24,6 +28,6 @@ codeunit 30234 "Shpfy GQL OpenFulfillmOrders" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(108);
+        exit(27);
     end;
 }
