@@ -213,7 +213,6 @@ page 8064 "Service Commitments"
                 }
                 field(Discount; Rec.Discount)
                 {
-                    Editable = false;
                     ToolTip = 'Specifies whether the Subscription Line is used as a basis for periodic invoicing or discounts.';
                 }
                 field("Create Contract Deferrals"; Rec."Create Contract Deferrals")

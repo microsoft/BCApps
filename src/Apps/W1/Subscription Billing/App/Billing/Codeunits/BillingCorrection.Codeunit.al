@@ -13,56 +13,6 @@ codeunit 8061 "Billing Correction"
         RelatedDocumentLineExistErr: Label 'The %1 %2 already exists for the Subscription Line. Please post or delete this %1 first.', Comment = '%1=Document Type, %2=Document No.';
         CopyingErr: Label 'Copying documents with a link to a contract is not allowed. To create contract invoices, please use the "Recurring Billing" page. For cancelling a contract invoice, please use the "Create Corrective Credit Memo" function in the posted invoice.';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnBeforeUpdateSalesLine, '', false, false)]
-    local procedure TrasnferContractFieldsBeforeUpdateSalesLine(var ToSalesLine: Record "Sales Line"; var FromSalesLine: Record "Sales Line"; FromSalesDocType: Option; var FromSalesHeader: Record "Sales Header")
-    begin
-        if not FromSalesHeader."Recurring Billing" then
-            exit;
-        if FromSalesDocType <> Enum::"Sales Document Type From"::"Posted Invoice".AsInteger() then
-            Error(CopyingErr);
-        if ToSalesLine."Document Type" <> Enum::"Sales Document Type"::"Credit Memo" then
-            Error(CopyingErr);
-        ToSalesLine."Recurring Billing from" := FromSalesLine."Recurring Billing from";
-        ToSalesLine."Recurring Billing to" := FromSalesLine."Recurring Billing to";
-        ToSalesLine."Discount" := FromSalesLine."Discount";
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnAfterInsertToSalesLine, '', false, false)]
-    local procedure CreateBillingLineFromBillingLineArchiveAfterInsertToSalesLine(var ToSalesLine: Record "Sales Line"; FromSalesLine: Record "Sales Line"; DocLineNo: Integer; FromSalesHeader: Record "Sales Header")
-    var
-        ServiceCommitment: Record "Subscription Line";
-        BillingLine: Record "Billing Line";
-        BillingLineArchive: Record "Billing Line Archive";
-        IsHandled: Boolean;
-    begin
-        OnBeforeCreateBillingLineFromBillingLineArchiveAfterInsertToSalesLine(ToSalesLine, IsHandled);
-        if IsHandled then
-            exit;
-        FilterBillingLineArchiveOnSalesLineOrPurchLine(ToSalesLine, BillingLineArchive, FromSalesHeader."No.", DocLineNo);
-        if BillingLineArchive.IsEmpty() then
-            exit;
-
-        ToSalesLine.TestField("Recurring Billing from");
-        ToSalesLine.TestField("Recurring Billing to");
-
-        if BillingLineArchive.FindFirst() then begin
-            ServiceCommitment.SetRange("Subscription Contract No.", BillingLineArchive."Subscription Contract No.");
-            ServiceCommitment.SetRange("Subscription Contract Line No.", BillingLineArchive."Subscription Contract Line No.");
-            ServiceCommitment.FindFirst();
-            if ServiceCommitment."Next Billing Date" - 1 > ToSalesLine."Recurring Billing to" then
-                Error(NewerInvoiceExistErr, ServiceCommitment."Next Billing Date");
-        end;
-
-        BillingLine.SetRange("Document Type", Enum::"Rec. Billing Document Type"::Invoice, Enum::"Rec. Billing Document Type"::"Credit Memo");
-        BillingLine.SetFilter("Document No.", '<>%1', ToSalesLine."Document No.");
-        BillingLine.SetRange("Subscription Contract No.", BillingLineArchive."Subscription Contract No.");
-        BillingLine.SetRange("Subscription Contract Line No.", BillingLineArchive."Subscription Contract Line No.");
-
-        if BillingLine.FindFirst() then
-            Error(RelatedDocumentLineExistErr, BillingLine."Document Type", BillingLine."Document No.");
-        CreateBillingLineFromBillingLineArchive(ToSalesLine, ServiceCommitment, FromSalesHeader."No.", DocLineNo);
-    end;
-
     local procedure CreateBillingLineFromBillingLineArchive(RecVariant: Variant; var ServiceCommitment: Record "Subscription Line"; FromDocumentNo: Code[20]; DocLineNo: Integer)
     var
         BillingLine: Record "Billing Line";
@@ -176,17 +126,12 @@ codeunit 8061 "Billing Correction"
         BillingLineArchive.SetRange("Billing to", RRef.Field(8053).Value, RRef.Field(8054).Value);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnBeforeUpdatePurchLine, '', false, false)]
-    local procedure TrasnferContractFieldsBeforeUpdatePurchaseLine(var ToPurchLine: Record "Purchase Line"; var FromPurchLine: Record "Purchase Line"; var FromPurchHeader: Record "Purchase Header"; FromPurchDocType: Option)
+    local procedure GetAndCheckServiceCommitmentIfNewerInvoiceExists(var ServiceCommitment: Record "Subscription Line"; SubscriptionLineEntryNo: Integer; RecurringBillingToDate: Date)
     begin
-        if not FromPurchHeader."Recurring Billing" then
+        if not ServiceCommitment.Get(SubscriptionLineEntryNo) then
             exit;
-        if FromPurchDocType <> Enum::"Purchase Document Type From"::"Posted Invoice".AsInteger() then
-            Error(CopyingErr);
-        if ToPurchLine."Document Type" <> Enum::"Purchase Document Type"::"Credit Memo" then
-            Error(CopyingErr);
-        ToPurchLine."Recurring Billing from" := FromPurchLine."Recurring Billing from";
-        ToPurchLine."Recurring Billing to" := FromPurchLine."Recurring Billing to";
+        if ServiceCommitment."Next Billing Date" - 1 > RecurringBillingToDate then
+            Error(NewerInvoiceExistErr, ServiceCommitment."Next Billing Date");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnAfterInsertToPurchLine, '', false, false)]
@@ -201,13 +146,11 @@ codeunit 8061 "Billing Correction"
             exit;
         ToPurchLine.TestField("Recurring Billing from");
         ToPurchLine.TestField("Recurring Billing to");
-        if BillingLineArchive.FindFirst() then begin
-            ServiceCommitment.SetRange("Subscription Contract No.", BillingLineArchive."Subscription Contract No.");
-            ServiceCommitment.SetRange("Subscription Contract Line No.", BillingLineArchive."Subscription Contract Line No.");
-            ServiceCommitment.FindFirst();
-            if ServiceCommitment."Next Billing Date" - 1 > ToPurchLine."Recurring Billing to" then
-                Error(NewerInvoiceExistErr, ServiceCommitment."Next Billing Date");
-        end;
+        if BillingLineArchive.FindFirst() then
+            GetAndCheckServiceCommitmentIfNewerInvoiceExists(ServiceCommitment, BillingLineArchive."Subscription Line Entry No.", ToPurchLine."Recurring Billing to");
+
+        if (BillingLineArchive."Subscription Contract No." = '') or (BillingLineArchive."Subscription Contract Line No." = 0) then
+            exit;
 
         BillingLine.SetRange("Document Type", Enum::"Rec. Billing Document Type"::Invoice, Enum::"Rec. Billing Document Type"::"Credit Memo");
         BillingLine.SetFilter("Document No.", '<>%1', ToPurchLine."Document No.");
@@ -216,6 +159,62 @@ codeunit 8061 "Billing Correction"
         if BillingLine.FindFirst() then
             Error(RelatedDocumentLineExistErr, BillingLine."Document Type", BillingLine."Document No.");
         CreateBillingLineFromBillingLineArchive(ToPurchLine, ServiceCommitment, FromPurchaseHeader."No.", DocLineNo);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnAfterInsertToSalesLine, '', false, false)]
+    local procedure CreateBillingLineFromBillingLineArchiveAfterInsertToSalesLine(var ToSalesLine: Record "Sales Line"; DocLineNo: Integer; FromSalesHeader: Record "Sales Header")
+    var
+        SubscriptionLine: Record "Subscription Line";
+        BillingLine: Record "Billing Line";
+        BillingLineArchive: Record "Billing Line Archive";
+        IsHandled: Boolean;
+    begin
+        OnBeforeCreateBillingLineFromBillingLineArchiveAfterInsertToSalesLine(ToSalesLine, IsHandled);
+        if IsHandled then
+            exit;
+        FilterBillingLineArchiveOnSalesLineOrPurchLine(ToSalesLine, BillingLineArchive, FromSalesHeader."No.", DocLineNo);
+        if BillingLineArchive.IsEmpty() then
+            exit;
+
+        ToSalesLine.TestField("Recurring Billing from");
+        ToSalesLine.TestField("Recurring Billing to");
+
+        if BillingLineArchive.FindFirst() then
+            GetAndCheckServiceCommitmentIfNewerInvoiceExists(SubscriptionLine, BillingLineArchive."Subscription Line Entry No.", ToSalesLine."Recurring Billing to");
+
+        if (BillingLineArchive."Subscription Contract No." = '') or (BillingLineArchive."Subscription Contract Line No." = 0) then
+            exit;
+
+        BillingLine.SetRange("Document Type", Enum::"Rec. Billing Document Type"::Invoice, Enum::"Rec. Billing Document Type"::"Credit Memo");
+        BillingLine.SetFilter("Document No.", '<>%1', ToSalesLine."Document No.");
+        BillingLine.SetRange("Subscription Contract No.", BillingLineArchive."Subscription Contract No.");
+        BillingLine.SetRange("Subscription Contract Line No.", BillingLineArchive."Subscription Contract Line No.");
+
+        if BillingLine.FindFirst() then
+            Error(RelatedDocumentLineExistErr, BillingLine."Document Type", BillingLine."Document No.");
+        CreateBillingLineFromBillingLineArchive(ToSalesLine, SubscriptionLine, FromSalesHeader."No.", DocLineNo);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnBeforeUpdatePurchLine, '', false, false)]
+    local procedure TransferContractFieldsBeforeUpdatePurchaseLine(var ToPurchLine: Record "Purchase Line"; var FromPurchHeader: Record "Purchase Header"; FromPurchDocType: Option)
+    begin
+        if not FromPurchHeader."Recurring Billing" then
+            exit;
+        if FromPurchDocType <> Enum::"Purchase Document Type From"::"Posted Invoice".AsInteger() then
+            Error(CopyingErr);
+        if ToPurchLine."Document Type" <> Enum::"Purchase Document Type"::"Credit Memo" then
+            Error(CopyingErr);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnBeforeUpdateSalesLine, '', false, false)]
+    local procedure TransferContractFieldsBeforeUpdateSalesLine(var ToSalesLine: Record "Sales Line"; FromSalesDocType: Option; var FromSalesHeader: Record "Sales Header")
+    begin
+        if not FromSalesHeader."Recurring Billing" then
+            exit;
+        if FromSalesDocType <> Enum::"Sales Document Type From"::"Posted Invoice".AsInteger() then
+            Error(CopyingErr);
+        if ToSalesLine."Document Type" <> Enum::"Sales Document Type"::"Credit Memo" then
+            Error(CopyingErr);
     end;
 
     [IntegrationEvent(false, false)]

@@ -14,12 +14,20 @@ codeunit 8060 "Create Billing Documents"
     trigger OnRun()
     var
         BillingLine: Record "Billing Line";
+        PartnerFilter: Text;
+        ShowNotification: Boolean;
     begin
         BillingLine.Copy(Rec);
+        PartnerFilter := BillingLine.GetFilter(Partner);
+        ShowNotification := PartnerFilter <> BillingLine.GetFilters();
+        BillingLine.Reset();
+        BillingLine.SetFilter(Partner, PartnerFilter);
         BillingLine.SetRange("Document Type", Enum::"Rec. Billing Document Type"::None);
         if CreateContractInvoice then
             BillingLine.SetRange("Billing Template Code", '');
         CreateBillingDocuments(BillingLine);
+        if ShowNotification and (not CreateContractInvoice) then
+            ShowFiltersIgnoredNotification();
     end;
 
     local procedure CreateBillingDocuments(var BillingLine: Record "Billing Line")
@@ -1027,6 +1035,17 @@ codeunit 8060 "Create Billing Documents"
 
         OnAfterIsNewHeaderNeededPerContract(CreateNewHeader, TempBillingLine, PreviousSubContractNo);
     end;
+
+    local procedure ShowFiltersIgnoredNotification()
+    var
+        FiltersIgnoredNotification: Notification;
+        FiltersIgnoredMsg: Label 'You have set filters on the Recurring Billing page. The filters were ignored to maintain data consistency.';
+    begin
+        FiltersIgnoredNotification.Message(FiltersIgnoredMsg);
+        FiltersIgnoredNotification.Scope := NotificationScope::LocalScope;
+        FiltersIgnoredNotification.Send();
+    end;
+
 
     internal procedure ErrorIfItemUnitOfMeasureCodeDoesNotExist(ItemNo: Code[20]; ServiceObject: Record "Subscription Header")
     var

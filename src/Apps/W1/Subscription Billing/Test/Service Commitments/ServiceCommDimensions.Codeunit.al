@@ -474,21 +474,24 @@ codeunit 148160 "Service Comm. Dimensions"
         SalesWithServiceCommitmentItem: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+        SubPackageLineTemplate: Record "Sub. Package Line Template";
         ServiceCommPackageLine: Record "Subscription Package Line";
         ServiceCommitment: Record "Subscription Line";
         ServiceCommitmentPackage: Record "Subscription Package";
         Index: Integer;
     begin
         // [SCENARIO] When Subscription Line is created by shipping a Sales Order with "Sales with Subscription" type Item,
-        // Subscription Line Dimensions should be assigned first from Invoicing item and then from Sales Line.
+        // Subscription Line Dimensions should be assigned first from Sales Line and then from Invoicing item.
         Initialize();
 
         // Dimensions with Values created:
-        //
-        // | Dimension | Dimension Values | Record        |
-        // |-----------|------------------|---------------|
-        // | Dim1      | A, B             | Item          |
-        // | Dim2      | X                | InvoicingItem |
+        // ┌───────────┬──────────────────┬───────────────┐
+        // │ Dimension │ Dimension Values │ Record        │
+        // ├───────────┼──────────────────┼───────────────┤
+        // │ Dim1      │ A, B             │ Item          │
+        // │ Dim2      │ X                │ InvoicingItem │
+        // └───────────┴──────────────────┴───────────────┘
+
 
         // [GIVEN] Dimension "Dim1" with two values "A" and "B"
         LibraryDimension.CreateDimension(SSCDimension);
@@ -499,7 +502,7 @@ codeunit 148160 "Service Comm. Dimensions"
         LibraryDimension.CreateDimension(InvoicingItemDimension);
         LibraryDimension.CreateDimensionValue(InvoicingItemDimensionValue, InvoicingItemDimension."Code");
 
-        // [GIVEN] "SalesWithServiceCommitmentItem" has Dimension "Dim1" with Value "A"
+        // [GIVEN] "Sales With Subscription" has Dimension "Dim1" with Value "A"
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(SalesWithServiceCommitmentItem, Enum::"Item Service Commitment Type"::"Sales with Service Commitment");
         LibraryDimension.CreateDefaultDimensionItem(DefaultDimension, SalesWithServiceCommitmentItem."No.", SSCDimension.Code, SSCDimensionValues[1].Code);
 
@@ -507,12 +510,13 @@ codeunit 148160 "Service Comm. Dimensions"
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(InvoicingItem, Enum::"Item Service Commitment Type"::"Invoicing Item");
         LibraryDimension.CreateDefaultDimensionItem(DefaultDimension, InvoicingItem."No.", InvoicingItemDimension.Code, InvoicingItemDimensionValue.Code);
 
-        // [GIVEN] Subscription Package with "InvoicingItem" item
-        ContractTestLibrary.CreateServiceCommitmentPackageWithLine('', ServiceCommitmentPackage, ServiceCommPackageLine);
+        // [GIVEN] Subscription Package with "Invoicing Item" item
+        ContractTestLibrary.CreateServiceCommitmentTemplate(SubPackageLineTemplate);
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(SubPackageLineTemplate.Code, ServiceCommitmentPackage, ServiceCommPackageLine);
         ContractTestLibrary.UpdateServiceCommitmentPackageLine(ServiceCommPackageLine, '', 100, '', Enum::"Service Partner"::Customer, InvoicingItem."No.", Enum::"Invoicing Via"::Contract, Enum::"Calculation Base Type"::"Item Price", '', '<1M>', false);
         ContractTestLibrary.AssignItemToServiceCommitmentPackage(SalesWithServiceCommitmentItem, ServiceCommitmentPackage.Code);
 
-        // [GIVEN] Sales Order with "SalesWithServiceCommitmentItem"
+        // [GIVEN] Sales Order with "Sales With Subscription"
         LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Order, '');
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, "Sales Line Type"::Item, SalesWithServiceCommitmentItem."No.", 1);
 
@@ -522,18 +526,20 @@ codeunit 148160 "Service Comm. Dimensions"
         // [WHEN] Sales Order is shipped
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
-        // [THEN] Subscription is created with Dimension "Dim1" with value "B"
-        // [THEN] Subscription Line created with Dimension "Dim1" and value "B"
+        // [THEN] Subscription is created with Dimension "Dim2" with value "X"
         FindServiceCommitment(SalesHeader."Sell-to Customer No.", ServiceCommitment);
+
+        // [THEN] Subscription Line created with Dimension "Dim1" and value "B"
         DimensionSetEntry.Get(ServiceCommitment."Dimension Set ID", SSCDimension.Code);
         Assert.AreEqual(SSCDimensionValues[2].Code, DimensionSetEntry."Dimension Value Code", 'Service Commitment should have Dimension "Dim1" with value "B" inherited from Sales Line.');
 
         // Expected Dimensions and Values for Subscription Line:
-        //
-        // | Dimension | Dimension Value |
-        // |-----------|-----------------|
-        // | Dim1      | B               |
-        // | Dim2      | X               |
+        // ┌───────────┬──────────────────┐
+        // │ Dimension │ Dimension Values │
+        // ├───────────┼──────────────────┤
+        // │ Dim1      │ B                │
+        // │ Dim2      │ X                │
+        // └───────────┴──────────────────┘
 
         // [THEN] Subscription Line created with Dimension "Dim2" and value "X"
         DimensionSetEntry.Get(ServiceCommitment."Dimension Set ID", InvoicingItemDimension.Code);
@@ -546,28 +552,27 @@ codeunit 148160 "Service Comm. Dimensions"
     var
         DefaultDimension: Record "Default Dimension";
         ItemDimensions: array[2] of Record Dimension;
-        SalesLineDimension: Record Dimension;
         ItemDimensionValues: array[3] of Record "Dimension Value";
-        SalesLineDimensionValue: Record "Dimension Value";
         ServiceCommitmentItem: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+        SubPackageLineTemplate: Record "Sub. Package Line Template";
         ServiceCommPackageLine: Record "Subscription Package Line";
         ServiceCommitment: Record "Subscription Line";
         ServiceCommitmentPackage: Record "Subscription Package";
         Index: Integer;
     begin
         // [SCENARIO] When Subscription Line is created by shipping a Sales Order with "Subscription Line" type Item,
-        // Subscription Line Dimensions should be taken first from Sales Line Item and then from Sales Line.
+        // Subscription Line Dimensions should be taken first from Invoicing Item, then from Sales Line
         Initialize();
 
         // Dimensions with Values created:
-        //
-        // | Dimension | Dimension Values | Record     |
-        // |-----------|------------------|------------|
-        // | Dim1      | A, X             | Item       |
-        // | Dim2      | B                | Item       |
-        // | Dim3      | C                | Sales Line |
+        // ┌───────────┬──────────────────┬────────────┐
+        // │ Dimension │ Dimension Values │ Record     │
+        // ├───────────┼──────────────────┼────────────┤
+        // │ Dim1      │ A, X             │ Item       │
+        // │ Dim2      │ B                │ Item       │
+        // └───────────┴──────────────────┴────────────┘
 
         // [GIVEN] Dimensions "Dim1" with value "A" and "Dim2" with value "B"
         for Index := 1 to ArrayLen(ItemDimensions) do begin
@@ -575,52 +580,44 @@ codeunit 148160 "Service Comm. Dimensions"
             LibraryDimension.CreateDimensionValue(ItemDimensionValues[Index], ItemDimensions[Index].Code);
         end;
 
-        // [GIVEN] Dimensions "Dim3" with value "C"
-        LibraryDimension.CreateDimension(SalesLineDimension);
-        LibraryDimension.CreateDimensionValue(SalesLineDimensionValue, SalesLineDimension.Code);
-
         // [GIVEN] Additional dimension Value "X" for "Dim1"
         LibraryDimension.CreateDimensionValue(ItemDimensionValues[3], ItemDimensions[1].Code);
 
-        // [GIVEN] "ServiceCommitmentItem" with default Dimensions "Dim1" with Value "A" and "Dim2" with value "B"
+        // [GIVEN] "Subscription Item" with default Dimensions "Dim1" with Value "A" and "Dim2" with value "B"
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(ServiceCommitmentItem, Enum::"Item Service Commitment Type"::"Service Commitment Item");
 
         LibraryDimension.CreateDefaultDimensionItem(DefaultDimension, ServiceCommitmentItem."No.", ItemDimensions[1].Code, ItemDimensionValues[1].Code);
         LibraryDimension.CreateDefaultDimensionItem(DefaultDimension, ServiceCommitmentItem."No.", ItemDimensions[2].Code, ItemDimensionValues[2].Code);
 
-        // [GIVEN] Subscription Package with "ServiceCommitmentItem" item
-        ContractTestLibrary.CreateServiceCommitmentPackageWithLine('', ServiceCommitmentPackage, ServiceCommPackageLine);
-        ContractTestLibrary.UpdateServiceCommitmentPackageLine(ServiceCommPackageLine, '', 100, '', Enum::"Service Partner"::Customer, '', Enum::"Invoicing Via"::Contract, Enum::"Calculation Base Type"::"Item Price", '', '<1M>', false);
+        // [GIVEN] Subscription Package with "Subscription Item" item
+        ContractTestLibrary.CreateServiceCommitmentTemplate(SubPackageLineTemplate, '<12M>', 100, Enum::"Invoicing Via"::Contract, Enum::"Calculation Base Type"::"Item Price", false);
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(SubPackageLineTemplate.Code, ServiceCommitmentPackage, ServiceCommPackageLine);
+        ContractTestLibrary.UpdateServiceCommitmentPackageLine(ServiceCommPackageLine, '<12M>', 100, '', Enum::"Service Partner"::Customer, '', Enum::"Invoicing Via"::Contract, Enum::"Calculation Base Type"::"Item Price", '', '<1M>', false);
         ContractTestLibrary.AssignItemToServiceCommitmentPackage(ServiceCommitmentItem, ServiceCommitmentPackage.Code);
 
-        // [GIVEN] Sales Order with "ServiceCommitmentItem"
+        // [GIVEN] Sales Order with "Subscription Item"
         LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Order, '');
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, "Sales Line Type"::Item, ServiceCommitmentItem."No.", 1);
 
-        // [GIVEN] Dimension "Dim1" value changed to "X" for the Sales Line
+        // [GIVEN] Dimension "Dim1" value changed from "A" to "X" for the Sales Line
         UpdateSalesLineDimension(SalesLine, ItemDimensions[1].Code, ItemDimensionValues[3].Code);
-
-        // [GIVEN] Dimension "Dim3" with value "C" added to the Sales Line
-        AddDimensionToSalesLine(SalesLine, SalesLineDimension.Code, SalesLineDimensionValue.Code);
 
         // [WHEN] Sales Order is shipped
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // Expected Dimensions and Values for Subscription Line:
-        //
-        // | Dimension | Dimension Values |
-        // |-----------|------------------|
-        // | Dim1      | A                |
-        // | Dim2      | B                |
-        // | Dim3      | C                |
+        // ┌───────────┬──────────────────┐
+        // │ Dimension │ Dimension Values │
+        // ├───────────┼──────────────────┤
+        // │ Dim1      │ X                │
+        // │ Dim2      │ B                │
+        // └───────────┴──────────────────┘
 
-        // [THEN] Subscription Line created with Dimension "Dim1" and value "A" and Dimension "Dim2" and value "B"
+        // [THEN] Subscription Line has dimensions-values combinations assigned: "Dim1"-"X", "Dim2"-"B"
         FindServiceCommitment(SalesHeader."Sell-to Customer No.", ServiceCommitment);
-        for Index := 1 to ArrayLen(ItemDimensions) do
-            VerifyDimensionSetValue(ServiceCommitment."Dimension Set ID", ItemDimensions[Index].Code, ItemDimensionValues[Index].Code);
 
-        // [THEN] Subscription Line created with Dimension "Dim3" and value "C"
-        VerifyDimensionSetValue(ServiceCommitment."Dimension Set ID", SalesLineDimension.Code, SalesLineDimensionValue.Code);
+        VerifyDimensionSetValue(ServiceCommitment."Dimension Set ID", ItemDimensions[1].Code, ItemDimensionValues[3].Code);
+        VerifyDimensionSetValue(ServiceCommitment."Dimension Set ID", ItemDimensions[2].Code, ItemDimensionValues[2].Code);
     end;
 
     [Test]
@@ -873,9 +870,12 @@ codeunit 148160 "Service Comm. Dimensions"
     #region Procedures
 
     local procedure Initialize()
+    var
+        BillingLine: Record "Billing Line";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Service Comm. Dimensions");
         ContractTestLibrary.InitContractsApp();
+        BillingLine.DeleteAll(false);
         ContractTestLibrary.InsertCustomerContractDimensionCode();
 
         ServiceContractSetup.Get();
@@ -890,21 +890,6 @@ codeunit 148160 "Service Comm. Dimensions"
         LibraryERMCountryData.CreateVATData();
         IsInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Service Comm. Dimensions");
-    end;
-
-    local procedure AddDimensionToSalesLine(var SalesLine: Record "Sales Line"; NewDimensionCode: Code[20]; NewDimensionValueCode: Code[20])
-    var
-        TempDimensionSetEntry: Record "Dimension Set Entry" temporary;
-        DimensionManagement: Codeunit DimensionManagement;
-    begin
-        DimensionManagement.GetDimensionSet(TempDimensionSetEntry, SalesLine."Dimension Set ID");
-        TempDimensionSetEntry.Init();
-        TempDimensionSetEntry."Dimension Set ID" := SalesLine."Dimension Set ID";
-        TempDimensionSetEntry.Validate("Dimension Code", NewDimensionCode);
-        TempDimensionSetEntry.Validate("Dimension Value Code", NewDimensionValueCode);
-        TempDimensionSetEntry.Insert(false);
-        SalesLine.Validate("Dimension Set ID", DimensionManagement.GetDimensionSetID(TempDimensionSetEntry));
-        SalesLine.Modify(true);
     end;
 
     local procedure CreateAndPostSalesOrder(var NewSalesHeader: Record "Sales Header"; var NewSalesLine: Record "Sales Line"; SellToCustomerNo: Code[20]; ItemNo: Code[20])
