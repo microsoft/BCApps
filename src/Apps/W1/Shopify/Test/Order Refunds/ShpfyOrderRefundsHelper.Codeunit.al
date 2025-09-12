@@ -43,10 +43,12 @@ codeunit 139564 "Shpfy Order Refunds Helper"
 
         ReturnId := CreateReturn(OrderId);
         CreateReturnLine(ReturnId, ShopifyIds.Get('OrderLine').Get(1), 'DEFECTIVE');
+        CreateUnverifiedReturnLine(ReturnId, 'DEFECTIVE');
         ShopifyIds.Get('Return').Add(ReturnId);
 
         ReturnId := CreateReturn(OrderId);
         CreateReturnLine(ReturnId, ShopifyIds.Get('OrderLine').Get(2), 'NOT_AS_DESCRIBED');
+        CreateUnverifiedReturnLine(ReturnId, 'NOT_AS_DESCRIBED');
         ShopifyIds.Get('Return').Add(ReturnId);
 
         RefundId := CreateRefundHeader(OrderId, ShopifyIds.Get('Return').Get(1), 156.38);
@@ -187,6 +189,7 @@ codeunit 139564 "Shpfy Order Refunds Helper"
     begin
         ReturnLine."Return Line Id" := Any.IntegerInRange(100000, 999999);
         ReturnLine."Return Id" := ReturnOrderId;
+        ReturnLine.Type := ReturnLine.Type::Default;
         ReturnLine."Fulfillment Line Id" := Any.IntegerInRange(100000, 999999);
         ReturnLine."Order Line Id" := OrderLineId;
         ReturnLine."Return Reason" := ReturnEnumConvertor.ConvertToReturnReason(ReturnReason);
@@ -198,6 +201,21 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         ReturnLine."Discounted Total Amount" := 156.38;
         ReturnLine.Insert();
         exit(ReturnLine."Return Line Id");
+    end;
+
+    internal procedure CreateUnverifiedReturnLine(ReturnId: BigInteger; ReturnReason: Text): BigInteger
+    var
+        ReturnLine: Record "Shpfy Return Line";
+        ReturnEnumConvertor: Codeunit "Shpfy Return Enum Convertor";
+    begin
+        ReturnLine."Return Line Id" := Any.IntegerInRange(100000, 999999);
+        ReturnLine."Return Id" := ReturnId;
+        ReturnLine.Type := ReturnLine.Type::Unverified;
+        ReturnLine."Return Reason" := ReturnEnumConvertor.ConvertToReturnReason(ReturnReason);
+        ReturnLine.Quantity := 1;
+        ReturnLine."Refundable Quantity" := 1;
+        ReturnLine."Refunded Quantity" := 0;
+        ReturnLine."Unit Price" := 156.38;
     end;
 
     internal procedure CreateRefundHeader(OrderId: BigInteger; ReturnId: BigInteger; Amount: Decimal): BigInteger
