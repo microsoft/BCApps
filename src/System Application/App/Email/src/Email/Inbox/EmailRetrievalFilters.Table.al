@@ -56,6 +56,11 @@ table 8885 "Email Retrieval Filters"
         {
             Caption = 'Last Message Only';
         }
+        field(9; "Folder Id"; Text[2048])
+        {
+            Caption = 'Folder Id';
+            DataClassification = CustomerContent;
+        }
     }
 
     keys
