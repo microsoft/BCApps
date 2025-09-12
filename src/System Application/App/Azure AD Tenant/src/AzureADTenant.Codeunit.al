@@ -61,5 +61,13 @@ codeunit 433 "Azure AD Tenant"
     begin
         exit(AzureADTenantImpl.GetPreferredLanguage());
     end;
-}
 
+    /// <summary>
+    /// Gets the Power Platform tenant URL.
+    /// </summary>
+    /// <returns>The Power Platform tenant URL. If AzureADTenantID is empty, it returns an empty string.</returns>
+    procedure GetPowerPlatformTenantURL(): Text
+    begin
+        exit(AzureADTenantImpl.GetPowerPlatformTenantURL());
+    end;
+}
