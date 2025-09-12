@@ -458,9 +458,6 @@ page 8887 "Email Accounts"
     var
         IConnector: Interface "Email Connector";
     begin
-        if EmailAccounts.IsEmpty() then
-            exit;
-
         if EmailAccounts.FindSet() then
             repeat
                 IConnector := EmailAccounts.Connector;

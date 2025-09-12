@@ -10,7 +10,7 @@ table 8884 "Email Folders"
 {
     Access = Public;
     TableType = Temporary;
-    DataClassification = SystemMetadata;
+    DataClassification = CustomerContent;
     InherentEntitlements = RIMDX;
     InherentPermissions = RIMDX;
 

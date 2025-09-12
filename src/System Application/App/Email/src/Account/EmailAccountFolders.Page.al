@@ -9,7 +9,6 @@ page 4444 "Email Account Folders"
 {
     PageType = List;
     ApplicationArea = All;
-    UsageCategory = Administration;
     SourceTable = "Email Folders";
     Editable = false;
 
