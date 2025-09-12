@@ -23,16 +23,16 @@ codeunit 7757 "Copilot Notifications"
         BillingInTheFutureNotificationGuidTok: Label 'cb577f99-d252-4de7-a1ab-922ac2af12b7', Locked = true;
         BillingInTheFutureNotificationMsg: Label 'By activating AI capabilities, you understand your organization may be billed for its use in the future.';
         BillingInTheFutureLearnMoreLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2302317', Locked = true;
-        AIQuotaUsedUpNotificationGuidTok: Label 'eced148b-4721-4ff9-b4c8-a8b5b1209692', Locked = true;
-        AIQuotaUsedUpNotificationMsg: Label 'AI capabilities are currently unavailable because your organization has used up its AI quota.';
+        CopilotCreditsCapacityUsedUpNotificationGuidTok: Label 'eced148b-4721-4ff9-b4c8-a8b5b1209692', Locked = true;
+        CopilotCreditsCapacityUsedUpNotificationMsg: Label 'AI capabilities are currently unavailable because your organization has used up its Copilot Credits capacity.';
         BCAdminCenterSaaSLinkTxt: Label '%1/admin', Comment = '%1 - BC url', Locked = true;
         LearnMoreLbl: Label 'Learn more', Locked = true;
-        AIQuotaUsedUpLearnMoreLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2302511', Locked = true;
-        AIQuotaUsedUpAdminMsg: Label 'AI capabilities in Business Central require AI quota.\\Your organization has used up its AI quota, so AI capabilities are currently unavailable.\\Would you like to open the Business Central administration center to set up billing?';
-        AIQuotaNearlyUsedUpNotificationGuidTok: Label '4a15b17c-1f88-4cc6-a342-4300ba400c8a', Locked = true;
-        AIQuotaNearlyUsedUpNotificationMsg: Label 'The AI quota in this environment is nearly used up. When it is, AI capabilities will be unavailable.';
-        AIQuotaNearlyUsedUpLearnMoreLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2302603', Locked = true;
-        AIQuotaNearlyUsedUpAdminMsg: Label 'AI capabilities in Business Central require AI quota, and your organization has a limited amount remaining.\\When it''s used up, AI capabilities will be unavailable until AI quota is available again.\\Would you like to open the Business Central administration center to set up billing?';
+        CopilotCreditsCapacityUsedUpLearnMoreLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2302511', Locked = true;
+        CopilotCreditsCapacityUsedUpAdminMsg: Label 'AI capabilities in Business Central require Copilot Credits capacity.\\Your organization has used up its Copilot Credits capacity, so AI capabilities are currently unavailable.\\Would you like to open the Business Central administration center to set up billing?';
+        CopilotCreditsCapacityNearlyUsedUpNotificationGuidTok: Label '4a15b17c-1f88-4cc6-a342-4300ba400c8a', Locked = true;
+        CopilotCreditsCapacityNearlyUsedUpNotificationMsg: Label 'The Copilot Credits capacity in this environment is nearly used up. When it is, AI capabilities will be unavailable.';
+        CopilotCreditsCapacityNearlyUsedUpLearnMoreLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2302603', Locked = true;
+        CopilotCreditsCapacityNearlyUsedUpAdminMsg: Label 'AI capabilities in Business Central require Copilot Credits capacity, and your organization has a limited amount remaining.\\When it''s used up, AI capabilities will be unavailable until Copilot Credits capacity is available again.\\Would you like to open the Business Central administration center to set up billing?';
         BingNudgeLbl: Label 'You''re missing out! Enabling Bing Search offers enhanced results.';
         BingNudgeGuidLbl: Label 'b08194f4-7904-4e2b-a08a-421da4391971', Locked = true;
         CapabilityChangeGuidLbl: Label '84a72fe7-e157-47a1-ac83-9ec2fe3649d1', Locked = true;
@@ -107,34 +107,34 @@ codeunit 7757 "Copilot Notifications"
 
     procedure ShowAIQuotaUsedUpNotification()
     var
-        AIQuotaUsedUpNotification: Notification;
+        CopilotCreditsCapacityUsedUpNotification: Notification;
     begin
-        AIQuotaUsedUpNotification.Id := AIQuotaUsedUpNotificationGuidTok;
-        AIQuotaUsedUpNotification.Message := AIQuotaUsedUpNotificationMsg;
-        AIQuotaUsedUpNotification.Scope := NotificationScope::LocalScope;
-        AIQuotaUsedUpNotification.AddAction(LearnMoreLbl, Codeunit::"Copilot Notifications", 'ShowAIQuotaUsedUpLearnMore');
-        AIQuotaUsedUpNotification.Send();
+        CopilotCreditsCapacityUsedUpNotification.Id := CopilotCreditsCapacityUsedUpNotificationGuidTok;
+        CopilotCreditsCapacityUsedUpNotification.Message := CopilotCreditsCapacityUsedUpNotificationMsg;
+        CopilotCreditsCapacityUsedUpNotification.Scope := NotificationScope::LocalScope;
+        CopilotCreditsCapacityUsedUpNotification.AddAction(LearnMoreLbl, Codeunit::"Copilot Notifications", 'ShowAIQuotaUsedUpLearnMore');
+        CopilotCreditsCapacityUsedUpNotification.Send();
     end;
 
     procedure ShowAIQuotaUsedUpLearnMore(AIQuotaUsedUpNotification: Notification)
     begin
         if CopilotCapabilityImpl.IsAdmin() then begin
-            if Dialog.Confirm(AIQuotaUsedUpAdminMsg) then
+            if Dialog.Confirm(CopilotCreditsCapacityUsedUpAdminMsg) then
                 OpenBCAdminCenter();
         end
         else
-            Hyperlink(AIQuotaUsedUpLearnMoreLinkLbl);
+            Hyperlink(CopilotCreditsCapacityUsedUpLearnMoreLinkLbl);
     end;
 
     procedure ShowAIQuotaNearlyUsedUpNotification()
     var
-        AIQuotaNearlyUsedUpNotification: Notification;
+        CopilotCreditsCapacityNearlyUsedUpNotification: Notification;
     begin
-        AIQuotaNearlyUsedUpNotification.Id := AIQuotaNearlyUsedUpNotificationGuidTok;
-        AIQuotaNearlyUsedUpNotification.Message := AIQuotaNearlyUsedUpNotificationMsg;
-        AIQuotaNearlyUsedUpNotification.Scope := NotificationScope::LocalScope;
-        AIQuotaNearlyUsedUpNotification.AddAction(LearnMoreLbl, Codeunit::"Copilot Notifications", 'ShowAIQuotaNearlyUsedUpLearnMore');
-        AIQuotaNearlyUsedUpNotification.Send();
+        CopilotCreditsCapacityNearlyUsedUpNotification.Id := CopilotCreditsCapacityNearlyUsedUpNotificationGuidTok;
+        CopilotCreditsCapacityNearlyUsedUpNotification.Message := CopilotCreditsCapacityNearlyUsedUpNotificationMsg;
+        CopilotCreditsCapacityNearlyUsedUpNotification.Scope := NotificationScope::LocalScope;
+        CopilotCreditsCapacityNearlyUsedUpNotification.AddAction(LearnMoreLbl, Codeunit::"Copilot Notifications", 'ShowAIQuotaNearlyUsedUpLearnMore');
+        CopilotCreditsCapacityNearlyUsedUpNotification.Send();
     end;
 
     procedure ShowBingSearchOptOutNudgeMessage()
@@ -161,11 +161,11 @@ codeunit 7757 "Copilot Notifications"
     procedure ShowAIQuotaNearlyUsedUpLearnMore(BingSearchNudgeNotification: Notification)
     begin
         if CopilotCapabilityImpl.IsAdmin() then begin
-            if Dialog.Confirm(AIQuotaNearlyUsedUpAdminMsg) then
+            if Dialog.Confirm(CopilotCreditsCapacityNearlyUsedUpAdminMsg) then
                 OpenBCAdminCenter();
         end
         else
-            Hyperlink(AIQuotaNearlyUsedUpLearnMoreLinkLbl);
+            Hyperlink(CopilotCreditsCapacityNearlyUsedUpLearnMoreLinkLbl);
     end;
 
     procedure ShowCapabilityChangeLearnMore(CapabilityChangeNotification: Notification)
