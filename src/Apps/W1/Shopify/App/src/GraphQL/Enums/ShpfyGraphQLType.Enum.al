@@ -655,4 +655,14 @@ enum 30111 "Shpfy GraphQL Type" implements "Shpfy IGraphQL"
         Caption = 'Next Get Catalog Markets';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextCatalogMarkets";
     }
+    value(133; GetCustomProductCollections)
+    {
+        Caption = 'Get Custom Product Collections';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CustProdCollections";
+    }
+    value(134; GetNextCustomProductCollections)
+    {
+        Caption = 'Get Next Custom Product Collections';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextCustProdColls";
+    }
 }
