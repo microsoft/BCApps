@@ -2103,6 +2103,8 @@ table 8057 "Subscription Header"
         ServiceObject.Type := ServiceObject.Type::Item;
         ServiceObject."Source No." := ItemNo;
         ServiceObject."Variant Code" := VariantCode;
+        if Item.IsVariantMandatory() then
+            ServiceObject.TestField("Variant Code");
         ServiceObject.Description := ContractsItemManagement.GetItemTranslation(ItemNo, VariantCode, CustomerContract."Sell-to Customer No.");
         ServiceObject."Unit of Measure" := Item."Base Unit of Measure";
         ServiceObject.Quantity := SourceQuantity;
