@@ -359,7 +359,7 @@ codeunit 30101 "Shpfy Background Syncs"
     internal procedure DisputesSync(var Shop: Record "Shpfy Shop")
     var
         Parameters: text;
-        PaymentParametersTxt: Label '<?xml version="1.0" standalone="yes"?><ReportParameters name="Shpfy Sync Disputes" id="30105"><DataItems><DataItem name="Shop">%1</DataItem></DataItems></ReportParameters>', Comment = '%1 = Shop Record View', Locked = true;
+        PaymentParametersTxt: Label '<?xml version="1.0" standalone="yes"?><ReportParameters name="Shpfy Sync Disputes" id="30120"><DataItems><DataItem name="Shop">%1</DataItem></DataItems></ReportParameters>', Comment = '%1 = Shop Record View', Locked = true;
     begin
         Shop.SetRange("Allow Background Syncs", true);
         if not Shop.IsEmpty then begin
