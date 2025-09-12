@@ -209,7 +209,7 @@ codeunit 139685 "Contract Test Library"
         CreateItemForServiceObject(NewItem, false, ItemServiceCommitmentType, Enum::"Item Type"::"Non-Inventory");
     end;
 
-    procedure CreateItemTranslation(var ItemTranslation: Record "Item Translation"; ItemNo: Code[20]; LanguageCode: Code[10])
+    procedure CreateItemTranslation(var ItemTranslation: Record "Item Translation"; ItemNo: Code[20]; VariantCode: Code[10]; LanguageCode: Code[10])
     var
         Language: Record Language;
     begin
@@ -221,6 +221,7 @@ codeunit 139685 "Contract Test Library"
 
         ItemTranslation.Init();
         ItemTranslation."Item No." := ItemNo;
+        ItemTranslation."Variant Code" := VariantCode;
         ItemTranslation."Language Code" := LanguageCode;
         ItemTranslation.Description := 'Translated Description';
         ItemTranslation.Insert(true);
