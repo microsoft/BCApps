@@ -106,7 +106,8 @@ page 8060 "Service Object"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ShowMandatory = VariantCodeMandatory;
-                    Visible = false;
+                    Importance = Additional;
+
                     ToolTip = 'Specifies the Variant Code of the Subscription.';
                     trigger OnValidate()
                     var
