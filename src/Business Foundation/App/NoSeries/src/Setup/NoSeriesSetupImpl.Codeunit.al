@@ -44,7 +44,7 @@ codeunit 305 "No. Series - Setup Impl."
         StartDate := NoSeriesLine."Starting Date";
         StartNo := NoSeriesLine."Starting No.";
         EndNo := NoSeriesLine."Ending No.";
-        LastNoUsed := NoSeries.GetLastNoUsed(NoSeriesLine."Series Code");
+        LastNoUsed := NoSeries.GetLastNoUsed(NoSeriesLine);
         WarningNo := NoSeriesLine."Warning No.";
         IncrementByNo := NoSeriesLine."Increment-by No.";
         LastDateUsed := NoSeriesLine."Last Date Used";
