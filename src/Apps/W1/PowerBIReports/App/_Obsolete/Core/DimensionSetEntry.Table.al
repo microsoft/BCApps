@@ -1,8 +1,8 @@
+#if not CLEANSCHEMA25
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-#if not CLEANSCHEMA25
 namespace Microsoft.PowerBIReports;
 
 #pragma warning disable AS0130
