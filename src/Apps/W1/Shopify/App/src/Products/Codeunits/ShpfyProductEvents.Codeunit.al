@@ -386,6 +386,17 @@ codeunit 30177 "Shpfy Product Events"
     end;
 
     /// <summary> 
+    /// Raised After Modify Item Variant Picture.
+    /// </summary>
+    /// <param name="ItemVariant">Parameter of type Record "Item Variant".</param>
+    /// <param name="ImageUrl">Parameter of type Text.</param>
+    /// <param name="InStream">Parameter of type InStream.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnAfterUpdateItemVariantPicture(var ItemVariant: Record "Item Variant"; ImageUrl: Text; InStream: InStream)
+    begin
+    end;
+
+    /// <summary> 
     /// Raised After Shopify Product fields are filled from Business Central Item. These fields are sent to Shopify when creating or updating a product.
     /// </summary>
     /// <param name="Item">Parameter of type Record Item.</param>
