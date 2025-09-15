@@ -29,7 +29,8 @@
     {
       "branches": [
         "main",
-        "releases/*.x"
+        "releases/*.x",
+        "private/aholstrup/*"
       ],
       "settings": {
         "buildModes": [
