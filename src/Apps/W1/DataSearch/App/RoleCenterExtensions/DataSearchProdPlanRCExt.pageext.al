@@ -1,4 +1,5 @@
 #pragma warning disable AA0247
+#pragma warning disable A0432
 pageextension 2682 "Data Search Prod. Plan. RC Ext" extends "Production Planner Role Center"
 {
     ObsoleteState = Pending;

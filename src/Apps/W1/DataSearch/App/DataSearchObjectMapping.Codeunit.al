@@ -800,6 +800,7 @@ codeunit 2685 "Data Search Object Mapping"
         RecRef.GetTable(Job);
     end;
 
+#pragma warning disable AL0801
     local procedure ProdOrderLineToHeader(var RecRef: RecordRef)
     var
         ProductionOrder: Record "Production Order";
@@ -829,6 +830,7 @@ codeunit 2685 "Data Search Object Mapping"
         RoutingHeader.Get(RoutingLine."Routing No.");
         RecRef.GetTable(RoutingHeader);
     end;
+#pragma warning restore AL0801
 
     local procedure WarehouseShipmentLineToHeader(var RecRef: RecordRef)
     var
