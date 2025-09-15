@@ -214,6 +214,35 @@ Get-Service docker
 - `SystemApplication.code-workspace` - VS Code workspace for System Application development
 - `BusinessFoundation.code-workspace` - VS Code workspace for Business Foundation
 
+## Key Repository Facts (Time-Saving Reference)
+
+**File Locations (Skip Searching):**
+- **Main ruleset:** `/src/rulesets/ruleset.json`
+- **AL-Go settings:** `/.github/AL-Go-Settings.json`
+- **Build entry point:** `/build.ps1`
+- **Dev environment script:** `/build/scripts/DevEnv/NewDevEnv.ps1`
+- **Test runner:** `/build/scripts/tests/runTests.ps1`
+- **System App manifest:** `/src/System Application/App/app.json`
+
+**Critical IDs and Versions:**
+- **Repository version:** 28.0 (Business Central)
+- **System Application ID:** `63ca2fa4-4f03-4f2b-a480-172fef340d3f`
+- **Template SHA:** `8edc212cf392aa985d35e99ae22756762607f974`
+- **AL-Go template:** microsoft/AL-Go-PTE@preview
+
+**Branch Strategy:**
+- **Main branch:** `main`
+- **Release branches:** `releases/*`
+- **Feature branches:** `features/*`
+- **CI triggers:** Push to main/releases, PRs to main/releases/features
+
+**Quality Gates:**
+- BCContainerHelper PowerShell module required
+- Preprocessor symbol validation (CLEAN## patterns)
+- All analyzers enabled: CodeCop, AppSourceCop, PTECop, UICop
+- Work item linkage mandatory for PRs
+- Code owner approval required
+
 ## Trust These Instructions
 
 **This document provides validated build and development procedures for the BCApps repository. Only perform additional exploration if:**
