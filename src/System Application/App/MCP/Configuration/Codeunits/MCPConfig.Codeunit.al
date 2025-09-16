@@ -13,6 +13,17 @@ codeunit 8200 "MCP Config"
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
 
+
+    /// <summary>
+    /// Retrieves the SystemId (GUID) of a configuration by its name.
+    /// </summary>
+    /// <param name="Name">The name of the configuration.</param>
+    /// <returns>The SystemId (GUID) of the configuration if found; otherwise, an empty GUID.</returns>
+    procedure GetConfigurationIdByName(Name: Text[100]): Guid
+    begin
+        exit(MCPConfigImplementation.GetConfigurationIdByName(Name));
+    end;
+
     /// <summary>
     /// Creates a new MCP configuration with the specified name and description.
     /// </summary>
@@ -28,36 +39,20 @@ codeunit 8200 "MCP Config"
     /// Activates the specified MCP configuration.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration to activate.</param>
-    procedure ActivateConfiguration(ConfigId: Guid)
+    /// <param name="Active">True to activate, false to deactivate.</param>
+    procedure ActivateConfiguration(ConfigId: Guid; Active: Boolean)
     begin
-        MCPConfigImplementation.ActivateConfiguration(ConfigId, true);
-    end;
-
-    /// <summary>
-    /// Deactivates the specified MCP configuration.
-    /// </summary>
-    /// <param name="ConfigId">The SystemId (GUID) of the configuration to deactivate.</param>
-    procedure DeactivateConfiguration(ConfigId: Guid)
-    begin
-        MCPConfigImplementation.ActivateConfiguration(ConfigId, false);
+        MCPConfigImplementation.ActivateConfiguration(ConfigId, Active);
     end;
 
     /// <summary>
     /// Allows production changes for the specified MCP configuration.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
-    procedure AllowProdChanges(ConfigId: Guid)
+    /// <param name="Allow">True to allow production changes, false to disallow.</param>
+    procedure AllowProdChanges(ConfigId: Guid; Allow: Boolean)
     begin
-        MCPConfigImplementation.AllowProdChanges(ConfigId, true);
-    end;
-
-    /// <summary>
-    /// Disallows production changes for the specified MCP configuration.
-    /// </summary>
-    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
-    procedure DisallowProdChanges(ConfigId: Guid)
-    begin
-        MCPConfigImplementation.AllowProdChanges(ConfigId, false);
+        MCPConfigImplementation.AllowProdChanges(ConfigId, Allow);
     end;
 
     /// <summary>
@@ -73,18 +68,10 @@ codeunit 8200 "MCP Config"
     /// Enables dynamic tool mode for the specified configuration.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
-    procedure EnableDynamicToolMode(ConfigId: Guid)
+    /// <param name="Enable">True to enable, false to disable.</param>
+    procedure EnableDynamicToolMode(ConfigId: Guid; Enable: Boolean)
     begin
-        MCPConfigImplementation.EnableDynamicToolMode(ConfigId, true);
-    end;
-
-    /// <summary>
-    /// Disables dynamic tool mode for the specified configuration.
-    /// </summary>
-    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
-    procedure DisableDynamicToolMode(ConfigId: Guid)
-    begin
-        MCPConfigImplementation.EnableDynamicToolMode(ConfigId, false);
+        MCPConfigImplementation.EnableDynamicToolMode(ConfigId, Enable);
     end;
 
     /// <summary>
@@ -96,6 +83,17 @@ codeunit 8200 "MCP Config"
     procedure CreateAPITool(ConfigId: Guid; APIPageId: Integer): Guid
     begin
         exit(MCPConfigImplementation.CreateAPITool(ConfigId, APIPageId));
+    end;
+
+    /// <summary>
+    /// Retrieves the SystemId (GUID) of a tool by its configuration ID and API page
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="APIPageId">The ID of the API page.</param>
+    /// <returns>The SystemId (GUID) of the tool if found; otherwise, an empty GUID.</returns>
+    procedure GetAPIToolId(ConfigId: Guid; APIPageId: Integer): Guid
+    begin
+        exit(MCPConfigImplementation.GetAPIToolId(ConfigId, APIPageId));
     end;
 
     /// <summary>
