@@ -447,7 +447,7 @@ codeunit 134245 "Shpfy Company Mapping Test"
     begin
         Id := Any.IntegerInRange(10000, 99999);
         ShopifyCompany.SetRange(Id, Id);
-        ShopifyCompany.Delete();
+        ShopifyCompany.DeleteAll();
         ShopifyCompany.Init();
         ShopifyCompany.Id := Id;
         ShopifyCompany."Shop Code" := Shop."Code";
@@ -485,7 +485,7 @@ codeunit 134245 "Shpfy Company Mapping Test"
     begin
         Id := Any.IntegerInRange(10000, 99999);
         ShopifyCustomer.SetRange(Id, Id);
-        ShopifyCustomer.Delete();
+        ShopifyCustomer.DeleteAll();
         ShopifyCustomer.Init();
         ShopifyCustomer.Id := Id;
         ShopifyCustomer.Insert(false);
