@@ -162,7 +162,7 @@ table 8064 "Billing Line Archive"
         field(63; "Billing Reference Date Changed"; Boolean)
         {
             Caption = 'Billing Reference Date Changed';
-            ToolTip = 'Specifies whether the Billing Reference Date has changed.';
+            ToolTip = 'Specifies whether the billing period has been adjusted manually. This is taken into account by the period calculation and may have an effect on the creation of future billing proposals.';
         }
         field(100; "Billing Template Code"; Code[20])
         {

@@ -490,7 +490,7 @@ codeunit 8062 "Billing Proposal"
         if ServiceCommitment.IsPartnerCustomer() then begin
             CustomerContract.Get(ServiceCommitment."Subscription Contract No.");
             if CustomerContract.IsContractTypeSetAsHarmonizedBilling() then
-                HarmonizeNextBillingTo(CustomerContract."Next Billing To", NextBillingToDate, BillingFromDate);
+                HarmonizeNextBillingTo(CustomerContract."Next Billing To", NextBillingToDate);
         end;
 
         OnAfterCalculateNextBillingToDateForSubscriptionLine(NextBillingToDate, ServiceCommitment, BillingFromDate);
@@ -556,7 +556,7 @@ codeunit 8062 "Billing Proposal"
             until BillingLine2.Next() = 0;
     end;
 
-    local procedure HarmonizeNextBillingTo(CustomerContractNextBillingTo: Date; var NextBillingToDate: Date; BillingFromDate: Date)
+    local procedure HarmonizeNextBillingTo(CustomerContractNextBillingTo: Date; var NextBillingToDate: Date)
     begin
         if CustomerContractNextBillingTo = 0D then
             exit;
