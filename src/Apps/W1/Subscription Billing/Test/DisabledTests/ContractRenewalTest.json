@@ -82,5 +82,17 @@
     "codeunitId": 139692,
     "codeunitName": "Contract Renewal Test",
     "method": "TestSalesQuoteToOrderYesNoForContractRenewal"
+  },
+  {
+    "bug": "603387",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "AllowSelectionOfResponsibilityCenterInContractRenewalSalesDocuments"
+  },
+  {
+    "bug": "603387",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "PreventExistingDimensionsInContractRenewalSalesDocumentsWhenResponsibilityCenterIsChanged"
   }
 ]
