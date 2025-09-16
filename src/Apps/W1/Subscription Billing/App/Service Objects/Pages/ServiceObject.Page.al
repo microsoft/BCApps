@@ -107,6 +107,7 @@ page 8060 "Service Object"
                 {
                     ShowMandatory = VariantCodeMandatory;
                     Importance = Additional;
+                    Enabled = Rec.Type = Rec.Type::Item;
 
                     ToolTip = 'Specifies the Variant Code of the Subscription.';
                     trigger OnValidate()

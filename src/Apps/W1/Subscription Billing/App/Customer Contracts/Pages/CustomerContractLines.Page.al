@@ -89,7 +89,9 @@ page 8075 "Customer Contract Lines"
                 }
                 field("Service Object Quantity"; ContractLineQty)
                 {
+                    Caption = 'Quantity';
                     ToolTip = 'Specifies the number of units of Subscription.';
+                    AutoFormatType = 0;
 
                     trigger OnDrillDown()
                     begin

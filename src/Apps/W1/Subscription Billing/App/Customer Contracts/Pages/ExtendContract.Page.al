@@ -175,7 +175,6 @@ page 8002 "Extend Contract"
 
                     trigger OnValidate()
                     var
-                        Item: Record Item;
                         ItemVariant: Record "Item Variant";
                     begin
                         if ItemNo = '' then
