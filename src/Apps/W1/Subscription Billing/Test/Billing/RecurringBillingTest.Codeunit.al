@@ -62,9 +62,10 @@ codeunit 139688 "Recurring Billing Test"
         IsInitialized: Boolean;
         PostedDocumentNo: Code[20];
         StrMenuHandlerStep: Integer;
-        BillingProposalNotCreatedErr: Label 'Billing proposal not created.';
+        BillingProposalNotCreatedErr: Label 'Billing proposal not created.', Locked = true;
         RecurringBillingPage: TestPage "Recurring Billing";
         IsPartnerVendor: Boolean;
+        PostDocuments: Boolean;
 
     #region Tests
 
@@ -1269,6 +1270,39 @@ codeunit 139688 "Recurring Billing Test"
     end;
 
     [Test]
+    [HandlerFunctions('CreateBillingDocsCustomerPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler,BillingTemplateModalPageHandler')]
+    procedure ClearCustomFilterWhenCreateDocuments()
+    var
+        EntryNo: Integer;
+    begin
+        // [SCENARIO] When document is created and posted from DYCE Recurring billing page, make sure that filters are cleared in the background;
+        // [SCENARIO] otherwise, all billing lines will not be included in the document which will lead to wrong invoices and corrupted billing lines
+        Initialize();
+
+        RecurringBillingPageSetupForCustomer();
+
+        // [GIVEN] Get the last billing line to exclude it from posting
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.FindLast();
+        EntryNo := BillingLine."Entry No.";
+
+        // [WHEN] Filter billing lines to exclude the last line and create/post documents
+        RecurringBillingPage.OpenEdit();
+        RecurringBillingPage.BillingTemplateField.Lookup();
+        PostDocuments := true;
+        RecurringBillingPage.CreateBillingProposalAction.Invoke();
+        RecurringBillingPage.Filter.SetFilter("Entry No.", '<>' + Format(EntryNo));
+        RecurringBillingPage.CreateDocuments.Invoke();
+        Commit();
+
+        // [THEN] All billing lines should be cleared from the proposal after posting
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        Assert.RecordIsEmpty(BillingLine);
+    end;
+
+    [Test]
     procedure CreateBillingTemplate()
     var
         FilterText: Text;
@@ -1407,6 +1441,7 @@ codeunit 139688 "Recurring Billing Test"
     local procedure BillingLinesArchiveSetup()
     begin
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.", true);
+        ContractTestLibrary.DisableDeferralsForCustomerContract(CustomerContract, false);
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
 
         BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
@@ -1425,6 +1460,7 @@ codeunit 139688 "Recurring Billing Test"
     local procedure BillingLinesArchiveSetupForPurchaseDocs()
     begin
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.", true);
+        ContractTestLibrary.DisableDeferralsForVendorContract(VendorContract, false);
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
 
         BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
@@ -1723,6 +1759,7 @@ codeunit 139688 "Recurring Billing Test"
     [ModalPageHandler]
     procedure CreateBillingDocsCustomerPageHandler(var CreateBillingDocsCustomerPage: TestPage "Create Customer Billing Docs")
     begin
+        CreateBillingDocsCustomerPage.PostDocuments.SetValue(PostDocuments);
         CreateBillingDocsCustomerPage.OK().Invoke();
     end;
 

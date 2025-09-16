@@ -90,7 +90,7 @@ codeunit 139912 "Customer Deferrals Test"
                     end;
                 else begin
                     CustomerContractDeferral.TestField(Amount, MonthlyDefBaseAmount * -1);
-                    CustomerContractDeferral.TestField("Number of Days", Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1));
+                    CustomerContractDeferral.TestField("Number of Days", CalcDate('<CM>', CustomerContractDeferral."Posting Date").Day());
                 end;
             end;
             CustomerContractDeferral.Next();
@@ -122,7 +122,7 @@ codeunit 139912 "Customer Deferrals Test"
                     end;
                 else begin
                     CustomerContractDeferral.TestField(Amount, MonthlyDefBaseAmount * -1);
-                    CustomerContractDeferral.TestField("Number of Days", Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1));
+                    CustomerContractDeferral.TestField("Number of Days", CalcDate('<CM>', CustomerContractDeferral."Posting Date").Day());
                 end;
             end;
             CustomerContractDeferral.Next();
@@ -156,7 +156,7 @@ codeunit 139912 "Customer Deferrals Test"
                     end;
                 else begin
                     CustomerContractDeferral.TestField(Amount, MonthlyDefBaseAmount * -1);
-                    CustomerContractDeferral.TestField("Number of Days", Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1));
+                    CustomerContractDeferral.TestField("Number of Days", CalcDate('<CM>', CustomerContractDeferral."Posting Date").Day());
                 end;
             end;
             CustomerContractDeferral.Next();
@@ -188,7 +188,7 @@ codeunit 139912 "Customer Deferrals Test"
                     end;
                 else begin
                     CustomerContractDeferral.TestField(Amount, MonthlyDefBaseAmount * -1);
-                    CustomerContractDeferral.TestField("Number of Days", Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1));
+                    CustomerContractDeferral.TestField("Number of Days", CalcDate('<CM>', CustomerContractDeferral."Posting Date").Day());
                 end;
             end;
             CustomerContractDeferral.Next();
@@ -213,7 +213,7 @@ codeunit 139912 "Customer Deferrals Test"
             CustomerContractDeferral.TestField(
                 "Deferral Base Amount",
                 Round(CurrExchRate.ExchangeAmtFCYToLCY(SalesHeader."Posting Date", SalesHeader."Currency Code", -60, SalesHeader."Currency Factor"), GLSetup."Amount Rounding Precision"));
-            CustomerContractDeferral.TestField("Number of Days", Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1));
+            CustomerContractDeferral.TestField("Number of Days", CalcDate('<CM>', CustomerContractDeferral."Posting Date").Day());
         until CustomerContractDeferral.Next() = 0;
     end;
 
@@ -230,7 +230,7 @@ codeunit 139912 "Customer Deferrals Test"
             TestCustomerContractDeferralsFields();
             CustomerContractDeferral.TestField(Amount, -10);
             CustomerContractDeferral.TestField("Deferral Base Amount", -120);
-            CustomerContractDeferral.TestField("Number of Days", Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1));
+            CustomerContractDeferral.TestField("Number of Days", CalcDate('<CM>', CustomerContractDeferral."Posting Date").Day());
         until CustomerContractDeferral.Next() = 0;
     end;
 
@@ -833,10 +833,8 @@ codeunit 139912 "Customer Deferrals Test"
         SubscriptionLine: Record "Subscription Line";
     begin
         CreateCustomerContractWithDeferrals('<2M-CM>', true);
+        ContractTestLibrary.DisableDeferralsForCustomerContract(CustomerContract, false);
         CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
-
-        CustomerContract."Create Contract Deferrals" := false;
-        CustomerContract.Modify(false);
 
         SubscriptionLine.SetRange(Partner, SubscriptionLine.Partner::Customer);
         SubscriptionLine.SetRange("Subscription Contract No.", CustomerContract."No.");

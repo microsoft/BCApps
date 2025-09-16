@@ -148,7 +148,6 @@ page 4307 "Agent Task Timeline"
                 trigger OnAction()
                 var
                     UserInterventionRequestEntry: Record "Agent Task Log Entry";
-                    AgentTaskImpl: Codeunit "Agent Task Impl.";
                 begin
                     if UserInterventionRequestEntry.Get(Rec."Task ID", Rec."Last Log Entry ID") then
                         if UserInterventionRequestEntry.Type = "Agent Task Log Entry Type"::"User Intervention Request" then
