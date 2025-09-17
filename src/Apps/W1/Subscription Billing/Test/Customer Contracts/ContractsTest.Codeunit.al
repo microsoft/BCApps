@@ -613,6 +613,7 @@ codeunit 148155 "Contracts Test"
         CustomerContractLine: Record "Cust. Sub. Contract Line";
         ServiceCommitment: Record "Subscription Line";
         ServiceObject: Record "Subscription Header";
+        SubscriptionLineDisconnectErr: Label 'Subscription Line should be disconnected from the contract after Type has changed.', Locked = true;
         EntryNo: Integer;
     begin
         // [SCENARIO] Subscription Line should be disconnected from the contract when the line type changes
@@ -634,7 +635,7 @@ codeunit 148155 "Contracts Test"
 
         // [THEN] The Subscription Line should be disconnected from the contract
         ServiceCommitment.Get(EntryNo);
-        ServiceCommitment.TestField("Subscription Contract No.", '');
+        Assert.AreEqual('', ServiceCommitment."Subscription Contract No.", SubscriptionLineDisconnectErr);
     end;
 
     [Test]
@@ -645,6 +646,7 @@ codeunit 148155 "Contracts Test"
         CustomerContractLine: Record "Cust. Sub. Contract Line";
         ServiceCommitment: Record "Subscription Line";
         ServiceObject: Record "Subscription Header";
+        SubscriptionLineDisconnectErr: Label 'Subscription Line should be disconnected from the contract after No. has changed.', Locked = true;
         EntryNo: Integer;
     begin
         // [SCENARIO] Subscription Line should be disconnected from the contract when the Item No. is cleared
@@ -666,7 +668,7 @@ codeunit 148155 "Contracts Test"
 
         // [THEN] The Subscription Line should be disconnected from the contract
         ServiceCommitment.Get(EntryNo);
-        ServiceCommitment.TestField("Subscription Contract No.", '');
+        Assert.AreEqual('', ServiceCommitment."Subscription Contract No.", SubscriptionLineDisconnectErr);
     end;
 
     [Test]

@@ -337,6 +337,7 @@ codeunit 148154 "Vendor Contracts Test"
     procedure ContractLineDisconnectServiceOnTypeChange()
     var
         EntryNo: Integer;
+        SubscriptionLineDisconnectErr: Label 'Subscription Line should be disconnected from the contract after Type has changed.', Locked = true;
     begin
         // [SCENARIO] Subscription Line should be disconnected from the contract when the line type changes
         Initialize();
@@ -358,7 +359,7 @@ codeunit 148154 "Vendor Contracts Test"
 
         // [THEN] The Subscription Line should be disconnected from the contract
         ServiceCommitment.Get(EntryNo);
-        ServiceCommitment.TestField("Subscription Contract No.", '');
+        AssertThat.AreEqual('', ServiceCommitment."Subscription Contract No.", SubscriptionLineDisconnectErr);
     end;
 
     [Test]
@@ -366,6 +367,7 @@ codeunit 148154 "Vendor Contracts Test"
     procedure ContractLineDisconnectServiceOnNoChange()
     var
         EntryNo: Integer;
+        SubscriptionLineDisconnectErr: Label 'Subscription Line should be disconnected from the contract after No. has changed.', Locked = true;
     begin
         // [SCENARIO] Subscription Line should be disconnected from the contract when the Item No. is cleared
         Initialize();
@@ -387,7 +389,7 @@ codeunit 148154 "Vendor Contracts Test"
 
         // [THEN] The Subscription Line should be disconnected from the contract
         ServiceCommitment.Get(EntryNo);
-        ServiceCommitment.TestField("Subscription Contract No.", '');
+        AssertThat.AreEqual('', ServiceCommitment."Subscription Contract No.", SubscriptionLineDisconnectErr);
     end;
 
     [Test]
