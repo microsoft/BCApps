@@ -361,8 +361,11 @@ page 8078 "Vendor Contract Line Subpage"
                 }
                 field(Discount; ServiceCommitment.Discount)
                 {
-                    Editable = false;
                     ToolTip = 'Specifies whether the Subscription Line is used as a basis for periodic invoicing or discounts.';
+                    trigger OnValidate()
+                    begin
+                        UpdateServiceCommitmentOnPage(ServiceCommitment.FieldNo("Exclude from Price Update"));
+                    end;
                 }
                 field("Create Contract Deferrals"; ServiceCommitment."Create Contract Deferrals")
                 {
