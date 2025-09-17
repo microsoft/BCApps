@@ -5,7 +5,7 @@
 
 namespace System.TestLibraries.MCP;
 
-permissionset 130130 "Mock API - Edit"
+permissionset 130131 "Mock API - Edit"
 {
     Access = Internal;
     Assignable = true;
