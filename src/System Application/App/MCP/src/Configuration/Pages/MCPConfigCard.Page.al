@@ -14,6 +14,8 @@ page 8201 "MCP Config Card"
     SourceTable = "MCP Configuration";
     Caption = 'MCP Configuration';
     Extensible = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

@@ -11,6 +11,8 @@ using System.Reflection;
 codeunit 8201 "MCP Config Implementation"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
     var

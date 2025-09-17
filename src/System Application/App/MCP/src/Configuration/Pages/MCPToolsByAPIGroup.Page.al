@@ -8,6 +8,8 @@ namespace System.MCP;
 page 8204 "MCP Tools By API Group"
 {
     PageType = StandardDialog;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

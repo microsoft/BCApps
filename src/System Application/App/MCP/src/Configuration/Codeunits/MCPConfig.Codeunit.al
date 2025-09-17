@@ -10,9 +10,12 @@ namespace System.MCP;
 /// </summary>
 codeunit 8200 "MCP Config"
 {
+    Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
-
 
     /// <summary>
     /// Retrieves the SystemId (GUID) of a configuration by its name.

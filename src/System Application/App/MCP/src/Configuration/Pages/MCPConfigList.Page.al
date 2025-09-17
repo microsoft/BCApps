@@ -15,6 +15,8 @@ page 8200 "MCP Config List"
     Caption = 'MCP Configurations';
     Editable = false;
     Extensible = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

@@ -14,6 +14,8 @@ page 8203 "MCP API Config Tool Lookup"
     SourceTable = "Page Metadata";
     Caption = 'MCP API Tools';
     Extensible = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

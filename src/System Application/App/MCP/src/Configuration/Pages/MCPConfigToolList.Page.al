@@ -16,6 +16,8 @@ page 8202 "MCP Config Tool List"
     DelayedInsert = true;
     MultipleNewLines = true;
     Extensible = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {
