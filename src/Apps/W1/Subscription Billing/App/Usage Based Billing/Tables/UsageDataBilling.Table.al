@@ -275,6 +275,16 @@ table 8006 "Usage Data Billing"
         {
             Caption = 'Rebilling';
         }
+        field(35; "Product ID"; Text[80])
+        {
+            Caption = 'Product Id';
+            ToolTip = 'Specifies the unique ID of the product for this subscription with the supplier.';
+        }
+        field(36; "Product Name"; Text[100])
+        {
+            Caption = 'Product Name';
+            ToolTip = 'Specifies the vendor''s product name for this subscription.';
+        }
     }
     keys
     {
@@ -347,20 +357,22 @@ table 8006 "Usage Data Billing"
         end;
     end;
 
-    internal procedure InitFrom(UsageDataImportEntryNo: Integer; ServiceObjectNo: Code[20]; BillingPeriodStartDate: Date;
-                        BillingPeriodEndDate: Date; UnitCost: Decimal; NewQuantity: Decimal; CostAmount: Decimal; UnitPrice: Decimal;
-                        NewAmount: Decimal; CurrencyCode: Code[10])
+    internal procedure InitFrom(UsageDataImportEntryNo: Integer; SubscriptionHeaderNo: Code[20]; ProductID: Text[80]; ProductName: Text[100];
+        BillingPeriodStartDate: Date; BillingPeriodEndDate: Date; UnitCost: Decimal; NewQuantity: Decimal; CostAmount: Decimal;
+        UnitPrice: Decimal; NewAmount: Decimal; CurrencyCode: Code[10])
     begin
         Rec.Init();
         Rec."Entry No." := 0;
         Rec."Usage Data Import Entry No." := UsageDataImportEntryNo;
-        Rec."Subscription Header No." := ServiceObjectNo;
+        Rec."Subscription Header No." := SubscriptionHeaderNo;
+        Rec."Product ID" := ProductID;
+        Rec."Product Name" := ProductName;
         Rec."Charge Start Date" := BillingPeriodStartDate;
         Rec."Charge End Date" := BillingPeriodEndDate;
         Rec."Unit Cost" := UnitCost;
         Rec.Quantity := NewQuantity;
         if CostAmount = 0 then
-            Rec."Cost Amount" := NewQuantity * unitCost
+            Rec."Cost Amount" := NewQuantity * UnitCost
         else
             Rec."Cost Amount" := CostAmount;
         Rec."Unit Price" := UnitPrice;
