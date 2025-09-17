@@ -12,6 +12,17 @@ codeunit 8201 "MCP Config Implementation"
 {
     Access = Internal;
 
+    internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        EmptyGuid: Guid;
+    begin
+        if MCPConfiguration.Get(Name) then
+            exit(MCPConfiguration.SystemId);
+
+        exit(EmptyGuid);
+    end;
+
     internal procedure CreateConfiguration(Name: Text[100]; Description: Text[250]): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -64,6 +75,17 @@ codeunit 8201 "MCP Config Implementation"
         MCPConfigurationTool."Object ID" := APIPageId;
         MCPConfigurationTool.Insert();
         exit(MCPConfigurationTool.SystemId);
+    end;
+
+    internal procedure GetAPIToolId(ConfigId: Guid; APIPageId: Integer): Guid
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        EmptyGuid: Guid;
+    begin
+        if MCPConfigurationTool.Get(ConfigId, MCPConfigurationTool."Object Type"::Page, APIPageId) then
+            exit(MCPConfigurationTool.SystemId);
+
+        exit(EmptyGuid);
     end;
 
     internal procedure EnableDynamicToolMode(ConfigId: Guid; Enable: Boolean)

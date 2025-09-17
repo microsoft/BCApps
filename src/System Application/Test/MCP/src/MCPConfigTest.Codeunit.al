@@ -51,7 +51,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId := CreateMCPConfig(false, false);
 
         // [WHEN] Activate configuration is called
-        MCPConfig.ActivateConfiguration(ConfigId);
+        MCPConfig.ActivateConfiguration(ConfigId, true);
 
         // [THEN] Configuration is activated
         MCPConfiguration.GetBySystemId(ConfigId);
@@ -68,7 +68,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId := CreateMCPConfig(true, false);
 
         // [WHEN] Deactivate configuration is called
-        MCPConfig.DeactivateConfiguration(ConfigId);
+        MCPConfig.ActivateConfiguration(ConfigId, false);
 
         // [THEN] Configuration is deactivated
         MCPConfiguration.GetBySystemId(ConfigId);
@@ -85,7 +85,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId := CreateMCPConfig(false, false);
 
         // [WHEN] Enable tool search mode is called
-        MCPConfig.EnableDynamicToolMode(ConfigId);
+        MCPConfig.EnableDynamicToolMode(ConfigId, true);
 
         // [THEN] Dynamic tool mode is enabled
         MCPConfiguration.GetBySystemId(ConfigId);
@@ -102,7 +102,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId := CreateMCPConfig(false, true);
 
         // [WHEN] Disable dynamic tool mode is called
-        MCPConfig.DisableDynamicToolMode(ConfigId);
+        MCPConfig.EnableDynamicToolMode(ConfigId, false);
 
         // [THEN] Dynamic tool mode is disabled
         MCPConfiguration.GetBySystemId(ConfigId);
@@ -129,7 +129,7 @@ codeunit 130130 "MCP Config Test"
         Assert.ExpectedError('Production changes are not allowed for this MCP configuration.');
 
         // [GIVEN] Production changes are allowed
-        MCPConfig.AllowProdChanges(ConfigId);
+        MCPConfig.AllowProdChanges(ConfigId, true);
 
         // [WHEN] Allow create is called
         MCPConfig.AllowCreate(ToolId, true);
