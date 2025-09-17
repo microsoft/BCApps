@@ -62,10 +62,19 @@ codeunit 3705 "Azure AD Tenant Impl."
         Error(PreferredLanguageErr);
     end;
 
+    procedure GetPowerPlatformTenantURL(): Text
+    var
+        PowerPlatformApiWrapper: dotnet "PowerPlatformApiWrapper";
+    begin
+        if GetAadTenantId() = '' then
+            exit('');
+
+        exit(PowerPlatformApiWrapper.GetPowerPlatformTenantUrl(GetAadTenantId()));
+    end;
+
     local procedure Initialize()
     begin
         if IsNull(TenantInfo) then
             AzureADGraph.GetTenantDetail(TenantInfo);
     end;
 }
-
