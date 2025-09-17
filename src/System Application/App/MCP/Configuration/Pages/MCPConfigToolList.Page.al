@@ -122,6 +122,11 @@ page 8202 "MCP Config Tool List"
         GetAllowProdChanges();
     end;
 
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Rec."Allow Read" := true;
+    end;
+
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         IsSandbox: Boolean;

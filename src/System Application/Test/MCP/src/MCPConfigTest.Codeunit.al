@@ -6,7 +6,6 @@
 namespace System.Test.MCP;
 
 using System.MCP;
-using System.TestLibraries.Environment;
 using System.TestLibraries.MCP;
 using System.TestLibraries.Utilities;
 
@@ -48,7 +47,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(false, false);
+        ConfigId := CreateMCPConfig(false, false, true);
 
         // [WHEN] Activate configuration is called
         MCPConfig.ActivateConfiguration(ConfigId, true);
@@ -65,7 +64,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(true, false);
+        ConfigId := CreateMCPConfig(true, false, true);
 
         // [WHEN] Deactivate configuration is called
         MCPConfig.ActivateConfiguration(ConfigId, false);
@@ -82,7 +81,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(false, false);
+        ConfigId := CreateMCPConfig(false, false, true);
 
         // [WHEN] Enable tool search mode is called
         MCPConfig.EnableDynamicToolMode(ConfigId, true);
@@ -99,7 +98,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(false, true);
+        ConfigId := CreateMCPConfig(false, true, true);
 
         // [WHEN] Disable dynamic tool mode is called
         MCPConfig.EnableDynamicToolMode(ConfigId, false);
@@ -113,14 +112,13 @@ codeunit 130130 "MCP Config Test"
     procedure TestAllowProdChanges()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         ConfigId: Guid;
         ToolId: Guid;
     begin
         // [GIVEN] Configuration and tool is created
-        ConfigId := CreateMCPConfig(false, false);
+        ConfigId := CreateMCPConfig(false, false, false);
         ToolId := CreateMCPConfigTool(ConfigId);
-        EnvironmentInfoTestLibrary.SetTestabilitySandbox(true);
+        Commit();
 
         // [WHEN] Allow create is called
         asserterror MCPConfig.AllowCreate(ToolId, true);
@@ -137,8 +135,6 @@ codeunit 130130 "MCP Config Test"
         // [THEN] Allow create is set to true
         MCPConfigurationTool.GetBySystemId(ToolId);
         Assert.IsTrue(MCPConfigurationTool."Allow Create", 'Allow Create is not true');
-
-        EnvironmentInfoTestLibrary.SetTestabilitySandbox(false); // Reset to default
     end;
 
     [Test]
@@ -149,7 +145,7 @@ codeunit 130130 "MCP Config Test"
         ToolId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(false, true);
+        ConfigId := CreateMCPConfig(false, true, true);
 
         // [WHEN] Create API tool is called
         ToolId := MCPConfig.CreateAPITool(ConfigId, Page::"Mock API");
@@ -172,7 +168,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(false, false);
+        ConfigId := CreateMCPConfig(false, false, true);
 
         // [WHEN] Create API tool is called with non API page
         asserterror MCPConfig.CreateAPITool(ConfigId, Page::"Mock Card");
@@ -188,7 +184,7 @@ codeunit 130130 "MCP Config Test"
         ToolId: Guid;
     begin
         // [GIVEN] Configuration tool is created
-        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false));
+        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true));
 
         // [WHEN] Allow Read is set to false
         MCPConfig.AllowRead(ToolId, false);
@@ -205,7 +201,7 @@ codeunit 130130 "MCP Config Test"
         ToolId: Guid;
     begin
         // [GIVEN] Configuration tool is created
-        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false));
+        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true));
 
         // [WHEN] Allow Create is set to true
         MCPConfig.AllowCreate(ToolId, true);
@@ -222,7 +218,7 @@ codeunit 130130 "MCP Config Test"
         ToolId: Guid;
     begin
         // [GIVEN] Configuration tool is created
-        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false));
+        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true));
 
         // [WHEN] Allow Modify is set to true
         MCPConfig.AllowModify(ToolId, true);
@@ -239,7 +235,7 @@ codeunit 130130 "MCP Config Test"
         ToolId: Guid;
     begin
         // [GIVEN] Configuration tool is created
-        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false));
+        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true));
 
         // [WHEN] Allow Delete is set to true
         MCPConfig.AllowDelete(ToolId, true);
@@ -256,7 +252,7 @@ codeunit 130130 "MCP Config Test"
         ToolId: Guid;
     begin
         // [GIVEN] Configuration tool is created
-        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false));
+        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true));
 
         // [WHEN] Allow Bound Actions is set to true
         MCPConfig.AllowBoundActions(ToolId, true);
@@ -290,7 +286,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(false, false);
+        ConfigId := CreateMCPConfig(false, false, true);
 
         // [WHEN] Tools are added by API group
         MCPConfigTestLibrary.AddToolsByAPIGroup(ConfigId);
@@ -304,7 +300,7 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions is not true');
     end;
 
-    local procedure CreateMCPConfig(Active: Boolean; ToolSearchMode: Boolean): Guid
+    local procedure CreateMCPConfig(Active: Boolean; ToolSearchMode: Boolean; AllowProdChanges: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
@@ -312,6 +308,7 @@ codeunit 130130 "MCP Config Test"
         MCPConfiguration.Description := CopyStr(Any.AlphabeticText(250), 1, 250);
         MCPConfiguration.Active := Active;
         MCPConfiguration.EnableDynamicToolMode := ToolSearchMode;
+        MCPConfiguration.AllowProdChanges := AllowProdChanges;
         MCPConfiguration.Insert();
         exit(MCPConfiguration.SystemId);
     end;

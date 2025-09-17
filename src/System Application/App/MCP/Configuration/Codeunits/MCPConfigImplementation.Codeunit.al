@@ -73,6 +73,7 @@ codeunit 8201 "MCP Config Implementation"
         MCPConfigurationTool.ID := ConfigId;
         MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
         MCPConfigurationTool."Object ID" := APIPageId;
+        MCPConfigurationTool."Allow Read" := true;
         MCPConfigurationTool.Insert();
         exit(MCPConfigurationTool.SystemId);
     end;
