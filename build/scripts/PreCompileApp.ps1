@@ -10,6 +10,11 @@ Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
 
 $appBuildMode = Get-BuildMode
 
+if (-not (Get-Command al -ErrorAction SilentlyContinue)) {
+    dotnet tool install --global Microsoft.Dynamics.BusinessCentral.Development.Tools --version 17.0.27.27275-beta
+}
+
+
 if($appType -eq 'app')
 {
     # Setup compiler features to generate captions and LCGs
@@ -103,7 +108,8 @@ if($appType -eq 'app')
             Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
 
             Get-ChildItem -Path $parameters.Value["appSymbolsFolder"] -Filter *.app | ForEach-Object {
-                Write-Host "App file in symbols folder: $($_.FullName)"
+                $appInfo = al GetPackageManifest $appFile.FullName | ConvertFrom-Json
+                Write-Host "App file in symbols folder: $($_.FullName) - App version: $($appInfo.Version)"
             }
         }
     }
