@@ -119,8 +119,7 @@ codeunit 6420 "ForNAV Peppol AAD App"
 
     local procedure GetPermissionSets() PermissionSets: List of [Code[20]]
     begin
-        PermissionSets.Add('ForNAV Peppol Setup');
-        PermissionSets.Add('FORNAV ENDPOINT');
+        PermissionSets.Add('ForNAV E-Doc API');
     end;
 
     local procedure GetClientId() Id: Guid

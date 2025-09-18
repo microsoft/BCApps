@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 using System.Security.AccessControl;
-permissionsetextension 6411 "ForNAV Peppol D365 BASIC" extends "D365 READ"
+permissionsetextension 6411 "FORNAV Peppol D365 BASIC" extends "D365 BASIC"
 {
-    IncludedPermissionSets = "ForNAV EDoc Inc Read";
+    IncludedPermissionSets = "FORNAV E-Doc User";
 }

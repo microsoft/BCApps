@@ -3,12 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
-using Microsoft.eServices.EDocument;
-
-permissionset 6413 "ForNAV EDoc Edit"
+using System.Security.AccessControl;
+permissionset 6411 "FORNAV E-Doc API"
 {
-    Access = Public;
+    Access = Internal;
     Assignable = true;
-
-    IncludedPermissionSets = "E-Doc. Core - User", "ForNAV EDoc Inc Read";
+    IncludedPermissionSets = "D365 BUS FULL ACCESS";
 }

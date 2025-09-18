@@ -4,12 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 using System.Security.AccessControl;
-permissionset 6411 "ForNAV EDoc Endpoint"
+permissionsetextension 6414 "FORNAV Peppol D365 BUS FULL ACCESS" extends "D365 BUS FULL ACCESS"
 {
-    Access = Internal;
-    Assignable = true;
-    IncludedPermissionSets = LOGIN, "D365 BASIC", Microsoft.eServices.EDocument."E-Doc. Core - User", SUPER;
-    Permissions =
-        page "ForNAV Incoming E-Docs Api" = X,
-        tabledata "ForNAV Incoming E-Document" = RIMD;
+    IncludedPermissionSets = "FORNAV E-Doc Admin";
 }
