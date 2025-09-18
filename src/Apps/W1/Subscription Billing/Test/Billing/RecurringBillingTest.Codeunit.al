@@ -129,8 +129,6 @@ codeunit 139688 "Recurring Billing Test"
     [Test]
     procedure BillFullQuarterWhenServiceStartDateIsThreeDaysBeforeFebruaryEndsOnLeapYearWithPartialBillingAlignedToEndOfMonth()
     var
-        ServiceCommitmentPackageLine: Record "Subscription Package Line";
-        EndDate: Date;
         StartDate: Date;
     begin
         // [SCENARIO] When Customer Subscription Contract has Subscription Line Start Date at the three days before the end of February in a leap year, the proposed billing lines should cover the whole period when services are billed partially
