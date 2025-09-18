@@ -474,7 +474,6 @@ codeunit 148155 "Contracts Test"
         CustomerContractPage: TestPage "Customer Contract";
         DescriptionText: Text;
         ServiceObjectQuantity: Decimal;
-        VariantCode: Code[10];
     begin
         // [SCENARIO] Assign Subscription Lines to Customer Subscription Contract Lines. Change values on Customer Subscription Contract Lines and check that Subscription Line has changed values.
         Initialize();
