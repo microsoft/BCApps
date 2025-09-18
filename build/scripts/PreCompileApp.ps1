@@ -70,6 +70,7 @@ if($appType -eq 'app')
                 $tempParameters["appOutputFolder"] = $defaultSymbolsPath # Output the default app into the default symbols folder
                 $tempParameters["appSymbolsFolder"] = $defaultSymbolsPath # Use the default symbols folder as appSymbolsFolder
 
+                Write-Host "[DEBUG] Compiling app from appProjectFolder: $($tempParameters["appProjectFolder"])"
                 if($useCompilerFolder) {
                     Compile-AppWithBcCompilerFolder @tempParameters | Out-Null
                 }
