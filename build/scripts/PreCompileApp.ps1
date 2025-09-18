@@ -108,7 +108,7 @@ if($appType -eq 'app')
             Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
 
             Get-ChildItem -Path $parameters.Value["appSymbolsFolder"] -Filter *.app | ForEach-Object {
-                $appInfo = al GetPackageManifest $appFile.FullName | ConvertFrom-Json
+                $appInfo = al GetPackageManifest $_.FullName | ConvertFrom-Json
                 Write-Host "App file in symbols folder: $($_.FullName) - App version: $($appInfo.Version)"
             }
         }
