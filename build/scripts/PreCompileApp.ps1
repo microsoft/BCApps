@@ -78,13 +78,12 @@ if($appType -eq 'app')
                     Compile-AppInBcContainer @tempParameters | Out-Null
                 }
 
+                $appName = (Get-Content -Path (Join-Path $tempParameters["appProjectFolder"] "app.json" -Resolve) | ConvertFrom-Json).Name
                 # Copy the the generated app to the symbols folder for the CLEAN mode build
                 Get-ChildItem -Path $parameters.Value["appSymbolsFolder"] -Filter "Microsoft_$($appName)*.app" | ForEach-Object {
                     Write-Host "[Debug] Removing existing app file in symbols folder: $($_.FullName)"
                     Remove-Item -Path $_.FullName -Force
                 }
-
-                $appName = (Get-Content -Path (Join-Path $tempParameters["appProjectFolder"] "app.json" -Resolve) | ConvertFrom-Json).Name
                 $appFile = Get-ChildItem -Path $tempParameters["appOutputFolder"] -Filter "Microsoft_$($appName)*.app" | Select-Object -First 1
                 $location = Join-Path $parameters.Value["appSymbolsFolder"] "$($appName)_clean.app"
                 Write-Host "Copying $($appFile.FullName) to $location"
