@@ -1,5 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Inventory.Item;
+
 page 8080 "Closed Cust. Cont. Line Subp."
 {
     PageType = ListPart;
@@ -32,6 +34,14 @@ page 8080 "Closed Cust. Cont. Line Subp."
                 {
                     ToolTip = 'Specifies the No. of the Item or G/L Account of the Subscription.';
                     Editable = false;
+                }
+                field("Variant Code"; VariantCode)
+                {
+                    Caption = 'Variant Code';
+                    ToolTip = 'Specifies the Variant Code of the Subscription.';
+                    Visible = false;
+                    Editable = false;
+                    TableRelation = "Item Variant".Code where("Item No." = field("No."));
                 }
                 field("Invoicing Item No."; ServiceCommitment."Invoicing Item No.")
                 {
@@ -89,10 +99,12 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     ToolTip = 'Specifies the description of the Subscription Line.';
                     Editable = false;
                 }
-                field("Service Object Quantity"; Rec."Service Object Quantity")
+                field("Service Object Quantity"; ContractLineQty)
                 {
-                    Editable = false;
+                    Caption = 'Quantity';
                     ToolTip = 'Specifies the number of units of Subscription.';
+                    Editable = false;
+                    AutoFormatType = 0;
 
                     trigger OnDrillDown()
                     begin
@@ -298,6 +310,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
     begin
         InitializePageVariables();
         Rec.LoadServiceCommitmentForContractLine(ServiceCommitment);
+        LoadQuantityForContractLine();
+        VariantCode := ServiceObject."Variant Code";
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -310,10 +324,24 @@ page 8080 "Closed Cust. Cont. Line Subp."
         ServiceCommitment: Record "Subscription Line";
         ServiceObject: Record "Subscription Header";
         ContractsGeneralMgt: Codeunit "Sub. Contracts General Mgt.";
+        ContractLineQty: Decimal;
+        VariantCode: Code[10];
 
     local procedure InitializePageVariables()
     begin
         Rec.GetServiceCommitment(ServiceCommitment);
         Rec.GetServiceObject(ServiceObject);
+    end;
+
+    local procedure LoadQuantityForContractLine()
+    begin
+        ContractLineQty := ServiceObject.Quantity;
+        OnAfterLoadQuantityForContractLine(Rec, ServiceObject, ContractLineQty);
+    end;
+
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterLoadQuantityForContractLine(CustSubContractLine: Record "Cust. Sub. Contract Line"; SubscriptionHeader: Record "Subscription Header"; var ContractLineQty: Decimal)
+    begin
     end;
 }

@@ -434,6 +434,14 @@ table 8059 "Subscription Line"
         {
             Caption = 'Period Calculation';
         }
+        field(60; "Variant Code"; Code[10])
+        {
+            Caption = 'Variant Code';
+            ToolTip = 'Specifies the Variant Code of the Subscription.';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Subscription Header"."Variant Code" where("No." = field("Subscription Header No.")));
+            Editable = false;
+        }
         field(107; "Closed"; Boolean)
         {
             Caption = 'Closed';
@@ -1002,7 +1010,13 @@ table 8059 "Subscription Line"
                     ServiceCommitment.SetRange("Subscription Header No.", Rec."Subscription Header No.");
                     if ServiceCommitment.Count > 1 then
                         Message(MultipleServiceCommitmentsUpdatedMsg, Rec."Subscription Header No.");
-                end
+                end;
+            FieldNo("Variant Code"):
+                begin
+                    ServiceObject.Get(Rec."Subscription Header No.");
+                    ServiceObject.Validate("Variant Code", "Variant Code");
+                    ServiceObject.Modify(true);
+                end;
             else begin
                 case CalledByFieldNo of
                     FieldNo("Invoicing Item No."):

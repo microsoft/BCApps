@@ -1473,7 +1473,7 @@ codeunit 148157 "Service Object Test"
 
         // [GIVEN] Create: Language, Subscription Item with translation defined
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
-        ContractTestLibrary.CreateItemTranslation(ItemTranslation, Item."No.", '');
+        ContractTestLibrary.CreateItemTranslation(ItemTranslation, Item."No.", '', '');
 
         // [WHEN] Create Subscription without End User
         ContractTestLibrary.CreateServiceObjectForItem(ServiceObject, Item, false);
@@ -1495,7 +1495,7 @@ codeunit 148157 "Service Object Test"
 
         // [GIVEN] Create: Language, Subscription Item with translation defined, Customer with Language Code, Subscription with End User
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
-        ContractTestLibrary.CreateItemTranslation(ItemTranslation, Item."No.", '');
+        ContractTestLibrary.CreateItemTranslation(ItemTranslation, Item."No.", '', '');
         LibrarySales.CreateCustomer(Customer);
         Customer."Language Code" := ItemTranslation."Language Code";
         Customer.Modify(false);

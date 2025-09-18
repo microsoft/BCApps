@@ -1,6 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.Dimension;
+using Microsoft.Inventory.Item;
 
 page 8068 "Customer Contract Line Subp."
 {
@@ -34,6 +35,20 @@ page 8068 "Customer Contract Line Subp."
                     begin
                         CurrPage.Update();
                     end;
+                }
+                field("Variant Code"; VariantCode)
+                {
+                    Caption = 'Variant Code';
+                    ToolTip = 'Specifies the Variant Code of the Subscription.';
+                    Visible = false;
+                    TableRelation = "Item Variant".Code where("Item No." = field("No."), Blocked = const(false));
+
+                    trigger OnValidate()
+                    begin
+                        ServiceCommitment."Variant Code" := VariantCode;
+                        UpdateServiceCommitmentOnPage(ServiceCommitment.FieldNo("Variant Code"));
+                    end;
+
                 }
                 field("Invoicing Item No."; ServiceCommitment."Invoicing Item No.")
                 {
@@ -552,6 +567,7 @@ page 8068 "Customer Contract Line Subp."
         SetNextBillingDateStyle();
         Rec.LoadServiceCommitmentForContractLine(ServiceCommitment);
         LoadQuantityForContractLine();
+        VariantCode := ServiceObject."Variant Code";
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -572,6 +588,7 @@ page 8068 "Customer Contract Line Subp."
         ContractsGeneralMgt: Codeunit "Sub. Contracts General Mgt.";
         NextBillingDateStyleExpr: Text;
         ContractLineQty: Decimal;
+        VariantCode: Code[10];
         IsDiscountLine: Boolean;
         IsCommentLineEditable: Boolean;
         UsageDataEnabled: Boolean;
