@@ -134,7 +134,6 @@ codeunit 134245 "Shpfy Company Mapping Test"
         ShopifyCompany: Record "Shpfy Company";
         TempShopifyCustomer: Record "Shpfy Customer" temporary;
         ShopifyCustomer: Record "Shpfy Customer";
-        ShopifyCustomerId: BigInteger;
         FindMappingResult: Boolean;
         EmptyGuid: Guid;
     begin
@@ -148,10 +147,9 @@ codeunit 134245 "Shpfy Company Mapping Test"
         // [GIVEN] Shopify Company with customer system id
         CreateShopifyCompanyWithCustomerSysId(ShopifyCompany, EmptyGuid);
         // [GIVEN] Shopify Customer
-        ShopifyCustomerId := Any.IntegerInRange(10000, 99999);
-        CreateShopifyCustomer(ShopifyCustomer, ShopifyCustomerId);
+        CreateShopifyCustomer(ShopifyCustomer);
         // [GIVEN] TempShopifyCustomer
-        CreateTempShopifyCustomer(TempShopifyCustomer, ShopifyCustomerId);
+        CreateTempShopifyCustomer(TempShopifyCustomer, ShopifyCustomer.Id);
 
         // [WHEN] FindMapping is invoked
         InvokeFindMapping(ShopifyCompany, TempShopifyCustomer, FindMappingResult);
@@ -160,7 +158,7 @@ codeunit 134245 "Shpfy Company Mapping Test"
         LibraryAssert.IsTrue(FindMappingResult, 'Mapping was not found.');
         // [THEN] Main Contact Customer Id is the same as the Shopify Customer id
         ShopifyCompany.Get(ShopifyCompany.Id);
-        LibraryAssert.AreEqual(ShopifyCustomerId, ShopifyCompany."Main Contact Customer Id", 'Main contact customer Id different than customer id.');
+        LibraryAssert.AreEqual(ShopifyCustomer.Id, ShopifyCompany."Main Contact Customer Id", 'Main contact customer Id different than customer id.');
         // [THEN] Shopify company customer system id is the same as the customer record
         LibraryAssert.AreEqual(Customer.SystemId, ShopifyCompany."Customer SystemId", 'Customer system Id not transferred to shopify company.');
     end;
@@ -317,7 +315,7 @@ codeunit 134245 "Shpfy Company Mapping Test"
         // [GIVEN] Customer with Registration No.
         CreateCustomerWithRegistrationNo(Customer);
         // [GIVEN] Shopify Customer
-        CreateShopifyCustomer(ShopifyCustomer, 0);
+        CreateShopifyCustomer(ShopifyCustomer);
         // [GIVEN] TempShopifyCustomer
         CreateTempShopifyCustomer(TempShopifyCustomer, ShopifyCustomer.Id);
         // [GIVEN] Shopify Company with empty guid for customer system id
@@ -361,7 +359,7 @@ codeunit 134245 "Shpfy Company Mapping Test"
         // [GIVEN] Company Location with Tax Registration Id
         CreateCompanyLocationWithTaxId(ShopifyCompany, Customer."VAT Registration No.");
         // [GIVEN] Shopify Customer
-        CreateShopifyCustomer(ShopifyCustomer, 0);
+        CreateShopifyCustomer(ShopifyCustomer);
         // [GIVEN] TempShopifyCustomer
         CreateTempShopifyCustomer(TempShopifyCustomer, ShopifyCustomer.Id);
 
@@ -444,9 +442,14 @@ codeunit 134245 "Shpfy Company Mapping Test"
     end;
 
     local procedure CreateShopifyCompanyWithCustomerSysId(var ShopifyCompany: Record "Shpfy Company"; CustomerSystemId: Guid)
+    var
+        Id: BigInteger;
     begin
+        Id := Any.IntegerInRange(10000, 99999);
+        ShopifyCompany.SetRange(Id, Id);
+        ShopifyCompany.DeleteAll();
         ShopifyCompany.Init();
-        ShopifyCompany.Id := Any.IntegerInRange(10000, 99999);
+        ShopifyCompany.Id := Id;
         ShopifyCompany."Shop Code" := Shop."Code";
         ShopifyCompany."Customer SystemId" := CustomerSystemId;
         ShopifyCompany.Insert(false);
@@ -476,13 +479,15 @@ codeunit 134245 "Shpfy Company Mapping Test"
         TempShopifyCustomer.Insert(false);
     end;
 
-    local procedure CreateShopifyCustomer(var ShopifyCustomer: Record "Shpfy Customer"; Id: BigInteger)
+    local procedure CreateShopifyCustomer(var ShopifyCustomer: Record "Shpfy Customer")
+    var
+        Id: BigInteger;
     begin
+        Id := Any.IntegerInRange(10000, 99999);
+        ShopifyCustomer.SetRange(Id, Id);
+        ShopifyCustomer.DeleteAll();
         ShopifyCustomer.Init();
-        if Id <> 0 then
-            ShopifyCustomer.Id := Id
-        else
-            ShopifyCustomer.Id := Any.IntegerInRange(10000, 99999);
+        ShopifyCustomer.Id := Id;
         ShopifyCustomer.Insert(false);
     end;
 
