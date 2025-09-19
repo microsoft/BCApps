@@ -22,7 +22,6 @@ x86/
 bld/
 [Bb]in/
 [Oo]bj/
-[Ll]og/
 [Oo]ut/
 .artifactsCache
 
@@ -67,7 +66,6 @@ artifacts/
 *.tlh
 *.tmp
 *.tmp_proj
-*.log
 *.vspscc
 *.vssscc
 .builds
