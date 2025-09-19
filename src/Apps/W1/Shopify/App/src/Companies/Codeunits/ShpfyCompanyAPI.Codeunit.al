@@ -523,7 +523,7 @@ codeunit 30286 "Shpfy Company API"
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQuery.ToText());
         if JResponse.SelectToken('$.data.companyLocationCreate.companyLocation', JCompanyLocation) then
             if not JsonHelper.IsTokenNull(JCompanyLocation) then begin
-                LocationId := CreateCustomerLocation(JCompanyLocation.AsObject(), ShopifyCompany, Customer.SystemId);
+                LocationId := CreateCustomerLocation(JCompanyLocation.AsObject(), ShopifyCompany, Customer);
                 if JsonHelper.GetJsonArray(JCompanyLocation, JContactRoles, 'company.contactRoles.edges') then begin
                     foreach JItem in JContactRoles do
                         CompanyContactRoles.Add(JsonHelper.GetValueAsText(JItem, 'node.name'), CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JItem, 'node.id')));
@@ -540,7 +540,7 @@ codeunit 30286 "Shpfy Company API"
     /// </summary>
     /// <param name="JCompanyLocation">JSON object containing the company location data from Shopify API response.</param>
     /// <param name="ShopifyCompany">The parent Shopify company record.</param>
-    /// <param name="CustomerId">The GUID of the Business Central customer that was exported.</param>
+    /// <param name="Customer">The Business Central customer record used to populate additional fields.</param>
     /// <remarks>
     /// This procedure:
     /// - Extracts the Shopify-generated ID and creates the initial record
@@ -552,7 +552,7 @@ codeunit 30286 "Shpfy Company API"
     /// The procedure assumes the JSON structure matches Shopify's companyLocationCreate response format.
     /// All text fields are properly truncated to match the field lengths in the table definition.
     /// </remarks>
-    local procedure CreateCustomerLocation(JCompanyLocation: JsonObject; ShopifyCompany: Record "Shpfy Company"; CustomerId: Guid): BigInteger
+    local procedure CreateCustomerLocation(JCompanyLocation: JsonObject; ShopifyCompany: Record "Shpfy Company"; Customer: Record Customer): BigInteger
     var
         CompanyLocation: Record "Shpfy Company Location";
         CompanyLocationId: BigInteger;
@@ -580,7 +580,10 @@ codeunit 30286 "Shpfy Company API"
 #pragma warning restore AA0139
         CompanyLocation.Recipient := CopyStr(JsonHelper.GetValueAsText(JCompanyLocation, 'billingAddress.recipient', MaxStrLen(CompanyLocation.Recipient)), 1, MaxStrLen(CompanyLocation.Recipient));
         CompanyLocation."Shpfy Payment Terms Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JCompanyLocation, 'buyerExperienceConfiguration.paymentTermsTemplate.id'));
-        CompanyLocation."Customer Id" := CustomerId;
+        CompanyLocation."Customer Id" := Customer.SystemId;
+        CompanyLocation."Sell-to Customer No." := Customer."No.";
+        if Customer."Bill-to Customer No." <> '' then
+            CompanyLocation."Bill-to Customer No." := Customer."Bill-to Customer No.";
         CompanyLocation.Modify(true);
         exit(CompanyLocationId);
     end;
