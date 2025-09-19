@@ -23,6 +23,7 @@ codeunit 139608 "Shpfy Orders API Test"
     var
         LibraryAssert: Codeunit "Library Assert";
         LibraryRandom: Codeunit "Library - Random";
+        OrdersAPISubscriber: Codeunit "Shpfy Orders API Subscriber";
         Any: Codeunit Any;
 
     [Test]
@@ -236,6 +237,41 @@ codeunit 139608 "Shpfy Orders API Test"
 
         // [THEN] The result must be true if everthing is mapped.
         LibraryAssert.IsTrue(Result, 'Order Mapping must succeed.');
+    end;
+
+    [Test]
+    procedure UnitTestDoMappingsOnAB2BShopifyOrderImportLocation()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        CompanyLocation: Record "Shpfy Company Location";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrderMapping: Codeunit "Shpfy Order Mapping";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] Creating a random Shopify Order and try to map customer and product data.
+        // [SCENARIO] If everithing succeed the function will return true.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Company Mapping Type" := "Shpfy Company Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, true);
+        OrderHeader."Company Location Id" := Any.IntegerInRange(100000, 999999);
+        OrderHeader.Modify();
+        OrdersAPISubscriber.SetLocationId(OrderHeader."Company Location Id");
+
+        // [WHEN] ShpfyOrderMapping.DoMapping(ShpfyOrderHeader)
+        OrderMapping.DoMapping(OrderHeader);
+
+        // [THEN] Company Location must be mapped correctly
+        CompanyLocation.Get(OrderHeader."Company Location Id");
     end;
 
     [Test]
@@ -811,8 +847,6 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     local procedure Initialize()
-    var
-        OrdersAPISubscriber: Codeunit "Shpfy Orders API Subscriber";
     begin
         Codeunit.Run(Codeunit::"Shpfy Initialize Test");
         if BindSubscription(OrdersAPISubscriber) then;
