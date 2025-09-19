@@ -17,6 +17,11 @@ page 30149 "Shpfy Return Lines"
         {
             repeater(General)
             {
+                field(Type; Rec.Type)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the type of return line.';
+                }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = All;
@@ -66,6 +71,11 @@ page 30149 "Shpfy Return Lines"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the unit of measurement.';
+                }
+                field("Unit Price"; Rec."Unit Price")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the price of a single unit of the item.';
                 }
             }
             group(ReturnReason)
