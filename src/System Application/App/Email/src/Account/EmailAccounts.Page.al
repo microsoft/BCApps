@@ -412,10 +412,16 @@ page 8887 "Email Accounts"
         IsSelected := not IsNullGuid(SelectedAccountId);
 
         EmailAccount.GetAllAccounts(true, Rec); // Refresh the email accounts
+#if not CLEAN28
+#pragma warning disable AL0432
         if V2V3Filter then
             FilterToConnectorv2v3Accounts(Rec);
         if V3Filter then
             FilterToConnectorv3Accounts(Rec);
+#pragma warning restore AL0432
+#endif
+        if V4Filter then
+            FilterToConnectorv4Accounts(Rec);
 
         EmailScenario.GetDefaultEmailAccount(DefaultEmailAccount); // Refresh the default email account
 
@@ -430,6 +436,8 @@ page 8887 "Email Accounts"
         CurrPage.Update(false);
     end;
 
+#if not CLEAN28
+    [Obsolete('Replaced by FilterToConnectorv4Accounts which only returns v4 accounts.', '28.0')]
     local procedure FilterToConnectorv3Accounts(var EmailAccounts: Record "Email Account")
     var
         IConnector: Interface "Email Connector";
@@ -444,7 +452,21 @@ page 8887 "Email Accounts"
                     EmailAccounts.Delete();
             until EmailAccounts.Next() = 0;
     end;
+#endif
 
+    local procedure FilterToConnectorv4Accounts(var EmailAccounts: Record "Email Account")
+    var
+        IConnector: Interface "Email Connector";
+    begin
+        if EmailAccounts.FindSet() then
+            repeat
+                IConnector := EmailAccounts.Connector;
+                if not (IConnector is "Email Connector v4") then
+                    EmailAccounts.Delete();
+            until EmailAccounts.Next() = 0;
+    end;
+#if not CLEAN28
+    [Obsolete('Replaced by FilterToConnectorv4Accounts which only returns v4 accounts.', '28.0')]
     local procedure FilterToConnectorv2v3Accounts(var EmailAccounts: Record "Email Account")
     var
         IConnector: Interface "Email Connector";
@@ -457,7 +479,7 @@ page 8887 "Email Accounts"
 
 #if not CLEAN26
 #pragma warning disable AL0432
-            if not (IConnector is "Email Connector v2") and not (IConnector is "Email Connector v3") then
+            if not (IConnector is "Email Connector v2") and not (IConnector is "Email Connector v3") and not (IConnector is "Email Connector v4") then
 #pragma warning restore AL0432
 #else
             if not (IConnector is "Email Connector v3") then
@@ -466,6 +488,7 @@ page 8887 "Email Accounts"
 
         until EmailAccounts.Next() = 0;
     end;
+#endif
 
     local procedure ShowAccountInformation()
     var
@@ -537,6 +560,15 @@ page 8887 "Email Accounts"
         V3Filter := Version3;
     end;
 
+    /// <summary>
+    /// Filters the email accounts to only show accounts using the Email Connector v4.
+    /// </summary>
+    /// <param name="UseFilter"></param>
+    procedure FilterConnectorV4Accounts(UseFilter: Boolean)
+    begin
+        V4Filter := UseFilter;
+    end;
+
     var
         DefaultEmailAccount: Record "Email Account";
         EmailAccountImpl: Codeunit "Email Account Impl.";
@@ -551,5 +583,6 @@ page 8887 "Email Accounts"
         IsLookupMode: Boolean;
         HasEmailAccount: Boolean;
         V2V3Filter, V3Filter : Boolean;
+        V4Filter: Boolean;
         EmailConnectorHasBeenUninstalledMsg: Label 'The selected email extension has been uninstalled. To view information about the email account, you must reinstall the extension.';
 }
