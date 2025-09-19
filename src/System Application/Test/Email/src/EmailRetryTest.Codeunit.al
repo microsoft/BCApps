@@ -816,6 +816,7 @@ codeunit 134703 "Email Retry Test"
         EmailOutbox.Validate(Description, EmailDescription);
         EmailOutbox.Validate("User Security Id", UserSecurityId);
         EmailOutbox.Validate("Send From", EmailAddress);
+        EmailOutbox.Validate("Date Sending", CurrentDateTime());
         EmailOutbox.Validate(Status, Status);
         EmailOutbox.Validate("Retry No.", RetryCount);
         EmailOutbox.Validate("Is Background Task", IsBackground);
