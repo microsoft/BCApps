@@ -435,7 +435,6 @@ codeunit 134703 "Email Retry Test"
 
     [Test]
     [Scope('OnPrem')]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure SendEmailMessageForegroundExceedingMaxConcurrencyTest()
     var
         TempAccount: Record "Email Account" temporary;
@@ -460,6 +459,68 @@ codeunit 134703 "Email Retry Test"
         SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Queued, 0, false);
 
         // [When] The 11st email is sent from the foreground
+        EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
+        EmailOutbox.FindFirst();
+        OriginalScheduledDateTime := EmailOutbox."Date Sending";
+        OriginalTaskId := EmailOutbox."Task Scheduler Id";
+        Codeunit.Run(Codeunit::"Email Dispatcher", EmailOutbox);
+
+        // [Then] The sending task is rescheduled, and the email outbox entry is updated with the error message and status
+        Assert.AreNotEqual(OriginalScheduledDateTime, EmailOutbox."Date Sending", 'The Date Sending should be updated');
+        Assert.AreNotEqual(OriginalTaskId, EmailOutbox."Task Scheduler Id", 'The Task Scheduler Id should be updated');
+        Assert.AreEqual(EmailOutbox.Status, EmailOutbox.Status::Queued, 'The status should not be Processing');
+    end;
+
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SendEmailMessageForegroundWithTimeOneHourEarlierTest()
+    var
+        TempAccount: Record "Email Account" temporary;
+        EmailOutbox: Record "Email Outbox";
+        Any: Codeunit Any;
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+        OriginalScheduledDateTime: DateTime;
+        OriginalTaskId: Guid;
+    begin
+        // [Bug] 603459 [IcM] Job queue task failed but email stuck with status "Processing"
+        // [Scenario] When there have been 10 emails in email outbox, but 9 of them are sent just now and 1 is sent 1 hour ago, then schedule the 11st email from foreground should be successful. 
+        // But the 12th email should be rescheduled.
+        PermissionsMock.Set('Email Edit');
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(TempAccount);
+        UpdateEmailMaxAttemptNo(TempAccount."Account Id", 10);
+
+        // [Given] Ten email messages and an email account are created
+        CreateEmailMessageAndEmailOutboxRecord(10, TempAccount, false);
+
+        //[Given] The first email is sent 2 hours ago
+        EmailOutbox.FindFirst();
+        EmailOutbox."Date Sending" := EmailOutbox."Date Sending" - 7200000; // 2 hours in milliseconds
+        EmailOutbox.Modify();
+
+        // [Given] The 11th email is created and sent from the foreground
+        EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+        SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Queued, 0, false);
+
+        // [When] The 11th email is sent from the foreground
+        EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
+        EmailOutbox.FindFirst();
+        OriginalScheduledDateTime := EmailOutbox."Date Sending";
+        OriginalTaskId := EmailOutbox."Task Scheduler Id";
+        Codeunit.Run(Codeunit::"Email Dispatcher", EmailOutbox);
+
+        // [Then] The sending task is rescheduled, and the email outbox entry is updated with the error message and status
+        Assert.AreEqual(OriginalScheduledDateTime, EmailOutbox."Date Sending", 'The Date Sending should not be updated');
+        Assert.AreEqual(OriginalTaskId, EmailOutbox."Task Scheduler Id", 'The Task Scheduler Id should not be updated');
+        Assert.AreEqual(EmailOutbox.Status, EmailOutbox.Status::Processing, 'The status should be Processing');
+
+        // [Given] The 12th email is created and sent from the foreground
+        EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+        SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Queued, 0, false);
+
+        // [When] The 12th email is sent from the foreground
         EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
         EmailOutbox.FindFirst();
         OriginalScheduledDateTime := EmailOutbox."Date Sending";
