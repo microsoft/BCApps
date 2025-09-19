@@ -1,0 +1,2262 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.caption" xml:space="preserve">
+    <value>Vare</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.7f576aa0-bece-4d63-a336-8865d2a88e79.caption" xml:space="preserve">
+    <value>Varenr. og -beskrivelse</value>
+    <comment>table [Item] column [Item No. &amp; Description]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.43269098-0a62-455b-a4ea-96aac55ce085.caption" xml:space="preserve">
+    <value>Varenr.</value>
+    <comment>table [Item] column [Item No.]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.d7164614-9624-4262-ad0b-2dbaf3c99005.caption" xml:space="preserve">
+    <value>Varebeskrivelse</value>
+    <comment>table [Item] column [Item Description]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.19e28380-9aba-4ce5-8448-b5560e460e66.caption" xml:space="preserve">
+    <value>Enhetskost for vare (lokal valuta)</value>
+    <comment>table [Item] column [Item Unit Cost (LCY)]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.83eb9ecb-bcfe-41b2-8a32-0b64163b5471.caption" xml:space="preserve">
+    <value>Bokføringsgruppe for varebeholdning</value>
+    <comment>table [Item] column [Item Inventory Posting Group]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.6b483bfb-c114-485d-8cec-32a325bae6d1.caption" xml:space="preserve">
+    <value>Varerutenr.</value>
+    <comment>table [Item] column [Item Routing No.]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.a2a14486-e561-4d10-b027-7ee674a2b353.caption" xml:space="preserve">
+    <value>Produksjonsstykklistenr. for vare</value>
+    <comment>table [Item] column [Item Production BOM No.]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.e3140e91-9c48-4cde-8941-46ca9bc592f1.caption" xml:space="preserve">
+    <value>Vareetterfyllingssystem</value>
+    <comment>table [Item] column [Item Replenishment System]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.1bb5857d-4b8c-405a-9c72-58d7f4d060c2.caption" xml:space="preserve">
+    <value>Indir. kap.kostn. – enkeltnivå for vare</value>
+    <comment>table [Item] column [Item Single-Level Cap. Ovhd Cost]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.6b914bcc-0173-4986-becd-da687f6f4bb4.caption" xml:space="preserve">
+    <value>Kapasitetskostn. – enkeltnivå for vare</value>
+    <comment>table [Item] column [Item Single-Level Capacity Cost]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.daee483a-6074-4523-848c-6e14cfff7306.caption" xml:space="preserve">
+    <value>Materialkostn. – enkeltnivå for vare</value>
+    <comment>table [Item] column [Item Single-Level Material Cost]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.8612df39-dee5-4000-9f6c-65c2415d4ad0.caption" xml:space="preserve">
+    <value>Indir. prod.kostn. – enkeltnivå for vare</value>
+    <comment>table [Item] column [Item Single-Level Mfg. Ovhd Cost]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.baabb4a4-e472-423f-b425-e2071d820e3f.caption" xml:space="preserve">
+    <value>Underleverandørkostnad – enkeltnivå for vare</value>
+    <comment>table [Item] column [Item Single-Level Subcontrd. Cost]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.e9d3bcef-d5df-49c5-9309-1c70ff9456b5.caption" xml:space="preserve">
+    <value>Varelagerenhet</value>
+    <comment>table [Item] column [Item Base Unit of Measure]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.e63a3315-91ef-4add-aeac-26c66290e1f7.caption" xml:space="preserve">
+    <value>Opprullert indirekte administrasjonskost for vare</value>
+    <comment>table [Item] column [Item Rolled-up Cap. Overhead Cost]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.e0976f28-f9c1-4b02-a6c7-567a444c7b7f.caption" xml:space="preserve">
+    <value>Opprullert kapasitetskost for vare</value>
+    <comment>table [Item] column [Item Rolled-up Capacity Cost]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.ad2edf87-2410-4eac-b373-c9fc426085f9.caption" xml:space="preserve">
+    <value>Opprullert mat.kostnad for vare</value>
+    <comment>table [Item] column [Item Rolled-up Material Cost]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.a16048b7-296f-4781-88e1-50efcedaf77b.caption" xml:space="preserve">
+    <value>Opprullert indir. prod.kostn. for vare</value>
+    <comment>table [Item] column [Item Rolled-up Mfg. Ovhd Cost]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.fd5249a2-7f63-432f-b86e-1153ad735033.caption" xml:space="preserve">
+    <value>Underlever.kostn. – opprullert for vare</value>
+    <comment>table [Item] column [Item Rolled-up Subcontracted Cost]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.08d4fc8b-8cc2-4090-802c-f6dedc0fe048.caption" xml:space="preserve">
+    <value>Vrakprosent for vare</value>
+    <comment>table [Item] column [Item Scrap %]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.6527fd8e-a8c1-48f5-999c-119904a5075d.caption" xml:space="preserve">
+    <value>Kostn. mat. ikke i behold. – enkeltnivå for vare</value>
+    <comment>table [Item] column [Item Single-Lvl Mat. Non-Invt. Cost]</comment>
+  </data>
+  <data name="15e037bf-2c91-4a8e-8264-65fb7172d679.column.dd15c431-5d41-4589-a0d6-4106c4c2c57b.caption" xml:space="preserve">
+    <value>Opprullert kostn. mat. ikke i behold. for vare</value>
+    <comment>table [Item] column [Item Rolled-up Mat. Non-Invt. Cost]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.caption" xml:space="preserve">
+    <value>Dato</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.3ed4eb0f-83ee-4026-8a64-e0733fac602d.caption" xml:space="preserve">
+    <value>Ukedag</value>
+    <comment>table [Date] column [Week Day]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.cca142d5-0ca4-4d02-8aff-a66cabc74db5.caption" xml:space="preserve">
+    <value>Navn på ferie</value>
+    <comment>table [Date] column [Holiday Name]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.9665a8ca-ae09-4ed7-8e4d-67e22b3b5770.caption" xml:space="preserve">
+    <value>ErVirkedag</value>
+    <comment>table [Date] column [IsWorkingDay]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.32494240-85cd-4551-939f-3a04f5063639.caption" xml:space="preserve">
+    <value>Type dag</value>
+    <comment>table [Date] column [Day Type]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.cea7d703-d758-4e52-9bd4-4364861c7dc5.caption" xml:space="preserve">
+    <value>Kalender ÅrNummer</value>
+    <comment>table [Date] column [Calendar YearNumber]</comment>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.5680f9f6-6cfb-425b-9e69-00dfb0e692b8.caption" xml:space="preserve">
+    <value>Kalenderår</value>
+    <comment>table [Date] column [Calendar Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.c4b27916-176e-426a-befb-5f8021b984f1.caption" xml:space="preserve">
+    <value>Kalender KvartalNummer</value>
+    <comment>table [Date] column [Calendar QuarterNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.b46da98f-ae85-44a7-b059-a54d574b3033.caption" xml:space="preserve">
+    <value>Kalenderkvartal</value>
+    <comment>table [Date] column [Calendar Quarter]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.e3e95a94-c7bf-48a4-b704-d8ca7478c782.caption" xml:space="preserve">
+    <value>Kalender ÅrKvartalNummer</value>
+    <comment>table [Date] column [Calendar YearQuarterNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.2241678c-e5d6-484d-8024-52f5695624e8.caption" xml:space="preserve">
+    <value>Kalender Kvartal År</value>
+    <comment>table [Date] column [Calendar Quarter Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.e6a88335-a320-4fc7-bc28-7255f64352e5.caption" xml:space="preserve">
+    <value>Kalender MånedNummer</value>
+    <comment>table [Date] column [Calendar MonthNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.002f1a03-d959-4be9-8fa8-ba79befbf445.caption" xml:space="preserve">
+    <value>Kalendermåned</value>
+    <comment>table [Date] column [Calendar Month]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.f70f69f2-15cc-4ff5-8233-ef4cdeb51296.caption" xml:space="preserve">
+    <value>Kalender ÅrMånedNummer</value>
+    <comment>table [Date] column [Calendar YearMonthNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.3224d650-9053-4fba-810c-c8003a7ac02e.caption" xml:space="preserve">
+    <value>Kalender Måned År</value>
+    <comment>table [Date] column [Calendar Month Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.878582ee-4246-4bd2-b073-9019ea677dee.caption" xml:space="preserve">
+    <value>Kalender UkeNummer</value>
+    <comment>table [Date] column [Calendar WeekNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.80bbf998-1cf9-4162-9131-a9048e45220d.caption" xml:space="preserve">
+    <value>Kalenderuke</value>
+    <comment>table [Date] column [Calendar Week]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.d57e628c-ac21-4bc3-9867-f5a802426cad.caption" xml:space="preserve">
+    <value>Kalender ÅrUkeNummer</value>
+    <comment>table [Date] column [Calendar YearWeekNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.fc379db9-55de-4bf8-a627-756abfe3561f.caption" xml:space="preserve">
+    <value>Kalender Uke År</value>
+    <comment>table [Date] column [Calendar Week Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.f19ece7a-09ee-4860-8ca6-d463723d250f.caption" xml:space="preserve">
+    <value>Kalender UkeÅrRekkefølge</value>
+    <comment>table [Date] column [Calendar WeekYearOrder]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.dd1928af-b3a2-4906-b008-d9e01f1358dc.caption" xml:space="preserve">
+    <value>Kalender RelativUkePos</value>
+    <comment>table [Date] column [Calendar RelativeWeekPos]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.5c7baed1-f8fe-4088-9811-63ebef48ef1c.caption" xml:space="preserve">
+    <value>Kalender RelativMånedPos</value>
+    <comment>table [Date] column [Calendar RelativeMonthPos]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.12488c84-fcfc-4594-babd-3a7ef2af5ae8.caption" xml:space="preserve">
+    <value>Kalender RelativtKvartalPos</value>
+    <comment>table [Date] column [Calendar RelativeQuarterPos]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.e97fcddf-d926-4b72-9c1b-77a63b45176d.caption" xml:space="preserve">
+    <value>Kalender RelativtÅrPos</value>
+    <comment>table [Date] column [Calendar RelativeYearPos]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.2c013431-8802-487a-bd49-30cb6f32a950.caption" xml:space="preserve">
+    <value>Kalender StartPåMåned</value>
+    <comment>table [Date] column [Calendar StartOfMonth]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.61a57dbc-c949-4e43-89f1-b50a7c807ed3.caption" xml:space="preserve">
+    <value>Kalender SluttPåMåned</value>
+    <comment>table [Date] column [Calendar EndOfMonth]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.b3de2cc9-5a1c-4afe-b4f5-38d65267ce9a.caption" xml:space="preserve">
+    <value>Kalender StartPåKvartal</value>
+    <comment>table [Date] column [Calendar StartOfQuarter]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.d7e64202-fc78-45dc-a874-a59b23369798.caption" xml:space="preserve">
+    <value>Kalender SluttPåKvartal</value>
+    <comment>table [Date] column [Calendar EndOfQuarter]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.9fb4ffc1-c27f-4528-9830-ffddbd338448.caption" xml:space="preserve">
+    <value>Kalender StartPåÅr</value>
+    <comment>table [Date] column [Calendar StartOfYear]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.4d76be7f-d860-4a0e-8ee9-8dc2a141c16c.caption" xml:space="preserve">
+    <value>Kalender SluttPåÅr</value>
+    <comment>table [Date] column [Calendar EndOfYear]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.db6b3596-35f3-4017-854e-e60d6706df2c.caption" xml:space="preserve">
+    <value>Kalender MånedDager</value>
+    <comment>table [Date] column [Calendar MonthDays]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.521baef7-742b-47c7-a198-b6bae06410b7.caption" xml:space="preserve">
+    <value>Kalender KvartalDager</value>
+    <comment>table [Date] column [Calendar QuarterDays]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.0c152eb4-2c2a-4011-8a5d-d48917d586a3.caption" xml:space="preserve">
+    <value>Kalender ÅrDager</value>
+    <comment>table [Date] column [Calendar YearDays]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.d73227e2-bbb8-4824-a53e-a8b46c573c44.caption" xml:space="preserve">
+    <value>Kalender DagIMånedNummer</value>
+    <comment>table [Date] column [Calendar DayOfMonthNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.fac30e08-a9f6-4209-bbb6-f24efe5edcb3.caption" xml:space="preserve">
+    <value>Kalender DagIKvartalNummer</value>
+    <comment>table [Date] column [Calendar DayOfQuarterNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.9aa012e1-6588-4618-bfa7-97993f1d0229.caption" xml:space="preserve">
+    <value>Kalender DagIÅretNummer</value>
+    <comment>table [Date] column [Calendar DayOfYearNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.f399d071-f2e1-45d2-8b78-a16a56b90473.caption" xml:space="preserve">
+    <value>Kalender DatoForrigeUke</value>
+    <comment>table [Date] column [Calendar DatePreviousWeek]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.e2068435-9afd-4a67-a88e-494cb633aab1.caption" xml:space="preserve">
+    <value>Kalender DatoForrigeMåned</value>
+    <comment>table [Date] column [Calendar DatePreviousMonth]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.a6fdbe60-299b-4214-92e5-d0c32bf58f20.caption" xml:space="preserve">
+    <value>Kalender DatoForrigeKvartal</value>
+    <comment>table [Date] column [Calendar DatePreviousQuarter]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.95999130-1d14-4788-9af1-3b682657e577.caption" xml:space="preserve">
+    <value>Kalender DatoForrigeÅr</value>
+    <comment>table [Date] column [Calendar DatePreviousYear]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.f54e20d2-9d4e-407c-90d8-c29b2f6e91f5.caption" xml:space="preserve">
+    <value>Regnskapsår</value>
+    <comment>table [Date] column [Fiscal Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.1e1da53d-1956-4d30-bda8-7a1e3b7aeee0.caption" xml:space="preserve">
+    <value>Regnskap ÅrNummer</value>
+    <comment>table [Date] column [Fiscal YearNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.6604e5f3-5d0c-4d22-9982-930252a5b4a4.caption" xml:space="preserve">
+    <value>Regnskap KvartalNummer</value>
+    <comment>table [Date] column [Fiscal QuarterNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.88cd2e86-bbf5-4b31-bdfd-12463f0e0e2a.caption" xml:space="preserve">
+    <value>Regnskapskvartal</value>
+    <comment>table [Date] column [Fiscal Quarter]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.1f8c9d50-7270-4d38-8a7c-8d9c8b28e8a5.caption" xml:space="preserve">
+    <value>Regnskap ÅrKvartalNummer</value>
+    <comment>table [Date] column [Fiscal YearQuarterNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.a558707d-dc7f-4bb7-b372-93905c3bedae.caption" xml:space="preserve">
+    <value>Regnskap Kvartal År</value>
+    <comment>table [Date] column [Fiscal Quarter Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.bd3dc835-8322-4655-b039-2c06b7bf75ce.caption" xml:space="preserve">
+    <value>Regnskap MånedNummer</value>
+    <comment>table [Date] column [Fiscal MonthNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.2d959304-a672-4676-8e60-b0626ae62d4e.caption" xml:space="preserve">
+    <value>Regnskap MånedIKvartalNummer</value>
+    <comment>table [Date] column [Fiscal MonthInQuarterNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.53264fbe-6e8c-4273-adc3-3e0f2627b9a2.caption" xml:space="preserve">
+    <value>Regnskapsmåned</value>
+    <comment>table [Date] column [Fiscal Month]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.1dbd5f38-88a8-407b-beca-aeefc66031ad.caption" xml:space="preserve">
+    <value>Regnskap ÅrMånedNummer</value>
+    <comment>table [Date] column [Fiscal YearMonthNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.6b29235a-62cd-4354-a719-1bd362707e2c.caption" xml:space="preserve">
+    <value>Regnskap Måned År</value>
+    <comment>table [Date] column [Fiscal Month Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.98ead672-1ca8-4d76-98fb-33e6fedc5db2.caption" xml:space="preserve">
+    <value>Regnskap Ukenummer</value>
+    <comment>table [Date] column [Fiscal WeekNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.03e750c1-ad68-4346-8806-f2d63d96e14b.caption" xml:space="preserve">
+    <value>Regnskapsuke</value>
+    <comment>table [Date] column [Fiscal Week]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.8436333c-0d5b-4d76-bf46-4445dc56ac50.caption" xml:space="preserve">
+    <value>RegnskapsårUkenummer</value>
+    <comment>table [Date] column [Fiscal YearWeekNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.440f66ca-fe28-4228-b07b-73dc2e1dd121.caption" xml:space="preserve">
+    <value>Regnskap Uke År</value>
+    <comment>table [Date] column [Fiscal Week Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.09d03bd3-7857-4c73-b0f2-5faf03fa73d7.caption" xml:space="preserve">
+    <value>Regnskap UkeÅrRekkefølge</value>
+    <comment>table [Date] column [Fiscal WeekYearOrder]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.fb68eb6f-4df1-4ed8-9da9-98d764a9910f.caption" xml:space="preserve">
+    <value>Regnskap RelativUkePos</value>
+    <comment>table [Date] column [Fiscal RelativeWeekPos]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.e2fc0106-3247-48ab-a51d-78c7a73d35b1.caption" xml:space="preserve">
+    <value>Regnskap RelativMånedPos</value>
+    <comment>table [Date] column [Fiscal RelativeMonthPos]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.70cb6296-7793-4911-81c7-31bf272eb766.caption" xml:space="preserve">
+    <value>Regnskap RelativtKvartalPos</value>
+    <comment>table [Date] column [Fiscal RelativeQuarterPos]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.1efc06e1-4954-4cf0-a09c-10c77a935c4c.caption" xml:space="preserve">
+    <value>Regnskap RelativtÅrPos</value>
+    <comment>table [Date] column [Fiscal RelativeYearPos]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.acf58675-934b-485d-b503-c3a23bdd2e22.caption" xml:space="preserve">
+    <value>Regnskap StartPåMåned</value>
+    <comment>table [Date] column [Fiscal StartOfMonth]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.2d57c5f4-b112-4025-90fb-b671da845365.caption" xml:space="preserve">
+    <value>Regnskap SluttPåMåned</value>
+    <comment>table [Date] column [Fiscal EndOfMonth]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.334ffd7e-b252-4dff-942e-9217c17885ef.caption" xml:space="preserve">
+    <value>Regnskap StartPåKvartal</value>
+    <comment>table [Date] column [Fiscal StartOfQuarter]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.e87fb192-051d-473b-91e6-3046bade1533.caption" xml:space="preserve">
+    <value>Regnskap SluttPåKvartal</value>
+    <comment>table [Date] column [Fiscal EndOfQuarter]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.eef42ccb-7ffa-4779-8267-9386f72b106c.caption" xml:space="preserve">
+    <value>Regnskap StartPåÅr</value>
+    <comment>table [Date] column [Fiscal StartOfYear]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.2fb022d3-11c1-41d4-b6c9-87e21715d386.caption" xml:space="preserve">
+    <value>Regnskap SluttPåÅr</value>
+    <comment>table [Date] column [Fiscal EndOfYear]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.c2719bad-8ac1-4835-9eba-019fe10305f0.caption" xml:space="preserve">
+    <value>Regnskap MånedDager</value>
+    <comment>table [Date] column [Fiscal MonthDays]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.2888e677-9546-4229-b884-c59b00af269b.caption" xml:space="preserve">
+    <value>Regnskap KvartalDager</value>
+    <comment>table [Date] column [Fiscal QuarterDays]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.9b238d62-72c9-46a2-b3c0-24aeeaebb600.caption" xml:space="preserve">
+    <value>Regnskap ÅrDager</value>
+    <comment>table [Date] column [Fiscal YearDays]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.77e17d2e-3115-4f81-a9be-afe1dbea6670.caption" xml:space="preserve">
+    <value>Regnskap DagIMånedNummer</value>
+    <comment>table [Date] column [Fiscal DayOfMonthNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.fa1fcadf-afff-4404-831d-bc548b71e5b5.caption" xml:space="preserve">
+    <value>Regnskap DagIKvartalNummer</value>
+    <comment>table [Date] column [Fiscal DayOfQuarterNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.8a66e28d-7306-49f3-9b2c-f4b928781052.caption" xml:space="preserve">
+    <value>Regnskap DagIÅretNummer</value>
+    <comment>table [Date] column [Fiscal DayOfYearNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.a624bb5c-c2d8-4b85-9397-b413cdebb663.caption" xml:space="preserve">
+    <value>Regnskap DatoForrigeUke</value>
+    <comment>table [Date] column [Fiscal DatePreviousWeek]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.ee82b5c0-e76b-46cc-ba3f-fa0aa44b478f.caption" xml:space="preserve">
+    <value>Regnskap DatoForrigeMåned</value>
+    <comment>table [Date] column [Fiscal DatePreviousMonth]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.d5abba86-ddef-4630-a57a-9cce694f08ae.caption" xml:space="preserve">
+    <value>Regnskap DatoForrigeKvartal</value>
+    <comment>table [Date] column [Fiscal DatePreviousQuarter]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.74fc07fc-f4df-4262-917d-403d530fac9b.caption" xml:space="preserve">
+    <value>Regnskap DatoForrigeÅr</value>
+    <comment>table [Date] column [Fiscal DatePreviousYear]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.ab91df13-4f4c-4742-8f06-7140fe2b9fb8.caption" xml:space="preserve">
+    <value>Regnskapsuke ÅrNummer</value>
+    <comment>table [Date] column [FW YearNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.14549f33-3c92-48b1-bf3e-6ebde6eeafc3.caption" xml:space="preserve">
+    <value>Regnskapsuke år</value>
+    <comment>table [Date] column [FW Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.fc22f6a3-a923-4af9-a205-376c8d5be50f.caption" xml:space="preserve">
+    <value>Regnskapsuke KvartalNummer</value>
+    <comment>table [Date] column [FW QuarterNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.f3ac6c28-603b-43cd-9c88-26ce8f66c32c.caption" xml:space="preserve">
+    <value>Regnskapsuke kvartal</value>
+    <comment>table [Date] column [FW Quarter]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.135d300b-0999-4c33-9cd3-c6ef2f703c0e.caption" xml:space="preserve">
+    <value>Regnskapsuke ÅrKvartalNummer</value>
+    <comment>table [Date] column [FW YearQuarterNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.9b81630d-27b4-4d00-bd4c-9bfd9c3a0e22.caption" xml:space="preserve">
+    <value>Regnskapsuke Kvartal År</value>
+    <comment>table [Date] column [FW Quarter Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.8fbca21d-7077-41bb-be0c-f0fb693b8214.caption" xml:space="preserve">
+    <value>Regnskapsuke MånedNummer</value>
+    <comment>table [Date] column [FW MonthNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.21e82ef9-0982-4fc1-a0e6-858b8ec2b45e.caption" xml:space="preserve">
+    <value>Regnskapsuke måned</value>
+    <comment>table [Date] column [FW Month]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.70d2bbcf-f0d7-4f74-8986-d7313c33acee.caption" xml:space="preserve">
+    <value>Regnskapsuke ÅrMånedNummer</value>
+    <comment>table [Date] column [FW YearMonthNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.6de06214-df3a-4f28-ae82-7c4a2ec210ac.caption" xml:space="preserve">
+    <value>Regnskapsuke Måned År</value>
+    <comment>table [Date] column [FW Month Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.e4cd8b91-b081-4f4a-bf92-15e8462f51da.caption" xml:space="preserve">
+    <value>Regnskapsuke UkeNummer</value>
+    <comment>table [Date] column [FW WeekNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.e6261906-3e69-4e8e-987f-854a113917f6.caption" xml:space="preserve">
+    <value>Regnskapsuke Uke</value>
+    <comment>table [Date] column [FW Week]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.3e31290d-dcfd-4fad-9ac7-18afae2fa758.caption" xml:space="preserve">
+    <value>Regnskapsuke PeriodeNummer</value>
+    <comment>table [Date] column [FW PeriodNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.ff519361-6965-4814-88d9-4a7b00e5a5fe.caption" xml:space="preserve">
+    <value>Regnskapsukeperiode</value>
+    <comment>table [Date] column [FW Period]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.ad30ad07-a2fd-45a0-aab0-788c3bd1060b.caption" xml:space="preserve">
+    <value>Regnskapsuke ÅrUkeNummer</value>
+    <comment>table [Date] column [FW YearWeekNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.19bad564-aa04-439e-b8c5-1740fffec8ba.caption" xml:space="preserve">
+    <value>Regnskapsuke Uke År</value>
+    <comment>table [Date] column [FW Week Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.fe8ae941-06db-4169-8522-47db87a8ab5e.caption" xml:space="preserve">
+    <value>Regnskapsuke StartPåUke</value>
+    <comment>table [Date] column [FW StartOfWeek]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.8f13f7b2-3dcc-4e8a-8d80-2a89923e910d.caption" xml:space="preserve">
+    <value>Regnskapsuke SluttPåUke</value>
+    <comment>table [Date] column [FW EndOfWeek]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.0fd5f4be-9575-4c3d-a1ce-f7408fc96de9.caption" xml:space="preserve">
+    <value>Regnskapsuke RelativUkePos</value>
+    <comment>table [Date] column [FW RelativeWeekPos]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.2a6103a4-6a23-4f5d-a1f4-ff36237c1012.caption" xml:space="preserve">
+    <value>Regnskapsuke RelativMånedPos</value>
+    <comment>table [Date] column [FW RelativeMonthPos]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.4ac34e12-d8cc-482d-8089-17a436e88718.caption" xml:space="preserve">
+    <value>Regnskapsuke RelativtKvartalPos</value>
+    <comment>table [Date] column [FW RelativeQuarterPos]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.5dcf2070-aeda-4b6d-a0d1-37e3c28aeb4a.caption" xml:space="preserve">
+    <value>Regnskapsuke RelativtÅrPos</value>
+    <comment>table [Date] column [FW RelativeYearPos]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.0e45f3d4-8d89-481f-b1b9-c6e1da7f4fe6.caption" xml:space="preserve">
+    <value>Regnskapsuke StartPåMåned</value>
+    <comment>table [Date] column [FW StartOfMonth]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.81851629-8b79-4d3c-9421-73b461c7e016.caption" xml:space="preserve">
+    <value>Regnskapsuke SluttPåMåned</value>
+    <comment>table [Date] column [FW EndOfMonth]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.d76b230f-58a5-4643-87f2-f7c5f3e90602.caption" xml:space="preserve">
+    <value>Regnskapsuke StartPåKvartal</value>
+    <comment>table [Date] column [FW StartOfQuarter]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.68c58992-d0c0-4136-89d1-6d5fc45d1072.caption" xml:space="preserve">
+    <value>Regnskapsuke SluttPåKvartal</value>
+    <comment>table [Date] column [FW EndOfQuarter]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.241c3068-6275-41f2-9326-53f26713d45f.caption" xml:space="preserve">
+    <value>Regnskapsuke StartPåÅr</value>
+    <comment>table [Date] column [FW StartOfYear]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.43a3ed2e-0749-4c87-a645-2a856d4c574b.caption" xml:space="preserve">
+    <value>Regnskapsuke SluttPåÅr</value>
+    <comment>table [Date] column [FW EndOfYear]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.6ce22fa2-e699-47fd-ae7c-167f23075cf0.caption" xml:space="preserve">
+    <value>Regnskapsuke MånedDager</value>
+    <comment>table [Date] column [FW MonthDays]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.39dc8658-79b5-456b-8676-b45702a05d49.caption" xml:space="preserve">
+    <value>Regnskapsuke KvartalDager</value>
+    <comment>table [Date] column [FW QuarterDays]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.903a8861-569d-416e-ac7a-4477c1825299.caption" xml:space="preserve">
+    <value>Regnskapsuke ÅrDager</value>
+    <comment>table [Date] column [FW YearDays]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.35226ca1-5bbe-4c4c-bcc8-f76b539537a6.caption" xml:space="preserve">
+    <value>Regnskapsuke DagIMånedNummer</value>
+    <comment>table [Date] column [FW DayOfMonthNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.a14a481e-4322-4e06-bf15-ac9a688ecd59.caption" xml:space="preserve">
+    <value>Regnskapsuke DagIKvartalNummer</value>
+    <comment>table [Date] column [FW DayOfQuarterNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.0aadfd38-7295-4bb3-a61a-ca8b58b2e749.caption" xml:space="preserve">
+    <value>Regnskapsuke DagIÅretNummer</value>
+    <comment>table [Date] column [FW DayOfYearNumber]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.20c3d31b-0fd3-4a93-bfd4-cbb51e6d73ab.caption" xml:space="preserve">
+    <value>Regnskapsuke DatoForrigeUke</value>
+    <comment>table [Date] column [FW DatePreviousWeek]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.72e72911-994b-4db9-a175-e253988392b5.caption" xml:space="preserve">
+    <value>Regnskapsuke DatoForrigeMåned</value>
+    <comment>table [Date] column [FW DatePreviousMonth]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.c5e92da5-bf2e-4905-b1f0-8e6be3c39e0d.caption" xml:space="preserve">
+    <value>Regnskapsuke DatoForrigeKvartal</value>
+    <comment>table [Date] column [FW DatePreviousQuarter]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.648cbe49-6c9f-4683-ab7e-360fb15bd0fd.caption" xml:space="preserve">
+    <value>Regnskapsuke DatoForrigeÅr</value>
+    <comment>table [Date] column [FW DatePreviousYear]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.column.ddccd2b9-3b98-4db5-9f6d-fedee65303b3.caption" xml:space="preserve">
+    <value>Relativ dag</value>
+    <comment>table [Date] column [Relative Day]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.667f7eea-7a94-47e3-839c-e562804d6848.caption" xml:space="preserve">
+    <value>Regnskap år-måned</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.667f7eea-7a94-47e3-839c-e562804d6848.level.54b6013d-cd41-43ea-adde-7461b8f56250" xml:space="preserve">
+    <value>Regnskapsår</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month] level [Fiscal Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.667f7eea-7a94-47e3-839c-e562804d6848.level.0e94c815-23fc-4ac6-9863-dd02e6f69315" xml:space="preserve">
+    <value>Regnskap Måned År</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month] level [Fiscal Month Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.75541edd-a04f-47e0-ab6c-8cf51f8ec5f8.caption" xml:space="preserve">
+    <value>Regnskap År-Måned-Uke</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.75541edd-a04f-47e0-ab6c-8cf51f8ec5f8.level.e8fd0bf8-66c7-4df2-8526-1bb27177f912" xml:space="preserve">
+    <value>Regnskapsår</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week] level [Fiscal Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.75541edd-a04f-47e0-ab6c-8cf51f8ec5f8.level.edd3142f-d60d-494b-85fc-dcadaaa5b8a4" xml:space="preserve">
+    <value>Regnskap Måned År</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week] level [Fiscal Month Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.75541edd-a04f-47e0-ab6c-8cf51f8ec5f8.level.c88b8774-fc79-4567-9b79-2849dedd4657" xml:space="preserve">
+    <value>Regnskap Uke År</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week] level [Fiscal Week Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.1f1cc41b-d0e7-4aa1-b890-6c2554d98e29.caption" xml:space="preserve">
+    <value>Regnskap år-kvartal-måned-uke</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.1f1cc41b-d0e7-4aa1-b890-6c2554d98e29.level.40f0b909-9e82-4ba3-92df-a8b50b00a40b" xml:space="preserve">
+    <value>Regnskapsår</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.1f1cc41b-d0e7-4aa1-b890-6c2554d98e29.level.b110c9b3-ebdb-4ed1-8427-abbb882e1d58" xml:space="preserve">
+    <value>Regnskap Kvartal År</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Quarter Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.1f1cc41b-d0e7-4aa1-b890-6c2554d98e29.level.9bd26d03-671d-4cea-9e25-5aafb1c7d21f" xml:space="preserve">
+    <value>Regnskap Måned År</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Month Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.1f1cc41b-d0e7-4aa1-b890-6c2554d98e29.level.50478d23-8e70-467a-8801-ce96d8e29c35" xml:space="preserve">
+    <value>Regnskap Uke År</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Week Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.3cc4fc52-f327-42b5-b2bc-6e10b2fa0579.caption" xml:space="preserve">
+    <value>Kalender år-måned</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.3cc4fc52-f327-42b5-b2bc-6e10b2fa0579.level.7bfba93e-5d86-41fa-a428-152ab854a070" xml:space="preserve">
+    <value>Kalenderår</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month] level [Calendar Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.3cc4fc52-f327-42b5-b2bc-6e10b2fa0579.level.a923bc3f-1bdd-4926-b538-a0bf17d0b2d5" xml:space="preserve">
+    <value>Kalender Måned År</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month] level [Calendar Month Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.aed57178-c570-4cd1-a4c6-e700058dcfe6.caption" xml:space="preserve">
+    <value>Kalender år-måned-uke</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.aed57178-c570-4cd1-a4c6-e700058dcfe6.level.b4693f04-e15f-42f1-afce-641aa9bd8386" xml:space="preserve">
+    <value>Kalenderår</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week] level [Calendar Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.aed57178-c570-4cd1-a4c6-e700058dcfe6.level.ad1f4929-9815-47ae-ae38-e76760467433" xml:space="preserve">
+    <value>Kalender Måned År</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week] level [Calendar Month Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.aed57178-c570-4cd1-a4c6-e700058dcfe6.level.8c1e598f-68d9-4ec8-8e8b-94bc0f325e6d" xml:space="preserve">
+    <value>Kalender Uke År</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week] level [Calendar Week Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.86f4067a-d703-4987-94a3-2e832098d1ef.caption" xml:space="preserve">
+    <value>Kalender år-kvartal-måned-uke</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.86f4067a-d703-4987-94a3-2e832098d1ef.level.d82e0fe4-49e2-4df6-a525-9a4f6108743b" xml:space="preserve">
+    <value>Kalenderår</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.86f4067a-d703-4987-94a3-2e832098d1ef.level.875d1c42-f9de-4373-9dec-a1409f1e179d" xml:space="preserve">
+    <value>Kalender Kvartal År</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Quarter Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.86f4067a-d703-4987-94a3-2e832098d1ef.level.86bf3301-883d-4e52-be22-7585cc62296d" xml:space="preserve">
+    <value>Kalender Måned År</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Month Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.86f4067a-d703-4987-94a3-2e832098d1ef.level.82ff4fc4-5640-43be-96e1-1ccb6533253e" xml:space="preserve">
+    <value>Kalender Uke År</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Week Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.76772edf-5829-4dd6-9221-7f3e514396c6.caption" xml:space="preserve">
+    <value>Regnskapsuke år-måned-uke</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.76772edf-5829-4dd6-9221-7f3e514396c6.level.37704c7b-a221-40d3-a104-a5e5c16746f0" xml:space="preserve">
+    <value>Regnskapsuke år</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week] level [FW Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.76772edf-5829-4dd6-9221-7f3e514396c6.level.1d9a9430-6bed-465f-afbf-c367b9f5edf6" xml:space="preserve">
+    <value>Regnskapsuke Måned År</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week] level [FW Month Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.76772edf-5829-4dd6-9221-7f3e514396c6.level.da024fdc-e22a-4d6e-8355-fbe50de4695c" xml:space="preserve">
+    <value>Regnskapsuke Uke År</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.91dfd94d-3676-4a6a-a9f5-150333294012.caption" xml:space="preserve">
+    <value>Regnskapsuke år-kvartal-måned-uke</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.91dfd94d-3676-4a6a-a9f5-150333294012.level.e5cd94ed-0d1a-4e41-89ad-82cf77688b47" xml:space="preserve">
+    <value>Regnskapsuke år</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.91dfd94d-3676-4a6a-a9f5-150333294012.level.9adb622b-d68e-41eb-92d3-f0d3ea6d363f" xml:space="preserve">
+    <value>Regnskapsuke Kvartal År</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Quarter Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.91dfd94d-3676-4a6a-a9f5-150333294012.level.80aae42c-b9ec-42c5-ae09-13c65d700732" xml:space="preserve">
+    <value>Regnskapsuke Måned År</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Month Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.91dfd94d-3676-4a6a-a9f5-150333294012.level.01c4eb82-c283-4300-8765-3e61e813fec9" xml:space="preserve">
+    <value>Regnskapsuke Uke År</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.11013eb6-b5ca-4d04-900c-879b2c8f968e.caption" xml:space="preserve">
+    <value>Regnskapsuke år-kvartal-uke</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.11013eb6-b5ca-4d04-900c-879b2c8f968e.level.c4f66205-6c99-4eed-9ea9-0fd4bf9fa72b" xml:space="preserve">
+    <value>Regnskapsuke år</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week] level [FW Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.11013eb6-b5ca-4d04-900c-879b2c8f968e.level.d9c3188f-b8fa-45bc-9e08-880f6c98db91" xml:space="preserve">
+    <value>Regnskapsuke Kvartal År</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week] level [FW Quarter Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.11013eb6-b5ca-4d04-900c-879b2c8f968e.level.a100ef88-63c6-46b8-88c7-7d5d4ba25929" xml:space="preserve">
+    <value>Regnskapsuke Uke År</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.ae6c090d-eb7b-4b40-a83d-6606f2847a82.caption" xml:space="preserve">
+    <value>Regnskapsuke år-uke</value>
+    <comment>table [Date] hierarchy [FW Year-Week]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.ae6c090d-eb7b-4b40-a83d-6606f2847a82.level.0e86a949-ac84-4345-a88e-352ea19afe07" xml:space="preserve">
+    <value>Regnskapsuke år</value>
+    <comment>table [Date] hierarchy [FW Year-Week] level [FW Year]</comment>
+  </data>
+  <data name="933e9efb-78e7-4e63-b6f8-7e3b861d9284.hierarchy.ae6c090d-eb7b-4b40-a83d-6606f2847a82.level.7fb1d3c0-186f-4de8-a7be-dec117b3c3fd" xml:space="preserve">
+    <value>Regnskapsuke Uke År</value>
+    <comment>table [Date] hierarchy [FW Year-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.caption" xml:space="preserve">
+    <value>Arbeidssenter</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.column.e9dc5829-27ba-4dda-96f4-31627ca586a6.caption" xml:space="preserve">
+    <value>Arbeidssenternavn</value>
+    <comment>table [Work Center] column [Work Center Name]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.column.bf9864d3-6f8d-4203-81ba-bcf1b5038e3e.caption" xml:space="preserve">
+    <value>Arbeidssentergruppekode</value>
+    <comment>table [Work Center] column [Work Center Group Code]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.column.b4f750ae-ce6a-4224-a080-a36cf511344b.caption" xml:space="preserve">
+    <value>Navn på arbeidssentergruppe</value>
+    <comment>table [Work Center] column [Work Center Group Name]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.column.c71a141b-a094-49a9-8735-d2b31b880a8a.caption" xml:space="preserve">
+    <value>Arbeidssenternr.</value>
+    <comment>table [Work Center] column [Work Center No.]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.column.afa08e1a-4c92-49a8-8f5c-b3508837f639.caption" xml:space="preserve">
+    <value>Underleverandørnr. for arbeidssenter</value>
+    <comment>table [Work Center] column [Work Center Subcontractor No.]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.column.50a98d83-83a8-4563-b613-994595671bb5.caption" xml:space="preserve">
+    <value>Enhetskode for arbeidssenter</value>
+    <comment>table [Work Center] column [Work Center Unit of Measure Code]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.measure.c3f56ff9-9f97-413c-a3b8-246e737843eb.caption" xml:space="preserve">
+    <value>Tilgjengelighet etter ordre for arbeidssenter</value>
+    <comment>table [Work Center] measure [Work Center Availability After Orders]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.measure.3865105d-b276-4cd7-915b-5c1e7b3fb1c7.caption" xml:space="preserve">
+    <value>Arbeidssenterkapasitet (effektiv)</value>
+    <comment>table [Work Center] measure [Work Center Capacity (Effective)]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.measure.3f7aba06-46e5-43c7-a4a9-60847cd8e0ec.caption" xml:space="preserve">
+    <value>Arbeidssenterbelastning</value>
+    <comment>table [Work Center] measure [Work Center Load]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.measure.229d7ed2-5933-4115-aa21-3b2dacbca9f1.caption" xml:space="preserve">
+    <value>Tildelt tid for arbeidssenter</value>
+    <comment>table [Work Center] measure [Work Center Allocated Time]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.measure.0a041116-ca2a-4b21-8ce8-6efa555cc1cf.caption" xml:space="preserve">
+    <value>Arbeidssenterkapasitet (totalt)</value>
+    <comment>table [Work Center] measure [Work Center Capacity (Total)]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.measure.cb16a22b-7184-44b6-81ff-31a1d2b1d18d.caption" xml:space="preserve">
+    <value>Arbeidssenters forventede effektivitetsprosent</value>
+    <comment>table [Work Center] measure [Work Center Expected Efficiency %]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.measure.a30b1c80-bfa0-4a7d-b992-06b948975975.caption" xml:space="preserve">
+    <value>Faktisk totalbeløp for arbeidssenter</value>
+    <comment>table [Work Center] measure [Work Center Actual Total Cost]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.measure.f3906f24-265c-4373-bbd1-79eb07dd0561.caption" xml:space="preserve">
+    <value>Faktisk effektivitetsprosent for arbeidssenter</value>
+    <comment>table [Work Center] measure [Work Center Actual Efficiency %]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.measure.d10d6ea3-9d28-425a-a665-5c7de9ef1c51.caption" xml:space="preserve">
+    <value>Faktisk behov for arbeidssenter</value>
+    <comment>table [Work Center] measure [Work Center Actual Need]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.measure.75f0cd0f-d057-4f84-9e1b-b705dc743233.caption" xml:space="preserve">
+    <value>Vrakprosent i arbeidssenter</value>
+    <comment>table [Work Center] measure [Work Center Scrap %]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.measure.c7f4a54f-e6f2-4a66-a70f-b17c9e93e5c1.caption" xml:space="preserve">
+    <value>Arbeidssentervrak</value>
+    <comment>table [Work Center] measure [Work Center Scrap]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.measure.05353d7f-228e-42da-b700-085fa0bea73b.caption" xml:space="preserve">
+    <value>Arbeidssenteravgang</value>
+    <comment>table [Work Center] measure [Work Center Output]</comment>
+  </data>
+  <data name="35c4c490-e6e2-463c-8116-538f2549651e.measure.3a8fb576-5e5c-46fe-8d93-78edf6a75ccc.caption" xml:space="preserve">
+    <value>Tidsbehov for arbeidssenter</value>
+    <comment>table [Work Center] measure [Work Center Needed Time]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.b86e776e-e201-4aaf-a06d-87782d4ca51b.caption" xml:space="preserve">
+    <value>Min rapporttittel</value>
+    <comment>table [Localized Labels] measure [My Report Title]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.5a5873fe-ae4e-4026-8eaa-737af9d77299.caption" xml:space="preserve">
+    <value>Min knappetittel</value>
+    <comment>table [Localized Labels] measure [My Button Caption]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.7049083c-8d15-4322-8a9b-2bb4ddc29d0f.caption" xml:space="preserve">
+    <value>Min visuelle tittel</value>
+    <comment>table [Localized Labels] measure [My Visual Title]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.299691a4-e5b9-46fa-b76b-763112117cf1.caption" xml:space="preserve">
+    <value>Nåværende utnyttelse</value>
+    <comment>table [Localized Labels] measure [Current Utilization]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.eee7e236-cd15-4ac3-89a5-818c2f29e5d7.caption" xml:space="preserve">
+    <value>Utnyttelsesprosent, kapasitet brukt (timer) og tilgjengelig kapasitet (timer) etter dag</value>
+    <comment>table [Localized Labels] measure [Utilization %, Capacity Used (Hours) and Capacity Available (Hours) by Day]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.0a044032-69ed-4397-8dc9-cb664b1b2a7f.caption" xml:space="preserve">
+    <value>Utnyttelsesprosent og forventet kapasitetsbehov i prosent (i dag)</value>
+    <comment>table [Localized Labels] measure [Utilization % and Expected Capacity Need % (Today)]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.28422982-0fdc-423d-9695-0d6ec1e20f2a.caption" xml:space="preserve">
+    <value>Utnyttelsesprosent og forventet kapasitetsbehov i prosent (inneværende uke)</value>
+    <comment>table [Localized Labels] measure [Utilization % and Expected Capacity Need % (Current Week)]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.231f5ae5-ed53-4726-a5de-15e9870f0f57.caption" xml:space="preserve">
+    <value>Utnyttelsesprosent og forventet kapasitetsbehov i prosent (inneværende år)</value>
+    <comment>table [Localized Labels] measure [Utilization % and Expected Capacity Need % (Current Year)]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.dabd05c8-3dbe-4942-a892-0eaafa82c4bf.caption" xml:space="preserve">
+    <value>Historisk utnyttelse</value>
+    <comment>table [Localized Labels] measure [Historical Utilization]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.1053cd64-e9eb-4218-9920-6e0274615a3f.caption" xml:space="preserve">
+    <value>Belastningsprosent, fordelt tid (timer) og tilgjengelig kapasitet (timer) etter navn på arbeidssentergruppe</value>
+    <comment>table [Localized Labels] measure [Load %, Allocated Time (Hours) and Capacity Available (Hours) by Work Center Group Name]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.3fb097ac-ecd5-40ec-bb89-4e98a465e710.caption" xml:space="preserve">
+    <value>Belastningsprosent (i dag)</value>
+    <comment>table [Localized Labels] measure [Load % (Today)]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.19eebc7e-40f3-4c9a-9831-a688520afc4d.caption" xml:space="preserve">
+    <value>Belastningsprosent (inneværende uke)</value>
+    <comment>table [Localized Labels] measure [Load % (Current Week)]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.72259432-de9f-48e3-8acc-b3cc76746306.caption" xml:space="preserve">
+    <value>Belastningsprosent (inneværende år)</value>
+    <comment>table [Localized Labels] measure [Load % (Current Year)]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.8da1f4d8-80aa-49f8-87b8-a1d586be28ec.caption" xml:space="preserve">
+    <value>Fordelte timer</value>
+    <comment>table [Localized Labels] measure [Allocated Hours]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.a6778dbd-e32a-4b96-ae95-1e10020a25e5.caption" xml:space="preserve">
+    <value>Fordelt tid (timer) og lastprosent etter navn på arbeidssentergruppe og navn</value>
+    <comment>table [Localized Labels] measure [Allocated Time (Hours) and Load % by Work Center Group Name and Name]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.4edd3221-33fa-41f1-b3c5-3847ff2338ab.caption" xml:space="preserve">
+    <value>Tildelt tid i timer (i dag)</value>
+    <comment>table [Localized Labels] measure [Allocated Time in Hours (Today)]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.1df298f4-44b8-44ef-8f8c-2048ab55b274.caption" xml:space="preserve">
+    <value>Fordelt tid i timer (inneværende uke)</value>
+    <comment>table [Localized Labels] measure [Allocated Time in Hours (Current Week)]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.dd2864f2-302c-4b26-870b-c7b4e5d5bef7.caption" xml:space="preserve">
+    <value>Fordelt tid i timer (inneværende år)</value>
+    <comment>table [Localized Labels] measure [Allocated Time in Hours (Current Year)]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.816c8921-7a5b-4565-af37-7b49732a9fb8.caption" xml:space="preserve">
+    <value>Forventet kapasitetsbehov</value>
+    <comment>table [Localized Labels] measure [Expected Capacity Need]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.d9728996-0d68-4b90-8a34-a3133f84dfd9.caption" xml:space="preserve">
+    <value>Forventet kapasitetsbehov (timer) etter arbeidssentergruppekode og produksjonsordrestatus</value>
+    <comment>table [Localized Labels] measure [Expected Capacity Need (Hours) by Work Centre Group Code and Production Order Status]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.1074688a-2d4c-47b6-b536-d415ea488f64.caption" xml:space="preserve">
+    <value>Oversikt over ferdig produksjonsordre</value>
+    <comment>table [Localized Labels] measure [Finished Production Order Breakdown]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.2136767c-4092-4f54-ba90-08fa808160cd.caption" xml:space="preserve">
+    <value>Forventet antall (l.enh) og ferdig antall (l.enh) etter måned</value>
+    <comment>table [Localized Labels] measure [Expected Quantity (Base) and Finished Quantity (Base) by Month]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.143f3495-38b2-46b2-8689-301c8a8a7eb0.caption" xml:space="preserve">
+    <value>Forbruksavvik</value>
+    <comment>table [Localized Labels] measure [Consumption Variance]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.fecb8bd0-d2c0-4cf9-964c-abadabfba034.caption" xml:space="preserve">
+    <value>Forventet forbrukskostbeløp og forbrukt kostbeløp (faktisk) etter måned</value>
+    <comment>table [Localized Labels] measure [Expected Consumption Cost Amount and Consumed Cost Amount (Actual) by Month]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.1e823cda-493e-44dd-8a2c-40f8953e5778.caption" xml:space="preserve">
+    <value>Kapasitetsavvik</value>
+    <comment>table [Localized Labels] measure [Capacity Variance]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.b03a1c6b-fa5b-4ae3-b3b3-4f6482f0cd88.caption" xml:space="preserve">
+    <value>Forventet kapasitetskostbeløp og kapasitetskostbeløp (faktisk) etter måned</value>
+    <comment>table [Localized Labels] measure [Expected Capacity Cost Amount and Capacity Cost Amount (Actual) by Month]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.f28e2c26-b935-4b1c-bdae-061777b226da.caption" xml:space="preserve">
+    <value>Gjennomsnittlig produksjonstid</value>
+    <comment>table [Localized Labels] measure [Average Production Times]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.dea88649-cf85-4a49-88ba-47e28e082156.caption" xml:space="preserve">
+    <value>Frigitte produksjonsordrer</value>
+    <comment>table [Localized Labels] measure [Released Production Orders]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.cc52550c-a448-40c8-995c-0f4af0b1e99f.caption" xml:space="preserve">
+    <value>Produksjonssvinn</value>
+    <comment>table [Localized Labels] measure [Production Scrap]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.2c5e05d9-2943-4940-afea-b1c7109e8c64.caption" xml:space="preserve">
+    <value>Kapasitet vrakantall etter måned</value>
+    <comment>table [Localized Labels] measure [Capacity Scrap Quantity by Month]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.4eb9732c-d07f-4e5d-8dcc-bf9a27afdd0c.caption" xml:space="preserve">
+    <value>Kapasitet vrakantall etter vrakkode</value>
+    <comment>table [Localized Labels] measure [Capacity Scrap Quantity by Scrap Code]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.5e031abd-3263-4873-be43-1435f9524620.caption" xml:space="preserve">
+    <value>Kapasitet vrakantall etter lokasjonskode</value>
+    <comment>table [Localized Labels] measure [Capacity Scrap Quantity by Location Code]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.07801ee5-aa48-4006-90e5-e0e1f868b47e.caption" xml:space="preserve">
+    <value>Produksjon</value>
+    <comment>table [Localized Labels] measure [Manufacturing]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.4a6c7b73-b9ba-4658-9823-3ecc18b47cfa.caption" xml:space="preserve">
+    <value>for Business Central</value>
+    <comment>table [Localized Labels] measure [for Business Central]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.25e067d5-3b32-4370-bd26-9271ecc597b3.caption" xml:space="preserve">
+    <value>KOBLE TIL DATAENE</value>
+    <comment>table [Localized Labels] measure [CONNECT YOUR DATA]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.37df5358-005b-4f47-abb7-642b8dbce289.caption" xml:space="preserve">
+    <value>2. Konfigurer Dynamics 365 Business Central</value>
+    <comment>table [Localized Labels] measure [2. Configure Dynamics 365 Business Central]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.b6ede26a-fd2b-4326-be91-7cee5d054cfb.caption" xml:space="preserve">
+    <value>BRUK, REDIGER OG BYGG DINE EGNE RAPPORTER</value>
+    <comment>table [Localized Labels] measure [USE, EDIT AND BUILD YOUR OWN REPORTS]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.50bbcd85-1a36-46ae-8b54-ebaee22bf3f4.caption" xml:space="preserve">
+    <value>HJELP OG KUNDESTØTTE</value>
+    <comment>table [Localized Labels] measure [HELP AND SUPPORT]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.721623c1-4ee1-4328-8436-4cfcf82af873.caption" xml:space="preserve">
+    <value>Hvis du vil ha hjelp og støtte med den nye rapporten, kan du gå til dokumentasjonen for analyseoversikten.</value>
+    <comment>table [Localized Labels] measure [For help and support with your new report please visit the Analytics overview documentation.]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.8207b130-5cec-4d13-9cfe-f2a7848d8736.caption" xml:space="preserve">
+    <value>ANDRE POWER BI-RAPPORTER</value>
+    <comment>table [Localized Labels] measure [OTHER POWER BI REPORTS]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.6b77c97d-b2d6-4ed3-9369-8395424f69c9.caption" xml:space="preserve">
+    <value>KJØP</value>
+    <comment>table [Localized Labels] measure [PURCHASE]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.1d60693c-b410-44aa-b789-900ac24c87da.caption" xml:space="preserve">
+    <value>FINANS</value>
+    <comment>table [Localized Labels] measure [FINANCE]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.db3e0aa3-9065-46a2-9ab6-c76ce7af6dad.caption" xml:space="preserve">
+    <value>BEHOLDNING</value>
+    <comment>table [Localized Labels] measure [INVENTORY]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.7567d4d7-383f-407a-9182-9cf1b6c284e1.caption" xml:space="preserve">
+    <value>SALG</value>
+    <comment>table [Localized Labels] measure [SALES]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.b9cbc707-c267-4914-a749-5e4c690a2168.caption" xml:space="preserve">
+    <value>Sist oppdatert</value>
+    <comment>table [Localized Labels] measure [Last Refreshed]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.561c08e5-6578-4f61-b3a0-5134e7175088.caption" xml:space="preserve">
+    <value>Selskapsnavn</value>
+    <comment>table [Localized Labels] measure [Company Name]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.94c824d5-b972-4405-82d6-16c7976acfcf.caption" xml:space="preserve">
+    <value>Kapasitet vrakantall etter varekategorikode</value>
+    <comment>table [Localized Labels] measure [Capacity Scrap Quantity by Item Category Code]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.e8e7d0ed-e211-4cf1-8039-f568eafb1e51.caption" xml:space="preserve">
+    <value>1. Last ned produksjonskoblingen for Power BI</value>
+    <comment>table [Localized Labels] measure [1. Download the Manufacturing Connector for Power BI]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.8fac0521-ac10-4cec-bb4a-31d2fcf8a4c9.caption" xml:space="preserve">
+    <value>Produksjon inkluderer en rekke forhåndsbygde rapporter for å hjelpe deg med å se dataene umiddelbart.</value>
+    <comment>table [Localized Labels] measure [Manufacturing includes a variety of pre-built reports to help you see your data immediately.]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.c0ef101b-25a5-495b-8bb0-90d886744bcc.caption" xml:space="preserve">
+    <value>Du kan redigere disse rapportene eller lage din egen rapport fra bunnen av.</value>
+    <comment>table [Localized Labels] measure [You are able to edit these reports or build your own report from scratch.]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.a732e59d-ca96-4bcd-856f-249e52677a68.caption" xml:space="preserve">
+    <value>PROSJEKTER</value>
+    <comment>table [Localized Labels] measure [PROJECTS]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.15cad9e9-c3f0-4d42-bd3b-0a651fee283f.caption" xml:space="preserve">
+    <value>Kapasitet brukt (timer), tilgjengelig kapasitet (timer) og utnyttelsesprosent etter dato</value>
+    <comment>table [Localized Labels] measure [Capacity Used (Hours), Capacity Available (Hours) and Utilization % by Date]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.38fea54a-715b-4e84-a94d-33fa8b99c42a.caption" xml:space="preserve">
+    <value>Faktisk kostnad etter kildenr.</value>
+    <comment>table [Localized Labels] measure [Actual Cost by Source No.]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.3cf72bb1-74c6-4323-91e7-dcf593cff477.caption" xml:space="preserve">
+    <value>Oversikt over produksjonsordre</value>
+    <comment>table [Localized Labels] measure [Production Order Overview]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.96571359-e338-47c9-aafa-6c2205303f49.caption" xml:space="preserve">
+    <value>Antall produksjonsordrer etter status</value>
+    <comment>table [Localized Labels] measure [No. of Production Orders by Status]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.0c733c6d-eeab-4e4c-8274-0e1f06ab5b7d.caption" xml:space="preserve">
+    <value>Fullføringsforhold etter kildenr.</value>
+    <comment>table [Localized Labels] measure [Completion Ratios by Source No.]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.1ee12351-83d8-442c-9f47-1b2c9619227c.caption" xml:space="preserve">
+    <value>Spesifikasjon av total faktisk kostnad</value>
+    <comment>table [Localized Labels] measure [Total Actual Cost Breakdown]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.10a59565-3d64-41fd-b104-e2b60a86bde1.caption" xml:space="preserve">
+    <value>Nåværende produksjonsordrer</value>
+    <comment>table [Localized Labels] measure [Current Production Orders]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.bd752042-c5fb-48d0-bd00-6b148226b6e4.caption" xml:space="preserve">
+    <value>Nåværende arbeidssenterutnyttelse etter år, måned, uke og dag</value>
+    <comment>table [Localized Labels] measure [Current Work Center Utilization by Year, Month, Week and Day]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.b5eb771b-d927-4a39-af0a-cee3be10f1d0.caption" xml:space="preserve">
+    <value>Arbeidssenterbelastning over tid</value>
+    <comment>table [Localized Labels] measure [Work Center Load Over Time]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.5f611fee-9203-49e0-bd7e-8214c307c5ee.caption" xml:space="preserve">
+    <value>Detaljer om arbeidssenterbelastning</value>
+    <comment>table [Localized Labels] measure [Work Center Load Details]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.9bd411cd-e64c-411a-9a15-435b1b05d011.caption" xml:space="preserve">
+    <value>Arbeidssenterbelastning </value>
+    <comment>table [Localized Labels] measure [Work Center Load ]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.21ca4fb9-5c69-423d-b48e-7f9d358756f6.caption" xml:space="preserve">
+    <value>Tildelt tid </value>
+    <comment>table [Localized Labels] measure [Allocated Time ]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.12acb326-3035-44e0-90d0-111cf582e9a3.caption" xml:space="preserve">
+    <value>Tildelt tid etter arbeidssenternavn</value>
+    <comment>table [Localized Labels] measure [Allocated Time by Work Center Name]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.815999c0-fc9e-45dd-b0f9-220b0d50e232.caption" xml:space="preserve">
+    <value>Tildelt tid etter kildenr.</value>
+    <comment>table [Localized Labels] measure [Allocated Time by Source No.]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.03917164-7158-4135-baca-66d7681743c9.caption" xml:space="preserve">
+    <value>Tildelt tid etter type</value>
+    <comment>table [Localized Labels] measure [Allocated Time by Type]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.6f114a76-92bd-4af2-832a-25a63a97940b.caption" xml:space="preserve">
+    <value>Detaljer om tildelt tid</value>
+    <comment>table [Localized Labels] measure [Allocated Time Details]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.ad42dbd3-8bf2-40ee-9c67-35c3e270e750.caption" xml:space="preserve">
+    <value>Tildelt tid etter produksjonsordrestatus</value>
+    <comment>table [Localized Labels] measure [Allocated Time by Production Order Status]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.cba3e7c0-425e-4b7e-b95a-4a160e67f37b.caption" xml:space="preserve">
+    <value>Forventet kapasitetsbehov etter arbeidssenter</value>
+    <comment>table [Localized Labels] measure [Expected Capacity Need by Work Center]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.cfa506b5-80be-418d-b510-0a8181c6a9f7.caption" xml:space="preserve">
+    <value>Forventet kapasitetsbehov etter produksjonsressurs</value>
+    <comment>table [Localized Labels] measure [Expected Capacity Need by Machine Center]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.4752f981-efd0-4fc6-94f5-28f27606d789.caption" xml:space="preserve">
+    <value>Detaljer om forventet kapasitetsbehov</value>
+    <comment>table [Localized Labels] measure [Expected Capacity Need Details]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.0bf106a3-cdb1-4a34-8c9e-61f6ef652d4e.caption" xml:space="preserve">
+    <value>Forventet kapasitetsbehov etter kildenr.</value>
+    <comment>table [Localized Labels] measure [Expected Capacity Need by Source No.]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.2525bfc8-82ea-4072-a21b-bddceeb6d1a3.caption" xml:space="preserve">
+    <value>Forventet materialutviklingsprosent etter kildenr.</value>
+    <comment>table [Localized Labels] measure [Expected Material Dev % by Source No.]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.99075fc4-37a6-4809-8733-6ea174258e7e.caption" xml:space="preserve">
+    <value>Forventet materialutviklingsprosent etter produksjonsordre</value>
+    <comment>table [Localized Labels] measure [Expected Material Dev % by Production Order]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.c4b27159-fefe-4d95-9a6c-449c03e904c6.caption" xml:space="preserve">
+    <value>Detaljer om forbruksavvik</value>
+    <comment>table [Localized Labels] measure [Consumption Variance Details]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.ace471fd-5a5e-48f5-b852-e9b4bfa2ffb0.caption" xml:space="preserve">
+    <value>Forventet kapasitetsutviklingsprosent etter kildenr.</value>
+    <comment>table [Localized Labels] measure [Expected Capacity Dev % by Source No.]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.e8ce3082-44ec-4ba2-8517-ad2f06385565.caption" xml:space="preserve">
+    <value>Forventet kapasitetsutviklingsprosent etter produksjonsordre|</value>
+    <comment>table [Localized Labels] measure [Expected Capacity Dev % by Production Order|]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.8d005d63-db0d-47ed-9401-85333cc75bb7.caption" xml:space="preserve">
+    <value>Detaljer om kapasitetsavvik</value>
+    <comment>table [Localized Labels] measure [Capacity Variance Details]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.e263bbc0-6c9b-4699-9e02-910bd3142067.caption" xml:space="preserve">
+    <value>Gjennomsnittlig tid per ferdig antall etter arbeidssenter</value>
+    <comment>table [Localized Labels] measure [Average Time Per Finished Quantity by Work Center]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.207ffad3-d5b0-4565-b3a9-09b6b93e059b.caption" xml:space="preserve">
+    <value>Gjennomsnittlig tid per ferdig antall etter kildenr.</value>
+    <comment>table [Localized Labels] measure [Average Time Per Finished Quantity by Source No.]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.81db17ec-5ea1-48da-8fd1-3d7c1992d1cb.caption" xml:space="preserve">
+    <value>Detaljer om gjennomsnittlig produksjonstid</value>
+    <comment>table [Localized Labels] measure [Average Production Time Details]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.73d281fe-06e9-4b4f-b9d5-2499a50bcb10.caption" xml:space="preserve">
+    <value>Antall produksjonsordrer etter kildenr.</value>
+    <comment>table [Localized Labels] measure [No. of Production Orders by Source No.]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.a8860c3e-4026-49e3-9d10-2831329c9b59.caption" xml:space="preserve">
+    <value>Detaljer om frigitt produksjonsordre</value>
+    <comment>table [Localized Labels] measure [Released Production Order Details]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.0196f0f0-37e0-4725-ac53-6f05d678f0c8.caption" xml:space="preserve">
+    <value>Vrakantall etter arbeidssenter</value>
+    <comment>table [Localized Labels] measure [Scrap Quantity by Work Center]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.a501a992-3e43-440c-bc2e-ed7c179a5719.caption" xml:space="preserve">
+    <value>Arbeidssenterstatistikk</value>
+    <comment>table [Localized Labels] measure [Work Center Statistics]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.7c3578b9-3701-498c-808d-f1ee5d58a555.caption" xml:space="preserve">
+    <value>Statistikkdetaljer</value>
+    <comment>table [Localized Labels] measure [Statistic Details]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.ea8f920a-3271-45b1-bf7a-532636ec5f04.caption" xml:space="preserve">
+    <value>Produksjonsressursstatistikk</value>
+    <comment>table [Localized Labels] measure [Machine Center Statistics]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.8a4ab10b-2376-4d16-b226-fd3c8e7bf1a7.caption" xml:space="preserve">
+    <value>Produksjonsressursbelastning </value>
+    <comment>table [Localized Labels] measure [Machine Center Load ]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.b7b2bb91-9abe-4c95-97ac-0426bb2e2859.caption" xml:space="preserve">
+    <value>Detaljer om produksjonsressursbelastning</value>
+    <comment>table [Localized Labels] measure [Machine Center Load Details]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.05e03954-9964-45ce-b77c-8b6228f10df7.caption" xml:space="preserve">
+    <value>Prod.ordreoversikt</value>
+    <comment>table [Localized Labels] measure [Prod. Order List]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.c02b1d24-32e2-476e-907b-3a87832bd32d.caption" xml:space="preserve">
+    <value>Detaljer om prod.ordreoversikt</value>
+    <comment>table [Localized Labels] measure [Prod. Order List Details]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.51378bc0-1bbd-4afe-9d64-f50063770aed.caption" xml:space="preserve">
+    <value>Gantt for produksjonsordrerutelinjer</value>
+    <comment>table [Localized Labels] measure [Production Order Routing Lines Gantt]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.221cbce9-3f22-4df0-b63c-f6407a80f0cb.caption" xml:space="preserve">
+    <value>Varighet for rutelinjeoperasjon</value>
+    <comment>table [Localized Labels] measure [Routing Line Operation Duration]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.9e414141-dd1c-4713-a491-e603e0460192.caption" xml:space="preserve">
+    <value>Detaljer om rutelinje</value>
+    <comment>table [Localized Labels] measure [Routing Line Details]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.a8b0d362-ef34-45e9-9f8b-11874c834be9.caption" xml:space="preserve">
+    <value>Produksjonsordre – VIA</value>
+    <comment>table [Localized Labels] measure [Production Order WIP]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.d61f4981-9429-45a4-ad8a-e259b3b7d054.caption" xml:space="preserve">
+    <value>Beholdningsverdisetting – VIA</value>
+    <comment>table [Localized Labels] measure [Inventory Valuation - WIP]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.2471c4a7-3b89-4c30-87a4-89a0ee0dce6a.caption" xml:space="preserve">
+    <value>Gjennomgang av oppgaveliste</value>
+    <comment>table [Localized Labels] measure [Task List Drill Through]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.5a30ab8b-2720-4ec8-85bf-311217c53ae8.caption" xml:space="preserve">
+    <value>Detaljer om oppgaveliste</value>
+    <comment>table [Localized Labels] measure [Task List Details]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.512c290e-4c09-4335-b125-4cba9b4e36f1.caption" xml:space="preserve">
+    <value>Avvik i forventet kapasitetsbehov</value>
+    <comment>table [Localized Labels] measure [Expected Capacity Need Variance]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.5668111c-15cc-4c83-92f1-caf8a6ff8d89.caption" xml:space="preserve">
+    <value>Utviklingsprosent for forventet kapasitetskostnad etter kildenr.</value>
+    <comment>table [Localized Labels] measure [Expected Capacity Cost Dev % by Source No.]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.1e17cf6f-c6b8-4d8d-811c-40edb34d6608.caption" xml:space="preserve">
+    <value>Gjennomsnittlig produksjonstid per enhet etter arbeidssenter</value>
+    <comment>table [Localized Labels] measure [Average Production Time Per Unit by Work Center]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.68031353-5759-465a-86d3-4ab5cc4bbb68.caption" xml:space="preserve">
+    <value>Gjennomsnittlig produksjonstid per enhet etter kildenr.</value>
+    <comment>table [Localized Labels] measure [Average Production Time Per Unit by Source No.]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.b972c2e3-df28-4309-a656-d529d5d98f12.caption" xml:space="preserve">
+    <value>Vrakantall over tid</value>
+    <comment>table [Localized Labels] measure [Scrap Quantity Over Time]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.db338b23-c632-45c1-a3a9-8158a0caad7a.caption" xml:space="preserve">
+    <value>Vrakprosent etter produksjonsordre</value>
+    <comment>table [Localized Labels] measure [Scrap % by Production Order]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.7269ac89-43e7-40dc-9b24-ad23992a6b8c.caption" xml:space="preserve">
+    <value>Vrakantall etter vrakkode</value>
+    <comment>table [Localized Labels] measure [Scrap Quantity by Scrap Code]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.ad5f85ce-1a01-4e82-b698-b925f16fd4c2.caption" xml:space="preserve">
+    <value>Vrakantall kontra forventet vrakantall</value>
+    <comment>table [Localized Labels] measure [Scrap Quantity vs. Expected Scrap Quantity]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.1d55c534-8fde-44ad-9443-608962f0acde.caption" xml:space="preserve">
+    <value>Produksjonsordretidslinje</value>
+    <comment>table [Localized Labels] measure [Production Order Time Line]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.0f8b8425-88fb-4ae0-a5ee-bbf1353bc80c.caption" xml:space="preserve">
+    <value>Produksjonstidslinje</value>
+    <comment>table [Localized Labels] measure [Production Time Line]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.9569fcca-bcf8-450c-bbf7-fc304afed355.caption" xml:space="preserve">
+    <value>Arbeidssentereffektivitet</value>
+    <comment>table [Localized Labels] measure [Work Center Efficiency]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.23ccf29f-ecc6-4ea5-9205-47882e479ab9.caption" xml:space="preserve">
+    <value>Produksjonsressurseffektivitet</value>
+    <comment>table [Localized Labels] measure [Machine Center Efficiency]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.d3653af1-fc07-4b7a-8416-970c0a25d42e.caption" xml:space="preserve">
+    <value>Antall produksjonsordrer etter kildevare</value>
+    <comment>table [Localized Labels] measure [No. of Production Orders by Source Item]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.67553e37-4404-4457-a72d-75450d4d1c55.caption" xml:space="preserve">
+    <value>Gantt for prod.ordrerute</value>
+    <comment>table [Localized Labels] measure [Prod. Order Routing Gantt]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.79119249-cb0f-4480-badd-212e128ee757.caption" xml:space="preserve">
+    <value>Produksjonstidslinje</value>
+    <comment>table [Localized Labels] measure [Production Timeline]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.fde16454-aac8-4b5e-8f75-0500f19758b7.caption" xml:space="preserve">
+    <value>Sluttsaldoverdi etter måned og år</value>
+    <comment>table [Localized Labels] measure [Ending Balance Value by Month and Year]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.443a1adc-ac54-430f-8614-86d90357d6a6.caption" xml:space="preserve">
+    <value>Vrakantall kontra forventet vrakantall etter kildenr.</value>
+    <comment>table [Localized Labels] measure [Scrap Quantity vs. Expected Scrap Quantity by Source No.]</comment>
+  </data>
+  <data name="f156500f-aa19-4c6e-ba7c-ed4fabc81e7e.measure.0ffb8422-832a-4112-b364-9eb6380861a8.caption" xml:space="preserve">
+    <value>Produksjonsordrer etter arbeidssenter</value>
+    <comment>table [Localized Labels] measure [Production Orders by Work Center]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.caption" xml:space="preserve">
+    <value>Produksjonsressurs</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.column.192702cf-fdfd-4cb1-9b14-36e6cad33a2f.caption" xml:space="preserve">
+    <value>Produksjonsressursnr.</value>
+    <comment>table [Machine Center] column [Machine Center No.]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.column.373c3df7-5d7e-44fb-9aff-9b32cfa04751.caption" xml:space="preserve">
+    <value>Navn på produksjonsressurs</value>
+    <comment>table [Machine Center] column [Machine Center Name]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.column.742b4db2-7b3b-4151-8e14-b10f58a45cc7.caption" xml:space="preserve">
+    <value>Arbeidssenternr.</value>
+    <comment>table [Machine Center] column [Work Center No.]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.column.2a0fa767-cfb9-488c-bdac-8282ca3265e5.caption" xml:space="preserve">
+    <value>Arbeidssenterenhet</value>
+    <comment>table [Machine Center] column [Work Center Unit of Measure]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.column.b1694a05-da8e-4cb6-afd0-415bf77250d4.caption" xml:space="preserve">
+    <value>Arbeidssenternavn</value>
+    <comment>table [Machine Center] column [Work Center Name]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.measure.ae64a8e3-eb89-499f-912c-6d6a8979acc1.caption" xml:space="preserve">
+    <value>Produksjonsressurskapasitet (effektiv)</value>
+    <comment>table [Machine Center] measure [Machine Center Capacity (Effective)]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.measure.002ba130-fd73-4667-a75a-30e3e642914a.caption" xml:space="preserve">
+    <value>Produksjonsressurskapasitet (totalt)</value>
+    <comment>table [Machine Center] measure [Machine Center Capacity (Total)]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.measure.ad80cd23-64ca-470a-b573-455326d97e88.caption" xml:space="preserve">
+    <value>Forventede effektivitetsprosent for produksjonsressurs</value>
+    <comment>table [Machine Center] measure [Machine Center Expected Efficiency %]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.measure.2e5c02d3-2cad-4dea-8b75-61d5adb22a21.caption" xml:space="preserve">
+    <value>Faktisk totalbeløp for produksjonsressurs</value>
+    <comment>table [Machine Center] measure [Machine Center Actual Total Cost]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.measure.e03ecb70-54df-4c0b-9312-d5c56719369f.caption" xml:space="preserve">
+    <value>Faktisk effektivitetsprosent for produksjonsressurs</value>
+    <comment>table [Machine Center] measure [Machine Center Actual Efficiency %]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.measure.ea84d524-1ed1-4cb2-8956-055c3966a4c6.caption" xml:space="preserve">
+    <value>Faktisk behov for produksjonsressurs</value>
+    <comment>table [Machine Center] measure [Machine Center Actual Need]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.measure.f1871994-a8c9-4ffd-86e6-1c5fbea7f678.caption" xml:space="preserve">
+    <value>Tildelt tid for produksjonsressurs</value>
+    <comment>table [Machine Center] measure [Machine Center Allocated Time]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.measure.223c11f3-1703-4181-8878-c978b9051a70.caption" xml:space="preserve">
+    <value>Produksjonsressursavgang</value>
+    <comment>table [Machine Center] measure [Machine Center Output]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.measure.ab04072c-d643-4c39-a755-5be93263771e.caption" xml:space="preserve">
+    <value>Produksjonsressursvrak</value>
+    <comment>table [Machine Center] measure [Machine Center Scrap]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.measure.e53e678b-5a74-4c0c-9360-2eaedee30572.caption" xml:space="preserve">
+    <value>Vrakprosent for produksjonsressurs</value>
+    <comment>table [Machine Center] measure [Machine Center Scrap %]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.measure.520d5abf-507c-42c9-bd75-6e5e4cb6b046.caption" xml:space="preserve">
+    <value>Kjøretid for produksjonsressurs</value>
+    <comment>table [Machine Center] measure [Machine Center Run Time]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.measure.62a43eb4-c798-4e0a-b86d-4114e564e1c4.caption" xml:space="preserve">
+    <value>Stopptid for produksjonsressurs</value>
+    <comment>table [Machine Center] measure [Machine Center Stop Time]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.measure.901e2d2e-9853-4eaf-aed8-6a999088d9af.caption" xml:space="preserve">
+    <value>Stopprosent for produksjonsressurs</value>
+    <comment>table [Machine Center] measure [Machine Center Stop %]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.measure.85568914-8390-4204-804f-c066538d656e.caption" xml:space="preserve">
+    <value>Tilgjengelighet etter ordre for produksjonsressurs</value>
+    <comment>table [Machine Center] measure [Machine Center Availability After Orders]</comment>
+  </data>
+  <data name="ec3e7df6-052e-4b94-94f7-665881f0d00f.measure.aaec6385-f807-4917-8ee8-5ccd5101f39c.caption" xml:space="preserve">
+    <value>Produksjonsressursbelastning</value>
+    <comment>table [Machine Center] measure [Machine Center Load]</comment>
+  </data>
+  <data name="a44ea935-88f3-4cbe-b453-1df1c006bef0.caption" xml:space="preserve">
+    <value>Produksjonsordrelinjer</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="a44ea935-88f3-4cbe-b453-1df1c006bef0.column.21178272-72b6-4f8d-aa9b-00e22efc1ff3.caption" xml:space="preserve">
+    <value>Prod.ordrelinjenr.</value>
+    <comment>table [Production Order Lines] column [Prod. Order Line No.]</comment>
+  </data>
+  <data name="a44ea935-88f3-4cbe-b453-1df1c006bef0.column.27888e99-7bf8-4bde-ba50-9fa88dc8bff3.caption" xml:space="preserve">
+    <value>Rutenr.</value>
+    <comment>table [Production Order Lines] column [Routing No.]</comment>
+  </data>
+  <data name="a44ea935-88f3-4cbe-b453-1df1c006bef0.column.12de0296-4b2b-426f-b027-be6ace6a9127.caption" xml:space="preserve">
+    <value>Rutereferansenr.</value>
+    <comment>table [Production Order Lines] column [Routing Reference No.]</comment>
+  </data>
+  <data name="a44ea935-88f3-4cbe-b453-1df1c006bef0.column.621bced8-d16f-4cb0-8f0c-844ed5d2872b.caption" xml:space="preserve">
+    <value>Rutetype</value>
+    <comment>table [Production Order Lines] column [Routing Type]</comment>
+  </data>
+  <data name="a44ea935-88f3-4cbe-b453-1df1c006bef0.column.96fe359b-09f0-45c3-b541-266b1eeea05d.caption" xml:space="preserve">
+    <value>Vrakprosent</value>
+    <comment>table [Production Order Lines] column [Scrap Percent]</comment>
+  </data>
+  <data name="a44ea935-88f3-4cbe-b453-1df1c006bef0.column.336acb79-81cb-4d61-8fe0-3bce9461cbad.caption" xml:space="preserve">
+    <value>Planl.nivå – kode</value>
+    <comment>table [Production Order Lines] column [Planning Level Code]</comment>
+  </data>
+  <data name="a44ea935-88f3-4cbe-b453-1df1c006bef0.measure.188e6493-cb12-47af-a885-2ed6df54e5e1.caption" xml:space="preserve">
+    <value>Antall (lagerenhet)</value>
+    <comment>table [Production Order Lines] measure [Quantity (Base)]</comment>
+  </data>
+  <data name="a44ea935-88f3-4cbe-b453-1df1c006bef0.measure.a7242318-5819-4cd9-b829-e8ebf6a630e1.caption" xml:space="preserve">
+    <value>Restantall (l.enh.)</value>
+    <comment>table [Production Order Lines] measure [Remaining Quantity (Base)]</comment>
+  </data>
+  <data name="a44ea935-88f3-4cbe-b453-1df1c006bef0.measure.408c8904-25a2-4827-a528-812685bd5cd0.caption" xml:space="preserve">
+    <value>Ferdig antall (l.enh)</value>
+    <comment>table [Production Order Lines] measure [Finished Quantity (Base)]</comment>
+  </data>
+  <data name="ce34ad92-5537-41fa-9cd7-8b79f67d987d.caption" xml:space="preserve">
+    <value>Prod.ordrekomponenter</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="ce34ad92-5537-41fa-9cd7-8b79f67d987d.column.46014a9a-df61-44b4-bc60-0b58f457b1d7.caption" xml:space="preserve">
+    <value>Linjenr. for prod.ordrekomponenter</value>
+    <comment>table [Prod Order Components] column [Prod Order Components Line No.]</comment>
+  </data>
+  <data name="ce34ad92-5537-41fa-9cd7-8b79f67d987d.measure.8c48b06d-8504-476e-8ea6-e24636dcda67.caption" xml:space="preserve">
+    <value>Kostbeløp for prod.ordrekomponent</value>
+    <comment>table [Prod Order Components] measure [Prod Order Component Cost Amount]</comment>
+  </data>
+  <data name="ce34ad92-5537-41fa-9cd7-8b79f67d987d.measure.5a33fb0a-8c75-449d-9e96-9843c822afc9.caption" xml:space="preserve">
+    <value>Forventet antall for prod.ordrekomponent (lagerenhet)</value>
+    <comment>table [Prod Order Components] measure [Prod Order Component Expected Qty. (Base)]</comment>
+  </data>
+  <data name="ce34ad92-5537-41fa-9cd7-8b79f67d987d.measure.a4e62cc9-f676-4564-8663-cf9aae784564.caption" xml:space="preserve">
+    <value>Restantall for prod.ordrekomponent (lagerenhet)</value>
+    <comment>table [Prod Order Components] measure [Prod Order Component Remaining Qty. (Base)]</comment>
+  </data>
+  <data name="5c9dd830-0220-4958-bb24-ab50888fc261.caption" xml:space="preserve">
+    <value>Prod.ordrekapasitetsbehov</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="5c9dd830-0220-4958-bb24-ab50888fc261.column.2bed573b-69ec-44d2-b5a2-34fef867cf65.caption" xml:space="preserve">
+    <value>Rutereferansenr.</value>
+    <comment>table [Prod Order Capacity Need] column [Routing Reference No.]</comment>
+  </data>
+  <data name="5c9dd830-0220-4958-bb24-ab50888fc261.column.67a49778-b191-493b-8f75-d20f8a0aa22e.caption" xml:space="preserve">
+    <value>Operasjonsnr.</value>
+    <comment>table [Prod Order Capacity Need] column [Operation No.]</comment>
+  </data>
+  <data name="5c9dd830-0220-4958-bb24-ab50888fc261.column.2fe1017f-da57-435f-954e-12ecc45d0468.caption" xml:space="preserve">
+    <value>Bare forespurte</value>
+    <comment>table [Prod Order Capacity Need] column [Requested Only]</comment>
+  </data>
+  <data name="5c9dd830-0220-4958-bb24-ab50888fc261.column.f51dfebe-4ee2-4f13-96c2-21f5785e9bee.caption" xml:space="preserve">
+    <value>Type</value>
+    <comment>table [Prod Order Capacity Need] column [Type]</comment>
+  </data>
+  <data name="5c9dd830-0220-4958-bb24-ab50888fc261.column.04409ee7-9701-4dc8-8e29-43574e03a430.caption" xml:space="preserve">
+    <value>Linjenr. for prod.ordrekapasitetsbehov</value>
+    <comment>table [Prod Order Capacity Need] column [Prod Order Capacity Need Line No.]</comment>
+  </data>
+  <data name="5c9dd830-0220-4958-bb24-ab50888fc261.measure.42a27b04-567c-46c3-90f1-5d2282817edf.caption" xml:space="preserve">
+    <value>Tidsbehov</value>
+    <comment>table [Prod Order Capacity Need] measure [Needed Time]</comment>
+  </data>
+  <data name="5c9dd830-0220-4958-bb24-ab50888fc261.measure.7edb988e-6dfe-4839-8083-57c5cddb5c20.caption" xml:space="preserve">
+    <value>Tidsbehov (ms)</value>
+    <comment>table [Prod Order Capacity Need] measure [Needed Time (MS)]</comment>
+  </data>
+  <data name="5c9dd830-0220-4958-bb24-ab50888fc261.measure.664bd943-dd13-454d-bbbf-d9eeff67e4fd.caption" xml:space="preserve">
+    <value>Tildelt tid</value>
+    <comment>table [Prod Order Capacity Need] measure [Allocated Time]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.caption" xml:space="preserve">
+    <value>Prod.ordrerutelinjer</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.column.7e381750-6f37-438e-b7c5-29d3f8b00d64.caption" xml:space="preserve">
+    <value>Nr.</value>
+    <comment>table [Prod Order Routing Lines] column [No.]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.column.7afa13b5-db51-40f8-ab4a-627cadb99b20.caption" xml:space="preserve">
+    <value>Rutekoblingskode</value>
+    <comment>table [Prod Order Routing Lines] column [Routing Link Code]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.column.3378f16d-e296-4b39-af26-0baebdda96b2.caption" xml:space="preserve">
+    <value>Beskrivelse</value>
+    <comment>table [Prod Order Routing Lines] column [Description]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.column.c00e3991-9dc4-4521-a762-d2974393b205.caption" xml:space="preserve">
+    <value>Rutenr.</value>
+    <comment>table [Prod Order Routing Lines] column [Routing No.]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.column.b71595b8-d70d-4506-ae07-32a5f110d54d.caption" xml:space="preserve">
+    <value>Rutereferansenr.</value>
+    <comment>table [Prod Order Routing Lines] column [Routing Reference No.]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.column.f1e1879b-948c-4f3e-9da8-467808a0c0bb.caption" xml:space="preserve">
+    <value>Operasjonsnr.</value>
+    <comment>table [Prod Order Routing Lines] column [Operation No.]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.column.6fbc156f-426e-47d4-a2ef-35c9569be5f7.caption" xml:space="preserve">
+    <value>Oppstillingstid</value>
+    <comment>table [Prod Order Routing Lines] column [Setup Time]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.column.da9b7272-db73-45ae-8a24-70cb8750cc65.caption" xml:space="preserve">
+    <value>Operasjonstid</value>
+    <comment>table [Prod Order Routing Lines] column [Run Time]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.column.7e291eaf-8c17-4e75-80bb-e5e98bcddde3.caption" xml:space="preserve">
+    <value>Ventetid</value>
+    <comment>table [Prod Order Routing Lines] column [Wait Time]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.column.3c643d4d-9fe2-44ad-8076-1cf6e2fee0d3.caption" xml:space="preserve">
+    <value>Transporttid</value>
+    <comment>table [Prod Order Routing Lines] column [Move Time]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.column.4511c343-9af5-4d3d-a72d-c9d3253d7a3b.caption" xml:space="preserve">
+    <value>Rutestatus</value>
+    <comment>table [Prod Order Routing Lines] column [Routing Status]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.column.7ab902f4-e7c1-441f-8ab0-1bf2cd534b76.caption" xml:space="preserve">
+    <value>Navn på arbeidssenter/produksjonsressurs</value>
+    <comment>table [Prod Order Routing Lines] column [Work/Machine Center Name]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.column.30cd2b15-33de-4840-ad40-7abffd7d245b.caption" xml:space="preserve">
+    <value>Sluttdato-tidsp.</value>
+    <comment>table [Prod Order Routing Lines] column [Ending Date Time]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.column.3b34e1fc-0041-4854-950a-bfeb61d63c18.caption" xml:space="preserve">
+    <value>Startdato-tidsp.</value>
+    <comment>table [Prod Order Routing Lines] column [Starting Date Time]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.measure.998f7a9a-fb30-47b8-aa08-09b801256458.caption" xml:space="preserve">
+    <value>Kjøretid for operasjon</value>
+    <comment>table [Prod Order Routing Lines] measure [Operation Run Time]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.measure.a65606ee-cf7b-41e6-86d5-84beaf77973a.caption" xml:space="preserve">
+    <value>Oppstillingstid for operasjon</value>
+    <comment>table [Prod Order Routing Lines] measure [Operation Setup Time]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.measure.0066d9f4-a6ea-417d-b1e8-d0a123651dfa.caption" xml:space="preserve">
+    <value>Ventetid for operasjon</value>
+    <comment>table [Prod Order Routing Lines] measure [Operation Wait Time]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.measure.1a7d68d4-50bf-432b-a92c-3aed3fd9c0d2.caption" xml:space="preserve">
+    <value>Transporttid for operasjon</value>
+    <comment>table [Prod Order Routing Lines] measure [Operation Move Time]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.measure.27f1ce34-733d-4619-a5b6-f43895d2f6e8.caption" xml:space="preserve">
+    <value>Varighet totalt i timer</value>
+    <comment>table [Prod Order Routing Lines] measure [Total Duration Hours]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.measure.a392f024-8834-4953-b930-7412b1b9c9a1.caption" xml:space="preserve">
+    <value>Forventet operasjonskost</value>
+    <comment>table [Prod Order Routing Lines] measure [Expected Operation Cost]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.measure.22bf3396-f129-4689-9b14-66d838713a5e.caption" xml:space="preserve">
+    <value>Varighet totalt i dager</value>
+    <comment>table [Prod Order Routing Lines] measure [Total Duration Days]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.measure.fae7ac87-5098-481a-a93b-915c3a59a8fd.caption" xml:space="preserve">
+    <value>Forventet kapasitetsbehov for produksjonsordrerute</value>
+    <comment>table [Prod Order Routing Lines] measure [Prod Order Routing Expected Capacity Need]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.measure.ee8c1dbe-1edc-425d-99cf-ee625336f482.caption" xml:space="preserve">
+    <value>Forventet kapasitetsadministrasjonskost for produksjonsordrerute</value>
+    <comment>table [Prod Order Routing Lines] measure [Prod Order Routing Expected Capacity Ovhd. Cost]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.measure.27c51304-77b5-4119-bc1a-d49752f1131a.caption" xml:space="preserve">
+    <value>Forventet operasjonskostbeløp for produksjonsordrerute</value>
+    <comment>table [Prod Order Routing Lines] measure [Prod Order Routing Expected Operation Cost Amt.]</comment>
+  </data>
+  <data name="619d4105-2170-4e3d-8c4d-fb50f10866b6.measure.b20b9aa0-d4b2-4f48-82c2-15b7c1ac2df7.caption" xml:space="preserve">
+    <value>Bokført avgangsantall</value>
+    <comment>table [Prod Order Routing Lines] measure [Posted Output Quantity]</comment>
+  </data>
+  <data name="fe65b27a-8945-4e5d-868d-f3cef8834849.caption" xml:space="preserve">
+    <value>Vareposter</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="fe65b27a-8945-4e5d-868d-f3cef8834849.column.20af9340-a0de-4c75-b489-f2f4233895d7.caption" xml:space="preserve">
+    <value>Serienr.</value>
+    <comment>table [Item Ledger Entries] column [Serial No.]</comment>
+  </data>
+  <data name="fe65b27a-8945-4e5d-868d-f3cef8834849.column.fd77ad27-b703-4dc7-b34c-f29f0a512b4f.caption" xml:space="preserve">
+    <value>Partinr.</value>
+    <comment>table [Item Ledger Entries] column [Lot No.]</comment>
+  </data>
+  <data name="fe65b27a-8945-4e5d-868d-f3cef8834849.column.03fd552b-0546-499d-9aa1-5eae8f4eac06.caption" xml:space="preserve">
+    <value>Oppføringstype</value>
+    <comment>table [Item Ledger Entries] column [Entry Type]</comment>
+  </data>
+  <data name="fe65b27a-8945-4e5d-868d-f3cef8834849.column.dc9891ca-0da3-48c8-8560-9825453957be.caption" xml:space="preserve">
+    <value>Ordretype</value>
+    <comment>table [Item Ledger Entries] column [Order Type]</comment>
+  </data>
+  <data name="fe65b27a-8945-4e5d-868d-f3cef8834849.column.4e4d9afc-7c04-4d10-8c68-71d94b8c6e74.caption" xml:space="preserve">
+    <value>Bestillingslinjenummer</value>
+    <comment>table [Item Ledger Entries] column [Order Line No.]</comment>
+  </data>
+  <data name="fe65b27a-8945-4e5d-868d-f3cef8834849.column.b48f5224-f649-42d4-b8b3-fb78db2f8be7.caption" xml:space="preserve">
+    <value>Positiv</value>
+    <comment>table [Item Ledger Entries] column [Positive]</comment>
+  </data>
+  <data name="fe65b27a-8945-4e5d-868d-f3cef8834849.measure.4c621207-ed6b-426f-b0a2-1ca544b5c35c.caption" xml:space="preserve">
+    <value>Avgangsantall</value>
+    <comment>table [Item Ledger Entries] measure [Output Quantity]</comment>
+  </data>
+  <data name="fe65b27a-8945-4e5d-868d-f3cef8834849.measure.98a7a41d-df9d-4156-9cd7-86680dd23341.caption" xml:space="preserve">
+    <value>Forbruksantall</value>
+    <comment>table [Item Ledger Entries] measure [Consumption Quantity]</comment>
+  </data>
+  <data name="fe65b27a-8945-4e5d-868d-f3cef8834849.measure.4e84a45a-b77f-48c9-8570-7fd8bfaa9acb.caption" xml:space="preserve">
+    <value>Antall</value>
+    <comment>table [Item Ledger Entries] measure [Quantity]</comment>
+  </data>
+  <data name="fe65b27a-8945-4e5d-868d-f3cef8834849.measure.82ecef0c-e306-4fa2-a6f2-ad8b2d37f5a6.caption" xml:space="preserve">
+    <value>Faktisk kostbeløp for varepost</value>
+    <comment>table [Item Ledger Entries] measure [Item Ledger Entry Cost Amount Actual]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.caption" xml:space="preserve">
+    <value>Kapasitetsposter</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.column.2b565327-88f6-4016-a2f0-223e1c686c8a.caption" xml:space="preserve">
+    <value>Ordretype</value>
+    <comment>table [Capacity Ledger Entries] column [Order Type]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.column.53bcefeb-73e6-4989-a85b-f64e67a63fcc.caption" xml:space="preserve">
+    <value>Bestillingslinjenummer</value>
+    <comment>table [Capacity Ledger Entries] column [Order Line No.]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.column.155653ba-ace3-4da6-8d6c-41025b2018c9.caption" xml:space="preserve">
+    <value>Type</value>
+    <comment>table [Capacity Ledger Entries] column [Type]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.column.e9a56e57-668f-42b1-9691-08f28971ebc0.caption" xml:space="preserve">
+    <value>Nr.</value>
+    <comment>table [Capacity Ledger Entries] column [No.]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.column.ad9bdce2-409a-4426-8a0c-95c59ca8e401.caption" xml:space="preserve">
+    <value>Beskrivelse</value>
+    <comment>table [Capacity Ledger Entries] column [Description]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.column.17b880a9-dbff-455c-ac44-b88ec96cb5fc.caption" xml:space="preserve">
+    <value>Rutenr.</value>
+    <comment>table [Capacity Ledger Entries] column [Routing No.]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.column.896ad073-7665-4b49-9809-00831cc98800.caption" xml:space="preserve">
+    <value>Rutereferansenr.</value>
+    <comment>table [Capacity Ledger Entries] column [Routing Reference No.]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.column.89b84f30-87bc-449b-8973-938e244e9b8f.caption" xml:space="preserve">
+    <value>Operasjonsnr.</value>
+    <comment>table [Capacity Ledger Entries] column [Operation No.]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.column.be7c56d6-25a9-4fe7-aad6-f18c93bba4e6.caption" xml:space="preserve">
+    <value>Vrakkode</value>
+    <comment>table [Capacity Ledger Entries] column [Scrap Code]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.column.9ea76157-75e8-4cbd-b355-8a85036b2710.caption" xml:space="preserve">
+    <value>Oppføringsnr.</value>
+    <comment>table [Capacity Ledger Entries] column [Entry No.]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.column.d7fc457e-a7c5-469a-afed-8ac0cee7b7a9.caption" xml:space="preserve">
+    <value>Arbeidsskiftkode</value>
+    <comment>table [Capacity Ledger Entries] column [Work Shift Code]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.column.2d8940a5-5103-41d1-85e7-26975582d66f.caption" xml:space="preserve">
+    <value>Underleveranse</value>
+    <comment>table [Capacity Ledger Entries] column [Subcontracting]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.column.01bd477b-86de-4494-8a3b-feed70f17113.caption" xml:space="preserve">
+    <value>Kapasitetsenhet</value>
+    <comment>table [Capacity Ledger Entries] column [Capacity Unit of Measure]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.column.35196a0b-24fe-456f-bbad-7b017f28416b.caption" xml:space="preserve">
+    <value>Antall per enhet</value>
+    <comment>table [Capacity Ledger Entries] column [Qty. Per Unit of Measure]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.column.d35a1f53-afbc-477a-8ab0-2d605c19b8fe.caption" xml:space="preserve">
+    <value>Antall per kapasitetsenhet</value>
+    <comment>table [Capacity Ledger Entries] column [Qty. Per Capacity Unit of Measure]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.measure.497a0e8f-6282-4c2c-86bd-44a4020a6532.caption" xml:space="preserve">
+    <value>Direkte kostnad</value>
+    <comment>table [Capacity Ledger Entries] measure [Direct Cost]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.measure.1ffd2b25-b3ed-4589-b75b-8667ea5088a4.caption" xml:space="preserve">
+    <value>Administrasjonskost</value>
+    <comment>table [Capacity Ledger Entries] measure [Overhead Cost]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.measure.de8835e8-dde7-4132-8459-edbae89f24c9.caption" xml:space="preserve">
+    <value>Operasjonstid</value>
+    <comment>table [Capacity Ledger Entries] measure [Run Time]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.measure.d354637d-7fc5-4f01-a198-38478d894693.caption" xml:space="preserve">
+    <value>Oppstillingstid</value>
+    <comment>table [Capacity Ledger Entries] measure [Setup Time]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.measure.d70a6af1-9db7-4744-92b5-15f2a421afc6.caption" xml:space="preserve">
+    <value>Stopptid</value>
+    <comment>table [Capacity Ledger Entries] measure [Stop Time]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.measure.ce2f91ad-6beb-472e-aef0-5e30489fbd64.caption" xml:space="preserve">
+    <value>Vrakantall</value>
+    <comment>table [Capacity Ledger Entries] measure [Scrap Quantity]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.measure.16a933e0-0207-4840-bd08-5da149f27ae5.caption" xml:space="preserve">
+    <value>Vrakprosent</value>
+    <comment>table [Capacity Ledger Entries] measure [Scrap %]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.measure.4934bd0d-3c29-4573-a9a1-d0ac91b02aec.caption" xml:space="preserve">
+    <value>Avgangsantall for kapasitetspost</value>
+    <comment>table [Capacity Ledger Entries] measure [Capacity Ledger Output Quantity]</comment>
+  </data>
+  <data name="d3a9e322-8d27-43c8-a393-abd960820103.measure.6abcd84f-2b09-45b6-a45e-18397ff512a5.caption" xml:space="preserve">
+    <value>Kapasitetspostantall</value>
+    <comment>table [Capacity Ledger Entries] measure [Capacity Ledger Quantity]</comment>
+  </data>
+  <data name="38f8641f-39fd-49ab-9524-9978d9e6064f.caption" xml:space="preserve">
+    <value>Kalenderposter</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="38f8641f-39fd-49ab-9524-9978d9e6064f.column.4f0b5807-49c4-4447-b0c0-46d668c14942.caption" xml:space="preserve">
+    <value>Kapasitetstype</value>
+    <comment>table [Calendar Entries] column [Capacity Type]</comment>
+  </data>
+  <data name="38f8641f-39fd-49ab-9524-9978d9e6064f.measure.b4404e68-059d-4318-8e5d-212304497287.caption" xml:space="preserve">
+    <value>Kapasitet (effektiv)</value>
+    <comment>table [Calendar Entries] measure [Capacity (Effective)]</comment>
+  </data>
+  <data name="38f8641f-39fd-49ab-9524-9978d9e6064f.measure.57eb98a9-9c91-4c87-b1f6-c4768ff4062c.caption" xml:space="preserve">
+    <value>Kapasitet (total)</value>
+    <comment>table [Calendar Entries] measure [Capacity (Total)]</comment>
+  </data>
+  <data name="b3bae95d-0eb7-400f-b2da-967e08b90b57.caption" xml:space="preserve">
+    <value>Lokasjon</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="b3bae95d-0eb7-400f-b2da-967e08b90b57.column.2eda438a-e878-4150-84ea-aba13d0e67a1.caption" xml:space="preserve">
+    <value>Lokasjonskode</value>
+    <comment>table [Location] column [Location Code]</comment>
+  </data>
+  <data name="b3bae95d-0eb7-400f-b2da-967e08b90b57.column.aafa420c-1bbb-439e-82fc-7930b7884316.caption" xml:space="preserve">
+    <value>Lokasjonsnavn</value>
+    <comment>table [Location] column [Location Name]</comment>
+  </data>
+  <data name="b3bae95d-0eb7-400f-b2da-967e08b90b57.column.7afa4b7a-0200-4d1b-8d35-a10d6c78c786.caption" xml:space="preserve">
+    <value>Hyllekode for lokasjonsjustering</value>
+    <comment>table [Location] column [Location Adjustment Bin Code]</comment>
+  </data>
+  <data name="1e4ae15e-fafd-484d-bf9a-a85aa6218ec9.caption" xml:space="preserve">
+    <value>Rute</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="1e4ae15e-fafd-484d-bf9a-a85aa6218ec9.column.71f18f3e-53f1-4c56-9835-a35681c2979a.caption" xml:space="preserve">
+    <value>Rutenr.</value>
+    <comment>table [Routing] column [Routing No.]</comment>
+  </data>
+  <data name="1e4ae15e-fafd-484d-bf9a-a85aa6218ec9.column.1d71c6ad-c2d9-478f-9032-bb84422bdc81.caption" xml:space="preserve">
+    <value>Rutetype</value>
+    <comment>table [Routing] column [Routing Type]</comment>
+  </data>
+  <data name="1e4ae15e-fafd-484d-bf9a-a85aa6218ec9.column.e0aad47a-84c6-4a6b-a73a-4e85fec32553.caption" xml:space="preserve">
+    <value>Rutestatus</value>
+    <comment>table [Routing] column [Routing Status]</comment>
+  </data>
+  <data name="1e4ae15e-fafd-484d-bf9a-a85aa6218ec9.column.68cb7bd6-fa47-4645-a5c8-d83bf1e87550.caption" xml:space="preserve">
+    <value>Rutebeskrivelse</value>
+    <comment>table [Routing] column [Routing Description]</comment>
+  </data>
+  <data name="9b159fa1-9b4a-4a68-b1a5-3d1586c93cc4.caption" xml:space="preserve">
+    <value>Arbeidssentergruppe</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="9b159fa1-9b4a-4a68-b1a5-3d1586c93cc4.column.f97263d3-0b23-42e9-b3cd-63e801f24600.caption" xml:space="preserve">
+    <value>Arbeidssentergruppekode</value>
+    <comment>table [Work Center Group] column [Work Center Group Code]</comment>
+  </data>
+  <data name="9b159fa1-9b4a-4a68-b1a5-3d1586c93cc4.column.2a8d7f2d-7cfa-4c77-b984-8ebdd002b82e.caption" xml:space="preserve">
+    <value>Navn på arbeidssentergruppe</value>
+    <comment>table [Work Center Group] column [Work Center Group Name]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.caption" xml:space="preserve">
+    <value>Verdiposter</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.column.37cba9d3-8085-4a63-bea4-7934a356ba32.caption" xml:space="preserve">
+    <value>Oppføringsnr.</value>
+    <comment>table [Value Entries] column [Entry No.]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.column.e5377b30-0ddf-464a-8543-995aa3a25049.caption" xml:space="preserve">
+    <value>Verdisettingsdato</value>
+    <comment>table [Value Entries] column [Valuation Date]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.column.eb254965-3c8f-41d3-8ab3-de422773ac1d.caption" xml:space="preserve">
+    <value>Kostnad per enhet</value>
+    <comment>table [Value Entries] column [Cost Per Unit]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.column.20531b2a-8b32-444e-bfb7-51b05ab782eb.caption" xml:space="preserve">
+    <value>Vareposttype</value>
+    <comment>table [Value Entries] column [Item Ledger Entry Type]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.column.66fd1620-6bce-449d-8c36-11b574ab16b1.caption" xml:space="preserve">
+    <value>Type</value>
+    <comment>table [Value Entries] column [Type]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.column.b4ca18ec-f929-49a2-8e3f-c5f3c4ee0c26.caption" xml:space="preserve">
+    <value>Nr.</value>
+    <comment>table [Value Entries] column [No.]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.column.a834b80a-7c85-4700-a72b-986756cf2b05.caption" xml:space="preserve">
+    <value>Kapasitetspostnr.</value>
+    <comment>table [Value Entries] column [Capacity Ledger Entry No.]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.column.7b089224-4635-4122-8a30-24ba10e557e7.caption" xml:space="preserve">
+    <value>Oppføringstype</value>
+    <comment>table [Value Entries] column [Entry Type]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.column.fddc8ed7-62ac-47d0-837e-af2ffe6ed90b.caption" xml:space="preserve">
+    <value>Ordretype</value>
+    <comment>table [Value Entries] column [Order Type]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.column.31fa62a6-790c-4a77-9823-7e1f0e77367e.caption" xml:space="preserve">
+    <value>Ordre-/bestnr.</value>
+    <comment>table [Value Entries] column [Order No.]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.measure.e788f057-719a-4438-9aba-912ddc1e8063.caption" xml:space="preserve">
+    <value>Startsaldoverdi</value>
+    <comment>table [Value Entries] measure [Beginning Balance Value]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.measure.2a6ec0f6-3ce3-4b85-b051-d7d70c349800.caption" xml:space="preserve">
+    <value>Forbruksverdi</value>
+    <comment>table [Value Entries] measure [Consumption Value]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.measure.f2289ac8-1716-4f31-91ab-0d33b9a5c670.caption" xml:space="preserve">
+    <value>Kapasitetsverdi</value>
+    <comment>table [Value Entries] measure [Capacity Value]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.measure.8b58d9b8-d0cb-47d9-a1c9-2d42a6738275.caption" xml:space="preserve">
+    <value>Avgangsverdi</value>
+    <comment>table [Value Entries] measure [Output Value]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.measure.a88fda8a-3303-4475-ae8a-fe31cbaed66b.caption" xml:space="preserve">
+    <value>Sluttsaldoverdi</value>
+    <comment>table [Value Entries] measure [Ending Balance Value]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.measure.b6151fd9-4546-4dac-8b42-deb089f98e80.caption" xml:space="preserve">
+    <value>Kostnad bokført i finans</value>
+    <comment>table [Value Entries] measure [Cost Posted to G/L]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.measure.60e650cc-4dde-4e9c-8b1a-1324245e394d.caption" xml:space="preserve">
+    <value>Kostbeløp, faktisk</value>
+    <comment>table [Value Entries] measure [Cost Amount Actual]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.measure.8f054a7e-6063-4b5f-a6c0-d1b14d0686cb.caption" xml:space="preserve">
+    <value>Kostbeløp, forventet</value>
+    <comment>table [Value Entries] measure [Cost Amount Expected]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.measure.ae235350-c7ad-4697-a0db-a0395304cd6b.caption" xml:space="preserve">
+    <value>Forventet kostnad bokført i Finans</value>
+    <comment>table [Value Entries] measure [Expected Cost Posted to G/L]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.measure.10f33e6a-e6d3-47e9-8548-a361e312365e.caption" xml:space="preserve">
+    <value>Verdisatt antall</value>
+    <comment>table [Value Entries] measure [Valued Quantity]</comment>
+  </data>
+  <data name="8973d907-1a71-4e19-835f-993978526a6e.measure.d2d82236-5b35-440b-8d20-7ec13ed6d643.caption" xml:space="preserve">
+    <value>Varepostantall</value>
+    <comment>table [Value Entries] measure [Item Ledger Entry Quantity]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.caption" xml:space="preserve">
+    <value>Produksjonsordrer</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.column.5c09da77-2fd4-4b2c-a25e-eafe5b16f2e9.caption" xml:space="preserve">
+    <value>Prod.ordrestatus</value>
+    <comment>table [Production Orders] column [Prod Order Status]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.column.83b0a079-538e-4133-bbf2-6d368224b369.caption" xml:space="preserve">
+    <value>Prod.ordrenr.</value>
+    <comment>table [Production Orders] column [Prod Order No.]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.column.adcf8db5-67d4-4377-bd38-f0f9971a31cf.caption" xml:space="preserve">
+    <value>Kildenr. for produksjonsordre</value>
+    <comment>table [Production Orders] column [Prod Order Source No.]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.column.da4ac8fe-1c5e-443a-bb94-48203ee73486.caption" xml:space="preserve">
+    <value>Prod.ordrerutenr.</value>
+    <comment>table [Production Orders] column [Prod Order Routing No.]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.column.b92a24cf-c53c-42d6-9f9b-35950078bdde.caption" xml:space="preserve">
+    <value>Startdato for prod.ordre</value>
+    <comment>table [Production Orders] column [Prod Order Starting Date]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.column.d980c18e-369b-43ee-a9b9-8036d61b6db4.caption" xml:space="preserve">
+    <value>Sluttdato for prod.ordre</value>
+    <comment>table [Production Orders] column [Prod Order Ending Date]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.column.08774d8a-bffb-4df3-ba00-24cdb53fa2fd.caption" xml:space="preserve">
+    <value>Frist for prod.ordre</value>
+    <comment>table [Production Orders] column [Prod Order Due Date]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.column.ab2be024-4770-4abb-bb68-deb317a606df.caption" xml:space="preserve">
+    <value>Beskrivelse av produksjonsordre</value>
+    <comment>table [Production Orders] column [Prod Order Description]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.column.18a122d6-e127-4283-9ef7-36f4a221aa8e.caption" xml:space="preserve">
+    <value>Kildetype for prod.ordre</value>
+    <comment>table [Production Orders] column [Prod Order Source Type]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.column.4df3d036-adb4-451f-a2f3-a7d1363f8441.caption" xml:space="preserve">
+    <value>Produksjonsordre</value>
+    <comment>table [Production Orders] column [Production Order]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.column.97570be3-9695-47b4-a85c-4fbde8732500.caption" xml:space="preserve">
+    <value>Vrakprosent for prod.ordrekildenr.</value>
+    <comment>table [Production Orders] column [Prod Order Source No. Scrap %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.764eb1e7-91e0-4c23-98cf-3b78d7c8f2ed.caption" xml:space="preserve">
+    <value>Planlagt antall</value>
+    <comment>table [Production Orders] measure [Planned Quantity]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.f73676f3-75ee-465b-8e9b-541ca81ef45f.caption" xml:space="preserve">
+    <value>Forventet materialkostnad</value>
+    <comment>table [Production Orders] measure [Expected Material Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.37a7e305-539f-492d-b55a-72d48d4f78ca.caption" xml:space="preserve">
+    <value>Forventet kapasitetskostnad</value>
+    <comment>table [Production Orders] measure [Expected Capacity Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.72d589c2-e4ba-4361-abff-c3653826e561.caption" xml:space="preserve">
+    <value>Forventet underlever.kostnad</value>
+    <comment>table [Production Orders] measure [Expected Subcontracted Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.a12f34b2-cc47-4e22-be22-c4a4cea027fd.caption" xml:space="preserve">
+    <value>Forventet kapasitetsadministrasjonskost</value>
+    <comment>table [Production Orders] measure [Expected Capacity Overhead Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.8d81fc78-44fb-4137-8d14-abcbb2be2baa.caption" xml:space="preserve">
+    <value>Totalt standard kostnad</value>
+    <comment>table [Production Orders] measure [Total Standard Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.d834009f-40bd-49e9-a7d6-6125efbb4e1a.caption" xml:space="preserve">
+    <value>Forventet produksjonsadministrasjonskost</value>
+    <comment>table [Production Orders] measure [Expected Manufacturing Overhead Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.49957676-ae14-42d1-8761-056ad0e3c3d3.caption" xml:space="preserve">
+    <value>Total forventet kostnad</value>
+    <comment>table [Production Orders] measure [Total Expected Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.49848d57-310a-43af-979e-9815c5c91b9d.caption" xml:space="preserve">
+    <value>Standard kapasitetskostnad</value>
+    <comment>table [Production Orders] measure [Standard Capacity Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.49063f18-c0fa-4cac-b908-5ea2861ba7cf.caption" xml:space="preserve">
+    <value>Standard materialkostnad</value>
+    <comment>table [Production Orders] measure [Standard Material Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.c332686e-635a-4afa-92f9-1fc06cf0effe.caption" xml:space="preserve">
+    <value>Standard underleveransekostnad</value>
+    <comment>table [Production Orders] measure [Standard Subcontracted Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.b3328b80-4fb8-4ada-8bc4-76aef3f1c9f9.caption" xml:space="preserve">
+    <value>Standard kapasitetsadministrasjonskost</value>
+    <comment>table [Production Orders] measure [Standard Capacity Overhead Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.96c1a589-5133-4144-84ac-3c63a6818e4b.caption" xml:space="preserve">
+    <value>Standard produksjonsadministrasjonskost</value>
+    <comment>table [Production Orders] measure [Standard Manufacturing Overhead Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.70275e43-1c71-4bf6-8193-3b9dda99d2a3.caption" xml:space="preserve">
+    <value>Faktisk materialkostnad</value>
+    <comment>table [Production Orders] measure [Actual Material Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.dd073f59-0bc3-4669-bc04-ab52e363d870.caption" xml:space="preserve">
+    <value>Faktisk kapasitetskostnad</value>
+    <comment>table [Production Orders] measure [Actual Capacity Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.aebf6a09-4416-4ffb-a71d-3ed65f2707c3.caption" xml:space="preserve">
+    <value>Faktisk underleveransekostnad</value>
+    <comment>table [Production Orders] measure [Actual Subcontracted Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.bd79db78-7ef3-470e-bed3-e908f833263c.caption" xml:space="preserve">
+    <value>Faktisk kapasitetsadministrasjonskost</value>
+    <comment>table [Production Orders] measure [Actual Capacity Overhead Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.d59a3c8b-3aba-43e0-b794-42ba7000d6b4.caption" xml:space="preserve">
+    <value>Faktisk produksjonsadministrasjonskost</value>
+    <comment>table [Production Orders] measure [Actual Manufacturing Overhead Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.1850b0b9-61c4-4001-8c5a-4ae9be7bdb9d.caption" xml:space="preserve">
+    <value>Faktiske kostnader totalt</value>
+    <comment>table [Production Orders] measure [Total Actual Cost]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.82866bf6-5f7f-483e-8512-a7055bbe9732.caption" xml:space="preserve">
+    <value>Standard materialkostnadsavvik</value>
+    <comment>table [Production Orders] measure [Standard Material Cost Variance]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.80d0febd-065b-49a7-ba43-2051351dd08a.caption" xml:space="preserve">
+    <value>Standard kapasitetskostnadsavvik</value>
+    <comment>table [Production Orders] measure [Standard Capacity Cost Variance]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.cf976487-aeda-4ed1-a187-e2b9bf43ee31.caption" xml:space="preserve">
+    <value>Standard underleveransekostnadsavvik</value>
+    <comment>table [Production Orders] measure [Standard Subcontracted Cost Variance]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.5f7cd91e-9c45-4c66-9c56-4a94eb7a6c97.caption" xml:space="preserve">
+    <value>Standard avvik i kapasitetsadministrasjonskost</value>
+    <comment>table [Production Orders] measure [Standard Capacity Overhead Cost Variance]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.ed539b8e-5299-4289-99cd-74bbb3ec4d10.caption" xml:space="preserve">
+    <value>Standard avvik i produksjonsadministrasjonskost</value>
+    <comment>table [Production Orders] measure [Standard Manufacturing Overhead Cost Variance]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.868cf74f-8841-48b2-b0bb-2a8c1f779986.caption" xml:space="preserve">
+    <value>Totalt standard kostnadsavvik</value>
+    <comment>table [Production Orders] measure [Total Standard Cost Variance]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.c26b751b-91f3-482c-891e-2dce4d8cb5d0.caption" xml:space="preserve">
+    <value>Standard utviklingsprosent for materialkostnad</value>
+    <comment>table [Production Orders] measure [Standard Material Cost Dev %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.14e7f854-fc05-4f24-a99a-8cb23f08d7ab.caption" xml:space="preserve">
+    <value>Standard utviklingsprosent for kapasitetskostnad</value>
+    <comment>table [Production Orders] measure [Standard Capacity Cost Dev %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.eade82d5-268f-470b-95bf-8849775eaf99.caption" xml:space="preserve">
+    <value>Standard utviklingsprosent for underleveransekostnad</value>
+    <comment>table [Production Orders] measure [Standard Subcontracted Cost Dev %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.a969bddd-19d7-49d1-8df0-6b5453574a9f.caption" xml:space="preserve">
+    <value>Standard utviklingsprosent for kapasitetsadministrasjonskost</value>
+    <comment>table [Production Orders] measure [Standard Capacity Overhead Cost Dev %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.c791fd43-0223-48e4-865a-40b4a8b85c20.caption" xml:space="preserve">
+    <value>Standard utviklingsprosent for produksjonsadministrasjonskost</value>
+    <comment>table [Production Orders] measure [Standard Manufacturing Overhead Cost Dev %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.9fd8c852-774f-45a1-b803-6d8ce366f38f.caption" xml:space="preserve">
+    <value>Totalt standard kostnadsutviklingsprosent</value>
+    <comment>table [Production Orders] measure [Total Standard Cost Dev %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.3f6aeffb-4a3c-40fa-8855-c17bfc76e24c.caption" xml:space="preserve">
+    <value>Forventet kapasitetsbehov for prod.ordre (ferdig)</value>
+    <comment>table [Production Orders] measure [Prod Order Expected Capacity Need (Finished)]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.c7725ac0-ab82-457f-9394-08bec4602dd8.caption" xml:space="preserve">
+    <value>Faktisk kapasitetsbehov for prod.ordre</value>
+    <comment>table [Production Orders] measure [Prod Order Actual Capacity Need]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.6fcbc19b-00f6-4419-8e1d-8d6f9f1af0ff.caption" xml:space="preserve">
+    <value>Forventet kapasitetsbehov for prod.ordre (ikke ferdig)</value>
+    <comment>table [Production Orders] measure [Prod Order Expected Capacity Need (Non Finished)]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.e360f817-e6fe-456a-9441-333b29ef071e.caption" xml:space="preserve">
+    <value>Forventet kapasitetsbehov for prod.ordre</value>
+    <comment>table [Production Orders] measure [Prod Order Expected Capacity Need]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.9f90ea59-9b84-423b-a806-98232e7600eb.caption" xml:space="preserve">
+    <value>Ferdig antall</value>
+    <comment>table [Production Orders] measure [Finished Quantity]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.b7bbb076-e333-462a-aa15-b5d03c62b74c.caption" xml:space="preserve">
+    <value>Reelt tidsforbruk</value>
+    <comment>table [Production Orders] measure [Actual Time Used]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.33f4e18d-5482-433f-9362-18d4cba22680.caption" xml:space="preserve">
+    <value>Ferdig i prosent</value>
+    <comment>table [Production Orders] measure [Finished %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.54647529-a8c3-4458-b255-13963003e4f0.caption" xml:space="preserve">
+    <value>Gjenstående i prosent</value>
+    <comment>table [Production Orders] measure [Remaining %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.812c152b-8242-4e32-bf31-45e9aebb3b6a.caption" xml:space="preserve">
+    <value>Avviksantall</value>
+    <comment>table [Production Orders] measure [Variance Quantity]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.ef38c1a3-5577-476e-856f-88d7a898fcab.caption" xml:space="preserve">
+    <value>Forventet utviklingsprosent for kapasitetskostnad</value>
+    <comment>table [Production Orders] measure [Expected Capacity Cost Dev %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.8c77c21f-bdf3-452a-b219-f04a11b644d1.caption" xml:space="preserve">
+    <value>Forventet utviklingsprosent for kapasitetsadministrasjonskost</value>
+    <comment>table [Production Orders] measure [Expected Capacity Overhead Cost Dev %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.d2526de6-c8a3-4628-82fa-e3a1ac0fd4f5.caption" xml:space="preserve">
+    <value>Forventet utviklingsprosent for produksjonsadministrasjonskost</value>
+    <comment>table [Production Orders] measure [Expected Manufacturing Overhead Cost Dev %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.71d32c8e-b36a-4c0c-bcaf-84da64d2f14b.caption" xml:space="preserve">
+    <value>Forventet utviklingsprosent for materialkostnad</value>
+    <comment>table [Production Orders] measure [Expected Material Cost Dev %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.ef29f6c4-f6b5-4bf2-a730-9c46e4528927.caption" xml:space="preserve">
+    <value>Forventet utviklingsprosent for underlever.kostnad</value>
+    <comment>table [Production Orders] measure [Expected Subcontracted Cost Dev %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.71efe47f-e9d6-4258-945b-7087ec3c952c.caption" xml:space="preserve">
+    <value>Totalt forventet kostnadsutviklingsprosent</value>
+    <comment>table [Production Orders] measure [Total Expected Cost Dev %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.6b701ca6-f88f-4474-bd21-dfa7c62b8462.caption" xml:space="preserve">
+    <value>Forventet kapasitetskostnadsavvik</value>
+    <comment>table [Production Orders] measure [Expected Capacity Cost Variance]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.41767e53-9cc2-4a0b-b8b5-4ed8733f2307.caption" xml:space="preserve">
+    <value>Forventet avvik i kapasitetsadministrasjonskost</value>
+    <comment>table [Production Orders] measure [Expected Capacity Overhead Cost Variance]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.3f436ab4-55a8-493a-8ba0-24073c3a3a5e.caption" xml:space="preserve">
+    <value>Forventet avvik i produksjonsadministrasjonskost</value>
+    <comment>table [Production Orders] measure [Expected Manufacturing Overhead Cost Variance]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.398e4330-fe2c-470a-ad3e-10d470dd24e5.caption" xml:space="preserve">
+    <value>Forventet avvik i materialkostnad</value>
+    <comment>table [Production Orders] measure [Expected Material Cost Variance]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.da3de50d-d095-43de-8956-0263c41dfe69.caption" xml:space="preserve">
+    <value>Forventet underleveransekostnadsavvik</value>
+    <comment>table [Production Orders] measure [Expected Subcontracted Cost Variance]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.703dae26-9c40-4e7b-95cf-668bc35da2d8.caption" xml:space="preserve">
+    <value>Totalt forventet kostnadsavvik</value>
+    <comment>table [Production Orders] measure [Total Expected Cost Variance]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.1c116b82-68a8-492d-9c41-5d200a102941.caption" xml:space="preserve">
+    <value>Antall produksjonsordrer</value>
+    <comment>table [Production Orders] measure [No. of Production Orders]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.f30b0cde-0af2-481c-bc05-6501c987f77d.caption" xml:space="preserve">
+    <value>Gjennomsnittlig produksjonstid per ferdig antall</value>
+    <comment>table [Production Orders] measure [Average Production Time Per Finished Quantity]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.328f6222-31dd-469b-8558-7b2a341ee41c.caption" xml:space="preserve">
+    <value>Avvik i prod.ordrekapasitetsbehov</value>
+    <comment>table [Production Orders] measure [Prod Order Capacity Need Variance]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.fb8fd9f0-0be7-4e6c-9d4b-6a0dc035872f.caption" xml:space="preserve">
+    <value>Utviklingsprosent for prod.ordrekapasitetsbehov</value>
+    <comment>table [Production Orders] measure [Prod Order Capacity Need Dev %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.83fab2f6-f0fe-4c2e-bc46-dcd786a86722.caption" xml:space="preserve">
+    <value>Vrakprosent for produksjonsordre</value>
+    <comment>table [Production Orders] measure [Production Order Scrap %]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.2456252e-72f1-4163-a6b1-ce9edfae2631.caption" xml:space="preserve">
+    <value>Forventet vrakantall for produksjonsordrer</value>
+    <comment>table [Production Orders] measure [Expected Production Order Scrap Quantity]</comment>
+  </data>
+  <data name="71868c65-77d4-4c54-921e-130d2f685a53.measure.d93db101-be1f-47c5-be37-23ec908f9644.caption" xml:space="preserve">
+    <value>Vrakantall for produksjonsordrer</value>
+    <comment>table [Production Orders] measure [Production Order Scrap Quantity]</comment>
+  </data>
+  <data name="5a56d38b-3b5a-49ee-94a4-970fcce4517a.caption" xml:space="preserve">
+    <value>Dimensjonssett</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="5a56d38b-3b5a-49ee-94a4-970fcce4517a.column.5514bbbc-a118-4ac5-baac-76c4398dd666.caption" xml:space="preserve">
+    <value>Global dimensjon 1</value>
+    <comment>table [Dimension Sets] column [Global Dimension 1]</comment>
+  </data>
+  <data name="5a56d38b-3b5a-49ee-94a4-970fcce4517a.column.ce27f3eb-de05-4e0b-b17a-b0c89d063302.caption" xml:space="preserve">
+    <value>Global dimensjon 2</value>
+    <comment>table [Dimension Sets] column [Global Dimension 2]</comment>
+  </data>
+  <data name="5a56d38b-3b5a-49ee-94a4-970fcce4517a.column.8f9e9c3d-5afa-4afe-bc56-7815b1faf424.caption" xml:space="preserve">
+    <value>Snarveisdimensjon 3</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 3]</comment>
+  </data>
+  <data name="5a56d38b-3b5a-49ee-94a4-970fcce4517a.column.6365a143-a47f-406f-b389-4a31fd8c942e.caption" xml:space="preserve">
+    <value>Snarveisdimensjon 4</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 4]</comment>
+  </data>
+  <data name="5a56d38b-3b5a-49ee-94a4-970fcce4517a.column.2fac6857-1b3e-4f0e-bc7c-a06629b04ad9.caption" xml:space="preserve">
+    <value>Snarveisdimensjon 5</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 5]</comment>
+  </data>
+  <data name="5a56d38b-3b5a-49ee-94a4-970fcce4517a.column.e87e486e-b78d-45ad-8d4d-04e1f7132445.caption" xml:space="preserve">
+    <value>Snarveisdimensjon 6</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 6]</comment>
+  </data>
+  <data name="5a56d38b-3b5a-49ee-94a4-970fcce4517a.column.1c4d3b73-c078-4d65-803b-817f843c5691.caption" xml:space="preserve">
+    <value>Snarveisdimensjon 7</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 7]</comment>
+  </data>
+  <data name="5a56d38b-3b5a-49ee-94a4-970fcce4517a.column.fc5f372e-4eae-44c5-bf24-978646767736.caption" xml:space="preserve">
+    <value>Snarveisdimensjon 8</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 8]</comment>
+  </data>
+  <data name="5a56d38b-3b5a-49ee-94a4-970fcce4517a.column.4d256aea-598d-4ee9-af15-3f7855e504ce.caption" xml:space="preserve">
+    <value>AVDELING</value>
+    <comment>table [Dimension Sets] column [DEPARTMENT]</comment>
+  </data>
+  <data name="5a56d38b-3b5a-49ee-94a4-970fcce4517a.column.1f64c37b-9c67-4ce9-970f-2199a3088e4f.caption" xml:space="preserve">
+    <value>Navn på avdeling</value>
+    <comment>table [Dimension Sets] column [Department Name]</comment>
+  </data>
+  <data name="5a56d38b-3b5a-49ee-94a4-970fcce4517a.column.52fc81f9-be5e-4c5a-8dea-c262b1a2ac43.caption" xml:space="preserve">
+    <value>KUNDEGRUPPE</value>
+    <comment>table [Dimension Sets] column [CUSTOMERGROUP]</comment>
+  </data>
+  <data name="5a56d38b-3b5a-49ee-94a4-970fcce4517a.column.30477137-ff91-4751-95cf-054f7333459b.caption" xml:space="preserve">
+    <value>Navn på kundegruppe</value>
+    <comment>table [Dimension Sets] column [Customer Group Name]</comment>
+  </data>
+  <data name="74f6110d-5f70-4704-a3e1-8795ec849dc4.caption" xml:space="preserve">
+    <value>Varekategori</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="74f6110d-5f70-4704-a3e1-8795ec849dc4.column.96c972e5-4e37-454c-a83a-169817099a7e.caption" xml:space="preserve">
+    <value>Varekategorikode</value>
+    <comment>table [Item Category] column [Item Category Code]</comment>
+  </data>
+  <data name="74f6110d-5f70-4704-a3e1-8795ec849dc4.column.2e0cc31d-0b9c-4564-9c4b-29d1f3876f43.caption" xml:space="preserve">
+    <value>Beskrivelse av varekategori</value>
+    <comment>table [Item Category] column [Item Category Description]</comment>
+  </data>
+  <data name="74f6110d-5f70-4704-a3e1-8795ec849dc4.hierarchy.a308193e-9540-4534-acfb-fa72ec86fe3b.caption" xml:space="preserve">
+    <value>Hierarki for varekategorikode</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy]</comment>
+  </data>
+  <data name="74f6110d-5f70-4704-a3e1-8795ec849dc4.hierarchy.a308193e-9540-4534-acfb-fa72ec86fe3b.level.9b7eec3c-bd88-43a2-a8ee-e88f7e652ff3" xml:space="preserve">
+    <value>Varekategorikode nivå 1</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 1]</comment>
+  </data>
+  <data name="74f6110d-5f70-4704-a3e1-8795ec849dc4.hierarchy.a308193e-9540-4534-acfb-fa72ec86fe3b.level.01a95796-0df8-416c-bdfb-79213c601f8b" xml:space="preserve">
+    <value>Varekategorikode nivå 2</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 2]</comment>
+  </data>
+  <data name="74f6110d-5f70-4704-a3e1-8795ec849dc4.hierarchy.a308193e-9540-4534-acfb-fa72ec86fe3b.level.fddf887a-cc82-42fc-aedb-2232c24af4c8" xml:space="preserve">
+    <value>Varekategorikode nivå 3</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 3]</comment>
+  </data>
+</root>
