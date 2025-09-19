@@ -71,6 +71,8 @@ if($appType -eq 'app')
                 $tempParameters["appSymbolsFolder"] = $defaultSymbolsPath # Use the default symbols folder as appSymbolsFolder
 
                 $appName = (Get-Content -Path (Join-Path $tempParameters["appProjectFolder"] "app.json" -Resolve) | ConvertFrom-Json).Name
+                
+                # If the app has already been restored to the default symbols folder, remove it before recompiling
                 Get-ChildItem -Path $defaultSymbolsPath -Filter "Microsoft_$($appName)*.app" | ForEach-Object {
                     Write-Host "Removing existing app file in symbols folder: $($_.FullName)"
                     Remove-Item -Path $_.FullName -Force
