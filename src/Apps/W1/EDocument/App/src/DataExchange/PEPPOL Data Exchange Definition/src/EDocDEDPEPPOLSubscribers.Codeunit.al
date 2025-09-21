@@ -796,7 +796,9 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         DocumentAttachment: Record "Document Attachment";
+#pragma warning disable AL0432
         TempVATAmtLine: Record "VAT Amount Line" temporary;
+#pragma warning restore AL0432
         TempSalesLineRounding: Record "Sales Line" temporary;
         TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary;
         PEPPOLMgt: Codeunit "PEPPOL Management";

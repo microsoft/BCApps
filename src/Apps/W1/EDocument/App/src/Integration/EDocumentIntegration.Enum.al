@@ -8,7 +8,9 @@ namespace Microsoft.eServices.EDocument;
 #if CLEAN26
 enum 6143 "E-Document Integration"
 #else
+#pragma warning disable AL0432 
 enum 6143 "E-Document Integration" implements "E-Document Integration"
+#pragma warning restore AL0432
 #endif
 {
 #if not CLEAN26
@@ -26,6 +28,7 @@ enum 6143 "E-Document Integration" implements "E-Document Integration"
         ObsoleteState = Pending;
         ObsoleteTag = '26.0';
         Implementation = "E-Document Integration" = "E-Document No Integration";
+        Caption = 'No Integration';
     }
 #endif
 }

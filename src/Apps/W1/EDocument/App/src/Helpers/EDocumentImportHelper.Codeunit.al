@@ -318,7 +318,9 @@ codeunit 6109 "E-Document Import Helper"
     var
         PurchaseHeader: Record "Purchase Header";
         PurchLine: Record "Purchase Line";
+#pragma warning disable AL0432 
         TempVATAmountLine: Record "VAT Amount Line" temporary;
+#pragma warning restore AL0432
         PurchCalcDiscByType: Codeunit "Purch - Calc Disc. By Type";
         InvoiceDiscountAmount: Decimal;
         InvDiscBaseAmount: Decimal;

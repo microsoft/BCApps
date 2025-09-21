@@ -1167,7 +1167,9 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
     }
 
     var
+#pragma warning disable AL0432
         TempVATAmtLine: Record "VAT Amount Line" temporary;
+#pragma warning restore AL0432
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         TempSalesLineRounding: Record "Sales Line" temporary;
@@ -1207,12 +1209,14 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
         end;
     end;
 
+#pragma warning disable AL0432
     local procedure FindNextVATAmtRec(var TempVATAmountLine: Record "VAT Amount Line" temporary; Position: Integer): Boolean
     begin
         if Position = 1 then
             exit(TempVATAmountLine.FindSet());
         exit(TempVATAmountLine.Next() <> 0);
     end;
+#pragma warning restore AL0432
 
     procedure Initialize(DocVariant: Variant)
     begin
