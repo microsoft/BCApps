@@ -15,6 +15,7 @@ codeunit 148221 "Integration Tests"
 {
     Access = Internal;
     Subtype = Test;
+    TestType = IntegrationTest;
 
     [Test]
     procedure SubmitDocument()
