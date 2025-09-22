@@ -18,6 +18,10 @@ using Microsoft.PowerBIReports.Test;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// E2E tests for Power BI Sales reports
+/// Only add tests that perform web service calls (LibGraphMgt)
+/// </summary>
 codeunit 139881 "E2E PowerBI Sales Test"
 {
     Subtype = Test;

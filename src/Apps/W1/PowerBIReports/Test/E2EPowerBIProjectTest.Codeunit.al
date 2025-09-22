@@ -15,6 +15,10 @@ using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Vendor;
 using Microsoft.PowerBIReports.Test;
 
+/// <summary>
+/// E2E tests for Power BI Projects reports
+/// Only add tests that perform web service calls (LibGraphMgt)
+/// </summary>
 codeunit 139879 "E2E PowerBI Project Test"
 {
     Subtype = Test;

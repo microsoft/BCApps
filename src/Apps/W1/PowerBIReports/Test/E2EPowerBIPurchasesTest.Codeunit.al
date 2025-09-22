@@ -17,6 +17,10 @@ using System.TestLibraries.Security.AccessControl;
 using Microsoft.Purchases.History;
 using Microsoft.Projects.Resources.Resource;
 
+/// <summary>
+/// E2E tests for Power BI Purchases reports
+/// Only add tests that perform web service calls (LibGraphMgt)
+/// </summary>
 codeunit 139880 "E2E PowerBI Purchases Test"
 {
     Subtype = Test;

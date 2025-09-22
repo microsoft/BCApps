@@ -22,6 +22,10 @@ using System.TestLibraries.Utilities;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// E2E tests for Power BI Finance reports
+/// Only add tests that perform web service calls (LibGraphMgt)
+/// </summary>
 codeunit 139876 "E2E PowerBI Finance Test"
 {
     Subtype = Test;

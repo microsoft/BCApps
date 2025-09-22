@@ -22,6 +22,10 @@ using Microsoft.Inventory.Location;
 using System.TestLibraries.Security.AccessControl;
 using Microsoft.PowerBIReports.Test;
 
+/// <summary>
+/// E2E tests for Power BI Manufacturing reports
+/// Only add tests that perform web service calls (LibGraphMgt)
+/// </summary>
 codeunit 139878 "E2E PowerBI Manufacturing Test"
 {
     Subtype = Test;

@@ -33,6 +33,10 @@ using Microsoft.Service.Test;
 using System.TestLibraries.Security.AccessControl;
 using Microsoft.PowerBIReports.Test;
 
+/// <summary>
+/// E2E tests for Power BI Inventory reports
+/// Only add tests that perform web service calls (LibGraphMgt)
+/// </summary>
 codeunit 139877 "E2E PowerBI Inventory Test"
 {
     Subtype = Test;
