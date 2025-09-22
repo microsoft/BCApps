@@ -38,6 +38,7 @@ tableextension 8053 "Sales Header" extends "Sales Header"
         SalesLine: Record "Sales Line";
         HasContractRenewalLines: Boolean;
     begin
+        SalesLine.ReadIsolation(ReadIsolation::ReadUncommitted);
         SalesLine.SetRange("Document Type", Rec."Document Type");
         SalesLine.SetRange("Document No.", Rec."No.");
         SalesLine.SetFilter(Type, '<>%1', "Sales Line Type"::" ");
