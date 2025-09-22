@@ -17,13 +17,15 @@ codeunit 135107 "DV Table Builder Test Library"
         exit(Result);
     end;
 
-    procedure GetMockProxyTableFields(): Dictionary of [Text, Text]
+    procedure GetMockProxyTableFields(): List of [Text]
     var
-        Result: Dictionary of [Text, Text];
+        Result: List of [Text];
     begin
-        Result.Add('Mock Field 1', 'mockfield1');
-        Result.Add('Mock Field 2', 'mockfield2');
-        Result.Add('Mock Field 3', 'mockfield3');
+        Result.Add('mockfield1');
+        Result.Add('mockfield2');
+        Result.Add('mockfield3');
+        Result.Add('mockfield4');
+        Result.Add('mockfield5');
         exit(Result);
     end;
 }

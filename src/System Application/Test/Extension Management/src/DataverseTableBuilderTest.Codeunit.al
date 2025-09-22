@@ -13,6 +13,7 @@ using System.TestLibraries.Apps.ExtensionGeneration;
 codeunit 133103 "Dataverse Table Builder Test"
 {
     Subtype = Test;
+    TestType = UnitTest;
 
     var
         Assert: Codeunit "Library Assert";
@@ -25,7 +26,7 @@ codeunit 133103 "Dataverse Table Builder Test"
         Field: Record Field;
         Schema: Text;
         FieldName: Text;
-        Fields: Dictionary of [Text, Text];
+        Fields: List of [Text];
     begin
         // [GIVEN] A schema and fields to generate a table extension.
         Initialize();
@@ -34,15 +35,15 @@ codeunit 133103 "Dataverse Table Builder Test"
 
         // [WHEN] Table generation is started, the table is updated with the fields and the generation is committed.
         DataverseTableBuilder.StartGeneration(false);
-        DataverseTableBuilder.UpdateExistingTable(Database::"Mock Proxy", Fields.Values(), Schema);
+        DataverseTableBuilder.UpdateExistingTable(Database::"Mock Proxy", Fields, Schema);
         DataverseTableBuilder.CommitGeneration();
 
         // [THEN] The table extension is generated with the fields.
         Field.SetRange(TableNo, Database::"Mock Proxy");
-        foreach FieldName in Fields.Keys do begin
+        foreach FieldName in Fields do begin
             Field.SetRange(FieldName, FieldName);
             Field.FindFirst();
-            Assert.AreEqual(Fields.Get(FieldName), Field.ExternalName, 'Field is not generated correctly');
+            Assert.AreEqual(FieldName, Field.ExternalName, 'Field is not generated correctly');
         end;
     end;
 
@@ -65,30 +66,30 @@ codeunit 133103 "Dataverse Table Builder Test"
         Field: Record Field;
         Schema: Text;
         FieldNames: List of [Text];
-        Fields: Dictionary of [Text, Text];
+        Fields: List of [Text];
     begin
         // [GIVEN] A generation is started.
         Initialize();
         Schema := DVTableBuilderTestLibrary.GetMockProxyTableSchema();
         Fields := DVTableBuilderTestLibrary.GetMockProxyTableFields();
         DataverseTableBuilder.StartGeneration(false);
-        FieldNames.Add(Fields.Values().Get(1));
+        FieldNames.Add(Fields.Get(4));
         DataverseTableBuilder.UpdateExistingTable(Database::"Mock Proxy", FieldNames, Schema);
 
         // [WHEN] A new generation is started with override = true
         DataverseTableBuilder.StartGeneration(true);
         Clear(FieldNames);
-        FieldNames.Add(Fields.Values().Get(2));
+        FieldNames.Add(Fields.Get(5));
         DataverseTableBuilder.UpdateExistingTable(Database::"Mock Proxy", FieldNames, Schema);
 
         // [THEN] The table extension is generated with only the fields from the second generation.
         DataverseTableBuilder.CommitGeneration();
         Field.SetRange(TableNo, Database::"Mock Proxy");
-        Field.SetRange(FieldName, Fields.Keys().Get(1));
+        Field.SetRange(FieldName, Fields.Get(4));
         Assert.RecordIsEmpty(Field);
-        Field.SetRange(FieldName, Fields.Keys().Get(2));
+        Field.SetRange(FieldName, Fields.Get(5));
         Field.FindFirst();
-        Assert.AreEqual(Fields.Get(Fields.Keys().Get(2)), Field.ExternalName, 'Field is not generated correctly');
+        Assert.AreEqual(Fields.Get(5), Field.ExternalName, 'Field is not generated correctly');
     end;
 
     local procedure Initialize()

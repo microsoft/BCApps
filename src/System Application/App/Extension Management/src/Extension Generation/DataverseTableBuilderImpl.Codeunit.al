@@ -30,16 +30,23 @@ codeunit 2508 "Dataverse Table Builder Impl."
 
     internal procedure ClearGeneration()
     begin
-        NavDesignerALFunctions.ClearAllTableExtensions();
+        NavDesignerALFunctions.ClearCRMDesigner();
         NavDesignerALFunctions.SaveCRMDesigner();
     end;
 
     internal procedure UpdateExistingTable(TableId: Integer; FieldsToAdd: List of [Text]; DataverseSchema: Text): Boolean
+    var
+        FieldList: DotNet GenericList1;
+        Field: Text;
     begin
         if not GenerationInProgress then
             Error(GenerationNotStartedErr);
 
-        exit(NavDesignerALFunctions.AddCRMTableFields(TableId, FieldsToAdd, DataverseSchema));
+        FieldList := FieldList.List();
+        foreach Field in FieldsToAdd do
+            FieldList.Add(Field);
+
+        exit(NavDesignerALFunctions.AddCRMTableFields(TableId, FieldList, DataverseSchema));
     end;
 
     internal procedure CommitGeneration(): Boolean

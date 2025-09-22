@@ -44,6 +44,6 @@
     }
   ],
   "resourceFolders": [
-    "Extension Management/.resources"
+    "Extension Management\\.resources"
   ]
 }
