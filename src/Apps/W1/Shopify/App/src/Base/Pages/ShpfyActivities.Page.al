@@ -91,7 +91,7 @@ page 30100 "Shpfy Activities"
                     begin
                         JobQueueLogEntry.SetRange(Status, JobQueueLogEntry.Status::Error);
                         JobQueueLogEntry.SetRange("Object Type to Run", JobQueueLogEntry."Object Type to Run"::Report);
-                        JobQueueLogEntry.SetFilter("Object Id to Run", '%1|%2|%3|%4|%5|%6|%7|%8|%9|%10', Report::"Shpfy Sync Orders from Shopify",
+                        JobQueueLogEntry.SetFilter("Object Id to Run", '%1|%2|%3|%4|%5|%6|%7|%8|%9|%10|%11|%12', Report::"Shpfy Sync Orders from Shopify",
                                                                 Report::"Shpfy Sync Shipm. to Shopify",
                                                                 Report::"Shpfy Sync Products",
                                                                 Report::"Shpfy Sync Stock to Shopify",
@@ -100,7 +100,9 @@ page 30100 "Shpfy Activities"
                                                                 Report::"Shpfy Sync Payments",
                                                                 Report::"Shpfy Sync Companies",
                                                                 Report::"Shpfy Sync Catalogs",
-                                                                Report::"Shpfy Sync Catalog Prices");
+                                                                Report::"Shpfy Sync Catalog Prices",
+                                                                Report::"Shpfy Sync Invoices to Shpfy",
+                                                                Report::"Shpfy Sync Disputes");
                         Page.Run(Page::"Job Queue Log Entries", JobQueueLogEntry);
                     end;
                 }
