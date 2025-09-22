@@ -49,7 +49,9 @@ table 6124 "E-Document Log"
             Caption = 'E-Document Status';
         }
 #if not CLEANSCHEMA29
+#pragma warning disable AL0432
         field(7; "Service Integration"; Enum "E-Document Integration")
+#pragma warning restore AL0432
         {
             Caption = 'Service Integration Code';
             ObsoleteReason = 'Replaced by Service Integration V2.';

@@ -166,7 +166,7 @@ page 6105 "Inbound E-Documents"
                 end;
             }
 #if not CLEAN27
-#pragma warning disable AA0194
+#pragma warning disable AA0194, AL0432
             action(ViewMailMessage)
             {
                 ApplicationArea = Basic, Suite;
