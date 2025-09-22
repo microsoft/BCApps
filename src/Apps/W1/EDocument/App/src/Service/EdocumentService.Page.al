@@ -339,21 +339,27 @@ page 6133 "E-Document Service"
         CurrPage.EDocumentExportFormatMapping.Page.SaveAsImport(false);
         CurrPage.EDocumentImportFormatMapping.Page.SaveAsImport(true);
 #if not CLEAN26
+#pragma warning disable AL0432
         LegacyIntegrationVisible := (Rec."Service Integration" <> Rec."Service Integration"::"No Integration");
+#pragma warning restore AL0432
 #endif
     end;
 
 #if not CLEAN26
     local procedure RunSetupServiceIntegration()
     var
+#pragma warning disable AL0432
         EDocumentIntegration: Interface "E-Document Integration";
+#pragma warning restore AL0432
         SetupPage, SetupTable : Integer;
         PageOpened: Boolean;
     begin
         OnBeforeOpenServiceIntegrationSetupPage(Rec, PageOpened);
         if not PageOpened then begin
+#pragma warning disable AL0432
             EDocumentIntegration := Rec."Service Integration";
             EDocumentIntegration.GetIntegrationSetup(SetupPage, SetupTable);
+#pragma warning restore AL0432
             if SetupPage <> 0 then begin
                 PageOpened := true;
                 Page.Run(SetupPage);

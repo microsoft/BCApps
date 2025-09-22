@@ -1,3 +1,4 @@
+#pragma warning disable AL0749
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -19,3 +20,4 @@ interface IPurchaseOrderProvider
     /// <returns>A Purchase Header record matching the provided E-Document purchase header.</returns>
     procedure GetPurchaseOrder(EDocumentPurchaseHeader: Record "E-Document Purchase Header"): Record "Purchase Header";
 }
+#pragma warning restore AL0749

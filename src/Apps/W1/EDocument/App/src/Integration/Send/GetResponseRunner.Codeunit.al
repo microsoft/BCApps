@@ -67,7 +67,9 @@ codeunit 6149 "Get Response Runner"
 #if not CLEAN26
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
+#pragma warning disable AL0432
         IEDocIntegration: Interface "E-Document Integration";
+#pragma warning restore AL0432
 #endif
         IDocumentSender: Interface IDocumentSender;
         Result: Boolean;

@@ -92,7 +92,9 @@ codeunit 6146 "Send Runner"
         TempBlob: Codeunit "Temp Blob";
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
+#pragma warning disable AL0432
         IEDocIntegration: Interface "E-Document Integration";
+#pragma warning restore AL0432
 #endif
         IDocumentSender: Interface IDocumentSender;
         IsAsyncValue: Boolean;

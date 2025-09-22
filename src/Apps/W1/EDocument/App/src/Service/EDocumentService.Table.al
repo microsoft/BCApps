@@ -33,7 +33,9 @@ table 6103 "E-Document Service"
             DataClassification = SystemMetadata;
         }
 #if not CLEANSCHEMA29
+#pragma warning disable AL0432
         field(4; "Service Integration"; Enum "E-Document Integration")
+#pragma warning restore AL0432
         {
             Caption = 'Service Integration';
             DataClassification = SystemMetadata;
@@ -376,7 +378,9 @@ table 6103 "E-Document Service"
     internal procedure ToString(): Text
     begin
 #if not CLEAN26
+#pragma warning disable AL0432
         exit(StrSubstNo(EDocStringLbl, SystemId, "Document Format", "Service Integration", "Use Batch Processing", "Batch Mode"));
+#pragma warning restore AL0432
 #else
         exit(StrSubstNo(EDocStringLbl, SystemId, "Document Format", "Service Integration V2", "Use Batch Processing", "Batch Mode"));
 #endif

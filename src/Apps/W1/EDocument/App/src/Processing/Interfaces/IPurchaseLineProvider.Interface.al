@@ -1,3 +1,4 @@
+#pragma warning disable AL0749
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -18,3 +19,4 @@ interface IPurchaseLineProvider
     /// <param name="EDocumentPurchaseLine">The purchase line record from the E-Document.</param>
     procedure GetPurchaseLine(var EDocumentPurchaseLine: Record "E-Document Purchase Line");
 }
+#pragma warning restore AL0749

@@ -30,7 +30,9 @@ interface IBlobType
     /// Get the converter for the blob type
     /// </summary>
     /// <returns>Converter for the blob type</returns>
+#pragma warning disable AL0432
     procedure GetStructuredDataConverter(): Interface IBlobToStructuredDataConverter
+#pragma warning restore AL0432
 
 }
 #endif
