@@ -9,18 +9,16 @@ using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Sales.Document;
-using Microsoft.PowerBIReports;
 using Microsoft.Sales.History;
 using Microsoft.Projects.Project.Ledger;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.PowerBIReports.Test;
-using System.TestLibraries.Security.AccessControl;
 using System.Text;
 using System.Utilities;
 
-codeunit 139881 "PowerBI Sales Test"
+codeunit 139881 "E2E PowerBI Sales Test"
 {
     Subtype = Test;
     TestType = Uncategorized;
@@ -38,11 +36,8 @@ codeunit 139881 "PowerBI Sales Test"
         LibResource: Codeunit "Library - Resource";
         LibJob: Codeunit "Library - Job";
         UriBuilder: Codeunit "Uri Builder";
-        PermissionsMock: Codeunit "Permissions Mock";
-        PowerBICoreTest: Codeunit "PowerBI Core Test";
         PowerBIAPIRequests: Codeunit "PowerBI API Requests";
         PowerBIAPIEndpoints: Enum "PowerBI API Endpoints";
-        PowerBIFilterScenarios: Enum "PowerBI Filter Scenarios";
         IsInitialized: Boolean;
         ResponseEmptyErr: Label 'Response should not be empty.';
 
@@ -315,92 +310,6 @@ codeunit 139881 "PowerBI Sales Test"
         Assert.AreEqual(Format(SalesLine."Unit Cost (LCY)" / 1.0, 0, 9), JsonMgt.GetValue('unitCostLCY'), 'Sales line unit cost lcy does not match.');
         Assert.AreEqual(Format(SalesLine."Shipped Not Invoiced" / 1.0, 0, 9), JsonMgt.GetValue('shippedNotInvoiced'), 'Sales line shipped not invoiced does not match.');
         Assert.AreEqual(Format(SalesLine."Dimension Set ID"), JsonMgt.GetValue('dimensionSetID'), 'Sales line dimension set id does not match.');
-    end;
-
-    [Test]
-    procedure TestGenerateItemSalesReportDateFilter_StartEndDate()
-    var
-        PBISetup: Record "PowerBI Reports Setup";
-        ExpectedFilterTxt: Text;
-        ActualFilterTxt: Text;
-    begin
-        // [SCENARIO] Test GenerateItemSalesReportDateFilter
-        // [GIVEN] Power BI setup record is created with Load Date Type = "Start/End Date"
-        PowerBICoreTest.AssignAdminPermissionSet();
-        RecreatePBISetup();
-        PBISetup."Item Sales Load Date Type" := PBISetup."Item Sales Load Date Type"::"Start/End Date";
-
-        // [GIVEN] Mock start & end date values are entered 
-        PBISetup."Item Sales Start Date" := Today();
-        PBISetup."Item Sales End Date" := Today() + 10;
-        PBISetup.Modify();
-        PermissionsMock.ClearAssignments();
-
-        ExpectedFilterTxt := Format(Today()) + '..' + Format(Today() + 10);
-
-        // [WHEN] GenerateItemSalesReportDateFilter executes 
-        ActualFilterTxt := PowerBIAPIRequests.GetFilterForQueryScenario(PowerBIFilterScenarios::"Sales Date");
-
-        // [THEN] A filter text of format "%1..%2" should be created 
-        Assert.AreEqual(ExpectedFilterTxt, ActualFilterTxt, 'The expected & actual filter text did not match.');
-    end;
-
-    [Test]
-    procedure TestGenerateItemSalesReportDateFilter_RelativeDate()
-    var
-        PBISetup: Record "PowerBI Reports Setup";
-        ExpectedFilterTxt: Text;
-        ActualFilterTxt: Text;
-    begin
-        // [SCENARIO] Test GenerateItemSalesReportDateFilter
-        // [GIVEN] Power BI setup record is created with Load Date Type = "Relative Date"
-        PowerBICoreTest.AssignAdminPermissionSet();
-        RecreatePBISetup();
-        PBISetup."Item Sales Load Date Type" := PBISetup."Item Sales Load Date Type"::"Relative Date";
-
-        // [GIVEN] A mock date formula value
-        Evaluate(PBISetup."Item Sales Date Formula", '30D');
-        PBISetup.Modify();
-        PermissionsMock.ClearAssignments();
-
-        ExpectedFilterTxt := '' + Format(CalcDate(PBISetup."Item Sales Date Formula")) + '..';
-
-        // [WHEN] GenerateItemSalesReportDateFilter executes 
-        ActualFilterTxt := PowerBIAPIRequests.GetFilterForQueryScenario(PowerBIFilterScenarios::"Sales Date");
-
-        // [THEN] A filter text of format "%1.." should be created 
-        Assert.AreEqual(ExpectedFilterTxt, ActualFilterTxt, 'The expected & actual filter text did not match.');
-    end;
-
-    [Test]
-    procedure TestGenerateItemSalesReportDateFilter_Blank()
-    var
-        PBISetup: Record "PowerBI Reports Setup";
-        ActualFilterTxt: Text;
-    begin
-        // [SCENARIO] Test GenerateItemSalesReportDateFilter
-        // [GIVEN] Power BI setup record is created with Load Date Type = " "
-        PowerBICoreTest.AssignAdminPermissionSet();
-        RecreatePBISetup();
-        PBISetup."Item Sales Load Date Type" := PBISetup."Item Sales Load Date Type"::" ";
-        PBISetup.Modify();
-        PermissionsMock.ClearAssignments();
-
-        // [WHEN] GenerateItemSalesReportDateFilter executes 
-        ActualFilterTxt := PowerBIAPIRequests.GetFilterForQueryScenario(PowerBIFilterScenarios::"Sales Date");
-
-        // [THEN] A blank filter text should be created 
-        Assert.AreEqual('', ActualFilterTxt, 'The expected & actual filter text did not match.');
-    end;
-
-    local procedure RecreatePBISetup()
-    var
-        PBISetup: Record "PowerBI Reports Setup";
-    begin
-        if PBISetup.Get() then
-            PBISetup.Delete();
-        PBISetup.Init();
-        PBISetup.Insert();
     end;
 
     [Test]

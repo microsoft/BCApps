@@ -12,13 +12,12 @@ using System.Text;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Ledger;
-using Microsoft.PowerBIReports;
 using Microsoft.PowerBIReports.Test;
 using System.TestLibraries.Security.AccessControl;
 using Microsoft.Purchases.History;
 using Microsoft.Projects.Resources.Resource;
 
-codeunit 139880 "PowerBI Purchases Test"
+codeunit 139880 "E2E PowerBI Purchases Test"
 {
     Subtype = Test;
     TestType = Uncategorized;
@@ -37,9 +36,7 @@ codeunit 139880 "PowerBI Purchases Test"
         UriBuilder: Codeunit "Uri Builder";
         PermissionsMock: Codeunit "Permissions Mock";
         PowerBIAPIRequests: Codeunit "PowerBI API Requests";
-        PowerBICoreTest: Codeunit "PowerBI Core Test";
         PowerBIAPIEndpoints: Enum "PowerBI API Endpoints";
-        PowerBIFilterScenarios: Enum "PowerBI Filter Scenarios";
         ResponseEmptyErr: Label 'Response should not be empty.';
 
     [Test]
@@ -428,92 +425,6 @@ codeunit 139880 "PowerBI Purchases Test"
         Assert.IsTrue(JObject.ReadFrom(Response), 'Invalid response format.');
         Assert.IsTrue(JObject.Get('value', JToken), 'Value token not found.');
         Assert.AreEqual(0, JToken.AsArray().Count(), 'Response contains data outside of the filter.');
-    end;
-
-    [Test]
-    procedure TestGenerateItemPurchasesReportDateFilter_StartEndDate()
-    var
-        PBISetup: Record "PowerBI Reports Setup";
-        ExpectedFilterTxt: Text;
-        ActualFilterTxt: Text;
-    begin
-        // [SCENARIO] Test GenerateItemPurchasesReportDateFilter
-        // [GIVEN] Power BI setup record is created with Load Date Type = "Start/End Date"
-        PowerBICoreTest.AssignAdminPermissionSet();
-        RecreatePBISetup();
-        PBISetup."Item Purch. Load Date Type" := PBISetup."Item Purch. Load Date Type"::"Start/End Date";
-
-        // [GIVEN] Mock start & end date values are entered 
-        PBISetup."Item Purch. Start Date" := Today();
-        PBISetup."Item Purch. End Date" := Today() + 10;
-        PBISetup.Modify();
-        PermissionsMock.ClearAssignments();
-
-        ExpectedFilterTxt := Format(Today()) + '..' + Format(Today() + 10);
-
-        // [WHEN] GenerateItemPurchasesReportDateFilter executes 
-        ActualFilterTxt := PowerBIAPIRequests.GetFilterForQueryScenario(PowerBIFilterScenarios::"Purchases Date");
-
-        // [THEN] A filter text of format "%1..%2" should be created 
-        Assert.AreEqual(ExpectedFilterTxt, ActualFilterTxt, 'The expected & actual filter text did not match.');
-    end;
-
-    [Test]
-    procedure TestGenerateItemPurchasesReportDateFilter_RelativeDate()
-    var
-        PBISetup: Record "PowerBI Reports Setup";
-        ExpectedFilterTxt: Text;
-        ActualFilterTxt: Text;
-    begin
-        // [SCENARIO] Test GenerateItemPurchasesReportDateFilter
-        // [GIVEN] Power BI setup record is created with Load Date Type = "Relative Date"
-        PowerBICoreTest.AssignAdminPermissionSet();
-        RecreatePBISetup();
-        PBISetup."Item Purch. Load Date Type" := PBISetup."Item Purch. Load Date Type"::"Relative Date";
-
-        // [GIVEN] A mock date formula value
-        Evaluate(PBISetup."Item Purch. Date Formula", '30D');
-        PBISetup.Modify();
-        PermissionsMock.ClearAssignments();
-
-        ExpectedFilterTxt := Format(CalcDate(PBISetup."Item Purch. Date Formula")) + '..';
-
-        // [WHEN] GenerateItemPurchasesReportDateFilter executes 
-        ActualFilterTxt := PowerBIAPIRequests.GetFilterForQueryScenario(PowerBIFilterScenarios::"Purchases Date");
-
-        // [THEN] A filter text of format "%1.." should be created 
-        Assert.AreEqual(ExpectedFilterTxt, ActualFilterTxt, 'The expected & actual filter text did not match.');
-    end;
-
-    [Test]
-    procedure TestGenerateItemPurchasesReportDateFilter_Blank()
-    var
-        PBISetup: Record "PowerBI Reports Setup";
-        ActualFilterTxt: Text;
-    begin
-        // [SCENARIO] Test GenerateItemPurchasesReportDateFilter
-        // [GIVEN] Power BI setup record is created with Load Date Type = " "
-        PowerBICoreTest.AssignAdminPermissionSet();
-        RecreatePBISetup();
-        PBISetup."Item Purch. Load Date Type" := PBISetup."Item Purch. Load Date Type"::" ";
-        PBISetup.Modify();
-        PermissionsMock.ClearAssignments();
-
-        // [WHEN] GenerateItemPurchasesReportDateFilter executes 
-        ActualFilterTxt := PowerBIAPIRequests.GetFilterForQueryScenario(PowerBIFilterScenarios::"Purchases Date");
-
-        // [THEN] A blank filter text should be created 
-        Assert.AreEqual('', ActualFilterTxt, 'The expected & actual filter text did not match.');
-    end;
-
-    local procedure RecreatePBISetup()
-    var
-        PBISetup: Record "PowerBI Reports Setup";
-    begin
-        if PBISetup.Get() then
-            PBISetup.Delete();
-        PBISetup.Init();
-        PBISetup.Insert();
     end;
 
     [ConfirmHandler]

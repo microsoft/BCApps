@@ -9,7 +9,6 @@ using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.PowerBIReports;
 using Microsoft.PowerBIReports;
 using Microsoft.PowerBIReports.Test;
 using Microsoft.Purchases.Document;
@@ -23,7 +22,7 @@ using System.TestLibraries.Utilities;
 using System.Text;
 using System.Utilities;
 
-codeunit 139876 "PowerBI Finance Test"
+codeunit 139876 "E2E PowerBI Finance Test"
 {
     Subtype = Test;
     TestType = Uncategorized;
@@ -574,91 +573,5 @@ codeunit 139876 "PowerBI Finance Test"
           GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::Customer, LibSales.CreateCustomerNo(), GLAmount);
         GenJournalLine.Validate("Document No.", DocumentNo);
         GenJournalLine.Modify(true);
-    end;
-
-    [Test]
-    procedure TestGenerateFinanceReportDateFilter_StartEndDate()
-    var
-        PBISetup: Record "PowerBI Reports Setup";
-        FilterScenario: Enum "PowerBI Filter Scenarios";
-        ExpectedFilterTxt: Text;
-        ActualFilterTxt: Text;
-    begin
-        // [SCENARIO] Test GenerateFinanceReportDateFilter
-        // [GIVEN] Power BI setup record is created
-        PowerBICoreTest.AssignAdminPermissionSet();
-        RecreatePBISetup();
-
-        // [GIVEN] Mock start & end date values are entered 
-        PBISetup."Finance Start Date" := Today();
-        PBISetup."Finance End Date" := Today() + 10;
-        PBISetup.Modify();
-        PermissionsMock.ClearAssignments();
-
-        ExpectedFilterTxt := StrSubstNo(Format(Today()) + '..' + Format(Today() + 10));
-
-        // [WHEN] GenerateFinanceReportDateFilter executes 
-        ActualFilterTxt := PowerBIAPIRequests.GetFilterForQueryScenario(FilterScenario::"Finance Date");
-
-        // [THEN] A filter text of format "%1..%2" should be created 
-        Assert.AreEqual(ExpectedFilterTxt, ActualFilterTxt, 'The expected & actual filter text did not match.');
-    end;
-
-    [Test]
-    procedure TestGenerateFinanceReportDateFilter_Blank()
-    var
-        FilterScenario: Enum "PowerBI Filter Scenarios";
-        ActualFilterTxt: Text;
-    begin
-        // [SCENARIO] Test GenerateFinanceReportDateFilter
-        // [GIVEN] Power BI setup record is created with blank start & end dates
-        PowerBICoreTest.AssignAdminPermissionSet();
-        RecreatePBISetup();
-        PermissionsMock.ClearAssignments();
-
-        // [WHEN] GenerateFinanceReportDateFilter executes 
-        ActualFilterTxt := PowerBIAPIRequests.GetFilterForQueryScenario(FilterScenario::"Finance Date");
-
-        // [THEN] A filter text of format "%1..%2" should be created 
-        Assert.AreEqual('', ActualFilterTxt, 'The expected & actual filter text did not match.');
-    end;
-
-    [Test]
-    procedure VerifyEditingPowerBIAccCategoryWhenGLAccCategoryContainsSpecialCharacter()
-    var
-        GLAccountCategory: Record "G/L Account Category";
-        AccountCategories: TestPage "Account Categories";
-    begin
-        // [SCENARIO 572645] Verify editing of Power BI account categories when the G/L account category contains the special character ')', and ensure the update is successful without errors.
-        // Permission Set.
-        PermissionsMock.Assign('SUPER');
-        PowerBICoreTest.AssignAdminPermissionSet();
-        RecreatePBISetup();
-
-        // [GIVEN] Create G/L Account Category.
-        LibERM.CreateGLAccountCategory(GLAccountCategory);
-
-        // [GIVEN] Change the G/L account category description and add a special character to the description.
-        GLAccountCategory.Validate(Description, '');
-        GLAccountCategory.Validate(Description, '3)Cash');
-        GLAccountCategory.Modify();
-        PermissionsMock.ClearAssignments();
-
-        // [WHEN] Account Category page is open
-        AccountCategories.OpenEdit();
-        AccountCategories.First();
-
-        // [THEN] Edit the Power BI account categories and add the G/L account category that contains the special character.The system did not display any errors, and the category was successfully changed.
-        AccountCategories.AccountCategoryDescription.SetValue(GLAccountCategory.Description);
-    end;
-
-    local procedure RecreatePBISetup()
-    var
-        PBISetup: Record "PowerBI Reports Setup";
-    begin
-        if PBISetup.Get() then
-            PBISetup.Delete();
-        PBISetup.Init();
-        PBISetup.Insert();
     end;
 }

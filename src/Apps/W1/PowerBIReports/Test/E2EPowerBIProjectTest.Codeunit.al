@@ -15,7 +15,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Vendor;
 using Microsoft.PowerBIReports.Test;
 
-codeunit 139879 "PowerBI Project Test"
+codeunit 139879 "E2E PowerBI Project Test"
 {
     Subtype = Test;
     TestType = Uncategorized;
