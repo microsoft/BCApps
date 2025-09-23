@@ -128,7 +128,7 @@ codeunit 3702 "Environment Information Impl."
         if TestabilityEarlyPreview then
             exit(true);
         RingName := NavTenantSettingsHelper.GetRingName();
-        exit((RingName = 'EARLYPREVIEW') or (RingName = 'EARKYPREV'));
+        exit((RingName = 'EARLYPREVIEW') or (RingName = 'EARLYPREV'));
     end;
 
     procedure SetTestabilityEarlyPreview(EnableEarlyPreviewForTest: Boolean)
