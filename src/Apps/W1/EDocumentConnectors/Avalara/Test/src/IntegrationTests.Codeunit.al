@@ -14,6 +14,7 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.Finance.Currency;
 using System.Utilities;
+using Microsoft.eServices.EDocument.Test;
 
 codeunit 148191 "Integration Tests"
 {

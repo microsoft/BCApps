@@ -10,6 +10,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.History;
+using Microsoft.eServices.EDocument.Test;
 
 codeunit 148221 "Integration Tests"
 {
