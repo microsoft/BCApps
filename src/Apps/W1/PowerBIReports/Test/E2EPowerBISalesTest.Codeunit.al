@@ -17,6 +17,8 @@ using Microsoft.Projects.Resources.Resource;
 using Microsoft.PowerBIReports.Test;
 using System.Text;
 using System.Utilities;
+using Microsoft.CRM.Contact;
+using Microsoft.Foundation.AuditCodes;
 
 /// <summary>
 /// E2E tests for Power BI Sales reports
@@ -32,6 +34,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
     var
         Assert: Codeunit Assert;
         LibGraphMgt: Codeunit "Library - Graph Mgt";
+        LibraryUtility: Codeunit "Library - Utility";
         LibERM: Codeunit "Library - ERM";
         LibSales: Codeunit "Library - Sales";
         LibInv: Codeunit "Library - Inventory";
@@ -963,6 +966,171 @@ codeunit 139881 "E2E PowerBI Sales Test"
         Assert.AreEqual(SalesCrMemoHeader."Opportunity No.", JsonMgt.GetValue('opportunityNo'), 'Opportunity no. does not match.');
         Assert.AreEqual(SalesCrMemoHeader."Bill-to Customer No.", JsonMgt.GetValue('billToCustomerNo'), 'Bill-to customer does not match.');
         Assert.AreEqual(SalesCrMemoHeader."Sell-to Customer No.", JsonMgt.GetValue('sellToCustomerNo'), 'Sell-to customer does not match.');
+    end;
+
+    [Test]
+    procedure TestGetContact()
+    var
+        Contact: Record Contact;
+        Uri: Codeunit Uri;
+        Response: Text;
+        TargetURL: Text;
+    begin
+        Initialize();
+
+        // [GIVEN] A company contact with full address details
+        LibMarketing.CreateCompanyContact(Contact);
+        LibMarketing.UpdateContactAddress(Contact);
+        Commit();
+
+        // [WHEN] Get request for Contact
+        TargetURL := PowerBIAPIRequests.GetEndpointUrl(PowerBIAPIEndpoints::Contacts);
+        UriBuilder.Init(TargetURL);
+        UriBuilder.AddQueryParameter('$filter', 'contactNo eq ''' + Format(Contact."No.") + '''');
+        UriBuilder.GetUri(Uri);
+        LibGraphMgt.GetFromWebService(Response, Uri.GetAbsoluteUri());
+
+        // [THEN] The response contains the contact information
+        Assert.AreNotEqual('', Response, ResponseEmptyErr);
+        VerifyContact(Response, Contact);
+    end;
+
+    local procedure VerifyContact(Response: Text; Contact: Record Contact)
+    var
+        JsonMgt: Codeunit "JSON Management";
+    begin
+        JsonMgt.InitializeObject(Response);
+        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.contactNo == ''' + Format(Contact."No.") + ''')]'), 'Contact not found.');
+        Assert.AreEqual(Contact."No.", JsonMgt.GetValue('contactNo'), 'Contact No. does not match.');
+        Assert.AreEqual(Format(Contact.Type), JsonMgt.GetValue('contactType'), 'Contact Type does not match.');
+        Assert.AreEqual(Contact."Company No.", JsonMgt.GetValue('companyNo'), 'Company No. does not match.');
+        Assert.AreEqual(Contact."Company Name", JsonMgt.GetValue('companyName'), 'Company Name does not match.');
+        Assert.AreEqual(Contact.Address, JsonMgt.GetValue('address'), 'Address does not match.');
+        Assert.AreEqual(Contact."Address 2", JsonMgt.GetValue('address2'), 'Address 2 does not match.');
+        Assert.AreEqual(Contact.City, JsonMgt.GetValue('city'), 'City does not match.');
+        Assert.AreEqual(Contact."Post Code", JsonMgt.GetValue('postCode'), 'Post Code Type does not match.');
+        Assert.AreEqual(Contact.County, JsonMgt.GetValue('county'), 'County does not match.');
+        Assert.AreEqual(Contact."Country/Region Code", JsonMgt.GetValue('countryRegionCode'), 'Contry/Region Code does not match.');
+    end;
+
+    [Test]
+    procedure TestGetItemCategory()
+    var
+        ItemCategory: Record "Item Category";
+        ParentCategory: Record "Item Category";
+        Uri: Codeunit Uri;
+        Response: Text;
+        TargetURL: Text;
+    begin
+        Initialize();
+
+        // [GIVEN] An Item Category that has a parent category
+        LibInv.CreateItemCategory(ParentCategory);
+        LibInv.CreateItemCategory(ItemCategory);
+        ItemCategory.Validate(Description, LibraryUtility.GenerateRandomText(20));
+        ItemCategory.Validate("Parent Category", ParentCategory.Code);
+        ItemCategory.Modify(true);
+        Commit();
+
+        // [WHEN] Get request for Item Category
+        TargetURL := PowerBIAPIRequests.GetEndpointUrl(PowerBIAPIEndpoints::"Item Categories");
+        UriBuilder.Init(TargetURL);
+        UriBuilder.AddQueryParameter('$filter', 'code eq ''' + Format(ItemCategory.Code) + '''');
+        UriBuilder.GetUri(Uri);
+        LibGraphMgt.GetFromWebService(Response, Uri.GetAbsoluteUri());
+
+        // [THEN] The response contains the item category information
+        Assert.AreNotEqual('', Response, ResponseEmptyErr);
+        VerifyItemCategory(Response, ItemCategory, ParentCategory.Code);
+    end;
+
+    local procedure VerifyItemCategory(Response: Text; ItemCategory: Record "Item Category"; ParentCategoryCode: Code[20])
+    var
+        JsonMgt: Codeunit "JSON Management";
+    begin
+        JsonMgt.InitializeObject(Response);
+        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.code == ''' + Format(ItemCategory.Code) + ''')]'), 'Item Category not found.');
+        Assert.AreEqual(ItemCategory.Code, JsonMgt.GetValue('code'), 'Item Category Code does not match.');
+        Assert.AreEqual(ItemCategory.Description, JsonMgt.GetValue('description'), 'Description does not match.');
+        Assert.AreEqual(ParentCategoryCode, JsonMgt.GetValue('parentCategory'), 'Parent Category does not match.');
+        Assert.AreEqual(Format(ItemCategory.SystemId), '{' + JsonMgt.GetValue('systemId').ToUpper() + '}', 'System ID does not match.');
+    end;
+
+    [Test]
+    procedure TestGetReturnReason()
+    var
+        ReturnReason: Record "Return Reason";
+        Uri: Codeunit Uri;
+        Response: Text;
+        TargetURL: Text;
+    begin
+        Initialize();
+
+        // [GIVEN] An return reason code
+        LibERM.CreateReturnReasonCode(ReturnReason);
+        Commit();
+
+        // [WHEN] Get request for Return Reason
+        TargetURL := PowerBIAPIRequests.GetEndpointUrl(PowerBIAPIEndpoints::"Return Reason Codes");
+        UriBuilder.Init(TargetURL);
+        UriBuilder.AddQueryParameter('$filter', 'reasonCode eq ''' + Format(ReturnReason.Code) + '''');
+        UriBuilder.GetUri(Uri);
+        LibGraphMgt.GetFromWebService(Response, Uri.GetAbsoluteUri());
+
+        // [THEN] The response contains the return reason information
+        Assert.AreNotEqual('', Response, ResponseEmptyErr);
+        VerifyReturnReason(Response, ReturnReason);
+    end;
+
+    local procedure VerifyReturnReason(Response: Text; ReturnReason: Record "Return Reason")
+    var
+        JsonMgt: Codeunit "JSON Management";
+    begin
+        JsonMgt.InitializeObject(Response);
+        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.reasonCode == ''' + Format(ReturnReason.Code) + ''')]'), 'Return Reason not found.');
+        Assert.AreEqual(ReturnReason.Code, JsonMgt.GetValue('reasonCode'), 'Return Reason Code does not match.');
+        Assert.AreEqual(ReturnReason.Description, JsonMgt.GetValue('reasonDescription'), 'Description does not match.');
+    end;
+
+    [Test]
+    procedure TestGetResource()
+    var
+        Resource: Record Resource;
+        Uri: Codeunit Uri;
+        Response: Text;
+        TargetURL: Text;
+    begin
+        Initialize();
+
+        // [GIVEN] A new resource
+        LibResource.CreateResourceNew(Resource);
+        Resource.Validate("Unit Cost", LibRandom.RandInt(50));
+        Resource.Modify();
+        Commit();
+
+        // [WHEN] Get request for Resource
+        TargetURL := PowerBIAPIRequests.GetEndpointUrl(PowerBIAPIEndpoints::Resources);
+        UriBuilder.Init(TargetURL);
+        UriBuilder.AddQueryParameter('$filter', 'resourceNo eq ''' + Format(Resource."No.") + '''');
+        UriBuilder.GetUri(Uri);
+        LibGraphMgt.GetFromWebService(Response, Uri.GetAbsoluteUri());
+
+        // [THEN] The response contains the resource information
+        Assert.AreNotEqual('', Response, ResponseEmptyErr);
+        VerifyResource(Response, Resource);
+    end;
+
+    local procedure VerifyResource(Response: Text; Resource: Record Resource)
+    var
+        JsonMgt: Codeunit "JSON Management";
+    begin
+        JsonMgt.InitializeObject(Response);
+        Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.resourceNo == ''' + Format(Resource."No.") + ''')]'), 'Resource not found.');
+        Assert.AreEqual(Resource."No.", JsonMgt.GetValue('resourceNo'), 'Resource no. does not match.');
+        Assert.AreEqual(Resource.Name, JsonMgt.GetValue('resourceName'), 'Resource name does not match.');
+        Assert.AreEqual(Resource."Base Unit of Measure", JsonMgt.GetValue('baseUnitofMeasure'), 'Base unit of measure does not match.');
+        Assert.AreEqual(Format(Resource."Unit Cost" / 1.0, 0, 9), JsonMgt.GetValue('unitCost'), 'Unit cost does not match.');
+        Assert.AreEqual(Format(Resource."Unit Price" / 1.0, 0, 9), JsonMgt.GetValue('unitPrice'), 'Unit price does not match.');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Job Create-Invoice", OnCreateSalesInvoiceOnBeforeRunReport, '', true, true)]
