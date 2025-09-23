@@ -323,6 +323,7 @@ codeunit 30163 "Shpfy Order Mapping"
         if not ShopifyCompany.Get(OrderHeader."Company Id") then
             exit;
 
+        CompanyLocation.ReadIsolation := IsolationLevel::ReadUncommitted;
         CompanyLocation.SetRange(Id, OrderHeader."Company Location Id");
         if not CompanyLocation.IsEmpty() then
             exit;

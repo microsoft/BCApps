@@ -40,13 +40,12 @@ codeunit 139649 "Shpfy Orders API Subscriber"
                 begin
                     Uri := HttpRequestMessage.GetRequestUri();
                     if Uri.EndsWith(GraphQLCmdTxt) then
-                        if HttpRequestMessage.Content.ReadAs(GraphQlQuery) then
-                            case true of
-                                GraphQlQuery.Contains(TransactionsGraphQLMsg):
-                                    HttpResponseMessage := GetOrderTransactionResult();
-                                GraphQlQuery.Contains(CompanyLocationGraphQLMsg):
-                                    HttpResponseMessage := GetCompanyLocationResult();
-                            end;
+                        if HttpRequestMessage.Content.ReadAs(GraphQlQuery) then begin
+                            if GraphQlQuery.Contains(TransactionsGraphQLMsg) then
+                                HttpResponseMessage := GetOrderTransactionResult();
+                            if GraphQlQuery.Contains(CompanyLocationGraphQLMsg) then
+                                HttpResponseMessage := GetCompanyLocationResult();
+                        end;
                 end;
         end;
     end;
