@@ -16,4 +16,9 @@ codeunit 135109 "Extension Mgt. Test Library"
     begin
         ExtensionInstallationImpl.RunExtensionSetup(AppId);
     end;
+
+    procedure SetAppId(Id: Guid; var MarketplaceExtnDeployment: Page "Marketplace Extn Deployment")
+    begin
+        MarketplaceExtnDeployment.SetAppID(Id);
+    end;
 }
