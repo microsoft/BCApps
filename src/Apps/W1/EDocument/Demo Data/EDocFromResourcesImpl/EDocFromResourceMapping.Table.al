@@ -1,3 +1,11 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.DemoData;
+
+using Microsoft.Purchases.Document;
+
 table 5428 "E-Doc From Resource Mapping"
 {
     Access = Internal;

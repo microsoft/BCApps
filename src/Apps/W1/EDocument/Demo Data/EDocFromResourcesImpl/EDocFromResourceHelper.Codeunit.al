@@ -1,3 +1,17 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.DemoData;
+
+using Microsoft.Purchases.History;
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Finance.AllocationAccount;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Posting;
+
 codeunit 5405 "E-Doc. From Resource Helper"
 {
     Access = Internal;
@@ -143,7 +157,9 @@ codeunit 5405 "E-Doc. From Resource Helper"
         PurchPost: Codeunit "Purch.-Post";
         PurchHeaderNotFoundForEdocErr: Label 'Purchase Header not found for E-Document with ID %1. Possible reason: %2', Comment = '%1 = E-Document ID, %2 = Last error text';
     begin
+#pragma warning disable AA0181
         EDocument.Find();
+#pragma warning restore AA0181
         if not PurchaseHeader.Get(EDocument."Document Record ID") then
             Error(PurchHeaderNotFoundForEdocErr, EDocument."Document Record ID", GetLastErrorText());
         if PurchaseHeader."Document Date" = 0D then
