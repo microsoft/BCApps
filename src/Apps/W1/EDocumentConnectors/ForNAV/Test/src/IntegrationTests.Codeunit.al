@@ -417,6 +417,8 @@ codeunit 148221 "Integration Tests"
         Test.Init();
 
         CompanyInformation.Get();
+        if CompanyInformation."Name" = '' then
+            CompanyInformation.Name := 'Test Company';
         CompanyInformation."VAT Registration No." := 'GB777777771';
         CompanyInformation.Modify();
 
