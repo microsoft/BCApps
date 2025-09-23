@@ -1,3 +1,12 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.Test;
+
+using Microsoft.eServices.EDocument;
+using System.Utilities;
+
 #if not CLEAN26
 #pragma warning disable AL0432
 codeunit 139619 "E-Doc. Integration Mock" implements "E-Document Integration"
@@ -25,7 +34,9 @@ codeunit 139619 "E-Doc. Integration Mock" implements "E-Document Integration"
         exit(Count);
     end;
 
+#pragma warning disable AA0150
     procedure SendBatch(var EDocuments: Record "E-Document"; var TempBlob: codeunit System.Utilities."Temp Blob"; var IsAsync: Boolean; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage);
+#pragma warning restore AA0150
     begin
 
     end;
@@ -51,7 +62,9 @@ codeunit 139619 "E-Doc. Integration Mock" implements "E-Document Integration"
 
     end;
 
+#pragma warning disable AA0150
     procedure GetIntegrationSetup(var SetupPage: Integer; var SetupTable: Integer);
+#pragma warning restore AA0150
     begin
 
     end;

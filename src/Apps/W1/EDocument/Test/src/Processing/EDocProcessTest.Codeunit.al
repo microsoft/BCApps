@@ -1,3 +1,30 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.Test;
+
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.Sales.Customer;
+using Microsoft.eServices.EDocument;
+using Microsoft.Purchases.Vendor;
+using System.TestLibraries.Utilities;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Purchases.Document;
+using Microsoft.Foundation.Company;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Bank.Reconciliation;
+using Microsoft.eServices.EDocument.Processing;
+using Microsoft.Purchases.History;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
+using System.IO;
+using Microsoft.Purchases.Payables;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.Currency;
+
 codeunit 139883 "E-Doc Process Test"
 {
     Subtype = Test;
@@ -678,7 +705,9 @@ codeunit 139883 "E-Doc Process Test"
         IsInitialized := true;
     end;
 
+#pragma warning disable AA0244
     local procedure CreateItemReference(Vendor: Record Vendor; Item: Record Item) ItemReference: Record "Item Reference"
+#pragma warning restore AA0244
     begin
         ItemReference."Item No." := Item."No.";
         ItemReference."Variant Code" := '';

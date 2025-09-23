@@ -1,3 +1,20 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.Test;
+
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.Sales.Customer;
+using Microsoft.eServices.EDocument;
+using Microsoft.Purchases.Vendor;
+using System.TestLibraries.Utilities;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using System.IO;
+using Microsoft.Foundation.Attachment;
+using Microsoft.Finance.Currency;
+using Microsoft.eServices.EDocument.Processing.Import;
+
 codeunit 139891 "E-Document Structured Tests"
 {
     Subtype = Test;

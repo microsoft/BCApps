@@ -1,3 +1,28 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.Test;
+
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Foundation.Address;
+using System.TestLibraries.Utilities;
+using Microsoft.eServices.EDocument;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Foundation.Attachment;
+using System.IO;
+using Microsoft.Finance.VAT.Setup;
+using System.Utilities;
+using Microsoft.eServices.EDocument.IO.Peppol;
+using System.Environment;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Purchases.Setup;
+using System.Reflection;
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.Foundation.Enums;
+
 codeunit 139628 "E-Doc. Receive Test"
 {
     Subtype = Test;
@@ -151,7 +176,9 @@ codeunit 139628 "E-Doc. Receive Test"
         TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
         TempXMLBuffer.Reset();
         TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+#pragma warning disable AA0210
         TempXMLBuffer.SetRange(Path, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID');
+#pragma warning restore AA0210
         TempXMLBuffer.FindFirst();
         TempXMLBuffer.Value := Vendor."VAT Registration No.";
         TempXMLBuffer.Modify();
@@ -260,7 +287,9 @@ codeunit 139628 "E-Doc. Receive Test"
         TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
         TempXMLBuffer.Reset();
         TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+#pragma warning disable AA0210
         TempXMLBuffer.SetRange(Path, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID');
+#pragma warning restore AA0210
         TempXMLBuffer.FindFirst();
         TempXMLBuffer.Value := Vendor."VAT Registration No.";
         TempXMLBuffer.Modify();
@@ -352,7 +381,9 @@ codeunit 139628 "E-Doc. Receive Test"
         TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
         TempXMLBuffer.Reset();
         TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+#pragma warning disable AA0210
         TempXMLBuffer.SetRange(Path, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID');
+#pragma warning restore AA0210
         TempXMLBuffer.FindFirst();
         TempXMLBuffer.Value := Vendor."VAT Registration No.";
         TempXMLBuffer.Modify();
@@ -1419,7 +1450,9 @@ codeunit 139628 "E-Doc. Receive Test"
     end;
 
     [StrMenuHandler]
+#pragma warning disable AA0150
     procedure MenuHandler(Options: Text[1024]; var Choice: Integer; Instruction: Text[1024])
+#pragma warning restore AA0150
     begin
     end;
 
@@ -1529,14 +1562,18 @@ codeunit 139628 "E-Doc. Receive Test"
         TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
         TempXMLBuffer.Reset();
         TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+#pragma warning disable AA0210
         TempXMLBuffer.SetRange(Path, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID');
+#pragma warning restore AA0210
         TempXMLBuffer.FindFirst();
         TempXMLBuffer.Value := DocumentVendor."VAT Registration No.";
         TempXMLBuffer.Modify();
 
+#pragma warning disable AA0210
         TempXMLBuffer.SetRange(Path, '/Invoice/cbc:ID');
+#pragma warning restore AA0210
         TempXMLBuffer.FindFirst();
-        TempXMLBuffer.Value := LibraryRandom.RandText(20);
+        TempXMLBuffer.Value := CopyStr(LibraryRandom.RandText(20), 1, 20);
 
         TempXMLBuffer.Reset();
         TempXMLBuffer.FindFirst();
@@ -1698,7 +1735,9 @@ codeunit 139628 "E-Doc. Receive Test"
         TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
         TempXMLBuffer.Reset();
         TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+#pragma warning disable AA0210
         TempXMLBuffer.SetRange(Path, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID');
+#pragma warning restore AA0210
         TempXMLBuffer.FindFirst();
         TempXMLBuffer.Value := Vendor."VAT Registration No.";
         TempXMLBuffer.Modify();
@@ -1807,7 +1846,9 @@ codeunit 139628 "E-Doc. Receive Test"
         TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
         TempXMLBuffer.Reset();
         TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+#pragma warning disable AA0210
         TempXMLBuffer.SetRange(Path, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID');
+#pragma warning restore AA0210
         TempXMLBuffer.FindFirst();
         TempXMLBuffer.Value := Vendor."VAT Registration No.";
         TempXMLBuffer.Modify();
@@ -1899,7 +1940,9 @@ codeunit 139628 "E-Doc. Receive Test"
         TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
         TempXMLBuffer.Reset();
         TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+#pragma warning disable AA0210
         TempXMLBuffer.SetRange(Path, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID');
+#pragma warning restore AA0210
         TempXMLBuffer.FindFirst();
         TempXMLBuffer.Value := Vendor."VAT Registration No.";
         TempXMLBuffer.Modify();

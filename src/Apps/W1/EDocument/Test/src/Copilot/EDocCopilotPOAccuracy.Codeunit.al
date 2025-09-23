@@ -81,9 +81,9 @@ codeunit 133502 EDocCopilotPOAccuracy
                                 'EID':
                                     Evaluate(EDocumentImportedLine."Line No.", V.Trim());
                                 'description':
-                                    EDocumentImportedLine.Description := V.Trim();
+                                    EDocumentImportedLine.Description := CopyStr(V.Trim(), 1, 100);
                                 'Unit of Measure':
-                                    EDocumentImportedLine."Unit Of Measure Code" := V.Trim();
+                                    EDocumentImportedLine."Unit Of Measure Code" := CopyStr(V.Trim(), 1, 20);
                                 'Cost':
                                     Evaluate(EDocumentImportedLine."Direct Unit Cost", V.Trim());
                             end;
@@ -110,9 +110,9 @@ codeunit 133502 EDocCopilotPOAccuracy
                                 'PID':
                                     Evaluate(PurchaseLine."Line No.", V.Trim());
                                 'description':
-                                    PurchaseLine.Description := V.Trim();
+                                    PurchaseLine.Description := CopyStr(V.Trim(), 1, 100);
                                 'Unit of Measure':
-                                    PurchaseLine."Unit Of Measure Code" := V.Trim();
+                                    PurchaseLine."Unit Of Measure Code" := CopyStr(V.Trim(), 1, 10);
                                 'Cost':
                                     Evaluate(PurchaseLine."Direct Unit Cost", V.Trim());
                             end;

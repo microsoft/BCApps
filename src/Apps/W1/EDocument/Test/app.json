@@ -82,5 +82,8 @@
   "target": "OnPrem",
   "resourceFolders": [
     ".resources"
+  ],
+  "features": [
+    "TranslationFile"
   ]
 }

@@ -1,3 +1,39 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.Test;
+
+using Microsoft.Inventory.Item;
+using Microsoft.Finance.VAT.Setup;
+using System.TestLibraries.Utilities;
+using Microsoft.Sales.Customer;
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.History;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.Purchases.Document;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Reminder;
+using Microsoft.Sales.FinanceCharge;
+using System.IO;
+using System.Utilities;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Journal;
+using System.Automation;
+using Microsoft.Sales.Setup;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.UOM;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using System.Threading;
+using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Foundation.Enums;
+
 codeunit 139629 "Library - E-Document"
 {
     EventSubscriberInstance = Manual;
@@ -464,12 +500,12 @@ codeunit 139629 "Library - E-Document"
     begin
         LibraryERM.CreateReminderHeader(ReminderHeader);
         ReminderHeader.Validate("Customer No.", Customer."No.");
-        ReminderHeader."Your Reference" := LibraryRandom.RandText(35);
+        ReminderHeader."Your Reference" := CopyStr(LibraryRandom.RandText(35), 1, 35);
         ReminderHeader.Modify(false);
 
         LibraryERM.CreateReminderLine(ReminderLine, ReminderHeader."No.", Enum::"Reminder Source Type"::"G/L Account");
         ReminderLine.Validate("Remaining Amount", this.LibraryRandom.RandInt(100));
-        ReminderLine.Description := LibraryRandom.RandText(100);
+        ReminderLine.Description := CopyStr(LibraryRandom.RandText(100), 1, 100);
         ReminderLine.Modify(false);
     end;
 
@@ -481,12 +517,12 @@ codeunit 139629 "Library - E-Document"
         LibraryERM.CreateFinanceChargeMemoHeader(FinChargeMemoHeader, Customer."No.");
         LibraryFinChargeMemo.CreateFinanceChargeTermAndText(FinanceChargeTerms);
         FinChargeMemoHeader.Validate("Fin. Charge Terms Code", FinanceChargeTerms.Code);
-        FinChargeMemoHeader."Your Reference" := LibraryRandom.RandText(35);
+        FinChargeMemoHeader."Your Reference" := CopyStr(LibraryRandom.RandText(35), 1, 35);
         FinChargeMemoHeader.Modify(false);
 
         LibraryERM.CreateFinanceChargeMemoLine(FinChargeMemoLine, FinChargeMemoHeader."No.", FinChargeMemoLine.Type::"G/L Account");
         FinChargeMemoLine.Validate("Remaining Amount", this.LibraryRandom.RandInt(100));
-        FinChargeMemoLine.Description := LibraryRandom.RandText(100);
+        FinChargeMemoLine.Description := CopyStr(LibraryRandom.RandText(100), 1, 100);
         FinChargeMemoLine.Modify(false);
     end;
 

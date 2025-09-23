@@ -1,3 +1,12 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.Test;
+
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+
 codeunit 139896 "PEPPOL Structured Validations"
 {
     var

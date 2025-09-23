@@ -1,3 +1,32 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.Test;
+
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument;
+using Microsoft.Sales.Customer;
+using System.TestLibraries.Utilities;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Document;
+using Microsoft.Foundation.Reporting;
+using Microsoft.eServices.EDocument.Service;
+using System.Threading;
+using System.Utilities;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
+using Microsoft.Purchases.Document;
+using Microsoft.eServices.EDocument.Processing.Import;
+using System.IO;
+using Microsoft.Purchases.Setup;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Sales.Reminder;
+using Microsoft.Sales.FinanceCharge;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Finance.Currency;
+
 codeunit 139624 "E-Doc E2E Test"
 {
     Subtype = Test;
@@ -101,7 +130,9 @@ codeunit 139624 "E-Doc E2E Test"
         EDocService := Variant;
         LibraryVariableStorage.Dequeue(Variant);
         EDocProcessingPhaseInt := Variant;
+#pragma warning disable AL0603
         EDocProcessingPhase := EDocProcessingPhaseInt;
+#pragma warning restore AL0603
 
         // [THEN] EDocService that was created by test for flow, is the one that is provided by event
 
@@ -1683,7 +1714,9 @@ codeunit 139624 "E-Doc E2E Test"
 
         // [THEN] No e-Document is created
         LibraryEDoc.PostInvoice(Customer);
+#pragma warning disable AA0175
         asserterror EDocument.FindLast();
+#pragma warning restore AA0175
     end;
 
     [Test]
@@ -2847,7 +2880,9 @@ codeunit 139624 "E-Doc E2E Test"
 
         // [THEN] No e-Document is created
         LibraryEDoc.PostInvoice(Customer);
+#pragma warning disable AA0175
         asserterror EDocument.FindLast();
+#pragma warning restore AA0175
         Assert.AssertNothingInsideFilter();
     end;
 
