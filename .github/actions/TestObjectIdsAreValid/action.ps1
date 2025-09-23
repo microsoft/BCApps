@@ -3,4 +3,4 @@ Import-Module "$PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.ps
 
 $sourceCodeFolder = Join-Path (Get-BaseFolder) "src" -Resolve
 
-Assert-ObjectIDsAreValid -SourceCodePaths $sourceCodeFolder
+Test-ObjectIDsAreValid -SourceCodePaths $sourceCodeFolder

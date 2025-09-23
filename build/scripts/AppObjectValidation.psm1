@@ -1,4 +1,4 @@
-function Assert-ObjectIDsAreValid {
+function Test-ObjectIDsAreValid {
     param(
         [string[]] $SourceCodePaths = @(),
         [string[]] $AllowedDuplicateObjects = @(),
@@ -107,5 +107,5 @@ function GetObjectId
     return $ObjectId -as [int]
 }
 
-Export-ModuleMember -Function Assert-ObjectIDsAreValid
+Export-ModuleMember -Function Test-ObjectIDsAreValid
 Export-ModuleMember -Function Get-FilesCollection
