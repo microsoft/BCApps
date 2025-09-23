@@ -16,6 +16,8 @@ tableextension 6169 "E-Doc. Purchase Header" extends "Purchase Header"
             Caption = 'Amount Incl. VAT To Inv.';
             Editable = false;
             FieldClass = FlowField;
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
         }
     }
     keys

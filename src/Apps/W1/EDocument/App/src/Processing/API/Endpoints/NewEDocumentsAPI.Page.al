@@ -92,7 +92,7 @@ page 6115 "New E-Documents API"
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     var
         EDocument: Record "E-Document";
-        EDocumentService: Record "E-Document Service";
+        EDocumentServiceVar: Record "E-Document Service";
         EDocumentImport: Codeunit "E-Doc. Import";
         FileMgt: Codeunit "File Management";
         TempBlob: Codeunit "Temp Blob";
@@ -101,8 +101,8 @@ page 6115 "New E-Documents API"
         if not IsFieldsValid() then
             Error(ContentOrFileEmptyErr);
 
-        if not EDocumentService.Get(EDocumentServiceText) then
-            Error(EDocumentServiceNotFoundErr, EDocumentService);
+        if not EDocumentServiceVar.Get(EDocumentServiceText) then
+            Error(EDocumentServiceNotFoundErr, EDocumentServiceVar);
 
         case LowerCase(FileMgt.GetExtension(FileName)) of
             'xml':
@@ -117,7 +117,7 @@ page 6115 "New E-Documents API"
 
         GetFileContent(FileContent, TempBlob);
         TempBlob.CreateInStream(Instream, TextEncoding::UTF8);
-        EDocumentImport.CreateFromType(EDocument, EDocumentService, FileType, Rec."File Name", Instream);
+        EDocumentImport.CreateFromType(EDocument, EDocumentServiceVar, FileType, Rec."File Name", Instream);
         if ProcessDocument then begin
             if EDocumentImport.ProcessAutomaticallyIncomingEDocument(EDocument) then;
             Rec := EDocument;

@@ -19,7 +19,7 @@ codeunit 6189 SendContext
     /// </summary>
     procedure GetTempBlob(): Codeunit "Temp Blob"
     begin
-        exit(this.TempBlob);
+        exit(this.GlobalTempBlob);
     end;
 
     /// <summary>
@@ -27,7 +27,7 @@ codeunit 6189 SendContext
     /// </summary>
     procedure SetTempBlob(TempBlob: codeunit "Temp Blob")
     begin
-        this.TempBlob := TempBlob;
+        this.GlobalTempBlob := TempBlob;
     end;
 
     /// <summary>
@@ -49,6 +49,6 @@ codeunit 6189 SendContext
     var
         HttpMessageState: Codeunit "Http Message State";
         IntegrationActionStatus: Codeunit "Integration Action Status";
-        TempBlob: Codeunit "Temp Blob";
+        GlobalTempBlob: Codeunit "Temp Blob";
 
 }

@@ -7,6 +7,8 @@ namespace Microsoft.eServices.EDocument;
 using System.Security.AccessControl;
 
 permissionsetextension 6101 "D365 TEAM MEMBER - E-Doc. Core" extends "D365 TEAM MEMBER"
+#pragma warning disable AA0052, AS0112, PTE0018
 {
     IncludedPermissionSets = "E-Doc. Core - User";
 }
+#pragma warning restore AA0052, AS0112

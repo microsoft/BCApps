@@ -66,6 +66,7 @@ table 6101 "E-Document Purchase Line"
             Caption = 'Quantity';
             ToolTip = 'Specifies the quantity.';
             Editable = false;
+            AutoFormatType = 0;
         }
         field(7; "Unit of Measure"; Text[50])
         {
@@ -98,6 +99,7 @@ table 6101 "E-Document Purchase Line"
         {
             Caption = 'VAT Rate';
             Editable = false;
+            AutoFormatType = 0;
         }
         field(12; "Currency Code"; Code[10])
         {

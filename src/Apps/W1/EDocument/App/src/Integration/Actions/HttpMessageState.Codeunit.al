@@ -18,7 +18,7 @@ codeunit 6190 "Http Message State"
     /// </summary>
     procedure GetHttpRequestMessage(): HttpRequestMessage;
     begin
-        exit(this.HttpRequestMessage);
+        exit(this.GlobalHttpRequestMessage);
     end;
 
     /// <summary>
@@ -26,7 +26,7 @@ codeunit 6190 "Http Message State"
     /// </summary>
     procedure SetHttpRequestMessage(HttpRequestMessage: HttpRequestMessage);
     begin
-        this.HttpRequestMessage := HttpRequestMessage;
+        this.GlobalHttpRequestMessage := HttpRequestMessage;
     end;
 
     /// <summary>
@@ -34,7 +34,7 @@ codeunit 6190 "Http Message State"
     /// </summary>
     procedure GetHttpResponseMessage(): HttpResponseMessage;
     begin
-        exit(this.HttpResponseMessage);
+        exit(this.GlobalHttpResponseMessage);
     end;
 
     /// <summary>
@@ -42,10 +42,10 @@ codeunit 6190 "Http Message State"
     /// </summary>
     procedure SetHttpResponseMessage(HttpResponseMessage: HttpResponseMessage);
     begin
-        this.HttpResponseMessage := HttpResponseMessage;
+        this.GlobalHttpResponseMessage := HttpResponseMessage;
     end;
 
     var
-        HttpRequestMessage: HttpRequestMessage;
-        HttpResponseMessage: HttpResponseMessage;
+        GlobalHttpRequestMessage: HttpRequestMessage;
+        GlobalHttpResponseMessage: HttpResponseMessage;
 }

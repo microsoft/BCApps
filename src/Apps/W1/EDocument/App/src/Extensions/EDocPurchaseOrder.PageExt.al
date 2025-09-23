@@ -13,7 +13,9 @@ pageextension 6132 "E-Doc. Purchase Order" extends "Purchase Order"
     {
         addlast(General)
         {
+#pragma warning disable AA0218
             field(PurchaseOrderLinkedToEdoc; (not IsNullGuid(Rec."E-Document Link")))
+#pragma warning restore AA0218
             {
                 ApplicationArea = All;
                 Caption = 'Linked with E-Document';

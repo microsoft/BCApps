@@ -186,7 +186,7 @@ codeunit 6156 "E-Doc. DED PEPPOL Pre-Mapping"
         if IntermediateDataImport.FindFirst() then
             if IntermediateDataImport.Value <> '' then begin
                 GLN := IntermediateDataImport.Value;
-                VendorNo := EDocumentImportHelper.FindVendorByGLN(GLN);
+                VendorNo := EDocumentImportHelper.FindVendorByGLN(CopyStr(GLN, 1, 13));
                 if VendorNo <> '' then
                     exit(UpdateIntermediateRecord(IntermediateDataImport, EntryNo, RecordNo, VendorNo));
             end;
@@ -224,7 +224,7 @@ codeunit 6156 "E-Doc. DED PEPPOL Pre-Mapping"
                     exit(UpdateIntermediateRecord(IntermediateDataImport, EntryNo, RecordNo, VendorNo));
             end;
             VatRegNo := IntermediateDataImport.Value;
-            VendorNo := EDocumentImportHelper.FindVendorByVATRegistrationNo(VatRegNo);
+            VendorNo := EDocumentImportHelper.FindVendorByVATRegistrationNo(CopyStr(VatRegNo, 1, 20));
             if VendorNo <> '' then
                 exit(UpdateIntermediateRecord(IntermediateDataImport, EntryNo, RecordNo, VendorNo));
         end;
@@ -285,12 +285,12 @@ codeunit 6156 "E-Doc. DED PEPPOL Pre-Mapping"
         end;
 
         // Lookup GLN
-        VendorNo := EDocumentImportHelper.FindVendorByGLN(GLN);
+        VendorNo := EDocumentImportHelper.FindVendorByGLN(CopyStr(GLN, 1, 13));
         if VendorNo <> '' then
             exit(UpdateIntermediateRecord(IntermediateDataImport, EntryNo, RecordNo, VendorNo));
 
         // Lookup VAT Reg No
-        VendorNo := EDocumentImportHelper.FindVendorByVATRegistrationNo(VatRegNo);
+        VendorNo := EDocumentImportHelper.FindVendorByVATRegistrationNo(CopyStr(VatRegNo, 1, 20));
         if VendorNo <> '' then
             exit(UpdateIntermediateRecord(IntermediateDataImport, EntryNo, RecordNo, VendorNo));
 

@@ -45,7 +45,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
 
                 trigger OnBeforePassVariable()
                 begin
-                    DueDate := Format(SalesHeader."Due Date", 0, 9);
+                    DueDate := Format(GlobalSalesHeader."Due Date", 0, 9);
                     if DueDate = '' then
                         currXMLport.Skip();
                 end;
@@ -64,7 +64,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
 
                 trigger OnBeforePassVariable()
                 begin
-                    BuyerReference := this.SalesHeader."Your Reference";
+                    BuyerReference := this.GlobalSalesHeader."Your Reference";
                     if BuyerReference = '' then
                         currXMLport.Skip();
                 end;
@@ -106,7 +106,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
 
                         trigger OnBeforePassVariable()
                         begin
-                            this.PEPPOLMgt.GetAccountingSupplierPartyIdentificationID(this.SalesHeader, PartyIdentificationID);
+                            this.PEPPOLMgt.GetAccountingSupplierPartyIdentificationID(this.GlobalSalesHeader, PartyIdentificationID);
                             if PartyIdentificationID = '' then
                                 currXMLport.Skip();
                         end;
@@ -330,7 +330,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                       SupplierName);
 
                     this.PEPPOLMgt.GetAccountingSupplierPartyPostalAddr(
-                      this.SalesHeader,
+                      this.GlobalSalesHeader,
                       StreetName,
                       SupplierAdditionalStreetName,
                       CityName,
@@ -354,7 +354,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                       SupplRegAddrCountryIdListId);
 
                     this.PEPPOLMgt.GetAccountingSupplierPartyContact(
-                      this.SalesHeader,
+                      this.GlobalSalesHeader,
                       this.DummyVar,
                       ContactName,
                       Telephone,
@@ -601,7 +601,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                 trigger OnBeforePassVariable()
                 begin
                     this.PEPPOLMgt.GetAccountingCustomerPartyInfoBIS(
-                      this.SalesHeader,
+                      this.GlobalSalesHeader,
                       CustomerEndpointID,
                       CustomerSchemeID,
                       CustomerPartyIdentificationID,
@@ -609,7 +609,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                       CustomerName);
 
                     this.PEPPOLMgt.GetAccountingCustomerPartyPostalAddr(
-                      this.SalesHeader,
+                      this.GlobalSalesHeader,
                       CustomerStreetName,
                       CustomerAdditionalStreetName,
                       CustomerCityName,
@@ -619,19 +619,19 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                       this.DummyVar);
 
                     this.PEPPOLMgt.GetAccountingCustomerPartyTaxSchemeBIS(
-                      this.SalesHeader,
+                      this.GlobalSalesHeader,
                       CustPartyTaxSchemeCompanyID,
                       CustPartyTaxSchemeCompIDSchID,
                       CustTaxSchemeID);
 
                     this.PEPPOLMgt.GetAccountingCustomerPartyLegalEntityBIS(
-                      this.SalesHeader,
+                      this.GlobalSalesHeader,
                       CustPartyLegalEntityRegName,
                       CustPartyLegalEntityCompanyID,
                       CustPartyLegalEntityIDSchemeID);
 
                     this.PEPPOLMgt.GetAccountingCustomerPartyContact(
-                      this.SalesHeader,
+                      this.GlobalSalesHeader,
                       this.DummyVar,
                       CustContactName,
                       CustContactTelephone,
@@ -706,7 +706,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                 trigger OnBeforePassVariable()
                 begin
                     this.PEPPOLMgt.GetPaymentMeansInfo(
-                      this.SalesHeader,
+                      this.GlobalSalesHeader,
                       PaymentMeansCode,
                       this.DummyVar,
                       this.DummyVar,
@@ -716,7 +716,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                       NetworkID);
 
                     this.PEPPOLMgt.GetPaymentMeansPayeeFinancialAccBIS(
-                        this.SalesHeader,
+                        this.GlobalSalesHeader,
                         PayeeFinancialAccountID,
                         FinancialInstitutionBranchID);
                 end;
@@ -735,7 +735,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                 trigger OnAfterGetRecord()
                 begin
                     this.PEPPOLMgt.GetPaymentTermsInfo(
-                      this.SalesHeader,
+                      this.GlobalSalesHeader,
                       PaymentTermsNote);
 
                     if PaymentTermsNote = '' then
@@ -826,7 +826,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
 
                         this.PEPPOLMgt.GetTaxSubtotalInfo(
                           this.TempVATAmtLine,
-                          this.SalesHeader,
+                          this.GlobalSalesHeader,
                           TaxableAmount,
                           TaxAmountCurrencyID,
                           SubtotalTaxAmount,
@@ -845,7 +845,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                 trigger OnBeforePassVariable()
                 begin
                     this.PEPPOLMgt.GetTaxTotalInfo(
-                      this.SalesHeader,
+                      this.GlobalSalesHeader,
                       this.TempVATAmtLine,
                       TaxAmount,
                       TaxTotalCurrencyID);
@@ -940,7 +940,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                 trigger OnBeforePassVariable()
                 begin
                     this.PEPPOLMgt.GetLegalMonetaryInfo(
-                      this.SalesHeader,
+                      this.GlobalSalesHeader,
                       this.TempSalesLineRounding,
                       this.TempVATAmtLine,
                       LineExtensionAmount,
@@ -1037,7 +1037,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                         trigger OnBeforePassVariable()
                         begin
                             this.PEPPOLMgt.GetLineItemClassfiedTaxCategoryBIS(
-                              this.SalesLine,
+                              this.GlobalSalesLine,
                               ClassifiedTaxCategoryID,
                               this.DummyVar,
                               InvoiceLineTaxPercent,
@@ -1048,7 +1048,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                     trigger OnBeforePassVariable()
                     begin
                         this.PEPPOLMgt.GetLineItemInfo(
-                          this.SalesLine,
+                          this.GlobalSalesLine,
                           Description,
                           Name,
                           this.DummyVar,
@@ -1083,8 +1083,8 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                     trigger OnBeforePassVariable()
                     begin
                         this.PEPPOLMgt.GetLinePriceInfo(
-                          this.SalesLine,
-                          this.SalesHeader,
+                          this.GlobalSalesLine,
+                          this.GlobalSalesHeader,
                           InvoiceLinePriceAmount,
                           InvLinePriceAmountCurrencyID,
                           BaseQuantity,
@@ -1103,8 +1103,8 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                             currXMLport.Break();
 
                     this.PEPPOLMgt.GetLineGeneralInfo(
-                      this.SalesLine,
-                      this.SalesHeader,
+                      this.GlobalSalesLine,
+                      this.GlobalSalesHeader,
                       InvoiceLineID,
                       this.DummyVar,
                       InvoicedQuantity,
@@ -1112,24 +1112,24 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                       LineExtensionAmountCurrencyID,
                       this.DummyVar);
 
-                    this.PEPPOLMgt.GetLineUnitCodeInfo(this.SalesLine, unitCode, this.DummyVar);
+                    this.PEPPOLMgt.GetLineUnitCodeInfo(this.GlobalSalesLine, unitCode, this.DummyVar);
                 end;
             }
 
             trigger OnAfterGetRecord()
             begin
                 if this.IsReminder then
-                    if not this.FindNextIssuedReminderRec(this.IssuedReminderHeader, this.SalesHeader, HeaderLoop.Number) then
+                    if not this.FindNextIssuedReminderRec(this.GlobalIssuedReminderHeader, this.GlobalSalesHeader, HeaderLoop.Number) then
                         currXMLport.Break();
 
                 if this.IsFinChargeMemo then
-                    if not this.FindNextIssuedFinChargeMemoRec(this.IssuedFinChargeMemoHeader, this.SalesHeader, HeaderLoop.Number) then
+                    if not this.FindNextIssuedFinChargeMemoRec(this.GlobalIssuedFinChargeMemoHeader, this.GlobalSalesHeader, HeaderLoop.Number) then
                         currXMLport.Break();
 
                 this.GetTotals();
 
                 this.PEPPOLMgt.GetGeneralInfoBIS(
-                  this.SalesHeader,
+                  this.GlobalSalesHeader,
                   ID,
                   IssueDate,
                   InvoiceTypeCode,
@@ -1154,7 +1154,9 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
                 {
                     ShowCaption = false;
 #pragma warning disable AA0100
-                    field("IssuedReminderHeader.""No."""; IssuedReminderHeader."No.")
+#pragma warning disable AA0218
+                    field("IssuedReminderHeader.""No."""; GlobalIssuedReminderHeader."No.")
+#pragma warning restore AA0218
 #pragma warning restore AA0100
                     {
                         ApplicationArea = Basic, Suite;
@@ -1170,13 +1172,13 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
 #pragma warning disable AL0432
         TempVATAmtLine: Record "VAT Amount Line" temporary;
 #pragma warning restore AL0432
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
+        GlobalSalesHeader: Record "Sales Header";
+        GlobalSalesLine: Record "Sales Line";
         TempSalesLineRounding: Record "Sales Line" temporary;
-        IssuedReminderHeader: Record "Issued Reminder Header";
-        IssuedReminderLine: Record "Issued Reminder Line";
-        IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header";
-        IssuedFinChargeMemoLine: Record "Issued Fin. Charge Memo Line";
+        GlobalIssuedReminderHeader: Record "Issued Reminder Header";
+        GlobalIssuedReminderLine: Record "Issued Reminder Line";
+        GlobalIssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header";
+        GlobalIssuedFinChargeMemoLine: Record "Issued Fin. Charge Memo Line";
         TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary;
         PEPPOLMgt: Codeunit "PEPPOL Management";
         SourceRecRef: RecordRef;
@@ -1189,23 +1191,23 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
     local procedure GetTotals()
     begin
         if this.IsReminder then begin
-            this.IssuedReminderLine.SetRange("Reminder No.", this.IssuedReminderHeader."No.");
-            if this.IssuedReminderLine.FindSet() then
+            this.GlobalIssuedReminderLine.SetRange("Reminder No.", this.GlobalIssuedReminderHeader."No.");
+            if this.GlobalIssuedReminderLine.FindSet() then
                 repeat
-                    this.CopyReminderLineToSalesLine(this.SalesLine, this.IssuedReminderHeader, this.IssuedReminderLine);
-                    this.PEPPOLMgt.GetTotals(this.SalesLine, this.TempVATAmtLine);
-                    this.PEPPOLMgt.GetTaxCategories(this.SalesLine, this.TempVATProductPostingGroup);
-                until this.IssuedReminderLine.Next() = 0;
+                    this.CopyReminderLineToSalesLine(this.GlobalSalesLine, this.GlobalIssuedReminderHeader, this.GlobalIssuedReminderLine);
+                    this.PEPPOLMgt.GetTotals(this.GlobalSalesLine, this.TempVATAmtLine);
+                    this.PEPPOLMgt.GetTaxCategories(this.GlobalSalesLine, this.TempVATProductPostingGroup);
+                until this.GlobalIssuedReminderLine.Next() = 0;
         end;
 
         if this.IsFinChargeMemo then begin
-            this.IssuedFinChargeMemoLine.SetRange("Finance Charge Memo No.", this.IssuedFinChargeMemoHeader."No.");
-            if this.IssuedFinChargeMemoLine.FindSet() then
+            this.GlobalIssuedFinChargeMemoLine.SetRange("Finance Charge Memo No.", this.GlobalIssuedFinChargeMemoHeader."No.");
+            if this.GlobalIssuedFinChargeMemoLine.FindSet() then
                 repeat
-                    this.CopyFinChargeMemoLineToSalesLine(this.SalesLine, this.IssuedFinChargeMemoHeader, this.IssuedFinChargeMemoLine);
-                    this.PEPPOLMgt.GetTotals(this.SalesLine, this.TempVATAmtLine);
-                    this.PEPPOLMgt.GetTaxCategories(this.SalesLine, this.TempVATProductPostingGroup);
-                until this.IssuedFinChargeMemoLine.Next() = 0;
+                    this.CopyFinChargeMemoLineToSalesLine(this.GlobalSalesLine, this.GlobalIssuedFinChargeMemoHeader, this.GlobalIssuedFinChargeMemoLine);
+                    this.PEPPOLMgt.GetTotals(this.GlobalSalesLine, this.TempVATAmtLine);
+                    this.PEPPOLMgt.GetTaxCategories(this.GlobalSalesLine, this.TempVATProductPostingGroup);
+                until this.GlobalIssuedFinChargeMemoLine.Next() = 0;
         end;
     end;
 
@@ -1224,33 +1226,33 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
         case this.SourceRecRef.Number of
             Database::"Issued Reminder Header":
                 begin
-                    this.SourceRecRef.SetTable(this.IssuedReminderHeader);
-                    if this.IssuedReminderHeader."No." = '' then
+                    this.SourceRecRef.SetTable(this.GlobalIssuedReminderHeader);
+                    if this.GlobalIssuedReminderHeader."No." = '' then
                         Error(this.SpecifyAReminderNoErr);
-                    this.IssuedReminderHeader.SetRecFilter();
-                    this.IssuedReminderLine.SetRange("Reminder No.", this.IssuedReminderHeader."No.");
-                    this.IssuedReminderLine.SetFilter(Type, '<>%1', this.IssuedReminderLine.Type::" ");
+                    this.GlobalIssuedReminderHeader.SetRecFilter();
+                    this.GlobalIssuedReminderLine.SetRange("Reminder No.", this.GlobalIssuedReminderHeader."No.");
+                    this.GlobalIssuedReminderLine.SetFilter(Type, '<>%1', this.GlobalIssuedReminderLine.Type::" ");
 
-                    if this.IssuedReminderLine.FindSet() then
+                    if this.GlobalIssuedReminderLine.FindSet() then
                         repeat
-                            this.CopyReminderLineToSalesLine(this.SalesLine, this.IssuedReminderHeader, this.IssuedReminderLine);
-                        until this.IssuedReminderLine.Next() = 0;
+                            this.CopyReminderLineToSalesLine(this.GlobalSalesLine, this.GlobalIssuedReminderHeader, this.GlobalIssuedReminderLine);
+                        until this.GlobalIssuedReminderLine.Next() = 0;
 
                     this.IsReminder := true;
                 end;
             Database::"Issued Fin. Charge Memo Header":
                 begin
-                    this.SourceRecRef.SetTable(this.IssuedFinChargeMemoHeader);
-                    if this.IssuedFinChargeMemoHeader."No." = '' then
+                    this.SourceRecRef.SetTable(this.GlobalIssuedFinChargeMemoHeader);
+                    if this.GlobalIssuedFinChargeMemoHeader."No." = '' then
                         Error(this.SpecifyAReminderNoErr);
-                    this.IssuedFinChargeMemoHeader.SetRecFilter();
-                    this.IssuedFinChargeMemoLine.SetRange("Finance Charge Memo No.", this.IssuedFinChargeMemoHeader."No.");
-                    this.IssuedFinChargeMemoLine.SetFilter(Type, '<>%1', this.IssuedFinChargeMemoLine.Type::" ");
+                    this.GlobalIssuedFinChargeMemoHeader.SetRecFilter();
+                    this.GlobalIssuedFinChargeMemoLine.SetRange("Finance Charge Memo No.", this.GlobalIssuedFinChargeMemoHeader."No.");
+                    this.GlobalIssuedFinChargeMemoLine.SetFilter(Type, '<>%1', this.GlobalIssuedFinChargeMemoLine.Type::" ");
 
-                    if this.IssuedFinChargeMemoLine.FindSet() then
+                    if this.GlobalIssuedFinChargeMemoLine.FindSet() then
                         repeat
-                            this.CopyFinChargeMemoLineToSalesLine(this.SalesLine, this.IssuedFinChargeMemoHeader, this.IssuedFinChargeMemoLine);
-                        until this.IssuedFinChargeMemoLine.Next() = 0;
+                            this.CopyFinChargeMemoLineToSalesLine(this.GlobalSalesLine, this.GlobalIssuedFinChargeMemoHeader, this.GlobalIssuedFinChargeMemoLine);
+                        until this.GlobalIssuedFinChargeMemoLine.Next() = 0;
 
                     this.IsFinChargeMemo := true;
                 end;
@@ -1343,11 +1345,11 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
     local procedure FindNextReminderLineRec(Position: Integer) Found: Boolean
     begin
         if Position = 1 then
-            Found := this.IssuedReminderLine.FindSet()
+            Found := this.GlobalIssuedReminderLine.FindSet()
         else
-            Found := this.IssuedReminderLine.Next() <> 0;
+            Found := this.GlobalIssuedReminderLine.Next() <> 0;
         if Found then
-            this.CopyReminderLineToSalesLine(this.SalesLine, this.IssuedReminderHeader, this.IssuedReminderLine);
+            this.CopyReminderLineToSalesLine(this.GlobalSalesLine, this.GlobalIssuedReminderHeader, this.GlobalIssuedReminderLine);
     end;
 
     local procedure FindNextIssuedFinChargeMemoRec(var IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header"; var SalesHeader: Record "Sales Header"; Position: Integer) Found: Boolean
@@ -1364,11 +1366,11 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
     local procedure FindNextFinChargeMemoLineRec(Position: Integer) Found: Boolean
     begin
         if Position = 1 then
-            Found := this.IssuedFinChargeMemoLine.Find('-')
+            Found := this.GlobalIssuedFinChargeMemoLine.Find('-')
         else
-            Found := this.IssuedFinChargeMemoLine.Next() <> 0;
+            Found := this.GlobalIssuedFinChargeMemoLine.Next() <> 0;
         if Found then
-            this.CopyFinChargeMemoLineToSalesLine(this.SalesLine, this.IssuedFinChargeMemoHeader, this.IssuedFinChargeMemoLine);
+            this.CopyFinChargeMemoLineToSalesLine(this.GlobalSalesLine, this.GlobalIssuedFinChargeMemoHeader, this.GlobalIssuedFinChargeMemoLine);
     end;
 
     local procedure GetCustomizationID(): Text

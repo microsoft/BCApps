@@ -83,7 +83,9 @@ codeunit 6169 "E-Doc. Attachment Processor"
     begin
         DocumentAttachment.SetRange("Table ID", Database::"E-Document");
         DocumentAttachment.SetRange("No.", Format(EDocument."Entry No"));
+#pragma warning disable AA0210
         DocumentAttachment.SetRange("E-Document Attachment", true);
+#pragma warning restore AA0210
         if DocumentAttachment.IsEmpty() then
             exit;
 

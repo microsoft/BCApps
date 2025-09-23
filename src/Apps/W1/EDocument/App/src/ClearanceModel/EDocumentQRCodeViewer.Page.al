@@ -21,7 +21,9 @@ page 6169 "E-Document QR Code Viewer"
     {
         area(Content)
         {
+#pragma warning disable AA0218
             field(QRCodeBase64Preview; QRCodePreviewTxt)
+#pragma warning restore AA0218
             {
                 ApplicationArea = All;
                 Caption = 'QR Code (preview)';
@@ -36,7 +38,7 @@ page 6169 "E-Document QR Code Viewer"
             {
                 ApplicationArea = All;
                 Caption = 'QR Code Image';
-                ToolTip = 'Image about the QR code';
+                ToolTip = 'Specifies the image QR code';
                 Editable = false;
             }
         }
@@ -64,6 +66,7 @@ page 6169 "E-Document QR Code Viewer"
                 ApplicationArea = All;
                 Caption = 'Generate QR Image';
                 ToolTip = 'Generate image from Base64';
+                Image = Create;
 
                 trigger OnAction()
                 begin
@@ -81,7 +84,9 @@ page 6169 "E-Document QR Code Viewer"
         Rec.CalcFields("QR Code Base64");
         if Rec."QR Code Base64".HasValue then begin
             Rec."QR Code Base64".CreateInStream(InStr, TextEncoding::UTF8);
+#pragma warning disable AA0139
             InStr.ReadText(QRCodePreviewTxt);
+#pragma warning restore AA0139
             if StrLen(QRCodePreviewTxt) > MaxStrLen(QRCodePreviewTxt) then
                 QRCodePreviewTxt := CopyStr(QRCodePreviewTxt, 1, MaxStrLen(QRCodePreviewTxt) - StrLen('...')) + '...';
         end;

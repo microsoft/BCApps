@@ -19,8 +19,8 @@ codeunit 6179 "Receive Documents"
 
     trigger OnRun()
     begin
-        EDocumentService.TestField(Code);
-        IDocumentReceiver.ReceiveDocuments(this.EDocumentService, this.DocumentsMetadata, this.ReceiveContext);
+        GlobalEDocumentService.TestField(Code);
+        IDocumentReceiver.ReceiveDocuments(this.GlobalEDocumentService, this.GlobalDocumentsMetadata, this.GlobalReceiveContext);
     end;
 
     procedure SetInstance(Reciver: Interface IDocumentReceiver)
@@ -30,24 +30,24 @@ codeunit 6179 "Receive Documents"
 
     procedure SetContext(ReceiveContext: Codeunit ReceiveContext)
     begin
-        this.ReceiveContext := ReceiveContext;
+        this.GlobalReceiveContext := ReceiveContext;
     end;
 
     procedure SetDocuments(DocumentsMetadata: Codeunit "Temp Blob List")
     begin
-        this.DocumentsMetadata := DocumentsMetadata
+        this.GlobalDocumentsMetadata := DocumentsMetadata
     end;
 
     procedure SetService(var EDocumentService: Record "E-Document Service")
     begin
-        this.EDocumentService.Copy(EDocumentService);
+        this.GlobalEDocumentService.Copy(EDocumentService);
     end;
 
 
     var
-        EDocumentService: Record "E-Document Service";
-        DocumentsMetadata: Codeunit "Temp Blob List";
-        ReceiveContext: Codeunit ReceiveContext;
+        GlobalEDocumentService: Record "E-Document Service";
+        GlobalDocumentsMetadata: Codeunit "Temp Blob List";
+        GlobalReceiveContext: Codeunit ReceiveContext;
         IDocumentReceiver: Interface IDocumentReceiver;
 
 }

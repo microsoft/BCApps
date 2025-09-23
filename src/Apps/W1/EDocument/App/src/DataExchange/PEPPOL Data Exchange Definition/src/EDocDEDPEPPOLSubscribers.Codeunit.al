@@ -100,7 +100,7 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
         if IsEDocExport(DataExchColumnDef."Data Exch. Def Code") then
             case DataExchColumnDef.Path of
                 '/Invoice/cbc:ID', '/CreditNote/cbc:ID':
-                    PrepareHeaderAndVAT(xmlNodeValue);
+                    PrepareHeaderAndVAT(CopyStr(xmlNodeValue, 1, 20));
                 '/Invoice/cbc:DocumentCurrencyCode', '/CreditNote/cbc:DocumentCurrencyCode':
                     begin
                         if xmlNodeValue = '' then begin

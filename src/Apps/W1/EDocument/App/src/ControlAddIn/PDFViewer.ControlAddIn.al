@@ -1,5 +1,7 @@
 #if not CLEAN27
+#pragma warning disable AA0247
 controladdin "PDF Viewer"
+#pragma warning restore AA0247
 {
     ObsoleteReason = 'Replaced by platform support';
     ObsoleteTag = '27.0';

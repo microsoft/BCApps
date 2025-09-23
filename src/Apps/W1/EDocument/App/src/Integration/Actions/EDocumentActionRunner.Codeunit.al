@@ -22,7 +22,7 @@ codeunit 6178 "E-Document Action Runner"
         IAction: Interface IDocumentAction;
     begin
         IAction := ActionType;
-        this.UpdateStatusBool := IAction.InvokeAction(this.EDocument, this.EDocumentService, this.ActionContext);
+        this.UpdateStatusBool := IAction.InvokeAction(this.GlobalEDocument, this.GlobalEDocumentService, this.GlobalActionContext);
     end;
 
     /// <summary>
@@ -30,8 +30,8 @@ codeunit 6178 "E-Document Action Runner"
     /// </summary>
     procedure SetEDocumentAndService(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service")
     begin
-        this.EDocument.Copy(EDocument);
-        this.EDocumentService.Copy(EDocumentService);
+        this.GlobalEDocument.Copy(EDocument);
+        this.GlobalEDocumentService.Copy(EDocumentService);
     end;
 
     /// <summary>
@@ -60,13 +60,13 @@ codeunit 6178 "E-Document Action Runner"
     /// <param name="ActionContext"></param>
     procedure SetContext(ActionContext: Codeunit ActionContext)
     begin
-        this.ActionContext := ActionContext;
+        this.GlobalActionContext := ActionContext;
     end;
 
     var
-        EDocument: Record "E-Document";
-        EDocumentService: Record "E-Document Service";
-        ActionContext: Codeunit ActionContext;
+        GlobalEDocument: Record "E-Document";
+        GlobalEDocumentService: Record "E-Document Service";
+        GlobalActionContext: Codeunit ActionContext;
         ActionType: Enum "Integration Action Type";
         UpdateStatusBool: Boolean;
 }

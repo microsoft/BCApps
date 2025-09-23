@@ -13,6 +13,7 @@ table 6163 "E-Doc. PO Match Prop. Buffer"
     InherentEntitlements = X;
     DataClassification = CustomerContent;
 
+#pragma warning disable AA0473
     fields
     {
         field(1; "Document Order No."; Code[20])
@@ -72,6 +73,7 @@ table 6163 "E-Doc. PO Match Prop. Buffer"
             Caption = 'Learn Matching Rule';
         }
     }
+#pragma warning restore AA0473
 
     keys
     {

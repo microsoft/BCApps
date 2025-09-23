@@ -54,6 +54,7 @@ page 6171 "E-Doc. Create Purch Order Line"
                 Caption = 'Quantity';
                 ToolTip = 'Specifies the quantity that was received.';
                 MinValue = 0;
+                AutoFormatType = 0;
 
                 trigger OnValidate()
                 begin
@@ -74,6 +75,7 @@ page 6171 "E-Doc. Create Purch Order Line"
                 Caption = 'Discount %';
                 ToolTip = 'Specifies the discount percentage that is granted for the line.';
                 Editable = false;
+                AutoFormatType = 0;
             }
             field(TotalAmount; TotalAmount)
             {
@@ -81,6 +83,7 @@ page 6171 "E-Doc. Create Purch Order Line"
                 ToolTip = 'Specifies the total amount of the line.';
                 StyleExpr = StyleTxt;
                 Editable = false;
+                AutoFormatType = 0;
             }
             field(IncomingEDocumentLineTotalAmount; IncomingEDocumentLineTotalAmount)
             {
@@ -88,6 +91,7 @@ page 6171 "E-Doc. Create Purch Order Line"
                 ToolTip = 'Specifies the total amount of the incoming e-document line.';
                 StyleExpr = StyleTxt;
                 Editable = false;
+                AutoFormatType = 0;
             }
             field("Learn matching rule"; SaveMatch)
             {

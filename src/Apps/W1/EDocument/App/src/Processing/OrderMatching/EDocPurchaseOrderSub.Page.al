@@ -55,12 +55,14 @@ page 6168 "E-Doc. Purchase Order Sub"
                     StyleExpr = StyleTxt;
                     Editable = false;
                     ToolTip = 'Specifies the quantity that can be matched to this line.';
+                    AutoFormatType = 0;
                 }
                 field("Qty. to Invoice"; Rec."Qty. to Invoice")
                 {
                     StyleExpr = StyleTxt;
                     Editable = false;
                     ToolTip = 'Specifies the quantity that is matched to this line. Matching imported lines to this line will increase its value with the quantity of the imported line.';
+                    AutoFormatType = 0;
                 }
                 field("Direct Unit Cost"; Rec."Direct Unit Cost")
                 {
@@ -73,6 +75,7 @@ page 6168 "E-Doc. Purchase Order Sub"
                     StyleExpr = StyleTxt;
                     Editable = false;
                     ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
+                    AutoFormatType = 0;
                 }
             }
         }

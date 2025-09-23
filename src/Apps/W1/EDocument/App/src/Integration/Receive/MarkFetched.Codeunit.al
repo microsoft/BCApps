@@ -19,18 +19,18 @@ codeunit 6181 "Mark Fetched"
 
     trigger OnRun()
     begin
-        if IDocumentReceiver is IReceivedDocumentMarker then
-            (IDocumentReceiver as IReceivedDocumentMarker).MarkFetched(this.EDocument, this.EDocumentService, this.DownloadedBlob, this.ReceiveContext);
+        if GlobalIDocumentReceiver is IReceivedDocumentMarker then
+            (GlobalIDocumentReceiver as IReceivedDocumentMarker).MarkFetched(this.EDocument, this.EDocumentService, this.DownloadedBlob, this.GlobalReceiveContext);
     end;
 
     procedure SetInstance(IDocumentReceiver: Interface IDocumentReceiver)
     begin
-        this.IDocumentReceiver := IDocumentReceiver;
+        this.GlobalIDocumentReceiver := IDocumentReceiver;
     end;
 
     procedure SetContext(ReceiveContext: Codeunit ReceiveContext)
     begin
-        this.ReceiveContext := ReceiveContext;
+        this.GlobalReceiveContext := ReceiveContext;
     end;
 
     procedure SetParameters(var EDoc: Record "E-Document"; var EDocService: Record "E-Document Service"; TempBlob: Codeunit "Temp Blob")
@@ -44,7 +44,7 @@ codeunit 6181 "Mark Fetched"
         EDocument: Record "E-Document";
         EDocumentService: Record "E-Document Service";
         DownloadedBlob: Codeunit "Temp Blob";
-        ReceiveContext: Codeunit ReceiveContext;
-        IDocumentReceiver: Interface IDocumentReceiver;
+        GlobalReceiveContext: Codeunit ReceiveContext;
+        GlobalIDocumentReceiver: Interface IDocumentReceiver;
 
 }

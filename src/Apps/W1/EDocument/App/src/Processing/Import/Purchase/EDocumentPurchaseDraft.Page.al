@@ -499,7 +499,7 @@ page 6181 "E-Document Purchase Draft"
     begin
         Session.LogMessage('0000PCO', FinalizeDraftInvokedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EDocumentPurchaseHeader.FeatureName());
 
-        if not EDocumentHelper.EnsureInboundEDocumentHasService(Rec) then
+        if not GlobalEDocumentHelper.EnsureInboundEDocumentHasService(Rec) then
             exit;
 
         EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
@@ -528,7 +528,7 @@ page 6181 "E-Document Purchase Draft"
         ConfirmDialogMgt: Codeunit "Confirm Management";
         Progress: Dialog;
     begin
-        if not EDocumentHelper.EnsureInboundEDocumentHasService(Rec) then
+        if not GlobalEDocumentHelper.EnsureInboundEDocumentHasService(Rec) then
             exit;
         if not ConfirmDialogMgt.GetResponseOrDefault(ResetDraftQst) then
             exit;
@@ -572,7 +572,7 @@ page 6181 "E-Document Purchase Draft"
         EDocImport: Codeunit "E-Doc. Import";
         Progress: Dialog;
     begin
-        if not EDocumentHelper.EnsureInboundEDocumentHasService(Rec) then
+        if not GlobalEDocumentHelper.EnsureInboundEDocumentHasService(Rec) then
             exit;
         if GuiAllowed() then
             Progress.Open(ProcessingDocumentMsg);
@@ -594,7 +594,7 @@ page 6181 "E-Document Purchase Draft"
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
         EDocumentProcessing: Codeunit "E-Document Processing";
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        EDocumentHelper: Codeunit "E-Document Helper";
+        GlobalEDocumentHelper: Codeunit "E-Document Helper";
         RecordLinkTxt, StyleStatusTxt, ServiceStatusStyleTxt, VendorName, DataCaption : Text;
         HasErrorsOrWarnings, HasErrors : Boolean;
         ShowFinalizeDraftAction: Boolean;

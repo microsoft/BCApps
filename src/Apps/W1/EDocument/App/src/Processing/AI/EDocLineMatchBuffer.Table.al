@@ -73,7 +73,7 @@ table 6111 "EDoc Line Match Buffer"
         {
             Caption = 'Item Reference No.';
         }
-        
+
         field(25; "Shortcut Dimension 1 Code"; Code[20])
         {
             Caption = 'Shortcut Dimension 1 Code';
@@ -95,6 +95,8 @@ table 6111 "EDoc Line Match Buffer"
             DecimalPlaces = 0 : 2;
             MinValue = 0;
             MaxValue = 1;
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
         }
         field(50; "Matched PurchInvLine SystemId"; Guid)
         {
@@ -103,6 +105,7 @@ table 6111 "EDoc Line Match Buffer"
             Editable = false;
         }
     }
+
     keys
     {
         key(PK; "E-Document Entry No.", "Line No.")
@@ -111,7 +114,7 @@ table 6111 "EDoc Line Match Buffer"
         }
     }
 
-        internal procedure SetSource(var EDocumentPurchaseLine: Record "E-Document Purchase Line")
+    internal procedure SetSource(var EDocumentPurchaseLine: Record "E-Document Purchase Line")
     begin
         Rec."E-Document Entry No." := EDocumentPurchaseLine."E-Document Entry No.";
         Rec."Line No." := EDocumentPurchaseLine."Line No.";

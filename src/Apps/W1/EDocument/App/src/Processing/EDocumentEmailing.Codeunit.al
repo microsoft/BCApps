@@ -19,7 +19,7 @@ codeunit 6188 "E-Document Emailing"
     InherentPermissions = X;
 
     var
-        TempBlobList: Codeunit "Temp Blob List";
+        GlobalTempBlobList: Codeunit "Temp Blob List";
         EDocumentAttachmentNameTok: Label '%1 %2', Locked = true, Comment = '%1 = Attachment name, %2 = File format';
         XMLFileTypeTok: Label '.xml', Locked = true;
         PDFFileTypeTok: Label '.pdf', Locked = true;
@@ -89,7 +89,7 @@ codeunit 6188 "E-Document Emailing"
 
     procedure SetAttachments(Attachments: Codeunit "Temp Blob List")
     begin
-        TempBlobList := Attachments;
+        GlobalTempBlobList := Attachments;
     end;
 
     local procedure CreateSourceLists(ToCust: Code[20]; var SourceReference: RecordRef; var SourceTableIDs: List of [Integer]; var SourceIDs: List of [Guid]; var SourceRelationTypes: List of [Integer])
@@ -152,16 +152,16 @@ codeunit 6188 "E-Document Emailing"
         DataCompression: Codeunit "Data Compression";
         TempBlob: Codeunit "Temp Blob";
     begin
-        if TempBlobList.IsEmpty() then
+        if GlobalTempBlobList.IsEmpty() then
             exit(TempBlob);
 
         AttachmentFileName := CreateAttachmentName(DocNo, DocName);
-        if (TempBlobList.Count() = 1) and (DocumentSendingProfile."E-Mail Attachment" = Enum::"Document Sending Profile Attachment Type"::"E-Document")
+        if (GlobalTempBlobList.Count() = 1) and (DocumentSendingProfile."E-Mail Attachment" = Enum::"Document Sending Profile Attachment Type"::"E-Document")
         then begin
-            TempBlobList.Get(1, TempBlob);
+            GlobalTempBlobList.Get(1, TempBlob);
             AttachmentFileExtension := XMLFileTypeTok;
         end else begin
-            CreateZipArchiveWithEDocAttachments(DataCompression, TempBlobList, AttachmentFileName);
+            CreateZipArchiveWithEDocAttachments(DataCompression, GlobalTempBlobList, AttachmentFileName);
 
             if DocumentSendingProfile."E-Mail Attachment" = Enum::"Document Sending Profile Attachment Type"::"PDF & E-Document" then
                 AddPdfAttachmentToZipArchive(DataCompression, ReportUsage, RecordVariant, ToCust, AttachmentFileName);

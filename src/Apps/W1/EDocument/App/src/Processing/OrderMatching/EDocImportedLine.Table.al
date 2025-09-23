@@ -2,6 +2,8 @@ namespace Microsoft.eServices.EDocument.OrderMatch;
 
 using Microsoft.Purchases.Document;
 using Microsoft.eServices.EDocument;
+
+
 table 6165 "E-Doc. Imported Line"
 {
     DataClassification = CustomerContent;
@@ -41,12 +43,14 @@ table 6165 "E-Doc. Imported Line"
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
+            AutoFormatType = 0;
         }
         field(7; "Matched Quantity"; Decimal)
         {
             Caption = 'Matched Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
+            AutoFormatType = 0;
 
             trigger OnValidate()
             begin
@@ -70,6 +74,8 @@ table 6165 "E-Doc. Imported Line"
         {
             Caption = 'Direct Unit Cost';
             Editable = false;
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
         }
         field(10; "Line Discount %"; Decimal)
         {
@@ -78,6 +84,7 @@ table 6165 "E-Doc. Imported Line"
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
+            AutoFormatType = 0;
         }
         field(11; "No."; Code[20])
         {

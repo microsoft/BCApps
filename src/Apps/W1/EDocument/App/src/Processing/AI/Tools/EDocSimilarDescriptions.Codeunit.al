@@ -95,7 +95,7 @@ codeunit 6105 "E-Doc. Similar Descriptions" implements "AOAI Function", IEDocAIS
         TempEDocumentPurchaseLine.Init();
         TempEDocumentPurchaseLine."E-Document Entry No." := 1;
         TempEDocumentPurchaseLine."Line No." := 1;
-        TempEDocumentPurchaseLine.Description := LineDescription;
+        TempEDocumentPurchaseLine.Description := CopyStr(LineDescription, 1, MaxStrLen(TempEDocumentPurchaseLine.Description));
         TempEDocumentPurchaseLine.Insert();
 
         // Process with AI

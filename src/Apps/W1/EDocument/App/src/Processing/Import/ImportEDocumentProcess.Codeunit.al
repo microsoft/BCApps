@@ -29,40 +29,40 @@ codeunit 6104 "Import E-Document Process"
         NewStatus: Enum "Import E-Doc. Proc. Status";
         ImportProcessVersion: Enum "E-Document Import Process";
     begin
-        EDocument.Get(EDocument."Entry No");
+        GlobalEDocument.Get(GlobalEDocument."Entry No");
         Clear(EDocumentLog);
 
-        ImportProcessVersion := EDocument.GetEDocumentService().GetImportProcessVersion();
+        ImportProcessVersion := GlobalEDocument.GetEDocumentService().GetImportProcessVersion();
         if ImportProcessVersion = "E-Document Import Process"::"Version 1.0" then begin
-            ProcessEDocumentV1(EDocument, EDocImportParameters, Step, UndoStep);
+            ProcessEDocumentV1(GlobalEDocument, GlobalEDocImportParameters, GlobalStep, GlobalUndoStep);
             exit;
         end;
 
-        NewStatus := GetStatusForStep(Step, UndoStep);
-        EDocumentLog.SetFields(EDocument, EDocument.GetEDocumentService());
-        EDocumentLog.ConfigureLogToInsert(Enum::"E-Document Service Status"::Imported, NewStatus, UndoStep);
+        NewStatus := GetStatusForStep(GlobalStep, GlobalUndoStep);
+        EDocumentLog.SetFields(GlobalEDocument, GlobalEDocument.GetEDocumentService());
+        EDocumentLog.ConfigureLogToInsert(Enum::"E-Document Service Status"::Imported, NewStatus, GlobalUndoStep);
 
-        if UndoStep then
-            UndoProcessingStep(EDocument, Step)
+        if GlobalUndoStep then
+            UndoProcessingStep(GlobalEDocument, GlobalStep)
         else
-            case Step of
-                Step::"Structure received data":
-                    StructureReceivedData(EDocument, EDocumentLog);
-                Step::"Read into Draft":
-                    ReadIntoDraft(EDocument);
-                Step::"Prepare draft":
-                    PrepareDraft(EDocument, EDocImportParameters);
-                Step::"Finish draft":
-                    FinishDraft(EDocument, EDocImportParameters);
+            case GlobalStep of
+                GlobalStep::"Structure received data":
+                    StructureReceivedData(GlobalEDocument, EDocumentLog);
+                GlobalStep::"Read into Draft":
+                    ReadIntoDraft(GlobalEDocument);
+                GlobalStep::"Prepare draft":
+                    PrepareDraft(GlobalEDocument, GlobalEDocImportParameters);
+                GlobalStep::"Finish draft":
+                    FinishDraft(GlobalEDocument, GlobalEDocImportParameters);
             end;
-        EDocument.Get(EDocument."Entry No");
+        GlobalEDocument.Get(GlobalEDocument."Entry No");
 
         // If the processing step has not inserted the log entry, we insert it.
         if EDocumentLog.GetLog()."Entry No." = 0 then
             EDocumentLog.InsertLog();
 
-        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, NewStatus);
-        EDocumentProcessing.ModifyEDocumentStatus(EDocument);
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(GlobalEDocument, NewStatus);
+        EDocumentProcessing.ModifyEDocumentStatus(GlobalEDocument);
     end;
 
     local procedure StructureReceivedData(EDocument: Record "E-Document"; var EDocumentLog: Codeunit "E-Document Log")
@@ -233,10 +233,10 @@ codeunit 6104 "Import E-Document Process"
 
     internal procedure ConfigureImportRun(EDocument: Record "E-Document"; NewStep: Enum "Import E-Document Steps"; EDocImportParameters: Record "E-Doc. Import Parameters"; NewUndoStep: Boolean)
     begin
-        this.EDocument := EDocument;
-        Step := NewStep;
-        UndoStep := NewUndoStep;
-        this.EDocImportParameters := EDocImportParameters;
+        this.GlobalEDocument := EDocument;
+        GlobalStep := NewStep;
+        GlobalUndoStep := NewUndoStep;
+        this.GlobalEDocImportParameters := EDocImportParameters;
     end;
 
     procedure IsEDocumentInStateGE(EDocument: Record "E-Document"; QueriedState: Enum "Import E-Doc. Proc. Status"): Boolean
@@ -288,13 +288,13 @@ codeunit 6104 "Import E-Document Process"
             exit(false);
         case Status of
             Status::Unprocessed:
-                NextStep := Step::"Structure received data";
+                NextStep := GlobalStep::"Structure received data";
             Status::Readable:
-                NextStep := Step::"Read into Draft";
+                NextStep := GlobalStep::"Read into Draft";
             Status::"Ready for draft":
-                NextStep := Step::"Prepare draft";
+                NextStep := GlobalStep::"Prepare draft";
             Status::"Draft ready":
-                NextStep := Step::"Finish draft";
+                NextStep := GlobalStep::"Finish draft";
         end;
         exit(true);
     end;
@@ -345,7 +345,7 @@ codeunit 6104 "Import E-Document Process"
 
     internal procedure GetStep(): Enum "Import E-Document Steps"
     begin
-        exit(Step);
+        exit(GlobalStep);
     end;
 
     [InternalEvent(false, false)]
@@ -359,11 +359,11 @@ codeunit 6104 "Import E-Document Process"
     end;
 
     var
-        EDocument: Record "E-Document";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        GlobalEDocument: Record "E-Document";
+        GlobalEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocumentProcessing: Codeunit "E-Document Processing";
-        Step: Enum "Import E-Document Steps";
-        UndoStep: Boolean;
+        GlobalStep: Enum "Import E-Document Steps";
+        GlobalUndoStep: Boolean;
         NoStructuredDataErr: Label 'No structured data is associated with this E-Document. Verify that the source document is in valid format.';
         TermsAndConditionsHyperlinkTxt: Label 'https://www.microsoft.com/en-us/business-applications/legal/supp-powerplatform-preview', Locked = true;
 }

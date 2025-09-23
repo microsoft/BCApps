@@ -131,7 +131,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
             VendorID += this.GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID');
 
             EDocumentHelper.GetEdocumentService(EDocument, EDocumentService);
-            VendorNo := EDocumentImportHelper.FindVendorByServiceParticipant(VendorID, EDocumentService.Code);
+            VendorNo := EDocumentImportHelper.FindVendorByServiceParticipant(CopyStr(VendorID, 1, 200), EDocumentService.Code);
         end;
 
         // If vendor not found, try to find by name and address.

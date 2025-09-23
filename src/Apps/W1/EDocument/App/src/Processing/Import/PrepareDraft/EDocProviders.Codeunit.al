@@ -44,7 +44,7 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
         if EDocumentHasNoVendorInformation then
             exit;
 
-        if Vendor.Get(EDocumentImportHelper.FindVendor('', EDocumentPurchaseHeader."Vendor GLN", EDocumentPurchaseHeader."Vendor VAT Id")) then
+        if Vendor.Get(EDocumentImportHelper.FindVendor('', EDocumentPurchaseHeader."Vendor GLN", CopyStr(EDocumentPurchaseHeader."Vendor VAT Id", 1, 20))) then
             exit;
 
         ServiceParticipant.SetRange("Participant Type", ServiceParticipant."Participant Type"::Vendor);

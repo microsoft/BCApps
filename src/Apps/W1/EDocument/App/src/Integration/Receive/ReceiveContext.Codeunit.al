@@ -20,7 +20,7 @@ codeunit 6186 ReceiveContext
     /// </summary>
     procedure GetTempBlob(): Codeunit "Temp Blob"
     begin
-        exit(this.TempBlob);
+        exit(this.GlobalTempBlob);
     end;
 
     /// <summary>
@@ -28,7 +28,7 @@ codeunit 6186 ReceiveContext
     /// </summary>
     procedure SetTempBlob(TempBlob: Codeunit "Temp Blob")
     begin
-        this.TempBlob := TempBlob;
+        this.GlobalTempBlob := TempBlob;
     end;
 
     /// <summary>
@@ -36,7 +36,7 @@ codeunit 6186 ReceiveContext
     /// </summary>
     procedure SetName(Name: Text[256])
     begin
-        this.Name := Name;
+        this.GlobalName := Name;
     end;
 
     /// <summary>
@@ -44,7 +44,7 @@ codeunit 6186 ReceiveContext
     /// </summary>
     internal procedure GetName(): Text[256]
     begin
-        exit(this.Name);
+        exit(this.GlobalName);
     end;
 
     /// <summary>
@@ -53,7 +53,7 @@ codeunit 6186 ReceiveContext
     /// <returns></returns>
     internal procedure GetFileFormat(): Enum "E-Doc. File Format"
     begin
-        exit(this.FileFormat);
+        exit(this.GlobalFileFormat);
     end;
 
     /// <summary>
@@ -62,7 +62,7 @@ codeunit 6186 ReceiveContext
     /// <param name="FileFormat"></param>
     procedure SetFileFormat(FileFormat: Enum "E-Doc. File Format")
     begin
-        this.FileFormat := FileFormat;
+        this.GlobalFileFormat := FileFormat;
     end;
 
     /// <summary>
@@ -82,10 +82,10 @@ codeunit 6186 ReceiveContext
     end;
 
     var
-        TempBlob: Codeunit "Temp Blob";
+        GlobalTempBlob: Codeunit "Temp Blob";
         HttpMessageState: Codeunit "Http Message State";
         IntegrationActionStatus: Codeunit "Integration Action Status";
-        FileFormat: Enum "E-Doc. File Format";
-        Name: Text[256];
+        GlobalFileFormat: Enum "E-Doc. File Format";
+        GlobalName: Text[256];
 
 }

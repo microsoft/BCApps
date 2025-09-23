@@ -19,13 +19,13 @@ codeunit 6180 "Download Document"
 
     trigger OnRun()
     begin
-        this.EDocumentService.TestField(Code);
-        IDocumentReceiver.DownloadDocument(this.EDocument, this.EDocumentService, this.DocumentMetadata, this.ReceiveContext);
+        this.GlobalEDocumentService.TestField(Code);
+        IDocumentReceiver.DownloadDocument(this.GlobalEDocument, this.GlobalEDocumentService, this.GlobalDocumentMetadata, this.GlobalReceiveContext);
     end;
 
     procedure SetContext(ReceiveContext: Codeunit ReceiveContext)
     begin
-        this.ReceiveContext := ReceiveContext;
+        this.GlobalReceiveContext := ReceiveContext;
     end;
 
     procedure SetInstance(Reciver: Interface IDocumentReceiver)
@@ -35,15 +35,15 @@ codeunit 6180 "Download Document"
 
     procedure SetParameters(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; DocumentMetadata: Codeunit "Temp Blob")
     begin
-        this.EDocument.Copy(EDocument);
-        this.EDocumentService.Copy(EDocumentService);
-        this.DocumentMetadata := DocumentMetadata;
+        this.GlobalEDocument.Copy(EDocument);
+        this.GlobalEDocumentService.Copy(EDocumentService);
+        this.GlobalDocumentMetadata := DocumentMetadata;
     end;
 
     var
-        EDocument: Record "E-Document";
-        EDocumentService: Record "E-Document Service";
-        DocumentMetadata: Codeunit "Temp Blob";
-        ReceiveContext: Codeunit ReceiveContext;
+        GlobalEDocument: Record "E-Document";
+        GlobalEDocumentService: Record "E-Document Service";
+        GlobalDocumentMetadata: Codeunit "Temp Blob";
+        GlobalReceiveContext: Codeunit ReceiveContext;
         IDocumentReceiver: Interface IDocumentReceiver;
 }

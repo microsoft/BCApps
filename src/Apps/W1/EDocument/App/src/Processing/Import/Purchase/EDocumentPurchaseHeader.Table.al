@@ -110,31 +110,43 @@ table 6100 "E-Document Purchase Header"
         {
             Caption = 'Sub Total';
             DataClassification = CustomerContent;
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
         }
         field(19; "Total Discount"; Decimal)
         {
             Caption = 'Total Discount';
             DataClassification = CustomerContent;
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
         }
         field(20; "Total VAT"; Decimal)
         {
             Caption = 'Total VAT';
             DataClassification = CustomerContent;
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
         }
         field(21; Total; Decimal)
         {
             Caption = 'Total';
             DataClassification = CustomerContent;
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
         }
         field(22; "Amount Due"; Decimal)
         {
             Caption = 'Amount Due';
             DataClassification = CustomerContent;
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
         }
         field(23; "Previous Unpaid Balance"; Decimal)
         {
             Caption = 'Previous Unpaid Balance';
             DataClassification = CustomerContent;
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
         }
         field(24; "Currency Code"; Code[10])
         {

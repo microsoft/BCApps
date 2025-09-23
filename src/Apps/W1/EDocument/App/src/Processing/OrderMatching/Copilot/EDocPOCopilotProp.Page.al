@@ -70,7 +70,9 @@ page 6166 "E-Doc. PO Copilot Prop"
                     Editable = false;
                     ToolTip = 'Specifies the total invoice amount excluding VAT';
                 }
+#pragma warning disable AA0471
                 field("Matched Total Amount"; MatchedTotal)
+#pragma warning restore AA0471
                 {
                     ApplicationArea = All;
                     Caption = 'Matched Total Amount Excl. VAT';

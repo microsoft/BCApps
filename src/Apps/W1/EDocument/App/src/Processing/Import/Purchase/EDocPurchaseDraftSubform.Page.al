@@ -64,6 +64,9 @@ page 6183 "E-Doc. Purchase Draft Subform"
                 {
                     ApplicationArea = All;
                     Editable = true;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
+
                     trigger OnValidate()
                     begin
                         UpdateCalculatedAmounts(true);
@@ -94,6 +97,8 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     Caption = 'Line Amount';
                     ToolTip = 'Specifies the line amount.';
                     Editable = false;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                 }
                 field("Deferral Code"; Rec."[BC] Deferral Code")
                 {

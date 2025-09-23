@@ -49,6 +49,7 @@ table 6110 "E-Document Line - Field"
             Caption = 'Custom Decimal Value';
             ToolTip = 'Specifies the custom decimal value.';
             DataClassification = CustomerContent;
+            AutoFormatType = 0;
         }
         field(6; "Date Value"; Date)
         {

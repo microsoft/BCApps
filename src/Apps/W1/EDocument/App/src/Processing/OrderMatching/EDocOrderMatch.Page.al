@@ -12,6 +12,7 @@ page 6164 "E-Doc. Order Match"
     InsertAllowed = false;
     ModifyAllowed = false;
 
+#pragma warning disable AA0471
     layout
     {
         area(Content)
@@ -56,4 +57,5 @@ page 6164 "E-Doc. Order Match"
             }
         }
     }
+#pragma warning restore AA0471
 }

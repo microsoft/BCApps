@@ -20,7 +20,7 @@ codeunit 6184 "Integration Action Status"
     /// </summary>
     procedure SetStatus(Status: Enum "E-Document Service Status")
     begin
-        this.Status := Status;
+        this.GlobalStatus := Status;
     end;
 
     /// <summary>
@@ -28,7 +28,7 @@ codeunit 6184 "Integration Action Status"
     /// </summary>
     procedure GetStatus(): Enum "E-Document Service Status"
     begin
-        exit(this.Status);
+        exit(this.GlobalStatus);
     end;
 
     /// <summary>
@@ -37,7 +37,7 @@ codeunit 6184 "Integration Action Status"
     /// </summary>
     procedure SetErrorStatus(ErrorStatus: Enum "E-Document Service Status")
     begin
-        this.ErrorStatus := ErrorStatus;
+        this.GlobalErrorStatus := ErrorStatus;
     end;
 
     /// <summary>
@@ -45,10 +45,10 @@ codeunit 6184 "Integration Action Status"
     /// </summary>
     procedure GetErrorStatus(): Enum "E-Document Service Status"
     begin
-        exit(this.ErrorStatus);
+        exit(this.GlobalErrorStatus);
     end;
 
 
     var
-        Status, ErrorStatus : Enum "E-Document Service Status";
+        GlobalStatus, GlobalErrorStatus : Enum "E-Document Service Status";
 }

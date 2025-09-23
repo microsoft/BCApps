@@ -99,7 +99,7 @@ codeunit 6134 "E-Doc. Integration Management"
     var
         EDocument, EDocument2 : Record "E-Document";
         EDocLog: Record "E-Document Log";
-        EDocumentLog: Codeunit "E-Document Log";
+        LocalEDocumentLog: Codeunit "E-Document Log";
         TempBlob: Codeunit "Temp Blob";
         EDocImport: Codeunit "E-Doc. Import";
         EDocErrorHelper: Codeunit "E-Document Error Helper";
@@ -138,14 +138,14 @@ codeunit 6134 "E-Doc. Integration Management"
                 EDocument.Insert();
 
                 if I = 1 then begin
-                    EDocLog := EDocumentLog.InsertLog(EDocument, EDocService, TempBlob, EDocumentServiceStatus);
+                    EDocLog := LocalEDocumentLog.InsertLog(EDocument, EDocService, TempBlob, EDocumentServiceStatus);
                     EDocBatchDataStorageEntryNo := EDocLog."E-Doc. Data Storage Entry No.";
                 end else begin
-                    EDocLog := EDocumentLog.InsertLog(EDocument, EDocService, EDocumentServiceStatus);
-                    EDocumentLog.ModifyDataStorageEntryNo(EDocLog, EDocBatchDataStorageEntryNo);
+                    EDocLog := LocalEDocumentLog.InsertLog(EDocument, EDocService, EDocumentServiceStatus);
+                    LocalEDocumentLog.ModifyDataStorageEntryNo(EDocLog, EDocBatchDataStorageEntryNo);
                 end;
 
-                EDocumentLog.InsertIntegrationLog(EDocument, EDocService, HttpRequest, HttpResponse);
+                LocalEDocumentLog.InsertIntegrationLog(EDocument, EDocService, HttpRequest, HttpResponse);
                 EDocumentProcessing.InsertServiceStatus(EDocument, EDocService, EDocumentServiceStatus);
                 EDocumentProcessing.ModifyEDocumentStatus(EDocument);
 
@@ -156,8 +156,8 @@ codeunit 6134 "E-Doc. Integration Management"
                 EDocImport.V1_ProcessImportedDocument(EDocument, EDocService, TempBlob, EDocService."Create Journal Lines", EDocService.IsAutomaticProcessingEnabled());
 
             if EDocErrorHelper.HasErrors(EDocument) then begin
-                EDocumentLog.SetFields(EDocument, EDocService);
-                EDocumentLog.InsertLog("E-Document Service Status"::"Imported Document Processing Error");
+                LocalEDocumentLog.SetFields(EDocument, EDocService);
+                LocalEDocumentLog.InsertLog("E-Document Service Status"::"Imported Document Processing Error");
                 EDocument2 := EDocument;
                 HasErrors := true;
             end;

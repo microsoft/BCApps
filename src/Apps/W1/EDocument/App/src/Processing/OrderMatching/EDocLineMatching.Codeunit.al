@@ -333,14 +333,18 @@ codeunit 6164 "E-Doc. Line Matching"
                     repeat
                         ResetQtyToInvoice(TempPurchaseLine);
                         PurchaseLine := TempPurchaseLine;
+#pragma warning disable AA0214
                         PurchaseLine.Modify(true);
+#pragma warning restore AA0214
                     until TempPurchaseLine.Next() = 0;
 
                 if TempEDocumentImportedLine.FindSet() then
                     repeat
                         ResetMatchedQty(TempEDocumentImportedLine);
                         EDocImportedLine := TempEDocumentImportedLine;
+#pragma warning disable AA0214
                         EDocImportedLine.Modify(true);
+#pragma warning restore AA0214
                     until TempEDocumentImportedLine.Next() = 0;
 
                 EDocOrderMatch.DeleteAll();
