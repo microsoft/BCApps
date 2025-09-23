@@ -14,6 +14,7 @@ codeunit 133689 "No. Series Copilot Accu. Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    TestType = AITest;
 
     var
         Assert: codeunit "Library Assert";
