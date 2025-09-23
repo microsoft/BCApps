@@ -6,6 +6,9 @@ namespace Microsoft.PowerBIReports;
 
 using Microsoft.Inventory.Item;
 
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
 query 36953 "Items - PBI API"
 {
     Access = Internal;

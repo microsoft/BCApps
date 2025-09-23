@@ -6,6 +6,9 @@ namespace Microsoft.Manufacturing.PowerBIReports;
 
 using Microsoft.Manufacturing.Capacity;
 
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
 query 36983 "Calendar Entries"
 {
     Access = Internal;

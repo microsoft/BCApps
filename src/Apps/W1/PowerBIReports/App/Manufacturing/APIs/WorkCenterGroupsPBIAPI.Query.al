@@ -6,6 +6,9 @@ namespace Microsoft.Manufacturing.PowerBIReports;
 
 using Microsoft.Manufacturing.WorkCenter;
 
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
 query 37012 "Work Center Groups - PBI API"
 {
     Access = Internal;

@@ -7,6 +7,9 @@ namespace Microsoft.Manufacturing.PowerBIReports;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
 query 36986 "Item Ledger Entries - Prod."
 {
     Access = Internal;

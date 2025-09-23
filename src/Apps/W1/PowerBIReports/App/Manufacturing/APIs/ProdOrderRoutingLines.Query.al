@@ -7,6 +7,9 @@ namespace Microsoft.Manufacturing.PowerBIReports;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Inventory.Location;
 
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
 query 36990 "Prod. Order Routing Lines"
 {
     Access = Internal;

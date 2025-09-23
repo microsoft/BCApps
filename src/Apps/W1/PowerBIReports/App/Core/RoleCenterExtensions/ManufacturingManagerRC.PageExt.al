@@ -6,6 +6,9 @@ namespace Microsoft.PowerBIReports;
 
 using Microsoft.Manufacturing.RoleCenters;
 
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
 pageextension 36964 "Manufacturing Manager RC" extends "Manufacturing Manager RC"
 {
     actions

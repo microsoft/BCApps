@@ -6,6 +6,9 @@ namespace Microsoft.Inventory.PowerBIReports;
 
 using Microsoft.Manufacturing.Document;
 
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
 query 36972 "Prod. Order Lines - Invt."
 {
     Access = Internal;

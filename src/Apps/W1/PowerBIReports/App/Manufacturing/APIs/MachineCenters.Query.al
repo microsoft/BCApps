@@ -6,6 +6,9 @@ namespace Microsoft.Manufacturing.PowerBIReports;
 
 using Microsoft.Manufacturing.MachineCenter;
 
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
 query 36985 "Machine Centers"
 {
     Access = Internal;

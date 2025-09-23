@@ -6,6 +6,9 @@ namespace Microsoft.Manufacturing.PowerBIReports;
 
 using Microsoft.Manufacturing.Routing;
 
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
 query 37010 "Routings - PBI API"
 {
     Access = Internal;

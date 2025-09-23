@@ -6,6 +6,9 @@ namespace Microsoft.Manufacturing.PowerBIReports;
 
 using Microsoft.Manufacturing.Document;
 
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
 query 37008 "Prod. Orders - PBI API"
 {
     Access = Internal;

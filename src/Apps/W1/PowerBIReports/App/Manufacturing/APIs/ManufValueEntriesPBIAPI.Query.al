@@ -6,6 +6,9 @@ namespace Microsoft.Manufacturing.PowerBIReports;
 
 using Microsoft.Inventory.Ledger;
 
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
 query 37011 "Manuf. Value Entries - PBI API"
 {
     Access = Internal;

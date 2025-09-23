@@ -6,6 +6,9 @@ namespace Microsoft.Manufacturing.PowerBIReports;
 
 using Microsoft.Manufacturing.Setup;
 
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
 query 37007 "Manufacturing Setup - PBI API"
 {
     Access = Internal;

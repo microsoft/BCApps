@@ -6,6 +6,9 @@ namespace Microsoft.Manufacturing.PowerBIReports;
 
 using Microsoft.Inventory.Costing;
 
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
 query 37020 "Inv. Adj. Ent Order - PBI API"
 {
     Access = Internal;
