@@ -21,10 +21,10 @@ codeunit 6146 "Send Runner"
     trigger OnRun()
     begin
 #if not CLEAN26
-        if EDocumentService."Service Integration V2" <> Enum::"Service Integration"::"No Integration" then
+        if GlobalEDocumentService."Service Integration V2" <> Enum::"Service Integration"::"No Integration" then
             SendV2()
         else
-            if EDocumentService."Use Batch Processing" then
+            if GlobalEDocumentService."Use Batch Processing" then
                 SendBatch()
             else
                 Send();
@@ -36,35 +36,39 @@ codeunit 6146 "Send Runner"
 #if not CLEAN26
     local procedure Send()
     begin
-        this.TempBlob := SendContext.GetTempBlob();
-        IEDocIntegration := this.EDocumentService."Service Integration";
-        IEDocIntegration.Send(this.EDocument, this.TempBlob, this.IsAsyncValue, this.HttpRequestMessage, this.HttpResponseMessage);
+        this.TempBlob := GlobalSendContext.GetTempBlob();
+#pragma warning disable AL0432
+        IEDocIntegration := this.GlobalEDocumentService."Service Integration";
+        IEDocIntegration.Send(this.GlobalEDocument, this.TempBlob, this.IsAsyncValue, this.HttpRequestMessage, this.HttpResponseMessage);
+#pragma warning restore AL0432
     end;
 
     local procedure SendBatch()
     begin
-        this.TempBlob := SendContext.GetTempBlob();
-        IEDocIntegration := this.EDocumentService."Service Integration";
-        IEDocIntegration.SendBatch(this.EDocument, this.TempBlob, this.IsAsyncValue, this.HttpRequestMessage, this.HttpResponseMessage);
+        this.TempBlob := GlobalSendContext.GetTempBlob();
+#pragma warning disable AL0432
+        IEDocIntegration := this.GlobalEDocumentService."Service Integration";
+        IEDocIntegration.SendBatch(this.GlobalEDocument, this.TempBlob, this.IsAsyncValue, this.HttpRequestMessage, this.HttpResponseMessage);
+#pragma warning restore AL0432
     end;
 #endif
 
     local procedure SendV2()
     begin
-        IDocumentSender := this.EDocumentService."Service Integration V2";
-        IDocumentSender.Send(this.EDocument, this.EDocumentService, SendContext);
+        IDocumentSender := this.GlobalEDocumentService."Service Integration V2";
+        IDocumentSender.Send(this.GlobalEDocument, this.GlobalEDocumentService, GlobalSendContext);
         this.IsAsyncValue := IDocumentSender is IDocumentResponseHandler;
     end;
 
     procedure SetContext(SendContext: Codeunit SendContext)
     begin
-        this.SendContext := SendContext;
+        this.GlobalSendContext := SendContext;
     end;
 
     procedure SetDocumentAndService(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service")
     begin
-        this.EDocument.Copy(EDocument);
-        this.EDocumentService.Copy(EDocumentService);
+        this.GlobalEDocument.Copy(EDocument);
+        this.GlobalEDocumentService.Copy(EDocumentService);
     end;
 
     procedure GetIsAsync(): Boolean
@@ -76,18 +80,18 @@ codeunit 6146 "Send Runner"
     procedure GetSendContext(var SendContext: Codeunit SendContext);
     begin
         // For Service integration V1 the HTTP request and resposne should be specifically set after calling the send method 
-        if EDocumentService."Service Integration V2" = Enum::"Service Integration"::"No Integration" then begin
-            this.SendContext.Http().SetHttpRequestMessage(this.HttpRequestMessage);
-            this.SendContext.Http().SetHttpResponseMessage(this.HttpResponseMessage);
-            SendContext := this.SendContext;
+        if GlobalEDocumentService."Service Integration V2" = Enum::"Service Integration"::"No Integration" then begin
+            this.GlobalSendContext.Http().SetHttpRequestMessage(this.HttpRequestMessage);
+            this.GlobalSendContext.Http().SetHttpResponseMessage(this.HttpResponseMessage);
+            SendContext := this.GlobalSendContext;
         end;
     end;
 #endif
 
     var
-        EDocument: Record "E-Document";
-        EDocumentService: Record "E-Document Service";
-        SendContext: Codeunit SendContext;
+        GlobalEDocument: Record "E-Document";
+        GlobalEDocumentService: Record "E-Document Service";
+        GlobalSendContext: Codeunit SendContext;
 #if not CLEAN26
         TempBlob: Codeunit "Temp Blob";
         HttpRequestMessage: HttpRequestMessage;

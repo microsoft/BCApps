@@ -82,7 +82,9 @@ codeunit 6108 "E-Document Processing"
 #endif
     begin
 #if not CLEAN26
+#pragma warning disable AL0432
         EDocumentLog.OnUpdateEDocumentStatus(EDocument, IsHandled);
+#pragma warning restore AL0432
         if IsHandled then
             exit;
 #endif

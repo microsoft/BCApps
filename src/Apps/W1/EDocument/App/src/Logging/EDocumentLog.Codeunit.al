@@ -45,7 +45,9 @@ codeunit 6132 "E-Document Log"
         this.EDocLog.Validate("Document No.", EDocument."Document No.");
         this.EDocLog.Validate("E-Doc. Entry No", EDocument."Entry No");
 #if not CLEAN26
+#pragma warning disable AL0432
         this.EDocLog.Validate("Service Integration", EDocumentService."Service Integration");
+#pragma warning restore AL0432
 #endif
         this.EDocLog.Validate("Service Integration V2", EDocumentService."Service Integration V2");
         this.EDocLog.Validate("Service Code", EDocumentService.Code);
@@ -170,7 +172,9 @@ codeunit 6132 "E-Document Log"
         EDocumentLog.Validate(Status, EDocumentServiceStatus);
         EDocumentLog.Validate("Processing Status", EDocumentProcStatus);
 #if not CLEAN26
+#pragma warning disable AL0432
         EDocumentLog.Validate("Service Integration", EDocumentService."Service Integration");
+#pragma warning restore AL0432
 #endif
         EDocumentLog.Validate("Service Integration V2", EDocumentService."Service Integration V2");
         EDocumentLog.Validate("Service Code", EDocumentService.Code);
@@ -186,8 +190,10 @@ codeunit 6132 "E-Document Log"
         RequestTxt: Text;
     begin
 #if not CLEAN26
+#pragma warning disable AL0432
         if (EDocumentService."Service Integration" = EDocumentService."Service Integration"::"No Integration") and
         (EDocumentService."Service Integration V2" = EDocumentService."Service Integration V2"::"No Integration") then
+#pragma warning restore AL0432
             exit;
 #else
         if (EDocumentService."Service Integration V2" = EDocumentService."Service Integration V2"::"No Integration") then
@@ -201,7 +207,9 @@ codeunit 6132 "E-Document Log"
         EDocumentIntegrationLog.Validate("Service Code", EDocumentService.Code);
         EDocumentIntegrationLog.Validate("Response Status", HttpResponse.HttpStatusCode());
 #if not CLEAN25
+#pragma warning disable AL0432
         EDocumentIntegrationLog.Validate("Url", CopyStr(HttpRequest.GetRequestUri(), 1, 250));
+#pragma warning restore AL0432
 #endif
         EDocumentIntegrationLog.Validate("Request URL", HttpRequest.GetRequestUri());
         EDocumentIntegrationLog.Validate(Method, HttpRequest.Method());
@@ -302,7 +310,9 @@ codeunit 6132 "E-Document Log"
         EDocumentLog.SetRange("E-Doc. Entry No", EDocument."Entry No");
         EDocumentLog.SetRange("Service Code", EDocumentService.Code);
 #if not CLEAN26
+#pragma warning disable AL0432
         EDocumentLog.SetRange("Service Integration", EDocumentService."Service Integration");
+#pragma warning restore AL0432
 #endif
         EDocumentLog.SetRange("Service Integration V2", EDocumentService."Service Integration V2");
         EDocumentLog.SetRange("Document Format", EDocumentService."Document Format");

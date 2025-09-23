@@ -99,7 +99,9 @@ codeunit 6144 "E-Document Get Response"
         if GotResponse then
             exit(SendContext.Status().GetStatus())
         else begin
+#pragma warning disable AL0432
             OnGetEdocumentResponseReturnsFalse(EDocument, EDocumentService, SendContext.Http().GetHttpRequestMessage(), SendContext.Http().GetHttpResponseMessage(), IsHandled);
+#pragma warning restore AL0432
             if not IsHandled then
                 EDocServiceStatus := Enum::"E-Document Service Status"::"Pending Response"
             else begin
