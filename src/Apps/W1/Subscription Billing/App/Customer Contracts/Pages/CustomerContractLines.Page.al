@@ -1,5 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Inventory.Item;
+
 page 8075 "Customer Contract Lines"
 {
     PageType = List;
@@ -18,6 +20,18 @@ page 8075 "Customer Contract Lines"
                 field("Contract Line Type"; Rec."Contract Line Type")
                 {
                     ToolTip = 'Specifies the contract line type.';
+                }
+                field("No."; Rec."No.")
+                {
+                    ToolTip = 'Specifies the No. of the Item or G/L Account of the Subscription.';
+                    Editable = false;
+                }
+                field("Variant Code"; VariantCode)
+                {
+                    Caption = 'Variant Code';
+                    ToolTip = 'Specifies the Variant Code of the Subscription.';
+                    Visible = false;
+                    TableRelation = "Item Variant".Code where("Item No." = field("No."));
                 }
                 field("Service Start Date"; ServiceCommitment."Subscription Line Start Date")
                 {
@@ -73,9 +87,11 @@ page 8075 "Customer Contract Lines"
                 {
                     ToolTip = 'Specifies the description of the Subscription Line.';
                 }
-                field("Service Object Quantity"; Rec."Service Object Quantity")
+                field("Service Object Quantity"; ContractLineQty)
                 {
+                    Caption = 'Quantity';
                     ToolTip = 'Specifies the number of units of Subscription.';
+                    AutoFormatType = 0;
 
                     trigger OnDrillDown()
                     begin
@@ -181,6 +197,7 @@ page 8075 "Customer Contract Lines"
         InitializePageVariables();
         SetNextBillingDateStyle();
         Rec.LoadServiceCommitmentForContractLine(ServiceCommitment);
+        LoadQuantityForContractLine();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -193,6 +210,8 @@ page 8075 "Customer Contract Lines"
         ServiceCommitment: Record "Subscription Line";
         ServiceObject: Record "Subscription Header";
         NextBillingDateStyleExpr: Text;
+        ContractLineQty: Decimal;
+        VariantCode: Code[10];
 
     local procedure InitializePageVariables()
     var
@@ -206,6 +225,17 @@ page 8075 "Customer Contract Lines"
         if (ServiceCommitment."Next Billing Date" > ServiceCommitment."Subscription Line End Date") and (ServiceCommitment."Subscription Line End Date" <> 0D) then
             NextBillingDateStyleExpr := 'AttentionAccent';
         OnAfterSetNextBillingDateStyle(Rec, ServiceCommitment, NextBillingDateStyleExpr);
+    end;
+
+    local procedure LoadQuantityForContractLine()
+    begin
+        ContractLineQty := ServiceObject.Quantity;
+        OnAfterLoadQuantityForContractLine(Rec, ServiceObject, ContractLineQty);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterLoadQuantityForContractLine(CustSubContractLine: Record "Cust. Sub. Contract Line"; SubscriptionHeader: Record "Subscription Header"; var ContractLineQty: Decimal)
+    begin
     end;
 
     [IntegrationEvent(false, false)]
