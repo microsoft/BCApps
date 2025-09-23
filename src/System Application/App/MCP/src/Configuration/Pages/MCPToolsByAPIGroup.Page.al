@@ -5,7 +5,7 @@
 
 namespace System.MCP;
 
-page 8204 "MCP Tools By API Group"
+page 8354 "MCP Tools By API Group"
 {
     PageType = StandardDialog;
     InherentEntitlements = X;
