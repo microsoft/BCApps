@@ -613,23 +613,62 @@ codeunit 148155 "Contracts Test"
         CustomerContractLine: Record "Cust. Sub. Contract Line";
         ServiceCommitment: Record "Subscription Line";
         ServiceObject: Record "Subscription Header";
+        SubscriptionLineDisconnectErr: Label 'Subscription Line should be disconnected from the contract after Type has changed.', Locked = true;
         EntryNo: Integer;
     begin
-        // Test: Subscription Line should be disconnected from the contract when the line type changes
+        // [SCENARIO] Subscription Line should be disconnected from the contract when the line type changes
         Initialize();
 
+        // [GIVEN] A customer contract with a connected Subscription Line
         SetupNewContract(false, ServiceObject, CustomerContract);
 
-        CustomerContractLine.Reset();
+        // [GIVEN] Find a contract line that has a connected Subscription Line
         CustomerContractLine.SetRange("Subscription Contract No.", CustomerContract."No.");
         CustomerContractLine.SetRange("Contract Line Type", Enum::"Contract Line Type"::Item);
         CustomerContractLine.SetFilter("Subscription Header No.", '<>%1', '');
         CustomerContractLine.SetFilter("Subscription Line Entry No.", '<>%1', 0);
         CustomerContractLine.FindFirst();
         EntryNo := CustomerContractLine."Subscription Line Entry No.";
+
+        // [WHEN] The contract line type is changed from Item to Comment
         CustomerContractLine.Validate("Contract Line Type", CustomerContractLine."Contract Line Type"::Comment);
+
+        // [THEN] The Subscription Line should be disconnected from the contract
         ServiceCommitment.Get(EntryNo);
-        ServiceCommitment.TestField("Subscription Contract No.", '');
+        Assert.AreEqual('', ServiceCommitment."Subscription Contract No.", SubscriptionLineDisconnectErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure ContractLineDisconnectServiceOnNoChange()
+    var
+        CustomerContract: Record "Customer Subscription Contract";
+        CustomerContractLine: Record "Cust. Sub. Contract Line";
+        ServiceCommitment: Record "Subscription Line";
+        ServiceObject: Record "Subscription Header";
+        SubscriptionLineDisconnectErr: Label 'Subscription Line should be disconnected from the contract after No. has changed.', Locked = true;
+        EntryNo: Integer;
+    begin
+        // [SCENARIO] Subscription Line should be disconnected from the contract when the Item No. is cleared
+        Initialize();
+
+        // [GIVEN] A customer contract with a connected Subscription Line
+        SetupNewContract(false, ServiceObject, CustomerContract);
+
+        // [GIVEN] Find a contract line that has a connected Subscription Line
+        CustomerContractLine.SetRange("Subscription Contract No.", CustomerContract."No.");
+        CustomerContractLine.SetRange("Contract Line Type", Enum::"Contract Line Type"::Item);
+        CustomerContractLine.SetFilter("Subscription Header No.", '<>%1', '');
+        CustomerContractLine.SetFilter("Subscription Line Entry No.", '<>%1', 0);
+        CustomerContractLine.FindFirst();
+        EntryNo := CustomerContractLine."Subscription Line Entry No.";
+
+        // [WHEN] The Item No. is cleared on the contract line
+        CustomerContractLine.Validate("No.", '');
+
+        // [THEN] The Subscription Line should be disconnected from the contract
+        ServiceCommitment.Get(EntryNo);
+        Assert.AreEqual('', ServiceCommitment."Subscription Contract No.", SubscriptionLineDisconnectErr);
     end;
 
     [Test]
