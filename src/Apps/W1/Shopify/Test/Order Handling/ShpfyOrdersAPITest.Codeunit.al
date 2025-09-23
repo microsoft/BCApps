@@ -805,6 +805,44 @@ codeunit 139608 "Shpfy Orders API Test"
         LibraryAssert.AreEqual(SalesHeader."Due Date", DT2Date(DueDateTime), 'Due date is set');
     end;
 
+    [Test]
+    procedure UnitTestImportFulfilledShopifyOrderAndCreateSalesDocument()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] Creating a random fulfilled Shopify Order and try to map customer and product data.
+        // [SCENARIO] When the sales document is created, everything will be mapped and the sales document must exist.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        Shop."Create Invoices From Orders" := false;
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+        Commit();
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Sales document is created from Shopify order
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        LibraryAssert.AreEqual(SalesHeader."Document Type", SalesHeader."Document Type"::Order, 'Sales document is a sales order');
+        LibraryAssert.AreEqual(OrderHeader."Sales Order No.", SalesHeader."No.", 'ShpfyOrderHeader."Sales Order No." = SalesHeader."No."');
+    end;
+
     local procedure CreateTaxArea(var TaxArea: Record "Tax Area"; var ShopifyTaxArea: Record "Shpfy Tax Area"; Shop: Record "Shpfy Shop")
     var
         ShopifyCustomerTemplate: Record "Shpfy Customer Template";
