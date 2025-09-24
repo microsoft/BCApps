@@ -7,4 +7,4 @@ $sourceCodeFolder = Join-Path (Get-BaseFolder) "src" -Resolve
 Test-ObjectIDsAreValid -SourceCodePaths $sourceCodeFolder
 
 # Test that all application IDs are unique
-Test-ApplicationIdsAreUnique -SourceCodePaths $sourceCodeFolder
+Test-ApplicationIds -SourceCodePaths $sourceCodeFolder

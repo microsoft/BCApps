@@ -56,7 +56,7 @@ function Test-ObjectIDsAreValid {
     .PARAMETER Exceptions
     An array of application IDs that are exceptions and should not be considered duplicates.
 #>
-function Test-ApplicationIdsAreUnique {
+function Test-ApplicationIds {
     param(
         [string[]] $SourceCodePaths = @(),
         [string[]] $Exceptions = @()
@@ -174,5 +174,5 @@ function GetObjectId
 }
 
 Export-ModuleMember -Function Test-ObjectIDsAreValid
-Export-ModuleMember -Function Test-ApplicationIdsAreUnique
+Export-ModuleMember -Function Test-ApplicationIds
 Export-ModuleMember -Function Get-FilesCollection
