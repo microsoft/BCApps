@@ -1,3 +1,20 @@
+<#
+    .SYNOPSIS
+    Tests that all test object IDs are within the specified range and that there are no duplicate object IDs,
+    except for those explicitly allowed.
+    .DESCRIPTION
+    This function scans the specified source code paths for AL files, extracts the object IDs of test objects,
+    and checks if they fall within the defined range. It also checks for duplicate object IDs across all objects,
+    excluding those listed in the AllowedDuplicateObjects parameter. If any violations are found, an error is thrown.
+    .PARAMETER SourceCodePaths
+    An array of paths to the source code directories to be scanned for AL files.
+    .PARAMETER AllowedDuplicateObjects
+    An array of object signatures (in the format "<object type> <object id>") that are allowed to have duplicates.
+    .PARAMETER MinTestObjectId
+    The minimum valid object ID for test objects. Default is 130000.
+    .PARAMETER MaxTestObjectId
+    The maximum valid object ID for test objects. Default is 149999.
+#>
 function Test-ObjectIDsAreValid {
     param(
         [string[]] $SourceCodePaths = @(),
@@ -26,7 +43,53 @@ function Test-ObjectIDsAreValid {
     }
 }
 
+<#
+    .SYNOPSIS
+    Tests that all application IDs are unique across the provided source code paths.
+    .DESCRIPTION
+    This function scans the specified source code paths for app.json files, extracts the application IDs,
+    and checks for duplicates. If any duplicate application IDs are found, an error is thrown.
+    .PARAMETER SourceCodePaths
+    An array of paths to the source code directories to be scanned for app.json files.
+    .PARAMETER Exceptions
+    An array of application IDs that are exceptions and should not be considered duplicates.
+#>
+function Test-ApplicationIdsAreUnique {
+    param(
+        [string[]] $SourceCodePaths = @(),
+        [string[]] $Exceptions = @()
+    )
+    $appJsons = Get-ChildItem -Path $SourceCodePaths -File -Recurse -Filter 'app.json'
+    $appIds = @()
+    foreach ($appJson in $appJsons) {
+        $appManifest = Get-Content -Path $appJson.FullName | Out-String | ConvertFrom-Json
+        $appIds += $appManifest.id
+    }
+    $duplicateAppIds = $appIds | Group-Object | Where-Object { $_.Count -gt 1 } | Select-Object -ExpandProperty Name
+    $duplicateAppIds = $duplicateAppIds | Where-Object { -not ($Exceptions -contains $_) }
+    if ($duplicateAppIds.Count -gt 0) {
+        throw "Duplicate app IDs detected: $($duplicateAppIds -join ','). When adding new apps, ensure that introduced app IDs are unique."
+    }
+}
+
 # Returns a hash map with all the application objects (entries are <object type><object id>, <object name>, e. g. { 'codeunit 10', 'Type Helper' }).
+<#
+    .SYNOPSIS
+    Scans the provided source code paths for AL files and extracts object signatures, test objects, and duplicate objects.
+    .DESCRIPTION
+    This function recursively scans the specified source code paths for AL files, extracts object signatures (in the format "<object type> <object id>"),
+    identifies test objects, and detects duplicate object signatures. It returns a custom object containing three properties:
+    - ObjectSignatures: A hash map of all unique object signatures and their corresponding names.
+    - TestObjects: An array of object signatures that are identified as test objects.
+    - DuplicateObjects: An array of object signatures that are found to be duplicates across the scanned files.
+    .PARAMETER SourceCodePaths
+    An array of paths to the source code directories to be scanned for AL files.
+    .OUTPUTS
+    A custom object with the following properties:
+    - ObjectSignatures: A hash map of unique object signatures and their names.
+    - TestObjects: An array of test object signatures.
+    - DuplicateObjects: An array of duplicate object signatures.
+#>
 function Get-FilesCollection
 (
     [string[]] $SourceCodePaths
@@ -108,4 +171,5 @@ function GetObjectId
 }
 
 Export-ModuleMember -Function Test-ObjectIDsAreValid
+Export-ModuleMember -Function Test-ApplicationIdsAreUnique
 Export-ModuleMember -Function Get-FilesCollection
