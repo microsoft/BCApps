@@ -3,13 +3,8 @@ Import-Module "$PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.ps
 
 $sourceCodeFolder = Join-Path (Get-BaseFolder) "src" -Resolve
 
-try {
-    # Test that all test object IDs are within the valid range
-    Test-ObjectIDsAreValid -SourceCodePaths $sourceCodeFolder
+# Test that all test object IDs are within the valid range
+Test-ObjectIDsAreValid -SourceCodePaths $sourceCodeFolder
 
-    # Test that all application IDs are unique
-    Test-ApplicationIdsAreUnique -SourceCodePaths $sourceCodeFolder
-} catch {
-    # Write error message in github actions format
-    Write-Error "##[error]$($_.Exception.Message)"
-}
+# Test that all application IDs are unique
+Test-ApplicationIdsAreUnique -SourceCodePaths $sourceCodeFolder

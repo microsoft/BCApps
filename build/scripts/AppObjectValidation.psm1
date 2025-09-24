@@ -35,11 +35,13 @@ function Test-ObjectIDsAreValid {
     }
 
     if ($IntroducedDuplicates.Count -gt 0) {
-        throw "Clashing object IDs detected: $IntroducedDuplicates. When adding new objects, ensure that introduced object IDs are not currently in use."
+        Write-Host "##[error]Clashing object IDs detected: $($IntroducedDuplicates -join ',')"
+        throw "Clashing object IDs detected. When adding new objects, ensure that introduced object IDs are not currently in use."
     }
 
     if ($offendingObjects.Count -gt 0) {
-        throw "Test objects out-of-range ($MinTestObjectId..$MaxTestObjectId): $($offendingObjects -join ',')"
+        Write-Host "##[error]Test objects out-of-range ($MinTestObjectId..$MaxTestObjectId): $($offendingObjects -join ',')"
+        throw "Test objects should be within the $($MinTestObjectId)..$($MaxTestObjectId) range."
     }
 }
 
