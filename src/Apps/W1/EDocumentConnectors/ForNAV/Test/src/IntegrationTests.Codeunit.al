@@ -8,8 +8,10 @@ using Microsoft.eServices.EDocument;
 using Microsoft.Sales.Customer;
 using Microsoft.Purchases.Document;
 using Microsoft.Foundation.Company;
+using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.History;
+using Microsoft.Finance.GeneralLedger.Setup;
 
 codeunit 148221 "Integration Tests"
 {
@@ -407,9 +409,14 @@ codeunit 148221 "Integration Tests"
     var
         Setup: Record "ForNAV Peppol Setup";
         CompanyInformation: Record "Company Information";
+        GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         Test.CreateMockServiceDocumentId();
         LibraryPermission.SetOutsideO365Scope();
+
+        GeneralLedgerSetup.GetRecordOnce();
+        GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
+        GeneralLedgerSetup.Modify();
 
         if IsInitialized then
             exit;
