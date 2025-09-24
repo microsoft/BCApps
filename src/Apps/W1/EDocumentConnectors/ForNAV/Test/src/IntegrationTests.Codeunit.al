@@ -8,7 +8,6 @@ using Microsoft.eServices.EDocument;
 using Microsoft.Sales.Customer;
 using Microsoft.Purchases.Document;
 using Microsoft.Foundation.Company;
-using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.History;
 using Microsoft.Finance.GeneralLedger.Setup;
