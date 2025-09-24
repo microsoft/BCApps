@@ -7,7 +7,7 @@ namespace System.MCP;
 
 using System.Reflection;
 
-page 8203 "MCP API Config Tool Lookup"
+page 8353 "MCP API Config Tool Lookup"
 {
     PageType = List;
     ApplicationArea = All;

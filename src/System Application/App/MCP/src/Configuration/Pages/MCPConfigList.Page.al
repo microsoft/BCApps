@@ -5,7 +5,7 @@
 
 namespace System.MCP;
 
-page 8200 "MCP Config List"
+page 8350 "MCP Config List"
 {
     PageType = List;
     ApplicationArea = All;

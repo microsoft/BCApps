@@ -46,23 +46,25 @@ table 8065 "Vend. Sub. Contract Line"
                 GLAccount: Record "G/L Account";
                 TempVendorContractLine: Record "Vend. Sub. Contract Line" temporary;
             begin
-                case "Contract Line Type" of
-                    "Contract Line Type"::Item:
-                        begin
-                            if not Item.Get("No.") then
-                                Error(EntityDoesNotExistErr, Item.TableCaption, "No.");
-                            if Item.Blocked or Item."Subscription Option" in ["Item Service Commitment Type"::"Sales without Service Commitment", "Item Service Commitment Type"::"Sales without Service Commitment"] then
-                                Error(ItemBlockedOrWithoutServiceCommitmentsErr, "No.");
-                        end;
-                    "Contract Line Type"::"G/L Account":
-                        begin
-                            if not GLAccount.Get("No.") then
-                                Error(EntityDoesNotExistErr, GLAccount.TableCaption, "No.");
-                            if GLAccount.Blocked or not GLAccount."Direct Posting" or (GLAccount."Account Type" <> GLAccount."Account Type"::Posting) then
-                                Error(GLAccountBlockedOrNotForDirectPostingErr, "No.");
-                        end;
-                end;
+                if "No." <> '' then
+                    case "Contract Line Type" of
+                        "Contract Line Type"::Item:
+                            begin
+                                if not Item.Get("No.") then
+                                    Error(EntityDoesNotExistErr, Item.TableCaption, "No.");
+                                if Item.Blocked or Item."Subscription Option" in ["Item Service Commitment Type"::"Sales without Service Commitment", "Item Service Commitment Type"::"Sales without Service Commitment"] then
+                                    Error(ItemBlockedOrWithoutServiceCommitmentsErr, "No.");
+                            end;
+                        "Contract Line Type"::"G/L Account":
+                            begin
+                                if not GLAccount.Get("No.") then
+                                    Error(EntityDoesNotExistErr, GLAccount.TableCaption, "No.");
+                                if GLAccount.Blocked or not GLAccount."Direct Posting" or (GLAccount."Account Type" <> GLAccount."Account Type"::Posting) then
+                                    Error(GLAccountBlockedOrNotForDirectPostingErr, "No.");
+                            end;
+                    end;
 
+                CheckAndDisconnectContractLine();
                 TempVendorContractLine := Rec;
                 Init();
                 SystemId := TempVendorContractLine.SystemId;
@@ -168,6 +170,8 @@ table 8065 "Vend. Sub. Contract Line"
         ServiceObject: Record "Subscription Header";
         ServiceCommitment: Record "Subscription Line";
     begin
+        if "No." = '' then
+            exit;
         VendorContract.Get("Subscription Contract No.");
         ServiceObject.InitForSourceNo("Contract Line Type", "No.");
         ServiceObject."Created in Contract line" := true;
