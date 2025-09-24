@@ -24,7 +24,7 @@ codeunit 4409 "Fixed Asset Excel Reports"
         Assert: Codeunit Assert;
 
     [Test]
-    [HandlerFunctions('EXRFixedAssetAnalysisExcelHandler')]
+    [HandlerFunctions('EXRFixedAssetAnalysisExcelHandler2')]
     procedure FirstTimeOpeningRequestPageOfFixedAssetAnalysisShouldInsertPostingTypes()
     var
         RequestPageXml: Text;
