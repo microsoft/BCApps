@@ -11,7 +11,7 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Posting;
 using System.TestLibraries.Utilities;
 
-codeunit 139545 "Fixed Asset Excel Reports"
+codeunit 4409 "Fixed Asset Excel Reports"
 {
     Subtype = Test;
     RequiredTestIsolation = Disabled;
