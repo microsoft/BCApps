@@ -7,10 +7,18 @@ namespace Microsoft.Peppol;
 using Microsoft.Service.History;
 using System.IO;
 
+/// <summary>
+/// Codeunit for exporting service invoices in PEPPOL 3.0 format.
+/// Handles the export process including validation and XML generation.
+/// </summary>
 codeunit 37212 "Exp. Serv.Inv. PEPPOL30"
 {
     TableNo = "Record Export Buffer";
 
+    /// <summary>
+    /// Main trigger that processes the export of a service invoice to PEPPOL 3.0 format.
+    /// Validates the document and generates the XML output.
+    /// </summary>
     trigger OnRun()
     var
         ServiceInvoiceHeader: Record "Service Invoice Header";
@@ -29,6 +37,11 @@ codeunit 37212 "Exp. Serv.Inv. PEPPOL30"
         Rec.Modify();
     end;
 
+    /// <summary>
+    /// Generates the XML file for a PEPPOL 3.0 service invoice.
+    /// </summary>
+    /// <param name="VariantRec">The record containing the service invoice data.</param>
+    /// <param name="OutStr">The output stream to write the XML data to.</param>
     procedure GenerateXMLFile(VariantRec: Variant; var OutStr: OutStream)
     var
         SalesInvoicePEPPOLBIS30: XMLport "Sales Invoice - PEPPOL30";

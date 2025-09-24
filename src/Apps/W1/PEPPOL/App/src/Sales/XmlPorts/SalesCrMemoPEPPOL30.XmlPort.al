@@ -5,16 +5,20 @@
 
 namespace Microsoft.Peppol;
 
-using Microsoft.Foundation.Company;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Service.History;
+using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.Company;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Service.History;
 using System.Utilities;
-using Microsoft.Foundation.Attachment;
 
+/// <summary>
+/// XMLPort for exporting Sales Credit Memos in PEPPOL BIS 3.0 format.
+/// Generates UBL-compliant XML documents for electronic credit notes according to PEPPOL standards.
+/// </summary>
 xmlport 37200 "Sales Cr.Memo - PEPPOL30"
 {
     Caption = 'Sales Cr.Memo - PEPPOL BIS 3.0';

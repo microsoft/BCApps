@@ -7,9 +7,16 @@ namespace Microsoft.Peppol;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
 
+/// <summary>
+/// Initializes PEPPOL30 electronic document formats during company initialization.
+/// </summary>
 codeunit 37204 "PEPPOL30 Initialize"
 {
     Access = Internal;
+
+    /// <summary>
+    /// Event subscriber for company initialization that sets up PEPPOL30 electronic document formats.
+    /// </summary>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", OnAfterInitElectronicFormats, '', false, false)]
     local procedure CompanyInitialize_OnAfterInitElectronicFormats()
     var

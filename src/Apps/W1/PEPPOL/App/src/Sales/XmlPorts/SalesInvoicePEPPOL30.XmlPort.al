@@ -4,15 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
-using Microsoft.Peppol;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Peppol;
 using System.Utilities;
 
+/// <summary>
+/// XMLPort for exporting Sales Invoices in PEPPOL BIS 3.0 format.
+/// Generates UBL-compliant XML documents for electronic invoicing according to PEPPOL standards.
+/// </summary>
 xmlport 37201 "Sales Invoice - PEPPOL30"
 {
     Caption = 'Sales Invoice - PEPPOL BIS 3.0';

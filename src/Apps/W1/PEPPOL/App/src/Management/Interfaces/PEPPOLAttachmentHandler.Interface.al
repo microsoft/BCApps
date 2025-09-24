@@ -7,6 +7,11 @@ namespace Microsoft.Peppol;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Document;
 
+/// <summary>
+/// Interface for handling document attachments in PEPPOL electronic documents.
+/// Provides methods for processing document attachments, generating additional document references,
+/// and creating PDF attachments for inclusion in PEPPOL XML documents according to UBL standards.
+/// </summary>
 interface "PEPPOL Attachment Handler"
 {
     /// <summary>

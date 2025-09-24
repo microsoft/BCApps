@@ -1,3 +1,19 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Peppol;
+
+using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Attachment;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+
+/// <summary>
+/// Manages PEPPOL 3.0 export operations for sales documents.
+/// Implements the PEPPOL30 Export Management interface to handle sales-specific export functionality.
+/// </summary>
 codeunit 37213 "Sales Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Management"
 {
     var
@@ -7,6 +23,12 @@ codeunit 37213 "Sales Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Managem
         SalesLine: Record "Sales Line";
         DocumentNo: Code[20];
 
+    /// <summary>
+    /// Initializes the export management with the provided record reference and associated data.
+    /// </summary>
+    /// <param name="NewRecordRef">The record reference to the source document.</param>
+    /// <param name="TempSalesLineRounding">Temporary sales line record for handling rounding adjustments.</param>
+    /// <param name="DocumentAttachments">Document attachments record for handling file attachments.</param>
     procedure Init(NewRecordRef: RecordRef; var TempSalesLineRounding: Record "Sales Line" temporary; var DocumentAttachments: Record "Document Attachment")
     var
         PEPPOLMonetaryInfoProvider: Interface "PEPPOL Monetary Info Provider";
@@ -33,6 +55,12 @@ codeunit 37213 "Sales Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Managem
         DocumentAttachments.SetRange("No.", SalesCrMemoHeader."No.");
     end;
 
+    /// <summary>
+    /// Finds the next sales credit memo record in the export sequence.
+    /// </summary>
+    /// <param name="Position">The position/index for finding the next record.</param>
+    /// <param name="EDocumentFormat">The e-document format to use.</param>
+    /// <returns>True if a record was found, false otherwise.</returns>
     procedure FindNextRec(Position: Integer; EDocumentFormat: Enum "E-Document Format") Found: Boolean
     var
         PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
@@ -41,6 +69,12 @@ codeunit 37213 "Sales Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Managem
         exit(PEPPOLPostedDocumentIterator.FindNextSalesCreditMemoRec(SalesCrMemoHeader, SalesHeader, Position));
     end;
 
+    /// <summary>
+    /// Finds the next sales credit memo line record in the export sequence.
+    /// </summary>
+    /// <param name="Position">The position/index for finding the next line record.</param>
+    /// <param name="EDocumentFormat">The e-document format to use.</param>
+    /// <returns>True if a line record was found, false otherwise.</returns>
     procedure FindNextLineRec(Position: Integer; EDocumentFormat: Enum "E-Document Format"): Boolean
     var
         PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
@@ -49,9 +83,14 @@ codeunit 37213 "Sales Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Managem
         exit(PEPPOLPostedDocumentIterator.FindNextSalesCreditMemoLineRec(SalesCrMemoLine, SalesLine, Position));
     end;
 
+    /// <summary>
+    /// Calculates and retrieves VAT totals for the sales credit memo.
+    /// </summary>
+    /// <param name="TempVATAmtLine">Temporary VAT amount line record to store calculated totals.</param>
+    /// <param name="TempVATProductPostingGroup">Temporary VAT product posting group record.</param>
     procedure GetTotals(var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary);
     var
-       PEPPOLTaxInfoProvider: Interface "PEPPOL Tax Info Provider";
+        PEPPOLTaxInfoProvider: Interface "PEPPOL Tax Info Provider";
     begin
         SalesCrMemoLine.SetRange("Document No.", DocumentNo);
         if SalesCrMemoLine.FindSet() then

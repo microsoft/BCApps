@@ -7,6 +7,11 @@ namespace Microsoft.Peppol;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 
+/// <summary>
+/// Interface for validating sales documents against PEPPOL 3.0 compliance requirements.
+/// Provides comprehensive validation methods for sales headers, lines, and posted documents
+/// to ensure they meet PEPPOL electronic document standards and business rules.
+/// </summary>
 interface "PEPPOL30 Validation"
 {
     /// <summary>

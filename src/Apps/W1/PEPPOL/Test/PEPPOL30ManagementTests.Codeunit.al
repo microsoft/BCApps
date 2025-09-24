@@ -1,57 +1,91 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Peppol.Test;
+
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Service.Document;
+using Microsoft.Service.History;
+using System.TestLibraries.ERM;
+using System.TestLibraries.Inventory;
+using System.TestLibraries.Random;
+using System.TestLibraries.Sales;
+using System.TestLibraries.Service;
+using System.TestLibraries.Utilities;
+using System.TestLibraries.Xml;
+using System.TestTools.Assert;
+using System.TestTools.TestRunner;
+
+/// <summary>
+/// Test codeunit for PEPPOL 3.0 management functionality.
+/// Contains comprehensive tests for PEPPOL document generation, validation, and export processes.
+/// Covers both sales and service document scenarios.
+/// </summary>
 codeunit 50100 "PEPPOL30 Management Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
 
+    /// <summary>
+    /// Main trigger indicating this codeunit tests PEPPOL sales functionality.
+    /// </summary>
     trigger OnRun()
     begin
         // [FEATURE] [Sales] [PEPPOL]
     end;
 
     var
-        LibraryService: Codeunit "Library - Service";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryERM: Codeunit "Library - ERM";
-        LibraryResource: Codeunit "Library - Resource";
         Assert: Codeunit Assert;
-        LibraryRandom: Codeunit "Library - Random";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInvt: Codeunit "Library - Inventory";
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryResource: Codeunit "Library - Resource";
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryService: Codeunit "Library - Service";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryXMLRead: Codeunit "Library - XML Read";
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         IsInitialized: Boolean;
-        SalespersonTxt: Label 'Salesperson';
-        InvoiceDiscAmtTxt: Label 'Line Discount Amount';
-        NoUnitOfMeasureErr: Label 'The Invoice %1 contains lines on which the Unit of Measure Code field is empty.';
-        NoItemDescriptionErr: Label 'Description field is empty.';
-        NoInternationalStandardCodeErr: Label 'You must specify a valid International Standard Code for the Unit of Measure for %1.';
-        NegativeUnitPriceErr: Label 'It cannot be negative if you want to send the posted document as an electronic document. \\Do you want to continue?', Comment = '%1 - record ID';
         FieldMustHaveValueErr: Label '%1 must have a value';
+        InvoiceDiscAmtTxt: Label 'Line Discount Amount';
         InvoiceElectronicallySendPEPPOLFormatTxt: Label 'The Invoice File Sucessfully Send in PEEPOL Format';
+        NegativeUnitPriceErr: Label 'It cannot be negative if you want to send the posted document as an electronic document. \\Do you want to continue?', Comment = '%1 - record ID';
+        NoInternationalStandardCodeErr: Label 'You must specify a valid International Standard Code for the Unit of Measure for %1.';
+        NoItemDescriptionErr: Label 'Description field is empty.';
+        NoUnitOfMeasureErr: Label 'The Invoice %1 contains lines on which the Unit of Measure Code field is empty.';
+        SalespersonTxt: Label 'Salesperson';
 
     [Test]
     procedure GeneralInfo()
     var
-        SalesHeader: Record "Sales Header";
-        SalesInvoiceHeader: Record "Sales Invoice Header";
         Cust: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesLine: Record "Sales Line";
         PEPPOLMgt: Codeunit "PEPPOL Management";
         SalesInvoiceNo: Code[20];
-        ID: Text;
-        IssueDate: Text;
-        InvoiceTypeCode: Text;
-        InvoiceTypeCodeListID: Text;
-        Note: Text;
-        TaxPointDate: Text;
+        AccountingCost: Text;
         DocumentCurrencyCode: Text;
         DocumentCurrencyCodeListID: Text;
+        ID: Text;
+        InvoiceTypeCode: Text;
+        InvoiceTypeCodeListID: Text;
+        IssueDate: Text;
+        Note: Text;
         TaxCurrencyCode: Text;
         TaxCurrencyCodeListID: Text;
-        AccountingCost: Text;
+        TaxPointDate: Text;
     begin
         Initialize();
 
@@ -101,8 +135,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     procedure GetInvoicePeriodInfo()
     var
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        StartDate: Text;
         EndDate: Text;
+        StartDate: Text;
     begin
         // Setup
         Initialize();
@@ -118,9 +152,9 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetOrderReferenceInfo()
     var
-        SalesHeader: Record "Sales Header";
         Cust: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         PEPPOLMgt: Codeunit "PEPPOL Management";
         OrderReferenceID: Text;
@@ -149,15 +183,15 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetContractDocRef()
     var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         Cust: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
         PEPPOLMgt: Codeunit "PEPPOL Management";
         ContractDocumentReferenceID: Text;
-        DocumentTypeCode: Text;
         ContractRefDocTypeCodeListID: Text;
         DocumentType: Text;
+        DocumentTypeCode: Text;
     begin
         // Setup
         Initialize();
@@ -189,11 +223,11 @@ codeunit 50100 "PEPPOL30 Management Tests"
     var
         SalesHeader: Record "Sales Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        AdditionalDocumentReferenceID: Text;
         AdditionalDocRefDocumentType: Text;
-        URI: Text;
-        MimeCode: Text;
+        AdditionalDocumentReferenceID: Text;
         EmbeddedDocumentBinaryObject: Text;
+        MimeCode: Text;
+        URI: Text;
     begin
         // Setup
         Initialize();
@@ -217,8 +251,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
         PEPPOLMgt: Codeunit "PEPPOL Management";
         NewGLNNo: Code[13];
         SupplierEndpointID: Text;
-        SupplierSchemeID: Text;
         SupplierName: Text;
+        SupplierSchemeID: Text;
     begin
         // Setup
         Initialize();
@@ -247,8 +281,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
         CountryRegion: Record "Country/Region";
         PEPPOLMgt: Codeunit "PEPPOL Management";
         SupplierEndpointID: Text;
-        SupplierSchemeID: Text;
         SupplierName: Text;
+        SupplierSchemeID: Text;
     begin
         // Setup
         CompanyInfo.Get();
@@ -272,17 +306,17 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetAccountingSupplierPartyPostalAddr()
     var
-        DummySalesHeader: Record "Sales Header";
         CompanyInfo: Record "Company Information";
         CountryRegion: Record "Country/Region";
+        DummySalesHeader: Record "Sales Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        StreetName: Text;
-        SupplierAdditionalStreetName: Text;
         CityName: Text;
-        PostalZone: Text;
         CountrySubentity: Text;
         IdentificationCode: Text;
         ListID: Text;
+        PostalZone: Text;
+        StreetName: Text;
+        SupplierAdditionalStreetName: Text;
     begin
         // Setup
         Initialize();
@@ -315,18 +349,18 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetAccountingSupplierPartyPostalAddr_RespCenter()
     var
-        DummySalesHeader: Record "Sales Header";
         CompanyInfo: Record "Company Information";
-        RespCenter: Record "Responsibility Center";
         CountryRegion: Record "Country/Region";
+        RespCenter: Record "Responsibility Center";
+        DummySalesHeader: Record "Sales Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        StreetName: Text;
-        SupplierAdditionalStreetName: Text;
         CityName: Text;
-        PostalZone: Text;
         CountrySubentity: Text;
         IdentificationCode: Text;
         ListID: Text;
+        PostalZone: Text;
+        StreetName: Text;
+        SupplierAdditionalStreetName: Text;
     begin
         // Setup
         Initialize();
@@ -402,8 +436,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     var
         CompanyInfo: Record "Company Information";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        PartyLegalEntityRegName: Text;
         PartyLegalEntityCompanyID: Text;
+        PartyLegalEntityRegName: Text;
         PartyLegalEntitySchemeID: Text;
         SupplierRegAddrCityName: Text;
         SupplierRegAddrCountryIdCode: Text;
@@ -438,8 +472,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
         CompanyInfo: Record "Company Information";
         CountryRegion: Record "Country/Region";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        PartyLegalEntityRegName: Text;
         PartyLegalEntityCompanyID: Text;
+        PartyLegalEntityRegName: Text;
         PartyLegalEntitySchemeID: Text;
         SupplierRegAddrCityName: Text;
         SupplierRegAddrCountryIdCode: Text;
@@ -478,15 +512,15 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetAccountingSupplierPartyContact()
     var
+        CompanyInfo: Record "Company Information";
         DummySalesHeader: Record "Sales Header";
         Salesperson: Record "Salesperson/Purchaser";
-        CompanyInfo: Record "Company Information";
         PEPPOLMgt: Codeunit "PEPPOL Management";
         ContactID: Text;
         ContactName: Text;
-        Telephone: Text;
-        Telefax: Text;
         ElectronicMail: Text;
+        Telefax: Text;
+        Telephone: Text;
     begin
         // Setup
         Initialize();
@@ -518,15 +552,15 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetAccountingCustomerPartyInfo()
     var
-        DummySalesHeader: Record "Sales Header";
         Cust: Record Customer;
+        DummySalesHeader: Record "Sales Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        NewGLNNo: Text[13];
         CustomerEndpointID: Text;
-        CustomerSchemeID: Text;
+        CustomerName: Text;
         CustomerPartyIdentificationID: Text;
         CustomerPartyIDSchemeID: Text;
-        CustomerName: Text;
+        CustomerSchemeID: Text;
+        NewGLNNo: Text[13];
     begin
         // Setup for GLN
         Initialize();
@@ -556,16 +590,16 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetAccountingCustomerPartyInfo_VATRegNo()
     var
-        DummySalesHeader: Record "Sales Header";
         CompanyInfo: Record "Company Information";
         CountryRegion: Record "Country/Region";
         Cust: Record Customer;
+        DummySalesHeader: Record "Sales Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
         CustomerEndpointID: Text;
-        CustomerSchemeID: Text;
+        CustomerName: Text;
         CustomerPartyIdentificationID: Text;
         CustomerPartyIDSchemeID: Text;
-        CustomerName: Text;
+        CustomerSchemeID: Text;
     begin
         // Setup
         Initialize();
@@ -594,16 +628,16 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetAccountingCustomerPartyPostalAddr()
     var
-        SalesHeader: Record "Sales Header";
         CountryRegion: Record "Country/Region";
+        SalesHeader: Record "Sales Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        CustomerStreetName: Text;
         CustomerAdditionalStreetName: Text;
         CustomerCityName: Text;
-        CustomerPostalZone: Text;
         CustomerCountrySubentity: Text;
         CustomerIdentificationCode: Text;
         CustomerListID: Text;
+        CustomerPostalZone: Text;
+        CustomerStreetName: Text;
     begin
         // Setup
         Initialize();
@@ -635,9 +669,9 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetAccountingCustomerPartyTaxScheme()
     var
-        DummySalesHeader: Record "Sales Header";
-        CountryRegion: Record "Country/Region";
         CompanyInfo: Record "Company Information";
+        CountryRegion: Record "Country/Region";
+        DummySalesHeader: Record "Sales Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
         CustPartyTaxSchemeCompanyID: Text;
         CustPartyTaxSchemeCompIDSchID: Text;
@@ -667,13 +701,13 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetAccountingCustomerPartyLegalEntity_GLN()
     var
-        DummySalesHeader: Record "Sales Header";
-        Cust: Record Customer;
         CountryRegion: Record "Country/Region";
+        Cust: Record Customer;
+        DummySalesHeader: Record "Sales Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        CustPartyLegalEntityRegName: Text;
         CustPartyLegalEntityCompanyID: Text;
         CustPartyLegalEntityIDSchemeID: Text;
+        CustPartyLegalEntityRegName: Text;
     begin
         // Setup
         Initialize();
@@ -699,13 +733,13 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetAccountingCustomerPartyLegalEntity_VATRegNo()
     var
-        DummySalesHeader: Record "Sales Header";
-        Cust: Record Customer;
         CountryRegion: Record "Country/Region";
+        Cust: Record Customer;
+        DummySalesHeader: Record "Sales Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        CustPartyLegalEntityRegName: Text;
         CustPartyLegalEntityCompanyID: Text;
         CustPartyLegalEntityIDSchemeID: Text;
+        CustPartyLegalEntityRegName: Text;
     begin
         // Setup
         Initialize();
@@ -733,14 +767,14 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetAccountingCustomerPartyContact()
     var
-        DummySalesHeader: Record "Sales Header";
         Customer: Record Customer;
+        DummySalesHeader: Record "Sales Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
+        CustContactElectronicMail: Text;
         CustContactID: Text;
         CustContactName: Text;
-        CustContactTelephone: Text;
         CustContactTelefax: Text;
-        CustContactElectronicMail: Text;
+        CustContactTelephone: Text;
     begin
         // [FEATURE] [UT]
         // [SCENARIO 252033] GetAccountingCustomerPartyContact returns Bill-to Name when Contact is blank as ContactName
@@ -768,11 +802,11 @@ codeunit 50100 "PEPPOL30 Management Tests"
     var
         DummySalesHeader: Record "Sales Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
+        CustContactElectronicMail: Text;
         CustContactID: Text;
         CustContactName: Text;
-        CustContactTelephone: Text;
         CustContactTelefax: Text;
-        CustContactElectronicMail: Text;
+        CustContactTelephone: Text;
     begin
         // [FEATURE] [UT]
         // [SCENARIO 252033] GetAccountingCustomerPartyContact returns Bill-to Contact when not blank as ContactName
@@ -789,20 +823,19 @@ codeunit 50100 "PEPPOL30 Management Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure GetPayeePartyInfo()
     var
         CompanyInfo: Record "Company Information";
         CountryRegion: Record "Country/Region";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        PayeePartyID: Text;
-        PayeePartyIDSchemeID: Text;
-        PayeePartyNameName: Text;
-        PayeePartyLegalEntityCompanyID: Text;
-        PayeePartyLegalCompIDSchemeID: Text;
         NewGLNNo: Code[13];
         NewVATNo: Code[20];
         NewName: Code[50];
+        PayeePartyID: Text;
+        PayeePartyIDSchemeID: Text;
+        PayeePartyLegalCompIDSchemeID: Text;
+        PayeePartyLegalEntityCompanyID: Text;
+        PayeePartyNameName: Text;
     begin
         // Setup
         Initialize();
@@ -840,10 +873,10 @@ codeunit 50100 "PEPPOL30 Management Tests"
     procedure GetTaxRepresentativePartyInfo()
     var
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        TaxRepPartyNameName: Text;
-        PayeePartyTaxSchemeCompanyID: Text;
         PayeePartyTaxSchCompIDSchemeID: Text;
+        PayeePartyTaxSchemeCompanyID: Text;
         PayeePartyTaxSchemeTaxSchemeID: Text;
+        TaxRepPartyNameName: Text;
     begin
         // Setup
         Initialize();
@@ -882,16 +915,16 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetDeliveryAddress()
     var
-        DummySalesHeader: Record "Sales Header";
         CountryRegion: Record "Country/Region";
+        DummySalesHeader: Record "Sales Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        DeliveryStreetName: Text;
         DeliveryAdditionalStreetName: Text;
         DeliveryCityName: Text;
-        DeliveryPostalZone: Text;
-        DeliveryCountrySubentity: Text;
         DeliveryCountryIdCode: Text;
         DeliveryCountryListID: Text;
+        DeliveryCountrySubentity: Text;
+        DeliveryPostalZone: Text;
+        DeliveryStreetName: Text;
     begin
         // Setup
         Initialize();
@@ -924,13 +957,13 @@ codeunit 50100 "PEPPOL30 Management Tests"
     var
         DummySalesHeader: Record "Sales Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
+        NetworkID: Text;
+        PaymentChannelCode: Text;
+        PaymentDueDate: Text;
+        PaymentID: Text;
         PaymentMeansCode: Text;
         PaymentMeansListID: Text;
-        PaymentDueDate: Text;
-        PaymentChannelCode: Text;
-        PaymentID: Text;
         PrimaryAccountNumberID: Text;
-        NetworkID: Text;
     begin
         // Setup
         Initialize();
@@ -957,12 +990,12 @@ codeunit 50100 "PEPPOL30 Management Tests"
     var
         CompanyInfo: Record "Company Information";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        PayeeFinancialAccountID: Text;
-        PaymentMeansSchemeID: Text;
         FinancialInstitutionBranchID: Text;
         FinancialInstitutionID: Text;
-        FinancialInstitutionSchemeID: Text;
         FinancialInstitutionName: Text;
+        FinancialInstitutionSchemeID: Text;
+        PayeeFinancialAccountID: Text;
+        PaymentMeansSchemeID: Text;
     begin
         // Setup for IBAN
         Initialize();
@@ -993,12 +1026,12 @@ codeunit 50100 "PEPPOL30 Management Tests"
     var
         CompanyInfo: Record "Company Information";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        PayeeFinancialAccountID: Text;
-        PaymentMeansSchemeID: Text;
         FinancialInstitutionBranchID: Text;
         FinancialInstitutionID: Text;
-        FinancialInstitutionSchemeID: Text;
         FinancialInstitutionName: Text;
+        FinancialInstitutionSchemeID: Text;
+        PayeeFinancialAccountID: Text;
+        PaymentMeansSchemeID: Text;
     begin
         // Setup for IBAN
         Initialize();
@@ -1029,12 +1062,12 @@ codeunit 50100 "PEPPOL30 Management Tests"
     var
         CompanyInfo: Record "Company Information";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        PayeeFinancialAccountID: Text;
-        PaymentMeansSchemeID: Text;
         FinancialInstitutionBranchID: Text;
         FinancialInstitutionID: Text;
-        FinancialInstitutionSchemeID: Text;
         FinancialInstitutionName: Text;
+        FinancialInstitutionSchemeID: Text;
+        PayeeFinancialAccountID: Text;
+        PaymentMeansSchemeID: Text;
     begin
         // Setup for Bank Acc.
         Initialize();
@@ -1063,13 +1096,13 @@ codeunit 50100 "PEPPOL30 Management Tests"
     procedure GetPaymentMeansFinancialInstitutionAddr()
     var
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        FinancialInstitutionStreetName: Text;
         AdditionalStreetName: Text;
-        FinancialInstitutionCityName: Text;
-        FinancialInstitutionPostalZone: Text;
-        FinancialInstCountrySubentity: Text;
         FinancialInstCountryIdCode: Text;
         FinancialInstCountryListID: Text;
+        FinancialInstCountrySubentity: Text;
+        FinancialInstitutionCityName: Text;
+        FinancialInstitutionPostalZone: Text;
+        FinancialInstitutionStreetName: Text;
     begin
         // Setup
         Initialize();
@@ -1094,13 +1127,13 @@ codeunit 50100 "PEPPOL30 Management Tests"
     var
         DummySalesHeader: Record "Sales Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
+        NetworkID: Text;
+        PaymentChannelCode: Text;
+        PaymentDueDate: Text;
+        PaymentID: Text;
         PaymentMeansCode: Text;
         PaymentMeansListID: Text;
-        PaymentDueDate: Text;
-        PaymentChannelCode: Text;
-        PaymentID: Text;
         PrimaryAccountNumberID: Text;
-        NetworkID: Text;
     begin
         // Setup
         Initialize();
@@ -1125,23 +1158,23 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetAllowanceChargeInfo()
     var
-        TempVATAmtLine: Record "VAT Amount Line" temporary;
-        SalesHeader: Record "Sales Header";
-        Item: Record Item;
         CustInvoiceDisc: Record "Cust. Invoice Disc.";
         Cust: Record Customer;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+        TempVATAmtLine: Record "VAT Amount Line" temporary;
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        ChargeIndicator: Text;
-        AllowanceChargeReasonCode: Text;
+        AllowanceChargeCurrencyID: Text;
         AllowanceChargeListID: Text;
         AllowanceChargeReason: Text;
+        AllowanceChargeReasonCode: Text;
+        AllowanceChargeTaxSchemeID: Text;
         Amount: Text;
-        AllowanceChargeCurrencyID: Text;
+        ChargeIndicator: Text;
+        Percent: Text;
         TaxCategoryID: Text;
         TaxCategorySchemeID: Text;
-        Percent: Text;
-        AllowanceChargeTaxSchemeID: Text;
     begin
         // Setup
         Initialize();
@@ -1190,18 +1223,18 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetTaxExchangeRateInfo()
     var
-        SalesHeader: Record "Sales Header";
         Cust: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         PEPPOLMgt: Codeunit "PEPPOL Management";
+        CalculationRate: Text;
+        Date: Text;
+        MathematicOperatorCode: Text;
         SourceCurrencyCode: Text;
         SourceCurrencyCodeListID: Text;
         TargetCurrencyCode: Text;
         TargetCurrencyCodeListID: Text;
-        CalculationRate: Text;
-        MathematicOperatorCode: Text;
-        Date: Text;
     begin
         // Setup
         Initialize();
@@ -1236,11 +1269,11 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetTaxTotalInfo()
     var
+        CustInvoiceDisc: Record "Cust. Invoice Disc.";
+        Cust: Record Customer;
+        Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        Cust: Record Customer;
-        CustInvoiceDisc: Record "Cust. Invoice Disc.";
-        Item: Record Item;
         TempVATAmtLine: Record "VAT Amount Line" temporary;
         PEPPOLMgt: Codeunit "PEPPOL Management";
         TaxAmount: Text;
@@ -1282,10 +1315,10 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetTaxTotalInfoLCYForLCYInvoice()
     var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         Customer: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
         PEPPOLMgt: Codeunit "PEPPOL Management";
         TaxAmount: Text;
         TaxCurrencyID: Text;
@@ -1311,10 +1344,10 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetTaxTotalInfoLCYForFCYInvoice()
     var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         Customer: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
         VATEntry: Record "VAT Entry";
         PEPPOLMgt: Codeunit "PEPPOL Management";
         TaxAmount: Text;
@@ -1345,10 +1378,10 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetTaxTotalInfoLCYForCrMemoInvoice()
     var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         Customer: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
         VATEntry: Record "VAT Entry";
         PEPPOLMgt: Codeunit "PEPPOL Management";
         TaxAmount: Text;
@@ -1379,23 +1412,23 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetTaxSubtotalInfo()
     var
-        TempVATAmtLine: Record "VAT Amount Line" temporary;
-        SalesHeader: Record "Sales Header";
-        Cust: Record Customer;
         CustInvoiceDisc: Record "Cust. Invoice Disc.";
+        Cust: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+        TempVATAmtLine: Record "VAT Amount Line" temporary;
         PEPPOLMgt: Codeunit "PEPPOL Management";
+        schemeID: Text;
+        SubtotalTaxAmount: Text;
         TaxableAmount: Text;
         TaxAmountCurrencyID: Text;
-        SubtotalTaxAmount: Text;
+        TaxCategoryPercent: Text;
         TaxSubtotalCurrencyID: Text;
+        TaxTotalTaxCategoryID: Text;
+        TaxTotalTaxSchemeID: Text;
         TransactionCurrencyTaxAmount: Text;
         TransCurrTaxAmtCurrencyID: Text;
-        TaxTotalTaxCategoryID: Text;
-        schemeID: Text;
-        TaxCategoryPercent: Text;
-        TaxTotalTaxSchemeID: Text;
     begin
         // Setup
         Initialize();
@@ -1453,13 +1486,13 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetTotals_DiffVATGroups()
     var
+        Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        Item: Record Item;
-        VATProductPostingGroup: Record "VAT Product Posting Group";
+        TempVATAmountLine: Record "VAT Amount Line" temporary;
         VATPostingSetup1: Record "VAT Posting Setup";
         VATPostingSetup2: Record "VAT Posting Setup";
-        TempVATAmountLine: Record "VAT Amount Line" temporary;
+        VATProductPostingGroup: Record "VAT Product Posting Group";
         PEPPOLManagement: Codeunit "PEPPOL Management";
     begin
         // [FEATURE] [UT]
@@ -1513,11 +1546,11 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetTotals_PositiveNegativeLines()
     var
+        Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        Item: Record Item;
-        VATPostingSetup: Record "VAT Posting Setup";
         TempVATAmountLine: Record "VAT Amount Line" temporary;
+        VATPostingSetup: Record "VAT Posting Setup";
         PEPPOLManagement: Codeunit "PEPPOL Management";
     begin
         // [FEATURE] [UT]
@@ -1639,8 +1672,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     procedure GetLineInvoicePeriodInfo()
     var
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        InvLineInvoicePeriodStartDate: Text;
         InvLineInvoicePeriodEndDate: Text;
+        InvLineInvoicePeriodStartDate: Text;
     begin
         // Setup
         Initialize();
@@ -1688,18 +1721,18 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetLineAllowanceChargeInfo()
     var
-        SalesLine: Record "Sales Line";
-        SalesHeader: Record "Sales Header";
+        CustInvoiceDisc: Record "Cust. Invoice Disc.";
         Cust: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
-        CustInvoiceDisc: Record "Cust. Invoice Disc.";
+        SalesLine: Record "Sales Line";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        InvLnAllowanceChargeIndicator: Text;
-        InvLnAllowanceChargeReason: Text;
+        SalesInvoiceNo: Code[20];
         InvLnAllowanceChargeAmount: Text;
         InvLnAllowanceChargeAmtCurrID: Text;
-        SalesInvoiceNo: Code[20];
+        InvLnAllowanceChargeIndicator: Text;
+        InvLnAllowanceChargeReason: Text;
     begin
         // Setup
         Initialize();
@@ -1745,15 +1778,15 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetLineTaxTotal()
     var
-        SalesLine: Record "Sales Line";
-        SalesHeader: Record "Sales Header";
         Cust: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesLine: Record "Sales Line";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        InvoiceLineTaxAmount: Text;
-        currencyID: Text;
         SalesInvoiceNo: Code[20];
+        currencyID: Text;
+        InvoiceLineTaxAmount: Text;
     begin
         // Setup
         Initialize();
@@ -1781,20 +1814,20 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetLineItemInfoAsItem()
     var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         Cust: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesLine: Record "Sales Line";
         PEPPOLMgt: Codeunit "PEPPOL Management";
+        SalesInvoiceNo: Code[20];
         Description: Text;
         Name: Text;
+        OriginCountryIdCode: Text;
+        OriginCountryIdCodeListID: Text;
         SellersItemIdentificationID: Text;
         StandardItemIdentificationID: Text;
         StdItemIdIDSchemeID: Text;
-        OriginCountryIdCode: Text;
-        OriginCountryIdCodeListID: Text;
-        SalesInvoiceNo: Code[20];
     begin
         // Setup
         Initialize();
@@ -1829,22 +1862,22 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetLineItemInfoAsResource()
     var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         Cust: Record Customer;
-        VATPostingSetup: Record "VAT Posting Setup";
         GeneralPostingSetup: Record "General Posting Setup";
         Resource: Record Resource;
+        SalesHeader: Record "Sales Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesLine: Record "Sales Line";
+        VATPostingSetup: Record "VAT Posting Setup";
         PEPPOLMgt: Codeunit "PEPPOL Management";
+        SalesInvoiceNo: Code[20];
         Description: Text;
         Name: Text;
+        OriginCountryIdCode: Text;
+        OriginCountryIdCodeListID: Text;
         SellersItemIdentificationID: Text;
         StandardItemIdentificationID: Text;
         StdItemIdIDSchemeID: Text;
-        OriginCountryIdCode: Text;
-        OriginCountryIdCodeListID: Text;
-        SalesInvoiceNo: Code[20];
     begin
         // Setup
         Initialize();
@@ -1885,22 +1918,22 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetLineItemInfoAsGLLine()
     var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         Cust: Record Customer;
         GLAccount: Record "G/L Account";
-        VATPostingSetup: Record "VAT Posting Setup";
         GeneralPostingSetup: Record "General Posting Setup";
+        SalesHeader: Record "Sales Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesLine: Record "Sales Line";
+        VATPostingSetup: Record "VAT Posting Setup";
         PEPPOLMgt: Codeunit "PEPPOL Management";
+        SalesInvoiceNo: Code[20];
         Description: Text;
         Name: Text;
+        OriginCountryIdCode: Text;
+        OriginCountryIdCodeListID: Text;
         SellersItemIdentificationID: Text;
         StandardItemIdentificationID: Text;
         StdItemIdIDSchemeID: Text;
-        OriginCountryIdCode: Text;
-        OriginCountryIdCodeListID: Text;
-        SalesInvoiceNo: Code[20];
     begin
         // Setup
         Initialize();
@@ -1945,22 +1978,22 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetLineItemInfoAsItemCharge()
     var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         Cust: Record Customer;
         Item: Record Item;
         ItemCharge: Record "Item Charge";
         ItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)";
+        SalesHeader: Record "Sales Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesLine: Record "Sales Line";
         PEPPOLMgt: Codeunit "PEPPOL Management";
+        SalesInvoiceNo: Code[20];
         Description: Text;
         Name: Text;
+        OriginCountryIdCode: Text;
+        OriginCountryIdCodeListID: Text;
         SellersItemIdentificationID: Text;
         StandardItemIdentificationID: Text;
         StdItemIdIDSchemeID: Text;
-        OriginCountryIdCode: Text;
-        OriginCountryIdCodeListID: Text;
-        SalesInvoiceNo: Code[20];
     begin
         // Setup
         Initialize();
@@ -2002,17 +2035,17 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetLineItemCommodityClassificationInfo()
     var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         Cust: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesLine: Record "Sales Line";
         PEPPOLMgt: Codeunit "PEPPOL Management";
+        SalesInvoiceNo: Code[20];
         CommodityCode: Text;
         CommodityCodeListID: Text;
         ItemClassificationCode: Text;
         ItemClassificationCodeListID: Text;
-        SalesInvoiceNo: Code[20];
     begin
         // Setup
         Initialize();
@@ -2043,18 +2076,18 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetLineItemClassifiedTaxCategory()
     var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         Cust: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesLine: Record "Sales Line";
         VATPostingSetup: Record "VAT Posting Setup";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        ClassifiedTaxCategoryID: Text;
-        ItemSchemeID: Text;
-        InvoiceLineTaxPercent: Text;
-        ClassifiedTaxCategorySchemeID: Text;
         SalesInvoiceNo: Code[20];
+        ClassifiedTaxCategoryID: Text;
+        ClassifiedTaxCategorySchemeID: Text;
+        InvoiceLineTaxPercent: Text;
+        ItemSchemeID: Text;
     begin
         // Setup
         Initialize();
@@ -2086,15 +2119,15 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetLineAdditionalItemPropertyInfo()
     var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         Cust: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesLine: Record "Sales Line";
         PEPPOLMgt: Codeunit "PEPPOL Management";
+        SalesInvoiceNo: Code[20];
         AdditionalItemPropertyName: Text;
         AdditionalItemPropertyValue: Text;
-        SalesInvoiceNo: Code[20];
     begin
         // Setup
         Initialize();
@@ -2122,17 +2155,17 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetLinePriceInfo()
     var
-        UnitOfMeasure: Record "Unit of Measure";
-        SalesLine: Record "Sales Line";
-        SalesHeader: Record "Sales Header";
         Cust: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesLine: Record "Sales Line";
+        UnitOfMeasure: Record "Unit of Measure";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        InvoiceLinePriceAmount: Text;
-        InvLinePriceAmountCurrencyID: Text;
-        BaseQuantity: Text;
         SalesInvoiceNo: Code[20];
+        BaseQuantity: Text;
+        InvLinePriceAmountCurrencyID: Text;
+        InvoiceLinePriceAmount: Text;
         UnitCode: Text;
     begin
         // Setup
@@ -2164,11 +2197,11 @@ codeunit 50100 "PEPPOL30 Management Tests"
     procedure GetLinePriceAllowanceChargeInfo()
     var
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        PriceChargeIndicator: Text;
-        PriceAllowanceChargeAmount: Text;
         PriceAllowanceAmountCurrencyID: Text;
+        PriceAllowanceChargeAmount: Text;
         PriceAllowanceChargeBaseAmount: Text;
         PriceAllowChargeBaseAmtCurrID: Text;
+        PriceChargeIndicator: Text;
     begin
         // Setup
         Initialize();
@@ -2190,9 +2223,9 @@ codeunit 50100 "PEPPOL30 Management Tests"
     procedure GetCrMemoBillingReferenceInfoNoAppliesToDoc()
     var
         Item: Record Item;
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
         InvoiceDocRefID: Text;
         InvoiceDocRefIssueDate: Text;
@@ -2218,15 +2251,14 @@ codeunit 50100 "PEPPOL30 Management Tests"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    [Scope('OnPrem')]
     procedure GetCrMemoBillingReferenceInfoWithItemAppliesToDoc()
     var
         Item: Record Item;
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         InvoiceSalesHeader: Record "Sales Header";
         SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesLine: Record "Sales Line";
         PEPPOLMgt: Codeunit "PEPPOL Management";
         InvoiceDocRefID: Text;
         InvoiceDocRefIssueDate: Text;
@@ -2260,14 +2292,13 @@ codeunit 50100 "PEPPOL30 Management Tests"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    [Scope('OnPrem')]
     procedure GetCrMemoBillingReferenceInfoWithOtherAppliesToDoc()
     var
         Item: Record Item;
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesHeader1: Record "Sales Header";
         SalesHeader2: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         PEPPOLMgt: Codeunit "PEPPOL Management";
         InvoiceDocRefID: Text;
         InvoiceDocRefIssueDate: Text;
@@ -2301,15 +2332,14 @@ codeunit 50100 "PEPPOL30 Management Tests"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    [Scope('OnPrem')]
     procedure GetCrMemoBillingReferenceInfoWithInvalidAppliesToDoc()
     var
         Item: Record Item;
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         InvoiceSalesHeader: Record "Sales Header";
         SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesLine: Record "Sales Line";
         PEPPOLMgt: Codeunit "PEPPOL Management";
         InvoiceDocRefID: Text;
         InvoiceDocRefIssueDate: Text;
@@ -2346,10 +2376,10 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure TestPeppolValidationSalesInvoiceLine()
     var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         Item1: Record Item;
         Item2: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
     begin
         // Setup
         Initialize();
@@ -2370,10 +2400,10 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure TestPeppolValidationSalesCrMemoLine()
     var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         Item1: Record Item;
         Item2: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
     begin
         // Setup
         Initialize();
@@ -2394,9 +2424,9 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure TestPeppolValidationSalesInvoiceLineNoUnitOfMeasure()
     var
+        Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        Item: Record Item;
     begin
         // Setup
         Initialize();
@@ -2416,9 +2446,9 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure TestPeppolValidationSalesInvoiceLineNoItemDescription()
     var
+        Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        Item: Record Item;
     begin
         // Setup
         Initialize();
@@ -2438,9 +2468,9 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure TestPeppolValidationSalesInvoiceLineNoInternationalStandardCode()
     var
+        Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        Item: Record Item;
         UnitOfMeasure: Record "Unit of Measure";
     begin
         // Setup
@@ -2491,8 +2521,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     procedure ValidateSalesCreditMemoPageContainFields()
     var
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
-        SalesCreditMemo: TestPage "Sales Credit Memo";
         SalesCrMemoSubform: TestPage "Sales Cr. Memo Subform";
+        SalesCreditMemo: TestPage "Sales Credit Memo";
     begin
         // Ensure the required fields for PEPPOL validation
         // can be entered on the sales credit memo page
@@ -2639,8 +2669,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure PEPPOLMgtGetGLNDeliveryInfoUT()
     var
-        DummySalesHeader: Record "Sales Header";
         Customer: Record Customer;
+        DummySalesHeader: Record "Sales Header";
         ShipToAddress: Record "Ship-to Address";
     begin
         // [FEATURE] [UT]
@@ -2690,8 +2720,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure PEPPOLMgtGetGLNForHeaderUTWithSellToCustomer()
     var
-        DummySalesHeader: Record "Sales Header";
         Customer: Record Customer;
+        DummySalesHeader: Record "Sales Header";
     begin
         // [FEATURE] [UT]
         // [SCENARIO 289768] PEPPOLMgt.GetGLNForHeader() returns Customer.GLN when "Sell-to Customer No." is filled and "Ship-to Code" is blank
@@ -2705,8 +2735,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure PEPPOLMgtGetGLNForHeaderUTWithSellToCustomerAndShipToCode()
     var
-        DummySalesHeader: Record "Sales Header";
         Customer: Record Customer;
+        DummySalesHeader: Record "Sales Header";
         ShipToAddress: Record "Ship-to Address";
     begin
         // [FEATURE] [UT]
@@ -2725,8 +2755,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure PEPPOLMgtGetGLNForHeaderUTWithBlankShipToAddressGLN()
     var
-        DummySalesHeader: Record "Sales Header";
         Customer: Record Customer;
+        DummySalesHeader: Record "Sales Header";
         ShipToAddress: Record "Ship-to Address";
     begin
         // [FEATURE] [UT]
@@ -2743,9 +2773,9 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure PEPPOL_XMLExport_DeliveryInfo_SalesInvoice_ShipToAddress()
     var
-        SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
         DummySalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
         ShipToAddress: Record "Ship-to Address";
         XMLFilePath: Text;
     begin
@@ -2773,8 +2803,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure PEPPOL_XMLExport_DeliveryInfo_SalesInvoice_noShipToCode()
     var
-        SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
         XMLFilePath: Text;
     begin
         // [FEATURE] [Invoice]
@@ -2823,8 +2853,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure PEPPOL_XMLExport_DeliveryInfo_SalesCrMemo_ShipToAddress()
     var
-        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         Customer: Record Customer;
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         DummySalesHeader: Record "Sales Header";
         ShipToAddress: Record "Ship-to Address";
         XMLFilePath: Text;
@@ -2853,8 +2883,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure PEPPOL_XMLExport_DeliveryInfo_SalesCrMemo_noShipToCode()
     var
-        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         Customer: Record Customer;
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         XMLFilePath: Text;
     begin
         // [FEATURE] [Credit Memo]
@@ -2879,8 +2909,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure PEPPOL_XMLExport_DeliveryInfo_SalesCrMemo_BlankedGLN()
     var
-        SalesHeader: Record "Sales Header";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesHeader: Record "Sales Header";
         XMLFilePath: Text;
     begin
         // [FEATURE] [Credit Memo]
@@ -2903,8 +2933,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure PEPPOL_XMLExport_DeliveryInfo_ServiceInvoice()
     var
-        ServiceInvoiceHeader: Record "Service Invoice Header";
         Customer: Record Customer;
+        ServiceInvoiceHeader: Record "Service Invoice Header";
         XMLFilePath: Text;
     begin
         // [FEATURE] [Service] [Invoice]
@@ -2929,8 +2959,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure PEPPOL_XMLExport_DeliveryInfo_ServiceCrMemo()
     var
-        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         Customer: Record Customer;
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         XMLFilePath: Text;
     begin
         // [FEATURE] [Service] [Credit Memo]
@@ -2954,12 +2984,11 @@ codeunit 50100 "PEPPOL30 Management Tests"
 
     [Test]
     [HandlerFunctions('ConfirmHandlerFalseOnUnitPrice')]
-    [Scope('OnPrem')]
     procedure TestPeppolValidationSalesLineWithNegativeUnitPriceConfirmFalse()
     var
+        Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        Item: Record Item;
     begin
         // [FEATURE] [UT]
         // [SCENARIO 342393] Confirm false on PEPPOL validation for Sales Invoice with negative price
@@ -2982,12 +3011,11 @@ codeunit 50100 "PEPPOL30 Management Tests"
 
     [Test]
     [HandlerFunctions('ConfirmHandlerTrueOnUnitPrice')]
-    [Scope('OnPrem')]
     procedure TestPeppolValidationSalesLineWithNegativeUnitPriceConfirmTrue()
     var
+        Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        Item: Record Item;
     begin
         // [FEATURE] [UT]
         // [SCENARIO 342393] Confirm true on PEPPOL validation for Sales Invoice with negative price
@@ -3009,9 +3037,9 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure TestPeppolValidationISOCodeOnCompanyCountry()
     var
-        SalesHeader: Record "Sales Header";
         CompanyInformation: Record "Company Information";
         CountryRegion: Record "Country/Region";
+        SalesHeader: Record "Sales Header";
     begin
         // [FEATURE] [UT]
         // [SCENARIO 362281] Error when validate document and ISO code in not specified in Country/Region of Company
@@ -3037,8 +3065,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure TestPeppolValidationISOCodeOnSalesDocCountry()
     var
-        SalesHeader: Record "Sales Header";
         CountryRegion: Record "Country/Region";
+        SalesHeader: Record "Sales Header";
     begin
         // [FEATURE] [UT]
         // [SCENARIO 362281] Error when validate document and ISO code in not specified in Country/Region of sales document
@@ -3063,8 +3091,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure PEPPOLValidation_LongCountryRegion()
     var
-        SalesHeader: Record "Sales Header";
         CountryRegion: Record "Country/Region";
+        SalesHeader: Record "Sales Header";
     begin
         // [FEATURE] [UT]
         // [SCENARIO 376447] PEPPOL Validation gives no errors for document with Country/Region Code having lenth not equal 2
@@ -3080,8 +3108,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure PEPPOLValidation_WrongLengthISOCode()
     var
-        SalesHeader: Record "Sales Header";
         CountryRegion: Record "Country/Region";
+        SalesHeader: Record "Sales Header";
     begin
         // [FEATURE] [UT]
         // [SCENARIO 376447] PEPPOL Validation gives error for document where ISO Code has lenth not equal 2
@@ -3101,11 +3129,11 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure PEPPOLValidationSalesInvoiceWhenSalesLineTypeCommentAndDescriptionBlank()
     var
-        SalesHeader: Record "Sales Header";
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesLine: Record "Sales Line";
         SalesLine2: Record "Sales Line";
-        SalesInvoiceHeader: Record "Sales Invoice Header";
         FileManagement: Codeunit "File Management";
         XMLFilePath: Text;
     begin
@@ -3140,11 +3168,11 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetAccountingCustomerPartyTaxSchemeBIS30()
     var
-        TempVATAmtLine: Record "VAT Amount Line" temporary;
-        SalesHeader: Record "Sales Header";
         Cust: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+        TempVATAmtLine: Record "VAT Amount Line" temporary;
         PEPPOLMgt: Codeunit "PEPPOL Management";
         CustPartyTaxSchemeCompanyID: Text;
         CustPartyTaxSchemeCompIDSchID: Text;
@@ -3181,11 +3209,11 @@ codeunit 50100 "PEPPOL30 Management Tests"
     [Test]
     procedure GetAccountingCustomerPartyTaxSchemeBIS30WithTaxSchemeIDWithOTaxCategory()
     var
-        TempVATAmtLine: Record "VAT Amount Line" temporary;
-        SalesHeader: Record "Sales Header";
         Cust: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+        TempVATAmtLine: Record "VAT Amount Line" temporary;
         PEPPOLMgt: Codeunit "PEPPOL Management";
         CustPartyTaxSchemeCompanyID: Text;
         CustPartyTaxSchemeCompIDSchID: Text;
@@ -3304,8 +3332,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
 
     local procedure CreateGenericSalesHeader(var SalesHeader: Record "Sales Header"; DocumentType: Enum "Sales Document Type")
     var
-        Cust: Record Customer;
         CountryRegion: Record "Country/Region";
+        Cust: Record Customer;
     begin
         LibrarySales.CreateCustomer(Cust);
         AddCustPEPPOLIdentifier(Cust."No.");
@@ -3332,8 +3360,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
 
     local procedure CreateGenericItem(var Item: Record Item)
     var
-        UOM: Record "Unit of Measure";
         ItemUOM: Record "Item Unit of Measure";
+        UOM: Record "Unit of Measure";
         LibraryUtility: Codeunit "Library - Utility";
         QtyPerUnit: Integer;
     begin
@@ -3490,10 +3518,10 @@ codeunit 50100 "PEPPOL30 Management Tests"
 
     local procedure CreatePostSalesInvoiceFCY(PricesInclVAT: Boolean): Code[20]
     var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         Customer: Record Customer;
         Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
     begin
         LibrarySales.CreateCustomer(Customer);
         AddCustPEPPOLIdentifier(Customer."No.");
@@ -3515,8 +3543,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
 
     local procedure CreateValidGLN(): Code[13]
     var
-        FirstPart: Text;
         CheckDigit: Text;
+        FirstPart: Text;
     begin
         FirstPart := LibraryUtility.GenerateRandomNumericText(12);
         CheckDigit := Format(StrCheckSum(FirstPart, '131313131313'));
@@ -3541,9 +3569,9 @@ codeunit 50100 "PEPPOL30 Management Tests"
 
     local procedure CreatePostServiceDoc(DocumentType: Enum "Service Document Type"): Code[20]
     var
+        Customer: Record Customer;
         ServiceHeader: Record "Service Header";
         ServiceLine: Record "Service Line";
-        Customer: Record Customer;
     begin
         LibrarySales.CreateCustomerWithAddress(Customer);
         AddCustPEPPOLIdentifier(Customer."No.");
@@ -3609,8 +3637,8 @@ codeunit 50100 "PEPPOL30 Management Tests"
         ElectronicDocumentFormat: Record "Electronic Document Format";
         FileManagement: Codeunit "File Management";
         TempBlob: Codeunit "Temp Blob";
-        ServerFileName: Text[250];
         ClientFileName: Text[250];
+        ServerFileName: Text[250];
     begin
         ElectronicDocumentFormat.SendElectronically(TempBlob, ClientFileName, DocumentVariant, FormatCode);
         ServerFileName := CopyStr(FileManagement.ServerTempFileName('xml'), 1, 250);
@@ -3665,29 +3693,29 @@ codeunit 50100 "PEPPOL30 Management Tests"
 
     local procedure VerifyGetLegalMonetaryInfo(PostedInvoiceNo: Code[20])
     var
+        SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
-        SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        TempVATAmtLine: Record "VAT Amount Line" temporary;
         TempSalesLineInvRounding: Record "Sales Line" temporary;
+        TempVATAmtLine: Record "VAT Amount Line" temporary;
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        LineExtensionAmount: Text;
-        LegalMonetaryTotalCurrencyID: Text;
-        TaxExclusiveAmount: Text;
-        TaxExclusiveAmountCurrencyID: Text;
-        TaxInclusiveAmount: Text;
-        TaxInclusiveAmountCurrencyID: Text;
         AllowanceTotalAmount: Text;
         AllowanceTotalAmountCurrencyID: Text;
         ChargeTotalAmount: Text;
         ChargeTotalAmountCurrencyID: Text;
-        PrepaidAmount: Text;
-        PrepaidCurrencyID: Text;
-        PayableRoundingAmount: Text;
-        PayableRndingAmountCurrencyID: Text;
+        LegalMonetaryTotalCurrencyID: Text;
+        LineExtensionAmount: Text;
         PayableAmount: Text;
         PayableAmountCurrencyID: Text;
+        PayableRndingAmountCurrencyID: Text;
+        PayableRoundingAmount: Text;
+        PrepaidAmount: Text;
+        PrepaidCurrencyID: Text;
+        TaxExclusiveAmount: Text;
+        TaxExclusiveAmountCurrencyID: Text;
+        TaxInclusiveAmount: Text;
+        TaxInclusiveAmountCurrencyID: Text;
     begin
         SalesInvoiceHeader.Get(PostedInvoiceNo);
         SalesHeader.TransferFields(SalesInvoiceHeader);
@@ -3746,14 +3774,14 @@ codeunit 50100 "PEPPOL30 Management Tests"
 
     local procedure VerifyGetLinePriceInfo(PostedInvoiceNo: Code[20]; ExpectedLinePrice: Text)
     var
+        SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
-        SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         PEPPOLMgt: Codeunit "PEPPOL Management";
-        InvoiceLinePriceAmount: Text;
-        InvLinePriceAmountCurrencyID: Text;
         BaseQuantity: Text;
+        InvLinePriceAmountCurrencyID: Text;
+        InvoiceLinePriceAmount: Text;
         UnitCode: Text;
     begin
         SalesInvoiceHeader.Get(PostedInvoiceNo);
@@ -3768,20 +3796,20 @@ codeunit 50100 "PEPPOL30 Management Tests"
 
     local procedure VerifyGetLineGeneralInfo(PostedInvoiceNo: Code[20])
     var
+        SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
-        SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         UnitOfMeasure: Record "Unit of Measure";
         PEPPOLMgt: Codeunit "PEPPOL Management";
+        InvoicedQuantity: Text;
+        InvoiceLineAccountingCost: Text;
+        InvoiceLineExtensionAmount: Text;
         InvoiceLineID: Text;
         InvoiceLineNote: Text;
-        InvoicedQuantity: Text;
+        LineExtensionAmountCurrencyID: Text;
         unitCode: Text;
         unitCodeListID: Text;
-        InvoiceLineExtensionAmount: Text;
-        LineExtensionAmountCurrencyID: Text;
-        InvoiceLineAccountingCost: Text;
     begin
         SalesInvoiceHeader.Get(PostedInvoiceNo);
         SalesHeader.TransferFields(SalesInvoiceHeader);
@@ -3823,14 +3851,12 @@ codeunit 50100 "PEPPOL30 Management Tests"
     end;
 
     [ConfirmHandler]
-    [Scope('OnPrem')]
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
     end;
 
     [ConfirmHandler]
-    [Scope('OnPrem')]
     procedure ConfirmHandlerTrueOnUnitPrice(Question: Text[1024]; var Reply: Boolean)
     begin
         Assert.ExpectedMessage(NegativeUnitPriceErr, Question);
@@ -3838,7 +3864,6 @@ codeunit 50100 "PEPPOL30 Management Tests"
     end;
 
     [ConfirmHandler]
-    [Scope('OnPrem')]
     procedure ConfirmHandlerFalseOnUnitPrice(Question: Text[1024]; var Reply: Boolean)
     begin
         Assert.ExpectedMessage(NegativeUnitPriceErr, Question);
