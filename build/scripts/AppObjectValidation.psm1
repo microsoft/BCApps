@@ -70,7 +70,8 @@ function Test-ApplicationIdsAreUnique {
     $duplicateAppIds = $appIds | Group-Object | Where-Object { $_.Count -gt 1 } | Select-Object -ExpandProperty Name
     $duplicateAppIds = $duplicateAppIds | Where-Object { -not ($Exceptions -contains $_) }
     if ($duplicateAppIds.Count -gt 0) {
-        throw "Duplicate app IDs detected: $($duplicateAppIds -join ','). When adding new apps, ensure that introduced app IDs are unique."
+        Write-Host "##[error]Duplicate app IDs detected: $($duplicateAppIds -join ',')"
+        throw "Duplicate app IDs detected. When adding new apps, ensure that introduced app IDs are unique."
     }
 }
 
