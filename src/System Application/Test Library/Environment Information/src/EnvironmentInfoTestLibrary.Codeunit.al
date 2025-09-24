@@ -43,6 +43,32 @@ codeunit 135094 "Environment Info Test Library"
     end;
 
     /// <summary>
+    /// Sets the testability preview flag.
+    /// </summary>
+    /// <remarks>
+    /// This functions should only be used for testing purposes.
+    /// </remarks>
+    /// <param name="EnablePreviewForTest">The value to be set to the testability preview flag.</param>
+    [Scope('OnPrem')]
+    procedure SetTestabilityPreview(EnablePreviewForTest: Boolean)
+    begin
+        EnvironmentInformationImpl.SetTestabilityPreview(EnablePreviewForTest);
+    end;
+
+    /// <summary>
+    /// Sets the testability early preview flag.
+    /// </summary>
+    /// <remarks>
+    /// This functions should only be used for testing purposes.
+    /// </remarks>
+    /// <param name="EnableEarlyPreviewForTest">The value to be set to the testability early preview flag.</param>
+    [Scope('OnPrem')]
+    procedure SetTestabilityEarlyPreview(EnableEarlyPreviewForTest: Boolean)
+    begin
+        EnvironmentInformationImpl.SetTestabilityEarlyPreview(EnableEarlyPreviewForTest);
+    end;
+
+    /// <summary>
     /// Sets the App ID that of the current application (for example, 'FIN' - Financials) when the sunscription is bound.
     /// Uses <see cref="OnBeforeGetApplicationIdentifier"/> event.
     /// </summary>
