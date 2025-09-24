@@ -39,7 +39,7 @@ function Test-ObjectIDsAreValid {
     }
 
     if ($offendingObjects.Count -gt 0) {
-        throw "Test objects should be within the $MinTestObjectId..$MaxTestObjectId range. The following test objects are outside the range: $($offendingObjects -join ', ')"
+        throw "Test objects out-of-range ($MinTestObjectId..$MaxTestObjectId): $($offendingObjects -join ',')"
     }
 }
 
