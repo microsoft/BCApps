@@ -1,3 +1,28 @@
+function Update-VersionInAppJson {
+    param (
+        [string]$Path,
+        [string]$CurrentVersion,
+        [string]$MinimumVersion,
+        [string]$PlatformVersion
+    )
+    $appJsonFiles = Get-ChildItem -Path $Path -Filter app.json -Recurse
+    foreach ($appJsonFile in $appJsonFiles) {
+        $appJson = Get-Content $appJsonFile.FullName | ConvertFrom-Json
+        $appJson.version = $CurrentVersion
+        foreach ($dependency in $appJson.dependencies) {
+            $dependency.version = $MinimumVersion
+        }
+        if ($null -ne $appJson.application) {
+            $appJson.application = $MinimumVersion
+        }
+        if ($null -ne $appJson.platform) {
+            $appJson.platform = $PlatformVersion
+        }
+        $appJson | ConvertTo-Json -Depth 10 | Set-Content $appJsonFile.FullName
+    }
+    Write-Host "Updated app.json files in $Path with version $CurrentVersion, minimum version $MinimumVersion, and platform version $PlatformVersion"
+}
+
 function GetSourceCodeFromArtifact() {
     param(
         [string] $AppName,
@@ -42,6 +67,17 @@ function GetSourceCodeFromArtifact() {
         Write-Error "Could not find the source code for $AppName"
         throw
     }
+
+    # Find Directory.App.Props.json in the source code folder and copy to the parent folder
+    $directoryAppPropsPath = Get-ChildItem -Path $sourceCodeFolder -Filter "Directory.App.Props.json" -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $directoryAppPropsPath) {
+        throw "Could not find Directory.App.Props.json in the source code for $AppName"
+    }
+    $directoryAppProps = Get-Content -Path $directoryAppPropsPath.FullName | ConvertFrom-Json
+    Update-VersionInAppJson -Path $sourceCodeFolder `
+                             -CurrentVersion $directoryAppProps.variables.app_currentVersion `
+                             -MinimumVersion $directoryAppProps.variables.app_minimumVersion `
+                             -PlatformVersion $directoryAppProps.variables.app_platformVersion
 
     return $sourceCodeFolder
 }

@@ -171,6 +171,11 @@ table 8061 "Billing Line"
             else
             if (Partner = const(Vendor), "Document Type" = const("Credit Memo")) "Purchase Line"."Line No." where("Document Type" = const("Credit Memo"), "Document No." = field("Document No."));
         }
+        field(63; "Billing Reference Date Changed"; Boolean)
+        {
+            Caption = 'Billing Reference Date Changed';
+            ToolTip = 'Specifies whether the billing period has been adjusted manually. This is taken into account by the period calculation and may have an effect on the creation of future billing proposals.';
+        }
         field(100; "Billing Template Code"; Code[20])
         {
             Caption = 'Code';
@@ -372,7 +377,7 @@ table 8061 "Billing Line"
         end;
     end;
 
-    internal procedure GetBillingDocumentTypeFromSalesDocumentType(SalesDocumentType: Enum "Sales Document Type") RecurringBillingDocumentType: Enum "Rec. Billing Document Type"
+    procedure GetBillingDocumentTypeFromSalesDocumentType(SalesDocumentType: Enum "Sales Document Type") RecurringBillingDocumentType: Enum "Rec. Billing Document Type"
     begin
         case SalesDocumentType of
             SalesDocumentType::Invoice:
@@ -382,7 +387,7 @@ table 8061 "Billing Line"
         end;
     end;
 
-    internal procedure GetBillingDocumentTypeFromPurchaseDocumentType(PurchaseDocumentType: Enum "Purchase Document Type") RecurringBillingDocumentType: Enum "Rec. Billing Document Type"
+    procedure GetBillingDocumentTypeFromPurchaseDocumentType(PurchaseDocumentType: Enum "Purchase Document Type") RecurringBillingDocumentType: Enum "Rec. Billing Document Type"
     begin
         case PurchaseDocumentType of
             PurchaseDocumentType::Invoice:
@@ -477,7 +482,7 @@ table 8061 "Billing Line"
         exit('');
     end;
 
-    internal procedure FilterBillingLineOnDocumentLine(DocumentType: Enum "Rec. Billing Document Type"; DocumentNo: Code[20]; DocumentLineNo: Integer)
+    procedure FilterBillingLineOnDocumentLine(DocumentType: Enum "Rec. Billing Document Type"; DocumentNo: Code[20]; DocumentLineNo: Integer)
     begin
         Rec.SetRange("Document Type", DocumentType);
         Rec.SetRange("Document No.", DocumentNo);

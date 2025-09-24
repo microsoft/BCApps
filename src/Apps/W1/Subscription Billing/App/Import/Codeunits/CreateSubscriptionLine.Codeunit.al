@@ -32,8 +32,8 @@ codeunit 8006 "Create Subscription Line"
         if not ServiceObject.Get(ImportedServiceCommitment."Subscription Header No.") then
             Error(ServiceObjectDoesNotExistErr);
         DateFormulaManagement.ErrorIfDateEmpty(ImportedServiceCommitment."Subscription Line Start Date", ImportedServiceCommitment.FieldCaption("Subscription Line Start Date"));
-        if (ImportedServiceCommitment."Calculation Base %" < 0) or (ImportedServiceCommitment."Calculation Base %" > 100) then
-            Error(ValueShouldBeBetweenErr, ImportedServiceCommitment.FieldCaption("Calculation Base %"), 0, 100);
+        if (ImportedServiceCommitment."Calculation Base %" < 0) then
+            Error(ValueMustBeGreaterErr, ImportedServiceCommitment.FieldCaption("Calculation Base %"), 0);
         if (ImportedServiceCommitment."Discount %" < 0) or (ImportedServiceCommitment."Discount %" > 100) then
             Error(ValueShouldBeBetweenErr, ImportedServiceCommitment.FieldCaption("Discount %"), 0, 100);
         DateFormulaManagement.ErrorIfDateFormulaEmpty(ImportedServiceCommitment."Billing Base Period", ImportedServiceCommitment.FieldCaption("Billing Base Period"));
@@ -159,4 +159,5 @@ codeunit 8006 "Create Subscription Line"
         DateFormulaManagement: Codeunit "Date Formula Management";
         ServiceObjectDoesNotExistErr: Label 'The Subscription does not exist. The Subscription Line was not created.';
         ValueShouldBeBetweenErr: Label '%1 value should be between %2 and %3.', Comment = '%1 = FieldCaption, %2 = minimum value, %3 = maximum value';
+        ValueMustBeGreaterErr: Label '%1 value must be greater than %2.', Comment = '%1 = FieldCaption, %2 = minimum value';
 }

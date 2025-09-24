@@ -17,7 +17,6 @@ page 4303 "Agent Task Log Entry List"
     DeleteAllowed = false;
     Editable = false;
     SourceTableView = sorting("ID") order(descending);
-    Extensible = false;
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -70,6 +69,30 @@ page 4303 "Agent Task Log Entry List"
                         Message(DetailsTxt);
                     end;
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Promoted)
+        {
+            actionref(Refresh_Promoted; Refresh)
+            {
+            }
+        }
+        area(Creation)
+        {
+            action(Refresh)
+            {
+                Caption = 'Refresh';
+                Image = Refresh;
+                ToolTip = 'Refresh the page.';
+
+                trigger OnAction()
+                begin
+                    CurrPage.Update(false);
+                end;
             }
         }
     }

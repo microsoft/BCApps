@@ -20,7 +20,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        exit(AgentMessageImpl.GetMessageText(AgentTaskMessage));
+        exit(AgentMessageImpl.GetText(AgentTaskMessage));
     end;
 
     /// <summary>
@@ -46,7 +46,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        exit(AgentMessageImpl.IsMessageEditable(AgentTaskMessage));
+        exit(AgentMessageImpl.IsEditable(AgentTaskMessage));
     end;
 
     /// <summary>
@@ -73,6 +73,20 @@ codeunit 4307 "Agent Message"
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
         AgentMessageImpl.AddAttachment(AgentTaskMessage, FileName, FileMIMEType, Attachment);
+    end;
+
+    /// <summary>
+    /// Set whether to ignore attachments for the message.
+    /// When set to true, attachments will be marked as ignored and will not be processed by the agent.
+    /// The default value is false.
+    /// </summary>
+    /// <param name="IgnoreAttachment">If true, attachments will be marked as ignored when added to a message.</param>
+    [Scope('OnPrem')]
+    procedure SetIgnoreAttachment(IgnoreAttachment: Boolean)
+    var
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
+    begin
+        AgentMessageImpl.SetIgnoreAttachment(IgnoreAttachment);
     end;
 
     /// <summary>

@@ -23,6 +23,9 @@ if($appType -eq 'app')
         $parameters.Value["Features"] += @("lcgtranslationfile")
     }
 
+    # Disable report layout generation for the app compilation to how apps are built internally
+    $parameters.Value["GenerateReportLayout"] = "No"
+
     if($appBuildMode -eq 'Translated') {
         Import-Module $PSScriptRoot\AppTranslations.psm1
         Restore-TranslationsForApp -AppProjectFolder $parameters.Value["appProjectFolder"]
@@ -67,6 +70,13 @@ if($appType -eq 'app')
                 $tempParameters["appOutputFolder"] = $defaultSymbolsPath # Output the default app into the default symbols folder
                 $tempParameters["appSymbolsFolder"] = $defaultSymbolsPath # Use the default symbols folder as appSymbolsFolder
 
+                $appName = (Get-Content -Path (Join-Path $tempParameters["appProjectFolder"] "app.json" -Resolve) | ConvertFrom-Json).Name
+                # If the app has already been restored to the default symbols folder, remove it before recompiling
+                Get-ChildItem -Path $defaultSymbolsPath -Filter "Microsoft_$($appName)*.app" | ForEach-Object {
+                    Write-Host "Removing existing app file in symbols folder: $($_.FullName)"
+                    Remove-Item -Path $_.FullName -Force
+                }
+
                 if($useCompilerFolder) {
                     Compile-AppWithBcCompilerFolder @tempParameters | Out-Null
                 }
@@ -75,7 +85,6 @@ if($appType -eq 'app')
                 }
 
                 # Copy the the generated app to the symbols folder for the CLEAN mode build
-                $appName = (Get-Content -Path (Join-Path $tempParameters["appProjectFolder"] "app.json" -Resolve) | ConvertFrom-Json).Name
                 $appFile = Get-ChildItem -Path $tempParameters["appOutputFolder"] -Filter "Microsoft_$($appName)*.app" | Select-Object -First 1
                 $location = Join-Path $parameters.Value["appSymbolsFolder"] "$($appName)_clean.app"
                 Write-Host "Copying $($appFile.FullName) to $location"

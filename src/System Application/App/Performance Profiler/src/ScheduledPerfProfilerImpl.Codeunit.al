@@ -17,6 +17,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
     SingleInstance = true;
+    Permissions = tabledata "Retention Policy Setup" = ri;
 
     procedure MapActivityTypeToRecord(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ActivityType: Enum "Perf. Profile Activity Type")
     var

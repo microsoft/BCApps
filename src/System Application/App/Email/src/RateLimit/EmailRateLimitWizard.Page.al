@@ -63,6 +63,19 @@ page 8898 "Email Rate Limit Wizard"
                     UpdateConcurrencyLimitLimitDisplay();
                 end;
             }
+
+            field(EmailMaxAttemptLimit; EmailMaxAttemptLimit)
+            {
+                ApplicationArea = All;
+                Caption = 'Max. Attempt Limit';
+                ToolTip = 'Specifies the maximum number of attempts for sending an email.';
+                Numeric = true;
+
+                trigger OnValidate()
+                begin
+                    UpdateMaxRetryLimitLimitDisplay();
+                end;
+            }
         }
     }
     actions
@@ -90,6 +103,7 @@ page 8898 "Email Rate Limit Wizard"
     begin
         EmailRateLimitDisplay := Format(Rec."Rate Limit");
         EmailConcurrencyLimit := Format(Rec."Concurrency Limit");
+        EmailMaxAttemptLimit := Format(Rec."Max. Retry Limit");
         UpdateRateLimitDisplay();
         UpdateConcurrencyLimitLimitDisplay();
     end;
@@ -107,6 +121,14 @@ page 8898 "Email Rate Limit Wizard"
         Rec.Validate("Concurrency Limit", CurrLimit);
     end;
 
+    local procedure UpdateMaxRetryLimitLimitDisplay()
+    var
+        CurrLimit: Integer;
+    begin
+        Evaluate(CurrLimit, EmailMaxAttemptLimit);
+        Rec.Validate("Max. Retry Limit", CurrLimit);
+    end;
+
     internal procedure UpdateRateLimitDisplay()
     begin
         Evaluate(Rec."Rate Limit", EmailRateLimitDisplay);
@@ -117,6 +139,7 @@ page 8898 "Email Rate Limit Wizard"
     var
         EmailRateLimitDisplay: Text[250];
         EmailConcurrencyLimit: Text[250];
+        EmailMaxAttemptLimit: Text[250];
         EmailName: Text[250];
         NoLimitTxt: Label 'No limit';
 }
