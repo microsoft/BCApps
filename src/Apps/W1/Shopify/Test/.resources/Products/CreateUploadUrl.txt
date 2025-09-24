@@ -1,0 +1,1 @@
+{ "data": { "stagedUploadsCreate": { "stagedTargets": [ { "url": "test.com/test", "resourceUrl": "test2.com/test2", "parameters": [] } ] } }, "extensions": { "cost": { "requestedQueryCost": 11, "actualQueryCost": 11, "throttleStatus": { "maximumAvailable": 2000, "currentlyAvailable": 1989, "restoreRate": 100 } } } }
