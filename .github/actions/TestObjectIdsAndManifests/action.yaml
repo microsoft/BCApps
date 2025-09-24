@@ -4,7 +4,7 @@ description: Verifies that object IDs are valid and application IDs are unique i
 runs:
   using: composite
   steps:
-    - name:: Test Object IDs and Application Manifests
+    - name: Test Object IDs and Application Manifests
       shell: pwsh
       run: |
         ${{ github.action_path }}/action.ps1
