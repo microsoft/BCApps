@@ -9,7 +9,7 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Item;
 using Microsoft.eServices.EDocument.Integration;
 
-codeunit 6428 "ForNAV Peppol Test"
+codeunit 148220 "ForNAV Peppol Test"
 {
     Access = Internal;
     SingleInstance = true;

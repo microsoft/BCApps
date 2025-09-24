@@ -11,9 +11,11 @@ using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.History;
 
-codeunit 6429 "Integration Tests"
+codeunit 148221 "Integration Tests"
 {
+    Access = Internal;
     Subtype = Test;
+    TestType = IntegrationTest;
 
     [Test]
     procedure SubmitDocument()
@@ -415,6 +417,8 @@ codeunit 6429 "Integration Tests"
         Test.Init();
 
         CompanyInformation.Get();
+        if CompanyInformation."Name" = '' then
+            CompanyInformation.Name := 'Test Company';
         CompanyInformation."VAT Registration No." := 'GB777777771';
         CompanyInformation.Modify();
 
