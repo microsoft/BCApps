@@ -89,6 +89,16 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Enables accessing all ready only objects for the specified configuration.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="Enable">True to enable, false to disable.</param>
+    procedure EnableAccessAllReadOnlyObjects(ConfigId: Guid; Enable: Boolean)
+    begin
+        MCPConfigImplementation.EnableAccessAllReadOnlyObjects(ConfigId, Enable);
+    end;
+
+    /// <summary>
     /// Creates a new API tool for the specified configuration and API page.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>

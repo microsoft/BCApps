@@ -27,18 +27,28 @@ page 8351 "MCP Config Card"
                 field(Name; Rec.Name)
                 {
                     ToolTip = 'Specifies the name of the MCP configuration.';
+                    Editable = not IsDefault;
                 }
                 field(Description; Rec.Description)
                 {
                     ToolTip = 'Specifies the description of the MCP configuration.';
+                    Editable = not IsDefault;
                 }
                 field(Active; Rec.Active)
                 {
                     ToolTip = 'Specifies whether the MCP configuration is active.';
+                    Editable = not IsDefault;
                 }
                 field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
                 {
                     ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools dynamically.';
+                    Editable = not IsDefault;
+                }
+                field(AccessAllReadOnlyObjects; Rec.AccessAllReadOnlyObjects)
+                {
+                    Caption = 'Access All Read-Only Objects';
+                    ToolTip = 'Specifies whether to allow access to all read-only objects for this MCP configuration.';
+                    Editable = not IsDefault;
                 }
                 field(AllowProdChanges; Rec.AllowProdChanges)
                 {
@@ -51,6 +61,7 @@ page 8351 "MCP Config Card"
                 ApplicationArea = All;
                 SubPageLink = ID = field(SystemId);
                 UpdatePropagation = Both;
+                Visible = not IsDefault;
             }
         }
     }
@@ -77,6 +88,11 @@ page 8351 "MCP Config Card"
         }
     }
 
+    trigger OnAfterGetRecord()
+    begin
+        IsDefault := MCPConfigImplementation.IsDefaultConfiguration(Rec);
+    end;
+
     trigger OnOpenPage()
     var
         EnvironmentInformation: Codeunit "Environment Information";
@@ -87,4 +103,5 @@ page 8351 "MCP Config Card"
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         IsSandbox: Boolean;
+        IsDefault: Boolean;
 }
