@@ -37,3 +37,6 @@ app.json @microsoft/d365-bc-engineering-systems @microsoft/d365-bc-app-required
 /.github @microsoft/d365-bc-engineering-systems
 /build @microsoft/d365-bc-engineering-systems
 /CODEOWNERS @microsoft/d365-bc-engineering-systems
+
+# App Finance
+/src/Apps/W1/PowerBIReports @microsoft/d365-bc-finance
