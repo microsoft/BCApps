@@ -39,7 +39,7 @@ using System.Utilities;
 /// Contains comprehensive tests for PEPPOL document generation, validation, and export processes.
 /// Covers both sales and service document scenarios.
 /// </summary>
-codeunit 50100 "PEPPOL30 Management Tests"
+codeunit 139000 "PEPPOL30 Management Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
