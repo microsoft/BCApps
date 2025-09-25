@@ -36,12 +36,14 @@ function Test-ObjectIDsAreValid {
 
     if ($IntroducedDuplicates.Count -gt 0) {
         Write-Host "##[error]Clashing object IDs detected: $($IntroducedDuplicates -join ',')"
-        throw "Clashing object IDs detected. When adding new objects, ensure that introduced object IDs are not currently in use."
     }
 
     if ($offendingObjects.Count -gt 0) {
         Write-Host "##[error]Test objects out-of-range ($MinTestObjectId..$MaxTestObjectId): $($offendingObjects -join ',')"
-        throw "Test objects should be within the $($MinTestObjectId)..$($MaxTestObjectId) range."
+    }
+
+    if (($IntroducedDuplicates.Count -gt 0) -or ($offendingObjects.Count -gt 0)) {
+        throw "Object ID validation failed. When adding new test objects, ensure that their IDs are within the valid range and do not clash with existing object IDs."
     }
 }
 
@@ -75,7 +77,6 @@ function Test-ApplicationIds {
     }
 }
 
-# Returns a hash map with all the application objects (entries are <object type><object id>, <object name>, e. g. { 'codeunit 10', 'Type Helper' }).
 <#
     .SYNOPSIS
     Scans the provided source code paths for AL files and extracts object signatures, test objects, and duplicate objects.
