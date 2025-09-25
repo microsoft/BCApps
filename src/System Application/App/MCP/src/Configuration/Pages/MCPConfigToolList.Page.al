@@ -101,6 +101,18 @@ page 8352 "MCP Config Tool List"
                     CurrPage.Update();
                 end;
             }
+            action(AddStandardAPITools)
+            {
+                Caption = 'Add Standard API Tools';
+                Image = ResourceGroup;
+                ToolTip = 'Adds standard API v2.0  tools to the configuration.';
+
+                trigger OnAction()
+                begin
+                    MCPConfigImplementation.AddStandardAPITools(Rec.ID);
+                    CurrPage.Update();
+                end;
+            }
         }
     }
 

@@ -12,6 +12,7 @@ using System.TestLibraries.Utilities;
 codeunit 130130 "MCP Config Test"
 {
     Subtype = Test;
+    TestPermissions = Disabled;
 
     var
         Any: Codeunit Any;
@@ -300,12 +301,72 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions is not true');
     end;
 
+    [Test]
+    procedure TestAddStandardAPITools()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] Configuration is created
+        ConfigId := CreateMCPConfig(false, false, true);
+
+        // [WHEN] Standard API tools are added
+        MCPConfigTestLibrary.AddStandardAPITools(ConfigId);
+
+        // [THEN] Standard API tools are added successfully
+        MCPConfigurationTool.Get(ConfigId, MCPConfigurationTool."Object Type"::Page, Page::"Mock APIV2");
+        Assert.IsTrue(MCPConfigurationTool."Allow Read", 'Allow Read is not true');
+        Assert.IsFalse(MCPConfigurationTool."Allow Create", 'Allow Create is not true');
+        Assert.IsFalse(MCPConfigurationTool."Allow Modify", 'Allow Modify is not true');
+        Assert.IsFalse(MCPConfigurationTool."Allow Delete", 'Allow Delete is not true');
+        Assert.IsFalse(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions is not true');
+    end;
+
+    [Test]
+    procedure TestCopyConfiguration()
+    var
+        SourceMCPConfiguration: Record "MCP Configuration";
+        NewMCPConfiguration: Record "MCP Configuration";
+        SourceMCPConfigurationTool: Record "MCP Configuration Tool";
+        NewMCPConfigurationTool: Record "MCP Configuration Tool";
+        SourceConfigId: Guid;
+        SourceConfigToolId: Guid;
+        NewConfigId: Guid;
+    begin
+        // [GIVEN] Source configuration and tool are created
+        SourceConfigId := CreateMCPConfig(true, true, true);
+        SourceConfigToolId := CreateMCPConfigTool(SourceConfigId);
+
+        // [WHEN] Configuration is copied
+        SourceMCPConfiguration.GetBySystemId(SourceConfigId);
+        SourceMCPConfigurationTool.GetBySystemId(SourceConfigToolId);
+        NewConfigId := MCPConfig.CopyConfiguration(SourceConfigId, CopyStr('Copy of ' + SourceMCPConfiguration.Name, 1, 100), CopyStr('Copy of ' + SourceMCPConfiguration.Description, 1, 250));
+
+        // [THEN] New configuration is created with the same properties and tools
+        NewMCPConfiguration.GetBySystemId(NewConfigId);
+        Assert.AreEqual(NewMCPConfiguration.Name, 'Copy of ' + SourceMCPConfiguration.Name, 'Name mismatch');
+        Assert.AreEqual(NewMCPConfiguration.Description, 'Copy of ' + SourceMCPConfiguration.Description, 'Description mismatch');
+        Assert.AreEqual(NewMCPConfiguration.Active, SourceMCPConfiguration.Active, 'Active is not true');
+        Assert.AreEqual(NewMCPConfiguration.EnableDynamicToolMode, SourceMCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode is not true');
+        Assert.AreEqual(NewMCPConfiguration.AllowProdChanges, SourceMCPConfiguration.AllowProdChanges, 'AllowProdChanges is not true');
+
+        NewMCPConfigurationTool.SetRange(ID, NewConfigId);
+        NewMCPConfigurationTool.FindFirst();
+        Assert.AreEqual(NewMCPConfigurationTool."Object Id", SourceMCPConfigurationTool."Object Id", 'Object Id mismatch');
+        Assert.AreEqual(NewMCPConfigurationTool."Object Type", SourceMCPConfigurationTool."Object Type", 'Object Type mismatch');
+        Assert.AreEqual(NewMCPConfigurationTool."Allow Read", SourceMCPConfigurationTool."Allow Read", 'Allow Read mismatch');
+        Assert.AreEqual(NewMCPConfigurationTool."Allow Create", SourceMCPConfigurationTool."Allow Create", 'Allow Create mismatch');
+        Assert.AreEqual(NewMCPConfigurationTool."Allow Modify", SourceMCPConfigurationTool."Allow Modify", 'Allow Modify mismatch');
+        Assert.AreEqual(NewMCPConfigurationTool."Allow Delete", SourceMCPConfigurationTool."Allow Delete", 'Allow Delete mismatch');
+        Assert.AreEqual(NewMCPConfigurationTool."Allow Bound Actions", SourceMCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions mismatch');
+    end;
+
     local procedure CreateMCPConfig(Active: Boolean; ToolSearchMode: Boolean; AllowProdChanges: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
-        MCPConfiguration.Name := CopyStr(Any.AlphabeticText(100), 1, 100);
-        MCPConfiguration.Description := CopyStr(Any.AlphabeticText(250), 1, 250);
+        MCPConfiguration.Name := CopyStr(Format(CreateGuid()), 1, 100);
+        MCPConfiguration.Description := CopyStr(Any.AlphabeticText(100), 1, 100);
         MCPConfiguration.Active := Active;
         MCPConfiguration.EnableDynamicToolMode := ToolSearchMode;
         MCPConfiguration.AllowProdChanges := AllowProdChanges;
