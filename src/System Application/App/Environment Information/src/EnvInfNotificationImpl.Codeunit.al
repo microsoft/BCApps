@@ -2,12 +2,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft;
+namespace System.Environment;
 
-using System.Environment;
-
-codeunit 3706 "Env. Inf. Notification Mgt."
+codeunit 3706 "Env. Inf. Notification Impl."
 {
+    Access = Internal;
+    SingleInstance = true;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
     var
         LearnMoreMsg: Label 'Learn more...';
         EarlyPreviewNotificationMsg: Label '⚠️ You are running a Dynamics 365 Business Central early access preview version. This version is provided for evaluation purposes only. Features and functionality may change in future releases.';
@@ -45,6 +48,6 @@ codeunit 3706 "Env. Inf. Notification Mgt."
     begin
         Notification.Id(ID);
         Notification.Message(Message);
-        Notification.AddAction(LearnMoreMsg, CODEUNIT::"Env. Inf. Notification Mgt.", 'LearnMoreNotification');
+        Notification.AddAction(LearnMoreMsg, CODEUNIT::"Env. Inf. Notification Impl.", 'LearnMoreNotification');
     end;
 }
