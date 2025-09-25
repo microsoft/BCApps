@@ -995,12 +995,11 @@ table 30102 "Shpfy Shop"
         JItem: JsonToken;
     begin
         CommunicationMgt.SetShop(Rec);
-        JResponse := CommunicationMgt.ExecuteGraphQL('{"query":"query { shop { name plan { displayName partnerDevelopment shopifyPlus } weightUnit } }"}');
+        JResponse := CommunicationMgt.ExecuteGraphQL('{"query":"query { shop { name plan { publicDisplayName partnerDevelopment shopifyPlus } weightUnit } }"}');
         if JResponse.SelectToken('$.data.shop.plan', JItem) then
             if JItem.IsObject then
-                Rec."B2B Enabled" := JsonHelper.GetValueAsBoolean(JItem, 'partnerDevelopment') or
-                                      JsonHelper.GetValueAsBoolean(JItem, 'shopifyPlus') or
-                                        (JsonHelper.GetValueAsText(JItem, 'displayName') = 'Plus Trial');
+                Rec."B2B Enabled" := JsonHelper.GetValueAsBoolean(JItem, 'shopifyPlus') or
+                                        (JsonHelper.GetValueAsText(JItem, 'publicDisplayName') in ['Plus Trial', 'Development']);
         Rec."Weight Unit" := ConvertToWeightUnit(JsonHelper.GetValueAsText(JResponse, 'data.shop.weightUnit'));
     end;
 
