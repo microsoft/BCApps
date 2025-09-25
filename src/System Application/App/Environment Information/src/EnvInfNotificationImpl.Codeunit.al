@@ -19,12 +19,12 @@ codeunit 3706 "Env. Inf. Notification Impl."
 
     procedure ShowEarlyPreviewNotification()
     var
-        EnvironmentInformation: Codeunit "Environment Information";
+        EnvironmentInformationImpl: Codeunit "Environment Information Impl.";
     begin
         if not GuiAllowed then
             exit;
 
-        if not EnvironmentInformation.IsEarlyPreview() then
+        if not EnvironmentInformationImpl.IsEarlyPreview() then
             exit;
 
         ShowNotification();
