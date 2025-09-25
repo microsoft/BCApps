@@ -37,11 +37,6 @@ interface "PEPPOL Line Info Provider"
     procedure GetLineInvoicePeriodInfo(var InvLineInvoicePeriodStartDate: Text; var InvLineInvoicePeriodEndDate: Text)
 
     /// <summary>
-    /// Gets line order line reference information for PEPPOL documents.
-    /// </summary>
-    procedure GetLineOrderLineRefInfo()
-
-    /// <summary>
     /// Gets line delivery information for PEPPOL documents.
     /// </summary>
     /// <param name="InvoiceLineActualDeliveryDate">Return value: Invoice line actual delivery date.</param>
@@ -101,7 +96,7 @@ interface "PEPPOL Line Info Provider"
     /// <param name="CommodityCodeListID">Return value: Commodity code list ID.</param>
     /// <param name="ItemClassificationCode">Return value: Item classification code.</param>
     /// <param name="ItemClassificationCodeListID">Return value: Item classification code list ID.</param>
-    procedure GetLineItemCommodityClassficationInfo(var CommodityCode: Text; var CommodityCodeListID: Text; var ItemClassificationCode: Text; var ItemClassificationCodeListID: Text)
+    procedure GetLineItemCommodityClassificationInfo(var CommodityCode: Text; var CommodityCodeListID: Text; var ItemClassificationCode: Text; var ItemClassificationCodeListID: Text)
 
     /// <summary>
     /// Gets line item classified tax category information for PEPPOL documents.
@@ -111,7 +106,7 @@ interface "PEPPOL Line Info Provider"
     /// <param name="ItemSchemeID">Return value: Item scheme ID.</param>
     /// <param name="InvoiceLineTaxPercent">Return value: Invoice line tax percent.</param>
     /// <param name="ClassifiedTaxCategorySchemeID">Return value: Classified tax category scheme ID.</param>
-    procedure GetLineItemClassfiedTaxCategory(SalesLine: Record "Sales Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
+    procedure GetLineItemClassifiedTaxCategory(SalesLine: Record "Sales Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
 
     /// <summary>
     /// Gets line item classified tax category information for PEPPOL BIS format.
@@ -121,7 +116,7 @@ interface "PEPPOL Line Info Provider"
     /// <param name="ItemSchemeID">Return value: Item scheme ID.</param>
     /// <param name="InvoiceLineTaxPercent">Return value: Invoice line tax percent.</param>
     /// <param name="ClassifiedTaxCategorySchemeID">Return value: Classified tax category scheme ID.</param>
-    procedure GetLineItemClassfiedTaxCategoryBIS(SalesLine: Record "Sales Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
+    procedure GetLineItemClassifiedTaxCategoryBIS(SalesLine: Record "Sales Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
 
     /// <summary>
     /// Gets line additional item property information for PEPPOL documents.

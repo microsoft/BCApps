@@ -1875,7 +1875,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                         var
                             PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                         begin
-                            PEPPOLLineInfoProvider.GetLineItemCommodityClassficationInfo(
+                            PEPPOLLineInfoProvider.GetLineItemCommodityClassificationInfo(
                               CommodityCode,
                               CommodityCodeListID,
                               ItemClassificationCode,
@@ -1924,7 +1924,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                         var
                             PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                         begin
-                            PEPPOLLineInfoProvider.GetLineItemClassfiedTaxCategoryBIS(
+                            PEPPOLLineInfoProvider.GetLineItemClassifiedTaxCategoryBIS(
                               SalesLine,
                               ClassifiedTaxCategoryID,
                               DummyVar,

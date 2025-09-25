@@ -1965,7 +1965,7 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
                             PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                         begin
                             PEPPOLLineInfoProvider := CompanyInformation."E-Document Format";
-                            PEPPOLLineInfoProvider.GetLineItemCommodityClassficationInfo(
+                            PEPPOLLineInfoProvider.GetLineItemCommodityClassificationInfo(
                               CommodityCode,
                               CommodityCodeListID,
                               ItemClassificationCode,
@@ -2015,7 +2015,7 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
                             PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                         begin
                             PEPPOLLineInfoProvider := CompanyInformation."E-Document Format";
-                            PEPPOLLineInfoProvider.GetLineItemClassfiedTaxCategoryBIS(
+                            PEPPOLLineInfoProvider.GetLineItemClassifiedTaxCategoryBIS(
                               SalesLine,
                               ClassifiedTaxCategoryID,
                               DummyVar,

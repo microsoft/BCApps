@@ -879,7 +879,7 @@ codeunit 37201 "PEPPOL30 Management Impl." implements "PEPPOL Posted Document It
             OriginCountryIdCodeListID := GetISO3166_1Alpha2();
     end;
 
-    procedure GetLineItemCommodityClassficationInfo(var CommodityCode: Text; var CommodityCodeListID: Text; var ItemClassificationCode: Text; var ItemClassificationCodeListID: Text)
+    procedure GetLineItemCommodityClassificationInfo(var CommodityCode: Text; var CommodityCodeListID: Text; var ItemClassificationCode: Text; var ItemClassificationCodeListID: Text)
     begin
         CommodityCode := '';
         CommodityCodeListID := '';
@@ -888,7 +888,7 @@ codeunit 37201 "PEPPOL30 Management Impl." implements "PEPPOL Posted Document It
         ItemClassificationCodeListID := '';
     end;
 
-    procedure GetLineItemClassfiedTaxCategory(SalesLine: Record "Sales Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
+    procedure GetLineItemClassifiedTaxCategory(SalesLine: Record "Sales Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
     var
         VATPostingSetup: Record "VAT Posting Setup";
     begin
@@ -906,9 +906,9 @@ codeunit 37201 "PEPPOL30 Management Impl." implements "PEPPOL Posted Document It
         ClassifiedTaxCategorySchemeID := VATTxt;
     end;
 
-    procedure GetLineItemClassfiedTaxCategoryBIS(SalesLine: Record "Sales Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
+    procedure GetLineItemClassifiedTaxCategoryBIS(SalesLine: Record "Sales Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
     begin
-        GetLineItemClassfiedTaxCategory(
+        GetLineItemClassifiedTaxCategory(
           SalesLine, ClassifiedTaxCategoryID, ItemSchemeID, InvoiceLineTaxPercent, ClassifiedTaxCategorySchemeID);
         if ClassifiedTaxCategoryID = GetTaxCategoryO() then
             InvoiceLineTaxPercent := '';

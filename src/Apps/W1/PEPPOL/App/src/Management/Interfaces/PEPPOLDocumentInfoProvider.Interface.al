@@ -13,7 +13,6 @@ interface "PEPPOL Document Info Provider"
     /// Gets general information for non-BIS (full) PEPPOL document creation including list identifiers and tax currency.
     /// </summary>
     /// <param name="SalesHeader">The sales header record.</param>
-    /// <param name="FormatProvider">Interface used to obtain formatting specific values (currently not used, reserved for future).</param>
     /// <param name="ID">Return value: Document ID.</param>
     /// <param name="IssueDate">Return value: Document issue date.</param>
     /// <param name="InvoiceTypeCode">Return value: Invoice type code.</param>
@@ -25,7 +24,7 @@ interface "PEPPOL Document Info Provider"
     /// <param name="TaxCurrencyCode">Return value: Tax currency code.</param>
     /// <param name="TaxCurrencyCodeListID">Return value: Tax currency code list ID.</param>
     /// <param name="AccountingCost">Return value: Accounting cost.</param>
-    procedure GetGeneralInfo(SalesHeader: Record "Sales Header"; FormatProvider: Interface "PEPPOL Format Provider"; var ID: Text; var IssueDate: Text; var InvoiceTypeCode: Text; var InvoiceTypeCodeListID: Text; var Note: Text; var TaxPointDate: Text; var DocumentCurrencyCode: Text; var DocumentCurrencyCodeListID: Text; var TaxCurrencyCode: Text; var TaxCurrencyCodeListID: Text; var AccountingCost: Text)
+    procedure GetGeneralInfo(SalesHeader: Record "Sales Header"; var ID: Text; var IssueDate: Text; var InvoiceTypeCode: Text; var InvoiceTypeCodeListID: Text; var Note: Text; var TaxPointDate: Text; var DocumentCurrencyCode: Text; var DocumentCurrencyCodeListID: Text; var TaxCurrencyCode: Text; var TaxCurrencyCodeListID: Text; var AccountingCost: Text)
 
     /// <summary>
     /// Gets general information for PEPPOL BIS format document creation.

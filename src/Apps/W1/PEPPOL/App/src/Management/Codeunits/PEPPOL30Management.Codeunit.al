@@ -14,7 +14,6 @@ using Microsoft.Service.History;
 codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
                                             , "PEPPOL Delivery Info Provider"
                                             , "PEPPOL Document Info Provider"
-                                            , "PEPPOL Format Provider"
                                             , "PEPPOL Line Info Provider"
                                             , "PEPPOL Monetary Info Provider"
                                             , "PEPPOL Party Info Provider"
@@ -41,7 +40,7 @@ codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
     /// <param name="TaxCurrencyCode">Returns the tax currency code.</param>
     /// <param name="TaxCurrencyCodeListID">Returns the tax currency code list ID.</param>
     /// <param name="AccountingCost">Returns the accounting cost reference.</param>
-    procedure GetGeneralInfo(SalesHeader: Record "Sales Header"; FormatProvider: Interface "PEPPOL Format Provider"; var ID: Text; var IssueDate: Text; var InvoiceTypeCode: Text; var InvoiceTypeCodeListID: Text; var Note: Text; var TaxPointDate: Text; var DocumentCurrencyCode: Text; var DocumentCurrencyCodeListID: Text; var TaxCurrencyCode: Text; var TaxCurrencyCodeListID: Text; var AccountingCost: Text)
+    procedure GetGeneralInfo(SalesHeader: Record "Sales Header"; var ID: Text; var IssueDate: Text; var InvoiceTypeCode: Text; var InvoiceTypeCodeListID: Text; var Note: Text; var TaxPointDate: Text; var DocumentCurrencyCode: Text; var DocumentCurrencyCodeListID: Text; var TaxCurrencyCode: Text; var TaxCurrencyCodeListID: Text; var AccountingCost: Text)
     begin
         PEPPOLManagementImpl.GetGeneralInfo(SalesHeader, ID, IssueDate, InvoiceTypeCode, InvoiceTypeCodeListID, Note, TaxPointDate, DocumentCurrencyCode, DocumentCurrencyCodeListID, TaxCurrencyCode, TaxCurrencyCodeListID, AccountingCost);
     end;
@@ -110,7 +109,7 @@ codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
     /// </summary>
     /// <param name="AttachmentNumber">The attachment number to process.</param>
     /// <param name="DocumentAttachments">The document attachments record.</param>
-    /// <param name="Salesheader">The sales header record.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
     /// <param name="AdditionalDocumentReferenceID">Returns the additional document reference ID.</param>
     /// <param name="AdditionalDocRefDocumentType">Returns the additional document reference document type.</param>
     /// <param name="URI">Returns the document URI.</param>
@@ -118,24 +117,24 @@ codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
     /// <param name="MimeCode">Returns the document MIME code.</param>
     /// <param name="EmbeddedDocumentBinaryObject">Returns the embedded document binary object.</param>
     /// <param name="NewProcessedDocType">The document type being processed (Sale or Service).</param>
-    procedure GetAdditionalDocRefInfo(AttachmentNumber: Integer; var DocumentAttachments: Record "Document Attachment"; Salesheader: Record "Sales Header"; var AdditionalDocumentReferenceID: Text; var AdditionalDocRefDocumentType: Text; var URI: Text; var Filename: Text; var MimeCode: Text; var EmbeddedDocumentBinaryObject: Text; NewProcessedDocType: Option Sale,Service)
+    procedure GetAdditionalDocRefInfo(AttachmentNumber: Integer; var DocumentAttachments: Record "Document Attachment"; SalesHeader: Record "Sales Header"; var AdditionalDocumentReferenceID: Text; var AdditionalDocRefDocumentType: Text; var URI: Text; var Filename: Text; var MimeCode: Text; var EmbeddedDocumentBinaryObject: Text; NewProcessedDocType: Option Sale,Service)
     begin
-        PEPPOLManagementImpl.GetAdditionalDocRefInfo(AttachmentNumber, DocumentAttachments, Salesheader, AdditionalDocumentReferenceID, AdditionalDocRefDocumentType, URI, Filename, MimeCode, EmbeddedDocumentBinaryObject, NewProcessedDocType);
+        PEPPOLManagementImpl.GetAdditionalDocRefInfo(AttachmentNumber, DocumentAttachments, SalesHeader, AdditionalDocumentReferenceID, AdditionalDocRefDocumentType, URI, Filename, MimeCode, EmbeddedDocumentBinaryObject, NewProcessedDocType);
     end;
 
     /// <summary>
     /// Gets additional document reference information from the sales header.
     /// </summary>
-    /// <param name="Salesheader">The sales header record.</param>
+    /// <param name="SalesHeader">The sales header record.</param>
     /// <param name="AdditionalDocumentReferenceID">Returns the additional document reference ID.</param>
     /// <param name="AdditionalDocRefDocumentType">Returns the additional document reference document type.</param>
     /// <param name="URI">Returns the document URI.</param>
     /// <param name="MimeCode">Returns the document MIME code.</param>
     /// <param name="EmbeddedDocumentBinaryObject">Returns the embedded document binary object.</param>
     /// <param name="NewProcessedDocType">The document type being processed (Sale or Service).</param>
-    procedure GetAdditionalDocRefInfo(Salesheader: Record "Sales Header"; var AdditionalDocumentReferenceID: Text; var AdditionalDocRefDocumentType: Text; var URI: Text; var MimeCode: Text; var EmbeddedDocumentBinaryObject: Text; NewProcessedDocType: Option Sale,Service)
+    procedure GetAdditionalDocRefInfo(SalesHeader: Record "Sales Header"; var AdditionalDocumentReferenceID: Text; var AdditionalDocRefDocumentType: Text; var URI: Text; var MimeCode: Text; var EmbeddedDocumentBinaryObject: Text; NewProcessedDocType: Option Sale,Service)
     begin
-        PEPPOLManagementImpl.GetAdditionalDocRefInfo(Salesheader, AdditionalDocumentReferenceID, AdditionalDocRefDocumentType, URI, MimeCode, EmbeddedDocumentBinaryObject, NewProcessedDocType);
+        PEPPOLManagementImpl.GetAdditionalDocRefInfo(SalesHeader, AdditionalDocumentReferenceID, AdditionalDocRefDocumentType, URI, MimeCode, EmbeddedDocumentBinaryObject, NewProcessedDocType);
     end;
 
     /// <summary>
@@ -450,7 +449,7 @@ codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
     /// <returns>The GLN code for the header.</returns>
     procedure GetGLNForHeader(SalesHeader: Record "Sales Header"): Code[13]
     begin
-        PEPPOLManagementImpl.GetGLNForHeader(SalesHeader);
+        exit(PEPPOLManagementImpl.GetGLNForHeader(SalesHeader));
     end;
 
     /// <summary>
@@ -721,14 +720,6 @@ codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
     end;
 
     /// <summary>
-    /// Gets order line reference information for the invoice line.
-    /// </summary>
-    procedure GetLineOrderLineRefInfo()
-    begin
-        PEPPOLManagementImpl.GetLineOrderLineRefInfo();
-    end;
-
-    /// <summary>
     /// Gets delivery information for the invoice line including delivery date and delivery ID.
     /// </summary>
     /// <param name="InvoiceLineActualDeliveryDate">Returns the invoice line actual delivery date.</param>
@@ -813,9 +804,9 @@ codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
     /// <param name="CommodityCodeListID">Returns the commodity code list ID.</param>
     /// <param name="ItemClassificationCode">Returns the item classification code.</param>
     /// <param name="ItemClassificationCodeListID">Returns the item classification code list ID.</param>
-    procedure GetLineItemCommodityClassficationInfo(var CommodityCode: Text; var CommodityCodeListID: Text; var ItemClassificationCode: Text; var ItemClassificationCodeListID: Text)
+    procedure GetLineItemCommodityClassificationInfo(var CommodityCode: Text; var CommodityCodeListID: Text; var ItemClassificationCode: Text; var ItemClassificationCodeListID: Text)
     begin
-        PEPPOLManagementImpl.GetLineItemCommodityClassficationInfo(CommodityCode, CommodityCodeListID, ItemClassificationCode, ItemClassificationCodeListID);
+        PEPPOLManagementImpl.GetLineItemCommodityClassificationInfo(CommodityCode, CommodityCodeListID, ItemClassificationCode, ItemClassificationCodeListID);
     end;
 
     /// <summary>
@@ -826,9 +817,9 @@ codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
     /// <param name="ItemSchemeID">Returns the item scheme ID.</param>
     /// <param name="InvoiceLineTaxPercent">Returns the invoice line tax percentage.</param>
     /// <param name="ClassifiedTaxCategorySchemeID">Returns the classified tax category scheme ID.</param>
-    procedure GetLineItemClassfiedTaxCategory(SalesLine: Record "Sales Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
+    procedure GetLineItemClassifiedTaxCategory(SalesLine: Record "Sales Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
     begin
-        PEPPOLManagementImpl.GetLineItemClassfiedTaxCategory(SalesLine, ClassifiedTaxCategoryID, ItemSchemeID, InvoiceLineTaxPercent, ClassifiedTaxCategorySchemeID);
+        PEPPOLManagementImpl.GetLineItemClassifiedTaxCategory(SalesLine, ClassifiedTaxCategoryID, ItemSchemeID, InvoiceLineTaxPercent, ClassifiedTaxCategorySchemeID);
     end;
 
     /// <summary>
@@ -839,9 +830,9 @@ codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
     /// <param name="ItemSchemeID">Returns the item scheme ID.</param>
     /// <param name="InvoiceLineTaxPercent">Returns the invoice line tax percentage.</param>
     /// <param name="ClassifiedTaxCategorySchemeID">Returns the classified tax category scheme ID.</param>
-    procedure GetLineItemClassfiedTaxCategoryBIS(SalesLine: Record "Sales Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
+    procedure GetLineItemClassifiedTaxCategoryBIS(SalesLine: Record "Sales Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
     begin
-        PEPPOLManagementImpl.GetLineItemClassfiedTaxCategoryBIS(SalesLine, ClassifiedTaxCategoryID, ItemSchemeID, InvoiceLineTaxPercent, ClassifiedTaxCategorySchemeID);
+        PEPPOLManagementImpl.GetLineItemClassifiedTaxCategoryBIS(SalesLine, ClassifiedTaxCategoryID, ItemSchemeID, InvoiceLineTaxPercent, ClassifiedTaxCategorySchemeID);
     end;
 
     /// <summary>
@@ -900,11 +891,7 @@ codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
     /// <param name="VATAmtLine">Returns the calculated VAT amount line totals.</param>
     procedure GetTotals(SalesLine: Record "Sales Line"; var VATAmtLine: Record "VAT Amount Line")
     begin
-        // case
-        // sales
         PEPPOLManagementImpl.GetTotals(SalesLine, VATAmtLine);
-        // service
-        // 
     end;
 
     /// <summary>
@@ -1012,7 +999,7 @@ codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
     /// <param name="IsBISBilling">Whether this is BIS billing format.</param>
     /// <param name="IsPartyTaxScheme">Whether this is for party tax scheme.</param>
     /// <returns>The formatted VAT registration number.</returns>
-    internal procedure FormatVATRegistrationNo(VATRegistrationNo: Text; CountryCode: Code[10]; IsBISBilling: Boolean; IsPartyTaxScheme: Boolean): Text
+    procedure FormatVATRegistrationNo(VATRegistrationNo: Text; CountryCode: Code[10]; IsBISBilling: Boolean; IsPartyTaxScheme: Boolean): Text
     begin
         exit(PEPPOLManagementImpl.FormatVATRegistrationNo(VATRegistrationNo, CountryCode, IsBISBilling, IsPartyTaxScheme));
     end;
@@ -1067,7 +1054,7 @@ codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
     /// <returns>True if a next record was found, false otherwise.</returns>
     procedure FindNextSalesInvoiceRec(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header"; Position: Integer): Boolean
     begin
-        PEPPOLManagementImpl.FindNextSalesInvoiceRec(SalesInvoiceHeader, SalesHeader, Position);
+        exit(PEPPOLManagementImpl.FindNextSalesInvoiceRec(SalesInvoiceHeader, SalesHeader, Position));
     end;
 
     /// <summary>
