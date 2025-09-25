@@ -7,7 +7,7 @@ namespace System.Test.Apps;
 
 using System.Apps;
 
-codeunit 133102 "Sample Setup For Test"
+codeunit 135108 "Sample Setup For Test"
 {
     trigger OnRun()
     begin
