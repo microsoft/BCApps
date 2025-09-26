@@ -6,6 +6,9 @@
 namespace System.MCP;
 
 using System.Environment;
+#if not CLEAN28
+using System.Environment.Configuration;
+#endif
 using System.Reflection;
 
 codeunit 8351 "MCP Config Implementation"
@@ -337,4 +340,14 @@ codeunit 8351 "MCP Config Implementation"
         if not MCPConfiguration.AllowProdChanges then
             Error(ProdChangesNotAllowedErr);
     end;
+
+#if not CLEAN28
+    internal procedure IsFeatureEnabled(): Boolean
+    var
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+        EnableMcpAccessTok: Label 'EnableMcpAccess', Locked = true;
+    begin
+        exit(FeatureManagementFacade.IsEnabled(EnableMcpAccessTok));
+    end;
+#endif
 }
