@@ -10,6 +10,7 @@ tableextension 8063 "Purch. Cr. Memo Hdr." extends "Purch. Cr. Memo Hdr."
         {
             DataClassification = CustomerContent;
             Caption = 'Recurring Billing';
+            ToolTip = 'Specifies whether the document was created by Subscription Billing.';
         }
     }
 }
