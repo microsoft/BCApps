@@ -315,6 +315,7 @@ codeunit 8062 "Billing Proposal"
         if not BillingLine.Insert(false) then
             BillingLine.Modify(false);
 
+        UpdateUsageDataBillingLineNoWhenBillingProposalIsCreated(BillingLine, ServiceCommitment);
         OnBeforeUpdateNextBillingDateInUpdateBillingLine(ServiceCommitment);
         ServiceCommitment.UpdateNextBillingDate(BillingLine."Billing to");
         ServiceCommitment.Modify(false);
@@ -441,6 +442,23 @@ codeunit 8062 "Billing Proposal"
         ServiceObject.Get(ServiceCommitment."Subscription Header No.");
         BillingLine."Service Object Quantity" := BillingLine.GetSign() * ServiceObject.Quantity;
         OnAfterUpdateBillingLineFromSubscriptionLine(BillingLine, ServiceCommitment);
+    end;
+
+    local procedure UpdateUsageDataBillingLineNoWhenBillingProposalIsCreated(BillingLine: Record "Billing Line"; SubscriptionLine: Record "Subscription Line")
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+    begin
+        if not SubscriptionLine.IsUsageBasedBillingValid() then
+            exit;
+        UsageDataBilling.FilterOnServiceCommitment(SubscriptionLine);
+        UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
+        UsageDataBilling.SetFilter("Charge Start Date", '<=%1', BillingLine."Billing from");
+        UsageDataBilling.SetFilter("Charge End Date", '>=%1', BillingLine."Billing to");
+        if UsageDataBilling.FindSet() then
+            repeat
+                UsageDataBilling."Billing Line Entry No." := BillingLine."Entry No.";
+                UsageDataBilling.Modify(false);
+            until UsageDataBilling.Next() = 0;
     end;
 
     local procedure CalculateBillingPeriod(ServiceCommitment: Record "Subscription Line"; BillingDate: Date; BillToDate: Date; var BillingPeriodStart: Date; var BillingPeriodEnd: Date)
