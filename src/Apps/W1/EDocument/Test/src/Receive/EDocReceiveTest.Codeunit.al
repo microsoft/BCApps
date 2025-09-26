@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.Purchases.Document;
+using Microsoft.Foundation.UOM;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Foundation.Address;
 using System.TestLibraries.Utilities;
@@ -26,7 +27,7 @@ using Microsoft.Foundation.Enums;
 codeunit 139628 "E-Doc. Receive Test"
 {
     Subtype = Test;
-    TestType = IntegrationTest;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     EventSubscriberInstance = Manual;
 
@@ -138,6 +139,8 @@ codeunit 139628 "E-Doc. Receive Test"
     procedure ReceiveSinglePurchaseInvoice_PEPPOL_WithAttachment()
     var
         EDocService: Record "E-Document Service";
+        UnitOfMeasure: Record "Unit of Measure";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
         Item: Record Item;
         ItemReference: Record "Item Reference";
         DocumentAttachment: Record "Document Attachment";
@@ -159,6 +162,12 @@ codeunit 139628 "E-Doc. Receive Test"
         LibraryPurchase.CreateVendorWithVATRegNo(Vendor);
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
 
+        UnitOfMeasure.Code := 'PCS';
+        UnitOfMeasure.Description := 'Test';
+        UnitOfMeasure."International Standard Code" := 'PCS';
+        if not UnitOfMeasure.Insert() then
+            UnitOfMeasure.Get('PCS');
+
         // Setup correct vendor VAT and Item Ref to process document
         Vendor."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
         Vendor."VAT Registration No." := 'GB123456789';
@@ -166,8 +175,16 @@ codeunit 139628 "E-Doc. Receive Test"
         Vendor."Country/Region Code" := CountryRegion.Code;
         Vendor.Modify();
         Item.FindFirst();
+        Item."Base Unit of Measure" := UnitOfMeasure.Code;
+        Item."Purch. Unit of Measure" := UnitOfMeasure.Code;
         Item."VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
         Item.Modify();
+
+        ItemUnitOfMeasure."Item No." := Item."No.";
+        ItemUnitOfMeasure.Code := UnitOfMeasure.Code;
+        ItemUnitOfMeasure."Qty. per Unit of Measure" := 1;
+        if ItemUnitOfMeasure.Insert() then;
+
         ItemReference.DeleteAll();
         ItemReference."Reference Type" := ItemReference."Reference Type"::Vendor;
         ItemReference."Reference Type No." := Vendor."No.";
@@ -241,6 +258,7 @@ codeunit 139628 "E-Doc. Receive Test"
     var
         EDocService: Record "E-Document Service";
         Item: Record Item;
+        UnitOfMeasure: Record "Unit of Measure";
         ItemReference: Record "Item Reference";
         DocumentAttachment: Record "Document Attachment";
         EDocServiceDataExchDef: Record "E-Doc. Service Data Exch. Def.";
@@ -264,7 +282,18 @@ codeunit 139628 "E-Doc. Receive Test"
         Vendor."VAT Registration No." := 'GB123456789';
         Vendor."Receive E-Document To" := Enum::"E-Document Type"::"Purchase Invoice";
         Vendor.Modify();
+
+        UnitOfMeasure.Code := 'PCS';
+        UnitOfMeasure.Description := 'Test';
+        UnitOfMeasure."International Standard Code" := 'PCS';
+        if not UnitOfMeasure.Insert() then
+            UnitOfMeasure.Get('PCS');
+
         Item.FindFirst();
+        Item."Base Unit of Measure" := UnitOfMeasure.Code;
+        Item."Purch. Unit of Measure" := UnitOfMeasure.Code;
+        Item.Modify();
+
         ItemReference.DeleteAll();
         ItemReference."Item No." := Item."No.";
         ItemReference."Reference Type" := ItemReference."Reference Type"::Vendor;
