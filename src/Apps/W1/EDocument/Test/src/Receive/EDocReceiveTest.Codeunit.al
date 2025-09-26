@@ -26,7 +26,7 @@ using Microsoft.Foundation.Enums;
 codeunit 139628 "E-Doc. Receive Test"
 {
     Subtype = Test;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
     EventSubscriberInstance = Manual;
 
@@ -169,8 +169,10 @@ codeunit 139628 "E-Doc. Receive Test"
         Item."VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
         Item.Modify();
         ItemReference.DeleteAll();
+        ItemReference."Reference Type" := ItemReference."Reference Type"::Vendor;
+        ItemReference."Reference Type No." := Vendor."No.";
         ItemReference."Item No." := Item."No.";
-        ItemReference."Reference No." := '1000';
+        ItemReference."Reference No." := '1000'; // FROM XML
         ItemReference.Insert();
 
         TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
@@ -199,7 +201,7 @@ codeunit 139628 "E-Doc. Receive Test"
         EDocService."Document Format" := "E-Document Format"::"PEPPOL BIS 3.0";
         EDocService."Lookup Account Mapping" := false;
         EDocService."Lookup Item GTIN" := false;
-        EDocService."Lookup Item Reference" := false;
+        EDocService."Lookup Item Reference" := true;
         EDocService."Resolve Unit Of Measure" := false;
         EDocService."Validate Line Discount" := false;
         EDocService."Verify Totals" := false;
@@ -1729,7 +1731,9 @@ codeunit 139628 "E-Doc. Receive Test"
         Item.Modify();
         ItemReference.DeleteAll();
         ItemReference."Item No." := Item."No.";
-        ItemReference."Reference No." := '1000';
+        ItemReference."Reference No." := '1000'; // FROM XML
+        ItemReference."Reference Type" := ItemReference."Reference Type"::Vendor;
+        ItemReference."Reference Type No." := Vendor."No.";
         ItemReference.Insert();
 
         TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
@@ -1758,7 +1762,7 @@ codeunit 139628 "E-Doc. Receive Test"
         EDocService."Document Format" := "E-Document Format"::"PEPPOL BIS 3.0";
         EDocService."Lookup Account Mapping" := false;
         EDocService."Lookup Item GTIN" := false;
-        EDocService."Lookup Item Reference" := false;
+        EDocService."Lookup Item Reference" := true;
         EDocService."Resolve Unit Of Measure" := false;
         EDocService."Validate Line Discount" := false;
         EDocService."Verify Totals" := false;
