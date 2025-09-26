@@ -853,6 +853,7 @@ table 8052 "Customer Subscription Contract"
         field(8052; "Detail Overview"; Enum "Contract Detail Overview")
         {
             Caption = 'Detail Overview';
+            InitValue = Complete;
         }
         field(8053; "Billing Rhythm Filter"; DateFormula)
         {
