@@ -267,13 +267,15 @@ codeunit 139628 "E-Doc. Receive Test"
         Item.FindFirst();
         ItemReference.DeleteAll();
         ItemReference."Item No." := Item."No.";
+        ItemReference."Reference Type" := ItemReference."Reference Type"::Vendor;
+        ItemReference."Reference Type No." := Vendor."No.";
         ItemReference."Reference No." := '1000';
         ItemReference.Insert();
 
         EDocService."Document Format" := "E-Document Format"::"Data Exchange";
         EDocService."Lookup Account Mapping" := false;
         EDocService."Lookup Item GTIN" := false;
-        EDocService."Lookup Item Reference" := false;
+        EDocService."Lookup Item Reference" := true;
         EDocService."Resolve Unit Of Measure" := false;
         EDocService."Validate Line Discount" := false;
         EDocService."Verify Totals" := false;
@@ -1829,12 +1831,14 @@ codeunit 139628 "E-Doc. Receive Test"
         ItemReference.DeleteAll();
         ItemReference."Item No." := Item."No.";
         ItemReference."Reference No." := '1000';
+        ItemReference."Reference Type" := ItemReference."Reference Type"::Vendor;
+        ItemReference."Reference Type No." := Vendor."No.";
         ItemReference.Insert();
 
         EDocService."Document Format" := "E-Document Format"::"Data Exchange";
         EDocService."Lookup Account Mapping" := false;
         EDocService."Lookup Item GTIN" := false;
-        EDocService."Lookup Item Reference" := false;
+        EDocService."Lookup Item Reference" := true;
         EDocService."Resolve Unit Of Measure" := false;
         EDocService."Validate Line Discount" := false;
         EDocService."Verify Totals" := false;

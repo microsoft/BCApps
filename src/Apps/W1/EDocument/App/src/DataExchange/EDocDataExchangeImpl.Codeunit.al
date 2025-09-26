@@ -484,8 +484,7 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
                         begin
                             // Read data as Base 64 value, and convert it.
                             IntermediateDataImport.CalcFields("Value BLOB");
-                            IntermediateDataImport."Value BLOB".CreateInStream(InStream);
-                            InStream.ReadText(Base64Data);
+                            Base64Data := IntermediateDataImport.GetValue();
                             TempBlob.CreateOutStream(OutStream);
                             Base64Convert.FromBase64(Base64Data, OutStream);
                         end;
