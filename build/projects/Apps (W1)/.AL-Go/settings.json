@@ -26,7 +26,8 @@
         "DK"
       ],
       "settings": {
-        "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/28.0.40016.0/DK"
+        "country": "dk",
+        "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/28.0.40016.0/dk"
       }
     },
     {
