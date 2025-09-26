@@ -23,11 +23,29 @@
     },
     {
       "buildModes": [
-        "DK"
+        "CZ"
       ],
       "settings": {
-        "country": "dk",
-        "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/28.0.40016.0/dk"
+        "country": "cz",
+        "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/28.0.40016.0/cz"
+      }
+    },
+    {
+      "buildModes": [
+        "IN"
+      ],
+      "settings": {
+        "country": "in",
+        "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/28.0.40016.0/in"
+      }
+    },
+    {
+      "buildModes": [
+        "US"
+      ],
+      "settings": {
+        "country": "us",
+        "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/28.0.40016.0/us"
       }
     },
     {
