@@ -31,6 +31,8 @@ codeunit 1934 "Perf. Prof. Activity Mapper"
                 ActivityType := ActivityType::"Web Client";
             ClientType::"Web Service":
                 ActivityType := ActivityType::"Web API Client";
+            else
+                ActivityType := ActivityType::"Web Client";
         end;
     end;
 }
