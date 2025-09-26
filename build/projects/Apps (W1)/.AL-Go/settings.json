@@ -18,7 +18,7 @@
     {
       "workflows ": ["CICD"],
       "settings": {
-        "buildModes": ["DK"]
+        "buildModes": ["CZ", "IN", "US"]
       }
     },
     {
