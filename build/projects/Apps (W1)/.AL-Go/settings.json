@@ -18,7 +18,17 @@
     {
       "workflows ": ["CICD"],
       "settings": {
-        "buildModes": ["CZ", "IN", "US"]
+        "buildModes": ["CH", "CZ", "IN", "US"]
+      }
+    },
+    {
+      "buildModes": [
+        "CH"
+      ],
+      "settings": {
+        "country": "ch",
+        "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/28.0.40016.0/ch",
+        "doNotRunTests": true
       }
     },
     {
