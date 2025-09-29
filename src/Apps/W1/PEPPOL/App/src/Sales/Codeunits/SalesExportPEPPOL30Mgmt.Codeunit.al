@@ -101,5 +101,4 @@ codeunit 37213 "Sales Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Managem
                 PEPPOLTaxInfoProvider.GetTaxCategories(SalesLine, TempVATProductPostingGroup);
             until SalesCrMemoLine.Next() = 0;
     end;
-
 }
