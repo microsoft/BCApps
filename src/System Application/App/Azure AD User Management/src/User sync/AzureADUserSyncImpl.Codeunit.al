@@ -496,7 +496,7 @@ codeunit 9029 "Azure AD User Sync Impl."
             if UpdatedSuccessfully then
                 NumberOfSuccessfulUpdates += 1
             else
-                Session.LogMessage('0000BPA', StrSubstNo(FailedToUserUpdateTxt, AzureADUserUpdate."User Security ID", AzureADUserUpdate."Authentication Object ID", GetLastErrorCallStack), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', UserSetupCategoryTxt);
+                Session.LogMessage('0000BPA', StrSubstNo(FailedToUserUpdateTxt, GetLastErrorCallStack), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', UserSetupCategoryTxt);
         until AzureADUserUpdate.Next() = 0;
         Commit();
     end;
