@@ -239,8 +239,7 @@ function Install-AppFromContainer() {
         $appToInstall = $uninstalledApps[0]
         Write-Host "[Install Container App] - Installing $($dependency)"
         try {
-            Sync-BcContainerApp -containerName $ContainerName -appName $appToInstall.Name -appPublisher $appToInstall.Publisher -Mode ForceSync -Force
-            Install-BcContainerApp -containerName $ContainerName -appName $appToInstall.Name -appPublisher $appToInstall.Publisher -appVersion $appToInstall.Version -Force
+            InstallContainerAppWithRetry -ContainerName $ContainerName -AppName $appToInstall.Name -AppVersion $appToInstall.Version -AppPublisher $appToInstall.Publisher
         } catch {
             Write-Host "[Install Container App] - Failed to install $($dependency) ($($appToInstall.Version))"
             Write-Host $_.Exception.Message
@@ -253,6 +252,40 @@ function Install-AppFromContainer() {
         Write-Host "[Install Container App] - The following dependencies are missing: $($missingDependencies -join ', ')"
     }
     return $missingDependencies
+}
+
+function InstallContainerAppWithRetry() {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $ContainerName,
+        [Parameter(Mandatory = $true)]
+        [string] $AppName,
+        [Parameter(Mandatory = $true)]
+        [string] $AppVersion,
+        [Parameter(Mandatory = $true)]
+        [string] $AppPublisher,
+        [int] $MaxRetries = 3,
+        [int] $DelaySeconds = 10
+    )
+    $attempt = 0
+    while ($attempt -lt $MaxRetries) {
+        try {
+            Sync-BcContainerApp -containerName $ContainerName -appName $AppName -appPublisher $AppPublisher -Mode ForceSync -Force
+            Install-BcContainerApp -containerName $ContainerName -appName $AppName -appPublisher $AppPublisher -appVersion $AppVersion -Force
+            Write-Host "[Install Container App With Retry] - Successfully installed $AppName ($AppVersion) on attempt $($attempt + 1)"
+            return
+        } catch {
+            Write-Host "[Install Container App With Retry] - Attempt $($attempt + 1) to install $AppName ($AppVersion) failed: $($_.Exception.Message)"
+            $attempt++
+            if ($attempt -lt $MaxRetries) {
+                Write-Host "[Install Container App With Retry] - Retrying in $DelaySeconds seconds..."
+                Start-Sleep -Seconds $DelaySeconds
+            } else {
+                Write-Host "[Install Container App With Retry] - All attempts to install $AppName ($AppVersion) have failed."
+                throw
+            }
+        }
+    }
 }
 
 <#
