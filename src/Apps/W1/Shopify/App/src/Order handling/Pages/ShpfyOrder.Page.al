@@ -790,7 +790,7 @@ page 30113 "Shpfy Order"
             action(Fulfillments)
             {
                 ApplicationArea = All;
-                Caption = 'Fulfillments';
+                Caption = 'Completed Fulfillments';
                 Image = ShipmentLines;
                 Promoted = true;
                 PromotedCategory = Category4;

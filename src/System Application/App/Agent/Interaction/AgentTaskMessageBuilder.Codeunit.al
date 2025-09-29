@@ -55,6 +55,19 @@ codeunit 4316 "Agent Task Message Builder"
     end;
 
     /// <summary>
+    /// Set whether to ignore attachments for the message.
+    /// When set to true, attachments will be marked as ignored and will not be processed by the agent.
+    /// The default value is false.
+    /// </summary>
+    /// <param name="IgnoreAttachment">Specifies if attachments should be ignored.</param>
+    [Scope('OnPrem')]
+    procedure SetIgnoreAttachment(IgnoreAttachment: Boolean): codeunit "Agent Task Message Builder"
+    begin
+        AgentTaskMsgBuilderImpl.SetIgnoreAttachment(IgnoreAttachment);
+        exit(this);
+    end;
+
+    /// <summary>
     /// Set the external ID of the task.
     /// </summary>
     /// <param name="ExternalId">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
@@ -149,6 +162,23 @@ codeunit 4316 "Agent Task Message Builder"
     procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream): codeunit "Agent Task Message Builder"
     begin
         AgentTaskMsgBuilderImpl.AddAttachment(FileName, FileMIMEType, InStream);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Attach a file to the task message.
+    /// The file will be attached when the message is created.
+    /// It is possible to attach multiple files to the message.
+    /// </summary>
+    /// <param name="FileName">The name of the file to attach.</param>
+    /// <param name="FileMIMEType">The MIME type of the file to attach.</param>
+    /// <param name="InStream">The stream of the file to attach.</param>
+    /// <param name="Ignored">Specifies if the attachment should be marked as ignored, so that it is not processed by agent.</param>
+    /// <returns>This instance of the Agent Task Message Builder.</returns>
+    [Scope('OnPrem')]
+    procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream; Ignored: Boolean): codeunit "Agent Task Message Builder"
+    begin
+        AgentTaskMsgBuilderImpl.AddAttachment(FileName, FileMIMEType, InStream, Ignored);
         exit(this);
     end;
 

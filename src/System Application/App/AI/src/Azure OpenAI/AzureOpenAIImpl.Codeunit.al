@@ -130,16 +130,26 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     end;
 #endif
 
+#if not CLEAN28
+#pragma warning disable AA0137
     [NonDebuggable]
     procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; AOAIAccountName: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
     begin
+        SetManagedResourceAuthorization(ModelType, ManagedResourceDeployment);
+    end;
+#pragma warning restore AA0137
+#endif
+
+    [NonDebuggable]
+    procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; ManagedResourceDeployment: Text)
+    begin
         case ModelType of
             Enum::"AOAI Model Type"::"Text Completions":
-                TextCompletionsAOAIAuthorization.SetMicrosoftManagedAuthorization(AOAIAccountName, ApiKey, ManagedResourceDeployment);
+                TextCompletionsAOAIAuthorization.SetMicrosoftManagedAuthorization(ManagedResourceDeployment);
             Enum::"AOAI Model Type"::Embeddings:
-                EmbeddingsAOAIAuthorization.SetMicrosoftManagedAuthorization(AOAIAccountName, ApiKey, ManagedResourceDeployment);
+                EmbeddingsAOAIAuthorization.SetMicrosoftManagedAuthorization(ManagedResourceDeployment);
             Enum::"AOAI Model Type"::"Chat Completions":
-                ChatCompletionsAOAIAuthorization.SetMicrosoftManagedAuthorization(AOAIAccountName, ApiKey, ManagedResourceDeployment);
+                ChatCompletionsAOAIAuthorization.SetMicrosoftManagedAuthorization(ManagedResourceDeployment);
             else
                 Error(InvalidModelTypeErr);
         end;

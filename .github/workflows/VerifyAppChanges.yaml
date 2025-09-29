@@ -22,3 +22,5 @@ jobs:
           ref: ${{ github.sha }}
 
       - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main
+
+      - uses: microsoft/BCApps/.github/actions/TestObjectIdsAndManifests@main

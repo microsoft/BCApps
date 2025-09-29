@@ -12,7 +12,6 @@ namespace System.Log;
 enum 3111 "Activity Log Type"
 {
     Extensible = false;
-    Scope = OnPrem;
 
     value(0; "AL")
     {

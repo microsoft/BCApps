@@ -178,6 +178,12 @@ table 30133 "Shpfy Order Transaction"
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        field(26; "Refund Id"; BigInteger)
+        {
+            Caption = 'Refund Id';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
         field(101; "Sales Document No."; code[20])
         {
             Caption = 'Sales Document No.';

@@ -49,23 +49,25 @@ table 8062 "Cust. Sub. Contract Line"
                 GLAccount: Record "G/L Account";
                 TempCustomerContractLine: Record "Cust. Sub. Contract Line" temporary;
             begin
-                case "Contract Line Type" of
-                    "Contract Line Type"::Item:
-                        begin
-                            if not Item.Get("No.") then
-                                Error(EntityDoesNotExistErr, Item.TableCaption, "No.");
-                            if Item.Blocked or Item."Subscription Option" in ["Item Service Commitment Type"::"Sales without Service Commitment", "Item Service Commitment Type"::"Sales without Service Commitment"] then
-                                Error(ItemBlockedOrWithoutServiceCommitmentsErr, "No.");
-                        end;
-                    "Contract Line Type"::"G/L Account":
-                        begin
-                            if not GLAccount.Get("No.") then
-                                Error(EntityDoesNotExistErr, GLAccount.TableCaption, "No.");
-                            if GLAccount.Blocked or not GLAccount."Direct Posting" or (GLAccount."Account Type" <> GLAccount."Account Type"::Posting) then
-                                Error(GLAccountBlockedOrNotForDirectPostingErr, "No.");
-                        end;
-                end;
+                if "No." <> '' then
+                    case "Contract Line Type" of
+                        "Contract Line Type"::Item:
+                            begin
+                                if not Item.Get("No.") then
+                                    Error(EntityDoesNotExistErr, Item.TableCaption, "No.");
+                                if Item.Blocked or Item."Subscription Option" in ["Item Service Commitment Type"::"Sales without Service Commitment", "Item Service Commitment Type"::"Sales without Service Commitment"] then
+                                    Error(ItemBlockedOrWithoutServiceCommitmentsErr, "No.");
+                            end;
+                        "Contract Line Type"::"G/L Account":
+                            begin
+                                if not GLAccount.Get("No.") then
+                                    Error(EntityDoesNotExistErr, GLAccount.TableCaption, "No.");
+                                if GLAccount.Blocked or not GLAccount."Direct Posting" or (GLAccount."Account Type" <> GLAccount."Account Type"::Posting) then
+                                    Error(GLAccountBlockedOrNotForDirectPostingErr, "No.");
+                            end;
+                    end;
 
+                CheckAndDisconnectContractLine();
                 TempCustomerContractLine := Rec;
                 Init();
                 SystemId := TempCustomerContractLine.SystemId;
@@ -137,11 +139,18 @@ table 8062 "Cust. Sub. Contract Line"
 
     trigger OnDelete()
     begin
+        ErrorIfUnreleasedCustSubContractDeferralExists();
         AskIfClosedContractLineCanBeDeleted();
         UpdateServiceCommitmentDimensions();
         RecalculateHarmonizedBillingFieldsOnCustomerContract(Rec."Line No.");
         ErrorIfUsageDataBillingIsLinkedToContractLine();
         CheckAndDisconnectContractLine();
+    end;
+
+    trigger OnModify()
+    begin
+        if Rec."Contract Line Type" <> xRec."Contract Line Type" then
+            ErrorIfUnreleasedCustSubContractDeferralExists();
     end;
 
     var
@@ -163,6 +172,7 @@ table 8062 "Cust. Sub. Contract Line"
         EntityDoesNotExistErr: Label '%1 with the No. %2 does not exist.', Comment = '%1 = Item or GL Account, %2 = Entity No.';
         ItemBlockedOrWithoutServiceCommitmentsErr: Label 'The item %1 cannot be blocked and must be of type "Non-Inventory" with the Subscription Option set to "Sales with Subscription" or "Subscription Item".', Comment = '%1=Item No.';
         GLAccountBlockedOrNotForDirectPostingErr: Label 'The G/L Account %1 cannot be blocked and must allow direct posting to it.', Comment = '%1=G/L Account No.';
+        UnreleasedCustSubContractDeferralExistsErr: Label 'Contract lines cannot be deleted as long as open Contract Deferrals exists. Please release the Contract Deferrals before deleting the Contract line.';
 
     local procedure CreateServiceObjectWithServiceCommitment()
     var
@@ -170,6 +180,8 @@ table 8062 "Cust. Sub. Contract Line"
         ServiceObject: Record "Subscription Header";
         ServiceCommitment: Record "Subscription Line";
     begin
+        if "No." = '' then
+            exit;
         CustomerContract.Get("Subscription Contract No.");
         ServiceObject.InitForSourceNo("Contract Line Type", "No.");
         ServiceObject.UpdateCustomerDataFromCustomerContract(CustomerContract);
@@ -422,6 +434,12 @@ table 8062 "Cust. Sub. Contract Line"
         Rec.SetRange("Subscription Contract No.", ServiceCommitment."Subscription Contract No.");
     end;
 
+    internal procedure FindFirstSubscriptionLine(SubscriptionLine: Record "Subscription Line"): Boolean
+    begin
+        Rec.FilterOnServiceCommitment(SubscriptionLine);
+        exit(Rec.FindFirst());
+    end;
+
     internal procedure FilterOnServiceObjectContractLineType()
     begin
         SetRange("Contract Line Type", "Contract Line Type"::Item, "Contract Line Type"::"G/L Account");
@@ -550,6 +568,17 @@ table 8062 "Cust. Sub. Contract Line"
     internal procedure IsCommentLine(): Boolean
     begin
         exit("Contract Line Type" = "Contract Line Type"::Comment);
+    end;
+
+    local procedure ErrorIfUnreleasedCustSubContractDeferralExists()
+    var
+        CustSubContractDeferral: Record "Cust. Sub. Contract Deferral";
+    begin
+        CustSubContractDeferral.SetRange("Subscription Contract No.", "Subscription Contract No.");
+        CustSubContractDeferral.SetRange("Subscription Contract Line No.", "Line No.");
+        CustSubContractDeferral.SetRange(Released, false);
+        if not CustSubContractDeferral.IsEmpty() then
+            Error(UnreleasedCustSubContractDeferralExistsErr);
     end;
 
     [IntegrationEvent(false, false)]

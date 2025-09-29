@@ -2,6 +2,20 @@
 
 Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
 
+### AL Code Analysis tracked in GitHub
+
+AL-Go already supports AL code analysis, but up until now this was not tracked in GitHub. It is now possible to track code analysis issues automatically in the GitHub security tab, as well as having any new issues posted as a comment in Pull Requests.
+
+Enable this feature by using the new setting [trackALAlertsInGithub](https://aka.ms/algosettings#trackALAlertsInGithub). This setting must be enabled at the repo level, but can optionally be disabled per project.
+
+Please note that some automated features are premium and require the use of [GitHub Code Security](https://docs.github.com/en/get-started/learning-about-github/about-github-advanced-security)
+
+### Issues
+
+- Discussion 1885 Conditional settings for CI/CD are not applied
+
+## v7.3
+
 ### Configurable merge method for pull request auto-merge
 
 A new setting `pullRequestMergeMethod` has been added to the `commitOptions` structure, allowing you to configure which merge method to use when `pullRequestAutoMerge` is enabled. Valid values are "merge" or "squash". The default value is "squash" to maintain backward compatibility.
@@ -52,6 +66,7 @@ Please note, that due to certain security limitations, the properties `runs-on`,
 - Issue 1837 Deployment from PR builds fail if PR branch name includes forward slashes (e.g., `feature/branch-name`).
 - Issue 1852 Page Scripting Tests are not added to build summary
 - Issue 1829 Added custom jobs cannot be removed
+- Idea 1856 Include workflow name as input for action ReadSetting
 
 ### Additional debug logging functionality
 
