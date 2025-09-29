@@ -60,7 +60,6 @@ page 149034 "AIT Test Method Lines"
                     begin
                         AITEvaluator.SetRange("Test Suite Code", Rec."Test Suite Code");
                         AITEvaluator.SetRange("Test Method Line", Rec."Line No.");
-
                         AITEvaluatorPage.SetTableView(AITEvaluator);
                         AITEvaluatorPage.SetTestMethodLine(Rec."Line No.");
 
