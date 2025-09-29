@@ -38,7 +38,7 @@ page 8351 "MCP Config Card"
                 }
                 field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
                 {
-                    ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools dynamically.';
+                    ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools within the configuration dynamically.';
                 }
                 field(AllowProdChanges; Rec.AllowProdChanges)
                 {
