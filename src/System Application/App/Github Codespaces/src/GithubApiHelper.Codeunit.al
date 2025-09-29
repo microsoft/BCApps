@@ -66,7 +66,6 @@ codeunit 8430 "Github API Helper"
         ResponseContent: JsonObject;
         RepoUrl: Text;
         AccessToken: SecretText;
-        AccessTokenStr: Text;
     begin
         // Get access token via device flow
         AccessToken := GitHubOAuthBrowserHelper.GetGitHubAccessTokenViaDeviceFlow();
@@ -174,9 +173,10 @@ codeunit 8430 "Github API Helper"
         AccessToken: SecretText;
         ApiUrl: Text;
         EmptyBody: JsonObject;
+        StartCodespacesRequestTxt: Label 'https://api.github.com/user/codespaces/%1/start', Comment = '%1: Codespace Name';
     begin
         AccessToken := GitHubOAuthBrowserHelper.GetGitHubAccessTokenViaDeviceFlow();
-        ApiUrl := StrSubstNo('https://api.github.com/user/codespaces/%1/start', CodespaceName);
+        ApiUrl := StrSubstNo(StartCodespacesRequestTxt, CodespaceName);
 
         RestClient.Initialize();
         RestClient.SetDefaultRequestHeader('Accept', 'application/vnd.github+json');
