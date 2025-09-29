@@ -24,6 +24,7 @@ interface "PEPPOL30 Export Management"
     /// <param name="TempSalesLineRounding">Temporary sales line record for handling rounding adjustments.</param>
     /// <param name="DocumentAttachments">Document attachments record for handling file attachments.</param>
     procedure Init(RecRef: RecordRef; var TempSalesLineRounding: Record "Sales Line" temporary; var DocumentAttachments: Record "Document Attachment");
+
     /// <summary>
     /// Finds and moves to the next document record in the export sequence.
     /// Used for iterating through multiple documents during batch export operations.
@@ -32,6 +33,7 @@ interface "PEPPOL30 Export Management"
     /// <param name="EDocumentFormat">The electronic document format being used for export.</param>
     /// <returns>True if a next record was found and positioned, false if no more records exist.</returns>
     procedure FindNextRec(Position: Integer; EDocumentFormat: Enum "E-Document Format"): Boolean
+
     /// <summary>
     /// Finds and moves to the next line record within the current document.
     /// Used for iterating through document lines during export processing.
@@ -40,6 +42,7 @@ interface "PEPPOL30 Export Management"
     /// <param name="EDocumentFormat">The electronic document format being used for export.</param>
     /// <returns>True if a next line record was found and positioned, false if no more lines exist.</returns>
     procedure FindNextLineRec(Position: Integer; EDocumentFormat: Enum "E-Document Format"): Boolean
+
     /// <summary>
     /// Calculates and retrieves totals for VAT amounts and VAT product posting groups.
     /// Populates temporary records with calculated totals required for PEPPOL document generation.

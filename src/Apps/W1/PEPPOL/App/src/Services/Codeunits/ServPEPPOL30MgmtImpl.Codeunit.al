@@ -6,11 +6,7 @@ namespace Microsoft.Peppol;
 
 using Microsoft.Sales.Document;
 using Microsoft.Service.Document;
-using Microsoft.Finance.VAT.Setup;
 using Microsoft.Service.History;
-using Microsoft.Foundation.Attachment;
-using Microsoft.Sales.Peppol;
-using Microsoft.Finance.VAT.Calculation;
 
 codeunit 37208 "Serv. PEPPOL30 Mgmt. Impl."
 {

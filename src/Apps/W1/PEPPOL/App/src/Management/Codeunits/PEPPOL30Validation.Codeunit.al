@@ -11,10 +11,6 @@ codeunit 37202 "PEPPOL30 Validation" implements "PEPPOL30 Validation"
 {
     TableNo = "Sales Header";
 
-    /// <summary>
-    /// Main validation trigger that performs comprehensive PEPPOL validation on a sales document.
-    /// Validates both the sales header and all associated sales lines.
-    /// </summary>
     trigger OnRun()
     begin
         CheckSalesDocument(Rec);

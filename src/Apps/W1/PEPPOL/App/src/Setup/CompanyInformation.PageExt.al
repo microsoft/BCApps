@@ -16,16 +16,10 @@ pageextension 37200 "Company Information" extends "Company Information"
     {
         addlast(content)
         {
-            /// <summary>
-            /// Group for e-document configuration settings.
-            /// </summary>
             group("E-Documents")
             {
                 Caption = 'E-Documents';
 
-                /// <summary>
-                /// Field for selecting the e-document format to be used for PEPPOL exports.
-                /// </summary>
                 field("E-Document Format"; Rec."E-Document Format")
                 {
                     ApplicationArea = All;

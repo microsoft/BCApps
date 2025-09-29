@@ -44,16 +44,6 @@ codeunit 139000 "PEPPOL30 Management Tests"
     Subtype = Test;
     TestPermissions = Disabled;
 
-    /// <summary>
-    /// Main trigger indicating this codeunit tests PEPPOL sales functionality.
-    /// </summary>
-    trigger OnRun()
-    begin
-        // [FEATURE] [Sales] [PEPPOL]
-    end;
-
-    var
-
     var
         CompanyInformation: Record "Company Information";
         Assert: Codeunit Assert;
@@ -71,7 +61,7 @@ codeunit 139000 "PEPPOL30 Management Tests"
         IsInitialized: Boolean;
         FieldMustHaveValueErr: Label '%1 must have a value', Comment = '%1 - Field caption';
         InvoiceDiscAmtTxt: Label 'Line Discount Amount';
-        InvoiceElectronicallySendPEPPOLFormatTxt: Label 'The Invoice File Sucessfully Send in PEEPOL Format';
+        InvoiceElectronicallySendPEPPOLFormatTxt: Label 'The Invoice File Successfully Sent in PEPPOL Format';
         NegativeUnitPriceErr: Label 'It cannot be negative if you want to send the posted document as an electronic document. \\Do you want to continue?', Comment = '%1 - record ID';
         NoInternationalStandardCodeErr: Label 'You must specify a valid International Standard Code for the Unit of Measure for %1.', Comment = '%1 - Unit of Measure Code';
         NoItemDescriptionErr: Label 'Description field is empty.';

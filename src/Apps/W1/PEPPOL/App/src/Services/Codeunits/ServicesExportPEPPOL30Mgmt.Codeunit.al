@@ -1,9 +1,21 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Peppol;
+
+using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Attachment;
+using Microsoft.Sales.Document;
+using Microsoft.Service.History;
+
 codeunit 37214 "Services Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Management"
 {
     var
-        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         ServiceCrMemoLine: Record "Service Cr.Memo Line";
 
     procedure Init(NewRecordRef: RecordRef; var TempSalesLineRounding: Record "Sales Line" temporary; var DocumentAttachments: Record "Document Attachment")
@@ -38,6 +50,7 @@ codeunit 37214 "Services Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Mana
         PEPPOLPostedDocumentIterator := EDocumentFormat;
         exit(PEPPOLPostedDocumentIterator.FindNextServiceCreditMemoRec(ServiceCrMemoHeader, SalesHeader, Position));
     end;
+
     procedure FindNextLineRec(Position: Integer; EDocumentFormat: Enum "E-Document Format"): Boolean
     var
         PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
@@ -45,8 +58,18 @@ codeunit 37214 "Services Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Mana
         PEPPOLPostedDocumentIterator := EDocumentFormat;
         exit(PEPPOLPostedDocumentIterator.FindNextServiceCreditMemoLineRec(ServiceCrMemoLine, SalesLine, Position));
     end;
+
     procedure GetTotals(var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary);
+    var
+        PEPPOL30Management: Codeunit "PEPPOL30 Management";
+        ServPEPPOL30Management: Codeunit "Serv. PEPPOL30 Management";
     begin
-        Message('Services Not implemented');
+        ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
+        if ServiceCrMemoLine.FindSet() then
+            repeat
+                PEPPOL30Management.TransferLineToSalesLine(ServiceCrMemoLine, SalesLine);
+                SalesLine.Type := ServPEPPOL30Management.MapServiceLineTypeToSalesLineType(ServiceCrMemoLine.Type);
+                PEPPOL30Management.GetTotals(SalesLine, TempVATAmtLine);
+            until ServiceCrMemoLine.Next() = 0;
     end;
 }

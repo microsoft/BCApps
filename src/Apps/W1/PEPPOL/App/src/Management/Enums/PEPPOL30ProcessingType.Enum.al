@@ -11,18 +11,11 @@ enum 37201 "PEPPOL30 Processing Type" implements "PEPPOL30 Export Management"
 {
     Extensible = true;
 
-    /// <summary>
-    /// Processing type for sales documents.
-    /// </summary>
     value(0; "Sale")
     {
         Caption = 'Sale';
         Implementation = "PEPPOL30 Export Management" = "Sales Export PEPPOL30 Mgmt.";
     }
-
-    /// <summary>
-    /// Processing type for service documents.
-    /// </summary>
     value(1; "Service")
     {
         Caption = 'Service';

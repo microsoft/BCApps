@@ -7,9 +7,10 @@ namespace Microsoft.Peppol;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.Company;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Sales.Peppol;
+using Microsoft.Service.History;
 using System.Utilities;
 
 /// <summary>
@@ -94,7 +95,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 var
                     PEPPOLTaxInfoProvider: Interface "PEPPOL Tax Info Provider";
                 begin
-                    // DEV: initialize interface variable
+                    PEPPOLTaxInfoProvider := CompanyInformation."E-Document Format";
                     PEPPOLTaxInfoProvider.GetTaxTotalInfoLCY(SalesHeader, TaxAmountLCY, TaxCurrencyCodeLCY, TaxTotalCurrencyIDLCY);
                     if TaxCurrencyCodeLCY = '' then
                         currXMLport.Skip();
@@ -118,7 +119,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 var
                     PEPPOLDocumentInfoProvider: Interface "PEPPOL Document Info Provider";
                 begin
-                    // DEV: initialize interface variable
+                    PEPPOLDocumentInfoProvider := CompanyInformation."E-Document Format";
                     BuyerReference := PEPPOLDocumentInfoProvider.GetBuyerReference(SalesHeader);
                     if BuyerReference = '' then
                         currXMLport.Skip();
@@ -140,7 +141,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 var
                     PEPPOLDocumentInfoProvider: Interface "PEPPOL Document Info Provider";
                 begin
-                    // DEV: initialize interface variable
+                    PEPPOLDocumentInfoProvider := CompanyInformation."E-Document Format";
                     PEPPOLDocumentInfoProvider.GetInvoicePeriodInfo(
                       StartDate,
                       EndDate);
@@ -162,7 +163,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 var
                     PEPPOLDocumentInfoProvider: Interface "PEPPOL Document Info Provider";
                 begin
-                    // DEV: initialize interface variable
+                    PEPPOLDocumentInfoProvider := CompanyInformation."E-Document Format";
                     PEPPOLDocumentInfoProvider.GetOrderReferenceInfo(
                       SalesHeader,
                       OrderReferenceID);
@@ -187,7 +188,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                     DocumentTypeCode: Text;
                     PEPPOLDocumentInfoProvider: Interface "PEPPOL Document Info Provider";
                 begin
-                    // DEV: initialize interface variable
+                    PEPPOLDocumentInfoProvider := CompanyInformation."E-Document Format";
                     PEPPOLDocumentInfoProvider.GetContractDocRefInfo(
                       SalesHeader,
                       ContractDocumentReferenceID,
@@ -575,13 +576,12 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                     SupplRegAddrCountryIdListId: Text;
                     PEPPOLPartyInfoProvider: Interface "PEPPOL Party Info Provider";
                 begin
-                    // DEV: initialize interface variable
+                    PEPPOLPartyInfoProvider := CompanyInformation."E-Document Format";
                     PEPPOLPartyInfoProvider.GetAccountingSupplierPartyInfoBIS(
                       SupplierEndpointID,
                       SupplierSchemeID,
                       SupplierName);
 
-                    // DEV: initialize interface variable
                     PEPPOLPartyInfoProvider.GetAccountingSupplierPartyPostalAddr(
                       SalesHeader,
                       StreetName,
@@ -592,14 +592,12 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                       IdentificationCode,
                       DummyVar);
 
-                    // DEV: initialize interface variable
                     PEPPOLPartyInfoProvider.GetAccountingSupplierPartyTaxSchemeBIS(
                       TempVATAmtLine,
                       CompanyID,
                       CompanyIDSchemeID,
                       TaxSchemeID);
 
-                    // DEV: initialize interface variable
                     PEPPOLPartyInfoProvider.GetAccountingSupplierPartyLegalEntityBIS(
                       PartyLegalEntityRegName,
                       PartyLegalEntityCompanyID,
@@ -608,7 +606,6 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                       SupplierRegAddrCountryIdCode,
                       SupplRegAddrCountryIdListId);
 
-                    // DEV: initialize interface variable
                     PEPPOLPartyInfoProvider.GetAccountingSupplierPartyContact(
                       SalesHeader,
                       DummyVar,
@@ -858,7 +855,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 var
                     PEPPOLPartyInfoProvider: Interface "PEPPOL Party Info Provider";
                 begin
-                    // DEV: initialize interface variable
+                    PEPPOLPartyInfoProvider := CompanyInformation."E-Document Format";
                     PEPPOLPartyInfoProvider.GetAccountingCustomerPartyInfoBIS(
                       SalesHeader,
                       CustomerEndpointID,
@@ -867,7 +864,6 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                       CustomerPartyIDSchemeID,
                       CustomerName);
 
-                    // DEV: initialize interface variable
                     PEPPOLPartyInfoProvider.GetAccountingCustomerPartyPostalAddr(
                       SalesHeader,
                       CustomerStreetName,
@@ -878,7 +874,6 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                       CustomerIdentificationCode,
                       DummyVar);
 
-                    // DEV: initialize interface variable
                     PEPPOLPartyInfoProvider.GetAccountingCustomerPartyTaxSchemeBIS30(
                       SalesHeader,
                       CustPartyTaxSchemeCompanyID,
@@ -886,14 +881,12 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                       CustTaxSchemeID,
                       TempVATAmtLine);
 
-                    // DEV: initialize interface variable
                     PEPPOLPartyInfoProvider.GetAccountingCustomerPartyLegalEntityBIS(
                       SalesHeader,
                       CustPartyLegalEntityRegName,
                       CustPartyLegalEntityCompanyID,
                       CustPartyLegalEntityIDSchemeID);
 
-                    // DEV: initialize interface variable
                     PEPPOLPartyInfoProvider.GetAccountingCustomerPartyContact(
                       SalesHeader,
                       DummyVar,
@@ -951,7 +944,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 var
                     PEPPOLPartyInfoProvider: Interface "PEPPOL Party Info Provider";
                 begin
-                    // DEV: initialize interface variable
+                    PEPPOLPartyInfoProvider := CompanyInformation."E-Document Format";
                     PEPPOLPartyInfoProvider.GetTaxRepresentativePartyInfo(
                       TaxRepPartyNameName,
                       PayeePartyTaxSchemeCompanyID,
@@ -1083,14 +1076,13 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 var
                     PEPPOLDeliveryInfoProvider: Interface "PEPPOL Delivery Info Provider";
                 begin
-                    // DEV: initialize interface variable
+                    PEPPOLDeliveryInfoProvider := CompanyInformation."E-Document Format";
                     PEPPOLDeliveryInfoProvider.GetGLNDeliveryInfo(
                       SalesHeader,
                       ActualDeliveryDate,
                       DeliveryID,
                       DeliveryIDSchemeID);
 
-                    // DEV: initialize interface variable
                     PEPPOLDeliveryInfoProvider.GetDeliveryAddress(
                       SalesHeader,
                       DeliveryStreetName,
@@ -1101,7 +1093,6 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                       DeliveryCountryIdCode,
                       DummyVar);
 
-                    // DEV: initialize interface variable
                     PEPPOLDeliveryInfoProvider.GetDeliveryPartyName(SalesHeader, DeliveryPartyNameValue);
                 end;
             }
@@ -1173,7 +1164,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 var
                     PEPPOLPaymentInfoProvider: Interface "PEPPOL Payment Info Provider";
                 begin
-                    // DEV: initialize interface variable
+                    PEPPOLPaymentInfoProvider := CompanyInformation."E-Document Format";
                     PEPPOLPaymentInfoProvider.GetPaymentMeansInfo(
                       SalesHeader,
                       PaymentMeansCode,
@@ -1184,7 +1175,6 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                       PrimaryAccountNumberID,
                       NetworkID);
 
-                    // DEV: initialize interface variable
                     PEPPOLPaymentInfoProvider.GetPaymentMeansPayeeFinancialAccBIS(
                         SalesHeader,
                         PayeeFinancialAccountID,
@@ -1206,7 +1196,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 var
                     PEPPOLPaymentInfoProvider: Interface "PEPPOL Payment Info Provider";
                 begin
-                    // DEV: initialize interface variable
+                    PEPPOLPaymentInfoProvider := CompanyInformation."E-Document Format";
                     PEPPOLPaymentInfoProvider.GetPaymentTermsInfo(
                       SalesHeader,
                       PaymentTermsNote);
@@ -1377,7 +1367,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                         if (not FindNextVATAmtRec(TempVATAmtLine, TaxSubtotalLoop.Number)) and (TaxSubtotalLoop.Number > 1) then
                             currXMLport.Break();
 
-                        // DEV: initialize interface variable
+                        PEPPOLTaxInfoProvider := CompanyInformation."E-Document Format";
                         PEPPOLTaxInfoProvider.GetTaxSubtotalInfo(
                           TempVATAmtLine,
                           SalesHeader,
@@ -1400,7 +1390,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 var
                     PEPPOLTaxInfoProvider: Interface "PEPPOL Tax Info Provider";
                 begin
-                    // DEV: initialize interface variable
+                    PEPPOLTaxInfoProvider := CompanyInformation."E-Document Format";
                     PEPPOLTaxInfoProvider.GetTaxTotalInfo(
                       SalesHeader,
                       TempVATAmtLine,
@@ -2074,8 +2064,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                     if not FindNextInvoiceLineRec(InvoiceLineLoop.Number) then
                         currXMLport.Break();
 
-                    OnInvoiceLineLoopOnAfterGetRecordOnBeforeGetLineGeneralInfo(SalesInvoiceLine, SalesLine);
-                    // DEV: initialize interface variable
+                    PEPPOLLineInfoProvider := CompanyInformation."E-Document Format";
                     PEPPOLLineInfoProvider.GetLineGeneralInfo(
                       SalesLine,
                       SalesHeader,
@@ -2086,7 +2075,6 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                       LineExtensionAmountCurrencyID,
                       InvoiceLineAccountingCost);
 
-                    // DEV: initialize interface variable
                     PEPPOLLineInfoProvider.GetLineUnitCodeInfo(SalesLine, unitCode, DummyVar);
                 end;
             }
@@ -2138,11 +2126,11 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 }
             }
         }
-
-        actions
-        {
-        }
     }
+    trigger OnPreXmlPort()
+    begin
+        CompanyInformation.Get();
+    end;
 
     var
         TempVATAmtLine: Record "VAT Amount Line" temporary;
@@ -2153,60 +2141,27 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
         TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary;
         TempSalesLineRounding: Record "Sales Line" temporary;
         DocumentAttachments: Record "Document Attachment";
+        CompanyInformation: Record "Company Information";
         SourceRecRef: RecordRef;
-        DummyVar: Text;
-
-        SpecifyASalesInvoiceNoErr: Label 'You must specify a sales invoice number.';
-        UnSupportedTableTypeErr: Label 'The %1 table is not supported.', Comment = '%1 is the table.';
+        PEPPOL30ExportManagement: Interface "PEPPOL30 Export Management";
         PEPPOL30ProcessingType: Enum "PEPPOL30 Processing Type";
+        DummyVar: Text;
+        UnSupportedTableTypeErr: Label 'The %1 table is not supported.', Comment = '%1 is the table.';
         GeneratePDF: Boolean;
 
     local procedure GetTotals()
-    var
-        PEPPOLTaxInfoProvider: Interface "PEPPOL Tax Info Provider";
     begin
-        case PEPPOL30ProcessingType of
-            PEPPOL30ProcessingType::Sale:
-                begin
-                    SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-                    if SalesInvoiceLine.FindSet() then
-                        repeat
-                            SalesLine.TransferFields(SalesInvoiceLine);
-                            OnGetTotalsOnBeforeGetSalesLineTotals(SalesInvoiceLine, SalesLine);
-                            // DEV: initialize interface variable
-                            PEPPOLTaxInfoProvider.GetTotals(SalesLine, TempVATAmtLine);
-                            PEPPOLTaxInfoProvider.GetTaxCategories(SalesLine, TempVATProductPostingGroup);
-                        until SalesInvoiceLine.Next() = 0;
-                end;
-            else
-                OnGetTotals(SourceRecRef, SalesLine, TempVATAmtLine, TempVATProductPostingGroup, PEPPOL30ProcessingType);
-        end;
+        PEPPOL30ExportManagement.GetTotals(TempVATAmtLine, TempVATProductPostingGroup);
     end;
 
-    local procedure FindNextInvoiceRec(Position: Integer) Found: Boolean
-    var
-        PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
+    local procedure FindNextInvoiceRec(Position: Integer): Boolean
     begin
-        case PEPPOL30ProcessingType of
-            PEPPOL30ProcessingType::Sale:
-                // DEV: initialize interface variable
-                exit(PEPPOLPostedDocumentIterator.FindNextSalesInvoiceRec(SalesInvoiceHeader, SalesHeader, Position));
-            else
-                OnFindNextInvoiceRec(Position, SalesHeader, Found);
-        end;
+        exit(PEPPOL30ExportManagement.FindNextRec(Position, CompanyInformation."E-Document Format"));
     end;
 
-    local procedure FindNextInvoiceLineRec(Position: Integer) Found: Boolean
-    var
-        PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
+    local procedure FindNextInvoiceLineRec(Position: Integer): Boolean
     begin
-        case PEPPOL30ProcessingType of
-            PEPPOL30ProcessingType::Sale:
-                // DEV: initialize interface variable
-                exit(PEPPOLPostedDocumentIterator.FindNextSalesInvoiceLineRec(SalesInvoiceLine, SalesLine, Position));
-            else
-                OnFindNextInvoiceLineRec(Position, SalesLine, Found);
-        end;
+        exit(PEPPOL30ExportManagement.FindNextLineRec(Position, CompanyInformation."E-Document Format"));
     end;
 
     local procedure FindNextVATAmtRec(var VATAmtLine: Record "VAT Amount Line"; Position: Integer): Boolean
@@ -2219,41 +2174,23 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
     procedure Initialize(DocVariant: Variant)
     var
         IsHandled: Boolean;
-        PEPPOLMonetaryInfoProvider: Interface "PEPPOL Monetary Info Provider";
     begin
         SourceRecRef.GetTable(DocVariant);
         case SourceRecRef.Number of
-            DATABASE::"Sales Invoice Header":
-                begin
-                    SourceRecRef.SetTable(SalesInvoiceHeader);
-                    if SalesInvoiceHeader."No." = '' then
-                        Error(SpecifyASalesInvoiceNoErr);
-                    SalesInvoiceHeader.SetRecFilter();
-                    SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-                    SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
-                    OnBeforeFindSalesInvoiceLine(SalesInvoiceLine);
-
-                    if SalesInvoiceLine.FindSet() then
-                        repeat
-                            SalesLine.TransferFields(SalesInvoiceLine);
-                            OnInitializeOnBeforeGetInvoiceRoundingLine(SalesInvoiceLine, SalesLine);
-                            // DEV: initialize interface variable
-                            PEPPOLMonetaryInfoProvider.GetInvoiceRoundingLine(TempSalesLineRounding, SalesLine);
-                        until SalesInvoiceLine.Next() = 0;
-                    if TempSalesLineRounding."Line No." <> 0 then
-                        SalesInvoiceLine.SetFilter("Line No.", '<>%1', TempSalesLineRounding."Line No.");
-
-                    DocumentAttachments.SetRange("Table ID", Database::"Sales Invoice Header");
-                    DocumentAttachments.SetRange("No.", SalesInvoiceHeader."No.");
-
-                    PEPPOL30ProcessingType := PEPPOL30ProcessingType::Sale;
-                end;
+            Database::"Sales Invoice Header":
+                PEPPOL30ProcessingType := PEPPOL30ProcessingType::Sale;
+            Database::"Service Invoice Header":
+                PEPPOL30ProcessingType := PEPPOL30ProcessingType::Service;
             else begin
                 IsHandled := false;
                 OnInitialize(SourceRecRef, TempSalesLineRounding, DocumentAttachments, PEPPOL30ProcessingType, IsHandled);
                 if not IsHandled then
                     Error(UnSupportedTableTypeErr, SourceRecRef.Number);
             end;
+        end;
+        if SourceRecRef.Number <> 0 then begin
+            PEPPOL30ExportManagement := PEPPOL30ProcessingType;
+            PEPPOL30ExportManagement.Init(SourceRecRef, TempSalesLineRounding, DocumentAttachments);
         end;
     end;
 
@@ -2277,42 +2214,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnGetTotals(SourceRecRef: RecordRef; var SalesLine: Record "Sales Line"; var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary; ProcessedDocType: Enum "PEPPOL30 Processing Type")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnInitialize(SourceRecRef: RecordRef; var TempSalesLineRounding: Record "Sales Line" temporary; var DocumentAttachments: Record "Document Attachment"; var ProcessedDocType: Enum "PEPPOL30 Processing Type"; var IsHandled: Boolean);
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnFindNextInvoiceRec(Position: Integer; var SalesHeader: Record "Sales Header"; var Found: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnFindNextInvoiceLineRec(Position: Integer; var SalesLine: Record "Sales Line"; var Found: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindSalesInvoiceLine(var SalesInvoiceLine: Record "Sales Invoice Line")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnGetTotalsOnBeforeGetSalesLineTotals(var SalesInvoiceLine: Record "Sales Invoice Line"; var SalesLine: Record "Sales Line")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnInvoiceLineLoopOnAfterGetRecordOnBeforeGetLineGeneralInfo(var SalesInvoiceLine: Record "Sales Invoice Line"; var SalesLine: Record "Sales Line")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnInitializeOnBeforeGetInvoiceRoundingLine(var SalesInvoiceLine: Record "Sales Invoice Line"; var SalesLine: Record "Sales Line")
+    local procedure OnInitialize(SourceRecRef: RecordRef; var TempSalesLineRounding: Record "Sales Line" temporary; var DocumentAttachments: Record "Document Attachment"; var PEPPOL30ProcessingType: Enum "PEPPOL30 Processing Type"; var IsHandled: Boolean);
     begin
     end;
 }

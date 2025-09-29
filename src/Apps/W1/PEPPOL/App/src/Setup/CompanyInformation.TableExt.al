@@ -14,10 +14,6 @@ tableextension 37200 "Company Information" extends "Company Information"
 {
     fields
     {
-        /// <summary>
-        /// Specifies the e-document format to be used for electronic documents.
-        /// This field determines which PEPPOL format provider implementation to use.
-        /// </summary>
         field(37200; "E-Document Format"; Enum "E-Document Format")
         {
             Caption = 'E-Document Format';

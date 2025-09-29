@@ -15,10 +15,6 @@ codeunit 37212 "Exp. Serv.Inv. PEPPOL30"
 {
     TableNo = "Record Export Buffer";
 
-    /// <summary>
-    /// Main trigger that processes the export of a service invoice to PEPPOL 3.0 format.
-    /// Validates the document and generates the XML output.
-    /// </summary>
     trigger OnRun()
     var
         ServiceInvoiceHeader: Record "Service Invoice Header";

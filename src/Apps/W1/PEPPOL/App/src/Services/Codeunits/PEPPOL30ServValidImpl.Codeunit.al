@@ -13,14 +13,15 @@ codeunit 37210 "PEPPOL30 Serv. Valid. Impl."
     Access = Internal;
     TableNo = "Service Header";
 
+    var
+        PEPPOLManagement: Codeunit "PEPPOL30 Management";
+        PEPPOLValidation: Codeunit "PEPPOL30 Validation";
+
     trigger OnRun()
     begin
         CheckServiceHeader(Rec);
     end;
 
-    var
-        PEPPOLManagement: Codeunit "PEPPOL30 Management";
-        PEPPOLValidation: Codeunit "PEPPOL30 Validation";
 
     procedure CheckServiceHeader(ServiceHeader: Record "Service Header")
     var

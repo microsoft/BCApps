@@ -4,11 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
-using Microsoft.Finance.VAT.Calculation;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Document;
-using Microsoft.Sales.Peppol;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 

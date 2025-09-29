@@ -15,10 +15,6 @@ codeunit 37211 "Exp. Serv.CrM. PEPPOL30"
 {
     TableNo = "Record Export Buffer";
 
-    /// <summary>
-    /// Main trigger that processes the export of a service credit memo to PEPPOL 3.0 format.
-    /// Validates the document and generates the XML output.
-    /// </summary>
     trigger OnRun()
     var
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
@@ -37,6 +33,11 @@ codeunit 37211 "Exp. Serv.CrM. PEPPOL30"
         Rec.Modify();
     end;
 
+    /// <summary>
+    /// Generates the XML file for a PEPPOL 3.0 sales invoice.
+    /// </summary>
+    /// <param name="VariantRec">The record containing the sales invoice data.</param>
+    /// <param name="OutStr">The output stream to write the XML data to.</param>
     procedure GenerateXMLFile(VariantRec: Variant; var OutStr: OutStream)
     var
         SalesCrMemoPEPPOLBIS30: XMLport "Sales Cr.Memo - PEPPOL30";

@@ -26,26 +26,26 @@ codeunit 37204 "PEPPOL30 Initialize"
     begin
         ElectronicDocumentFormat.InsertElectronicFormat(
             PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
-            CODEUNIT::"Exp. Sales Inv. PEPPOL30", 0, ElectronicDocumentFormat.Usage::"Sales Invoice".AsInteger());
+            Codeunit::"Exp. Sales Inv. PEPPOL30", 0, ElectronicDocumentFormat.Usage::"Sales Invoice".AsInteger());
 
         ElectronicDocumentFormat.InsertElectronicFormat(
             PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
-            CODEUNIT::"Exp. Sales CrM. PEPPOL30", 0, ElectronicDocumentFormat.Usage::"Sales Credit Memo".AsInteger());
+            Codeunit::"Exp. Sales CrM. PEPPOL30", 0, ElectronicDocumentFormat.Usage::"Sales Credit Memo".AsInteger());
 
         ElectronicDocumentFormat.InsertElectronicFormat(
             PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
-            CODEUNIT::"PEPPOL30 Validation", 0, ElectronicDocumentFormat.Usage::"Sales Validation".AsInteger());
+            Codeunit::"PEPPOL30 Validation", 0, ElectronicDocumentFormat.Usage::"Sales Validation".AsInteger());
 
         ElectronicDocumentFormat.InsertElectronicFormat(
             PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
-            CODEUNIT::"Exp. Serv.Inv. PEPPOL30", 0, ElectronicDocumentFormat.Usage::"Service Invoice".AsInteger());
+            Codeunit::"Exp. Serv.Inv. PEPPOL30", 0, ElectronicDocumentFormat.Usage::"Service Invoice".AsInteger());
 
         ElectronicDocumentFormat.InsertElectronicFormat(
             PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
-            CODEUNIT::"Exp. Serv.CrM. PEPPOL30", 0, ElectronicDocumentFormat.Usage::"Service Credit Memo".AsInteger());
+            Codeunit::"Exp. Serv.CrM. PEPPOL30", 0, ElectronicDocumentFormat.Usage::"Service Credit Memo".AsInteger());
 
         ElectronicDocumentFormat.InsertElectronicFormat(
             PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
-            CODEUNIT::"PEPPOL30 Service Validation", 0, ElectronicDocumentFormat.Usage::"Service Validation".AsInteger());
+            Codeunit::"PEPPOL30 Service Validation", 0, ElectronicDocumentFormat.Usage::"Service Validation".AsInteger());
     end;
 }
