@@ -20,7 +20,6 @@ codeunit 37208 "Serv. PEPPOL30 Mgmt. Impl."
     var
         PEPPOLManagement: Codeunit "PEPPOL30 Management";
 
-
     procedure FindNextServiceInvoiceRec(var ServiceInvoiceHeader: Record "Service Invoice Header"; var SalesHeader: Record "Sales Header"; Position: Integer) Found: Boolean
     begin
         if Position = 1 then
