@@ -107,7 +107,6 @@ page 8435 "GitHub Codespaces Details"
 
     local procedure LoadCodespaces()
     var
-        CodespacesHelper: Codeunit "Github API Helper";
         Codespaces: JsonArray;
         CodespaceToken: JsonToken;
         CodespaceObject: JsonObject;
@@ -121,7 +120,7 @@ page 8435 "GitHub Codespaces Details"
     begin
         Rec.DeleteAll();
 
-        Codespaces := CodespacesHelper.GetMyCodespaces();
+        Codespaces := GithubAPIHelper.GetMyCodespaces();
         EntryNo := 0;
 
         foreach CodespaceToken in Codespaces do begin
@@ -218,6 +217,12 @@ page 8435 "GitHub Codespaces Details"
         end;
     end;
 
+    procedure SetGithubAPIHelper(GHAPIHelper: Codeunit "Github API Helper")
+    begin
+        GithubAPIHelper := GHAPIHelper;
+    end;
+
     var
+        GithubAPIHelper: Codeunit "Github API Helper";
         StateStyleExpr: Text;
 }

@@ -11,14 +11,28 @@ codeunit 8431 "GitHub OAuth Browser Helper"
 {
     var
         RestClient: Codeunit "Rest Client";
+        AccessToken: SecretText;
+        GithubUserName: Text[100];
 
     procedure GetGitHubAccessTokenViaDeviceFlow(): SecretText
-    var
-        AccessTokenStr: Text;
     begin
-        AccessTokenStr := '';
-        exit(AccessTokenStr);
+        exit(AccessToken);
         //exit(RequestAuthWithMenu());
+    end;
+
+    procedure SetGitHubAccessToken(Token: Text)
+    begin
+        AccessToken := Token;
+    end;
+
+    procedure GetGitHubUserName(): Text[100]
+    begin
+        exit(GithubUserName);
+    end;
+
+    procedure SetGitHubUserName(UserName: Text[100])
+    begin
+        GithubUserName := UserName;
     end;
 
     procedure RequestAuthWithMenu(): SecretText
@@ -29,7 +43,6 @@ codeunit 8431 "GitHub OAuth Browser Helper"
         ResponseContent: JsonObject;
         UserCode: Text;
         VerificationUri: Text;
-        AccessToken: SecretText;
         JToken: JsonToken;
         MenuChoice: Integer;
         EmptySecretText: SecretText;
@@ -100,7 +113,6 @@ codeunit 8431 "GitHub OAuth Browser Helper"
         RequestBody: JsonObject;
         ResponseContent: JsonObject;
         JToken: JsonToken;
-        AccessToken: SecretText;
         ErrorCode: Text;
         EmptySecretText: SecretText;
     begin

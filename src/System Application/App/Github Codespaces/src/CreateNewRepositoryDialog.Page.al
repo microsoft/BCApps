@@ -74,7 +74,6 @@ page 8430 "Create New Repository Dialog"
 
                 trigger OnAction()
                 var
-                    CodespacesHelper: Codeunit "Github API Helper";
                     ConfirmMsg: Label 'Create repository "%1" from template %2/%3?', Comment = '%1 = Repository Name, %2 = Template Owner, %3 = Template Repository';
                 begin
                     if RepositoryName = '' then
@@ -84,7 +83,7 @@ page 8430 "Create New Repository Dialog"
                         Error('Owner name is required.');
 
                     if Confirm(ConfirmMsg, false, RepositoryName, TemplateOwner, TemplateRepository) then begin
-                        CodespacesHelper.CreateRepoFromTemplate(
+                        GithubAPIHelper.CreateRepoFromTemplate(
                             TemplateOwner,
                             TemplateRepository,
                             OwnerName,
@@ -106,7 +105,7 @@ page 8430 "Create New Repository Dialog"
         // Set default values
         TemplateOwner := 'microsoft';
         TemplateRepository := 'AL-Go-PTE';
-        OwnerName := 'blrobl'; // Default to current user
+        OwnerName := GithubAPIHelper.GetGitHubUserName(); // Default to current user
         RepositoryDescription := 'Business Central AL extension repository created from template';
         IsPrivate := false;
     end;
@@ -138,12 +137,13 @@ page 8430 "Create New Repository Dialog"
         exit(RepositoryName);
     end;
 
-    procedure GetOwnerName(): Text
+    procedure SetGithubAPIHelper(GHAPIHelper: Codeunit "Github API Helper")
     begin
-        exit(OwnerName);
+        GithubAPIHelper := GHAPIHelper;
     end;
 
     var
+        GithubAPIHelper: Codeunit "Github API Helper";
         RepositoryName: Text[100];
         RepositoryDescription: Text[250];
         OwnerName: Text[100];

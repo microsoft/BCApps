@@ -96,7 +96,6 @@ page 8433 "GitHub Repository Details"
 
     local procedure LoadRepositories()
     var
-        CodespacesHelper: Codeunit "Github API Helper";
         Repositories: JsonArray;
         RepoToken: JsonToken;
         RepoObject: JsonObject;
@@ -105,7 +104,7 @@ page 8433 "GitHub Repository Details"
     begin
         Rec.DeleteAll();
 
-        Repositories := CodespacesHelper.GetMyRepositories();
+        Repositories := GithubAPIHelper.GetMyRepositories();
         EntryNo := 0;
 
         foreach RepoToken in Repositories do begin
@@ -158,4 +157,12 @@ page 8433 "GitHub Repository Details"
 
         if Rec.FindFirst() then;
     end;
+
+    procedure SetGithubAPIHelper(GHAPIHelper: Codeunit "Github API Helper")
+    begin
+        GithubAPIHelper := GHAPIHelper;
+    end;
+
+    var
+        GithubAPIHelper: Codeunit "Github API Helper";
 }
