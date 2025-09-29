@@ -1,6 +1,5 @@
 codeunit 37214 "Services Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Management"
 {
-
     var
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         SalesHeader: Record "Sales Header";
