@@ -150,7 +150,6 @@ codeunit 37201 "PEPPOL30 Management Impl." implements "PEPPOL Posted Document It
             // If no correct mime code can be set, we skip the attachment
             if MimeCode = '' then
                 AdditionalDocumentReferenceID := '';
-
         end;
     end;
 
