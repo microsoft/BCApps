@@ -1862,6 +1862,9 @@ codeunit 139628 "E-Doc. Receive Test"
         EDocService: Record "E-Document Service";
         Item: Record Item;
         ItemReference: Record "Item Reference";
+        UnitOfMeasure: Record "Unit of Measure";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        VATPostingSetup: Record "VAT Posting Setup";
         DocumentAttachment: Record "Document Attachment";
         EDocServiceDataExchDef: Record "E-Doc. Service Data Exch. Def.";
         TempXMLBuffer: Record "XML Buffer" temporary;
@@ -1878,19 +1881,38 @@ codeunit 139628 "E-Doc. Receive Test"
 
         // [GIVEN] e-Document service to receive one single purchase invoice
         LibraryEDoc.CreateTestReceiveServiceForEDoc(EDocService, Enum::"E-Document Integration"::Mock);
-        LibraryPurchase.CreateVendorWithVATRegNo(Vendor);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
+        Vendor.Get(LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        Item.Get(LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"));
 
         // Setup correct vendor VAT and Item Ref to process document
         Vendor."VAT Registration No." := 'GB123456789';
         Vendor."Receive E-Document To" := Enum::"E-Document Type"::"Purchase Invoice";
+        Vendor."Country/Region Code" := CountryRegion.Code;
         Vendor.Modify();
-        Item.FindFirst();
+
+        UnitOfMeasure.Code := 'PCS';
+        UnitOfMeasure.Description := 'Test';
+        UnitOfMeasure."International Standard Code" := 'PCS';
+        if not UnitOfMeasure.Insert() then
+            UnitOfMeasure.Get('PCS');
+
+        ItemUnitOfMeasure."Item No." := Item."No.";
+        ItemUnitOfMeasure.Code := UnitOfMeasure.Code;
+        ItemUnitOfMeasure."Qty. per Unit of Measure" := 1;
+        if ItemUnitOfMeasure.Insert() then;
+
+        // Setup correct vendor VAT and Item Ref to process document
         ItemReference.DeleteAll();
         ItemReference."Item No." := Item."No.";
-        ItemReference."Reference No." := '1000';
         ItemReference."Reference Type" := ItemReference."Reference Type"::Vendor;
         ItemReference."Reference Type No." := Vendor."No.";
+        ItemReference."Reference No." := '1000';
         ItemReference.Insert();
+
+        Item."Base Unit of Measure" := UnitOfMeasure.Code;
+        Item."Purch. Unit of Measure" := UnitOfMeasure.Code;
+        Item.Modify();
 
         EDocService."Document Format" := "E-Document Format"::"Data Exchange";
         EDocService."Lookup Account Mapping" := false;
