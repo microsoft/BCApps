@@ -14,6 +14,10 @@ page 8353 "MCP API Config Tool Lookup"
     SourceTable = "Page Metadata";
     Caption = 'MCP API Tools';
     Extensible = false;
+    Editable = false;
+    InsertAllowed = false;
+    ModifyAllowed = false;
+    DeleteAllowed = false;
     InherentEntitlements = X;
     InherentPermissions = X;
 

@@ -25,6 +25,11 @@ codeunit 8351 "MCP Config Implementation"
         InvalidPageTypeErr: Label 'Only API pages are supported.';
         InvalidAPIVersionErr: Label 'Only API v2.0 pages are supported.';
         DefaultMCPConfigurationDescriptionLbl: Label 'Default MCP configuration';
+        SettingConfigurationActiveLbl: Label 'Setting MCP configuration %1 Active to %2', Comment = '%1 - configuration ID, %2 - active', Locked = true;
+        SettingConfigurationAllowProdChangesLbl: Label 'Setting MCP configuration %1 AllowProdChanges to %2', Comment = '%1 - configuration ID, %2 - allow production changes', Locked = true;
+        DeletedConfigurationLbl: Label 'Deleted MCP configuration %1', Comment = '%1 - configuration ID', Locked = true;
+        SettingConfigurationEnableDynamicToolModeLbl: Label 'Setting MCP configuration %1 EnableDynamicToolMode to %2', Comment = '%1 - configuration ID, %2 - enable dynamic tool mode', Locked = true;
+        SettingConfigurationAllowReadOnlyAPIDiscoveryLbl: Label 'Setting MCP configuration %1 AllowReadOnlyAPIDiscovery to %2', Comment = '%1 - configuration ID, %2 - allow read-only API discovery', Locked = true;
 
     #region Configurations
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
@@ -60,6 +65,7 @@ codeunit 8351 "MCP Config Implementation"
 
         MCPConfiguration.Active := Active;
         MCPConfiguration.Modify();
+        Session.LogMessage('0000QE9', StrSubstNo(SettingConfigurationActiveLbl, ConfigId, Active), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
     end;
 
     internal procedure AllowProdChanges(ConfigId: Guid; Allow: Boolean)
@@ -71,6 +77,7 @@ codeunit 8351 "MCP Config Implementation"
 
         MCPConfiguration.AllowProdChanges := Allow;
         MCPConfiguration.Modify();
+        Session.LogMessage('0000QEA', StrSubstNo(SettingConfigurationAllowProdChangesLbl, ConfigId, Allow), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
     end;
 
     internal procedure DeleteConfiguration(ConfigId: Guid)
@@ -84,6 +91,7 @@ codeunit 8351 "MCP Config Implementation"
             Error(DefaultConfigCannotBeDeletedErr);
 
         MCPConfiguration.Delete();
+        Session.LogMessage('0000QEB', StrSubstNo(DeletedConfigurationLbl, ConfigId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
     end;
 
     internal procedure CopyConfiguration(SourceConfigId: Guid)
@@ -148,6 +156,7 @@ codeunit 8351 "MCP Config Implementation"
 
         MCPConfiguration.EnableDynamicToolMode := Enable;
         MCPConfiguration.Modify();
+        Session.LogMessage('0000QEC', StrSubstNo(SettingConfigurationEnableDynamicToolModeLbl, ConfigId, Enable), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
     end;
 
     internal procedure EnableAllowReadOnlyAPIDiscovery(ConfigId: Guid; Enable: Boolean)
@@ -162,6 +171,7 @@ codeunit 8351 "MCP Config Implementation"
 
         MCPConfiguration.AllowReadOnlyAPIDiscovery := Enable;
         MCPConfiguration.Modify();
+        Session.LogMessage('0000QED', StrSubstNo(SettingConfigurationAllowReadOnlyAPIDiscoveryLbl, ConfigId, Enable), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
     end;
 
     local procedure CheckAllowProdChanges(ConfigId: Guid)
@@ -399,4 +409,9 @@ codeunit 8351 "MCP Config Implementation"
         exit('');
     end;
     #endregion
+
+    internal procedure GetTelemetryCategory(): Text[50]
+    begin
+        exit('MCP');
+    end;
 }
