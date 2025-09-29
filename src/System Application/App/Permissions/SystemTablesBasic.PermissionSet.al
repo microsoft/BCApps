@@ -34,6 +34,7 @@ permissionset 66 "System Tables - Basic"
                              "User Selection - Read",
                              "Webhook - Edit",
                              "Data Analysis - Exec",
+                             "Add Related Fields",
                              "Perf. Profiler Tables - Edit";
 
     Permissions = tabledata "Add-in" = R,
