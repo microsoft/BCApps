@@ -14,13 +14,15 @@
     "../../../src/Apps/W1/*/*/Demo Data"
   ],
   "installOnlyReferencedApps": false,
+  "doNotRunPageScriptingTests": true,
+  "doNotRunBcptTests": true,
+  "buildModes": [
+    "CH", 
+    "CZ", 
+    "IN", 
+    "US"
+  ],
   "ConditionalSettings": [
-    {
-      "workflows ": ["CICD"],
-      "settings": {
-        "buildModes": ["CH", "CZ", "IN", "US"]
-      }
-    },
     {
       "buildModes": [
         "CH"
