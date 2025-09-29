@@ -66,7 +66,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
-        NoContractLinesFoundErr: Label 'No contract lines were found that can be billed with the specified parameters.';
+        NoContractLinesFoundErr: Label 'No contract lines were found that can be billed with the specified parameters.', Locked = true;
 
     #region Tests
 
@@ -385,7 +385,7 @@ codeunit 139687 "Recurring Billing Docs Test"
     [HandlerFunctions('CheckDialogConfirmHandler,ExchangeRateSelectionModalPageHandler,CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
     procedure CheckCustomerBillingProposalCanBeCreatedForSalesInvoiceExists()
     var
-        UnpostedSalesInvExistsMsg: Label 'Billing line with unposted Sales Invoice exists. New invoices cannot be created until the current invoice is posted. Do you want to open the invoice?';
+        UnpostedSalesInvExistsMsg: Label 'Billing line with unposted Sales Invoice exists. New invoices cannot be created until the current invoice is posted. Do you want to open the invoice?', Locked = true;
     begin
         Initialize();
 
@@ -540,7 +540,7 @@ codeunit 139687 "Recurring Billing Docs Test"
     [HandlerFunctions('CheckDialogConfirmHandler,ExchangeRateSelectionModalPageHandler,CreateVendorBillingDocsTestOpenPageHandler,MessageHandler')]
     procedure CheckVendorBillingProposalCanBeCreatedForPurchaseInvoiceExists()
     var
-        UnpostedPurchaseInvExistsMsg: Label 'Billing line with unposted Purchase Invoice exists. New invoices cannot be created until the current invoice is posted. Do you want to open the invoice?';
+        UnpostedPurchaseInvExistsMsg: Label 'Billing line with unposted Purchase Invoice exists. New invoices cannot be created until the current invoice is posted. Do you want to open the invoice?', Locked = true;
     begin
         Initialize();
 
@@ -1985,7 +1985,7 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,CreateCustomerBillingDocsContractPageHandler,BillingLinesArchivePageHandler')]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,CreateCustomerBillingDocsContractPageHandler,BillingLinesArchivePageHandler,ConfirmHandlerYes')]
     procedure TestShowBillingLineArchiveFromServiceCommitment()
     var
         BillingLineArchive: Record "Billing Line Archive";
@@ -2014,6 +2014,8 @@ codeunit 139687 "Recurring Billing Docs Test"
         ServiceCommitment."Next Billing Date" := CalcDate('<+1D>', ServiceCommitment."Subscription Line End Date");
         ServiceCommitment.Modify(false);
         ServiceObject.UpdateServicesDates();
+        ServiceCommitment."Next Billing Date" := ServiceCommitment."Subscription Line Start Date";
+        ServiceCommitment.Modify(false);
         ServiceCommitment.Delete(true);
 
         BillingLineArchive.FilterBillingLineArchiveOnServiceCommitment(CustomerContractLine."Subscription Line Entry No.");
@@ -2395,6 +2397,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         // Contract3, Sell-to Customer2, Bill-to Customer1
         // Contract4, Sell-to Customer3, Bill-to Customer1
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '');
+        ContractTestLibrary.DisableDeferralsForCustomerContract(CustomerContract, false);
         ContractTestLibrary.CreateCustomer(Customer2);
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract2, ServiceObject2, Customer2."No.");
         CustomerContract2.Validate("Currency Code", CustomerContract."Currency Code");
@@ -2427,6 +2430,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         // Contract3, Sell-to Customer2, Bill-to Customer1
         // Contract4, Sell-to Customer3, Bill-to Customer1
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, '');
+        ContractTestLibrary.DisableDeferralsForVendorContract(VendorContract, false);
         ContractTestLibrary.CreateVendor(Vendor2);
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract2, ServiceObject2, Vendor2."No.");
         VendorContract2.Validate("Currency Code", VendorContract."Currency Code");

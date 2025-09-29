@@ -1,11 +1,13 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Utilities;
+using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Utilities;
 
 #pragma warning disable AA0210
 codeunit 139692 "Contract Renewal Test"
@@ -24,6 +26,7 @@ codeunit 139692 "Contract Renewal Test"
         ContractRenewalMgt: Codeunit "Sub. Contract Renewal Mgt.";
         ContractTestLibrary: Codeunit "Contract Test Library";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryUtility: Codeunit "Library - Utility";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         AddVendorServices: Boolean;
         ConfirmOption: Boolean;
@@ -31,6 +34,40 @@ codeunit 139692 "Contract Renewal Test"
         CalculationBaseAmount: Decimal;
 
     #region Tests
+
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,SelectContractRenewalHandler')]
+    [Test]
+    procedure AllowSelectionOfResponsibilityCenterInContractRenewalSalesDocuments()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [SCENARIO] Allow selection of Responsibility Center on the Sales Quote/Order, if the Dimensions are not set (left empty) on the Responsibility Center
+        // [SCENARIO] Allow selection of Responsibility Center on the Sales Quote/Order, if the Dimensions on the Responsibility Center are the same as on the document
+
+        // [GIVEN] Create a Contract Renewal Quote
+        Initialize();
+        CreateBaseData(false, false, 1, 0);
+        SalesHeader.Get(SalesHeader."Document Type"::Quote, CreateSalesQuoteFromContract()); //SelectContractRenewalHandler
+        Assert.AreEqual('', SalesHeader."Responsibility Center", 'Responsibility Center should be blank.');
+
+        // [WHEN] Create Responsibility Center without Dimensions and assign to Sales Header
+        SalesHeader.Validate("Responsibility Center", CreateResponsibilityCenter('', ''));
+        SalesHeader.Modify(false);
+        FilterSalesLineOnDocumentAndServiceObject(SalesLine, SalesHeader."Document Type", SalesHeader."No.");
+        SalesLine.FindFirst();
+
+        // [THEN] Responsibility Center is updated on the Sales Lines
+        Assert.AreEqual(SalesHeader."Responsibility Center", SalesLine."Responsibility Center", 'Responsibility Center should be updated on Sales Lines');
+
+        // [WHEN] Create Responsibility Center with same dimensions as on the quote and assign to Sales Header
+        SalesHeader.Validate("Responsibility Center", CreateResponsibilityCenter(SalesHeader."Shortcut Dimension 1 Code", SalesHeader."Shortcut Dimension 2 Code"));
+        SalesHeader.Modify(false);
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+
+        // [THEN] Responsibility Center is updated on the Sales Lines
+        Assert.AreEqual(SalesHeader."Responsibility Center", SalesLine."Responsibility Center", 'Responsibility Center should be updated on Sales Lines');
+    end;
 
     [Test]
     procedure CheckActionsOnSalesQuoteForRenewalQuote()
@@ -600,6 +637,36 @@ codeunit 139692 "Contract Renewal Test"
         Assert.AreEqual(0, PlannedServiceCommitment.Count(), 'No. of planned commitments should be zero after posting the final invoice.');
     end;
 
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,SelectContractRenewalHandler')]
+    [Test]
+    procedure PreventExistingDimensionsInContractRenewalSalesDocumentsWhenResponsibilityCenterIsChanged()
+    var
+        SalesHeader: Record "Sales Header";
+        DimensionSetEntry: Record "Dimension Set Entry";
+        SubscriptionContractSetup: Record "Subscription Contract Setup";
+    begin
+        // [SCENARIO] When Responsibility Center is selected on the Sales Renewal Quote, Dimension from Customer Contract is not deleted
+
+        // [GIVEN] Create Customer Contract and Contract Renewal Quote
+        Initialize();
+        ContractTestLibrary.SetAutomaticDimensions(true);
+        ContractTestLibrary.InsertCustomerContractDimensionCode();
+        CreateBaseData(false, false, 1, 0);
+        SubscriptionContractSetup.Get();
+        DimensionSetEntry.Get(CustomerContract."Dimension Set ID", SubscriptionContractSetup."Dimension Code Cust. Contr.");
+        Assert.AreEqual(DimensionSetEntry."Dimension Value Code", CustomerContract."No.", 'Dimension Value for customer contract is created.');
+        SalesHeader.Get(SalesHeader."Document Type"::Quote, CreateSalesQuoteFromContract()); //SelectContractRenewalHandler
+
+        // [WHEN] Create Responsibility Center and assign to Sales Renewal Quote
+        SalesHeader.Validate("Responsibility Center", CreateResponsibilityCenter('', ''));
+        SalesHeader.Modify(false);
+
+        // [THEN] Dimension from Customer Contract is not deleted
+        DimensionSetEntry.Get(SalesHeader."Dimension Set ID", SubscriptionContractSetup."Dimension Code Cust. Contr.");
+        Assert.AreEqual(DimensionSetEntry."Dimension Value Code", CustomerContract."No.", 'Dimension from customer contract should not be deleted when Responsibility Center is changed.');
+    end;
+
+
     [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,TestContractRenewalSelectionModalPageHandler,ServiceObjectModalPageHandler')]
     procedure TestIfContractRenewalSelectionIsUpdateOnAfterValidateCalcBasePercentage()
@@ -823,6 +890,18 @@ codeunit 139692 "Contract Renewal Test"
         Clear(SelectContractRenewal);
         SelectContractRenewal.SetTableView(CustomerContract);
         SelectContractRenewal.Run();
+    end;
+
+    local procedure CreateResponsibilityCenter(GlobalDimension1: Code[20]; GlobalDimension2: Code[20]): Code[10]
+    var
+        ResponsibilityCenter: Record "Responsibility Center";
+    begin
+        ResponsibilityCenter.Init();
+        ResponsibilityCenter.Code := LibraryUtility.GenerateGUID();
+        ResponsibilityCenter."Global Dimension 1 Code" := GlobalDimension1;
+        ResponsibilityCenter."Global Dimension 2 Code" := GlobalDimension2;
+        ResponsibilityCenter.Insert(false);
+        exit(ResponsibilityCenter.Code);
     end;
 
     local procedure CreateSalesQuoteFromContract(): Code[20]

@@ -527,6 +527,10 @@ page 30101 "Shpfy Shop Card"
                     ToolTip = 'Specifies if Business Central document no. is synchronized to Shopify as order attribute.';
                     Enabled = Rec."Allow Outgoing Requests" or Rec."Order Attributes To Shopify";
                 }
+                field("Create Invoices From Orders"; Rec."Create Invoices From Orders")
+                {
+                    ApplicationArea = All;
+                }
                 field(ArchiveProcessOrders; Rec."Archive Processed Orders")
                 {
                     ApplicationArea = All;
@@ -762,7 +766,7 @@ page 30101 "Shpfy Shop Card"
             action(CustomerTemplates)
             {
                 ApplicationArea = All;
-                Caption = 'Customer Templates';
+                Caption = 'Customer Setup by Country/Region';
                 Image = Template;
                 Promoted = true;
                 PromotedCategory = Category4;
@@ -770,7 +774,7 @@ page 30101 "Shpfy Shop Card"
                 PromotedOnly = true;
                 RunObject = page "Shpfy Customer Templates";
                 RunPageLink = "Shop Code" = field(Code);
-                ToolTip = 'Set up a customer template and default customer per country.';
+                ToolTip = 'Set up default customer accounts or templates per country or regions. The designated default customer account for a specific country or region will take precedence over the value in the Shopify Shop card page. When a missing customer is created, the appropriate template according to the customer''s address is selected. Additionally, you may specify tax settings by county or province to ensure more accurate tax calculations.';
             }
             action(Companies)
             {

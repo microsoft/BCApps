@@ -19,6 +19,7 @@ page 4300 "Agent Task List"
     SourceTableView = sorting("Last Log Entry Timestamp") order(descending);
     InherentEntitlements = X;
     InherentPermissions = X;
+    Editable = false;
 
     layout
     {
