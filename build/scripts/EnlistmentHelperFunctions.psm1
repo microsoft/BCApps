@@ -298,15 +298,49 @@ function Get-LatestBCArtifactUrl
         throw "No artifact found for version $minimumVersion"
     }
 
+    # Extract the version number from the URL
+    if ($artifactUrl -notmatch "\d+\.\d+\.\d+\.\d+") {
+        throw "Could not find version number in artifact url: $artifactUrl"
+    }
+    $newBcartifactVersion = $Matches[0]
+
+    if ((Get-CurrentBranch -eq "main")) {
+        $artifactVersion = $newBcartifactVersion
+    } else {
+        $artifactVersion = $minimumVersion
+    }
+
     if ($asPattern) {
         if ($artifactUrl -match $storageAccountOrder[0]) {
-            $artifactUrl = "$($storageAccountOrder[0])/Sandbox/$minimumVersion/base/latest"
+            $artifactUrl = "$($storageAccountOrder[0])/Sandbox/$artifactVersion/base/latest"
         } else {
-            $artifactUrl = "$($storageAccountOrder[1])/Sandbox/$minimumVersion/base/latest"
+            $artifactUrl = "$($storageAccountOrder[1])/Sandbox/$artifactVersion/base/latest"
         }
     }
 
     return $artifactUrl
+}
+
+<#
+.Synopsis
+    Gets the current BCArtifact version from the AL-Go settings file (artifact property).
+#>
+function Get-CurrentBCArtifactUrl() {
+    $artifactSetting = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
+
+    # If the artifact setting is a URL then return it directly
+    if ($artifactSetting -match "https?://") {
+        return $artifactSetting
+    }
+
+    # Else, extract the version from the pattern
+    if ($artifactSetting -notmatch "\d+\.\d+\.\d+\.\d+") {
+        $currentRepoVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
+        Write-Host "Could not find version number in artifact pattern: $artifactSetting. Using repoVersion $currentRepoVersion as minimum version."
+        return Get-LatestBCArtifactUrl -minimumVersion $currentRepoVersion
+    }
+
+    return Get-LatestBCArtifactUrl -minimumVersion $Matches[0]
 }
 
 <#
@@ -319,14 +353,9 @@ function Update-BCArtifactVersion {
     $currentArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
     $currentVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
     Write-Host "Current BCArtifact URL: $currentArtifactUrl"
-
-    if ($currentArtifactUrl -notlike "https*") {
-        Write-Host "Getting latest BCArtifact version as pattern with minimum version $currentVersion"
-        $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $currentVersion -asPattern
-    } else {
-        Write-Host "Getting latest BCArtifact version as URL with minimum version $currentVersion"
-        $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $currentVersion
-    }
+    Write-Host "Getting latest BCArtifact version as pattern with minimum version $currentVersion"
+    
+    $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $currentVersion -asPattern
     Write-Host "Latest BCArtifact URL: $latestArtifactUrl"
 
     $result = $null
