@@ -28,8 +28,7 @@ enum 37200 "E-Document Format" implements "PEPPOL Attachment Handler"
                             , "PEPPOL Payment Info Provider" = "PEPPOL30 Management"
                             , "PEPPOL Posted Document Iterator" = "PEPPOL30 Management"
                             , "PEPPOL Tax Info Provider" = "PEPPOL30 Management"
-                            , "PEPPOL30 Validation" = "PEPPOL30 Validation"
-                            ;
+                            , "PEPPOL30 Validation" = "PEPPOL30 Validation";
     Extensible = true;
 
     /// <summary>
