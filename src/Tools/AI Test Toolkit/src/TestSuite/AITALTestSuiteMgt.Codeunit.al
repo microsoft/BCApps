@@ -131,7 +131,7 @@ codeunit 149037 "AIT AL Test Suite Mgt"
             ALTestSuite.SetFilter(Name, AITTestMethodLine."AL Test Suite");
             ALTestSuite.ReadIsolation := ALTestSuite.ReadIsolation::ReadUncommitted;
             if ALTestSuite.FindFirst() then begin
-                AssignTestRunner(AITTestMethodLine."Test Suite Code", ALTestSuite);
+                AssignTestRunnerToTestSuite(AITTestMethodLine."Test Suite Code", ALTestSuite);
                 ALTestSuite.Modify(true);
                 exit(ALTestSuite);
             end;
@@ -144,13 +144,13 @@ codeunit 149037 "AIT AL Test Suite Mgt"
 
         ALTestSuite.Name := AITTestMethodLine."AL Test Suite";
         ALTestSuite.Description := CopyStr(AITTestMethodLine.Description, 1, MaxStrLen(ALTestSuite.Description));
-        AssignTestRunner(AITTestMethodLine."Test Suite Code", ALTestSuite);
+        AssignTestRunnerToTestSuite(AITTestMethodLine."Test Suite Code", ALTestSuite);
 
         ALTestSuite.Insert(true);
         exit(ALTestSuite);
     end;
 
-    local procedure AssignTestRunner(TestSuiteCode: Code[10]; var ALTestSuite: Record "AL Test Suite")
+    local procedure AssignTestRunnerToTestSuite(TestSuiteCode: Code[10]; var ALTestSuite: Record "AL Test Suite")
     var
         AITTestSuite: Record "AIT Test Suite";
         CodeunitMetadata: Record "Codeunit Metadata";
