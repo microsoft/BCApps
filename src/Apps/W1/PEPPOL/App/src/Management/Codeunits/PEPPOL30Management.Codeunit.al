@@ -661,7 +661,6 @@ codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
         PEPPOLManagementImpl.GetLegalMonetaryInfo(SalesHeader, TempSalesLine, VATAmtLine, LineExtensionAmount, LegalMonetaryTotalCurrencyID, TaxExclusiveAmount, TaxExclusiveAmountCurrencyID, TaxInclusiveAmount, TaxInclusiveAmountCurrencyID, AllowanceTotalAmount, AllowanceTotalAmountCurrencyID, ChargeTotalAmount, ChargeTotalAmountCurrencyID, PrepaidAmount, PrepaidCurrencyID, PayableRoundingAmount, PayableRndingAmountCurrencyID, PayableAmount, PayableAmountCurrencyID);
     end;
 
-
     /// <summary>
     /// Gets legal monetary document amounts including line extension, tax amounts, allowances, and charges.
     /// </summary>
