@@ -26,9 +26,4 @@ codeunit 130131 "MCP Config Test Library"
     begin
         MCPConfigImplementation.AddStandardAPITools(ConfigId);
     end;
-
-    procedure DefaultConfigurationName(): Text[100]
-    begin
-        exit(MCPConfigImplementation.DefaultConfigurationName());
-    end;
 }

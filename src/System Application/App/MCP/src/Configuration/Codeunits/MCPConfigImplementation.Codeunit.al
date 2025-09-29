@@ -18,7 +18,7 @@ codeunit 8351 "MCP Config Implementation"
         DefaultConfigCannotBeDeactivatedErr: Label 'The default configuration cannot be deactivated.';
         DefaultConfigCannotBeDeletedErr: Label 'The default configuration cannot be deleted.';
         DynamicToolModeCannotBeDisabledErr: Label 'Dynamic tool mode cannot be disabled for the default configuration.';
-        AccessAllReadOnlyObjectsCannotBeDisabledErr: Label 'Access to all read-only objects cannot be disabled for the default configuration.';
+        AllowReadOnlyAPIDiscoveryCannotBeDisabledErr: Label 'Access to all read-only objects cannot be disabled for the default configuration.';
         ProdChangesNotAllowedErr: Label 'Production changes are not allowed for this MCP configuration.';
         ToolsCannotBeAddedToDefaultConfigErr: Label 'Tools cannot be added to the default configuration.';
         PageNotFoundErr: Label 'Page not found.';
@@ -150,7 +150,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration.Modify();
     end;
 
-    internal procedure EnableAccessAllReadOnlyObjects(ConfigId: Guid; Enable: Boolean)
+    internal procedure EnableAllowReadOnlyAPIDiscovery(ConfigId: Guid; Enable: Boolean)
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
@@ -158,9 +158,9 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         if not Enable and IsDefaultConfiguration(MCPConfiguration) then
-            Error(AccessAllReadOnlyObjectsCannotBeDisabledErr);
+            Error(AllowReadOnlyAPIDiscoveryCannotBeDisabledErr);
 
-        MCPConfiguration.AccessAllReadOnlyObjects := Enable;
+        MCPConfiguration.AllowReadOnlyAPIDiscovery := Enable;
         MCPConfiguration.Modify();
     end;
 
@@ -183,25 +183,20 @@ codeunit 8351 "MCP Config Implementation"
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
-        if not IsNullGuid(GetConfigurationIdByName(DefaultConfigurationName())) then
+        if not IsNullGuid(GetConfigurationIdByName('')) then
             exit;
 
-        MCPConfiguration.Name := DefaultConfigurationName();
+        MCPConfiguration.Name := '';
         MCPConfiguration.Description := DefaultMCPConfigurationDescriptionLbl;
         MCPConfiguration.Active := true;
         MCPConfiguration.EnableDynamicToolMode := true;
-        MCPConfiguration.AccessAllReadOnlyObjects := true;
+        MCPConfiguration.AllowReadOnlyAPIDiscovery := true;
         MCPConfiguration.Insert();
     end;
 
     internal procedure IsDefaultConfiguration(MCPConfiguration: Record "MCP Configuration"): Boolean
     begin
-        exit(MCPConfiguration.Name = DefaultConfigurationName());
-    end;
-
-    internal procedure DefaultConfigurationName(): Text[100]
-    begin
-        exit('Default');
+        exit(MCPConfiguration.Name = '');
     end;
     #endregion
 

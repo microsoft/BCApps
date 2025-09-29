@@ -44,9 +44,8 @@ page 8351 "MCP Config Card"
                     ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools dynamically.';
                     Editable = not IsDefault;
                 }
-                field(AccessAllReadOnlyObjects; Rec.AccessAllReadOnlyObjects)
+                field(AllowReadOnlyAPIDiscovery; Rec.AllowReadOnlyAPIDiscovery)
                 {
-                    Caption = 'Access All Read-Only Objects';
                     ToolTip = 'Specifies whether to allow access to all read-only objects for this MCP configuration.';
                     Editable = not IsDefault;
                 }
