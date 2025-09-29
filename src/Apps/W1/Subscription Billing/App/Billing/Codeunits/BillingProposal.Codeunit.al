@@ -454,11 +454,7 @@ codeunit 8062 "Billing Proposal"
         UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
         UsageDataBilling.SetFilter("Charge Start Date", '<=%1', BillingLine."Billing from");
         UsageDataBilling.SetFilter("Charge End Date", '>=%1', BillingLine."Billing to");
-        if UsageDataBilling.FindSet() then
-            repeat
-                UsageDataBilling."Billing Line Entry No." := BillingLine."Entry No.";
-                UsageDataBilling.Modify(false);
-            until UsageDataBilling.Next() = 0;
+        UsageDataBilling.ModifyAll("Billing Line Entry No.", BillingLine."Entry No.", false);
     end;
 
     local procedure CalculateBillingPeriod(ServiceCommitment: Record "Subscription Line"; BillingDate: Date; BillToDate: Date; var BillingPeriodStart: Date; var BillingPeriodEnd: Date)

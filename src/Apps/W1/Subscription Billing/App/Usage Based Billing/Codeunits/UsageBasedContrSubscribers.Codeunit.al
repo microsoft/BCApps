@@ -72,11 +72,7 @@ codeunit 8028 "Usage Based Contr. Subscribers"
         UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(ServicePartner, UsageBasedBillingDocType, DocumentNo);
         if UsageDataBilling.IsEmpty() then
             exit;
-
-        if UsageDataBilling.FindSet() then
-            repeat
-                UsageDataBilling.SaveDocumentValues(Enum::"Usage Based Billing Doc. Type"::None, '', 0, 0);
-            until UsageDataBilling.Next() = 0;
+        ClearUsageDataBillingDocumentValues(UsageDataBilling);
     end;
 
     local procedure UsageDataBillingWithDocumentExist(var UsageDataBilling: Record "Usage Data Billing"; ServicePartner: Enum "Service Partner"; GetBillingDocumentTypeFromSalesDocumentType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]): Boolean
@@ -274,14 +270,10 @@ codeunit 8028 "Usage Based Contr. Subscribers"
     local procedure DeleteRelatedUsageBillingLinesOnAfterDeletePurchaseLineEvent(Rec: Record "Purchase Line"; RunTrigger: Boolean)
     var
         UsageDataBilling: Record "Usage Data Billing";
-        PurchaseHeader: Record "Purchase Header";
     begin
         if not RunTrigger then
             exit;
         if Rec.IsTemporary then
-            exit;
-        PurchaseHeader.Get(Rec."Document Type", Rec."Document No.");
-        if not PurchaseHeader."Recurring Billing" then
             exit;
 
         UsageDataBilling.FilterDocumentWithLine("Service Partner"::Vendor, UsageBasedDocTypeConv.ConvertPurchaseDocTypeToUsageBasedBillingDocType(Rec."Document Type"), Rec."Document No.", Rec."Line No.");
@@ -299,15 +291,11 @@ codeunit 8028 "Usage Based Contr. Subscribers"
     [EventSubscriber(ObjectType::Table, Database::"Sales Line", OnAfterDeleteEvent, '', false, false)]
     local procedure DeleteRelatedUsageBillingLinesOnAfterDeleteSalesLineEvent(Rec: Record "Sales Line"; RunTrigger: Boolean)
     var
-        SalesHeader: Record "Sales Header";
         UsageDataBilling: Record "Usage Data Billing";
     begin
         if not RunTrigger then
             exit;
         if Rec.IsTemporary then
-            exit;
-        SalesHeader.Get(Rec."Document Type", Rec."Document No.");
-        if not SalesHeader."Recurring Billing" then
             exit;
 
         UsageDataBilling.FilterDocumentWithLine("Service Partner"::Customer, UsageBasedDocTypeConv.ConvertSalesDocTypeToUsageBasedBillingDocType(Rec."Document Type"), Rec."Document No.", Rec."Line No.");

@@ -1771,7 +1771,7 @@ codeunit 148153 "Usage Based Billing Test"
     [Test]
     procedure DeleteUsageDataBillingLineWhenRelatedSalesInvoiceLineIsDeleted()
     begin
-        // [SCENARIO] Creating a sales invoice with usage data, deleting one line should result in clearance of the related usage data billing lines
+        // [SCENARIO] When sales invoice with usage data is created if a line is deleted related usage data billing should be deleted as well
         // [GIVEN] A customer contract with two usage-based service commitments, both invoiced
         ResetAll();
         CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
@@ -1791,20 +1791,20 @@ codeunit 148153 "Usage Based Billing Test"
         // Delete the first line (simulate user action)
         SalesLine.Delete(true);
 
-        // [THEN] Only the credited line should have a new usage data billing line 
-        // Check usage data billing lines for the contract
+        // [THEN] Check that invoice data is removed from usage data billing
         UsageDataBilling.Reset();
-        UsageDataBilling.SetRange("Document Type", UsageDataBilling."Document Type"::Invoice);
-        UsageDataBilling.SetRange("Document No.", SalesLine."Document No.");
-        UsageDataBilling.SetRange("Document Line No.", SalesLine."Line No.");
-        Assert.RecordIsEmpty(UsageDataBilling);
+        UsageDataBilling.Get(UsageDataBilling."Entry No.");
+        UsageDataBilling.TestField("Document Type", UsageDataBilling."Document Type"::None);
+        UsageDataBilling.TestField("Document No.", '');
+        UsageDataBilling.TestField("Document Line No.", 0);
+        UsageDataBilling.TestField("Billing Line Entry No.", 0);
     end;
 
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateVendorBillingDocumentPageHandler,MessageHandler')]
     [Test]
     procedure DeleteUsageDataBillingLineWhenRelatedPurchLineIsDeleted()
     begin
-        // [SCENARIO] When purchase invoice with usage data is created if a line is deleted related fields in usage data billing should be cleared as well
+        // [SCENARIO] When purchase invoice with usage data is created if a line is deleted related usage data billing should be deleted as well
         // [GIVEN] A vendor contract with two usage-based service commitments, both invoiced
         ResetAll();
         CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
@@ -1819,19 +1819,19 @@ codeunit 148153 "Usage Based Billing Test"
         PurchaseLine.Reset();
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
-        SalesLine.SetRange(Type, "Sales Line Type"::Item);
+        PurchaseLine.SetRange(Type, "Sales Line Type"::Item);
         PurchaseLine.FindFirst();
 
         // Delete the first line (simulate user action)
         PurchaseLine.Delete(true);
 
-        // [THEN] Only the credited line should have a new usage data billing line 
-        // Check usage data billing lines for the contract
+        // [THEN] Check that invoice data is removed from usage data billing
         UsageDataBilling.Reset();
-        UsageDataBilling.SetRange("Document Type", UsageDataBilling."Document Type"::Invoice);
-        UsageDataBilling.SetRange("Document No.", PurchaseHeader."No.");
-        UsageDataBilling.SetRange("Document Line No.", PurchaseLine."Line No.");
-        Assert.RecordIsEmpty(UsageDataBilling);
+        UsageDataBilling.Get(UsageDataBilling."Entry No.");
+        UsageDataBilling.TestField("Document Type", UsageDataBilling."Document Type"::None);
+        UsageDataBilling.TestField("Document No.", '');
+        UsageDataBilling.TestField("Document Line No.", 0);
+        UsageDataBilling.TestField("Billing Line Entry No.", 0);
     end;
 
 
@@ -1889,12 +1889,15 @@ codeunit 148153 "Usage Based Billing Test"
         CreateBillingProposalForSimpleCustomerContract();
 
         //[THEN]: Check if Usage Data Billing Line No. has billing line no
+        BillingLine.Reset();
+        BillingLine.SetRange(Partner, BillingLine.Partner::Customer);
+        BillingLine.FindFirst();
         UsageDataBilling.Reset();
         UsageDataBilling.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
         UsageDataBilling.SetRange(Partner, UsageDataBilling.Partner::Customer);
         UsageDataBilling.FindSet();
         repeat
-            UsageDataBilling.TestField("Billing Line Entry No.");
+            UsageDataBilling.TestField("Billing Line Entry No.", BillingLine."Entry No.");
         until UsageDataBilling.Next() = 0;
 
         LibraryVariableStorage.Enqueue(2); //StrMenuHandlerClearBillingProposal
