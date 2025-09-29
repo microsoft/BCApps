@@ -4,7 +4,7 @@ Existing PEPPOL functionality can be extended by partners using provided interfa
 
 ## Dependency
 
-In order to extend existing PEPPOL export functionality partners first should add dependency on the 1st party app "PEPPOL in their app.json file:
+In order to extend existing PEPPOL export functionality partners first should add dependency on the 1st party app "PEPPOL" in their app.json file:
 
 ```json
   "dependencies": [
