@@ -516,7 +516,7 @@ codeunit 1993 "Checklist Implementation"
         UserChecklistStatus."Checklist Status" := ChecklistStatus;
         UserChecklistStatus."Is Visible" := IsVisible;
         UserChecklistStatus."Role ID" := RoleID;
-        UserChecklistStatus.Insert();
+        if UserChecklistStatus.Insert() then;
     end;
 
     procedure IsChecklistVisible(): Boolean
