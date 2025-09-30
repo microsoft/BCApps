@@ -68,6 +68,17 @@ codeunit 8200 "MCP Config"
     end;
 
     /// <summary>
+    /// Copies an existing configuration to a new configuration, including its tools and permissions.
+    /// </summary>
+    /// <param name="SourceConfigId">The SystemId (GUID) of the configuration to copy.</param>
+    /// <param name="NewName">The name of the new configuration.</param>
+    /// <returns>The SystemId (GUID) of the newly created configuration.</returns>
+    procedure CopyConfiguration(SourceConfigId: Guid; NewName: Text[100]; NewDescription: Text[250]): Guid
+    begin
+        exit(MCPConfigImplementation.CopyConfiguration(SourceConfigId, NewName, NewDescription));
+    end;
+
+    /// <summary>
     /// Enables dynamic tool mode for the specified configuration.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>

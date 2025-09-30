@@ -55,6 +55,28 @@ page 8201 "MCP Config Card"
         }
     }
 
+    actions
+    {
+        area(Creation)
+        {
+            action(Copy)
+            {
+                Caption = 'Copy';
+                ToolTip = 'Creates a copy of the current MCP configuration, including its tools and permissions.';
+                Image = Copy;
+
+                trigger OnAction()
+                begin
+                    MCPConfigImplementation.CopyConfiguration(Rec.SystemId);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            actionref(Promoted_Copy; Copy) { }
+        }
+    }
+
     trigger OnOpenPage()
     var
         EnvironmentInformation: Codeunit "Environment Information";
@@ -63,5 +85,6 @@ page 8201 "MCP Config Card"
     end;
 
     var
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
         IsSandbox: Boolean;
 }

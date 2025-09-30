@@ -67,6 +67,56 @@ codeunit 8201 "MCP Config Implementation"
         MCPConfiguration.Delete();
     end;
 
+    internal procedure CopyConfiguration(SourceConfigId: Guid)
+    var
+        MCPCopyConfig: Page "MCP Copy Config";
+        ConfigName: Text[100];
+        ConfigDescription: Text[250];
+    begin
+        MCPCopyConfig.LookupMode := true;
+        if MCPCopyConfig.RunModal() <> Action::LookupOK then
+            exit;
+
+        ConfigName := MCPCopyConfig.GetConfigName();
+        ConfigDescription := MCPCopyConfig.GetConfigDescription();
+
+        CopyConfiguration(SourceConfigId, ConfigName, ConfigDescription);
+    end;
+
+    internal procedure CopyConfiguration(SourceConfigId: Guid; NewName: Text[100]; NewDescription: Text[250]): Guid
+    var
+        SourceMCPConfiguration: Record "MCP Configuration";
+        NewMCPConfiguration: Record "MCP Configuration";
+    begin
+        if not SourceMCPConfiguration.GetBySystemId(SourceConfigId) then
+            exit;
+
+        NewMCPConfiguration.Copy(SourceMCPConfiguration);
+        NewMCPConfiguration.Name := NewName;
+        NewMCPConfiguration.Description := NewDescription;
+        NewMCPConfiguration.Insert();
+
+        CopyTools(SourceMCPConfiguration, NewMCPConfiguration);
+
+        exit(NewMCPConfiguration.SystemId);
+    end;
+
+    local procedure CopyTools(SourceConfig: Record "MCP Configuration"; NewConfig: Record "MCP Configuration")
+    var
+        SourceMCPConfigurationTool: Record "MCP Configuration Tool";
+        NewMCPConfigurationTool: Record "MCP Configuration Tool";
+    begin
+        SourceMCPConfigurationTool.SetRange(ID, SourceConfig.SystemId);
+        if not SourceMCPConfigurationTool.FindSet() then
+            exit;
+
+        repeat
+            NewMCPConfigurationTool.Copy(SourceMCPConfigurationTool);
+            NewMCPConfigurationTool.ID := NewConfig.SystemId;
+            NewMCPConfigurationTool.Insert();
+        until SourceMCPConfigurationTool.Next() = 0;
+    end;
+
     internal procedure CreateAPITool(ConfigId: Guid; APIPageId: Integer): Guid
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
@@ -183,9 +233,9 @@ codeunit 8201 "MCP Config Implementation"
     var
         PageMetadata: Record "Page Metadata";
     begin
-        PageMetadata.SetRange(PageMetadata.PageType, PageMetadata.PageType::API);
-        PageMetadata.SetFilter(PageMetadata.APIPublisher, '<>%1', 'microsoft');
-        PageMetadata.SetFilter(PageMetadata."AL Namespace", '<>%1', 'Microsoft.API.V1');
+        PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
+        PageMetadata.SetFilter(APIPublisher, '<>%1', 'microsoft');
+        PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
 
         if Page.RunModal(Page::"MCP API Config Tool Lookup", PageMetadata) = Action::LookupOK then
             PageId := PageMetadata.ID;
@@ -228,9 +278,25 @@ codeunit 8201 "MCP Config Implementation"
         if APIPublisher = 'microsoft' then
             exit;
 
-        PageMetadata.SetRange(PageMetadata.PageType, PageMetadata.PageType::API);
-        PageMetadata.SetFilter(PageMetadata.APIPublisher, APIPublisher);
-        PageMetadata.SetFilter(PageMetadata.APIGroup, APIGroup);
+        PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
+        PageMetadata.SetFilter(APIPublisher, APIPublisher);
+        PageMetadata.SetFilter(APIGroup, APIGroup);
+        if not PageMetadata.FindSet() then
+            exit;
+
+        repeat
+            CreateAPITool(ConfigId, PageMetadata.ID);
+        until PageMetadata.Next() = 0;
+    end;
+
+    internal procedure AddStandardAPITools(ConfigId: Guid)
+    var
+        PageMetadata: Record "Page Metadata";
+    begin
+        PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
+        PageMetadata.SetFilter(APIPublisher, '=%1', '');
+        PageMetadata.SetFilter(APIGroup, '=%1', '');
+        PageMetadata.SetRange(APIVersion, 'v2.0');
         if not PageMetadata.FindSet() then
             exit;
 
