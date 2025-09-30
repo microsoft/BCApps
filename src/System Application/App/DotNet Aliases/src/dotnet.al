@@ -2213,4 +2213,13 @@ dotnet
         {
         }
     }
+    assembly("Microsoft.Dynamics.Nav.PowerPlatform.Api")
+    {
+        Culture = 'neutral';
+        PublicKeyToken = '31bf3856ad364e35';
+
+        type("Microsoft.Dynamics.Nav.PowerPlatform.Api.PowerPlatformApiWrapper"; "PowerPlatformApiWrapper")
+        {
+        }
+    }
 }
