@@ -25,13 +25,13 @@ codeunit 149037 "AIT AL Test Suite Mgt"
 
     internal procedure AssistEditTestRunner(var AITTestSuite: Record "AIT Test Suite")
     var
-        AllObjWithCaption: Record AllObjWithCaption;
+        CodeunitMetadata: Record "Codeunit Metadata";
         SelectTestRunner: Page "Select TestRunner";
     begin
         SelectTestRunner.LookupMode := true;
         if SelectTestRunner.RunModal() = Action::LookupOK then begin
-            SelectTestRunner.GetRecord(AllObjWithCaption);
-            AITTestSuite.Validate("Test Runner Id", AllObjWithCaption."Object ID");
+            SelectTestRunner.GetRecord(CodeunitMetadata);
+            AITTestSuite.Validate("Test Runner Id", CodeunitMetadata.ID);
             AITTestSuite.Modify(true);
         end;
     end;
@@ -130,8 +130,11 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         if AITTestMethodLine."AL Test Suite" <> '' then begin
             ALTestSuite.SetFilter(Name, AITTestMethodLine."AL Test Suite");
             ALTestSuite.ReadIsolation := ALTestSuite.ReadIsolation::ReadUncommitted;
-            if ALTestSuite.FindFirst() then
+            if ALTestSuite.FindFirst() then begin
+                AssignTestRunnerToTestSuite(CopyStr(AITTestMethodLine."Test Suite Code", 1, MaxStrLen(AITTestSuite.Code)), ALTestSuite);
+                ALTestSuite.Modify(true);
                 exit(ALTestSuite);
+            end;
         end;
 
         if AITTestMethodLine."AL Test Suite" = '' then begin
@@ -141,13 +144,20 @@ codeunit 149037 "AIT AL Test Suite Mgt"
 
         ALTestSuite.Name := AITTestMethodLine."AL Test Suite";
         ALTestSuite.Description := CopyStr(AITTestMethodLine.Description, 1, MaxStrLen(ALTestSuite.Description));
-        AITTestSuite.ReadIsolation := IsolationLevel::ReadUncommitted;
-        AITTestSuite.SetLoadFields("Test Runner Id");
-        if AITTestSuite.Get(AITTestMethodLine."Test Suite Code") then
-            ALTestSuite."Test Runner Id" := AITTestSuite."Test Runner Id";
+        AssignTestRunnerToTestSuite(CopyStr(AITTestMethodLine."Test Suite Code", 1, MaxStrLen(AITTestSuite.Code)), ALTestSuite);
 
         ALTestSuite.Insert(true);
         exit(ALTestSuite);
+    end;
+
+    local procedure AssignTestRunnerToTestSuite(TestSuiteCode: Code[10]; var ALTestSuite: Record "AL Test Suite")
+    var
+        AITTestSuite: Record "AIT Test Suite";
+    begin
+        AITTestSuite.ReadIsolation := IsolationLevel::ReadUncommitted;
+        AITTestSuite.SetLoadFields("Test Runner Id");
+        if AITTestSuite.Get(TestSuiteCode) then
+            ALTestSuite."Test Runner Id" := AITTestSuite."Test Runner Id";
     end;
 
     local procedure GetUniqueAITTestSuiteCode(): Code[10]
