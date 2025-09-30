@@ -298,27 +298,33 @@ function Get-LatestBCArtifactUrl
         throw "No artifact found for version $minimumVersion"
     }
 
+    if (-not $asPattern) {
+        return $artifactUrl
+    }
+
     # Extract the version number from the URL
     if ($artifactUrl -notmatch "\d+\.\d+\.\d+\.\d+") {
         throw "Could not find version number in artifact url: $artifactUrl"
     }
-    $newBcartifactVersion = $Matches[0]
+    [System.Version] $newBcartifactVersion = $Matches[0]
 
-    if ((Get-CurrentBranch -eq "main")) {
-        $artifactVersion = $newBcartifactVersion
+    # Determine which version to use in the pattern
+    if ((Get-ConfigValue -Key "artifact" -ConfigType AL-Go) -match "\d+\.\d+\.\d+\.\d+") {
+        # If the current artifact setting has a full version, use that
+        $artifactVersion = "$($newBcartifactVersion.Major).$($newBcartifactVersion.Minor).$($newBcartifactVersion.Build).$($newBcartifactVersion.Revision)"
     } else {
-        $artifactVersion = $minimumVersion
+        # Else, use only major.minor as pattern
+        $artifactVersion = "$($newBcartifactVersion.Major).$($newBcartifactVersion.Minor)"
     }
 
-    if ($asPattern) {
-        if ($artifactUrl -match $storageAccountOrder[0]) {
-            $artifactUrl = "$($storageAccountOrder[0])/Sandbox/$artifactVersion/base/latest"
-        } else {
-            $artifactUrl = "$($storageAccountOrder[1])/Sandbox/$artifactVersion/base/latest"
-        }
+    # Determine which storage account was used
+    if ($artifactUrl -match $storageAccountOrder[0]) {
+        $storageAccount = $storageAccountOrder[0]
+    } else {
+        $storageAccount = $storageAccountOrder[1]
     }
 
-    return $artifactUrl
+    return "$storageAccount/Sandbox/$artifactVersion/base/latest"
 }
 
 <#
