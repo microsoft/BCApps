@@ -17,6 +17,12 @@ codeunit 8201 "MCP Config Implementation"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    var
+        SettingConfigurationActiveLbl: Label 'Setting MCP configuration %1 Active to %2', Comment = '%1 - configuration ID, %2 - active', Locked = true;
+        SettingConfigurationAllowProdChangesLbl: Label 'Setting MCP configuration %1 AllowProdChanges to %2', Comment = '%1 - configuration ID, %2 - allow production changes', Locked = true;
+        DeletedConfigurationLbl: Label 'Deleted MCP configuration %1', Comment = '%1 - configuration ID', Locked = true;
+        SettingConfigurationEnableDynamicToolModeLbl: Label 'Setting MCP configuration %1 EnableDynamicToolMode to %2', Comment = '%1 - configuration ID, %2 - enable dynamic tool mode', Locked = true;
+
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -47,6 +53,7 @@ codeunit 8201 "MCP Config Implementation"
 
         MCPConfiguration.Active := Active;
         MCPConfiguration.Modify();
+        Session.LogMessage('0000QE9', StrSubstNo(SettingConfigurationActiveLbl, ConfigId, Active), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
     end;
 
     internal procedure AllowProdChanges(ConfigId: Guid; Allow: Boolean)
@@ -58,6 +65,7 @@ codeunit 8201 "MCP Config Implementation"
 
         MCPConfiguration.AllowProdChanges := Allow;
         MCPConfiguration.Modify();
+        Session.LogMessage('0000QEA', StrSubstNo(SettingConfigurationAllowProdChangesLbl, ConfigId, Allow), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
     end;
 
     internal procedure DeleteConfiguration(ConfigId: Guid)
@@ -68,6 +76,7 @@ codeunit 8201 "MCP Config Implementation"
             exit;
 
         MCPConfiguration.Delete();
+        Session.LogMessage('0000QEB', StrSubstNo(DeletedConfigurationLbl, ConfigId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
     end;
 
     internal procedure CopyConfiguration(SourceConfigId: Guid)
@@ -153,6 +162,7 @@ codeunit 8201 "MCP Config Implementation"
 
         MCPConfiguration.EnableDynamicToolMode := Enable;
         MCPConfiguration.Modify();
+        Session.LogMessage('0000QEC', StrSubstNo(SettingConfigurationEnableDynamicToolModeLbl, ConfigId, Enable), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
     end;
 
     internal procedure DeleteTool(ToolId: Guid)
@@ -350,4 +360,9 @@ codeunit 8201 "MCP Config Implementation"
         exit(FeatureManagementFacade.IsEnabled(EnableMcpAccessTok));
     end;
 #endif
+
+    internal procedure GetTelemetryCategory(): Text[50]
+    begin
+        exit('MCP');
+    end;
 }
