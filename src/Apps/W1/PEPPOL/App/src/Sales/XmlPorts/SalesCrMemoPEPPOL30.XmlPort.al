@@ -15,10 +15,6 @@ using Microsoft.Sales.History;
 using Microsoft.Service.History;
 using System.Utilities;
 
-/// <summary>
-/// XMLPort for exporting Sales Credit Memos in PEPPOL BIS 3.0 format.
-/// Generates UBL-compliant XML documents for electronic credit notes according to PEPPOL standards.
-/// </summary>
 xmlport 37200 "Sales Cr.Memo - PEPPOL30"
 {
     Caption = 'Sales Cr.Memo - PEPPOL BIS 3.0';
@@ -2215,7 +2211,6 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
 
     requestpage
     {
-
         layout
         {
             area(content)
@@ -2260,7 +2255,6 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
         CompanyInformation: Record "Company Information";
         SourceRecRef: RecordRef;
         DummyVar: Text;
-
         UnSupportedTableTypeErr: Label 'The %1 table is not supported.', Comment = '%1 is the table.';
         PEPPOL30ProcessingType: Enum "PEPPOL30 Processing Type";
         GeneratePDF: Boolean;

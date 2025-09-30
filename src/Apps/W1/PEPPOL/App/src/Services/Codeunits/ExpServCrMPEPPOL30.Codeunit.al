@@ -7,10 +7,6 @@ namespace Microsoft.Peppol;
 using Microsoft.Service.History;
 using System.IO;
 
-/// <summary>
-/// Codeunit for exporting service credit memos in PEPPOL 3.0 format.
-/// Handles the export process including validation and XML generation.
-/// </summary>
 codeunit 37211 "Exp. Serv.CrM. PEPPOL30"
 {
     TableNo = "Record Export Buffer";

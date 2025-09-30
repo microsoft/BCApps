@@ -34,11 +34,6 @@ using System.TestLibraries.Utilities;
 using System.TestTools.TestRunner;
 using System.Utilities;
 
-/// <summary>
-/// Test codeunit for PEPPOL 3.0 management functionality.
-/// Contains comprehensive tests for PEPPOL document generation, validation, and export processes.
-/// Covers both sales and service document scenarios.
-/// </summary>
 codeunit 139000 "PEPPOL30 Management Tests"
 {
     Subtype = Test;

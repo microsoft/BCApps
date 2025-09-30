@@ -22,7 +22,6 @@ codeunit 37210 "PEPPOL30 Serv. Valid. Impl."
         CheckServiceHeader(Rec);
     end;
 
-
     procedure CheckServiceHeader(ServiceHeader: Record "Service Header")
     var
         SalesHeader: Record "Sales Header";
@@ -78,4 +77,3 @@ codeunit 37210 "PEPPOL30 Serv. Valid. Impl."
             until ServiceCrMemoLine.Next() = 0;
     end;
 }
-

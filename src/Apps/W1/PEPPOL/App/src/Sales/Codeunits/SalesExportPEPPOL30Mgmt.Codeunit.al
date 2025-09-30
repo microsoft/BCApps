@@ -10,10 +10,6 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 
-/// <summary>
-/// Manages PEPPOL 3.0 export operations for sales documents.
-/// Implements the PEPPOL30 Export Management interface to handle sales-specific export functionality.
-/// </summary>
 codeunit 37213 "Sales Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Management"
 {
     var

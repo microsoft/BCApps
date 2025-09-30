@@ -90,4 +90,3 @@ codeunit 37202 "PEPPOL30 Validation" implements "PEPPOL30 Validation"
         exit(PEPPOL30ValidationImpl.CheckSalesLineTypeAndDescription(SalesLine));
     end;
 }
-

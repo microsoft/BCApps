@@ -8,10 +8,6 @@ using Microsoft.Sales.Document;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 
-/// <summary>
-/// Manages PEPPOL 3.0 operations for service documents.
-/// Provides helper methods for converting service documents to sales document format for PEPPOL export.
-/// </summary>
 codeunit 37207 "Serv. PEPPOL30 Management"
 {
     SingleInstance = true;

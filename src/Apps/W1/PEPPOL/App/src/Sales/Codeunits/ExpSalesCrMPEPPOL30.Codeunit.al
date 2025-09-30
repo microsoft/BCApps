@@ -8,18 +8,10 @@ using Microsoft.Foundation.Company;
 using Microsoft.Sales.History;
 using System.IO;
 
-/// <summary>
-/// Codeunit for exporting sales credit memos in PEPPOL 3.0 format.
-/// Handles the export process including validation and XML generation.
-/// </summary>
 codeunit 37205 "Exp. Sales CrM. PEPPOL30"
 {
     TableNo = "Record Export Buffer";
 
-    /// <summary>
-    /// Main trigger that processes the export of a sales credit memo to PEPPOL 3.0 format.
-    /// Validates the document and generates the XML output.
-    /// </summary>
     trigger OnRun()
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
@@ -55,4 +47,3 @@ codeunit 37205 "Exp. Sales CrM. PEPPOL30"
         SalesCrMemoPEPPOLBIS30.Export();
     end;
 }
-

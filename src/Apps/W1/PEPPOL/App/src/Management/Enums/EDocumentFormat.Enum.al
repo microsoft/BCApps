@@ -4,10 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
-/// <summary>
-/// Enum representing different e-document formats supported by PEPPOL.
-/// Implements various PEPPOL interfaces for handling electronic documents.
-/// </summary>
 enum 37200 "E-Document Format" implements "PEPPOL Attachment Handler"
                                             , "PEPPOL Delivery Info Provider"
                                             , "PEPPOL Document Info Provider"
@@ -31,9 +27,6 @@ enum 37200 "E-Document Format" implements "PEPPOL Attachment Handler"
                             , "PEPPOL30 Validation" = "PEPPOL30 Validation";
     Extensible = true;
 
-    /// <summary>
-    /// PEPPOL 3.0 electronic document format.
-    /// </summary>
     value(0; "PEPPOL 3.0")
     {
         Caption = 'PEPPOL 3.0';

@@ -20,12 +20,6 @@ codeunit 37203 "PEPPOL30 Validation Impl."
     Access = Internal;
     TableNo = "Sales Header";
 
-    trigger OnRun()
-    begin
-        CheckSalesDocument(Rec);
-        CheckSalesDocumentLines(Rec);
-    end;
-
     var
         ConfirmManagement: Codeunit "Confirm Management";
         OutsideScopeVATBreakdowns: Dictionary of [Text, Text];
@@ -38,6 +32,12 @@ codeunit 37203 "PEPPOL30 Validation Impl."
         VATGreaterThanZeroErr: Label 'Line should have greater VAT than 0% for tax category %1', Comment = '%1 - Tax Category code';
         VatMustBeZeroForCategoryErr: Label 'VAT % must be 0 for tax category code %1', Comment = '%1 - Tax Category code';
         WrongLengthErr: Label 'should be %1 characters long', Comment = '%1 - field length';
+
+    trigger OnRun()
+    begin
+        CheckSalesDocument(Rec);
+        CheckSalesDocumentLines(Rec);
+    end;
 
     procedure CheckSalesDocument(SalesHeader: Record "Sales Header")
     var

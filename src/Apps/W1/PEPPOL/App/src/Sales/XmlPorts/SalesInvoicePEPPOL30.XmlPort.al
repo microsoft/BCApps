@@ -276,6 +276,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 var
                     PEPPOLAttachmentHandler: Interface "PEPPOL Attachment Handler";
                 begin
+                    PEPPOLAttachmentHandler := CompanyInformation."E-Document Format";
                     if (AdditionalDocRefLoop.Number <= DocumentAttachments.Count()) then
                         PEPPOLAttachmentHandler.GetAdditionalDocRefInfo(
                             additionaldocrefloop.Number,
@@ -357,6 +358,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                         var
                             PEPPOLPartyInfoProvider: Interface "PEPPOL Party Info Provider";
                         begin
+                            PEPPOLPartyInfoProvider := CompanyInformation."E-Document Format";
                             PEPPOLPartyInfoProvider.GetAccountingSupplierPartyIdentificationID(SalesHeader, PartyIdentificationID);
                             if PartyIdentificationID = '' then
                                 currXMLport.Skip();
@@ -1271,6 +1273,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                     if not FindNextVATAmtRec(TempVATAmtLine, AllowanceChargeLoop.Number) then
                         currXMLport.Break();
 
+                    PEPPOLTaxInfoProvider := CompanyInformation."E-Document Format";
                     PEPPOLTaxInfoProvider.GetAllowanceChargeInfo(
                       TempVATAmtLine,
                       SalesHeader,
@@ -1508,6 +1511,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 var
                     PEPPOLMonetaryInfoProvider: Interface "PEPPOL Monetary Info Provider";
                 begin
+                    PEPPOLMonetaryInfoProvider := CompanyInformation."E-Document Format";
                     PEPPOLMonetaryInfoProvider.GetLegalMonetaryInfo(
                       SalesHeader,
                       TempSalesLineRounding,
@@ -1596,8 +1600,8 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                     trigger OnBeforePassVariable()
                     var
                         PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
-
                     begin
+                        PEPPOLLineInfoProvider := CompanyInformation."E-Document Format";
                         PEPPOLLineInfoProvider.GetLineInvoicePeriodInfo(
                           InvLineInvoicePeriodStartDate,
                           InvLineInvoicePeriodEndDate);
@@ -1690,6 +1694,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                         PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                         InvLineDeliveryCountryListID: Text;
                     begin
+                        PEPPOLLineInfoProvider := CompanyInformation."E-Document Format";
                         PEPPOLLineInfoProvider.GetLineDeliveryInfo(
                           InvoiceLineActualDeliveryDate,
                           InvoiceLineDeliveryID,
@@ -1740,6 +1745,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                     var
                         PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                     begin
+                        PEPPOLLineInfoProvider := CompanyInformation."E-Document Format";
                         PEPPOLLineInfoProvider.GetLineAllowanceChargeInfo(
                           SalesLine,
                           SalesHeader,
@@ -1865,6 +1871,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                         var
                             PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                         begin
+                            PEPPOLLineInfoProvider := CompanyInformation."E-Document Format";
                             PEPPOLLineInfoProvider.GetLineItemCommodityClassificationInfo(
                               CommodityCode,
                               CommodityCodeListID,
@@ -1914,6 +1921,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                         var
                             PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                         begin
+                            PEPPOLLineInfoProvider := CompanyInformation."E-Document Format";
                             PEPPOLLineInfoProvider.GetLineItemClassifiedTaxCategoryBIS(
                               SalesLine,
                               ClassifiedTaxCategoryID,
@@ -1942,6 +1950,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                         var
                             PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                         begin
+                            PEPPOLLineInfoProvider := CompanyInformation."E-Document Format";
                             PEPPOLLineInfoProvider.GetLineAdditionalItemPropertyInfo(
                               SalesLine,
                               AdditionalItemPropertyName,
@@ -1961,6 +1970,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                     var
                         PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                     begin
+                        PEPPOLLineInfoProvider := CompanyInformation."E-Document Format";
                         PEPPOLLineInfoProvider.GetLineItemInfo(
                           SalesLine,
                           Description,
@@ -2026,6 +2036,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                         var
                             PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                         begin
+                            PEPPOLLineInfoProvider := CompanyInformation."E-Document Format";
                             PEPPOLLineInfoProvider.GetLinePriceAllowanceChargeInfo(
                               PriceChargeIndicator,
                               PriceAllowanceChargeAmount,
@@ -2047,6 +2058,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                     var
                         PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                     begin
+                        PEPPOLLineInfoProvider := CompanyInformation."E-Document Format";
                         PEPPOLLineInfoProvider.GetLinePriceInfo(
                           SalesLine,
                           SalesHeader,
@@ -2088,6 +2100,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
 
                 GetTotals();
 
+                PEPPOLDocumentInfoProvider := CompanyInformation."E-Document Format";
                 PEPPOLDocumentInfoProvider.GetGeneralInfoBIS(
                   SalesHeader,
                   ID,
@@ -2127,6 +2140,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
             }
         }
     }
+
     trigger OnPreXmlPort()
     begin
         CompanyInformation.Get();
