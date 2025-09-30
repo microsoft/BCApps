@@ -521,8 +521,7 @@ codeunit 30286 "Shpfy Company API"
         if CompanyLocation."Tax Registration Id" <> '' then
             AddFieldToGraphQuery(GraphQuery, 'taxRegistrationId', CompanyLocation."Tax Registration Id");
         GraphQuery.Append('taxExempt: false, billingSameAsShipping: true, shippingAddress: {');
-        if CompanyLocation.Address <> '' then
-            AddFieldToGraphQuery(GraphQuery, 'address1', CompanyLocation.Address);
+        AddFieldToGraphQuery(GraphQuery, 'address1', CompanyLocation.Address);
         if CompanyLocation."Address 2" <> '' then
             AddFieldToGraphQuery(GraphQuery, 'address2', CompanyLocation."Address 2");
         if CompanyLocation.City <> '' then
