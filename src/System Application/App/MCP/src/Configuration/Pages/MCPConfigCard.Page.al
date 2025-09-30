@@ -42,7 +42,7 @@ page 8201 "MCP Config Card"
                 }
                 field(AllowProdChanges; Rec.AllowProdChanges)
                 {
-                    ToolTip = 'Specifies whether to allow production changes for this MCP configuration. When disabled, create, modify, and delete operations in production environments are restricted.';
+                    ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools within the configuration dynamically.';
                     Visible = not IsSandbox;
                 }
             }
