@@ -7,6 +7,7 @@ namespace System.Test.Apps.ExtensionGeneration;
 
 using System.Reflection;
 using System.TestLibraries.Utilities;
+using System.Apps;
 using System.Apps.ExtensionGeneration;
 using System.TestLibraries.Apps.ExtensionGeneration;
 
@@ -45,6 +46,9 @@ codeunit 133103 "Dataverse Table Builder Test"
             Field.FindFirst();
             Assert.AreEqual(FieldName, Field.ExternalName, 'Field is not generated correctly');
         end;
+
+        // Cleanup
+        UninstallExtension();
     end;
 
     [Test]
@@ -90,10 +94,25 @@ codeunit 133103 "Dataverse Table Builder Test"
         Field.SetRange(FieldName, Fields.Get(5));
         Field.FindFirst();
         Assert.AreEqual(Fields.Get(5), Field.ExternalName, 'Field is not generated correctly');
+
+        // Cleanup
+        UninstallExtension();
     end;
 
     local procedure Initialize()
     begin
+        UninstallExtension();
         DataverseTableBuilder.ClearGeneration();
+    end;
+
+    local procedure UninstallExtension()
+    var
+        NavAppInstalledApp: Record "NAV App Installed App";
+        ExtensionManagement: Codeunit "Extension Management";
+    begin
+        NavAppInstalledApp.SetRange(Name, 'CRM Sync Designer');
+        NavAppInstalledApp.SetRange(Publisher, 'Designer');
+        if NavAppInstalledApp.FindFirst() then
+            ExtensionManagement.UninstallExtension(NavAppInstalledApp."Package ID", false);
     end;
 }
