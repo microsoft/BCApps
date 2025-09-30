@@ -62,6 +62,9 @@ codeunit 133103 "Dataverse Table Builder Test"
 
         // [THEN] An error is raised.
         Assert.ExpectedError('Generation has not been started. Start generation first.');
+
+        // Cleanup
+        UninstallExtension();
     end;
 
     [Test]
@@ -101,7 +104,6 @@ codeunit 133103 "Dataverse Table Builder Test"
 
     local procedure Initialize()
     begin
-        UninstallExtension();
         DataverseTableBuilder.ClearGeneration();
     end;
 
@@ -112,7 +114,9 @@ codeunit 133103 "Dataverse Table Builder Test"
     begin
         NavAppInstalledApp.SetRange(Name, 'CRM Sync Designer');
         NavAppInstalledApp.SetRange(Publisher, 'Designer');
-        if NavAppInstalledApp.FindFirst() then
+        if NavAppInstalledApp.FindFirst() then begin
             ExtensionManagement.UninstallExtension(NavAppInstalledApp."Package ID", false);
+            ExtensionManagement.UnpublishExtension(NavAppInstalledApp."Package ID");
+        end;
     end;
 }
