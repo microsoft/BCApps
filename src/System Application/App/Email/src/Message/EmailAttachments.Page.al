@@ -73,28 +73,6 @@ page 8889 "Email Attachments"
                     UpdateDeleteActionEnablement();
                 end;
             }
-#if not CLEAN25
-            action(Upload)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The action Upload is replaced by the new action UploadMultiple.';
-                ObsoleteTag = '25.0';
-                ApplicationArea = All;
-                Image = Attach;
-                Caption = 'Add file';
-                ToolTip = 'Attach files, such as documents or images, to the email.';
-                Scope = Page;
-                Visible = false;
-
-                trigger OnAction()
-                var
-                    EmailEditor: Codeunit "Email Editor";
-                begin
-                    EmailEditor.UploadAttachment(EmailMessageImpl);
-                    UpdateDeleteActionEnablement();
-                end;
-            }
-#endif
             action(UploadFromScenario)
             {
                 ApplicationArea = All;

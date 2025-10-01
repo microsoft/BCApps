@@ -98,13 +98,8 @@ table 30121 "Shpfy Orders to Import"
             DataClassification = CustomerContent;
             Editable = false;
             ObsoleteReason = 'This field is not imported. Use field ';
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#else
                                 ObsoleteState = Removed;
                                 ObsoleteTag = '28.0';
-#endif
         }
 #endif
         field(13; "Financial Status"; enum "Shpfy Financial Status")

@@ -14,9 +14,6 @@ codeunit 7770 "AOAI Operation Response"
     InherentPermissions = X;
 
     var
-#if not CLEAN25
-        LastAOAIFunctionResponse: Codeunit "AOAI Function Response";
-#endif
         AOAIFunctionResponses: List of [Codeunit "AOAI Function Response"];
         StatusCode: Integer;
         Success: Boolean;
@@ -114,25 +111,6 @@ codeunit 7770 "AOAI Operation Response"
         exit(MatchedAOAIFunctionResponses.Count() > 0);
     end;
 
-#if not CLEAN25
-    /// <summary>
-    /// Get the function response codeunit which contains the response details.
-    /// </summary>
-    /// <returns>The codeunit which contains response details for the function call.</returns>
-    [Obsolete('There could be multiple function responses, use GetFunctionResponses to iterate through them all. For compatibility, GetFunctionResponse will return the last function returned by the model', '25.0')]
-    procedure GetFunctionResponse(): Codeunit "AOAI Function Response"
-    var
-        FunctionCount: Integer;
-    begin
-        FunctionCount := AOAIFunctionResponses.Count();
-
-        if FunctionCount <= 0 then
-            exit(LastAOAIFunctionResponse);
-
-        AOAIFunctionResponses.Get(FunctionCount, LastAOAIFunctionResponse);
-        exit(LastAOAIFunctionResponse);
-    end;
-#endif
 
     procedure GetFunctionResponses(): List of [Codeunit "AOAI Function Response"]
     begin
@@ -188,9 +166,6 @@ codeunit 7770 "AOAI Operation Response"
     internal procedure SetOperationResponse(NewSuccess: Boolean; NewStatusCode: Integer; NewResult: Text; NewError: Text)
     begin
         Clear(AOAIFunctionResponses);
-#if not CLEAN25
-        Clear(LastAOAIFunctionResponse);
-#endif
 
         Success := NewSuccess;
         StatusCode := NewStatusCode;

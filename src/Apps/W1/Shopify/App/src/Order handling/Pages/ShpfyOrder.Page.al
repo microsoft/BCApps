@@ -42,18 +42,6 @@ page 30113 "Shpfy Order"
                     Editable = false;
                     ToolTip = 'Specifies the order number from Shopify.';
                 }
-#if not CLEAN25
-                field(RiskLevel; Rec."Risk Level")
-                {
-                    ApplicationArea = All;
-                    Editable = false;
-                    ToolTip = 'Specifies the risk level from the Shopify order.';
-                    Visible = false;
-                    ObsoleteReason = 'This field is not imported.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-#endif
                 field("High Risk"; Rec."High Risk")
                 {
                     ApplicationArea = All;
@@ -1008,4 +996,3 @@ page 30113 "Shpfy Order"
     begin
     end;
 }
-

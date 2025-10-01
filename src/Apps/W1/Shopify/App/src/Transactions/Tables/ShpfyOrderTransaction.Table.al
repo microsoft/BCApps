@@ -102,13 +102,8 @@ table 30133 "Shpfy Order Transaction"
             Editable = false;
             Access = Internal;
             ObsoleteReason = 'Source name is no longer used.';
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#endif
         }
 #endif
         field(16; "Credit Card Bin"; Code[10])
@@ -216,13 +211,8 @@ table 30133 "Shpfy Order Transaction"
             FieldClass = FlowField;
             CalcFormula = lookup("Shpfy Payment Method Mapping".Priority where("Shop Code" = field("Shop Code"), Gateway = field(Gateway), "Credit Card Company" = field("Credit Card Company")));
             ObsoleteReason = 'Priority is no longer used.';
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#endif
         }
 #endif
         field(106; Used; Boolean)
@@ -271,4 +261,3 @@ table 30133 "Shpfy Order Transaction"
             DataCapture.DeleteAll(false);
     end;
 }
-

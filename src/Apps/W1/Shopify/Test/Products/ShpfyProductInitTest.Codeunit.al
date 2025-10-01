@@ -15,10 +15,8 @@ using Microsoft.Foundation.ExtendedText;
 using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Sales.Pricing;
 using Microsoft.Purchases.Vendor;
-#if CLEAN25
 using Microsoft.Pricing.PriceList;
 using Microsoft.Sales.Customer;
-#endif
 
 /// <summary>
 /// Codeunit Shpfy Product Init Test (ID 139603).
@@ -199,49 +197,6 @@ codeunit 139603 "Shpfy Product Init Test"
     end;
 
 
-#if not CLEAN25
-    internal procedure CreateSalesPrice(Code: Code[10]; ItemNo: Code[20]; Price: Decimal)
-    var
-        CustomerPriceGroup: Record "Customer Price Group";
-#pragma warning disable AL0432
-        SalesPrice: Record "Sales Price";
-#pragma warning restore AL0432
-    begin
-        if not CustomerPriceGroup.Get(Code) then begin
-            CustomerPriceGroup.Init();
-            CustomerPriceGroup.Code := Code;
-            CustomerPriceGroup."Allow Line Disc." := true;
-            CustomerPriceGroup.Insert();
-        end;
-
-        SalesPrice.Init();
-        SalesPrice."Sales Type" := Enum::"Sales Price Type"::"All Customers";
-        SalesPrice.Validate("Item No.", ItemNo);
-        SalesPrice.Validate("Unit Price", Price);
-        SalesPrice.Insert();
-    end;
-
-    internal procedure CreateSalesLineDiscount(Code: Code[10]; ItemNo: Code[20]; DiscountPerc: Decimal) CustDiscGrp: Record "Customer Discount Group"
-    var
-#pragma warning disable AL0432
-        SalesLineDiscount: Record "Sales Line Discount";
-#pragma warning restore AL0432
-    begin
-        if not CustDiscGrp.Get(Code) then begin
-            CustDiscGrp.Init();
-            CustDiscGrp.Code := Code;
-            CustDiscGrp.Insert();
-        end;
-
-        SalesLineDiscount.Init();
-        SalesLineDiscount.Type := Enum::"Sales Line Discount Type"::Item;
-        SalesLineDiscount.Code := ItemNo;
-        SalesLineDiscount."Sales Type" := SalesLineDiscount."Sales Type"::"Customer Disc. Group";
-        SalesLineDiscount."Sales Code" := CustDiscGrp.Code;
-        SalesLineDiscount.Validate("Line Discount %", DiscountPerc);
-        SalesLineDiscount.Insert();
-    end;
-#else
     internal procedure CreatePriceList(Code: Code[10]; ItemNo: Code[20]; Price: Decimal; DiscountPerc: Decimal) CustDiscGrp: Record "Customer Discount Group"
     var
         PriceListLine: Record "Price List Line";
@@ -305,7 +260,6 @@ codeunit 139603 "Shpfy Product Init Test"
         PriceListLine.Status := PriceListLine.Status::Active;
         PriceListLine.Insert();
     end;
-#endif
 
     internal procedure CreateStandardProduct(Shop: Record "Shpfy Shop") ShopifyVariant: Record "Shpfy Variant"
     var
