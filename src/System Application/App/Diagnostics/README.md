@@ -1,0 +1,1 @@
+This module provides an interface for working with diagnostics.

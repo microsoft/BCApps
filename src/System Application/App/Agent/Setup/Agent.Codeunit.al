@@ -238,7 +238,33 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        AgentImpl.UpdateAgentAccessControl(AgentUserSecurityID, TempAgentAccessControl);
+        AgentImpl.UpdateAccessControl(AgentUserSecurityID, TempAgentAccessControl);
+    end;
+
+    /// <summary>
+    /// Gets the access controls for the agent when executing tasks.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">Security ID of the agent.</param>
+    /// <param name="TempAccessControlBuffer">List of access controls for the agent used when executing tasks.</param>
+    [Scope('OnPrem')]
+    procedure GetAccessControl(AgentUserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        AgentImpl.GetAccessControl(AgentUserSecurityID, TempAccessControlBuffer);
+    end;
+
+    /// <summary>
+    /// Sets access controls for the agent used when executing tasks. Existing set of access controls will be replaced with a new set.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">Security ID of the agent.</param>
+    /// <param name="TempAccessControlBuffer">List of access controls for the agent used when executing tasks.</param>
+    [Scope('OnPrem')]
+    procedure UpdateAccessControl(AgentUserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        AgentImpl.UpdateAccessControl(AgentUserSecurityID, TempAccessControlBuffer);
     end;
 
     /// <summary>
