@@ -188,6 +188,7 @@ table 8056 "Subscription Package Line"
                         Rec.Validate("Usage Based Pricing", "Usage Based Pricing"::"Usage Quantity");
                 end else
                     Validate("Usage Based Pricing", "Usage Based Pricing"::None);
+                ErrorIfDiscountUsedWithUsageBasedBilling();
             end;
         }
         field(8001; "Usage Based Pricing"; Enum "Usage Based Pricing")
@@ -230,8 +231,8 @@ table 8056 "Subscription Package Line"
         CalculationBaseTypeChangedNotificationMsg: Label 'Calculation Base Type was changed to Document Price, since no discounts can be given for Vendors in Quotes and Orders.';
         InvoicingItemNoErr: Label 'Subscription Lines for a sales document are not invoiced. No value may be entered in the Invoicing Item No..';
         DiscountCanBeInvoicedViaContractErr: Label 'Recurring discounts can only be granted for Invoicing via Contract.';
-        DiscountCannotBeAssignedErr: Label 'Subscription Package Lines, which are discounts can only be assigned to Subscription Items.';
-        RecurringDiscountCannotBeGrantedErr: Label 'Recurring discounts cannot be granted be granted in conjunction with Usage Based Billing.';
+        DiscountCannotBeAssignedErr: Label 'Subscription Package Lines, which are discounts, can only be assigned to Subscription Items.';
+        RecurringDiscountCannotBeGrantedErr: Label 'Recurring discounts cannot be granted in conjunction with Usage Based Billing';
 
     local procedure CheckCalculationBaseTypeAgainstVendor()
     begin
