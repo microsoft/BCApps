@@ -5,11 +5,9 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Foundation.Address;
 using Microsoft.Inventory.Item;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.BusinessRelation;
-using Microsoft.Sales.Customer;
 
 /// <summary>
 /// Codeunit Shpfy Order Mapping (ID 30163).
@@ -179,6 +177,7 @@ codeunit 30163 "Shpfy Order Mapping"
         MapShippingMethodCode(OrderHeader);
         MapShippingAgent(OrderHeader);
         MapPaymentMethodCode(OrderHeader);
+        MapLocationCode(OrderHeader);
         OrderHeader.Modify();
         exit((OrderHeader."Bill-to Customer No." <> '') and (OrderHeader."Sell-to Customer No." <> ''));
     end;
@@ -294,6 +293,7 @@ codeunit 30163 "Shpfy Order Mapping"
                 OrderTransaction.SetAutoCalcFields("Payment Method");
                 OrderTransaction.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
                 OrderTransaction.SetRange(Status, "Shpfy Transaction Status"::Success);
+                OrderTransaction.SetFilter(Type, '%1|%2', "Shpfy Transaction Type"::Sale, "Shpfy Transaction Type"::Capture);
                 if OrderTransaction.FindSet() then begin
                     repeat
                         if not PaymentMethods.Contains(OrderTransaction."Payment Method") then
@@ -311,10 +311,30 @@ codeunit 30163 "Shpfy Order Mapping"
         end;
     end;
 
+    local procedure MapLocationCode(OrderHeader: Record "Shpfy Order Header")
+    var
+        ShopifyCompany: Record "Shpfy Company";
+        CompanyLocation: Record "Shpfy Company Location";
+        CompanyAPI: Codeunit "Shpfy Company API";
+    begin
+        if OrderHeader."Company Location Id" = 0 then
+            exit;
+
+        if not ShopifyCompany.Get(OrderHeader."Company Id") then
+            exit;
+
+        CompanyLocation.ReadIsolation := IsolationLevel::ReadUncommitted;
+        CompanyLocation.SetRange(Id, OrderHeader."Company Location Id");
+        if not CompanyLocation.IsEmpty() then
+            exit;
+
+        CompanyAPI.SetShop(OrderHeader."Shop Code");
+        CompanyAPI.UpdateShopifyCompanyLocation(ShopifyCompany, OrderHeader."Company Location Id");
+    end;
+
     local procedure MapSellToBillToCustomersFromCompanyLocation(var OrderHeader: Record "Shpfy Order Header"): Boolean
     var
         Company: Record "Shpfy Company";
-        Customer: Record Customer;
         CompanyLocation: Record "Shpfy Company Location";
     begin
         if not Company.Get(OrderHeader."Company Id") then
@@ -324,9 +344,6 @@ codeunit 30163 "Shpfy Order Mapping"
 
         if not CompanyLocation.Get(OrderHeader."Company Location Id") then
             exit(false);
-
-        ClearSellToFields(OrderHeader);
-        ClearBillToFields(OrderHeader);
 
         if (Company."Customer No." <> '') and (CompanyLocation."Sell-to Customer No." = '') and (CompanyLocation."Bill-to Customer No." = '') then begin
             OrderHeader."Sell-to Customer No." := Company."Customer No.";
@@ -341,64 +358,6 @@ codeunit 30163 "Shpfy Order Mapping"
             OrderHeader."Bill-to Customer No." := CompanyLocation."Bill-to Customer No.";
         end;
 
-
-        if OrderHeader."Sell-to Customer No." <> '' then begin
-            Customer.Get(OrderHeader."Sell-to Customer No.");
-            CopyCustomerAddressFieldsFromCustomer(OrderHeader, Customer);
-        end;
-
-        if OrderHeader."Bill-to Customer No." <> '' then begin
-            Customer.Get(OrderHeader."Bill-to Customer No.");
-            CopyCustomerAddressFieldsFromCustomer(OrderHeader, Customer);
-        end;
-        exit(true);
-    end;
-
-    local procedure CopyCustomerAddressFieldsFromCustomer(var OrderHeader: Record "Shpfy Order Header"; Customer: Record Customer)
-    begin
-        OrderHeader."Sell-to Address" := Customer.Address;
-        OrderHeader."Sell-to Address 2" := Customer."Address 2";
-        OrderHeader."Sell-to City" := Customer.City;
-        OrderHeader."Sell-to Country/Region Code" := Customer."Country/Region Code";
-        OrderHeader."Bill-to Country/Region Name" := GetCountryRegionName(Customer."Country/Region Code");
-        OrderHeader."Sell-to County" := Customer.County;
-        OrderHeader."Sell-to Post Code" := Customer."Post Code";
-    end;
-
-    local procedure GetCountryRegionName(CountryRegionCode: Code[10]): Text[50]
-    var
-        CountryRegion: Record "Country/Region";
-    begin
-        if CountryRegionCode = '' then
-            exit('');
-
-        CountryRegion.Get(CountryRegionCode);
-        exit(CountryRegion.Name);
-    end;
-
-    local procedure ClearSellToFields(var OrderHeader: Record "Shpfy Order Header")
-    begin
-        OrderHeader."Sell-to Customer No." := '';
-        OrderHeader."Sell-to Customer Name" := '';
-        OrderHeader."Sell-to Customer Name 2" := '';
-        OrderHeader."Sell-to Address" := '';
-        OrderHeader."Sell-to Address 2" := '';
-        OrderHeader."Sell-to City" := '';
-        OrderHeader."Sell-to County" := '';
-        OrderHeader."Sell-to Post Code" := '';
-        OrderHeader."Sell-to Country/Region Code" := '';
-    end;
-
-    local procedure ClearBillToFields(var OrderHeader: Record "Shpfy Order Header")
-    begin
-        OrderHeader."Bill-to Customer No." := '';
-        OrderHeader."Bill-to Name" := '';
-        OrderHeader."Bill-to Name 2" := '';
-        OrderHeader."Bill-to Address" := '';
-        OrderHeader."Bill-to Address 2" := '';
-        OrderHeader."Bill-to City" := '';
-        OrderHeader."Bill-to County" := '';
-        OrderHeader."Bill-to Post Code" := '';
-        OrderHeader."Bill-to Country/Region Code" := '';
+        exit((OrderHeader."Bill-to Customer No." <> '') and (OrderHeader."Sell-to Customer No." <> ''));
     end;
 }

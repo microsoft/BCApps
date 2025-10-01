@@ -17,6 +17,7 @@ codeunit 30180 "Shpfy Product Import"
         ProductMapping: Codeunit "Shpfy Product Mapping";
         UpdateItem: Codeunit "Shpfy Update Item";
         NullGuid: Guid;
+        ItemCreated: Boolean;
     begin
         if ShopifyProduct.Id = 0 then
             exit;
@@ -38,9 +39,13 @@ codeunit 30180 "Shpfy Product Import"
                         ShopifyVariant.SetRange("Item Variant SystemId", NullGuid);
                         if ShopifyVariant.FindSet() then
                             repeat
-                                CreateItem.Run(ShopifyVariant);
+                                Commit();
+                                ItemCreated := CreateItem.Run(ShopifyVariant);
+                                SetProductConflict(ShopifyProduct.Id, ItemCreated);
                             until ShopifyVariant.Next() = 0;
-                    end;
+                    end else
+                        if CreateNewItem then
+                            SetProductConflict(ShopifyProduct.Id, false, AutoCreateUnknownItemsDisabledErr);
             until ShopifyVariant.Next() = 0;
     end;
 
@@ -51,6 +56,8 @@ codeunit 30180 "Shpfy Product Import"
         ShopifyVariant: Record "Shpfy Variant";
         ProductApi: Codeunit "Shpfy Product API";
         VariantApi: Codeunit "Shpfy Variant API";
+        CreateNewItem: Boolean;
+        AutoCreateUnknownItemsDisabledErr: Label 'Auto Create Unknown Item must be enabled and an Item Template must be selected for the shop.';
 
     /// <summary> 
     /// Get Product.
@@ -78,6 +85,12 @@ codeunit 30180 "Shpfy Product Import"
                 ShopifyProduct."Shop Code" := Shop.Code;
                 ShopifyProduct.Insert(false);
             end;
+
+            if ShopifyProduct."Shop Code" <> Shop.Code then begin
+                ShopifyProduct."Shop Code" := Shop.Code;
+                ShopifyProduct.Modify(true);
+            end;
+
             if ProductApi.RetrieveShopifyProduct(ShopifyProduct) then begin
                 VariantApi.RetrieveShopifyProductVariantIds(ShopifyProduct, VariantIds);
                 ShopifyVariant.SetRange("Product Id", Id);
@@ -129,5 +142,36 @@ codeunit 30180 "Shpfy Product Import"
         Shop := ShopifyShop;
         ProductApi.SetShop(Shop);
         VariantApi.SetShop(Shop);
+    end;
+
+    local procedure SetProductConflict(ProductId: BigInteger; ItemCreated: Boolean)
+    begin
+        SetProductConflict(ProductId, ItemCreated, '');
+    end;
+
+    local procedure SetProductConflict(ProductId: BigInteger; ItemCreated: Boolean; ErrorMessage: Text)
+    var
+        Product: Record "Shpfy Product";
+    begin
+        Product.Get(ProductId);
+        if ItemCreated and not Product."Has Error" then
+            exit;
+
+        if not ItemCreated then begin
+            Product.Validate("Has Error", true);
+
+            if ErrorMessage = '' then
+                ErrorMessage := GetLastErrorText();
+            Product.Validate("Error Message", CopyStr(Format(Time) + ' ' + ErrorMessage, 1, MaxStrLen(Product."Error Message")));
+        end else begin
+            Product.Validate("Has Error", false);
+            Product.Validate("Error Message", '');
+        end;
+        Product.Modify(true);
+    end;
+
+    internal procedure SetCreateNewItem(Value: Boolean)
+    begin
+        CreateNewItem := Value;
     end;
 }

@@ -12,7 +12,7 @@ interface "Usage Data Processing"
     /// <summary>
     /// Use it in order to process the records in connector specific staging table. Processing includes:
     /// 1. Checking if the quantity in the staging table is 0.
-    /// 2. Creating Usage Data Customers if they do not exist.
+    /// 2. Creating Usage Data Supp. Customers if they do not exist.
     /// 3. Creating Usage Data Subscriptions if they do not exist.
     /// 4. Checking if Subscription Lines exist and if yes, check the dates.
     /// 5. If possible assigns the Subscription to the record in the staging table.

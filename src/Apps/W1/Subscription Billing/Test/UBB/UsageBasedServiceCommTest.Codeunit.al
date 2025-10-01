@@ -22,58 +22,96 @@ codeunit 139895 "Usage Based Service Comm. Test"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        Assert: Codeunit Assert;
+        DiscountCannotBeAssignedErr: Label 'Subscription Package Lines, which are discounts, can only be assigned to Subscription Items.', Locked = true;
+        RecurringDiscountCannotBeGrantedErr: Label 'Recurring discounts cannot be granted in conjunction with Usage Based Billing', Locked = true;
 
     #region Tests
 
     [Test]
-    procedure ExpectErrorOnCreateRecurringDiscountServiceCommitmentTemplate()
+    procedure ExpectErrorForSubPackageLineTemplateWhenMarkingDiscountButUsageBasedBillingIsSet()
     begin
+        // [SCENARIO] Discount cannot be set for Subscription Package Line Template when Usage Based Billing is active
         Initialize();
         ContractTestLibrary.InitContractsApp();
+
+        // [GIVEN] Create Subscription Package Line Template and set Usage Based Billing fields
         ContractTestLibrary.CreateServiceCommitmentTemplate(ServiceCommitmentTemplate);
         UpdateServiceCommitmentTemplateWithUsageBasedFields(ServiceCommitmentTemplate, Enum::"Usage Based Pricing"::"Unit Cost Surcharge", LibraryRandom.RandDec(100, 2));
+
+        // [WHEN] Attempting to mark the template as discount
+        // [THEN] Expect error for recurring discount
         asserterror ServiceCommitmentTemplate.Validate(Discount, true);
+        Assert.ExpectedError(RecurringDiscountCannotBeGrantedErr);
     end;
 
     [Test]
-    procedure ExpectErrorOnCreateServiceCommitmentTemplateWithRecurringDiscount()
+    procedure ExpectErrorForSubPackageLineTemplateWhenMarkingDiscountButInvoicingItemIsUsed()
     begin
+        // [SCENARIO] Discount cannot be set for Subscription Package Line Template when Invoicing Item is used
         Initialize();
         ContractTestLibrary.InitContractsApp();
+
+        // [GIVEN] Create Subscription Package Line Template and set Invoicing Item
+        ContractTestLibrary.CreateServiceCommitmentTemplate(ServiceCommitmentTemplate);
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Invoicing Item");
+        ServiceCommitmentTemplate."Invoicing Item No." := Item."No.";
+
+        // [WHEN] Attempting to mark the template as discount
+        // [THEN] Expect error for invoicing item
+        asserterror ServiceCommitmentTemplate.Validate(Discount, true);
+        Assert.ExpectedError(DiscountCannotBeAssignedErr);
+    end;
+
+    [Test]
+    procedure ExpectErrorForSubPackageLineTemplateWhenMarkingUsageBasedBillingButDiscountIsSet()
+    begin
+        // [SCENARIO] Usage Based Billing flag cannot be set when Subscription Package Line Template is marked as discount
+        Initialize();
+        ContractTestLibrary.InitContractsApp();
+
+        // [GIVEN] Create Subscription Package Line Template and mark it as Discount
         ContractTestLibrary.CreateServiceCommitmentTemplate(ServiceCommitmentTemplate);
         ServiceCommitmentTemplate.Validate(Discount, true);
+
+        // [WHEN] Attempting to mark the template as Usage Based Billing
+        // [THEN] Expect error from Testfield on Discount field
         asserterror ServiceCommitmentTemplate.Validate("Usage Based Billing", true);
     end;
 
     [Test]
-    procedure ExpectErrorOnCreateRecurringDiscountServiceCommitmentPackageLine()
+    procedure ExpectErrorForSubscriptionPackageLineWhenMarkingDiscountButUsageBasedBillingIsSet()
     begin
+        // [SCENARIO] Discount cannot be set for Subscription Package Line when Usage Based Billing is active
         Initialize();
         ContractTestLibrary.InitContractsApp();
+
+        // [GIVEN] Create Subscription Package Line and set Usage Based Billing fields
         ContractTestLibrary.CreateServiceCommitmentTemplate(ServiceCommitmentTemplate);
         UpdateServiceCommitmentTemplateWithUsageBasedFields(ServiceCommitmentTemplate, Enum::"Usage Based Pricing"::"Unit Cost Surcharge", LibraryRandom.RandDec(100, 2));
         ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, ServiceCommitmentPackage, ServiceCommitmentPackageLine);
+
+        // [WHEN] Attempting to mark the Package Line as Discount
+        // [THEN] Expect error for recurring discount
         asserterror ServiceCommitmentPackageLine.Validate(Discount, true);
+        Assert.ExpectedError(RecurringDiscountCannotBeGrantedErr);
     end;
 
     [Test]
-    procedure ExpectErrorOnCreateServiceCommitmentPackageLineWithRecurringDiscount()
+    procedure ExpectErrorForSubscriptionPackageLineWhenMarkingUsageBasedBillingButDiscountIsSet()
     begin
+        // [SCENARIO] Usage Based Billing flag cannot be set when Subscription Package Line is marked as discount
         Initialize();
         ContractTestLibrary.InitContractsApp();
+
+        // [GIVEN] Create Subscription Package Line and mark it as Discount
         ContractTestLibrary.CreateServiceCommitmentTemplate(ServiceCommitmentTemplate);
         ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, ServiceCommitmentPackage, ServiceCommitmentPackageLine);
         ServiceCommitmentPackageLine.Validate(Discount, true);
-        asserterror ServiceCommitmentPackageLine.Validate("Usage Based Billing", true);
-    end;
 
-    [Test]
-    procedure ExpectErrorOnCreateUsageBasedSalesServiceCommitmentWithRecurringDiscount()
-    begin
-        // Subscription Package Lines, which are discounts can only be assigned to Subscription Items.
-        Initialize();
-        SetupServiceCommitmentTemplateAndServiceCommitmentPackageWithLine();
-        asserterror ServiceCommitmentTemplate.Validate(Discount, true);
+        // [WHEN] Attempting to mark the Package Line as Usage Based Billing
+        // [THEN] Expect error from Testfield on Discount field
+        asserterror ServiceCommitmentPackageLine.Validate("Usage Based Billing", true);
     end;
 
     [Test]

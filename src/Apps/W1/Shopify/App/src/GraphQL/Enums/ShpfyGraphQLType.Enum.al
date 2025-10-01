@@ -225,16 +225,6 @@ enum 30111 "Shpfy GraphQL Type" implements "Shpfy IGraphQL"
         Caption = 'Create Fullfilment Service';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL CreateFulfillmentSvc";
     }
-    value(42; GetOpenFulfillmentOrders)
-    {
-        Caption = 'Get Open Fullfilment Orders';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL OpenFulfillmOrders";
-    }
-    value(43; GetNextOpenFulfillmentOrders)
-    {
-        Caption = 'Get Next Open Fullfilment Orders';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextOpenFFOrders";
-    }
     value(44; GetOpenFulfillmentOrderLines)
     {
         Caption = 'Get Open Fullfilment Orders Lines';
@@ -644,5 +634,30 @@ enum 30111 "Shpfy GraphQL Type" implements "Shpfy IGraphQL"
     {
         Caption = 'Get Next Staff Members';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextStaffMembers";
+    }
+    value(129; GetMarketCatalogs)
+    {
+        Caption = 'Get Market Catalogs';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Market Catalogs";
+    }
+    value(130; GetNextMarketCatalogs)
+    {
+        Caption = 'Next Get Market Catalogs';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextMarketCatalogs";
+    }
+    value(131; GetCatalogMarkets)
+    {
+        Caption = 'Get Catalog Markets';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Catalog Markets";
+    }
+    value(132; GetNextCatalogMarkets)
+    {
+        Caption = 'Next Get Catalog Markets';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextCatalogMarkets";
+    }
+    value(133; GetCompanyLocation)
+    {
+        Caption = 'Get Company Location';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CompLocation";
     }
 }

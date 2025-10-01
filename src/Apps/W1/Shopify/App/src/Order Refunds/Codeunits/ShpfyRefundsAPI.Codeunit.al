@@ -77,6 +77,7 @@ codeunit 30228 "Shpfy Refunds API"
         RefundHeaderRecordRef.SetTable(RefundHeader);
         RefundHeaderRecordRef.Close();
         DataCapture.Add(Database::"Shpfy Refund Header", RefundHeader.SystemId, JResponse);
+        UpdateTransactions(JRefund, RefundHeader);
     end;
 
     local procedure GetRefundLines(RefundId: BigInteger; RefundHeader: Record "Shpfy Refund Header"; ReturnLocations: Dictionary of [BigInteger, BigInteger])
@@ -211,5 +212,23 @@ codeunit 30228 "Shpfy Refunds API"
     internal procedure IsNonZeroOrReturnRefund(RefundHeader: Record "Shpfy Refund Header"): Boolean
     begin
         exit((RefundHeader."Return Id" > 0) or (RefundHeader."Total Refunded Amount" > 0));
+    end;
+
+    local procedure UpdateTransactions(JRefund: JsonObject; RefundHeader: Record "Shpfy Refund Header")
+    var
+        OrderTransaction: Record "Shpfy Order Transaction";
+        JTransactions: JsonArray;
+        JTransaction: JsonToken;
+        TransactionId: BigInteger;
+    begin
+        JTransactions := JsonHelper.GetJsonArray(JRefund, 'transactions.nodes');
+
+        foreach JTransaction in JTransactions do begin
+            TransactionId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JTransaction, 'id'));
+            if not OrderTransaction.Get(TransactionId) then
+                continue;
+            OrderTransaction."Refund Id" := RefundHeader."Refund Id";
+            OrderTransaction.Modify();
+        end;
     end;
 }

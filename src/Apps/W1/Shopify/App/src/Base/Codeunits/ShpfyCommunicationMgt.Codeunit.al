@@ -93,12 +93,25 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <param name="Parameters">Parameter of type Dictionary of [Text, Text].</param>
     /// <returns>Return variable "JsonToken".</returns>
     internal procedure ExecuteGraphQL(GraphQLType: Enum "Shpfy GraphQL Type"; Parameters: Dictionary of [Text, Text]): JsonToken
+    begin
+        exit(ExecuteGraphQL(GraphQLType, Parameters, true));
+    end;
+
+    /// <summary> 
+    /// Execute GraphQL.
+    /// </summary>
+    /// <param name="GraphQLType">Parameter of type Enum "Shopify GraphQL Type".</param>
+    /// <param name="Parameters">Parameter of type Dictionary of [Text, Text].</param>
+    /// <param name="CheckOutgoingRequest">Parameter of type Boolean.</param>
+    /// <returns>Return variable "JsonToken".</returns>
+    internal procedure ExecuteGraphQL(GraphQLType: Enum "Shpfy GraphQL Type"; Parameters: Dictionary of [Text, Text]; CheckOutgoingRequest: Boolean): JsonToken
     var
         ExpectedCost: Integer;
         GraphQLQuery: Text;
+        ResponseHeaders: HttpHeaders;
     begin
         GraphQLQuery := GraphQLQueries.GetQuery(GraphQLType, Parameters, ExpectedCost);
-        exit(ExecuteGraphQL(GraphQLQuery, ExpectedCost));
+        exit(ExecuteGraphQL(GraphQLQuery, ResponseHeaders, ExpectedCost, CheckOutgoingRequest));
     end;
 
     /// <summary> 
@@ -121,18 +134,7 @@ codeunit 30103 "Shpfy Communication Mgt."
     var
         ResponseHeaders: HttpHeaders;
     begin
-        exit(ExecuteGraphQL(GraphQLQuery, ResponseHeaders, ExpectedCost));
-    end;
-
-    /// <summary> 
-    /// Execute GraphQL.
-    /// </summary>
-    /// <param name="GraphQLQuery">Parameter of type Text.</param>
-    /// <param name="ResponseHeaders">Parameter of type HttpHeaders.</param>
-    /// <returns>Return variable "JResponse" of type JsonToken.</returns>
-    internal procedure ExecuteGraphQL(GraphQLQuery: Text; var ResponseHeaders: HttpHeaders) JResponse: JsonToken
-    begin
-        exit(ExecuteGraphQL(GraphQLQuery, ResponseHeaders, 0));
+        exit(ExecuteGraphQL(GraphQLQuery, ResponseHeaders, ExpectedCost, true));
     end;
 
     /// <summary> 
@@ -142,7 +144,7 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <param name="ResponseHeaders">Parameter of type HttpHeaders.</param>
     /// <param name="ExpectedCost">Parameter of type Decimal.</param>
     /// <returns>Return variable JResponse of type JsonToken.</returns>
-    internal procedure ExecuteGraphQL(GraphQLQuery: Text; var ResponseHeaders: HttpHeaders; ExpectedCost: Decimal) JResponse: JsonToken
+    internal procedure ExecuteGraphQL(GraphQLQuery: Text; var ResponseHeaders: HttpHeaders; ExpectedCost: Decimal; CheckOutgoingRequest: Boolean) JResponse: JsonToken
     var
         ShpfyGraphQLRateLimit: Codeunit "Shpfy GraphQL Rate Limit";
         ShpfyJsonHelper: Codeunit "Shpfy Json Helper";
@@ -152,12 +154,12 @@ codeunit 30103 "Shpfy Communication Mgt."
     begin
         CheckQueryLength(GraphQLQuery);
         ShpfyGraphQLRateLimit.WaitForRequestAvailable(ExpectedCost);
-        ReceivedData := ExecuteWebRequest(CreateWebRequestURL('graphql.json'), 'POST', GraphQLQuery, ResponseHeaders, 3);
+        ReceivedData := ExecuteWebRequest(CreateWebRequestURL('graphql.json'), 'POST', GraphQLQuery, ResponseHeaders, 3, CheckOutgoingRequest);
         if JResponse.ReadFrom(ReceivedData) then begin
             ShpfyGraphQLRateLimit.SetQueryCost(ShpfyJsonHelper.GetJsonToken(JResponse, 'extensions.cost.throttleStatus'));
             while JResponse.AsObject().Contains('errors') and Format(JResponse).Contains('THROTTLED') do begin
                 ShpfyGraphQLRateLimit.WaitForRequestAvailable(ExpectedCost);
-                if JResponse.ReadFrom(ExecuteWebRequest(CreateWebRequestURL('graphql.json'), 'POST', GraphQLQuery, ResponseHeaders, 3)) then
+                if JResponse.ReadFrom(ExecuteWebRequest(CreateWebRequestURL('graphql.json'), 'POST', GraphQLQuery, ResponseHeaders, 3, CheckOutgoingRequest)) then
                     ShpfyGraphQLRateLimit.SetQueryCost(ShpfyJsonHelper.GetJsonToken(JResponse, 'extensions.cost.throttleStatus'));
             end;
             if JResponse.AsObject().Contains('errors') then
@@ -190,7 +192,7 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <returns>Return variable "Response" of type Text.</returns>
     internal procedure ExecuteWebRequest(Url: Text; Method: Text; Request: Text; var ResponseHeaders: HttpHeaders) Response: Text
     begin
-        exit(ExecuteWebRequest(Url, Method, Request, ResponseHeaders, 5));
+        exit(ExecuteWebRequest(Url, Method, Request, ResponseHeaders, 5, true));
     end;
 
     /// <summary>
@@ -201,8 +203,9 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <param name="Request">Text.</param>
     /// <param name="ResponseHeaders">VAR HttpHeaders.</param>
     /// <param name="MaxRetries">Integer.</param>
+    /// <param name="CheckOutgoingRequest">Boolean.</param>
     /// <returns>Return variable Response of type Text.</returns>
-    internal procedure ExecuteWebRequest(Url: Text; Method: Text; Request: Text; var ResponseHeaders: HttpHeaders; MaxRetries: Integer) Response: Text
+    internal procedure ExecuteWebRequest(Url: Text; Method: Text; Request: Text; var ResponseHeaders: HttpHeaders; MaxRetries: Integer; CheckOutgoingRequest: Boolean) Response: Text
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         Wait: Duration;
@@ -213,7 +216,8 @@ codeunit 30103 "Shpfy Communication Mgt."
     begin
         FeatureTelemetry.LogUptake('0000HUV', 'Shopify', Enum::"Feature Uptake Status"::Used);
         FeatureTelemetry.LogUsage('0000IF5', 'Shopify', 'Shopify web request executed.');
-        CheckOutgoingRequests(Url, Method, Request);
+        if CheckOutgoingRequest then
+            CheckOutgoingRequests(Url, Method, Request);
 
         CreateHttpRequestMessage(Url, Method, Request, HttpRequestMessage);
 

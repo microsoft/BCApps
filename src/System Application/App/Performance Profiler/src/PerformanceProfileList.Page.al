@@ -234,7 +234,7 @@ page 1931 "Performance Profile List"
     var
         RecordRef: RecordRef;
     begin
-        Rec.SetAutoCalcFields("User Name", "Client Type");
+        Rec.SetAutoCalcFields("User Name");
         RecordRef.GetTable(Rec);
         ScheduledPerfProfilerImpl.FilterUsers(RecordRef, UserSecurityId(), false);
         RecordRef.SetTable(Rec);
@@ -256,7 +256,6 @@ page 1931 "Performance Profile List"
 
     local procedure MapClientTypeToActivityType()
     begin
-        Rec.CalcFields(Rec."Client Type");
         PerfProfActivityMapper.MapClientTypeToActivityType(rec."Client Type", ActivityType);
     end;
 
@@ -268,7 +267,7 @@ page 1931 "Performance Profile List"
             exit(PerformanceProfileScheduler.Description);
     end;
 
-local procedure ComputePlatformCallDuration(): Duration
+    local procedure ComputePlatformCallDuration(): Duration
     var
         diff: Duration;
     begin
