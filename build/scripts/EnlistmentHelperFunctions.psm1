@@ -360,7 +360,7 @@ function Update-BCArtifactVersion {
     $currentVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
     Write-Host "Current BCArtifact URL: $currentArtifactUrl"
     Write-Host "Getting latest BCArtifact version as pattern with minimum version $currentVersion"
-    
+
     $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $currentVersion -asPattern
     Write-Host "Latest BCArtifact URL: $latestArtifactUrl"
 
