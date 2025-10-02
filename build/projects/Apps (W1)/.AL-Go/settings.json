@@ -28,8 +28,7 @@
         "CH"
       ],
       "settings": {
-        "country": "ch",
-        "doNotRunTests": true
+        "country": "ch"
       }
     },
     {
@@ -37,8 +36,7 @@
         "CZ"
       ],
       "settings": {
-        "country": "cz",
-        "doNotRunTests": true
+        "country": "cz"
       }
     },
     {
@@ -46,8 +44,7 @@
         "IN"
       ],
       "settings": {
-        "country": "in",
-        "doNotRunTests": true
+        "country": "in"
       }
     },
     {
@@ -55,8 +52,7 @@
         "US"
       ],
       "settings": {
-        "country": "us",
-        "doNotRunTests": true
+        "country": "us"
       }
     },
     {
