@@ -1769,10 +1769,10 @@ codeunit 148153 "Usage Based Billing Test"
 
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateCustomerBillingDocumentPageHandler,MessageHandler')]
     [Test]
-    procedure DeleteUsageDataBillingLineWhenRelatedSalesInvoiceLineIsDeleted()
+    procedure ResetUsageDataBillingWhenRelatedSalesInvoiceLineIsDeleted()
     begin
-        // [SCENARIO] When sales invoice with usage data is created if a line is deleted related usage data billing should be deleted as well
-        // [GIVEN] A customer contract with two usage-based service commitments, both invoiced
+        // [SCENARIO] When sales invoice with usage data is created if a line is deleted related usage data billing should be reset
+        // [GIVEN] A customer contract with usage-based service commitments and a sales invoice created from usage data
         ResetAll();
         CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
         PostDocument := false;
@@ -1802,10 +1802,10 @@ codeunit 148153 "Usage Based Billing Test"
 
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateVendorBillingDocumentPageHandler,MessageHandler')]
     [Test]
-    procedure DeleteUsageDataBillingLineWhenRelatedPurchLineIsDeleted()
+    procedure ResetUsageDataBillingWhenRelatedPurchLineIsDeleted()
     begin
-        // [SCENARIO] When purchase invoice with usage data is created if a line is deleted related usage data billing should be deleted as well
-        // [GIVEN] A vendor contract with two usage-based service commitments, both invoiced
+        // [SCENARIO] When purchase invoice with usage data is created if a line is deleted related usage data billing should be reset
+        // [GIVEN] A vendor contract with usage-based service commitments and a purchase invoice created from usage data
         ResetAll();
         CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");

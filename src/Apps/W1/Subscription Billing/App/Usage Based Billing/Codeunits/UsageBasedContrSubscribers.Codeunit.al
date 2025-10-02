@@ -267,13 +267,18 @@ codeunit 8028 "Usage Based Contr. Subscribers"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterDeleteEvent, '', false, false)]
-    local procedure DeleteRelatedUsageBillingLinesOnAfterDeletePurchaseLineEvent(Rec: Record "Purchase Line"; RunTrigger: Boolean)
+    local procedure DeleteOrResetRelatedUsageBillingLinesOnAfterDeletePurchaseLineEvent(Rec: Record "Purchase Line"; RunTrigger: Boolean)
     var
         UsageDataBilling: Record "Usage Data Billing";
+        PurchaseHeader: Record "Purchase Header";
     begin
         if not RunTrigger then
             exit;
         if Rec.IsTemporary then
+            exit;
+        if not PurchaseHeader.Get(Rec."Document Type", Rec."Document No.") then
+            exit;
+        if not PurchaseHeader."Recurring Billing" then
             exit;
 
         UsageDataBilling.FilterDocumentWithLine("Service Partner"::Vendor, UsageBasedDocTypeConv.ConvertPurchaseDocTypeToUsageBasedBillingDocType(Rec."Document Type"), Rec."Document No.", Rec."Line No.");
@@ -289,13 +294,18 @@ codeunit 8028 "Usage Based Contr. Subscribers"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Line", OnAfterDeleteEvent, '', false, false)]
-    local procedure DeleteRelatedUsageBillingLinesOnAfterDeleteSalesLineEvent(Rec: Record "Sales Line"; RunTrigger: Boolean)
+    local procedure DeleteOrResetRelatedUsageBillingLinesOnAfterDeleteSalesLineEvent(Rec: Record "Sales Line"; RunTrigger: Boolean)
     var
         UsageDataBilling: Record "Usage Data Billing";
+        SalesHeader: Record "Sales Header";
     begin
         if not RunTrigger then
             exit;
         if Rec.IsTemporary then
+            exit;
+        if not SalesHeader.Get(Rec."Document Type", Rec."Document No.") then
+            exit;
+        if not SalesHeader."Recurring Billing" then
             exit;
 
         UsageDataBilling.FilterDocumentWithLine("Service Partner"::Customer, UsageBasedDocTypeConv.ConvertSalesDocTypeToUsageBasedBillingDocType(Rec."Document Type"), Rec."Document No.", Rec."Line No.");
