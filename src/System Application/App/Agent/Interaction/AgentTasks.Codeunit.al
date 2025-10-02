@@ -5,7 +5,9 @@
 
 namespace System.Agents;
 
-codeunit 4303 "Agent Task"
+#pragma warning disable AS0088 // The object is moved to the platform.
+codeunit 4303 "Agent Tasks"
+#pragma warning restore AS0088
 {
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -43,7 +45,10 @@ codeunit 4303 "Agent Task"
     /// </summary>
     /// <param name="AgentTask">The agent task to check.</param>
     /// <returns>True if agent task can be set to ready, false otherwise</returns>
+#pragma warning disable AS0088
+    [Scope('OnPrem')]
     procedure CanSetStatusToReady(AgentTask: Record "Agent Task"): Boolean
+#pragma warning restore AS0088
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
