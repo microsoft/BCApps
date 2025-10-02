@@ -106,6 +106,37 @@ codeunit 4301 "Agent Impl."
             Error(OneOwnerMustBeDefinedForAgentErr);
     end;
 
+    internal procedure GetAccessControl(AgentUserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    var
+        AccessControl: Record "Access Control";
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        GetAccessControl(Agent, TempAccessControlBuffer);
+    end;
+
+    local procedure GetAccessControl(Agent: Record Agent; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    var
+        AccessControl: Record "Access Control";
+    begin
+        TempAccessControlBuffer.Reset();
+        TempAccessControlBuffer.DeleteAll();
+
+        AccessControl.SetRange("User Security ID", Agent."User Security ID");
+        if AccessControl.IsEmpty() then
+            exit;
+
+        AccessControl.FindSet();
+        repeat
+            TempAccessControlBuffer."Company Name" := AccessControl."Company Name";
+            TempAccessControlBuffer.Scope := AccessControl.Scope;
+            TempAccessControlBuffer."App ID" := AccessControl."App ID";
+            TempAccessControlBuffer."Role ID" := AccessControl."Role ID";
+            TempAccessControlBuffer.Insert();
+        until AccessControl.Next() = 0;
+    end;
+
     internal procedure GetUserAccess(AgentUserSecurityID: Guid; var TempAgentAccessControl: Record "Agent Access Control" temporary)
     var
         Agent: Record Agent;
@@ -259,12 +290,20 @@ codeunit 4301 "Agent Impl."
         exit(Agent.State = Agent.State::Enabled);
     end;
 
-    internal procedure UpdateAgentAccessControl(AgentUserSecurityID: Guid; var TempAgentAccessControl: Record "Agent Access Control" temporary)
+    procedure UpdateAccessControl(AgentUserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     var
         Agent: Record Agent;
     begin
-        if not Agent.Get(AgentUserSecurityID) then
-            Error(AgentDoesNotExistErr);
+        GetAgent(Agent, AgentUserSecurityID);
+
+        UpdateAccessControl(TempAccessControlBuffer, Agent);
+    end;
+
+    internal procedure UpdateAccessControl(AgentUserSecurityID: Guid; var TempAgentAccessControl: Record "Agent Access Control" temporary)
+    var
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
 
         UpdateAgentAccessControl(TempAgentAccessControl, Agent);
     end;
@@ -432,6 +471,37 @@ codeunit 4301 "Agent Impl."
             AgentAccessControl.Insert();
             exit;
         end;
+    end;
+
+    local procedure UpdateAccessControl(var TempAccessControlBuffer: Record "Access Control Buffer" temporary; var Agent: Record Agent)
+        AccessControl: Record "Access Control";
+    begin
+        // Delete records for the agent user ID which are not present in the temporary record.
+        AccessControl.SetRange("User Security ID", Agent."User Security ID");
+        if AccessControl.FindSet() then
+            repeat
+                if not TempAccessControlBuffer.Get(AccessControl."Company Name", AccessControl.Scope, AccessControl."App ID", AccessControl."Role ID") then
+                    AccessControl.Delete();
+            until AccessControl.Next() = 0;
+
+        if TempAccessControlBuffer.FindSet() then
+            repeat
+                if AccessControl.Get(Agent."User Security ID", TempAccessControlBuffer."Role ID", TempAccessControlBuffer."Company Name", TempAccessControlBuffer.Scope, TempAccessControlBuffer."App ID") then begin
+                    AccessControl."User Security ID" := Agent."User Security ID";
+                    AccessControl."Role ID" := TempAccessControlBuffer."Role ID";
+                    AccessControl."Company Name" := TempAccessControlBuffer."Company Name";
+                    AccessControl.Scope := TempAccessControlBuffer.Scope;
+                    AccessControl."App ID" := TempAccessControlBuffer."App ID";
+                    AccessControl.Modify();
+                end else begin
+                    AccessControl."User Security ID" := Agent."User Security ID";
+                    AccessControl."Role ID" := TempAccessControlBuffer."Role ID";
+                    AccessControl."Company Name" := TempAccessControlBuffer."Company Name";
+                    AccessControl.Scope := TempAccessControlBuffer.Scope;
+                    AccessControl."App ID" := TempAccessControlBuffer."App ID";
+                    AccessControl.Insert();
+                end;
+            until TempAccessControlBuffer.Next() = 0;
     end;
 
     procedure SelectAgent(var Agent: Record "Agent")
