@@ -170,6 +170,12 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         exit(TempAgentTaskFileToAttach);
     end;
 
+    [Scope('OnPrem')]
+    procedure GetAttachments(varTempAttachments: record "Agent Task File" temporary)
+    begin
+        TempAgentTaskFileToAttach.Copy(varTempAttachments, true);
+    end;
+
     local procedure VerifyMandatoryFieldsSet()
     var
         GlobalFromIsMandatoryErr: Label 'The From field is mandatory. Please set it before creating the task message.';
