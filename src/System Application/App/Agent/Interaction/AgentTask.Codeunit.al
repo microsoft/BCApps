@@ -45,10 +45,10 @@ codeunit 4303 "Agent Task"
     /// </summary>
     /// <param name="AgentTask">The agent task to check.</param>
     /// <returns>True if agent task can be set to ready, false otherwise</returns>
-#pragma warning disable AS0088
+#pragma warning disable AS0022
     [Scope('OnPrem')]
     procedure CanSetStatusToReady(AgentTask: Record "Agent Task"): Boolean
-#pragma warning restore AS0088
+#pragma warning restore AS0022
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
