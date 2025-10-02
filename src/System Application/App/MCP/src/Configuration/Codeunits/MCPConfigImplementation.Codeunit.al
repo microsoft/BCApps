@@ -21,7 +21,7 @@ codeunit 8351 "MCP Config Implementation"
         DefaultConfigCannotBeDeactivatedErr: Label 'The default configuration cannot be deactivated.';
         DefaultConfigCannotBeDeletedErr: Label 'The default configuration cannot be deleted.';
         DynamicToolModeCannotBeDisabledErr: Label 'Dynamic tool mode cannot be disabled for the default configuration.';
-        AllowReadOnlyAPIDiscoveryCannotBeDisabledErr: Label 'Access to all read-only objects cannot be disabled for the default configuration.';
+        DiscoverReadOnlyObjectsCannotBeDisabledErr: Label 'Access to all read-only objects cannot be disabled for the default configuration.';
         ProdChangesNotAllowedErr: Label 'Production changes are not allowed for this MCP configuration.';
         ToolsCannotBeAddedToDefaultConfigErr: Label 'Tools cannot be added to the default configuration.';
         PageNotFoundErr: Label 'Page not found.';
@@ -32,7 +32,7 @@ codeunit 8351 "MCP Config Implementation"
         SettingConfigurationAllowProdChangesLbl: Label 'Setting MCP configuration %1 AllowProdChanges to %2', Comment = '%1 - configuration ID, %2 - allow production changes', Locked = true;
         DeletedConfigurationLbl: Label 'Deleted MCP configuration %1', Comment = '%1 - configuration ID', Locked = true;
         SettingConfigurationEnableDynamicToolModeLbl: Label 'Setting MCP configuration %1 EnableDynamicToolMode to %2', Comment = '%1 - configuration ID, %2 - enable dynamic tool mode', Locked = true;
-        SettingConfigurationAllowReadOnlyAPIDiscoveryLbl: Label 'Setting MCP configuration %1 AllowReadOnlyAPIDiscovery to %2', Comment = '%1 - configuration ID, %2 - allow read-only API discovery', Locked = true;
+        SettingConfigurationDiscoverReadOnlyObjectsLbl: Label 'Setting MCP configuration %1 DiscoverReadOnlyObjects to %2', Comment = '%1 - configuration ID, %2 - allow read-only API discovery', Locked = true;
 
     #region Configurations
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
@@ -162,7 +162,7 @@ codeunit 8351 "MCP Config Implementation"
         Session.LogMessage('0000QEC', StrSubstNo(SettingConfigurationEnableDynamicToolModeLbl, ConfigId, Enable), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
     end;
 
-    internal procedure EnableAllowReadOnlyAPIDiscovery(ConfigId: Guid; Enable: Boolean)
+    internal procedure EnableDiscoverReadOnlyObjects(ConfigId: Guid; Enable: Boolean)
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
@@ -170,11 +170,11 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         if not Enable and IsDefaultConfiguration(MCPConfiguration) then
-            Error(AllowReadOnlyAPIDiscoveryCannotBeDisabledErr);
+            Error(DiscoverReadOnlyObjectsCannotBeDisabledErr);
 
-        MCPConfiguration.AllowReadOnlyAPIDiscovery := Enable;
+        MCPConfiguration.DiscoverReadOnlyObjects := Enable;
         MCPConfiguration.Modify();
-        Session.LogMessage('0000QED', StrSubstNo(SettingConfigurationAllowReadOnlyAPIDiscoveryLbl, ConfigId, Enable), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
+        Session.LogMessage('0000QED', StrSubstNo(SettingConfigurationDiscoverReadOnlyObjectsLbl, ConfigId, Enable), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
     end;
 
     local procedure CheckAllowProdChanges(ConfigId: Guid)
@@ -203,7 +203,8 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration.Description := DefaultMCPConfigurationDescriptionLbl;
         MCPConfiguration.Active := true;
         MCPConfiguration.EnableDynamicToolMode := true;
-        MCPConfiguration.AllowReadOnlyAPIDiscovery := true;
+        // MCPConfiguration.DiscoverReadOnlyObjects := true;
+        MCPConfiguration.AllowProdChanges := true;
         MCPConfiguration.Insert();
     end;
 
@@ -322,16 +323,21 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfigurationTool.Modify();
     end;
 
-    internal procedure LookupAPITools(var PageId: Integer)
+    internal procedure LookupAPITools(var PageMetadata: Record "Page Metadata"): Boolean
     var
-        PageMetadata: Record "Page Metadata";
+        MCPAPIConfigToolLookup: Page "MCP API Config Tool Lookup";
     begin
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
         PageMetadata.SetFilter(APIPublisher, '<>%1', 'microsoft');
         PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
 
-        if Page.RunModal(Page::"MCP API Config Tool Lookup", PageMetadata) = Action::LookupOK then
-            PageId := PageMetadata.ID;
+        MCPAPIConfigToolLookup.LookupMode := true;
+        MCPAPIConfigToolLookup.SetTableView(PageMetadata);
+        if MCPAPIConfigToolLookup.RunModal() <> Action::LookupOK then
+            exit(false);
+
+        MCPAPIConfigToolLookup.SetSelectionFilter(PageMetadata);
+        exit(true);
     end;
 
     internal procedure ValidateAPITool(PageId: Integer)

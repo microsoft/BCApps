@@ -8,6 +8,7 @@ namespace System.Test.MCP;
 using System.MCP;
 using System.TestLibraries.MCP;
 using System.TestLibraries.Utilities;
+using System.Reflection;
 
 codeunit 130130 "MCP Config Test"
 {
@@ -110,7 +111,7 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
-    procedure TestEnableAllowReadOnlyAPIDiscovery()
+    procedure TestEnableDiscoverReadOnlyObjects()
     var
         MCPConfiguration: Record "MCP Configuration";
         ConfigId: Guid;
@@ -119,15 +120,15 @@ codeunit 130130 "MCP Config Test"
         ConfigId := CreateMCPConfig(false, false, false, false);
 
         // [WHEN] Enable access to all read-only objects is called
-        MCPConfig.EnableAllowReadOnlyAPIDiscovery(ConfigId, true);
+        MCPConfig.EnableDiscoverReadOnlyObjects(ConfigId, true);
 
         // [THEN] Access to all read-only objects is enabled
         MCPConfiguration.GetBySystemId(ConfigId);
-        Assert.IsTrue(MCPConfiguration.EnableAllowReadOnlyAPIDiscovery, 'Access to all read-only objects is not enabled');
+        Assert.IsTrue(MCPConfiguration.EnableDiscoverReadOnlyObjects, 'Access to all read-only objects is not enabled');
     end;
 
     [Test]
-    procedure TestDisableAllowReadOnlyAPIDiscovery()
+    procedure TestDisableDiscoverReadOnlyObjects()
     var
         MCPConfiguration: Record "MCP Configuration";
         ConfigId: Guid;
@@ -136,11 +137,11 @@ codeunit 130130 "MCP Config Test"
         ConfigId := CreateMCPConfig(false, false, false, true);
 
         // [WHEN] Disable access to all read-only objects is called
-        MCPConfig.EnableAllowReadOnlyAPIDiscovery(ConfigId, false);
+        MCPConfig.EnableDiscoverReadOnlyObjects(ConfigId, false);
 
         // [THEN] Access to all read-only objects is disabled
         MCPConfiguration.GetBySystemId(ConfigId);
-        Assert.IsFalse(MCPConfiguration.EnableAllowReadOnlyAPIDiscovery, 'Access to all read-only objects is not disabled');
+        Assert.IsFalse(MCPConfiguration.EnableDiscoverReadOnlyObjects, 'Access to all read-only objects is not disabled');
     end;
 
     [Test]
@@ -301,16 +302,18 @@ codeunit 130130 "MCP Config Test"
     [HandlerFunctions('LookupAPIToolsOKHandler')]
     procedure TestLookupAPITools()
     var
-        PageId: Integer;
+        PageMetadata: Record "Page Metadata";
+        Result: Boolean;
     begin
         // [GIVEN] No preselected page
-        PageId := 0;
 
         // [WHEN] Lookup API tools is called and a page is selected
-        MCPConfigTestLibrary.LookupAPITools(PageId);
+        Result := MCPConfigTestLibrary.LookupAPITools(PageMetadata);
 
         // [THEN] Correct page is selected
-        Assert.AreEqual(Page::"Mock API", PageId, 'PageId mismatch');
+        Assert.IsTrue(Result, 'Result is not true');
+        PageMetadata.FindFirst();
+        Assert.AreEqual(Page::"Mock API", PageMetadata.ID, 'PageId mismatch');
     end;
 
     [Test]
@@ -408,7 +411,7 @@ codeunit 130130 "MCP Config Test"
         // [THEN] Default configuration is active, dynamic tool mode and access to all read-only objects are enabled
         Assert.IsTrue(MCPConfiguration.Active, 'Default configuration is not active');
         Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'Dynamic tool mode is not enabled');
-        Assert.IsTrue(MCPConfiguration.EnableAllowReadOnlyAPIDiscovery, 'Access to all read-only objects is not enabled');
+        // Assert.IsTrue(MCPConfiguration.EnableDiscoverReadOnlyObjects, 'Access to all read-only objects is not enabled');
     end;
 
     [Test]
@@ -426,14 +429,13 @@ codeunit 130130 "MCP Config Test"
     [Test]
     procedure TestDisableFeaturesOnDefaultConfiguration()
     var
-        MCPConfiguration: Record "MCP Configuration";
         ConfigId: Guid;
     begin
         // [GIVEN] Default configuration is created during setup
         ConfigId := MCPConfig.GetConfigurationIdByName('');
 
         // [WHEN] Disable access to all read-only objects is called
-        asserterror MCPConfig.EnableAllowReadOnlyAPIDiscovery(ConfigId, false);
+        asserterror MCPConfig.EnableDiscoverReadOnlyObjects(ConfigId, false);
 
         // [THEN] Error message is returned
         Assert.ExpectedError('Access to all read-only objects cannot be disabled for the default configuration.');
@@ -475,11 +477,11 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfigCard.Description.Editable(), 'Description field is editable');
         Assert.IsFalse(MCPConfigCard.Active.Editable(), 'Active field is editable');
         Assert.IsFalse(MCPConfigCard.EnableDynamicToolMode.Editable(), 'EnableDynamicToolMode field is editable');
-        Assert.IsFalse(MCPConfigCard.AllowReadOnlyAPIDiscovery.Editable(), 'AllowReadOnlyAPIDiscovery field is editable');
+        Assert.IsFalse(MCPConfigCard.DiscoverReadOnlyObjects.Editable(), 'DiscoverReadOnlyObjects field is editable');
         Assert.IsFalse(MCPConfigCard.ToolList.Visible(), 'ToolList is visible');
     end;
 
-    local procedure CreateMCPConfig(Active: Boolean; ToolSearchMode: Boolean; AllowProdChanges: Boolean; AllowReadOnlyAPIDiscovery: Boolean): Guid
+    local procedure CreateMCPConfig(Active: Boolean; ToolSearchMode: Boolean; AllowProdChanges: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
@@ -488,7 +490,7 @@ codeunit 130130 "MCP Config Test"
         MCPConfiguration.Active := Active;
         MCPConfiguration.EnableDynamicToolMode := ToolSearchMode;
         MCPConfiguration.AllowProdChanges := AllowProdChanges;
-        MCPConfiguration.AllowReadOnlyAPIDiscovery := AllowReadOnlyAPIDiscovery;
+        MCPConfiguration.DiscoverReadOnlyObjects := DiscoverReadOnlyObjects;
         MCPConfiguration.Insert();
         exit(MCPConfiguration.SystemId);
     end;

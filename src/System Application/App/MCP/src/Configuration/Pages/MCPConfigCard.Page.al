@@ -54,14 +54,14 @@ page 8351 "MCP Config Card"
                         Session.LogMessage('0000QE7', StrSubstNo(SettingConfigurationEnableDynamicToolModeLbl, Rec.SystemId, Rec.EnableDynamicToolMode), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
                     end;
                 }
-                field(AllowReadOnlyAPIDiscovery; Rec.AllowReadOnlyAPIDiscovery)
+                field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects)
                 {
-                    ToolTip = 'Specifies whether to allow access to all read-only objects for this MCP configuration.';
-                    Editable = not IsDefault;
+                    ToolTip = 'Specifies whether to allow discovery of accessible read-only objects for this MCP configuration.';
+                    Editable = not IsDefault and Rec.EnableDynamicToolMode;
 
                     trigger OnValidate()
                     begin
-                        Session.LogMessage('', StrSubstNo(SettingConfigurationAllowReadOnlyAPIDiscoveryLbl, Rec.SystemId, Rec.AllowReadOnlyAPIDiscovery), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
+                        Session.LogMessage('', StrSubstNo(SettingConfigurationDiscoverReadOnlyObjectsLbl, Rec.SystemId, Rec.DiscoverReadOnlyObjects), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
                     end;
                 }
                 field(AllowProdChanges; Rec.AllowProdChanges)
@@ -126,5 +126,5 @@ page 8351 "MCP Config Card"
         SettingConfigurationActiveLbl: Label 'Setting MCP configuration %1 Active to %2', Comment = '%1 - configuration ID, %2 - active', Locked = true;
         SettingConfigurationEnableDynamicToolModeLbl: Label 'Setting MCP configuration %1 EnableDynamicToolMode to %2', Comment = '%1 - configuration ID, %2 - enable dynamic tool mode', Locked = true;
         SettingConfigurationAllowProdChangesLbl: Label 'Setting MCP configuration %1 AllowProdChanges to %2', Comment = '%1 - configuration ID, %2 - allow production changes', Locked = true;
-        SettingConfigurationAllowReadOnlyAPIDiscoveryLbl: Label 'Setting MCP configuration %1 AllowReadOnlyAPIDiscovery to %2', Comment = '%1 - configuration ID, %2 - allow read-only API discovery', Locked = true;
+        SettingConfigurationDiscoverReadOnlyObjectsLbl: Label 'Setting MCP configuration %1 DiscoverReadOnlyObjects to %2', Comment = '%1 - configuration ID, %2 - allow read-only API discovery', Locked = true;
 }

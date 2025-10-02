@@ -89,13 +89,13 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
-    /// Enables accessing all ready only objects for the specified configuration.
+    /// Enables discovery of accessible read-only objects for the specified configuration.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="Enable">True to enable, false to disable.</param>
-    procedure EnableAllowReadOnlyAPIDiscovery(ConfigId: Guid; Enable: Boolean)
+    procedure EnableDiscoverReadOnlyObjects(ConfigId: Guid; Enable: Boolean)
     begin
-        MCPConfigImplementation.EnableAllowReadOnlyAPIDiscovery(ConfigId, Enable);
+        MCPConfigImplementation.EnableDiscoverReadOnlyObjects(ConfigId, Enable);
     end;
 
     /// <summary>
