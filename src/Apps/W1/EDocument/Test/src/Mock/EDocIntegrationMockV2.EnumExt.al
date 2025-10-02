@@ -1,0 +1,22 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.Test;
+
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Integration.Interfaces;
+
+enumextension 139617 "E-Doc Integration Mock V2" extends "Service Integration"
+{
+
+    value(133501; "Mock")
+    {
+        Implementation = IDocumentSender = "E-Doc. Integration Mock V2", IDocumentReceiver = "E-Doc. Integration Mock V2", IConsentManager = "E-Doc. Integration Mock V2";
+    }
+    value(133502; "Mock Sync")
+    {
+        Implementation = IDocumentSender = "E-Doc. Int Mock No Async", IDocumentReceiver = "E-Doc. Int Mock No Async", IConsentManager = "E-Doc. Int Mock No Async";
+    }
+
+}

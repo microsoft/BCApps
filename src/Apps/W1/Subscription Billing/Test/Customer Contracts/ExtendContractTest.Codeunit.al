@@ -30,6 +30,7 @@ codeunit 148152 "Extend Contract Test"
         ContractTestLibrary: Codeunit "Contract Test Library";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         SkipAssignAdditionalServiceCommitments: Boolean;
         ServiceObjectQty: Decimal;
@@ -110,7 +111,7 @@ codeunit 148152 "Extend Contract Test"
 
         // [WHEN] Call InsertFromItemNoAndCustomerContract
         ServiceObjectQty := LibraryRandom.RandDec(10, 2);
-        ServiceObject.InsertFromItemNoAndCustomerContract(ServiceObject, Item."No.", ServiceObjectQty, WorkDate(), CustomerContract);
+        ServiceObject.InsertFromItemNoAndCustomerContract(ServiceObject, Item."No.", '', ServiceObjectQty, WorkDate(), CustomerContract);
 
         // [THEN] Check if the data in Subscription is transferred from Customer Subscription Contract
         ServiceObject.TestField("End-User Customer No.", CustomerContract."Sell-to Customer No.");
@@ -247,7 +248,7 @@ codeunit 148152 "Extend Contract Test"
         CreateCustomerAndVendorContracts();
         SetupItemWithMultipleServiceCommitmentPackages();
         ServiceObjectQty := LibraryRandom.RandDec(10, 2);
-        ServiceObject.InsertFromItemNoAndCustomerContract(ServiceObject, Item."No.", ServiceObjectQty, WorkDate(), CustomerContract);
+        ServiceObject.InsertFromItemNoAndCustomerContract(ServiceObject, Item."No.", '', ServiceObjectQty, WorkDate(), CustomerContract);
         CheckCreatedServiceObject();
 
         ServiceObject.InsertServiceCommitmentsFromStandardServCommPackages(ServiceObject."Provision Start Date");
@@ -272,14 +273,37 @@ codeunit 148152 "Extend Contract Test"
         // [GIVEN] Create: Language, Subscription Item with translation defined, Customer with Language Code, Customer Subscription Contract
         Initialize();
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
-        ContractTestLibrary.CreateItemTranslation(ItemTranslation, Item."No.", '');
+        ContractTestLibrary.CreateItemTranslation(ItemTranslation, Item."No.", '', '');
         CreateCustomerWithLanguageCode(ItemTranslation."Language Code");
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
 
         // [WHEN] Extend Contract with Item
-        ServiceObject.InsertFromItemNoAndCustomerContract(ServiceObject, Item."No.", LibraryRandom.RandDec(10, 2), WorkDate(), CustomerContract);
+        ServiceObject.InsertFromItemNoAndCustomerContract(ServiceObject, Item."No.", '', LibraryRandom.RandDec(10, 2), WorkDate(), CustomerContract);
 
         // [THEN] Item Description should be translated in Subscription
+        Assert.AreEqual(ItemTranslation.Description, ServiceObject.Description, 'Item description should be translated in Service Object');
+    end;
+
+    [Test]
+    procedure TranslateItemVariantDescriptionBasedOnCustomerLanguageCodeWhenExtendContract()
+    var
+        ItemTranslation: Record "Item Translation";
+        ItemVariant: Record "Item Variant";
+    begin
+        // [SCENARIO] When Extend Contract action is run for Item Variant with translation defined that match Customer Language Code, Item Variant Description in Subscription should be translated
+
+        // [GIVEN] Create: Language, Subscription Item Variant with translation defined, Customer with Language Code, Customer Subscription Contract
+        Initialize();
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
+        LibraryInventory.CreateItemVariant(ItemVariant, ServiceObject."Source No.");
+        ContractTestLibrary.CreateItemTranslation(ItemTranslation, Item."No.", ItemVariant.Code, '');
+        CreateCustomerWithLanguageCode(ItemTranslation."Language Code");
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+
+        // [WHEN] Extend Contract with Item
+        ServiceObject.InsertFromItemNoAndCustomerContract(ServiceObject, Item."No.", ItemVariant.Code, LibraryRandom.RandDec(10, 2), WorkDate(), CustomerContract);
+
+        // [THEN] Item Variant Description should be translated in Subscription
         Assert.AreEqual(ItemTranslation.Description, ServiceObject.Description, 'Item description should be translated in Service Object');
     end;
 
@@ -315,7 +339,7 @@ codeunit 148152 "Extend Contract Test"
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
         ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, ServiceCommitmentPackage, ServiceCommPackageLine);
         ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, ServiceCommitmentPackage.Code);
-        ContractTestLibrary.CreateItemTranslation(ItemTranslation, Item."No.", '');
+        ContractTestLibrary.CreateItemTranslation(ItemTranslation, Item."No.", '', '');
         CreateCustomerWithLanguageCode(ItemTranslation."Language Code");
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
 

@@ -277,7 +277,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         UsageDataGenericImportGlobal.Modify(false);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Process Data Exch.", 'OnProcessColumnMappingOnBeforeDataExchFieldMappingFindSet', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Process Data Exch.", OnProcessColumnMappingOnBeforeDataExchFieldMappingFindSet, '', false, false)]
     local procedure SetNextEntryNoForUsageDataGenericImport(var RecordRef: RecordRef; LastKeyFieldId: Integer; CurrLineNo: Integer)
     var
         UsageDataGenericImport: Record "Usage Data Generic Import";
