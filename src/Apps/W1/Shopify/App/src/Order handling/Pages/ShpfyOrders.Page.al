@@ -420,6 +420,30 @@ page 30115 "Shpfy Orders"
         }
     }
 
+    views
+    {
+        view(UnprocessedOrders)
+        {
+            Caption = 'Unprocessed Orders';
+            Filters = where(Processed = const(false));
+        }
+        view(OrderWithConflicts)
+        {
+            Caption = 'Orders with Conflicts';
+            Filters = where("Has Order State Error" = const(true));
+        }
+        view(OrderWithProcessingErrors)
+        {
+            Caption = 'Orders with Processing Errors';
+            Filters = where("Has Error" = const(true));
+        }
+        view(OpenOrders)
+        {
+            Caption = 'Open Orders';
+            Filters = where(Closed = const(false));
+        }
+    }
+
     var
         ConfirmLbl: Label 'Create sales document(s) from the selected Shopify order(s)?';
 }

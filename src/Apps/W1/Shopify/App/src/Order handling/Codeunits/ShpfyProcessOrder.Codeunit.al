@@ -75,7 +75,7 @@ codeunit 30166 "Shpfy Process Order"
             ShopifyOrderHeader.TestField("Sell-to Customer No.");
             SalesHeader.Init();
             SalesHeader.SetHideValidationDialog(true);
-            if ShopifyOrderHeader."Fulfillment Status" = ShopifyOrderHeader."Fulfillment Status"::Fulfilled then
+            if (ShopifyOrderHeader."Fulfillment Status" = ShopifyOrderHeader."Fulfillment Status"::Fulfilled) and ShopifyShop."Create Invoices From Orders" then
                 SalesHeader.Validate("Document Type", SalesHeader."Document Type"::Invoice)
             else
                 SalesHeader.Validate("Document Type", SalesHeader."Document Type"::Order);
