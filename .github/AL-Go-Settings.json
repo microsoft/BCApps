@@ -6,7 +6,7 @@
   "runs-on": "windows-2025",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "bcinsider/Sandbox/27.0/base/latest",
+  "artifact": "bcartifacts/Sandbox/27.0/base/latest",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "27.0",
