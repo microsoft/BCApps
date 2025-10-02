@@ -13,10 +13,10 @@ function Invoke-ContosoDemoTool() {
     Write-Host "Initializing company in container $ContainerName"
     Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName
 
-    if ($CompanyName -ne "CRONUS International Ltd.") {
-        Write-Host "Skipping demo data generation for company $CompanyName"
-        return
-    }
+    #if ($CompanyName -ne "CRONUS International Ltd.") {
+    #    Write-Host "Skipping demo data generation for company $CompanyName"
+    #    return
+    #}
 
     if ($SetupData) {
         Write-Host "Generating Setup Demo Data in container $ContainerName"
