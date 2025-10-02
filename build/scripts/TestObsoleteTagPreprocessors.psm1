@@ -79,16 +79,30 @@ function Test-LineInPreprocessorBlock {
 .PARAMETER filePath
     The path to the .al file to check.
 
+.PARAMETER ExceptionList
+    Optional array of file paths (can be relative or absolute) to exclude from checking.
+
 .OUTPUTS
     Returns a PSCustomObject with validation results including any issues found.
 #>
 function Test-ObsoleteTagPreprocessors {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$filePath
+        [string]$filePath,
+
+        [Parameter(Mandatory = $false)]
+        [string[]]$ExceptionList = @()
     )
 
     try {
+        # Check if this file is in the exception list
+        foreach ($exceptionPattern in $ExceptionList) {
+            # Support both relative and absolute paths
+            if ($filePath -like "*$exceptionPattern*" -or $filePath -eq $exceptionPattern) {
+                return $null
+            }
+        }
+
         # Check if file exists and has content
         if (-not (Test-Path $filePath)) {
             return $null
