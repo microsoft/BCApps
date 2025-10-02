@@ -47,6 +47,7 @@ codeunit 30284 "Shpfy Company Export"
         CountyCodeTooLongLbl: Label 'Can not export customer %1 %2. The length of the string is %3, but it must be less than or equal to %4 characters. Value: %5, field: %6', Comment = '%1 - Customer No., %2 - Customer Name, %3 - Length, %4 - Max Length, %5 - Value, %6 - Field Name';
         EmptyEmailAddressLbl: Label 'Customer (Company) has no e-mail address.';
         CompanyWithPhoneNoOrEmailExistsLbl: Label 'Company already exists with the same e-mail or phone.';
+        CompanyWithExternalIdExistsLbl: Label 'A company with the same external ID %1 already exists in Shopify.', Comment = '%1 - External ID';
 
     local procedure CreateShopifyCompany(Customer: Record Customer)
     var
@@ -56,6 +57,12 @@ codeunit 30284 "Shpfy Company Export"
     begin
         if Customer."E-Mail" = '' then begin
             SkippedRecord.LogSkippedRecord(Customer.RecordId, EmptyEmailAddressLbl, Shop);
+            exit;
+        end;
+
+        ShopifyCompany.SetRange("External Id", Customer."No.");
+        if not ShopifyCompany.IsEmpty() then begin
+            SkippedRecord.LogSkippedRecord(Customer.RecordId, StrSubstNo(CompanyWithExternalIdExistsLbl, Customer."No."), Shop);
             exit;
         end;
 
