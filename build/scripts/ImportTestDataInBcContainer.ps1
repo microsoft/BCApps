@@ -49,6 +49,7 @@ function Get-NavDefaultCompanyName
 # Reinstall all the uninstalled apps in the container
 # This is needed to ensure that the various Demo Data apps are installed in the container when we generate demo data
 $allUninstalledApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesFirst | Where-Object { $_.IsInstalled -eq $false }
+$allUninstalledApps = $allUninstalledApps | Where-Object { $_.Name -notlike "* language (*" }
 Install-AppFromContainer -ContainerName $parameters.ContainerName -AppsToInstall $allUninstalledApps.Name
 # Log all the installed apps
 foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesLast)) {
