@@ -7,7 +7,9 @@ namespace System.Agents;
 
 using System.Security.AccessControl;
 
+#pragma warning disable AS0130, PTE0025 // The object is moved to the platform symbols.
 page 4306 "Agent Tasks"
+#pragma warning restore AS0130, PTE0025
 {
     PageType = ListPlus;
     ApplicationArea = All;
@@ -146,4 +148,3 @@ page 4306 "Agent Tasks"
         TaskSummary: BigText;
         GlobalCreatedBy: Text[250];
 }
-
