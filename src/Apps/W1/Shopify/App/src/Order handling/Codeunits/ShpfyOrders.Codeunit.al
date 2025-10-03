@@ -21,7 +21,7 @@ codeunit 30409 "Shpfy Orders"
     /// <param name="OrderId">The ID of the order to mark as paid.</param>
     /// <param name="ShopCode">The code of the Shopify shop record.</param>
     /// <returns>True if the operation was successful; otherwise, false.</returns>
-    internal procedure MarkAsPaid(OrderId: BigInteger; ShopCode: Code[20]): Boolean
+    procedure MarkAsPaid(OrderId: BigInteger; ShopCode: Code[20]): Boolean
     begin
         exit(OrdersAPI.MarkAsPaid(OrderId, ShopCode));
     end;
@@ -36,7 +36,7 @@ codeunit 30409 "Shpfy Orders"
     /// <param name="Refund">Indicates whether to refund the amount paid by the customer.</param>
     /// <param name="Restock">Indicates whether to restock the inventory committed to the order.</param>
     /// <returns>True if the operation was successful; otherwise, false.</returns>
-    internal procedure CancelOrder(OrderId: BigInteger; ShopCode: Code[20]; NotifyCustomer: Boolean; CancelReason: Enum "Shpfy Cancel Reason"; Refund: Boolean; Restock: Boolean): Boolean
+    procedure CancelOrder(OrderId: BigInteger; ShopCode: Code[20]; NotifyCustomer: Boolean; CancelReason: Enum "Shpfy Cancel Reason"; Refund: Boolean; Restock: Boolean): Boolean
     begin
         exit(OrdersAPI.CancelOrder(OrderId, ShopCode, NotifyCustomer, CancelReason, Refund, Restock));
     end;
