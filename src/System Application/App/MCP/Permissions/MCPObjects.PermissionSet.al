@@ -5,7 +5,7 @@
 
 namespace System.MCP;
 
-permissionset 8200 "MCP - Objects"
+permissionset 8350 "MCP - Objects"
 {
     Access = Internal;
     Assignable = false;
