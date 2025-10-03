@@ -17,6 +17,10 @@ In order to extend existing PEPPOL export functionality partners first should ad
   ]
 ```
 
+## Electronic Document Formats adjustments
+
+When the app is installed the new electronic document formats are created. In order to use new PEPPOL functionality customer would need to adjust existing "Electronic Document Formats" to only include export for the new PEPPOL format.
+
 ## Enum extension
 
 With the new implementation of PEPPOL processing an enum "E-Document Format" has been created which can be extended as needed in order to implement custom business logic for processing:

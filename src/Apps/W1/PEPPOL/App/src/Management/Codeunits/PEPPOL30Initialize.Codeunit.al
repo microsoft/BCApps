@@ -10,9 +10,15 @@ using Microsoft.Foundation.Reporting;
 codeunit 37204 "PEPPOL30 Initialize"
 {
     Access = Internal;
+    Subtype = Install;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", OnAfterInitElectronicFormats, '', false, false)]
     local procedure CompanyInitialize_OnAfterInitElectronicFormats()
+    begin
+        CreateElectronicDocumentFormats();
+    end;
+
+    internal procedure CreateElectronicDocumentFormats()
     var
         ElectronicDocumentFormat: Record "Electronic Document Format";
         PEPPOLBIS3_ElectronicFormatDescriptionTxt: Label 'PEPPOL BIS3 Format (Pan-European Public Procurement Online)';
