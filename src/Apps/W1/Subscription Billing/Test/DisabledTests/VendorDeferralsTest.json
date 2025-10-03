@@ -1,0 +1,14 @@
+[
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139913,
+        "CodeunitName": "Vendor Deferrals Test",
+        "Method": "ExpectThatDeferralsForPurchaseCreditMemoAreCreatedOnce"
+    },
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139913,
+        "CodeunitName": "Vendor Deferrals Test",
+        "Method": "TestCreateVendorDeferralsForPaidPurchaseInvoice"
+    }
+]
