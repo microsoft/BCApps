@@ -27,6 +27,12 @@ codeunit 4303 "Agent Task"
         exit(AgentTaskImpl.TaskExists(AgentUserSecurityId, ExternalId));
     end;
 
+    /// <summary>
+    /// Get the task for the given agent user and external ID.
+    /// </summary>
+    /// <param name="AgentUserSecurityId">The agent user ID.</param>
+    /// <param name="ExternalId">The external ID of the task.</param>
+    /// <returns>A record with the given task.</returns>
     procedure GetTaskByExternalId(AgentUserSecurityId: Guid; ExternalId: Text): Record "Agent Task"
     var
         AgentTask: Record "Agent Task";
