@@ -11,7 +11,7 @@ using System.Environment.Configuration;
 #endif
 using System.Reflection;
 
-codeunit 8201 "MCP Config Implementation"
+codeunit 8351 "MCP Config Implementation"
 {
     Access = Internal;
     InherentEntitlements = X;
