@@ -22,13 +22,13 @@
 			"id": "e1d97edc-c239-46b4-8d84-6368bdf67c8c",
 			"name": "E-Document Core Tests",
 			"publisher": "Microsoft",
-			"version": "27.0.0.0"
+			"version": "27.1.0.0"
 		},
 		{
 			"id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
 			"name": "Tests-TestLibraries",
 			"publisher": "Microsoft",
-			"version": "27.0.0.0"
+			"version": "27.1.0.0"
 		},
 		{
 			"id": "9856ae4f-d1a7-46ef-89bb-6ef056398228",
