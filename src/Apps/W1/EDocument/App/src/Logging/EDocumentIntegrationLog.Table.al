@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -44,13 +44,8 @@ table 6127 "E-Document Integration Log"
         {
             Caption = 'URL';
             ObsoleteReason = 'Replaced with Request URL field';
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#endif
         }
 #endif
         field(8; Method; Text[10])
