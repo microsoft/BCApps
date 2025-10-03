@@ -13,6 +13,7 @@ page 8352 "MCP Config Tool List"
     ApplicationArea = All;
     PageType = ListPart;
     SourceTable = "MCP Configuration Tool";
+    Caption = 'MCP Configuration Tools';
     DelayedInsert = true;
     MultipleNewLines = true;
     Extensible = false;
@@ -36,13 +37,21 @@ page 8352 "MCP Config Tool List"
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
-                        PageId: Integer;
+                        PageMetadata: Record "Page Metadata";
                     begin
-                        MCPConfigImplementation.LookupAPITools(PageId);
-                        if PageId <> 0 then begin
-                            Rec.Validate("Object Id", PageId);
-                            CurrPage.Update();
-                        end;
+                        if not MCPConfigImplementation.LookupAPITools(PageMetadata) then
+                            exit;
+
+                        if not PageMetadata.FindSet() then
+                            exit;
+
+                        repeat
+                            MCPConfig.CreateAPITool(Rec.ID, PageMetadata.ID);
+                        until PageMetadata.Next() = 0;
+
+                        if not IsNullGuid(Rec.SystemId) then
+                            Rec.Delete();
+                        CurrPage.Update();
                     end;
 
                     trigger OnValidate()
@@ -142,6 +151,7 @@ page 8352 "MCP Config Tool List"
     end;
 
     var
+        MCPConfig: Codeunit "MCP Config";
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         IsSandbox: Boolean;
         AllowCreateEditable: Boolean;

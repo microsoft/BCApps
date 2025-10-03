@@ -6,15 +6,16 @@
 namespace System.TestLibraries.MCP;
 
 using System.MCP;
+using System.Reflection;
 
 codeunit 130131 "MCP Config Test Library"
 {
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
 
-    procedure LookupAPITools(var PageId: Integer)
+    procedure LookupAPITools(var PageMetadata: Record "Page Metadata"): Boolean
     begin
-        MCPConfigImplementation.LookupAPITools(PageId);
+        exit(MCPConfigImplementation.LookupAPITools(PageMetadata));
     end;
 
     procedure AddToolsByAPIGroup(ConfigId: Guid)
