@@ -8,7 +8,7 @@ namespace System.MCP;
 using System.Environment;
 using System.Reflection;
 
-page 8202 "MCP Config Tool List"
+page 8352 "MCP Config Tool List"
 {
     ApplicationArea = All;
     PageType = ListPart;
