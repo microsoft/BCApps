@@ -16,7 +16,7 @@
   "installOnlyReferencedApps": false,
   "doNotRunPageScriptingTests": true,
   "doNotRunBcptTests": true,
-  "buildModes": [ "CH","CZ","DE","DK","ES","IN","US" ],
+  "buildModes": [ "CH","ES","IN","US" ],
   "ConditionalSettings": [
     {
       "buildModes": [
@@ -24,30 +24,6 @@
       ],
       "settings": {
         "country": "ch"
-      }
-    },
-    {
-      "buildModes": [
-        "CZ"
-      ],
-      "settings": {
-        "country": "cz"
-      }
-    },
-    {
-      "buildModes": [
-        "DE"
-      ],
-      "settings": {
-        "country": "de"
-      }
-    },
-    {
-      "buildModes": [
-        "DK"
-      ],
-      "settings": {
-        "country": "dk"
       }
     },
     {
