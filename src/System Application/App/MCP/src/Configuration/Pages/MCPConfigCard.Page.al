@@ -7,7 +7,7 @@ namespace System.MCP;
 
 using System.Environment;
 
-page 8201 "MCP Config Card"
+page 8351 "MCP Config Card"
 {
     ApplicationArea = All;
     PageType = Card;
