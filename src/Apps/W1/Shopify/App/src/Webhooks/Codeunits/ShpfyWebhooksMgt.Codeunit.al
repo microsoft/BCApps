@@ -322,6 +322,26 @@ codeunit 30269 "Shpfy Webhooks Mgt."
         exit(ShopUrl.Replace('https://', '').Replace('.myshopify.com', '').TrimEnd('/'));
     end;
 
+    internal procedure TestOrderCreatedWebhookConnection(Shop: Record "Shpfy Shop"): Boolean
+    var
+        WebhookSubscription: Record "Webhook Subscription";
+        WebhooksAPI: Codeunit "Shpfy Webhooks API";
+        WebhookTopic: Enum "Shpfy Webhook Topic";
+        SubscriptionId: Text;
+    begin
+        if not Shop."Order Created Webhooks" then
+            exit(true);
+
+        if not WebhookSubscription.Get(CopyStr(GetShopDomain(Shop."Shopify URL"), 1, MaxStrLen(WebhookSubscription."Subscription ID")), Format("Shpfy Webhook Topic"::ORDERS_CREATE)) then
+            exit(false);
+
+        WebhookTopic := "Shpfy Webhook Topic"::ORDERS_CREATE;
+        if not WebhooksAPI.GetWebhookSubscription(Shop, WebhookTopic.Names.Get(WebhookTopic.Ordinals.IndexOf(WebhookTopic.AsInteger())), SubscriptionId) then
+            exit(false);
+
+        exit(Shop."Order Created Webhook Id" = SubscriptionId);
+    end;
+
     [InternalEvent(false)]
     internal procedure OnScheduleWebhookNotificationTask(var IsTestInProgress: Boolean)
     begin
