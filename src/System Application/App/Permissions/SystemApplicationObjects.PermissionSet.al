@@ -20,6 +20,7 @@ using System.Text;
 using System.Globalization;
 using System.Tooling;
 using System.Utilities;
+using System.MCP;
 using System.DataAdministration;
 using System.Integration.Sharepoint;
 using System.Security.User;
@@ -46,6 +47,7 @@ permissionset 219 "System Application - Objects"
                              "File Storage - Objects",
                              "Guided Experience - Objects",
                              "Language - Objects",
+                             "MCP - Objects",
                              "Page Summary Provider - Obj.",
                              "Performance Profiler - Objects",
                              "Permission Sets - Objects",

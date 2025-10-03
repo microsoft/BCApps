@@ -1,0 +1,30 @@
+{
+  "id": "ef6e70f1-8b0c-4759-b15e-d83e6ad33e45",
+  "name": "MCP Test Library",
+  "publisher": "Microsoft",
+  "brief": "Library function to initialize test data for the MCP module",
+  "description": "Library function to initialize test data for the MCP module",
+  "version": "27.1.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "logo": "",
+  "dependencies": [
+    {
+      "id": "5767db24-c02e-46e8-9132-44de8be7fc57",
+      "name": "MCP",
+      "publisher": "Microsoft",
+      "version": "27.1.0.0"
+    }
+  ],
+  "screenshots": [],
+  "idRanges": [
+    {
+      "from": 130131,
+      "to": 130133
+    }
+  ],
+  "platform": "27.0.0.0",
+  "target": "OnPrem"
+}

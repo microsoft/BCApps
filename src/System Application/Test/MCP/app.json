@@ -1,0 +1,54 @@
+{
+  "id": "6b15a632-b2df-4d3a-9a8d-ac18c142ac81",
+  "name": "MCP Test",
+  "publisher": "Microsoft",
+  "brief": "Library function to initialize test data for the MCP module",
+  "description": "Library function to initialize test data for the MCP module",
+  "version": "27.1.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "logo": "",
+  "dependencies": [
+    {
+      "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
+      "name": "Any",
+      "publisher": "Microsoft",
+      "version": "27.1.0.0"
+    },
+    {
+      "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+      "name": "Library Assert",
+      "publisher": "Microsoft",
+      "version": "27.1.0.0"
+    },
+    {
+      "id": "5767db24-c02e-46e8-9132-44de8be7fc57",
+      "name": "MCP",
+      "publisher": "Microsoft",
+      "version": "27.1.0.0"
+    },
+    {
+      "id": "ef6e70f1-8b0c-4759-b15e-d83e6ad33e45",
+      "name": "MCP Test Library",
+      "publisher": "Microsoft",
+      "version": "27.1.0.0"
+    },
+    {
+      "id": "cc441290-a967-4601-9a7d-b4209339415b",
+      "name": "Environment Information Test Library",
+      "publisher": "Microsoft",
+      "version": "27.1.0.0"
+    }
+  ],
+  "screenshots": [],
+  "idRanges": [
+    {
+      "from": 130130,
+      "to": 130130
+    }
+  ],
+  "platform": "27.0.0.0",
+  "target": "OnPrem"
+}
