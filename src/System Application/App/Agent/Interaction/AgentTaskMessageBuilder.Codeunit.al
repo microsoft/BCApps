@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System.Environment;
+
 /// <summary>
 /// This codeunit is used to create an agent task message.
 /// </summary>
@@ -15,6 +17,7 @@ codeunit 4316 "Agent Task Message Builder"
 
     var
         AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";
+        FeatureAccessManagement: Codeunit "Feature Access Management";
 
     /// <summary>
     /// Initialize the agent task message builder with the mandatory parameter.
@@ -109,6 +112,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// </remarks>
     procedure Create(): Record "Agent Task Message"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskMsgBuilderImpl.Create());
     end;
 
@@ -126,6 +130,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// </remarks>
     procedure Create(SetTaskStatusToReady: Boolean): Record "Agent Task Message"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskMsgBuilderImpl.Create(SetTaskStatusToReady));
     end;
 
@@ -167,6 +172,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream; Ignored: Boolean): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.AddAttachment(FileName, FileMIMEType, InStream, Ignored);
         exit(this);
     end;
@@ -180,6 +186,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure AddAttachment(AgentTaskFile: Record "Agent Task File"): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.AddAttachment(AgentTaskFile);
         exit(this);
     end;
@@ -192,6 +199,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>True if the attachment was uploaded, false otherwise.</returns>
     procedure UploadAttachment(): Boolean
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskMsgBuilderImpl.UploadAttachment());
     end;
 

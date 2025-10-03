@@ -5,7 +5,11 @@
 
 namespace System.Agents;
 
+using System.Environment;
+
+#pragma warning disable AS0130, PTE0025 // The object conflicts with a platform codeunit which will be renamed.
 codeunit 4303 "Agent Task"
+#pragma warning restore AS0130, PTE0025
 {
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -41,6 +45,7 @@ codeunit 4303 "Agent Task"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskImpl.SetTaskStatusToReadyIfPossible(AgentTask);
     end;
 
@@ -66,6 +71,7 @@ codeunit 4303 "Agent Task"
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         TaskStatus: Enum "Agent Task Status";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskImpl.StopTask(AgentTask, TaskStatus::"Stopped by User", UserConfirm);
     end;
 
@@ -78,6 +84,7 @@ codeunit 4303 "Agent Task"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskImpl.RestartTask(AgentTask, UserConfirm);
     end;
 
@@ -116,4 +123,8 @@ codeunit 4303 "Agent Task"
     begin
         exit(AgentTaskImpl.IsTaskStopped(AgentTask));
     end;
+
+    var
+        FeatureAccessManagement: Codeunit "Feature Access Management";
+
 }

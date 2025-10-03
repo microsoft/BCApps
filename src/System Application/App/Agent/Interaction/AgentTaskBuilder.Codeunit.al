@@ -15,6 +15,7 @@ codeunit 4315 "Agent Task Builder"
 
     var
         AgentTaskBuilderImpl: Codeunit "Agent Task Builder Impl.";
+        FeatureAccessManagement: Codeunit "Feature Access Management";
 
     /// <summary>
     /// Initialize the agent task builder with the mandatory parameters.
@@ -39,6 +40,7 @@ codeunit 4315 "Agent Task Builder"
     /// </remarks>
     procedure Create(): Record "Agent Task"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskBuilderImpl.Create(true));
     end;
 
@@ -56,6 +58,7 @@ codeunit 4315 "Agent Task Builder"
     /// </remarks>
     procedure Create(SetTaskStatusToReady: Boolean): Record "Agent Task"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskBuilderImpl.Create(SetTaskStatusToReady));
     end;
 
@@ -91,6 +94,7 @@ codeunit 4315 "Agent Task Builder"
     /// <returns>This instance of the Agent Task Builder.</returns>
     procedure AddTaskMessage(From: Text[250]; MessageText: Text): codeunit "Agent Task Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskBuilderImpl.AddTaskMessage(From, MessageText);
         exit(this);
     end;
@@ -103,6 +107,7 @@ codeunit 4315 "Agent Task Builder"
     /// <returns>This instance of the Agent Task Builder.</returns>
     procedure AddTaskMessage(var AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder"): codeunit "Agent Task Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskBuilderImpl.AddTaskMessage(AgentTaskMessageBuilder);
         exit(this);
     end;
