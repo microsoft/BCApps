@@ -160,6 +160,7 @@ page 30113 "Shpfy Order"
                 {
                     ApplicationArea = All;
                     Editable = false;
+                    Importance = Additional;
                     ToolTip = 'Specifies whether this is a test order.';
                 }
                 field(CreatedAt; Rec."Created At")
@@ -204,7 +205,6 @@ page 30113 "Shpfy Order"
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    Importance = Additional;
                     ToolTip = 'Specifies the name of the app used by the channel where you sell your products. A channel can be a platform or a marketplace such as an online store or POS.';
                 }
                 field(ChannelName; Rec."Channel Name")
