@@ -8,7 +8,7 @@ namespace System.MCP;
 /// <summary>
 /// Provides public API for managing MCP configurations and tools, including creation, activation, deletion, and permissions.
 /// </summary>
-codeunit 8200 "MCP Config"
+codeunit 8350 "MCP Config"
 {
     Access = Public;
     InherentEntitlements = X;
