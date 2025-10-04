@@ -39,12 +39,15 @@ codeunit 6122 "E-Doc. Imp. Session Telemetry"
     internal procedure Emit(EDocument: Record "E-Document")
     var
         Telemetry: Codeunit "Telemetry";
+        EDocumentImportProcessVersion: Enum "E-Document Import Process";
         SystemID, Session : Text;
     begin
         Session := LowerCase(CreateGuid()).Replace('}', '').Replace('{', '');
         SystemID := CreateSystemIdText(EDocument.SystemId);
+        EDocumentImportProcessVersion := EDocument.GetEDocumentService().GetImportProcessVersion();
         Data.Set('Session', Session);
         Data.Set(GetEDocSystemIdTok(), SystemID);
+        Data.Set('ProcessVersion', EDocumentImportProcessVersion.Names().Get(EDocumentImportProcessVersion.Ordinals.IndexOf(EDocumentImportProcessVersion.AsInteger())));
         Telemetry.LogMessage('0000PJD', 'E-Document Import Session', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Data);
         EmitLines(SystemID, Session);
 
