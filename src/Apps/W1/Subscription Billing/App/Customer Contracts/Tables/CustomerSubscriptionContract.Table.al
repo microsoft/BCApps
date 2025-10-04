@@ -2008,7 +2008,11 @@ table 8052 "Customer Subscription Contract"
         end;
     end;
 
-    internal procedure CreateCustomerContractLinesFromServiceCommitments(var TempServiceCommitment: Record "Subscription Line" temporary)
+    /// <summary>
+    /// This function will be used to creates batch customer subscription contract lines from subscription lines which are not already assigned to a customer subscription contract. 
+    /// </summary>
+    /// <param name="TempServiceCommitment">Temporary VAR Record "Subscription Line".</param>
+    procedure CreateCustomerContractLinesFromServiceCommitments(var TempServiceCommitment: Record "Subscription Line" temporary)
     var
         ServiceObject: Record "Subscription Header";
     begin
