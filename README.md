@@ -5,7 +5,7 @@ This repository contains the source code for several _Business Central_ applicat
 
 The source code in this repository is available to everyone under the standard [MIT license](https://github.com/microsoft/vscode/blob/main/LICENSE.txt).
 
-✨ **BCApps run on [AL-Go for GitHub](https://github.com/microsoft/AL-Go)** ✨
+✨ **BCApps run on [AL-Go for GitHub](https://github.com/microsoft/AL-Go)** 
 
 ## Contributing
 
