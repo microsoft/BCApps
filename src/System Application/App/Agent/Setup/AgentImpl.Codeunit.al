@@ -357,7 +357,6 @@ codeunit 4301 "Agent Impl."
     local procedure ChangeAgentState(UserSecurityID: Guid; Enabled: Boolean)
     var
         Agent: Record Agent;
-
     begin
         GetAgent(Agent, UserSecurityId);
 
