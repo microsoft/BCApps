@@ -366,6 +366,17 @@ table 6121 "E-Document"
         exit(true);
     end;
 
+    procedure Exists(RecordVariant: Variant): Boolean
+    var
+        EDocument: Record "E-Document";
+        TypeHelper: Codeunit "Type Helper";
+        RecordRef: RecordRef;
+    begin
+        TypeHelper.CopyRecVariantToRecRef(RecordVariant, RecordRef);
+        EDocument.SetRange("Document Record ID", RecordRef.RecordId());
+        exit(not EDocument.IsEmpty());
+    end;
+
     internal procedure IsSourceDocumentStructured(): Boolean
     var
         EDocDataStorage: Record "E-Doc. Data Storage";
