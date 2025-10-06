@@ -711,10 +711,6 @@ dotnet
         type("Microsoft.Dynamics.Nav.Runtime.ActivityLogAttribute"; "ActivityLogAttribute")
         {
         }
-
-        type("Microsoft.Dynamics.Nav.Runtime.ALFeedback"; ALFeedback)
-        {
-        }
     }
 
     assembly("Microsoft.Dynamics.Nav.OAuth")
