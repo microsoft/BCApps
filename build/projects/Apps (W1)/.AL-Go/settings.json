@@ -16,12 +16,7 @@
   "installOnlyReferencedApps": false,
   "doNotRunPageScriptingTests": true,
   "doNotRunBcptTests": true,
-  "buildModes": [
-    "CH", 
-    "CZ", 
-    "IN", 
-    "US"
-  ],
+  "buildModes": [ "CH","ES","IN","US" ],
   "ConditionalSettings": [
     {
       "buildModes": [
@@ -34,10 +29,10 @@
     },
     {
       "buildModes": [
-        "CZ"
+        "ES"
       ],
       "settings": {
-        "country": "cz",
+        "country": "es",
         "doNotRunTests": true
       }
     },
