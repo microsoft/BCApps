@@ -84,7 +84,7 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
         if EDocumentPurchaseLine.FindSet() then
             repeat
-                EDocImpSessionTelemetry.SetLineText(EDocumentPurchaseLine.SystemId, 'Line', '');
+                EDocImpSessionTelemetry.SetLine(EDocumentPurchaseLine.SystemId);
             until EDocumentPurchaseLine.Next() = 0;
 
         // Log all accumulated activity session changes at the end

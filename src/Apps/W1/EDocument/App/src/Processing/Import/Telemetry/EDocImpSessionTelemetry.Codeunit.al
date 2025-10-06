@@ -88,6 +88,15 @@ codeunit 6122 "E-Doc. Imp. Session Telemetry"
         Data.Set("Key", Format("Value", 0, 9));
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Imp. Session Telemetry", SetLine, '', false, false)]
+    local procedure OnSetLine(LineId: Guid)
+    var
+        EmptyDict: Dictionary of [Text, Text];
+    begin
+        if not LineData.ContainsKey(LineId) then
+            LineData.Set(LineId, EmptyDict);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Imp. Session Telemetry", SetLineBool, '', false, false)]
     local procedure OnSetLineBool(LineId: Guid; "Key": Text; "Value": Boolean)
     var
@@ -117,6 +126,11 @@ codeunit 6122 "E-Doc. Imp. Session Telemetry"
 
     [IntegrationEvent(false, false)]
     procedure SetBool("Key": Text; "Value": Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    procedure SetLine(LineId: Guid)
     begin
     end;
 
