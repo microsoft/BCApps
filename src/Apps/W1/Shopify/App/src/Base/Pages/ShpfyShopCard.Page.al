@@ -897,9 +897,18 @@ page 30101 "Shpfy Shop Card"
                     Enabled = Rec.Enabled;
 
                     trigger OnAction()
+                    var
+                        WebhooksMgt: Codeunit "Shpfy Webhooks Mgt.";
                     begin
                         if Rec.TestConnection() then
-                            Message('Connection successful.');
+                            if not Rec."Order Created Webhooks" then begin
+                                Message(ConnectionSuccessfulMsg);
+                                exit;
+                            end else
+                                if WebhooksMgt.TestOrderCreatedWebhookConnection(Rec) then
+                                    Message(ConnectionAndWebhooksSuccessfulMsg)
+                                else
+                                    Message(OrderCreatedWebhookNotConfiguredMsg);
                     end;
                 }
                 action(ClearApiVersionExpiryDateCache)
@@ -1216,6 +1225,9 @@ page 30101 "Shpfy Shop Card"
         ApiVersion: Text;
         ApiVersionExpiryDate: Date;
         ScopeChangeConfirmLbl: Label 'The access scope of shop %1 for the Shopify connector has changed. Do you want to request a new access token?', Comment = '%1 - Shop Code';
+        ConnectionSuccessfulMsg: Label 'Connection successful.';
+        ConnectionAndWebhooksSuccessfulMsg: Label 'Connection successful and auto synchronize orders is configured correctly.';
+        OrderCreatedWebhookNotConfiguredMsg: Label 'Connection successful, but auto synchronize orders is misconfigured. Reactivate Auto Sync Orders setting.';
 
     trigger OnOpenPage()
     var
