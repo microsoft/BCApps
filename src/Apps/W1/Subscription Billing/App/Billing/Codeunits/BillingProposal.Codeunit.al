@@ -452,23 +452,8 @@ codeunit 8062 "Billing Proposal"
             exit;
 
         // Find all usage data billing records that overlap with the billing line period
-        UsageDataBilling.FilterOnServiceCommitment(SubscriptionLine);
-        UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
-
-        if UsageDataBilling.FindSet() then
-            repeat
-                // Check if usage data period overlaps with billing line period
-                if IsPeriodsOverlapping(UsageDataBilling."Charge Start Date", UsageDataBilling."Charge End Date",
-                                      BillingLine."Billing from", BillingLine."Billing to") then begin
-                    UsageDataBilling."Billing Line Entry No." := BillingLine."Entry No.";
-                    UsageDataBilling.Modify(false);
-                end;
-            until UsageDataBilling.Next() = 0;
-    end;
-
-    local procedure IsPeriodsOverlapping(UsageStartDate: Date; UsageEndDate: Date; BillingStartDate: Date; BillingEndDate: Date): Boolean
-    begin
-        exit((UsageStartDate <= BillingEndDate) and (UsageEndDate >= BillingStartDate));
+        SubscriptionLine.SetUsageDataBillingFilters(UsageDataBilling, BillingLine."Billing from", BillingLine."Billing to");
+        UsageDataBilling.ModifyAll("Billing Line Entry No.", BillingLine."Entry No.", false);
     end;
 
     local procedure CalculateBillingPeriod(ServiceCommitment: Record "Subscription Line"; BillingDate: Date; BillToDate: Date; var BillingPeriodStart: Date; var BillingPeriodEnd: Date)
