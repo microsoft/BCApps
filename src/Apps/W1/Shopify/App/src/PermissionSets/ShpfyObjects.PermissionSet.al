@@ -342,6 +342,7 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy Order Mgt." = X,
         codeunit "Shpfy Order Risks" = X,
         codeunit "Shpfy Orders API" = X,
+        codeunit "Shpfy Orders" = X,
         codeunit "Shpfy Payment Terms API" = X,
         codeunit "Shpfy Payments" = X,
         codeunit "Shpfy Payments API" = X,
