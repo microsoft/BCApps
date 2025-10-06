@@ -324,7 +324,7 @@ function Get-LatestBCArtifactUrl
         $storageAccount = $storageAccountOrder[1]
     }
 
-    return "$storageAccount/Sandbox/$artifactVersion/base/latest"
+    return "$storageAccount/Sandbox/$artifactVersion//latest"
 }
 
 <#
