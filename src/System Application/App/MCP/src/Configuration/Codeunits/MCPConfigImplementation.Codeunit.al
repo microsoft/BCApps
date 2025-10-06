@@ -259,7 +259,7 @@ codeunit 8351 "MCP Config Implementation"
         PageMetadata: Record "Page Metadata";
         PageNotFoundErr: Label 'Page not found.';
         InvalidPageTypeErr: Label 'Only API pages are supported.';
-        InvalidAPIVersionErr: Label 'Only API v2.0 pages are supported.';
+        InvalidAPIVersionErr: Label 'Only standard v2.0 APIs and custom APIs are supported.';
     begin
         if not PageMetadata.Get(PageId) then
             Error(PageNotFoundErr);
@@ -268,6 +268,9 @@ codeunit 8351 "MCP Config Implementation"
             Error(InvalidPageTypeErr);
 
         if PageMetadata.APIPublisher = 'microsoft' then
+            Error(InvalidAPIVersionErr);
+
+        if PageMetadata."AL Namespace" = 'Microsoft.API.V1' then
             Error(InvalidAPIVersionErr);
     end;
 
