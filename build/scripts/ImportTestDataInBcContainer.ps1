@@ -7,16 +7,11 @@ Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
 function Invoke-ContosoDemoTool() {
     param(
         [string]$ContainerName,
-        [string]$CompanyName = (Get-NavDefaultCompanyName),
+        [string]$CompanyName = (Get-NavDefaultCompanyName -ContainerName $ContainerName),
         [switch]$SetupData = $false
     )
     Write-Host "Initializing company in container $ContainerName"
     Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName
-
-    #if ($CompanyName -ne "CRONUS International Ltd.") {
-    #    Write-Host "Skipping demo data generation for company $CompanyName"
-    #    return
-    #}
 
     if ($SetupData) {
         Write-Host "Generating Setup Demo Data in container $ContainerName"
@@ -32,18 +27,22 @@ function Invoke-ContosoDemoTool() {
 
 function Get-NavDefaultCompanyName
 {
+    param(
+        [string]$ContainerName
+    )
     # Log all companies in the container
-    $companies = Get-CompanyInBcContainer -containerName $parameters.ContainerName 
+    $companies = Get-CompanyInBcContainer -containerName $ContainerName
     $companies | Foreach-Object { Write-Host "Company: $($_.CompanyName)" }
 
-    # Check if these is a company names something with cronus
+    # Look for a Cronus company
     $cronusCompany = $companies | Where-Object { $_.CompanyName -match "cronus" } | Select-Object -First 1
     if ($cronusCompany) {
         Write-Host "Using company $($cronusCompany.CompanyName) for demo data generation"
         return $cronusCompany.CompanyName
     }
-    Write-Host "Using default company CRONUS International Ltd. for demo data generation"
-    return "CRONUS International Ltd."
+    
+    # If no Cronus company is found, thow
+    throw "No Cronus company found in container $ContainerName.."
 }
 
 # Reinstall all the uninstalled apps in the container
