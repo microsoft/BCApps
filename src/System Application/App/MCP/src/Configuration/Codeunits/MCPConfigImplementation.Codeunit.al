@@ -203,7 +203,7 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration.Description := DefaultMCPConfigurationDescriptionLbl;
         MCPConfiguration.Active := true;
         MCPConfiguration.EnableDynamicToolMode := true;
-        // MCPConfiguration.DiscoverReadOnlyObjects := true;
+        MCPConfiguration.DiscoverReadOnlyObjects := true;
         MCPConfiguration.AllowProdChanges := true;
         MCPConfiguration.Insert();
     end;
