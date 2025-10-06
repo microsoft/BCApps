@@ -14,7 +14,46 @@
     "../../../src/Apps/W1/*/*/Demo Data"
   ],
   "installOnlyReferencedApps": false,
+  "doNotRunPageScriptingTests": true,
+  "doNotRunBcptTests": true,
+  "buildModes": [ "CH","ES","IN","US" ],
   "ConditionalSettings": [
+    {
+      "buildModes": [
+        "CH"
+      ],
+      "settings": {
+        "country": "ch",
+        "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
+        "ES"
+      ],
+      "settings": {
+        "country": "es",
+        "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
+        "IN"
+      ],
+      "settings": {
+        "country": "in",
+        "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
+        "US"
+      ],
+      "settings": {
+        "country": "us",
+        "doNotRunTests": true
+      }
+    },
     {
       "buildModes": [
         "Clean"

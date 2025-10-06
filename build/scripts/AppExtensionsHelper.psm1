@@ -44,7 +44,7 @@ function GetSourceCodeFromArtifact() {
         } else {
             Write-Host "No artifact found. Using default artifact version."
             Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
-            $artifact = Get-ConfigValue -ConfigType "AL-GO" -Key "artifact"
+            $artifact = Get-CurrentBCArtifactUrl
         }
         # Test that artifact is a url
         if ($artifact -notmatch "^https?://") {
