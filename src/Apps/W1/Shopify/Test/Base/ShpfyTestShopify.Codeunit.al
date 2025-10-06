@@ -8,8 +8,8 @@ namespace Microsoft.Integration.Shopify.Test;
 using Microsoft.Integration.Shopify;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Environment;
-using System.TestLibraries.Azure.KeyVault;
-using System.Test.Library;
+// using System.TestLibraries.Azure.KeyVault;
+// using System.Test.Library;
 
 codeunit 139563 "Shpfy Test Shopify"
 {
@@ -49,7 +49,7 @@ codeunit 139563 "Shpfy Test Shopify"
         // [WHEN] The Shop is created.
         Shop := InitializeTest.CreateShop();
         CommunicationMgt.SetTestInProgress(false);
-        SetupKeyVaultExpiryDate(CommunicationMgt.GetApiVersion());
+        // SetupKeyVaultExpiryDate(CommunicationMgt.GetApiVersion());
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
 
         // [THEN] Test connection action should fail when invoked to call Shopify API.
@@ -71,13 +71,13 @@ codeunit 139563 "Shpfy Test Shopify"
         LibraryAssert.AreEqual('https://test-shop.myshopify.com', Shop."Shopify URL", 'The Shopify URL should be in the correct format.');
     end;
 
-    local procedure SetupKeyVaultExpiryDate(ApiVersion: Text)
-    var
-        AzureKeyVaultTestLibrary: Codeunit "Azure Key Vault Test Library";
-        MockAzureKeyvaultSecretProvider: DotNet MockAzureKeyVaultSecretProvider;
-    begin
-        MockAzureKeyvaultSecretProvider := MockAzureKeyvaultSecretProvider.MockAzureKeyVaultSecretProvider();
-        MockAzureKeyvaultSecretProvider.AddSecretMapping('ShopifyApiVersionExpiryDate', '{"' + ApiVersion + '": "' + Format(CurrentDateTime().Date().Year, 0, 9) + '-' + Format(CurrentDateTime().Date().Month, 0, 9) + '-' + Format(CurrentDateTime().Date().Day, 0, 9) + '"}');
-        AzureKeyVaultTestLibrary.SetAzureKeyVaultSecretProvider(MockAzureKeyvaultSecretProvider);
-    end;
+    // local procedure SetupKeyVaultExpiryDate(ApiVersion: Text)
+    // var
+    //     AzureKeyVaultTestLibrary: Codeunit "Azure Key Vault Test Library";
+    //     MockAzureKeyvaultSecretProvider: DotNet MockAzureKeyVaultSecretProvider;
+    // begin
+    //     MockAzureKeyvaultSecretProvider := MockAzureKeyvaultSecretProvider.MockAzureKeyVaultSecretProvider();
+    //     MockAzureKeyvaultSecretProvider.AddSecretMapping('ShopifyApiVersionExpiryDate', '{"' + ApiVersion + '": "' + Format(CurrentDateTime().Date().Year, 0, 9) + '-' + Format(CurrentDateTime().Date().Month, 0, 9) + '-' + Format(CurrentDateTime().Date().Day, 0, 9) + '"}');
+    //     AzureKeyVaultTestLibrary.SetAzureKeyVaultSecretProvider(MockAzureKeyvaultSecretProvider);
+    // end;
 }
