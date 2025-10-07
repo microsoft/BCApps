@@ -93,7 +93,6 @@ page 6169 "E-Document QR Code Viewer"
         SetQRCodeImageFromBase64();
     end;
 
-
     local procedure ExportQRCodeToFile()
     var
         Base64Convert: Codeunit "Base64 Convert";
