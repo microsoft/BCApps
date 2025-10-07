@@ -27,6 +27,7 @@ codeunit 4315 "Agent Task Builder"
     /// <returns>This instance of the Agent Task Builder.</returns>
     procedure Initialize(NewAgentUserSecurityId: Guid; NewTaskTitle: Text[150]): codeunit "Agent Task Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskBuilderImpl.Initialize(NewAgentUserSecurityId, NewTaskTitle);
         exit(this);
     end;
@@ -136,6 +137,7 @@ codeunit 4315 "Agent Task Builder"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskImpl.TaskExists(AgentUserSecurityId, ConversationId));
     end;
 }

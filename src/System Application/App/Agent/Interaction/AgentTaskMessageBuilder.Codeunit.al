@@ -148,6 +148,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// </returns>
     procedure GetAgentTaskMessage(): Record "Agent Task Message"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskMsgBuilderImpl.GetAgentTaskMessage());
     end;
 
@@ -218,6 +219,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// </returns>
     procedure GetLastAttachment(): Record "Agent Task File"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskMsgBuilderImpl.GetLastAttachment());
     end;
 
@@ -229,6 +231,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// </returns>
     procedure GetAttachments(var TempAttachments: Record "Agent Task File" temporary)
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.GetAttachments(TempAttachments);
     end;
 }

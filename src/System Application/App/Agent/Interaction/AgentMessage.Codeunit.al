@@ -5,10 +5,15 @@
 
 namespace System.Agents;
 
+using System.Environment;
+
 codeunit 4307 "Agent Message"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
+
+    var
+        FeatureAccessManagement: Codeunit "Feature Access Management";
 
     /// <summary>
     /// Get the message text for the given agent task message.
@@ -19,6 +24,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentMessageImpl.GetText(AgentTaskMessage));
     end;
 
@@ -44,6 +50,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentMessageImpl.IsEditable(AgentTaskMessage));
     end;
 
@@ -95,6 +102,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentMessageImpl.DownloadAttachments(AgentTaskMessage);
     end;
 
@@ -107,6 +115,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentMessageImpl.ShowOrDownloadAttachment(TaskId, FileID, false);
     end;
 
@@ -118,6 +127,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentMessageImpl.ShowOrDownloadAttachment(AgentTaskFile, false);
     end;
 
@@ -131,6 +141,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentMessageImpl.GetAttachments(TaskID, MessageID, TempAgentTaskFile);
     end;
 
@@ -143,6 +154,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentMessageImpl.GetFileSizeDisplayText(SizeInBytes));
     end;
 }
