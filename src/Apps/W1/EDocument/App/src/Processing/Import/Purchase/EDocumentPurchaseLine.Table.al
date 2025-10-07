@@ -66,6 +66,7 @@ table 6101 "E-Document Purchase Line"
             Caption = 'Quantity';
             ToolTip = 'Specifies the quantity.';
             Editable = false;
+            DecimalPlaces = 0 : 5;
             AutoFormatType = 0;
         }
         field(7; "Unit of Measure"; Text[50])
