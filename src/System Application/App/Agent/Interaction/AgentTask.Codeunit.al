@@ -62,7 +62,7 @@ codeunit 4303 "Agent Task"
     /// </summary>
     /// <param name="AgentTask">The agent task to check.</param>
     /// <returns>True if agent task can be set to ready, false otherwise</returns>
-    procedure CanSetStatusToReady(var AgentTask: Record "Agent Task"): Boolean
+    procedure CanSetStatusToReady(AgentTask: Record "Agent Task"): Boolean
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
