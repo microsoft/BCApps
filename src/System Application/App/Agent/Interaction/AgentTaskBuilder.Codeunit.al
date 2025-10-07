@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System.Environment;
+
 /// <summary>
 /// This codeunit is used to create an agent task.
 /// </summary>
