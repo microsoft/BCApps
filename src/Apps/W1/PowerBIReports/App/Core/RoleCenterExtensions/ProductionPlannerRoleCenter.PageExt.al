@@ -8,6 +8,7 @@ using Microsoft.Manufacturing.RoleCenters;
 
 #if not CLEAN28
 #pragma warning disable AL0801
+#pragma warning disable AL0432
 #endif
 pageextension 36958 "Production Planner Role Center" extends "Production Planner Role Center"
 {

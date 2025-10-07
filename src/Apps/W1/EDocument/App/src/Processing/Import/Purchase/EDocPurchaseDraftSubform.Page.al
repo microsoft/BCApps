@@ -64,8 +64,6 @@ page 6183 "E-Doc. Purchase Draft Subform"
                 {
                     ApplicationArea = All;
                     Editable = true;
-                    AutoFormatType = 1;
-                    AutoFormatExpression = Rec."Currency Code";
 
                     trigger OnValidate()
                     begin
@@ -184,6 +182,11 @@ page 6183 "E-Doc. Purchase Draft Subform"
     trigger OnOpenPage()
     begin
         SetDimensionsVisibility();
+    end;
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Clear(LineAmount);
     end;
 
     trigger OnAfterGetRecord()
