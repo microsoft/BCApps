@@ -3,13 +3,15 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace SystemFeedback;
+namespace System.Microsoft.UserFeedback;
 
 /// <summary>
 /// Codeunit for providing feedback to Microsoft. To be used by internal Microsoft apps only.
 /// </summary>
-codeunit 1599 MicrosoftFeedback
+codeunit 1600 "Microsoft User Feedback"
 {
+    Access = Public;
+
     /// <summary>
     /// Requests general feedback for a feature, optionally specifying if it is a Copilot feature and its area.
     /// </summary>
@@ -42,14 +44,11 @@ codeunit 1599 MicrosoftFeedback
     /// <param name="IsAIFeature">Specifies if the feature is an AI feature.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature. ID on OCV.</param>
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
-    /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.
+    /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
     procedure RequestFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
     begin
-        if (IsAIFeature) then
-            ContextProperties.Add('IsAIFeature', 'true');
-
-        Feedback.RequestFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties);
+        this.FeedbackImpl.RequestFeedback(FeatureName, IsAIFeature, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties);
     end;
 
     /// <summary>
@@ -84,14 +83,11 @@ codeunit 1599 MicrosoftFeedback
     /// <param name="FeatureName">The name of the feature for which like feedback is requested.</param>
     /// <param name="IsAIFeature">Specifies if the feature is an AI feature.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature.</param>
-    /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.
+    /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
     procedure RequestLikeFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
     begin
-        if (IsAIFeature) then
-            ContextProperties.Add('IsAIFeature', 'true');
-
-        Feedback.RequestLikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties);
+        this.FeedbackImpl.RequestLikeFeedback(FeatureName, IsAIFeature, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties);
     end;
 
     /// <summary>
@@ -128,13 +124,11 @@ codeunit 1599 MicrosoftFeedback
     /// <param name="IsAIFeature">Specifies if the feature is an AI feature.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature. ID of the sub-area on OCV.</param>
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
-    /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.
+    /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
     procedure RequestDislikeFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextProperties: Dictionary of [Text, Text]; ContextFiles: Dictionary of [Text, Text])
     begin
-        if (IsAIFeature) then
-            ContextProperties.Add('IsAIFeature', 'true');
-        Feedback.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextProperties, ContextFiles);
+        this.FeedbackImpl.RequestDislikeFeedback(FeatureName, IsAIFeature, FeatureArea, FeatureAreaDisplayName, ContextProperties, ContextFiles);
     end;
 
     /// <summary>
@@ -145,7 +139,7 @@ codeunit 1599 MicrosoftFeedback
     /// <param name="Start">If true, starts the timer; if false, stops the timer.</param>
     procedure SurveyTimerActivity(ActivityName: Text; Start: Boolean)
     begin
-        Feedback.SurveyTimerActivity(ActivityName, Start);
+        this.FeedbackImpl.SurveyTimerActivity(ActivityName, Start);
     end;
 
     /// <summary>
@@ -155,9 +149,9 @@ codeunit 1599 MicrosoftFeedback
     /// <param name="ActivityName">The name of the activity that triggers the survey.</param>
     procedure SurveyTriggerActivity(ActivityName: Text)
     begin
-        Feedback.SurveyTriggerActivity(ActivityName);
+        this.FeedbackImpl.SurveyTriggerActivity(ActivityName);
     end;
 
     var
-        Feedback: Codeunit System.Feedback.Feedback;
+        FeedbackImpl: Codeunit "Microsoft User Feedback Impl";
 }

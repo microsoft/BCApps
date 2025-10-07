@@ -1,24 +1,24 @@
-# Feedback Module
+# Microsoft User Feedback Module
 
-The Feedback module provides APIs for collecting user feedback and managing surveys within Business Central applications. This module is part of the System Application and enables developers to gather valuable user input for feature improvement and user experience optimization.
+The Microsoft User Feedback module provides APIs for collecting user feedback and managing surveys within Business Central applications. This module is part of the System Application and enables developers to gather valuable user input for feature improvement and user experience optimization.
 
 ## Module Information
 - **ID**: f7964d32-7685-400f-8297-4bc17d0aab0e
-- **Name**: Feedback
+- **Name**: Microsoft User Feedback
 - **Publisher**: Microsoft  
 - **Version**: 28.0.0.0
-- **Namespace**: `SystemFeedback`
-- **Codeunit**: `MicrosoftFeedback` (ID: 1599)
+- **Namespace**: `System.Microsoft.UserFeedback`
+- **Codeunit**: `Microsoft User Feedback` (ID: 1600)
 
 ## Overview
-The Feedback module provides comprehensive procedures to:
+The Microsoft User Feedback module provides comprehensive procedures to:
 - Request general, positive (like), and negative (dislike) feedback for features
 - Support both regular features and AI-powered features
 - Track user activity with timer-based and trigger-based survey mechanisms
 - Include contextual data with feedback requests
 - Enable targeted feedback collection for specific feature areas
 
-**Note**: This codeunit is designed for use by internal Microsoft apps only.
+**Note**: This module is designed for use by internal Microsoft apps only.
 
 ## API Reference
 
@@ -153,26 +153,26 @@ A dictionary containing additional properties where:
 ### Basic Feedback Request
 ```al
 var
-    MicrosoftFeedback: Codeunit MicrosoftFeedback;
+    MicrosoftUserFeedback: Codeunit "Microsoft User Feedback";
 begin
     // Simple feedback request without area specification
-    MicrosoftFeedback.RequestFeedback('MyFeature', false);
+    MicrosoftUserFeedback.RequestFeedback('MyFeature', false);
     
     // Feedback with feature area and display name
-    MicrosoftFeedback.RequestFeedback('ReportBuilder', false, 'REPORTING_001', 'Reporting & Analytics');
+    MicrosoftUserFeedback.RequestFeedback('ReportBuilder', false, 'REPORTING_001', 'Reporting & Analytics');
     
     // Request positive feedback for an AI feature
-    MicrosoftFeedback.RequestLikeFeedback('AIAssist', true, 'AI_COPILOT_001', 'AI Copilot Features');
+    MicrosoftUserFeedback.RequestLikeFeedback('AIAssist', true, 'AI_COPILOT_001', 'AI Copilot Features');
     
     // Request negative feedback for troubleshooting
-    MicrosoftFeedback.RequestDislikeFeedback('DataSync', false, 'INTEGRATION_001', 'Data Integration');
+    MicrosoftUserFeedback.RequestDislikeFeedback('DataSync', false, 'INTEGRATION_001', 'Data Integration');
 end;
 ```
 
 ### Feedback with Context Data
 ```al
 var
-    MicrosoftFeedback: Codeunit MicrosoftFeedback;
+    MicrosoftUserFeedback: Codeunit "Microsoft User Feedback";
     ContextFiles: Dictionary of [Text, Text];
     ContextProperties: Dictionary of [Text, Text];
 begin
@@ -182,38 +182,38 @@ begin
     ContextProperties.Add('FeatureUsage', 'First time');
     
     // Request feedback with additional context
-    MicrosoftFeedback.RequestFeedback('ReportBuilder', false, 'REPORTING_001', 'Reporting & Analytics', ContextFiles, ContextProperties);
+    MicrosoftUserFeedback.RequestFeedback('ReportBuilder', false, 'REPORTING_001', 'Reporting & Analytics', ContextFiles, ContextProperties);
     
     // Add file attachment for negative feedback
     ContextFiles.Add('screenshot.png', GetBase64EncodedScreenshot());
     ContextFiles.Add('error.log', GetBase64EncodedLogFile());
     
-    MicrosoftFeedback.RequestDislikeFeedback('UIComponent', false, 'UI_COMPONENTS_001', 'User Interface Components', ContextProperties, ContextFiles);
+    MicrosoftUserFeedback.RequestDislikeFeedback('UIComponent', false, 'UI_COMPONENTS_001', 'User Interface Components', ContextProperties, ContextFiles);
 end;
 ```
 
 ### Survey Activity Tracking
 ```al
 var
-    MicrosoftFeedback: Codeunit MicrosoftFeedback;
+    MicrosoftUserFeedback: Codeunit "Microsoft User Feedback";
 begin
     // Start timing user activity
-    MicrosoftFeedback.SurveyTimerActivity('DocumentProcessing', true);
+    MicrosoftUserFeedback.SurveyTimerActivity('DocumentProcessing', true);
     
     // ... user performs document processing tasks ...
     
     // Stop timing when task is complete
-    MicrosoftFeedback.SurveyTimerActivity('DocumentProcessing', false);
+    MicrosoftUserFeedback.SurveyTimerActivity('DocumentProcessing', false);
     
     // Trigger survey based on specific user action
-    MicrosoftFeedback.SurveyTriggerActivity('ReportGeneration');
+    MicrosoftUserFeedback.SurveyTriggerActivity('ReportGeneration');
 end;
 ```
 
 ### AI Feature Feedback
 ```al
 var
-    MicrosoftFeedback: Codeunit MicrosoftFeedback;
+    MicrosoftUserFeedback: Codeunit "Microsoft User Feedback";
     ContextFiles: Dictionary of [Text, Text];
     ContextProperties: Dictionary of [Text, Text];
 begin
@@ -227,10 +227,10 @@ begin
     ContextFiles.Add('generated_content.txt', GetBase64EncodedContent());
     
     // Positive feedback for AI-generated content
-    MicrosoftFeedback.RequestLikeFeedback('AITextGeneration', true, 'AI_TEXT_GEN_001', 'AI Content Creation', ContextFiles, ContextProperties);
+    MicrosoftUserFeedback.RequestLikeFeedback('AITextGeneration', true, 'AI_TEXT_GEN_001', 'AI Content Creation', ContextFiles, ContextProperties);
     
     // Track user satisfaction with AI suggestions
-    MicrosoftFeedback.SurveyTriggerActivity('AISuggestionAccepted');
+    MicrosoftUserFeedback.SurveyTriggerActivity('AISuggestionAccepted');
 end;
 ```
 

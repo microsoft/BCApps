@@ -1,10 +1,10 @@
 {
   "id": "f7964d32-7685-400f-8297-4bc17d0aab0e",
-  "name": "Feedback",
+  "name": "Microsoft User Feedback",
   "publisher": "Microsoft",
   "version": "28.0.0.0",
-  "brief": "Functionality for collecting user feedback",
-  "description": "Functionality to allow for AL developers to collect user feedback from the application.",
+  "brief": "Provides functionality for collecting user feedback which is sent to Microsoft.",
+  "description": "Functionality to allow for AL developers to collect user feedback from the application. Since this module sends feedback to Microsoft, it should be used by Microsoft internal only.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "",
@@ -14,12 +14,6 @@
   "screenshots": [],
   "platform": "28.0.0.0",
   "application": "28.0.0.0",
-  "resourceExposurePolicy": {
-    "allowDebugging": true,
-    "allowDownloadingSource": true,
-    "includeSourceInSymbolFile": true
-  },
-  "runtime": "17.0",
   "features": [
     "NoImplicitWith"
   ],
@@ -27,7 +21,7 @@
   "idRanges": [
     {
       "from": 1595,
-      "to": 1599
+      "to": 1600
     }
   ]
 }
