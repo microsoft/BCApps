@@ -40,7 +40,7 @@ function Get-NavDefaultCompanyName
         Write-Host "Using company $($cronusCompany.CompanyName) for demo data generation"
         return $cronusCompany.CompanyName
     }
-    
+
     # If no Cronus company is found, thow
     throw "No Cronus company found in container $ContainerName.."
 }
