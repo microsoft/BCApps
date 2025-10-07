@@ -138,6 +138,7 @@ page 4300 "Agent Task List"
                 ToolTip = 'Stop the selected task.';
                 Enabled = TaskSelected;
                 Image = Stop;
+                Scope = Repeater;
 
                 trigger OnAction()
                 var
