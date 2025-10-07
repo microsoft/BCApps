@@ -352,6 +352,9 @@ codeunit 8351 "MCP Config Implementation"
 
         if PageMetadata.APIPublisher = 'microsoft' then
             Error(InvalidAPIVersionErr);
+
+        if PageMetadata."AL Namespace" = 'Microsoft.API.V1' then
+            Error(InvalidAPIVersionErr);
     end;
 
     internal procedure AddToolsByAPIGroup(ConfigId: Guid)
