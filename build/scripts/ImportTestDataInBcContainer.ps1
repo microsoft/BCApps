@@ -34,8 +34,8 @@ function Get-NavDefaultCompanyName
     $companies = Get-CompanyInBcContainer -containerName $ContainerName
     $companies | Foreach-Object { Write-Host "Company: $($_.CompanyName)" }
 
-    # Look for a Cronus company
-    $cronusCompany = $companies | Where-Object { $_.CompanyName -match "cronus" } | Select-Object -First 1
+    # Look for the Cronus company
+    $cronusCompany = $companies | Where-Object { $_.CompanyName -match "CRONUS" } | Select-Object -First 1
     if ($cronusCompany) {
         Write-Host "Using company $($cronusCompany.CompanyName) for demo data generation"
         return $cronusCompany.CompanyName
