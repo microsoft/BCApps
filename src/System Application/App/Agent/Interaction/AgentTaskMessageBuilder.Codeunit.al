@@ -27,6 +27,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure Initialize(MessageText: Text): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.Initialize(MessageText);
         exit(this);
     end;
@@ -39,6 +40,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure Initialize(From: Text[250]; MessageText: Text): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.Initialize(From, MessageText);
         exit(this);
     end;
@@ -63,6 +65,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <param name="IgnoreAttachment">Specifies if attachments should be ignored.</param>
     procedure SetIgnoreAttachment(IgnoreAttachment: Boolean): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.SetIgnoreAttachment(IgnoreAttachment);
         exit(this);
     end;
@@ -74,6 +77,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure SetMessageExternalID(ExternalId: Text[2048]): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.SetMessageExternalID(ExternalId);
         exit(this);
     end;
@@ -85,6 +89,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure SetAgentTask(ParentAgentTask: Record "Agent Task"): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.SetAgentTask(ParentAgentTask);
         exit(this);
     end;
@@ -96,6 +101,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure SetAgentTask(ParentAgentTaskID: BigInteger): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.SetAgentTask(ParentAgentTaskID);
         exit(this);
     end;
@@ -156,6 +162,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.AddAttachment(FileName, FileMIMEType, InStream);
         exit(this);
     end;

@@ -70,6 +70,7 @@ codeunit 4315 "Agent Task Builder"
     /// </returns>
     procedure GetAgentTaskMessageCreated(): Record "Agent Task Message"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskBuilderImpl.GetAgentTaskMessageCreated());
     end;
 
@@ -80,6 +81,7 @@ codeunit 4315 "Agent Task Builder"
     /// <returns>This instance of the Agent Task Builder.</returns>
     procedure SetExternalId(ExternalId: Text[2048]): codeunit "Agent Task Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskBuilderImpl.SetExternalId(ExternalId);
         exit(this);
     end;
@@ -118,6 +120,7 @@ codeunit 4315 "Agent Task Builder"
     /// <returns>The agent task message builder.</returns>
     procedure GetTaskMessageBuilder(): Codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskBuilderImpl.GetTaskMessageBuilder());
     end;
 
