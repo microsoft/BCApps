@@ -1,4 +1,3 @@
-#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,14 +7,9 @@ namespace System.TestLibraries.Email;
 
 using System.Email;
 
-#pragma warning disable AL0432
-codeunit 134702 "Test Email Connector v3" implements "Email Connector v3"
-#pragma warning restore AL0432
+codeunit 134704 "Test Email Connector v4" implements "Email Connector v4"
 {
     SingleInstance = true;
-    ObsoleteReason = 'Use Test Email Connector v4.';
-    ObsoleteState = Pending;
-    ObsoleteTag = '28.0';
 
     var
         TempEmailInbox: Record "Email Inbox" temporary;
@@ -31,7 +25,7 @@ codeunit 134702 "Test Email Connector v3" implements "Email Connector v3"
 
     procedure GetAccounts(var Accounts: Record "Email Account")
     begin
-        ConnectorMock.GetAccounts(Accounts, Enum::"Email Connector"::"Test Email Connector v3");
+        ConnectorMock.GetAccounts(Accounts, Enum::"Email Connector"::"Test Email Connector v4");
     end;
 
     procedure ShowAccountInformation(AccountId: Guid)
@@ -107,9 +101,9 @@ codeunit 134702 "Test Email Connector v3" implements "Email Connector v3"
                 EmailInbox.Mark(true);
             until TempEmailInbox.Next() = 0
         else begin
-            ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v3", EmailInbox);
+            ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v4", EmailInbox);
             EmailInbox.Mark(true);
-            ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v3", EmailInbox);
+            ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v4", EmailInbox);
             EmailInbox.Mark(true);
         end;
     end;
@@ -119,5 +113,17 @@ codeunit 134702 "Test Email Connector v3" implements "Email Connector v3"
         if ConnectorMock.FailOnMarkAsRead() then
             Error('Failed to mark email as read');
     end;
+
+    procedure GetEmailFolders(AccountId: Guid; var EmailFolders: Record "Email Folders" temporary)
+    var
+        Index: Integer;
+    begin
+        if ConnectorMock.FailOnGetEmailFolders() then
+            Error('Failed to get email folders');
+
+        repeat
+            Index += 1;
+            ConnectorMock.CreateEmailFolder(Index, EmailFolders);
+        until EmailFolders.Count() >= 5;
+    end;
 }
-#endif
