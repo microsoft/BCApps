@@ -43,11 +43,6 @@ page 4310 "Agent Setup Part"
                 {
                     Caption = 'Active';
                     ToolTip = 'Specifies the state of the sales order agent, such as active or inactive.';
-
-                    trigger OnValidate()
-                    begin
-                        Rec.SetConfigUpdated(true);
-                    end;
                 }
                 field(LanguageAndRegion; LanguageAndRegionLbl)
                 {
@@ -55,22 +50,20 @@ page 4310 "Agent Setup Part"
                     Editable = false;
                     ToolTip = 'Specifies the language and region settings for the sales order agent.';
 
-                    ApplicationArea = All;
                     trigger OnDrillDown()
                     begin
-                        Rec.SetupLanguageAndRegion();
+                        AgentSetup.SetupLanguageAndRegion(Rec);
                     end;
-
                 }
                 field(UserSettingsLink; ManageUserAccessLbl)
                 {
                     Caption = 'Coworkers can use this agent.';
-                    ApplicationArea = All;
+                    Editable = false;
                     ToolTip = 'Specifies the user access control settings for the sales order agent.';
 
                     trigger OnDrillDown()
                     begin
-                        Rec.UpdateUserAccessControl();
+                        AgentSetup.UpdateUserAccessControl(Rec)
                     end;
                 }
             }
@@ -87,24 +80,18 @@ page 4310 "Agent Setup Part"
                 Caption = 'Language used';
                 Editable = false;
                 ToolTip = 'Specifies the language that the sales order agent uses to communicate.';
-
-                ApplicationArea = All;
             }
         }
     }
 
     procedure InitializePart(UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80]; NewAgentSummary: Text)
     begin
-        Rec.Initialize(UserSecurityID, AgentMetadataProvider, DefaultUserName, DefaultDisplayName, NewAgentSummary);
+        Rec := AgentSetup.GetSetupRecord(UserSecurityID, AgentMetadataProvider, DefaultUserName, DefaultDisplayName, NewAgentSummary);
         AgentSummary := NewAgentSummary;
     end;
 
-    procedure GetChangesMade(): Boolean
-    begin
-        exit(Rec.GetChangesMade());
-    end;
-
     var
+        AgentSetup: Codeunit "Agent Setup";
         AgentSummary: Text;
         ManageUserAccessLbl: Label 'Manage user access';
         LanguageAndRegionLbl: Label 'Language and region';

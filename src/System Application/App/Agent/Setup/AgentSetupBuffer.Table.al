@@ -5,9 +5,6 @@
 
 namespace System.Agents;
 
-using System.Environment.Configuration;
-using System.Globalization;
-
 table 4310 "Agent Setup Buffer"
 {
     Caption = 'Agent Setup Buffer';
@@ -48,6 +45,11 @@ table 4310 "Agent Setup Buffer"
         {
             Caption = 'Display Name';
             Tooltip = 'Specifies the display name of the user that is associated with the agent.';
+
+            trigger OnValidate()
+            begin
+                SetValuesUpdated();
+            end;
         }
         /// <summary>
         /// The current operational state of the agent (Enabled or Disabled).
@@ -59,6 +61,11 @@ table 4310 "Agent Setup Buffer"
             OptionMembers = Enabled,Disabled;
             Tooltip = 'Specifies the state of the user that is associated with the agent.';
             InitValue = Disabled;
+
+            trigger OnValidate()
+            begin
+                SetValuesUpdated();
+            end;
         }
         /// <summary>
         /// The initials displayed on the agent's icon in the timeline and user interface.
@@ -67,6 +74,11 @@ table 4310 "Agent Setup Buffer"
         {
             Caption = 'Initials';
             ToolTip = 'Specifies the initials to be displayed on the icon opening the agent''s timeline.';
+
+            trigger OnValidate()
+            begin
+                SetValuesUpdated();
+            end;
         }
         /// <summary>
         /// Short summary of the agents capabilities and role.
@@ -74,7 +86,7 @@ table 4310 "Agent Setup Buffer"
         field(5000; "Agent Summary"; Blob)
         {
             Caption = 'Agent Summary';
-            ToolTip = 'Specifies a short summary of the agents capabilities and role.';
+            ToolTip = 'Specifies a short summary of the agents capabilities and role. Value is changed through code.';
         }
         /// <summary>
         /// Specifies the language that is used for task details and outgoing messages unless language is changed by the code
@@ -82,8 +94,30 @@ table 4310 "Agent Setup Buffer"
         field(5001; "Language Used"; Text[1024])
         {
             Caption = 'Language Used';
-            ToolTip = 'Specifies the language that is used for task details and outgoing messages unless language is changed by the code.';
+            ToolTip = 'Specifies the language that is used for task details and outgoing messages unless language is changed by the code. Value is changed through code.';
             Editable = false;
+            AllowInCustomizations = Never;
+        }
+        field(5002; "Values Updated"; Boolean)
+        {
+            Caption = 'Config Updated';
+            ToolTip = 'Specifies whether the configuration has been updated. Value is changed through code.';
+            Editable = false;
+            AllowInCustomizations = Never;
+        }
+        field(5003; "Access Updated"; Boolean)
+        {
+            Caption = 'Access Updated';
+            ToolTip = 'Specifies whether the access control has been updated. Value is changed through code.';
+            Editable = false;
+            AllowInCustomizations = Never;
+        }
+        field(5004; "User Settings Updated"; Boolean)
+        {
+            Caption = 'User Settings Updated';
+            ToolTip = 'Specifies whether the user settings have been updated. Value is changed through code.';
+            Editable = false;
+            AllowInCustomizations = Never;
         }
     }
     keys
@@ -94,127 +128,22 @@ table 4310 "Agent Setup Buffer"
         }
     }
 
-    internal procedure GetConfigUpdated(): Boolean
+    internal procedure SetTempAgentAccessControl(var NewTempAgentAccessControl: Record "Agent Access Control" temporary)
     begin
-        exit(ConfigUpdated);
-    end;
-
-    internal procedure SetConfigUpdated(NewConfigUpdated: Boolean)
-    begin
-        ConfigUpdated := NewConfigUpdated;
-    end;
-
-    internal procedure GetAccessUpdated(): Boolean
-    begin
-        exit(AccessUpdated);
-    end;
-
-    internal procedure SetAccessUpdated(NewAccessUpdated: Boolean)
-    begin
-        AccessUpdated := NewAccessUpdated;
-    end;
-
-    internal procedure GetUserSettingsUpdated(): Boolean
-    begin
-        exit(UserSettingsUpdated);
-    end;
-
-    internal procedure SetUserSettingsUpdated(NewUserSettingsUpdated: Boolean)
-    begin
-        UserSettingsUpdated := NewUserSettingsUpdated;
-    end;
-
-    /// <summary>
-    /// Gets the Agent Summary as text from the blob field.
-    /// </summary>
-    /// <returns>The agent summary text content.</returns>
-    internal procedure GetAgentSummary(): Text
-    var
-        InStream: InStream;
-        SummaryText: Text;
-    begin
-        Rec.CalcFields("Agent Summary");
-        if not Rec."Agent Summary".HasValue() then
-            exit('');
-
-        Rec."Agent Summary".CreateInStream(InStream, GetDefaultEncoding());
-        InStream.ReadText(SummaryText);
-        exit(SummaryText);
-    end;
-
-    /// <summary>
-    /// Sets the Agent Summary blob field with the provided text.
-    /// </summary>
-    /// <param name="SummaryText">The text content to store in the agent summary.</param>
-    internal procedure SetAgentSummary(SummaryText: Text)
-    var
-        OutStream: OutStream;
-    begin
-        Rec."Agent Summary".CreateOutStream(OutStream, GetDefaultEncoding());
-        OutStream.WriteText(SummaryText);
-    end;
-
-    local procedure GetDefaultEncoding(): TextEncoding
-    begin
-        exit(TextEncoding::UTF8);
-    end;
-
-    internal procedure Initialize(UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80]; AgentSummary: Text)
-    begin
-        Rec.Reset();
-        Rec.DeleteAll();
         TempAgentAccessControl.Reset();
         TempAgentAccessControl.DeleteAll();
-
-        Rec."User Security ID" := UserSecurityID;
-        Rec."Agent Metadata Provider" := AgentMetadataProvider;
-
-        UpdateFiles(UserSecurityID, AgentMetadataProvider, DefaultUserName, DefaultDisplayName);
-
-        Rec.Insert();
-        SetAgentSummary(AgentSummary);
-        Rec.Modify();
+        CopyTempAgentAccessControl(NewTempAgentAccessControl, TempAgentAccessControl);
     end;
 
-    internal procedure UpdateUserAccessControl()
+    internal procedure GetTempAgentAccessControl(): Record "Agent Access Control" temporary
     var
-        TempBackupAgentAccessControl: Record "Agent Access Control" temporary;
+        TempCopiedTempAccessControl: Record "Agent Access Control" temporary;
     begin
-        Rec.UpdateUserAccessControl();
-        CopyTempAgentAccessControl(TempAgentAccessControl, TempBackupAgentAccessControl);
-        if (Page.RunModal(Page::"Select Agent Access Control", TempAgentAccessControl) in [Action::LookupOK, Action::OK]) then begin
-            Rec.SetAccessUpdated(true);
-            Rec.SetConfigUpdated(true);
-            exit;
-        end;
-
-        CopyTempAgentAccessControl(TempBackupAgentAccessControl, TempAgentAccessControl);
+        CopyTempAgentAccessControl(TempAgentAccessControl, TempCopiedTempAccessControl);
+        exit(TempCopiedTempAccessControl);
     end;
 
-    internal procedure SetupLanguageAndRegion()
-    var
-        UserSettings: Record "User Settings";
-        Language: Codeunit Language;
-        AgentUserSettings: Page "Agent User Settings";
-    begin
-        AgentUserSettings.InitializeTemp(UserSettings);
-        if AgentUserSettings.RunModal() in [Action::LookupOK, Action::OK] then begin
-            AgentUserSettings.GetRecord(UserSettings);
-            Rec.SetAccessUpdated(true);
-            Rec.SetUserSettingsUpdated(true);
-#pragma warning disable AA0139
-            Rec."Language Used" := Language.GetWindowsLanguageName(UserSettings."Language ID");
-#pragma warning restore AA0139
-            Rec.Modify();
-        end;
-    end;
-
-    internal procedure GetChangesMade(): Boolean
-    begin
-        exit(ConfigUpdated or AccessUpdated or UserSettingsUpdated);
-    end;
-
-    local procedure CopyTempAgentAccessControl(var SourceTempAgentAccessControl: Record "Agent Access Control" temporary; var TargetTempAgentAccessControl: Record "Agent Access Control" temporary)
+    internal procedure CopyTempAgentAccessControl(var SourceTempAgentAccessControl: Record "Agent Access Control" temporary; var TargetTempAgentAccessControl: Record "Agent Access Control" temporary)
     begin
         TargetTempAgentAccessControl.Reset();
         TargetTempAgentAccessControl.DeleteAll();
@@ -227,31 +156,11 @@ table 4310 "Agent Setup Buffer"
         until SourceTempAgentAccessControl.Next() = 0;
     end;
 
-    local procedure UpdateFiles(UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80])
-    var
-        Agent: Record Agent;
-        AgentMetadata: Interface IAgentMetadata;
+    local procedure SetValuesUpdated()
     begin
-        if not IsNullGuid(UserSecurityID) then
-            if Agent.Get(UserSecurityID) then begin
-                Rec."User Name" := Agent."User Name";
-                Rec."Display Name" := Agent."Display Name";
-                Rec.State := Agent.State;
-                // Question - do initials always win over AgentMetadataProvider?
-                Rec.Initials := Agent.Initials;
-                exit;
-            end;
-
-        AgentMetadata := AgentMetadataProvider;
-        Rec."User Name" := DefaultUserName;
-        Rec."Display Name" := DefaultDisplayName;
-        Rec.Initials := AgentMetadata.GetInitials(UserSecurityID);
-        Rec.State := Rec.State::Disabled;
+        Rec."Values Updated" := true;
     end;
 
     var
         TempAgentAccessControl: Record "Agent Access Control" temporary;
-        ConfigUpdated: Boolean;
-        AccessUpdated: Boolean;
-        UserSettingsUpdated: Boolean;
 }
