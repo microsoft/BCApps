@@ -124,7 +124,7 @@ codeunit 130130 "MCP Config Test"
 
         // [THEN] Access to all read-only objects is enabled
         MCPConfiguration.GetBySystemId(ConfigId);
-        Assert.IsTrue(MCPConfiguration.EnableDiscoverReadOnlyObjects, 'Access to all read-only objects is not enabled');
+        Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'Access to all read-only objects is not enabled');
     end;
 
     [Test]
@@ -141,7 +141,7 @@ codeunit 130130 "MCP Config Test"
 
         // [THEN] Access to all read-only objects is disabled
         MCPConfiguration.GetBySystemId(ConfigId);
-        Assert.IsFalse(MCPConfiguration.EnableDiscoverReadOnlyObjects, 'Access to all read-only objects is not disabled');
+        Assert.IsFalse(MCPConfiguration.DiscoverReadOnlyObjects, 'Access to all read-only objects is not disabled');
     end;
 
     [Test]
