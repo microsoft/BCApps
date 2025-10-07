@@ -122,6 +122,7 @@ page 4300 "Agent Task List"
                 ToolTip = 'Show log entries for the selected task.';
                 Enabled = TaskSelected;
                 Image = TaskList;
+                Scope = Repeater;
 
                 trigger OnAction()
                 var
