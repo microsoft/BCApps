@@ -28,6 +28,7 @@ codeunit 8351 "MCP Config Implementation"
         InvalidPageTypeErr: Label 'Only API pages are supported.';
         InvalidAPIVersionErr: Label 'Only API v2.0 pages are supported.';
         DefaultMCPConfigurationDescriptionLbl: Label 'Default MCP configuration';
+        DynamicToolModeRequiredErr: Label 'Dynamic tool mode needs to be enabled to discover read-only objects.';
         SettingConfigurationActiveLbl: Label 'Setting MCP configuration %1 Active to %2', Comment = '%1 - configuration ID, %2 - active', Locked = true;
         SettingConfigurationAllowProdChangesLbl: Label 'Setting MCP configuration %1 AllowProdChanges to %2', Comment = '%1 - configuration ID, %2 - allow production changes', Locked = true;
         DeletedConfigurationLbl: Label 'Deleted MCP configuration %1', Comment = '%1 - configuration ID', Locked = true;
@@ -158,6 +159,8 @@ codeunit 8351 "MCP Config Implementation"
             Error(DynamicToolModeCannotBeDisabledErr);
 
         MCPConfiguration.EnableDynamicToolMode := Enable;
+        if not Enable then
+            MCPConfiguration.DiscoverReadOnlyObjects := false;
         MCPConfiguration.Modify();
         Session.LogMessage('0000QEC', StrSubstNo(SettingConfigurationEnableDynamicToolModeLbl, ConfigId, Enable), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
     end;
@@ -171,6 +174,9 @@ codeunit 8351 "MCP Config Implementation"
 
         if not Enable and IsDefaultConfiguration(MCPConfiguration) then
             Error(DiscoverReadOnlyObjectsCannotBeDisabledErr);
+
+        if Enable and not MCPConfiguration.EnableDynamicToolMode then
+            Error(DynamicToolModeRequiredErr);
 
         MCPConfiguration.DiscoverReadOnlyObjects := Enable;
         MCPConfiguration.Modify();

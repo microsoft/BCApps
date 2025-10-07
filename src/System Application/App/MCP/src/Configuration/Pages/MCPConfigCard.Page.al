@@ -46,17 +46,22 @@ page 8351 "MCP Config Card"
                 }
                 field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
                 {
+                    Caption = 'Dynamic Tool Mode';
                     ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools within the configuration dynamically.';
                     Editable = not IsDefault;
 
                     trigger OnValidate()
                     begin
                         Session.LogMessage('0000QE7', StrSubstNo(SettingConfigurationEnableDynamicToolModeLbl, Rec.SystemId, Rec.EnableDynamicToolMode), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
+
+                        if not Rec.EnableDynamicToolMode then
+                            Rec.DiscoverReadOnlyObjects := false;
                     end;
                 }
                 field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects)
                 {
-                    ToolTip = 'Specifies whether to allow discovery of accessible read-only objects for this MCP configuration.';
+                    Caption = 'Discover Additional Objects';
+                    ToolTip = 'Specifies whether to allow discovery of read-only objects not defined in the configuration. Only supported with dynamic tool mode.';
                     Editable = not IsDefault and Rec.EnableDynamicToolMode;
 
                     trigger OnValidate()

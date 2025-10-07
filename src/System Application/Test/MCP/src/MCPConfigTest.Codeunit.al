@@ -111,13 +111,31 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
+    procedure TestDisableDynamicToolModeDisablesDiscoverReadOnlyObjects()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] Configuration is created
+        ConfigId := CreateMCPConfig(false, true, true, true);
+
+        // [WHEN] Disable dynamic tool mode is called
+        MCPConfig.EnableDynamicToolMode(ConfigId, false);
+
+        // [THEN] Dynamic tool mode is disabled
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.EnableDynamicToolMode, 'Dynamic tool mode is not disabled');
+        Assert.IsFalse(MCPConfiguration.DiscoverReadOnlyObjects, 'Access to all read-only objects is not disabled');
+    end;
+
+    [Test]
     procedure TestEnableDiscoverReadOnlyObjects()
     var
         MCPConfiguration: Record "MCP Configuration";
         ConfigId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(false, false, false, false);
+        ConfigId := CreateMCPConfig(false, true, false, false);
 
         // [WHEN] Enable access to all read-only objects is called
         MCPConfig.EnableDiscoverReadOnlyObjects(ConfigId, true);
@@ -134,7 +152,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(false, false, false, true);
+        ConfigId := CreateMCPConfig(false, true, false, true);
 
         // [WHEN] Disable access to all read-only objects is called
         MCPConfig.EnableDiscoverReadOnlyObjects(ConfigId, false);
@@ -142,6 +160,21 @@ codeunit 130130 "MCP Config Test"
         // [THEN] Access to all read-only objects is disabled
         MCPConfiguration.GetBySystemId(ConfigId);
         Assert.IsFalse(MCPConfiguration.DiscoverReadOnlyObjects, 'Access to all read-only objects is not disabled');
+    end;
+
+    [Test]
+    procedure TestEnableDiscoverReadOnlyObjectsWithoutDynamicToolMode()
+    var
+        ConfigId: Guid;
+    begin
+        // [GIVEN] Configuration is created
+        ConfigId := CreateMCPConfig(false, false, false, false);
+
+        // [WHEN] Enable access to all read-only objects is called
+        asserterror MCPConfig.EnableDiscoverReadOnlyObjects(ConfigId, true);
+
+        // [THEN] Error message is returned
+        Assert.ExpectedError('Dynamic tool mode needs to be enabled to discover read-only objects.');
     end;
 
     [Test]
@@ -481,14 +514,14 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfigCard.ToolList.Visible(), 'ToolList is visible');
     end;
 
-    local procedure CreateMCPConfig(Active: Boolean; ToolSearchMode: Boolean; AllowProdChanges: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
+    local procedure CreateMCPConfig(Active: Boolean; DynamicToolMode: Boolean; AllowProdChanges: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
         MCPConfiguration.Name := CopyStr(Format(CreateGuid()), 1, 100);
         MCPConfiguration.Description := CopyStr(Any.AlphabeticText(100), 1, 100);
         MCPConfiguration.Active := Active;
-        MCPConfiguration.EnableDynamicToolMode := ToolSearchMode;
+        MCPConfiguration.EnableDynamicToolMode := DynamicToolMode;
         MCPConfiguration.AllowProdChanges := AllowProdChanges;
         MCPConfiguration.DiscoverReadOnlyObjects := DiscoverReadOnlyObjects;
         MCPConfiguration.Insert();
