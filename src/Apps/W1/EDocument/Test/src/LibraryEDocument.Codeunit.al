@@ -330,6 +330,7 @@ codeunit 139629 "Library - E-Document"
             until WorkflowStep.Next() = 0;
 
         LibraryWorkflow.CreateWorkflow(Workflow);
+        Workflow.Category := 'EDOC';
         EDocCreatedEventID := LibraryWorkflow.InsertEntryPointEventStep(Workflow, EDocWorkflowSetup.EDocCreated());
         SendEDocResponseEventID := LibraryWorkflow.InsertResponseStep(Workflow, EDocWorkflowSetup.EDocSendEDocResponseCode(), EDocCreatedEventID);
 

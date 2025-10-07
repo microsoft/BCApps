@@ -366,7 +366,12 @@ table 6121 "E-Document"
         exit(true);
     end;
 
-    procedure Exists(RecordVariant: Variant): Boolean
+    /// <summary>
+    /// Checks if an E-Document is created for the given document record.
+    /// </summary>
+    /// <param name="RecordVariant">Document record</param>
+    /// <returns>True if an E-Document exists for the given record, false otherwise</returns>
+    procedure IsEDocumentCreatedForRecord(RecordVariant: Variant): Boolean
     var
         EDocument: Record "E-Document";
         TypeHelper: Codeunit "Type Helper";

@@ -468,7 +468,7 @@ codeunit 6103 "E-Document Subscribers"
         if DocumentSendingProfile."Electronic Service Flow" = '' then
             exit;
 
-        if not EDocument.Exists(RecordVariant) then
+        if not EDocument.IsEDocumentCreatedForRecord(RecordVariant) then
             CreateEDocumentFromPostedDocument(RecordVariant, DocumentSendingProfile);
     end;
 
@@ -488,7 +488,7 @@ codeunit 6103 "E-Document Subscribers"
                                                                 Enum::"Document Sending Profile Attachment Type"::"PDF & E-Document"]) then
             exit;
 
-        if not EDocument.Exists(RecordVariant) then
+        if not EDocument.IsEDocumentCreatedForRecord(RecordVariant) then
             CreateEDocumentFromPostedDocument(RecordVariant, DocumentSendingProfile);
 
         EDocumentProcessing.ProcessEDocumentAsEmail(DocumentSendingProfile, ReportUsage, RecordVariant, DocNo, DocName, ToCust, ShowDialog);
