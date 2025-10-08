@@ -22,6 +22,7 @@ page 8350 "MCP Config List"
     InherentEntitlements = X;
     InherentPermissions = X;
     AnalysisModeEnabled = false;
+    SourceTableView = where(Name = filter(<> ''));
     // AboutTitle = TODONAT;
     // AboutText = TODONAT;
 
