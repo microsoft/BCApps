@@ -12,7 +12,6 @@ page 30145 "Shpfy Refund"
     PageType = Document;
     SourceTable = "Shpfy Refund Header";
     UsageCategory = None;
-    Editable = false;
 
     layout
     {
