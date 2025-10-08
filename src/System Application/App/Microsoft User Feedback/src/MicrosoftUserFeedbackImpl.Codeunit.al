@@ -5,23 +5,30 @@
 
 namespace System.Microsoft.UserFeedback;
 
+using System.Feedback;
+
 /// <summary>
 /// Implementation codeunit for providing feedback to Microsoft. To be used by internal Microsoft apps only.
 /// </summary>
 codeunit 1589 "Microsoft User Feedback Impl"
 {
+    Access = Internal;
+    InherentPermissions = X;
+    InherentEntitlements = X;
+
     /// <summary>
     /// Requests general feedback for a feature, optionally specifying if it is a Copilot feature and its area.
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which feedback is requested.</param>
-    /// <param name="IsAIFeature">Specifies if the feature is an AI feature.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature. ID on OCV.</param>
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
     /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
-    procedure RequestFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
+    procedure RequestFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
     begin
-        if (IsAIFeature) then
+        this.CheckFeedbackCollectionAllowed();
+
+        if (this.IsAIFeedback) then
             ContextProperties.Add('IsAIFeature', 'true');
 
         Feedback.RequestFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties);
@@ -31,13 +38,14 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// Requests a 'like' (positive) feedback for a feature, optionally specifying if it is a Copilot feature and its area.
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which like feedback is requested.</param>
-    /// <param name="IsAIFeature">Specifies if the feature is an AI feature.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature.</param>
     /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
-    procedure RequestLikeFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
+    procedure RequestLikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
     begin
-        if (IsAIFeature) then
+        this.CheckFeedbackCollectionAllowed();
+
+        if (this.IsAIFeedback) then
             ContextProperties.Add('IsAIFeature', 'true');
 
         Feedback.RequestLikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties);
@@ -47,16 +55,29 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// Requests a 'dislike' (negative) feedback for a feature, optionally specifying if it is a Copilot feature and its area.
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which dislike feedback is requested.</param>
-    /// <param name="IsAIFeature">Specifies if the feature is an AI feature.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature. ID of the sub-area on OCV.</param>
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
     /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
-    procedure RequestDislikeFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextProperties: Dictionary of [Text, Text]; ContextFiles: Dictionary of [Text, Text])
+    procedure RequestDislikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextProperties: Dictionary of [Text, Text]; ContextFiles: Dictionary of [Text, Text])
     begin
-        if (IsAIFeature) then
+        this.CheckFeedbackCollectionAllowed();
+
+        if (this.IsAIFeedback) then
             ContextProperties.Add('IsAIFeature', 'true');
+
         Feedback.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextProperties, ContextFiles);
+    end;
+
+    /// <summary>
+    /// Sets whether the General/Like/Dislike feedback being collected is for an AI feature.
+    /// </summary>
+    /// <param name="AIFeedback">True if the feedback is for an AI feature; otherwise, false.</param>
+    /// <returns>The current instance of the "Microsoft User Feedback Impl" codeunit.</returns>
+    procedure SetIsAIFeedback(AIFeedback: Boolean): Codeunit "Microsoft User Feedback Impl"
+    begin
+        this.IsAIFeedback := AIFeedback;
+        exit(this);
     end;
 
     /// <summary>
@@ -67,6 +88,7 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// <param name="Start">If true, starts the timer; if false, stops the timer.</param>
     procedure SurveyTimerActivity(ActivityName: Text; Start: Boolean)
     begin
+        this.CheckFeedbackCollectionAllowed();
         Feedback.SurveyTimerActivity(ActivityName, Start);
     end;
 
@@ -77,9 +99,24 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// <param name="ActivityName">The name of the activity that triggers the survey.</param>
     procedure SurveyTriggerActivity(ActivityName: Text)
     begin
+        this.CheckFeedbackCollectionAllowed();
         Feedback.SurveyTriggerActivity(ActivityName);
     end;
 
+    local procedure CheckFeedbackCollectionAllowed()
     var
-        Feedback: Codeunit System.Feedback.Feedback;
+        CallerModuleInfo: ModuleInfo;
+        CurrentModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+
+        if CallerModuleInfo.Publisher() <> CurrentModuleInfo.Publisher() then
+            Error(this.OnlyMicrosoftAllowedErr, CurrentModuleInfo.Publisher())
+    end;
+
+    var
+        Feedback: Codeunit Feedback;
+        IsAIFeedback: Boolean;
+        OnlyMicrosoftAllowedErr: Label 'Only the publisher %1 can collect feedback using this mechanism.', Comment = '%1 is the publisher of the module allowed to use this module.';
 }

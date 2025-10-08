@@ -25,18 +25,17 @@ The Microsoft User Feedback module provides comprehensive procedures to:
 ---
 
 ### RequestFeedback
-Requests general feedback for a feature, optionally specifying if it is an AI feature and its area.
+Requests general feedback for a feature, optionally specifying its area and context.
 
 **Signatures:**
 ```al
-procedure RequestFeedback(FeatureName: Text; IsAIFeature: Boolean)
-procedure RequestFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text)
-procedure RequestFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
+procedure RequestFeedback(FeatureName: Text)
+procedure RequestFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text)
+procedure RequestFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
 ```
 
 **Parameters:**
 - `FeatureName`: The name of the feature for which feedback is requested.
-- `IsAIFeature`: Specifies if the feature is an AI feature.
 - `FeatureArea` (optional): The area or sub-area of the feature. ID on OCV.
 - `FeatureAreaDisplayName` (optional): The display name of the feature area.
 - `ContextFiles` (optional): Map of filename to base64-encoded file content to attach to the feedback. The key must contain the filename with extension.
@@ -45,18 +44,17 @@ procedure RequestFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: 
 ---
 
 ### RequestLikeFeedback
-Requests a 'like' (positive) feedback for a feature, optionally specifying if it is an AI feature and its area.
+Requests a 'like' (positive) feedback for a feature, optionally specifying its area and context.
 
 **Signatures:**
 ```al
-procedure RequestLikeFeedback(FeatureName: Text; IsAIFeature: Boolean)
-procedure RequestLikeFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text)
-procedure RequestLikeFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
+procedure RequestLikeFeedback(FeatureName: Text)
+procedure RequestLikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text)
+procedure RequestLikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
 ```
 
 **Parameters:**
 - `FeatureName`: The name of the feature for which like feedback is requested.
-- `IsAIFeature`: Specifies if the feature is an AI feature.
 - `FeatureArea` (optional): The area or sub-area of the feature. ID on OCV.
 - `FeatureAreaDisplayName` (optional): The display name of the feature area.
 - `ContextFiles` (optional): Map of filename to base64-encoded file content to attach to the feedback. The key must contain the filename with extension.
@@ -65,22 +63,46 @@ procedure RequestLikeFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureAr
 ---
 
 ### RequestDislikeFeedback
-Requests a 'dislike' (negative) feedback for a feature, optionally specifying if it is an AI feature and its area.
+Requests a 'dislike' (negative) feedback for a feature, optionally specifying its area and context.
 
 **Signatures:**
 ```al
-procedure RequestDislikeFeedback(FeatureName: Text; IsAIFeature: Boolean)
-procedure RequestDislikeFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text)
-procedure RequestDislikeFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextProperties: Dictionary of [Text, Text]; ContextFiles: Dictionary of [Text, Text])
+procedure RequestDislikeFeedback(FeatureName: Text)
+procedure RequestDislikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text)
+procedure RequestDislikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextProperties: Dictionary of [Text, Text]; ContextFiles: Dictionary of [Text, Text])
 ```
 
 **Parameters:**
 - `FeatureName`: The name of the feature for which dislike feedback is requested.
-- `IsAIFeature`: Specifies if the feature is an AI feature.
 - `FeatureArea` (optional): The area or sub-area of the feature. ID of the sub-area on OCV.
 - `FeatureAreaDisplayName` (optional): The display name of the feature area.
 - `ContextProperties` (optional): Additional properties to pass to the feedback mechanism as key-value pairs.
 - `ContextFiles` (optional): Map of filename to base64-encoded file content to attach to the feedback. The key must contain the filename with extension.
+
+---
+
+### SetIsAIFeedback
+Sets whether the feedback being collected is for an AI feature. This method supports fluent API usage by returning the codeunit instance.
+
+**Signature:**
+```al
+procedure SetIsAIFeedback(IsAIFeedback: Boolean): Codeunit "Microsoft User Feedback"
+```
+
+**Parameters:**
+- `IsAIFeedback`: True if the feedback is for an AI feature; otherwise, false.
+
+**Returns:**
+- The current instance of the "Microsoft User Feedback" codeunit for method chaining.
+
+**Example Usage:**
+```al
+// For AI features using fluent API
+MicrosoftUserFeedback.SetIsAIFeedback(true).RequestFeedback('AI Assistant');
+
+// For regular features
+MicrosoftUserFeedback.SetIsAIFeedback(false).RequestLikeFeedback('Data Export', 'EXPORT_001', 'Data Export');
+```
 
 ---
 
@@ -156,16 +178,16 @@ var
     MicrosoftUserFeedback: Codeunit "Microsoft User Feedback";
 begin
     // Simple feedback request without area specification
-    MicrosoftUserFeedback.RequestFeedback('MyFeature', false);
+    MicrosoftUserFeedback.RequestFeedback('MyFeature');
     
     // Feedback with feature area and display name
-    MicrosoftUserFeedback.RequestFeedback('ReportBuilder', false, 'REPORTING_001', 'Reporting & Analytics');
+    MicrosoftUserFeedback.RequestFeedback('ReportBuilder', 'REPORTING_001', 'Reporting & Analytics');
     
-    // Request positive feedback for an AI feature
-    MicrosoftUserFeedback.RequestLikeFeedback('AIAssist', true, 'AI_COPILOT_001', 'AI Copilot Features');
+    // Request positive feedback for an AI feature using fluent API
+    MicrosoftUserFeedback.SetIsAIFeedback(true).RequestLikeFeedback('AIAssist', 'AI_COPILOT_001', 'AI Copilot Features');
     
     // Request negative feedback for troubleshooting
-    MicrosoftUserFeedback.RequestDislikeFeedback('DataSync', false, 'INTEGRATION_001', 'Data Integration');
+    MicrosoftUserFeedback.RequestDislikeFeedback('DataSync', 'INTEGRATION_001', 'Data Integration');
 end;
 ```
 
@@ -182,13 +204,13 @@ begin
     ContextProperties.Add('FeatureUsage', 'First time');
     
     // Request feedback with additional context
-    MicrosoftUserFeedback.RequestFeedback('ReportBuilder', false, 'REPORTING_001', 'Reporting & Analytics', ContextFiles, ContextProperties);
+    MicrosoftUserFeedback.RequestFeedback('ReportBuilder', 'REPORTING_001', 'Reporting & Analytics', ContextFiles, ContextProperties);
     
     // Add file attachment for negative feedback
     ContextFiles.Add('screenshot.png', GetBase64EncodedScreenshot());
     ContextFiles.Add('error.log', GetBase64EncodedLogFile());
     
-    MicrosoftUserFeedback.RequestDislikeFeedback('UIComponent', false, 'UI_COMPONENTS_001', 'User Interface Components', ContextProperties, ContextFiles);
+    MicrosoftUserFeedback.RequestDislikeFeedback('UIComponent', 'UI_COMPONENTS_001', 'User Interface Components', ContextProperties, ContextFiles);
 end;
 ```
 
@@ -226,8 +248,8 @@ begin
     // Optionally attach the generated content as a file
     ContextFiles.Add('generated_content.txt', GetBase64EncodedContent());
     
-    // Positive feedback for AI-generated content
-    MicrosoftUserFeedback.RequestLikeFeedback('AITextGeneration', true, 'AI_TEXT_GEN_001', 'AI Content Creation', ContextFiles, ContextProperties);
+    // Positive feedback for AI-generated content using fluent API
+    MicrosoftUserFeedback.SetIsAIFeedback(true).RequestLikeFeedback('AITextGeneration', 'AI_TEXT_GEN_001', 'AI Content Creation', ContextFiles, ContextProperties);
     
     // Track user satisfaction with AI suggestions
     MicrosoftUserFeedback.SurveyTriggerActivity('AISuggestionAccepted');
@@ -236,13 +258,48 @@ end;
 
 ---
 
+## API Changes and Migration Guide
+
+### Fluent API Pattern for AI Features
+The API has been updated to use a fluent pattern for indicating AI features. Instead of passing a boolean `IsAIFeature` parameter to each feedback method, use the `SetIsAIFeedback()` method:
+
+**Before (deprecated):**
+```al
+// Old API with IsAIFeature parameter (no longer supported)
+MicrosoftUserFeedback.RequestFeedback('MyFeature', true, 'AREA_001', 'Feature Area');
+```
+
+**After (current):**
+```al
+// New fluent API pattern
+MicrosoftUserFeedback.SetIsAIFeedback(true).RequestFeedback('MyFeature', 'AREA_001', 'Feature Area');
+
+// Or for non-AI features, you can omit SetIsAIFeedback (defaults to false)
+MicrosoftUserFeedback.RequestFeedback('MyFeature', 'AREA_001', 'Feature Area');
+```
+
+### Migration Steps
+1. **Remove `IsAIFeature` parameters** from all feedback method calls
+2. **Add `SetIsAIFeedback(true)`** before feedback methods for AI features
+3. **Update method signatures** to use the simplified parameter lists
+4. **Leverage method chaining** for cleaner code organization
+
+### Benefits of the New Pattern
+- **Cleaner API**: Removes repetitive boolean parameters from method signatures
+- **Fluent interface**: Enables method chaining for more readable code
+- **Flexible**: Allows setting AI feedback flag once and making multiple feedback calls
+- **Consistent**: Maintains the same functionality with improved developer experience
+
+---
+
 ## Best Practices
 
 ### Feedback Collection
 - Use descriptive and consistent feature names across your application
-- Specify accurate `IsAIFeature` values to help categorize AI-related feedback
+- Use `SetIsAIFeedback(true)` before calling feedback methods for AI-related features to help categorize AI-related feedback
 - Include relevant feature areas to enable targeted analysis
 - Provide meaningful context data to improve feedback quality
+- Leverage the fluent API pattern for cleaner code when setting AI feedback flags
 
 ### Survey Management  
 - Use timer activities for features where usage duration matters (e.g., report builders, data entry forms)

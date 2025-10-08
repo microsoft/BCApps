@@ -11,124 +11,127 @@ namespace System.Microsoft.UserFeedback;
 codeunit 1590 "Microsoft User Feedback"
 {
     Access = Public;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     /// <summary>
     /// Requests general feedback for a feature, optionally specifying if it is a Copilot feature and its area.
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which feedback is requested.</param>
-    /// <param name="IsAIFeature">Specifies if the feature is an AI feature.</param>
-    procedure RequestFeedback(FeatureName: Text; IsAIFeature: Boolean)
+    procedure RequestFeedback(FeatureName: Text)
     begin
-        this.RequestFeedback(FeatureName, IsAIFeature, '', '');
+        this.RequestFeedback(FeatureName, '', '');
     end;
 
     /// <summary>
     /// Requests general feedback for a feature, optionally specifying if it is a Copilot feature and its area.
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which feedback is requested.</param>
-    /// <param name="IsAIFeature">Specifies if the feature is an AI feature.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature. ID on OCV.</param>
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
-    procedure RequestFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text)
+    procedure RequestFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text)
     var
         EmptyContextFiles: Dictionary of [Text, Text];
         EmptyContextProperties: Dictionary of [Text, Text];
     begin
-        this.RequestFeedback(FeatureName, IsAIFeature, FeatureArea, FeatureAreaDisplayName, EmptyContextFiles, EmptyContextProperties);
+        this.RequestFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, EmptyContextFiles, EmptyContextProperties);
     end;
 
     /// <summary>
     /// Requests general feedback for a feature, optionally specifying if it is a Copilot feature and its area.
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which feedback is requested.</param>
-    /// <param name="IsAIFeature">Specifies if the feature is an AI feature.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature. ID on OCV.</param>
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
     /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
-    procedure RequestFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
+    procedure RequestFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
     begin
-        this.FeedbackImpl.RequestFeedback(FeatureName, IsAIFeature, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties);
+        this.FeedbackImpl.RequestFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties);
     end;
 
     /// <summary>
     /// Requests a 'like' (positive) feedback for a feature, optionally specifying if it is a Copilot feature and its area.
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which like feedback is requested.</param>
-    /// <param name="IsAIFeature">Specifies if the feature is an AI feature.</param>
-    procedure RequestLikeFeedback(FeatureName: Text; IsAIFeature: Boolean)
+    procedure RequestLikeFeedback(FeatureName: Text)
     begin
-        this.RequestLikeFeedback(FeatureName, IsAIFeature, '', '');
+        this.RequestLikeFeedback(FeatureName, '', '');
     end;
-
 
     /// <summary>
     /// Requests a 'like' (positive) feedback for a feature, optionally specifying if it is a Copilot feature and its area.
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which like feedback is requested.</param>
-    /// <param name="IsAIFeature">Specifies if the feature is an AI feature.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature. ID on OCV.</param>
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
-    procedure RequestLikeFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text)
+    procedure RequestLikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text)
     var
         EmptyContextFiles: Dictionary of [Text, Text];
         EmptyContextProperties: Dictionary of [Text, Text];
     begin
-        this.RequestLikeFeedback(FeatureName, IsAIFeature, FeatureArea, FeatureAreaDisplayName, EmptyContextFiles, EmptyContextProperties);
+        this.RequestLikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, EmptyContextFiles, EmptyContextProperties);
     end;
 
     /// <summary>
     /// Requests a 'like' (positive) feedback for a feature, optionally specifying if it is a Copilot feature and its area.
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which like feedback is requested.</param>
-    /// <param name="IsAIFeature">Specifies if the feature is an AI feature.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature.</param>
     /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
-    procedure RequestLikeFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
+    procedure RequestLikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
     begin
-        this.FeedbackImpl.RequestLikeFeedback(FeatureName, IsAIFeature, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties);
+        this.FeedbackImpl.RequestLikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties);
     end;
 
     /// <summary>
     /// Requests a 'dislike' (negative) feedback for a feature, optionally specifying if it is a Copilot feature and its area.
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which dislike feedback is requested.</param>
-    /// <param name="IsAIFeature">Specifies if the feature is an AI feature.</param>
 
-    procedure RequestDislikeFeedback(FeatureName: Text; IsAIFeature: Boolean)
+    procedure RequestDislikeFeedback(FeatureName: Text)
     begin
-        this.RequestDislikeFeedback(FeatureName, IsAIFeature, '', '');
+        this.RequestDislikeFeedback(FeatureName, '', '');
     end;
 
     /// <summary>
     /// Requests a 'dislike' (negative) feedback for a feature, optionally specifying if it is a Copilot feature and its area.
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which dislike feedback is requested.</param>
-    /// <param name="IsAIFeature">Specifies if the feature is an AI feature.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature. ID of the sub-area on OCV.</param>
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
 
-    procedure RequestDislikeFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text)
+    procedure RequestDislikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text)
     var
         EmptyContextFiles: Dictionary of [Text, Text];
         EmptyContextProperties: Dictionary of [Text, Text];
     begin
-        this.RequestDislikeFeedback(FeatureName, IsAIFeature, FeatureArea, FeatureAreaDisplayName, EmptyContextProperties, EmptyContextFiles);
+        this.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, EmptyContextProperties, EmptyContextFiles);
     end;
 
     /// <summary>
     /// Requests a 'dislike' (negative) feedback for a feature, optionally specifying if it is a Copilot feature and its area.
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which dislike feedback is requested.</param>
-    /// <param name="IsAIFeature">Specifies if the feature is an AI feature.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature. ID of the sub-area on OCV.</param>
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
     /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
-    procedure RequestDislikeFeedback(FeatureName: Text; IsAIFeature: Boolean; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextProperties: Dictionary of [Text, Text]; ContextFiles: Dictionary of [Text, Text])
+    procedure RequestDislikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextProperties: Dictionary of [Text, Text]; ContextFiles: Dictionary of [Text, Text])
     begin
-        this.FeedbackImpl.RequestDislikeFeedback(FeatureName, IsAIFeature, FeatureArea, FeatureAreaDisplayName, ContextProperties, ContextFiles);
+        this.FeedbackImpl.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextProperties, ContextFiles);
+    end;
+
+    /// <summary>
+    /// Sets whether the General/Like/Dislike feedback being collected is for an AI feature.
+    /// </summary>
+    /// <param name="IsAIFeedback">True if the feedback is for an AI feature; otherwise, false.</param>
+    /// <returns>The current instance of the "Microsoft User Feedback Impl" codeunit.</returns>
+    procedure SetIsAIFeedback(IsAIFeedback: Boolean): Codeunit "Microsoft User Feedback"
+    begin
+        this.FeedbackImpl := this.FeedbackImpl.SetIsAIFeedback(IsAIFeedback);
+        exit(this);
     end;
 
     /// <summary>
