@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/32e66d69cfd2c1e3eca39e416e27c6aa58de6df3/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/55f06533726d052e7603277236f2bcbcd67fa6cf/Actions/.Modules/settings.schema.json",
   "projectName": "Apps (W1)",
   "appFolders": [
     "../../../src/Apps/W1/*/App",
@@ -14,7 +14,46 @@
     "../../../src/Apps/W1/*/*/Demo Data"
   ],
   "installOnlyReferencedApps": false,
+  "doNotRunPageScriptingTests": true,
+  "doNotRunBcptTests": true,
+  "buildModes": [ "CH","ES","IN","US" ],
   "ConditionalSettings": [
+    {
+      "buildModes": [
+        "CH"
+      ],
+      "settings": {
+        "country": "ch",
+        "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
+        "ES"
+      ],
+      "settings": {
+        "country": "es",
+        "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
+        "IN"
+      ],
+      "settings": {
+        "country": "in",
+        "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
+        "US"
+      ],
+      "settings": {
+        "country": "us",
+        "doNotRunTests": true
+      }
+    },
     {
       "buildModes": [
         "Clean"

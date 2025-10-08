@@ -101,6 +101,16 @@ codeunit 457 "Environment Information"
     end;
 
     /// <summary>
+    /// Shows a notification if the ring is early preview.
+    /// </summary>
+    procedure ShowEarlyPreviewNotification()
+    var
+        EnvInfNotificationImpl: Codeunit "Env. Inf. Notification Impl.";
+    begin
+        EnvInfNotificationImpl.ShowEarlyPreviewNotification();
+    end;
+
+    /// <summary>
     /// Gets the application family.
     /// </summary>
     /// <returns>The application family.</returns>
