@@ -15,10 +15,8 @@ using Microsoft.Foundation.ExtendedText;
 using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Sales.Pricing;
 using Microsoft.Purchases.Vendor;
-#if CLEAN25
 using Microsoft.Pricing.PriceList;
 using Microsoft.Sales.Customer;
-#endif
 
 /// <summary>
 /// Codeunit Shpfy Product Init Test (ID 139603).
@@ -27,6 +25,7 @@ codeunit 139603 "Shpfy Product Init Test"
 {
     var
         Any: Codeunit Any;
+        LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         LastItemNo: Code[20];
 
     internal procedure CreateGenProdPostingGroup(Code: Code[20]) GenProdPostingGroup: Record "Gen. Product Posting Group";
@@ -198,8 +197,6 @@ codeunit 139603 "Shpfy Product Init Test"
         ItemAttributeValue.Insert();
     end;
 
-
-#if not CLEAN25
     internal procedure CreateSalesPrice(Code: Code[10]; ItemNo: Code[20]; Price: Decimal)
     var
         CustomerPriceGroup: Record "Customer Price Group";
@@ -241,9 +238,10 @@ codeunit 139603 "Shpfy Product Init Test"
         SalesLineDiscount.Validate("Line Discount %", DiscountPerc);
         SalesLineDiscount.Insert();
     end;
-#else
+
     internal procedure CreatePriceList(Code: Code[10]; ItemNo: Code[20]; Price: Decimal; DiscountPerc: Decimal) CustDiscGrp: Record "Customer Discount Group"
     var
+        PriceListHeader: Record "Price List Header";
         PriceListLine: Record "Price List Line";
         CustomerPriceGroup: Record "Customer Price Group";
     begin
@@ -260,17 +258,21 @@ codeunit 139603 "Shpfy Product Init Test"
             CustDiscGrp.Insert();
         end;
 
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, PriceListHeader."Price Type"::Sale, PriceListHeader."Source Type"::"Customer Disc. Group", CustDiscGrp.Code);
+
         PriceListLine.Init();
-        PriceListLine."Asset Type" := PriceListLine."Asset Type"::Item;
-        PriceListLine."Asset No." := ItemNo;
-        PriceListLine."Product No." := ItemNo;
-        PriceListLine."Price Type" := PriceListLine."Price Type"::Sale;
-        PriceListLine."Amount Type" := PriceListLine."Amount Type"::Discount;
-        PriceListLine."Source Type" := PriceListLine."Source Type"::"Customer Disc. Group";
-        PriceListLine."Source No." := CustDiscGrp.Code;
+        PriceListLine.Validate("Price List Code", PriceListHeader.Code);
+        PriceListLine.Validate("Asset Type", PriceListLine."Asset Type"::Item);
+        PriceListLine.Validate("Asset No.", ItemNo);
+        PriceListLine.Validate("Price Type", PriceListLine."Price Type"::Sale);
+        PriceListLine.Validate("Amount Type", PriceListLine."Amount Type"::Discount);
+        PriceListLine.Validate("Source Type", PriceListLine."Source Type"::"Customer Disc. Group");
+        PriceListLine.Validate("Source No.", CustDiscGrp.Code);
         PriceListLine.Validate("Line Discount %", DiscountPerc);
-        PriceListLine.Status := PriceListLine.Status::Active;
         PriceListLine.Insert();
+
+        PriceListHeader.Validate("Status", PriceListHeader.Status::Active);
+        PriceListHeader.Modify();
     end;
 
     internal procedure CreateAllCustomerPriceList(Code: Code[10]; ItemNo: Code[20]; Price: Decimal; DiscountPerc: Decimal)
@@ -285,7 +287,6 @@ codeunit 139603 "Shpfy Product Init Test"
         PriceListLine."Amount Type" := PriceListLine."Amount Type"::Discount;
         PriceListLine."Source Type" := PriceListLine."Source Type"::"All Customers";
         PriceListLine.Validate("Line Discount %", DiscountPerc);
-        PriceListLine.Status := PriceListLine.Status::Active;
         PriceListLine.Insert();
     end;
 
@@ -305,7 +306,6 @@ codeunit 139603 "Shpfy Product Init Test"
         PriceListLine.Status := PriceListLine.Status::Active;
         PriceListLine.Insert();
     end;
-#endif
 
     internal procedure CreateStandardProduct(Shop: Record "Shpfy Shop") ShopifyVariant: Record "Shpfy Variant"
     var
