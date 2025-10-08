@@ -371,7 +371,7 @@ codeunit 8351 "MCP Config Implementation"
     internal procedure LookupAPIGroup(var MCPAPIPublisherGroup: Record "MCP API Publisher Group"; APIPublisher: Text; var APIGroup: Text)
     begin
         MCPAPIPublisherGroup.SetRange("API Publisher", APIPublisher);
-        if not MCPAPIPublisherGroup.FindSet() then
+        if MCPAPIPublisherGroup.IsEmpty() then
             exit;
 
         if Page.RunModal(Page::"MCP API Publisher Lookup", MCPAPIPublisherGroup) = Action::LookupOK then
