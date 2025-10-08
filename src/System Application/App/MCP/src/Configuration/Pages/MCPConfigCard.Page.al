@@ -5,17 +5,17 @@
 
 namespace System.MCP;
 
-using System.Environment;
-
 page 8351 "MCP Config Card"
 {
     ApplicationArea = All;
     PageType = Card;
     SourceTable = "MCP Configuration";
-    Caption = 'MCP Configuration';
+    Caption = 'Model Context Protocol (MCP) Server Configuration';
     Extensible = false;
     InherentEntitlements = X;
     InherentPermissions = X;
+    // AboutTitle = TODONAT
+    // AboutText = TODONAT;
 
     layout
     {
@@ -52,11 +52,12 @@ page 8351 "MCP Config Card"
                 }
                 field(AllowProdChanges; Rec.AllowProdChanges)
                 {
-                    ToolTip = 'Specifies whether to allow production changes for this MCP configuration. When disabled, create, modify, and delete operations in production environments are restricted.';
-                    Visible = not IsSandbox;
+                    Caption = 'Allow Create/Update/Delete Tools';
+                    ToolTip = 'Specifies whether to allow create, update and delete tools for this MCP configuration.';
 
                     trigger OnValidate()
                     begin
+                        CurrPage.Update();
                         Session.LogMessage('0000QE8', StrSubstNo(SettingConfigurationAllowProdChangesLbl, Rec.SystemId, Rec.AllowProdChanges), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
                     end;
                 }
@@ -92,16 +93,8 @@ page 8351 "MCP Config Card"
         }
     }
 
-    trigger OnOpenPage()
-    var
-        EnvironmentInformation: Codeunit "Environment Information";
-    begin
-        IsSandbox := EnvironmentInformation.IsSandbox();
-    end;
-
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
-        IsSandbox: Boolean;
         SettingConfigurationActiveLbl: Label 'Setting MCP configuration %1 Active to %2', Comment = '%1 - configuration ID, %2 - active', Locked = true;
         SettingConfigurationEnableDynamicToolModeLbl: Label 'Setting MCP configuration %1 EnableDynamicToolMode to %2', Comment = '%1 - configuration ID, %2 - enable dynamic tool mode', Locked = true;
         SettingConfigurationAllowProdChangesLbl: Label 'Setting MCP configuration %1 AllowProdChanges to %2', Comment = '%1 - configuration ID, %2 - allow production changes', Locked = true;

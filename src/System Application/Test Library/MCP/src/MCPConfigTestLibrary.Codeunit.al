@@ -26,4 +26,14 @@ codeunit 130131 "MCP Config Test Library"
     begin
         MCPConfigImplementation.AddStandardAPITools(ConfigId);
     end;
+
+    procedure LookupAPIPublishers(var APIPublisher: Text)
+    begin
+        MCPConfigImplementation.LookupAPIPublishers(APIPublisher);
+    end;
+
+    procedure LookupAPIGroups(APIPublisher: Text; var APIGroup: Text)
+    begin
+        MCPConfigImplementation.LookupAPIGroups(APIPublisher, APIGroup);
+    end;
 }

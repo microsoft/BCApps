@@ -7,6 +7,7 @@ namespace System.MCP;
 
 page 8354 "MCP Tools By API Group"
 {
+    Caption = 'Add Tools by API Group';
     PageType = StandardDialog;
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -23,20 +24,38 @@ page 8354 "MCP Tools By API Group"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the API publisher.';
                     Caption = 'API Publisher';
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    begin
+                        MCPConfigImplementation.GetAPIPublishers(APIPublishers, APIGroupPublishers);
+                        MCPConfigImplementation.LoookupAPIPublishers(APIPublishers, APIPublisher);
+                    end;
                 }
                 field(APIGroup; APIGroup)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the API group.';
                     Caption = 'API Group';
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    begin
+                        if APIPublisher = '' then
+                            Error(APIPublisherNotSelectedErr);
+
+                        MCPConfigImplementation.LookupAPIGroupsAPIGroupPublishers(APIGroupPublishers, APIPublisher, APIGroup);
+                    end;
                 }
             }
         }
     }
 
     var
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
         APIPublisher: Text;
         APIGroup: Text;
+        APIPublishers: List of [Text];
+        APIGroupPublishers: Dictionary of [Text, Text];
+        APIPublisherNotSelectedErr: Label 'Please select an API Publisher first.';
 
     internal procedure GetAPIGroup(): Text
     begin

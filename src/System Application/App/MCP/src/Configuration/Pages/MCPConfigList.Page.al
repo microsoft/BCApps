@@ -16,11 +16,14 @@ page 8350 "MCP Config List"
     UsageCategory = Lists;
     SourceTable = "MCP Configuration";
     CardPageId = "MCP Config Card";
-    Caption = 'MCP Configurations';
+    Caption = 'Model Context Protocol (MCP) Server Configurations';
     Editable = false;
     Extensible = false;
     InherentEntitlements = X;
     InherentPermissions = X;
+    AnalysisModeEnabled = false;
+    // AboutTitle = TODONAT;
+    // AboutText = TODONAT;
 
     layout
     {
@@ -44,10 +47,31 @@ page 8350 "MCP Config List"
         }
     }
 
+    actions
+    {
+        area(Creation)
+        {
+            action(Copy)
+            {
+                Caption = 'Copy';
+                ToolTip = 'Creates a copy of the current MCP configuration, including its tools and permissions.';
+                Image = Copy;
+
+                trigger OnAction()
+                begin
+                    MCPConfigImplementation.CopyConfiguration(Rec.SystemId);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            actionref(Promoted_Copy; Copy) { }
+        }
+    }
+
 #if not CLEAN28
     trigger OnOpenPage()
     var
-        MCPConfigImplementation: Codeunit "MCP Config Implementation";
         FeatureNotEnabledErrorInfo: ErrorInfo;
     begin
         if MCPConfigImplementation.IsFeatureEnabled() then
@@ -60,6 +84,7 @@ page 8350 "MCP Config List"
     end;
 
     var
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
         FeatureNotEnabledErr: Label 'MCP server feature is not enabled. Please contact your system administrator to enable the feature.';
         GoToFeatureManagementLbl: Label 'Go to Feature Management';
 #endif

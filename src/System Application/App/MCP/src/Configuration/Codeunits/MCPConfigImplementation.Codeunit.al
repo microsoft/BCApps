@@ -5,7 +5,6 @@
 
 namespace System.MCP;
 
-using System.Environment;
 #if not CLEAN28
 using System.Environment.Configuration;
 #endif
@@ -56,7 +55,7 @@ codeunit 8351 "MCP Config Implementation"
         Session.LogMessage('0000QE9', StrSubstNo(SettingConfigurationActiveLbl, ConfigId, Active), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
     end;
 
-    internal procedure AllowProdChanges(ConfigId: Guid; Allow: Boolean)
+    internal procedure AllowCreateUpdateDeleteTools(ConfigId: Guid; Allow: Boolean)
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
@@ -194,7 +193,7 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         if Allow then
-            CheckAllowProdChanges(MCPConfigurationTool.ID);
+            CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
 
         MCPConfigurationTool."Allow Create" := Allow;
         MCPConfigurationTool.Modify();
@@ -208,7 +207,7 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         if Allow then
-            CheckAllowProdChanges(MCPConfigurationTool.ID);
+            CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
 
         MCPConfigurationTool."Allow Modify" := Allow;
         MCPConfigurationTool.Modify();
@@ -222,7 +221,7 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         if Allow then
-            CheckAllowProdChanges(MCPConfigurationTool.ID);
+            CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
 
         MCPConfigurationTool."Allow Delete" := Allow;
         MCPConfigurationTool.Modify();
@@ -236,7 +235,7 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         if Allow then
-            CheckAllowProdChanges(MCPConfigurationTool.ID);
+            CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
 
         MCPConfigurationTool."Allow Bound Actions" := Allow;
         MCPConfigurationTool.Modify();
@@ -253,6 +252,23 @@ codeunit 8351 "MCP Config Implementation"
         if Page.RunModal(Page::"MCP API Config Tool Lookup", PageMetadata) = Action::LookupOK then
             PageId := PageMetadata.ID;
     end;
+
+    internal procedure GetAPIPublishers(var APIPublisher: List of [Text]; var APIGroupPublisher: Dictionary of [Text, Text])
+    var
+        PageMetadata: Record "Page Metadata";
+    begin
+        PageMetadata.SetLoadFields(PageType, APIPublisher, APIGroup);
+        PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
+        PageMetadata.SetFilter(APIPublisher, '<>%1&<>%2', '', 'microsoft');
+
+        repeat
+            if not APIPublisher.Contains(PageMetadata.APIPublisher) then
+                APIPublisher.Add(PageMetadata.APIPublisher);
+            if not APIGroupPublisher.ContainsKey(PageMetadata.APIGroup) then
+                APIGroupPublisher.Add(PageMetadata.APIGroup, PageMetadata.APIPublisher);
+        until PageMetadata.Next() = 0;
+    end;
+
 
     internal procedure ValidateAPITool(PageId: Integer)
     var
@@ -338,20 +354,16 @@ codeunit 8351 "MCP Config Implementation"
         exit('');
     end;
 
-    local procedure CheckAllowProdChanges(ConfigId: Guid)
+    local procedure CheckAllowCreateUpdateDeleteTools(ConfigId: Guid)
     var
         MCPConfiguration: Record "MCP Configuration";
-        EnvironmentInformation: Codeunit "Environment Information";
-        ProdChangesNotAllowedErr: Label 'Production changes are not allowed for this MCP configuration.';
+        CreateUpdateDeleteNotAllowedErr: Label 'Create, update and delete tools are not allowed for this MCP configuration.';
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             exit;
 
-        if EnvironmentInformation.IsSandbox() then
-            exit;
-
         if not MCPConfiguration.AllowProdChanges then
-            Error(ProdChangesNotAllowedErr);
+            Error(CreateUpdateDeleteNotAllowedErr);
     end;
 
 #if not CLEAN28

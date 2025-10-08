@@ -110,7 +110,7 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
-    procedure TestAllowProdChanges()
+    procedure TestAllowCreateUpdateDeleteTools()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
         ConfigId: Guid;
@@ -125,10 +125,10 @@ codeunit 130130 "MCP Config Test"
         asserterror MCPConfig.AllowCreate(ToolId, true);
 
         // [THEN] Error message is returned
-        Assert.ExpectedError('Production changes are not allowed for this MCP configuration.');
+        Assert.ExpectedError('Create, update and delete tools are not allowed for this MCP configuration.');
 
-        // [GIVEN] Production changes are allowed
-        MCPConfig.AllowProdChanges(ConfigId, true);
+        // [GIVEN] Create, update and delete tools are allowed
+        MCPConfig.AllowCreateUpdateDeleteTools(ConfigId, true);
 
         // [WHEN] Allow create is called
         MCPConfig.AllowCreate(ToolId, true);
@@ -361,7 +361,7 @@ codeunit 130130 "MCP Config Test"
         Assert.AreEqual(NewMCPConfigurationTool."Allow Bound Actions", SourceMCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions mismatch');
     end;
 
-    local procedure CreateMCPConfig(Active: Boolean; ToolSearchMode: Boolean; AllowProdChanges: Boolean): Guid
+    local procedure CreateMCPConfig(Active: Boolean; ToolSearchMode: Boolean; AllowCreateUpdateDeleteTools: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
@@ -369,7 +369,7 @@ codeunit 130130 "MCP Config Test"
         MCPConfiguration.Description := CopyStr(Any.AlphabeticText(100), 1, 100);
         MCPConfiguration.Active := Active;
         MCPConfiguration.EnableDynamicToolMode := ToolSearchMode;
-        MCPConfiguration.AllowProdChanges := AllowProdChanges;
+        MCPConfiguration.AllowProdChanges := AllowCreateUpdateDeleteTools;
         MCPConfiguration.Insert();
         exit(MCPConfiguration.SystemId);
     end;
