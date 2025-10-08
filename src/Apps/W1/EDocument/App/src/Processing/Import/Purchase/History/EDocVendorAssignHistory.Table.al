@@ -53,6 +53,13 @@ table 6108 "E-Doc. Vendor Assign. History"
             Editable = false;
             TableRelation = "Purch. Inv. Header".SystemId;
         }
+        field(21; "Vendor No From Purch. Header"; Code[20])
+        {
+            Caption = 'Vendor No From Purch. Header';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Purch. Inv. Header"."Buy-from Vendor No." where(SystemId = field("Purch. Inv. Header SystemId")));
+            Editable = false;
+        }
     }
     keys
     {
