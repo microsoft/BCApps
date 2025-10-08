@@ -3,7 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
+
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
 
 /// <summary>
 /// This table stores historical vendor information from received e-documents and the posted document they ended up in. When new e-documents are received, the information in this table can be leveraged to for example assign the same vendor to the e-document.
@@ -58,7 +60,7 @@ table 6108 "E-Doc. Vendor Assign. History"
             Caption = 'Vendor No From Purch. Header';
             FieldClass = FlowField;
             CalcFormula = lookup("Purch. Inv. Header"."Buy-from Vendor No." where(SystemId = field("Purch. Inv. Header SystemId")));
-            Editable = false;
+            TableRelation = Vendor."No.";
         }
     }
     keys

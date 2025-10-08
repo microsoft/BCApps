@@ -341,7 +341,7 @@ page 6181 "E-Document Purchase Draft"
                     RunObject = page "E-Doc. Vendor Assignment Hist.";
                     RunPageMode = View;
                 }
-                action(VendorList)
+                action(OpenVendorList)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Vendor List';
