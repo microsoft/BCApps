@@ -816,7 +816,10 @@ codeunit 6140 "E-Doc. Import"
 
     local procedure V1_CopyFromPurchaseLine(PurchaseLine: Record "Purchase Line"; var EDocumentPurchaseLine: Record "E-Document Purchase Line")
     begin
-        EDocumentPurchaseLine."Product Code" := PurchaseLine."No.";
+        if PurchaseLine."Item Reference No." <> '' then // No. takes precedence over Item Reference No., but if only Item Reference No. is set we use that 
+            EDocumentPurchaseLine."Product Code" := PurchaseLine."Item Reference No.";
+        if PurchaseLine."No." <> '' then
+            EDocumentPurchaseLine."Product Code" := PurchaseLine."No.";
         EDocumentPurchaseLine."Description" := PurchaseLine.Description;
         EDocumentPurchaseLine.Quantity := PurchaseLine.Quantity;
         EDocumentPurchaseLine."Unit Price" := PurchaseLine."Direct Unit Cost";

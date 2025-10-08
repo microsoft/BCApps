@@ -39,12 +39,15 @@ codeunit 6122 "E-Doc. Imp. Session Telemetry"
     internal procedure Emit(EDocument: Record "E-Document")
     var
         Telemetry: Codeunit "Telemetry";
+        EDocumentImportProcessVersion: Enum "E-Document Import Process";
         SystemID, Session : Text;
     begin
         Session := LowerCase(CreateGuid()).Replace('}', '').Replace('{', '');
         SystemID := CreateSystemIdText(EDocument.SystemId);
+        EDocumentImportProcessVersion := EDocument.GetEDocumentService().GetImportProcessVersion();
         Data.Set('Session', Session);
         Data.Set(GetEDocSystemIdTok(), SystemID);
+        Data.Set('ProcessVersion', EDocumentImportProcessVersion.Names().Get(EDocumentImportProcessVersion.Ordinals.IndexOf(EDocumentImportProcessVersion.AsInteger())));
         Telemetry.LogMessage('0000PJD', 'E-Document Import Session', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Data);
         EmitLines(SystemID, Session);
 
@@ -85,6 +88,15 @@ codeunit 6122 "E-Doc. Imp. Session Telemetry"
         Data.Set("Key", Format("Value", 0, 9));
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Imp. Session Telemetry", SetLine, '', false, false)]
+    local procedure OnSetLine(LineId: Guid)
+    var
+        EmptyDict: Dictionary of [Text, Text];
+    begin
+        if not LineData.ContainsKey(LineId) then
+            LineData.Set(LineId, EmptyDict);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Imp. Session Telemetry", SetLineBool, '', false, false)]
     local procedure OnSetLineBool(LineId: Guid; "Key": Text; "Value": Boolean)
     var
@@ -114,6 +126,11 @@ codeunit 6122 "E-Doc. Imp. Session Telemetry"
 
     [IntegrationEvent(false, false)]
     procedure SetBool("Key": Text; "Value": Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    procedure SetLine(LineId: Guid)
     begin
     end;
 
