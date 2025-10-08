@@ -5,6 +5,8 @@
 
 namespace System.Microsoft.UserFeedback;
 
+using System.Feedback;
+
 /// <summary>
 /// Implementation codeunit for providing feedback to Microsoft. To be used by internal Microsoft apps only.
 /// </summary>
