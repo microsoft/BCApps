@@ -514,6 +514,41 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfigCard.ToolList.Visible(), 'ToolList is visible');
     end;
 
+    [Test]
+    [HandlerFunctions('LookupAPIPublisherOKHandler')]
+    procedure TestLookupAPIPublisher()
+    var
+        APIPublisher: Text;
+        APIGroup: Text;
+    begin
+        // [GIVEN] No preselected API publisher and group
+
+        // [WHEN] Lookup API publisher is called and a publisher group duo is selected
+        MCPConfigTestLibrary.LookupAPIPublisher(APIPublisher, APIGroup);
+
+        // [THEN] Correct API publisher and group are selected
+        Assert.AreEqual('mock', APIPublisher, 'APIPublisher mismatch');
+        Assert.AreEqual('mcp', APIGroup, 'APIGroup mismatch');
+    end;
+
+    [Test]
+    [HandlerFunctions('LookupAPIPublisherOKHandler')]
+    procedure TestLookupAPIGroup()
+    var
+        APIPublisher: Text;
+        APIGroup: Text;
+    begin
+        // [GIVEN] API publisher is preselected
+        APIPublisher := 'mock';
+
+        // [WHEN] Lookup API publisher is called and a publisher group duo is selected
+        MCPConfigTestLibrary.LookupAPIGroup(APIPublisher, APIGroup);
+
+        // [THEN] Correct API publisher and group are selected
+        Assert.AreEqual('mock', APIPublisher, 'APIPublisher mismatch');
+        Assert.AreEqual('mcp', APIGroup, 'APIGroup mismatch');
+    end;
+
     local procedure CreateMCPConfig(Active: Boolean; DynamicToolMode: Boolean; AllowCreateUpdateDeleteTools: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -549,6 +584,13 @@ codeunit 130130 "MCP Config Test"
     begin
         MCPAPIConfigToolLookup.GoToKey(Page::"Mock API");
         MCPAPIConfigToolLookup.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure LookupAPIPublisherOKHandler(var MCPAPIPublisherLookup: TestPage "MCP API Publisher Lookup")
+    begin
+        MCPAPIPublisherLookup.GoToKey('mock', 'mcp');
+        MCPAPIPublisherLookup.OK().Invoke();
     end;
 
     [ModalPageHandler]

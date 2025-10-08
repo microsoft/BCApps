@@ -14,7 +14,6 @@ page 8352 "MCP Config Tool List"
     ApplicationArea = All;
     PageType = ListPart;
     SourceTable = "MCP Configuration Tool";
-    Caption = 'MCP Configuration Tools';
     DelayedInsert = true;
     MultipleNewLines = true;
     Extensible = false;

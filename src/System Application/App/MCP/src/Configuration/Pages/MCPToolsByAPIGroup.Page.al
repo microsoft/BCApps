@@ -27,8 +27,10 @@ page 8354 "MCP Tools By API Group"
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
-                        MCPConfigImplementation.GetAPIPublishers(APIPublishers, APIGroupPublishers);
-                        MCPConfigImplementation.LoookupAPIPublishers(APIPublishers, APIPublisher);
+                        MCPAPIPublisherGroup.Reset();
+                        if MCPAPIPublisherGroup.IsEmpty() then
+                            MCPConfigImplementation.GetAPIPublishers(MCPAPIPublisherGroup);
+                        MCPConfigImplementation.LookupAPIPublisher(MCPAPIPublisherGroup, APIPublisher, APIGroup);
                     end;
                 }
                 field(APIGroup; APIGroup)
@@ -42,7 +44,10 @@ page 8354 "MCP Tools By API Group"
                         if APIPublisher = '' then
                             Error(APIPublisherNotSelectedErr);
 
-                        MCPConfigImplementation.LookupAPIGroupsAPIGroupPublishers(APIGroupPublishers, APIPublisher, APIGroup);
+                        if MCPAPIPublisherGroup.IsEmpty() then
+                            MCPConfigImplementation.GetAPIPublishers(MCPAPIPublisherGroup);
+
+                        MCPConfigImplementation.LookupAPIGroup(MCPAPIPublisherGroup, APIPublisher, APIGroup);
                     end;
                 }
             }
@@ -50,11 +55,10 @@ page 8354 "MCP Tools By API Group"
     }
 
     var
+        MCPAPIPublisherGroup: Record "MCP API Publisher Group";
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         APIPublisher: Text;
         APIGroup: Text;
-        APIPublishers: List of [Text];
-        APIGroupPublishers: Dictionary of [Text, Text];
         APIPublisherNotSelectedErr: Label 'Please select an API Publisher first.';
 
     internal procedure GetAPIGroup(): Text

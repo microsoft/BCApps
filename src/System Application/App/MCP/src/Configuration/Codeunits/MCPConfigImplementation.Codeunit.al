@@ -341,20 +341,41 @@ codeunit 8351 "MCP Config Implementation"
         exit(true);
     end;
 
-    internal procedure GetAPIPublishers(var APIPublisher: List of [Text]; var APIGroupPublisher: Dictionary of [Text, Text])
+    internal procedure GetAPIPublishers(var MCPAPIPublisherGroup: Record "MCP API Publisher Group")
     var
         PageMetadata: Record "Page Metadata";
     begin
         PageMetadata.SetLoadFields(PageType, APIPublisher, APIGroup);
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
         PageMetadata.SetFilter(APIPublisher, '<>%1&<>%2', '', 'microsoft');
+        if not PageMetadata.FindSet() then
+            exit;
 
         repeat
-            if not APIPublisher.Contains(PageMetadata.APIPublisher) then
-                APIPublisher.Add(PageMetadata.APIPublisher);
-            if not APIGroupPublisher.ContainsKey(PageMetadata.APIGroup) then
-                APIGroupPublisher.Add(PageMetadata.APIGroup, PageMetadata.APIPublisher);
+            if MCPAPIPublisherGroup.Get(PageMetadata.APIPublisher, PageMetadata.APIGroup) then
+                continue;
+            MCPAPIPublisherGroup."API Publisher" := PageMetadata.APIPublisher;
+            MCPAPIPublisherGroup."API Group" := PageMetadata.APIGroup;
+            MCPAPIPublisherGroup.Insert();
         until PageMetadata.Next() = 0;
+    end;
+
+    internal procedure LookupAPIPublisher(var MCPAPIPublisherGroup: Record "MCP API Publisher Group"; var APIPublisher: Text; var APIGroup: Text)
+    begin
+        if Page.RunModal(Page::"MCP API Publisher Lookup", MCPAPIPublisherGroup) = Action::LookupOK then begin
+            APIPublisher := MCPAPIPublisherGroup."API Publisher";
+            APIGroup := MCPAPIPublisherGroup."API Group";
+        end;
+    end;
+
+    internal procedure LookupAPIGroup(var MCPAPIPublisherGroup: Record "MCP API Publisher Group"; APIPublisher: Text; var APIGroup: Text)
+    begin
+        MCPAPIPublisherGroup.SetRange("API Publisher", APIPublisher);
+        if not MCPAPIPublisherGroup.FindSet() then
+            exit;
+
+        if Page.RunModal(Page::"MCP API Publisher Lookup", MCPAPIPublisherGroup) = Action::LookupOK then
+            APIGroup := MCPAPIPublisherGroup."API Group";
     end;
 
     internal procedure ValidateAPITool(PageId: Integer)
