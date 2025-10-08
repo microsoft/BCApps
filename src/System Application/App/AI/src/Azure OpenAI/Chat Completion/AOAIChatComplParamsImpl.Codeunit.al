@@ -11,6 +11,7 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
     InherentPermissions = X;
 
     var
+        AOAIPolicyParams: Codeunit "AOAI Policy Params";
         Initialized: Boolean;
         Temperature: Decimal;
         MaxTokens: Integer;
@@ -18,6 +19,7 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         MaxHistory: Integer;
         PresencePenalty: Decimal;
         FrequencyPenalty: Decimal;
+
         TemperatureErr: Label 'Temperature must be between 0.0 and 2.0.';
         PresencePenaltyErr: Label 'Presence penalty must be between -2.0 and 2.0.';
         FrequencyPenaltyErr: Label 'Frequency penalty must be between -2.0 and 2.0.';
@@ -69,6 +71,22 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
             InitializeDefaults();
 
         exit(FrequencyPenalty);
+    end;
+
+    procedure GetAOAIPolicyParams(): Codeunit "AOAI Policy Params"
+    begin
+        if not Initialized then
+            InitializeDefaults();
+
+        exit(AOAIPolicyParams);
+    end;
+
+    procedure SetAOAIPolicyParams(NewAOAIPolicyParams: Codeunit "AOAI Policy Params")
+    begin
+        if not Initialized then
+            InitializeDefaults();
+
+        AOAIPolicyParams := NewAOAIPolicyParams;
     end;
 
     procedure SetTemperature(NewTemperature: Decimal)
@@ -129,6 +147,17 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         FrequencyPenalty := NewFrequencyPenalty;
     end;
 
+
+    local procedure GetAOAIPolicyFromParams(PolicyParams: Codeunit "AOAI Policy Params"): Enum "AOAI Policy"
+    var
+        PolicyMapping: Codeunit "AOAI Policy Params Mapping";
+    begin
+        if not Initialized then
+            InitializeDefaults();
+
+        exit(PolicyMapping.GetAOAIPolicy(PolicyParams));
+    end;
+
     [NonDebuggable]
     procedure AddChatCompletionsParametersToPayload(var Payload: JsonObject)
     begin
@@ -138,6 +167,7 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         Payload.Add('temperature', GetTemperature());
         Payload.Add('presence_penalty', GetPresencePenalty());
         Payload.Add('frequency_penalty', GetFrequencyPenalty());
+        Payload.Add('aoai_policy', Format(GetAOAIPolicyFromParams(AOAIPolicyParams)));
 
         if IsJsonMode() then
             Payload.Add('response_format', GetJsonResponseFormat());
@@ -149,6 +179,8 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
     end;
 
     local procedure InitializeDefaults()
+    var
+        DefaultPolicyParams: Codeunit "AOAI Policy Params";
     begin
         Initialized := true;
 
@@ -158,5 +190,9 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         SetMaxTokens(0);
         SetMaxHistory(10);
         SetJsonMode(false);
+
+        DefaultPolicyParams.SetHarmsSeverity("AOAI Policy Harms Severity"::Low);
+        DefaultPolicyParams.SetXPIADetection("AOAI Policy XPIA Detection"::Enabled);
+        SetAOAIPolicyParams(DefaultPolicyParams);
     end;
 }

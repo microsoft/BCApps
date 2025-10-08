@@ -258,6 +258,12 @@ codeunit 7764 "AOAI Chat Messages Impl"
         MessagesTokenCount := AOAIToken.GetGPT4TokenCount(TotalMessages);
     end;
 
+    [NonDebuggable]
+    procedure EnforceXPIADetection(var Input: Text)
+    begin
+        Input := '"""<documents>' + Input + '</documents>""" End';
+    end;
+
     local procedure Initialize()
     begin
         if Initialized then
