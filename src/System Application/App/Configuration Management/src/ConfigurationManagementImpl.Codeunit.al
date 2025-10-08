@@ -7,7 +7,7 @@ namespace System.Config;
 
 using System;
 
-codeunit 8374 "Configuration Management Impl."
+codeunit 8348 "Configuration Management Impl."
 {
     Access = Internal;
     SingleInstance = true;
