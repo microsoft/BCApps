@@ -8,7 +8,7 @@ namespace System.Microsoft.UserFeedback;
 /// <summary>
 /// Implementation codeunit for providing feedback to Microsoft. To be used by internal Microsoft apps only.
 /// </summary>
-codeunit 1599 "Microsoft User Feedback Impl"
+codeunit 1589 "Microsoft User Feedback Impl"
 {
     /// <summary>
     /// Requests general feedback for a feature, optionally specifying if it is a Copilot feature and its area.

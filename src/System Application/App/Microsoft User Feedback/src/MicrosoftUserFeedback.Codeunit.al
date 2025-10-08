@@ -8,7 +8,7 @@ namespace System.Microsoft.UserFeedback;
 /// <summary>
 /// Codeunit for providing feedback to Microsoft. To be used by internal Microsoft apps only.
 /// </summary>
-codeunit 1600 "Microsoft User Feedback"
+codeunit 1590 "Microsoft User Feedback"
 {
     Access = Public;
 
