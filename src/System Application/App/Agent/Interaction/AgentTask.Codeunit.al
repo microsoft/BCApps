@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System.Environment;
+
 #pragma warning disable AS0130, PTE0025 // The object conflicts with a platform codeunit which will be renamed.
 codeunit 4303 "Agent Task"
 #pragma warning restore AS0130, PTE0025
@@ -15,15 +17,30 @@ codeunit 4303 "Agent Task"
     /// <summary>
     /// Check if a task exists for the given agent user and conversation
     /// </summary>
-    /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
-    /// <param name="ConversationId">The conversation ID to check.</param>
+    /// <param name="AgentUserSecurityId">The user security ID of the agent.</param>
+    /// <param name="ExternalId">The external ID to check.</param>
     /// <returns>True if task exists, false if not.</returns>
-    [Scope('OnPrem')]
-    procedure TaskExists(AgentUserSecurityId: Guid; ConversationId: Text): Boolean
+    procedure TaskExists(AgentUserSecurityId: Guid; ExternalId: Text): Boolean
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        exit(AgentTaskImpl.TaskExists(AgentUserSecurityId, ConversationId));
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        exit(AgentTaskImpl.TaskExists(AgentUserSecurityId, ExternalId));
+    end;
+
+    /// <summary>
+    /// Get the task for the given agent user and external ID.
+    /// </summary>
+    /// <param name="AgentUserSecurityId">The agent user ID.</param>
+    /// <param name="ExternalId">The external ID of the task.</param>
+    /// <returns>A record with the given task.</returns>
+    procedure GetTaskByExternalId(AgentUserSecurityId: Guid; ExternalId: Text): Record "Agent Task"
+    var
+        AgentTask: Record "Agent Task";
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        AgentTask.Get(AgentUserSecurityId, ExternalId);
+        exit(AgentTask);
     end;
 
     /// <summary>
@@ -32,11 +49,11 @@ codeunit 4303 "Agent Task"
     /// </summary>
     /// <param name="AgentTask">The agent task to set to ready.</param>
     /// <returns>The agent task with the status set to ready.</returns>
-    [Scope('OnPrem')]
-    procedure SetStatusToReady(AgentTask: Record "Agent Task")
+    procedure SetStatusToReady(var AgentTask: Record "Agent Task")
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskImpl.SetTaskStatusToReadyIfPossible(AgentTask);
     end;
 
@@ -45,13 +62,81 @@ codeunit 4303 "Agent Task"
     /// </summary>
     /// <param name="AgentTask">The agent task to check.</param>
     /// <returns>True if agent task can be set to ready, false otherwise</returns>
-#pragma warning disable AS0022
-    [Scope('OnPrem')]
     procedure CanSetStatusToReady(AgentTask: Record "Agent Task"): Boolean
-#pragma warning restore AS0022
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskImpl.CanAgentTaskBeSetToReady(AgentTask));
     end;
+
+    /// <summary>
+    /// Stops the agent task.
+    /// </summary>
+    /// <param name="AgentTask">The agent task to stop.</param>
+    /// <param name="UserConfirm">Whether to show a confirmation dialog to the user.</param>
+    procedure StopTask(var AgentTask: Record "Agent Task"; UserConfirm: Boolean)
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+        TaskStatus: Enum "Agent Task Status";
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        AgentTaskImpl.StopTask(AgentTask, TaskStatus::"Stopped by User", UserConfirm);
+    end;
+
+    /// <summary>
+    /// Restarts the agent task by setting its status to ready.
+    /// </summary>
+    /// <param name="AgentTask">The agent task to restart.</param>
+    /// <param name="UserConfirm">Whether to show a confirmation dialog to the user.</param>
+    procedure RestartTask(var AgentTask: Record "Agent Task"; UserConfirm: Boolean)
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        AgentTaskImpl.RestartTask(AgentTask, UserConfirm);
+    end;
+
+    /// <summary>
+    /// Checks if the agent task is currently running.
+    /// </summary>
+    /// <param name="AgentTask">The agent task to check.</param>
+    /// <returns>True if the task is running, false otherwise.</returns>
+    procedure IsTaskRunning(var AgentTask: Record "Agent Task"): Boolean
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        exit(AgentTaskImpl.IsTaskRunning(AgentTask));
+    end;
+
+    /// <summary>
+    /// Checks if the agent task is completed.
+    /// </summary>
+    /// <param name="AgentTask">The agent task to check.</param>
+    /// <returns>True if the task is completed, false otherwise.</returns>
+    procedure IsTaskCompleted(var AgentTask: Record "Agent Task"): Boolean
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        exit(AgentTaskImpl.IsTaskCompleted(AgentTask));
+    end;
+
+    /// <summary>
+    /// Checks if the agent task is stopped (by user or system).
+    /// </summary>
+    /// <param name="AgentTask">The agent task to check.</param>
+    /// <returns>True if the task is stopped, false otherwise.</returns>
+    procedure IsTaskStopped(var AgentTask: Record "Agent Task"): Boolean
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        exit(AgentTaskImpl.IsTaskStopped(AgentTask));
+    end;
+
+    var
+        FeatureAccessManagement: Codeunit "Feature Access Management";
+
 }
