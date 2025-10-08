@@ -176,30 +176,61 @@ report 4408 "EXR Trial Bal by Period Excel"
         DimensionValue2: Record "Dimension Value";
         ThisReportingEndDate: Date;
         ThisReportingStartDate: Date;
+        TrialBalance: Codeunit "Trial Balance";
+        TempDimension1Values: Record "Dimension Value" temporary;
+        TempDimension2Values: Record "Dimension Value" temporary;
+        IsPerformantFeatureActive: Boolean;
         i: Integer;
     begin
-        DimensionValue1.SetRange("Global Dimension No.", 1);
-        DimensionValue2.SetRange("Global Dimension No.", 2);
+        // Check if performant feature is active for period reports
+        OnIsPerformantTrialBalanceByPeriodFeatureActive(IsPerformantFeatureActive);
+        
+        if IsPerformantFeatureActive then begin
+            // Use query-based approach for each period
+            for i := 1 to ReportingPeriodStartDate.Count() do begin
+                ThisReportingStartDate := ReportingPeriodStartDate.Get(i);
+                ThisReportingEndDate := ReportingPeriodEndDate.Get(i);
+                GLAccount.SetRange("Date Filter", ThisReportingStartDate, ThisReportingEndDate);
+                
+                TrialBalance.ConfigureTrialBalance(true, false);
+                TrialBalance.InsertTrialBalanceByPeriodReportDataFromQuery(GLAccount, TempDimension1Values, TempDimension2Values, EXRTrialBalanceBuffer);
+                
+                // Set period dates on all inserted records
+                EXRTrialBalanceBuffer.Reset();
+                EXRTrialBalanceBuffer.SetRange("G/L Account No.", GLAccount."No.");
+                EXRTrialBalanceBuffer.SetRange("Period Start", 0D); // Filter for records without period set
+                if EXRTrialBalanceBuffer.FindSet(true) then
+                    repeat
+                        EXRTrialBalanceBuffer."Period Start" := ThisReportingStartDate;
+                        EXRTrialBalanceBuffer."Period End" := ThisReportingEndDate;
+                        EXRTrialBalanceBuffer.Modify();
+                    until EXRTrialBalanceBuffer.Next() = 0;
+            end;
+        end else begin
+            // Use legacy approach
+            DimensionValue1.SetRange("Global Dimension No.", 1);
+            DimensionValue2.SetRange("Global Dimension No.", 2);
 
-        for i := 1 to ReportingPeriodStartDate.Count() do begin
-            ThisReportingStartDate := ReportingPeriodStartDate.Get(i);
-            ThisReportingEndDate := ReportingPeriodEndDate.Get(i);
-            GLAccount.SetRange("Date Filter", ThisReportingStartDate, ThisReportingEndDate);
+            for i := 1 to ReportingPeriodStartDate.Count() do begin
+                ThisReportingStartDate := ReportingPeriodStartDate.Get(i);
+                ThisReportingEndDate := ReportingPeriodEndDate.Get(i);
+                GLAccount.SetRange("Date Filter", ThisReportingStartDate, ThisReportingEndDate);
 
-            AddGLToDataset(GLAccount, ThisReportingStartDate, ThisReportingEndDate, '', '');
-            if DimensionValue1.FindSet() then
-                repeat
-                    AddGLToDataset(GLAccount, ThisReportingStartDate, ThisReportingEndDate, DimensionValue1."Code", '');
-                    if DimensionValue2.FindSet() then
-                        repeat
-                            AddGLToDataset(GLAccount, ThisReportingStartDate, ThisReportingEndDate, DimensionValue1."Code", DimensionValue2."Code");
-                        until DimensionValue2.Next() = 0;
-                until DimensionValue1.Next() = 0;
+                AddGLToDataset(GLAccount, ThisReportingStartDate, ThisReportingEndDate, '', '');
+                if DimensionValue1.FindSet() then
+                    repeat
+                        AddGLToDataset(GLAccount, ThisReportingStartDate, ThisReportingEndDate, DimensionValue1."Code", '');
+                        if DimensionValue2.FindSet() then
+                            repeat
+                                AddGLToDataset(GLAccount, ThisReportingStartDate, ThisReportingEndDate, DimensionValue1."Code", DimensionValue2."Code");
+                            until DimensionValue2.Next() = 0;
+                    until DimensionValue1.Next() = 0;
 
-            if DimensionValue2.FindSet() then
-                repeat
-                    AddGLToDataset(GLAccount, ThisReportingStartDate, ThisReportingEndDate, '', DimensionValue2."Code");
-                until DimensionValue2.Next() = 0;
+                if DimensionValue2.FindSet() then
+                    repeat
+                        AddGLToDataset(GLAccount, ThisReportingStartDate, ThisReportingEndDate, '', DimensionValue2."Code");
+                    until DimensionValue2.Next() = 0;
+            end;
         end;
     end;
 
@@ -221,5 +252,10 @@ report 4408 "EXR Trial Bal by Period Excel"
         EXRTrialBalanceBuffer.Validate("Net Change", LocalGLAccount."Net Change");
         EXRTrialBalanceBuffer.Validate("Balance", LocalGLAccount."Balance at Date");
         EXRTrialBalanceBuffer.Insert(true);
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnIsPerformantTrialBalanceByPeriodFeatureActive(var Active: Boolean)
+    begin
     end;
 }

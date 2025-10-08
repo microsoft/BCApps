@@ -130,12 +130,19 @@ report 4406 "EXR Trial BalanceBudgetExcel"
     trigger OnPreReport()
     var
         TrialBalance: Codeunit "Trial Balance";
+        IsPerformantFeatureActive: Boolean;
     begin
         TrialBalanceBudgetData.SecurityFiltering(SecurityFilter::Filtered);
         CompanyInformation.Get();
         ExcelReportsTelemetry.LogReportUsage(Report::"EXR Trial BalanceBudgetExcel");
         TrialBalance.ConfigureTrialBalance(true, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccounts, Dimension1, Dimension2, TrialBalanceBudgetData);
+        
+        // Check if performant feature is active for budget reports
+        OnIsPerformantTrialBalanceBudgetFeatureActive(IsPerformantFeatureActive);
+        if IsPerformantFeatureActive then
+            TrialBalance.InsertTrialBalanceBudgetReportDataFromQuery(GLAccounts, Dimension1, Dimension2, TrialBalanceBudgetData)
+        else
+            TrialBalance.InsertTrialBalanceReportData(GLAccounts, Dimension1, Dimension2, TrialBalanceBudgetData);
     end;
 
     var
@@ -145,5 +152,10 @@ report 4406 "EXR Trial BalanceBudgetExcel"
     protected var
         CompanyInformation: Record "Company Information";
         IndentedAccountName: Text;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnIsPerformantTrialBalanceBudgetFeatureActive(var Active: Boolean)
+    begin
+    end;
 
 }

@@ -149,15 +149,26 @@ report 4407 "EXR Trial Bal. Prev Year Excel"
         DocumentationLabel = 'Documentation';
     }
     trigger OnPreReport()
+    var
+        TrialBalance: Codeunit "Trial Balance";
+        IsPerformantFeatureActive: Boolean;
     begin
-        TrialBalancePreviousYearData.SecurityFiltering(SecurityFilter::Filtered);
+        EXRTrialBalanceBuffer.SecurityFiltering(SecurityFilter::Filtered);
         CompanyInformation.Get();
         ExcelReportsTelemetry.LogReportUsage(Report::"EXR Trial Bal. Prev Year Excel");
+        TrialBalance.ConfigureTrialBalance(true, false);
 
         FromDate := TrialBalancePreviousYearData.GetRangeMin("Date Filter");
         ToDate := TrialBalancePreviousYearData.GetRangeMax("Date Filter");
         PriorFromDate := CalcDate('<-1Y>', FromDate + 1) - 1;
         PriorToDate := CalcDate('<-1Y>', ToDate + 1) - 1;
+        
+        // Check if performant feature is active for previous year reports
+        OnIsPerformantTrialBalancePrevYearFeatureActive(IsPerformantFeatureActive);
+        if IsPerformantFeatureActive then
+            TrialBalance.InsertTrialBalancePrevYearReportDataFromQuery(TrialBalancePreviousYearData, Dimension1, Dimension2, EXRTrialBalanceBuffer)
+        else
+            TrialBalance.InsertTrialBalanceReportData(TrialBalancePreviousYearData, Dimension1, Dimension2, EXRTrialBalanceBuffer);
     end;
 
     var

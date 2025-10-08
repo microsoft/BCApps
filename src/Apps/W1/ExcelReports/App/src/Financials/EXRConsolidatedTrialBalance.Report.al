@@ -136,6 +136,7 @@ report 4410 "EXR Consolidated Trial Balance"
     var
         BusinessUnit: Record "Business Unit";
         TrialBalance: Codeunit "Trial Balance";
+        IsPerformantFeatureActive: Boolean;
     begin
         if EndingDate = 0D then
             Error(EnterAnEndingDateErr);
@@ -146,7 +147,13 @@ report 4410 "EXR Consolidated Trial Balance"
         GLAccounts.SetRange("Date Filter", StartingDate, EndingDate);
 
         TrialBalance.ConfigureTrialBalance(true, true);
-        TrialBalance.InsertTrialBalanceReportData(GLAccounts, Dimension1, Dimension2, TrialBalanceData);
+        
+        // Check if performant feature is active for consolidated reports
+        OnIsPerformantConsolidatedTrialBalanceFeatureActive(IsPerformantFeatureActive);
+        if IsPerformantFeatureActive then
+            TrialBalance.InsertConsolidatedTrialBalanceReportDataFromQuery(GLAccounts, Dimension1, Dimension2, TrialBalanceData)
+        else
+            TrialBalance.InsertTrialBalanceReportData(GLAccounts, Dimension1, Dimension2, TrialBalanceData);
     end;
 
     var
@@ -155,4 +162,9 @@ report 4410 "EXR Consolidated Trial Balance"
         StartingDate, EndingDate : Date;
         EnterAnEndingDateErr: Label 'Please enter an ending date.';
         NoBusinessUnitsErr: Label 'There are no business units configured for the current company. Please run this report from the consolidation company.';
+
+    [IntegrationEvent(true, false)]
+    local procedure OnIsPerformantConsolidatedTrialBalanceFeatureActive(var Active: Boolean)
+    begin
+    end;
 }

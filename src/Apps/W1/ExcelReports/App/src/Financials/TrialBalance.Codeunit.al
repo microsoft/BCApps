@@ -185,6 +185,224 @@ codeunit 4410 "Trial Balance"
         end;
     end;
 
+    internal procedure InsertConsolidatedTrialBalanceReportDataFromQuery(var GLAccount: Record "G/L Account"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer")
+    var
+        LocalGLAccount: Record "G/L Account";
+        EXRConsolidatedTrialBalanceQuery: Query "EXR Consolidated Trial Balance";
+        StartDate, EndDate : Date;
+    begin
+        TrialBalanceData.DeleteAll();
+        GetRangeDatesForGLAccountFilter(GLAccount.GetFilter("Date Filter"), StartDate, EndDate);
+
+        // Get the balances at the ending date
+        EXRConsolidatedTrialBalanceQuery.SetFilter(EXRConsolidatedTrialBalanceQuery.PostingDate, '..%1', EndDate);
+        EXRConsolidatedTrialBalanceQuery.Open();
+        while EXRConsolidatedTrialBalanceQuery.Read() do begin
+            TrialBalanceData."G/L Account No." := EXRConsolidatedTrialBalanceQuery.AccountNumber;
+            TrialBalanceData."Dimension 1 Code" := EXRConsolidatedTrialBalanceQuery.DimensionValue1Code;
+            TrialBalanceData."Dimension 2 Code" := EXRConsolidatedTrialBalanceQuery.DimensionValue2Code;
+            TrialBalanceData."Business Unit Code" := EXRConsolidatedTrialBalanceQuery.BusinessUnitCode;
+            TrialBalanceData.Validate(Balance, EXRConsolidatedTrialBalanceQuery.Amount);
+            TrialBalanceData.Validate("Balance (ACY)", EXRConsolidatedTrialBalanceQuery.ACYAmount);
+            TrialBalanceData.Validate("Net Change", EXRConsolidatedTrialBalanceQuery.Amount);
+            TrialBalanceData.Validate("Net Change (ACY)", EXRConsolidatedTrialBalanceQuery.ACYAmount);
+            TrialBalanceData.Insert(true);
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
+        end;
+        EXRConsolidatedTrialBalanceQuery.Close();
+
+        // Get the balances at the starting date and modify existing entries
+        EXRConsolidatedTrialBalanceQuery.SetFilter(EXRConsolidatedTrialBalanceQuery.PostingDate, '..%1', StartDate - 1);
+        EXRConsolidatedTrialBalanceQuery.Open();
+        while EXRConsolidatedTrialBalanceQuery.Read() do begin
+            TrialBalanceData.SetRange("G/L Account No.", EXRConsolidatedTrialBalanceQuery.AccountNumber);
+            TrialBalanceData.SetRange("Dimension 1 Code", EXRConsolidatedTrialBalanceQuery.DimensionValue1Code);
+            TrialBalanceData.SetRange("Dimension 2 Code", EXRConsolidatedTrialBalanceQuery.DimensionValue2Code);
+            TrialBalanceData.SetRange("Business Unit Code", EXRConsolidatedTrialBalanceQuery.BusinessUnitCode);
+            if not TrialBalanceData.FindFirst() then begin
+                TrialBalanceData."G/L Account No." := EXRConsolidatedTrialBalanceQuery.AccountNumber;
+                TrialBalanceData."Dimension 1 Code" := EXRConsolidatedTrialBalanceQuery.DimensionValue1Code;
+                TrialBalanceData."Dimension 2 Code" := EXRConsolidatedTrialBalanceQuery.DimensionValue2Code;
+                TrialBalanceData."Business Unit Code" := EXRConsolidatedTrialBalanceQuery.BusinessUnitCode;
+                TrialBalanceData.Insert(true);
+            end;
+            TrialBalanceData.Validate("Starting Balance", EXRConsolidatedTrialBalanceQuery.Amount);
+            TrialBalanceData.Validate("Starting Balance (ACY)", EXRConsolidatedTrialBalanceQuery.ACYAmount);
+            TrialBalanceData.Validate("Net Change", TrialBalanceData."Net Change" - EXRConsolidatedTrialBalanceQuery.Amount);
+            TrialBalanceData.Validate("Net Change (ACY)", TrialBalanceData."Net Change (ACY)" - EXRConsolidatedTrialBalanceQuery.ACYAmount);
+            TrialBalanceData.Modify();
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
+        end;
+
+        // Handle End-Total accounts
+        HandleEndTotalAccountsForConsolidatedReport(TrialBalanceData);
+        TrialBalanceData.Reset();
+    end;
+
+    internal procedure InsertTrialBalanceBudgetReportDataFromQuery(var GLAccount: Record "G/L Account"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer")
+    var
+        LocalGLAccount: Record "G/L Account";
+        EXRTrialBalanceBudgetQuery: Query "EXR Trial Balance Budget";
+        StartDate, EndDate : Date;
+    begin
+        TrialBalanceData.DeleteAll();
+        GetRangeDatesForGLAccountFilter(GLAccount.GetFilter("Date Filter"), StartDate, EndDate);
+
+        // Get the balances at the ending date
+        EXRTrialBalanceBudgetQuery.SetFilter(EXRTrialBalanceBudgetQuery.PostingDate, '..%1', EndDate);
+        EXRTrialBalanceBudgetQuery.Open();
+        while EXRTrialBalanceBudgetQuery.Read() do begin
+            TrialBalanceData."G/L Account No." := EXRTrialBalanceBudgetQuery.AccountNumber;
+            TrialBalanceData."Dimension 1 Code" := EXRTrialBalanceBudgetQuery.DimensionValue1Code;
+            TrialBalanceData."Dimension 2 Code" := EXRTrialBalanceBudgetQuery.DimensionValue2Code;
+            TrialBalanceData.Validate(Balance, EXRTrialBalanceBudgetQuery.Amount);
+            TrialBalanceData.Validate("Balance (ACY)", EXRTrialBalanceBudgetQuery.ACYAmount);
+            TrialBalanceData.Validate("Net Change", EXRTrialBalanceBudgetQuery.Amount);
+            TrialBalanceData.Validate("Net Change (ACY)", EXRTrialBalanceBudgetQuery.ACYAmount);
+            TrialBalanceData.Insert(true);
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
+        end;
+        EXRTrialBalanceBudgetQuery.Close();
+
+        // Get the balances at the starting date and modify existing entries
+        EXRTrialBalanceBudgetQuery.SetFilter(EXRTrialBalanceBudgetQuery.PostingDate, '..%1', StartDate - 1);
+        EXRTrialBalanceBudgetQuery.Open();
+        while EXRTrialBalanceBudgetQuery.Read() do begin
+            TrialBalanceData.SetRange("G/L Account No.", EXRTrialBalanceBudgetQuery.AccountNumber);
+            TrialBalanceData.SetRange("Dimension 1 Code", EXRTrialBalanceBudgetQuery.DimensionValue1Code);
+            TrialBalanceData.SetRange("Dimension 2 Code", EXRTrialBalanceBudgetQuery.DimensionValue2Code);
+            if not TrialBalanceData.FindFirst() then begin
+                TrialBalanceData."G/L Account No." := EXRTrialBalanceBudgetQuery.AccountNumber;
+                TrialBalanceData."Dimension 1 Code" := EXRTrialBalanceBudgetQuery.DimensionValue1Code;
+                TrialBalanceData."Dimension 2 Code" := EXRTrialBalanceBudgetQuery.DimensionValue2Code;
+                TrialBalanceData.Insert(true);
+            end;
+            TrialBalanceData.Validate("Starting Balance", EXRTrialBalanceBudgetQuery.Amount);
+            TrialBalanceData.Validate("Starting Balance (ACY)", EXRTrialBalanceBudgetQuery.ACYAmount);
+            TrialBalanceData.Validate("Net Change", TrialBalanceData."Net Change" - EXRTrialBalanceBudgetQuery.Amount);
+            TrialBalanceData.Validate("Net Change (ACY)", TrialBalanceData."Net Change (ACY)" - EXRTrialBalanceBudgetQuery.ACYAmount);
+            TrialBalanceData.Modify();
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
+        end;
+
+        // Add budget data from G/L Account fields
+        AddBudgetDataFromGLAccounts(GLAccount, TrialBalanceData);
+        
+        // Handle End-Total accounts
+        HandleEndTotalAccounts(TrialBalanceData);
+        TrialBalanceData.Reset();
+    end;
+
+    internal procedure InsertTrialBalanceByPeriodReportDataFromQuery(var GLAccount: Record "G/L Account"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer")
+    var
+        LocalGLAccount: Record "G/L Account";
+        EXRTrialBalanceByPeriodQuery: Query "EXR Trial Balance by Period";
+        StartDate, EndDate : Date;
+    begin
+        TrialBalanceData.DeleteAll();
+        GetRangeDatesForGLAccountFilter(GLAccount.GetFilter("Date Filter"), StartDate, EndDate);
+
+        // Get the balances at the ending date
+        EXRTrialBalanceByPeriodQuery.SetFilter(EXRTrialBalanceByPeriodQuery.PostingDate, '..%1', EndDate);
+        EXRTrialBalanceByPeriodQuery.Open();
+        while EXRTrialBalanceByPeriodQuery.Read() do begin
+            TrialBalanceData."G/L Account No." := EXRTrialBalanceByPeriodQuery.AccountNumber;
+            TrialBalanceData."Dimension 1 Code" := EXRTrialBalanceByPeriodQuery.DimensionValue1Code;
+            TrialBalanceData."Dimension 2 Code" := EXRTrialBalanceByPeriodQuery.DimensionValue2Code;
+            TrialBalanceData.Validate(Balance, EXRTrialBalanceByPeriodQuery.Amount);
+            TrialBalanceData.Validate("Balance (ACY)", EXRTrialBalanceByPeriodQuery.ACYAmount);
+            TrialBalanceData.Validate("Net Change", EXRTrialBalanceByPeriodQuery.Amount);
+            TrialBalanceData.Validate("Net Change (ACY)", EXRTrialBalanceByPeriodQuery.ACYAmount);
+            TrialBalanceData.Insert(true);
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
+        end;
+        EXRTrialBalanceByPeriodQuery.Close();
+
+        // Get the balances at the starting date and modify existing entries
+        EXRTrialBalanceByPeriodQuery.SetFilter(EXRTrialBalanceByPeriodQuery.PostingDate, '..%1', StartDate - 1);
+        EXRTrialBalanceByPeriodQuery.Open();
+        while EXRTrialBalanceByPeriodQuery.Read() do begin
+            TrialBalanceData.SetRange("G/L Account No.", EXRTrialBalanceByPeriodQuery.AccountNumber);
+            TrialBalanceData.SetRange("Dimension 1 Code", EXRTrialBalanceByPeriodQuery.DimensionValue1Code);
+            TrialBalanceData.SetRange("Dimension 2 Code", EXRTrialBalanceByPeriodQuery.DimensionValue2Code);
+            if not TrialBalanceData.FindFirst() then begin
+                TrialBalanceData."G/L Account No." := EXRTrialBalanceByPeriodQuery.AccountNumber;
+                TrialBalanceData."Dimension 1 Code" := EXRTrialBalanceByPeriodQuery.DimensionValue1Code;
+                TrialBalanceData."Dimension 2 Code" := EXRTrialBalanceByPeriodQuery.DimensionValue2Code;
+                TrialBalanceData.Insert(true);
+            end;
+            TrialBalanceData.Validate("Starting Balance", EXRTrialBalanceByPeriodQuery.Amount);
+            TrialBalanceData.Validate("Starting Balance (ACY)", EXRTrialBalanceByPeriodQuery.ACYAmount);
+            TrialBalanceData.Validate("Net Change", TrialBalanceData."Net Change" - EXRTrialBalanceByPeriodQuery.Amount);
+            TrialBalanceData.Validate("Net Change (ACY)", TrialBalanceData."Net Change (ACY)" - EXRTrialBalanceByPeriodQuery.ACYAmount);
+            TrialBalanceData.Modify();
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
+        end;
+
+        // Handle End-Total accounts
+        HandleEndTotalAccounts(TrialBalanceData);
+        TrialBalanceData.Reset();
+    end;
+
+    internal procedure InsertTrialBalancePrevYearReportDataFromQuery(var GLAccount: Record "G/L Account"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer")
+    var
+        LocalGLAccount: Record "G/L Account";
+        EXRTrialBalancePrevYearQuery: Query "EXR Trial Balance Prev Year";
+        StartDate, EndDate : Date;
+    begin
+        TrialBalanceData.DeleteAll();
+        GetRangeDatesForGLAccountFilter(GLAccount.GetFilter("Date Filter"), StartDate, EndDate);
+
+        // Get the balances at the ending date
+        EXRTrialBalancePrevYearQuery.SetFilter(EXRTrialBalancePrevYearQuery.PostingDate, '..%1', EndDate);
+        EXRTrialBalancePrevYearQuery.Open();
+        while EXRTrialBalancePrevYearQuery.Read() do begin
+            TrialBalanceData."G/L Account No." := EXRTrialBalancePrevYearQuery.AccountNumber;
+            TrialBalanceData."Dimension 1 Code" := EXRTrialBalancePrevYearQuery.DimensionValue1Code;
+            TrialBalanceData."Dimension 2 Code" := EXRTrialBalancePrevYearQuery.DimensionValue2Code;
+            TrialBalanceData.Validate(Balance, EXRTrialBalancePrevYearQuery.Amount);
+            TrialBalanceData.Validate("Balance (ACY)", EXRTrialBalancePrevYearQuery.ACYAmount);
+            TrialBalanceData.Validate("Net Change", EXRTrialBalancePrevYearQuery.Amount);
+            TrialBalanceData.Validate("Net Change (ACY)", EXRTrialBalancePrevYearQuery.ACYAmount);
+            TrialBalanceData.Insert(true);
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
+        end;
+        EXRTrialBalancePrevYearQuery.Close();
+
+        // Get the balances at the starting date and modify existing entries
+        EXRTrialBalancePrevYearQuery.SetFilter(EXRTrialBalancePrevYearQuery.PostingDate, '..%1', StartDate - 1);
+        EXRTrialBalancePrevYearQuery.Open();
+        while EXRTrialBalancePrevYearQuery.Read() do begin
+            TrialBalanceData.SetRange("G/L Account No.", EXRTrialBalancePrevYearQuery.AccountNumber);
+            TrialBalanceData.SetRange("Dimension 1 Code", EXRTrialBalancePrevYearQuery.DimensionValue1Code);
+            TrialBalanceData.SetRange("Dimension 2 Code", EXRTrialBalancePrevYearQuery.DimensionValue2Code);
+            if not TrialBalanceData.FindFirst() then begin
+                TrialBalanceData."G/L Account No." := EXRTrialBalancePrevYearQuery.AccountNumber;
+                TrialBalanceData."Dimension 1 Code" := EXRTrialBalancePrevYearQuery.DimensionValue1Code;
+                TrialBalanceData."Dimension 2 Code" := EXRTrialBalancePrevYearQuery.DimensionValue2Code;
+                TrialBalanceData.Insert(true);
+            end;
+            TrialBalanceData.Validate("Starting Balance", EXRTrialBalancePrevYearQuery.Amount);
+            TrialBalanceData.Validate("Starting Balance (ACY)", EXRTrialBalancePrevYearQuery.ACYAmount);
+            TrialBalanceData.Validate("Net Change", TrialBalanceData."Net Change" - EXRTrialBalancePrevYearQuery.Amount);
+            TrialBalanceData.Validate("Net Change (ACY)", TrialBalanceData."Net Change (ACY)" - EXRTrialBalancePrevYearQuery.ACYAmount);
+            TrialBalanceData.Modify();
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
+        end;
+
+        // Handle End-Total accounts
+        HandleEndTotalAccounts(TrialBalanceData);
+        TrialBalanceData.Reset();
+    end;
+
     local procedure InsertTrialBalanceReportDataFromQuery(var GLAccount: Record "G/L Account"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer")
     var
         LocalGLAccount: Record "G/L Account";
@@ -239,28 +457,8 @@ codeunit 4410 "Trial Balance"
             InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
         end;
 
-        // The query will just return entries for the "Posting" G/L Accounts and nothing for the End-Total accounts,
-        // to address that, we calculate the sums from the contents that we now have in the temporary TrialBalanceData table
-        LocalGLAccount.SetRange("Account Type", "G/L Account Type"::"End-Total");
-        if LocalGLAccount.FindSet() then
-            repeat
-                if LocalGLAccount.Totaling <> '' then begin
-                    TrialBalanceData.Reset();
-                    TrialBalanceData.SetFilter("G/L Account No.", LocalGLAccount.Totaling);
-                    TrialBalanceData.CalcSums(
-                        // LCY
-                        "Net Change", "Net Change (Debit)", "Net Change (Credit)",
-                        Balance, "Balance (Debit)", "Balance (Credit)",
-                        "Starting Balance", "Starting Balance (Debit)", "Starting Balance (Credit)",
-                        // ACY
-                        "Net Change (ACY)", "Net Change (Debit) (ACY)", "Net Change (Credit) (ACY)",
-                        Balance, "Balance (Debit) (ACY)", "Balance (Credit) (ACY)",
-                        "Starting Balance (ACY)", "Starting Balance (Debit) (ACY)", "Starting Balance (Credit)(ACY)"
-                    );
-                    TrialBalanceData."G/L Account No." := LocalGLAccount."No.";
-                    TrialBalanceData.Insert(true);
-                end
-            until LocalGLAccount.Next() = 0;
+        // Handle End-Total accounts
+        HandleEndTotalAccounts(TrialBalanceData);
         TrialBalanceData.Reset();
     end;
 
@@ -298,6 +496,116 @@ codeunit 4410 "Trial Balance"
             StartDate := GLEntry."Posting Date";
         if GLEntry.FindLast() then
             EndDate := GLEntry."Posting Date";
+    end;
+
+    local procedure HandleEndTotalAccounts(var TrialBalanceData: Record "EXR Trial Balance Buffer")
+    var
+        LocalGLAccount: Record "G/L Account";
+    begin
+        // The query will just return entries for the "Posting" G/L Accounts and nothing for the End-Total accounts,
+        // to address that, we calculate the sums from the contents that we now have in the temporary TrialBalanceData table
+        LocalGLAccount.SetRange("Account Type", "G/L Account Type"::"End-Total");
+        if LocalGLAccount.FindSet() then
+            repeat
+                if LocalGLAccount.Totaling <> '' then begin
+                    TrialBalanceData.Reset();
+                    TrialBalanceData.SetFilter("G/L Account No.", LocalGLAccount.Totaling);
+                    TrialBalanceData.CalcSums(
+                        // LCY
+                        "Net Change", "Net Change (Debit)", "Net Change (Credit)",
+                        Balance, "Balance (Debit)", "Balance (Credit)",
+                        "Starting Balance", "Starting Balance (Debit)", "Starting Balance (Credit)",
+                        // ACY
+                        "Net Change (ACY)", "Net Change (Debit) (ACY)", "Net Change (Credit) (ACY)",
+                        Balance, "Balance (Debit) (ACY)", "Balance (Credit) (ACY)",
+                        "Starting Balance (ACY)", "Starting Balance (Debit) (ACY)", "Starting Balance (Credit)(ACY)"
+                    );
+                    TrialBalanceData."G/L Account No." := LocalGLAccount."No.";
+                    TrialBalanceData.Insert(true);
+                end
+            until LocalGLAccount.Next() = 0;
+    end;
+
+    local procedure HandleEndTotalAccountsForConsolidatedReport(var TrialBalanceData: Record "EXR Trial Balance Buffer")
+    var
+        LocalGLAccount: Record "G/L Account";
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer" temporary;
+        BusinessUnitCode: Code[20];
+        Dimension1Code: Code[20];
+        Dimension2Code: Code[20];
+    begin
+        // For consolidated reports, we need to handle End-Total accounts for each Business Unit/Dimension combination
+        LocalGLAccount.SetRange("Account Type", "G/L Account Type"::"End-Total");
+        if LocalGLAccount.FindSet() then
+            repeat
+                if LocalGLAccount.Totaling <> '' then begin
+                    // Get unique combinations of Business Unit and Dimensions
+                    TrialBalanceData.Reset();
+                    if TrialBalanceData.FindSet() then
+                        repeat
+                            BusinessUnitCode := TrialBalanceData."Business Unit Code";
+                            Dimension1Code := TrialBalanceData."Dimension 1 Code";
+                            Dimension2Code := TrialBalanceData."Dimension 2 Code";
+                            
+                            // Check if we already created an End-Total for this combination
+                            TempTrialBalanceData.SetRange("G/L Account No.", LocalGLAccount."No.");
+                            TempTrialBalanceData.SetRange("Business Unit Code", BusinessUnitCode);
+                            TempTrialBalanceData.SetRange("Dimension 1 Code", Dimension1Code);
+                            TempTrialBalanceData.SetRange("Dimension 2 Code", Dimension2Code);
+                            if TempTrialBalanceData.IsEmpty() then begin
+                                // Calculate totals for this specific combination
+                                TrialBalanceData.Reset();
+                                TrialBalanceData.SetFilter("G/L Account No.", LocalGLAccount.Totaling);
+                                TrialBalanceData.SetRange("Business Unit Code", BusinessUnitCode);
+                                TrialBalanceData.SetRange("Dimension 1 Code", Dimension1Code);
+                                TrialBalanceData.SetRange("Dimension 2 Code", Dimension2Code);
+                                TrialBalanceData.CalcSums(
+                                    // LCY
+                                    "Net Change", "Net Change (Debit)", "Net Change (Credit)",
+                                    Balance, "Balance (Debit)", "Balance (Credit)",
+                                    "Starting Balance", "Starting Balance (Debit)", "Starting Balance (Credit)",
+                                    // ACY
+                                    "Net Change (ACY)", "Net Change (Debit) (ACY)", "Net Change (Credit) (ACY)",
+                                    Balance, "Balance (Debit) (ACY)", "Balance (Credit) (ACY)",
+                                    "Starting Balance (ACY)", "Starting Balance (Debit) (ACY)", "Starting Balance (Credit)(ACY)"
+                                );
+                                TrialBalanceData."G/L Account No." := LocalGLAccount."No.";
+                                TrialBalanceData."Business Unit Code" := BusinessUnitCode;
+                                TrialBalanceData."Dimension 1 Code" := Dimension1Code;
+                                TrialBalanceData."Dimension 2 Code" := Dimension2Code;
+                                TrialBalanceData.Insert(true);
+                                
+                                // Remember this combination to avoid duplicates
+                                TempTrialBalanceData := TrialBalanceData;
+                                TempTrialBalanceData.Insert();
+                            end;
+                        until TrialBalanceData.Next() = 0;
+                end
+            until LocalGLAccount.Next() = 0;
+    end;
+
+    local procedure AddBudgetDataFromGLAccounts(var GLAccount: Record "G/L Account"; var TrialBalanceData: Record "EXR Trial Balance Buffer")
+    var
+        LocalGLAccount: Record "G/L Account";
+    begin
+        // For budget reports, we need to add budget data from G/L Account fields
+        LocalGLAccount.Copy(GLAccount);
+        if LocalGLAccount.FindSet() then
+            repeat
+                TrialBalanceData.Reset();
+                TrialBalanceData.SetRange("G/L Account No.", LocalGLAccount."No.");
+                if TrialBalanceData.FindSet() then
+                    repeat
+                        // Apply the same filters as in the original logic
+                        LocalGLAccount.SetFilter("Global Dimension 1 Filter", '= ''%1''', TrialBalanceData."Dimension 1 Code");
+                        LocalGLAccount.SetFilter("Global Dimension 2 Filter", '= ''%1''', TrialBalanceData."Dimension 2 Code");
+                        LocalGLAccount.CalcFields("Budgeted Amount", "Budget at Date");
+                        TrialBalanceData.Validate("Budget (Net)", LocalGLAccount."Budgeted Amount");
+                        TrialBalanceData.Validate("Budget (Bal. at Date)", LocalGLAccount."Budget at Date");
+                        TrialBalanceData.CalculateBudgetComparisons();
+                        TrialBalanceData.Modify();
+                    until TrialBalanceData.Next() = 0;
+            until LocalGLAccount.Next() = 0;
     end;
 
     [IntegrationEvent(true, false)]
