@@ -66,7 +66,7 @@ page 8351 "MCP Config Card"
 
                     trigger OnValidate()
                     begin
-                        Session.LogMessage('', StrSubstNo(SettingConfigurationDiscoverReadOnlyObjectsLbl, Rec.SystemId, Rec.DiscoverReadOnlyObjects), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
+                        Session.LogMessage('0000QGJ', StrSubstNo(SettingConfigurationDiscoverReadOnlyObjectsLbl, Rec.SystemId, Rec.DiscoverReadOnlyObjects), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
                     end;
                 }
                 field(AllowProdChanges; Rec.AllowProdChanges)
