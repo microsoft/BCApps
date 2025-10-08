@@ -30,6 +30,7 @@ page 8354 "MCP Tools By API Group"
                         MCPAPIPublisherGroup.Reset();
                         if MCPAPIPublisherGroup.IsEmpty() then
                             MCPConfigImplementation.GetAPIPublishers(MCPAPIPublisherGroup);
+
                         MCPConfigImplementation.LookupAPIPublisher(MCPAPIPublisherGroup, APIPublisher, APIGroup);
                     end;
                 }
@@ -59,7 +60,7 @@ page 8354 "MCP Tools By API Group"
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         APIPublisher: Text;
         APIGroup: Text;
-        APIPublisherNotSelectedErr: Label 'Please select an API Publisher first.';
+        APIPublisherNotSelectedErr: Label 'Select an API Publisher first.';
 
     internal procedure GetAPIGroup(): Text
     begin

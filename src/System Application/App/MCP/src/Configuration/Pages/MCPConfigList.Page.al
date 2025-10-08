@@ -23,8 +23,8 @@ page 8350 "MCP Config List"
     InherentPermissions = X;
     AnalysisModeEnabled = false;
     SourceTableView = where(Name = filter(<> ''));
-    // AboutTitle = TODONAT;
-    // AboutText = TODONAT;
+    AboutTitle = 'About model context protocol (MCP) server configurations';
+    AboutText = 'Get an overview of MCP configurations. You can create multiple configurations to suit different use cases. Each configuration can have its own set of tools and permissions, allowing for flexible management.';
 
     layout
     {
