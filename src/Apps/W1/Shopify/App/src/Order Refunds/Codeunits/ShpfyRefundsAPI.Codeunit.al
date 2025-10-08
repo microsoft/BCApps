@@ -11,7 +11,7 @@ codeunit 30228 "Shpfy Refunds API"
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         JsonHelper: Codeunit "Shpfy Json Helper";
         RefundEnumConvertor: Codeunit "Shpfy Refund Enum Convertor";
-    RefundCantCreateCreditMemoErr: Label 'This refund cannot be used to create a credit memo because it has already been considered during order import and reduced quantity and amounts of order. Only refunds with a non-zero refunded amount and related to real item returns can be used to create credit memos.';
+        RefundCantCreateCreditMemoErr: Label 'This refund cannot be used to create a credit memo because it has already been considered during order import and reduced quantity and amounts of order. Only refunds with a non-zero refunded amount and related to real item returns can be used to create credit memos.';
 
     internal procedure GetRefunds(JRefunds: JsonArray)
     var
