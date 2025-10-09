@@ -128,6 +128,39 @@ codeunit 139688 "Recurring Billing Test"
     end;
 
     [Test]
+    procedure BillFullQuarterWhenServiceStartDateIsThreeDaysBeforeFebruaryEndsOnLeapYearWithPartialBillingAlignedToEndOfMonth()
+    var
+        StartDate: Date;
+    begin
+        // [SCENARIO] When Customer Subscription Contract has Subscription Line Start Date at the three days before the end of February in a leap year, the proposed billing lines should cover the whole period when services are billed partially
+        Initialize();
+
+        // [GIVEN] Customer Subscription Contract with specific period calculation with Billing Period for month and Billing Period Set to quarter
+        StartDate := 20200227D; // 27th February 2020
+        CreateCustomerContract("Period Calculation"::"Align to Start of Month", '<1Q>', '<1M>', StartDate, LibraryRandom.RandIntInRange(100, 200), LibraryRandom.RandIntInRange(1, 99));
+        CustomerContract.SetRecFilter();
+
+        // [GIVEN] Billing Template for Customer Subscription Contract
+        ContractTestLibrary.CreateRecurringBillingTemplate(BillingTemplate, '', '', CustomerContract.GetView(), Enum::"Service Partner"::Customer);
+
+        // [WHEN] Create Billing Proposal for Customer Subscription Contract for first partial period - until the end of February
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer, StartDate, CalcDate('<CM>', StartDate));
+
+        // [THEN] Billing Lines are created for Customer Subscription Contract for the first partial period
+        BillingLine.SetRange("Subscription Contract No.", CustomerContract."No.");
+        BillingLine.FindLast();
+        Assert.AreEqual(CalcDate('<CM>', StartDate), BillingLine."Billing to", 'Expected End Date for Billing Line is incorrect.');
+
+        // [WHEN] Create Billing Proposal for Customer Subscription Contract for second partial period - for the whole quarter
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer, CalcDate('<CM>', StartDate) + 1, 0D);
+
+        // [THEN] Billing Lines are created for Customer Subscription Contract for the second partial period
+        BillingLine.SetRange("Subscription Contract No.", CustomerContract."No.");
+        BillingLine.FindLast();
+        Assert.AreEqual(CalcDate('<1Q>', CalcDate('<CM>', StartDate) + 1) - 1, BillingLine."Billing to", 'Expected End Date for Billing Line is incorrect.');
+    end;
+
+    [Test]
     [HandlerFunctions('BillingTemplateModalPageHandler')]
     procedure CheckBillingDateCalculationFromCustomerBillingTemplate()
     var
