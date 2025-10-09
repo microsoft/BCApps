@@ -21,6 +21,7 @@ page 8350 "MCP Config List"
     Extensible = false;
     InherentEntitlements = X;
     InherentPermissions = X;
+    SourceTableView = where(Name = filter(<> ''));
 
     layout
     {

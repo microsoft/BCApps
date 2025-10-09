@@ -1,5 +1,6 @@
 #if not CLEAN28
 #pragma warning disable AL0801
+#pragma warning disable AL0432
 #endif
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.

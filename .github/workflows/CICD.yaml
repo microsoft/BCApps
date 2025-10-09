@@ -28,7 +28,7 @@ env:
 jobs:
   Initialization:
     needs: [ ]
-    runs-on: [ windows-2025 ]
+    runs-on: [ windows-latest ]
     outputs:
       telemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
       environmentsMatrixJson: ${{ steps.DetermineDeploymentEnvironments.outputs.EnvironmentsMatrixJson }}
@@ -151,7 +151,7 @@ jobs:
 
   CheckForUpdates:
     needs: [ Initialization ]
-    runs-on: [ windows-2025 ]
+    runs-on: [ windows-latest ]
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -233,7 +233,7 @@ jobs:
   CodeAnalysisUpload:
     needs: [ Initialization, Build ]
     if: (!cancelled()) && (needs.Initialization.outputs.trackALAlertsInGithub == 'True')
-    runs-on: [ windows-2025 ]
+    runs-on: [ windows-latest ]
     name: Code Analysis Processing
     steps:
       - name: Checkout
@@ -264,7 +264,7 @@ jobs:
   DeployALDoc:
     needs: [ Initialization, Build ]
     if: (!cancelled()) && (needs.Build.result == 'success' || needs.Build.result == 'skipped') && needs.Initialization.outputs.generateALDocArtifact == 1 && github.ref_name == 'main'
-    runs-on: [ windows-2025 ]
+    runs-on: [ windows-latest ]
     name: Deploy Reference Documentation
     permissions:
       contents: read
@@ -383,7 +383,7 @@ jobs:
       matrix:
         deliveryTarget: ${{ fromJson(needs.Initialization.outputs.deliveryTargetsJson) }}
       fail-fast: false
-    runs-on: [ windows-2025 ]
+    runs-on: [ windows-latest ]
     name: Deliver to ${{ matrix.deliveryTarget }}
     steps:
       - name: Checkout
@@ -421,7 +421,7 @@ jobs:
   PostProcess:
     needs: [ Initialization, Build1, Build, Deploy, Deliver, DeployALDoc, CodeAnalysisUpload ]
     if: (!cancelled())
-    runs-on: [ windows-2025 ]
+    runs-on: [ windows-latest ]
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
