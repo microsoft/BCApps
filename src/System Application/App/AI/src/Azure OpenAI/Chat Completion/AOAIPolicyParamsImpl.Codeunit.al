@@ -12,7 +12,7 @@ codeunit 7788 "AOAI Policy Params Impl"
 
     var
         HarmsSeverity: Enum "AOAI Policy Harms Severity";
-        XPIADetection: Enum "AOAI Policy XPIA Detection";
+        IsXPIADetectionEnabled: Boolean;
         Initialized: Boolean;
 
     procedure GetHarmsSeverity(): Enum "AOAI Policy Harms Severity"
@@ -23,12 +23,12 @@ codeunit 7788 "AOAI Policy Params Impl"
         exit(HarmsSeverity);
     end;
 
-    procedure GetXPIADetection(): Enum "AOAI Policy XPIA Detection"
+    procedure GetXPIADetection(): Boolean
     begin
         if not Initialized then
             InitializeDefaults();
 
-        exit(XPIADetection);
+        exit(IsXPIADetectionEnabled);
     end;
 
     procedure SetHarmsSeverity(NewHarmsSeverity: Enum "AOAI Policy Harms Severity")
@@ -39,18 +39,42 @@ codeunit 7788 "AOAI Policy Params Impl"
         HarmsSeverity := NewHarmsSeverity;
     end;
 
-    procedure SetXPIADetection(NewXPIADetection: Enum "AOAI Policy XPIA Detection")
+    procedure SetXPIADetection(IsEnabled: Boolean)
     begin
         if not Initialized then
             InitializeDefaults();
 
-        XPIADetection := NewXPIADetection;
+        IsXPIADetectionEnabled := IsEnabled;
+    end;
+
+    procedure GetAOAIPolicy(): Enum "AOAI Policy"
+    var
+        AOAIPolicyHarmsSeverity: Enum "AOAI Policy Harms Severity";
+        AOAIPolicyXPIADetection: Boolean;
+        CombinationKey: Text;
+    begin
+        AOAIPolicyHarmsSeverity := GetHarmsSeverity();
+        AOAIPolicyXPIADetection := GetXPIADetection();
+
+        // Create readable combination key
+        CombinationKey := 'Harms' + Format(AOAIPolicyHarmsSeverity) + '|XPIA' + (AOAIPolicyXPIADetection = true ? 'Enabled' : 'Disabled');
+
+        case CombinationKey of
+            'HarmsLow|XPIAEnabled':
+                exit("AOAI Policy"::"ConservativeWithXPIA");
+            'HarmsLow|XPIADisabled':
+                exit("AOAI Policy"::"Conservative");
+            'HarmsMedium|XPIAEnabled':
+                exit("AOAI Policy"::"MediumWithXPIA");
+            'HarmsMedium|XPIADisabled':
+                exit("AOAI Policy"::"Default");
+        end;
     end;
 
     local procedure InitializeDefaults()
     begin
         Initialized := true;
         HarmsSeverity := "AOAI Policy Harms Severity"::Low;
-        XPIADetection := "AOAI Policy XPIA Detection"::Enabled;
+        IsXPIADetectionEnabled := true;
     end;
 }

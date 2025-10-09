@@ -27,8 +27,8 @@ codeunit 7787 "AOAI Policy Params"
     /// <summary>
     /// Gets the current AOAI Policy XPIA Detection setting.
     /// </summary>
-    /// <returns>The current AOAI Policy XPIA Detection.</returns>
-    procedure GetXPIADetection(): Enum "AOAI Policy XPIA Detection"
+    /// <returns>Gets the status of AOAI Policy XPIA Detection.</returns>
+    procedure GetXPIADetection(): Boolean
     begin
         exit(AOAIPolicyParamsImpl.GetXPIADetection());
     end;
@@ -45,9 +45,18 @@ codeunit 7787 "AOAI Policy Params"
     /// <summary>
     /// Sets the AOAI Policy XPIA Detection.
     /// </summary>
-    /// <param name="XPIADetection">The AOAI Policy XPIA Detection to set.</param>
-    procedure SetXPIADetection(XPIADetection: Enum "AOAI Policy XPIA Detection")
+    /// <param name="IsEnabled">Enable/Disable AOAI Policy XPIA Detection</param>
+    procedure SetXPIADetection(IsEnabled: Boolean)
     begin
-        AOAIPolicyParamsImpl.SetXPIADetection(XPIADetection);
+        AOAIPolicyParamsImpl.SetXPIADetection(IsEnabled);
+    end;
+
+    /// <summary>
+    /// Gets the AOAI policy enum based on the provided policy parameters.
+    /// </summary>
+    /// <returns>The corresponding AOAI policy enum value.</returns>
+    procedure GetAOAIPolicy(): Enum "AOAI Policy"
+    begin
+        exit(AOAIPolicyParamsImpl.GetAOAIPolicy());
     end;
 }
