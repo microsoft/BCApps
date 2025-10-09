@@ -8,6 +8,7 @@ namespace System.Test.MCP;
 using System.MCP;
 using System.TestLibraries.MCP;
 using System.TestLibraries.Utilities;
+using System.Reflection;
 
 codeunit 130130 "MCP Config Test"
 {
@@ -48,7 +49,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(false, false, true);
+        ConfigId := CreateMCPConfig(false, false, true, false);
 
         // [WHEN] Activate configuration is called
         MCPConfig.ActivateConfiguration(ConfigId, true);
@@ -65,7 +66,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(true, false, true);
+        ConfigId := CreateMCPConfig(true, false, true, false);
 
         // [WHEN] Deactivate configuration is called
         MCPConfig.ActivateConfiguration(ConfigId, false);
@@ -82,7 +83,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(false, false, true);
+        ConfigId := CreateMCPConfig(false, false, true, false);
 
         // [WHEN] Enable tool search mode is called
         MCPConfig.EnableDynamicToolMode(ConfigId, true);
@@ -99,7 +100,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(false, true, true);
+        ConfigId := CreateMCPConfig(false, true, true, false);
 
         // [WHEN] Disable dynamic tool mode is called
         MCPConfig.EnableDynamicToolMode(ConfigId, false);
@@ -110,6 +111,73 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
+    procedure TestDisableDynamicToolModeDisablesDiscoverReadOnlyObjects()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] Configuration is created
+        ConfigId := CreateMCPConfig(false, true, true, true);
+
+        // [WHEN] Disable dynamic tool mode is called
+        MCPConfig.EnableDynamicToolMode(ConfigId, false);
+
+        // [THEN] Dynamic tool mode is disabled
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.EnableDynamicToolMode, 'Dynamic tool mode is not disabled');
+        Assert.IsFalse(MCPConfiguration.DiscoverReadOnlyObjects, 'Access to all read-only objects is not disabled');
+    end;
+
+    [Test]
+    procedure TestEnableDiscoverReadOnlyObjects()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] Configuration is created
+        ConfigId := CreateMCPConfig(false, true, false, false);
+
+        // [WHEN] Enable access to all read-only objects is called
+        MCPConfig.EnableDiscoverReadOnlyObjects(ConfigId, true);
+
+        // [THEN] Access to all read-only objects is enabled
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'Access to all read-only objects is not enabled');
+    end;
+
+    [Test]
+    procedure TestDisableDiscoverReadOnlyObjects()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] Configuration is created
+        ConfigId := CreateMCPConfig(false, true, false, true);
+
+        // [WHEN] Disable access to all read-only objects is called
+        MCPConfig.EnableDiscoverReadOnlyObjects(ConfigId, false);
+
+        // [THEN] Access to all read-only objects is disabled
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.DiscoverReadOnlyObjects, 'Access to all read-only objects is not disabled');
+    end;
+
+    [Test]
+    procedure TestEnableDiscoverReadOnlyObjectsWithoutDynamicToolMode()
+    var
+        ConfigId: Guid;
+    begin
+        // [GIVEN] Configuration is created
+        ConfigId := CreateMCPConfig(false, false, false, false);
+
+        // [WHEN] Enable access to all read-only objects is called
+        asserterror MCPConfig.EnableDiscoverReadOnlyObjects(ConfigId, true);
+
+        // [THEN] Error message is returned
+        Assert.ExpectedError('Dynamic tool mode needs to be enabled to discover read-only objects.');
+    end;
+
+    [Test]
     procedure TestAllowProdChanges()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
@@ -117,7 +185,7 @@ codeunit 130130 "MCP Config Test"
         ToolId: Guid;
     begin
         // [GIVEN] Configuration and tool is created
-        ConfigId := CreateMCPConfig(false, false, false);
+        ConfigId := CreateMCPConfig(false, false, false, false);
         ToolId := CreateMCPConfigTool(ConfigId);
         Commit();
 
@@ -146,7 +214,7 @@ codeunit 130130 "MCP Config Test"
         ToolId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(false, true, true);
+        ConfigId := CreateMCPConfig(false, true, true, false);
 
         // [WHEN] Create API tool is called
         ToolId := MCPConfig.CreateAPITool(ConfigId, Page::"Mock API");
@@ -169,7 +237,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(false, false, true);
+        ConfigId := CreateMCPConfig(false, false, true, false);
 
         // [WHEN] Create API tool is called with non API page
         asserterror MCPConfig.CreateAPITool(ConfigId, Page::"Mock Card");
@@ -185,7 +253,7 @@ codeunit 130130 "MCP Config Test"
         ToolId: Guid;
     begin
         // [GIVEN] Configuration tool is created
-        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true));
+        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true, false));
 
         // [WHEN] Allow Read is set to false
         MCPConfig.AllowRead(ToolId, false);
@@ -202,7 +270,7 @@ codeunit 130130 "MCP Config Test"
         ToolId: Guid;
     begin
         // [GIVEN] Configuration tool is created
-        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true));
+        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true, false));
 
         // [WHEN] Allow Create is set to true
         MCPConfig.AllowCreate(ToolId, true);
@@ -219,7 +287,7 @@ codeunit 130130 "MCP Config Test"
         ToolId: Guid;
     begin
         // [GIVEN] Configuration tool is created
-        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true));
+        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true, false));
 
         // [WHEN] Allow Modify is set to true
         MCPConfig.AllowModify(ToolId, true);
@@ -236,7 +304,7 @@ codeunit 130130 "MCP Config Test"
         ToolId: Guid;
     begin
         // [GIVEN] Configuration tool is created
-        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true));
+        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true, false));
 
         // [WHEN] Allow Delete is set to true
         MCPConfig.AllowDelete(ToolId, true);
@@ -253,7 +321,7 @@ codeunit 130130 "MCP Config Test"
         ToolId: Guid;
     begin
         // [GIVEN] Configuration tool is created
-        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true));
+        ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true, false));
 
         // [WHEN] Allow Bound Actions is set to true
         MCPConfig.AllowBoundActions(ToolId, true);
@@ -267,16 +335,18 @@ codeunit 130130 "MCP Config Test"
     [HandlerFunctions('LookupAPIToolsOKHandler')]
     procedure TestLookupAPITools()
     var
-        PageId: Integer;
+        PageMetadata: Record "Page Metadata";
+        Result: Boolean;
     begin
         // [GIVEN] No preselected page
-        PageId := 0;
 
         // [WHEN] Lookup API tools is called and a page is selected
-        MCPConfigTestLibrary.LookupAPITools(PageId);
+        Result := MCPConfigTestLibrary.LookupAPITools(PageMetadata);
 
         // [THEN] Correct page is selected
-        Assert.AreEqual(Page::"Mock API", PageId, 'PageId mismatch');
+        Assert.IsTrue(Result, 'Result is not true');
+        PageMetadata.FindFirst();
+        Assert.AreEqual(Page::"Mock API", PageMetadata.ID, 'PageId mismatch');
     end;
 
     [Test]
@@ -287,7 +357,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(false, false, true);
+        ConfigId := CreateMCPConfig(false, false, true, false);
 
         // [WHEN] Tools are added by API group
         MCPConfigTestLibrary.AddToolsByAPIGroup(ConfigId);
@@ -308,7 +378,7 @@ codeunit 130130 "MCP Config Test"
         ConfigId: Guid;
     begin
         // [GIVEN] Configuration is created
-        ConfigId := CreateMCPConfig(false, false, true);
+        ConfigId := CreateMCPConfig(false, false, true, false);
 
         // [WHEN] Standard API tools are added
         MCPConfigTestLibrary.AddStandardAPITools(ConfigId);
@@ -334,7 +404,7 @@ codeunit 130130 "MCP Config Test"
         NewConfigId: Guid;
     begin
         // [GIVEN] Source configuration and tool are created
-        SourceConfigId := CreateMCPConfig(true, true, true);
+        SourceConfigId := CreateMCPConfig(true, true, true, false);
         SourceConfigToolId := CreateMCPConfigTool(SourceConfigId);
 
         // [WHEN] Configuration is copied
@@ -361,15 +431,99 @@ codeunit 130130 "MCP Config Test"
         Assert.AreEqual(NewMCPConfigurationTool."Allow Bound Actions", SourceMCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions mismatch');
     end;
 
-    local procedure CreateMCPConfig(Active: Boolean; ToolSearchMode: Boolean; AllowProdChanges: Boolean): Guid
+    [Test]
+    procedure TestDefaultConfiguration()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        // [GIVEN] Default configuration is created during setup
+
+        // [WHEN] Get default configuration is called
+        MCPConfiguration.Get();
+
+        // [THEN] Default configuration is active, dynamic tool mode and access to all read-only objects are enabled
+        Assert.IsTrue(MCPConfiguration.Active, 'Default configuration is not active');
+        Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'Dynamic tool mode is not enabled');
+        // Assert.IsTrue(MCPConfiguration.EnableDiscoverReadOnlyObjects, 'Access to all read-only objects is not enabled');
+    end;
+
+    [Test]
+    procedure TestDeleteDefaultConfiguration()
+    begin
+        // [GIVEN] Default configuration is created during setup
+
+        // [WHEN] Delete default configuration is called
+        asserterror MCPConfig.DeleteConfiguration(MCPConfig.GetConfigurationIdByName(''));
+
+        // [THEN] Error message is returned
+        Assert.ExpectedError('The default configuration cannot be deleted.');
+    end;
+
+    [Test]
+    procedure TestDisableFeaturesOnDefaultConfiguration()
+    var
+        ConfigId: Guid;
+    begin
+        // [GIVEN] Default configuration is created during setup
+        ConfigId := MCPConfig.GetConfigurationIdByName('');
+
+        // [WHEN] Disable access to all read-only objects is called
+        asserterror MCPConfig.EnableDiscoverReadOnlyObjects(ConfigId, false);
+
+        // [THEN] Error message is returned
+        Assert.ExpectedError('Access to all read-only objects cannot be disabled for the default configuration.');
+
+        // [WHEN] Disable dynamic tool mode is called
+        asserterror MCPConfig.EnableDynamicToolMode(ConfigId, false);
+
+        // [THEN] Error message is returned
+        Assert.ExpectedError('Dynamic tool mode cannot be disabled for the default configuration.');
+
+        // [WHEN] Deactivate configuration is called
+        asserterror MCPConfig.ActivateConfiguration(ConfigId, false);
+
+        // [THEN] Error message is returned
+        Assert.ExpectedError('The default configuration cannot be deactivated.');
+
+        // [WHEN] Create API tool is called
+        asserterror MCPConfig.CreateAPITool(ConfigId, Page::"Mock API");
+
+        // [THEN] Error message is returned
+        Assert.ExpectedError('Tools cannot be added to the default configuration.');
+    end;
+
+    [Test]
+    procedure TestDefaultConfigurationPage()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+    begin
+        // [GIVEN] Default configuration is created during setup
+        MCPConfiguration.Get('');
+
+        // [WHEN] Default configuration page is opened
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        // [THEN] All fields are not editable and tool list is not visible
+        Assert.IsFalse(MCPConfigCard.Name.Editable(), 'Name field is editable');
+        Assert.IsFalse(MCPConfigCard.Description.Editable(), 'Description field is editable');
+        Assert.IsFalse(MCPConfigCard.Active.Editable(), 'Active field is editable');
+        Assert.IsFalse(MCPConfigCard.EnableDynamicToolMode.Editable(), 'EnableDynamicToolMode field is editable');
+        Assert.IsFalse(MCPConfigCard.DiscoverReadOnlyObjects.Editable(), 'DiscoverReadOnlyObjects field is editable');
+        Assert.IsFalse(MCPConfigCard.ToolList.Visible(), 'ToolList is visible');
+    end;
+
+    local procedure CreateMCPConfig(Active: Boolean; DynamicToolMode: Boolean; AllowProdChanges: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
         MCPConfiguration.Name := CopyStr(Format(CreateGuid()), 1, 100);
         MCPConfiguration.Description := CopyStr(Any.AlphabeticText(100), 1, 100);
         MCPConfiguration.Active := Active;
-        MCPConfiguration.EnableDynamicToolMode := ToolSearchMode;
+        MCPConfiguration.EnableDynamicToolMode := DynamicToolMode;
         MCPConfiguration.AllowProdChanges := AllowProdChanges;
+        MCPConfiguration.DiscoverReadOnlyObjects := DiscoverReadOnlyObjects;
         MCPConfiguration.Insert();
         exit(MCPConfiguration.SystemId);
     end;
