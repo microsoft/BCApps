@@ -926,6 +926,21 @@ page 30101 "Shpfy Shop Card"
                         CommunicationMgt.ClearApiVersionCache();
                     end;
                 }
+                action(LeaveReview)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Leave a Review';
+                    Image = CustomerRating;
+                    ToolTip = 'Open the Shopify App Store to leave a review for the Shopify connector.';
+
+                    trigger OnAction()
+                    var
+                        ShopReviewMgt: Codeunit "Shpfy Shop Review Mgt.";
+                    begin
+                        ShopReviewMgt.OpenReviewLinkFromShop(Rec."Shopify URL");
+                    end;
+                }
+
             }
             group(Sync)
             {
@@ -1253,6 +1268,13 @@ page 30101 "Shpfy Shop Card"
                     Rec.Modify();
                 end;
         end;
+    end;
+
+    trigger OnClosePage()
+    var
+        ShopReviewMgt: Codeunit "Shpfy Shop Review Mgt.";
+    begin
+        ShopReviewMgt.MaybeShowReviewReminder("Shopify URL");
     end;
 
     trigger OnAfterGetCurrRecord()
