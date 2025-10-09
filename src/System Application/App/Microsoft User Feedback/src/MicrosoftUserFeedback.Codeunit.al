@@ -19,8 +19,13 @@ codeunit 1590 "Microsoft User Feedback"
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which feedback is requested.</param>
     procedure RequestFeedback(FeatureName: Text)
+    var
+        CallerModuleInfo: ModuleInfo;
+        EmptyContextFiles: Dictionary of [Text, Text];
+        EmptyContextProperties: Dictionary of [Text, Text];
     begin
-        this.RequestFeedback(FeatureName, '', '');
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        this.FeedbackImpl.RequestFeedback(FeatureName, '', '', EmptyContextFiles, EmptyContextProperties, CallerModuleInfo);
     end;
 
     /// <summary>
@@ -31,10 +36,12 @@ codeunit 1590 "Microsoft User Feedback"
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
     procedure RequestFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text)
     var
+        CallerModuleInfo: ModuleInfo;
         EmptyContextFiles: Dictionary of [Text, Text];
         EmptyContextProperties: Dictionary of [Text, Text];
     begin
-        this.RequestFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, EmptyContextFiles, EmptyContextProperties);
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        this.FeedbackImpl.RequestFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, EmptyContextFiles, EmptyContextProperties, CallerModuleInfo);
     end;
 
     /// <summary>
@@ -46,8 +53,11 @@ codeunit 1590 "Microsoft User Feedback"
     /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
     procedure RequestFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
+    var
+        CallerModuleInfo: ModuleInfo;
     begin
-        this.FeedbackImpl.RequestFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties);
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        this.FeedbackImpl.RequestFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties, CallerModuleInfo);
     end;
 
     /// <summary>
@@ -55,8 +65,13 @@ codeunit 1590 "Microsoft User Feedback"
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which like feedback is requested.</param>
     procedure RequestLikeFeedback(FeatureName: Text)
+    var
+        CallerModuleInfo: ModuleInfo;
+        EmptyContextFiles: Dictionary of [Text, Text];
+        EmptyContextProperties: Dictionary of [Text, Text];
     begin
-        this.RequestLikeFeedback(FeatureName, '', '');
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        this.FeedbackImpl.RequestLikeFeedback(FeatureName, '', '', EmptyContextFiles, EmptyContextProperties, CallerModuleInfo);
     end;
 
     /// <summary>
@@ -67,10 +82,12 @@ codeunit 1590 "Microsoft User Feedback"
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
     procedure RequestLikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text)
     var
+        CallerModuleInfo: ModuleInfo;
         EmptyContextFiles: Dictionary of [Text, Text];
         EmptyContextProperties: Dictionary of [Text, Text];
     begin
-        this.RequestLikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, EmptyContextFiles, EmptyContextProperties);
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        this.FeedbackImpl.RequestLikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, EmptyContextFiles, EmptyContextProperties, CallerModuleInfo);
     end;
 
     /// <summary>
@@ -81,18 +98,25 @@ codeunit 1590 "Microsoft User Feedback"
     /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
     procedure RequestLikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
+    var
+        CallerModuleInfo: ModuleInfo;
     begin
-        this.FeedbackImpl.RequestLikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties);
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        this.FeedbackImpl.RequestLikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties, CallerModuleInfo);
     end;
 
     /// <summary>
     /// Requests a 'dislike' (negative) feedback for a feature, optionally specifying if it is a Copilot feature and its area.
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which dislike feedback is requested.</param>
-
     procedure RequestDislikeFeedback(FeatureName: Text)
+    var
+        CallerModuleInfo: ModuleInfo;
+        EmptyContextFiles: Dictionary of [Text, Text];
+        EmptyContextProperties: Dictionary of [Text, Text];
     begin
-        this.RequestDislikeFeedback(FeatureName, '', '');
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        this.FeedbackImpl.RequestDislikeFeedback(FeatureName, '', '', EmptyContextFiles, EmptyContextProperties, CallerModuleInfo);
     end;
 
     /// <summary>
@@ -101,13 +125,14 @@ codeunit 1590 "Microsoft User Feedback"
     /// <param name="FeatureName">The name of the feature for which dislike feedback is requested.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature. ID of the sub-area on OCV.</param>
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
-
     procedure RequestDislikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text)
     var
+        CallerModuleInfo: ModuleInfo;
         EmptyContextFiles: Dictionary of [Text, Text];
         EmptyContextProperties: Dictionary of [Text, Text];
     begin
-        this.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, EmptyContextProperties, EmptyContextFiles);
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        this.FeedbackImpl.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, EmptyContextProperties, EmptyContextFiles, CallerModuleInfo);
     end;
 
     /// <summary>
@@ -119,8 +144,11 @@ codeunit 1590 "Microsoft User Feedback"
     /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
     procedure RequestDislikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextProperties: Dictionary of [Text, Text]; ContextFiles: Dictionary of [Text, Text])
+    var
+        CallerModuleInfo: ModuleInfo;
     begin
-        this.FeedbackImpl.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextProperties, ContextFiles);
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        this.FeedbackImpl.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextProperties, ContextFiles, CallerModuleInfo);
     end;
 
     /// <summary>
@@ -141,8 +169,11 @@ codeunit 1590 "Microsoft User Feedback"
     /// <param name="ActivityName">The name of the activity for which the timer is started or stopped.</param>
     /// <param name="Start">If true, starts the timer; if false, stops the timer.</param>
     procedure SurveyTimerActivity(ActivityName: Text; Start: Boolean)
+    var
+        CallerModuleInfo: ModuleInfo;
     begin
-        this.FeedbackImpl.SurveyTimerActivity(ActivityName, Start);
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        this.FeedbackImpl.SurveyTimerActivity(ActivityName, Start, CallerModuleInfo);
     end;
 
     /// <summary>
@@ -151,8 +182,11 @@ codeunit 1590 "Microsoft User Feedback"
     /// </summary>
     /// <param name="ActivityName">The name of the activity that triggers the survey.</param>
     procedure SurveyTriggerActivity(ActivityName: Text)
+    var
+        CallerModuleInfo: ModuleInfo;
     begin
-        this.FeedbackImpl.SurveyTriggerActivity(ActivityName);
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        this.FeedbackImpl.SurveyTriggerActivity(ActivityName, CallerModuleInfo);
     end;
 
     var

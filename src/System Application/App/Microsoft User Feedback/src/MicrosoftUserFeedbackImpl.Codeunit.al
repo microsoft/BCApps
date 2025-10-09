@@ -24,9 +24,10 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
     /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
-    procedure RequestFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
+    /// <param name="CallerModuleInfo">Information about the module making the request.</param>
+    procedure RequestFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
     begin
-        this.CheckFeedbackCollectionAllowed();
+        this.CheckFeedbackCollectionAllowed(CallerModuleInfo);
 
         if (this.IsAIFeedback) then
             ContextProperties.Add('IsAIFeature', 'true');
@@ -39,11 +40,13 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// </summary>
     /// <param name="FeatureName">The name of the feature for which like feedback is requested.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature.</param>
+    /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
     /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
-    procedure RequestLikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text])
+    /// <param name="CallerModuleInfo">Information about the module making the request.</param>
+    procedure RequestLikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
     begin
-        this.CheckFeedbackCollectionAllowed();
+        this.CheckFeedbackCollectionAllowed(CallerModuleInfo);
 
         if (this.IsAIFeedback) then
             ContextProperties.Add('IsAIFeature', 'true');
@@ -59,9 +62,10 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
     /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
-    procedure RequestDislikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextProperties: Dictionary of [Text, Text]; ContextFiles: Dictionary of [Text, Text])
+    /// <param name="CallerModuleInfo">Information about the module making the request.</param>
+    procedure RequestDislikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextProperties: Dictionary of [Text, Text]; ContextFiles: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
     begin
-        this.CheckFeedbackCollectionAllowed();
+        this.CheckFeedbackCollectionAllowed(CallerModuleInfo);
 
         if (this.IsAIFeedback) then
             ContextProperties.Add('IsAIFeature', 'true');
@@ -86,9 +90,10 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// </summary>
     /// <param name="ActivityName">The name of the activity for which the timer is started or stopped.</param>
     /// <param name="Start">If true, starts the timer; if false, stops the timer.</param>
-    procedure SurveyTimerActivity(ActivityName: Text; Start: Boolean)
+    /// <param name="CallerModuleInfo">Information about the module making the request.</param>
+    procedure SurveyTimerActivity(ActivityName: Text; Start: Boolean; CallerModuleInfo: ModuleInfo)
     begin
-        this.CheckFeedbackCollectionAllowed();
+        this.CheckFeedbackCollectionAllowed(CallerModuleInfo);
         Feedback.SurveyTimerActivity(ActivityName, Start);
     end;
 
@@ -97,18 +102,17 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// The event could be, for example, a user clicking a button
     /// </summary>
     /// <param name="ActivityName">The name of the activity that triggers the survey.</param>
-    procedure SurveyTriggerActivity(ActivityName: Text)
+    /// <param name="CallerModuleInfo">Information about the module making the request.</param>
+    procedure SurveyTriggerActivity(ActivityName: Text; CallerModuleInfo: ModuleInfo)
     begin
-        this.CheckFeedbackCollectionAllowed();
+        this.CheckFeedbackCollectionAllowed(CallerModuleInfo);
         Feedback.SurveyTriggerActivity(ActivityName);
     end;
 
-    local procedure CheckFeedbackCollectionAllowed()
+    local procedure CheckFeedbackCollectionAllowed(CallerModuleInfo: ModuleInfo)
     var
-        CallerModuleInfo: ModuleInfo;
         CurrentModuleInfo: ModuleInfo;
     begin
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
 
         if CallerModuleInfo.Publisher() <> CurrentModuleInfo.Publisher() then
