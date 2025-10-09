@@ -3,9 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Microsoft.UserFeedback;
-
-using System.Feedback;
+namespace System.Feedback;
 
 /// <summary>
 /// Implementation codeunit for providing feedback to Microsoft. To be used by internal Microsoft apps only.
