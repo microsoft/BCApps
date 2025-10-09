@@ -49,11 +49,11 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
-    /// Allows production changes for the specified MCP configuration.
+    /// Allows create, update and delete tools for the specified MCP configuration.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
-    /// <param name="Allow">True to allow production changes, false to disallow.</param>
-    procedure AllowProdChanges(ConfigId: Guid; Allow: Boolean)
+    /// <param name="Allow">True to allow create, update and delete tools, false to disallow.</param>
+    procedure AllowCreateUpdateDeleteTools(ConfigId: Guid; Allow: Boolean)
     begin
         MCPConfigImplementation.AllowProdChanges(ConfigId, Allow);
     end;
@@ -86,6 +86,16 @@ codeunit 8350 "MCP Config"
     procedure EnableDynamicToolMode(ConfigId: Guid; Enable: Boolean)
     begin
         MCPConfigImplementation.EnableDynamicToolMode(ConfigId, Enable);
+    end;
+
+    /// <summary>
+    /// Enables discovery of accessible read-only objects for the specified configuration.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="Enable">True to enable, false to disable.</param>
+    procedure EnableDiscoverReadOnlyObjects(ConfigId: Guid; Enable: Boolean)
+    begin
+        MCPConfigImplementation.EnableDiscoverReadOnlyObjects(ConfigId, Enable);
     end;
 
     /// <summary>
