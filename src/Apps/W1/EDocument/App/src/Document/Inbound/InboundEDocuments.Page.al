@@ -217,7 +217,8 @@ page 6105 "Inbound E-Documents"
                     EDocImport: Codeunit "E-Doc. Import";
                     ImportEDocumentProcess: Codeunit "Import E-Document Process";
                 begin
-                    EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare Draft";
+                    EDocImportParameters := Rec.GetEDocumentService().GetDefaultImportParameters();
+                    EDocImportParameters."Desired E-Document Status" := EDocImportParameters."Desired E-Document Status"::"Draft Ready";
                     EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
                     if ImportEDocumentProcess.IsEDocumentInStateGE(Rec, Enum::"Import E-Doc. Proc. Status"::"Ready for draft") then
                         EDocumentHelper.OpenDraftPage(Rec)
