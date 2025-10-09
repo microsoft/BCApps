@@ -1841,7 +1841,6 @@ codeunit 148153 "Usage Based Billing Test"
     var
         PurchCrMemoHeader: Record "Purchase Header";
         PurchInvHeader: Record "Purch. Inv. Header";
-        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
     begin
         // [SCENARIO] Creating a corrective purchase credit memo for a contract with two usage-based service commitments, deleting one line, and posting the memo should only create a new usage data billing line for the credited line.
         // [GIVEN] A vendor contract with two usage-based service commitments, both invoiced
