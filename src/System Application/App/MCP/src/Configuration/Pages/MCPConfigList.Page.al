@@ -59,6 +59,8 @@ page 8350 "MCP Config List"
                 Image = Copy;
 
                 trigger OnAction()
+                var
+                    MCPConfigImplementation: Codeunit "MCP Config Implementation";
                 begin
                     MCPConfigImplementation.CopyConfiguration(Rec.SystemId);
                 end;
@@ -73,6 +75,7 @@ page 8350 "MCP Config List"
 #if not CLEAN28
     trigger OnOpenPage()
     var
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
         FeatureNotEnabledErrorInfo: ErrorInfo;
     begin
         if MCPConfigImplementation.IsFeatureEnabled() then
@@ -85,7 +88,6 @@ page 8350 "MCP Config List"
     end;
 
     var
-        MCPConfigImplementation: Codeunit "MCP Config Implementation";
         FeatureNotEnabledErr: Label 'MCP server feature is not enabled. Please contact your system administrator to enable the feature.';
         GoToFeatureManagementLbl: Label 'Go to Feature Management';
 #endif
