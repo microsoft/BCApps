@@ -128,7 +128,7 @@ codeunit 130130 "MCP Config Test"
         Assert.ExpectedError('Production changes are not allowed for this MCP configuration.');
 
         // [GIVEN] Production changes are allowed
-        MCPConfig.AllowProdChanges(ConfigId, true);
+        MCPConfig.AllowCreateUpdateDeleteTools(ConfigId, true);
 
         // [WHEN] Allow create is called
         MCPConfig.AllowCreate(ToolId, true);
