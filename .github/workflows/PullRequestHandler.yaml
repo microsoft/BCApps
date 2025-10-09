@@ -34,7 +34,7 @@ jobs:
   Initialization:
     needs: [ PregateCheck ]
     if: (!failure() && !cancelled())
-    runs-on: [ windows-2025 ]
+    runs-on: [ windows-latest ]
     outputs:
       projects: ${{ steps.determineProjectsToBuild.outputs.ProjectsJson }}
       projectDependenciesJson: ${{ steps.determineProjectsToBuild.outputs.ProjectDependenciesJson }}
@@ -144,7 +144,7 @@ jobs:
   CodeAnalysisUpload:
     needs: [ Initialization, Build ]
     if: (!cancelled()) && (needs.Initialization.outputs.trackALAlertsInGithub == 'True')
-    runs-on: [ windows-2025 ]
+    runs-on: [ windows-latest ]
     name: Code Analysis Processing
     steps:
       - name: Checkout
@@ -179,7 +179,7 @@ jobs:
   StatusCheck:
     needs: [ Initialization, Build ]
     if: (!cancelled())
-    runs-on: [ windows-2025 ]
+    runs-on: [ windows-latest ]
     name: Pull Request Status Check
     steps:
       - name: Pull Request Status Check
