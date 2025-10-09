@@ -24,7 +24,7 @@ table 8750 "DA External Storage Setup"
             Caption = 'Primary Key';
             DataClassification = SystemMetadata;
         }
-        field(5; "Delete After"; Enum "DA Ext. Storage - Delete After")
+        field(5; "Delete After"; DateFormula)
         {
             Caption = 'Delete After';
             ToolTip = 'Specifies when files should be automatically deleted.';

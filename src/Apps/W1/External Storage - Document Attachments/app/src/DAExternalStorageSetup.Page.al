@@ -19,6 +19,7 @@ page 8750 "DA External Storage Setup"
     InsertAllowed = false;
     DeleteAllowed = false;
     Extensible = false;
+    Permissions = tabledata "DA External Storage Setup" = rmid;
 
     layout
     {

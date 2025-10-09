@@ -12,6 +12,5 @@ permissionset 8751 "DA Ext. Stor. Admin"
 {
     Assignable = true;
     Caption = 'DA - External Storage Admin';
-    IncludedPermissionSets = "DA Ext. Stor. View";
     Permissions = tabledata "DA External Storage Setup" = IMD;
 }

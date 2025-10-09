@@ -46,18 +46,6 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
     }
 
     /// <summary>
-    /// Marks the document attachment as uploaded to external storage.
-    /// </summary>
-    /// <param name="ExternalFilePath">The path to the file in external storage.</param>
-    internal procedure MarkAsUploadedToExternal(ExternalFilePath: Text[2048])
-    begin
-        "Uploaded Externally" := true;
-        "External Upload Date" := CurrentDateTime();
-        "External File Path" := ExternalFilePath;
-        Modify();
-    end;
-
-    /// <summary>
     /// Marks the document attachment as not uploaded to external storage.
     /// Clears all external storage related fields.
     /// </summary>

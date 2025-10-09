@@ -60,19 +60,20 @@ report 8752 "DA External Storage Sync"
 
                 case SyncDirection of
                     SyncDirection::"To External Storage":
-                        if not ExternalStorageProcessor.UploadToExternalStorage(DocumentAttachment) then
+                        if not ExternalStorageImpl.UploadToExternalStorage(DocumentAttachment) then
                             FailedCount += 1;
                     SyncDirection::"From External Storage":
 
-                        if not ExternalStorageProcessor.DownloadFromExternalStorage(DocumentAttachment) then
+                        if not ExternalStorageImpl.DownloadFromExternalStorage(DocumentAttachment) then
                             FailedCount += 1;
                 end;
                 if DeleteExpiredFiles then
                     if CalcDate(StrSubstNo(DateFormulaLbl, GetDateFormulaFromExternalStorageSetup()), DocumentAttachment."External Upload Date".Date()) >= Today() then
-                        if ExternalStorageProcessor.DeleteFromInternalStorage(DocumentAttachment) then
+                        if ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment) then
                             DeleteCount += 1
                         else
                             DeleteFailedCount += 1;
+                Commit(); // Commit after each record to avoid lost in communication error with external storage service
 
                 if (MaxRecordsToProcess > 0) and (ProcessedCount >= MaxRecordsToProcess) then
                     CurrReport.Break();
@@ -129,7 +130,7 @@ report 8752 "DA External Storage Sync"
     }
 
     var
-        ExternalStorageProcessor: Codeunit "DA External Storage Processor";
+        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
         DeleteExpiredFiles: Boolean;
         Dialog: Dialog;
         DeleteCount, DeleteFailedCount : Integer;
@@ -147,29 +148,17 @@ report 8752 "DA External Storage Sync"
     begin
         case SyncDirection of
             SyncDirection::"To External Storage":
-                begin
-                    DocumentAttachment.SetRange("Uploaded Externally", false);
-                    if DocumentAttachment.FindSet() then begin
-                        repeat
-                            if not DocumentAttachment."Document Reference ID".HasValue() then
-                                DocumentAttachment.Mark(false)
-                            else
-                                DocumentAttachment.Mark(true);
-                        until DocumentAttachment.Next() = 0;
-                        DocumentAttachment.MarkedOnly(true);
-                    end;
-                end;
+                DocumentAttachment.SetRange("Uploaded Externally", false);
             SyncDirection::"From External Storage":
-
                 DocumentAttachment.SetRange("Uploaded Externally", true);
         end;
     end;
 
-    local procedure GetDateFormulaFromExternalStorageSetup(): Text
+    local procedure GetDateFormulaFromExternalStorageSetup(): DateFormula
     var
         ExternalStorageSetup: Record "DA External Storage Setup";
     begin
         ExternalStorageSetup.Get();
-        exit(Format(ExternalStorageSetup."Delete After".AsInteger()) + 'D');
+        exit(ExternalStorageSetup."Delete After");
     end;
 }

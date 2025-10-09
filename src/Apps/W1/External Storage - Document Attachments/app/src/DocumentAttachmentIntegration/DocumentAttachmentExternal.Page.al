@@ -84,12 +84,12 @@ page 8751 "Document Attachment - External"
                 trigger OnAction()
                 var
                     DocumentAttachment: Record "Document Attachment";
-                    ExternalStorageProcessor: Codeunit "DA External Storage Processor";
+                    ExternalStorageImpl: Codeunit "DA External Storage Impl.";
                 begin
                     CurrPage.SetSelectionFilter(DocumentAttachment);
                     if DocumentAttachment.FindSet() then
                         repeat
-                            if ExternalStorageProcessor.UploadToExternalStorage(DocumentAttachment) then
+                            if ExternalStorageImpl.UploadToExternalStorage(DocumentAttachment) then
                                 Message(FileUploadedMsg)
                             else
                                 Message(FailedFileUploadMsg);
@@ -105,9 +105,9 @@ page 8751 "Document Attachment - External"
 
                 trigger OnAction()
                 var
-                    ExternalStorageProcessor: Codeunit "DA External Storage Processor";
+                    ExternalStorageImpl: Codeunit "DA External Storage Impl.";
                 begin
-                    if ExternalStorageProcessor.DownloadFromExternalStorage(Rec) then
+                    if ExternalStorageImpl.DownloadFromExternalStorage(Rec) then
                         Message(FileDownloadedMsg)
                     else
                         Message(FailedFileDownloadMsg);
@@ -122,9 +122,9 @@ page 8751 "Document Attachment - External"
 
                 trigger OnAction()
                 var
-                    ExternalStorageProcessor: Codeunit "DA External Storage Processor";
+                    ExternalStorageImpl: Codeunit "DA External Storage Impl.";
                 begin
-                    if ExternalStorageProcessor.DownloadFromExternalStorageToInternal(Rec) then
+                    if ExternalStorageImpl.DownloadFromExternalStorageToInternal(Rec) then
                         Message(FileDownloadedMsg)
                     else
                         Message(FailedFileDownloadMsg);
@@ -140,10 +140,10 @@ page 8751 "Document Attachment - External"
 
                 trigger OnAction()
                 var
-                    ExternalStorageProcessor: Codeunit "DA External Storage Processor";
+                    ExternalStorageImpl: Codeunit "DA External Storage Impl.";
                 begin
                     if Confirm(DeleteFileFromExternalStorageQst) then
-                        if ExternalStorageProcessor.DeleteFromExternalStorage(Rec) then
+                        if ExternalStorageImpl.DeleteFromExternalStorage(Rec) then
                             Message(FileDeletedExternalStorageMsg)
                         else
                             Message(FailedFileDeleteExternalStorageMsg);
@@ -159,10 +159,10 @@ page 8751 "Document Attachment - External"
 
                 trigger OnAction()
                 var
-                    ExternalStorageProcessor: Codeunit "DA External Storage Processor";
+                    ExternalStorageImpl: Codeunit "DA External Storage Impl.";
                 begin
                     if Confirm(DeleteFileFromIntStorageQst) then
-                        if ExternalStorageProcessor.DeleteFromInternalStorage(Rec) then
+                        if ExternalStorageImpl.DeleteFromInternalStorage(Rec) then
                             Message(FileDeletedIntStorageMsg)
                         else
                             Message(FailedFileDeleteIntStorageMsg);
