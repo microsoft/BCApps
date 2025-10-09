@@ -55,7 +55,7 @@ codeunit 7787 "AOAI Policy Params"
     /// Gets the AOAI policy enum based on the provided policy parameters.
     /// </summary>
     /// <returns>The corresponding AOAI policy enum value.</returns>
-    procedure GetAOAIPolicy(): Enum "AOAI Policy"
+    internal procedure GetAOAIPolicy(): Enum "AOAI Policy"
     begin
         exit(AOAIPolicyParamsImpl.GetAOAIPolicy());
     end;

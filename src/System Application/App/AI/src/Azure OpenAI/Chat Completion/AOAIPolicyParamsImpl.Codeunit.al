@@ -47,7 +47,7 @@ codeunit 7788 "AOAI Policy Params Impl"
         IsXPIADetectionEnabled := IsEnabled;
     end;
 
-    procedure GetAOAIPolicy(): Enum "AOAI Policy"
+    internal procedure GetAOAIPolicy(): Enum "AOAI Policy"
     var
         AOAIPolicyHarmsSeverity: Enum "AOAI Policy Harms Severity";
         AOAIPolicyXPIADetection: Boolean;
