@@ -7,7 +7,7 @@ Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
 function Invoke-ContosoDemoTool() {
     param(
         [string]$ContainerName,
-        [string]$CompanyName = (Get-NavDefaultCompanyName),
+        [string]$CompanyName = (Get-NavDefaultCompanyName -ContainerName $ContainerName),
         [switch]$SetupData = $false
     )
     Write-Host "Initializing company in container $ContainerName"
@@ -27,12 +27,30 @@ function Invoke-ContosoDemoTool() {
 
 function Get-NavDefaultCompanyName
 {
-    return "CRONUS International Ltd."
+    param(
+        [string]$ContainerName
+    )
+    # Log all companies in the container
+    $companies = Get-CompanyInBcContainer -containerName $ContainerName
+    $companies | Foreach-Object { Write-Host "Company: $($_.CompanyName)" }
+
+    # Look for the Cronus company
+    $cronusCompany = $companies | Where-Object { $_.CompanyName -match "CRONUS" } | Select-Object -First 1
+    if ($cronusCompany) {
+        Write-Host "Using company $($cronusCompany.CompanyName) for demo data generation"
+        return $cronusCompany.CompanyName
+    }
+
+    # If no Cronus company is found, thow
+    throw "No Cronus company found in container $ContainerName.."
 }
 
 # Reinstall all the uninstalled apps in the container
 # This is needed to ensure that the various Demo Data apps are installed in the container when we generate demo data
 $allUninstalledApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesFirst | Where-Object { $_.IsInstalled -eq $false }
+# Exclude language apps from being reinstalled
+$allUninstalledApps = $allUninstalledApps | Where-Object { $_.Name -notmatch "^.+ language \(.+\)$" }
+
 Install-AppFromContainer -ContainerName $parameters.ContainerName -AppsToInstall $allUninstalledApps.Name
 # Log all the installed apps
 foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesLast)) {
