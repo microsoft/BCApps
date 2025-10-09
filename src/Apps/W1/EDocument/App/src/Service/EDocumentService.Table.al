@@ -298,6 +298,12 @@ table 6103 "E-Document Service"
             InitValue = true;
             DataClassification = SystemMetadata;
         }
+        field(61; "Processing Customizations"; Enum "E-Doc. Proc. Customizations")
+        {
+            Caption = 'Processing customizations';
+            ToolTip = 'Specifies the customizations for the processing of e-documents processed the service.';
+            DataClassification = SystemMetadata;
+        }
         #endregion [60-80] are reserved for purchase draft document settings.
     }
     keys
@@ -373,6 +379,8 @@ table 6103 "E-Document Service"
                 EDocImportParameters."Step to Run / Desired Status" := EDocImportParameters."Step to Run / Desired Status"::"Desired E-Document Status";
                 EDocImportParameters."Desired E-Document Status" := EDocImportParameters."Desired E-Document Status"::Unprocessed;
             end;
+
+        EDocImportParameters."Processing Customizations" := Rec."Processing Customizations";
     end;
 
     internal procedure ToString(): Text
