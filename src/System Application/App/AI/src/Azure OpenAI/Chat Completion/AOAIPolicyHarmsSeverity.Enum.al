@@ -2,7 +2,7 @@ namespace System.AI;
 
 enum 7787 "AOAI Policy Harms Severity"
 {
-    Extensible = true;
+    Extensible = false;
 
     value(1; Low)
     {

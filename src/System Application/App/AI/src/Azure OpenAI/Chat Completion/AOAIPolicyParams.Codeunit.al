@@ -9,7 +9,6 @@ namespace System.AI;
 /// </summary>
 codeunit 7787 "AOAI Policy Params"
 {
-    Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 
