@@ -112,7 +112,9 @@ codeunit 133103 "Dataverse Table Builder Test"
     begin
         NavAppInstalledApp.SetRange(Name, 'CRM Sync Designer');
         NavAppInstalledApp.SetRange(Publisher, 'Designer');
-        if NavAppInstalledApp.FindFirst() then
-            ExtensionManagement.UninstallExtension(NavAppInstalledApp."Package ID", false);
+        if NavAppInstalledApp.FindSet() then
+            repeat
+                ExtensionManagement.UninstallExtension(NavAppInstalledApp."Package ID", false);
+            until NavAppInstalledApp.Next() = 0;
     end;
 }

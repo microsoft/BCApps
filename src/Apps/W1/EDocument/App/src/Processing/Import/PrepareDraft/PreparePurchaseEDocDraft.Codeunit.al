@@ -61,24 +61,31 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
 
         // If we can't find a vendor 
         EDocImpSessionTelemetry.SetBool('Vendor', EDocumentPurchaseHeader."[BC] Vendor No." <> '');
-        if EDocumentPurchaseHeader."[BC] Vendor No." = '' then
-            exit;
+        if EDocumentPurchaseHeader."[BC] Vendor No." <> '' then begin
 
-        // Get all purchase lines for the document
+            // Get all purchase lines for the document
+            EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+
+            // Apply basic unit of measure and text-to-account resolution first
+            if EDocumentPurchaseLine.FindSet() then
+                repeat
+                    UnitOfMeasure := IUnitOfMeasureProvider.GetUnitOfMeasure(EDocument, EDocumentPurchaseLine."Line No.", EDocumentPurchaseLine."Unit of Measure");
+                    EDocumentPurchaseLine."[BC] Unit of Measure" := UnitOfMeasure.Code;
+                    IPurchaseLineProvider.GetPurchaseLine(EDocumentPurchaseLine);
+                    EDocumentPurchaseLine.Modify();
+                until EDocumentPurchaseLine.Next() = 0;
+
+            // Apply all Copilot-powered matching techniques to the lines
+            CopilotLineMatching(EDocument."Entry No", EDocumentPurchaseHeader."[BC] Vendor No.");
+        end;
+
+        // Log telemetry and activity sessions
+        Clear(EDocumentPurchaseLine);
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
-
-        // Apply basic unit of measure and text-to-account resolution first
         if EDocumentPurchaseLine.FindSet() then
             repeat
-                UnitOfMeasure := IUnitOfMeasureProvider.GetUnitOfMeasure(EDocument, EDocumentPurchaseLine."Line No.", EDocumentPurchaseLine."Unit of Measure");
-                EDocumentPurchaseLine."[BC] Unit of Measure" := UnitOfMeasure.Code;
-                IPurchaseLineProvider.GetPurchaseLine(EDocumentPurchaseLine);
-                EDocumentPurchaseLine.Modify();
+                EDocImpSessionTelemetry.SetLine(EDocumentPurchaseLine.SystemId);
             until EDocumentPurchaseLine.Next() = 0;
-
-        // Apply all Copilot-powered matching techniques to the lines
-        if EDocumentPurchaseHeader."[BC] Vendor No." <> '' then
-            CopilotLineMatching(EDocument."Entry No", EDocumentPurchaseHeader."[BC] Vendor No.");
 
         // Log all accumulated activity session changes at the end
         LogAllActivitySessionChanges(EDocActivityLogSession);
@@ -100,14 +107,11 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
         ActivityLog: Codeunit "Activity Log Builder";
         ActivityLogList: List of [Codeunit "Activity Log Builder"];
         Found: Boolean;
-        i: Integer;
     begin
+        Clear(ActivityLogList);
         EDocActivityLogSession.GetAll(ActivityLogName, ActivityLogList, Found);
-        if Found then
-            for i := 1 to ActivityLogList.Count() do begin
-                ActivityLog := ActivityLogList.Get(i);
-                ActivityLog.Log();
-            end;
+        foreach ActivityLog in ActivityLogList do
+            ActivityLog.Log();
     end;
 
     local procedure CopilotLineMatching(EDocumentEntryNo: Integer; VendorNo: Code[20])

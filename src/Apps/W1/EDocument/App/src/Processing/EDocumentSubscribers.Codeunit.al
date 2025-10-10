@@ -455,29 +455,21 @@ codeunit 6103 "E-Document Subscribers"
     end;
 
     /// <summary>
-    /// This event is fired as part of sending when posting. I called after document has been posted.
+    /// This event is fired as part of sending when posting. Called after document has been posted.
     /// We subscribe to enable creating an e-document from posted document.
     /// </summary>
     [EventSubscriber(ObjectType::Table, Database::"Document Sending Profile", OnAfterSend, '', false, false)]
     local procedure OnAfterSendEDocument(ReportUsage: Integer; RecordVariant: Variant; DocNo: Code[20]; ToCust: Code[20]; DocName: Text[150]; CustomerFieldNo: Integer; DocumentNoFieldNo: Integer; DocumentSendingProfile: Record "Document Sending Profile")
     var
-        TypeHelper: Codeunit "Type Helper";
-        RecordRef: RecordRef;
-        EDocumentType: Enum "E-Document Type";
-        UnsupportedRecordTypeErr: Label 'Unsupported record %1.', Comment = '%1 - Record Type';
+        EDocument: Record "E-Document";
     begin
         if DocumentSendingProfile."Electronic Document" <> Enum::"Doc. Sending Profile Elec.Doc."::"Extended E-Document Service Flow" then
             exit;
         if DocumentSendingProfile."Electronic Service Flow" = '' then
             exit;
 
-        EDocumentType := EDocumentProcessing.GetTypeFromPostedSourceDocument(RecordVariant);
-        if EDocumentType = EDocumentType::None then begin
-            TypeHelper.CopyRecVariantToRecRef(RecordVariant, RecordRef);
-            Error(UnsupportedRecordTypeErr, RecordRef.Name());
-        end;
-
-        CreateEDocumentFromPostedDocument(RecordVariant, DocumentSendingProfile, EDocumentType);
+        if not EDocument.IsEDocumentCreatedForRecord(RecordVariant) then
+            CreateEDocumentFromPostedDocument(RecordVariant, DocumentSendingProfile);
     end;
 
     /// <summary>
@@ -486,6 +478,8 @@ codeunit 6103 "E-Document Subscribers"
     /// </summary>
     [EventSubscriber(ObjectType::Table, Database::"Document Sending Profile", OnAfterSendToEMail, '', false, false)]
     local procedure OnAfterSendToEMailEDocument(var DocumentSendingProfile: Record "Document Sending Profile"; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant; DocNo: Code[20]; DocName: Text[150]; ToCust: Code[20]; DocNoFieldNo: Integer; ShowDialog: Boolean)
+    var
+        EDocument: Record "E-Document";
     begin
         if DocumentSendingProfile."E-Mail" = DocumentSendingProfile."E-Mail"::"No" then
             exit;
@@ -494,6 +488,8 @@ codeunit 6103 "E-Document Subscribers"
                                                                 Enum::"Document Sending Profile Attachment Type"::"PDF & E-Document"]) then
             exit;
 
+        if not EDocument.IsEDocumentCreatedForRecord(RecordVariant) then
+            CreateEDocumentFromPostedDocument(RecordVariant, DocumentSendingProfile);
 
         EDocumentProcessing.ProcessEDocumentAsEmail(DocumentSendingProfile, ReportUsage, RecordVariant, DocNo, DocName, ToCust, ShowDialog);
     end;
@@ -570,15 +566,29 @@ codeunit 6103 "E-Document Subscribers"
         EDocLogHelper.InsertLog(EDocument, EDocService, Enum::"E-Document Service Status"::"Imported Document Created");
     end;
 
+    procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile")
+    begin
+        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, EDocumentProcessing.GetTypeFromPostedSourceDocument(PostedRecord));
+    end;
+
     procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type")
     var
         WorkFlow: Record Workflow;
+        TypeHelper: Codeunit "Type Helper";
+        RecordRef: RecordRef;
         PostedSourceDocumentHeader: RecordRef;
         IsHandled: Boolean;
+        UnsupportedRecordTypeErr: Label 'Unsupported record %1.', Comment = '%1 - Record Type';
     begin
         OnBeforeCreateEDocumentFromPostedDocument(PostedRecord, IsHandled);
         if IsHandled then
             exit;
+
+        if DocumentType = DocumentType::None then begin // Undefined document type is not supported
+            TypeHelper.CopyRecVariantToRecRef(PostedRecord, RecordRef);
+            Error(UnsupportedRecordTypeErr, RecordRef.Name());
+        end;
+
         PostedSourceDocumentHeader.GetTable(PostedRecord);
         if (DocumentSendingProfile."Electronic Document" <> DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow") then
             exit;
