@@ -25,7 +25,7 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         TempHistoricalMatchBuffer: Record "EDoc Historical Match Buffer" temporary;
         EDocSimilarDescriptions: Codeunit "E-Doc. Similar Descriptions";
         EDocumentNo: Integer;
-        HistoricalDataLoadFailedErr: Label 'Failed to load historical data for e-document %1. Error: %2', Comment = '%1 = E-Document System Id, %2 = Error message';
+        HistoricalDataLoadFailedErr: Label 'Failed to load historical data for e-document %1. Error: %2', Comment = '%1 = E-Document System Id, %2 = Error message', Locked = true;
         AIHistoricalDataLoadEventTok: Label 'Historical Data Load', Locked = true;
 
     trigger OnRun()
@@ -393,7 +393,7 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         UserMessage.Add('historicalMatches', HistoricalMatchesJson);
         UserMessage.Add('matchingSetup', MatchingSetup);
         UserMessage.WriteTo(UserMessageTxt);
-        
+
         OnUserMessageCreated(UserMessageTxt);
         exit(UserMessageTxt);
     end;
