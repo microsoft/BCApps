@@ -1,4 +1,3 @@
-#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9,12 +8,8 @@ namespace System.Email;
 /// <summary>
 /// An e-mail connector interface enhances the "Email Connector" with reading, replying to e-mails and marking emails as read.
 /// </summary>
-interface "Email Connector v3" extends "Email Connector"
+interface "Email Connector v4" extends "Email Connector"
 {
-    ObsoleteReason = 'Replaced by "Email Connector v4" which adds the capability for retrieving email folders.';
-    ObsoleteState = Pending;
-    ObsoleteTag = '28.0';
-
     /// <summary>
     /// Reply to an e-mail using the provided account.
     /// </summary>
@@ -36,5 +31,11 @@ interface "Email Connector v3" extends "Email Connector"
     /// <param name="AccountId">The email account ID.</param>
     /// <param name="ExternalId">The external ID of the email.</param>
     procedure MarkAsRead(AccountId: Guid; ExternalId: Text);
+
+    /// <summary>
+    /// Get email folders from the provided account.
+    /// </summary>
+    /// <param name="AccountId">The email account ID.</param>
+    /// <param name="EmailFolders">The email folders retrieved.</param>
+    procedure GetEmailFolders(AccountId: Guid; var EmailFolders: Record "Email Folders" temporary);
 }
-#endif
