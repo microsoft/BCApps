@@ -56,7 +56,7 @@ codeunit 30407 "Shpfy Shop Review Mgt."
         RegisteredStore: Record "Shpfy Registered Store New";
         OrderHeader: Record "Shpfy Order Header";
     begin
-        if not RegisteredStore.get(StoreURL) then
+        if not RegisteredStore.Get(StoreURL) then
             exit;
 
         if RegisteredStore."Review Completed" then
