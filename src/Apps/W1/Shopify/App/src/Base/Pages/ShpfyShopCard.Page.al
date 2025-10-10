@@ -937,7 +937,7 @@ page 30101 "Shpfy Shop Card"
                     var
                         ShopReviewMgt: Codeunit "Shpfy Shop Review Mgt.";
                     begin
-                        ShopReviewMgt.OpenReviewLinkFromShop(Rec.GetStoreName());
+                        ShopReviewMgt.OpenReviewLinkFromShop(CopyStr(Rec.GetStoreName(), 1, 250));
                     end;
                 }
 
@@ -1274,7 +1274,7 @@ page 30101 "Shpfy Shop Card"
     var
         ShopReviewMgt: Codeunit "Shpfy Shop Review Mgt.";
     begin
-        ShopReviewMgt.MaybeShowReviewReminder(Rec.GetStoreName());
+    ShopReviewMgt.MaybeShowReviewReminder(CopyStr(Rec.GetStoreName(), 1, 250));
     end;
 
     trigger OnAfterGetCurrRecord()
