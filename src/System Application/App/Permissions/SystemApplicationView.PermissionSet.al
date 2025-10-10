@@ -35,7 +35,9 @@ permissionset 75 "System Application - View"
                              "Feature Key - View",
                              "Language - View",
                              "Retention Policy - View",
+#if not CLEAN28
                              "Satisfaction Survey - View",
+#endif
                              "Media - View",
                              "Priv. Notice - View",
                              "Record Link Management - View",

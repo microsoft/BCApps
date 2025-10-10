@@ -50,7 +50,9 @@ permissionset 21 "System Application - Read"
                              "Record Link Management - Read",
                              "Retention Policy - Read",
                              "Environment Cleanup - Read",
+#if not CLEAN28
                              "Satisfaction Survey - Read",
+#endif
                              "System Initialization - Exec",
                              "Security Groups - Read",
                              "Table Information - Read",

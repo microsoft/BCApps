@@ -27,7 +27,9 @@ permissionset 66 "System Tables - Basic"
                              "Permissions & Licenses - Read",
                              "Power BI - Read",
                              "Reporting - Edit",
+#if not CLEAN28
                              "Satisfaction Survey - View",
+#endif
                              "Session - Read",
                              "System Execute - Basic",
                              "User Personalization - Edit",
