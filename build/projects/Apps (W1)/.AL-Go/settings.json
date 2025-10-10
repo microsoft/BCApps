@@ -16,12 +16,7 @@
   "installOnlyReferencedApps": false,
   "doNotRunPageScriptingTests": true,
   "doNotRunBcptTests": true,
-  "buildModes": [
-    "CH",
-    "ES",
-    "IN",
-    "US"
-  ],
+  "buildModes": [ "CH","CZ","DK","ES","GB","IN","NO","US" ],
   "ConditionalSettings": [
     {
       "buildModes": [
@@ -29,6 +24,24 @@
       ],
       "settings": {
         "country": "ch"
+      }
+    },
+    {
+      "buildModes": [
+        "CZ"
+      ],
+      "settings": {
+        "country": "cz",
+        "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
+        "DK"
+      ],
+      "settings": {
+        "country": "dk",
+        "doNotRunTests": true
       }
     },
     {
@@ -41,10 +54,28 @@
     },
     {
       "buildModes": [
+        "GB"
+      ],
+      "settings": {
+        "country": "gb",
+        "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
         "IN"
       ],
       "settings": {
         "country": "in"
+      }
+    },
+    {
+      "buildModes": [
+        "NO"
+      ],
+      "settings": {
+        "country": "no",
+        "doNotRunTests": true
       }
     },
     {
