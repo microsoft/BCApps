@@ -34,7 +34,7 @@ codeunit 30407 "Shpfy Shop Review Mgt."
             MarkStoreAsReviewed(StoreURL);
     end;
 
-    local procedure MarkShopAsReviewed(StoreURL: Text[250])
+    local procedure MarkStoreAsReviewed(StoreURL: Text[250])
     var
         RegisteredStore: Record "Shpfy Registered Store New";
     begin
