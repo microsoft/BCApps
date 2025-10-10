@@ -109,7 +109,7 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
             exit(false);
 
         // Load historical data with error handling
-        if not TryLoadHistoricalData(TempPurchInvLine, VendorNo, EDocHistoricalMatchingSetup) then begin
+        if not LoadHistoricalDataIntoTempTable(TempPurchInvLine, VendorNo, EDocHistoricalMatchingSetup) then begin
             ErrorMessage := GetLastErrorText();
             FeatureTelemetry.LogError('0000PUQ', GetFeatureName(), AIHistoricalDataLoadEventTok, StrSubstNo(HistoricalDataLoadFailedErr, EDocSystemId, ErrorMessage), GetLastErrorCallStack());
             exit(false);
@@ -126,11 +126,6 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
     end;
 
     [TryFunction]
-    local procedure TryLoadHistoricalData(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20]; EDocHistoricalMatchingSetup: Record "EDoc Historical Matching Setup")
-    begin
-        LoadHistoricalDataIntoTempTable(TempPurchInvLine, VendorNo, EDocHistoricalMatchingSetup);
-    end;
-
     local procedure LoadHistoricalDataIntoTempTable(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20]; EDocHistoricalMatchingSetup: Record "EDoc Historical Matching Setup")
     var
         PurchInvLine: Record "Purch. Inv. Line";
