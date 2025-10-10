@@ -1,0 +1,14 @@
+[
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139915,
+        "CodeunitName": "Sales Service Commitment Test",
+        "Method": "CheckIsServiceItemExcludedFromTotalsInReports"
+    },
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139915,
+        "CodeunitName": "Sales Service Commitment Test",
+        "Method": "CheckVatCalculationForServiceCommitmentRhythmInReports"
+    }
+]

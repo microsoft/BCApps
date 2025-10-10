@@ -239,7 +239,7 @@ page 6181 "E-Document Purchase Draft"
             }
             part(InboundEDocPicture; "Inbound E-Doc. Picture")
             {
-                Caption = 'E-Document Pdf Preview';
+                Caption = 'Preview';
                 SubPageLink = "Entry No." = field("Unstructured Data Entry No."),
                             "File Format" = const("E-Doc. File Format"::PDF);
                 ShowFilter = false;
@@ -332,13 +332,30 @@ page 6181 "E-Document Purchase Draft"
         {
             group(Vendors)
             {
-                Visible = false;
+                action(HistoricalVendorMatches)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Historical Vendor Matches';
+                    ToolTip = 'Opens Vendor Assignment History to see names and addresses matched to vendors based on received e-documents.';
+                    Image = History;
+                    RunObject = page "E-Doc. Vendor Assignment Hist.";
+                    RunPageMode = View;
+                }
+                action(OpenVendorList)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Vendor List';
+                    ToolTip = 'Opens the Vendor List.';
+                    Image = Vendor;
+                    RunObject = page "Vendor List";
+                    RunPageMode = View;
+                }
                 action(CreateVendorAction)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Create Vendor';
                     ToolTip = 'Creates a vendor based on the invoice details.';
-                    Image = Vendor;
+                    Image = AddContacts;
 
                     trigger OnAction()
                     var
