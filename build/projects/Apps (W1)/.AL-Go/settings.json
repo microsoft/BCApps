@@ -23,8 +23,7 @@
         "AT"
       ],
       "settings": {
-        "country": "at",
-        "doNotRunTests": true
+        "country": "at"
       }
     },
     {
@@ -32,8 +31,7 @@
         "AU"
       ],
       "settings": {
-        "country": "au",
-        "doNotRunTests": true
+        "country": "au"
       }
     },
     {
@@ -41,8 +39,7 @@
         "BE"
       ],
       "settings": {
-        "country": "be",
-        "doNotRunTests": true
+        "country": "be"
       }
     },
     {
@@ -50,8 +47,7 @@
         "CA"
       ],
       "settings": {
-        "country": "ca",
-        "doNotRunTests": true
+        "country": "ca"
       }
     },
     {
@@ -67,8 +63,7 @@
         "CZ"
       ],
       "settings": {
-        "country": "cz",
-        "doNotRunTests": true
+        "country": "cz"
       }
     },
     {
@@ -76,8 +71,7 @@
         "DE"
       ],
       "settings": {
-        "country": "de",
-        "doNotRunTests": true
+        "country": "de"
       }
     },
     {
@@ -85,8 +79,7 @@
         "DK"
       ],
       "settings": {
-        "country": "dk",
-        "doNotRunTests": true
+        "country": "dk"
       }
     },
     {
@@ -102,8 +95,7 @@
         "FI"
       ],
       "settings": {
-        "country": "fi",
-        "doNotRunTests": true
+        "country": "fi"
       }
     },
     {
@@ -111,8 +103,7 @@
         "FR"
       ],
       "settings": {
-        "country": "fr",
-        "doNotRunTests": true
+        "country": "fr"
       }
     },
     {
@@ -120,8 +111,7 @@
         "GB"
       ],
       "settings": {
-        "country": "gb",
-        "doNotRunTests": true
+        "country": "gb"
       }
     },
     {
@@ -137,8 +127,7 @@
         "IS"
       ],
       "settings": {
-        "country": "is",
-        "doNotRunTests": true
+        "country": "is"
       }
     },
     {
@@ -146,8 +135,7 @@
         "IT"
       ],
       "settings": {
-        "country": "it",
-        "doNotRunTests": true
+        "country": "it"
       }
     },
     {
@@ -155,8 +143,7 @@
         "MX"
       ],
       "settings": {
-        "country": "mx",
-        "doNotRunTests": true
+        "country": "mx"
       }
     },
     {
@@ -164,8 +151,7 @@
         "NL"
       ],
       "settings": {
-        "country": "nl",
-        "doNotRunTests": true
+        "country": "nl"
       }
     },
     {
@@ -173,8 +159,7 @@
         "NO"
       ],
       "settings": {
-        "country": "no",
-        "doNotRunTests": true
+        "country": "no"
       }
     },
     {
@@ -182,8 +167,7 @@
         "NZ"
       ],
       "settings": {
-        "country": "nz",
-        "doNotRunTests": true
+        "country": "nz"
       }
     },
     {
@@ -191,8 +175,7 @@
         "SE"
       ],
       "settings": {
-        "country": "se",
-        "doNotRunTests": true
+        "country": "se"
       }
     },
     {
