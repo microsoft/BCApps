@@ -111,9 +111,7 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         // Load historical data with error handling
         if not TryLoadHistoricalData(TempPurchInvLine, VendorNo, EDocHistoricalMatchingSetup) then begin
             ErrorMessage := GetLastErrorText();
-            TelemetryDimensions.Add('E-Document System Id', Format(EDocSystemId));
-            TelemetryDimensions.Add('Error', ErrorMessage);
-            FeatureTelemetry.LogError('0000PUQ', GetFeatureName(), AIHistoricalDataLoadEventTok, StrSubstNo(HistoricalDataLoadFailedErr, EDocSystemId, ErrorMessage), '', TelemetryDimensions);
+            FeatureTelemetry.LogError('0000PUQ', GetFeatureName(), AIHistoricalDataLoadEventTok, StrSubstNo(HistoricalDataLoadFailedErr, EDocSystemId, ErrorMessage), GetLastErrorCallStack());
             exit(false);
         end;
 
