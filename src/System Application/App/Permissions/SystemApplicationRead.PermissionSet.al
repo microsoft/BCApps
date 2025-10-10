@@ -20,7 +20,9 @@ using System.DataAdministration;
 using System.Environment;
 using System.Security.User;
 using System.Integration.Word;
+#if not CLEAN28
 using System.Feedback;
+#endif
 using System.Apps;
 
 permissionset 21 "System Application - Read"
