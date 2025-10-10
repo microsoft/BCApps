@@ -1,6 +1,6 @@
 namespace System.AI;
 
-enum 7787 "AOAI Policy Harms Severity"
+enum 7788 "AOAI Policy Harms Severity"
 {
     Extensible = false;
 

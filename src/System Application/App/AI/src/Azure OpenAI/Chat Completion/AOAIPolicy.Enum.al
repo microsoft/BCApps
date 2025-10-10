@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
-enum 7789 "AOAI Policy"
+enum 7787 "AOAI Policy"
 {
     Extensible = false;
     Access = Internal;
