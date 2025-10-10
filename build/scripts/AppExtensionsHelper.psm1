@@ -184,14 +184,14 @@ function Install-AppFromFile() {
     if ($PSCmdlet.ParameterSetName -eq "ByAppName") {
         Write-Host "[Install App from file] - Searching for app file with name: $AppName"
         
-        # First, look for app files under Applications.<CountryCode> folders on the container
+        # First, look for app files under Applications.<CountryCode> folder on the container
         $countryApps = (Invoke-ScriptInBCContainer -containerName $ContainerName -scriptblock { 
             Get-ChildItem -Path "C:\" -Directory -Filter "Applications.*" | Where-Object { $_.Name -ne "Applications" } | ForEach-Object {
                 Get-ChildItem -Path $_.FullName -Filter "*.app" -Recurse -ErrorAction SilentlyContinue
             }
         })
 
-        # Find the app file by looking for an app file with the base name "Microsoft_AppName" in country-specific folders
+        # Find the app file by looking for an app file with the base name "Microsoft_AppName_Major.Minjor.Build.Revision" pattern
         $AppFilePath = $countryApps | Where-Object { $($_.BaseName) -match "^Microsoft_$($AppName)_\d+\.\d+\.\d+\.\d+$" } | Select-Object -First 1 | ForEach-Object { $_.FullName }
         
         # If not found in country-specific folders, fall back to the main Applications folder
