@@ -7,7 +7,9 @@ namespace System.Agents;
 
 using System.Security.AccessControl;
 
+#pragma warning disable AS0130, PTE0025 // The object is moved to the platform symbols.
 page 4307 "Agent Task Timeline"
+#pragma warning restore AS0130,PTE0025
 {
     PageType = ListPart;
     ApplicationArea = All;

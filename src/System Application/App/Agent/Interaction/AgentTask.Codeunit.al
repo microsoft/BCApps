@@ -5,7 +5,9 @@
 
 namespace System.Agents;
 
+#pragma warning disable AS0130, PTE0025 // The object conflicts with a platform codeunit which will be renamed.
 codeunit 4303 "Agent Task"
+#pragma warning restore AS0130, PTE0025
 {
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -47,7 +49,10 @@ codeunit 4303 "Agent Task"
     /// The agent task to check.
     /// </param>
     /// <returns>True if agent task can be set to ready, false otherwise</returns>
+#pragma warning disable AS0022
+    [Scope('OnPrem')]
     procedure CanSetStatusToReady(AgentTask: Record "Agent Task"): Boolean
+#pragma warning restore AS0022
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
