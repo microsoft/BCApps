@@ -11,7 +11,7 @@ codeunit 30407 "Shpfy Shop Review Mgt."
 
     procedure OpenReviewLink(Notification: Notification)
     var
-        StoreURL: Text[250];
+        StoreURL: Text;
     begin
         Hyperlink(GetReviewLink());
 
@@ -20,7 +20,7 @@ codeunit 30407 "Shpfy Shop Review Mgt."
             MarkStoreAsReviewed(StoreURL);
     end;
 
-    procedure OpenReviewLinkFromShop(StoreURL: Text[250])
+    procedure OpenReviewLinkFromShop(StoreURL: Text)
     begin
         Hyperlink(GetReviewLink());
 
@@ -29,14 +29,14 @@ codeunit 30407 "Shpfy Shop Review Mgt."
 
     procedure MarkReviewCompleted(Notification: Notification)
     var
-        StoreURL: Text[250];
+        StoreURL: Text;
     begin
         StoreURL := Notification.GetData(GetStoreNameKey());
         if StoreURL <> '' then
             MarkStoreAsReviewed(StoreURL);
     end;
 
-    local procedure MarkStoreAsReviewed(StoreURL: Text[250])
+    local procedure MarkStoreAsReviewed(StoreURL: Text)
     var
         RegisteredStore: Record "Shpfy Registered Store New";
     begin
@@ -53,7 +53,7 @@ codeunit 30407 "Shpfy Shop Review Mgt."
         exit('https://aka.ms/bcshopifyvote');
     end;
 
-    procedure MaybeShowReviewReminder(StoreURL: Text[250])
+    procedure MaybeShowReviewReminder(StoreURL: Text)
     var
         RegisteredStore: Record "Shpfy Registered Store New";
         OrderHeader: Record "Shpfy Order Header";
