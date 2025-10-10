@@ -17,6 +17,33 @@ pageextension 4023 SendVendLedgerEntryRemitAdvice extends "Vendor Ledger Entries
 
     actions
     {
+#if CLEAN28
+        addafter(SuggestVendorPayments)
+        {
+            action("Print Remi&ttance Advice")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Print Remi&ttance Advice';
+                Image = PrintAttachment;
+                ToolTip = 'Print the remittance advice before posting a payment journal and after posting a payment. This advice displays vendor invoice numbers, which helps vendors to perform reconciliations.';
+
+                trigger OnAction()
+                var
+                    GenJournalLine: Record "Gen. Journal Line";
+                    ReportSelections: Record "Report Selections";
+                begin
+                    GenJournalLine.Reset();
+                    GenJournalLine.SetRange("Journal Template Name", Rec."Journal Template Name");
+                    GenJournalLine.SetRange("Journal Batch Name", Rec."Journal Batch Name");
+                    ReportSelections.PrintWithDialogForVend(
+                        ReportSelections.Usage::"V.Remittance", GenJournalLine, true, Rec.FieldNo("Account No."));
+                end;
+            }
+            separator(Action1040007)
+            {
+            }
+        }
+#endif
         addlast("F&unctions")
         {
             // Add changes to page actions here
