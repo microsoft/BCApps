@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.Booking;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.Deferral;
 using Microsoft.Foundation.UOM;
@@ -19,6 +20,7 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using System.Reflection;
 using Microsoft.Purchases.History;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Purchases.Vendor;
 
 table 6101 "E-Document Purchase Line"
 {
@@ -114,6 +116,12 @@ table 6101 "E-Document Purchase Line"
         {
             Caption = 'Type';
             ToolTip = 'Specifies the type of entity that will be posted for this purchase line, such as Item, Resource, or G/L Account.';
+
+            trigger OnValidate()
+            begin
+                POMatchingValidation();
+                Rec."[BC] Purchase Type No." := ''; // TODO:modify needed?
+            end;
         }
         field(102; "[BC] Purchase Type No."; Code[20])
         {
@@ -135,7 +143,8 @@ table 6101 "E-Document Purchase Line"
 
             trigger OnValidate()
             begin
-                ValidateNoField();
+                SetDescriptionFromLineTypeNo();
+                POMatchingValidation();
             end;
         }
         field(103; "[BC] Unit of Measure"; Code[20])
@@ -224,7 +233,7 @@ table 6101 "E-Document Purchase Line"
     var
         DimMgt: Codeunit DimensionManagement;
 
-    local procedure ValidateNoField()
+    local procedure SetDescriptionFromLineTypeNo()
     var
         Item: Record Item;
         GLAccount: Record "G/L Account";
@@ -256,6 +265,18 @@ table 6101 "E-Document Purchase Line"
                 if ItemCharge.Get(Rec."[BC] Purchase Type No.") then
                     Rec.Description := ItemCharge.Description;
         end;
+    end;
+
+    local procedure POMatchingValidation()
+    var
+        EDocPOMatching: Codeunit "E-Doc. PO Matching";
+        LineMatchedMsg: Label 'This e-document line is already linked to a purchase order line. Do you want to continue? This will remove the link(s).';
+    begin
+        if not EDocPOMatching.IsEDocumentLineLinkedToAnyPOLine(Rec) then
+            exit;
+        if not Confirm(LineMatchedMsg) then
+            Error('');
+        EDocPOMatching.RemoveAllMatchesForEDocumentLine(Rec);
     end;
 
     internal procedure GetNextLineNo(EDocumentEntryNo: Integer): Integer
@@ -305,6 +326,16 @@ table 6101 "E-Document Purchase Line"
             "[BC] Shortcut Dimension 1 Code", "[BC] Shortcut Dimension 2 Code");
         DimMgt.UpdateGlobalDimFromDimSetID("[BC] Dimension Set ID", "[BC] Shortcut Dimension 1 Code", "[BC] Shortcut Dimension 2 Code");
         exit(OldDimSetID <> "[BC] Dimension Set ID");
+    end;
+
+    procedure GetEDocumentPurchaseHeader() EDocumentPurchaseHeader: Record "E-Document Purchase Header"
+    begin
+        if EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then;
+    end;
+
+    procedure GetLinkedVendor(): Record Vendor
+    begin
+        exit(GetEDocumentPurchaseHeader().GetLinkedVendor());
     end;
 
 }

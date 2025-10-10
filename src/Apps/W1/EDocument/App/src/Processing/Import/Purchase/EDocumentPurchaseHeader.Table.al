@@ -263,6 +263,11 @@ table 6100 "E-Document Purchase Header"
         end;
     end;
 
+    procedure GetLinkedVendor() Vendor: Record Vendor
+    begin
+        if Vendor.Get(Rec."[BC] Vendor No.") then;
+    end;
+
     internal procedure FeatureName(): Text
     begin
         exit('E-Document Matching Assistance');

@@ -1,0 +1,114 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
+
+using Microsoft.Purchases.History;
+
+page 6130 "E-Doc. Select Receipt Lines"
+{
+    ApplicationArea = All;
+    Caption = 'Available Receipt Lines';
+    PageType = Worksheet;
+    SourceTable = "Purch. Rcpt. Line";
+    SourceTableTemporary = true;
+    Editable = false;
+    Extensible = false;
+    InsertAllowed = false;
+    DeleteAllowed = false;
+
+    layout
+    {
+        area(Content)
+        {
+            group(LineInInvoice)
+            {
+                Caption = 'Received invoice line';
+                field(EDocumentPurchaseLineDescription; EDocumentPurchaseLine.Description)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Description';
+                    ToolTip = 'Specifies the description of the e-document line.';
+                }
+                field(EDocumentPurchaseLineQuantity; EDocumentPurchaseLine.Quantity)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Quantity';
+                    ToolTip = 'Specifies the quantity of the e-document line.';
+                }
+            }
+            repeater(Lines)
+            {
+                Caption = 'Existing receipt lines';
+                field("Order No."; Rec."Order No.")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the order number of the purchase order.';
+                    StyleExpr = StyleExpr;
+                }
+                field("Order Line No."; Rec."Order Line No.")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the line number of the purchase order.';
+                    StyleExpr = StyleExpr;
+                }
+                field("Receipt No."; Rec."Document No.")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Receipt No.';
+                    ToolTip = 'Specifies the document number of the purchase receipt.';
+                    StyleExpr = StyleExpr;
+                }
+                field(Description; Rec.Description)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the description of the purchase line.';
+                    StyleExpr = StyleExpr;
+                }
+                field(Quantity; Rec.Quantity)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the quantity of the receipt line.';
+                }
+                field("Quantity Invoiced"; Rec."Quantity Invoiced")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the quantity that has already been invoiced.';
+                }
+            }
+        }
+    }
+
+    var
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocPOMatching: Codeunit "E-Doc. PO Matching";
+        StyleExpr: Text;
+
+    trigger OnOpenPage()
+    begin
+        EDocPOMatching.LoadAvailableReceiptLinesForEDocumentLine(EDocumentPurchaseLine, Rec);
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        StyleExpr := EDocPOMatching.IsReceiptLineLinkedToEDocumentLine(Rec, EDocumentPurchaseLine) ? 'Strong' : '';
+    end;
+
+    internal procedure SetEDocumentPurchaseLine(EDocumentPurchaseLineLocal: Record "E-Document Purchase Line")
+    begin
+        EDocumentPurchaseLine := EDocumentPurchaseLineLocal;
+    end;
+
+    internal procedure GetSelectedReceiptLines(var SelectedReceiptLines: Record "Purch. Rcpt. Line" temporary)
+    begin
+        CurrPage.SetSelectionFilter(Rec);
+        if Rec.FindSet() then
+            repeat
+                Clear(SelectedReceiptLines);
+                SelectedReceiptLines := Rec;
+                SelectedReceiptLines.Insert();
+            until Rec.Next() = 0;
+    end;
+
+}
