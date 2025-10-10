@@ -15,7 +15,8 @@ codeunit 30407 "Shpfy Shop Review Mgt."
     begin
         Hyperlink(GetReviewLink());
 
-        if Notification.GetData(GetStoreNameKey(), StoreURL) then
+        StoreURL := Notification.GetData(GetStoreNameKey());
+        if StoreURL <> '' then
             MarkStoreAsReviewed(StoreURL);
     end;
 
@@ -30,7 +31,8 @@ codeunit 30407 "Shpfy Shop Review Mgt."
     var
         StoreURL: Text[250];
     begin
-        if Notification.GetData(GetStoreNameKey(), StoreURL) then
+        StoreURL := Notification.GetData(GetStoreNameKey());
+        if StoreURL <> '' then
             MarkStoreAsReviewed(StoreURL);
     end;
 
