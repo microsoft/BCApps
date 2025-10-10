@@ -46,6 +46,7 @@ codeunit 7787 "AOAI Policy Params"
     /// Sets the AOAI Policy XPIA Detection.
     /// </summary>
     /// <param name="IsEnabled">Enable/Disable AOAI Policy XPIA Detection</param>
+    /// <remarks>When XPIA detection is enabled, use <see cref="AOAI Chat Messages.EnforceXPIADetection"/> to mark messages for XPIA detection.</remarks>
     procedure SetXPIADetection(IsEnabled: Boolean)
     begin
         AOAIPolicyParamsImpl.SetXPIADetection(IsEnabled);

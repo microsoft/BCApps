@@ -7,6 +7,7 @@ namespace System.AI;
 enum 7789 "AOAI Policy"
 {
     Extensible = false;
+    Access = Internal;
 
     /// <summary>
     /// Low harms severity with XPIA detection enabled
