@@ -165,7 +165,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         asserterror RefundsAPI.VerifyRefundCanCreateCreditMemo(RefundId3);
 
         // [THEN] Only RefundId3 throws an error
-        LibraryAssert.ExpectedError('The refund imported from Shopify can''t be used to create a credit memo. Only refunds for paid items can be used to create credit memos.');
+        LibraryAssert.ExpectedError('This refund cannot be used to create a credit memo because it has already been considered during order import and reduced the quantity and amounts of the order. Only refunds with a non-zero refunded amount and related to real item returns can be used to create credit memos.');
     end;
 
     [Test]
