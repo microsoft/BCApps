@@ -183,11 +183,27 @@ function Install-AppFromFile() {
     )
     if ($PSCmdlet.ParameterSetName -eq "ByAppName") {
         Write-Host "[Install App from file] - Searching for app file with name: $AppName"
-        # Looking for app files under the Applications folder on the container
-        $allApps = (Invoke-ScriptInBCContainer -containerName $ContainerName -scriptblock { Get-ChildItem -Path "C:\Applications\" -Filter "*.app" -Recurse })
+        
+        # First, look for app files under Applications.<CountryCode> folders on the container
+        $countryApps = (Invoke-ScriptInBCContainer -containerName $ContainerName -scriptblock { 
+            Get-ChildItem -Path "C:\" -Directory -Filter "Applications.*" | Where-Object { $_.Name -ne "Applications" } | ForEach-Object {
+                Get-ChildItem -Path $_.FullName -Filter "*.app" -Recurse -ErrorAction SilentlyContinue
+            }
+        })
 
-        # Find the app file by looking for an app file with the base name "Microsoft_AppName"
-        $AppFilePath = $allApps | Where-Object { $($_.BaseName) -eq "Microsoft_$($AppName)" } | ForEach-Object { $_.FullName }
+        # Find the app file by looking for an app file with the base name "Microsoft_AppName" in country-specific folders
+        $AppFilePath = $countryApps | Where-Object { $($_.BaseName) -eq "Microsoft_$($AppName)" } | Select-Object -First 1 | ForEach-Object { $_.FullName }
+        
+        # If not found in country-specific folders, fall back to the main Applications folder
+        if (-not $AppFilePath) {
+            Write-Host "[Install App from file] - Not found in Application.<CountryCode> folders, searching in Applications folder"
+            $allApps = (Invoke-ScriptInBCContainer -containerName $ContainerName -scriptblock { Get-ChildItem -Path "C:\Applications\" -Filter "*.app" -Recurse })
+
+            # Find the app file by looking for an app file with the base name "Microsoft_AppName"
+            $AppFilePath = $allApps | Where-Object { $($_.BaseName) -eq "Microsoft_$($AppName)" } | ForEach-Object { $_.FullName }
+        } else {
+            Write-Host "[Install App from file] - Found app in country-specific folder"
+        }
     }
 
     if (-not $AppFilePath) {
