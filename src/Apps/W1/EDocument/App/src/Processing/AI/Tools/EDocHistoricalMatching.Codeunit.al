@@ -87,7 +87,6 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         VendorNo: Code[20];
         EDocSystemId: Guid;
         ErrorMessage: Text;
-        TelemetryDimensions: Dictionary of [Text, Text];
     begin
         if not EDocumentPurchaseLine.FindFirst() then
             exit(false);
