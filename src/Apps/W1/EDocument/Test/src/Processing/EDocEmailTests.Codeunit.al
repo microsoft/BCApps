@@ -13,6 +13,7 @@ using Microsoft.Foundation.Reporting;
 using Microsoft.eServices.EDocument;
 using Microsoft.Purchases.Vendor;
 using System.IO;
+using Microsoft.CRM.Contact;
 
 
 codeunit 139746 "E-Doc. Email Tests"
@@ -45,7 +46,9 @@ codeunit 139746 "E-Doc. Email Tests"
     var
         SalesHeader: Record "Sales Header";
         SentEmails: Record "Sent Email";
+        Contact: Record Contact;
         DocumentSendingProfile: Record "Document Sending Profile";
+        ReportSelections: Record "Report Selections";
         DataCompression: Codeunit "Data Compression";
         EmailMessage: Codeunit "Email Message";
         SalesInvoicePage: TestPage "Sales Invoice";
@@ -77,6 +80,19 @@ codeunit 139746 "E-Doc. Email Tests"
 
         Customer."E-Mail" := 'Test123@example.com';
         Customer.Modify();
+
+        Customer.GetPrimaryContact(Customer."No.", Contact); // Some localizations require contact to have email address
+        if Contact."No." <> '' then begin
+            Contact."E-Mail" := Customer."E-Mail";
+            Contact.Modify();
+        end;
+
+        ReportSelections.SetRange("Report ID", 31018); // CZ localization report rendering requires specific layout: Bug 609737
+        if ReportSelections.FindSet() then
+            repeat
+                ReportSelections.Validate("Email Body Layout Name", 'SalesInvoicewithAdvEmail.docx');
+                ReportSelections.Modify();
+            until ReportSelections.Next() = 0;
 
         LibraryEDoc.CreateSalesHeaderWithItem(Customer, SalesHeader, Enum::"Sales Document Type"::Invoice);
         SalesInvoicePage.OpenView();
