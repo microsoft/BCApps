@@ -5,7 +5,7 @@
 
 namespace Microsoft.Integration.Shopify;
 
-codeunit 30254 "Shpfy Shop Review Mgt."
+codeunit 30407 "Shpfy Shop Review Mgt."
 {
     Access = Internal;
 
