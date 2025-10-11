@@ -51,7 +51,13 @@ $allUninstalledApps = Get-BcContainerAppInfo -containerName $parameters.Containe
 # Exclude language apps from being reinstalled
 $allUninstalledApps = $allUninstalledApps | Where-Object { $_.Name -notmatch "^.+ language \(.+\)$" }
 
-Install-AppFromContainer -ContainerName $parameters.ContainerName -AppsToInstall $allUninstalledApps.Name
+$failedToInstallApps = @(Install-AppFromContainer -ContainerName $parameters.ContainerName -AppsToInstall $allUninstalledApps.Name)
+
+if ($failedToInstallApps.Count -gt 0) {
+    Write-Host "The following apps failed to install from the container, trying to install from file system: $($failedToInstallApps -join ", ")"
+    throw "Failed to install apps: $($failedToInstallApps -join ", ")"
+}
+
 # Log all the installed apps
 foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesLast)) {
     Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - $($app.IsInstalled) / $($app.IsPublished)"
