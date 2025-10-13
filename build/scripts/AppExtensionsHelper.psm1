@@ -191,7 +191,7 @@ function Install-AppFromFile() {
             }
         })
 
-        # Find the app file by looking for an app file with the base name "Microsoft_AppName_Major.Minjor.Build.Revision" pattern
+        # Find the app file by looking for an app file with the base name "Microsoft_AppName_Major.Minor.Build.Revision" pattern
         $AppFilePath = $countryApps | Where-Object { $($_.BaseName) -match "^Microsoft_$($AppName)_\d+\.\d+\.\d+\.\d+$" } | Select-Object -First 1 | ForEach-Object { $_.FullName }
 
         # If not found in country-specific folders, fall back to the main Applications folder
