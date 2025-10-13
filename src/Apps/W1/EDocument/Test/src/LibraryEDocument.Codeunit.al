@@ -50,11 +50,16 @@ codeunit 139629 "Library - E-Document"
 #endif
 
     procedure SetupStandardSalesScenario(var Customer: Record Customer; var EDocService: Record "E-Document Service"; EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration")
+    begin
+        SetupStandardSalesScenario(Customer, EDocService, EDocDocumentFormat, EDocIntegration, Enum::"E-Document Import Process"::"Version 1.0");
+    end;
+
+    procedure SetupStandardSalesScenario(var Customer: Record Customer; var EDocService: Record "E-Document Service"; EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration"; EDocImportProcess: Enum "E-Document Import Process")
     var
         ServiceCode: Code[20];
     begin
         // Create standard service and simple workflow
-        ServiceCode := CreateService(EDocDocumentFormat, EDocIntegration);
+        ServiceCode := CreateService(EDocDocumentFormat, EDocIntegration, EDocImportProcess);
         EDocService.Get(ServiceCode);
         SetupStandardSalesScenario(Customer, EDocService);
     end;
@@ -128,12 +133,17 @@ codeunit 139629 "Library - E-Document"
 #endif
 
     procedure SetupStandardPurchaseScenario(var Vendor: Record Vendor; var EDocService: Record "E-Document Service"; EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration")
+    begin
+        SetupStandardPurchaseScenario(Vendor, EDocService, EDocDocumentFormat, EDocIntegration, Enum::"E-Document Import Process"::"Version 1.0");
+    end;
+
+    procedure SetupStandardPurchaseScenario(var Vendor: Record Vendor; var EDocService: Record "E-Document Service"; EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration"; EDocImportProcess: Enum "E-Document Import Process")
     var
         ServiceCode: Code[20];
     begin
         // Create standard service and simple workflow
         if EDocService.Code = '' then begin
-            ServiceCode := CreateService(EDocDocumentFormat, EDocIntegration);
+            ServiceCode := CreateService(EDocDocumentFormat, EDocIntegration, EDocImportProcess);
             EDocService.Get(ServiceCode);
         end;
         SetupStandardPurchaseScenario(Vendor, EDocService);
@@ -801,7 +811,7 @@ codeunit 139629 "Library - E-Document"
 #pragma warning restore AL0432
 #endif
 
-    procedure CreateService(EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration"): Code[20]
+    procedure CreateService(EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration"; EDocImportProcess: Enum "E-Document Import Process"): Code[20]
     var
         EDocService: Record "E-Document Service";
     begin
@@ -809,6 +819,7 @@ codeunit 139629 "Library - E-Document"
         EDocService.Code := LibraryUtility.GenerateRandomCode20(EDocService.FieldNo(Code), Database::"E-Document Service");
         EDocService."Document Format" := EDocDocumentFormat;
         EDocService."Service Integration V2" := EDocIntegration;
+        EDocService."Import Process" := EDocImportProcess;
         EDocService.Insert();
 
         CreateSupportedDocTypes(EDocService);

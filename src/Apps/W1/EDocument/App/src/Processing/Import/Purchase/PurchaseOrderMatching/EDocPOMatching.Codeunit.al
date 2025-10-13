@@ -121,6 +121,11 @@ codeunit 6196 "E-Doc. PO Matching"
         until LinkedPurchaseLines.Next() = 0;
     end;
 
+    /// <summary>
+    /// Loads all purchase receipt headers that are linked to the specified E-Document line into the specified temporary Purch. Rcpt. Header record.
+    /// </summary>
+    /// <param name="EDocumentPurchaseLine"></param>
+    /// <param name="TempPurchaseReceiptHeader"></param>
     procedure LoadReceiptsLinkedToEDocumentLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var TempPurchaseReceiptHeader: Record "Purch. Rcpt. Header" temporary)
     var
         PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
