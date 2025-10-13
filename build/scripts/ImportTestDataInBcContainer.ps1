@@ -3,6 +3,7 @@ Param(
 )
 
 Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
+Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
 function Invoke-ContosoDemoTool() {
     param(
@@ -58,4 +59,5 @@ foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSp
 }
 
 # Generate demo data in the container
+Invoke-CommandWithRetry -ScriptBlock { Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName -SetupData }
 Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName
