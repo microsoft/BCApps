@@ -2245,9 +2245,13 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
 
     var
         GLSetup: Record "General Ledger Setup";
+#if not CLEAN25
 #pragma warning disable AL0432
+#endif
         TempVATAmtLine: Record "VAT Amount Line" temporary;
+#if not CLEAN25
 #pragma warning restore AL0432
+#endif
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -2278,9 +2282,13 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
         exit(PEPPOL30ExportManagement.FindNextLineRec(Position, CompanyInformation."E-Document Format"));
     end;
 
+#if not CLEAN25
 #pragma warning disable AL0432
+#endif
     local procedure FindNextVATAmtRec(var VATAmtLine: Record "VAT Amount Line"; Position: Integer): Boolean
+#if not CLEAN25
 #pragma warning restore AL0432
+#endif
     begin
         if Position = 1 then
             exit(VATAmtLine.Find('-'));

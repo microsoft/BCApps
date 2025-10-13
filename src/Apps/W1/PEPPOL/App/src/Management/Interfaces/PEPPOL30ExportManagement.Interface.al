@@ -49,7 +49,11 @@ interface "PEPPOL30 Export Management"
 /// </summary>
 /// <param name="TempVATAmtLine">Returns temporary VAT amount line records with calculated VAT totals by tax rate.</param>
 /// <param name="TempVATProductPostingGroup">Returns temporary VAT product posting group records with tax category information.</param>
+#if not CLEAN25
 #pragma warning disable AL0432
+#endif
 procedure GetTotals(var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary);
+#if not CLEAN25
 #pragma warning restore AL0432
+#endif
 }

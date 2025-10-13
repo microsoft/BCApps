@@ -59,9 +59,13 @@ codeunit 37214 "Services Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Mana
         exit(PEPPOLPostedDocumentIterator.FindNextServiceCreditMemoLineRec(ServiceCrMemoLine, SalesLine, Position));
     end;
 
+#if not CLEAN25
 #pragma warning disable AL0432
+#endif
     procedure GetTotals(var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary);
+#if not CLEAN25
 #pragma warning restore AL0432
+#endif
     var
         PEPPOL30Management: Codeunit "PEPPOL30 Management";
         ServPEPPOL30Management: Codeunit "Serv. PEPPOL30 Management";
