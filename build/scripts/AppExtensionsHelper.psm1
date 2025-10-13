@@ -216,13 +216,16 @@ function Install-AppFromFile() {
 
 <#
     .Synopsis
-        Install Container App
+        Install apps in a container
     .Description
-        This function will Install Container App
+        This function will try to install a list of provided apps in a BC Container. Apps will only be installed if they are published to the BC Environment and not already installed.
+        If an app cannot be installed, it will be returned as a missing dependency. 
     .Parameter ContainerName
         The name of the container to install the dependencies in.
     .Parameter DependenciesToInstall
         The list of dependencies to install.
+    .Returns
+        A list of dependencies that could not be installed.
 #>
 function Install-AppFromContainer() {
     param(
