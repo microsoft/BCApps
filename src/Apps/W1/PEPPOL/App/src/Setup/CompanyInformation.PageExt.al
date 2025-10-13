@@ -16,11 +16,15 @@ pageextension 37200 "Company Information" extends "Company Information"
     {
         addlast(content)
         {
-            group("E-Documents")
+            group("PEPPOL")
             {
-                Caption = 'E-Documents';
+                Caption = 'PEPPOL 3.0';
 
-                field("E-Document Format"; Rec."PEPPOL 3.0 Sales Format")
+                field("PEPPOL 3.0 Sales Format"; Rec."PEPPOL 3.0 Sales Format")
+                {
+                    ApplicationArea = All;
+                }
+                field("PEPPOL 3.0 Service Format"; Rec."PEPPOL 3.0 Service Format")
                 {
                     ApplicationArea = All;
                 }
