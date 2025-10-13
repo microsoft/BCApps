@@ -34,6 +34,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     Caption = 'Order matched';
                     Editable = false;
                     Visible = IsEDocumentLinkedToAnyPOLine;
+                    ToolTip = 'Specifies whether this line is matched to a purchase order line.';
                 }
                 field(MatchWarnings; MatchWarningsCaption)
                 {
@@ -42,6 +43,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     Editable = false;
                     Visible = HasEDocumentOrderMatchWarnings;
                     StyleExpr = MatchWarningsStyleExpr;
+                    ToolTip = 'Specifies any warnings related to matching this line to a purchase order line.';
                 }
                 field("Line Type"; Rec."[BC] Purchase Line Type")
                 {
@@ -174,7 +176,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
                         trigger OnAction()
                         var
-                            SelectedPOLines: Record "Purchase Line" temporary;
+                            TempSelectedPOLines: Record "Purchase Line" temporary;
                             EDocPOMatching: Codeunit "E-Doc. PO Matching";
                             EDocSelectPOLinesPage: Page "E-Doc. Select PO Lines";
                         begin
@@ -182,8 +184,8 @@ page 6183 "E-Doc. Purchase Draft Subform"
                             EDocSelectPOLinesPage.LookupMode := true;
                             if EDocSelectPOLinesPage.RunModal() <> Action::LookupOK then
                                 exit;
-                            EDocSelectPOLinesPage.GetSelectedPOLines(SelectedPOLines);
-                            EDocPOMatching.LinkPOLinesToEDocumentLine(SelectedPOLines, Rec);
+                            EDocSelectPOLinesPage.GetSelectedPOLines(TempSelectedPOLines);
+                            EDocPOMatching.LinkPOLinesToEDocumentLine(TempSelectedPOLines, Rec);
                             CurrPage.Update();
                         end;
                     }
@@ -198,7 +200,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
                         trigger OnAction()
                         var
-                            SelectedReceiptLines: Record "Purch. Rcpt. Line" temporary;
+                            TempSelectedReceiptLines: Record "Purch. Rcpt. Line" temporary;
                             EDocPOMatching: Codeunit "E-Doc. PO Matching";
                             EDocSelectReceiptLinesPage: Page "E-Doc. Select Receipt Lines";
                         begin
@@ -206,8 +208,8 @@ page 6183 "E-Doc. Purchase Draft Subform"
                             EDocSelectReceiptLinesPage.LookupMode := true;
                             if EDocSelectReceiptLinesPage.RunModal() <> Action::LookupOK then
                                 exit;
-                            EDocSelectReceiptLinesPage.GetSelectedReceiptLines(SelectedReceiptLines);
-                            EDocPOMatching.LinkReceiptLinesToEDocumentLine(SelectedReceiptLines, Rec);
+                            EDocSelectReceiptLinesPage.GetSelectedReceiptLines(TempSelectedReceiptLines);
+                            EDocPOMatching.LinkReceiptLinesToEDocumentLine(TempSelectedReceiptLines, Rec);
                             CurrPage.Update();
                         end;
                     }
@@ -222,20 +224,20 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
                         trigger OnAction()
                         var
-                            PurchaseOrders: Record "Purchase Header" temporary;
+                            TempPurchaseOrders: Record "Purchase Header" temporary;
                             EDocPOMatching: Codeunit "E-Doc. PO Matching";
                             CountPOs: Integer;
                         begin
-                            EDocPOMatching.LoadPOsLinkedToEDocumentLine(Rec, PurchaseOrders);
-                            CountPOs := PurchaseOrders.Count();
+                            EDocPOMatching.LoadPOsLinkedToEDocumentLine(Rec, TempPurchaseOrders);
+                            CountPOs := TempPurchaseOrders.Count();
                             if CountPOs = 0 then
                                 exit;
                             if CountPOs = 1 then begin
-                                PurchaseOrders.FindFirst();
-                                Page.Run(Page::"Purchase Order", PurchaseOrders);
+                                TempPurchaseOrders.FindFirst();
+                                Page.Run(Page::"Purchase Order", TempPurchaseOrders);
                                 exit;
                             end;
-                            Page.Run(Page::"Purchase Orders", PurchaseOrders);
+                            Page.Run(Page::"Purchase Orders", TempPurchaseOrders);
                         end;
                     }
                     action(OpenMatchedReceipt)
@@ -249,20 +251,20 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
                         trigger OnAction()
                         var
-                            PostedReceipts: Record "Purch. Rcpt. Header" temporary;
+                            TempPostedReceipts: Record "Purch. Rcpt. Header" temporary;
                             EDocPOMatching: Codeunit "E-Doc. PO Matching";
                             CountReceipts: Integer;
                         begin
-                            EDocPOMatching.LoadReceiptsLinkedToEDocumentLine(Rec, PostedReceipts);
-                            CountReceipts := PostedReceipts.Count();
+                            EDocPOMatching.LoadReceiptsLinkedToEDocumentLine(Rec, TempPostedReceipts);
+                            CountReceipts := TempPostedReceipts.Count();
                             if CountReceipts = 0 then
                                 exit;
                             if CountReceipts = 1 then begin
-                                PostedReceipts.FindFirst();
-                                Page.Run(Page::"Posted Purchase Receipt", PostedReceipts);
+                                TempPostedReceipts.FindFirst();
+                                Page.Run(Page::"Posted Purchase Receipt", TempPostedReceipts);
                                 exit;
                             end;
-                            Page.Run(Page::"Posted Purchase Receipts", PostedReceipts);
+                            Page.Run(Page::"Posted Purchase Receipts", TempPostedReceipts);
                         end;
                     }
                 }
@@ -357,7 +359,6 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
     local procedure UpdateCalculatedAmounts(UpdateParentRecord: Boolean)
     var
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         TotalEDocPurchaseLine: Record "E-Document Purchase Line";
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
         LineSubtotal: Decimal;
@@ -390,14 +391,12 @@ page 6183 "E-Doc. Purchase Draft Subform"
     local procedure SetHasAdditionalColumns()
     var
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
     begin
         if EDocPurchLineFieldSetup.IsEmpty() then begin
             HasAdditionalColumns := false;
             exit;
         end;
 
-        EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.");
         if EDocumentPurchaseHeader."[BC] Vendor No." = '' then begin
             HasAdditionalColumns := false;
             exit;
@@ -420,22 +419,25 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
     local procedure GetSummaryOfMatchedOrders(): Text
     var
-        EDocPOMatching: Codeunit "E-Doc. PO Matching";
-        LinkedPurchaseLines: Record "Purchase Line" temporary;
+        TempLinkedPurchaseLines: Record "Purchase Line" temporary;
         MatchedPO: Code[20];
+        MatchedToSingleOrderLbl: Label 'Matched to order %1 %2', Comment = '%1 - Document No., %2 - Description';
+        MatchedToSingleOrderMultipleLinesLbl: Label 'Matched to order %1 (multiple)', Comment = '%1 - Document No.';
+        MatchedToMultipleOrdersLbl: Label 'Matched to orders %1, %2, ...', Comment = '%1 - First Document No., %2 - Second Document No.';
     begin
-        EDocPOMatching.LoadPOLinesLinkedToEDocumentLine(EDocumentPurchaseLine, LinkedPurchaseLines);
-        if LinkedPurchaseLines.Count() = 1 then
-            exit(StrSubstNo('Matched to order %1 %2', LinkedPurchaseLines."Document No.", LinkedPurchaseLines.Description));
-        if LinkedPurchaseLines.FindSet() then
+        EDocPOMatching.LoadPOLinesLinkedToEDocumentLine(EDocumentPurchaseLine, TempLinkedPurchaseLines);
+        if TempLinkedPurchaseLines.Count() = 1 then
+            exit(StrSubstNo(MatchedToSingleOrderLbl, TempLinkedPurchaseLines."Document No.", TempLinkedPurchaseLines.Description));
+        MatchedPO := '';
+        if TempLinkedPurchaseLines.FindSet() then
             repeat
                 if MatchedPO = '' then
-                    MatchedPO := LinkedPurchaseLines."Document No."
+                    MatchedPO := TempLinkedPurchaseLines."Document No."
                 else
-                    if MatchedPO <> LinkedPurchaseLines."Document No." then
-                        exit(StrSubstNo('Matched to orders %1, %2, ...', MatchedPO, LinkedPurchaseLines."Document No."));
-            until LinkedPurchaseLines.Next() = 0;
-        exit(StrSubstNo('Matched to order %1 (multiple)', MatchedPO));
+                    if MatchedPO <> TempLinkedPurchaseLines."Document No." then
+                        exit(StrSubstNo(MatchedToMultipleOrdersLbl, MatchedPO, TempLinkedPurchaseLines."Document No."));
+            until TempLinkedPurchaseLines.Next() = 0;
+        exit(StrSubstNo(MatchedToSingleOrderMultipleLinesLbl, MatchedPO));
     end;
 
 }

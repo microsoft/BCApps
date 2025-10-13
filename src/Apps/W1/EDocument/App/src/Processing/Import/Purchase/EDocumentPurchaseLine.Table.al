@@ -5,7 +5,6 @@
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Booking;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.Deferral;
 using Microsoft.Foundation.UOM;

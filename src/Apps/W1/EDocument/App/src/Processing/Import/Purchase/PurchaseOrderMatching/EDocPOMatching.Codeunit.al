@@ -103,16 +103,16 @@ codeunit 6196 "E-Doc. PO Matching"
     procedure LoadAvailableReceiptLinesForEDocumentLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var TempPurchaseReceiptLine: Record "Purch. Rcpt. Line" temporary)
     var
         PurchaseReceiptLine: Record "Purch. Rcpt. Line";
-        LinkedPurchaseLines: Record "Purchase Line" temporary;
+        TempLinkedPurchaseLines: Record "Purchase Line" temporary;
     begin
         Clear(TempPurchaseReceiptLine);
         TempPurchaseReceiptLine.DeleteAll();
-        LoadPOLinesLinkedToEDocumentLine(EDocumentPurchaseLine, LinkedPurchaseLines);
-        if not LinkedPurchaseLines.FindSet() then
+        LoadPOLinesLinkedToEDocumentLine(EDocumentPurchaseLine, TempLinkedPurchaseLines);
+        if not TempLinkedPurchaseLines.FindSet() then
             exit;
         repeat
-            PurchaseReceiptLine.SetRange("Order No.", LinkedPurchaseLines."Document No.");
-            PurchaseReceiptLine.SetRange("Order Line No.", LinkedPurchaseLines."Line No.");
+            PurchaseReceiptLine.SetRange("Order No.", TempLinkedPurchaseLines."Document No.");
+            PurchaseReceiptLine.SetRange("Order Line No.", TempLinkedPurchaseLines."Line No.");
             if not PurchaseReceiptLine.FindSet() then
                 continue;
             repeat
@@ -122,7 +122,7 @@ codeunit 6196 "E-Doc. PO Matching"
                     TempPurchaseReceiptLine.Insert();
                 end;
             until PurchaseReceiptLine.Next() = 0;
-        until LinkedPurchaseLines.Next() = 0;
+        until TempLinkedPurchaseLines.Next() = 0;
     end;
 
     /// <summary>
@@ -163,7 +163,7 @@ codeunit 6196 "E-Doc. PO Matching"
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         Item: Record Item;
         ItemUnitOfMeasure: Record "Item Unit of Measure";
-        PurchaseLine: Record "Purchase Line" temporary;
+        TempPurchaseLine: Record "Purchase Line" temporary;
         EDocLineQuantity: Decimal;
         PurchaseLinesQuantityInvoiced, PurchaseLinesQuantityReceived : Decimal;
         ItemFound, ItemUoMFound : Boolean;
@@ -174,15 +174,15 @@ codeunit 6196 "E-Doc. PO Matching"
         if not EDocumentPurchaseLine.FindSet() then
             exit;
         repeat
-            LoadPOLinesLinkedToEDocumentLine(EDocumentPurchaseLine, PurchaseLine);
+            LoadPOLinesLinkedToEDocumentLine(EDocumentPurchaseLine, TempPurchaseLine);
             PurchaseLinesQuantityInvoiced := 0;
             PurchaseLinesQuantityReceived := 0;
-            if not PurchaseLine.FindSet() then
+            if not TempPurchaseLine.FindSet() then
                 continue;
             repeat
-                PurchaseLinesQuantityInvoiced += PurchaseLine."Qty. Invoiced (Base)";
-                PurchaseLinesQuantityReceived += PurchaseLine."Qty. Received (Base)";
-            until PurchaseLine.Next() = 0;
+                PurchaseLinesQuantityInvoiced += TempPurchaseLine."Qty. Invoiced (Base)";
+                PurchaseLinesQuantityReceived += TempPurchaseLine."Qty. Received (Base)";
+            until TempPurchaseLine.Next() = 0;
             if EDocumentPurchaseLine."[BC] Purchase Line Type" = Enum::"Purchase Line Type"::Item then begin// TODO: I know this has to be done for Items, idk for other types.. there's probably already something in BaseApp for this - ask someone from SCM
                 ItemFound := Item.Get(EDocumentPurchaseLine."[BC] Purchase Type No.");
                 ItemUoMFound := ItemUnitOfMeasure.Get(Item."No.", EDocumentPurchaseLine."[BC] Unit of Measure");
@@ -383,6 +383,8 @@ codeunit 6196 "E-Doc. PO Matching"
         if not SelectedPOLines.FindSet() then
             exit;
         RemoveAllMatchesForEDocumentLine(EDocumentPurchaseLine);
+        LinkedPOLineVendorNo := '';
+        LinkedPOLineTypeNo := '';
         repeat
             // Create new links, if each line being linked is valid
             PurchaseLine.GetBySystemId(SelectedPOLines.SystemId);
@@ -395,7 +397,7 @@ codeunit 6196 "E-Doc. PO Matching"
                 Error(NotLinkedToVendorErr);
             EDocPurchaseLinePOMatch.SetRange("Purchase Line SystemId", PurchaseLine.SystemId); // The PO Line must not already be linked to another E-Document line
             if not EDocPurchaseLinePOMatch.IsEmpty() then
-                Error(OrderLineAndEDocFromDifferentVendorsErr);
+                Error(AlreadyLinkedErr);
 
             // We ensure that all linked lines have the same Vendor, Type and No.
             if LinkedPOLineVendorNo = '' then
@@ -441,7 +443,7 @@ codeunit 6196 "E-Doc. PO Matching"
     procedure LinkReceiptLinesToEDocumentLine(var SelectedReceiptLines: Record "Purch. Rcpt. Line" temporary; EDocumentPurchaseLine: Record "E-Document Purchase Line")
     var
         EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
-        LinkedPurchaseLines: Record "Purchase Line" temporary;
+        TempLinkedPurchaseLines: Record "Purchase Line" temporary;
         NullGuid: Guid;
         ReceiptLineNotLinkedErr: Label 'A selected receipt line is not linked to any of the purchase order lines linked to the e-document line.';
         QuantityCovered: Decimal;
@@ -454,15 +456,15 @@ codeunit 6196 "E-Doc. PO Matching"
         EDocPurchaseLinePOMatch.DeleteAll();
 
         // Create new links
-        LoadPOLinesLinkedToEDocumentLine(EDocumentPurchaseLine, LinkedPurchaseLines);
+        LoadPOLinesLinkedToEDocumentLine(EDocumentPurchaseLine, TempLinkedPurchaseLines);
         repeat
-            LinkedPurchaseLines.SetRange("Document No.", SelectedReceiptLines."Order No.");
-            LinkedPurchaseLines.SetRange("Line No.", SelectedReceiptLines."Order Line No.");
-            if not LinkedPurchaseLines.FindFirst() then
+            TempLinkedPurchaseLines.SetRange("Document No.", SelectedReceiptLines."Order No.");
+            TempLinkedPurchaseLines.SetRange("Line No.", SelectedReceiptLines."Order Line No.");
+            if not TempLinkedPurchaseLines.FindFirst() then
                 Error(ReceiptLineNotLinkedErr);
             Clear(EDocPurchaseLinePOMatch);
             EDocPurchaseLinePOMatch."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
-            EDocPurchaseLinePOMatch."Purchase Line SystemId" := LinkedPurchaseLines.SystemId;
+            EDocPurchaseLinePOMatch."Purchase Line SystemId" := TempLinkedPurchaseLines.SystemId;
             EDocPurchaseLinePOMatch."Receipt Line SystemId" := SelectedReceiptLines.SystemId;
             EDocPurchaseLinePOMatch.Insert();
             QuantityCovered += SelectedReceiptLines.Quantity;
