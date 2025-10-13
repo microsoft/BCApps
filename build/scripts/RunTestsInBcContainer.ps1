@@ -29,9 +29,10 @@ function RunTestsWithReruns {
         $testsSucceeded = $false
         # Run tests and catch any exceptions to prevent the script from terminating
         try {
-            $testsSucceeded = Run-TestsInBcContainer @parameters -renewClientContextBetweenTests
+            $testsSucceeded = Run-TestsInBcContainer @parameters
         } catch {
             $testsSucceeded = $false
+            Write-Host "Exception occurred while running tests: $($_.Exception.Message) / $($_.Exception.StackTrace)"
         }
 
         # Check if tests succeeded
