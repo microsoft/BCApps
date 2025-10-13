@@ -1327,22 +1327,177 @@ codeunit 133508 "E-Doc. PO Matching Test"
         Assert.IsTrue(EDocPOMatching.IsEDocumentLineLinkedToAnyReceiptLine(EDocumentPurchaseLine2), 'Expected second E-Document line receipt matches to remain unaffected');
     end;
 
-    // Tests for RemoveAllMatchesForEDocumentLine
-    // [SCENARIO] Removing all matches for E-Document line with no matches completes without error
-    // [GIVEN] An E-Document line with no matches
-    // [WHEN] RemoveAllMatchesForEDocumentLine is called
-    // [THEN] The operation should complete without error
+    [Test]
+    procedure RemoveAllMatchesForEDocumentLineRemovesBothPOAndReceiptMatches()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        Item: Record Item;
+    begin
+        Initialize();
+        // [SCENARIO] Removing all matches for E-Document line removes both PO and receipt matches
+        // [GIVEN] An E-Document line with both PO and receipt matches
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
 
-    // [SCENARIO] Removing all matches for E-Document line removes both PO and receipt matches, but does not affect other lines
-    // [GIVEN] An E-Document line with both PO and receipt matches, and other lines with matches
-    // [WHEN] RemoveAllMatchesForEDocumentLine is called
-    // [THEN] All matches for that line should be removed, matches on other lines should remain unaffected
+        // Create E-Document Purchase Header and Line
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
 
-    // Tests for RemoveAllMatchesForEDocument
-    // [SCENARIO] Removing all matches for E-Document with no lines completes without error
-    // [GIVEN] An E-Document with no purchase lines
-    // [WHEN] RemoveAllMatchesForEDocument is called
-    // [THEN] The operation should complete without error
+        // Create Purchase Order line for the same vendor
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryEDocument.GetGenericItem(Item);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
+
+        // Create Receipt line linked to PO line
+        CreateMockReceiptHeader(PurchaseReceiptHeader, Vendor."No.");
+        CreateMockReceiptLine(PurchaseReceiptLine, PurchaseReceiptHeader, Item."No.", LibraryRandom.RandDec(5, 2), PurchaseLine);
+
+        // Link E-Document line to PO line and Receipt line
+        LinkEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
+        LinkEDocumentLineToReceiptLine(EDocumentPurchaseLine, PurchaseReceiptLine);
+
+        // Verify both matches exist
+        Assert.IsTrue(EDocPOMatching.IsEDocumentLineLinkedToAnyPOLine(EDocumentPurchaseLine), 'Expected E-Document line to have PO match before removal');
+        Assert.IsTrue(EDocPOMatching.IsEDocumentLineLinkedToAnyReceiptLine(EDocumentPurchaseLine), 'Expected E-Document line to have receipt match before removal');
+
+        // [WHEN] RemoveAllMatchesForEDocumentLine is called
+        EDocPOMatching.RemoveAllMatchesForEDocumentLine(EDocumentPurchaseLine);
+
+        // [THEN] Both PO and receipt matches should be removed
+        Assert.IsFalse(EDocPOMatching.IsEDocumentLineLinkedToAnyPOLine(EDocumentPurchaseLine), 'Expected PO matches to be removed');
+        Assert.IsFalse(EDocPOMatching.IsEDocumentLineLinkedToAnyReceiptLine(EDocumentPurchaseLine), 'Expected receipt matches to be removed');
+    end;
+
+    [Test]
+    procedure RemoveAllMatchesForEDocumentLineDoesNotAffectOtherLines()
+    var
+        EDocument1, EDocument2 : Record "E-Document";
+        EDocumentPurchaseHeader1, EDocumentPurchaseHeader2 : Record "E-Document Purchase Header";
+        EDocumentPurchaseLine1, EDocumentPurchaseLine2 : Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine1, PurchaseLine2 : Record "Purchase Line";
+        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+        PurchaseReceiptLine1, PurchaseReceiptLine2 : Record "Purch. Rcpt. Line";
+        Item: Record Item;
+    begin
+        Initialize();
+        // [SCENARIO] Removing all matches for E-Document line does not affect other lines
+        // [GIVEN] Multiple E-Document lines with matches
+        LibraryEDocument.CreateInboundEDocument(EDocument1, EDocumentService);
+        LibraryEDocument.CreateInboundEDocument(EDocument2, EDocumentService);
+
+        // Create first E-Document Purchase Header and Line
+        EDocumentPurchaseHeader1 := LibraryEDocument.MockPurchaseDraftPrepared(EDocument1);
+        EDocumentPurchaseHeader1."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader1.Modify();
+        EDocumentPurchaseLine1 := LibraryEDocument.InsertPurchaseDraftLine(EDocument1);
+
+        // Create second E-Document Purchase Header and Line
+        EDocumentPurchaseHeader2 := LibraryEDocument.MockPurchaseDraftPrepared(EDocument2);
+        EDocumentPurchaseHeader2."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader2.Modify();
+        EDocumentPurchaseLine2 := LibraryEDocument.InsertPurchaseDraftLine(EDocument2);
+
+        // Create Purchase Order with two lines for the same vendor
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryEDocument.GetGenericItem(Item);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
+
+        // Create Receipt lines linked to PO lines
+        CreateMockReceiptHeader(PurchaseReceiptHeader, Vendor."No.");
+        CreateMockReceiptLine(PurchaseReceiptLine1, PurchaseReceiptHeader, Item."No.", LibraryRandom.RandDec(5, 2), PurchaseLine1);
+        CreateMockReceiptLine(PurchaseReceiptLine2, PurchaseReceiptHeader, Item."No.", LibraryRandom.RandDec(5, 2), PurchaseLine2);
+
+        // Link first E-Document line to first PO line and Receipt line
+        LinkEDocumentLineToPOLine(EDocumentPurchaseLine1, PurchaseLine1);
+        LinkEDocumentLineToReceiptLine(EDocumentPurchaseLine1, PurchaseReceiptLine1);
+
+        // Link second E-Document line to second PO line and Receipt line
+        LinkEDocumentLineToPOLine(EDocumentPurchaseLine2, PurchaseLine2);
+        LinkEDocumentLineToReceiptLine(EDocumentPurchaseLine2, PurchaseReceiptLine2);
+
+        // Verify both lines have matches
+        Assert.IsTrue(EDocPOMatching.IsEDocumentLineLinkedToAnyPOLine(EDocumentPurchaseLine1), 'Expected first E-Document line to have PO match before removal');
+        Assert.IsTrue(EDocPOMatching.IsEDocumentLineLinkedToAnyReceiptLine(EDocumentPurchaseLine1), 'Expected first E-Document line to have receipt match before removal');
+        Assert.IsTrue(EDocPOMatching.IsEDocumentLineLinkedToAnyPOLine(EDocumentPurchaseLine2), 'Expected second E-Document line to have PO match before removal');
+        Assert.IsTrue(EDocPOMatching.IsEDocumentLineLinkedToAnyReceiptLine(EDocumentPurchaseLine2), 'Expected second E-Document line to have receipt match before removal');
+
+        // [WHEN] RemoveAllMatchesForEDocumentLine is called on first line
+        EDocPOMatching.RemoveAllMatchesForEDocumentLine(EDocumentPurchaseLine1);
+
+        // [THEN] Matches on other E-Document lines should remain unaffected
+        Assert.IsFalse(EDocPOMatching.IsEDocumentLineLinkedToAnyPOLine(EDocumentPurchaseLine1), 'Expected first E-Document line matches to be removed');
+        Assert.IsFalse(EDocPOMatching.IsEDocumentLineLinkedToAnyReceiptLine(EDocumentPurchaseLine1), 'Expected first E-Document line matches to be removed');
+        Assert.IsTrue(EDocPOMatching.IsEDocumentLineLinkedToAnyPOLine(EDocumentPurchaseLine2), 'Expected second E-Document line matches to remain unaffected');
+        Assert.IsTrue(EDocPOMatching.IsEDocumentLineLinkedToAnyReceiptLine(EDocumentPurchaseLine2), 'Expected second E-Document line matches to remain unaffected');
+    end;
+
+    [Test]
+    procedure RemoveAllMatchesForEDocumentRemovesAllLineMatches()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine1, EDocumentPurchaseLine2 : Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine1, PurchaseLine2 : Record "Purchase Line";
+        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+        PurchaseReceiptLine1, PurchaseReceiptLine2 : Record "Purch. Rcpt. Line";
+        Item: Record Item;
+    begin
+        Initialize();
+        // [SCENARIO] Removing all matches for E-Document removes all matches for all lines in the document
+        // [GIVEN] An E-Document with multiple lines, all having PO and receipt matches
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+
+        // Create E-Document Purchase Header
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+
+        // Create two E-Document Purchase Lines
+        EDocumentPurchaseLine1 := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine2 := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+
+        // Create Purchase Order with two lines for the same vendor
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryEDocument.GetGenericItem(Item);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
+
+        // Create Receipt lines linked to PO lines
+        CreateMockReceiptHeader(PurchaseReceiptHeader, Vendor."No.");
+        CreateMockReceiptLine(PurchaseReceiptLine1, PurchaseReceiptHeader, Item."No.", LibraryRandom.RandDec(5, 2), PurchaseLine1);
+        CreateMockReceiptLine(PurchaseReceiptLine2, PurchaseReceiptHeader, Item."No.", LibraryRandom.RandDec(5, 2), PurchaseLine2);
+
+        // Link E-Document lines to PO lines and Receipt lines
+        LinkEDocumentLineToPOLine(EDocumentPurchaseLine1, PurchaseLine1);
+        LinkEDocumentLineToReceiptLine(EDocumentPurchaseLine1, PurchaseReceiptLine1);
+        LinkEDocumentLineToPOLine(EDocumentPurchaseLine2, PurchaseLine2);
+        LinkEDocumentLineToReceiptLine(EDocumentPurchaseLine2, PurchaseReceiptLine2);
+
+        // Verify all matches exist
+        Assert.IsTrue(EDocPOMatching.IsEDocumentLineLinkedToAnyPOLine(EDocumentPurchaseLine1), 'Expected first E-Document line to have PO match before removal');
+        Assert.IsTrue(EDocPOMatching.IsEDocumentLineLinkedToAnyReceiptLine(EDocumentPurchaseLine1), 'Expected first E-Document line to have receipt match before removal');
+        Assert.IsTrue(EDocPOMatching.IsEDocumentLineLinkedToAnyPOLine(EDocumentPurchaseLine2), 'Expected second E-Document line to have PO match before removal');
+        Assert.IsTrue(EDocPOMatching.IsEDocumentLineLinkedToAnyReceiptLine(EDocumentPurchaseLine2), 'Expected second E-Document line to have receipt match before removal');
+
+        // [WHEN] RemoveAllMatchesForEDocument is called
+        EDocPOMatching.RemoveAllMatchesForEDocument(EDocumentPurchaseHeader);
+
+        // [THEN] All matches for all lines in the document should be removed
+        Assert.IsFalse(EDocPOMatching.IsEDocumentLineLinkedToAnyPOLine(EDocumentPurchaseLine1), 'Expected first E-Document line PO matches to be removed');
+        Assert.IsFalse(EDocPOMatching.IsEDocumentLineLinkedToAnyReceiptLine(EDocumentPurchaseLine1), 'Expected first E-Document line receipt matches to be removed');
+        Assert.IsFalse(EDocPOMatching.IsEDocumentLineLinkedToAnyPOLine(EDocumentPurchaseLine2), 'Expected second E-Document line PO matches to be removed');
+        Assert.IsFalse(EDocPOMatching.IsEDocumentLineLinkedToAnyReceiptLine(EDocumentPurchaseLine2), 'Expected second E-Document line receipt matches to be removed');
+    end;
 
     //////////////////////////////////////////////
     // Tests for LinkPOLinesToEDocumentLine
