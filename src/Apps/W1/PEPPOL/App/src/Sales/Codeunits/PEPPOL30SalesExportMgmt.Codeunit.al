@@ -15,8 +15,11 @@ codeunit 37213 "PEPPOL30 Sales Export Mgmt." implements "PEPPOL30 Export Managem
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+        SalesType: Option Invoice,CreditMemo;
         DocumentNo: Code[20];
 
     /// <summary>
@@ -26,10 +29,49 @@ codeunit 37213 "PEPPOL30 Sales Export Mgmt." implements "PEPPOL30 Export Managem
     /// <param name="TempSalesLineRounding">Temporary sales line record for handling rounding adjustments.</param>
     /// <param name="DocumentAttachments">Document attachments record for handling file attachments.</param>
     procedure Init(NewRecordRef: RecordRef; var TempSalesLineRounding: Record "Sales Line" temporary; var DocumentAttachments: Record "Document Attachment")
+    begin
+        case NewRecordRef.Number() of
+            Database::"Sales Cr.Memo Header":
+                InitCreditMemo(NewRecordRef, TempSalesLineRounding, DocumentAttachments);
+            Database::"Sales Invoice Header":
+                InitSalesInvoice(NewRecordRef, TempSalesLineRounding, DocumentAttachments);
+        end;
+    end;
+
+    local procedure InitSalesInvoice(NewRecordRef: RecordRef; var TempSalesLineRounding: Record "Sales Line" temporary; var DocumentAttachments: Record "Document Attachment")
+    var
+        PEPPOLMonetaryInfoProvider: Interface "PEPPOL Monetary Info Provider";
+        SpecifyASalesInvoiceNoErr: Label 'You must specify a sales invoice number.';
+    begin
+        SalesType := SalesType::Invoice;
+        NewRecordRef.SetTable(SalesInvoiceHeader);
+        if SalesInvoiceHeader."No." = '' then
+            Error(SpecifyASalesInvoiceNoErr);
+
+        DocumentNo := SalesInvoiceHeader."No.";
+        SalesInvoiceHeader.SetRecFilter();
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
+
+        if SalesInvoiceLine.FindSet() then
+            repeat
+                SalesLine.TransferFields(SalesInvoiceLine);
+                PEPPOLMonetaryInfoProvider := "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales";
+                PEPPOLMonetaryInfoProvider.GetInvoiceRoundingLine(TempSalesLineRounding, SalesLine);
+            until SalesInvoiceLine.Next() = 0;
+        if TempSalesLineRounding."Line No." <> 0 then
+            SalesInvoiceLine.SetFilter("Line No.", '<>%1', TempSalesLineRounding."Line No.");
+
+        DocumentAttachments.SetRange("Table ID", Database::"Sales Invoice Header");
+        DocumentAttachments.SetRange("No.", SalesInvoiceHeader."No.");
+    end;
+
+    local procedure InitCreditMemo(NewRecordRef: RecordRef; var TempSalesLineRounding: Record "Sales Line" temporary; var DocumentAttachments: Record "Document Attachment")
     var
         PEPPOLMonetaryInfoProvider: Interface "PEPPOL Monetary Info Provider";
         SpecifyASalesCreditMemoNoErr: Label 'You must specify a sales credit memo number.';
     begin
+        SalesType := SalesType::CreditMemo;
         NewRecordRef.SetTable(SalesCrMemoHeader);
         if SalesCrMemoHeader."No." = '' then
             Error(SpecifyASalesCreditMemoNoErr);
@@ -62,7 +104,12 @@ codeunit 37213 "PEPPOL30 Sales Export Mgmt." implements "PEPPOL30 Export Managem
         PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
     begin
         PEPPOLPostedDocumentIterator := EDocumentFormat;
-        exit(PEPPOLPostedDocumentIterator.FindNextSalesCreditMemoRec(SalesCrMemoHeader, SalesHeader, Position));
+        case SalesType of
+            SalesType::Invoice:
+                exit(PEPPOLPostedDocumentIterator.FindNextSalesInvoiceRec(SalesInvoiceHeader, SalesHeader, Position));
+            SalesType::CreditMemo:
+                exit(PEPPOLPostedDocumentIterator.FindNextSalesCreditMemoRec(SalesCrMemoHeader, SalesHeader, Position));
+        end;
     end;
 
     /// <summary>
@@ -76,7 +123,12 @@ codeunit 37213 "PEPPOL30 Sales Export Mgmt." implements "PEPPOL30 Export Managem
         PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
     begin
         PEPPOLPostedDocumentIterator := EDocumentFormat;
-        exit(PEPPOLPostedDocumentIterator.FindNextSalesCreditMemoLineRec(SalesCrMemoLine, SalesLine, Position));
+        case SalesType of
+            SalesType::Invoice:
+                exit(PEPPOLPostedDocumentIterator.FindNextSalesInvoiceLineRec(SalesInvoiceLine, SalesLine, Position));
+            SalesType::CreditMemo:
+                exit(PEPPOLPostedDocumentIterator.FindNextSalesCreditMemoLineRec(SalesCrMemoLine, SalesLine, Position));
+        end;
     end;
 
     /// <summary>
@@ -94,13 +146,39 @@ codeunit 37213 "PEPPOL30 Sales Export Mgmt." implements "PEPPOL30 Export Managem
     var
         PEPPOLTaxInfoProvider: Interface "PEPPOL Tax Info Provider";
     begin
-        SalesCrMemoLine.SetRange("Document No.", DocumentNo);
-        if SalesCrMemoLine.FindSet() then
-            repeat
-                SalesLine.TransferFields(SalesCrMemoLine);
-                PEPPOLTaxInfoProvider := "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales";
-                PEPPOLTaxInfoProvider.GetTotals(SalesLine, TempVATAmtLine);
-                PEPPOLTaxInfoProvider.GetTaxCategories(SalesLine, TempVATProductPostingGroup);
-            until SalesCrMemoLine.Next() = 0;
+        case SalesType of
+            SalesType::Invoice:
+                begin
+                    SalesInvoiceLine.SetRange("Document No.", DocumentNo);
+                    if SalesInvoiceLine.FindSet() then
+                        repeat
+                            SalesLine.TransferFields(SalesInvoiceLine);
+                            PEPPOLTaxInfoProvider := "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales";
+                            PEPPOLTaxInfoProvider.GetTotals(SalesLine, TempVATAmtLine);
+                            PEPPOLTaxInfoProvider.GetTaxCategories(SalesLine, TempVATProductPostingGroup);
+                        until SalesInvoiceLine.Next() = 0;
+                end;
+            SalesType::CreditMemo:
+                begin
+                    SalesCrMemoLine.SetRange("Document No.", DocumentNo);
+                    if SalesCrMemoLine.FindSet() then
+                        repeat
+                            SalesLine.TransferFields(SalesCrMemoLine);
+                            PEPPOLTaxInfoProvider := "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales";
+                            PEPPOLTaxInfoProvider.GetTotals(SalesLine, TempVATAmtLine);
+                            PEPPOLTaxInfoProvider.GetTaxCategories(SalesLine, TempVATProductPostingGroup);
+                        until SalesCrMemoLine.Next() = 0;
+                end;
+        end;
+    end;
+
+    procedure GetRec(): Variant
+    begin
+        exit(SalesHeader);
+    end;
+
+    procedure GetLineRec(): Variant
+    begin
+        exit(SalesLine);
     end;
 }

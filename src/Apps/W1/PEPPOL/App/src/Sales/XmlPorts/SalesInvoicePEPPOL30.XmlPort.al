@@ -2076,6 +2076,8 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                     if not FindNextInvoiceLineRec(InvoiceLineLoop.Number) then
                         currXMLport.Break();
 
+                    GetInvoiceLineRec();
+
                     PEPPOLLineInfoProvider := GetFormat();
                     PEPPOLLineInfoProvider.GetLineGeneralInfo(
                       SalesLine,
@@ -2098,6 +2100,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 if not FindNextInvoiceRec(InvoiceHeaderLoop.Number) then
                     currXMLport.Break();
 
+                GetInvoiceRec();
                 GetTotals();
 
                 PEPPOLDocumentInfoProvider := GetFormat();
@@ -2127,9 +2130,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 group(Control2)
                 {
                     ShowCaption = false;
-#pragma warning disable AA0100
-                    field("SalesInvoiceHeader.""No."""; SalesInvoiceHeader."No.")
-#pragma warning restore AA0100
+                    field(SalesInvoiceNumber; SalesInvoiceHeader."No.")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Sales Invoice No.';
@@ -2165,7 +2166,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
         PEPPOL30Format: Enum "PEPPOL 3.0 Format";
         PEPPOL30ExportManagement: Interface "PEPPOL30 Export Management";
         DummyVar: Text;
-        IsFormatSet: Boolean;
+        IsFormatSet, IsFormatInitialized : Boolean;
         GeneratePDF: Boolean;
 
 
@@ -2199,6 +2200,16 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
         exit(PEPPOL30ExportManagement.FindNextLineRec(Position, GetFormat()));
     end;
 
+    local procedure GetInvoiceRec()
+    begin
+        SalesHeader := PEPPOL30ExportManagement.GetRec();
+    end;
+
+    local procedure GetInvoiceLineRec()
+    begin
+        SalesLine := PEPPOL30ExportManagement.GetLineRec();
+    end;
+
 #if not CLEAN25
 #pragma warning disable AL0432
 #endif
@@ -2212,8 +2223,9 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
         exit(VATAmtLine.Next() <> 0);
     end;
 
-    procedure Initialize(DocVariant: Variant)
+    procedure Initialize(DocVariant: Variant; Format: Enum "PEPPOL 3.0 Format")
     begin
+        SetFormat(Format);
         SourceRecRef.GetTable(DocVariant);
         if SourceRecRef.Number <> 0 then begin
             PEPPOL30ExportManagement := GetFormat();

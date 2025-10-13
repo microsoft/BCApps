@@ -28,7 +28,7 @@ codeunit 37206 "Exp. Sales Inv. PEPPOL30"
         PEPPOL30Validation.ValidateInvoice(SalesInvoiceHeader);
 
         Rec."File Content".CreateOutStream(OutStr);
-        GenerateXMLFile(SalesInvoiceHeader, OutStr);
+        GenerateXMLFile(SalesInvoiceHeader, OutStr, CompanyInformation."PEPPOL 3.0 Sales Format");
 
         Rec.Modify(false);
     end;
@@ -38,11 +38,11 @@ codeunit 37206 "Exp. Sales Inv. PEPPOL30"
     /// </summary>
     /// <param name="VariantRec">The record containing the sales invoice data.</param>
     /// <param name="OutStr">The output stream to write the XML data to.</param>
-    procedure GenerateXMLFile(VariantRec: Variant; var OutStr: OutStream)
+    procedure GenerateXMLFile(VariantRec: Variant; var OutStr: OutStream; Format: Enum "PEPPOL 3.0 Format")
     var
         SalesInvoicePEPPOLBIS30: XMLport "Sales Invoice - PEPPOL30";
     begin
-        SalesInvoicePEPPOLBIS30.Initialize(VariantRec);
+        SalesInvoicePEPPOLBIS30.Initialize(VariantRec, Format);
         SalesInvoicePEPPOLBIS30.SetDestination(OutStr);
         SalesInvoicePEPPOLBIS30.Export();
     end;

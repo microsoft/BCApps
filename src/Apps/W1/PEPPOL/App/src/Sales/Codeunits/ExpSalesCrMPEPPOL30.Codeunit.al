@@ -28,7 +28,7 @@ codeunit 37205 "Exp. Sales CrM. PEPPOL30"
         PEPPOL30Validation.ValidateCreditMemo(SalesCrMemoHeader);
 
         Rec."File Content".CreateOutStream(OutStr);
-        GenerateXMLFile(SalesCrMemoHeader, OutStr);
+        GenerateXMLFile(SalesCrMemoHeader, OutStr, CompanyInformation."PEPPOL 3.0 Sales Format");
 
         Rec.Modify(false);
     end;
@@ -38,11 +38,11 @@ codeunit 37205 "Exp. Sales CrM. PEPPOL30"
     /// </summary>
     /// <param name="VariantRec">The record containing the sales credit memo data.</param>
     /// <param name="OutStr">The output stream to write the XML data to.</param>
-    procedure GenerateXMLFile(VariantRec: Variant; var OutStr: OutStream)
+    procedure GenerateXMLFile(VariantRec: Variant; var OutStr: OutStream; Format: Enum "PEPPOL 3.0 Format")
     var
         SalesCrMemoPEPPOLBIS30: XMLport "Sales Cr.Memo - PEPPOL30";
     begin
-        SalesCrMemoPEPPOLBIS30.Initialize(VariantRec);
+        SalesCrMemoPEPPOLBIS30.Initialize(VariantRec, Format);
         SalesCrMemoPEPPOLBIS30.SetDestination(OutStr);
         SalesCrMemoPEPPOLBIS30.Export();
     end;

@@ -2168,6 +2168,8 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
                     if not FindNextCreditMemoLineRec(CreditMemoLineLoop.Number) then
                         currXMLport.Break();
 
+                    GetCreditMemoLineRec();
+
                     PEPPOLLineInfoProvider := GetFormat();
                     PEPPOLLineInfoProvider.GetLineGeneralInfo(
                       SalesLine,
@@ -2190,6 +2192,7 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
                 if not FindNextCreditMemoRec(CrMemoHeaderLoop.Number) then
                     currXMLport.Break();
 
+                GetCreditMemoRec();
                 GetTotals();
 
                 PEPPOLDocumentInfoProvider := GetFormat();
@@ -2218,9 +2221,7 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
                 group(Control2)
                 {
                     ShowCaption = false;
-#pragma warning disable AA0100
-                    field("SalesCrMemoHeader.""No."""; SalesCrMemoHeader."No.")
-#pragma warning restore AA0100
+                    field(SalesCreditMemoNumber; SalesCrMemoHeader."No.")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Sales Credit Memo No.';
@@ -2297,6 +2298,16 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
         exit(PEPPOL30ExportManagement.FindNextLineRec(Position, GetFormat()));
     end;
 
+    local procedure GetCreditMemoRec()
+    begin
+        SalesHeader := PEPPOL30ExportManagement.GetRec();
+    end;
+
+    local procedure GetCreditMemoLineRec()
+    begin
+        SalesLine := PEPPOL30ExportManagement.GetLineRec();
+    end;
+
 #if not CLEAN25
 #pragma warning disable AL0432
 #endif
@@ -2310,8 +2321,9 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
         exit(VATAmtLine.Next() <> 0);
     end;
 
-    procedure Initialize(DocVariant: Variant)
+    procedure Initialize(DocVariant: Variant; Format: Enum "PEPPOL 3.0 Format")
     begin
+        SetFormat(Format);
         SourceRecRef.GetTable(DocVariant);
         if SourceRecRef.Number <> 0 then begin
             PEPPOL30ExportManagement := GetFormat();

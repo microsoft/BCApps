@@ -43,6 +43,10 @@ interface "PEPPOL30 Export Management"
     /// <returns>True if a next line record was found and positioned, false if no more lines exist.</returns>
     procedure FindNextLineRec(Position: Integer; EDocumentFormat: Enum "PEPPOL 3.0 Format"): Boolean
 
+    procedure GetRec(): Variant
+
+    procedure GetLineRec(): Variant
+
 /// <summary>
 /// Calculates and retrieves totals for VAT amounts and VAT product posting groups.
 /// Populates temporary records with calculated totals required for PEPPOL document generation.

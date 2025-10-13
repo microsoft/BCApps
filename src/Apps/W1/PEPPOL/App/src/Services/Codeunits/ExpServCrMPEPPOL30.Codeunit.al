@@ -42,9 +42,8 @@ codeunit 37211 "Exp. Serv.CrM. PEPPOL30"
     var
         SalesCrMemoPEPPOLBIS30: XMLport "Sales Cr.Memo - PEPPOL30";
     begin
-        SalesCrMemoPEPPOLBIS30.Initialize(VariantRec);
+        SalesCrMemoPEPPOLBIS30.Initialize(VariantRec, PEPPOL30Format);
         SalesCrMemoPEPPOLBIS30.SetDestination(OutStr);
-        SalesCrMemoPEPPOLBIS30.SetFormat(PEPPOL30Format);
         SalesCrMemoPEPPOLBIS30.Export();
     end;
 }

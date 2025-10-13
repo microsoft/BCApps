@@ -43,8 +43,7 @@ codeunit 37212 "Exp. Serv.Inv. PEPPOL30"
     var
         SalesInvoicePEPPOLBIS30: XMLport "Sales Invoice - PEPPOL30";
     begin
-        SalesInvoicePEPPOLBIS30.Initialize(VariantRec);
-        SalesInvoicePEPPOLBIS30.SetFormat(PEPPOL30Format);
+        SalesInvoicePEPPOLBIS30.Initialize(VariantRec, PEPPOL30Format);
         SalesInvoicePEPPOLBIS30.SetDestination(OutStr);
         SalesInvoicePEPPOLBIS30.Export();
     end;
