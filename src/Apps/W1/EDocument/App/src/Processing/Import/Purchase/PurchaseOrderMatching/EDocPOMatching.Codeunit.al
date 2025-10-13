@@ -280,6 +280,11 @@ codeunit 6196 "E-Doc. PO Matching"
         exit(not EDocPurchaseLinePOMatch.IsEmpty());
     end;
 
+    /// <summary>
+    /// Checks if the specified E-Document line is linked to any receipt line.
+    /// </summary>
+    /// <param name="EDocumentPurchaseLine"></param>
+    /// <returns></returns>
     procedure IsEDocumentLineLinkedToAnyReceiptLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"): Boolean
     var
         EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
