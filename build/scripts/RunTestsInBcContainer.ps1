@@ -60,4 +60,4 @@ if ($DisableTestIsolation)
 $parameters["disabledTests"] = @(Get-DisabledTests) # Add disabled tests to parameters
 $parameters["renewClientContextBetweenTests"] = $true
 
-return RunTestsWithReruns @parameters
+return RunTestsWithReruns -parameters $parameters
