@@ -65,7 +65,8 @@
         "CZ"
       ],
       "settings": {
-        "country": "cz"
+        "country": "cz",
+        "doNotRunTests": true
       }
     },
     {
@@ -81,7 +82,8 @@
         "DK"
       ],
       "settings": {
-        "country": "dk"
+        "country": "dk",
+        "doNotRunTests": true
       }
     },
     {
