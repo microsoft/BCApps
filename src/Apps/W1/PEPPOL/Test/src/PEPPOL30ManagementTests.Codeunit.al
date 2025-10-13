@@ -29,15 +29,13 @@ using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Test;
 using System.Environment.Configuration;
-using System.IO;
-using System.TestLibraries.Utilities;
-using System.TestTools.TestRunner;
 using System.Utilities;
 
-codeunit 139000 "PEPPOL30 Management Tests"
+codeunit 139235 "PEPPOL30 Management Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    TestType = UnitTest;
 
     var
         CompanyInformation: Record "Company Information";
@@ -1191,7 +1189,9 @@ codeunit 139000 "PEPPOL30 Management Tests"
         Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+#pragma warning disable AL0432
         TempVATAmtLine: Record "VAT Amount Line" temporary;
+#pragma warning restore AL0432
         PEPPOLTaxInfoProvider: Interface "PEPPOL Tax Info Provider";
         AllowanceChargeCurrencyID: Text;
         AllowanceChargeListID: Text;
@@ -1304,7 +1304,9 @@ codeunit 139000 "PEPPOL30 Management Tests"
         Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+#pragma warning disable AL0432
         TempVATAmtLine: Record "VAT Amount Line" temporary;
+#pragma warning restore AL0432
         PEPPOLTaxInfoProvider: Interface "PEPPOL Tax Info Provider";
         TaxAmount: Text;
         TaxTotalCurrencyID: Text;
@@ -1451,7 +1453,9 @@ codeunit 139000 "PEPPOL30 Management Tests"
         Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+#pragma warning disable AL0432
         TempVATAmtLine: Record "VAT Amount Line" temporary;
+#pragma warning restore AL0432
         PEPPOLTaxInfoProvider: Interface "PEPPOL Tax Info Provider";
         schemeID: Text;
         SubtotalTaxAmount: Text;
@@ -1524,7 +1528,9 @@ codeunit 139000 "PEPPOL30 Management Tests"
         Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+#pragma warning disable AL0432
         TempVATAmountLine: Record "VAT Amount Line" temporary;
+#pragma warning restore AL0432
         VATPostingSetup1: Record "VAT Posting Setup";
         VATPostingSetup2: Record "VAT Posting Setup";
         VATProductPostingGroup: Record "VAT Product Posting Group";
@@ -1585,7 +1591,9 @@ codeunit 139000 "PEPPOL30 Management Tests"
         Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+#pragma warning disable AL0432
         TempVATAmountLine: Record "VAT Amount Line" temporary;
+#pragma warning restore AL0432
         VATPostingSetup: Record "VAT Posting Setup";
         PEPPOLTaxInfoProvider: Interface "PEPPOL Tax Info Provider";
     begin
@@ -2683,7 +2691,7 @@ codeunit 139000 "PEPPOL30 Management Tests"
     procedure PEPPOL_XMLExport_TaxCurrencyCode_DocumentTypeCode()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        XMLFilePath: Text;
+        XML: Text;
     begin
         // [FEATURE] [XML] [Invoice]
         // [SCENARIO 205106] Export PEPPOL does not generate cbc:TaxCurrencyCode and cbc:DocumentTypeCode elements.
@@ -2696,10 +2704,10 @@ codeunit 139000 "PEPPOL30 Management Tests"
 
         // [WHEN] Send the invoice electronically with PEPPOL format
         SalesInvoiceHeader.SetRecFilter();
-        XMLFilePath := PEPPOLXMLExport(SalesInvoiceHeader, GetPEPPOLFormat());
+        XML := PEPPOLXMLExport(SalesInvoiceHeader, GetPEPPOLFormat());
 
         // [THEN] cbc:TaxCurrencyCode and cbc:DocumentTypeCode elements are not exported
-        LibraryXMLRead.Initialize(XMLFilePath);
+        LibraryXMLRead.InitializeFromXmlText(XML);
         LibraryXMLRead.VerifyElementAbsenceInSubtree('Invoice', 'cbc:TaxCurrencyCode');
         LibraryXMLRead.VerifyElementAbsenceInSubtree('Invoice/cac:ContractDocumentReference', 'cbc:DocumentTypeCode');
 
@@ -2819,7 +2827,7 @@ codeunit 139000 "PEPPOL30 Management Tests"
         DummySalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         ShipToAddress: Record "Ship-to Address";
-        XMLFilePath: Text;
+        XML: Text;
     begin
         // [FEATURE] [Invoice]
         // [SCENARIO 289768] PEPPOL Sales Invoice Delivery info (ActualDeliveryDate, Delivery ID) when Ship-to Code if filled in
@@ -2833,10 +2841,10 @@ codeunit 139000 "PEPPOL30 Management Tests"
 
         // [WHEN] Export PEPPOL format
         SalesInvoiceHeader.SetRecFilter();
-        XMLFilePath := PEPPOLXMLExport(SalesInvoiceHeader, GetPEPPOLFormat());
+        XML := PEPPOLXMLExport(SalesInvoiceHeader, GetPEPPOLFormat());
 
         // [THEN] "Delivery" tag has been exported with "ActualDeliveryDate" = "18-07-2018", "ID" = "12345", "ID/schemeID" = "0088"
-        LibraryXMLRead.Initialize(XMLFilePath);
+        LibraryXMLRead.InitializeFromXmlText(XML);
         LibraryXMLRead.VerifyNodeValueInSubtree('cac:Delivery', 'cbc:ActualDeliveryDate', Format(SalesInvoiceHeader."Shipment Date", 0, 9));
         LibraryXMLRead.VerifyNodeValueInSubtree('cac:DeliveryLocation', 'cbc:ID', ShipToAddress.GLN);
         LibraryXMLRead.VerifyAttributeValueInSubtree('cac:DeliveryLocation', 'cbc:ID', 'schemeID', '0088');
@@ -2847,7 +2855,7 @@ codeunit 139000 "PEPPOL30 Management Tests"
     var
         Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        XMLFilePath: Text;
+        XML: Text;
     begin
         // [FEATURE] [Invoice]
         // [SCENARIO 277023] PEPPOL Sales Invoice Delivery info (ActualDeliveryDate, Delivery ID)
@@ -2859,10 +2867,10 @@ codeunit 139000 "PEPPOL30 Management Tests"
 
         // [WHEN] Export PEPPOL format
         SalesInvoiceHeader.SetRecFilter();
-        XMLFilePath := PEPPOLXMLExport(SalesInvoiceHeader, GetPEPPOLFormat());
+        XML := PEPPOLXMLExport(SalesInvoiceHeader, GetPEPPOLFormat());
 
         // [THEN] "Delivery" tag has been exported with "ActualDeliveryDate" = "18-07-2018", "ID" = "12345", "ID/schemeID" = "0088"
-        LibraryXMLRead.Initialize(XMLFilePath);
+        LibraryXMLRead.InitializeFromXmlText(XML);
         LibraryXMLRead.VerifyNodeValueInSubtree('cac:Delivery', 'cbc:ActualDeliveryDate', Format(SalesInvoiceHeader."Shipment Date", 0, 9));
         LibraryXMLRead.VerifyNodeValueInSubtree('cac:DeliveryLocation', 'cbc:ID', Customer.GLN);
         LibraryXMLRead.VerifyAttributeValueInSubtree('cac:DeliveryLocation', 'cbc:ID', 'schemeID', '0088');
@@ -2873,7 +2881,7 @@ codeunit 139000 "PEPPOL30 Management Tests"
     var
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        XMLFilePath: Text;
+        XML: Text;
     begin
         // [FEATURE] [Invoice]
         // [SCENARIO 277023] PEPPOL Sales Invoice Delivery info (ActualDeliveryDate, blanked Delivery ID)
@@ -2884,10 +2892,10 @@ codeunit 139000 "PEPPOL30 Management Tests"
 
         // [WHEN] Export PEPPOL format
         SalesInvoiceHeader.SetRecFilter();
-        XMLFilePath := PEPPOLXMLExport(SalesInvoiceHeader, GetPEPPOLFormat());
+        XML := PEPPOLXMLExport(SalesInvoiceHeader, GetPEPPOLFormat());
 
         // [THEN] "Delivery" tag has been exported with "ActualDeliveryDate" = "18-07-2018"
-        LibraryXMLRead.Initialize(XMLFilePath);
+        LibraryXMLRead.InitializeFromXmlText(XML);
         LibraryXMLRead.VerifyNodeValueInSubtree('cac:Delivery', 'cbc:ActualDeliveryDate', Format(SalesInvoiceHeader."Shipment Date", 0, 9));
         LibraryXMLRead.VerifyNodeAbsence('cbc:DeliveryLocation');
     end;
@@ -2899,7 +2907,7 @@ codeunit 139000 "PEPPOL30 Management Tests"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         DummySalesHeader: Record "Sales Header";
         ShipToAddress: Record "Ship-to Address";
-        XMLFilePath: Text;
+        XML: Text;
     begin
         // [FEATURE] [Credit Memo]
         // [SCENARIO 289768] PEPPOL Sales Credit Memo Delivery info (ActualDeliveryDate, Delivery ID) when Ship-to Address is filled in
@@ -2913,10 +2921,10 @@ codeunit 139000 "PEPPOL30 Management Tests"
 
         // [WHEN] Export PEPPOL format
         SalesCrMemoHeader.SetRecFilter();
-        XMLFilePath := PEPPOLXMLExport(SalesCrMemoHeader, GetPEPPOLFormat());
+        XML := PEPPOLXMLExport(SalesCrMemoHeader, GetPEPPOLFormat());
 
         // [THEN] "Delivery" tag has been exported with "ActualDeliveryDate" = "18-07-2018", "ID" = "12345", "ID/schemeID" = "0088"
-        LibraryXMLRead.Initialize(XMLFilePath);
+        LibraryXMLRead.InitializeFromXmlText(XML);
         LibraryXMLRead.VerifyNodeValueInSubtree('cac:Delivery', 'cbc:ActualDeliveryDate', Format(SalesCrMemoHeader."Shipment Date", 0, 9));
         LibraryXMLRead.VerifyNodeValueInSubtree('cac:DeliveryLocation', 'cbc:ID', ShipToAddress.GLN);
         LibraryXMLRead.VerifyAttributeValueInSubtree('cac:DeliveryLocation', 'cbc:ID', 'schemeID', '0088');
@@ -2927,7 +2935,7 @@ codeunit 139000 "PEPPOL30 Management Tests"
     var
         Customer: Record Customer;
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
-        XMLFilePath: Text;
+        XML: Text;
     begin
         // [FEATURE] [Credit Memo]
         // [SCENARIO 277023] PEPPOL Sales Credit Memo Delivery info (ActualDeliveryDate, Delivery ID)
@@ -2939,10 +2947,10 @@ codeunit 139000 "PEPPOL30 Management Tests"
 
         // [WHEN] Export PEPPOL format
         SalesCrMemoHeader.SetRecFilter();
-        XMLFilePath := PEPPOLXMLExport(SalesCrMemoHeader, GetPEPPOLFormat());
+        XML := PEPPOLXMLExport(SalesCrMemoHeader, GetPEPPOLFormat());
 
         // [THEN] "Delivery" tag has been exported with "ActualDeliveryDate" = "18-07-2018", "ID" = "12345", "ID/schemeID" = "0088"
-        LibraryXMLRead.Initialize(XMLFilePath);
+        LibraryXMLRead.InitializeFromXmlText(XML);
         LibraryXMLRead.VerifyNodeValueInSubtree('cac:Delivery', 'cbc:ActualDeliveryDate', Format(SalesCrMemoHeader."Shipment Date", 0, 9));
         LibraryXMLRead.VerifyNodeValueInSubtree('cac:DeliveryLocation', 'cbc:ID', Customer.GLN);
         LibraryXMLRead.VerifyAttributeValueInSubtree('cac:DeliveryLocation', 'cbc:ID', 'schemeID', '0088');
@@ -2953,7 +2961,7 @@ codeunit 139000 "PEPPOL30 Management Tests"
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesHeader: Record "Sales Header";
-        XMLFilePath: Text;
+        XML: Text;
     begin
         // [FEATURE] [Credit Memo]
         // [SCENARIO 277023] PEPPOL Sales Credit Memo Delivery info (ActualDeliveryDate, blanked Delivery ID)
@@ -2964,10 +2972,10 @@ codeunit 139000 "PEPPOL30 Management Tests"
 
         // [WHEN] Export PEPPOL format
         SalesCrMemoHeader.SetRecFilter();
-        XMLFilePath := PEPPOLXMLExport(SalesCrMemoHeader, GetPEPPOLFormat());
+        XML := PEPPOLXMLExport(SalesCrMemoHeader, GetPEPPOLFormat());
 
         // [THEN] "Delivery" tag has been exported with "ActualDeliveryDate" = "18-07-2018"
-        LibraryXMLRead.Initialize(XMLFilePath);
+        LibraryXMLRead.InitializeFromXmlText(XML);
         LibraryXMLRead.VerifyNodeValueInSubtree('cac:Delivery', 'cbc:ActualDeliveryDate', Format(SalesCrMemoHeader."Shipment Date", 0, 9));
         LibraryXMLRead.VerifyNodeAbsence('cbc:DeliveryLocation');
     end;
@@ -2977,7 +2985,7 @@ codeunit 139000 "PEPPOL30 Management Tests"
     var
         Customer: Record Customer;
         ServiceInvoiceHeader: Record "Service Invoice Header";
-        XMLFilePath: Text;
+        XML: Text;
     begin
         // [FEATURE] [Service] [Invoice]
         // [SCENARIO 277023] PEPPOL Service Invoice Delivery info (ActualDeliveryDate, Delivery ID)
@@ -2989,10 +2997,10 @@ codeunit 139000 "PEPPOL30 Management Tests"
 
         // [WHEN] Export PEPPOL format
         ServiceInvoiceHeader.SetRecFilter();
-        XMLFilePath := PEPPOLXMLExport(ServiceInvoiceHeader, GetPEPPOLFormat());
+        XML := PEPPOLXMLExport(ServiceInvoiceHeader, GetPEPPOLFormat());
 
         // [THEN] "Delivery" tag has been exported with "ID" = "12345", "ID/schemeID" = "0088"
-        LibraryXMLRead.Initialize(XMLFilePath);
+        LibraryXMLRead.InitializeFromXmlText(XML);
         LibraryXMLRead.VerifyNodeAbsence('cbc:ActualDeliveryDate'); // No "Shipment Date" for Service Invoice
         LibraryXMLRead.VerifyNodeValueInSubtree('cac:DeliveryLocation', 'cbc:ID', Customer.GLN);
         LibraryXMLRead.VerifyAttributeValueInSubtree('cac:DeliveryLocation', 'cbc:ID', 'schemeID', '0088');
@@ -3003,7 +3011,7 @@ codeunit 139000 "PEPPOL30 Management Tests"
     var
         Customer: Record Customer;
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
-        XMLFilePath: Text;
+        XML: Text;
     begin
         // [FEATURE] [Service] [Credit Memo]
         // [SCENARIO 277023] PEPPOL Service Credit Memo Delivery info (ActualDeliveryDate, Delivery ID)
@@ -3015,10 +3023,10 @@ codeunit 139000 "PEPPOL30 Management Tests"
 
         // [WHEN] Export PEPPOL format
         ServiceCrMemoHeader.SetRecFilter();
-        XMLFilePath := PEPPOLXMLExport(ServiceCrMemoHeader, GetPEPPOLFormat());
+        XML := PEPPOLXMLExport(ServiceCrMemoHeader, GetPEPPOLFormat());
 
         // [THEN] "Delivery" tag has been exported with "ID" = "12345", "ID/schemeID" = "0088"
-        LibraryXMLRead.Initialize(XMLFilePath);
+        LibraryXMLRead.InitializeFromXmlText(XML);
         LibraryXMLRead.VerifyNodeAbsence('cbc:ActualDeliveryDate'); // No "Shipment Date" for Service Credit Memo
         LibraryXMLRead.VerifyNodeValueInSubtree('cac:DeliveryLocation', 'cbc:ID', Customer.GLN);
         LibraryXMLRead.VerifyAttributeValueInSubtree('cac:DeliveryLocation', 'cbc:ID', 'schemeID', '0088');
@@ -3176,8 +3184,7 @@ codeunit 139000 "PEPPOL30 Management Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesLine: Record "Sales Line";
         SalesLine2: Record "Sales Line";
-        FileManagement: Codeunit "File Management";
-        XMLFilePath: Text;
+        XML: Text;
     begin
         // [SCENARIO 487175] Blank Description in Sales Invoice Comment Line leads to an error message during PEPPOL transmission.
         Initialize();
@@ -3201,10 +3208,10 @@ codeunit 139000 "PEPPOL30 Management Tests"
 
         // [GIVEN] Send the Invoice Electronically in PEPPOL format..
         SalesInvoiceHeader.SetRecFilter();
-        XMLFilePath := PEPPOLXMLExport(SalesInvoiceHeader, GetPEPPOLFormat());
+        XML := PEPPOLXMLExport(SalesInvoiceHeader, GetPEPPOLFormat());
 
         // [VERIFY] Invoice Successfully send the electronically in PEPPOL transmission.
-        Assert.IsTrue(FileManagement.ServerFileExists(XMLFilePath), InvoiceElectronicallySendPEPPOLFormatTxt);
+        Assert.IsFalse(XML = '', InvoiceElectronicallySendPEPPOLFormatTxt);
     end;
 
     [Test]
@@ -3214,7 +3221,9 @@ codeunit 139000 "PEPPOL30 Management Tests"
         Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+#pragma warning disable AL0432
         TempVATAmtLine: Record "VAT Amount Line" temporary;
+#pragma warning restore AL0432
         PEPPOLMgt: Codeunit "PEPPOL30 Management";
         PEPPOLPartyInfoProvider: Interface "PEPPOL Party Info Provider";
         CustPartyTaxSchemeCompanyID: Text;
@@ -3257,7 +3266,9 @@ codeunit 139000 "PEPPOL30 Management Tests"
         Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+#pragma warning disable AL0432
         TempVATAmtLine: Record "VAT Amount Line" temporary;
+#pragma warning restore AL0432
         PEPPOLPartyInfoProvider: Interface "PEPPOL Party Info Provider";
         CustPartyTaxSchemeCompanyID: Text;
         CustPartyTaxSchemeCompIDSchID: Text;
@@ -3477,7 +3488,9 @@ codeunit 139000 "PEPPOL30 Management Tests"
         SalesHeader.Modify(false);
     end;
 
+#pragma warning disable AL0432
     local procedure GetVATAmt(SalesLine: Record "Sales Line"; var VATAmtLine: Record "VAT Amount Line")
+#pragma warning restore AL0432
     begin
         VATAmtLine.Init();
         VATAmtLine."VAT Identifier" := SalesLine."Tax Category";
@@ -3493,7 +3506,9 @@ codeunit 139000 "PEPPOL30 Management Tests"
         VATAmtLine.InsertLine();
     end;
 
+#pragma warning disable AL0432
     local procedure GetVatAmtWithTaxCategory(SalesLine: Record "Sales Line"; var VATAmtLine: Record "VAT Amount Line")
+#pragma warning restore AL0432
     var
         VatPostingSetup: Record "VAT Posting Setup";
     begin
@@ -3677,18 +3692,17 @@ codeunit 139000 "PEPPOL30 Management Tests"
         exit('PEPPOL30');
     end;
 
-    local procedure PEPPOLXMLExport(DocumentVariant: Variant; FormatCode: Code[20]): Text
+
+    local procedure PEPPOLXMLExport(DocumentVariant: Variant; FormatCode: Code[20]) Data: Text
     var
         ElectronicDocumentFormat: Record "Electronic Document Format";
-        FileManagement: Codeunit "File Management";
         TempBlob: Codeunit "Temp Blob";
         ClientFileName: Text[250];
-        ServerFileName: Text[250];
+        InStream: InStream;
     begin
         ElectronicDocumentFormat.SendElectronically(TempBlob, ClientFileName, DocumentVariant, FormatCode);
-        ServerFileName := CopyStr(FileManagement.ServerTempFileName('xml'), 1, 250);
-        FileManagement.BLOBExportToServerFile(TempBlob, ServerFileName);
-        exit(ServerFileName);
+        TempBlob.CreateInStream(InStream);
+        InStream.Read(Data);
     end;
 
     local procedure UpdateCompanySwiftCode()
@@ -3745,7 +3759,9 @@ codeunit 139000 "PEPPOL30 Management Tests"
         SalesInvoiceLine: Record "Sales Invoice Line";
         SalesLine: Record "Sales Line";
         TempSalesLineInvRounding: Record "Sales Line" temporary;
+#pragma warning disable AL0432
         TempVATAmtLine: Record "VAT Amount Line" temporary;
+#pragma warning restore AL0432
         PEPPOLMonetaryInfoProvider: Interface "PEPPOL Monetary Info Provider";
         AllowanceTotalAmount: Text;
         AllowanceTotalAmountCurrencyID: Text;
@@ -3887,7 +3903,9 @@ codeunit 139000 "PEPPOL30 Management Tests"
         Assert.AreEqual('', InvoiceLineAccountingCost, '');
     end;
 
+#pragma warning disable AL0432
     local procedure VerifyVATAmountLine(var VATAmountLine: Record "VAT Amount Line"; var SalesLine: Record "Sales Line"; VATPostingSetup: Record "VAT Posting Setup")
+#pragma warning restore AL0432
     begin
         VATAmountLine.SetRange("VAT Identifier", Format(VATPostingSetup."VAT %"));
         VATAmountLine.FindFirst();
