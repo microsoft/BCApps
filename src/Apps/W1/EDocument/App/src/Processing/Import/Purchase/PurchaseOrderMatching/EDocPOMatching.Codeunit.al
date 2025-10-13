@@ -70,6 +70,29 @@ codeunit 6196 "E-Doc. PO Matching"
     end;
 
     /// <summary>
+    /// Loads all purchase orders that are linked to the specified E-Document line into the specified temporary Purchase Header record.
+    /// </summary>
+    /// <param name="EDocumentPurchaseLine"></param>
+    /// <param name="TempPurchaseHeader"></param>
+    procedure LoadPOsLinkedToEDocumentLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var TempPurchaseHeader: Record "Purchase Header" temporary)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        TempPurchaseLine: Record "Purchase Line" temporary;
+    begin
+        TempPurchaseHeader.DeleteAll();
+        LoadPOLinesLinkedToEDocumentLine(EDocumentPurchaseLine, TempPurchaseLine);
+        if not TempPurchaseLine.FindSet() then
+            exit;
+        repeat
+            if PurchaseHeader.Get(Enum::"Purchase Document Type"::Order, TempPurchaseLine."Document No.") then begin
+                Clear(TempPurchaseHeader);
+                TempPurchaseHeader := PurchaseHeader;
+                if TempPurchaseHeader.Insert() then;
+            end;
+        until TempPurchaseLine.Next() = 0;
+    end;
+
+    /// <summary>
     /// Loads all purchase receipt lines that are linked to purchase order lines that are linked to the specified E-Document line into the specified temporary Purch. Rcpt. Line record.
     /// </summary>
     /// <param name="EDocumentPurchaseLine"></param>
@@ -96,6 +119,28 @@ codeunit 6196 "E-Doc. PO Matching"
                 end;
             until PurchaseReceiptLine.Next() = 0;
         until LinkedPurchaseLines.Next() = 0;
+    end;
+
+    procedure LoadReceiptsLinkedToEDocumentLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var TempPurchaseReceiptHeader: Record "Purch. Rcpt. Header" temporary)
+    var
+        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
+        NullGuid: Guid;
+    begin
+        TempPurchaseReceiptHeader.DeleteAll();
+        EDocPurchaseLinePOMatch.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        EDocPurchaseLinePOMatch.SetFilter("Receipt Line SystemId", '<>%1', NullGuid);
+        if not EDocPurchaseLinePOMatch.FindSet() then
+            exit;
+        repeat
+            if PurchaseReceiptLine.GetBySystemId(EDocPurchaseLinePOMatch."Receipt Line SystemId") then
+                if PurchaseReceiptHeader.Get(PurchaseReceiptLine."Document No.") then begin
+                    Clear(TempPurchaseReceiptHeader);
+                    TempPurchaseReceiptHeader := PurchaseReceiptHeader;
+                    if TempPurchaseReceiptHeader.Insert() then;
+                end;
+        until EDocPurchaseLinePOMatch.Next() = 0;
     end;
 
     /// <summary>

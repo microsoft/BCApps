@@ -222,16 +222,20 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
                         trigger OnAction()
                         var
-                            PurchaseHeader: Record "Purchase Header";
-                            LinkedPurchaseLines: Record "Purchase Line" temporary;
+                            PurchaseOrders: Record "Purchase Header" temporary;
                             EDocPOMatching: Codeunit "E-Doc. PO Matching";
+                            CountPOs: Integer;
                         begin
-                            EDocPOMatching.LoadPOLinesLinkedToEDocumentLine(Rec, LinkedPurchaseLines);
-                            if LinkedPurchaseLines.Count() = 0 then
+                            EDocPOMatching.LoadPOsLinkedToEDocumentLine(Rec, PurchaseOrders);
+                            CountPOs := PurchaseOrders.Count();
+                            if CountPOs = 0 then
                                 exit;
-                            if not PurchaseHeader.Get(LinkedPurchaseLines."Document Type", LinkedPurchaseLines."Document No.") then
-                                Error(POCantBeFoundErr);
-                            Page.Run(Page::"Purchase Order", PurchaseHeader);
+                            if CountPOs = 1 then begin
+                                PurchaseOrders.FindFirst();
+                                Page.Run(Page::"Purchase Order", PurchaseOrders);
+                                exit;
+                            end;
+                            Page.Run(Page::"Purchase Orders", PurchaseOrders);
                         end;
                     }
                     action(OpenMatchedReceipt)
@@ -245,16 +249,20 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
                         trigger OnAction()
                         var
-                            PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
-                            LinkedReceiptLines: Record "Purch. Rcpt. Line" temporary;
+                            PostedReceipts: Record "Purch. Rcpt. Header" temporary;
                             EDocPOMatching: Codeunit "E-Doc. PO Matching";
+                            CountReceipts: Integer;
                         begin
-                            EDocPOMatching.LoadReceiptLinesLinkedToEDocumentLine(Rec, LinkedReceiptLines);
-                            if LinkedReceiptLines.Count() = 0 then
+                            EDocPOMatching.LoadReceiptsLinkedToEDocumentLine(Rec, PostedReceipts);
+                            CountReceipts := PostedReceipts.Count();
+                            if CountReceipts = 0 then
                                 exit;
-                            if not PurchaseReceiptHeader.Get(LinkedReceiptLines."Document No.") then
-                                Error(ReceiptCantBeFoundErr);
-                            Page.Run(Page::"Posted Purchase Receipt", PurchaseReceiptHeader);
+                            if CountReceipts = 1 then begin
+                                PostedReceipts.FindFirst();
+                                Page.Run(Page::"Posted Purchase Receipt", PostedReceipts);
+                                exit;
+                            end;
+                            Page.Run(Page::"Posted Purchase Receipts", PostedReceipts);
                         end;
                     }
                 }
