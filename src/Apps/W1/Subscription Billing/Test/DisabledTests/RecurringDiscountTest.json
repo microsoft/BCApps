@@ -1,0 +1,14 @@
+[
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139689,
+        "CodeunitName": "Recurring Discount Test",
+        "Method": "PostingSalesCreditMemoFromDiscountContractCreatesDeferrals"
+    },
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139689,
+        "CodeunitName": "Recurring Discount Test",
+        "Method": "PostingPurchaseCreditMemoFromDiscountContractCreatesDeferrals"
+    }
+]
