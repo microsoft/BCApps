@@ -17,15 +17,15 @@ codeunit 37205 "Exp. Sales CrM. PEPPOL30"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         CompanyInformation: Record "Company Information";
         RecordRef: RecordRef;
-        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        PEPPOL30Validation: Interface "PEPPOL30 Validation1";
         OutStr: OutStream;
     begin
         RecordRef.Get(Rec.RecordID);
         RecordRef.SetTable(SalesCrMemoHeader);
         CompanyInformation.Get();
 
-        PEPPOL30Validation := CompanyInformation."E-Document Format";
-        PEPPOL30Validation.CheckSalesCreditMemo(SalesCrMemoHeader);
+        PEPPOL30Validation := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOL30Validation.ValidateCreditMemo(SalesCrMemoHeader);
 
         Rec."File Content".CreateOutStream(OutStr);
         GenerateXMLFile(SalesCrMemoHeader, OutStr);

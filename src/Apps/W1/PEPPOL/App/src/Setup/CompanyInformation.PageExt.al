@@ -20,7 +20,7 @@ pageextension 37200 "Company Information" extends "Company Information"
             {
                 Caption = 'E-Documents';
 
-                field("E-Document Format"; Rec."E-Document Format")
+                field("E-Document Format"; Rec."PEPPOL 3.0 Sales Format")
                 {
                     ApplicationArea = All;
                 }

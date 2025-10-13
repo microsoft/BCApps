@@ -10,6 +10,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Service.History;
+using Microsoft.Service.Document;
 
 codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
                                             , "PEPPOL Delivery Info Provider"
@@ -1192,5 +1193,15 @@ codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
     procedure FindNextServiceCreditMemoLineRec(var ServiceCrMemoLine: Record "Service Cr.Memo Line"; var SalesLine: Record "Sales Line"; Position: Integer): Boolean
     begin
         exit(PEPPOLManagementImpl.FindNextServiceCreditMemoLineRec(ServiceCrMemoLine, SalesLine, Position));
+    end;
+
+    /// <summary>
+    /// Maps service line types to corresponding sales line types for PEPPOL export.
+    /// </summary>
+    /// <param name="ServiceLineType">The service line type to map.</param>
+    /// <returns>The corresponding sales line type.</returns>
+    procedure MapServiceLineTypeToSalesLineType(ServiceLineType: Enum "Service Line Type"): Enum "Sales Line Type"
+    begin
+        exit(PEPPOLManagementImpl.MapServiceLineTypeToSalesLineType(ServiceLineType));
     end;
 }

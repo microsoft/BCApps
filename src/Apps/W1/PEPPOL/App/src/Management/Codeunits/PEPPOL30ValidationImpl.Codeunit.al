@@ -14,11 +14,12 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using System.Utilities;
+using Microsoft.Service.History;
+using Microsoft.Service.Document;
 
 codeunit 37203 "PEPPOL30 Validation Impl."
 {
     Access = Internal;
-    TableNo = "Sales Header";
 
     var
         ConfirmManagement: Codeunit "Confirm Management";
@@ -33,11 +34,6 @@ codeunit 37203 "PEPPOL30 Validation Impl."
         VatMustBeZeroForCategoryErr: Label 'VAT % must be 0 for tax category code %1', Comment = '%1 - Tax Category code';
         WrongLengthErr: Label 'should be %1 characters long', Comment = '%1 - field length';
 
-    trigger OnRun()
-    begin
-        CheckSalesDocument(Rec);
-        CheckSalesDocumentLines(Rec);
-    end;
 
     procedure CheckSalesDocument(SalesHeader: Record "Sales Header")
     var
@@ -175,6 +171,81 @@ codeunit 37203 "PEPPOL30 Validation Impl."
                 CheckSalesDocumentLine(SalesLine);
             until SalesCrMemoLine.Next() = 0;
     end;
+
+    #region Service Document Validation
+
+    procedure CheckServiceDocument(ServiceHeader: Record "Service Header")
+    var
+        SalesHeader: Record "Sales Header";
+        PEPPOL30Management: Codeunit "PEPPOL30 Management";
+    begin
+        PEPPOL30Management.TransferHeaderToSalesHeader(ServiceHeader, SalesHeader);
+        SalesHeader."Shipment Date" := SalesHeader."Posting Date";
+        CheckSalesDocument(SalesHeader);
+    end;
+
+    procedure CheckServiceDocumentLines(ServiceHeader: Record "Service Header")
+    var
+        ServiceLine: Record "Service Line";
+    begin
+        ServiceLine.SetRange("Document Type", ServiceHeader."Document Type");
+        ServiceLine.SetRange("Document No.", ServiceHeader."No.");
+        if ServiceLine.FindSet() then
+            repeat
+                CheckServiceDocumentLine(ServiceLine)
+            until ServiceLine.Next() = 0;
+    end;
+
+    procedure CheckServiceDocumentLine(ServiceLine: Record "Service Line")
+    var
+        SalesLine: Record "Sales Line";
+        PEPPOL30Management: Codeunit "PEPPOL30 Management";
+    begin
+        PEPPOL30Management.TransferLineToSalesLine(ServiceLine, SalesLine);
+        CheckSalesDocumentLine(SalesLine);
+    end;
+
+    procedure CheckServiceInvoice(ServiceInvoiceHeader: Record "Service Invoice Header")
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ServiceInvoiceLine: Record "Service Invoice Line";
+        PEPPOL30Management: Codeunit "PEPPOL30 Management";
+    begin
+        PEPPOL30Management.TransferHeaderToSalesHeader(ServiceInvoiceHeader, SalesHeader);
+        SalesHeader."Document Type" := SalesHeader."Document Type"::Invoice;
+        SalesHeader."Shipment Date" := SalesHeader."Posting Date";
+        CheckSalesDocument(SalesHeader);
+        ServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
+        if ServiceInvoiceLine.FindSet() then
+            repeat
+                PEPPOL30Management.TransferLineToSalesLine(ServiceInvoiceLine, SalesLine);
+                SalesLine."Document Type" := SalesLine."Document Type"::Invoice;
+                CheckSalesDocumentLine(SalesLine);
+            until ServiceInvoiceLine.Next() = 0;
+    end;
+
+    procedure CheckServiceCreditMemo(ServiceCrMemoHeader: Record "Service Cr.Memo Header")
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ServiceCrMemoLine: Record "Service Cr.Memo Line";
+        PEPPOL30Management: Codeunit "PEPPOL30 Management";
+    begin
+        PEPPOL30Management.TransferHeaderToSalesHeader(ServiceCrMemoHeader, SalesHeader);
+        SalesHeader."Document Type" := SalesHeader."Document Type"::"Credit Memo";
+        SalesHeader."Shipment Date" := SalesHeader."Posting Date";
+        CheckSalesDocument(SalesHeader);
+        ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
+        if ServiceCrMemoLine.FindSet() then
+            repeat
+                PEPPOL30Management.TransferLineToSalesLine(ServiceCrMemoLine, SalesLine);
+                SalesLine."Document Type" := SalesLine."Document Type"::"Credit Memo";
+                CheckSalesDocumentLine(SalesLine);
+            until ServiceCrMemoLine.Next() = 0;
+    end;
+
+    #endregion
 
     local procedure CheckCurrencyCode(CurrencyCode: Code[10])
     var

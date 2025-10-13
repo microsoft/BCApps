@@ -10,7 +10,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Document;
 using Microsoft.Service.History;
 
-codeunit 37214 "Services Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Management"
+codeunit 37214 "PEPPOL30 Services Export Mgmt." implements "PEPPOL30 Export Management"
 {
     var
         SalesHeader: Record "Sales Header";
@@ -21,7 +21,6 @@ codeunit 37214 "Services Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Mana
     procedure Init(NewRecordRef: RecordRef; var TempSalesLineRounding: Record "Sales Line" temporary; var DocumentAttachments: Record "Document Attachment")
     var
         PEPPOLManagement: Codeunit "PEPPOL30 Management";
-        ServPEPPOL30Management: Codeunit "Serv. PEPPOL30 Management";
         SpecifyAServCreditMemoNoErr: Label 'Specify a Serv. Credit Memo No.';
     begin
         NewRecordRef.SetTable(ServiceCrMemoHeader);
@@ -33,7 +32,7 @@ codeunit 37214 "Services Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Mana
         if ServiceCrMemoLine.FindSet() then
             repeat
                 PEPPOLManagement.TransferLineToSalesLine(ServiceCrMemoLine, SalesLine);
-                SalesLine.Type := ServPEPPOL30Management.MapServiceLineTypeToSalesLineType(ServiceCrMemoLine.Type);
+                SalesLine.Type := PEPPOLManagement.MapServiceLineTypeToSalesLineType(ServiceCrMemoLine.Type);
                 PEPPOLManagement.GetInvoiceRoundingLine(TempSalesLineRounding, SalesLine);
             until ServiceCrMemoLine.Next() = 0;
         if TempSalesLineRounding."Line No." <> 0 then
@@ -43,7 +42,7 @@ codeunit 37214 "Services Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Mana
         DocumentAttachments.SetRange("No.", ServiceCrMemoHeader."No.");
     end;
 
-    procedure FindNextRec(Position: Integer; EDocumentFormat: Enum "E-Document Format") Found: Boolean
+    procedure FindNextRec(Position: Integer; EDocumentFormat: Enum "PEPPOL 3.0 Format") Found: Boolean
     var
         PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
     begin
@@ -51,7 +50,7 @@ codeunit 37214 "Services Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Mana
         exit(PEPPOLPostedDocumentIterator.FindNextServiceCreditMemoRec(ServiceCrMemoHeader, SalesHeader, Position));
     end;
 
-    procedure FindNextLineRec(Position: Integer; EDocumentFormat: Enum "E-Document Format"): Boolean
+    procedure FindNextLineRec(Position: Integer; EDocumentFormat: Enum "PEPPOL 3.0 Format"): Boolean
     var
         PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
     begin
@@ -68,13 +67,12 @@ codeunit 37214 "Services Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Mana
 #endif
     var
         PEPPOL30Management: Codeunit "PEPPOL30 Management";
-        ServPEPPOL30Management: Codeunit "Serv. PEPPOL30 Management";
     begin
         ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
         if ServiceCrMemoLine.FindSet() then
             repeat
                 PEPPOL30Management.TransferLineToSalesLine(ServiceCrMemoLine, SalesLine);
-                SalesLine.Type := ServPEPPOL30Management.MapServiceLineTypeToSalesLineType(ServiceCrMemoLine.Type);
+                SalesLine.Type := PEPPOL30Management.MapServiceLineTypeToSalesLineType(ServiceCrMemoLine.Type);
                 PEPPOL30Management.GetTotals(SalesLine, TempVATAmtLine);
             until ServiceCrMemoLine.Next() = 0;
     end;

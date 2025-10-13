@@ -24,6 +24,7 @@ using Microsoft.Service.History;
 using System.Telemetry;
 using System.Text;
 using System.Utilities;
+using Microsoft.Service.Document;
 
 codeunit 37201 "PEPPOL30 Management Impl." implements "PEPPOL Posted Document Iterator"
 {
@@ -1435,9 +1436,8 @@ codeunit 37201 "PEPPOL30 Management Impl." implements "PEPPOL Posted Document It
         SalesHeader."Document Type" := SalesHeader."Document Type"::Invoice;
     end;
 
+
     procedure FindNextServiceInvoiceLineRec(var ServiceInvoiceLine: Record Microsoft.Service.History."Service Invoice Line"; var SalesLine: Record "Sales Line"; Position: Integer) Found: Boolean
-    var
-        ServPEPPOL30Management: Codeunit "Serv. PEPPOL30 Management";
     begin
         if Position = 1 then
             Found := ServiceInvoiceLine.Find('-')
@@ -1445,7 +1445,7 @@ codeunit 37201 "PEPPOL30 Management Impl." implements "PEPPOL Posted Document It
             Found := ServiceInvoiceLine.Next() <> 0;
         if Found then begin
             TransferLineToSalesLine(ServiceInvoiceLine, SalesLine);
-            SalesLine.Type := ServPEPPOL30Management.MapServiceLineTypeToSalesLineType(ServiceInvoiceLine.Type);
+            SalesLine.Type := MapServiceLineTypeToSalesLineType(ServiceInvoiceLine.Type);
         end;
 
         exit(Found);
@@ -1464,8 +1464,6 @@ codeunit 37201 "PEPPOL30 Management Impl." implements "PEPPOL Posted Document It
     end;
 
     procedure FindNextServiceCreditMemoLineRec(var ServiceCrMemoLine: Record "Service Cr.Memo Line"; var SalesLine: Record "Sales Line"; Position: Integer) Found: Boolean
-    var
-        ServPEPPOL30Management: Codeunit "Serv. PEPPOL30 Management";
     begin
         if Position = 1 then
             Found := ServiceCrMemoLine.Find('-')
@@ -1473,7 +1471,21 @@ codeunit 37201 "PEPPOL30 Management Impl." implements "PEPPOL Posted Document It
             Found := ServiceCrMemoLine.Next() <> 0;
         if Found then begin
             TransferLineToSalesLine(ServiceCrMemoLine, SalesLine);
-            SalesLine.Type := ServPEPPOL30Management.MapServiceLineTypeToSalesLineType(ServiceCrMemoLine.Type);
+            SalesLine.Type := MapServiceLineTypeToSalesLineType(ServiceCrMemoLine.Type);
+        end;
+    end;
+
+    procedure MapServiceLineTypeToSalesLineType(ServiceLineType: Enum "Service Line Type"): Enum "Sales Line Type"
+    begin
+        case ServiceLineType of
+            "Service Line Type"::" ":
+                exit("Sales Line Type"::" ");
+            "Service Line Type"::Item:
+                exit("Sales Line Type"::Item);
+            "Service Line Type"::Resource:
+                exit("Sales Line Type"::Resource);
+            else
+                exit("Sales Line Type"::"G/L Account");
         end;
     end;
 }

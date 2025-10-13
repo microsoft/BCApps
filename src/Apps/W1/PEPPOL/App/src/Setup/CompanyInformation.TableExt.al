@@ -14,11 +14,17 @@ tableextension 37200 "Company Information" extends "Company Information"
 {
     fields
     {
-        field(37200; "E-Document Format"; Enum "E-Document Format")
+        field(37200; "PEPPOL 3.0 Sales Format"; Enum "PEPPOL 3.0 Format")
         {
-            Caption = 'E-Document Format';
+            Caption = 'Peppol 3.0 Sales Format';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the e-document format to be used for electronic documents.';
+            ToolTip = 'Specifies the PEPPOL 3.0 format to be used for electronic documents of type sales.';
+        }
+        field(37201; "PEPPOL 3.0 Service Format"; Enum "PEPPOL 3.0 Format")
+        {
+            Caption = 'Peppol 3.0 Service Format';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the PEPPOL 3.0 format to be used for electronic documents of type service.';
         }
     }
 }

@@ -32,7 +32,7 @@ interface "PEPPOL30 Export Management"
     /// <param name="Position">The position/index for finding the next record in the sequence.</param>
     /// <param name="EDocumentFormat">The electronic document format being used for export.</param>
     /// <returns>True if a next record was found and positioned, false if no more records exist.</returns>
-    procedure FindNextRec(Position: Integer; EDocumentFormat: Enum "E-Document Format"): Boolean
+    procedure FindNextRec(Position: Integer; EDocumentFormat: Enum "PEPPOL 3.0 Format"): Boolean
 
     /// <summary>
     /// Finds and moves to the next line record within the current document.
@@ -41,7 +41,7 @@ interface "PEPPOL30 Export Management"
     /// <param name="Position">The position/index for finding the next line record in the sequence.</param>
     /// <param name="EDocumentFormat">The electronic document format being used for export.</param>
     /// <returns>True if a next line record was found and positioned, false if no more lines exist.</returns>
-    procedure FindNextLineRec(Position: Integer; EDocumentFormat: Enum "E-Document Format"): Boolean
+    procedure FindNextLineRec(Position: Integer; EDocumentFormat: Enum "PEPPOL 3.0 Format"): Boolean
 
 /// <summary>
 /// Calculates and retrieves totals for VAT amounts and VAT product posting groups.

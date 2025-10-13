@@ -34,7 +34,7 @@ codeunit 37204 "PEPPOL30 Initialize"
 
         ElectronicDocumentFormat.InsertElectronicFormat(
             PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
-            Codeunit::"PEPPOL30 Validation", 0, ElectronicDocumentFormat.Usage::"Sales Validation".AsInteger());
+            Codeunit::"PEPPOL30 Sales Validation", 0, ElectronicDocumentFormat.Usage::"Sales Validation".AsInteger());
 
         ElectronicDocumentFormat.InsertElectronicFormat(
             PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,

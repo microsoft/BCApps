@@ -10,7 +10,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 
-codeunit 37213 "Sales Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Management"
+codeunit 37213 "PEPPOL30 Sales Export Mgmt." implements "PEPPOL30 Export Management"
 {
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
@@ -42,7 +42,7 @@ codeunit 37213 "Sales Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Managem
         if SalesCrMemoLine.FindSet() then
             repeat
                 SalesLine.TransferFields(SalesCrMemoLine);
-                PEPPOLMonetaryInfoProvider := "E-Document Format"::"PEPPOL 3.0";
+                PEPPOLMonetaryInfoProvider := "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales";
                 PEPPOLMonetaryInfoProvider.GetInvoiceRoundingLine(TempSalesLineRounding, SalesLine);
             until SalesCrMemoLine.Next() = 0;
         if TempSalesLineRounding."Line No." <> 0 then
@@ -57,7 +57,7 @@ codeunit 37213 "Sales Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Managem
     /// <param name="Position">The position/index for finding the next record.</param>
     /// <param name="EDocumentFormat">The e-document format to use.</param>
     /// <returns>True if a record was found, false otherwise.</returns>
-    procedure FindNextRec(Position: Integer; EDocumentFormat: Enum "E-Document Format") Found: Boolean
+    procedure FindNextRec(Position: Integer; EDocumentFormat: Enum "PEPPOL 3.0 Format") Found: Boolean
     var
         PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
     begin
@@ -71,7 +71,7 @@ codeunit 37213 "Sales Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Managem
     /// <param name="Position">The position/index for finding the next line record.</param>
     /// <param name="EDocumentFormat">The e-document format to use.</param>
     /// <returns>True if a line record was found, false otherwise.</returns>
-    procedure FindNextLineRec(Position: Integer; EDocumentFormat: Enum "E-Document Format"): Boolean
+    procedure FindNextLineRec(Position: Integer; EDocumentFormat: Enum "PEPPOL 3.0 Format"): Boolean
     var
         PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
     begin
@@ -98,7 +98,7 @@ codeunit 37213 "Sales Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Managem
         if SalesCrMemoLine.FindSet() then
             repeat
                 SalesLine.TransferFields(SalesCrMemoLine);
-                PEPPOLTaxInfoProvider := "E-Document Format"::"PEPPOL 3.0";
+                PEPPOLTaxInfoProvider := "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales";
                 PEPPOLTaxInfoProvider.GetTotals(SalesLine, TempVATAmtLine);
                 PEPPOLTaxInfoProvider.GetTaxCategories(SalesLine, TempVATProductPostingGroup);
             until SalesCrMemoLine.Next() = 0;

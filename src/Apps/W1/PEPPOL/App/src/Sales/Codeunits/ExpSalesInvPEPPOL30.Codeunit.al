@@ -17,15 +17,15 @@ codeunit 37206 "Exp. Sales Inv. PEPPOL30"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CompanyInformation: Record "Company Information";
         RecordRef: RecordRef;
-        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        PEPPOL30Validation: Interface "PEPPOL30 Validation1";
         OutStr: OutStream;
     begin
         RecordRef.Get(Rec.RecordID);
         RecordRef.SetTable(SalesInvoiceHeader);
         CompanyInformation.Get();
 
-        PEPPOL30Validation := CompanyInformation."E-Document Format";
-        PEPPOL30Validation.CheckSalesInvoice(SalesInvoiceHeader);
+        PEPPOL30Validation := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOL30Validation.ValidateInvoice(SalesInvoiceHeader);
 
         Rec."File Content".CreateOutStream(OutStr);
         GenerateXMLFile(SalesInvoiceHeader, OutStr);
