@@ -12,6 +12,7 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.History;
+using Microsoft.Foundation.UOM;
 using Microsoft.Finance.GeneralLedger.Account;
 
 codeunit 133508 "E-Doc. PO Matching Unit Tests"
@@ -25,6 +26,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         EDocumentService: Record "E-Document Service";
         LibraryEDocument: Codeunit "Library - E-Document";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryRandom: Codeunit "Library - Random";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
         LibraryERM: Codeunit "Library - ERM";
@@ -587,6 +589,8 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine1: Record "Purchase Line";
         PurchaseLine2: Record "Purchase Line";
+        UnitOfMeasure: Record "Unit of Measure";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
         Item: Record Item;
         POMatchWarnings: Record "E-Doc PO Match Warnings" temporary;
     begin
@@ -600,20 +604,21 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
         EDocumentPurchaseHeader.Modify();
 
-        // Create first E-Document line with non-existent item
+        // Create item unit of measure
+        LibraryEDocument.GetGenericItem(Item);
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", LibraryRandom.RandText(10), 1);
+
+        // Create first E-Document line with non-existent item, but valid unit of measure
         EDocumentPurchaseLine1 := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
         EDocumentPurchaseLine1."[BC] Purchase Line Type" := Enum::"Purchase Line Type"::Item;
-        EDocumentPurchaseLine1."[BC] Purchase Type No." := 'NONEXISTENT';
-        EDocumentPurchaseLine1."[BC] Unit of Measure" := 'PCS';
+        EDocumentPurchaseLine1."[BC] Unit of Measure" := ItemUnitOfMeasure.Code;
         EDocumentPurchaseLine1.Quantity := 5;
         EDocumentPurchaseLine1.Modify();
 
         // Create second E-Document line with valid item but non-existent unit of measure
-        LibraryEDocument.GetGenericItem(Item);
         EDocumentPurchaseLine2 := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
         EDocumentPurchaseLine2."[BC] Purchase Line Type" := Enum::"Purchase Line Type"::Item;
-        EDocumentPurchaseLine2."[BC] Purchase Type No." := Item."No.";
-        EDocumentPurchaseLine2."[BC] Unit of Measure" := 'NONEXISTENT';
         EDocumentPurchaseLine2.Quantity := 10;
         EDocumentPurchaseLine2.Modify();
 
@@ -625,6 +630,12 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         // Link E-Document lines to purchase order lines
         LinkEDocumentLineToPOLine(EDocumentPurchaseLine1, PurchaseLine1);
         LinkEDocumentLineToPOLine(EDocumentPurchaseLine2, PurchaseLine2);
+
+        // Setting the first line to have a non-existent item and the second line to have a non-existent UOM
+        EDocumentPurchaseLine1."[BC] Purchase Type No." := 'NONE';
+        EDocumentPurchaseLine1.Modify();
+        EDocumentPurchaseLine2."[BC] Unit of Measure" := 'NONE';
+        EDocumentPurchaseLine2.Modify();
 
         // [WHEN] CalculatePOMatchWarnings is called
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, POMatchWarnings);
