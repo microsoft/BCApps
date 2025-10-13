@@ -40,6 +40,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         TempPurchaseLine: Record "Purchase Line" temporary;
     begin
         Initialize();
+        ClearPurchaseDocumentsForVendor();
         // [SCENARIO] Loading available purchase order lines for an E-Document line with no linked vendor returns empty result
         // [GIVEN] An E-Document line with no linked vendor
         LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
@@ -67,6 +68,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         TempPurchaseLine: Record "Purchase Line" temporary;
     begin
         Initialize();
+        ClearPurchaseDocumentsForVendor();
         // [SCENARIO] Loading available purchase order lines for an E-Document line with linked vendor but no PO lines returns empty result
         // [GIVEN] An E-Document line with a linked vendor but no purchase order lines exist for that vendor
         LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
@@ -98,6 +100,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         Item: Record Item;
     begin
         Initialize();
+        ClearPurchaseDocumentsForVendor();
         // [SCENARIO] Loading available purchase order lines for an E-Document line returns unmatched PO lines for the same vendor
         // [GIVEN] An E-Document line with a linked vendor and multiple purchase order lines exist for that vendor, none matched to other E-Document lines
         LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
@@ -140,6 +143,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         Item: Record Item;
     begin
         Initialize();
+        ClearPurchaseDocumentsForVendor();
         // [SCENARIO] Loading available purchase order lines excludes lines already matched to other E-Document lines
         // [GIVEN] An E-Document line with a linked vendor, multiple PO lines for that vendor, some already matched to other E-Document lines
         LibraryEDocument.CreateInboundEDocument(EDocument1, EDocumentService);
@@ -189,6 +193,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         Item: Record Item;
     begin
         Initialize();
+        ClearPurchaseDocumentsForVendor();
         // [SCENARIO] Loading available purchase order lines includes lines already matched to the current E-Document line
         // [GIVEN] An E-Document line with a linked vendor and PO lines already matched to this E-Document line
         LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
@@ -369,6 +374,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         TempPurchaseReceiptLine: Record "Purch. Rcpt. Line" temporary;
     begin
         Initialize();
+        ClearPurchaseDocumentsForVendor();
         // [SCENARIO] Loading available receipt lines for an E-Document line with no linked PO lines returns empty result
         // [GIVEN] An E-Document line with no linked purchase order lines
         LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
@@ -400,6 +406,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         Item: Record Item;
     begin
         Initialize();
+        ClearPurchaseDocumentsForVendor();
         // [SCENARIO] Loading available receipt lines returns receipt lines for linked PO lines
         // [GIVEN] An E-Document line linked to PO lines that have associated receipt lines
         LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
@@ -450,6 +457,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         Item: Record Item;
     begin
         Initialize();
+        ClearPurchaseDocumentsForVendor();
         // [SCENARIO] Loading available receipt lines excludes receipt lines with zero quantity
         // [GIVEN] An E-Document line linked to PO lines with receipt lines having zero and non-zero quantities
         LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
@@ -564,12 +572,22 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         Assert.IsFalse(TempPurchaseReceiptHeader.IsEmpty(), 'Second receipt header should be included');
     end;
 
+    // [SCENARIO] Calculating PO match warnings generates missing information warning for item lines without proper setup
+    // [GIVEN] An E-Document with item lines that have missing item or unit of measure information
+    // [WHEN] CalculatePOMatchWarnings is called
+    // [THEN] MissingInformationForMatch warnings should be generated for those lines
+
     [Test]
     procedure CalculatePOMatchWarningsGeneratesMissingInformationWarning()
     var
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocumentPurchaseLine1: Record "E-Document Purchase Line";
+        EDocumentPurchaseLine2: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine1: Record "Purchase Line";
+        PurchaseLine2: Record "Purchase Line";
+        Item: Record Item;
         POMatchWarnings: Record "E-Doc PO Match Warnings" temporary;
     begin
         Initialize();
@@ -577,25 +595,49 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         // [GIVEN] An E-Document with item lines that have missing item or unit of measure information
         LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
 
-        // Create E-Document Purchase Header and Line
+        // Create E-Document Purchase Header
         EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
         EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
         EDocumentPurchaseHeader.Modify();
-        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
 
-        // Set up E-Document line as item type with invalid item/UoM setup
-        EDocumentPurchaseLine."[BC] Purchase Line Type" := Enum::"Purchase Line Type"::Item;
-        EDocumentPurchaseLine."[BC] Purchase Type No." := 'INVALID_ITEM';
-        EDocumentPurchaseLine."[BC] Unit of Measure" := 'INVALID_UOM';
-        EDocumentPurchaseLine.Modify();
+        // Create first E-Document line with non-existent item
+        EDocumentPurchaseLine1 := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine1."[BC] Purchase Line Type" := Enum::"Purchase Line Type"::Item;
+        EDocumentPurchaseLine1."[BC] Purchase Type No." := 'NONEXISTENT';
+        EDocumentPurchaseLine1."[BC] Unit of Measure" := 'PCS';
+        EDocumentPurchaseLine1.Quantity := 5;
+        EDocumentPurchaseLine1.Modify();
+
+        // Create second E-Document line with valid item but non-existent unit of measure
+        LibraryEDocument.GetGenericItem(Item);
+        EDocumentPurchaseLine2 := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine2."[BC] Purchase Line Type" := Enum::"Purchase Line Type"::Item;
+        EDocumentPurchaseLine2."[BC] Purchase Type No." := Item."No.";
+        EDocumentPurchaseLine2."[BC] Unit of Measure" := 'NONEXISTENT';
+        EDocumentPurchaseLine2.Quantity := 10;
+        EDocumentPurchaseLine2.Modify();
+
+        // Create purchase order and lines to link to
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item."No.", 5);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::Item, Item."No.", 10);
+
+        // Link E-Document lines to purchase order lines
+        LinkEDocumentLineToPOLine(EDocumentPurchaseLine1, PurchaseLine1);
+        LinkEDocumentLineToPOLine(EDocumentPurchaseLine2, PurchaseLine2);
 
         // [WHEN] CalculatePOMatchWarnings is called
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, POMatchWarnings);
 
-        // [THEN] MissingInformationForMatch warnings should be generated for those lines
-        POMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        // [THEN] MissingInformationForMatch warnings should be generated for both lines
         POMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warnings"::MissingInformationForMatch);
-        Assert.IsFalse(POMatchWarnings.IsEmpty(), 'Expected MissingInformationForMatch warning to be generated');
+        Assert.AreEqual(2, POMatchWarnings.Count(), 'Expected 2 MissingInformationForMatch warnings to be generated');
+
+        POMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine1.SystemId);
+        Assert.IsFalse(POMatchWarnings.IsEmpty(), 'Expected MissingInformationForMatch warning for line with non-existent item');
+
+        POMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine2.SystemId);
+        Assert.IsFalse(POMatchWarnings.IsEmpty(), 'Expected MissingInformationForMatch warning for line with non-existent unit of measure');
     end;
 
     [Test]
@@ -1534,7 +1576,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
 
         // [THEN] Matches should be created and E-Document line should be updated with PO line properties
         Assert.IsTrue(EDocPOMatching.IsEDocumentLineLinkedToAnyPOLine(EDocumentPurchaseLine), 'Expected E-Document line to be linked to PO line');
-        EDocumentPurchaseLine.Get(EDocumentPurchaseLine.SystemId);
+        EDocumentPurchaseLine.GetBySystemId(EDocumentPurchaseLine.SystemId);
         Assert.AreEqual(PurchaseLine.Type, EDocumentPurchaseLine."[BC] Purchase Line Type", 'E-Document line type should be updated');
         Assert.AreEqual(PurchaseLine."No.", EDocumentPurchaseLine."[BC] Purchase Type No.", 'E-Document line number should be updated');
     end;
@@ -1800,13 +1842,13 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
         EDocumentPurchaseHeader.Modify();
         EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
-        EDocumentPurchaseLine.Quantity := 20;
+        EDocumentPurchaseLine.Quantity := 10;
         EDocumentPurchaseLine.Modify();
 
         // Create Purchase Order with line and link to E-Document line
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
         LibraryEDocument.GetGenericItem(Item);
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
         LinkEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
 
         // Create two receipt lines
@@ -1915,6 +1957,23 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         // [WHEN] LinkReceiptLinesToEDocumentLine is called
         // [THEN] An error should be raised indicating insufficient quantity coverage
         asserterror EDocPOMatching.LinkReceiptLinesToEDocumentLine(TempReceiptLine, EDocumentPurchaseLine);
+    end;
+
+    local procedure ClearPurchaseDocumentsForVendor()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+    begin
+        PurchaseLine.SetRange("Buy-from Vendor No.", Vendor."No.");
+        PurchaseLine.DeleteAll();
+        PurchaseHeader.SetRange("Buy-from Vendor No.", Vendor."No.");
+        PurchaseHeader.DeleteAll();
+        PurchaseReceiptLine.SetRange("Buy-from Vendor No.", Vendor."No.");
+        PurchaseReceiptLine.DeleteAll();
+        PurchaseReceiptHeader.SetRange("Buy-from Vendor No.", Vendor."No.");
+        PurchaseReceiptHeader.DeleteAll();
     end;
 
     local procedure Initialize()

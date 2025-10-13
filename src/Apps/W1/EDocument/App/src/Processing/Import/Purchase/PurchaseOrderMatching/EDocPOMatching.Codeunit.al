@@ -230,6 +230,7 @@ codeunit 6196 "E-Doc. PO Matching"
                     exit(false); // TODO: we probably need to do something for posted orders (different tbale)
             until EDocPurchaseLinePOMatch.Next() = 0;
         until EDocumentPurchaseLine.Next() = 0;
+        exit(true);
     end;
 
     /// <summary>
