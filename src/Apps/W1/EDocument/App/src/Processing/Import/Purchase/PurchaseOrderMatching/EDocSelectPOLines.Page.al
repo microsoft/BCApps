@@ -106,6 +106,7 @@ page 6116 "E-Doc. Select PO Lines"
                 trigger OnAction()
                 begin
                     EDocPOMatching.RemoveAllMatchesForEDocumentLine(EDocumentPurchaseLine);
+                    CurrPage.Close();
                 end;
             }
         }

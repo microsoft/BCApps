@@ -79,11 +79,51 @@ page 6130 "E-Doc. Select Receipt Lines"
             }
         }
     }
+    actions
+    {
+        area(Navigation)
+        {
+            action(OpenOrder)
+            {
+                ApplicationArea = All;
+                Caption = 'Open posted purchase receipt';
+                ToolTip = 'Opens the posted purchase receipt.';
+                Image = PostedReceipt;
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+                begin
+                    if not PurchaseReceiptHeader.Get(Rec."Document No.") then
+                        Error(ReceiptCantBeFoundErr);
+                    Page.Run(Page::"Posted Purchase Receipt", PurchaseReceiptHeader);
+                end;
+            }
+        }
+        area(Processing)
+        {
+            action(RemoveMatches)
+            {
+                ApplicationArea = All;
+                Caption = 'Remove receipt matches';
+                ToolTip = 'Remove all the receipt matches for the current e-document line';
+                Image = RemoveLine;
+
+                trigger OnAction()
+                begin
+                    EDocPOMatching.RemoveAllReceiptMatchesForEDocumentLine(EDocumentPurchaseLine);
+                    CurrPage.Close();
+                end;
+            }
+        }
+    }
 
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         StyleExpr: Text;
+        ReceiptCantBeFoundErr: Label 'The purchase receipt cannot be found.';
 
     trigger OnOpenPage()
     begin

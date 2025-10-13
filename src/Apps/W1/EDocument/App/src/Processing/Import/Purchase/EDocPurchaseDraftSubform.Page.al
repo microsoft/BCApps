@@ -38,9 +38,10 @@ page 6183 "E-Doc. Purchase Draft Subform"
                 field(MatchWarnings; MatchWarningsCaption)
                 {
                     ApplicationArea = All;
-                    Caption = 'Match warnings';
+                    Caption = 'Order match warnings';
                     Editable = false;
                     Visible = HasEDocumentOrderMatchWarnings;
+                    StyleExpr = MatchWarningsStyleExpr;
                 }
                 field("Line Type"; Rec."[BC] Purchase Line Type")
                 {
@@ -210,6 +211,52 @@ page 6183 "E-Doc. Purchase Draft Subform"
                             CurrPage.Update();
                         end;
                     }
+                    action(OpenMatchedOrder)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Open matched order';
+                        Image = ViewOrder;
+                        ToolTip = 'Opens the matched purchase order.';
+                        Scope = Repeater;
+                        Enabled = IsLineMatchedToOrderLine;
+
+                        trigger OnAction()
+                        var
+                            PurchaseHeader: Record "Purchase Header";
+                            LinkedPurchaseLines: Record "Purchase Line" temporary;
+                            EDocPOMatching: Codeunit "E-Doc. PO Matching";
+                        begin
+                            EDocPOMatching.LoadPOLinesLinkedToEDocumentLine(Rec, LinkedPurchaseLines);
+                            if LinkedPurchaseLines.Count() = 0 then
+                                exit;
+                            if not PurchaseHeader.Get(LinkedPurchaseLines."Document Type", LinkedPurchaseLines."Document No.") then
+                                Error(POCantBeFoundErr);
+                            Page.Run(Page::"Purchase Order", PurchaseHeader);
+                        end;
+                    }
+                    action(OpenMatchedReceipt)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Open matched receipt';
+                        Image = PostedReceipt;
+                        ToolTip = 'Opens the matched purchase receipt.';
+                        Scope = Repeater;
+                        Enabled = IsLineMatchedToReceiptLine;
+
+                        trigger OnAction()
+                        var
+                            PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+                            LinkedReceiptLines: Record "Purch. Rcpt. Line" temporary;
+                            EDocPOMatching: Codeunit "E-Doc. PO Matching";
+                        begin
+                            EDocPOMatching.LoadReceiptLinesLinkedToEDocumentLine(Rec, LinkedReceiptLines);
+                            if LinkedReceiptLines.Count() = 0 then
+                                exit;
+                            if not PurchaseReceiptHeader.Get(LinkedReceiptLines."Document No.") then
+                                Error(ReceiptCantBeFoundErr);
+                            Page.Run(Page::"Posted Purchase Receipt", PurchaseReceiptHeader);
+                        end;
+                    }
                 }
                 group("Related Information")
                 {
@@ -239,18 +286,19 @@ page 6183 "E-Doc. Purchase Draft Subform"
         EDocumentPOMatchWarnings: Record "E-Doc PO Match Warnings";
         EDocPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
-        AdditionalColumns, OrderMatchedCaption, MatchWarningsCaption : Text;
+        AdditionalColumns, OrderMatchedCaption, MatchWarningsCaption, MatchWarningsStyleExpr : Text;
         LineAmount: Decimal;
-        DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentLinkedToAnyPOLine, IsLineMatchedToOrderLine, HasEDocumentOrderMatchWarnings : Boolean;
+        DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentLinkedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings : Boolean;
         HistoryCantBeRetrievedErr: Label 'The purchase invoice that matched historically with this line can''t be opened.';
 
     trigger OnOpenPage()
     begin
         SetDimensionsVisibility();
+        Rec.FindFirst();
         if EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then;
         IsEDocumentLinkedToAnyPOLine := EDocPOMatching.IsEDocumentLinkedToAnyPOLine(EDocumentPurchaseHeader);
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, EDocumentPOMatchWarnings);
-
+        HasEDocumentOrderMatchWarnings := not EDocumentPOMatchWarnings.IsEmpty();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -265,9 +313,23 @@ page 6183 "E-Doc. Purchase Draft Subform"
         SetHasAdditionalColumns();
         UpdateCalculatedAmounts(false);
         IsLineMatchedToOrderLine := EDocPOMatching.IsEDocumentLineLinkedToAnyPOLine(EDocumentPurchaseLine);
+        IsLineMatchedToReceiptLine := EDocPOMatching.IsEDocumentLineLinkedToAnyReceiptLine(EDocumentPurchaseLine);
         OrderMatchedCaption := IsLineMatchedToOrderLine ? GetSummaryOfMatchedOrders() : 'Not matched';
-        HasEDocumentOrderMatchWarnings := not EDocumentPOMatchWarnings.IsEmpty();
-        MatchWarningsCaption := HasEDocumentOrderMatchWarnings ? 'There are warnings' : 'No warnings';
+        MatchWarningsStyleExpr := 'None';
+        EDocumentPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", Rec.SystemId);
+        if EDocumentPOMatchWarnings.FindFirst() then begin
+            case EDocumentPOMatchWarnings."Warning Type" of
+                Enum::"E-Doc PO Match Warnings"::MissingInformationForMatch:
+                    MatchWarningsCaption := 'Missing information for match';
+                Enum::"E-Doc PO Match Warnings"::NotYetReceived:
+                    MatchWarningsCaption := 'Not yet received';
+                Enum::"E-Doc PO Match Warnings"::QuantityMismatch:
+                    MatchWarningsCaption := 'Quantity mismatch';
+            end;
+            MatchWarningsStyleExpr := 'Ambiguous';
+        end
+        else
+            MatchWarningsCaption := 'No warnings';
     end;
 
     local procedure SetDimensionsVisibility()
