@@ -41,6 +41,7 @@ codeunit 30286 "Shpfy Company API"
                         if JLocations.Get(0, JItem) then begin
                             ShopifyCompany."Location Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JItem, 'node.id'));
                             CompanyLocation.Id := ShopifyCompany."Location Id";
+                            CompanyLocation.Name := CopyStr(JsonHelper.GetValueAsText(JItem, 'node.name'), 1, MaxStrLen(CompanyLocation.Name));
                         end;
                 if JsonHelper.GetJsonArray(JResponse, JLocations, 'data.companyCreate.company.contactRoles.edges') then
                     foreach JItem in JLocations do
@@ -521,8 +522,7 @@ codeunit 30286 "Shpfy Company API"
         if CompanyLocation."Tax Registration Id" <> '' then
             AddFieldToGraphQuery(GraphQuery, 'taxRegistrationId', CompanyLocation."Tax Registration Id");
         GraphQuery.Append('taxExempt: false, billingSameAsShipping: true, shippingAddress: {');
-        if CompanyLocation.Address <> '' then
-            AddFieldToGraphQuery(GraphQuery, 'address1', CompanyLocation.Address);
+        AddFieldToGraphQuery(GraphQuery, 'address1', CompanyLocation.Address);
         if CompanyLocation."Address 2" <> '' then
             AddFieldToGraphQuery(GraphQuery, 'address2', CompanyLocation."Address 2");
         if CompanyLocation.City <> '' then

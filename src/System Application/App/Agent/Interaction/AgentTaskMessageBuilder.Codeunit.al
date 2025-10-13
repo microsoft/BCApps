@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System.Environment;
+
 /// <summary>
 /// This codeunit is used to create an agent task message.
 /// </summary>
@@ -15,6 +17,7 @@ codeunit 4316 "Agent Task Message Builder"
 
     var
         AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";
+        FeatureAccessManagement: Codeunit "Feature Access Management";
 
     /// <summary>
     /// Initialize the agent task message builder with the mandatory parameter.
@@ -22,9 +25,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// </summary>
     /// <param name="MessageText">The text of the message.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
-    [Scope('OnPrem')]
     procedure Initialize(MessageText: Text): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.Initialize(MessageText);
         exit(this);
     end;
@@ -35,9 +38,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// <param name="From">Text indicating the sender of the message.</param>
     /// <param name="MessageText">The text of the message.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
-    [Scope('OnPrem')]
     procedure Initialize(From: Text[250]; MessageText: Text): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.Initialize(From, MessageText);
         exit(this);
     end;
@@ -60,9 +63,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// The default value is false.
     /// </summary>
     /// <param name="IgnoreAttachment">Specifies if attachments should be ignored.</param>
-    [Scope('OnPrem')]
     procedure SetIgnoreAttachment(IgnoreAttachment: Boolean): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.SetIgnoreAttachment(IgnoreAttachment);
         exit(this);
     end;
@@ -72,9 +75,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// </summary>
     /// <param name="ExternalId">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
-    [Scope('OnPrem')]
     procedure SetMessageExternalID(ExternalId: Text[2048]): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.SetMessageExternalID(ExternalId);
         exit(this);
     end;
@@ -84,9 +87,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// </summary>
     /// <param name="ParentAgentTask">The agent task to set the message to.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
-    [Scope('OnPrem')]
     procedure SetAgentTask(ParentAgentTask: Record "Agent Task"): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.SetAgentTask(ParentAgentTask);
         exit(this);
     end;
@@ -96,9 +99,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// </summary>
     /// <param name="ParentAgentTaskID">The ID of the agent task to set the message to.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
-    [Scope('OnPrem')]
     procedure SetAgentTask(ParentAgentTaskID: BigInteger): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.SetAgentTask(ParentAgentTaskID);
         exit(this);
     end;
@@ -113,9 +116,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// <remarks>
     /// The builder keeps the state, do not reuse the same instance of the builder to create multiple tasks. 
     /// </remarks>
-    [Scope('OnPrem')]
     procedure Create(): Record "Agent Task Message"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskMsgBuilderImpl.Create());
     end;
 
@@ -131,9 +134,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// <remarks>
     /// The builder keeps the state, do not reuse the same instance of the builder to create multiple tasks. 
     /// </remarks>
-    [Scope('OnPrem')]
     procedure Create(SetTaskStatusToReady: Boolean): Record "Agent Task Message"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskMsgBuilderImpl.Create(SetTaskStatusToReady));
     end;
 
@@ -143,9 +146,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>
     /// The agent task message that was created.
     /// </returns>
-    [Scope('OnPrem')]
     procedure GetAgentTaskMessage(): Record "Agent Task Message"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskMsgBuilderImpl.GetAgentTaskMessage());
     end;
 
@@ -158,9 +161,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// <param name="FileMIMEType">The MIME type of the file to attach.</param>
     /// <param name="InStream">The stream of the file to attach.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
-    [Scope('OnPrem')]
     procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.AddAttachment(FileName, FileMIMEType, InStream);
         exit(this);
     end;
@@ -175,9 +178,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// <param name="InStream">The stream of the file to attach.</param>
     /// <param name="Ignored">Specifies if the attachment should be marked as ignored, so that it is not processed by agent.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
-    [Scope('OnPrem')]
     procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream; Ignored: Boolean): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.AddAttachment(FileName, FileMIMEType, InStream, Ignored);
         exit(this);
     end;
@@ -189,9 +192,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// </summary>
     /// <param name="AgentTaskFile">The file to attach.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
-    [Scope('OnPrem')]
     procedure AddAttachment(AgentTaskFile: Record "Agent Task File"): codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.AddAttachment(AgentTaskFile);
         exit(this);
     end;
@@ -202,9 +205,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// It is possible to attach multiple files to the message.
     /// </summary>
     /// <returns>True if the attachment was uploaded, false otherwise.</returns>
-    [Scope('OnPrem')]
     procedure UploadAttachment(): Boolean
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskMsgBuilderImpl.UploadAttachment());
     end;
 
@@ -214,9 +217,21 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>
     /// The last attachment that was added to the task message.
     /// </returns>
-    [Scope('OnPrem')]
     procedure GetLastAttachment(): Record "Agent Task File"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskMsgBuilderImpl.GetLastAttachment());
+    end;
+
+    /// <summary>
+    /// Get the last attachment that was added to the task message.
+    /// </summary>
+    /// <returns>
+    /// The last attachment that was added to the task message.
+    /// </returns>
+    procedure GetAttachments(var TempAttachments: Record "Agent Task File" temporary)
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        AgentTaskMsgBuilderImpl.GetAttachments(TempAttachments);
     end;
 }

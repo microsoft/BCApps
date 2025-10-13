@@ -62,7 +62,9 @@ page 149034 "AIT Test Method Lines"
                         AITEvaluator.SetRange("Test Method Line", Rec."Line No.");
                         AITEvaluatorPage.SetTableView(AITEvaluator);
                         AITEvaluatorPage.SetTestMethodLine(Rec."Line No.");
-                        AITEvaluatorPage.Run();
+
+                        if AITEvaluatorPage.RunModal() = Action::LookupOK then
+                            CurrPage.Update(false);
                     end;
                 }
                 field(Status; Rec.Status)

@@ -16,5 +16,6 @@ permissionset 8350 "MCP - Objects"
                   page "MCP Config Card" = X,
                   page "MCP Config List" = X,
                   page "MCP Config Tool List" = X,
+                  page "MCP Copy Config" = X,
                   page "MCP Tools By API Group" = X;
 }
