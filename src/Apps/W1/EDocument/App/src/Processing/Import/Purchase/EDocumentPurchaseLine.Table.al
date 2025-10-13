@@ -120,7 +120,7 @@ table 6101 "E-Document Purchase Line"
             trigger OnValidate()
             begin
                 POMatchingValidation();
-                Rec."[BC] Purchase Type No." := ''; // TODO:modify needed?
+                Rec."[BC] Purchase Type No." := '';
             end;
         }
         field(102; "[BC] Purchase Type No."; Code[20])

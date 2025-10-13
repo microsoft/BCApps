@@ -400,7 +400,7 @@ page 6181 "E-Document Purchase Draft"
         if not EDocumentsSetup.IsNewEDocumentExperienceActive() then
             Error('');
         if EDocumentPurchaseHeader.Get(Rec."Entry No") then;
-        if EDocPOMatching.IsPOMatchConsistent(EDocumentPurchaseHeader) then begin
+        if not EDocPOMatching.IsPOMatchConsistent(EDocumentPurchaseHeader) then begin
             EDocPOMatching.RemoveAllMatchesForEDocument(EDocumentPurchaseHeader);
             Message('This e-document was matched to purchase order lines, but the matches are no longer consistent with the current data. The matches have been removed');
         end;

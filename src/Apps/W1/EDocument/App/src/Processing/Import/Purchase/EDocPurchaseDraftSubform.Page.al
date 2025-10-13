@@ -304,14 +304,17 @@ page 6183 "E-Doc. Purchase Draft Subform"
         SetDimensionsVisibility();
         Rec.FindFirst();
         if EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then;
-        IsEDocumentLinkedToAnyPOLine := EDocPOMatching.IsEDocumentLinkedToAnyPOLine(EDocumentPurchaseHeader);
-        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, EDocumentPOMatchWarnings);
-        HasEDocumentOrderMatchWarnings := not EDocumentPOMatchWarnings.IsEmpty();
+        UpdatePOMatching();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
         Clear(LineAmount);
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdatePOMatching();
     end;
 
     trigger OnAfterGetRecord()
@@ -406,6 +409,13 @@ page 6183 "E-Doc. Purchase Draft Subform"
         end;
 
         HasAdditionalColumns := true;
+    end;
+
+    local procedure UpdatePOMatching()
+    begin
+        IsEDocumentLinkedToAnyPOLine := EDocPOMatching.IsEDocumentLinkedToAnyPOLine(EDocumentPurchaseHeader);
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, EDocumentPOMatchWarnings);
+        HasEDocumentOrderMatchWarnings := not EDocumentPOMatchWarnings.IsEmpty();
     end;
 
     local procedure GetSummaryOfMatchedOrders(): Text

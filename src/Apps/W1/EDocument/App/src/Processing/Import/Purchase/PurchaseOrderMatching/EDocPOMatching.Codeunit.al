@@ -16,6 +16,7 @@ codeunit 6196 "E-Doc. PO Matching"
         PurchaseLine: Record "Purchase Line";
         IncludePOLine: Boolean;
     begin
+        Clear(TempPurchaseLine);
         TempPurchaseLine.DeleteAll();
         Vendor := EDocumentPurchaseLine.GetLinkedVendor();
         if Vendor."No." = '' then
@@ -55,6 +56,7 @@ codeunit 6196 "E-Doc. PO Matching"
         EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
         NullGuid: Guid;
     begin
+        Clear(TempPurchaseLine);
         TempPurchaseLine.DeleteAll();
         EDocPurchaseLinePOMatch.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
         EDocPurchaseLinePOMatch.SetRange("Receipt Line SystemId", NullGuid);
@@ -79,6 +81,7 @@ codeunit 6196 "E-Doc. PO Matching"
         PurchaseHeader: Record "Purchase Header";
         TempPurchaseLine: Record "Purchase Line" temporary;
     begin
+        Clear(TempPurchaseHeader);
         TempPurchaseHeader.DeleteAll();
         LoadPOLinesLinkedToEDocumentLine(EDocumentPurchaseLine, TempPurchaseLine);
         if not TempPurchaseLine.FindSet() then
@@ -102,6 +105,7 @@ codeunit 6196 "E-Doc. PO Matching"
         PurchaseReceiptLine: Record "Purch. Rcpt. Line";
         LinkedPurchaseLines: Record "Purchase Line" temporary;
     begin
+        Clear(TempPurchaseReceiptLine);
         TempPurchaseReceiptLine.DeleteAll();
         LoadPOLinesLinkedToEDocumentLine(EDocumentPurchaseLine, LinkedPurchaseLines);
         if not LinkedPurchaseLines.FindSet() then
@@ -133,6 +137,7 @@ codeunit 6196 "E-Doc. PO Matching"
         EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
         NullGuid: Guid;
     begin
+        Clear(TempPurchaseReceiptHeader);
         TempPurchaseReceiptHeader.DeleteAll();
         EDocPurchaseLinePOMatch.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
         EDocPurchaseLinePOMatch.SetFilter("Receipt Line SystemId", '<>%1', NullGuid);
@@ -163,6 +168,7 @@ codeunit 6196 "E-Doc. PO Matching"
         PurchaseLinesQuantityInvoiced, PurchaseLinesQuantityReceived : Decimal;
         ItemFound, ItemUoMFound : Boolean;
     begin
+        Clear(POMatchWarnings);
         POMatchWarnings.DeleteAll();
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentPurchaseHeader."E-Document Entry No.");
         if not EDocumentPurchaseLine.FindSet() then
@@ -227,7 +233,7 @@ codeunit 6196 "E-Doc. PO Matching"
                     if not PurchaseReceiptLine.GetBySystemId(EDocPurchaseLinePOMatch."Receipt Line SystemId") then
                         exit(false);
                 if not PurchaseLine.GetBySystemId(EDocPurchaseLinePOMatch."Purchase Line SystemId") then
-                    exit(false); // TODO: we probably need to do something for posted orders (different tbale)
+                    exit(false);
             until EDocPurchaseLinePOMatch.Next() = 0;
         until EDocumentPurchaseLine.Next() = 0;
         exit(true);
@@ -366,7 +372,10 @@ codeunit 6196 "E-Doc. PO Matching"
         PurchaseLine: Record "Purchase Line";
         Vendor: Record Vendor;
         EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
+        NotLinkedToVendorErr: Label 'The e-document line is not linked to any vendor.';
         AlreadyLinkedErr: Label 'A selected purchase order line is already linked to another e-document line.';
+        OrderLineAndEDocFromDifferentVendorsErr: Label 'All selected purchase order lines must belong to orders for the same vendor as the e-document line.';
+        OrderLinesMustBeOfSameTypeAndNoErr: Label 'All selected purchase order lines must be of the same type and number.';
         LinkedPOLineType: Enum "Purchase Line Type";
         LinkedPOLineVendorNo, LinkedPOLineTypeNo : Code[20];
         POLineTypeCollected: Boolean;
@@ -380,29 +389,34 @@ codeunit 6196 "E-Doc. PO Matching"
             PurchaseLine.TestField("Document Type", PurchaseLine."Document Type"::Order);
             PurchaseLine.TestField("No."); // The line must have been assigned a number for it's purchase type
             Vendor := EDocumentPurchaseLine.GetLinkedVendor();
-            Vendor.TestField("No.");
-            PurchaseLine.TestField("Pay-to Vendor No.", Vendor."No."); // The line must belong to an order for the same vendor as the E-Document line
+            if Vendor."No." = '' then
+                Error(NotLinkedToVendorErr);
+            if PurchaseLine."Pay-to Vendor No." <> Vendor."No." then // The line must belong to an order for the same vendor as the E-Document line
+                Error(NotLinkedToVendorErr);
             EDocPurchaseLinePOMatch.SetRange("Purchase Line SystemId", PurchaseLine.SystemId); // The PO Line must not already be linked to another E-Document line
             if not EDocPurchaseLinePOMatch.IsEmpty() then
-                Error(AlreadyLinkedErr);
+                Error(OrderLineAndEDocFromDifferentVendorsErr);
 
             // We ensure that all linked lines have the same Vendor, Type and No.
             if LinkedPOLineVendorNo = '' then
                 LinkedPOLineVendorNo := PurchaseLine."Pay-to Vendor No."
             else
-                PurchaseLine.TestField("Pay-to Vendor No.", LinkedPOLineVendorNo); // TODO: nicer errors
+                if PurchaseLine."Pay-to Vendor No." <> LinkedPOLineVendorNo then
+                    Error(OrderLineAndEDocFromDifferentVendorsErr);
 
             if LinkedPOLineTypeNo = '' then
                 LinkedPOLineTypeNo := PurchaseLine."No."
             else
-                PurchaseLine.TestField("No.", LinkedPOLineTypeNo);
+                if PurchaseLine."No." <> LinkedPOLineTypeNo then
+                    Error(OrderLinesMustBeOfSameTypeAndNoErr);
 
             if not POLineTypeCollected then begin
                 POLineTypeCollected := true;
                 LinkedPOLineType := PurchaseLine.Type;
             end
             else
-                PurchaseLine.TestField(Type, LinkedPOLineType);
+                if PurchaseLine.Type <> LinkedPOLineType then
+                    Error(OrderLinesMustBeOfSameTypeAndNoErr);
 
             Clear(EDocPurchaseLinePOMatch);
             EDocPurchaseLinePOMatch."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
