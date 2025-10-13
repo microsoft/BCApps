@@ -14,7 +14,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Purchases.History;
 using Microsoft.Finance.GeneralLedger.Account;
 
-codeunit 133508 "E-Doc. PO Matching Test"
+codeunit 133508 "E-Doc. PO Matching Unit Tests"
 {
     Subtype = Test;
     TestType = UnitTest;
