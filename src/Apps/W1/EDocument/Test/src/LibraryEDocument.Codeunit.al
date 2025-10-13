@@ -236,14 +236,23 @@ codeunit 139629 "Library - E-Document"
     procedure CreateInboundEDocument(var EDocument: Record "E-Document"; EDocService: Record "E-Document Service")
     var
         EDocumentServiceStatus: Record "E-Document Service Status";
+        EntryNo: Integer;
     begin
+        if EDocument."Entry No" = 0 then begin
+            if EDocument.FindLast() then;
+            EntryNo := EDocument."Entry No" + 1;
+            Clear(EDocument);
+        end
+        else
+            EntryNo := EDocument."Entry No";
+        EDocument."Entry No" := EntryNo;
         EDocument.Insert();
-        EDocumentServiceStatus."E-Document Entry No" := EDocument."Entry No";
+        EDocumentServiceStatus."E-Document Entry No" := EntryNo;
         EDocumentServiceStatus."E-Document Service Code" := EDocService.Code;
         EDocumentServiceStatus.Insert();
     end;
 
-    procedure MockPurchaseDraftPrepared(EDocument: Record "E-Document")
+    procedure MockPurchaseDraftPrepared(EDocument: Record "E-Document"): Record "E-Document Purchase Header"
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentProcessing: Codeunit "E-Document Processing";
@@ -256,6 +265,19 @@ codeunit 139629 "Library - E-Document"
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
         EDocument."Document Type" := "E-Document Type"::"Purchase Invoice";
         EDocument.Modify();
+        exit(EDocumentPurchaseHeader);
+    end;
+
+    procedure InsertPurchaseDraftLine(EDocument: Record "E-Document"): Record "E-Document Purchase Line"
+    var
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+    begin
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        if EDocumentPurchaseLine.FindLast() then;
+        EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseLine."Line No." += 10000;
+        EDocumentPurchaseLine.Insert();
+        exit(EDocumentPurchaseLine);
     end;
 
     procedure CreateInboundPEPPOLDocumentToState(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; FileName: Text; EDocImportParams: Record "E-Doc. Import Parameters"): Boolean
