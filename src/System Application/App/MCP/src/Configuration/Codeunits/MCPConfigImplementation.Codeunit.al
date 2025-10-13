@@ -221,7 +221,7 @@ codeunit 8351 "MCP Config Implementation"
     #endregion
 
     #region Tools
-    internal procedure CreateAPITool(ConfigId: Guid; APIPageId: Integer): Guid
+    internal procedure CreateAPITool(ConfigId: Guid; APIPageId: Integer; ValidateAPIPublisher: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
         MCPConfigurationTool: Record "MCP Configuration Tool";
@@ -232,7 +232,8 @@ codeunit 8351 "MCP Config Implementation"
         if IsDefaultConfiguration(MCPConfiguration) then
             Error(ToolsCannotBeAddedToDefaultConfigErr);
 
-        ValidateAPITool(APIPageId);
+        ValidateAPITool(APIPageId, ValidateAPIPublisher);
+
         MCPConfigurationTool.ID := ConfigId;
         MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
         MCPConfigurationTool."Object ID" := APIPageId;
@@ -346,7 +347,7 @@ codeunit 8351 "MCP Config Implementation"
         exit(true);
     end;
 
-    internal procedure ValidateAPITool(PageId: Integer)
+    internal procedure ValidateAPITool(PageId: Integer; ValidateAPIPublisher: Boolean)
     var
         PageMetadata: Record "Page Metadata";
     begin
@@ -355,6 +356,9 @@ codeunit 8351 "MCP Config Implementation"
 
         if PageMetadata.PageType <> PageMetadata.PageType::API then
             Error(InvalidPageTypeErr);
+
+        if not ValidateAPIPublisher then
+            exit;
 
         if PageMetadata.APIPublisher = 'microsoft' then
             Error(InvalidAPIVersionErr);
@@ -390,7 +394,7 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         repeat
-            CreateAPITool(ConfigId, PageMetadata.ID);
+            CreateAPITool(ConfigId, PageMetadata.ID, false);
         until PageMetadata.Next() = 0;
     end;
 
@@ -406,7 +410,7 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         repeat
-            CreateAPITool(ConfigId, PageMetadata.ID);
+            CreateAPITool(ConfigId, PageMetadata.ID, false);
         until PageMetadata.Next() = 0;
     end;
 
