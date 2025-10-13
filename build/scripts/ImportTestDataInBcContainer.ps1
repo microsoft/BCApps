@@ -45,6 +45,13 @@ function Get-NavDefaultCompanyName
     throw "No Cronus company found in container $ContainerName.."
 }
 
+# Get all companies in the container and delete them
+$companies = Get-CompanyInBcContainer -containerName $parameters.ContainerName
+foreach ($company in $companies) {
+    Write-Host "Deleting Company: $($company.CompanyName)"
+    Remove-CompanyInBcContainer -containerName $parameters.ContainerName -companyName $company.CompanyName
+}
+
 # Reinstall all the uninstalled apps in the container
 # This is needed to ensure that the various Demo Data apps are installed in the container when we generate demo data
 $allUninstalledApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesFirst | Where-Object { $_.IsInstalled -eq $false }
@@ -61,6 +68,13 @@ if ($failedToInstallApps.Count -gt 0) {
 # Log all the installed apps
 foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesLast)) {
     Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - $($app.IsInstalled) / $($app.IsPublished)"
+}
+
+# Re-create the same companies as before
+foreach ($company in $companies) {
+    $evaluationCompany = [bool] $company.EvaluationCompany
+    Write-Host "Re-creating Company $($company.CompanyName) (EvaluationCompany: $evaluationCompany)"
+    New-CompanyInBcContainer -containerName $parameters.ContainerName -companyName $company.CompanyName -evaluationCompany:$evaluationCompany
 }
 
 # Generate demo data in the container
