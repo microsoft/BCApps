@@ -46,14 +46,16 @@ interface "PEPPOL Party Info Provider"
     /// <param name="TaxSchemeID">Return value: Tax scheme ID.</param>
     procedure GetAccountingSupplierPartyTaxScheme(var CompanyID: Text; var CompanyIDSchemeID: Text; var TaxSchemeID: Text)
 
-    /// <summary>
-    /// Gets accounting supplier party tax scheme information for PEPPOL BIS format.
-    /// </summary>
-    /// <param name="VATAmtLine">The VAT amount line record.</param>
-    /// <param name="CompanyID">Return value: Company ID.</param>
-    /// <param name="CompanyIDSchemeID">Return value: Company ID scheme ID.</param>
-    /// <param name="TaxSchemeID">Return value: Tax scheme ID.</param>
-    procedure GetAccountingSupplierPartyTaxSchemeBIS(var VATAmtLine: Record "VAT Amount Line"; var CompanyID: Text; var CompanyIDSchemeID: Text; var TaxSchemeID: Text)
+/// <summary>
+/// Gets accounting supplier party tax scheme information for PEPPOL BIS format.
+/// </summary>
+/// <param name="VATAmtLine">The VAT amount line record.</param>
+/// <param name="CompanyID">Return value: Company ID.</param>
+/// <param name="CompanyIDSchemeID">Return value: Company ID scheme ID.</param>
+/// <param name="TaxSchemeID">Return value: Tax scheme ID.</param>
+#pragma warning disable AL0432
+procedure GetAccountingSupplierPartyTaxSchemeBIS(var VATAmtLine: Record "VAT Amount Line"; var CompanyID: Text; var CompanyIDSchemeID: Text; var TaxSchemeID: Text)
+#pragma warning restore AL0432
 
     /// <summary>
     /// Gets accounting supplier party legal entity information.
@@ -148,15 +150,17 @@ interface "PEPPOL Party Info Provider"
     /// <param name="CustTaxSchemeID">Return value: Customer tax scheme ID.</param>
     procedure GetAccountingCustomerPartyTaxSchemeBIS(SalesHeader: Record "Sales Header"; var CustPartyTaxSchemeCompanyID: Text; var CustPartyTaxSchemeCompIDSchID: Text; var CustTaxSchemeID: Text)
 
-    /// <summary>
-    /// Gets accounting customer party tax scheme information for PEPPOL BIS 3.0 format.
-    /// </summary>
-    /// <param name="SalesHeader">The sales header record.</param>
-    /// <param name="CustPartyTaxSchemeCompanyID">Return value: Customer party tax scheme company ID.</param>
-    /// <param name="CustPartyTaxSchemeCompIDSchID">Return value: Customer party tax scheme company ID scheme ID.</param>
-    /// <param name="CustTaxSchemeID">Return value: Customer tax scheme ID.</param>
-    /// <param name="TempVATAmountLine">The temporary VAT amount line record.</param>
-    procedure GetAccountingCustomerPartyTaxSchemeBIS30(SalesHeader: Record "Sales Header"; var CustPartyTaxSchemeCompanyID: Text; var CustPartyTaxSchemeCompIDSchID: Text; var CustTaxSchemeID: Text; var TempVATAmountLine: Record "VAT Amount Line" temporary)
+/// <summary>
+/// Gets accounting customer party tax scheme information for PEPPOL BIS 3.0 format.
+/// </summary>
+/// <param name="SalesHeader">The sales header record.</param>
+/// <param name="CustPartyTaxSchemeCompanyID">Return value: Customer party tax scheme company ID.</param>
+/// <param name="CustPartyTaxSchemeCompIDSchID">Return value: Customer party tax scheme company ID scheme ID.</param>
+/// <param name="CustTaxSchemeID">Return value: Customer tax scheme ID.</param>
+/// <param name="TempVATAmountLine">The temporary VAT amount line record.</param>
+#pragma warning disable AL0432
+procedure GetAccountingCustomerPartyTaxSchemeBIS30(SalesHeader: Record "Sales Header"; var CustPartyTaxSchemeCompanyID: Text; var CustPartyTaxSchemeCompIDSchID: Text; var CustTaxSchemeID: Text; var TempVATAmountLine: Record "VAT Amount Line" temporary)
+#pragma warning restore AL0432
 
     /// <summary>
     /// Gets accounting customer party legal entity information.

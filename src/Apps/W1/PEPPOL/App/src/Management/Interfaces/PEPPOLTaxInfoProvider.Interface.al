@@ -30,7 +30,9 @@ interface "PEPPOL Tax Info Provider"
     /// <param name="TaxCategorySchemeID">Returns the tax category scheme ID.</param>
     /// <param name="Percent">Returns the tax percentage applied to the allowance/charge.</param>
     /// <param name="AllowanceChargeTaxSchemeID">Returns the allowance/charge tax scheme ID.</param>
+#pragma warning disable AL0432
     procedure GetAllowanceChargeInfo(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var ChargeIndicator: Text; var AllowanceChargeReasonCode: Text; var AllowanceChargeListID: Text; var AllowanceChargeReason: Text; var Amount: Text; var AllowanceChargeCurrencyID: Text; var TaxCategoryID: Text; var TaxCategorySchemeID: Text; var Percent: Text; var AllowanceChargeTaxSchemeID: Text);
+#pragma warning restore AL0432
 
     /// <summary>
     /// Gets allowance or charge information for BIS (Business Interoperability Specification) format.
@@ -48,7 +50,9 @@ interface "PEPPOL Tax Info Provider"
     /// <param name="TaxCategorySchemeID">Returns the tax category scheme ID.</param>
     /// <param name="Percent">Returns the tax percentage applied to the allowance/charge.</param>
     /// <param name="AllowanceChargeTaxSchemeID">Returns the allowance/charge tax scheme ID.</param>
+#pragma warning disable AL0432
     procedure GetAllowanceChargeInfoBIS(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var ChargeIndicator: Text; var AllowanceChargeReasonCode: Text; var AllowanceChargeListID: Text; var AllowanceChargeReason: Text; var Amount: Text; var AllowanceChargeCurrencyID: Text; var TaxCategoryID: Text; var TaxCategorySchemeID: Text; var Percent: Text; var AllowanceChargeTaxSchemeID: Text);
+#pragma warning restore AL0432
 
     /// <summary>
     /// Gets tax exchange rate information when dealing with foreign currencies in tax calculations.
@@ -70,7 +74,9 @@ interface "PEPPOL Tax Info Provider"
     /// <param name="VATAmtLine">The VAT amount line record containing tax totals.</param>
     /// <param name="TaxAmount">Returns the total tax amount.</param>
     /// <param name="TaxTotalCurrencyID">Returns the tax total currency ID.</param>
+#pragma warning disable AL0432
     procedure GetTaxTotalInfo(SalesHeader: Record "Sales Header"; var VATAmtLine: Record "VAT Amount Line"; var TaxAmount: Text; var TaxTotalCurrencyID: Text);
+#pragma warning restore AL0432
 
     /// <summary>
     /// Gets detailed tax subtotal information for a specific VAT amount line including taxable amounts, tax amounts, and tax category details.
@@ -87,7 +93,9 @@ interface "PEPPOL Tax Info Provider"
     /// <param name="schemeID">Returns the scheme ID for the tax category.</param>
     /// <param name="TaxCategoryPercent">Returns the tax category percentage.</param>
     /// <param name="TaxTotalTaxSchemeID">Returns the tax total tax scheme ID.</param>
+#pragma warning disable AL0432
     procedure GetTaxSubtotalInfo(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var TaxableAmount: Text; var TaxAmountCurrencyID: Text; var SubtotalTaxAmount: Text; var TaxSubtotalCurrencyID: Text; var TransactionCurrencyTaxAmount: Text; var TransCurrTaxAmtCurrencyID: Text; var TaxTotalTaxCategoryID: Text; var schemeID: Text; var TaxCategoryPercent: Text; var TaxTotalTaxSchemeID: Text);
+#pragma warning restore AL0432
 
     /// <summary>
     /// Gets tax total information in local currency (LCY) from the sales header.
@@ -103,7 +111,9 @@ interface "PEPPOL Tax Info Provider"
     /// </summary>
     /// <param name="SalesLine">The sales line record to calculate totals from.</param>
     /// <param name="VATAmtLine">Returns the calculated VAT amount line totals.</param>
+#pragma warning disable AL0432
     procedure GetTotals(SalesLine: Record "Sales Line"; var VATAmtLine: Record "VAT Amount Line");
+#pragma warning restore AL0432
 
     /// <summary>
     /// Gets tax categories from the sales line and populates VAT product posting group category information.

@@ -2147,9 +2147,10 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
     end;
 
     var
+#pragma warning disable AL0432
         TempVATAmtLine: Record "VAT Amount Line" temporary;
+#pragma warning restore AL0432
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesInvoiceLine: Record "Sales Invoice Line";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary;
@@ -2178,7 +2179,9 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
         exit(PEPPOL30ExportManagement.FindNextLineRec(Position, CompanyInformation."E-Document Format"));
     end;
 
+#pragma warning disable AL0432
     local procedure FindNextVATAmtRec(var VATAmtLine: Record "VAT Amount Line"; Position: Integer): Boolean
+#pragma warning restore AL0432
     begin
         if Position = 1 then
             exit(VATAmtLine.Find('-'));

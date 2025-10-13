@@ -19,5 +19,7 @@ interface "PEPPOL30 Sales Export"
     /// <param name="DocumentNo">The document number to calculate totals for.</param>
     /// <param name="TempVATAmtLine">Temporary VAT amount line record to store calculated totals.</param>
     /// <param name="TempVATProductPostingGroup">Temporary VAT product posting group record.</param>
+#pragma warning disable AL0432
     procedure GetTotals(DocumentNo: Code[20]; var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary);
+#pragma warning restore AL0432
 }

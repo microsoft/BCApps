@@ -84,7 +84,9 @@ codeunit 37213 "Sales Export PEPPOL30 Mgmt." implements "PEPPOL30 Export Managem
     /// </summary>
     /// <param name="TempVATAmtLine">Temporary VAT amount line record to store calculated totals.</param>
     /// <param name="TempVATProductPostingGroup">Temporary VAT product posting group record.</param>
+#pragma warning disable AL0432
     procedure GetTotals(var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary);
+#pragma warning restore AL0432
     var
         PEPPOLTaxInfoProvider: Interface "PEPPOL Tax Info Provider";
     begin

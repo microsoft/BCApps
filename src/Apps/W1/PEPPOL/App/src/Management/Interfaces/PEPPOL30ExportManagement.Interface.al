@@ -43,11 +43,13 @@ interface "PEPPOL30 Export Management"
     /// <returns>True if a next line record was found and positioned, false if no more lines exist.</returns>
     procedure FindNextLineRec(Position: Integer; EDocumentFormat: Enum "E-Document Format"): Boolean
 
-    /// <summary>
-    /// Calculates and retrieves totals for VAT amounts and VAT product posting groups.
-    /// Populates temporary records with calculated totals required for PEPPOL document generation.
-    /// </summary>
-    /// <param name="TempVATAmtLine">Returns temporary VAT amount line records with calculated VAT totals by tax rate.</param>
-    /// <param name="TempVATProductPostingGroup">Returns temporary VAT product posting group records with tax category information.</param>
-    procedure GetTotals(var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary);
+/// <summary>
+/// Calculates and retrieves totals for VAT amounts and VAT product posting groups.
+/// Populates temporary records with calculated totals required for PEPPOL document generation.
+/// </summary>
+/// <param name="TempVATAmtLine">Returns temporary VAT amount line records with calculated VAT totals by tax rate.</param>
+/// <param name="TempVATProductPostingGroup">Returns temporary VAT product posting group records with tax category information.</param>
+#pragma warning disable AL0432
+procedure GetTotals(var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary);
+#pragma warning restore AL0432
 }
