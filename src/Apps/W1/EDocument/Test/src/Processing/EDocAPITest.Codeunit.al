@@ -1,7 +1,19 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.Test;
+
+using Microsoft.Purchases.Document;
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.API;
+using System.TestLibraries.Utilities;
+
+
 codeunit 139501 "E-Doc. API Test"
 {
     Subtype = Test;
-    // TestType = IntegrationTest;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     [Test]
@@ -47,7 +59,7 @@ codeunit 139501 "E-Doc. API Test"
 
         // [GIVEN] E-Document service
         EDocumentService.Init();
-        EDocumentService.Code := Any.AlphanumericText(20);
+        EDocumentService.Code := CopyStr(Any.AlphanumericText(MaxStrLen(EDocumentService.Code)), 1, MaxStrLen(EDocumentService.Code));
         EDocumentService.Insert(false);
         // [GIVEN] JSON containing e document data
         GetEDocumentCreateRequest(EDocumentService.Code, JSONRequest);
@@ -106,26 +118,26 @@ codeunit 139501 "E-Doc. API Test"
         EDocument.Init();
         EDocument."Entry No" := Any.IntegerInRange(10000, 99999);
         EDocument."Document Record ID" := PurchaseHeader.RecordId();
-        EDocument."Bill-to/Pay-to No." := Any.AlphanumericText(20);
+        EDocument."Bill-to/Pay-to No." := CopyStr(Any.AlphanumericText(MaxStrLen(EDocument."Bill-to/Pay-to No.")), 1, MaxStrLen(EDocument."Bill-to/Pay-to No."));
         EDocument."Document No." := PurchaseHeader."No.";
         EDocument."Document Type" := EDocument."Document Type"::"Sales Order";
         EDocument."Document Date" := Today();
         EDocument."Due Date" := Today();
         EDocument."Amount Excl. VAT" := Any.DecimalInRange(1000, 2);
         EDocument."Amount Incl. VAT" := EDocument."Amount Excl. VAT" * 1.2;
-        EDocument."Order No." := Any.AlphanumericText(20);
+        EDocument."Order No." := CopyStr(Any.AlphanumericText(MaxStrLen(EDocument."Order No.")), 1, MaxStrLen(EDocument."Order No."));
         EDocument."Posting Date" := Today();
         EDocument.Direction := EDocument.Direction::Incoming;
-        EDocument."Incoming E-Document No." := Any.AlphanumericText(20);
+        EDocument."Incoming E-Document No." := CopyStr(Any.AlphanumericText(MaxStrLen(EDocument."Incoming E-Document No.")), 1, MaxStrLen(EDocument."Incoming E-Document No."));
         EDocument.Status := EDocument.Status::Processed;
         EDocument."Source Type" := EDocument."Source Type"::Vendor;
-        EDocument."Receiving Company VAT Reg. No." := Any.AlphanumericText(20);
-        EDocument."Receiving Company GLN" := Any.AlphanumericText(13);
-        EDocument."Receiving Company Name" := Any.AlphanumericText(150);
-        EDocument."Receiving Company Address" := Any.AlphanumericText(200);
-        EDocument."Currency Code" := Any.AlphanumericText(10);
-        EDocument."Workflow Code" := Any.AlphanumericText(20);
-        EDocument."File Name" := Any.AlphanumericText(256);
+        EDocument."Receiving Company VAT Reg. No." := CopyStr(Any.AlphanumericText(MaxStrLen(EDocument."Receiving Company VAT Reg. No.")), 1, MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
+        EDocument."Receiving Company GLN" := CopyStr(Any.AlphanumericText(MaxStrLen(EDocument."Receiving Company GLN")), 1, MaxStrLen(EDocument."Receiving Company GLN"));
+        EDocument."Receiving Company Name" := CopyStr(Any.AlphanumericText(MaxStrLen(EDocument."Receiving Company Name")), 1, MaxStrLen(EDocument."Receiving Company Name"));
+        EDocument."Receiving Company Address" := CopyStr(Any.AlphanumericText(MaxStrLen(EDocument."Receiving Company Address")), 1, MaxStrLen(EDocument."Receiving Company Address"));
+        EDocument."Currency Code" := CopyStr(Any.AlphanumericText(MaxStrLen(EDocument."Currency Code")), 1, MaxStrLen(EDocument."Currency Code"));
+        EDocument."Workflow Code" := CopyStr(Any.AlphanumericText(MaxStrLen(EDocument."Workflow Code")), 1, MaxStrLen(EDocument."Workflow Code"));
+        EDocument."File Name" := CopyStr(Any.AlphanumericText(MaxStrLen(EDocument."File Name")), 1, MaxStrLen(EDocument."File Name"));
         EDocument.Insert(false);
     end;
 
@@ -135,7 +147,7 @@ codeunit 139501 "E-Doc. API Test"
     begin
         PurchaseHeader.Init();
         PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::Order;
-        PurchaseHeader."No." := Any.AlphanumericText(20);
+        PurchaseHeader."No." := CopyStr(Any.AlphanumericText(MaxStrLen(PurchaseHeader."No.")), 1, MaxStrLen(PurchaseHeader."No."));
         PurchaseHeader.Insert(false);
     end;
 
