@@ -47,7 +47,6 @@ codeunit 30407 "Shpfy Shop Review"
         RegisteredStore.Modify(true);
     end;
 
-
     local procedure GetReviewLink(): Text
     begin
         exit('https://aka.ms/bcshopifyvote');
@@ -86,8 +85,8 @@ codeunit 30407 "Shpfy Shop Review"
         ReminderNotification.Message := ReviewReminderMessageTxt;
         ReminderNotification.Scope := NotificationScope::LocalScope;
         ReminderNotification.SetData(GetStoreNameKey(), RegisteredStore.Store);
-        ReminderNotification.AddAction(ReviewReminderReviewActionLbl, Codeunit::"Shpfy Shop Review Mgt.", 'OpenReviewLink');
-        ReminderNotification.AddAction(ReviewReminderAlreadyDidActionLbl, Codeunit::"Shpfy Shop Review Mgt.", 'MarkReviewCompleted');
+        ReminderNotification.AddAction(ReviewReminderReviewActionLbl, Codeunit::"Shpfy Shop Review", 'OpenReviewLink');
+        ReminderNotification.AddAction(ReviewReminderAlreadyDidActionLbl, Codeunit::"Shpfy Shop Review", 'MarkReviewCompleted');
         ReminderNotification.Send();
 
         LogReviewReminderTelemetry();

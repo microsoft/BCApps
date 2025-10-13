@@ -935,9 +935,9 @@ page 30101 "Shpfy Shop Card"
 
                     trigger OnAction()
                     var
-                        ShopReviewMgt: Codeunit "Shpfy Shop Review Mgt.";
+                        ShopReview: Codeunit "Shpfy Shop Review";
                     begin
-                        ShopReviewMgt.OpenReviewLinkFromShop(Rec.GetStoreName());
+                        ShopReview.OpenReviewLinkFromShop(Rec.GetStoreName());
                     end;
                 }
 
@@ -1249,6 +1249,7 @@ page 30101 "Shpfy Shop Card"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         AuthenticationMgt: Codeunit "Shpfy Authentication Mgt.";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ShopReview: Codeunit "Shpfy Shop Review";
         ApiVersionExpiryDateTime: DateTime;
     begin
         FeatureTelemetry.LogUptake('0000HUU', 'Shopify', Enum::"Feature Uptake Status"::Discovered);
@@ -1268,13 +1269,8 @@ page 30101 "Shpfy Shop Card"
                     Rec.Modify();
                 end;
         end;
-    end;
 
-    trigger OnClosePage()
-    var
-        ShopReviewMgt: Codeunit "Shpfy Shop Review Mgt.";
-    begin
-        ShopReviewMgt.MaybeShowReviewReminder(Rec.GetStoreName());
+        ShopReview.MaybeShowReviewReminder(Rec.GetStoreName());
     end;
 
     trigger OnAfterGetCurrRecord()
