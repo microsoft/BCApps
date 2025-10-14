@@ -25,7 +25,7 @@ function Invoke-TestsWithReruns {
         [int]$maxReruns = 2
     )
     $attempt = 0
-    while ($attempt -le $maxReruns) {
+    while ($attempt -lt $maxReruns) {
         $testsSucceeded = $false
         # Run tests and catch any exceptions to prevent the script from terminating
         try {
