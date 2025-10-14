@@ -252,7 +252,7 @@ codeunit 139629 "Library - E-Document"
         EDocumentServiceStatus.Insert();
     end;
 
-    procedure MockPurchaseDraftPrepared(EDocument: Record "E-Document"): Record "E-Document Purchase Header"
+    internal procedure MockPurchaseDraftPrepared(EDocument: Record "E-Document"): Record "E-Document Purchase Header"
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentProcessing: Codeunit "E-Document Processing";
@@ -268,7 +268,7 @@ codeunit 139629 "Library - E-Document"
         exit(EDocumentPurchaseHeader);
     end;
 
-    procedure InsertPurchaseDraftLine(EDocument: Record "E-Document"): Record "E-Document Purchase Line"
+    internal procedure InsertPurchaseDraftLine(EDocument: Record "E-Document"): Record "E-Document Purchase Line"
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
     begin
@@ -1147,7 +1147,7 @@ codeunit 139629 "Library - E-Document"
             until EDocLog.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Export", 'OnAfterCreateEDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Export", OnAfterCreateEDocument, '', false, false)]
     local procedure OnAfterCreateEDocument(var EDocument: Record "E-Document")
     begin
         LibraryVariableStorage.Enqueue(EDocument);

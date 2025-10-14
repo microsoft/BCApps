@@ -21,9 +21,9 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
     TestType = UnitTest;
 
     var
-        Assert: Codeunit Assert;
         Vendor: Record Vendor;
         EDocumentService: Record "E-Document Service";
+        Assert: Codeunit Assert;
         LibraryEDocument: Codeunit "Library - E-Document";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -141,7 +141,6 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine1, PurchaseLine2, PurchaseLine3 : Record "Purchase Line";
         TempPurchaseLine: Record "Purchase Line" temporary;
-        TempPurchaseLineForMatching: Record "Purchase Line" temporary;
         Item: Record Item;
     begin
         Initialize();
@@ -191,7 +190,6 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine1, PurchaseLine2 : Record "Purchase Line";
         TempPurchaseLine: Record "Purchase Line" temporary;
-        TempPurchaseLineForMatching: Record "Purchase Line" temporary;
         Item: Record Item;
     begin
         Initialize();
@@ -592,7 +590,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         UnitOfMeasure: Record "Unit of Measure";
         ItemUnitOfMeasure: Record "Item Unit of Measure";
         Item: Record Item;
-        POMatchWarnings: Record "E-Doc PO Match Warnings" temporary;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warnings" temporary;
     begin
         Initialize();
         // [SCENARIO] Calculating PO match warnings generates missing information warning for item lines without proper setup
@@ -607,7 +605,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         // Create item unit of measure
         LibraryEDocument.GetGenericItem(Item);
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
-        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", LibraryRandom.RandText(10), 1);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", UnitOfMeasure.Code, 1);
 
         // Create first E-Document line with non-existent item, but valid unit of measure
         EDocumentPurchaseLine1 := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
@@ -638,17 +636,17 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         EDocumentPurchaseLine2.Modify();
 
         // [WHEN] CalculatePOMatchWarnings is called
-        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, POMatchWarnings);
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
 
         // [THEN] MissingInformationForMatch warnings should be generated for both lines
-        POMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warnings"::MissingInformationForMatch);
-        Assert.AreEqual(2, POMatchWarnings.Count(), 'Expected 2 MissingInformationForMatch warnings to be generated');
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warnings"::MissingInformationForMatch);
+        Assert.AreEqual(2, TempPOMatchWarnings.Count(), 'Expected 2 MissingInformationForMatch warnings to be generated');
 
-        POMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine1.SystemId);
-        Assert.IsFalse(POMatchWarnings.IsEmpty(), 'Expected MissingInformationForMatch warning for line with non-existent item');
+        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine1.SystemId);
+        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected MissingInformationForMatch warning for line with non-existent item');
 
-        POMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine2.SystemId);
-        Assert.IsFalse(POMatchWarnings.IsEmpty(), 'Expected MissingInformationForMatch warning for line with non-existent unit of measure');
+        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine2.SystemId);
+        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected MissingInformationForMatch warning for line with non-existent unit of measure');
     end;
 
     [Test]
@@ -661,46 +659,48 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         PurchaseLine: Record "Purchase Line";
         Item: Record Item;
         ItemUnitOfMeasure: Record "Item Unit of Measure";
-        POMatchWarnings: Record "E-Doc PO Match Warnings" temporary;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warnings" temporary;
     begin
         Initialize();
         // [SCENARIO] Calculating PO match warnings generates quantity mismatch warning when quantities don't match
         // [GIVEN] An E-Document with lines where calculated quantity differs from original quantity
         LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
 
-        // Create E-Document Purchase Header and Line
-        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
-        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
-        EDocumentPurchaseHeader.Modify();
-        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        // Create a purchase order line with 10 units
+        LibraryEDocument.GetGenericItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
 
         // Create item with UOM that has different qty per unit of measure
-        LibraryEDocument.GetGenericItem(Item);
         ItemUnitOfMeasure.Init();
         ItemUnitOfMeasure."Item No." := Item."No.";
-        ItemUnitOfMeasure.Code := 'BOX';
+        ItemUnitOfMeasure.Code := 'BIGBOX';
         ItemUnitOfMeasure."Qty. per Unit of Measure" := 10;
         ItemUnitOfMeasure.Insert();
 
-        // Set up E-Document line to create quantity mismatch
+        // Create E-Document Purchase Header
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+
+        // Set up E-Document line to create quantity mismatch also with 10 units but different UOM
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
         EDocumentPurchaseLine."[BC] Purchase Line Type" := Enum::"Purchase Line Type"::Item;
         EDocumentPurchaseLine."[BC] Purchase Type No." := Item."No.";
-        EDocumentPurchaseLine."[BC] Unit of Measure" := 'BOX';
-        EDocumentPurchaseLine.Quantity := 5;
+        EDocumentPurchaseLine."[BC] Unit of Measure" := 'BIGBOX';
+        EDocumentPurchaseLine.Quantity := 10;
         EDocumentPurchaseLine.Modify();
 
-        // Create and link purchase order line
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
+
         LinkEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
 
         // [WHEN] CalculatePOMatchWarnings is called
-        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, POMatchWarnings);
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
 
         // [THEN] QuantityMismatch warnings should be generated
-        POMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
-        POMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warnings"::QuantityMismatch);
-        Assert.IsFalse(POMatchWarnings.IsEmpty(), 'Expected QuantityMismatch warning to be generated');
+        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warnings"::QuantityMismatch);
+        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected QuantityMismatch warning to be generated');
     end;
 
     [Test]
@@ -712,7 +712,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         Item: Record Item;
-        POMatchWarnings: Record "E-Doc PO Match Warnings" temporary;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warnings" temporary;
     begin
         Initialize();
         // [SCENARIO] Calculating PO match warnings generates not yet received warning when trying to invoice more than received
@@ -742,12 +742,12 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         LinkEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
 
         // [WHEN] CalculatePOMatchWarnings is called
-        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, POMatchWarnings);
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
 
         // [THEN] NotYetReceived warnings should be generated
-        POMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
-        POMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warnings"::NotYetReceived);
-        Assert.IsFalse(POMatchWarnings.IsEmpty(), 'Expected NotYetReceived warning to be generated');
+        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warnings"::NotYetReceived);
+        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected NotYetReceived warning to be generated');
     end;
 
     [Test]
@@ -2055,7 +2055,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
     local procedure CreateMockReceiptHeader(var PurchaseReceiptHeader: Record "Purch. Rcpt. Header"; VendorNo: Code[20])
     begin
         PurchaseReceiptHeader.Init();
-        PurchaseReceiptHeader."No." := LibraryRandom.RandText(20);
+        PurchaseReceiptHeader."No." := CopyStr(LibraryRandom.RandText(20), 1, 20);
         PurchaseReceiptHeader."Buy-from Vendor No." := VendorNo;
         PurchaseReceiptHeader."Pay-to Vendor No." := VendorNo;
         PurchaseReceiptHeader."Document Date" := WorkDate();
