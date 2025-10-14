@@ -28,5 +28,12 @@ tableextension 30102 "Shpfy Sales Invoice Header" extends "Sales Invoice Header"
             Editable = false;
         }
     }
+
+    keys
+    {
+        key(ShpfyKey; "Shpfy Order Id")
+        {
+        }
+    }
 }
 
