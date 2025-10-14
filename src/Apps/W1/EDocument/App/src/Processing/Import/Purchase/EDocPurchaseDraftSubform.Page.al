@@ -169,7 +169,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     action(MatchToOrderLines)
                     {
                         ApplicationArea = All;
-                        Caption = 'Match to Order Lines';
+                        Caption = 'Match to order lines';
                         Image = LinkWithExisting;
                         ToolTip = 'Match this incoming invoice line to purchase order lines.';
                         Scope = Repeater;
@@ -192,7 +192,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     action(SpecifyReceiptLines)
                     {
                         ApplicationArea = All;
-                        Caption = 'Specify Receipt Lines';
+                        Caption = 'Specify receipt lines';
                         Image = ReceiptLines;
                         ToolTip = 'Specify the corresponding receipt lines to the matched order line.';
                         Scope = Repeater;

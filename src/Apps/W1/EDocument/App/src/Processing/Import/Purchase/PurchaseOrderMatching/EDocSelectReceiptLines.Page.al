@@ -70,11 +70,13 @@ page 6130 "E-Doc. Select Receipt Lines"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the quantity of the receipt line.';
+                    AutoFormatType = 0;
                 }
                 field("Quantity Invoiced"; Rec."Quantity Invoiced")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the quantity that has already been invoiced.';
+                    AutoFormatType = 0;
                 }
             }
         }

@@ -58,16 +58,19 @@ page 6116 "E-Doc. Select PO Lines"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the quantity ordered.';
+                    AutoFormatType = 0;
                 }
                 field("Quantity Received"; Rec."Quantity Received")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the quantity that has already been received.';
+                    AutoFormatType = 0;
                 }
                 field("Quantity Invoiced"; Rec."Quantity Invoiced")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the quantity that has already been invoiced.';
+                    AutoFormatType = 0;
                 }
             }
         }
