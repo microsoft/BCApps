@@ -55,7 +55,7 @@ codeunit 8350 "MCP Config"
     /// <param name="Allow">True to allow create, update and delete tools, false to disallow.</param>
     procedure AllowCreateUpdateDeleteTools(ConfigId: Guid; Allow: Boolean)
     begin
-        MCPConfigImplementation.AllowProdChanges(ConfigId, Allow);
+        MCPConfigImplementation.AllowCreateUpdateDeleteTools(ConfigId, Allow);
     end;
 
     /// <summary>
