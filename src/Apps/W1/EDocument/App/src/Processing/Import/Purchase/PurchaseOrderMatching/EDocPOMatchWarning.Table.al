@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
-table 6115 "E-Doc PO Match Warnings"
+table 6115 "E-Doc PO Match Warning"
 {
     Access = Internal;
+    InherentEntitlements = RIMDX;
+    InherentPermissions = RIMDX;
     TableType = Temporary;
 
     fields
@@ -17,7 +19,7 @@ table 6115 "E-Doc PO Match Warnings"
             Caption = 'E-Doc. Purchase Line SystemId';
             Editable = false;
         }
-        field(2; "Warning Type"; Enum "E-Doc PO Match Warnings")
+        field(2; "Warning Type"; Enum "E-Doc PO Match Warning")
         {
             DataClassification = SystemMetadata;
             Caption = 'Warning Type';

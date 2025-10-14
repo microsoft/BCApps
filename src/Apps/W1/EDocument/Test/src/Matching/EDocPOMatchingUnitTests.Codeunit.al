@@ -590,7 +590,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         UnitOfMeasure: Record "Unit of Measure";
         ItemUnitOfMeasure: Record "Item Unit of Measure";
         Item: Record Item;
-        TempPOMatchWarnings: Record "E-Doc PO Match Warnings" temporary;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
     begin
         Initialize();
         // [SCENARIO] Calculating PO match warnings generates missing information warning for item lines without proper setup
@@ -639,7 +639,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
 
         // [THEN] MissingInformationForMatch warnings should be generated for both lines
-        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warnings"::MissingInformationForMatch);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::MissingInformationForMatch);
         Assert.AreEqual(2, TempPOMatchWarnings.Count(), 'Expected 2 MissingInformationForMatch warnings to be generated');
 
         TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine1.SystemId);
@@ -659,7 +659,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         PurchaseLine: Record "Purchase Line";
         Item: Record Item;
         ItemUnitOfMeasure: Record "Item Unit of Measure";
-        TempPOMatchWarnings: Record "E-Doc PO Match Warnings" temporary;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
     begin
         Initialize();
         // [SCENARIO] Calculating PO match warnings generates quantity mismatch warning when quantities don't match
@@ -699,7 +699,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
 
         // [THEN] QuantityMismatch warnings should be generated
         TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
-        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warnings"::QuantityMismatch);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::QuantityMismatch);
         Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected QuantityMismatch warning to be generated');
     end;
 
@@ -712,7 +712,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         Item: Record Item;
-        TempPOMatchWarnings: Record "E-Doc PO Match Warnings" temporary;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
     begin
         Initialize();
         // [SCENARIO] Calculating PO match warnings generates not yet received warning when trying to invoice more than received
@@ -746,7 +746,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
 
         // [THEN] NotYetReceived warnings should be generated
         TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
-        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warnings"::NotYetReceived);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::NotYetReceived);
         Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected NotYetReceived warning to be generated');
     end;
 

@@ -320,6 +320,11 @@ page 6183 "E-Doc. Purchase Draft Subform"
     end;
 
     trigger OnAfterGetRecord()
+    var
+        MissingInfoLbl:  Label 'Missing information for match';
+        NotYetReceivedLbl: Label 'Not yet received';
+        QuantityMismatchLbl: Label 'Quantity mismatch';
+        NoWarningsLbl: Label 'No warnings';
     begin
         if EDocumentPurchaseLine.Get(Rec."E-Document Entry No.", Rec."Line No.") then;
         AdditionalColumns := Rec.AdditionalColumnsDisplayText();
@@ -333,16 +338,16 @@ page 6183 "E-Doc. Purchase Draft Subform"
         if EDocumentPOMatchWarnings.FindFirst() then begin
             case EDocumentPOMatchWarnings."Warning Type" of
                 Enum::"E-Doc PO Match Warnings"::MissingInformationForMatch:
-                    MatchWarningsCaption := 'Missing information for match';
+                    MatchWarningsCaption := MissingInfoLbl;
                 Enum::"E-Doc PO Match Warnings"::NotYetReceived:
-                    MatchWarningsCaption := 'Not yet received';
+                    MatchWarningsCaption := NotYetReceivedLbl;
                 Enum::"E-Doc PO Match Warnings"::QuantityMismatch:
-                    MatchWarningsCaption := 'Quantity mismatch';
+                    MatchWarningsCaption := QuantityMismatchLbl;
             end;
             MatchWarningsStyleExpr := 'Ambiguous';
         end
         else
-            MatchWarningsCaption := 'No warnings';
+            MatchWarningsCaption := NoWarningsLbl;
     end;
 
     local procedure SetDimensionsVisibility()

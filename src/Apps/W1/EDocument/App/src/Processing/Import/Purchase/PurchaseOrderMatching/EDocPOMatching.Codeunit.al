@@ -169,7 +169,7 @@ codeunit 6196 "E-Doc. PO Matching"
     /// </summary>
     /// <param name="EDocumentPurchaseHeader"></param>
     /// <param name="POMatchWarnings"></param>
-    procedure CalculatePOMatchWarnings(EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var POMatchWarnings: Record "E-Doc PO Match Warnings" temporary)
+    procedure CalculatePOMatchWarnings(EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var POMatchWarnings: Record "E-Doc PO Match Warning" temporary)
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         Item: Record Item;
@@ -199,7 +199,7 @@ codeunit 6196 "E-Doc. PO Matching"
                 ItemUoMFound := ItemUnitOfMeasure.Get(Item."No.", EDocumentPurchaseLine."[BC] Unit of Measure");
                 if not (ItemFound and ItemUoMFound) then begin
                     POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
-                    POMatchWarnings."Warning Type" := "E-Doc PO Match Warnings"::MissingInformationForMatch;
+                    POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::MissingInformationForMatch;
                     POMatchWarnings.Insert();
                     continue;
                 end;
@@ -207,12 +207,12 @@ codeunit 6196 "E-Doc. PO Matching"
             end;
             if EDocLineQuantity <> EDocumentPurchaseLine.Quantity then begin
                 POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
-                POMatchWarnings."Warning Type" := "E-Doc PO Match Warnings"::QuantityMismatch;
+                POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::QuantityMismatch;
                 POMatchWarnings.Insert();
             end;
             if (EDocLineQuantity + PurchaseLinesQuantityInvoiced) > PurchaseLinesQuantityReceived then begin
                 POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
-                POMatchWarnings."Warning Type" := "E-Doc PO Match Warnings"::NotYetReceived;
+                POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::NotYetReceived;
                 POMatchWarnings.Insert();
             end;
         until EDocumentPurchaseLine.Next() = 0;
@@ -457,6 +457,7 @@ codeunit 6196 "E-Doc. PO Matching"
         TempLinkedPurchaseLines: Record "Purchase Line" temporary;
         NullGuid: Guid;
         ReceiptLineNotLinkedErr: Label 'A selected receipt line is not linked to any of the purchase order lines linked to the e-document line.';
+        ReceiptLinesDontCoverErr: Label 'The selected receipt lines do not cover the full quantity of the e-document line.';
         QuantityCovered: Decimal;
     begin
         if not SelectedReceiptLines.FindSet() then
@@ -481,6 +482,6 @@ codeunit 6196 "E-Doc. PO Matching"
             QuantityCovered += SelectedReceiptLines.Quantity;
         until SelectedReceiptLines.Next() = 0;
         if QuantityCovered < EDocumentPurchaseLine.Quantity then
-            Error('The selected receipt lines do not cover the full quantity of the e-document line.');
+            Error(ReceiptLinesDontCoverErr);
     end;
 }

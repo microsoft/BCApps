@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
-enum 6111 "E-Doc PO Match Warnings"
+enum 6111 "E-Doc PO Match Warning"
 {
     Extensible = false;
     value(0; NotYetReceived)
