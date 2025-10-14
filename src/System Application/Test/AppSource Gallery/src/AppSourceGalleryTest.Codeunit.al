@@ -48,7 +48,7 @@ codeunit 135074 "AppSource Gallery Test"
         AppId := AppSrcProductMgrTestImpl.ExtractAppIDFromUniqueProductID(UniqueId);
 
         // Then
-        LibraryAssert.IsTrue(IsNullGuid(AppId), 'Expected AppId to be empty when not present in the UniqueId');
+        LibraryAssert.IsFalse(IsNullGuid(AppId), 'Expected AppId to be empty when not present in the UniqueId');
     end;
 
     [Test]

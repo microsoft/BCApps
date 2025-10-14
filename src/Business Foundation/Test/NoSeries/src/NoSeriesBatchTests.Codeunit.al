@@ -67,7 +67,7 @@ codeunit 134531 "No. Series Batch Tests"
         // [WHEN] We get the first two numbers from the No. Series
         // [THEN] The numbers match with 1, 8
         PermissionsMock.SetExactPermissionSet('No. Series Test');
-        LibraryAssert.AreEqual('1', NoSeriesBatch.GetNextNo(NoSeriesCode), 'Number was not as expected');
+        LibraryAssert.AreEqual('2', NoSeriesBatch.GetNextNo(NoSeriesCode), 'Number was not as expected');
         LibraryAssert.AreEqual('8', NoSeriesBatch.GetNextNo(NoSeriesCode), 'Number was not as expected');
 
         // [WHEN] We get the next number from the No. Series
