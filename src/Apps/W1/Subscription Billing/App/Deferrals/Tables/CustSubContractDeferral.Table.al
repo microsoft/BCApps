@@ -84,7 +84,6 @@ table 8066 "Cust. Sub. Contract Deferral"
         {
             Caption = 'Discount %';
             DecimalPlaces = 0 : 5;
-            AutoFormatType = 0;
         }
         field(16; "Bill-to Customer No."; Code[20])
         {

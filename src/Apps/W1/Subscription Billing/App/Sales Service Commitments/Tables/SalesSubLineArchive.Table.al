@@ -79,7 +79,6 @@ table 8069 "Sales Sub. Line Archive"
             MinValue = 0;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
-            AutoFormatType = 0;
         }
         field(17; "Price"; Decimal)
         {
@@ -96,7 +95,6 @@ table 8069 "Sales Sub. Line Archive"
             MaxValue = 100;
             BlankZero = true;
             DecimalPlaces = 0 : 2;
-            AutoFormatType = 0;
         }
         field(19; "Discount Amount"; Decimal)
         {

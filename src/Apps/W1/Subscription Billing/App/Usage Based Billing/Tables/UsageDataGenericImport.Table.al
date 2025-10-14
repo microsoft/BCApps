@@ -222,8 +222,7 @@ table 8018 "Usage Data Generic Import"
         field(21; Quantity; Decimal)
         {
             Caption = 'Quantity';
-            DecimalPlaces = 0 : 6;
-            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(22; Discount; Decimal)
         {
@@ -280,17 +279,14 @@ table 8018 "Usage Data Generic Import"
         field(53; Decimal1; Decimal)
         {
             Caption = 'Decimal1';
-            AutoFormatType = 0;
         }
         field(54; Decimal2; Decimal)
         {
             Caption = 'Decimal2';
-            AutoFormatType = 0;
         }
         field(55; Decimal3; Decimal)
         {
             Caption = 'Decimal3';
-            AutoFormatType = 0;
         }
         field(1220; "Data Exch. Entry No."; Integer)
         {

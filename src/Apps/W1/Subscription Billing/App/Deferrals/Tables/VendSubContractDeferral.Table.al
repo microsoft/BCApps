@@ -85,7 +85,6 @@ table 8072 "Vend. Sub. Contract Deferral"
         {
             Caption = 'Discount %';
             DecimalPlaces = 0 : 5;
-            AutoFormatType = 0;
         }
         field(16; "Pay-to Vendor No."; Code[20])
         {

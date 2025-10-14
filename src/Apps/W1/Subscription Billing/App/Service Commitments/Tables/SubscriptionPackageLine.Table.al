@@ -100,7 +100,6 @@ table 8056 "Subscription Package Line"
             Caption = 'Calculation Base %';
             MinValue = 0;
             DecimalPlaces = 0 : 5;
-            AutoFormatType = 0;
         }
         field(10; "Billing Base Period"; DateFormula)
         {
@@ -214,7 +213,7 @@ table 8056 "Subscription Package Line"
         {
             Caption = 'Pricing Unit Cost Surcharge %';
             DataClassification = CustomerContent;
-            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
     }
     keys
