@@ -149,7 +149,7 @@ codeunit 6203 "Transact. Storage Export"
         exit(true);
     end;
 
-    local procedure HexToDecimal(HexString: Text[2]) DecimalValue: Integer
+    local procedure HexToDecimal(HexString: Text) DecimalValue: Integer
     var
         CharValue: Integer;
         i: Integer;
