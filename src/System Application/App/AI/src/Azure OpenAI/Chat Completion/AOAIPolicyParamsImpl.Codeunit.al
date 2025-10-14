@@ -66,7 +66,7 @@ codeunit 7788 "AOAI Policy Params Impl"
                 exit("AOAI Policy"::"Conservative");
             'HarmsMedium|XPIAEnabled':
                 exit("AOAI Policy"::"MediumWithXPIA");
-            'HarmsMedium|XPIADisabled':
+            else
                 exit("AOAI Policy"::"Default");
         end;
     end;
