@@ -97,7 +97,6 @@ table 8068 "Sales Subscription Line"
             MinValue = 0;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
-            AutoFormatType = 0;
 
             trigger OnValidate()
             begin
@@ -131,7 +130,6 @@ table 8068 "Sales Subscription Line"
             MaxValue = 100;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
-            AutoFormatType = 0;
 
             trigger OnValidate()
             begin
@@ -377,7 +375,7 @@ table 8068 "Sales Subscription Line"
         {
             Caption = 'Pricing Unit Cost Surcharge %';
             DataClassification = CustomerContent;
-            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
     }
 

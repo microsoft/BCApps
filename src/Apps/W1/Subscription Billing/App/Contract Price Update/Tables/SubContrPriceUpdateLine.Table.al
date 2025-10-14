@@ -110,14 +110,13 @@ table 8004 "Sub. Contr. Price Update Line"
             MinValue = 0;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
-            AutoFormatType = 0;
         }
         field(19; "New Calculation Base %"; Decimal)
         {
             Caption = 'New Calculation Base %';
             Editable = false;
             BlankZero = true;
-            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(20; "Discount %"; Decimal)
         {
@@ -126,7 +125,6 @@ table 8004 "Sub. Contr. Price Update Line"
             MaxValue = 100;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
-            AutoFormatType = 0;
         }
         field(21; "Discount Amount"; Decimal)
         {
@@ -140,7 +138,7 @@ table 8004 "Sub. Contr. Price Update Line"
         {
             Caption = 'Quantity';
             BlankZero = true;
-            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(23; "Next Price Update"; Date)
         {

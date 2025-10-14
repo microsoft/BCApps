@@ -82,7 +82,7 @@ table 8016 "Usage Data Supp. Subscription"
         field(11; Quantity; Decimal)
         {
             Caption = 'Quantity';
-            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(12; "Start Date"; Date)
         {

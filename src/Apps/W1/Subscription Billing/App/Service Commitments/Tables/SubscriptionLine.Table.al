@@ -105,7 +105,6 @@ table 8059 "Subscription Line"
             MinValue = 0;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
-            AutoFormatType = 0;
 
             trigger OnValidate()
             begin
@@ -138,7 +137,6 @@ table 8059 "Subscription Line"
             MaxValue = 100;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
-            AutoFormatType = 0;
 
             trigger OnValidate()
             begin
@@ -365,7 +363,6 @@ table 8059 "Subscription Line"
             DecimalPlaces = 0 : 15;
             Editable = false;
             MinValue = 0;
-            AutoFormatType = 0;
         }
         field(36; "Currency Factor Date"; Date)
         {
@@ -396,7 +393,7 @@ table 8059 "Subscription Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Subscription Header".Quantity where("No." = field("Subscription Header No.")));
-            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(40; "Create Contract Deferrals"; Enum "Create Contract Deferrals")
         {
@@ -538,7 +535,7 @@ table 8059 "Subscription Line"
             Caption = 'Pricing Unit Cost Surcharge %';
             DataClassification = CustomerContent;
             Editable = false;
-            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(8003; "Supplier Reference Entry No."; Integer)
         {

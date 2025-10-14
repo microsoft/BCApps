@@ -55,7 +55,6 @@ table 8054 "Sub. Package Line Template"
             Caption = 'Calculation Base %';
             MinValue = 0;
             DecimalPlaces = 0 : 5;
-            AutoFormatType = 0;
         }
         field(7; "Billing Base Period"; DateFormula)
         {
@@ -119,7 +118,7 @@ table 8054 "Sub. Package Line Template"
         {
             Caption = 'Pricing Unit Cost Surcharge %';
             DataClassification = CustomerContent;
-            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
 
     }

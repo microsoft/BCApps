@@ -91,7 +91,6 @@ table 8009 "Imported Subscription Line"
             MinValue = 0;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
-            AutoFormatType = 0;
         }
         field(17; "Discount %"; Decimal)
         {
@@ -100,7 +99,6 @@ table 8009 "Imported Subscription Line"
             MaxValue = 100;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
-            AutoFormatType = 0;
         }
         field(18; "Discount Amount"; Decimal)
         {
@@ -186,7 +184,6 @@ table 8009 "Imported Subscription Line"
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             MinValue = 0;
-            AutoFormatType = 0;
         }
         field(31; "Currency Factor Date"; Date)
         {
@@ -205,7 +202,7 @@ table 8009 "Imported Subscription Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Subscription Header".Quantity where("No." = field("Subscription Header No.")));
-            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(39; "Next Price Update"; Date)
         {
@@ -264,7 +261,7 @@ table 8009 "Imported Subscription Line"
             Caption = 'Pricing Unit Cost Surcharge %';
             DataClassification = CustomerContent;
             Editable = false;
-            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(8003; "Supplier Reference Entry No."; Integer)
         {
