@@ -10,7 +10,7 @@ using Microsoft.eServices.EDocument.API;
 using System.TestLibraries.Utilities;
 
 
-codeunit 139501 "E-Doc. API Test"
+codeunit 135575 "E-Doc. API Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
