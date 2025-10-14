@@ -194,7 +194,7 @@ codeunit 6196 "E-Doc. PO Matching"
                 PurchaseLinesQuantityInvoiced += TempPurchaseLine."Qty. Invoiced (Base)";
                 PurchaseLinesQuantityReceived += TempPurchaseLine."Qty. Received (Base)";
             until TempPurchaseLine.Next() = 0;
-            if EDocumentPurchaseLine."[BC] Purchase Line Type" = Enum::"Purchase Line Type"::Item then begin// TODO: I know this has to be done for Items, idk for other types.. there's probably already something in BaseApp for this - ask someone from SCM
+            if EDocumentPurchaseLine."[BC] Purchase Line Type" = Enum::"Purchase Line Type"::Item then begin
                 ItemFound := Item.Get(EDocumentPurchaseLine."[BC] Purchase Type No.");
                 ItemUoMFound := ItemUnitOfMeasure.Get(Item."No.", EDocumentPurchaseLine."[BC] Unit of Measure");
                 if not (ItemFound and ItemUoMFound) then begin
