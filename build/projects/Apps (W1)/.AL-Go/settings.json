@@ -16,17 +16,42 @@
   "installOnlyReferencedApps": false,
   "doNotRunPageScriptingTests": true,
   "doNotRunBcptTests": true,
-  "buildModes": [
-    "CH",
-    "CZ",
-    "DK",
-    "ES",
-    "GB",
-    "IN",
-    "NO",
-    "US"
-  ],
+  "buildModes": [ "AT","AU","BE","CA","CH","CZ","DE","DK","ES","FI","FR","GB","IN","IS","IT","MX","NL","NO","NZ","SE","US" ],
   "ConditionalSettings": [
+    {
+      "buildModes": [
+        "AT"
+      ],
+      "settings": {
+        "country": "at"
+      }
+    },
+    {
+      "buildModes": [
+        "AU"
+      ],
+      "settings": {
+        "country": "au",
+        "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
+        "BE"
+      ],
+      "settings": {
+        "country": "be"
+      }
+    },
+    {
+      "buildModes": [
+        "CA"
+      ],
+      "settings": {
+        "country": "ca",
+        "doNotRunTests": true
+      }
+    },
     {
       "buildModes": [
         "CH"
@@ -42,6 +67,14 @@
       "settings": {
         "country": "cz",
         "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
+        "DE"
+      ],
+      "settings": {
+        "country": "de"
       }
     },
     {
@@ -63,11 +96,26 @@
     },
     {
       "buildModes": [
+        "FI"
+      ],
+      "settings": {
+        "country": "fi"
+      }
+    },
+    {
+      "buildModes": [
+        "FR"
+      ],
+      "settings": {
+        "country": "fr"
+      }
+    },
+    {
+      "buildModes": [
         "GB"
       ],
       "settings": {
-        "country": "gb",
-        "doNotRunTests": true
+        "country": "gb"
       }
     },
     {
@@ -80,11 +128,59 @@
     },
     {
       "buildModes": [
+        "IS"
+      ],
+      "settings": {
+        "country": "is"
+      }
+    },
+    {
+      "buildModes": [
+        "IT"
+      ],
+      "settings": {
+        "country": "it",
+        "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
+        "MX"
+      ],
+      "settings": {
+        "country": "mx"
+      }
+    },
+    {
+      "buildModes": [
+        "NL"
+      ],
+      "settings": {
+        "country": "nl"
+      }
+    },
+    {
+      "buildModes": [
         "NO"
       ],
       "settings": {
-        "country": "no",
-        "doNotRunTests": true
+        "country": "no"
+      }
+    },
+    {
+      "buildModes": [
+        "NZ"
+      ],
+      "settings": {
+        "country": "nz"
+      }
+    },
+    {
+      "buildModes": [
+        "SE"
+      ],
+      "settings": {
+        "country": "se"
       }
     },
     {
@@ -92,7 +188,8 @@
         "US"
       ],
       "settings": {
-        "country": "us"
+        "country": "us",
+        "doNotRunTests": true
       }
     },
     {
