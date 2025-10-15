@@ -370,6 +370,7 @@ table 8057 "Subscription Header"
             Caption = 'Quantity';
             InitValue = 1;
             NotBlank = true;
+            AutoFormatType = 0;
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()

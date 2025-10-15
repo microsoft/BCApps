@@ -28,6 +28,7 @@ table 8020 "Sales Service Commitment Buff."
         {
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
         }
         field(5; "Line Amount"; Decimal)
         {
@@ -39,6 +40,7 @@ table 8020 "Sales Service Commitment Buff."
         {
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
         }
         field(7; "VAT Base"; Decimal)
         {

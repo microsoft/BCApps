@@ -74,6 +74,7 @@ table 8073 "Subscription Line Archive"
             MinValue = 0;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
         }
         field(13; "Price"; Decimal)
         {
@@ -90,6 +91,7 @@ table 8073 "Subscription Line Archive"
             MaxValue = 100;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
         }
         field(15; "Discount Amount"; Decimal)
         {
@@ -223,6 +225,7 @@ table 8073 "Subscription Line Archive"
             DecimalPlaces = 0 : 15;
             Editable = false;
             MinValue = 0;
+            AutoFormatType = 0;
         }
         field(38; "Currency Factor Date"; Date)
         {
@@ -250,6 +253,7 @@ table 8073 "Subscription Line Archive"
         field(42; "Quantity (Sub. Header)"; Decimal)
         {
             Caption = 'Quantity (Subscription)';
+            AutoFormatType = 0;
             DecimalPlaces = 0 : 5;
         }
         field(50; "Next Price Update"; Date)

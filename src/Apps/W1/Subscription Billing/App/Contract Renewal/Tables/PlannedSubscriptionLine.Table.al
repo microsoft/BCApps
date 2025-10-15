@@ -95,6 +95,7 @@ table 8002 "Planned Subscription Line"
             MinValue = 0;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
 
             trigger OnValidate()
             begin
@@ -122,6 +123,7 @@ table 8002 "Planned Subscription Line"
             MaxValue = 100;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
         }
         field(13; "Discount Amount"; Decimal)
         {
@@ -297,6 +299,7 @@ table 8002 "Planned Subscription Line"
             DecimalPlaces = 0 : 15;
             Editable = false;
             MinValue = 0;
+            AutoFormatType = 0;
         }
         field(36; "Currency Factor Date"; Date)
         {

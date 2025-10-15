@@ -86,6 +86,7 @@ table 8064 "Billing Line Archive"
         field(39; "Service Object Quantity"; Decimal)
         {
             Caption = 'Quantity';
+            AutoFormatType = 0;
             DecimalPlaces = 0 : 5;
         }
         field(50; "Billing from"; Date)
@@ -132,6 +133,7 @@ table 8064 "Billing Line Archive"
             MaxValue = 100;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
         }
         field(60; "Correction Document Type"; Enum "Rec. Billing Document Type")
         {
