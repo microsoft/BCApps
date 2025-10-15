@@ -341,9 +341,9 @@ table 6101 "E-Document Purchase Line"
         if EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then;
     end;
 
-    procedure GetLinkedVendor(): Record Vendor
+    procedure GetBCVendor(): Record Vendor
     begin
-        exit(GetEDocumentPurchaseHeader().GetLinkedVendor());
+        exit(GetEDocumentPurchaseHeader().GetBCVendor());
     end;
 
 }

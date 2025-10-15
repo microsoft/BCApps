@@ -304,8 +304,8 @@ page 6183 "E-Doc. Purchase Draft Subform"
     trigger OnOpenPage()
     begin
         SetDimensionsVisibility();
-        Rec.FindFirst();
-        if EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then;
+        if Rec.FindFirst() then
+            if EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then;
         UpdatePOMatching();
     end;
 

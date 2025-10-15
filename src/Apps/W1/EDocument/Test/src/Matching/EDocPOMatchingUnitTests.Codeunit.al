@@ -71,8 +71,8 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
     begin
         Initialize();
         ClearPurchaseDocumentsForVendor();
-        // [SCENARIO] Loading available purchase order lines for an E-Document line with liinked vendor but no PO lines returns empty result
-        // [GIVEN] An E-Document line with a liinked vendor but no purchase order lines exist for that vendor
+        // [SCENARIO] Loading available purchase order lines for an E-Document line with assigned BC vendor but no PO lines returns empty result
+        // [GIVEN] An E-Document line with an assigned BC vendor but no purchase order lines exist for that vendor
         LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
 
         // Create E-Document Purchase Header with vendor
@@ -1649,7 +1649,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
     begin
         Initialize();
         // [SCENARIO] Matching PO lines with different vendors to E-Document line raises error
-        // [GIVEN] PO lines from different vendors and an E-Document line liinked to one specific vendor
+        // [GIVEN] PO lines from different vendors and an E-Document line assigned to one specific vendor in BC
         LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
         EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
         EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";

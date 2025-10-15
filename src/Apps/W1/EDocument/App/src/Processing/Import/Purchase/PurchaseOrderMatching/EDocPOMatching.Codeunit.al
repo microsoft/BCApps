@@ -31,11 +31,12 @@ codeunit 6196 "E-Doc. PO Matching"
     begin
         Clear(TempPurchaseLine);
         TempPurchaseLine.DeleteAll();
-        Vendor := EDocumentPurchaseLine.GetLinkedVendor();
+        Vendor := EDocumentPurchaseLine.GetBCVendor();
         if Vendor."No." = '' then
             exit;
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Pay-to Vendor No.", Vendor."No.");
+        PurchaseLine.SetLoadFields("Document No.", "Line No.", Description, Quantity, "Qty. Invoiced (Base)", "Qty. Received (Base)", Type, "No.", "Quantity Received", "Quantity Invoiced");
         if not PurchaseLine.FindSet() then
             exit;
         // We exclude lines that have already been matched
@@ -197,7 +198,9 @@ codeunit 6196 "E-Doc. PO Matching"
                 PurchaseLinesQuantityReceived += TempPurchaseLine."Qty. Received (Base)";
             until TempPurchaseLine.Next() = 0;
             if EDocumentPurchaseLine."[BC] Purchase Line Type" = Enum::"Purchase Line Type"::Item then begin
+                Item.SetLoadFields("No.");
                 ItemFound := Item.Get(EDocumentPurchaseLine."[BC] Purchase Type No.");
+                ItemUnitOfMeasure.SetLoadFields("Item No.", Code, "Qty. per Unit of Measure");
                 ItemUoMFound := ItemUnitOfMeasure.Get(Item."No.", EDocumentPurchaseLine."[BC] Unit of Measure");
                 if not (ItemFound and ItemUoMFound) then begin
                     POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
@@ -403,7 +406,7 @@ codeunit 6196 "E-Doc. PO Matching"
             PurchaseLine.GetBySystemId(SelectedPOLines.SystemId);
             PurchaseLine.TestField("Document Type", PurchaseLine."Document Type"::Order);
             PurchaseLine.TestField("No."); // The line must have been assigned a number for it's purchase type
-            Vendor := EDocumentPurchaseLine.GetLinkedVendor();
+            Vendor := EDocumentPurchaseLine.GetBCVendor();
             if Vendor."No." = '' then
                 Error(NotLinkedToVendorErr);
             if PurchaseLine."Pay-to Vendor No." <> Vendor."No." then // The line must belong to an order for the same vendor as the E-Document line
