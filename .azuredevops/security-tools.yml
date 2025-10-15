@@ -11,37 +11,33 @@ schedules:
     - main
     - releases/*
     
-pool:
-  name: d365bc-agentpool-nonprod-build
-
 resources:
   repositories:
-  - repository: PipelineTemplates
+  - repository: 1ESPipelineTemplates
     type: git
-    name: Infrastructure-PipelineTemplates
-    ref: master
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/heads/main
 
-variables:
-- template: security-tools-full-variables.yml@PipelineTemplates
-- template: ./variables-common.yml
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    pool:
+      name: d365bc-agentpool-nonprod-1ESPT
+    stages:
+    - stage: ComponentGovernanceStage
+      jobs:
+      - job: ComponentGovernanceJob
+        displayName: 'Component Governance'
+        steps:
+        - task: NuGetAuthenticate@1
 
-jobs:
-- job: default_job
-  displayName: Run security tools
-  timeoutInMinutes: 480
-  steps:
-  - checkout: self
-    fetchTags: 'true'
-  - template: security-tools-full.yml@PipelineTemplates
-    parameters:
-      OutputPath: $(OutputPath)
-      SourcePath: $(SourcePath)
-      BuildCommand: Powershell.exe -NonInteractive "cd $(Build.SourcesDirectory); .\build.ps1 -ALGoProject 'System Application' -AutoFill"
-      GdnSuppressFile: $(Build.SourcesDirectory)\.azuredevops\security-tools.gdnsuppress
-      ExcludeSecurityTools:
-      - CodeSignValidation # Not applicable yet (Code is not signed on Github) 
-      IncludeOfficialBuildTools:
-      - ComponentGovernance
-      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-        TSA: true
-        TSAIncludeTools: 'PoliCheck'
+        - powershell: |
+            cd $(Build.SourcesDirectory);
+            .\build.ps1 -ALGoProject 'System Application' -AutoFill    
+          displayName: 'Build System Application'
+
+        - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
+          displayName: 'Component Detection'
+          inputs:
+            sourceScanPath: $(Agent.BuildDirectory)/s/Actions
+            verbosity: 'Verbose'
