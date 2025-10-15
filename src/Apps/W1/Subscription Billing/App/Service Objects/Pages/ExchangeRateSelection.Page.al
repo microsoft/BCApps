@@ -32,6 +32,7 @@ page 8088 "Exchange Rate Selection"
                     ToolTip = 'Specifies the exchange rate that will be used for the conversion.';
                     DecimalPlaces = 0 : 7;
                     Editable = not IsCalledFromServiceObject;
+                    AutoFormatType = 0;
                 }
             }
         }

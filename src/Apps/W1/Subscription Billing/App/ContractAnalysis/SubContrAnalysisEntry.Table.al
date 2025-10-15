@@ -65,6 +65,7 @@ table 8019 "Sub. Contr. Analysis Entry"
             MinValue = 0;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
         }
         field(11; "Price"; Decimal)
         {
@@ -81,6 +82,7 @@ table 8019 "Sub. Contr. Analysis Entry"
             MaxValue = 100;
             BlankZero = true;
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
         }
         field(13; "Discount Amount"; Decimal)
         {
@@ -184,6 +186,7 @@ table 8019 "Sub. Contr. Analysis Entry"
             DecimalPlaces = 0 : 15;
             Editable = false;
             MinValue = 0;
+            AutoFormatType = 0;
         }
         field(36; "Currency Factor Date"; Date)
         {
@@ -207,6 +210,7 @@ table 8019 "Sub. Contr. Analysis Entry"
         {
             Caption = 'Quantity';
             Editable = false;
+            AutoFormatType = 0;
             DecimalPlaces = 0 : 5;
         }
         field(100; "Unit Cost"; Decimal)
