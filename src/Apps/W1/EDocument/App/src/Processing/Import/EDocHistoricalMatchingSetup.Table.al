@@ -5,11 +5,15 @@
 
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
+#pragma warning disable AL0432
 table 6113 "EDoc Historical Matching Setup"
 {
     Access = Internal;
     Extensible = false;
     ReplicateData = false;
+    ObsoleteTag = '27.1';
+    ObsoleteReason = 'Replaced with experiment-based matching.';
+    ObsoleteState = Removed;
 
     fields
     {
@@ -46,3 +50,4 @@ table 6113 "EDoc Historical Matching Setup"
         Rec.Insert();
     end;
 }
+#pragma warning restore AL0432

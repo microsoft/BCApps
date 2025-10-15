@@ -49,7 +49,6 @@ permissionset 6105 "E-Doc. Core - User"
         tabledata "E-Doc. Vendor Assign. History" = IMD,
         tabledata "E-Doc. Purchase Line History" = IMD,
         tabledata "ED Purchase Line Field Setup" = IMD,
-        tabledata "EDoc Historical Matching Setup" = IMD,
         tabledata "E-Doc. Record Link" = IMD,
     #endregion Purchase draft
         tabledata "Gen. Journal Line" = imd;
