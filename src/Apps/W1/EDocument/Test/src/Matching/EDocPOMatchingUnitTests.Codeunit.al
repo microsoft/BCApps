@@ -13,7 +13,6 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.History;
 using Microsoft.Foundation.UOM;
-using Microsoft.Finance.GeneralLedger.Account;
 
 codeunit 133508 "E-Doc. PO Matching Unit Tests"
 {
@@ -29,7 +28,6 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryRandom: Codeunit "Library - Random";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
-        LibraryERM: Codeunit "Library - ERM";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         IsInitialized: Boolean;
 
@@ -1682,7 +1680,6 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         PurchaseLine1, PurchaseLine2 : Record "Purchase Line";
         TempPurchaseLine: Record "Purchase Line" temporary;
         Item: Record Item;
-        GLAccount: Record "G/L Account";
     begin
         Initialize();
         // [SCENARIO] Matching PO lines with different types or numbers to E-Document line raises error
@@ -1697,8 +1694,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
         LibraryEDocument.GetGenericItem(Item);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
-        LibraryERM.CreateGLAccount(GLAccount);
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::"G/L Account", GLAccount."No.", LibraryRandom.RandDec(10, 2));
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::"G/L Account", '', LibraryRandom.RandDec(10, 2));
 
         TempPurchaseLine := PurchaseLine1;
         TempPurchaseLine.Insert();

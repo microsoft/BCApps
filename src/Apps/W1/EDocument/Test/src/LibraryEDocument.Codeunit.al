@@ -235,12 +235,18 @@ codeunit 139629 "Library - E-Document"
 
     procedure CreateInboundEDocument(var EDocument: Record "E-Document"; EDocService: Record "E-Document Service")
     var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentServiceStatus: Record "E-Document Service Status";
         EntryNo: Integer;
     begin
         if EDocument."Entry No" = 0 then begin
+            // We assign the largest entry no from both tables to avoid PK violation, in case some test didn't clean up properly
             if EDocument.FindLast() then;
-            EntryNo := EDocument."Entry No" + 1;
+            if EDocumentPurchaseHeader.FindLast() then;
+            if EDocument."Entry No" > EDocumentPurchaseHeader."E-Document Entry No." then
+                EntryNo := EDocument."Entry No" + 1
+            else
+                EntryNo := EDocumentPurchaseHeader."E-Document Entry No." + 1;
             Clear(EDocument);
         end
         else
