@@ -1221,10 +1221,12 @@ codeunit 139608 "Shpfy Orders API Test"
 
     local procedure PrepareOrdersToImportChannelLiableScenario(ChannelLiableScenario: Option Missing, TrueValue, FalseValue, NullValue; var JOrdersToImport: JsonObject; var ExpectedChannelLiable: Boolean; var ScenarioName: Text)
     var
-        JOrderToken: JsonToken;
+        JOrder: JsonToken;
         JOrders: JsonArray;
         JNode: JsonObject;
         ExpectedHasRecord: Boolean;
+        JTaxLines: JsonArray;
+        JTaxLine: JsonObject;
         JNull: JsonValue;
     begin
         JOrdersToImport.GetObject('data').GetObject('orders').GetArray('edges').Get(0, JOrder);
@@ -1259,7 +1261,7 @@ codeunit 139608 "Shpfy Orders API Test"
                 end;
             ChannelLiableScenario::NullValue:
                 begin
-                    Null.SetValueToNull();
+                    JNull.SetValueToNull();
                     JTaxLine.Add('channelLiable', JNull);
                     JTaxLines.Add(JTaxLine);
                     JOrder.Add('taxLines', JTaxLines);
@@ -1267,7 +1269,7 @@ codeunit 139608 "Shpfy Orders API Test"
                     ScenarioName := Format(ChannelLiableScenario);
                     ExpectedChannelLiable := false;
                 end;    
-        JOrders.Add(JOrderToken);
+        JOrders.Add(JOrder);
         JOrdersToImport.GetObject('data').GetObject('orders').Replace('edges', JOrders);
     end;
 
