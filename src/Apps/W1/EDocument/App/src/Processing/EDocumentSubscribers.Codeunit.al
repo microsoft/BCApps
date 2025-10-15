@@ -46,7 +46,6 @@ codeunit 6103 "E-Document Subscribers"
         EDocumentProcessing: Codeunit "E-Document Processing";
         EDocumentProcessingPhase: Enum "E-Document Processing Phase";
         DeleteDocumentQst: Label 'This document is linked to E-Document %1. Do you want to continue?', Comment = '%1 - E-Document Entry No.';
-        DocumentSendingProfileWithWorkflowErr: Label 'Workflow %1 defined for %2 in Document Sending Profile %3 is not found.', Comment = '%1 - The workflow code, %2 - Enum value set in Electronic Document, %3 - Document Sending Profile Code';
 
 
     #region Draft page user edits 
@@ -573,7 +572,6 @@ codeunit 6103 "E-Document Subscribers"
 
     procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type")
     var
-        WorkFlow: Record Workflow;
         TypeHelper: Codeunit "Type Helper";
         RecordRef: RecordRef;
         PostedSourceDocumentHeader: RecordRef;
@@ -593,12 +591,7 @@ codeunit 6103 "E-Document Subscribers"
         if (DocumentSendingProfile."Electronic Document" <> DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow") then
             exit;
 
-        if not WorkFlow.Get(DocumentSendingProfile."Electronic Service Flow") then
-            Error(DocumentSendingProfileWithWorkflowErr, DocumentSendingProfile."Electronic Service Flow", Format(DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow"), DocumentSendingProfile.Code);
-
-        WorkFlow.TestField(Enabled);
-        if DocumentSendingProfile."Electronic Document" = DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow" then
-            EDocExport.CreateEDocument(PostedSourceDocumentHeader, WorkFlow, DocumentType);
+        EDocExport.CreateEDocument(PostedSourceDocumentHeader, DocumentSendingProfile, DocumentType);
     end;
 
     local procedure PointEDocumentToPostedDocument(OpenRecord: Variant; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")
