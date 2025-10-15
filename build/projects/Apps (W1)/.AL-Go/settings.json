@@ -49,8 +49,7 @@
         "DK"
       ],
       "settings": {
-        "country": "dk",
-        "doNotRunTests": true
+        "country": "dk"
       }
     },
     {
