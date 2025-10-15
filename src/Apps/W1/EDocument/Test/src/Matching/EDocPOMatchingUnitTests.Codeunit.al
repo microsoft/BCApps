@@ -12,7 +12,9 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.History;
+using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
+using Microsoft.Finance.VAT.Setup;
 
 codeunit 133508 "E-Doc. PO Matching Unit Tests"
 {
@@ -24,6 +26,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         EDocumentService: Record "E-Document Service";
         Assert: Codeunit Assert;
         LibraryEDocument: Codeunit "Library - E-Document";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryRandom: Codeunit "Library - Random";
@@ -1678,8 +1681,10 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine1, PurchaseLine2 : Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
         TempPurchaseLine: Record "Purchase Line" temporary;
         Item: Record Item;
+        GLAccountNo: Code[20];
     begin
         Initialize();
         // [SCENARIO] Matching PO lines with different types or numbers to E-Document line raises error
@@ -1694,7 +1699,9 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
         LibraryEDocument.GetGenericItem(Item);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::"G/L Account", '', LibraryRandom.RandDec(10, 2));
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 0);
+        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, Enum::"General Posting Type"::" ");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::"G/L Account", GLAccountNo, LibraryRandom.RandDec(10, 2));
 
         TempPurchaseLine := PurchaseLine1;
         TempPurchaseLine.Insert();
