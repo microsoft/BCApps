@@ -25,6 +25,8 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         TempHistoricalMatchBuffer: Record "EDoc Historical Match Buffer" temporary;
         EDocSimilarDescriptions: Codeunit "E-Doc. Similar Descriptions";
         EDocumentNo: Integer;
+        HistoricalDataLoadFailedErr: Label 'Failed to load historical data for e-document %1. Error: %2', Comment = '%1 = E-Document System Id, %2 = Error message', Locked = true;
+        AIHistoricalDataLoadEventTok: Label 'Historical Data Load', Locked = true;
 
     trigger OnRun()
     var
@@ -81,10 +83,15 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocHistoricalMatchingSetup: Record "EDoc Historical Matching Setup";
         TempPurchInvLine: Record "Purch. Inv. Line" temporary;
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         VendorNo: Code[20];
+        EDocSystemId: Guid;
+        ErrorMessage: Text;
     begin
         if not EDocumentPurchaseLine.FindFirst() then
             exit(false);
+
+        EDocSystemId := EDocumentPurchaseLine.SystemId;
 
         // Get vendor from header
         EDocumentPurchaseHeader.SetRange("E-Document Entry No.", EDocumentPurchaseLine."E-Document Entry No.");
@@ -100,8 +107,13 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         if not EDocumentPurchaseLine.FindSet() then
             exit(false);
 
-        // Load historical data
-        LoadHistoricalDataIntoTempTable(TempPurchInvLine, VendorNo, EDocHistoricalMatchingSetup);
+        // Load historical data with error handling
+        if not LoadHistoricalDataIntoTempTable(TempPurchInvLine, VendorNo, EDocHistoricalMatchingSetup) then begin
+            ErrorMessage := GetLastErrorText();
+            FeatureTelemetry.LogError('0000PUQ', GetFeatureName(), AIHistoricalDataLoadEventTok, StrSubstNo(HistoricalDataLoadFailedErr, EDocSystemId, ErrorMessage), GetLastErrorCallStack());
+            exit(false);
+        end;
+
         if TempPurchInvLine.IsEmpty() then
             exit(false);
 
@@ -112,13 +124,19 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         exit(not TempHistoricalMatchBuffer.IsEmpty());
     end;
 
+    [TryFunction]
     local procedure LoadHistoricalDataIntoTempTable(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20]; EDocHistoricalMatchingSetup: Record "EDoc Historical Matching Setup")
     var
         PurchInvLine: Record "Purch. Inv. Line";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         OneYearAgoDate: Date;
         RecordCount: Integer;
         MaxHistoricalRecords: Integer;
+        StartTime: DateTime;
+        ElapsedTime: Duration;
+        TelemetryDimensions: Dictionary of [Text, Text];
     begin
+        StartTime := CurrentDateTime();
         OneYearAgoDate := CalcDate('<-1Y>', Today);
         MaxHistoricalRecords := 5000; // Limit historical data to prevent performance issues
 
@@ -139,6 +157,14 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
                 RecordCount += 1;
             until (PurchInvLine.Next() = 0) or (RecordCount >= MaxHistoricalRecords);
         end;
+
+        ElapsedTime := CurrentDateTime() - StartTime;
+        TelemetryDimensions.Add('Records loaded', Format(RecordCount));
+        TelemetryDimensions.Add('Duration (ms)', Format(ElapsedTime));
+        TelemetryDimensions.Add('Vendor matching scope', Format(EDocHistoricalMatchingSetup."Vendor Matching Scope"));
+        TelemetryDimensions.Add('Max records limit', Format(MaxHistoricalRecords));
+        TelemetryDimensions.Add('Limit reached', Format(RecordCount >= MaxHistoricalRecords));
+        FeatureTelemetry.LogUsage('0000PUR', GetFeatureName(), AIHistoricalDataLoadEventTok, TelemetryDimensions);
     end;
 
     local procedure CollectPotentialMatches(var EDocumentPurchaseLine: Record "E-Document Purchase Line"; var TempPurchInvLine: Record "Purch. Inv. Line" temporary; EDocHistoricalMatchingSetup: Record "EDoc Historical Matching Setup"; VendorNo: Code[20])
@@ -359,7 +385,7 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         UserMessage.Add('historicalMatches', HistoricalMatchesJson);
         UserMessage.Add('matchingSetup', MatchingSetup);
         UserMessage.WriteTo(UserMessageTxt);
-        
+
         OnUserMessageCreated(UserMessageTxt);
         exit(UserMessageTxt);
     end;
