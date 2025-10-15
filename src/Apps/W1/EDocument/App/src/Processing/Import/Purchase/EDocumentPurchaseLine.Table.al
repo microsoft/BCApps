@@ -10,6 +10,7 @@ using Microsoft.Finance.Deferral;
 using Microsoft.Foundation.UOM;
 using Microsoft.Utilities;
 using Microsoft.Purchases.Document;
+using System.Utilities;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Inventory.Item;
@@ -229,6 +230,13 @@ table 6101 "E-Document Purchase Line"
         }
     }
 
+    trigger OnDelete()
+    var
+        EDocPOMatching: Codeunit "E-Doc. PO Matching";
+    begin
+        EDocPOMatching.RemoveAllMatchesForEDocumentLine(Rec);
+    end;
+
     var
         DimMgt: Codeunit DimensionManagement;
 
@@ -269,11 +277,12 @@ table 6101 "E-Document Purchase Line"
     local procedure POMatchingValidation()
     var
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
-        LineMatchedMsg: Label 'This e-document line is already linked to a purchase order line. Do you want to continue? This will remove the link(s).';
+        ConfirmMgt: Codeunit "Confirm Management";
+        LineMatchedMsg: Label 'This e-document line is already matched to a purchase order line. Do you want to continue? This will remove the match(es).';
     begin
-        if not EDocPOMatching.IsEDocumentLineLinkedToAnyPOLine(Rec) then
+        if not EDocPOMatching.IsEDocumentLineMatchedToAnyPOLine(Rec) then
             exit;
-        if not Confirm(LineMatchedMsg) then
+        if not ConfirmMgt.GetResponse(LineMatchedMsg) then
             Error('');
         EDocPOMatching.RemoveAllMatchesForEDocumentLine(Rec);
     end;

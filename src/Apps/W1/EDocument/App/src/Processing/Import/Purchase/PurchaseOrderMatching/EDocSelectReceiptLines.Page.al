@@ -134,7 +134,7 @@ page 6130 "E-Doc. Select Receipt Lines"
 
     trigger OnAfterGetRecord()
     begin
-        StyleExpr := EDocPOMatching.IsReceiptLineLinkedToEDocumentLine(Rec, EDocumentPurchaseLine) ? 'Strong' : '';
+        StyleExpr := EDocPOMatching.IsReceiptLineMatchedToEDocumentLine(Rec, EDocumentPurchaseLine) ? 'Strong' : '';
     end;
 
     internal procedure SetEDocumentPurchaseLine(EDocumentPurchaseLineLocal: Record "E-Document Purchase Line")

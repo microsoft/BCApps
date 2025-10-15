@@ -123,12 +123,12 @@ page 6116 "E-Doc. Select PO Lines"
 
     trigger OnOpenPage()
     begin
-        EDocPOMatching.LoadAvailablePurchaseOrderLinesForEDocumentLine(EDocumentPurchaseLine, Rec);
+        EDocPOMatching.LoadAvailablePOLinesForEDocumentLine(EDocumentPurchaseLine, Rec);
     end;
 
     trigger OnAfterGetRecord()
     begin
-        StyleExpr := EDocPOMatching.IsPurchaseOrderLineLinkedToEDocumentLine(Rec, EDocumentPurchaseLine) ? 'Strong' : '';
+        StyleExpr := EDocPOMatching.IsPOLineMatchedToEDocumentLine(Rec, EDocumentPurchaseLine) ? 'Strong' : '';
     end;
 
     internal procedure SetEDocumentPurchaseLine(EDocumentPurchaseLineLocal: Record "E-Document Purchase Line")
