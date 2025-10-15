@@ -75,6 +75,12 @@ table 30122 "Shpfy Order Tax Line"
             Editable = false;
             AutoFormatType = 0;
         }
+        field(9; "Channel Liable"; Boolean)
+        {
+            Caption = 'Channel Liable';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
     }
     keys
     {

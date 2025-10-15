@@ -99,6 +99,11 @@ page 30121 "Shpfy Orders to Import"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the order''s status in terms of fulfilled line items. Valid values are: Fulfilled, null, partial, restocked.';
                 }
+                field("Channel Liable Taxes"; Rec."Channel Liable Taxes")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies if any tax line on the order is liable to be collected by the sales channel.';
+                }
                 field(ChannelName; Rec."Channel Name")
                 {
                     ApplicationArea = All;

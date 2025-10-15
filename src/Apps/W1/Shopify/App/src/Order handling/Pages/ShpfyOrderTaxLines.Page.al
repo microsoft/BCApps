@@ -46,6 +46,11 @@ page 30168 "Shpfy Order Tax Lines"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the rate percentage of the tax line.';
                 }
+                field("Channel Liable"; Rec."Channel Liable")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies if the channel that submitted the tax line is liable for remitting.';
+                }
             }
         }
     }

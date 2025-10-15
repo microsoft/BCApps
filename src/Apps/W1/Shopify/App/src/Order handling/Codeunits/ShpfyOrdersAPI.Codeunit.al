@@ -244,6 +244,7 @@ codeunit 30165 "Shpfy Orders API"
                         OrdersToImport.Tags := CopyStr(Tags.ToText(), 2, MaxStrLen(OrdersToImport.Tags));
                     end;
                     OrdersToImport."High Risk" := IsHighRiskOrder(JNode);
+                    OrdersToImport."Channel Liable Taxes" := ContainsChannelLiableTax(JNode);
                     OrderHeader.SetRange("Shopify Order Id", Id);
                     if OrderHeader.IsEmpty then
                         OrdersToImport."Import Action" := OrdersToImport."Import Action"::New
@@ -305,6 +306,18 @@ codeunit 30165 "Shpfy Orders API"
                 RiskLevel := OrderRisks.ConvertToRiskLevel(JsonHelper.GetValueAsText(JRiskAssessment, 'riskLevel'));
                 if RiskLevel = RiskLevel::High then
                     exit(true);
+            end;
+    end;
+
+    local procedure ContainsChannelLiableTax(JOrder: JsonObject): Boolean
+    var
+        JTaxLines: JsonArray;
+        JTaxLine: JsonToken;
+    begin
+        if JsonHelper.GetJsonArray(JOrder, JTaxLines, 'taxLines') and (JTaxLines.Count() > 0) then
+            if JTaxLines.Get(0, JTaxLine) then begin
+                // Shopify keeps channelLiable consistent across tax lines, so checking the first entry is sufficient.
+                exit(JsonHelper.GetValueAsBoolean(JTaxLine, 'channelLiable'));
             end;
     end;
 }

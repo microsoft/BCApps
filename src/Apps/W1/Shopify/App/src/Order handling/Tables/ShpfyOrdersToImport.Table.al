@@ -217,6 +217,12 @@ table 30121 "Shpfy Orders to Import"
             AutoFormatType = 1;
             AutoFormatExpression = "Currency Code";
         }
+        field(30; "Channel Liable Taxes"; Boolean)
+        {
+            Caption = 'Channel Liable Taxes';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
         field(100; "Import Action"; Enum "Shpfy Import Action")
         {
             Caption = 'Import Action';
