@@ -780,6 +780,19 @@ codeunit 8063 "Sales Documents"
         OnAfterSalesLineShouldSkipInvoicing(SalesLine, SkipTemporaryCheck, Result);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Find Record Management", OnAfterGetRecRefAndFieldsNoByType, '', false, false)]
+    local procedure FindSubscriptionOnAfterGetRecRefAndFieldsNoByType(RecRef: RecordRef; Type: Option " ","G/L Account",Item,Resource,"Fixed Asset","Charge (Item)"; var SearchFieldNo: array[4] of Integer)
+    var
+        SubscriptionHeader: Record "Subscription Header";
+    begin
+        if Type <> Enum::"Sales Line Type"::"Service Object".AsInteger() then
+            exit;
+        RecRef.Open(Database::"Subscription Header");
+        SearchFieldNo[1] := SubscriptionHeader.FieldNo("No.");
+        SearchFieldNo[2] := SubscriptionHeader.FieldNo(Description);
+        SearchFieldNo[3] := 0;
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnCheckResetValueForSubscriptionItems(var TempSalesLine: Record "Sales Line"; var ResetValueForSubscriptionItems: Boolean; var IsHandled: Boolean)
     begin
