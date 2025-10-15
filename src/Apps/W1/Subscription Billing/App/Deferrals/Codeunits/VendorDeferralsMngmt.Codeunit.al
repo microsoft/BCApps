@@ -5,6 +5,7 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.History;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -85,10 +86,14 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         InsertContractDeferrals(PurchaseHeader, PurchaseLine, PurchaseHeader."Posting No.");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostPurchLineOnBeforeInsertInvoiceLine, '', false, false)]
-    local procedure InsertVendorDeferralsFromPurchaseInvoiceOnPostPurchLineOnBeforeInsertInvoiceLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforePurchInvLineInsert, '', false, false)]
+    local procedure InsertVendorDeferralsFromPurchaseInvoiceOnBeforePurchInvLineInsert(var PurchInvHeader: Record "Purch. Inv. Header"; var PurchaseLine: Record "Purchase Line")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        Currency: Record Currency;
     begin
-        InsertContractDeferrals(PurchaseHeader, PurchaseLine, PurchaseHeader."Posting No.");
+        PurchaseLine.GetPurchHeader(PurchaseHeader, Currency);
+        InsertContractDeferrals(PurchaseHeader, PurchaseLine, PurchInvHeader."No.");
     end;
 
     local procedure InsertContractDeferrals(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; DocumentNo: Code[20])
