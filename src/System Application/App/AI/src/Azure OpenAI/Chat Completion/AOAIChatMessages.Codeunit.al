@@ -404,6 +404,15 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
+    /// Enforce XPIA Detection for an Input text.
+    /// </summary>
+    [NonDebuggable]
+    procedure EnforceXPIADetection(var Input: Text)
+    begin
+        AOAIChatMessagesImpl.EnforceXPIADetection(Input);
+    end;
+
+    /// <summary>
     /// Prepares the Tools to be sent to the deployment model.
     /// </summary>
     /// <returns>Tools in a JsonArray.</returns>

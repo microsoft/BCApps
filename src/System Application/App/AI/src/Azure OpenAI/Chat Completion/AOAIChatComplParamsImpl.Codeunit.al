@@ -11,6 +11,7 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
     InherentPermissions = X;
 
     var
+        AOAIPolicyParams: Codeunit "AOAI Policy Params";
         Initialized: Boolean;
         Temperature: Decimal;
         MaxTokens: Integer;
@@ -18,6 +19,7 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         MaxHistory: Integer;
         PresencePenalty: Decimal;
         FrequencyPenalty: Decimal;
+
         TemperatureErr: Label 'Temperature must be between 0.0 and 2.0.';
         PresencePenaltyErr: Label 'Presence penalty must be between -2.0 and 2.0.';
         FrequencyPenaltyErr: Label 'Frequency penalty must be between -2.0 and 2.0.';
@@ -69,6 +71,22 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
             InitializeDefaults();
 
         exit(FrequencyPenalty);
+    end;
+
+    procedure GetAOAIPolicyParams(): Codeunit "AOAI Policy Params"
+    begin
+        if not Initialized then
+            InitializeDefaults();
+
+        exit(AOAIPolicyParams);
+    end;
+
+    procedure SetAOAIPolicyParams(NewAOAIPolicyParams: Codeunit "AOAI Policy Params")
+    begin
+        if not Initialized then
+            InitializeDefaults();
+
+        AOAIPolicyParams := NewAOAIPolicyParams;
     end;
 
     procedure SetTemperature(NewTemperature: Decimal)
@@ -138,6 +156,7 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         Payload.Add('temperature', GetTemperature());
         Payload.Add('presence_penalty', GetPresencePenalty());
         Payload.Add('frequency_penalty', GetFrequencyPenalty());
+        Payload.Add('azureOpenAIPolicy', Format(AOAIPolicyParams.GetAOAIPolicy()));
 
         if IsJsonMode() then
             Payload.Add('response_format', GetJsonResponseFormat());
@@ -149,6 +168,8 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
     end;
 
     local procedure InitializeDefaults()
+    var
+        DefaultPolicyParams: Codeunit "AOAI Policy Params";
     begin
         Initialized := true;
 
@@ -158,5 +179,9 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         SetMaxTokens(0);
         SetMaxHistory(10);
         SetJsonMode(false);
+
+        DefaultPolicyParams.SetHarmsSeverity("AOAI Policy Harms Severity"::Low);
+        DefaultPolicyParams.SetXPIADetection(true);
+        SetAOAIPolicyParams(DefaultPolicyParams);
     end;
 }
