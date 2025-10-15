@@ -689,7 +689,6 @@ table 30118 "Shpfy Order Header"
         field(134; "Channel Liable Taxes"; Boolean)
         {
             Caption = 'Channel Liable Taxes';
-            DataClassification = SystemMetadata;
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = exist("Shpfy Order Tax Line" where("Parent Id" = field("Shopify Order Id"), "Channel Liable" = const(true)));

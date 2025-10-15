@@ -1224,13 +1224,15 @@ codeunit 139608 "Shpfy Orders API Test"
         JOrder: JsonToken;
         JOrders: JsonArray;
         JNode: JsonObject;
-        ExpectedHasRecord: Boolean;
         JTaxLines: JsonArray;
         JTaxLine: JsonObject;
         JNull: JsonValue;
     begin
         JOrdersToImport.GetObject('data').GetObject('orders').GetArray('edges').Get(0, JOrder);
-        JOrder.Remove('taxLines');
+        JNode := JOrder.AsObject().GetObject('node');
+
+        if JNode.Contains('taxLines') then
+            JNode.Remove('taxLines');
 
         Clear(JTaxLine);
         Clear(JTaxLines);
@@ -1245,7 +1247,7 @@ codeunit 139608 "Shpfy Orders API Test"
                 begin
                     JTaxLine.Add('channelLiable', true);
                     JTaxLines.Add(JTaxLine);
-                    JOrder.Add('taxLines', JTaxLines);
+                    JNode.Add('taxLines', JTaxLines);
 
                     ScenarioName := Format(ChannelLiableScenario);
                     ExpectedChannelLiable := true;
@@ -1254,7 +1256,7 @@ codeunit 139608 "Shpfy Orders API Test"
                 begin
                     JTaxLine.Add('channelLiable', false);
                     JTaxLines.Add(JTaxLine);
-                    JOrder.Add('taxLines', JTaxLines);
+                    JNode.Add('taxLines', JTaxLines);
 
                     ScenarioName := Format(ChannelLiableScenario);
                     ExpectedChannelLiable := false;
@@ -1264,11 +1266,14 @@ codeunit 139608 "Shpfy Orders API Test"
                     JNull.SetValueToNull();
                     JTaxLine.Add('channelLiable', JNull);
                     JTaxLines.Add(JTaxLine);
-                    JOrder.Add('taxLines', JTaxLines);
+                    JNode.Add('taxLines', JTaxLines);
 
                     ScenarioName := Format(ChannelLiableScenario);
                     ExpectedChannelLiable := false;
-                end;    
+                end;
+        end;
+
+        Clear(JOrders);
         JOrders.Add(JOrder);
         JOrdersToImport.GetObject('data').GetObject('orders').Replace('edges', JOrders);
     end;
