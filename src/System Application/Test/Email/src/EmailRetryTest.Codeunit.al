@@ -37,12 +37,9 @@ codeunit 134703 "Email Retry Test"
     var
         TempAccount: Record "Email Account" temporary;
         EmailOutbox: Record "Email Outbox";
-        EmailRetry: Record "Email Retry";
         Any: Codeunit Any;
         EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
-        EmailOutboxPage: Page "Email Outbox";
-        EmailOutboxTestPage: TestPage "Email Outbox";
     begin
         //[SCENARIO] When an email is in status processing and rescheduled, the status of email should be changed to queued 
         PermissionsMock.Set('Email Edit');
