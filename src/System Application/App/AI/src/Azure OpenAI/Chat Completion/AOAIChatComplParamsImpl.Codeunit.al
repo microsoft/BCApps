@@ -156,7 +156,7 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         Payload.Add('temperature', GetTemperature());
         Payload.Add('presence_penalty', GetPresencePenalty());
         Payload.Add('frequency_penalty', GetFrequencyPenalty());
-        Payload.Add('aoai_policy', Format(AOAIPolicyParams.GetAOAIPolicy()));
+        Payload.Add('azureOpenAIPolicy', Format(AOAIPolicyParams.GetAOAIPolicy()));
 
         if IsJsonMode() then
             Payload.Add('response_format', GetJsonResponseFormat());

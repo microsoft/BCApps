@@ -5,7 +5,7 @@ enum 7788 "AOAI Policy Harms Severity"
     Extensible = false;
 
     /// <summary>
-    /// Applies the strictest policy controls.
+    /// [Recommended] Applies the strictest policy controls.
     /// </summary>
     value(1; Low)
     {
