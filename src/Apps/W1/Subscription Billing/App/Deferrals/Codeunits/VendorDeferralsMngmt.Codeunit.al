@@ -5,7 +5,6 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.History;
-using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Posting;
