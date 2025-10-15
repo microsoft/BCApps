@@ -163,6 +163,7 @@ codeunit 8888 "Email Dispatcher"
 
         EmailOutbox."Task Scheduler Id" := TaskId;
         EmailOutbox."Date Sending" := CurrentDateTime() + Delay;
+        EmailOutbox.Status := EmailOutbox.Status::Queued;
         EmailOutbox.Modify();
 
         Dimensions.Add('TaskId', Format(TaskId));
