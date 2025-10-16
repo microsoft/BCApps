@@ -222,8 +222,8 @@ table 8018 "Usage Data Generic Import"
         field(21; Quantity; Decimal)
         {
             Caption = 'Quantity';
-            DecimalPlaces = 0 : 6;
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(22; Discount; Decimal)
         {
