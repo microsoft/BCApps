@@ -304,8 +304,9 @@ page 6183 "E-Doc. Purchase Draft Subform"
     trigger OnOpenPage()
     begin
         SetDimensionsVisibility();
-        if Rec.FindFirst() then
-            if EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then;
+        // EDocumentPurchaseHeader of the lines shown in the subform is determined as the first line's header.
+        if Rec.FindFirst() then;
+        if EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then;
         UpdatePOMatching();
     end;
 
@@ -325,6 +326,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         NotYetReceivedLbl: Label 'Not yet received';
         QuantityMismatchLbl: Label 'Quantity mismatch';
         NoWarningsLbl: Label 'No warnings';
+        NotMatchedLbl: Label 'Not matched';
     begin
         if EDocumentPurchaseLine.Get(Rec."E-Document Entry No.", Rec."Line No.") then;
         AdditionalColumns := Rec.AdditionalColumnsDisplayText();
@@ -332,7 +334,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         UpdateCalculatedAmounts(false);
         IsLineMatchedToOrderLine := EDocPOMatching.IsEDocumentLineMatchedToAnyPOLine(EDocumentPurchaseLine);
         IsLineMatchedToReceiptLine := EDocPOMatching.IsEDocumentLineMatchedToAnyReceiptLine(EDocumentPurchaseLine);
-        OrderMatchedCaption := IsLineMatchedToOrderLine ? GetSummaryOfMatchedOrders() : 'Not matched';
+        OrderMatchedCaption := IsLineMatchedToOrderLine ? GetSummaryOfMatchedOrders() : NotMatchedLbl;
         MatchWarningsStyleExpr := 'None';
         EDocumentPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", Rec.SystemId);
         if EDocumentPOMatchWarnings.FindFirst() then begin
