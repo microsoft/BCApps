@@ -7,6 +7,7 @@ namespace System.MCP;
 
 page 8355 "MCP Copy Config"
 {
+    Caption = 'Copy Model Context Protocol (MCP) Server Configuration';
     PageType = StandardDialog;
     InherentEntitlements = X;
     InherentPermissions = X;
