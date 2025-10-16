@@ -4,5 +4,29 @@
         "codeunitId": 139687,
         "CodeunitName": "Recurring Billing Docs Test",
         "Method": "GetVendorContractLinesProducesCorrectAmountsDuringSelection"
+    },
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139687,
+        "CodeunitName": "Recurring Billing Docs Test",
+        "Method": "CheckMultipleContractsPurchaseInvoiceHeaderPostingDescription"
+    },
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139687,
+        "CodeunitName": "Recurring Billing Docs Test",
+        "Method": "CheckMultipleContractsSalesInvoiceHeaderPostingDescription"
+    },
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139687,
+        "CodeunitName": "Recurring Billing Docs Test",
+        "Method": "CheckPurchInvoiceHeaderPostingDescription"
+    },
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139687,
+        "CodeunitName": "Recurring Billing Docs Test",
+        "Method": "CheckSingleContractSalesInvoiceHeaderPostingDescription"
     }
 ]

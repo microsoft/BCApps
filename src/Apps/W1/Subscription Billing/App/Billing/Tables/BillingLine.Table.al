@@ -89,6 +89,7 @@ table 8061 "Billing Line"
         {
             Caption = 'Quantity';
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(50; "Billing from"; Date)
         {
@@ -170,6 +171,11 @@ table 8061 "Billing Line"
             if (Partner = const(Vendor), "Document Type" = const(Invoice)) "Purchase Line"."Line No." where("Document Type" = const(Invoice), "Document No." = field("Document No."))
             else
             if (Partner = const(Vendor), "Document Type" = const("Credit Memo")) "Purchase Line"."Line No." where("Document Type" = const("Credit Memo"), "Document No." = field("Document No."));
+        }
+        field(63; "Billing Reference Date Changed"; Boolean)
+        {
+            Caption = 'Billing Reference Date Changed';
+            ToolTip = 'Specifies whether the billing period has been adjusted manually. This is taken into account by the period calculation and may have an effect on the creation of future billing proposals.';
         }
         field(100; "Billing Template Code"; Code[20])
         {

@@ -227,10 +227,12 @@ report 30118 "Shpfy Suggest Payments"
             OrderTransaction.Type::Capture, OrderTransaction.Type::Sale:
                 begin
                     SalesInvoiceHeader.SetLoadFields("No.", "Shpfy Order Id", Closed);
+                    SalesInvoiceHeader.SetAutoCalcFields(Closed);
                     SalesInvoiceHeader.SetRange("Shpfy Order Id", OrderTransaction."Shopify Order Id");
-                    SalesInvoiceHeader.SetRange(Closed, false);
                     if SalesInvoiceHeader.FindSet() then
                         repeat
+                            if SalesInvoiceHeader.Closed then
+                                continue;
                             ApplyCustomerLedgerEntries(SalesInvoiceHeader."No.", "Gen. Journal Document Type"::Invoice, AmountToApply, Applied);
                         until SalesInvoiceHeader.Next() = 0
                     else begin
@@ -255,11 +257,13 @@ report 30118 "Shpfy Suggest Payments"
                     RefundHeader.SetRange("Order Id", OrderTransaction."Shopify Order Id");
                     if RefundHeader.FindSet() then begin
                         repeat
-                            SalesCreditMemoHeader.SetLoadFields("Shpfy Refund Id", "No.");
+                            SalesCreditMemoHeader.SetLoadFields("Shpfy Refund Id", "No.", Paid);
+                            SalesCreditMemoHeader.SetAutoCalcFields(Paid);
                             SalesCreditMemoHeader.SetRange("Shpfy Refund Id", RefundHeader."Refund Id");
-                            SalesCreditMemoHeader.SetRange(Paid, false);
                             if SalesCreditMemoHeader.FindSet() then
                                 repeat
+                                    if SalesCreditMemoHeader.Paid then
+                                        continue;
                                     ApplyCustomerLedgerEntries(SalesCreditMemoHeader."No.", "Gen. Journal Document Type"::"Credit Memo", AmountToApply, Applied);
                                 until SalesCreditMemoHeader.Next() = 0;
                         until RefundHeader.Next() = 0;
@@ -275,6 +279,7 @@ report 30118 "Shpfy Suggest Payments"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
     begin
+        CustLedgerEntry.SetLoadFields("Entry No.", "Customer No.", "Document No.", "Remaining Amount", "Currency Code", "Dimension Set ID");
         CustLedgerEntry.SetAutoCalcFields("Remaining Amount");
         CustLedgerEntry.SetRange("Open", true);
         CustLedgerEntry.SetRange("Applies-to ID", '');

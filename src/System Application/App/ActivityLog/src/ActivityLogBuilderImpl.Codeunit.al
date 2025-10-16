@@ -42,7 +42,7 @@ codeunit 3112 "Activity Log Builder Impl."
     var
         TextURL: Text;
     begin
-        TextURL := System.GetUrl(CurrentClientType(), CompanyName(), ObjectType::Page, PageId, Rec, true);
+        TextURL := System.GetUrl(CurrentClientType(), CompanyName(), ObjectType::Page, PageId, Rec, false);
         LogEntry.AddFieldAttribute(this.GlobalFieldNo, AttributeType::ReferenceSource, TextURL);
         exit(this);
     end;
