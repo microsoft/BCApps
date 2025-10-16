@@ -314,10 +314,16 @@ codeunit 30165 "Shpfy Orders API"
         JTaxLines: JsonArray;
         JTaxLine: JsonToken;
     begin
-        if JsonHelper.GetJsonArray(JOrder, JTaxLines, 'taxLines') and (JTaxLines.Count() > 0) then
-            if JTaxLines.Get(0, JTaxLine) then begin
-                // Shopify keeps channelLiable consistent across tax lines, so checking the first entry is sufficient.
-                exit(JsonHelper.GetValueAsBoolean(JTaxLine, 'channelLiable'));
-            end;
+        if not JsonHelper.GetJsonArray(JOrder, JTaxLines, 'taxLines') then
+            exit(false);
+
+        if JTaxLines.Count() = 0 then
+            exit(false);
+
+        if not JTaxLines.Get(0, JTaxLine) then
+            exit(false);
+
+        // Shopify keeps channelLiable consistent across tax lines, so checking the first entry is sufficient.
+        exit(JsonHelper.GetValueAsBoolean(JTaxLine, 'channelLiable'));
     end;
 }
