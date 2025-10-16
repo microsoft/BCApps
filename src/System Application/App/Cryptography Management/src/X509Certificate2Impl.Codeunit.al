@@ -140,7 +140,6 @@ codeunit 1285 "X509Certificate2 Impl."
     procedure GetCertificatePublicKeyAsBase64String(CertBase64Value: Text; Password: SecretText): Text
     var
         X509Certificate2: DotNet X509Certificate2;
-        AsymmetricAlgorithm: DotNet AsymmetricAlgorithm;
         Convert: DotNet Convert;
     begin
         InitializeX509Certificate(CertBase64Value, Password, X509Certificate2);
