@@ -37,26 +37,22 @@ codeunit 6196 "E-Doc. PO Matching"
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Pay-to Vendor No.", Vendor."No.");
         PurchaseLine.SetLoadFields("Document No.", "Line No.", Description, Quantity, "Qty. Invoiced (Base)", "Qty. Received (Base)", Type, "No.", "Quantity Received", "Quantity Invoiced");
-        if not PurchaseLine.FindSet() then
-            exit;
-        // We exclude lines that have already been matched
-        repeat
-            IncludePOLine := false;
-            EDocPurchaseLinePOMatch.SetRange("Purchase Line SystemId", PurchaseLine.SystemId);
-            // Unless the line is matched to the current E-Document line
-            if EDocPurchaseLinePOMatch.FindSet() then
-                repeat
-                    if EDocPurchaseLinePOMatch."E-Doc. Purchase Line SystemId" = EDocumentPurchaseLine.SystemId then
-                        IncludePOLine := true;
-                until (EDocPurchaseLinePOMatch.Next() = 0) or IncludePOLine
-            else
-                IncludePOLine := true;
-            if IncludePOLine then begin
-                Clear(TempPurchaseLine);
-                TempPurchaseLine := PurchaseLine;
-                TempPurchaseLine.Insert();
-            end;
-        until PurchaseLine.Next() = 0;
+        if PurchaseLine.FindSet() then
+            repeat
+                // We exclude lines that have already been matched unless they were matched to the current line
+                EDocPurchaseLinePOMatch.SetRange("Purchase Line SystemId", PurchaseLine.SystemId);
+                EDocPurchaseLinePOMatch.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+                IncludePOLine := not EDocPurchaseLinePOMatch.IsEmpty();
+                if not IncludePOLine then begin
+                    EDocPurchaseLinePOMatch.SetRange("E-Doc. Purchase Line SystemId");
+                    IncludePOLine := EDocPurchaseLinePOMatch.IsEmpty();
+                end;
+                if IncludePOLine then begin
+                    Clear(TempPurchaseLine);
+                    TempPurchaseLine := PurchaseLine;
+                    TempPurchaseLine.Insert();
+                end;
+            until PurchaseLine.Next() = 0;
     end;
 
     /// <summary>
