@@ -433,17 +433,18 @@ page 6183 "E-Doc. Purchase Draft Subform"
         MatchedToMultipleOrdersLbl: Label 'Matched to orders %1, %2, ...', Comment = '%1 - First Document No., %2 - Second Document No.';
     begin
         EDocPOMatching.LoadPOLinesMatchedToEDocumentLine(EDocumentPurchaseLine, TempLinkedPurchaseLines);
+        if not TempLinkedPurchaseLines.FindFirst() then
+            exit('');
+
         if TempLinkedPurchaseLines.Count() = 1 then
             exit(StrSubstNo(MatchedToSingleOrderLbl, TempLinkedPurchaseLines."Document No.", TempLinkedPurchaseLines.Description));
-        MatchedPO := '';
-        if TempLinkedPurchaseLines.FindSet() then
-            repeat
-                if MatchedPO = '' then
-                    MatchedPO := TempLinkedPurchaseLines."Document No."
-                else
-                    if MatchedPO <> TempLinkedPurchaseLines."Document No." then
-                        exit(StrSubstNo(MatchedToMultipleOrdersLbl, MatchedPO, TempLinkedPurchaseLines."Document No."));
-            until TempLinkedPurchaseLines.Next() = 0;
+
+        MatchedPO := TempLinkedPurchaseLines."Document No.";
+        TempLinkedPurchaseLines.SetFilter("Document No.", '<>%1', MatchedPO);
+
+        if TempLinkedPurchaseLines.FindFirst() then
+            exit(StrSubstNo(MatchedToMultipleOrdersLbl, MatchedPO, TempLinkedPurchaseLines."Document No."));
+
         exit(StrSubstNo(MatchedToSingleOrderMultipleLinesLbl, MatchedPO));
     end;
 
