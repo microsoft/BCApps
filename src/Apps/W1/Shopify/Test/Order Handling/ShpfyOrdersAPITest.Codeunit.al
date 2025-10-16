@@ -25,6 +25,10 @@ codeunit 139608 "Shpfy Orders API Test"
         LibraryRandom: Codeunit "Library - Random";
         OrdersAPISubscriber: Codeunit "Shpfy Orders API Subscriber";
         Any: Codeunit Any;
+        OrdersToImportChannelLiableMismatchTxt: Label 'Orders to import Channel Liable Taxes mismatch when %1.', Locked = true;
+        OrderLevelTaxLineExpectedTxt: Label 'An order-level tax line should exist when %1.', Locked = true;
+        ChannelLiableFlagMismatchTxt: Label 'Channel Liable flag mismatch when %1.', Locked = true;
+        OrderHeaderChannelLiableMismatchTxt: Label 'Order header Channel Liable Taxes mismatch when %1.', Locked = true;
 
     [Test]
     procedure UnitTestExtractShopifyOrdersToImport()
@@ -873,7 +877,7 @@ codeunit 139608 "Shpfy Orders API Test"
         // [THEN] Channel Liable flag on the staging record defaults to false.
         OrdersToImport.Reset();
         LibraryAssert.IsTrue(OrdersToImport.FindLast(), 'Orders to import record is created');
-        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo('Orders to import Channel Liable Taxes mismatch when %1.', ScenarioName));
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo(OrdersToImportChannelLiableMismatchTxt, ScenarioName));
     end;
 
     [Test]
@@ -906,7 +910,7 @@ codeunit 139608 "Shpfy Orders API Test"
         // [THEN] Channel Liable flag on the staging record is true.
         OrdersToImport.Reset();
         LibraryAssert.IsTrue(OrdersToImport.FindLast(), 'Orders to import record is created');
-        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo('Orders to import Channel Liable Taxes mismatch when %1.', ScenarioName));
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo(OrdersToImportChannelLiableMismatchTxt, ScenarioName));
     end;
 
     [Test]
@@ -939,7 +943,7 @@ codeunit 139608 "Shpfy Orders API Test"
         // [THEN] Channel Liable flag on the staging record is false.
         OrdersToImport.Reset();
         LibraryAssert.IsTrue(OrdersToImport.FindLast(), 'Orders to import record is created');
-        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo('Orders to import Channel Liable Taxes mismatch when %1.', ScenarioName));
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo(OrdersToImportChannelLiableMismatchTxt, ScenarioName));
     end;
 
     [Test]
@@ -972,7 +976,7 @@ codeunit 139608 "Shpfy Orders API Test"
         // [THEN] Channel Liable flag on the staging record defaults to false.
         OrdersToImport.Reset();
         LibraryAssert.IsTrue(OrdersToImport.FindLast(), 'Orders to import record is created');
-        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo('Orders to import Channel Liable Taxes mismatch when %1.', ScenarioName));
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo(OrdersToImportChannelLiableMismatchTxt, ScenarioName));
     end;
 
     [Test]
@@ -1015,14 +1019,14 @@ codeunit 139608 "Shpfy Orders API Test"
 
         OrderTaxLineFound := OrderTaxLine.FindFirst();
         if ExpectedHasRecord then begin
-            LibraryAssert.IsTrue(OrderTaxLineFound, StrSubstNo('An order-level tax line should exist when %1.', ScenarioName));
+            LibraryAssert.IsTrue(OrderTaxLineFound, StrSubstNo(OrderLevelTaxLineExpectedTxt, ScenarioName));
             if OrderTaxLineFound then
-                LibraryAssert.AreEqual(ExpectedChannelLiable, OrderTaxLine."Channel Liable", StrSubstNo('Channel Liable flag mismatch when %1.', ScenarioName));
+                LibraryAssert.AreEqual(ExpectedChannelLiable, OrderTaxLine."Channel Liable", StrSubstNo(ChannelLiableFlagMismatchTxt, ScenarioName));
         end else
             LibraryAssert.IsFalse(OrderTaxLineFound, 'Order-level tax lines should not be created when taxLines array is missing.');
 
         OrderHeader.CalcFields("Channel Liable Taxes");
-        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo('Order header Channel Liable Taxes mismatch when %1.', ScenarioName));
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo(OrderHeaderChannelLiableMismatchTxt, ScenarioName));
     end;
 
     [Test]
@@ -1064,14 +1068,14 @@ codeunit 139608 "Shpfy Orders API Test"
 
         OrderTaxLineFound := OrderTaxLine.FindFirst();
         if ExpectedHasRecord then begin
-            LibraryAssert.IsTrue(OrderTaxLineFound, StrSubstNo('An order-level tax line should exist when %1.', ScenarioName));
+            LibraryAssert.IsTrue(OrderTaxLineFound, StrSubstNo(OrderLevelTaxLineExpectedTxt, ScenarioName));
             if OrderTaxLineFound then
-                LibraryAssert.AreEqual(ExpectedChannelLiable, OrderTaxLine."Channel Liable", StrSubstNo('Channel Liable flag mismatch when %1.', ScenarioName));
+                LibraryAssert.AreEqual(ExpectedChannelLiable, OrderTaxLine."Channel Liable", StrSubstNo(ChannelLiableFlagMismatchTxt, ScenarioName));
         end else
             LibraryAssert.IsFalse(OrderTaxLineFound, 'Order-level tax lines should not be created when taxLines array is missing.');
 
         OrderHeader.CalcFields("Channel Liable Taxes");
-        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo('Order header Channel Liable Taxes mismatch when %1.', ScenarioName));
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo(OrderHeaderChannelLiableMismatchTxt, ScenarioName));
     end;
 
     [Test]
@@ -1113,14 +1117,14 @@ codeunit 139608 "Shpfy Orders API Test"
 
         OrderTaxLineFound := OrderTaxLine.FindFirst();
         if ExpectedHasRecord then begin
-            LibraryAssert.IsTrue(OrderTaxLineFound, StrSubstNo('An order-level tax line should exist when %1.', ScenarioName));
+            LibraryAssert.IsTrue(OrderTaxLineFound, StrSubstNo(OrderLevelTaxLineExpectedTxt, ScenarioName));
             if OrderTaxLineFound then
-                LibraryAssert.AreEqual(ExpectedChannelLiable, OrderTaxLine."Channel Liable", StrSubstNo('Channel Liable flag mismatch when %1.', ScenarioName));
+                LibraryAssert.AreEqual(ExpectedChannelLiable, OrderTaxLine."Channel Liable", StrSubstNo(ChannelLiableFlagMismatchTxt, ScenarioName));
         end else
             LibraryAssert.IsFalse(OrderTaxLineFound, 'Order-level tax lines should not be created when taxLines array is missing.');
 
         OrderHeader.CalcFields("Channel Liable Taxes");
-        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo('Order header Channel Liable Taxes mismatch when %1.', ScenarioName));
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo(OrderHeaderChannelLiableMismatchTxt, ScenarioName));
     end;
 
     [Test]
@@ -1162,14 +1166,14 @@ codeunit 139608 "Shpfy Orders API Test"
 
         OrderTaxLineFound := OrderTaxLine.FindFirst();
         if ExpectedHasRecord then begin
-            LibraryAssert.IsTrue(OrderTaxLineFound, StrSubstNo('An order-level tax line should exist when %1.', ScenarioName));
+            LibraryAssert.IsTrue(OrderTaxLineFound, StrSubstNo(OrderLevelTaxLineExpectedTxt, ScenarioName));
             if OrderTaxLineFound then
-                LibraryAssert.AreEqual(ExpectedChannelLiable, OrderTaxLine."Channel Liable", StrSubstNo('Channel Liable flag mismatch when %1.', ScenarioName));
+                LibraryAssert.AreEqual(ExpectedChannelLiable, OrderTaxLine."Channel Liable", StrSubstNo(ChannelLiableFlagMismatchTxt, ScenarioName));
         end else
             LibraryAssert.IsFalse(OrderTaxLineFound, 'Order-level tax lines should not be created when taxLines array is missing.');
 
         OrderHeader.CalcFields("Channel Liable Taxes");
-        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo('Order header Channel Liable Taxes mismatch when %1.', ScenarioName));
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo(OrderHeaderChannelLiableMismatchTxt, ScenarioName));
     end;
 
     local procedure CreateTaxArea(var TaxArea: Record "Tax Area"; var ShopifyTaxArea: Record "Shpfy Tax Area"; Shop: Record "Shpfy Shop")
