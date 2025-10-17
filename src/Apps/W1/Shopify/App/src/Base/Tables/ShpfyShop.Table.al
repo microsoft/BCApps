@@ -805,15 +805,20 @@ table 30102 "Shpfy Shop"
             ToolTip = 'Specifies if fully fulfilled Shopify orders should be created as sales invoices.';
             InitValue = true;
         }
-#if not CLEANSCHEMA28
+#if not CLEANSCHEMA31
         field(206; "Fulfillment Service Updated"; Boolean)
         {
             Caption = 'Fulfillment Service Updated';
             DataClassification = SystemMetadata;
             Description = 'Indicates whether the Shopify Fulfillment Service has been updated to the latest version.';
             ObsoleteReason = 'This field is no longer used.';
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#else
             ObsoleteState = Pending;
             ObsoleteTag = '28.0';
+#endif
         }
 #endif
     }
