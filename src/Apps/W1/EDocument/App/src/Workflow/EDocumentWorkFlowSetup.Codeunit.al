@@ -37,6 +37,19 @@ codeunit 6139 "E-Document Workflow Setup"
         Workflow.Modify();
     end;
 
+    internal procedure InsertInitForSingleServiceTemplate()
+    var
+        Workflow: Record Workflow;
+        WorkflowSetup: Codeunit "Workflow Setup";
+    begin
+        WorkflowSetup.InsertWorkflowTemplate(Workflow, EDocInitForSingleServiceTemplateWfCodeTxt, EDocInitForSingleServiceTemplateWfDescriptionTxt, EDocCategoryTxt);
+        Workflow.Validate(Template, false);
+        Workflow.Modify();
+        InsertEDocExportWorkflowDetails(Workflow);
+        Workflow.Validate(Template, true);
+        Workflow.Modify();
+    end;
+
     #region Workflow Events
     procedure EDocCreated(): code[128];
     begin
@@ -75,6 +88,11 @@ codeunit 6139 "E-Document Workflow Setup"
         exit('Response-EDOC-EXPORT');
     end;
 
+    internal procedure ResponseEDocInit(): Code[128];
+    begin
+        exit('Response-EDOC-INIT');
+    end;
+
     internal procedure ResponseSendEDocByEmail(): code[128];
     begin
         exit('Response-SEND-EDOC-BY-EMAIL');
@@ -109,12 +127,14 @@ codeunit 6139 "E-Document Workflow Setup"
         SendEdocUsingSetupLbl: Label 'Send E-Document using service: %1', Comment = '%1 - E-Document Service';
         ImportEdocUsingSetupLbl: Label 'Import E-Document using setup: %1', Comment = '%1 - E-Document Service';
         ExportEdocUsingSetupLbl: Label 'Export E-Document using setup: %1', Comment = '%1 - E-Document Service';
+        InitEdocUsingSetupLbl: Label 'Init E-Document using setup: %1', Comment = '%1 - E-Document Service';
         EmailEDocLbl: Label 'Email E-Document to Customer';
         EmailPDFAndEDocLbl: Label 'Email PDF and E-Document to Customer';
     begin
         WorkflowResponseHandling.AddResponseToLibrary(EDocSendEDocResponseCode(), Database::"E-Document", SendEdocUsingSetupLbl, 'GROUP 50100');
         WorkflowResponseHandling.AddResponseToLibrary(ResponseEDocImport(), Database::"E-Document", ImportEdocUsingSetupLbl, 'GROUP 50100');
         WorkflowResponseHandling.AddResponseToLibrary(ResponseEDocExport(), Database::"E-Document", ExportEdocUsingSetupLbl, 'GROUP 50100');
+        WorkflowResponseHandling.AddResponseToLibrary(ResponseEDocInit(), Database::"E-Document", InitEdocUsingSetupLbl, 'GROUP 50100');
         WorkflowResponseHandling.AddResponseToLibrary(ResponseSendEDocByEmail(), Database::"E-Document", EmailEDocLbl, 'GROUP 50101');
         WorkflowResponseHandling.AddResponseToLibrary(ResponseSendEDocAndPDFByEmail(), Database::"E-Document", EmailPDFAndEDocLbl, 'GROUP 50101');
     end;
@@ -125,7 +145,8 @@ codeunit 6139 "E-Document Workflow Setup"
         case WorkflowResponse."Function Name" of
             EDocSendEDocResponseCode(),
             ResponseEDocImport(),
-            ResponseEDocExport():
+            ResponseEDocExport(),
+            ResponseEDocInit():
                 Result := (CopyStr(StrSubstNo(WorkflowResponse.Description, WorkflowStepArgument."E-Document Service"), 1, 250));
         end;
     end;
@@ -146,6 +167,11 @@ codeunit 6139 "E-Document Workflow Setup"
                 begin
                     WorkflowResponseHandling.AddResponsePredecessor(ResponseEDocExport(), EDocCreated());
                     WorkflowResponseHandling.AddResponsePredecessor(ResponseEDocExport(), EventEDocStatusChanged());
+                end;
+            ResponseEDocInit():
+                begin
+                    WorkflowResponseHandling.AddResponsePredecessor(ResponseEDocInit(), EDocCreated());
+                    WorkflowResponseHandling.AddResponsePredecessor(ResponseEDocInit(), EventEDocStatusChanged());
                 end;
             ResponseSendEDocByEmail():
                 begin
@@ -181,6 +207,11 @@ codeunit 6139 "E-Document Workflow Setup"
                     EDocWorkflowProcessing.ExportEDocument(RecordRef, ResponseWorkflowStepInstance);
                     ResponseExecuted := true;
                 end;
+            ResponseEDocInit():
+                begin
+                    EDocWorkflowProcessing.ExportEDocument(RecordRef, ResponseWorkflowStepInstance);
+                    ResponseExecuted := true;
+                end;
             ResponseSendEDocByEmail():
                 begin
                     EDocWorkflowProcessing.SendEDocFromEmail(RecordRef, ResponseWorkflowStepInstance, Enum::"Document Sending Profile Attachment Type"::"E-Document");
@@ -199,6 +230,7 @@ codeunit 6139 "E-Document Workflow Setup"
     begin
         InsertSendToSingleServiceTemplate();
         InsertSendToMultiServiceTemplate();
+        InsertInitForSingleServiceTemplate();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Setup", OnAddWorkflowCategoriesToLibrary, '', false, false)]
@@ -228,11 +260,22 @@ codeunit 6139 "E-Document Workflow Setup"
         WorkflowSetup.InsertResponseStep(Workflow, EDocSendEDocResponseCode(), ResponseStepIdA);
     end;
 
+    local procedure InsertEDocExportWorkflowDetails(var Workflow: Record Workflow)
+    var
+        WorkflowSetup: Codeunit "Workflow Setup";
+        EntryPointStepId: Integer;
+    begin
+        EntryPointStepId := WorkflowSetup.InsertEntryPointEventStep(Workflow, EDocCreated());
+        WorkflowSetup.InsertResponseStep(Workflow, ResponseEDocInit(), EntryPointStepId);
+    end;
+
     var
         EDocCategoryDescriptionTxt: Label 'E-Document';
         EDocCategoryTxt: Label 'EDOC', Locked = true;
         EDocSendToSingleServiceTemplateWfCodeTxt: Label 'EDOCTOS', Locked = true;
         EDocSendToMultiServicesTemplateWfCodeTxt: Label 'EDOCTOM', Locked = true;
+        EDocInitForSingleServiceTemplateWfCodeTxt: Label 'EDOCINIT', Locked = true;
         EDocSendToSingleServiceTemplateWfDescriptionTxt: Label 'Send to one service';
         EDocSendToMultiServicesTemplateWfDescriptionTxt: Label 'Send to multiple services';
+        EDocInitForSingleServiceTemplateWfDescriptionTxt: Label 'Init for one service';
 }
