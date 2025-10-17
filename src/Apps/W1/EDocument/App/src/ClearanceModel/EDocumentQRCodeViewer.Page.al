@@ -4,10 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
-using Microsoft.Sales.History;
-using System.Text;
-using System.Utilities;
-using System.IO;
 
 page 6169 "E-Document QR Code Viewer"
 {
@@ -15,30 +11,31 @@ page 6169 "E-Document QR Code Viewer"
     ApplicationArea = All;
     UsageCategory = None;
     Caption = 'QR Code Viewer';
-    SourceTable = "Sales Invoice Header";
+    SourceTable = "EDoc QR Buffer";
+    SourceTableTemporary = true;
 
     layout
     {
         area(Content)
         {
-#pragma warning disable AA0218
             field(QRCodeBase64Preview; QRCodePreviewTxt)
-#pragma warning restore AA0218
             {
                 ApplicationArea = All;
                 Caption = 'QR Code (preview)';
                 Editable = false;
 
                 trigger OnDrillDown()
+                var
+                    EDocQRCodeMgr: Codeunit "EDocument QR Code Management";
                 begin
-                    ExportQRCodeToFile();
+                    EDocQRCodeMgr.ExportQRCodeToFile(Rec);
                 end;
             }
             field(QRImage; Rec."QR Code Image")
             {
                 ApplicationArea = All;
                 Caption = 'QR Code Image';
-                ToolTip = 'Specifies the image QR code';
+                ToolTip = 'Specifies the image of QR code';
                 Editable = false;
             }
         }
@@ -56,21 +53,10 @@ page 6169 "E-Document QR Code Viewer"
                 ToolTip = 'Export QR code image to file';
 
                 trigger OnAction()
+                var
+                    EDocQRCodeMgr: Codeunit "EDocument QR Code Management";
                 begin
-                    ExportQRCodeToFile();
-                end;
-            }
-
-            action(GenerateQRCodeImage)
-            {
-                ApplicationArea = All;
-                Caption = 'Generate QR Image';
-                ToolTip = 'Generate image from Base64';
-                Image = Create;
-
-                trigger OnAction()
-                begin
-                    SetQRCodeImageFromBase64();
+                    EDocQRCodeMgr.ExportQRCodeToFile(Rec);
                 end;
             }
         }
@@ -78,6 +64,7 @@ page 6169 "E-Document QR Code Viewer"
 
     trigger OnAfterGetRecord()
     var
+        EDocQRCodeMgr: Codeunit "EDocument QR Code Management";
         InStr: InStream;
     begin
         Clear(QRCodePreviewTxt);
@@ -90,59 +77,7 @@ page 6169 "E-Document QR Code Viewer"
         InStr.ReadText(QRCodePreviewTxt);
 #pragma warning restore AA0139
 
-        SetQRCodeImageFromBase64();
-    end;
-
-    local procedure ExportQRCodeToFile()
-    var
-        Base64Convert: Codeunit "Base64 Convert";
-        TempBlob: Codeunit "Temp Blob";
-        FileMgt: Codeunit "File Management";
-        OutStream: OutStream;
-        InStream: InStream;
-        Base64Txt: Text;
-        FileNameLbl: Label 'Invoice %1 QR Code.png', Locked = true;
-    begin
-        Rec.CalcFields("QR Code Base64");
-        if not Rec."QR Code Base64".HasValue then
-            exit;
-
-        Rec."QR Code Base64".CreateInStream(InStream, TextEncoding::UTF8);
-        InStream.ReadText(Base64Txt);
-
-        if Base64Txt = '' then
-            exit;
-
-        TempBlob.CreateOutStream(OutStream);
-        Base64Convert.FromBase64(Base64Txt, OutStream);
-
-        FileMgt.BLOBExport(TempBlob, StrSubstNo(FileNameLbl, Rec."No."), true);
-    end;
-
-    local procedure SetQRCodeImageFromBase64()
-    var
-        Base64Convert: Codeunit "Base64 Convert";
-        TempBlob: Codeunit "Temp Blob";
-        OutStream: OutStream;
-        InStream: InStream;
-        Base64Txt: Text;
-    begin
-        Rec.CalcFields("QR Code Base64");
-        if not Rec."QR Code Base64".HasValue then
-            exit;
-
-        Rec."QR Code Base64".CreateInStream(InStream, TextEncoding::UTF8);
-        InStream.ReadText(Base64Txt);
-
-        if Base64Txt = '' then
-            exit;
-
-        TempBlob.CreateOutStream(OutStream);
-        Base64Convert.FromBase64(Base64Txt, OutStream);
-
-        TempBlob.CreateInStream(InStream);
-        Rec."QR Code Image".ImportStream(InStream, 'image/png');
-        Rec.Modify();
+        EDocQRCodeMgr.SetQRCodeImageFromBase64(Rec);
     end;
 
     var

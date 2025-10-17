@@ -27,6 +27,7 @@ permissionset 6105 "E-Doc. Core - User"
         tabledata "E-Document Service Status" = imd,
         tabledata "E-Doc. Service Data Exch. Def." = im,
         tabledata "E-Doc. Service Supported Type" = im,
+        tabledata "EDoc QR Buffer" = imd,
     #endregion
     #region Mapping
         tabledata "E-Doc. Mapping" = imd,
