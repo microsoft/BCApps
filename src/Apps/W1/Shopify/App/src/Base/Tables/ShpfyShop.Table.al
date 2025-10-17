@@ -805,6 +805,17 @@ table 30102 "Shpfy Shop"
             ToolTip = 'Specifies if fully fulfilled Shopify orders should be created as sales invoices.';
             InitValue = true;
         }
+#if not CLEANSCHEMA28
+        field(206; "Fulfillment Service Updated"; Boolean)
+        {
+            Caption = 'Fulfillment Service Updated';
+            DataClassification = SystemMetadata;
+            Description = 'Indicates whether the Shopify Fulfillment Service has been updated to the latest version.';
+            ObsoleteReason = 'This field is no longer used.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+        }
+#endif
     }
 
     keys
@@ -1049,4 +1060,24 @@ table 30102 "Shpfy Shop"
                 Session.LogMessage('0000KO0', ExpirationNotificationTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
             end;
     end;
+
+#if not CLEAN28
+#pragma warning disable AL0432
+    internal procedure UpdateFulfillmentService()
+    var
+        SyncShopLocations: Codeunit "Shpfy Sync Shop Locations";
+    begin
+        if Rec."Fulfillment Service Updated" then
+            exit;
+
+        if Rec."Fulfillment Service Activated" then begin
+            SyncShopLocations.SetShop(Rec);
+            SyncShopLocations.UpdateFulfillmentServiceCallbackUrl();
+        end;
+
+        Rec."Fulfillment Service Updated" := true;
+        Rec.Modify();
+    end;
+#pragma warning restore AL0432
+#endif
 }
