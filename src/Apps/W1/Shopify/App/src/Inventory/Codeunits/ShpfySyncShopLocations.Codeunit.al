@@ -18,12 +18,15 @@ codeunit 30198 "Shpfy Sync Shop Locations"
         Shop := Rec;
         CommunicationMgt.SetShop(Rec);
         SyncLocations();
+        UpdateFulfillmentServiceCallbackUrl();
     end;
 
     var
         Shop: record "Shpfy Shop";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         JsonHelper: Codeunit "Shpfy Json Helper";
+        FulfillmentServiceNameLbl: Label 'Business Central Fulfillment Service', Locked = true;
+        FulfillmentServiceCallbackUrlLbl: Label 'https://businesscentral.dynamics.com/shopify/webhooks', Locked = true;
 
     /// <summary> 
     /// Import Location.
@@ -35,6 +38,7 @@ codeunit 30198 "Shpfy Sync Shop Locations"
         ShopLocation: Record "Shpfy Shop Location";
         IsNew: Boolean;
         JValue: JsonValue;
+        JFulfillmentService: JsonToken;
     begin
         if JsonHelper.GetJsonValue(JLocation, JValue, 'legacyResourceId') then begin
             if not ShopLocation.Get(Shop.Code, JValue.AsBigInteger()) then begin
@@ -48,7 +52,12 @@ codeunit 30198 "Shpfy Sync Shop Locations"
 #pragma warning restore AA0139
             ShopLocation.Active := JsonHelper.GetValueAsBoolean(JLocation, 'isActive');
             ShopLocation."Is Primary" := JsonHelper.GetValueAsBoolean(JLocation, 'isPrimary');
-            ShopLocation."Is Fulfillment Service" := JsonHelper.GetJsonToken(JLocation.AsToken(), 'fulfillmentService').IsObject;
+            JFulfillmentService := JsonHelper.GetJsonToken(JLocation.AsToken(), 'fulfillmentService');
+            ShopLocation."Is Fulfillment Service" := JFulfillmentService.IsObject();
+            if ShopLocation."Is Fulfillment Service" then begin
+                ShopLocation."Fulfillment Service Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JFulfillmentService, 'id'));
+                ShopLocation."Fulfillment Srv. Callback Url" := CopyStr(JsonHelper.GetValueAsText(JFulfillmentService, 'callbackUrl'), 1, MaxStrLen(ShopLocation."Fulfillment Srv. Callback Url"));
+            end;
             if IsNew then
                 ShopLocation.Insert()
             else begin
@@ -103,6 +112,56 @@ codeunit 30198 "Shpfy Sync Shop Locations"
             until TempShopLocation.Next() = 0;
     end;
 
+    internal procedure UpdateFulfillmentServiceCallbackUrl()
+    var
+        ShopLocation: Record "Shpfy Shop Location";
+        GraphQLType: Enum "Shpfy GraphQL Type";
+        Parameters: Dictionary of [Text, Text];
+        JResponse: JsonToken;
+        JValue: JsonValue;
+    begin
+        ShopLocation.SetRange("Shop Code", Shop.Code);
+        ShopLocation.SetRange("Is Fulfillment Service", true);
+        ShopLocation.SetRange(Name, GetFulfillmentServiceName());
+        if not ShopLocation.FindFirst() then
+            exit;
+
+        if ShopLocation."Fulfillment Service Id" = 0 then
+            GetFulfillmentService(ShopLocation);
+
+        if ShopLocation."Fulfillment Srv. Callback Url" = GetFulfillmentServiceCallbackUrl() then
+            exit;
+
+        GraphQLType := "Shpfy GraphQL Type"::UpdateFulfillmentService;
+        Parameters.Add('Id', Format(ShopLocation."Fulfillment Service Id"));
+        Parameters.Add('CallbackUrl', GetFulfillmentServiceCallbackUrl());
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
+
+        if JsonHelper.GetJsonValue(JResponse, JValue, 'data.fulfillmentServiceUpdate.fulfillmentService.callbackUrl') then begin
+            ShopLocation."Fulfillment Srv. Callback Url" := CopyStr(JValue.AsText(), 1, MaxStrLen(ShopLocation."Fulfillment Srv. Callback Url"));
+            ShopLocation.Modify();
+        end;
+    end;
+
+    local procedure GetFulfillmentService(var ShopLocation: Record "Shpfy Shop Location")
+    var
+        GraphQLType: Enum "Shpfy GraphQL Type";
+        Parameters: Dictionary of [Text, Text];
+        JResponse: JsonToken;
+        JFulfillmentService: JsonObject;
+    begin
+        GraphQLType := "Shpfy GraphQL Type"::GetLocation;
+        Parameters.Add('Id', Format(ShopLocation.Id));
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
+
+        if not JsonHelper.GetJsonObject(JResponse, JFulfillmentService, 'data.location.fulfillmentService') then
+            exit;
+
+        ShopLocation."Fulfillment Service Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JFulfillmentService, 'id'));
+        ShopLocation."Fulfillment Srv. Callback Url" := CopyStr(JsonHelper.GetValueAsText(JFulfillmentService, 'callbackUrl'), 1, MaxStrLen(ShopLocation."Fulfillment Srv. Callback Url"));
+        ShopLocation.Modify();
+    end;
+
     local procedure HasNextResults(JObject: JsonObject): Boolean
     begin
         exit(JsonHelper.GetValueAsBoolean(JObject, 'hasNextPage'));
@@ -111,6 +170,16 @@ codeunit 30198 "Shpfy Sync Shop Locations"
     internal procedure SetShop(ShopifyShop: Record "Shpfy Shop")
     begin
         Shop := ShopifyShop;
+        CommunicationMgt.SetShop(Shop);
     end;
 
+    internal procedure GetFulfillmentServiceName(): Text
+    begin
+        exit(FulfillmentServiceNameLbl);
+    end;
+
+    internal procedure GetFulfillmentServiceCallbackUrl(): Text
+    begin
+        exit(FulfillmentServiceCallbackUrlLbl);
+    end;
 }
