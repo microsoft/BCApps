@@ -219,7 +219,7 @@ codeunit 30161 "Shpfy Import Order"
                     if OrderHeader.IsProcessed() then
                         SetOrderAsConflicting(OrderHeader);
 
-            RefundLine.CalcSums("Presentment Amount", Amount, "Subtotal Amount", "Presentment Total Tax Amount", Quantity);
+            RefundLine.CalcSums(Quantity, Amount, "Presentment Amount", "Subtotal Amount", "Presentment Subtotal Amount", "Total Tax Amount", "Presentment Total Tax Amount");
             OrderLine.Quantity -= RefundLine.Quantity;
             OrderLine.Modify();
             OrderHeader."Total Amount" -= RefundLine."Subtotal Amount";
