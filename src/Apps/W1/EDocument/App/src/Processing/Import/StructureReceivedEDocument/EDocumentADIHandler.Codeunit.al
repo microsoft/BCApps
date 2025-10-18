@@ -44,7 +44,7 @@ codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, I
         Data := Base64Convert.ToBase64(InStream);
         StructuredData := AzureDocumentIntelligence.AnalyzeInvoice(Data);
         // If the call to ADI fails the system module will return an empty string, in such case we want to carry on with a blank draft
-        if (StructuredData = '') or (not ContainsNecessaryInformation(StructuredData)) then begin
+        if StructuredData = '' then begin
             FileFormat := "E-Doc. File Format"::Unspecified;
             ReadIntoDraftImpl := "E-Doc. Read into Draft"::"Blank Draft";
         end else begin
@@ -130,25 +130,6 @@ codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, I
         ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine);
         EDocReadablePurchaseDoc.SetBuffer(TempEDocPurchaseHeader, TempEDocPurchaseLine);
         EDocReadablePurchaseDoc.Run();
-    end;
-
-    local procedure ContainsNecessaryInformation(Data: Text): Boolean
-    var
-        TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary;
-        TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary;
-        TempEDocument: Record "E-Document" temporary;
-        TempBlob: Codeunit "Temp Blob";
-        OutStream: OutStream;
-    begin
-        TempBlob.CreateOutStream(OutStream);
-        OutStream.WriteText(Data);
-        TempEDocument."Entry No" := 1;
-        ReadIntoBuffer(TempEDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine);
-
-        exit(
-            (TempEDocPurchaseHeader."Vendor Company Name" <> '') or
-            (TempEDocPurchaseHeader."Vendor Address" <> '') or
-            (TempEDocPurchaseHeader."Vendor VAT Id" <> ''));
     end;
 
     local procedure PopulateEDocumentPurchaseLines(ItemsArray: JsonArray; EDocumentEntryNo: Integer; var TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary)
