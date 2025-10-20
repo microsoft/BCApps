@@ -115,6 +115,7 @@ codeunit 132612 "Signed Xml Module Test"
         LibraryAssert.AreEqual(C14NTransformUriTok, Node.AsXmlAttribute().Value, 'Incorrect transform was applied.');
     end;
 
+    [Test]
     procedure SignXmlDocumentWithSigningKeyAsSecretText()
     var
         XmlToSign: XmlDocument;
@@ -157,7 +158,6 @@ codeunit 132612 "Signed Xml Module Test"
     [Test]
     procedure SignXmlDocumentAddKeyInfoInSignature()
     var
-        SignedXml: Codeunit SignedXml;
         SignatureKey: Codeunit "Signature Key";
         XmlDoc: XmlDocument;
         DataElement: XmlElement;
