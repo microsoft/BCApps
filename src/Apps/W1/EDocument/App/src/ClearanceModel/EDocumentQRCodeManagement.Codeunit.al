@@ -28,7 +28,7 @@ codeunit 6197 "EDocument QR Code Management"
                     SalesInvoiceHeader.CalcFields("QR Code Base64");
 
                     if not SalesInvoiceHeader."QR Code Base64".HasValue then begin
-                        Message('No QR Base64 content available for %1 %2.', DocumentType, SalesInvoiceHeader."No.");
+                        Message(NoQRDCodeAvailableLbl, DocumentType, SalesInvoiceHeader."No.");
                         exit;
                     end;
 
@@ -46,7 +46,7 @@ codeunit 6197 "EDocument QR Code Management"
                     SalesCrMemoHeader.CalcFields("QR Code Base64");
 
                     if not SalesCrMemoHeader."QR Code Base64".HasValue then begin
-                        Message('No QR Base64 content available for %1 %2.', DocumentType, SalesCrMemoHeader."No.");
+                        Message(NoQRDCodeAvailableLbl, DocumentType, SalesCrMemoHeader."No.");
                         exit;
                     end;
 
@@ -58,7 +58,7 @@ codeunit 6197 "EDocument QR Code Management"
                 end;
 
             else
-                Error('Unsupported source table: %1.', SourceTable.Caption);
+                Error(UnsupportedTableSourceLbl, SourceTable.Caption);
         end;
 
         TempQRBuf."QR Code Base64".CreateOutStream(DstOutStr);
@@ -119,4 +119,8 @@ codeunit 6197 "EDocument QR Code Management"
         EDocQRBuffer."QR Code Image".ImportStream(InStream, 'image/png');
         EDocQRBuffer.Modify();
     end;
+
+    var
+        UnsupportedTableSourceLbl: Label 'Unsupported source table: %1.', Comment = '%1 The name of the table';
+        NoQRDCodeAvailableLbl: Label 'No QR Base64 content available for %1 %2.', Comment = '%1 the document type, %2 the document number';
 }
