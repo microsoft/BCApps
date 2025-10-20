@@ -23,6 +23,7 @@ page 6170 "E-Document QR Viewer"
                 ApplicationArea = All;
                 Caption = 'QR Code (preview)';
                 Editable = false;
+                ToolTip = 'Specifies the Base64 representation of the QR code. Drill down to export the QR code image to a file.';
 
                 trigger OnDrillDown()
                 var
@@ -35,7 +36,7 @@ page 6170 "E-Document QR Viewer"
             {
                 ApplicationArea = All;
                 Caption = 'QR Code Image';
-                ToolTip = 'Specifies the image of QR code';
+                ToolTip = 'Specifies the image about the QR code';
                 Editable = false;
             }
         }
@@ -73,11 +74,11 @@ page 6170 "E-Document QR Viewer"
             exit;
 
         Rec."QR Code Base64".CreateInStream(InStr, TextEncoding::UTF8);
-        InStr.ReadText(QRCodePreviewTxt);
+        InStr.ReadText(QRCodePreviewTxt, 1024);
 
         EDocQRCodeMgr.SetQRCodeImageFromBase64(Rec);
     end;
 
     var
-        QRCodePreviewTxt: Text[250];
+        QRCodePreviewTxt: Text;
 }

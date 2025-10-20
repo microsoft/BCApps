@@ -18,7 +18,7 @@ page 6169 "E-Document QR Code Viewer"
     SourceTable = "Sales Invoice Header";
     ObsoleteState = Pending;
     ObsoleteReason = 'This page is replaced by a new page "E-Document QR Viewer" that supports different types of documents.';
-    ObsoleteTag = '27.1';
+    ObsoleteTag = '28.0';
 
     layout
     {
@@ -29,6 +29,7 @@ page 6169 "E-Document QR Code Viewer"
                 ApplicationArea = All;
                 Caption = 'QR Code (preview)';
                 Editable = false;
+                ToolTip = 'Specifies the Base64 representation of the QR code. Drill down to export the QR code image to a file.';
 
                 trigger OnDrillDown()
                 begin
@@ -39,7 +40,7 @@ page 6169 "E-Document QR Code Viewer"
             {
                 ApplicationArea = All;
                 Caption = 'QR Code Image';
-                ToolTip = 'Image about the QR code';
+                ToolTip = 'Specifies the image about the QR code';
                 Editable = false;
             }
         }
@@ -67,6 +68,7 @@ page 6169 "E-Document QR Code Viewer"
                 ApplicationArea = All;
                 Caption = 'Generate QR Image';
                 ToolTip = 'Generate image from Base64';
+                Image = Refresh;
 
                 trigger OnAction()
                 begin
@@ -145,5 +147,5 @@ page 6169 "E-Document QR Code Viewer"
     end;
 
     var
-        QRCodePreviewTxt: Text[250];
+        QRCodePreviewTxt: Text;
 }
