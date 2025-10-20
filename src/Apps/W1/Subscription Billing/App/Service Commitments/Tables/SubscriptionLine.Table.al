@@ -397,6 +397,7 @@ table 8059 "Subscription Line"
             FieldClass = FlowField;
             CalcFormula = lookup("Subscription Header".Quantity where("No." = field("Subscription Header No.")));
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(40; "Create Contract Deferrals"; Enum "Create Contract Deferrals")
         {
@@ -539,6 +540,7 @@ table 8059 "Subscription Line"
             DataClassification = CustomerContent;
             Editable = false;
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(8003; "Supplier Reference Entry No."; Integer)
         {
@@ -1769,7 +1771,7 @@ table 8059 "Subscription Line"
         exit(not UsageDataBilling.IsEmpty());
     end;
 
-    local procedure SetUsageDataBillingFilters(var UsageDataBilling: Record "Usage Data Billing"; BillingFromDate: Date; BillingToDate: Date)
+    internal procedure SetUsageDataBillingFilters(var UsageDataBilling: Record "Usage Data Billing"; BillingFromDate: Date; BillingToDate: Date)
     begin
         UsageDataBilling.SetRange("Subscription Header No.", Rec."Subscription Header No.");
         UsageDataBilling.SetRange("Subscription Line Entry No.", Rec."Entry No.");

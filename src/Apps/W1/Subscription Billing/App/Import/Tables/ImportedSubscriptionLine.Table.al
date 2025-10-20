@@ -206,6 +206,7 @@ table 8009 "Imported Subscription Line"
             FieldClass = FlowField;
             CalcFormula = lookup("Subscription Header".Quantity where("No." = field("Subscription Header No.")));
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(39; "Next Price Update"; Date)
         {
@@ -265,6 +266,7 @@ table 8009 "Imported Subscription Line"
             DataClassification = CustomerContent;
             Editable = false;
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(8003; "Supplier Reference Entry No."; Integer)
         {

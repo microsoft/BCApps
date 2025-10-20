@@ -56,7 +56,7 @@ page 8352 "MCP Config Tool List"
 
                     trigger OnValidate()
                     begin
-                        MCPConfigImplementation.ValidateAPITool(Rec."Object Id");
+                        MCPConfigImplementation.ValidateAPITool(Rec."Object Id", true);
                         SetPermissions();
                     end;
                 }

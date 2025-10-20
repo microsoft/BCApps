@@ -11,7 +11,9 @@ using System.Visualization;
 using System.Text;
 using System.Globalization;
 using System.DataAdministration;
+#if not CLEAN28
 using System.Feedback;
+#endif
 using System.Privacy;
 using System.Utilities;
 using System.Security.User;
@@ -35,7 +37,9 @@ permissionset 75 "System Application - View"
                              "Feature Key - View",
                              "Language - View",
                              "Retention Policy - View",
+#if not CLEAN28
                              "Satisfaction Survey - View",
+#endif
                              "Media - View",
                              "Priv. Notice - View",
                              "Record Link Management - View",

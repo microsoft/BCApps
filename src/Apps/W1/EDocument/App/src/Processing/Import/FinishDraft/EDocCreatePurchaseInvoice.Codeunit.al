@@ -140,6 +140,8 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
                 PurchaseLine."Variant Code" := EDocumentPurchaseLine."[BC] Variant Code";
                 PurchaseLine.Type := EDocumentPurchaseLine."[BC] Purchase Line Type";
                 PurchaseLine.Validate("No.", EDocumentPurchaseLine."[BC] Purchase Type No.");
+                if (PurchaseLine.Type = PurchaseLine.Type::"G/L Account") and (EDocumentPurchaseHeader."Total Discount" > 0) then
+                    PurchaseLine.Validate("Allow Invoice Disc.", true);
                 PurchaseLine.Description := EDocumentPurchaseLine.Description;
 
                 if EDocumentPurchaseLine."[BC] Item Reference No." <> '' then

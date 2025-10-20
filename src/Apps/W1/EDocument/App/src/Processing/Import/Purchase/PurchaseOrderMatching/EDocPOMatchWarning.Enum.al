@@ -2,13 +2,18 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
-namespace System.TestLibraries.Feedback;
-
-using System.Feedback;
-
-permissionset 138074 "Satisfaction View"
+enum 6111 "E-Doc PO Match Warning"
 {
-    Assignable = true;
-    IncludedPermissionSets = "Satisfaction Survey - View";
+    Extensible = false;
+    value(0; NotYetReceived)
+    {
+    }
+    value(1; QuantityMismatch)
+    {
+    }
+    value(2; MissingInformationForMatch)
+    {
+    }
 }
