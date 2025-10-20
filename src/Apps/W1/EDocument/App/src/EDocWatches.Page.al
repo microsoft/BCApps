@@ -49,7 +49,8 @@ page 6179 "E-Doc Watches"
                     if not Rec."File Content".HasValue() then
                         error('No file content to download.');
                     Rec."File Content".CreateInStream(InStream);
-                    DownloadFromStream(InStream, 'Export file', '', '*.txt', FileName);
+                    FileName := 'SavedFile.txt';
+                    DownloadFromStream(InStream, 'Export file', '', 'Text File (*.txt)|*.txt', FileName);
                 end;
             }
         }

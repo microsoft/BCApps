@@ -6,6 +6,11 @@
 namespace Microsoft.eServices.EDocument.IO;
 
 using System.Environment;
+using Microsoft.eServices.EDocument.OrderMatch;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument;
 using System.Utilities;
 using System.Reflection;
 codeunit 6199 "E-Doc Watcher"
@@ -17,8 +22,16 @@ codeunit 6199 "E-Doc Watcher"
         OutStream: OutStream;
         WriteStreamInTempBlobInitialized: Boolean;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Global Triggers", 'GetDatabaseTableTriggerSetup', '', false, false)]
+    local procedure GetDatabaseTableTriggerSetup(TableId: Integer; var OnDatabaseInsert: Boolean; var OnDatabaseModify: Boolean; var OnDatabaseDelete: Boolean; var OnDatabaseRename: Boolean)
+    begin
+        OnDatabaseInsert :=
+            TableId in [Database::"E-Document", Database::"E-Document Service Status", Database::"E-Document Purchase Header", Database::"E-Document Purchase Line",
+            Database::"E-Doc. Purchase Line History", Database::"E-Doc. Data Storage", Database::"E-Doc. Record Link", Database::"E-Doc. Imported Line", Database::"E-Doc. Vendor Assign. History", Database::"E-Document Header Mapping", Database::"E-Document Line - Field", Database::"E-Document Line Mapping"];
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Global Triggers", 'OnDatabaseInsert', '', false, false)]
-    local procedure OnDatabaseInsert(RecRef: RecordRef)
+    local procedure WriteDownChangesOnDatabaseInsert(RecRef: RecordRef)
     var
         FldRef: FieldRef;
         i: Integer;
@@ -40,12 +53,14 @@ codeunit 6199 "E-Doc Watcher"
         FileOutStream: OutStream;
         ExportID: Integer;
     begin
+        TempBlob.CreateInStream(InStream);
+        if InStream.Length() = 0 then
+            exit;
         if EDocWatch.FindLast() then
             ExportId := EDocWatch."Export ID";
         Clear(EDocWatch);
         EDocWatch."Export ID" := ExportID + 1;
         EDocWatch."File Content".CreateOutStream(FileOutStream);
-        TempBlob.CreateInStream(InStream);
         CopyStream(FileOutStream, Instream);
         EDocWatch.Insert();
     end;
