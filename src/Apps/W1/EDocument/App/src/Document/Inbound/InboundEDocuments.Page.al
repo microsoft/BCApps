@@ -15,7 +15,7 @@ page 6105 "Inbound E-Documents"
     RefreshOnActivate = true;
     UsageCategory = Lists;
     Editable = true;
-    Extensible = false;
+    Extensible = true;
     DeleteAllowed = true;
     InsertAllowed = false;
     ModifyAllowed = false;
