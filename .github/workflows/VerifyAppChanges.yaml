@@ -23,4 +23,4 @@ jobs:
 
       - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main
 
-      - uses: microsoft/BCApps/.github/actions/TestObjectIdsAndManifests@main
+      - uses: microsoft/BCApps/.github/actions/TestObjectIdsAndManifests@private/aholstrup/testapplicationmanifests_check

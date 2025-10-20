@@ -1,7 +1,7 @@
 {
   "id": "c14a958d-a968-4b0d-9c6b-f92e8274a862",
   "name": "Business Foundation Tests",
-  "publisher": "Microsoft",
+  "publisher": "Microsofts",
   "brief": "Test suite for the Business Foundation.",
   "description": "Contains an expansive set tests for the Business Foundation.",
   "version": "28.0.0.0",
@@ -27,7 +27,7 @@
       "id": "bee8cf2f-494a-42f4-aabd-650e87934d39",
       "name": "Business Foundation Test Libraries",
       "publisher": "Microsoft",
-      "version": "28.0.0.0"
+      "version": "27.0.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
