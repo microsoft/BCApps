@@ -23,7 +23,6 @@ pageextension 6164 "Posted Sales Invoice with QR" extends "Posted Sales Invoice"
                 trigger OnAction()
                 var
                     EDocQRCodeMgr: Codeunit "EDocument QR Code Management";
-
                 begin
                     EDocQRCodeMgr.InitializeAndRunQRCodeViewer(Rec);
                 end;
