@@ -20,10 +20,10 @@ pageextension 4023 SendVendLedgerEntryRemitAdvice extends "Vendor Ledger Entries
 #if CLEAN28
         addafter(SuggestVendorPayments)
         {
-            action("Print Remi&ttance Advice")
+            action("UKPrintRemittanceAdvice")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Print Remi&ttance Advice';
+                Caption = 'UK Print Remittance Advice';
                 Image = PrintAttachment;
                 ToolTip = 'Print the remittance advice before posting a payment journal and after posting a payment. This advice displays vendor invoice numbers, which helps vendors to perform reconciliations.';
 
