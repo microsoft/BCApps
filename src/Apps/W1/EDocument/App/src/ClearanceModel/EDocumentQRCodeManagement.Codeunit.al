@@ -9,7 +9,7 @@ using Microsoft.Sales.History;
 using System.IO;
 using System.Text;
 using System.Utilities;
-codeunit 6196 "EDocument QR Code Management"
+codeunit 6197 "EDocument QR Code Management"
 {
     internal procedure InitializeAndRunQRCodeViewer(SourceTable: RecordRef)
     var
