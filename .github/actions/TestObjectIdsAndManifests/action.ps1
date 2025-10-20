@@ -10,4 +10,5 @@ Test-ObjectIDsAreValid -SourceCodePaths $sourceCodeFolder
 Test-ApplicationIds -SourceCodePaths $sourceCodeFolder
 
 # Test that all manifests are valid
-Test-ApplicationManifests -SourceCodePaths $sourceCodeFolder -ExpectedAppVersion "28.0.0.0"
+$currentMajorMinor = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
+Test-ApplicationManifests -SourceCodePaths $sourceCodeFolder -ExpectedAppVersion "$($currentMajorMinor).0.0"
