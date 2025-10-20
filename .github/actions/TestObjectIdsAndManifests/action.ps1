@@ -10,4 +10,4 @@ Test-ObjectIDsAreValid -SourceCodePaths $sourceCodeFolder
 Test-ApplicationIds -SourceCodePaths $sourceCodeFolder
 
 # Test that all manifests are valid
-Test-ApplicationManifests -SourceCodePaths $sourceCodeFolder
+Test-ApplicationManifests -SourceCodePaths $sourceCodeFolder -ExpectedAppVersion "28.0.0.0"
