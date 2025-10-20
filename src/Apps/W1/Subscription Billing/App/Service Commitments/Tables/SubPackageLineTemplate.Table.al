@@ -120,6 +120,7 @@ table 8054 "Sub. Package Line Template"
             Caption = 'Pricing Unit Cost Surcharge %';
             DataClassification = CustomerContent;
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
 
     }
