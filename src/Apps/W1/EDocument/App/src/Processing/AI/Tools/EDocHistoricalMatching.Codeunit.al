@@ -116,7 +116,6 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
             FeatureTelemetry.LogError('0000PUQ', GetFeatureName(), AIHistoricalDataLoadEventTok, StrSubstNo(HistoricalDataLoadFailedErr, EDocSystemId, ErrorMessage), GetLastErrorCallStack());
             exit(false);
         end;
-
         if TempPurchInvLine.IsEmpty() then
             exit(false);
 
@@ -165,11 +164,11 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         ElapsedTime := CurrentDateTime() - StartTime;
         TelemetryDimensions.Add('Records loaded', Format(RecordCount));
         TelemetryDimensions.Add('Duration (ms)', Format(ElapsedTime));
-        if (HistoricalMatchingConfig = 'control') or (HistoricalMatchingConfig = '') 
-        then
+        if (HistoricalMatchingConfig = 'control') or (HistoricalMatchingConfig = '') then
             TelemetryDimensions.Add('Vendor matching scope', 'Same Vendor')
         else
-            TelemetryDimensions.Add('Vendor matching scope', 'All Vendors');TelemetryDimensions.Add('Max records limit', Format(MaxHistoricalRecords));
+            TelemetryDimensions.Add('Vendor matching scope', 'All Vendors');
+        TelemetryDimensions.Add('Max records limit', Format(MaxHistoricalRecords));
         TelemetryDimensions.Add('Limit reached', Format(RecordCount >= MaxHistoricalRecords));
         FeatureTelemetry.LogUsage('0000PUR', GetFeatureName(), AIHistoricalDataLoadEventTok, TelemetryDimensions);
     end;
