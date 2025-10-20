@@ -8,3 +8,6 @@ Test-ObjectIDsAreValid -SourceCodePaths $sourceCodeFolder
 
 # Test that all application IDs are unique
 Test-ApplicationIds -SourceCodePaths $sourceCodeFolder
+
+# Test that all manifests are valid
+Test-ApplicationManifests -SourceCodePaths $sourceCodeFolder

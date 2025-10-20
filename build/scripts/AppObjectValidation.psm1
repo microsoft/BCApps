@@ -150,6 +150,51 @@ function Get-FilesCollection
     }
 }
 
+function Test-ApplicationManifests {
+    param(
+        [string] $Path,
+        [string] $ExpectedAppVersion,
+        [string] $ExpectedPlatformVersion
+    )
+    $appManifests = Get-ChildItem -Path $Path -File -Recurse -Filter 'app.json'
+    $errors = @()
+    foreach ($appManifestFile in $appManifests) {
+        $appManifest = Get-Content -Path $appManifestFile.FullName | ConvertFrom-Json
+        
+        # Check App Version 
+        if ($appManifest.version -ne $ExpectedAppVersion) {
+            $errors += "ERROR: Wrong application version in manifest $appManifestFile. Expected: $ExpectedAppVersion. Actual: $($appManifest.version)"
+        }
+
+        # Check Platform Version
+        if ($ExpectedPlatformVersion -and ($appManifest.platform -ne $ExpectedPlatformVersion)) {
+            $errors += "ERROR: Wrong platform version in manifest $appManifestFile. Expected: $ExpectedPlatformVersion. Actual: $($appManifest.platform)"
+        }
+
+        # Check Dependency Versions
+        foreach ($dependency in $appManifest.dependencies) {
+            if ($dependency.version -ne $ExpectedAppVersion) {
+                $errors += "ERROR: Wrong dependency version for $($dependency.name) in manifest $appManifestFile. Expected: $ExpectedAppVersion. Actual: $($dependency.version)"
+            }
+        }
+
+        # Check Publisher
+        if ($appManifest.publisher -ne "Microsoft") {
+            if (($appManifest.name -in @("")) -and ($appManifest.publisher -eq "Partner")) {
+                Write-Host "Allowing Partner publisher for app $($appManifest.name)"
+            } else {
+                $errors += "ERROR: Wrong publisher in manifest $appManifestFile. Expected: Microsoft. Actual: $($appManifest.publisher)"
+            }
+        }
+    }
+
+    if ($errors.Count -gt 0) {
+        $errors | ForEach-Object { Write-Host "##[error]$_" }
+        throw "Application manifest validation failed. Please fix the errors reported."
+    }
+
+}
+
 function IsTestObject
 (
     [string] $FilePath
@@ -176,4 +221,5 @@ function GetObjectId
 
 Export-ModuleMember -Function Test-ObjectIDsAreValid
 Export-ModuleMember -Function Test-ApplicationIds
+Export-ModuleMember -Function Test-ApplicationManifests
 Export-ModuleMember -Function Get-FilesCollection
