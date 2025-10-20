@@ -12,7 +12,7 @@ using System.Reflection;
 /// </summary>
 table 9990 "Word Templates Related Table"
 {
-    Access = Public;
+    Access = Internal;
     Extensible = false;
     InherentEntitlements = X;
     InherentPermissions = X;
