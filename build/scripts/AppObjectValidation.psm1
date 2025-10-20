@@ -150,6 +150,19 @@ function Get-FilesCollection
     }
 }
 
+<#
+    .SYNOPSIS
+    Tests that all application manifests in the specified path have the expected application versions, platform version and publisher name.
+    .DESCRIPTION
+    This function scans the specified path for app.json files, extracts the application and platform versions,
+    and checks if they match the expected values. If any discrepancies are found, an error is thrown.
+    .PARAMETER Path
+    The path to the source code directory to be scanned for app.json files.
+    .PARAMETER ExpectedAppVersion
+    The expected application version that should be present in the app manifests.
+    .PARAMETER ExpectedPlatformVersion
+    The expected platform version that should be present in the app manifests.
+#>
 function Test-ApplicationManifests {
     param(
         [string] $Path,
@@ -160,8 +173,8 @@ function Test-ApplicationManifests {
     $errors = @()
     foreach ($appManifestFile in $appManifests) {
         $appManifest = Get-Content -Path $appManifestFile.FullName | ConvertFrom-Json
-        
-        # Check App Version 
+
+        # Check App Version
         if ($appManifest.version -ne $ExpectedAppVersion) {
             $errors += "ERROR: Wrong application version in manifest $appManifestFile. Expected: $ExpectedAppVersion. Actual: $($appManifest.version)"
         }
