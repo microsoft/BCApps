@@ -185,7 +185,7 @@ codeunit 139890 "E-Doc Clearance Model E2E Test"
     end;
 
     [ModalPageHandler]
-    procedure QRCodeViewerPageHandler(var QRCodeViewer: TestPage "E-Document QR Code Viewer")
+    procedure QRCodeViewerPageHandler(var QRCodeViewer: TestPage "E-Document QR Viewer")
     begin
         LibraryAssert.AreNotEqual('', QRCodeViewer.QRCodeBase64Preview.Value(), 'QR Code Base64 preview should not be empty.');
         LibraryAssert.IsTrue(QRCodeViewer.ExportQRCode.Visible(), 'Export QR Code action should be visible.');

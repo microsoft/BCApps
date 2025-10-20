@@ -65,7 +65,7 @@ codeunit 6197 "EDocument QR Code Management"
         CopyStream(DstOutStr, SrcInStr);
         TempQRBuf.Insert();
 
-        PAGE.RunModal(PAGE::"E-Document QR Code Viewer", TempQRBuf);
+        PAGE.RunModal(PAGE::"E-Document QR Viewer", TempQRBuf);
     end;
 
     internal procedure ExportQRCodeToFile(var EDocQRBuffer: Record "EDoc QR Buffer")
