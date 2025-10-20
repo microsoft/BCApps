@@ -193,7 +193,7 @@ function Test-ApplicationManifests {
 
         # Check Publisher
         if ($appManifest.publisher -ne "Microsoft") {
-            if (($appManifest.name -in @("")) -and ($appManifest.publisher -eq "Partner")) {
+            if (($appManifest.name -in @("System Application Partner Test", "AI Partner Test")) -and ($appManifest.publisher -eq "Partner")) {
                 Write-Host "Allowing Partner publisher for app $($appManifest.name)"
             } else {
                 $errors += "ERROR: Wrong publisher in manifest $appManifestFile. Expected: Microsoft. Actual: $($appManifest.publisher)"
