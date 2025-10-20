@@ -9,6 +9,7 @@ using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.History;
 using System.Utilities;
 using System.IO;
+using Microsoft.eServices.EDocument;
 
 /// <summary>
 /// The purpose of the codeunit is to compose entities for generating the e-document invoices
@@ -117,6 +118,7 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
     var
         PurchHeader: Record "Purchase Header";
         PurchInvHeader: Record "Purch. Inv. Header";
+        EDocument: Record "E-Document";
         TempBlob: Codeunit "Temp Blob";
     begin
         TempPurchHeader.Reset();
@@ -125,6 +127,7 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
             PurchHeader := CreatePurchInvFromTempBuffer();
             PurchInvHeader := PostPurchaseInvoice(PurchHeader);
             TempBlob := SavePurchInvReportToPDF(PurchInvHeader);
+            EDocument := CreateEDocument(TempBlob, PurchInvHeader);
         until TempPurchHeader.Next() = 0;
     end;
 
@@ -181,6 +184,54 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         FilePath := CopyStr(FileManagement.ServerTempFileName('pdf'), 1, 250);
         PurchaseInvoiceReport.SaveAsPdf(FilePath);
         FileManagement.BLOBImportFromServerFile(TempBlob, FilePath);
+    end;
+
+    local procedure CreateEDocument(TempBlob: Codeunit "Temp Blob"; PurchInvHeader: Record "Purch. Inv. Header") EDocument: Record "E-Document"
+    var
+        EDocumentService: Record "E-Document Service";
+        EDocImport: Codeunit "E-Doc. Import";
+        ResInStream: InStream;
+        FileName: Text;
+    begin
+        EDocumentService := GetEDocService();
+        TempBlob.CreateInStream(ResInStream);
+        FileName := 'PurchaseInvoice' + PurchInvHeader."No." + '.pdf';
+        EDocImport.CreateFromType(
+            EDocument, EDocumentService, Enum::"E-Doc. File Format"::PDF, FileName, ResInStream);
+        CreateEDocServiceStatus(EDocument."Entry No");
+    end;
+
+    //local procedure CreateEDocPurchHeaderWithLines(EDocEntryNo: Integer;)
+    //var
+    //    EDocPurchaseHeader: Record "E-Document Purchase Header";
+    //    EDocPurchaseLine: Record "E-Document Purchase Line";
+    //begin
+    //end;
+
+    //local procedure CreateEDocRecordLink()
+    //var
+    //    EDocRecordLink: Record "E-Doc. Record Link";
+    //begin
+    //end;
+
+    local procedure CreateEDocServiceStatus(EDocumentEnryNo: Integer)
+    var
+        EDocServiceStatus: Record "E-Document Service Status";
+        EDocumentService: Record "E-Document Service";
+    begin
+        EDocumentService := GetEDocService();
+        EDocServiceStatus.Init();
+        EDocServiceStatus."E-Document Entry No" := EDocumentEnryNo;
+        EDocServiceStatus."E-Document Service Code" := EDocumentService.Code;
+        EDocServiceStatus.Status := Enum::"E-Document Service Status"::Imported;
+        EDocServiceStatus.Insert();
+    end;
+
+    local procedure GetEDocService() EDocumentService: Record "E-Document Service"
+    var
+        CreateEDocDemodataService: Codeunit "Create E-Doc DemoData Service";
+    begin
+        EDocumentService.Get(CreateEDocDemodataService.EDocumentServiceCode());
     end;
 
 }
