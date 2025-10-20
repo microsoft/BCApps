@@ -68,7 +68,7 @@ page 6169 "E-Document QR Code Viewer"
                 ApplicationArea = All;
                 Caption = 'Generate QR Image';
                 ToolTip = 'Generate image from Base64';
-                Image = Refresh;
+                Image = Create;
 
                 trigger OnAction()
                 begin
@@ -86,7 +86,7 @@ page 6169 "E-Document QR Code Viewer"
         Rec.CalcFields("QR Code Base64");
         if Rec."QR Code Base64".HasValue then begin
             Rec."QR Code Base64".CreateInStream(InStr, TextEncoding::UTF8);
-            InStr.ReadText(QRCodePreviewTxt);
+            InStr.ReadText(QRCodePreviewTxt, 1024);
             if StrLen(QRCodePreviewTxt) > MaxStrLen(QRCodePreviewTxt) then
                 QRCodePreviewTxt := CopyStr(QRCodePreviewTxt, 1, MaxStrLen(QRCodePreviewTxt) - StrLen('...')) + '...';
         end;
