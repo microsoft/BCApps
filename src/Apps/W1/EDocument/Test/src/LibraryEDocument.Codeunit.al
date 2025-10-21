@@ -839,6 +839,11 @@ codeunit 139629 "Library - E-Document"
 #pragma warning restore AL0432
 #endif
 
+    procedure CreateService(EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration"): Code[20]
+    begin
+        exit(CreateService(EDocDocumentFormat, EDocIntegration, Enum::"E-Document Import Process"::"Version 1.0"));
+    end;
+
     procedure CreateService(EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration"; EDocImportProcess: Enum "E-Document Import Process"): Code[20]
     var
         EDocService: Record "E-Document Service";
