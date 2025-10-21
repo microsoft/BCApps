@@ -13,7 +13,7 @@ table 6113 "EDoc Historical Matching Setup"
     ReplicateData = false;
     ObsoleteTag = '27.1';
     ObsoleteReason = 'Replaced with experiment-based matching.';
-    ObsoleteState = Removed;
+    ObsoleteState = Pending;
 
     fields
     {
