@@ -13,6 +13,9 @@ $appType = switch ($true) {
 $PreCompileApp = (Get-Command "$PSScriptRoot\PreCompileApp.ps1" | Select-Object -ExpandProperty ScriptBlock)
 Invoke-Command -ScriptBlock $PreCompileApp -ArgumentList $appType, ([ref] $parameters)
 
+Write-Host "Setting UpdateSymbols to true"
+$parameters.Value["UpdateSymbols"] = $true
+
 $appFile = Compile-AppInBcContainer @parameters
 
 # Return the app file path
