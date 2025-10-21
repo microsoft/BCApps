@@ -34,19 +34,6 @@ codeunit 9054 "ABS Container Content Helper"
     begin
         NameFromXml := ABSHelperLibrary.GetValueFromNode(Node, XPathName);
         AddParentEntries(NameFromXml, ABSContainerContent, EntryNo);
-        if ParentEntryFullNameList.Contains(NameFromXml) then
-            exit;
-
-        ParentEntryFullNameList.Add(NameFromXml);
-
-        ABSContainerContent.Init();
-        ABSContainerContent.Level := GetLevel(NameFromXml);
-        ABSContainerContent."Parent Directory" := CopyStr(GetParentDirectory(NameFromXml), 1, MaxStrLen(ABSContainerContent."Parent Directory"));
-        ABSContainerContent."Full Name" := CopyStr(NameFromXml, 1, MaxStrLen(ABSContainerContent."Full Name"));
-        ABSContainerContent.Name := CopyStr(GetName(NameFromXml), 1, MaxStrLen(ABSContainerContent.Name));
-        ABSContainerContent."Content Type" := DirectoryContentTypeTxt;
-        ABSContainerContent."Entry No." := EntryNo;
-        ABSContainerContent.Insert(true);
     end;
 
     procedure AddNewEntry(var ABSContainerContent: Record "ABS Container Content"; NameFromXml: Text; OuterXml: Text; ChildNodes: XmlNodeList; var EntryNo: Integer; ResourceType: Enum "ABS Blob Resource Type")

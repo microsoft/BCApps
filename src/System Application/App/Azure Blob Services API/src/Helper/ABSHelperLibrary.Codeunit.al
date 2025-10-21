@@ -103,6 +103,9 @@ codeunit 9043 "ABS Helper Library"
     var
         EntryNo: Integer;
     begin
+        ABSContainerContent.Reset();
+        ABSContainerContent.DeleteAll();
+
         BlobPrefixNodeListToTempRecord(BlobPrefixNodeList, './/Name', EntryNo, ABSContainerContent);
         BlobNodeListToTempRecord(BlobNodeList, './/Name', EntryNo, ABSContainerContent);
     end;
@@ -169,9 +172,6 @@ codeunit 9043 "ABS Helper Library"
         ABSContainerContentHelper: Codeunit "ABS Container Content Helper";
         Node: XmlNode;
     begin
-        ABSContainerContent.Reset();
-        ABSContainerContent.DeleteAll();
-
         if NodeList.Count = 0 then
             exit;
 
@@ -184,9 +184,6 @@ codeunit 9043 "ABS Helper Library"
         ABSContainerContentHelper: Codeunit "ABS Container Content Helper";
         Node: XmlNode;
     begin
-        ABSContainerContent.Reset();
-        ABSContainerContent.DeleteAll();
-
         if NodeList.Count = 0 then
             exit;
 
