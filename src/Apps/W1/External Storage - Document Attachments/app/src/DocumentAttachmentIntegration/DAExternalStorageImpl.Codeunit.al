@@ -341,17 +341,18 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not IsFeatureEnabled() then
             exit(false);
 
-        // Check if file belongs to another company and needs migration
-        if IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment) then
-            if not MigrateFileToCurrentEnvironment(DocumentAttachment) then
-                exit(false);
-
         // Validate input parameters
         if DocumentAttachment."External File Path" = '' then
             exit(false);
 
         if not DocumentAttachment."Uploaded Externally" then
             exit(false);
+
+        // Check if file belongs to another environment - if so, just clear the reference
+        if IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment) then begin
+            DocumentAttachment.MarkAsNotUploadedToExternal();
+            exit(true);
+        end;
 
         // Use the stored external file path
         ExternalFilePath := DocumentAttachment."External File Path";
@@ -381,11 +382,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     var
         TenantMedia: Record "Tenant Media";
     begin
-        // Check if file belongs to another company and needs migration
-        if IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment) then
-            if not MigrateFileToCurrentEnvironment(DocumentAttachment) then
-                exit(false);
-
         // Validate input parameters
         if not DocumentAttachment."Document Reference ID".HasValue() then
             exit(false);
@@ -786,15 +782,12 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         OutStream: OutStream;
         OldFilePath: Text;
         NewFilePath: Text[2048];
-        MigrationMsg: Label 'File is being migrated from another environment folder to the current environment folder.';
     begin
         if not DocumentAttachment."Uploaded Externally" then
             exit(false);
 
         if DocumentAttachment."External File Path" = '' then
             exit(false);
-
-        Message(MigrationMsg);
 
         // Initialize external file storage
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
