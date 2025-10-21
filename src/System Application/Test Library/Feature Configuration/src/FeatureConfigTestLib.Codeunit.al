@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestLibraries.Utilities;
+namespace System.TestLibraries.Config;
 
 using System;
 
-codeunit 132515 "Configuration Test Library"
+codeunit 132515 "Feature Config Test Lib."
 {
 
     var
