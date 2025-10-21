@@ -51,7 +51,7 @@ codeunit 3110 "PDF Document"
     end;
 
 #if not CLEAN27
-
+#pragma warning disable AS0072 // this will be backported: #610559
     /// <summary>
     /// This procedure is used to convert a PDF file to an image.
     /// </summary>
@@ -63,6 +63,7 @@ codeunit 3110 "PDF Document"
     begin
         PDFDocumentImpl.ConvertToImage(ImageStream, ImageFormat, PageNumber);
     end;
+#pragma warning restore AS0072
 #endif
     /// <summary>
     /// This procedure is used to get the invoice attachment stream from a PDF file.
