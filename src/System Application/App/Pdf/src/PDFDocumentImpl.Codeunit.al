@@ -53,7 +53,6 @@ codeunit 3109 "PDF Document Impl."
 
     procedure ConvertToImage(var ImageStream: InStream; ImageFormat: Enum "Image Format"; PageNumber: Integer): Boolean
     var
-        PdfConverterInstance: DotNet PdfConverter;
         PdfTargetDevice: DotNet PdfTargetDevice;
         MemoryStream: DotNet MemoryStream;
         ImageMemoryStream: DotNet MemoryStream;
