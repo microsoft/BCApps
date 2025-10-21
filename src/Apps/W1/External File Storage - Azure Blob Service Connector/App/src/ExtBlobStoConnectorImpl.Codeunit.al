@@ -201,7 +201,7 @@ codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage
         ValidateListingResponse(FilePaginationData, ABSOperationResponse);
 
         ABSContainerContent.SetRange("Parent Directory", Path);
-        ABSContainerContent.SetRange("Blob Type", '');
+        ABSContainerContent.SetRange("Resource Type", ABSContainerContent."Resource Type"::Directory);
         if not ABSContainerContent.FindSet() then
             exit;
 

@@ -93,7 +93,7 @@ codeunit 9054 "ABS Container Content Helper"
                 ABSContainerContent."Full Name" := ParentEntryFullName;
                 ABSContainerContent."Parent Directory" := CurrentParent;
                 ABSContainerContent."Content Type" := DirectoryContentTypeTxt;
-
+                ABSContainerContent."Resource Type" := ABSContainerContent."Resource Type"::Directory;
                 ABSContainerContent."Entry No." := EntryNo;
                 ABSContainerContent.Insert(true);
                 EntryNo += 1;
