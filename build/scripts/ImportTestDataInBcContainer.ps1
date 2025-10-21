@@ -58,6 +58,13 @@ if ($failedToInstallApps.Count -gt 0) {
     throw "Failed to install apps: $($failedToInstallApps -join ", ")"
 }
 
+$demodataapps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesFirst | Where-Object { ($_.IsInstalled -eq $true) -and (($_.Name -like "*Demo Data*") -and ($_.Name -notlike "*Contoso Coffee Demo Dataset*")) }
+# Uninstall demo data apps that are installed
+foreach ($app in $demodataapps) {
+    Write-Host "Uninstalling demo data app $($app.Name) from container $($parameters.ContainerName)"
+    UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -force
+}
+
 # Log all the installed apps
 foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesLast)) {
     Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - $($app.IsInstalled) / $($app.IsPublished)"
@@ -65,3 +72,5 @@ foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSp
 
 # Generate demo data in the container
 Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName
+
+Install-AppInContainer -ContainerName $parameters.ContainerName -AppsToInstall $demodataapps.Name
