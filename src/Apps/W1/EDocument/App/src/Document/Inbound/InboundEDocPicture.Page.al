@@ -56,7 +56,7 @@ page 6111 "Inbound E-Doc. Picture"
         Rec."Data Storage".CreateInStream(PdfStream, TextEncoding::UTF8);
         if PdfDocument.Load(PdfStream) then begin
             TempBlob.CreateInStream(ImageStream, TextEncoding::UTF8);
-            if PdfDocument.ConvertToImage(ImageStream, "Image Format"::Png, 1) then
+            if PdfDocument.ConvertPdfToImage(ImageStream, "Image Format"::Png, 1) then
                 TempMediaRepository.Image.ImportStream(ImageStream, EDocDataStorageImageDescriptionLbl, 'image/png');
         end;
     end;
