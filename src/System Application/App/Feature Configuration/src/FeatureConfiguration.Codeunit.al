@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FeatureConfig;
+namespace System.Config;
 
 /// <summary>
 /// Feature configuration codeunit to get configuration values for features.
