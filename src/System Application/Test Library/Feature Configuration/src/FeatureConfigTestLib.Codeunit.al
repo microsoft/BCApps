@@ -7,7 +7,7 @@ namespace System.TestLibraries.Utilities;
 
 using System;
 
-codeunit 132515 "Configuration Test Library"
+codeunit 132515 "Feature Config Test Lib."
 {
 
     var

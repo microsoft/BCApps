@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Config;
+namespace System.FeatureConfig;
 
 using System;
 
-codeunit 8348 "Configuration Management Impl."
+codeunit 8348 "Feature Configuration Impl."
 {
     Access = Internal;
     SingleInstance = true;
