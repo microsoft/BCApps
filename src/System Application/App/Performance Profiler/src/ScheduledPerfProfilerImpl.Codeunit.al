@@ -174,9 +174,13 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     procedure CreateRetentionPolicySetup(TableId: Integer; RetentionPeriodCode: Code[20])
     var
         RetentionPolicySetup: Record "Retention Policy Setup";
+        PerformanceProfileScheduler: Record "Performance Profile Scheduler";
+        RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
     begin
         if RetentionPolicySetup.Get(TableId) then
             exit;
+        if not RetenPolAllowedTables.IsAllowedTable(Database::"Performance Profile Scheduler") then
+            RetenPolAllowedTables.AddAllowedTable(Database::"Performance Profile Scheduler", PerformanceProfileScheduler.FieldNo("Ending Date-Time"), 1);
         RetentionPolicySetup.Validate("Table Id", TableId);
         RetentionPolicySetup.Validate("Apply to all records", true);
         RetentionPolicySetup.Validate("Retention Period", RetentionPeriodCode);
