@@ -6,9 +6,9 @@
 namespace System.Config;
 
 /// <summary>
-/// Configuration Management codeunit to get configuration values.
+/// Feature configuration codeunit to get configuration values for features.
 /// </summary>
-codeunit 8347 "Configuration Management"
+codeunit 8347 "Feature Configuration"
 {
     Access = Public;
     SingleInstance = true;
@@ -16,7 +16,7 @@ codeunit 8347 "Configuration Management"
     InherentPermissions = X;
 
     var
-        ConfigurationManagementImpl: Codeunit "Configuration Management Impl.";
+        FeatureConfigurationImpl: Codeunit "Feature Configuration Impl.";
 
     /// <summary>
     /// Gets the configuration value for the specified key.
@@ -28,7 +28,7 @@ codeunit 8347 "Configuration Management"
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        exit(ConfigurationManagementImpl.GetConfiguration(ConfigKey, CallerModuleInfo));
+        exit(FeatureConfigurationImpl.GetConfiguration(ConfigKey, CallerModuleInfo));
     end;
 
 }
