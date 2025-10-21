@@ -6,7 +6,7 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.Sales.History;
 
-pageextension 6164 "Posted Sales Invoice with QR" extends "Posted Sales Invoice"
+pageextension 6168 PostedSalesCrdMemoWithQR extends "Posted Sales Credit Memo"
 {
     actions
     {

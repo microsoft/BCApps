@@ -6,9 +6,8 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.Sales.History;
 
-reportextension 6166 "PostedSalesInvoiceWithQR" extends "Standard Sales - Invoice"
+reportextension 6168 PostedSalesCrdMemoWithQR extends "Standard Sales - Credit Memo"
 {
-
     dataset
     {
         add(Header)
@@ -27,9 +26,9 @@ reportextension 6166 "PostedSalesInvoiceWithQR" extends "Standard Sales - Invoic
         layout("StandardSalesInvoice.docx")
         {
             Type = Word;
-            LayoutFile = './src/ClearanceModel/StandardSalesInvoicewithQR.docx';
-            Caption = 'Standard Sales Invoice - E-Document (Word)';
-            Summary = 'The "Standard Sales Invoice - E-Document (Word)" provides the layout including E-Document QR code support.';
+            LayoutFile = './src/ClearanceModel/StandardSalesCreditMemowithQR.docx';
+            Caption = 'Standard Sales - Credit Memo - E-Document (Word)';
+            Summary = 'The Standard Sales - Credit Memo - E-Document (Word) provides the layout including E-Document QR code support.';
         }
     }
 }
