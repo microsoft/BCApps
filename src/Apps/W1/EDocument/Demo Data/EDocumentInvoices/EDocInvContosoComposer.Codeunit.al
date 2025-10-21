@@ -10,6 +10,13 @@ using Microsoft.Purchases.History;
 using System.Utilities;
 using System.IO;
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Foundation.Company;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Foundation.Address;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.UOM;
+using Microsoft.eServices.EDocument.Processing;
 
 /// <summary>
 /// The purpose of the codeunit is to compose entities for generating the e-document invoices
@@ -128,6 +135,7 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
             PurchInvHeader := PostPurchaseInvoice(PurchHeader);
             TempBlob := SavePurchInvReportToPDF(PurchInvHeader);
             EDocument := CreateEDocument(TempBlob, PurchInvHeader);
+            CreateEDocPurchHeaderWithLines(EDocument."Entry No", PurchInvHeader);
         until TempPurchHeader.Next() = 0;
     end;
 
@@ -151,7 +159,8 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
             PurchLine.Insert(true);
             PurchLine.Validate(Type, TempPurchLine.Type);
             PurchLine.Validate("No.", TempPurchLine."No.");
-            PurchLine.Validate("Tax Group Code", TempPurchLine."Tax Group Code");
+            if TempPurchLine."Tax Group Code" <> '' then
+                PurchLine.Validate("Tax Group Code", TempPurchLine."Tax Group Code");
             PurchLine.Validate(Description, TempPurchLine.Description);
             PurchLine.Validate(Quantity, TempPurchLine.Quantity);
             PurchLine.Validate("Direct Unit Cost", TempPurchLine."Direct Unit Cost");
@@ -201,18 +210,120 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         CreateEDocServiceStatus(EDocument."Entry No");
     end;
 
-    //local procedure CreateEDocPurchHeaderWithLines(EDocEntryNo: Integer;)
-    //var
-    //    EDocPurchaseHeader: Record "E-Document Purchase Header";
-    //    EDocPurchaseLine: Record "E-Document Purchase Line";
-    //begin
-    //end;
+    local procedure CreateEDocPurchHeaderWithLines(EDocEntryNo: Integer; PurchInvHeader: Record "Purch. Inv. Header")
+    var
+        CompanyInformation: Record "Company Information";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        Vendor: Record Vendor;
+        CountryRegion: Record "Country/Region";
+        EDocPurchaseHeader: Record "E-Document Purchase Header";
+        EDocPurchaseLine: Record "E-Document Purchase Line";
+        PurchInvLine: Record "Purch. Inv. Line";
+        UnitOfMeasure: Record "Unit of Measure";
+    begin
+        EDocPurchaseHeader."E-Document Entry No." := EDocEntryNo;
+        CompanyInformation.Get();
+        EDocPurchaseHeader."Customer Company Name" := CompanyInformation.Name;
+        EDocPurchaseHeader."Customer Company Id" := CompanyInformation."Bank Account No."; // TODO: Need to double check this, probably ADI return different results
+        CountryRegion.Get(CompanyInformation."Country/Region Code");
+        EDocPurchaseHeader."Customer Address" :=
+            CopyStr(
+                CompanyInformation.Address + ' ' + CompanyInformation."Address 2" + ', ' + CompanyInformation.City + ', ' + CompanyInformation.County + ', ' + CompanyInformation."Post Code" + ' ' + CountryRegion.Name,
+                1, MaxStrLen(EDocPurchaseHeader."Customer Address"));
+        EDocPurchaseHeader."Shipping Address" := EDocPurchaseHeader."Customer Address";
+        EDocPurchaseHeader."Shipping Address Recipient" := EDocPurchaseHeader."Customer Company Name";
+        EDocPurchaseHeader."Sales Invoice No." := TempPurchHeader."Vendor Invoice No.";
+        EDocPurchaseHeader."Document Date" := PurchInvHeader."Posting Date";
+        EDocPurchaseHeader."Due Date" := PurchInvHeader."Due Date";
+        Vendor.Get(PurchInvHeader."Buy-from Vendor No.");
+        EDocPurchaseHeader."Vendor Company Name" := Vendor.Name + ' ' + Vendor.Contact;
+        EDocPurchaseHeader."Vendor Address" := PurchInvHeader."Pay-to Address";
+        EDocPurchaseHeader."Vendor Address Recipient" := EDocPurchaseHeader."Vendor Company Name";
+        GeneralLedgerSetup.Get();
+        EDocPurchaseHeader."Currency Code" := GeneralLedgerSetup."LCY Code";
+        PurchInvHeader.CalcFields("Amount Including VAT");
+        EDocPurchaseHeader.Total := PurchInvHeader."Amount Including VAT";
+        EDocPurchaseHeader."[BC] Vendor No." := PurchInvHeader."Buy-from Vendor No.";
+        EDocPurchaseHeader.Insert();
+        CreateEDocRecordLink(EDocEntryNo, Database::"E-Document Purchase Header", EDocPurchaseHeader.SystemId, Database::"Purch. Inv. Header", PurchInvHeader.SystemId);
+        CreateEDocVendorAssignHistory(EDocPurchaseHeader, PurchInvHeader);
 
-    //local procedure CreateEDocRecordLink()
-    //var
-    //    EDocRecordLink: Record "E-Doc. Record Link";
-    //begin
-    //end;
+        PurchInvLine.SetRange("Document No.", PurchInvHeader."No.");
+        repeat
+            EDocPurchaseLine."E-Document Entry No." := EDocEntryNo;
+            EDocPurchaseLine."Line No." := PurchInvLine."Line No.";
+            // EDocumentPurchaseLine."Product Code" := '????' // TODO: Update
+            EDocPurchaseLine.Description := PurchInvLine.Description;
+            EDocPurchaseLine.Quantity := PurchInvLine.Quantity;
+            if PurchInvLine."Unit of Measure Code" <> '' then
+                UnitOfMeasure.Get(PurchInvLine."Unit of Measure Code")
+            else
+                UnitOfMeasure.Init();
+            EDocPurchaseLine."Unit of Measure" := UnitOfMeasure.Description;
+            EDocPurchaseLine."Unit Price" := PurchInvLine."Direct Unit Cost";
+            EDocPurchaseLine."Sub Total" := PurchInvLine."Amount Including VAT";
+            EDocPurchaseLine."Currency Code" := EDocPurchaseHeader."Currency Code";
+            EDocPurchaseLine."[BC] Purchase Line Type" := PurchInvLine.Type;
+            EDocPurchaseLine."[BC] Purchase Type No." := PurchInvLine."No.";
+            EDocPurchaseLine."[BC] Deferral Code" := PurchInvLine."Deferral Code";
+            EDocPurchaseLine."[BC] Variant Code" := PurchInvLine."Variant Code";
+            EDocPurchaseLine.Insert();
+            CreateEDocRecordLink(EDocEntryNo, Database::"E-Document Purchase Line", EDocPurchaseLine.SystemId, Database::"Purch. Inv. Line", PurchInvLine.SystemId);
+            CreateEDocPurchaseLineHistory(PurchInvLine, EDocPurchaseLine);
+        until PurchInvLine.Next() = 0;
+    end;
+
+    local procedure CreateEDocRecordLink(EDocEntryNo: Integer; SourceTableID: Integer; SourceSystemSystemID: Guid; TargetTableID: Integer; TargetSystemID: Guid)
+    var
+        EDocRecordLink: Record "E-Doc. Record Link";
+        EntryNo: Integer;
+    begin
+        if EDocRecordLink.FindLast() then
+            EntryNo := EDocRecordLink."Entry No." + 1
+        else
+            EntryNo := 1;
+        EDocRecordLink."Entry No." := EntryNo;
+        EDocRecordLink."E-Document Entry No." := EDocEntryNo;
+        EDocRecordLink."Source Table No." := SourceTableID;
+        EDocRecordLink."Source SystemId" := SourceSystemSystemID;
+        EDocRecordLink."Target Table No." := TargetTableID;
+        EDocRecordLink."Target SystemId" := TargetSystemID;
+        EDocRecordLink.Insert();
+    end;
+
+    local procedure CreateEDocVendorAssignHistory(EDocPurchaseHeader: Record "E-Document Purchase Header"; PurchInvHeader: Record "Purch. Inv. Header")
+    var
+        EDocVendorAssignHistory: Record "E-Doc. Vendor Assign. History";
+        EntryNo: Integer;
+    begin
+        if EDocVendorAssignHistory.FindLast() then
+            EntryNo := EDocVendorAssignHistory."Entry No." + 1
+        else
+            EntryNo := 1;
+        EDocVendorAssignHistory."Entry No." := EntryNo;
+        EDocVendorAssignHistory."Vendor Company Name" := EDocPurchaseHeader."Vendor Company Name";
+        EDocVendorAssignHistory."Vendor Address" := EDocPurchaseHeader."Vendor Address";
+        EDocVendorAssignHistory."Vendor VAT Id" := EDocPurchaseHeader."Vendor VAT Id";
+        EDocVendorAssignHistory."Vendor GLN" := EDocPurchaseHeader."Vendor GLN";
+        EDocVendorAssignHistory."Purch. Inv. Header SystemId" := PurchInvHeader.SystemId;
+        EDocVendorAssignHistory.Insert();
+    end;
+
+    local procedure CreateEDocPurchaseLineHistory(PurchInvLine: Record "Purch. Inv. Line"; EDocPurchaseLine: Record "E-Document Purchase Line")
+    var
+        EDocPurchaseLineHistory: Record "E-Doc. Purchase Line History";
+        EntryNo: Integer;
+    begin
+        if EDocPurchaseLineHistory.FindLast() then
+            EntryNo := EDocPurchaseLineHistory."Entry No." + 1
+        else
+            EntryNo := 1;
+        EDocPurchaseLineHistory."Entry No." := EntryNo;
+        EDocPurchaseLineHistory."Vendor No." := PurchInvLine."Buy-from Vendor No.";
+        EDocPurchaseLineHistory."Product Code" := EDocPurchaseLine."Product Code";
+        EDocPurchaseLineHistory.Description := PurchInvLine.Description;
+        EDocPurchaseLineHistory."Purch. Inv. Line SystemId" := PurchInvLine.SystemId;
+    end;
 
     local procedure CreateEDocServiceStatus(EDocumentEnryNo: Integer)
     var
