@@ -14,7 +14,7 @@ $PreCompileApp = (Get-Command "$PSScriptRoot\PreCompileApp.ps1" | Select-Object 
 Invoke-Command -ScriptBlock $PreCompileApp -ArgumentList $appType, ([ref] $parameters)
 
 Write-Host "Setting UpdateSymbols to true"
-$parameters.Value["UpdateSymbols"] = $true
+$parameters["UpdateSymbols"] = $true
 
 $appFile = Compile-AppInBcContainer @parameters
 
