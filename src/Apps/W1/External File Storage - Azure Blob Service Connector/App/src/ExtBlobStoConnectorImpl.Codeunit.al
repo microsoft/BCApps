@@ -469,6 +469,7 @@ codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage
     local procedure InitOptionalParameters(Path: Text; var FilePaginationData: Codeunit "File Pagination Data"; var ABSOptionalParameters: Codeunit "ABS Optional Parameters")
     begin
         ABSOptionalParameters.Prefix(Path);
+        ABSOptionalParameters.Delimiter('/');
         ABSOptionalParameters.MaxResults(500);
         ABSOptionalParameters.NextMarker(FilePaginationData.GetMarker());
     end;
