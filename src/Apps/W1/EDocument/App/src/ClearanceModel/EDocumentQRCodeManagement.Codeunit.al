@@ -11,6 +11,8 @@ using System.Text;
 using System.Utilities;
 codeunit 6197 "EDocument QR Code Management"
 {
+    Access = Internal;
+
     internal procedure InitializeAndRunQRCodeViewer(SourceTable: RecordRef)
     var
         TempQRBuf: Record "EDoc QR Buffer" temporary;
@@ -23,7 +25,7 @@ codeunit 6197 "EDocument QR Code Management"
         case SourceTable.Number of
             DATABASE::"Sales Invoice Header":
                 begin
-                    DocumentType := 'Sales Invoice';
+                    DocumentType := SalesInvoiceLbl;
                     SourceTable.SetTable(SalesInvoiceHeader);
                     SalesInvoiceHeader.CalcFields("QR Code Base64");
 
@@ -41,7 +43,7 @@ codeunit 6197 "EDocument QR Code Management"
 
             DATABASE::"Sales Cr.Memo Header":
                 begin
-                    DocumentType := 'Sales Credit Memo';
+                    DocumentType := SalesCreditMemoLbl;
                     SourceTable.SetTable(SalesCrMemoHeader);
                     SalesCrMemoHeader.CalcFields("QR Code Base64");
 
@@ -123,4 +125,6 @@ codeunit 6197 "EDocument QR Code Management"
     var
         UnsupportedTableSourceLbl: Label 'Unsupported source table: %1.', Comment = '%1 The name of the table';
         NoQRDCodeAvailableLbl: Label 'No QR Base64 content available for %1 %2.', Comment = '%1 the document type, %2 the document number';
+        SalesInvoiceLbl: Label 'Sales Invoice';
+        SalesCreditMemoLbl: Label 'Sales Credit Memo';
 }

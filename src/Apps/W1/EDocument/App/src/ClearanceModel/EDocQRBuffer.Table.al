@@ -10,6 +10,8 @@ table 6166 "EDoc QR Buffer"
     Caption = 'E-Doc QR Buffer';
     DataClassification = SystemMetadata;
     ReplicateData = false;
+    Access = Internal;
+    TableType = Temporary;
 
     fields
     {
