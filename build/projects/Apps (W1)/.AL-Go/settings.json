@@ -53,8 +53,7 @@
         "AU"
       ],
       "settings": {
-        "country": "au",
-        "doNotRunTests": true
+        "country": "au"
       }
     },
     {
@@ -70,8 +69,7 @@
         "CA"
       ],
       "settings": {
-        "country": "ca",
-        "doNotRunTests": true
+        "country": "ca"
       }
     },
     {
@@ -87,8 +85,7 @@
         "CZ"
       ],
       "settings": {
-        "country": "cz",
-        "doNotRunTests": true
+        "country": "cz"
       }
     },
     {
@@ -104,8 +101,7 @@
         "DK"
       ],
       "settings": {
-        "country": "dk",
-        "doNotRunTests": true
+        "country": "dk"
       }
     },
     {
@@ -161,8 +157,7 @@
         "IT"
       ],
       "settings": {
-        "country": "it",
-        "doNotRunTests": true
+        "country": "it"
       }
     },
     {
@@ -210,8 +205,7 @@
         "US"
       ],
       "settings": {
-        "country": "us",
-        "doNotRunTests": true
+        "country": "us"
       }
     },
     {

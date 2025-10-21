@@ -63,5 +63,14 @@ foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSp
     Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - $($app.IsInstalled) / $($app.IsPublished)"
 }
 
+# Remove companies in container
+Get-CompanyInBcContainer -containerName $parameters.ContainerName | ForEach-Object {
+    Remove-CompanyInBcContainer -containerName $parameters.ContainerName -CompanyName $_.CompanyName
+}
+
+# Create a new company in the container
+New-CompanyInBcContainer -containerName $parameters.ContainerName -CompanyName "CRONUS Company BCApps Ltd." -evaluationCompany
+New-CompanyInBcContainer -containerName $parameters.ContainerName -CompanyName "My Company BCApps"
+
 # Generate demo data in the container
 Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName
