@@ -11,7 +11,7 @@ using System.Environment;
 using System.Security.Encryption;
 using Microsoft.Foundation.Attachment;
 
-codeunit 8751 "BCY DA External Storage Impl." implements "File Scenario"
+codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 {
     Access = Internal;
     InherentPermissions = X;
