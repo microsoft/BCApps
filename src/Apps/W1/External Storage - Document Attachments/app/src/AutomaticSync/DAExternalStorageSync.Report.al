@@ -17,6 +17,7 @@ report 8752 "DA External Storage Sync"
     ProcessingOnly = true;
     UseRequestPage = true;
     Extensible = false;
+    ApplicationArea = Basic, Suite;
     UsageCategory = None;
     Permissions = tabledata "DA External Storage Setup" = r,
                   tabledata "Document Attachment" = r;
@@ -81,6 +82,8 @@ report 8752 "DA External Storage Sync"
 
             trigger OnPostDataItem()
             begin
+                LogSyncTelemetry();
+
                 if GuiAllowed() then begin
                     if TotalCount <> 0 then
                         Dialog.Close();
@@ -114,12 +117,14 @@ report 8752 "DA External Storage Sync"
                     field(DeleteExpiredFilesField; DeleteExpiredFiles)
                     {
                         ApplicationArea = Basic, Suite;
+                        Enabled = SyncDirection = SyncDirection::"To External Storage";
                         Caption = 'Delete Expired Files';
                         ToolTip = 'Specifies whether to delete expired files from internal storage.';
                     }
                     field(MaxRecordsToProcessField; MaxRecordsToProcess)
                     {
                         ApplicationArea = Basic, Suite;
+                        Enabled = SyncDirection = SyncDirection::"To External Storage";
                         Caption = 'Maximum Records to Process';
                         ToolTip = 'Specifies the maximum number of records to process in one run. Leave 0 for unlimited.';
                         MinValue = 0;
@@ -160,5 +165,16 @@ report 8752 "DA External Storage Sync"
     begin
         ExternalStorageSetup.Get();
         exit(ExternalStorageSetup."Delete After");
+    end;
+
+    local procedure LogSyncTelemetry()
+    var
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
+    begin
+        // Log manual sync when run from UI (GuiAllowed), auto sync when run from job queue
+        if GuiAllowed() then
+            DAFeatureTelemetry.LogManualSync()
+        else
+            DAFeatureTelemetry.LogAutoSync();
     end;
 }

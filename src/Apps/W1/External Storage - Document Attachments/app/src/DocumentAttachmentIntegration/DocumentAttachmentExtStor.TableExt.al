@@ -41,7 +41,14 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
             Caption = 'Deleted Internally';
             DataClassification = SystemMetadata;
             Editable = false;
-            ToolTip = 'Specifies the value of the Deleted Internally field.';
+            ToolTip = 'Specifies if the file has been deleted from internal storage.';
+        }
+        field(8754; "Source Environment Hash"; Text[16])
+        {
+            Caption = 'Source Environment Hash';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies a hash identifying the tenant, environment, and company that originally uploaded this file to external storage.';
         }
     }
 

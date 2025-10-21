@@ -74,10 +74,10 @@ page 8751 "Document Attachment - External"
     {
         area(Processing)
         {
-            action("Upload to External Storage")
+            action("Upload to External")
             {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Upload to External Storage';
+                Enabled = not Rec."Uploaded Externally";
+                Caption = 'Upload to External';
                 ToolTip = 'Upload the selected file to external storage.';
                 Image = Export;
 
@@ -96,28 +96,30 @@ page 8751 "Document Attachment - External"
                         until DocumentAttachment.Next() = 0;
                 end;
             }
-            action("Download from External Storage")
+            action(Download)
             {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Download from External Storage';
-                ToolTip = 'Download the file from external storage.';
+                Caption = 'Download';
+                ToolTip = 'Download the selected file from external storage. If the file is not stored externally, it will be exported from internal storage.';
                 Image = Import;
 
                 trigger OnAction()
                 var
                     ExternalStorageImpl: Codeunit "DA External Storage Impl.";
                 begin
-                    if ExternalStorageImpl.DownloadFromExternalStorage(Rec) then
-                        Message(FileDownloadedMsg)
-                    else
-                        Message(FailedFileDownloadMsg);
+                    if Rec."Uploaded Externally" then begin
+                        if ExternalStorageImpl.DownloadFromExternalStorage(Rec) then
+                            Message(FileDownloadedMsg)
+                        else
+                            Message(FailedFileDownloadMsg);
+                    end else
+                        Rec.Export(true);
                 end;
             }
-            action("Download from External To Internal Storage")
+            action("Copy from External To Internal")
             {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Download from External To Internal Storage';
-                ToolTip = 'Download the file from external storage to internal storage.';
+                Enabled = Rec."Deleted Internally" and Rec."Uploaded Externally";
+                Caption = 'Copy from External To Internal';
+                ToolTip = 'Copy the file from external storage to internal storage.';
                 Image = Import;
 
                 trigger OnAction()
@@ -130,11 +132,10 @@ page 8751 "Document Attachment - External"
                         Message(FailedFileDownloadMsg);
                 end;
             }
-            action("Delete from External Storage")
+            action("Delete from External")
             {
-                ApplicationArea = Basic, Suite;
                 Enabled = not (Rec."Deleted Internally") and Rec."Uploaded Externally";
-                Caption = 'Delete from External Storage';
+                Caption = 'Delete from External';
                 ToolTip = 'Delete the file from external storage.';
                 Image = Delete;
 
@@ -149,11 +150,10 @@ page 8751 "Document Attachment - External"
                             Message(FailedFileDeleteExternalStorageMsg);
                 end;
             }
-            action("Delete from Internal Storage")
+            action("Delete from Internal")
             {
-                ApplicationArea = Basic, Suite;
                 Enabled = Rec."Uploaded Externally" and not Rec."Deleted Internally";
-                Caption = 'Delete from Internal Storage';
+                Caption = 'Delete from Internal';
                 ToolTip = 'Delete the file from Internal storage.';
                 Image = Delete;
 
@@ -173,7 +173,6 @@ page 8751 "Document Attachment - External"
         {
             action("External Storage Setup")
             {
-                ApplicationArea = Basic, Suite;
                 Caption = 'External Storage Setup';
                 ToolTip = 'Configure external storage settings.';
                 Image = Setup;
@@ -182,11 +181,11 @@ page 8751 "Document Attachment - External"
         }
         area(Promoted)
         {
-            actionref(UploadToExternalStoragePromoted; "Upload to External Storage") { }
-            actionref(DownloadFromExternalStoragePromoted; "Download from External Storage") { }
-            actionref(DownloadFromExternalToInternalStoragePromoted; "Download from External To Internal Storage") { }
-            actionref(DeleteFromExternalStoragePromoted; "Delete from External Storage") { }
-            actionref(DeleteFromInternalStoragePromoted; "Delete from Internal Storage") { }
+            actionref(UploadToExternal_Promoted; "Upload to External") { }
+            actionref(DownloadFromExternal_Promoted; Download) { }
+            actionref(CopyFromExternalToInternal_Promoted; "Copy from External To Internal") { }
+            actionref(DeleteFromExternal_Promoted; "Delete from External") { }
+            actionref(DeleteFromInternal_Promoted; "Delete from Internal") { }
         }
     }
 

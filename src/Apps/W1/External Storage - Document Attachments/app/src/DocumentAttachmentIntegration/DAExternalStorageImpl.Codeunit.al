@@ -8,9 +8,10 @@ namespace Microsoft.ExternalStorage.DocumentAttachments;
 using System.ExternalFileStorage;
 using System.Utilities;
 using System.Environment;
+using System.Security.Encryption;
 using Microsoft.Foundation.Attachment;
 
-codeunit 8751 "DA External Storage Impl." implements "File Scenario"
+codeunit 8751 "BCY DA External Storage Impl." implements "File Scenario"
 {
     Access = Internal;
     InherentPermissions = X;
@@ -29,11 +30,19 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <returns>True if the operation is allowed, otherwise false.</returns>
     procedure BeforeAddOrModifyFileScenarioCheck(Scenario: Enum "File Scenario"; Connector: Enum System.ExternalFileStorage."Ext. File Storage Connector") SkipInsertOrModify: Boolean;
     var
+        FileAccount: Record "File Account";
         ConfirmManagement: Codeunit "Confirm Management";
+        FileScenarioCU: Codeunit "File Scenario";
         DisclaimerMsg: Label 'You are about to enable External Storage!!!\\This feature is provided as-is, and you use it at your own risk.\Microsoft is not responsible for any issues or data loss that may occur.\\Do you wish to continue?';
     begin
         if not (Scenario = Enum::"File Scenario"::"Doc. Attach. - External Storage") then
             exit;
+
+        // Search for External Storage assigned File Scenario
+        if FileScenarioCU.GetFileAccount(Scenario, FileAccount) then begin
+            SkipInsertOrModify := true;
+            exit;
+        end;
 
         SkipInsertOrModify := not ConfirmManagement.GetResponseOrDefault(DisclaimerMsg);
     end;
@@ -102,6 +111,10 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         OutStream: OutStream;
         FileName: Text[2048];
     begin
+        // Check if feature is enabled
+        if not IsFeatureEnabled() then
+            exit(false);
+
         // Validate input parameters
         if not DocumentAttachment."Document Reference ID".HasValue() then
             exit(false);
@@ -110,13 +123,16 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if DocumentAttachment."External File Path" <> '' then
             exit(false);
 
+        // Telemetry logging for feature usage
+        LogFeatureUsedTelemetry();
+
         // Get file content from document attachment
         TempBlob.CreateOutStream(OutStream);
         DocumentAttachment.ExportToStream(OutStream);
         TempBlob.CreateInStream(InStream);
 
         // Generate unique filename to prevent collisions
-        FileName := DocumentAttachment."File Name" + '-' + Format(CreateGuid()) + '.' + DocumentAttachment."File Extension";
+        FileName := GetFilePathWithRootFolder(DocumentAttachment);
 
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
@@ -129,7 +145,9 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             DocumentAttachment."Uploaded Externally" := true;
             DocumentAttachment."External Upload Date" := CurrentDateTime();
             DocumentAttachment."External File Path" := FileName;
+            DocumentAttachment."Source Environment Hash" := GetCurrentEnvironmentHash();
             DocumentAttachment.Modify();
+            LogFileUploadedTelemetry();
             exit(true);
         end;
 
@@ -150,6 +168,10 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         InStream: InStream;
         ExternalFilePath, FileName : Text;
     begin
+        // Check if feature is enabled
+        if not IsFeatureEnabled() then
+            exit(false);
+
         // Validate input parameters
         if DocumentAttachment."External File Path" = '' then
             exit(false);
@@ -170,7 +192,12 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         ExternalFileStorage.Initialize(FileScenario);
         ExternalFileStorage.GetFile(ExternalFilePath, InStream);
 
-        exit(DownloadFromStream(InStream, '', '', '', FileName));
+        if DownloadFromStream(InStream, '', '', '', FileName) then begin
+            LogFileDownloadedTelemetry();
+            exit(true);
+        end;
+
+        exit(false);
     end;
 
     /// <summary>
@@ -310,6 +337,15 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         FileScenario: Enum "File Scenario";
         ExternalFilePath: Text;
     begin
+        // Check if feature is enabled
+        if not IsFeatureEnabled() then
+            exit(false);
+
+        // Check if file belongs to another company and needs migration
+        if IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment) then
+            if not MigrateFileToCurrentEnvironment(DocumentAttachment) then
+                exit(false);
+
         // Validate input parameters
         if DocumentAttachment."External File Path" = '' then
             exit(false);
@@ -329,6 +365,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         ExternalFileStorage.Initialize(FileScenario);
         if ExternalFileStorage.DeleteFile(ExternalFilePath) then begin
             DocumentAttachment.MarkAsNotUploadedToExternal();
+            LogFileDeletedTelemetry();
             exit(true);
         end;
 
@@ -344,6 +381,11 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     var
         TenantMedia: Record "Tenant Media";
     begin
+        // Check if file belongs to another company and needs migration
+        if IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment) then
+            if not MigrateFileToCurrentEnvironment(DocumentAttachment) then
+                exit(false);
+
         // Validate input parameters
         if not DocumentAttachment."Document Reference ID".HasValue() then
             exit(false);
@@ -472,7 +514,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not ExternalStorageSetup.Get() then
             exit;
 
-        if not ExternalStorageSetup."Auto Upload" then
+        if not ExternalStorageSetup."Scheduled Upload" then
             exit;
 
         // Only process files with actual content
@@ -511,7 +553,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not ExternalStorageSetup.Get() then
             exit;
 
-        if not ExternalStorageSetup."Auto Delete" then
+        if not ExternalStorageSetup."Delete from External Storage" then
             exit;
 
         // Only process files that were uploaded to external storage
@@ -596,6 +638,285 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         AttachmentIsAvailable := ExternalStorageImpl.CheckIfFileExistInExternalStorage(DocumentAttachment."External File Path");
         IsHandled := true;
+    end;
+    #endregion
+
+    /// <summary>
+    /// Opens a folder selection dialog for choosing the root folder.
+    /// </summary>
+    /// <returns>The selected folder path, or empty string if cancelled.</returns>
+    procedure SelectRootFolder(): Text
+    var
+        FileAccount: Record "File Account";
+        ExternalFileStorage: Codeunit "External File Storage";
+        FileScenarioCU: Codeunit "File Scenario";
+        SelectFolderPathLbl: Label 'Select Root Folder for Attachments';
+        FileScenario: Enum "File Scenario";
+    begin
+        // Initialize external file storage with the scenario
+        FileScenario := FileScenario::"Doc. Attach. - External Storage";
+        if not FileScenarioCU.GetFileAccount(FileScenario, FileAccount) then
+            exit('');
+
+        ExternalFileStorage.Initialize(FileScenario);
+        exit(ExternalFileStorage.SelectAndGetFolderPath('', SelectFolderPathLbl));
+    end;
+
+    local procedure GetFilePathWithRootFolder(DocumentAttachment: Record "Document Attachment"): Text[2048]
+    var
+        ExternalStorageSetup: Record "DA External Storage Setup";
+        FileName: Text;
+        RootFolder: Text;
+        TableNameFolder: Text[100];
+        EnvironmentHashFolder: Text[16];
+        FileNamePart: Text;
+    begin
+        // Generate unique filename to prevent collisions
+        FileNamePart := DocumentAttachment."File Name" + '-' + DelChr(Format(CreateGuid()), '=', '{}') + '.' + DocumentAttachment."File Extension";
+
+        // Get table name folder (based on the source table of the attachment)
+        TableNameFolder := GetTableNameFolder(DocumentAttachment."Table ID");
+
+        // Get environment hash folder (based on tenant + environment + company)
+        EnvironmentHashFolder := GetCurrentEnvironmentHash();
+
+        // Get root folder from setup if configured
+        if not ExternalStorageSetup.Get() then
+            exit;
+
+        RootFolder := ExternalStorageSetup."Root Folder";
+        if RootFolder <> '' then begin
+            // Ensure root folder ends with a separator
+            if not RootFolder.EndsWith('/') and not RootFolder.EndsWith('\') then
+                RootFolder := RootFolder + '/';
+
+            // Ensure environment hash folder exists
+            EnsureFolderExists(RootFolder + EnvironmentHashFolder);
+
+            // Ensure environment hash folder exists within table folder
+            EnsureFolderExists(RootFolder + EnvironmentHashFolder + '/' + TableNameFolder);
+
+            FileName := RootFolder + EnvironmentHashFolder + '/' + TableNameFolder + '/' + FileNamePart;
+        end else begin
+            // No root folder, add environment folder at root level
+            EnsureFolderExists(EnvironmentHashFolder);
+
+            // Ensure environment hash folder exists within table folder
+            EnsureFolderExists(EnvironmentHashFolder + '/' + TableNameFolder);
+
+            FileName := EnvironmentHashFolder + '/' + TableNameFolder + '/' + FileNamePart;
+        end;
+
+        exit(CopyStr(FileName, 1, 2048));
+    end;
+
+    local procedure GetTableNameFolder(TableID: Integer): Text[100]
+    var
+        RecRef: RecordRef;
+        TableName: Text;
+    begin
+        // Open the RecordRef to get table metadata
+        RecRef.Open(TableID, false);
+        TableName := RecRef.Name;
+        RecRef.Close();
+
+        // Replace invalid characters for folder names
+        TableName := DelChr(TableName, '=', '<>:"/\|?*');
+        TableName := ConvertStr(TableName, ' ', '_');
+
+        exit(CopyStr(TableName, 1, 100));
+    end;
+
+    local procedure EnsureFolderExists(CompanyFolderPath: Text)
+    var
+        FileAccount: Record "File Account";
+        ExternalFileStorage: Codeunit "External File Storage";
+        FileScenarioCU: Codeunit "File Scenario";
+        FileScenario: Enum "File Scenario";
+    begin
+        // Initialize external file storage with the scenario
+        FileScenario := FileScenario::"Doc. Attach. - External Storage";
+        if not FileScenarioCU.GetFileAccount(FileScenario, FileAccount) then
+            exit;
+
+        ExternalFileStorage.Initialize(FileScenario);
+
+        // Check if directory exists, if not create it
+        if not ExternalFileStorage.DirectoryExists(CompanyFolderPath) then
+            ExternalFileStorage.CreateDirectory(CompanyFolderPath);
+    end;
+
+    local procedure GetCurrentEnvironmentHash(): Text[16]
+    var
+        Company: Record Company;
+        EnvironmentInformation: Codeunit "Environment Information";
+        CryptographyManagement: Codeunit "Cryptography Management";
+        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
+        IdentityString: Text;
+    begin
+        Company.Get(CompanyName());
+
+        // Combine Tenant ID + Environment Name + Company System ID
+        IdentityString := TenantId() + '|' + EnvironmentInformation.GetEnvironmentName() + '|' + Format(Company.SystemId);
+
+        // Generate SHA256 hash and take first 16 characters
+        exit(CopyStr(CryptographyManagement.GenerateHash(IdentityString, HashAlgorithmType::SHA256), 1, 16));
+    end;
+
+    local procedure IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment: Record "Document Attachment"): Boolean
+    var
+        CurrentEnvironmentHash: Text[16];
+    begin
+        // If no source environment hash is set, assume it belongs to current environment
+        if DocumentAttachment."Source Environment Hash" = '' then
+            exit(false);
+
+        CurrentEnvironmentHash := GetCurrentEnvironmentHash();
+        exit(DocumentAttachment."Source Environment Hash" <> CurrentEnvironmentHash);
+    end;
+
+    local procedure MigrateFileToCurrentEnvironment(var DocumentAttachment: Record "Document Attachment"): Boolean
+    var
+        FileAccount: Record "File Account";
+        ExternalFileStorage: Codeunit "External File Storage";
+        FileScenarioCU: Codeunit "File Scenario";
+        TempBlob: Codeunit "Temp Blob";
+        FileScenario: Enum "File Scenario";
+        InStream: InStream;
+        OutStream: OutStream;
+        OldFilePath: Text;
+        NewFilePath: Text[2048];
+        MigrationMsg: Label 'File is being migrated from another environment folder to the current environment folder.';
+    begin
+        if not DocumentAttachment."Uploaded Externally" then
+            exit(false);
+
+        if DocumentAttachment."External File Path" = '' then
+            exit(false);
+
+        Message(MigrationMsg);
+
+        // Initialize external file storage
+        FileScenario := FileScenario::"Doc. Attach. - External Storage";
+        if not FileScenarioCU.GetFileAccount(FileScenario, FileAccount) then
+            exit(false);
+
+        ExternalFileStorage.Initialize(FileScenario);
+
+        // Download file from old location
+        OldFilePath := DocumentAttachment."External File Path";
+        if not ExternalFileStorage.GetFile(OldFilePath, InStream) then
+            exit(false);
+
+        // Copy to TempBlob
+        TempBlob.CreateOutStream(OutStream);
+        CopyStream(OutStream, InStream);
+        TempBlob.CreateInStream(InStream);
+
+        // Generate new file path in current company folder
+        NewFilePath := GetFilePathWithRootFolder(DocumentAttachment);
+
+        // Upload to new location
+        if not ExternalFileStorage.CreateFile(NewFilePath, InStream) then
+            exit(false);
+
+        // Update document attachment record
+        DocumentAttachment."External File Path" := NewFilePath;
+        DocumentAttachment."Source Environment Hash" := GetCurrentEnvironmentHash();
+        DocumentAttachment."External Upload Date" := CurrentDateTime();
+        DocumentAttachment.Modify();
+
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Runs migration for all document attachments from a previous company.
+    /// </summary>
+    /// <returns>Number of files migrated.</returns>
+    procedure RunCompanyMigration(): Integer
+    var
+        DocumentAttachment: Record "Document Attachment";
+        MigratedCount: Integer;
+        StartMigrationQst: Label 'This will migrate all document attachments from the previous company folder to the current company folder.\\Do you want to continue?';
+        MigrationCompletedMsg: Label '%1 file(s) have been successfully migrated to the current company folder.', Comment = '%1 = Number of files';
+    begin
+        if not Confirm(StartMigrationQst, false) then
+            exit(0);
+
+        MigratedCount := 0;
+        DocumentAttachment.SetRange("Uploaded Externally", true);
+        DocumentAttachment.SetFilter("External File Path", '<>%1', '');
+        if DocumentAttachment.FindSet(true) then
+            repeat
+                if IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment) then
+                    if MigrateFileToCurrentEnvironment(DocumentAttachment) then
+                        MigratedCount += 1;
+            until DocumentAttachment.Next() = 0;
+
+        if MigratedCount > 0 then begin
+            LogCompanyMigrationTelemetry();
+            Message(MigrationCompletedMsg, MigratedCount);
+        end;
+
+        exit(MigratedCount);
+    end;
+
+    /// <summary>
+    /// Shows the current environment hash for use in another environment.
+    /// </summary>
+    procedure ShowCurrentEnvironmentHash()
+    var
+        CurrentHash: Text[16];
+        HashCopiedMsg: Label 'Current environment hash: %1', Comment = '%1 = Hash value';
+    begin
+        CurrentHash := GetCurrentEnvironmentHash();
+        Message(HashCopiedMsg, CurrentHash);
+    end;
+
+    #region Telemetry Logging
+    local procedure LogFeatureUsedTelemetry()
+    var
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
+    begin
+        DAFeatureTelemetry.LogFeatureUsed();
+    end;
+
+    local procedure LogFileUploadedTelemetry()
+    var
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
+    begin
+        DAFeatureTelemetry.LogFileUploaded();
+    end;
+
+    local procedure LogFileDownloadedTelemetry()
+    var
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
+    begin
+        DAFeatureTelemetry.LogFileDownloaded();
+    end;
+
+    local procedure LogFileDeletedTelemetry()
+    var
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
+    begin
+        DAFeatureTelemetry.LogFileDeleted();
+    end;
+
+    local procedure LogCompanyMigrationTelemetry()
+    var
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
+    begin
+        DAFeatureTelemetry.LogCompanyMigration();
+    end;
+
+    local procedure IsFeatureEnabled(): Boolean
+    var
+        ExternalStorageSetup: Record "DA External Storage Setup";
+    begin
+        if not ExternalStorageSetup.Get() then
+            exit(false);
+
+        exit(ExternalStorageSetup.Enabled);
     end;
     #endregion
 }

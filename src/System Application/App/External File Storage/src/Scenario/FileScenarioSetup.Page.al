@@ -95,7 +95,7 @@ page 9452 "File Scenario Setup"
                     begin
                         FileScenarioEnum := Enum::"File Scenario".FromInteger(Rec.Scenario);
                         FileScenarioInterface := FileScenarioEnum;
-                        if not FileScenarioInterface.GetAdditionalScenarioSetup(Rec.Scenario, Rec.Connector) then
+                        if not FileScenarioInterface.GetAdditionalScenarioSetup(FileScenarioEnum, Rec.Connector) then
                             Message(NoSetupAvailableMsg);
                     end;
                 }

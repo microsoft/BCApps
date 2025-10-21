@@ -209,7 +209,7 @@ codeunit 9453 "File Scenario Impl."
         repeat
             FileScenarioEnum := Enum::"File Scenario".FromInteger(TempSelectedFileAccScenarios.Scenario);
             FileScenarioInterface := FileScenarioEnum;
-            if FileScenarioInterface.BeforeAddOrModifyFileScenarioCheck(TempSelectedFileAccScenarios.Scenario, TempSelectedFileAccScenarios.Connector) then
+            if FileScenarioInterface.BeforeAddOrModifyFileScenarioCheck(FileScenarioEnum, TempSelectedFileAccScenarios.Connector) then
                 exit;
 
             if not FileScenario.Get(TempSelectedFileAccScenarios.Scenario) then begin
@@ -324,7 +324,7 @@ codeunit 9453 "File Scenario Impl."
 
                 FileScenarioEnum := Enum::"File Scenario".FromInteger(TempFileAccountScenario.Scenario);
                 FileScenarioInterface := FileScenarioEnum;
-                if not FileScenarioInterface.BeforeDeleteFileScenarioCheck(TempFileAccountScenario.Scenario, TempFileAccountScenario.Connector) then
+                if not FileScenarioInterface.BeforeDeleteFileScenarioCheck(FileScenarioEnum, TempFileAccountScenario.Connector) then
                     FileScenario.DeleteAll();
             end;
         until TempFileAccountScenario.Next() = 0;
