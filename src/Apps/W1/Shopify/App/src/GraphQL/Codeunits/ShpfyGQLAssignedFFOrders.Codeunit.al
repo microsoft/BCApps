@@ -5,6 +5,10 @@
 
 namespace Microsoft.Integration.Shopify;
 
+/// <summary>
+/// Codeunit Shpfy GQL AssignedFFOrders (ID 30410).
+/// Implements the IGraphQL interface for retrieving assigned fulfillment orders using GraphQL.
+/// </summary>
 codeunit 30410 "Shpfy GQL AssignedFFOrders" implements "Shpfy IGraphQL"
 {
     Access = Internal;

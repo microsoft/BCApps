@@ -5,6 +5,10 @@
 
 namespace Microsoft.Integration.Shopify;
 
+/// <summary>
+/// Codeunit Shpfy GQL AcceptFFRequest (ID 30412).
+/// Implements the IGraphQL interface for accepting Shopify fulfillment requests using GraphQL.
+/// </summary>
 codeunit 30412 "Shpfy GQL AcceptFFRequest" implements "Shpfy IGraphQL"
 {
     Access = Internal;
