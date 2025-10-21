@@ -34,7 +34,14 @@ table 8750 "DA External Storage Setup"
             trigger OnValidate()
             var
                 DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
+                DisableSetupErr: Label 'Cannot disable External Storage setup because there are files uploaded using this configuration. Please delete the uploaded files before disabling the setup.';
             begin
+                if xRec.Enabled and not Rec.Enabled then begin
+                    CalcFields("Has Uploaded Files");
+                    if "Has Uploaded Files" then
+                        Error(DisableSetupErr);
+                end;
+
                 if Enabled then
                     DAFeatureTelemetry.LogFeatureEnabled()
                 else
