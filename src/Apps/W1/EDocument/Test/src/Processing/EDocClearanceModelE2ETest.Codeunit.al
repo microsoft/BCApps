@@ -30,7 +30,7 @@ codeunit 139890 "E-Doc Clearance Model E2E Test"
     [HandlerFunctions('QRCodeViewerPageHandler')]
     procedure TestQRCodeViewerWithSalesInvoiceWithQRCode()
     var
-        Cust: Record Customer;
+        Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         PostedSalesInvoice: TestPage "Posted Sales Invoice";
         NoTxt: Code[20];
