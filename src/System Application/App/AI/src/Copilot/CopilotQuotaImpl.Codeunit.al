@@ -77,19 +77,25 @@ codeunit 7786 "Copilot Quota Impl."
     procedure LogAgentUserAIConsumption(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; CallerModuleInfo: ModuleInfo; AgentTaskID: BigInteger; ActionsCharged: Text[1024]; Description: Text; UniqueID: Text[1024])
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
+        AlCopilotCapability: DotNet ALCopilotCapability;
+        AlCopilotUsageType: DotNet ALCopilotUsageType;
     begin
         if not CopilotCapabilityImpl.IsCapabilityRegistered(CopilotCapability, CallerModuleInfo) then
-            Session.LogMessage('', StrSubstNo(CapabilityNotRegisteredTelemetryMsg, CopilotCapability), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetCopilotCategory());
+            Session.LogMessage('0000QIY', StrSubstNo(CapabilityNotRegisteredTelemetryMsg, CopilotCapability), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetCopilotCategory());
 
-        Session.LogMessage('', StrSubstNo(LoggingUsageTelemetryMsg, CopilotCapability, Usage, CopilotQuotaUsageType), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetCopilotCategory());
+        Session.LogMessage('0000QIZ', StrSubstNo(LoggingUsageTelemetryMsg, CopilotCapability, Usage, CopilotQuotaUsageType), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetCopilotCategory());
 
-        ALCopilotFunctions.LogAgentUserAIConsumption(
-            CallerModuleInfo.Publisher(),
-            CallerModuleInfo.Name,
+        ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(
+                 CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), CopilotCapabilityImpl.CapabilityToEnumName(CopilotCapability));
+
+        UsageTypeToDotnetUsageType(CopilotQuotaUsageType, AlCopilotUsageType);
+
+        ALCopilotFunctions.LogAgentUserAIConsumptionAsync(
+            ALCopilotCapability,
             AgentTaskID,
             ActionsCharged,
             Description,
-            CopilotQuotaUsageType,
+            AlCopilotUsageType,
             Usage,
             UniqueID
         );
