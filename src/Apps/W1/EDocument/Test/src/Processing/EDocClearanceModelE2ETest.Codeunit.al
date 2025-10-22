@@ -37,11 +37,11 @@ codeunit 139890 "E-Doc Clearance Model E2E Test"
     begin
         // [SCENARIO] Verify that the QR Code Viewer page can be opened for a Sales Invoice that contains QR code data.
         // [GIVEN] A Sales Invoice is created and posted, and QR code data is generated and linked to the posted invoice.
-        LibrarySales.CreateCustomer(Cust);
+        LibrarySales.CreateCustomer(Customer);
 
-        EnsureManualPostedSalesInvoiceSeries('001');
-        NoTxt := 'TEST-EDOC-QR-001';
-        InsertFakePostedSalesInvoice(SalesInvoiceHeader, Cust."No.", NoTxt);
+        CheckManualPostedSalesInvoiceSeries('001');
+        InvoiceNoTxt := 'TEST-EDOC-QR-001';
+        InsertFakePostedSalesInvoice(SalesInvoiceHeader, Customer."No.", InvoiceNoTxt);
         CreateTestQRBufferForSalesInvoice(SalesInvoiceHeader."No.", GetTestBase64QRCode());
 
         // [WHEN] The user opens the Posted Sales Invoice page and selects the record with the QR code.
@@ -60,15 +60,15 @@ codeunit 139890 "E-Doc Clearance Model E2E Test"
         Cust: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         PostedSalesInvoice: TestPage "Posted Sales Invoice";
-        NoTxt: Code[20];
+        InvoiceNoTxt: Code[20];
     begin
         // [SCENARIO] Verify that the QR Code Viewer action is not visible for a Sales Invoice without QR code data.
         // [GIVEN] A Sales Invoice without QR code data is created and posted.
         LibrarySales.CreateCustomer(Cust);
 
-        EnsureManualPostedSalesInvoiceSeries('002');
-        NoTxt := 'TEST-EDOC-QR-002';
-        InsertFakePostedSalesInvoice(SalesInvoiceHeader, Cust."No.", NoTxt);
+        CheckManualPostedSalesInvoiceSeries('002');
+        InvoiceNoTxt := 'TEST-EDOC-QR-002';
+        InsertFakePostedSalesInvoice(SalesInvoiceHeader, Cust."No.", InvoiceNoTxt);
 
         // [WHEN] The user opens the Posted Sales Invoice page and selects the record with the QR code.
         PostedSalesInvoice.OpenView();
@@ -82,18 +82,18 @@ codeunit 139890 "E-Doc Clearance Model E2E Test"
     [HandlerFunctions('QRCodeViewerPageHandler')]
     procedure TestQRCodeViewerWithSalesCreditMemoWithQRCode()
     var
-        Cust: Record Customer;
+        Customer: Record Customer;
         SalesCreditMemo: Record "Sales Cr.Memo Header";
         PostedSalesCreditMemo: TestPage "Posted Sales Credit Memo";
-        NoTxt: Code[20];
+        CreditMemoNo: Code[20];
     begin
         // [SCENARIO] Verify that the QR Code Viewer page can be opened for a Sales Credit Memo that contains QR code data.
         // [GIVEN] A Sales Credit Memo is created and posted, and QR code data is generated and linked to the posted memo.
-        LibrarySales.CreateCustomer(Cust);
+        LibrarySales.CreateCustomer(Customer);
 
-        EnsureManualPostedCrMemoSeries('003');
-        NoTxt := 'TEST-EDOC-QR-003';
-        InsertFakePostedCrMemo(SalesCreditMemo, Cust."No.", NoTxt);
+        CheckManualPostedCrMemoSeries('003');
+        CreditMemoNo := 'TEST-EDOC-QR-003';
+        InsertFakePostedCrMemo(SalesCreditMemo, Customer."No.", CreditMemoNo);
         CreateTestQRBufferForSalesMemo(SalesCreditMemo."No.", GetTestBase64QRCode());
 
         // [WHEN] The user opens the Posted Sales Credit Memo page and selects the record with the QR code.
@@ -110,18 +110,18 @@ codeunit 139890 "E-Doc Clearance Model E2E Test"
     [Test]
     procedure TestQRCodeViewerWithSalesCreditMemoWithoutQRCode()
     var
-        Cust: Record Customer;
+        Customer: Record Customer;
         SalesCreditMemo: Record "Sales Cr.Memo Header";
         PostedSalesCreditMemo: TestPage "Posted Sales Credit Memo";
-        NoTxt: Code[20];
+        CreditMemoNo: Code[20];
     begin
         // [SCENARIO] Verify that the QR Code Viewer action is not visible for a Sales Credit Memo without QR code data.
         // [GIVEN] A Sales Credit Memo without QR code data is created and posted.
-        LibrarySales.CreateCustomer(Cust);
+        LibrarySales.CreateCustomer(Customer);
 
-        EnsureManualPostedCrMemoSeries('004');
-        NoTxt := 'TEST-EDOC-QR-004';
-        InsertFakePostedCrMemo(SalesCreditMemo, Cust."No.", NoTxt);
+        CheckManualPostedCrMemoSeries('004');
+        CreditMemoNo := 'TEST-EDOC-QR-004';
+        InsertFakePostedCrMemo(SalesCreditMemo, Customer."No.", CreditMemoNo);
 
         // [WHEN] The user opens the Posted Sales Credit Memo page and selects the record with the QR code.
         PostedSalesCreditMemo.OpenView();
@@ -187,7 +187,7 @@ codeunit 139890 "E-Doc Clearance Model E2E Test"
         exit(TestQRBase64);
     end;
 
-    local procedure EnsureManualPostedCrMemoSeries(SrNo: Code[3])
+    local procedure CheckManualPostedCrMemoSeries(SrNo: Code[3])
     var
         SRS: Record "Sales & Receivables Setup";
         NoSeries: Record "No. Series";
@@ -223,7 +223,7 @@ codeunit 139890 "E-Doc Clearance Model E2E Test"
         CrMemoHeader.Insert(true);
     end;
 
-    local procedure EnsureManualPostedSalesInvoiceSeries(SrNo: Code[3])
+    local procedure CheckManualPostedSalesInvoiceSeries(SrNo: Code[3])
     var
         SRS: Record "Sales & Receivables Setup";
         NoSeries: Record "No. Series";
