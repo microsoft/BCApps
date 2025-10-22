@@ -1,15 +1,15 @@
+#if not CLEANSCHEMA28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
-#pragma warning disable AL0432
 enum 6177 "EDoc Line Matching Scope"
 {
     Access = Internal;
     Extensible = false;
-    ObsoleteTag = '27.1';
+    ObsoleteTag = '28.0';
     ObsoleteReason = 'Replaced with experiment-based matching.';
     ObsoleteState = Pending;
 
@@ -22,4 +22,4 @@ enum 6177 "EDoc Line Matching Scope"
         Caption = 'Similar product descriptions';
     }
 }
-#pragma warning restore AL0432
+#endif

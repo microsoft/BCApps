@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -5,15 +6,19 @@
 
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
-#pragma warning disable AL0432
 table 6113 "EDoc Historical Matching Setup"
 {
     Access = Internal;
     Extensible = false;
     ReplicateData = false;
-    ObsoleteTag = '27.1';
     ObsoleteReason = 'Replaced with experiment-based matching.';
+    #if not CLEAN28
+    ObsoleteTag = '28.0';
     ObsoleteState = Pending;
+    #else
+    ObsoleteTag = '33.0';
+    ObsoleteState = Removed;
+    #endif
 
     fields
     {
@@ -50,4 +55,4 @@ table 6113 "EDoc Historical Matching Setup"
         Rec.Insert();
     end;
 }
-#pragma warning restore AL0432
+#endif
