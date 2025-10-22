@@ -49,6 +49,13 @@ pageextension 4318 "Agent User Subform" extends "User Subform"
         }
     }
 
+    trigger OnOpenPage()
+    var
+        AgentUtilities: Codeunit "Agent Utilities";
+    begin
+        AgentUtilities.BlockPageFromBeingOpenedByAgent();
+    end;
+
     trigger OnAfterGetRecord()
     begin
         UpdateGlobalVariables();

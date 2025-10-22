@@ -58,6 +58,13 @@ page 4320 "Agent Access Control"
         }
     }
 
+    trigger OnOpenPage()
+    var
+        AgentUtilities: Codeunit "Agent Utilities";
+    begin
+        AgentUtilities.BlockPageFromBeingOpenedByAgent();
+    end;
+
     trigger OnAfterGetRecord()
     begin
         UpdateGlobalVariables();
