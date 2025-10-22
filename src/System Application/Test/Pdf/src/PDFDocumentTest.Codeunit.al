@@ -30,7 +30,7 @@ codeunit 132601 "PDF Document Test"
         NavApp.GetResource('test.pdf', PdfInstream, TextEncoding::UTF8);
         TempBlob.CreateInStream(ImageStream);
         PdfDocument.Load(PdfInstream);
-        PdfDocument.ConvertToImage(ImageStream, ImageFormat::Png, 1);
+        PdfDocument.ConvertPdfToImage(ImageStream, ImageFormat::Png, 1);
         Assert.AreNotEqual(0, TempBlob.Length(), LengthErr);
     end;
 

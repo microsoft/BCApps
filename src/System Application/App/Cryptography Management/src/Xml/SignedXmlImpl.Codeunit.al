@@ -137,6 +137,17 @@ codeunit 1461 "SignedXml Impl."
     begin
         DotNetKeyInfo.AddClause(DotNetKeyInfoClause);
     end;
+
+    procedure AddKeyInfoClauseFromX509Certificate(X509CertBase64Value: Text; CertPassword: SecretText)
+    var
+        X509Certificate2Impl: Codeunit "X509Certificate2 Impl.";
+        DotNetX509Certificate2: DotNet X509Certificate2;
+        KeyInfoData: DotNet KeyInfoX509Data;
+    begin
+        X509Certificate2Impl.InitializeX509Certificate(X509CertBase64Value, CertPassword, DotNetX509Certificate2);
+        KeyInfoData := KeyInfoData.KeyInfoX509Data(DotNetX509Certificate2);
+        DotNetKeyInfo.AddClause(KeyInfoData);
+    end;
     #endregion
 
     #region DataObject

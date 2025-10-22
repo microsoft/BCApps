@@ -163,6 +163,16 @@ codeunit 1460 SignedXml
     end;
 
     /// <summary>
+    /// Adds key information from an X509 certificate to the collection of KeyInfoClause.
+    /// </summary>
+    /// <param name="X509CertBase64Value">The X509Certificate2 in Base64 format that contains the public key information to be added to KeyInfoClause.</param>
+    /// <param name="CertPassword">The password for the X509Certificate2.</param>
+    procedure AddKeyInfoClauseFromX509Certificate(X509CertBase64Value: Text; CertPassword: SecretText)
+    begin
+        SignedXmlImpl.AddKeyInfoClauseFromX509Certificate(X509CertBase64Value, CertPassword);
+    end;
+
+    /// <summary>
     /// Loads a SignedXml state from an XML element.
     /// </summary>
     /// <param name="SignatureElement">The XML element to load the SignedXml state from.</param>

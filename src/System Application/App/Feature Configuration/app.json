@@ -1,9 +1,9 @@
 {
   "id": "4c7e7094-fe3b-43da-970d-1ca056f7f3d3",
-  "name": "Configuration Management",
+  "name": "Feature Configuration",
   "publisher": "Microsoft",
-  "brief": "Retrieve configuration values from platform",
-  "description": "Retrieve configuration values from platform",
+  "brief": "Retrieve feature configuration values from platform",
+  "description": "Retrieve feature configuration values from platform",
   "version": "28.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
