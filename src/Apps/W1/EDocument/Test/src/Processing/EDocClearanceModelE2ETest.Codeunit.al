@@ -33,7 +33,7 @@ codeunit 139890 "E-Doc Clearance Model E2E Test"
         Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         PostedSalesInvoice: TestPage "Posted Sales Invoice";
-        NoTxt: Code[20];
+        InvoiceNoTxt: Code[20];
     begin
         // [SCENARIO] Verify that the QR Code Viewer page can be opened for a Sales Invoice that contains QR code data.
         // [GIVEN] A Sales Invoice is created and posted, and QR code data is generated and linked to the posted invoice.
