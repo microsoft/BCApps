@@ -189,22 +189,22 @@ codeunit 139890 "E-Doc Clearance Model E2E Test"
 
     local procedure CheckManualPostedCrMemoSeries(SrNo: Code[3])
     var
-        SRS: Record "Sales & Receivables Setup";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
         NoSeries: Record "No. Series";
     begin
-        if not SRS.Get() then
-            SRS.Init();
+        if not SalesReceivablesSetup.Get() then
+            SalesReceivablesSetup.Init();
 
-        if SRS."Posted Credit Memo Nos." = '' then begin
+        if SalesReceivablesSetup."Posted Credit Memo Nos." = '' then begin
             NoSeries.Init();
             NoSeries.Code := 'TEST-EDOC-QR' + SrNo;
             NoSeries."Manual Nos." := true;
             NoSeries.Insert(true);
 
-            SRS.Validate("Posted Credit Memo Nos.", NoSeries.Code);
-            SRS.Modify(true);
+            SalesReceivablesSetup.Validate("Posted Credit Memo Nos.", NoSeries.Code);
+            SalesReceivablesSetup.Modify(true);
         end else begin
-            NoSeries.Get(SRS."Posted Credit Memo Nos.");
+            NoSeries.Get(SalesReceivablesSetup."Posted Credit Memo Nos.");
             if not NoSeries."Manual Nos." then begin
                 NoSeries.Validate("Manual Nos.", true);
                 NoSeries.Modify(true);
@@ -225,22 +225,22 @@ codeunit 139890 "E-Doc Clearance Model E2E Test"
 
     local procedure CheckManualPostedSalesInvoiceSeries(SrNo: Code[3])
     var
-        SRS: Record "Sales & Receivables Setup";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
         NoSeries: Record "No. Series";
     begin
-        if not SRS.Get() then
-            SRS.Init();
+        if not SalesReceivablesSetup.Get() then
+            SalesReceivablesSetup.Init();
 
-        if SRS."Posted Invoice Nos." = '' then begin
+        if SalesReceivablesSetup."Posted Invoice Nos." = '' then begin
             NoSeries.Init();
             NoSeries.Code := 'TEST-EDOC-QR' + SrNo;
             NoSeries."Manual Nos." := true;
             NoSeries.Insert(true);
 
-            SRS.Validate("Posted Invoice Nos.", NoSeries.Code);
-            SRS.Modify(true);
+            SalesReceivablesSetup.Validate("Posted Invoice Nos.", NoSeries.Code);
+            SalesReceivablesSetup.Modify(true);
         end else begin
-            NoSeries.Get(SRS."Posted Invoice Nos.");
+            NoSeries.Get(SalesReceivablesSetup."Posted Invoice Nos.");
             if not NoSeries."Manual Nos." then begin
                 NoSeries.Validate("Manual Nos.", true);
                 NoSeries.Modify(true);
