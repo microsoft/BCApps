@@ -15,7 +15,7 @@ using System.Text;
 codeunit 139890 "E-Doc Clearance Model E2E Test"
 {
     Subtype = Test;
-    TestType = UnitTest;
+    TestType = IntegrationTest;
     EventSubscriberInstance = Manual;
     Permissions = TableData "Sales Header" = rimd,
                   TableData "Sales Invoice Header" = rimd,
