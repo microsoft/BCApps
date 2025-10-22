@@ -9,6 +9,7 @@ table 6114 "E-Doc. Purchase Line PO Match"
     Access = Internal;
     InherentEntitlements = RIMDX;
     InherentPermissions = RIMDX;
+    ReplicateData = false;
 
     fields
     {
