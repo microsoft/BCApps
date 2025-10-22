@@ -74,6 +74,27 @@ codeunit 7786 "Copilot Quota Impl."
         ALCopilotFunctions.LogCopilotQuotaUsage(AlCopilotCapability, Usage, AlCopilotUsageType);
     end;
 
+    procedure LogAgentUserAIConsumption(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; CallerModuleInfo: ModuleInfo; AgentTaskID: BigInteger; ActionsCharged: Text[1024]; Description: Text; UniqueID: Text[1024])
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+    begin
+        if not CopilotCapabilityImpl.IsCapabilityRegistered(CopilotCapability, CallerModuleInfo) then
+            Session.LogMessage('', StrSubstNo(CapabilityNotRegisteredTelemetryMsg, CopilotCapability), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetCopilotCategory());
+
+        Session.LogMessage('', StrSubstNo(LoggingUsageTelemetryMsg, CopilotCapability, Usage, CopilotQuotaUsageType), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetCopilotCategory());
+
+        ALCopilotFunctions.LogAgentUserAIConsumption(
+            CallerModuleInfo.Publisher(),
+            CallerModuleInfo.Name,
+            AgentTaskID,
+            ActionsCharged,
+            Description,
+            CopilotQuotaUsageType,
+            Usage,
+            UniqueID
+        );
+    end;
+
     local procedure UsageTypeToDotnetUsageType(CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; var AlCopilotUsageType: DotNet AlCopilotUsageType)
     begin
         case CopilotQuotaUsageType of

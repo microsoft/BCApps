@@ -33,6 +33,21 @@ codeunit 7785 "Copilot Quota"
     end;
 
     /// <summary>
+    /// Try function to log usage of Copilot quota in the system. This function is only available for Microsoft Copilot features.
+    /// </summary>
+    /// <param name="CopilotCapability">The Copilot Capability to log usage for.</param>
+    /// <param name="Usage">The usage to log.</param>
+    /// <param name="CopilotQuotaUsageType">The type of Copilot Quota to log.</param>
+    [Scope('OnPrem')]
+    procedure LogAgentUserAIConsumption(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; AgentTaskID: BigInteger; ActionsCharged: Text[1024]; Description: Text; UniqueID: Text[1024])
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        CopilotQuotaImpl.LogAgentUserAIConsumption(CopilotCapability, Usage, CopilotQuotaUsageType, CallerModuleInfo, AgentTaskID, ActionsCharged, Description, UniqueID);
+    end;
+
+    /// <summary>
     /// Checks if the tenant is allowed to consume Copilot quota.
     /// </summary>
     /// <returns>True if allowed, false otherwise.</returns>
