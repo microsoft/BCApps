@@ -15,10 +15,13 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
 
     internal procedure RegisterFulfillmentService(var Shop: Record "Shpfy Shop")
     var
+        SyncShopLocations: Codeunit "Shpfy Sync Shop Locations";
         Parameters: Dictionary of [Text, Text];
         JResponse: JsonToken;
     begin
         CommunicationMgt.SetShop(Shop);
+        Parameters.Add('Name', SyncShopLocations.GetFulfillmentServiceName());
+        Parameters.Add('CallbackUrl', SyncShopLocations.GetFulfillmentServiceCallbackUrl());
         GraphQLType := "Shpfy GraphQL Type"::CreateFulfillmentService;
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
 
