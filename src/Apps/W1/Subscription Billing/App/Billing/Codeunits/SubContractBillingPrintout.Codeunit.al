@@ -8,7 +8,6 @@ codeunit 8064 "Sub. Contract Billing Printout"
 {
     procedure FillContractBillingDetailsBufferFromSalesInvoice(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempJobLedgerEntryBuffer: Record "Job Ledger Entry"; var ColumnHeaders: array[5] of Text)
     var
-        ServiceContractSetup: Record "Subscription Contract Setup";
         BillingLineArchive: Record "Billing Line Archive";
         SalesInvoiceLine: Record "Sales Invoice Line";
         CustomerContract: Record "Customer Subscription Contract";
@@ -23,8 +22,6 @@ codeunit 8064 "Sub. Contract Billing Printout"
 
         if SalesInvoiceHeader."Sub. Contract Detail Overview" = Enum::"Contract Detail Overview"::None then
             exit;
-
-        ServiceContractSetup.Get();
 
         SalesDocuments.MoveBillingLineToBillingLineArchiveForPostingPreview(SalesInvoiceHeader);
 
@@ -51,12 +48,7 @@ codeunit 8064 "Sub. Contract Billing Printout"
                             TempJobLedgerEntryBuffer."Document Date" := UsageDataBilling."Charge Start Date";
                             TempJobLedgerEntryBuffer."Posting Date" := UsageDataBilling."Charge End Date";
                             TempJobLedgerEntryBuffer.Quantity := UsageDataBilling.Quantity;
-                            if (UsageDataBilling."Usage Base Pricing" = Enum::"Usage Based Pricing"::"Unit Cost Surcharge") and
-                               (ServiceContractSetup."Invoice Detail Origin" = Enum::"Invoice Detail Origin"::"Product Name (default)")
-                            then
-                                TempJobLedgerEntryBuffer.Description := UsageDataBilling."Product Name"
-                            else
-                                TempJobLedgerEntryBuffer.Description := UsageDataBilling."Subscription Description";
+                            TempJobLedgerEntryBuffer.Description := UsageDataBilling.GetPrintoutDescription();
                             TempJobLedgerEntryBuffer."External Document No." := UsageDataBilling."Subscription Contract No.";
                             TempJobLedgerEntryBuffer."Resource Group No." := SalesInvoiceHeader."Sell-to Customer No.";
                             if SalesInvoiceHeader."Sub. Contract Detail Overview" = Enum::"Contract Detail Overview"::Complete then begin

@@ -706,8 +706,38 @@ table 8006 "Usage Data Billing"
         exit((Rec."Document Type" <> "Usage Based Billing Doc. Type"::None) and (Rec."Document No." <> ''));
     end;
 
+    internal procedure GetPrintoutDescription() Description: Text[100]
+    begin
+        if ShouldPrintProductName() then
+            Description := "Product Name"
+        else
+            Description := "Subscription Description";
+        OnAfterGetPrintoutDescription(Rec, Description);
+    end;
+
+    internal procedure ShouldPrintProductName() Result: Boolean
+    var
+        ServiceContractSetup: Record "Subscription Contract Setup";
+    begin
+        ServiceContractSetup.Get();
+        Result :=
+            ("Usage Base Pricing" = Enum::"Usage Based Pricing"::"Unit Cost Surcharge") and
+            (ServiceContractSetup."Invoice Detail Origin" = Enum::"Invoice Detail Origin"::"Product Name (default)");
+        OnAfterShouldPrintProductName(Rec, Result);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterSaveDocumentValues(UsageDateBilling: Record "Usage Data Billing")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetPrintoutDescription(Rec: Record "Usage Data Billing"; var Description: Text[100])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterShouldPrintProductName(Rec: Record "Usage Data Billing"; var Result: Boolean)
     begin
     end;
 
