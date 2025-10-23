@@ -338,6 +338,13 @@ table 8068 "Sales Subscription Line"
                     "Unit Cost" := "Unit Cost (LCY)";
             end;
         }
+        field(102; "Currency Code"; Code[10])
+        {
+            Caption = 'Currency Code';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup("Sales Header"."Currency Code" where("Document Type" = field("Document Type"), "No." = field("Document No.")));
+        }
         field(8000; "Usage Based Billing"; Boolean)
         {
             Caption = 'Usage Based Billing';
@@ -816,11 +823,9 @@ table 8068 "Sales Subscription Line"
     end;
 
     local procedure GetCurrency(): Code[10]
-    var
-        SalesHeader: Record "Sales Header";
     begin
-        GetSalesHeader(SalesHeader);
-        exit(SalesHeader."Currency Code");
+        CalcFields("Currency Code");
+        exit(Rec."Currency Code");
     end;
 
     local procedure GetSalesLine(SalesSubscriptionLine: Record "Sales Subscription Line"; var SalesLine2: Record "Sales Line")
