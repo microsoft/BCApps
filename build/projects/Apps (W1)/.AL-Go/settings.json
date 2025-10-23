@@ -16,6 +16,7 @@
   "installOnlyReferencedApps": false,
   "doNotRunPageScriptingTests": true,
   "doNotRunBcptTests": true,
+  "testType": "IntegrationTest",
   "buildModes": [
     "AT",
     "AU",
@@ -230,7 +231,15 @@
         "UnitTests"
       ],
       "settings": {
-        "doNotImportTestData": true
+        "testType": "UnitTest"
+      }
+    },
+    {
+      "buildModes": [
+        "UncategorizedTests"
+      ],
+      "settings": {
+        "testType": "Uncategorized"
       }
     },
     {

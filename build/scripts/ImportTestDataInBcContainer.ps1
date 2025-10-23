@@ -65,16 +65,21 @@ foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSp
 
 if ($null -ne $env:settings) {
     $alGoSettings = $env:settings | ConvertFrom-Json
-    if (($alGoSettings.PSObject.Properties.Name -contains "doNotImportTestData") -and ($alGoSettings.doNotImportTestData -eq $true)) {
-        Write-Host "Skipping demo data generation as doNotImportTestData is set to true in AL-Go settings"
-        return
-    } else {
-        Write-Host "doNotImportTestData not found in AL-Go settings or is set to false. Proceeding with demo data generation."
+    if ($alGoSettings.PSObject.Properties.Name -contains "testType") {
+        if ($alGoSettings.testType -eq "UnitTest") {
+            Write-Host "Skipping demo data generation as test type is set to UnitTest in AL-Go settings"
+            return
+        } elseif( $alGoSettings.testType -eq "IntegrationTest" ) {
+            Write-Host "Proceeding with demo data generation (SetupData) as test type is set to IntegrationTest in AL-Go settings"
+            Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName -SetupData
+        } elseif( $alGoSettings.testType -eq "Uncategorized" ) {
+            Write-Host "Proceeding with full demo data generation as test type is set to E2ETest in AL-Go settings"
+            Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName
+        } else {
+            throw "Unknown test type $($alGoSettings.testType) in AL-Go settings."
+        }
     }
 } else {
-    Write-Host "No AL-Go settings found in environment variable. Proceeding with demo data generation."
+    Write-Host "No Test Type found in AL-Go settings. Setting up SetupData."
+    Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName -SetupData
 }
-
-
-# Generate demo data in the container
-Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName -SetupData

@@ -58,6 +58,14 @@ if ($DisableTestIsolation)
     $parameters["testRunnerCodeunitId"] = "130451" # Test Runner with disabled test isolation
 }
 
+if ($null -ne $env:settings) {
+    $alGoSettings = $env:settings | ConvertFrom-Json
+    if ($alGoSettings.PSObject.Properties.Name -contains "testType") {
+        Write-Host "Using test type $($alGoSettings.testType)"
+        $parameters["testType"] = $alGoSettings.testType
+    }
+}
+
 $parameters["disabledTests"] = @(Get-DisabledTests) # Add disabled tests to parameters
 $parameters["renewClientContextBetweenTests"] = $true
 
