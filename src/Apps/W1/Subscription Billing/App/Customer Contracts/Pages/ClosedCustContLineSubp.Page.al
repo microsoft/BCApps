@@ -93,6 +93,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                 {
                     Editable = false;
                     ToolTip = 'Specifies the number of units of Subscription.';
+                    AutoFormatType = 0;
+                    DecimalPlaces = 0 : 5;
 
                     trigger OnDrillDown()
                     begin
