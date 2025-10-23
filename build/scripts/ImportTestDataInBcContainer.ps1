@@ -63,5 +63,18 @@ foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSp
     Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - $($app.IsInstalled) / $($app.IsPublished)"
 }
 
+if ($null -ne $env:settings) {
+    $alGoSettings = $env:settings | ConvertFrom-Json
+    if (($alGoSettings.PSObject.Properties.Name -contains "doNotImportTestData") -and ($alGoSettings.doNotImportTestData -eq $true)) {
+        Write-Host "Skipping demo data generation as doNotImportTestData is set to true in AL-Go settings"
+        return
+    } else {
+        Write-Host "doNotImportTestData not found in AL-Go settings or is set to false. Proceeding with demo data generation."
+    }
+} else {
+    Write-Host "No AL-Go settings found in environment variable. Proceeding with demo data generation."
+}
+
+
 # Generate demo data in the container
 Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName -SetupData
