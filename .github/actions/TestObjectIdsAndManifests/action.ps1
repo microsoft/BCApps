@@ -11,5 +11,5 @@ Test-ApplicationIds -SourceCodePaths $sourceCodeFolder
 
 # Test that all manifests are valid
 $currentMajorMinor = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
-$expectedPlatformVersion = "$($currentMajorMinor).0.0" # This can be hardcoded to a specific platform version if needed during version updates 
+$expectedPlatformVersion = "$($currentMajorMinor).0.0" # This can be hardcoded to a specific platform version if needed during version updates
 Test-ApplicationManifests -Path $sourceCodeFolder `-ExpectedAppVersion "$($currentMajorMinor).0.0" -ExpectedPlatformVersion $expectedPlatformVersion
