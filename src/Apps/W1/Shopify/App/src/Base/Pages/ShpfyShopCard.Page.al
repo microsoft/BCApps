@@ -77,10 +77,10 @@ page 30101 "Shpfy Shop Card"
                 field(HasAccessKey; Rec.HasAccessToken())
                 {
                     ApplicationArea = All;
-                    Caption = 'Has AccessKey';
+                    Caption = 'Has access token';
                     Importance = Additional;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies if an access key is available for this store.';
+                    ToolTip = 'Specifies if an API access token is available for this store. The token allows the connector to access your shop''s data as long as the app is installed. To acquire a token, turn on the Enabled toggle or use the Request Access action.';
                 }
                 field(CurrencyCode; Rec."Currency Code")
                 {
@@ -881,7 +881,8 @@ page 30101 "Shpfy Shop Card"
                     ApplicationArea = All;
                     Image = EncryptionKeys;
                     Caption = 'Request Access';
-                    ToolTip = 'Request Access to your Shopify store.';
+                    ToolTip = 'Request access to your Shopify store. Use this to fix connection issues, after connector updates that require new permissions, or when rotating security tokens for this shop.';
+                    Enabled = Rec.Enabled;
 
                     trigger OnAction()
                     begin
