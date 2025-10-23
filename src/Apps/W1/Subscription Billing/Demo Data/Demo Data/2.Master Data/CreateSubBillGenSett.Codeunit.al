@@ -37,7 +37,7 @@ codeunit 8115 "Create Sub. Bill. Gen. Sett."
             DataExchDef.Delete(true);
 
         TempBlob.CreateOutStream(XMLOutStream);
-        XMLOutStream.WriteText(NavApp.GetResourceAsText('USAGE-GENERIC-US.xml'));
+        XMLOutStream.WriteText(NavApp.GetResourceAsText('USAGE-GENERIC-US.xml', TextEncoding::UTF8));
         TempBlob.CreateInStream(XMLInStream);
         Xmlport.Import(Xmlport::"Imp / Exp Data Exch Def & Map", XMLInStream);
         Clear(TempBlob);
