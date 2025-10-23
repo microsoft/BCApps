@@ -83,7 +83,7 @@ table 8068 "Sales Subscription Line"
             MinValue = 0;
             BlankZero = true;
             AutoFormatType = 1;
-            AutoFormatExpression = GetCurrency();
+            AutoFormatExpression = Rec."Currency Code";
 
             trigger OnValidate()
             begin
@@ -111,7 +111,7 @@ table 8068 "Sales Subscription Line"
             Editable = false;
             BlankZero = true;
             AutoFormatType = 2;
-            AutoFormatExpression = GetCurrency();
+            AutoFormatExpression = Rec."Currency Code";
 
             trigger OnValidate()
             var
@@ -144,7 +144,7 @@ table 8068 "Sales Subscription Line"
             MinValue = 0;
             BlankZero = true;
             AutoFormatType = 1;
-            AutoFormatExpression = GetCurrency();
+            AutoFormatExpression = Rec."Currency Code";
 
             trigger OnValidate()
             begin
@@ -156,7 +156,7 @@ table 8068 "Sales Subscription Line"
             Caption = 'Amount';
             BlankZero = true;
             AutoFormatType = 1;
-            AutoFormatExpression = GetCurrency();
+            AutoFormatExpression = Rec."Currency Code";
 
             trigger OnValidate()
             begin
@@ -319,7 +319,7 @@ table 8068 "Sales Subscription Line"
             Caption = 'Unit Cost';
             Editable = false;
             AutoFormatType = 2;
-            AutoFormatExpression = GetCurrency();
+            AutoFormatExpression = Rec."Currency Code";
         }
         field(101; "Unit Cost (LCY)"; Decimal)
         {
@@ -820,12 +820,6 @@ table 8068 "Sales Subscription Line"
     local procedure GetSalesLine(var SalesLine2: Record "Sales Line")
     begin
         GetSalesLine(Rec, SalesLine2);
-    end;
-
-    local procedure GetCurrency(): Code[10]
-    begin
-        CalcFields("Currency Code");
-        exit(Rec."Currency Code");
     end;
 
     local procedure GetSalesLine(SalesSubscriptionLine: Record "Sales Subscription Line"; var SalesLine2: Record "Sales Line")
