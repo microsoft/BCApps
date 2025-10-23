@@ -55,7 +55,7 @@ codeunit 139559 "Shpfy Shipping Helper"
         end;
     end;
 
-    internal procedure CreateShopifyFulfillmentOrder(ShopifyOrderId: BigInteger; DeliveryMethodType: Enum "Shpfy Delivery Method Type"): BigInteger
+    internal procedure CreateShopifyFulfillmentOrder(ShopifyOrderId: BigInteger; DeliveryMethodType: Enum "Shpfy Delivery Method Type"): Record "Shpfy FulFillment Order Header"
     var
         OrderLine: Record "Shpfy Order Line";
         FulfillmentOrderHeader: Record "Shpfy FulFillment Order Header";
@@ -87,7 +87,7 @@ codeunit 139559 "Shpfy Shipping Helper"
                 FulfillmentOrderLine.Insert();
             until OrderLine.Next() = 0;
 
-        exit(FulfillmentOrderHeader."Shopify Fulfillment Order Id");
+        exit(FulfillmentOrderHeader);
     end;
 
     internal procedure CreateRandomSalesShipment(var SalesShipmentHeader: Record "Sales Shipment Header"; ShopifyOrderId: BigInteger)
