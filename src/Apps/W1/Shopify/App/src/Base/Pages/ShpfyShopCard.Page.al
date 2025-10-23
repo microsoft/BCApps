@@ -926,6 +926,21 @@ page 30101 "Shpfy Shop Card"
                         CommunicationMgt.ClearApiVersionCache();
                     end;
                 }
+                action(LeaveReview)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Leave a Review';
+                    Image = CustomerRating;
+                    ToolTip = 'Open the Shopify App Store to leave a review for the Shopify connector.';
+
+                    trigger OnAction()
+                    var
+                        ShopReview: Codeunit "Shpfy Shop Review";
+                    begin
+                        ShopReview.OpenReviewLinkFromShop(Rec.GetStoreName());
+                    end;
+                }
+
             }
             group(Sync)
             {
@@ -1234,6 +1249,7 @@ page 30101 "Shpfy Shop Card"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         AuthenticationMgt: Codeunit "Shpfy Authentication Mgt.";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ShopReview: Codeunit "Shpfy Shop Review";
         ApiVersionExpiryDateTime: DateTime;
     begin
         FeatureTelemetry.LogUptake('0000HUU', 'Shopify', Enum::"Feature Uptake Status"::Discovered);
@@ -1256,6 +1272,8 @@ page 30101 "Shpfy Shop Card"
             Rec.UpdateFulfillmentService();
 #endif
         end;
+
+        ShopReview.MaybeShowReviewReminder(Rec.GetStoreName());
     end;
 
     trigger OnAfterGetCurrRecord()
