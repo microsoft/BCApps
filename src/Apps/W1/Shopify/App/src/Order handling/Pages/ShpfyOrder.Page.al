@@ -353,6 +353,13 @@ page 30113 "Shpfy Order"
                     ApplicationArea = All;
                     ToolTip = 'Specifies if tax is included in the unit price.';
                 }
+                field("Channel Liable Taxes"; Rec."Channel Liable Taxes")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies if any tax line on the order is liable to be charged by the sales channel.';
+                }
+
                 field(CurrencyCode; Rec."Currency Code")
                 {
                     ApplicationArea = All;
