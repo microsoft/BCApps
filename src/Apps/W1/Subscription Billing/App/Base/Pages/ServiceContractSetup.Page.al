@@ -112,6 +112,15 @@ page 8051 "Service Contract Setup"
                     }
                 }
             }
+            group("Usage Data")
+            {
+                Caption = 'Usage Data';
+
+                field("Invoice Detail Origin"; Rec."Invoice Detail Origin")
+                {
+                    ToolTip = 'Specifies the origin of the invoice details'' description for usage data to be charged as Unit Cost Surcharge.';
+                }
+            }
             group("Gen. Journal Templates")
             {
                 Caption = 'Journal Templates';
