@@ -30,18 +30,24 @@ jobs:
 
       - name: Initialize the workflow
         id: init
-        uses: microsoft/AL-Go-Actions/WorkflowInitialize@v8.0
+        uses: microsoft/AL-Go/Actions/WorkflowInitialize@13868260bf008b56d26fd739c1f764b2bb2c8239
         with:
           shell: powershell
 
       - name: Read settings
-        uses: microsoft/AL-Go-Actions/ReadSettings@v8.0
+        uses: microsoft/AL-Go/Actions/ReadSettings@13868260bf008b56d26fd739c1f764b2bb2c8239
+        with:
+          shell: powershell
+
+      - name: Determine ArtifactUrl
+        id: determineArtifactUrl
+        uses: microsoft/AL-Go/Actions/DetermineArtifactUrl@13868260bf008b56d26fd739c1f764b2bb2c8239
         with:
           shell: powershell
 
       - name: Determine Deployment Environments
         id: DetermineDeploymentEnvironments
-        uses: microsoft/AL-Go-Actions/DetermineDeploymentEnvironments@v8.0
+        uses: microsoft/AL-Go/Actions/DetermineDeploymentEnvironments@13868260bf008b56d26fd739c1f764b2bb2c8239
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -54,10 +60,11 @@ jobs:
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
 
       - name: Build Reference Documentation
-        uses: microsoft/AL-Go-Actions/BuildReferenceDocumentation@v8.0
+        uses: microsoft/AL-Go/Actions/BuildReferenceDocumentation@13868260bf008b56d26fd739c1f764b2bb2c8239
         with:
           shell: powershell
           artifacts: 'latest'
+          artifactUrl: ${{ env.artifact }}
 
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
@@ -71,7 +78,7 @@ jobs:
 
       - name: Finalize the workflow
         if: always()
-        uses: microsoft/AL-Go-Actions/WorkflowPostProcess@v8.0
+        uses: microsoft/AL-Go/Actions/WorkflowPostProcess@13868260bf008b56d26fd739c1f764b2bb2c8239
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
