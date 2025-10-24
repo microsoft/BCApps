@@ -26,7 +26,7 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         TempHistoricalMatchBuffer: Record "EDoc Historical Match Buffer" temporary;
         EDocSimilarDescriptions: Codeunit "E-Doc. Similar Descriptions";
         EDocumentNo: Integer;
-        HistoricalDataLoadFailedErr: Label 'Failed to load historical data for e-document %1. Error: %2', Comment = '%1 = E-Document System Id, %2 = Error message', Locked = true;
+        HistoricalDataLoadFailedErr: Label 'Failed to load historical data for e-document line %1. Error: %2', Comment = '%1 = E-Document System Id, %2 = Error message', Locked = true;
         AIHistoricalDataLoadEventTok: Label 'Historical Data Load', Locked = true;
 
     trigger OnRun()
@@ -38,7 +38,7 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         FeatureTelemetry: Codeunit "Feature Telemetry";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         EDocPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
-        ConfigurationManagement: Codeunit "Configuration Management";
+        FeatureConfiguration: Codeunit "Feature Configuration";
         MistakesCount: Integer;
         MatchedCount: Integer;
         TelemetryDimensions: Dictionary of [Text, Text];
@@ -47,7 +47,7 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         HistoricalMatchingConfig: Text;
     begin
         // Get experiment configuration
-        HistoricalMatchingConfig := ConfigurationManagement.GetConfiguration(HistoricalMatchingExperimentTok);
+        HistoricalMatchingConfig := FeatureConfiguration.GetConfiguration(HistoricalMatchingExperimentTok);
 
         if not PrepareHistoricalData(Rec, HistoricalMatchingConfig) then
             exit;
@@ -163,7 +163,7 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
 
         ElapsedTime := CurrentDateTime() - StartTime;
         TelemetryDimensions.Add('Records loaded', Format(RecordCount));
-        TelemetryDimensions.Add('Duration (ms)', Format(ElapsedTime));
+        TelemetryDimensions.Add('Duration', Format(ElapsedTime));
         if (HistoricalMatchingConfig = 'control') or (HistoricalMatchingConfig = '') then
             TelemetryDimensions.Add('Vendor matching scope', 'Same Vendor')
         else

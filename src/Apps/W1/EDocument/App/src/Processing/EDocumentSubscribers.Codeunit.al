@@ -14,6 +14,7 @@ using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
 using Microsoft.eServices.EDocument.OrderMatch;
 using Microsoft.eServices.EDocument.Service.Participant;
+using Microsoft.eServices.EDocument.Processing.AI;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Sales.Document;
@@ -422,6 +423,11 @@ codeunit 6103 "E-Document Subscribers"
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Purchase Line History");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Line - Field");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"ED Purchase Line Field Setup");
+#if not CLEAN28
+#pragma warning disable AL0432
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EDoc Historical Matching Setup");
+#pragma warning restore AL0432
+#endif
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Vendor Assign. History");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Record Link");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Notification");
