@@ -56,7 +56,7 @@ function Invoke-DemoDataGeneration
         [string]$TestType
     )
     if ($TestType -eq "UnitTest") {
-        Write-Host "Skipping demo data generation as test type is set to UnitTest"
+        Write-Host "UnitTest shouldn't have dependency on any Demo Data, skipping demo data generation"
         return
     } elseif( $TestType -eq "IntegrationTest" ) {
         Write-Host "Proceeding with demo data generation (SetupData) as test type is set to IntegrationTest"
