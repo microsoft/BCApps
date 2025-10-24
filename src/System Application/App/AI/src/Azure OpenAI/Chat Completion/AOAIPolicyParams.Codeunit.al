@@ -53,10 +53,25 @@ codeunit 7787 "AOAI Policy Params"
     end;
 
     /// <summary>
-    /// Gets the AOAI policy enum based on the provided policy parameters.
+    /// Gets a Custom AOAI policy.
     /// </summary>
-    /// <returns>The corresponding AOAI policy enum value.</returns>
-    internal procedure GetAOAIPolicy(): Enum "AOAI Policy"
+    procedure GetCustomAOAIPolicy(): Text
+    begin
+        exit(AOAIPolicyParamsImpl.GetCustomAOAIPolicy());
+    end;
+
+    /// <summary>
+    /// Sets a Custom AOAI policy.
+    /// </summary>
+    procedure SetCustomAOAIPolicy(CustomAOAIPolicyParams: Text)
+    begin
+        AOAIPolicyParamsImpl.SetCustomAOAIPolicy(CustomAOAIPolicyParams);
+    end;
+
+    /// <summary>
+    /// Gets the AOAI policy as text based on the provided policy parameters or a Custom one.
+    /// </summary>
+    internal procedure GetAOAIPolicy(): Text
     begin
         exit(AOAIPolicyParamsImpl.GetAOAIPolicy());
     end;

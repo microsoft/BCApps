@@ -182,6 +182,7 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
 
         DefaultPolicyParams.SetHarmsSeverity("AOAI Policy Harms Severity"::Low);
         DefaultPolicyParams.SetXPIADetection(true);
+        DefaultPolicyParams.SetCustomAOAIPolicy('');
         SetAOAIPolicyParams(DefaultPolicyParams);
     end;
 }

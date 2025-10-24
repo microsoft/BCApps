@@ -13,6 +13,7 @@ codeunit 7788 "AOAI Policy Params Impl"
     var
         HarmsSeverity: Enum "AOAI Policy Harms Severity";
         IsXPIADetectionEnabled: Boolean;
+        CustomAOAIPolicy: Text;
         Initialized: Boolean;
 
     procedure GetHarmsSeverity(): Enum "AOAI Policy Harms Severity"
@@ -47,7 +48,31 @@ codeunit 7788 "AOAI Policy Params Impl"
         IsXPIADetectionEnabled := IsEnabled;
     end;
 
-    internal procedure GetAOAIPolicy(): Enum "AOAI Policy"
+    procedure GetCustomAOAIPolicy(): Text
+    begin
+        if not Initialized then
+            InitializeDefaults();
+
+        exit(CustomAOAIPolicy);
+    end;
+
+    procedure SetCustomAOAIPolicy(NewCustomAOAIPolicy: Text)
+    begin
+        if not Initialized then
+            InitializeDefaults();
+
+        CustomAOAIPolicy := NewCustomAOAIPolicy;
+    end;
+
+    internal procedure GetAOAIPolicy(): Text
+    begin
+        if GetCustomAOAIPolicy() <> '' then
+            exit(GetCustomAOAIPolicy())
+        else
+            exit(Format(GetAOAIPolicyEnum()));
+    end;
+
+    local procedure GetAOAIPolicyEnum(): Enum "AOAI Policy"
     var
         AOAIPolicyHarmsSeverity: Enum "AOAI Policy Harms Severity";
         AOAIPolicyXPIADetection: Boolean;
@@ -76,5 +101,6 @@ codeunit 7788 "AOAI Policy Params Impl"
         Initialized := true;
         HarmsSeverity := "AOAI Policy Harms Severity"::Low;
         IsXPIADetectionEnabled := true;
+        CustomAOAIPolicy := '';
     end;
 }
