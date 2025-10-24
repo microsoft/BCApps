@@ -83,7 +83,7 @@ function Test-ApplicationIds {
     .DESCRIPTION
     This function scans the specified source code paths for AL files, identifies test objects,
     and checks their TestType property. It ensures that all test objects have a TestType that is
-    within the allowed list, except for those listed in the Exceptions parameter. 
+    within the allowed list, except for those listed in the Exceptions parameter.
     .PARAMETER SourceCodePaths
     An array of paths to the source code directories to be scanned for AL files.
     .PARAMETER AllowedTestTypes
@@ -106,7 +106,7 @@ function Test-ApplicationTestTypes {
 
             if (($null -eq $testType) -or ($null -eq $objectId)) {
                 continue
-            } 
+            }
 
             if ($Exceptions -contains $objectId) {
                 Write-Host "Test object ID $objectId in file $($alFile.FullName) is in the list of exceptions."
@@ -120,7 +120,7 @@ function Test-ApplicationTestTypes {
     }
     if ($uncategorizedTests.Count -gt 0) {
         Write-Host "##[error]Found new added test objects with Uncategorized TestType: $($uncategorizedTests -join ','). Allowed TestTypes are: $($AllowedTestTypes -join ',')"
-        throw "Invalid test types detected. When adding new test objects, ensure that their TestType is either 'UnitTest' or 'IntegrationTest'."
+        throw "Invalid test types detected. When adding new test objects, ensure that their TestType is one of the following: $($AllowedTestTypes -join ', ')."  
     }
 }
 
