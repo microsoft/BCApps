@@ -76,8 +76,8 @@ codeunit 7786 "Copilot Quota Impl."
 
     procedure LogAgentUserAIConsumption(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; CallerModuleInfo: ModuleInfo; AgentTaskID: BigInteger; ActionsCharged: Text[1024]; Description: Text; UniqueID: Text[1024])
     var
-        ALCopilotFunctions: DotNet ALCopilotFunctions;
         AlCopilotCapability: DotNet ALCopilotCapability;
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
         AlCopilotUsageType: DotNet ALCopilotUsageType;
     begin
         if not CopilotCapabilityImpl.IsCapabilityRegistered(CopilotCapability, CallerModuleInfo) then

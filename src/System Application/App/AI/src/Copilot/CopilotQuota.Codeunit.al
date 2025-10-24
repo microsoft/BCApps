@@ -33,7 +33,8 @@ codeunit 7785 "Copilot Quota"
     end;
 
     /// <summary>
-    /// Try function to log usage of Agent functionality. This function is only available for Microsoft Agents.
+    /// Log usage of Agent functionality. This function is only available for Microsoft Agents.
+    /// Function will call the platform to log the usage of the agents. Charging will be handled by the platform afterwards.
     /// </summary>
     /// <param name="CopilotCapability">The Copilot Capability to log usage for.</param>
     /// <param name="Usage">The usage to log.</param>
