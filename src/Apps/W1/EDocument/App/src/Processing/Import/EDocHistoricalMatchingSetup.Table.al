@@ -1,4 +1,4 @@
-#if not CLEANSCHEMA28
+#if not CLEANSCHEMA31
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -16,7 +16,7 @@ table 6113 "EDoc Historical Matching Setup"
     ObsoleteTag = '28.0';
     ObsoleteState = Pending;
 #else
-    ObsoleteTag = '33.0';
+    ObsoleteTag = '31.0';
     ObsoleteState = Removed;
 #endif
 
