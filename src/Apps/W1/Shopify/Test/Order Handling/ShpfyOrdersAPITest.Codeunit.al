@@ -994,7 +994,6 @@ codeunit 139608 "Shpfy Orders API Test"
         ExpectedChannelLiable: Boolean;
         ScenarioName: Text;
         OrderTaxLineFound: Boolean;
-        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
     begin
         // [GIVEN] Shopify shop context and an order JSON with the taxLines array removed.
         Initialize();
@@ -1017,7 +1016,7 @@ codeunit 139608 "Shpfy Orders API Test"
         OrderTaxLine.Reset();
         OrderTaxLine.SetRange("Parent Id", OrderHeader."Shopify Order Id");
 
-        OrderTaxLineFound := Not OrderTaxLine.IsEmpty();
+        OrderTaxLineFound := not OrderTaxLine.IsEmpty();
         LibraryAssert.IsFalse(OrderTaxLineFound, 'Order-level tax lines should not be created when taxLines array is missing.');
 
         OrderHeader.CalcFields("Channel Liable Taxes");
