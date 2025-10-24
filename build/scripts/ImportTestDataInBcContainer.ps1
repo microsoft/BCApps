@@ -51,7 +51,7 @@ function Invoke-DemoDataGeneration
     param(
         [Parameter(Mandatory=$true)]
         [string]$ContainerName,
-        [Parameter(Mandatory=$true)] 
+        [Parameter(Mandatory=$true)]
         [ValidateSet("UnitTest","IntegrationTest","Uncategorized")]
         [string]$TestType
     )
