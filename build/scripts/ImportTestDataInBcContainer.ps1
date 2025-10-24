@@ -3,6 +3,7 @@ Param(
 )
 
 Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
+Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
 function Invoke-ContosoDemoTool() {
     param(
@@ -45,6 +46,30 @@ function Get-NavDefaultCompanyName
     throw "No Cronus company found in container $ContainerName.."
 }
 
+function Invoke-DemoDataGeneration
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [Parameter(Mandatory=$true)] 
+        [ValidateSet("UnitTest","IntegrationTest","Uncategorized")]
+        [string]$TestType
+    )
+    if ($TestType -eq "UnitTest") {
+        Write-Host "Skipping demo data generation as test type is set to UnitTest"
+        return
+    } elseif( $TestType -eq "IntegrationTest" ) {
+        Write-Host "Proceeding with demo data generation (SetupData) as test type is set to IntegrationTest"
+        Invoke-ContosoDemoTool -ContainerName $ContainerName -SetupData
+    } elseif( $TestType -eq "Uncategorized" ) {
+        Write-Host "Proceeding with full demo data generation as test type is set to Uncategorized"
+        Invoke-ContosoDemoTool -ContainerName $ContainerName
+    } else {
+        throw "Unknown test type $TestType."
+    }
+
+}
+
 # Reinstall all the uninstalled apps in the container
 # This is needed to ensure that the various Demo Data apps are installed in the container when we generate demo data
 $allUninstalledApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesFirst | Where-Object { $_.IsInstalled -eq $false }
@@ -63,23 +88,4 @@ foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSp
     Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - $($app.IsInstalled) / $($app.IsPublished)"
 }
 
-if ($null -ne $env:settings) {
-    $alGoSettings = $env:settings | ConvertFrom-Json
-    if ($alGoSettings.PSObject.Properties.Name -contains "testType") {
-        if ($alGoSettings.testType -eq "UnitTest") {
-            Write-Host "Skipping demo data generation as test type is set to UnitTest in AL-Go settings"
-            return
-        } elseif( $alGoSettings.testType -eq "IntegrationTest" ) {
-            Write-Host "Proceeding with demo data generation (SetupData) as test type is set to IntegrationTest in AL-Go settings"
-            Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName -SetupData
-        } elseif( $alGoSettings.testType -eq "Uncategorized" ) {
-            Write-Host "Proceeding with full demo data generation as test type is set to E2ETest in AL-Go settings"
-            Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName
-        } else {
-            throw "Unknown test type $($alGoSettings.testType) in AL-Go settings."
-        }
-    }
-} else {
-    Write-Host "No Test Type found in AL-Go settings. Setting up SetupData."
-    Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName -SetupData
-}
+Invoke-DemoDataGeneration -ContainerName $parameters.ContainerName -TestType (Get-ALGoSetting -Key "testType")
