@@ -77,6 +77,20 @@ function Test-ApplicationIds {
     }
 }
 
+<#
+    .SYNOPSIS
+    Tests that all test objects are categorized correctly with allowed test types.
+    .DESCRIPTION
+    This function scans the specified source code paths for AL files, identifies test objects,
+    and checks their TestType property. It ensures that all test objects have a TestType that is
+    within the allowed list, except for those listed in the Exceptions parameter. 
+    .PARAMETER SourceCodePaths
+    An array of paths to the source code directories to be scanned for AL files.
+    .PARAMETER AllowedTestTypes
+    An array of allowed test types. Default is "UnitTest", "IntegrationTest", and "AITest".
+    .PARAMETER Exceptions
+    An array of object IDs that are exceptions
+#>
 function Test-ApplicationTestTypes {
     param(
         [string[]] $SourceCodePaths = @(),
@@ -95,12 +109,11 @@ function Test-ApplicationTestTypes {
             } 
 
             if ($Exceptions -contains $objectId) {
-                Write-Host "Test object ID $objectId in file $($alFile.FullName) is uncategorized but is in the exceptions list."
+                Write-Host "Test object ID $objectId in file $($alFile.FullName) is in the list of exceptions."
                 continue
             }
 
             if (-not ($AllowedTestTypes -contains $testType)) {
-                Write-Host "Test object ID $objectId in file $($alFile.FullName) is uncategorized."
                 $uncategorizedTests += "$objectId"
             }
         }
