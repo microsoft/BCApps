@@ -33,11 +33,15 @@ codeunit 7785 "Copilot Quota"
     end;
 
     /// <summary>
-    /// Try function to log usage of Copilot quota in the system. This function is only available for Microsoft Copilot features.
+    /// Try function to log usage of Agent functionality. This function is only available for Microsoft Agents.
     /// </summary>
     /// <param name="CopilotCapability">The Copilot Capability to log usage for.</param>
     /// <param name="Usage">The usage to log.</param>
     /// <param name="CopilotQuotaUsageType">The type of Copilot Quota to log.</param>
+    /// <param name="AgentTaskID">The unique identifier of the Agent task.</param>
+    /// <param name="ActionsCharged">The actions that were charged for this usage. This should be a short text, for example Quote Operation, Processed E-Document and etc...</param>
+    /// <param name="Description">A description of the usage. This text is providing the additional information to ActionsCharged, for example specifying which operation was done on which quote or which e-document was processed.</param>
+    /// <param name="UniqueID">A unique identifier for this log entry. Parameter is mandatory. This value is used to avoid double charging. Platform will check if we have the entry already logged and will not double charge. If you want to charge always use CreateGuid() or a strategy that will always issue a charge.</param>
     [Scope('OnPrem')]
     procedure LogAgentUserAIConsumption(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; AgentTaskID: BigInteger; ActionsCharged: Text[1024]; Description: Text; UniqueID: Text[1024])
     var
