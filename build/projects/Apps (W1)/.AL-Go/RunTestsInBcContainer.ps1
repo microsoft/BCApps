@@ -2,7 +2,6 @@ Param(
     [Hashtable]$parameters
 )
 
-$parameters["testType"] = "UnitTest"
 $parameters["returnTrueIfAllPassed"] = $true
 
 $script = Join-Path $PSScriptRoot "../../../scripts/RunTestsInBcContainer.ps1" -Resolve
