@@ -611,5 +611,30 @@ function Get-AppsInFolder() {
     return $apps
 }
 
+<#
+    .SYNOPSIS
+        Gets a setting from the AL-Go settings environment variable set during GitHub Actions runs.
+    .DESCRIPTION
+        This function retrieves a setting from the AL-Go settings stored in the environment variable 'settings'.
+        It returns the value of the specified key, or $null if the key does not exist.
+    .PARAMETER Key
+        The key of the setting to retrieve.
+    .OUTPUTS
+        The value of the specified setting key, or $null if the key does not exist.
+#>
+function Get-ALGoSetting() {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $Key
+    )
+    if ($null -ne $env:settings) {
+        $alGoSettings = $env:settings | ConvertFrom-Json
+        if ($alGoSettings.PSObject.Properties.Name -contains $Key) {
+            return $alGoSettings.$Key
+        }
+    }
+    return $null
+}
+
 Export-ModuleMember -Function *-*
 Export-ModuleMember -Function RunAndCheck

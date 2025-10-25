@@ -58,6 +58,12 @@ if ($DisableTestIsolation)
     $parameters["testRunnerCodeunitId"] = "130451" # Test Runner with disabled test isolation
 }
 
+$testType = Get-ALGoSetting -Key "testType"
+if ($null -ne $testType) {
+    Write-Host "Using test type $testType"
+    $parameters["testType"] = $testType
+}
+
 $parameters["disabledTests"] = @(Get-DisabledTests) # Add disabled tests to parameters
 $parameters["renewClientContextBetweenTests"] = $true
 
