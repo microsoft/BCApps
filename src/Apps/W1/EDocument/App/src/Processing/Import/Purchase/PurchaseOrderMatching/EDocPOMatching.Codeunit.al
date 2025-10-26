@@ -218,7 +218,7 @@ codeunit 6196 "E-Doc. PO Matching"
             POMatchWarnings.Insert();
         end;
         if (EDocLineQuantity + PurchaseLinesQuantityInvoiced) > PurchaseLinesQuantityReceived then
-            if IsNotYetReceivedAProblem(EDocumentPurchaseLine.GetBCVendor()."No.") then begin
+            if ShouldWarnIfNotYetReceived(EDocumentPurchaseLine.GetBCVendor()."No.") then begin
                 POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
                 POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::NotYetReceived;
                 POMatchWarnings.Insert();
@@ -505,6 +505,7 @@ codeunit 6196 "E-Doc. PO Matching"
     begin
         EDocPOMatchingSetup.DeleteAll();
         EDocPOMatchingSetup.Copy(DesiredGlobalSetup);
+        Clear(EDocPOMatchingSetup.Id);
         EDocPOMatchingSetup."Vendor No." := '';
         EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always ask";
         if VendorNos.Count = 0 then
@@ -526,8 +527,8 @@ codeunit 6196 "E-Doc. PO Matching"
         EDocPOMatchingSetup.Insert();
         GlobalSetup.Copy(EDocPOMatchingSetup);
         foreach VendorNo in VendorNos do begin
-            Clear(EDocPOMatchingSetup);
             EDocPOMatchingSetup.Copy(GlobalSetup);
+            Clear(EDocPOMatchingSetup.Id);
             EDocPOMatchingSetup."Vendor No." := VendorNo;
             if Configuration = Configuration::"Receive at posting only for certain vendors" then
                 EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always receive at posting"
@@ -587,7 +588,7 @@ codeunit 6196 "E-Doc. PO Matching"
         if Vendor."No." = '' then
             exit(false);
 
-        EDocPOMatchingSetup.GetSetup(Vendor."No.");
+        EDocPOMatchingSetup := EDocPOMatchingSetup.GetSetup(Vendor."No.");
         if EDocPOMatchingSetup."Receive G/L Account Lines" and (PurchaseLine.Type = "Purchase Line Type"::"G/L Account") then
             exit(true);
 
@@ -600,11 +601,11 @@ codeunit 6196 "E-Doc. PO Matching"
         end;
     end;
 
-    procedure IsNotYetReceivedAProblem(VendorNo: Code[20]): Boolean
+    procedure ShouldWarnIfNotYetReceived(VendorNo: Code[20]): Boolean
     var
         EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup";
     begin
-        EDocPOMatchingSetup.GetSetup(VendorNo);
+        EDocPOMatchingSetup := EDocPOMatchingSetup.GetSetup(VendorNo);
         case EDocPOMatchingSetup."PO Matching Config. Receipt" of
             "E-Doc. PO M. Config. Receipt"::"Always receive at posting":
                 exit(false);

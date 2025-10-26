@@ -41,6 +41,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         ConfirmManagement: Codeunit "Confirm Management";
         IEDocumentFinishPurchaseDraft: Interface IEDocumentCreatePurchaseInvoice;
         YourMatchedLinesAreNotValidErr: Label 'The purchase invoice cannot be created because one or more of its matched lines are not valid matches. Review if your configuration allows for receiving at invoice.';
+        SomeLinesNotYetReceivedMsg: Label 'Some of the matched purchase order lines have not yet been received, when posting the invoice, receipts will be created if needed. Do you want to proceed with creating the purchase invoice?';
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
 
@@ -49,8 +50,9 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
 
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
         TempPOMatchWarnings.SetRange("Warning Type", "E-Doc PO Match Warning"::NotYetReceived);
-        if (not TempPOMatchWarnings.IsEmpty()) and EDocPOMatching.IsNotYetReceivedAProblem(EDocumentPurchaseHeader."[BC] Vendor No.") then
-            if ConfirmManagement.GetResponse()
+        if not TempPOMatchWarnings.IsEmpty() then
+            if not ConfirmManagement.GetResponse(SomeLinesNotYetReceivedMsg) then
+                Error(''); // User cancelled the operation
 
         IEDocumentFinishPurchaseDraft := EDocImportParameters."Processing Customizations";
         PurchaseHeader := IEDocumentFinishPurchaseDraft.CreatePurchaseInvoice(EDocument);
