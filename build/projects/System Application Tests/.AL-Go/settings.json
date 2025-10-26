@@ -4,5 +4,6 @@
   "testFolders": [
     "../../../src/System Application/Test",
     "../../../src/System Application/Partner Test"
-  ]
+  ],
+  "testType": "UnitTest"
 }

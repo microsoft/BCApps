@@ -1,6 +1,8 @@
 Param(
     [Hashtable] $parameters,
-    [switch] $DisableTestIsolation
+    [switch] $DisableTestIsolation,
+    [validateSet("UnitTest","IntegrationTest", "Uncategorized")]
+    [string] $TestType
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
@@ -58,10 +60,9 @@ if ($DisableTestIsolation)
     $parameters["testRunnerCodeunitId"] = "130451" # Test Runner with disabled test isolation
 }
 
-$testType = Get-ALGoSetting -Key "testType"
-if ($null -ne $testType) {
-    Write-Host "Using test type $testType"
-    $parameters["testType"] = $testType
+if ($null -ne $TestType) {
+    Write-Host "Using test type $TestType"
+    $parameters["testType"] = $TestType
 }
 
 $parameters["disabledTests"] = @(Get-DisabledTests) # Add disabled tests to parameters
