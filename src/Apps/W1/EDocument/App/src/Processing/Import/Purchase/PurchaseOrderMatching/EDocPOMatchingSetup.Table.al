@@ -42,33 +42,32 @@ table 6116 "E-Doc. PO Matching Setup"
     }
 
     /// <summary>
-    /// Returns the setup applicable to the provided vendor
+    /// Sets the current record to the setup applicable to the provided vendor
     /// </summary>
     /// <param name="VendorNo"></param>
     /// <returns></returns>
-    procedure GetSetup(VendorNo: Code[20]): Record "E-Doc. PO Matching Setup"
-    var
-        EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup";
+    procedure GetSetup(VendorNo: Code[20])
     begin
-        EDocPOMatchingSetup.SetRange("Vendor No.", VendorNo);
-        if EDocPOMatchingSetup.FindFirst() then
-            exit(EDocPOMatchingSetup);
-        // If there is no specific setup for the vendor, return the global setup
-        exit(GetSetup())
+        Clear(Rec);
+        Rec.SetRange("Vendor No.", VendorNo);
+        if Rec.FindFirst() then
+            exit;
+        // If there is no specific setup for the vendor, set to the global setup
+        GetSetup();
     end;
 
     /// <summary>
-    /// Returns the setup applicable if there is no specific override
+    /// Sets the current record to the setup applicable if there is no specific override
     /// </summary>
     /// <returns></returns>
-    procedure GetSetup() EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup"
+    procedure GetSetup()
     begin
-        EDocPOMatchingSetup.SetFilter("Vendor No.", '');
-        if EDocPOMatchingSetup.FindFirst() then
-            exit(EDocPOMatchingSetup);
-        EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always ask";
-        EDocPOMatchingSetup."Receive G/L Account Lines" := true;
-        exit(EDocPOMatchingSetup);
+        Clear(Rec);
+        Rec.SetFilter("Vendor No.", '');
+        if Rec.FindFirst() then
+            exit;
+        Rec."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always ask";
+        Rec."Receive G/L Account Lines" := true;
     end;
 
 }

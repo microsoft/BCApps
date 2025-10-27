@@ -503,28 +503,29 @@ codeunit 6196 "E-Doc. PO Matching"
         EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup";
         VendorNo: Code[20];
     begin
+        // We delete all existing settings and recreate them based on the desired global setup, configuration and vendor list
         EDocPOMatchingSetup.DeleteAll();
+        // We first prepare the global setup record, used as fallback if there's no vendor-specific setting
         EDocPOMatchingSetup.Copy(DesiredGlobalSetup);
         Clear(EDocPOMatchingSetup.Id);
         EDocPOMatchingSetup."Vendor No." := '';
-        EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always ask";
-        if VendorNos.Count = 0 then
-            case Configuration of
-                Configuration::"Always ask":
-                    EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always ask";
-                Configuration::"Never receive at posting":
-                    EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Never receive at posting";
-                Configuration::"Always receive at posting":
-                    EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always receive at posting";
-            end
-        else
-            case Configuration of
-                Configuration::"Receive at posting except for certain vendors":
-                    EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always receive at posting";
-                Configuration::"Receive at posting only for certain vendors":
-                    EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always ask";
-            end;
+        case Configuration of
+            Configuration::"Always ask":
+                EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always ask";
+            Configuration::"Never receive at posting":
+                EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Never receive at posting";
+            Configuration::"Always receive at posting":
+                EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always receive at posting";
+            Configuration::"Receive at posting except for certain vendors": // The default for a vendor that is not specified is to always receive at posting
+                EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always receive at posting";
+            Configuration::"Receive at posting only for certain vendors": // The default for a vendor that is not specified is to always ask
+                EDocPOMatchingSetup."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always ask";
+        end;
         EDocPOMatchingSetup.Insert();
+        // Now we create vendor-specific settings, if any
+        // By default, we copy the global setup values to each vendor-specific setting, and then we adjust only the receipt configuration
+        if not (Configuration in [Configuration::"Receive at posting except for certain vendors", Configuration::"Receive at posting only for certain vendors"]) then
+            exit;
         GlobalSetup.Copy(EDocPOMatchingSetup);
         foreach VendorNo in VendorNos do begin
             EDocPOMatchingSetup.Copy(GlobalSetup);
@@ -542,7 +543,7 @@ codeunit 6196 "E-Doc. PO Matching"
     var
         EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup";
     begin
-        GlobalSetup := EDocPOMatchingSetup.GetSetup();
+        GlobalSetup.GetSetup();
         Configuration := Enum::"E-Doc. PO M. Configuration".FromInteger(GlobalSetup."PO Matching Config. Receipt".AsInteger());
         EDocPOMatchingSetup.SetFilter("Vendor No.", '<> %1', '');
         if EDocPOMatchingSetup.FindSet() then begin
@@ -588,7 +589,7 @@ codeunit 6196 "E-Doc. PO Matching"
         if Vendor."No." = '' then
             exit(false);
 
-        EDocPOMatchingSetup := EDocPOMatchingSetup.GetSetup(Vendor."No.");
+        EDocPOMatchingSetup.GetSetup(Vendor."No.");
         if EDocPOMatchingSetup."Receive G/L Account Lines" and (PurchaseLine.Type = "Purchase Line Type"::"G/L Account") then
             exit(true);
 
@@ -605,7 +606,7 @@ codeunit 6196 "E-Doc. PO Matching"
     var
         EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup";
     begin
-        EDocPOMatchingSetup := EDocPOMatchingSetup.GetSetup(VendorNo);
+        EDocPOMatchingSetup.GetSetup(VendorNo);
         case EDocPOMatchingSetup."PO Matching Config. Receipt" of
             "E-Doc. PO M. Config. Receipt"::"Always receive at posting":
                 exit(false);
