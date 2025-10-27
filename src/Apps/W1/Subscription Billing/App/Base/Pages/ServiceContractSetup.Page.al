@@ -116,7 +116,7 @@ page 8051 "Service Contract Setup"
             {
                 Caption = 'Usage Data';
 
-                field("Invoice Detail Origin"; Rec."Invoice Detail Origin")
+                field("Invoice Desc. (Surcharge)"; Rec."Invoice Desc. (Surcharge)")
                 {
                     ToolTip = 'Specifies the origin of the invoice details'' description for usage data to be charged as Unit Cost Surcharge.';
                 }

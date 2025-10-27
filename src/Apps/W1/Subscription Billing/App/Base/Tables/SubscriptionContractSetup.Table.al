@@ -76,9 +76,9 @@ table 8051 "Subscription Contract Setup"
             Caption = 'Dimension Code for Customer Subscription Contract';
             TableRelation = Dimension;
         }
-        field(30; "Invoice Detail Origin"; Enum "Invoice Detail Origin")
+        field(30; "Invoice Desc. (Surcharge)"; Enum "Invoice Detail Origin")
         {
-            Caption = 'Invoice Detail Origin';
+            Caption = 'Invoice Description (Surcharge)';
         }
         field(59; "Default Period Calculation"; enum "Period Calculation")
         {

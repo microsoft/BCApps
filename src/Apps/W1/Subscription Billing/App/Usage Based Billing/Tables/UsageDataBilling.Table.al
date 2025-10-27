@@ -722,7 +722,7 @@ table 8006 "Usage Data Billing"
         ServiceContractSetup.Get();
         Result :=
             ("Usage Base Pricing" = Enum::"Usage Based Pricing"::"Unit Cost Surcharge") and
-            (ServiceContractSetup."Invoice Detail Origin" = Enum::"Invoice Detail Origin"::"Product Name (default)");
+            (ServiceContractSetup."Invoice Desc. (Surcharge)" = Enum::"Invoice Detail Origin"::"Product Name (default)");
         OnAfterShouldPrintProductName(Rec, Result);
     end;
 
