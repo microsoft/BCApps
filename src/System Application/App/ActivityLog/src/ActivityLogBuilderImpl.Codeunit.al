@@ -17,7 +17,7 @@ codeunit 3112 "Activity Log Builder Impl."
         AttributeType: DotNet ActivityLogAttribute;
         GlobalFieldNo: Integer;
         BuilderNotInitializedErr: Label 'Activity Log Builder not initialized.';
-        ConfidenceInvalidErr: Label 'Confidence value %1 is invalid. Allowed values are Low, Medium, High.';
+        ConfidenceInvalidErr: Label 'Confidence value %1 is invalid. Allowed values are Low, Medium, High.', Comment = '%1 - Confidence value';
 
     procedure Init(TableNo: Integer; FieldNo: Integer; RecSystemId: Guid): Codeunit "Activity Log Builder Impl."
     begin
