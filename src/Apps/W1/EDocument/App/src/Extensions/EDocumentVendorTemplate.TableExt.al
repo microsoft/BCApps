@@ -12,6 +12,7 @@ tableextension 6108 "E-Document Vendor Template" extends "Vendor Templ."
             Caption = 'Receive E-Document To';
             InitValue = "Purchase Order";
             ValuesAllowed = "Purchase Order", "Purchase Invoice";
+            DataClassification = CustomerContent;
         }
     }
 }
