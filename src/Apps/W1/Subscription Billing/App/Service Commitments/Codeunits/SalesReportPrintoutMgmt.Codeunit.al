@@ -1,7 +1,6 @@
 namespace Microsoft.SubscriptionBilling;
 
 using System.Text;
-using System.Reflection;
 using Microsoft.Utilities;
 using Microsoft.Sales.Document;
 using Microsoft.Inventory.Item;
@@ -191,28 +190,11 @@ codeunit 8073 "Sales Report Printout Mgmt."
             end;
     end;
 
-    local procedure CheckAppendAsteriskToFormattedLineAmount(SourceRecord: Variant): Boolean
+    local procedure CheckAppendAsteriskToFormattedLineAmount(SalesLine: Record "Sales Line"): Boolean
     begin
-        exit(IsServiceCommitmentItem(SourceRecord));
-    end;
-
-    local procedure IsServiceCommitmentItem(SourceRecord: Variant): Boolean
-    var
-        SalesLine: Record "Sales Line";
-        DataTypeManagement: Codeunit "Data Type Management";
-        RecRef: RecordRef;
-        SourceRecordNotDefinedForProcessingErr: Label 'Table %1 %2 has not been defined for processing.', Comment = '%1 = Table ID, %2 = Table Name';
-    begin
-        DataTypeManagement.GetRecordRef(SourceRecord, RecRef);
-        case RecRef.Number of
-            Database::"Sales Line":
-                begin
-                    RecRef.SetTable(SalesLine);
-                    exit(SalesLine.IsServiceCommitmentItem());
-                end;
-            else
-                Error(SourceRecordNotDefinedForProcessingErr, RecRef.Number, RecRef.Caption());
-        end;
+        if not (SalesLine."Document Type" in [SalesLine."Document Type"::Quote, SalesLine."Document Type"::Order]) then
+            exit(false);
+        exit(SalesLine.IsServiceCommitmentItem());
     end;
 
     local procedure AppendAsteriskToText(var TextToAppendAsterisk: Text)
