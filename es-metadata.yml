@@ -1,0 +1,8 @@
+schemaVersion: 0.0.1
+isProduction: false
+accountableOwners:
+  service: fb895085-95f4-4b1a-813d-5821d7dc6622
+routing:
+  defaultAreaPath:
+    org: dynamicssmb2
+    path: Dynamics SMB\Cloud and AI Platform\Engineering Systems

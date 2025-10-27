@@ -239,7 +239,7 @@ page 6181 "E-Document Purchase Draft"
             }
             part(InboundEDocPicture; "Inbound E-Doc. Picture")
             {
-                Caption = 'E-Document Pdf Preview';
+                Caption = 'Preview';
                 SubPageLink = "Entry No." = field("Unstructured Data Entry No."),
                             "File Format" = const("E-Doc. File Format"::PDF);
                 ShowFilter = false;
@@ -332,13 +332,30 @@ page 6181 "E-Document Purchase Draft"
         {
             group(Vendors)
             {
-                Visible = false;
+                action(HistoricalVendorMatches)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Historical Vendor Matches';
+                    ToolTip = 'Opens Vendor Assignment History to see names and addresses matched to vendors based on received e-documents.';
+                    Image = History;
+                    RunObject = page "E-Doc. Vendor Assignment Hist.";
+                    RunPageMode = View;
+                }
+                action(OpenVendorList)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Vendor List';
+                    ToolTip = 'Opens the Vendor List.';
+                    Image = Vendor;
+                    RunObject = page "Vendor List";
+                    RunPageMode = View;
+                }
                 action(CreateVendorAction)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Create Vendor';
                     ToolTip = 'Creates a vendor based on the invoice details.';
-                    Image = Vendor;
+                    Image = AddContacts;
 
                     trigger OnAction()
                     var
@@ -378,11 +395,16 @@ page 6181 "E-Document Purchase Draft"
     var
         EDocumentsSetup: Record "E-Documents Setup";
         EDocumentNotification: Codeunit "E-Document Notification";
+        EDocPOMatching: Codeunit "E-Doc. PO Matching";
+        MatchesRemovedMsg: Label 'This e-document was matched to purchase order lines, but the matches are no longer consistent with the current data. The matches have been removed';
     begin
         if not EDocumentsSetup.IsNewEDocumentExperienceActive() then
             Error('');
-
         if EDocumentPurchaseHeader.Get(Rec."Entry No") then;
+        if not EDocPOMatching.IsPOMatchConsistent(EDocumentPurchaseHeader) then begin
+            EDocPOMatching.RemoveAllMatchesForEDocument(EDocumentPurchaseHeader);
+            Message(MatchesRemovedMsg);
+        end;
         HasPDFSource := Rec."Read into Draft Impl." = "E-Doc. Read into Draft"::ADI;
         EDocumentServiceStatus := Rec.GetEDocumentServiceStatus();
         HasErrorsOrWarnings := false;

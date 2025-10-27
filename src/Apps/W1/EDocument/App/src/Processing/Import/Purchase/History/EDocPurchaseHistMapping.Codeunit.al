@@ -162,6 +162,8 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
             CurrentExplanationTxt := ExplanationTxt;
 
         PurchInvHeader.SetRange("No.", PurchInvLine."Document No.");
+        if not PurchInvHeader.FindFirst() then
+            exit;
 
         // We only apply the values from history to the draft if they had not been suggested before.
         // Hence all assignments to the draft line are guarded by `if <<property>> = ''`

@@ -3,17 +3,16 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestLibraries.Feedback;
+namespace System.MCP;
 
-using System.Feedback;
-
-codeunit 138078 "Sat. Survey Test Library"
+permissionset 8352 "MCP - Admin"
 {
-    var
-        SatisfactionSurveyImpl: Codeunit "Satisfaction Survey Impl.";
+    Access = Public;
+    Assignable = true;
+    Caption = 'MCP - Admin';
 
-    procedure GetRenderUrl(): Text
-    begin
-        exit(SatisfactionSurveyImpl.GetRenderUrl());
-    end;
+    IncludedPermissionSets = "MCP - Read";
+
+    Permissions = tabledata "MCP Configuration" = IMD,
+                  tabledata "MCP Configuration Tool" = IMD;
 }

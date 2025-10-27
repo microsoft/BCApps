@@ -6,15 +6,16 @@
 namespace System.TestLibraries.MCP;
 
 using System.MCP;
+using System.Reflection;
 
 codeunit 130131 "MCP Config Test Library"
 {
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
 
-    procedure LookupAPITools(var PageId: Integer)
+    procedure LookupAPITools(var PageMetadata: Record "Page Metadata"): Boolean
     begin
-        MCPConfigImplementation.LookupAPITools(PageId);
+        exit(MCPConfigImplementation.LookupAPITools(PageMetadata));
     end;
 
     procedure AddToolsByAPIGroup(ConfigId: Guid)
@@ -25,5 +26,21 @@ codeunit 130131 "MCP Config Test Library"
     procedure AddStandardAPITools(ConfigId: Guid)
     begin
         MCPConfigImplementation.AddStandardAPITools(ConfigId);
+    end;
+
+    procedure LookupAPIPublisher(var APIPublisher: Text; var APIGroup: Text)
+    var
+        MCPAPIPublisherGroup: Record "MCP API Publisher Group";
+    begin
+        MCPConfigImplementation.GetAPIPublishers(MCPAPIPublisherGroup);
+        MCPConfigImplementation.LookupAPIPublisher(MCPAPIPublisherGroup, APIPublisher, APIGroup);
+    end;
+
+    procedure LookupAPIGroup(APIPublisher: Text; var APIGroup: Text)
+    var
+        MCPAPIPublisherGroup: Record "MCP API Publisher Group";
+    begin
+        MCPConfigImplementation.GetAPIPublishers(MCPAPIPublisherGroup);
+        MCPConfigImplementation.LookupAPIGroup(MCPAPIPublisherGroup, APIPublisher, APIGroup);
     end;
 }

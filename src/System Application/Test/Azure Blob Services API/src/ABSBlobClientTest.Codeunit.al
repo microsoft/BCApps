@@ -739,17 +739,17 @@ codeunit 132920 "ABS Blob Client Test"
     var
         ABSContainerContent: Record "ABS Container Content";
         ABSHelperLibrary: Codeunit "ABS Helper Library";
-        NodeList: XmlNodeList;
+        BlobPrefixNodeList, BlobNodeList : XmlNodeList;
         NextMarker: Text;
     begin
         // [SCENARIO] Parse the BLOB storage API response listing BLOBs in a container without the hierarchical namespace
 
         // [GIVEN] Prepare an XML response from the BLOB Storage API, listing all BLOBs in a container.
         // [GIVEN] Container does not have hierarchical namespace and contains a single BLOB with the name like "folder/blob"
-        NodeList := ABSHelperLibrary.CreateBlobNodeListFromResponse(ABSTestLibrary.GetServiceResponseBlobWithHierarchicalName(), NextMarker);
+        ABSHelperLibrary.CreateBlobNodeListFromResponse(ABSTestLibrary.GetServiceResponseBlobWithHierarchicalName(), NextMarker, BlobPrefixNodeList, BlobNodeList);
 
         // [WHEN] Invoke BlobNodeListToTempRecord
-        ABSHelperLibrary.BlobNodeListToTempRecord(NodeList, ABSContainerContent);
+        ABSHelperLibrary.BlobNodeListToTempRecord(BlobPrefixNodeList, BlobNodeList, ABSContainerContent);
 
         // [THEN] "ABS Container Content" contains one record "folder" and one record "blob"
         Assert.RecordCount(ABSContainerContent, 2);
@@ -766,7 +766,7 @@ codeunit 132920 "ABS Blob Client Test"
     var
         ABSContainerContent: Record "ABS Container Content";
         ABSHelperLibrary: Codeunit "ABS Helper Library";
-        NodeList: XmlNodeList;
+        BlobPrefixNodeList, BlobNodeList : XmlNodeList;
         NextMarker: Text;
     begin
         // [SCENARIO] Parse the BLOB storage API response listing BLOBs in a container with the hierarchical namespace enabled
@@ -774,16 +774,43 @@ codeunit 132920 "ABS Blob Client Test"
         // [GIVEN] Prepare an XML response from the BLOB Storage API, listing all BLOBs in a container.
         // [GIVEN] Container has the hierarchical namespace enabled, and contains a root folder named "rootdir".
         // [GIVEN] There is a subdirectory "subdir" in the root, and one blob named "blob" in the subdirectory.
-        NodeList := ABSHelperLibrary.CreateBlobNodeListFromResponse(ABSTestLibrary.GetServiceResponseHierarchicalNamespace(), NextMarker);
+        ABSHelperLibrary.CreateBlobNodeListFromResponse(ABSTestLibrary.GetServiceResponseHierarchicalNamespace(), NextMarker, BlobPrefixNodeList, BlobNodeList);
 
         // [WHEN] Invoke BlobNodeListToTempRecord
-        ABSHelperLibrary.BlobNodeListToTempRecord(NodeList, ABSContainerContent);
+        ABSHelperLibrary.BlobNodeListToTempRecord(BlobPrefixNodeList, BlobNodeList, ABSContainerContent);
 
         // [THEN] "ABS Container Content" contains two records with resource type "folder" and one record with resource type = "blob"
         Assert.RecordCount(ABSContainerContent, 3);
 
         VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseRootDirName(), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::Directory);
         VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseSubdirName(), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::Directory);
+        VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseFileName(), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::File);
+    end;
+
+    [Test]
+    procedure ParseDelimetedResponse()
+    var
+        ABSContainerContent: Record "ABS Container Content";
+        ABSHelperLibrary: Codeunit "ABS Helper Library";
+        BlobPrefixNodeList, BlobNodeList : XmlNodeList;
+        NextMarker: Text;
+        i: Integer;
+    begin
+        // [SCENARIO] Parse the BLOB storage API response listing BLOBs in a container with the delimiter set to '/'
+
+        // [GIVEN] Prepare an XML response from the BLOB Storage API, listing all BLOBs in a container.
+        // [GIVEN] There a three subdirectory in the root, and one blob.
+        ABSHelperLibrary.CreateBlobNodeListFromResponse(ABSTestLibrary.GetDelimitedServiceResponse(), NextMarker, BlobPrefixNodeList, BlobNodeList);
+
+        // [WHEN] Invoke BlobNodeListToTempRecord
+        ABSHelperLibrary.BlobNodeListToTempRecord(BlobPrefixNodeList, BlobNodeList, ABSContainerContent);
+
+        // [THEN] "ABS Container Content" contains three records with resource type "folder" and one record with resource type = "blob"
+        Assert.RecordCount(ABSContainerContent, 4);
+
+        for i := 1 to 3 do
+            VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseSubdirName() + Format(i), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::Directory);
+
         VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseFileName(), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::File);
     end;
 

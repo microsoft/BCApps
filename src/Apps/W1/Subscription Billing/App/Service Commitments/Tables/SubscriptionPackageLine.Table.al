@@ -215,6 +215,7 @@ table 8056 "Subscription Package Line"
             Caption = 'Pricing Unit Cost Surcharge %';
             DataClassification = CustomerContent;
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
     }
     keys

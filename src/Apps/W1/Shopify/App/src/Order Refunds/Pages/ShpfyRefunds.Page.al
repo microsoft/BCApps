@@ -9,6 +9,7 @@ page 30147 "Shpfy Refunds"
 {
     ApplicationArea = All;
     Caption = 'Shopify Refunds';
+    InsertAllowed = false;
     PageType = List;
     SourceTable = "Shpfy Refund Header";
     UsageCategory = Lists;

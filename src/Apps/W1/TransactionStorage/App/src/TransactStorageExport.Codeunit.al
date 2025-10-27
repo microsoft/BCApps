@@ -2,7 +2,6 @@ namespace System.DataAdministration;
 
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Ledger;
-using System;
 using System.Telemetry;
 
 codeunit 6203 "Transact. Storage Export"
@@ -120,7 +119,6 @@ codeunit 6203 "Transact. Storage Export"
 
     procedure CalcTenantExportStartTime() ExportStartTime: Time
     var
-        Convert: DotNet Convert;
         TenantIdTwoFirstChars: Text[2];
         TimeMultiplier: Integer;
     begin
@@ -132,7 +130,7 @@ codeunit 6203 "Transact. Storage Export"
         TenantIdTwoFirstChars := CopyStr(TransactionStorageABS.GetAadTenantId(), 1, 2);
         if not IsHexString(TenantIdTwoFirstChars) then
             exit;
-        TimeMultiplier := Round(Convert.ToInt32(TenantIdTwoFirstChars, 16) / 8, 1);
+        TimeMultiplier := Round(HexToDecimal(TenantIdTwoFirstChars) / 8, 1);
         ExportStartTime += TimeMultiplier * 5 * 60 * 1000;
     end;
 
@@ -149,6 +147,33 @@ codeunit 6203 "Transact. Storage Export"
                 exit(false);
         end;
         exit(true);
+    end;
+
+    local procedure HexToDecimal(HexString: Text) DecimalValue: Integer
+    var
+        CharValue: Integer;
+        i: Integer;
+        CurrentChar: Char;
+    begin
+        HexString := LowerCase(HexString);
+        DecimalValue := 0;
+
+        for i := 1 to StrLen(HexString) do begin
+            CurrentChar := HexString[i];
+
+            case CurrentChar of
+                '0' .. '9':
+                    CharValue := CurrentChar - 48; // ASCII value of '0' is 48
+                'a' .. 'f':
+                    CharValue := CurrentChar - 87; // ASCII value of 'a' is 97, we want 10 for 'a'
+                else
+                    CharValue := 0;
+            end;
+
+            DecimalValue := (DecimalValue * 16) + CharValue;
+        end;
+
+        exit(DecimalValue);
     end;
 
     local procedure VerifyContainerNameLength()

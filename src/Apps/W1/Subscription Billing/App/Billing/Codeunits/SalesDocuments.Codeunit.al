@@ -52,7 +52,7 @@ codeunit 8063 "Sales Documents"
             SalesLine.SetRange("Document No.", Rec."No.");
             if SalesLine.FindSet() then
                 repeat
-                    ResetServiceCommitmentAndDeleteBillingLinesForSalesLine(SalesLine);
+                    ResetServiceCommitmentAndDeleteBillingLinesForCreditMemoSalesLine(SalesLine);
                 until SalesLine.Next() = 0;
         end else
             if AutoResetServiceCommitmentAndDeleteBillingLinesForSalesDocument(Rec."No.") then begin
@@ -97,7 +97,7 @@ codeunit 8063 "Sales Documents"
                 InvoiceNo := GetAppliesToDocNo(SalesHeader);
 
         if (Rec."Document Type" = Rec."Document Type"::"Credit Memo") and (InvoiceNo <> '') then
-            ResetServiceCommitmentAndDeleteBillingLinesForSalesLine(Rec)
+            ResetServiceCommitmentAndDeleteBillingLinesForCreditMemoSalesLine(Rec)
         else
             if AutoResetServiceCommitmentAndDeleteBillingLinesForSalesDocument(Rec."Document No.") then
                 ResetServiceCommitmentAndDeleteAllBillingLinesForDocument(Rec)
@@ -141,7 +141,7 @@ codeunit 8063 "Sales Documents"
         end;
     end;
 
-    local procedure ResetServiceCommitmentAndDeleteBillingLinesForSalesLine(SalesLine: Record "Sales Line")
+    local procedure ResetServiceCommitmentAndDeleteBillingLinesForCreditMemoSalesLine(SalesLine: Record "Sales Line")
     var
         BillingLine: Record "Billing Line";
     begin
@@ -778,6 +778,19 @@ codeunit 8063 "Sales Documents"
         if SalesServiceCommMgmt.IsSalesLineWithServiceCommitmentItem(SalesLine, SkipTemporaryCheck) then
             Result := true;
         OnAfterSalesLineShouldSkipInvoicing(SalesLine, SkipTemporaryCheck, Result);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Find Record Management", OnAfterGetRecRefAndFieldsNoByType, '', false, false)]
+    local procedure FindSubscriptionOnAfterGetRecRefAndFieldsNoByType(RecRef: RecordRef; Type: Option " ","G/L Account",Item,Resource,"Fixed Asset","Charge (Item)"; var SearchFieldNo: array[4] of Integer)
+    var
+        SubscriptionHeader: Record "Subscription Header";
+    begin
+        if Type <> Enum::"Sales Line Type"::"Service Object".AsInteger() then
+            exit;
+        RecRef.Open(Database::"Subscription Header");
+        SearchFieldNo[1] := SubscriptionHeader.FieldNo("No.");
+        SearchFieldNo[2] := SubscriptionHeader.FieldNo(Description);
+        SearchFieldNo[3] := 0;
     end;
 
     [IntegrationEvent(false, false)]

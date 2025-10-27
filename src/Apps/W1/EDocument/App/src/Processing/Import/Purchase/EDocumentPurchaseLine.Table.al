@@ -10,6 +10,7 @@ using Microsoft.Finance.Deferral;
 using Microsoft.Foundation.UOM;
 using Microsoft.Utilities;
 using Microsoft.Purchases.Document;
+using System.Utilities;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Inventory.Item;
@@ -19,6 +20,7 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using System.Reflection;
 using Microsoft.Purchases.History;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Purchases.Vendor;
 
 table 6101 "E-Document Purchase Line"
 {
@@ -66,6 +68,7 @@ table 6101 "E-Document Purchase Line"
             Caption = 'Quantity';
             ToolTip = 'Specifies the quantity.';
             Editable = false;
+            DecimalPlaces = 0 : 5;
             AutoFormatType = 0;
         }
         field(7; "Unit of Measure"; Text[50])
@@ -113,6 +116,12 @@ table 6101 "E-Document Purchase Line"
         {
             Caption = 'Type';
             ToolTip = 'Specifies the type of entity that will be posted for this purchase line, such as Item, Resource, or G/L Account.';
+
+            trigger OnValidate()
+            begin
+                POMatchingValidation();
+                Rec."[BC] Purchase Type No." := '';
+            end;
         }
         field(102; "[BC] Purchase Type No."; Code[20])
         {
@@ -134,7 +143,8 @@ table 6101 "E-Document Purchase Line"
 
             trigger OnValidate()
             begin
-                ValidateNoField();
+                SetDescriptionFromLineTypeNo();
+                POMatchingValidation();
             end;
         }
         field(103; "[BC] Unit of Measure"; Code[20])
@@ -220,10 +230,17 @@ table 6101 "E-Document Purchase Line"
         }
     }
 
+    trigger OnDelete()
+    var
+        EDocPOMatching: Codeunit "E-Doc. PO Matching";
+    begin
+        EDocPOMatching.RemoveAllMatchesForEDocumentLine(Rec);
+    end;
+
     var
         DimMgt: Codeunit DimensionManagement;
 
-    local procedure ValidateNoField()
+    local procedure SetDescriptionFromLineTypeNo()
     var
         Item: Record Item;
         GLAccount: Record "G/L Account";
@@ -255,6 +272,19 @@ table 6101 "E-Document Purchase Line"
                 if ItemCharge.Get(Rec."[BC] Purchase Type No.") then
                     Rec.Description := ItemCharge.Description;
         end;
+    end;
+
+    local procedure POMatchingValidation()
+    var
+        EDocPOMatching: Codeunit "E-Doc. PO Matching";
+        ConfirmMgt: Codeunit "Confirm Management";
+        LineMatchedMsg: Label 'This e-document line is already matched to a purchase order line. Do you want to continue? This will remove the match(es).';
+    begin
+        if not EDocPOMatching.IsEDocumentLineMatchedToAnyPOLine(Rec) then
+            exit;
+        if not ConfirmMgt.GetResponse(LineMatchedMsg) then
+            Error('');
+        EDocPOMatching.RemoveAllMatchesForEDocumentLine(Rec);
     end;
 
     internal procedure GetNextLineNo(EDocumentEntryNo: Integer): Integer
@@ -304,6 +334,16 @@ table 6101 "E-Document Purchase Line"
             "[BC] Shortcut Dimension 1 Code", "[BC] Shortcut Dimension 2 Code");
         DimMgt.UpdateGlobalDimFromDimSetID("[BC] Dimension Set ID", "[BC] Shortcut Dimension 1 Code", "[BC] Shortcut Dimension 2 Code");
         exit(OldDimSetID <> "[BC] Dimension Set ID");
+    end;
+
+    procedure GetEDocumentPurchaseHeader() EDocumentPurchaseHeader: Record "E-Document Purchase Header"
+    begin
+        if EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then;
+    end;
+
+    procedure GetBCVendor(): Record Vendor
+    begin
+        exit(GetEDocumentPurchaseHeader().GetBCVendor());
     end;
 
 }
