@@ -1,8 +1,6 @@
 namespace Microsoft.SubscriptionBilling;
 
 using System.Text;
-using System.Reflection;
-using System.Text;
 using Microsoft.Utilities;
 using Microsoft.Sales.Document;
 using Microsoft.Inventory.Item;
