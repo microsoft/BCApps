@@ -56,6 +56,7 @@ function Invoke-TestsWithReruns {
 
 if ($DisableTestIsolation)
 {
+    Write-Host "Using RequiredTestIsolation: Disabled"
     $parameters["requiredTestIsolation"] = "Disabled" # filtering on tests that require Disabled Test Isolation
     $parameters["testRunnerCodeunitId"] = "130451" # Test Runner with disabled test isolation
 }
