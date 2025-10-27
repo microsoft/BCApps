@@ -27,6 +27,15 @@ codeunit 9054 "ABS Container Content Helper"
         AddNewEntry(ABSContainerContent, NameFromXml, OuterXml, ChildNodes, EntryNo, GetBlobResourceType(Node));
     end;
 
+    procedure AddNewEntryFromPrefixNode(var ABSContainerContent: Record "ABS Container Content"; var Node: XmlNode; XPathName: Text; var EntryNo: Integer)
+    var
+        ABSHelperLibrary: Codeunit "ABS Helper Library";
+        NameFromXml: Text;
+    begin
+        NameFromXml := ABSHelperLibrary.GetValueFromNode(Node, XPathName);
+        AddParentEntries(NameFromXml, ABSContainerContent, EntryNo);
+    end;
+
     procedure AddNewEntry(var ABSContainerContent: Record "ABS Container Content"; NameFromXml: Text; OuterXml: Text; ChildNodes: XmlNodeList; var EntryNo: Integer; ResourceType: Enum "ABS Blob Resource Type")
     var
         OutStream: OutStream;
@@ -54,7 +63,6 @@ codeunit 9054 "ABS Container Content Helper"
 
     local procedure AddParentEntries(NameFromXml: Text; var ABSContainerContent: Record "ABS Container Content"; var EntryNo: Integer)
     var
-        DirectoryContentTypeTxt: Label 'Directory', Locked = true;
         ParentEntries: List of [Text];
         CurrentParent, ParentEntryFullName, ParentEntryName : Text[2048];
         Level: Integer;
@@ -85,7 +93,7 @@ codeunit 9054 "ABS Container Content Helper"
                 ABSContainerContent."Full Name" := ParentEntryFullName;
                 ABSContainerContent."Parent Directory" := CurrentParent;
                 ABSContainerContent."Content Type" := DirectoryContentTypeTxt;
-
+                ABSContainerContent."Resource Type" := ABSContainerContent."Resource Type"::Directory;
                 ABSContainerContent."Entry No." := EntryNo;
                 ABSContainerContent.Insert(true);
                 EntryNo += 1;
@@ -211,4 +219,5 @@ codeunit 9054 "ABS Container Content Helper"
 
     var
         ParentEntryFullNameList: List of [Text];
+        DirectoryContentTypeTxt: Label 'Directory', Locked = true;
 }

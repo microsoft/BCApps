@@ -262,7 +262,7 @@ codeunit 6126 "E-Doc. GL Account Matching" implements "AOAI Function", IEDocAISy
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         PromptSecretText: SecretText;
-        PromptSecretNameTok: Label 'EDocMatchLineToGLAccountV27', Locked = true;
+        PromptSecretNameTok: Label 'EDocMatchLineToGLAccountV271', Locked = true;
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret(PromptSecretNameTok, PromptSecretText) then
             PromptSecretText := SecretStrSubstNo('');
