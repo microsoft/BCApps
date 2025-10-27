@@ -497,6 +497,12 @@ codeunit 6196 "E-Doc. PO Matching"
             Error(ReceiptLinesDontCoverErr);
     end;
 
+    /// <summary>
+    /// Stores the configuration selected by the user.
+    /// </summary>
+    /// <param name="DesiredGlobalSetup">The global setup, applicable if no vendor specific override has been configured.</param>
+    /// <param name="Configuration">The configuration selected by the user.</param>
+    /// <param name="VendorNos">If the configuration is vendor specific, this will contain the vendor numbers affected by such.</param>
     procedure ConfigurePOMatchingSettings(DesiredGlobalSetup: Record "E-Doc. PO Matching Setup"; Configuration: Enum "E-Doc. PO M. Configuration"; VendorNos: List of [Code[20]])
     var
         GlobalSetup: Record "E-Doc. PO Matching Setup";
@@ -539,6 +545,12 @@ codeunit 6196 "E-Doc. PO Matching"
         end;
     end;
 
+    /// <summary>
+    /// Loads the settings for purchase order matching.
+    /// </summary>
+    /// <param name="GlobalSetup">The global setup, applicable if no vendor specific override has been configured.</param>
+    /// <param name="Configuration">The configuration selected by the user.</param>
+    /// <param name="VendorNos">If the configuration is vendor specific, this will contain the vendor numbers affected by such.</param>
     procedure GetPOMatchingSettings(var GlobalSetup: Record "E-Doc. PO Matching Setup"; var Configuration: Enum "E-Doc. PO M. Configuration"; var VendorNos: List of [Code[20]])
     var
         EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup";
@@ -558,6 +570,11 @@ codeunit 6196 "E-Doc. PO Matching"
         end;
     end;
 
+    /// <summary>
+    /// Verifies that all E-Document lines that have a Not Yet Received warning can be validly matched without receipt.
+    /// </summary>
+    /// <param name="EDocumentPurchaseHeader"></param>
+    /// <returns></returns>
     procedure VerifyEDocumentMatchedLinesAreValidMatches(EDocumentPurchaseHeader: Record "E-Document Purchase Header"): Boolean
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
@@ -579,6 +596,12 @@ codeunit 6196 "E-Doc. PO Matching"
         exit(true);
     end;
 
+    /// <summary>
+    /// Returns whether an invoice line can be matched against a PO line provided that the PO line has not yet been received. If it can be matched it does not imply that we will not warn the user, but if it cannot be matched we will warn the user.
+    /// </summary>
+    /// <param name="EDocumentPurchaseLine"></param>
+    /// <param name="PurchaseLine"></param>
+    /// <returns></returns>
     local procedure CanMatchInvoiceLineToPOLineWithoutReceipt(EDocumentPurchaseLine: Record "E-Document Purchase Line"; PurchaseLine: Record "Purchase Line"): Boolean
     var
         EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup";
@@ -602,6 +625,11 @@ codeunit 6196 "E-Doc. PO Matching"
         end;
     end;
 
+    /// <summary>
+    /// Returns whether we should warn the user if the specified vendor's purchase order lines are not yet received and they are matched to an invoice line.
+    /// </summary>
+    /// <param name="VendorNo"></param>
+    /// <returns></returns>
     procedure ShouldWarnIfNotYetReceived(VendorNo: Code[20]): Boolean
     var
         EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup";
