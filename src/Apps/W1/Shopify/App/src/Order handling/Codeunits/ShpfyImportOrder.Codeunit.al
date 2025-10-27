@@ -123,6 +123,8 @@ codeunit 30161 "Shpfy Import Order"
 
         if ShopifyInvoiceExists(OrderHeader) then
             MarkAsProcessed(OrderHeader);
+
+        OrderEvents.OnAfterCreateShopifyOrderAndLines(OrderHeader, not UpdatingOrderHeader);
     end;
 
     local procedure ShopifyInvoiceExists(OrderHeader: Record "Shpfy Order Header"): Boolean
@@ -217,7 +219,7 @@ codeunit 30161 "Shpfy Import Order"
                     if OrderHeader.IsProcessed() then
                         SetOrderAsConflicting(OrderHeader);
 
-            RefundLine.CalcSums("Presentment Amount", Amount, "Subtotal Amount", "Presentment Total Tax Amount", Quantity);
+            RefundLine.CalcSums(Quantity, Amount, "Presentment Amount", "Subtotal Amount", "Presentment Subtotal Amount", "Total Tax Amount", "Presentment Total Tax Amount");
             OrderLine.Quantity -= RefundLine.Quantity;
             OrderLine.Modify();
             OrderHeader."Total Amount" -= RefundLine."Subtotal Amount";
@@ -632,7 +634,7 @@ codeunit 30161 "Shpfy Import Order"
             end;
     end;
 
-    local procedure TranslateCurrencyCode(ShopifyCurrencyCode: Text): Code[10]
+    internal procedure TranslateCurrencyCode(ShopifyCurrencyCode: Text): Code[10]
     var
         Currency: Record Currency;
         GeneralLedgerSetup: Record "General Ledger Setup";

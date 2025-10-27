@@ -15,10 +15,13 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
 
     internal procedure RegisterFulfillmentService(var Shop: Record "Shpfy Shop")
     var
+        SyncShopLocations: Codeunit "Shpfy Sync Shop Locations";
         Parameters: Dictionary of [Text, Text];
         JResponse: JsonToken;
     begin
         CommunicationMgt.SetShop(Shop);
+        Parameters.Add('Name', SyncShopLocations.GetFulfillmentServiceName());
+        Parameters.Add('CallbackUrl', SyncShopLocations.GetFulfillmentServiceCallbackUrl());
         GraphQLType := "Shpfy GraphQL Type"::CreateFulfillmentService;
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
 
@@ -50,18 +53,6 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
                     break;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.fulfillmentOrder.lineItems.pageInfo.hasNextPage');
         Commit();
-    end;
-
-    internal procedure ExtractFulfillmentOrders(var ShopifyShop: Record "Shpfy Shop"; JResponse: JsonObject; var Cursor: Text): Boolean
-    var
-        JFulfillmentOrders: JsonArray;
-        JItem: JsonToken;
-    begin
-        if JsonHelper.GetJsonArray(JResponse, JFulfillmentOrders, 'data.fulfillmentOrders.edges') then begin
-            foreach JItem in JFulfillmentOrders do
-                ExtractFulfillmentOrder(ShopifyShop, JItem, Cursor);
-            exit(true);
-        end;
     end;
 
     internal procedure ExtractFulfillmentOrdersFromOrder(var ShopifyShop: Record "Shpfy Shop"; JResponse: JsonObject; var Cursor: Text): Boolean

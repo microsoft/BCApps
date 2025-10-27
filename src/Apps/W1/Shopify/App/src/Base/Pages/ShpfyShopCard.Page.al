@@ -527,6 +527,10 @@ page 30101 "Shpfy Shop Card"
                     ToolTip = 'Specifies if Business Central document no. is synchronized to Shopify as order attribute.';
                     Enabled = Rec."Allow Outgoing Requests" or Rec."Order Attributes To Shopify";
                 }
+                field("Create Invoices From Orders"; Rec."Create Invoices From Orders")
+                {
+                    ApplicationArea = All;
+                }
                 field(ArchiveProcessOrders; Rec."Archive Processed Orders")
                 {
                     ApplicationArea = All;
@@ -762,7 +766,7 @@ page 30101 "Shpfy Shop Card"
             action(CustomerTemplates)
             {
                 ApplicationArea = All;
-                Caption = 'Customer Templates';
+                Caption = 'Customer Setup by Country/Region';
                 Image = Template;
                 Promoted = true;
                 PromotedCategory = Category4;
@@ -770,7 +774,7 @@ page 30101 "Shpfy Shop Card"
                 PromotedOnly = true;
                 RunObject = page "Shpfy Customer Templates";
                 RunPageLink = "Shop Code" = field(Code);
-                ToolTip = 'Set up a customer template and default customer per country.';
+                ToolTip = 'Set up default customer accounts or templates per country or regions. The designated default customer account for a specific country or region will take precedence over the value in the Shopify Shop card page. When a missing customer is created, the appropriate template according to the customer''s address is selected. Additionally, you may specify tax settings by county or province to ensure more accurate tax calculations.';
             }
             action(Companies)
             {
@@ -789,7 +793,7 @@ page 30101 "Shpfy Shop Card"
             action(Catalogs)
             {
                 ApplicationArea = All;
-                Caption = 'Catalogs';
+                Caption = 'B2B Catalogs';
                 Image = ItemGroup;
                 Promoted = true;
                 PromotedCategory = Category4;
@@ -797,7 +801,7 @@ page 30101 "Shpfy Shop Card"
                 PromotedOnly = true;
                 RunObject = Page "Shpfy Catalogs";
                 RunPageLink = "Shop Code" = field(Code);
-                ToolTip = 'View a list of Shopify catalogs for the shop.';
+                ToolTip = 'View a list of Shopify B2B catalogs for the shop.';
                 Visible = Rec."B2B Enabled";
             }
             action(MarketCatalogs)
@@ -893,9 +897,18 @@ page 30101 "Shpfy Shop Card"
                     Enabled = Rec.Enabled;
 
                     trigger OnAction()
+                    var
+                        WebhooksMgt: Codeunit "Shpfy Webhooks Mgt.";
                     begin
                         if Rec.TestConnection() then
-                            Message('Connection successful.');
+                            if not Rec."Order Created Webhooks" then begin
+                                Message(ConnectionSuccessfulMsg);
+                                exit;
+                            end else
+                                if WebhooksMgt.TestOrderCreatedWebhookConnection(Rec) then
+                                    Message(ConnectionAndWebhooksSuccessfulMsg)
+                                else
+                                    Message(OrderCreatedWebhookNotConfiguredMsg);
                     end;
                 }
                 action(ClearApiVersionExpiryDateCache)
@@ -1212,6 +1225,9 @@ page 30101 "Shpfy Shop Card"
         ApiVersion: Text;
         ApiVersionExpiryDate: Date;
         ScopeChangeConfirmLbl: Label 'The access scope of shop %1 for the Shopify connector has changed. Do you want to request a new access token?', Comment = '%1 - Shop Code';
+        ConnectionSuccessfulMsg: Label 'Connection successful.';
+        ConnectionAndWebhooksSuccessfulMsg: Label 'Connection successful and auto synchronize orders is configured correctly.';
+        OrderCreatedWebhookNotConfiguredMsg: Label 'Connection successful, but auto synchronize orders is misconfigured. Reactivate Auto Sync Orders setting.';
 
     trigger OnOpenPage()
     var
@@ -1236,6 +1252,9 @@ page 30101 "Shpfy Shop Card"
                     Rec.Enabled := false;
                     Rec.Modify();
                 end;
+#if not CLEAN28
+            Rec.UpdateFulfillmentService();
+#endif
         end;
     end;
 

@@ -41,13 +41,14 @@ codeunit 30286 "Shpfy Company API"
                         if JLocations.Get(0, JItem) then begin
                             ShopifyCompany."Location Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JItem, 'node.id'));
                             CompanyLocation.Id := ShopifyCompany."Location Id";
+                            CompanyLocation.Name := CopyStr(JsonHelper.GetValueAsText(JItem, 'node.name'), 1, MaxStrLen(CompanyLocation.Name));
                         end;
                 if JsonHelper.GetJsonArray(JResponse, JLocations, 'data.companyCreate.company.contactRoles.edges') then
                     foreach JItem in JLocations do
                         CompanyContactRoles.Add(JsonHelper.GetValueAsText(JItem, 'node.name'), CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JItem, 'node.id')));
             end;
         if ShopifyCompany.Id > 0 then begin
-            CompanyContactId := AssignCompanyMainContact(ShopifyCompany.Id, ShopifyCustomer.Id, ShopifyCompany."Location Id", CompanyContactRoles);
+            CompanyContactId := AssignCompanyContact(ShopifyCompany.Id, ShopifyCustomer.Id, ShopifyCompany."Location Id", CompanyContactRoles, true);
             ShopifyCompany."Main Contact Id" := CompanyContactId;
             exit(true);
         end else
@@ -85,6 +86,14 @@ codeunit 30286 "Shpfy Company API"
 
         UpdateCompanyLocationTaxId(CompanyLocation);
         UpdateCompanyLocationPaymentTerms(CompanyLocation)
+    end;
+
+    internal procedure SetShop(ShopCode: Code[20])
+    var
+        ShopifyShop: Record "Shpfy Shop";
+    begin
+        ShopifyShop.Get(ShopCode);
+        SetShop(ShopifyShop);
     end;
 
     internal procedure SetShop(ShopifyShop: Record "Shpfy Shop")
@@ -156,7 +165,7 @@ codeunit 30286 "Shpfy Company API"
         exit(GraphQuery.ToText());
     end;
 
-    local procedure AssignCompanyMainContact(CompanyId: BigInteger; CustomerId: BigInteger; LocationId: BigInteger; CompanyContactRoles: Dictionary of [Text, BigInteger]): BigInteger
+    local procedure AssignCompanyContact(CompanyId: BigInteger; CustomerId: BigInteger; LocationId: BigInteger; CompanyContactRoles: Dictionary of [Text, BigInteger]; IsMainContact: Boolean): BigInteger
     var
         GraphQLType: Enum "Shpfy GraphQL Type";
         JResponse: JsonToken;
@@ -168,10 +177,12 @@ codeunit 30286 "Shpfy Company API"
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::CompanyAssignCustomerAsContact, Parameters);
         CompanyContactId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JResponse, 'data.companyAssignCustomerAsContact.companyContact.id'));
         if CompanyContactId > 0 then begin
-            Clear(Parameters);
-            Parameters.Add('CompanyId', Format(CompanyId));
-            Parameters.Add('CompanyContactId', Format(CompanyContactId));
-            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::CompanyAssignMainContact, Parameters);
+            if IsMainContact then begin
+                Clear(Parameters);
+                Parameters.Add('CompanyId', Format(CompanyId));
+                Parameters.Add('CompanyContactId', Format(CompanyContactId));
+                JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::CompanyAssignMainContact, Parameters);
+            end;
             AssignCompanyContactRoles(CompanyContactId, LocationId, CompanyContactRoles);
         end;
         exit(CompanyContactId);
@@ -382,7 +393,7 @@ codeunit 30286 "Shpfy Company API"
             MetafieldAPI.UpdateMetafieldsFromShopify(JMetafields, Database::"Shpfy Company", ShopifyCompany.Id);
     end;
 
-    internal procedure UpdateShopifyCompanyLocation(var ShopifyCompany: Record "Shpfy Company")
+    internal procedure UpdateShopifyCompanyLocations(var ShopifyCompany: Record "Shpfy Company")
     var
         GraphQLType: Enum "Shpfy GraphQL Type";
         Parameters: Dictionary of [Text, Text];
@@ -407,6 +418,24 @@ codeunit 30286 "Shpfy Company API"
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.companyLocations.pageInfo.hasNextPage');
     end;
 
+    internal procedure UpdateShopifyCompanyLocation(ShopifyCompany: Record "Shpfy Company"; LocationId: BigInteger)
+    var
+        GraphQLType: Enum "Shpfy GraphQL Type";
+        IsDefaultCompanyLocation: Boolean;
+        Parameters: Dictionary of [Text, Text];
+        JResponse: JsonToken;
+        JLocation: JsonObject;
+    begin
+        GraphQLType := "Shpfy GraphQL Type"::GetCompanyLocation;
+        Parameters.Add('LocationId', Format(LocationId));
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
+
+        if not JsonHelper.GetJsonObject(JResponse, JLocation, 'data.companyLocation') then
+            exit;
+
+        ExtractShopifyCompanyLocation(ShopifyCompany, JLocation, IsDefaultCompanyLocation);
+    end;
+
     /// <summary>
     /// Creates a new company location in Shopify from a Business Central customer.
     /// This is the main entry point for exporting customers as company locations.
@@ -420,7 +449,9 @@ codeunit 30286 "Shpfy Company API"
     internal procedure CreateCompanyLocation(Customer: Record Customer)
     var
         ShopifyCompany: Record "Shpfy Company";
+        ShopifyCustomer: Record "Shpfy Customer";
         CompanyLocation: Record "Shpfy Company Location";
+        CompanyExport: Codeunit "Shpfy Company Export";
         SkippedRecord: Codeunit "Shpfy Skipped Record";
         CustomerAlreadyExportedCompanyLbl: Label 'Customer %1 is already exported as a company', Comment = '%1 = Customer No.';
         CustomerAlreadyExportedLocationLbl: Label 'Customer %1 is already exported as a location', Comment = '%1 = Customer No.';
@@ -436,7 +467,9 @@ codeunit 30286 "Shpfy Company API"
             SkippedRecord.LogSkippedRecord(Customer.RecordId, StrSubstNo(CustomerAlreadyExportedLocationLbl, Customer."No."), Shop);
             exit;
         end;
-        CreateCustomerAsCompanyLocation(Customer, this.Company);
+        CompanyExport.SetShop(Shop.Code);
+        if CompanyExport.CreateCompanyContact(Customer, ShopifyCustomer) then
+            CreateCustomerAsCompanyLocation(Customer, this.Company, ShopifyCustomer);
     end;
 
     internal procedure SetCompany(ShopifyCompany: Record "Shpfy Company")
@@ -448,8 +481,9 @@ codeunit 30286 "Shpfy Company API"
     /// Creates a customer as a company location in Shopify using GraphQL API.
     /// This procedure handles the API communication and error processing.
     /// </summary>
-    /// <param name="CompanyLocation">The Shopify company location record containing the data to be sent to Shopify.</param>
     /// <param name="Customer">The Business Central customer record used to populate additional fields.</param>
+    /// <param name="ShopifyCompany">The Shopify company record used to populate additional fields.</param>
+    /// <param name="ShopifyCustomer">The Shopify customer record used to populate additional fields.</param>
     /// <remarks>
     /// This procedure:
     /// - Fills the Shopify company location with data from the customer
@@ -461,13 +495,18 @@ codeunit 30286 "Shpfy Company API"
     /// The procedure supports both billing and shipping addresses, with billing address used for both when billingSameAsShipping is true.
     /// Error handling includes field-specific error messages from Shopify API.
     /// </remarks>
-    local procedure CreateCustomerAsCompanyLocation(Customer: Record Customer; ShopifyCompany: Record "Shpfy Company")
+    internal procedure CreateCustomerAsCompanyLocation(Customer: Record Customer; ShopifyCompany: Record "Shpfy Company"; ShopifyCustomer: Record "Shpfy Customer")
     var
         CompanyLocation: Record "Shpfy Company Location";
         CompanyExport: Codeunit "Shpfy Company Export";
+        CatalogAPI: Codeunit "Shpfy Catalog API";
         GraphQuery: TextBuilder;
         JResponse: JsonToken;
         JCompanyLocation: JsonToken;
+        JContactRoles: JsonArray;
+        JItem: JsonToken;
+        LocationId: BigInteger;
+        CompanyContactRoles: Dictionary of [Text, BigInteger];
         CompanyIdTxt: Label 'gid://shopify/Company/%1', Comment = '%1 = Company Id', Locked = true;
         PaymentTermsTemplateIdTxt: Label 'gid://shopify/PaymentTermsTemplate/%1', Comment = '%1 = Payment Terms Template Id', Locked = true;
     begin
@@ -476,8 +515,6 @@ codeunit 30286 "Shpfy Company API"
 
         GraphQuery.Append('{"query": "mutation { companyLocationCreate( companyId: \"' + StrSubstNo(CompanyIdTxt, ShopifyCompany.Id) + '\", input: {');
 
-        if ShopifyCompany."External Id" <> '' then
-            AddFieldToGraphQuery(GraphQuery, 'externalId', ShopifyCompany."External Id");
         if CompanyLocation.Name <> '' then
             AddFieldToGraphQuery(GraphQuery, 'name', CompanyLocation.Name);
         if CompanyLocation."Phone No." <> '' then
@@ -485,8 +522,7 @@ codeunit 30286 "Shpfy Company API"
         if CompanyLocation."Tax Registration Id" <> '' then
             AddFieldToGraphQuery(GraphQuery, 'taxRegistrationId', CompanyLocation."Tax Registration Id");
         GraphQuery.Append('taxExempt: false, billingSameAsShipping: true, shippingAddress: {');
-        if CompanyLocation.Address <> '' then
-            AddFieldToGraphQuery(GraphQuery, 'address1', CompanyLocation.Address);
+        AddFieldToGraphQuery(GraphQuery, 'address1', CompanyLocation.Address);
         if CompanyLocation."Address 2" <> '' then
             AddFieldToGraphQuery(GraphQuery, 'address2', CompanyLocation."Address 2");
         if CompanyLocation.City <> '' then
@@ -505,15 +541,23 @@ codeunit 30286 "Shpfy Company API"
         if CompanyLocation."Shpfy Payment Terms Id" <> 0 then
             AddFieldToGraphQuery(GraphQuery, 'paymentTermsTemplateId', StrSubstNo(PaymentTermsTemplateIdTxt, CompanyLocation."Shpfy Payment Terms Id"));
         GraphQuery.Remove(GraphQuery.Length - 1, 2);
-        GraphQuery.Append('}}) { companyLocation { id name billingAddress { address1 address2 city countryCode phone province recipient zip zoneCode } ');
+        GraphQuery.Append('}}) { companyLocation { id name company { contactRoles(first:10) {edges {node {id name}}}} billingAddress { address1 address2 city countryCode phone province recipient zip zoneCode } ');
         GraphQuery.Append('shippingAddress { address1 address2 city countryCode phone province recipient zip zoneCode } ');
         GraphQuery.Append('buyerExperienceConfiguration { paymentTermsTemplate { id } checkoutToDraft editableShippingAddress } taxRegistrationId taxExemptions } ');
         GraphQuery.Append('userErrors { field message } } }"}');
 
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQuery.ToText());
         if JResponse.SelectToken('$.data.companyLocationCreate.companyLocation', JCompanyLocation) then
-            if not JsonHelper.IsTokenNull(JCompanyLocation) then
-                CreateCustomerLocation(JCompanyLocation.AsObject(), ShopifyCompany, Customer.SystemId);
+            if not JsonHelper.IsTokenNull(JCompanyLocation) then begin
+                LocationId := CreateCustomerLocation(JCompanyLocation.AsObject(), ShopifyCompany, Customer);
+                if JsonHelper.GetJsonArray(JCompanyLocation, JContactRoles, 'company.contactRoles.edges') then begin
+                    foreach JItem in JContactRoles do
+                        CompanyContactRoles.Add(JsonHelper.GetValueAsText(JItem, 'node.name'), CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JItem, 'node.id')));
+                    AssignCompanyContact(ShopifyCompany.Id, ShopifyCustomer.Id, LocationId, CompanyContactRoles, false);
+                    if Shop."Auto Create Catalog" then
+                        CatalogAPI.CreateCatalog(LocationId, Customer.Name, ShopifyCompany, Customer);
+                end;
+            end;
     end;
 
     /// <summary>
@@ -522,7 +566,7 @@ codeunit 30286 "Shpfy Company API"
     /// </summary>
     /// <param name="JCompanyLocation">JSON object containing the company location data from Shopify API response.</param>
     /// <param name="ShopifyCompany">The parent Shopify company record.</param>
-    /// <param name="CustomerId">The GUID of the Business Central customer that was exported.</param>
+    /// <param name="Customer">The Business Central customer record used to populate additional fields.</param>
     /// <remarks>
     /// This procedure:
     /// - Extracts the Shopify-generated ID and creates the initial record
@@ -534,7 +578,7 @@ codeunit 30286 "Shpfy Company API"
     /// The procedure assumes the JSON structure matches Shopify's companyLocationCreate response format.
     /// All text fields are properly truncated to match the field lengths in the table definition.
     /// </remarks>
-    local procedure CreateCustomerLocation(JCompanyLocation: JsonObject; ShopifyCompany: Record "Shpfy Company"; CustomerId: Guid)
+    local procedure CreateCustomerLocation(JCompanyLocation: JsonObject; ShopifyCompany: Record "Shpfy Company"; Customer: Record Customer): BigInteger
     var
         CompanyLocation: Record "Shpfy Company Location";
         CompanyLocationId: BigInteger;
@@ -562,56 +606,65 @@ codeunit 30286 "Shpfy Company API"
 #pragma warning restore AA0139
         CompanyLocation.Recipient := CopyStr(JsonHelper.GetValueAsText(JCompanyLocation, 'billingAddress.recipient', MaxStrLen(CompanyLocation.Recipient)), 1, MaxStrLen(CompanyLocation.Recipient));
         CompanyLocation."Shpfy Payment Terms Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JCompanyLocation, 'buyerExperienceConfiguration.paymentTermsTemplate.id'));
-        CompanyLocation."Customer Id" := CustomerId;
+        CompanyLocation."Customer Id" := Customer.SystemId;
+        CompanyLocation."Sell-to Customer No." := Customer."No.";
+        if Customer."Bill-to Customer No." <> '' then
+            CompanyLocation."Bill-to Customer No." := Customer."Bill-to Customer No.";
         CompanyLocation.Modify(true);
+        exit(CompanyLocationId);
     end;
 
     local procedure ExtractShopifyCompanyLocations(var ShopifyCompany: Record "Shpfy Company"; JResponse: JsonObject; var Cursor: Text; var IsDefaultCompanyLocation: Boolean): Boolean
     var
-        CompanyLocation: Record "Shpfy Company Location";
         JLocations: JsonArray;
         JLocation: JsonToken;
-        PhoneNo: Text;
-        CompanyLocationId: BigInteger;
     begin
         if JsonHelper.GetJsonArray(JResponse, JLocations, 'data.companyLocations.edges') then begin
             foreach JLocation in JLocations do begin
                 Cursor := JsonHelper.GetValueAsText(JLocation.AsObject(), 'cursor');
-                CompanyLocationId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLocation, 'node.id'));
-                if IsDefaultCompanyLocation then
-                    ShopifyCompany."Location Id" := CompanyLocationId;
-
-                CompanyLocation.SetRange(Id, CompanyLocationId);
-                if not CompanyLocation.FindFirst() then begin
-                    CompanyLocation.Init();
-                    CompanyLocation.Id := CompanyLocationId;
-                    CompanyLocation."Company SystemId" := ShopifyCompany.SystemId;
-                    CompanyLocation.Name := CopyStr(JsonHelper.GetValueAsText(JLocation, 'node.name'), 1, MaxStrLen(CompanyLocation.Name));
-                    CompanyLocation.Insert(true);
-                end;
-
-                CompanyLocation.Address := CopyStr(JsonHelper.GetValueAsText(JLocation, 'node.billingAddress.address1', MaxStrLen(CompanyLocation.Address)), 1, MaxStrLen(CompanyLocation.Address));
-                CompanyLocation."Address 2" := CopyStr(JsonHelper.GetValueAsText(JLocation, 'node.billingAddress.address2', MaxStrLen(CompanyLocation."Address 2")), 1, MaxStrLen(CompanyLocation."Address 2"));
-                CompanyLocation.Zip := CopyStr(JsonHelper.GetValueAsCode(JLocation, 'node.billingAddress.zip', MaxStrLen(CompanyLocation.Zip)), 1, MaxStrLen(CompanyLocation.Zip));
-                CompanyLocation.City := CopyStr(JsonHelper.GetValueAsText(JLocation, 'node.billingAddress.city', MaxStrLen(CompanyLocation.City)), 1, MaxStrLen(CompanyLocation.City));
-                CompanyLocation."Country/Region Code" := CopyStr(JsonHelper.GetValueAsCode(JLocation, 'node.billingAddress.countryCode', MaxStrLen(CompanyLocation."Country/Region Code")), 1, MaxStrLen(CompanyLocation."Country/Region Code"));
-                CompanyLocation."Province Code" := CopyStr(JsonHelper.GetValueAsText(JLocation, 'node.billingAddress.zoneCode', MaxStrLen(CompanyLocation."Province Code")), 1, MaxStrLen(CompanyLocation."Province Code"));
-                CompanyLocation."Province Name" := CopyStr(JsonHelper.GetValueAsText(JLocation, 'node.billingAddress.province', MaxStrLen(CompanyLocation."Province Name")), 1, MaxStrLen(CompanyLocation."Province Name"));
-                PhoneNo := JsonHelper.GetValueAsText(JLocation, 'node.billingAddress.phone');
-                PhoneNo := CopyStr(DelChr(PhoneNo, '=', DelChr(PhoneNo, '=', '1234567890/+ .()')), 1, MaxStrLen(CompanyLocation."Phone No."));
-                CompanyLocation."Phone No." := CopyStr(PhoneNo, 1, MaxStrLen(CompanyLocation."Phone No."));
-#pragma warning disable AA0139
-                CompanyLocation."Tax Registration Id" := JsonHelper.GetValueAsText(JLocation, 'node.taxRegistrationId', MaxStrLen(CompanyLocation."Tax Registration Id"));
-#pragma warning restore AA0139
-                CompanyLocation.Recipient := CopyStr(JsonHelper.GetValueAsText(JLocation, 'node.billingAddress.recipient', MaxStrLen(CompanyLocation.Recipient)), 1, MaxStrLen(CompanyLocation.Recipient));
-                CompanyLocation."Shpfy Payment Terms Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLocation, 'node.buyerExperienceConfiguration.paymentTermsTemplate.id'));
-                if IsDefaultCompanyLocation then begin
-                    CompanyLocation.Default := IsDefaultCompanyLocation;
-                    IsDefaultCompanyLocation := false;
-                end;
-                CompanyLocation.Modify(true);
+                ExtractShopifyCompanyLocation(ShopifyCompany, JLocation.AsObject(), IsDefaultCompanyLocation);
             end;
             exit(true);
         end;
+    end;
+
+    local procedure ExtractShopifyCompanyLocation(var ShopifyCompany: Record "Shpfy Company"; JLocation: JsonObject; var IsDefaultCompanyLocation: Boolean)
+    var
+        CompanyLocation: Record "Shpfy Company Location";
+        PhoneNo: Text;
+        CompanyLocationId: BigInteger;
+    begin
+        CompanyLocationId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLocation, 'node.id'));
+        if IsDefaultCompanyLocation then
+            ShopifyCompany."Location Id" := CompanyLocationId;
+
+        CompanyLocation.SetRange(Id, CompanyLocationId);
+        if not CompanyLocation.FindFirst() then begin
+            CompanyLocation.Id := CompanyLocationId;
+            CompanyLocation."Company SystemId" := ShopifyCompany.SystemId;
+            CompanyLocation.Name := CopyStr(JsonHelper.GetValueAsText(JLocation, 'node.name'), 1, MaxStrLen(CompanyLocation.Name));
+            CompanyLocation.Insert(true);
+        end;
+
+        CompanyLocation.Address := CopyStr(JsonHelper.GetValueAsText(JLocation, 'node.billingAddress.address1', MaxStrLen(CompanyLocation.Address)), 1, MaxStrLen(CompanyLocation.Address));
+        CompanyLocation."Address 2" := CopyStr(JsonHelper.GetValueAsText(JLocation, 'node.billingAddress.address2', MaxStrLen(CompanyLocation."Address 2")), 1, MaxStrLen(CompanyLocation."Address 2"));
+        CompanyLocation.Zip := CopyStr(JsonHelper.GetValueAsCode(JLocation, 'node.billingAddress.zip', MaxStrLen(CompanyLocation.Zip)), 1, MaxStrLen(CompanyLocation.Zip));
+        CompanyLocation.City := CopyStr(JsonHelper.GetValueAsText(JLocation, 'node.billingAddress.city', MaxStrLen(CompanyLocation.City)), 1, MaxStrLen(CompanyLocation.City));
+        CompanyLocation."Country/Region Code" := CopyStr(JsonHelper.GetValueAsCode(JLocation, 'node.billingAddress.countryCode', MaxStrLen(CompanyLocation."Country/Region Code")), 1, MaxStrLen(CompanyLocation."Country/Region Code"));
+        CompanyLocation."Province Code" := CopyStr(JsonHelper.GetValueAsText(JLocation, 'node.billingAddress.zoneCode', MaxStrLen(CompanyLocation."Province Code")), 1, MaxStrLen(CompanyLocation."Province Code"));
+        CompanyLocation."Province Name" := CopyStr(JsonHelper.GetValueAsText(JLocation, 'node.billingAddress.province', MaxStrLen(CompanyLocation."Province Name")), 1, MaxStrLen(CompanyLocation."Province Name"));
+        PhoneNo := JsonHelper.GetValueAsText(JLocation, 'node.billingAddress.phone');
+        PhoneNo := CopyStr(DelChr(PhoneNo, '=', DelChr(PhoneNo, '=', '1234567890/+ .()')), 1, MaxStrLen(CompanyLocation."Phone No."));
+        CompanyLocation."Phone No." := CopyStr(PhoneNo, 1, MaxStrLen(CompanyLocation."Phone No."));
+#pragma warning disable AA0139
+        CompanyLocation."Tax Registration Id" := JsonHelper.GetValueAsText(JLocation, 'node.taxRegistrationId', MaxStrLen(CompanyLocation."Tax Registration Id"));
+#pragma warning restore AA0139
+        CompanyLocation.Recipient := CopyStr(JsonHelper.GetValueAsText(JLocation, 'node.billingAddress.recipient', MaxStrLen(CompanyLocation.Recipient)), 1, MaxStrLen(CompanyLocation.Recipient));
+        CompanyLocation."Shpfy Payment Terms Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLocation, 'node.buyerExperienceConfiguration.paymentTermsTemplate.id'));
+        if IsDefaultCompanyLocation then begin
+            CompanyLocation.Default := IsDefaultCompanyLocation;
+            IsDefaultCompanyLocation := false;
+        end;
+        CompanyLocation.Modify(true);
     end;
 }

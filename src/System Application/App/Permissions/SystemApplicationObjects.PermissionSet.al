@@ -17,6 +17,7 @@ using System.Integration.Excel;
 using System.ExternalFileStorage;
 using System.Email;
 using System.Text;
+using System.MCP;
 using System.Globalization;
 using System.Tooling;
 using System.Utilities;
@@ -46,6 +47,7 @@ permissionset 219 "System Application - Objects"
                              "File Storage - Objects",
                              "Guided Experience - Objects",
                              "Language - Objects",
+                             "MCP - Objects",
                              "Page Summary Provider - Obj.",
                              "Performance Profiler - Objects",
                              "Permission Sets - Objects",

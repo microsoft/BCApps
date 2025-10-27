@@ -42,7 +42,7 @@ codeunit 3112 "Activity Log Builder Impl."
     var
         TextURL: Text;
     begin
-        TextURL := System.GetUrl(CurrentClientType(), CompanyName(), ObjectType::Page, PageId, Rec, true);
+        TextURL := System.GetUrl(CurrentClientType(), CompanyName(), ObjectType::Page, PageId, Rec, false);
         LogEntry.AddFieldAttribute(this.GlobalFieldNo, AttributeType::ReferenceSource, TextURL);
         exit(this);
     end;
@@ -50,6 +50,12 @@ codeunit 3112 "Activity Log Builder Impl."
     procedure SetReferenceSource(ReferenceSource: Text): Codeunit "Activity Log Builder Impl."
     begin
         LogEntry.AddFieldAttribute(this.GlobalFieldNo, AttributeType::ReferenceSource, ReferenceSource);
+        exit(this);
+    end;
+
+    procedure SetConfidence(Confidence: Integer): Codeunit "Activity Log Builder Impl."
+    begin
+        LogEntry.AddFieldAttribute(this.GlobalFieldNo, AttributeType::Confidence, Format(Confidence));
         exit(this);
     end;
 

@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -7,9 +8,14 @@ namespace System.TestLibraries.Email;
 
 using System.Email;
 
+#pragma warning disable AL0432
 codeunit 134702 "Test Email Connector v3" implements "Email Connector v3"
+#pragma warning restore AL0432
 {
     SingleInstance = true;
+    ObsoleteReason = 'Use Test Email Connector v4.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
 
     var
         TempEmailInbox: Record "Email Inbox" temporary;
@@ -114,3 +120,4 @@ codeunit 134702 "Test Email Connector v3" implements "Email Connector v3"
             Error('Failed to mark email as read');
     end;
 }
+#endif

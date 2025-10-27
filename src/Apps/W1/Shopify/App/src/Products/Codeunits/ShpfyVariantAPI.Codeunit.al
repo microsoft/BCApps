@@ -583,6 +583,8 @@ codeunit 30189 "Shpfy Variant API"
                         CurrShopifyVariant.Modify()
                     end;
             until ShopifyVariant.Next() = 0;
+            if GraphQuery.ToText().EndsWith('variants: [') then
+                exit;
             GraphQuery.Remove(GraphQuery.Length - 1, 2);
             GraphQuery.Append(ReturnQuery);
 

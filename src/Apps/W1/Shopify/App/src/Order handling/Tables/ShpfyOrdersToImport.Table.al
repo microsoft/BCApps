@@ -173,6 +173,8 @@ table 30121 "Shpfy Orders to Import"
             Caption = 'Channel Name';
             DataClassification = SystemMetadata;
             Editable = false;
+            TableRelation = "Shpfy Sales Channel".Name where("Shop Code" = field("Shop Code"));
+            ValidateTableRelation = false;
         }
         field(23; "Purchasing Entity"; Enum "Shpfy Order Purchasing Entity")
         {

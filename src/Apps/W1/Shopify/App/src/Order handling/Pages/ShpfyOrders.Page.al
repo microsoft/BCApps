@@ -152,6 +152,18 @@ page 30115 "Shpfy Orders"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the sum of the line amounts on all lines in the document minus any discount amounts plus the shipping costs.';
                 }
+                field(AppName; Rec."App Name")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the name of the app used by the channel where you sell your products. A channel can be a platform or a marketplace such as an online store or POS.';
+                    Visible = false;
+                }
+                field(CancelReason; Rec."Cancel Reason")
+                {
+                    ApplicationArea = All;
+                    Visible = false;
+                    ToolTip = 'Specifies the reason why the order was cancelled. Valid values are: customer, fraud, inventory, declined, other.';
+                }
                 field(Processed; Rec.Processed)
                 {
                     ApplicationArea = All;
@@ -417,6 +429,30 @@ page 30115 "Shpfy Orders"
                     end;
                 }
             }
+        }
+    }
+
+    views
+    {
+        view(UnprocessedOrders)
+        {
+            Caption = 'Unprocessed Orders';
+            Filters = where(Processed = const(false));
+        }
+        view(OrderWithConflicts)
+        {
+            Caption = 'Orders with Conflicts';
+            Filters = where("Has Order State Error" = const(true));
+        }
+        view(OrderWithProcessingErrors)
+        {
+            Caption = 'Orders with Processing Errors';
+            Filters = where("Has Error" = const(true));
+        }
+        view(OpenOrders)
+        {
+            Caption = 'Open Orders';
+            Filters = where(Closed = const(false));
         }
     }
 

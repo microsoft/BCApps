@@ -44,6 +44,10 @@ table 134687 "Test Email Connector Setup"
         {
             Caption = 'Fail On Retrieve Emails';
         }
+        field(9; "Fail On Get Email Folders"; Boolean)
+        {
+            Caption = 'Fail On Get Email Folders';
+        }
     }
 
     keys
