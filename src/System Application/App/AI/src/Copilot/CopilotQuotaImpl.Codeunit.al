@@ -105,7 +105,7 @@ codeunit 7786 "Copilot Quota Impl."
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
     begin
-        exit(ALCopilotFunctions.IsAgentUserAIConsumptionLogged(UniqueID));
+        exit(ALCopilotFunctions.IsAgentUserAIConsumptionLoggedAsync(UniqueID).GetAwaiter().GetResult());
     end;
 
     local procedure UsageTypeToDotnetUsageType(CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; var AlCopilotUsageType: DotNet AlCopilotUsageType)
