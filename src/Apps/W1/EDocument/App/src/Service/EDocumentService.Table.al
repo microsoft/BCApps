@@ -394,6 +394,19 @@ table 6103 "E-Document Service"
 #endif
     end;
 
+    procedure GetFileExtension() FileExtension: Text
+    var
+        XMLFileTypeTok: Label '.xml', Locked = true;
+    begin
+        FileExtension := XMLFileTypeTok;
+        OnAfterGetFileExtension(Rec, FileExtension);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetFileExtension(EDocumentService: Record "E-Document Service"; var FileExtension: Text)
+    begin
+    end;
+
     var
         EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
         AzureDocumentIntelligenceTok: Label 'MSEOCADI', Locked = true;
