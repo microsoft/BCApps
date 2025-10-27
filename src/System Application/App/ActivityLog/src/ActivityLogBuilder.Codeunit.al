@@ -51,7 +51,7 @@ codeunit 3111 "Activity Log Builder"
     /// Sets the confidence level for the activity log value.
     /// </summary>
     [Scope('OnPrem')]
-    procedure SetConfidence(Confidence: Integer): Codeunit "Activity Log Builder"
+    procedure SetConfidence(Confidence: Text): Codeunit "Activity Log Builder"
     begin
         ActivityLogBuilderImpl := ActivityLogBuilderImpl.SetConfidence(Confidence);
         exit(this);
