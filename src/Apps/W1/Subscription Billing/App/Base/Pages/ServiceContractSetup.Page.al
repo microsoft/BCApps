@@ -82,6 +82,15 @@ page 8051 "Service Contract Setup"
                 {
                     ToolTip = 'Specifies which customer information (name) is transferred to collective invoices. This setting is applies for collective invoices only.';
                 }
+                group("Usage Data")
+                {
+                    Caption = 'Usage Data';
+
+                    field("Invoice Desc. (Surcharge)"; Rec."Invoice Desc. (Surcharge)")
+                    {
+                        ToolTip = 'Specifies the origin of the invoice details'' description for usage data to be charged as Unit Cost Surcharge.';
+                    }
+                }
                 group(ArrangeTexts)
                 {
                     Caption = 'Arrange Texts';
@@ -110,15 +119,6 @@ page 8051 "Service Contract Setup"
                     {
                         ToolTip = 'Specifies which information is used for the fifth additional line.';
                     }
-                }
-            }
-            group("Usage Data")
-            {
-                Caption = 'Usage Data';
-
-                field("Invoice Desc. (Surcharge)"; Rec."Invoice Desc. (Surcharge)")
-                {
-                    ToolTip = 'Specifies the origin of the invoice details'' description for usage data to be charged as Unit Cost Surcharge.';
                 }
             }
             group("Gen. Journal Templates")
