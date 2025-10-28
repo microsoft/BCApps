@@ -118,7 +118,6 @@ table 8004 "Sub. Contr. Price Update Line"
             Editable = false;
             BlankZero = true;
             AutoFormatType = 0;
-            DecimalPlaces = 0 : 5;
         }
         field(20; "Discount %"; Decimal)
         {
@@ -142,7 +141,6 @@ table 8004 "Sub. Contr. Price Update Line"
             Caption = 'Quantity';
             BlankZero = true;
             AutoFormatType = 0;
-            DecimalPlaces = 0 : 5;
         }
         field(23; "Next Price Update"; Date)
         {
