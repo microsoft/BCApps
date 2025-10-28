@@ -5,7 +5,11 @@
 
 namespace Microsoft.Integration.Shopify;
 
-codeunit 30233 "Shpfy GQL CreateFulfillmentSvc" implements "Shpfy IGraphQL"
+/// <summary>
+/// Codeunit Shpfy GQL AcceptFFRequest (ID 30412).
+/// Implements the IGraphQL interface for accepting Shopify fulfillment requests using GraphQL.
+/// </summary>
+codeunit 30414 "Shpfy GQL AcceptFFRequest" implements "Shpfy IGraphQL"
 {
     Access = Internal;
 
@@ -15,7 +19,7 @@ codeunit 30233 "Shpfy GQL CreateFulfillmentSvc" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Text.</returns>
     internal procedure GetGraphQL(): Text
     begin
-        exit('{"query": "mutation { fulfillmentServiceCreate(name: \"{{Name}}\", callbackUrl: \"{{CallbackUrl}}\") {fulfillmentService {id}}}"}');
+        exit('{"query":"mutation { fulfillmentOrderAcceptFulfillmentRequest(id: \"gid://shopify/FulfillmentOrder/{{FulfillmentOrderId}}\") { fulfillmentOrder { id requestStatus } userErrors { field message }}}"}');
     end;
 
     /// <summary>
