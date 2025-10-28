@@ -16,6 +16,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 codeunit 139913 "Vendor Deferrals Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 
@@ -91,7 +92,7 @@ codeunit 139913 "Vendor Deferrals Test"
                     end;
                 else begin
                     VendorContractDeferral.TestField(Amount, MonthlyDefBaseAmount);
-                    VendorContractDeferral.TestField("Number of Days", Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1));
+                    VendorContractDeferral.TestField("Number of Days", CalcDate('<CM>', VendorContractDeferral."Posting Date").Day());
                 end;
             end;
             VendorContractDeferral.Next();
@@ -123,7 +124,7 @@ codeunit 139913 "Vendor Deferrals Test"
                     end;
                 else begin
                     VendorContractDeferral.TestField(Amount, MonthlyDefBaseAmount);
-                    VendorContractDeferral.TestField("Number of Days", Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1));
+                    VendorContractDeferral.TestField("Number of Days", CalcDate('<CM>', VendorContractDeferral."Posting Date").Day());
                 end;
             end;
             VendorContractDeferral.Next();
@@ -159,7 +160,7 @@ codeunit 139913 "Vendor Deferrals Test"
                     end;
                 else begin
                     VendorContractDeferral.TestField(Amount, MonthlyDefBaseAmount);
-                    VendorContractDeferral.TestField("Number of Days", Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1));
+                    VendorContractDeferral.TestField("Number of Days", CalcDate('<CM>', VendorContractDeferral."Posting Date").Day());
                 end;
             end;
             VendorContractDeferral.Next();
@@ -191,7 +192,7 @@ codeunit 139913 "Vendor Deferrals Test"
                     end;
                 else begin
                     VendorContractDeferral.TestField(Amount, MonthlyDefBaseAmount);
-                    VendorContractDeferral.TestField("Number of Days", Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1));
+                    VendorContractDeferral.TestField("Number of Days", CalcDate('<CM>', VendorContractDeferral."Posting Date").Day());
                 end;
             end;
             VendorContractDeferral.Next();
@@ -211,7 +212,7 @@ codeunit 139913 "Vendor Deferrals Test"
             TestVendorContractDeferralsFields();
             VendorContractDeferral.TestField(Amount, 10);
             VendorContractDeferral.TestField("Deferral Base Amount", 120);
-            VendorContractDeferral.TestField("Number of Days", Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1));
+            VendorContractDeferral.TestField("Number of Days", CalcDate('<CM>', VendorContractDeferral."Posting Date").Day());
         until VendorContractDeferral.Next() = 0;
     end;
 
@@ -236,7 +237,7 @@ codeunit 139913 "Vendor Deferrals Test"
                                                     PurchaseHeader."Currency Code",
                                                     60,
                                                     PurchaseHeader."Currency Factor"), GLSetup."Amount Rounding Precision"));
-            VendorContractDeferral.TestField("Number of Days", Date2DMY(CalcDate('<CM>', VendorContractDeferral."Posting Date"), 1));
+            VendorContractDeferral.TestField("Number of Days", CalcDate('<CM>', VendorContractDeferral."Posting Date").Day());
         until VendorContractDeferral.Next() = 0;
     end;
 
@@ -795,9 +796,8 @@ codeunit 139913 "Vendor Deferrals Test"
         SubscriptionLine: Record "Subscription Line";
     begin
         CreateVendorContractWithDeferrals('<2M-CM>', true);
+        ContractTestLibrary.DisableDeferralsForVendorContract(VendorContract, false);
         CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
-        VendorContract."Create Contract Deferrals" := false;
-        VendorContract.Modify(false);
 
         SubscriptionLine.SetRange(Partner, SubscriptionLine.Partner::Vendor);
         SubscriptionLine.SetRange("Subscription Contract No.", VendorContract."No.");

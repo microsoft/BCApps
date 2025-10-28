@@ -7,7 +7,6 @@ namespace System.Email;
 
 using System.DataAdministration;
 using System.Upgrade;
-using System.Environment.Configuration;
 using System.Reflection;
 
 #pragma warning disable AA0235
@@ -38,9 +37,10 @@ codeunit 1596 "Email Installer"
         Field: Record Field;
         RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
         UpgradeTag: Codeunit "Upgrade Tag";
+        EmailUpgrade: Codeunit "Email Upgrade";
         IsInitialSetup: Boolean;
     begin
-        IsInitialSetup := not UpgradeTag.HasUpgradeTag(GetEmailTablesAddedToAllowedListUpgradeTag());
+        IsInitialSetup := not UpgradeTag.HasUpgradeTag(EmailUpgrade.GetEmailTablesAddedToAllowedListUpgradeTag());
         if not (IsInitialSetup or ForceUpdate) then
             exit;
 
@@ -49,23 +49,12 @@ codeunit 1596 "Email Installer"
         RetenPolAllowedTables.AddAllowedTable(Database::"Email Inbox", Field.FieldNo(SystemCreatedAt), 2);
 
         if IsInitialSetup then
-            UpgradeTag.SetUpgradeTag(GetEmailTablesAddedToAllowedListUpgradeTag());
-    end;
-
-    local procedure GetEmailTablesAddedToAllowedListUpgradeTag(): Code[250]
-    begin
-        exit('MS-373161-EmailLogEntryAdded-20201005');
+            UpgradeTag.SetUpgradeTag(EmailUpgrade.GetEmailTablesAddedToAllowedListUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reten. Pol. Allowed Tables", OnRefreshAllowedTables, '', false, false)]
     local procedure AddAllowedTablesOnRefreshAllowedTables()
     begin
         AddRetentionPolicyAllowedTables(true);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Initialization", OnAfterLogin, '', false, false)]
-    local procedure AddAllowedTablesOnAfterSystemInitialization()
-    begin
-        AddRetentionPolicyAllowedTables();
     end;
 }

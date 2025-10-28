@@ -13,6 +13,6 @@ permissionset 9680 "Copilot Sys Features"
 
     Permissions = system "Allow Copilot Autofill" = X,
                   system "Allow Copilot Chat" = X,
-                  system "Allow Copilot Summary" = X;
-                  
+                  system "Allow Copilot Summary" = X,
+                  system "Allow Copilot Analysis Assist" = X;
 }

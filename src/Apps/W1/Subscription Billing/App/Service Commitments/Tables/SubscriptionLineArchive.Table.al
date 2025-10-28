@@ -254,6 +254,7 @@ table 8073 "Subscription Line Archive"
         {
             Caption = 'Quantity (Subscription)';
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(50; "Next Price Update"; Date)
         {

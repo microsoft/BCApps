@@ -1,0 +1,17 @@
+[
+  {
+    "codeunitId": 135135,
+    "codeunitName": "Image Tests",
+    "method": "ClearTest"
+  },
+  { 
+    "codeunitId": 135135,
+    "codeunitName": "Image Tests",
+    "method": "RotateFlip360Test"
+  },
+  {
+    "codeunitId": 135135,
+    "codeunitName": "Image Tests",
+    "method": "RotateFlipTest"
+  }
+]

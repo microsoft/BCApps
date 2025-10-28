@@ -29,6 +29,7 @@ using System.TestLibraries.Utilities;
 codeunit 139915 "Sales Service Commitment Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     Access = Internal;
 
     var
@@ -61,8 +62,9 @@ codeunit 139915 "Sales Service Commitment Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         SerialNo: array[10] of Code[50];
         NoOfServiceObjects: Integer;
-        NotCreatedProperlyErr: Label 'Subscription Lines are not created properly.';
+        NotCreatedProperlyErr: Label 'Subscription Lines are not created properly.', Locked = true;
         SalesServiceCommitmentCannotBeDeletedErr: Label 'The Sales Subscription Line cannot be deleted, because it is the last line with Process Contract Renewal. Please delete the Sales line in order to delete the Sales Subscription Line.', Locked = true;
+        NaturalNumberRatioErr: Label 'The ratio of ''%1'' and ''%2'' or vice versa must give a natural number.', Comment = '%1=Field Caption, %2=Field Caption', Locked = true;
 
     #region Tests
 
@@ -1264,6 +1266,38 @@ codeunit 139915 "Sales Service Commitment Test"
 
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Quote, '');
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", LibraryRandom.RandIntInRange(1, 100));
+    end;
+
+    [Test]
+    procedure PreventInvalidDateFormulaRatioForSalesSubscriptionLine()
+    var
+        TwelveMonthsDateFormula: DateFormula;
+        FifteenMonthsDateFormula: DateFormula;
+    begin
+        // [SCENARIO] When a Sales Subscription Line has been created with a Billing Base Period and a Billing Rhythm that do not have a valid ratio, the error is thrown as soon as an invalid date formula is entered
+
+        // [GIVEN] When a Sales Subscription Line with Billing Base Period and Billing Rhythm equal to 12M has been created
+        Initialize();
+        Evaluate(TwelveMonthsDateFormula, '<12M>');
+        ServiceCommPackageLine.Validate("Billing Base Period", TwelveMonthsDateFormula);
+        ServiceCommPackageLine.Validate("Billing Rhythm", TwelveMonthsDateFormula);
+        ServiceCommPackageLine.Modify(false);
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item", ServiceCommitmentPackage.Code);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Quote, '');
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", LibraryRandom.RandIntInRange(1, 100));
+
+        Commit(); // retain data after asserterror
+
+        // [WHEN] An invalid date formula is created for the purpose of validating Billing Base Period and Billing Rhythm
+        Evaluate(FifteenMonthsDateFormula, '<15M>');
+
+        // [THEN] Error expected when invalid date formula is entered for Billing Base Period or Billing Rhythm
+        SalesServiceCommitment.FilterOnSalesLine(SalesLine);
+        SalesServiceCommitment.FindFirst();
+        asserterror SalesServiceCommitment.Validate("Billing Base Period", FifteenMonthsDateFormula);
+        Assert.ExpectedError(StrSubstNo(NaturalNumberRatioErr, SalesServiceCommitment.FieldCaption("Billing Base Period"), SalesServiceCommitment.FieldCaption("Billing Rhythm")));
+        asserterror SalesServiceCommitment.Validate("Billing Rhythm", FifteenMonthsDateFormula);
+        Assert.ExpectedError(StrSubstNo(NaturalNumberRatioErr, SalesServiceCommitment.FieldCaption("Billing Base Period"), SalesServiceCommitment.FieldCaption("Billing Rhythm")));
     end;
 
     [Test]

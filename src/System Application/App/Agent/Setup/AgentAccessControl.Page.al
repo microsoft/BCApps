@@ -28,7 +28,7 @@ page 4320 "Agent Access Control"
                 {
                     Caption = 'User Name';
                     ToolTip = 'Specifies the name of the User that can access the agent.';
-                    TableRelation = User;
+                    TableRelation = User where("License Type" = filter(<> Application & <> "Windows Group" & <> Agent));
 
                     trigger OnValidate()
                     begin

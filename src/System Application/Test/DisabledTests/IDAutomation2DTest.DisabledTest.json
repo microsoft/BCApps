@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 135059,
+    "codeunitName": "IDAutomation 2D Test",
+    "method": "TestDataMatrixEncoding"
+  },
+  {
+    "codeunitId": 135059,
+    "codeunitName": "IDAutomation 2D Test",
+    "method": "TestMaxiCodeEncoding"
+  },
+  {
+    "codeunitId": 135059,
+    "codeunitName": "IDAutomation 2D Test",
+    "method": "TestPDF417Encoding"
+  },
+  {
+    "codeunitId": 135059,
+    "codeunitName": "IDAutomation 2D Test",
+    "method": "TestQRCodeEncoding"
+  }
+]

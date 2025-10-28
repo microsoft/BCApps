@@ -1,11 +1,17 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/1598a2b57bfbf523c09d70b47177965180a70e9c/Actions/settings.schema.json",
-  "projectName": "System Application and Tools",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/13868260bf008b56d26fd739c1f764b2bb2c8239/Actions/.Modules/settings.schema.json",
+  "projectName": "System Application, Business Foundation and Tools",
   "appFolders": [
     "../../../src/System Application/App",
+    "../../../src/Business Foundation/App",
     "../../../src/Tools/AI Test Toolkit",
+    "../../../src/Tools/Performance Toolkit/App",
     "../../../src/Tools/Test Framework/Test Libraries/*",
     "../../../src/Tools/Test Framework/Test Runner"
+  ],
+  "testFolders": [
+    "../../../src/System Application/Test Library",
+    "../../../src/Business Foundation/Test Library"
   ],
   "doNotRunTests": true,
   "useCompilerFolder": true,

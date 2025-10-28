@@ -1,6 +1,6 @@
 Param(
     [Hashtable]$parameters,
-    [switch]$KeepAppsPublished
+    [string[]]$AppsToUnpublish = @("All")
 )
 
 $parameters.multitenant = $false
@@ -20,7 +20,7 @@ foreach($app in $installedApps) {
     Write-Host "Removing $($app.Name)"
     UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -doNotSaveData -doNotSaveSchema -force
 
-    if ((-not $KeepAppsPublished)) {
+    if (($AppsToUnpublish -contains "All") -or ($AppsToUnpublish -contains $app.Name)) {
         Write-Host "Unpublishing $($app.Name)"
         Unpublish-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -unInstall -doNotSaveData -doNotSaveSchema -force
     }

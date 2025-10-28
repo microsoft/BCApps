@@ -1,18 +1,20 @@
 {
-    "ExternalAppDependencies" : [
+    "ExternalAppDependencies": [
         "System Application",
-        "Business Foundation", 
-        "Base Application", 
+        "Business Foundation",
+        "Base Application",
         "Application",
         "Statistical Accounts",
-        "Sustainability",
-        "Power BI Report embeddings for Dynamics 365 Business Central"
+        "Power BI Report embeddings for Dynamics 365 Business Central",
+        "Sustainability"
     ],
-    "ExternalTestAppDependencies" : [
+    "ExternalTestAppDependencies": [
+        "Test Runner",
         "Permissions Mock",
         "Any",
         "Library Assert",
         "Library Variable Storage",
+        "AI Test Toolkit",
         "System Application Test Library",
         "Business Foundation Test Libraries",
         "Tests-TestLibraries",

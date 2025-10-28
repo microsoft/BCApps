@@ -182,6 +182,7 @@ table 8059 "Subscription Line"
             begin
                 DateFormulaManagement.ErrorIfDateFormulaEmpty("Billing Base Period", FieldCaption("Billing Base Period"));
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Billing Base Period");
+                CheckRatioBetweenBillingBasePeriodAndRhythm();
             end;
         }
         field(16; "Invoicing via"; Enum "Invoicing Via")
@@ -193,13 +194,19 @@ table 8059 "Subscription Line"
                     "Create Contract Deferrals" := "Create Contract Deferrals"::No
                 else
                     "Create Contract Deferrals" := "Create Contract Deferrals"::"Contract-dependent";
-
+                ErrorIfInvoicingViaIsNotContractForDiscount();
             end;
         }
         field(17; "Invoicing Item No."; Code[20])
         {
             Caption = 'Invoicing Item No.';
             TableRelation = Item."No." where("Subscription Option" = filter("Invoicing Item" | "Service Commitment Item"));
+            trigger OnValidate()
+            begin
+                if "Invoicing via" = "Invoicing via"::Sales then
+                    Error(InvoicingItemNoErr);
+                ErrorIfInvoicingItemIsNotServiceCommitmentItemForDiscount();
+            end;
         }
         field(18; Partner; Enum "Service Partner")
         {
@@ -254,6 +261,7 @@ table 8059 "Subscription Line"
             begin
                 DateFormulaManagement.ErrorIfDateFormulaEmpty("Billing Rhythm", FieldCaption("Billing Rhythm"));
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Billing Rhythm");
+                CheckRatioBetweenBillingBasePeriodAndRhythm();
             end;
         }
         field(24; "Cancellation Possible Until"; Date)
@@ -375,7 +383,12 @@ table 8059 "Subscription Line"
         field(38; Discount; Boolean)
         {
             Caption = 'Discount';
-            Editable = false;
+            trigger OnValidate()
+            begin
+                ErrorIfInvoicingViaIsNotContractForDiscount();
+                ErrorIfInvoicingItemIsNotServiceCommitmentItemForDiscount();
+                ErrorIfDiscountUsedWithUsageBasedBilling();
+            end;
         }
         field(39; Quantity; Decimal)
         {
@@ -384,6 +397,7 @@ table 8059 "Subscription Line"
             FieldClass = FlowField;
             CalcFormula = lookup("Subscription Header".Quantity where("No." = field("Subscription Header No.")));
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(40; "Create Contract Deferrals"; Enum "Create Contract Deferrals")
         {
@@ -420,6 +434,14 @@ table 8059 "Subscription Line"
         field(59; "Period Calculation"; enum "Period Calculation")
         {
             Caption = 'Period Calculation';
+        }
+        field(60; "Variant Code"; Code[10])
+        {
+            Caption = 'Variant Code';
+            ToolTip = 'Specifies the Variant Code of the Subscription.';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Subscription Header"."Variant Code" where("No." = field("Subscription Header No.")));
+            Editable = false;
         }
         field(107; "Closed"; Boolean)
         {
@@ -518,6 +540,7 @@ table 8059 "Subscription Line"
             DataClassification = CustomerContent;
             Editable = false;
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(8003; "Supplier Reference Entry No."; Integer)
         {
@@ -595,9 +618,6 @@ table 8059 "Subscription Line"
 
     trigger OnModify()
     begin
-        xRec.Get(xRec."Entry No.");
-        if ((xRec."Billing Base Period" <> Rec."Billing Base Period") or (xRec."Billing Rhythm" <> Rec."Billing Rhythm")) then
-            DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
         DisplayErrorIfContractLinesExist(ClosedContractLineExistErr, true);
         SetUpdateRequiredOnBillingLines();
         UpdateCustomerContractLineServiceCommitmentDescription();
@@ -606,6 +626,7 @@ table 8059 "Subscription Line"
 
     trigger OnDelete()
     begin
+        DisplayErrorIfStartDateIsDifferentThanNextBillingDate();
         DisplayErrorIfContractLinesExist(OpenContractLinesExistErr, false);
         DeleteContractLine();
         SetUpdateRequiredOnBillingLines();
@@ -635,6 +656,38 @@ table 8059 "Subscription Line"
         BillingLineArchiveForServiceCommitmentExistErr: Label 'The contract line has already been billed. The Subscription Line start date can no longer be changed.';
         NoManualEntryOfUnitCostLCYForVendorServCommErr: Label 'Please use the fields "Calculation Base Amount" and "Calculation Base %" in order to update the unit cost.';
         DeferralsExistErr: Label 'The creation of contract deferrals cannot be changed as there are still unreleased deferrals for this contract line.';
+        SubscriptionLineStartDateDifferentThanNextBillingDateErr: Label 'The %1 must be the same as the %2 to delete the %3.', Comment = '%1 = Service Start Date; %2 = Next Billing Date; %3 = Service Commitment';
+        InvoicingItemNoErr: Label 'Subscription Lines for a sales document are not invoiced. No value may be entered in the Invoicing Item No..';
+        DiscountCanBeInvoicedViaContractErr: Label 'Recurring discounts can only be granted for Invoicing via Contract.';
+        DiscountCannotBeAssignedErr: Label 'Subscription Package Lines, which are discounts, can only be assigned to Subscription Items.';
+        RecurringDiscountCannotBeGrantedErr: Label 'Recurring discounts cannot be granted in conjunction with Usage Based Billing';
+
+    local procedure ErrorIfInvoicingViaIsNotContractForDiscount()
+    begin
+        if not Rec.Discount then
+            exit;
+        if Rec."Invoicing via" <> Enum::"Invoicing Via"::Contract then
+            Error(DiscountCanBeInvoicedViaContractErr);
+    end;
+
+    local procedure ErrorIfInvoicingItemIsNotServiceCommitmentItemForDiscount()
+    var
+        Item: Record Item;
+    begin
+        if not Rec.Discount then
+            exit;
+        if not Item.Get(Rec."Invoicing Item No.") then
+            exit;
+        if Item."Subscription Option" <> Enum::"Item Service Commitment Type"::"Service Commitment Item" then
+            Error(DiscountCannotBeAssignedErr);
+    end;
+
+    local procedure ErrorIfDiscountUsedWithUsageBasedBilling()
+    begin
+        if Rec.Discount then
+            if Rec."Usage Based Billing" then
+                Error(RecurringDiscountCannotBeGrantedErr);
+    end;
 
     internal procedure CheckServiceDates()
     begin
@@ -668,19 +721,13 @@ table 8059 "Subscription Line"
     begin
         case Partner of
             Partner::Customer:
-                begin
-                    CustomerContractLine.FilterOnServiceCommitment(Rec);
-                    if CustomerContractLine.FindFirst() then
-                        if ((CheckContractLineClosed and CustomerContractLine.Closed) or (not CustomerContractLine.Closed and not CheckContractLineClosed)) then
-                            Error(ErrorTxt);
-                end;
+                if CustomerContractLine.FindFirstSubscriptionLine(Rec) then
+                    if ((CheckContractLineClosed and CustomerContractLine.Closed) or (not CustomerContractLine.Closed and not CheckContractLineClosed)) then
+                        Error(ErrorTxt);
             Partner::Vendor:
-                begin
-                    VendorContractLine.FilterOnServiceCommitment(Rec);
-                    if VendorContractLine.FindFirst() then
-                        if ((CheckContractLineClosed and VendorContractLine.Closed) or (not VendorContractLine.Closed and not CheckContractLineClosed)) then
-                            Error(ErrorTxt);
-                end;
+                if VendorContractLine.FindFirstSubscriptionLine(Rec) then
+                    if ((CheckContractLineClosed and VendorContractLine.Closed) or (not VendorContractLine.Closed and not CheckContractLineClosed)) then
+                        Error(ErrorTxt);
         end;
     end;
 
@@ -965,7 +1012,13 @@ table 8059 "Subscription Line"
                     ServiceCommitment.SetRange("Subscription Header No.", Rec."Subscription Header No.");
                     if ServiceCommitment.Count > 1 then
                         Message(MultipleServiceCommitmentsUpdatedMsg, Rec."Subscription Header No.");
-                end
+                end;
+            FieldNo("Variant Code"):
+                begin
+                    ServiceObject.Get(Rec."Subscription Header No.");
+                    ServiceObject.Validate("Variant Code", "Variant Code");
+                    ServiceObject.Modify(true);
+                end;
             else begin
                 case CalledByFieldNo of
                     FieldNo("Invoicing Item No."):
@@ -998,6 +1051,8 @@ table 8059 "Subscription Line"
                         Validate("Cancellation Possible Until", "Cancellation Possible Until");
                     FieldNo("Term Until"):
                         Validate("Term Until", "Term Until");
+                    FieldNo(Discount):
+                        Validate(Discount);
                     FieldNo("Currency Code"):
                         Validate("Currency Code", "Currency Code");
                     FieldNo("Exclude from Price Update"):
@@ -1121,12 +1176,12 @@ table 8059 "Subscription Line"
             Enum::"Service Partner"::Customer:
                 if CustomerContractLine.Get(Rec."Subscription Contract No.", Rec."Subscription Contract Line No.") then
                     if CustomerContractLine.Closed then
-                        CustomerContractLine.Delete(false);
+                        CustomerContractLine.Delete(true);
 
             Enum::"Service Partner"::Vendor:
                 if VendorContractLine.Get(Rec."Subscription Contract No.", Rec."Subscription Contract Line No.") then
                     if VendorContractLine.Closed then
-                        VendorContractLine.Delete(false);
+                        VendorContractLine.Delete(true);
         end;
     end;
 
@@ -1716,7 +1771,7 @@ table 8059 "Subscription Line"
         exit(not UsageDataBilling.IsEmpty());
     end;
 
-    local procedure SetUsageDataBillingFilters(var UsageDataBilling: Record "Usage Data Billing"; BillingFromDate: Date; BillingToDate: Date)
+    internal procedure SetUsageDataBillingFilters(var UsageDataBilling: Record "Usage Data Billing"; BillingFromDate: Date; BillingToDate: Date)
     begin
         UsageDataBilling.SetRange("Subscription Header No.", Rec."Subscription Header No.");
         UsageDataBilling.SetRange("Subscription Line Entry No.", Rec."Entry No.");
@@ -1796,11 +1851,12 @@ table 8059 "Subscription Line"
     var
         UnitCost: Decimal;
         UnitCostLCY: Decimal;
+        BillingReferenceDateChanged: Boolean;
     begin
-        Rec.UnitPriceAndCostForPeriod(Rec."Billing Rhythm", ChargePeriodStart, ChargePeriodEnd, UnitPrice, UnitCost, UnitCostLCY);
+        Rec.UnitPriceAndCostForPeriod(Rec."Billing Rhythm", ChargePeriodStart, ChargePeriodEnd, UnitPrice, UnitCost, UnitCostLCY, BillingReferenceDateChanged);
     end;
 
-    internal procedure UnitPriceAndCostForPeriod(BillingRhythm: DateFormula; ChargePeriodStart: Date; ChargePeriodEnd: Date; var UnitPrice: Decimal; var UnitCost: Decimal; var UnitCostLCY: Decimal)
+    internal procedure UnitPriceAndCostForPeriod(BillingRhythm: DateFormula; ChargePeriodStart: Date; ChargePeriodEnd: Date; var UnitPrice: Decimal; var UnitCost: Decimal; var UnitCostLCY: Decimal; var BillingReferenceDateChanged: Boolean)
     var
         PeriodFormula: DateFormula;
         BillingPeriodRatio: Decimal;
@@ -1827,6 +1883,7 @@ table 8059 "Subscription Line"
             DayPrice := PeriodPrice / FollowUpPeriodDays;
             DayUnitCost := PeriodUnitCost / FollowUpPeriodDays;
             DayUnitCostLCY := PeriodUnitCostLCY / FollowUpPeriodDays;
+            BillingReferenceDateChanged := true;
         end;
         UnitPrice := PeriodPrice * Periods + DayPrice * FollowUpDays;
         UnitCost := PeriodUnitCost * Periods + DayUnitCost * FollowUpDays;
@@ -1884,7 +1941,7 @@ table 8059 "Subscription Line"
                 NextToDate := CalcDate(PeriodFormula, FromDate) - 1;
             Rec."Period Calculation"::"Align to End of Month":
                 begin
-                    DistanceToEndOfMonth := CalcDate('<CM>', Rec."Subscription Line Start Date") - Rec."Subscription Line Start Date";
+                    DistanceToEndOfMonth := CalcDate('<CM>', GetBillingReferenceDate()) - GetBillingReferenceDate();
                     if DistanceToEndOfMonth > 2 then
                         NextToDate := CalcDate(PeriodFormula, FromDate) - 1
                     else begin
@@ -1893,6 +1950,27 @@ table 8059 "Subscription Line"
                         NextToDate := LastDateInLastMonth - DistanceToEndOfMonth - 1;
                     end;
                 end;
+        end;
+    end;
+
+    local procedure GetBillingReferenceDate() BillingReferenceDate: Date
+    var
+        BillingLine: Record "Billing Line";
+        BillingLineArchive: Record "Billing Line Archive";
+    begin
+        BillingReferenceDate := Rec."Subscription Line Start Date";
+
+        BillingLine.SetRange("Subscription Header No.", "Subscription Header No.");
+        BillingLine.SetRange("Subscription Line Entry No.", "Entry No.");
+        BillingLine.SetRange("Billing Reference Date Changed", true);
+        if BillingLine.FindLast() then
+            exit(BillingLine."Billing to" + 1)
+        else begin
+            BillingLineArchive.SetRange("Subscription Header No.", "Subscription Header No.");
+            BillingLineArchive.SetRange("Subscription Line Entry No.", "Entry No.");
+            BillingLineArchive.SetRange("Billing Reference Date Changed", true);
+            if BillingLineArchive.FindLast() then
+                exit(BillingLineArchive."Billing to" + 1);
         end;
     end;
 
@@ -1922,6 +2000,36 @@ table 8059 "Subscription Line"
                     VendSubContractDeferral.SetRange("Subscription Contract No.", "Subscription Contract No.");
                     exit(not VendSubContractDeferral.IsEmpty());
                 end;
+        end;
+    end;
+
+    local procedure CheckRatioBetweenBillingBasePeriodAndRhythm()
+    var
+    begin
+        if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
+            DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
+    end;
+
+    local procedure DisplayErrorIfStartDateIsDifferentThanNextBillingDate()
+    begin
+        if IsContractLineClosed() then
+            exit;
+        if Rec."Subscription Line Start Date" <> Rec."Next Billing Date" then
+            Error(SubscriptionLineStartDateDifferentThanNextBillingDateErr, Rec.FieldCaption("Subscription Line Start Date"), Rec.FieldCaption("Next Billing Date"), Rec.TableCaption());
+    end;
+
+    local procedure IsContractLineClosed(): Boolean
+    var
+        CustomerContractLine: Record "Cust. Sub. Contract Line";
+        VendorContractLine: Record "Vend. Sub. Contract Line";
+    begin
+        case Partner of
+            Enum::"Service Partner"::Customer:
+                if CustomerContractLine.FindFirstSubscriptionLine(Rec) then
+                    exit(CustomerContractLine.Closed);
+            Enum::"Service Partner"::Vendor:
+                if VendorContractLine.FindFirstSubscriptionLine(Rec) then
+                    exit(VendorContractLine.Closed);
         end;
     end;
 

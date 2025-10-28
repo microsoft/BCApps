@@ -48,6 +48,17 @@ codeunit 3111 "Activity Log Builder"
     end;
 
     /// <summary>
+    /// Sets the confidence level for the activity log value.
+    /// </summary>
+    [Scope('OnPrem')]
+    procedure SetConfidence(Confidence: Text): Codeunit "Activity Log Builder"
+    begin
+        ActivityLogBuilderImpl := ActivityLogBuilderImpl.SetConfidence(Confidence);
+        exit(this);
+    end;
+
+
+    /// <summary>
     /// Sets the reference source for the activity log entry.
     /// The reference source can be a page ID and a record reference, which will be converted to a URL.
     /// </summary>

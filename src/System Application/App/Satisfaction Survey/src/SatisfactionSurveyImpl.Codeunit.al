@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -17,11 +18,12 @@ codeunit 1432 "Satisfaction Survey Impl."
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+#pragma warning disable AL0432
     Permissions = tabledata "Net Promoter Score" = rimd,
                   tabledata "Net Promoter Score Setup" = rimd,
                   tabledata "User Personalization" = r,
                   tabledata "User Property" = r;
-
+#pragma warning restore AL0432
     var
         FinancialsUriSegmentTxt: Label 'financials', Locked = true;
         DisplayDataTxt: Label 'display/%1/?puid=%2', Locked = true;
@@ -88,7 +90,9 @@ codeunit 1432 "Satisfaction Survey Impl."
         Commit();
 
         Session.LogMessage('00008MW', NPSPageTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NpsCategoryTxt);
+#pragma warning disable AL0432
         Page.RunModal(Page::"Satisfaction Survey");
+#pragma warning restore AL0432
         Session.LogMessage('00006ZF', NPSPageTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NpsCategoryTxt);
         exit(true);
     end;
@@ -108,15 +112,19 @@ codeunit 1432 "Satisfaction Survey Impl."
         Commit();
 
         Session.LogMessage('000098O', NPSPageTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NpsCategoryTxt);
+#pragma warning disable AL0432
         Page.RunModal(Page::"Satisfaction Survey");
+#pragma warning restore AL0432
         Session.LogMessage('000098P', NPSPageTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NpsCategoryTxt);
         exit(true);
     end;
 
     procedure ResetState(): Boolean
     var
+#pragma warning disable AL0432
         [SecurityFiltering(SecurityFilter::Ignored)]
         NetPromoterScore: Record "Net Promoter Score";
+#pragma warning restore AL0432
     begin
         if not NetPromoterScore.WritePermission() then
             exit(false);
@@ -127,8 +135,10 @@ codeunit 1432 "Satisfaction Survey Impl."
 
     procedure ResetCache(): Boolean
     var
+#pragma warning disable AL0432
         [SecurityFiltering(SecurityFilter::Ignored)]
         NetPromoterScoreSetup: Record "Net Promoter Score Setup";
+#pragma warning restore AL0432
     begin
         if not NetPromoterScoreSetup.WritePermission() then
             exit(false);
@@ -139,8 +149,10 @@ codeunit 1432 "Satisfaction Survey Impl."
 
     procedure ActivateSurvey(): Boolean
     var
+#pragma warning disable AL0432
         [SecurityFiltering(SecurityFilter::Ignored)]
         NetPromoterScore: Record "Net Promoter Score";
+#pragma warning restore AL0432
         EarliestActivateTime: DateTime;
         Puid: Text;
     begin
@@ -206,8 +218,10 @@ codeunit 1432 "Satisfaction Survey Impl."
 
     procedure DeactivateSurvey(): Boolean
     var
+#pragma warning disable AL0432
         [SecurityFiltering(SecurityFilter::Ignored)]
         NetPromoterScore: Record "Net Promoter Score";
+#pragma warning restore AL0432
     begin
         if not IsSupported() then begin
             if GuiAllowed() then
@@ -368,10 +382,12 @@ codeunit 1432 "Satisfaction Survey Impl."
 
     local procedure HasWritePermission(): Boolean
     var
+#pragma warning disable AL0432
         [SecurityFiltering(SecurityFilter::Ignored)]
         NetPromoterScoreSetup: Record "Net Promoter Score Setup";
         [SecurityFiltering(SecurityFilter::Ignored)]
         NetPromoterScore: Record "Net Promoter Score";
+#pragma warning restore AL0432
     begin
         if not NetPromoterScoreSetup.WritePermission() then
             exit(false);
@@ -384,7 +400,9 @@ codeunit 1432 "Satisfaction Survey Impl."
 
     local procedure IsActivated(): Boolean
     var
+#pragma warning disable AL0432
         NetPromoterScore: Record "Net Promoter Score";
+#pragma warning restore AL0432
     begin
         if not NetPromoterScore.Get(UserSecurityId()) then
             exit(false);
@@ -542,7 +560,9 @@ codeunit 1432 "Satisfaction Survey Impl."
 
     local procedure GetApiUrl(): Text
     var
+#pragma warning disable AL0432
         NetPromoterScoreSetup: Record "Net Promoter Score Setup";
+#pragma warning restore AL0432
         ApiUrl: Text;
     begin
         if not NetPromoterScoreSetup.Get() then;
@@ -552,7 +572,9 @@ codeunit 1432 "Satisfaction Survey Impl."
         exit(ApiUrl);
     end;
 
+#pragma warning disable AL0432
     local procedure RenewApiUrl(var NetPromoterScoreSetup: Record "Net Promoter Score Setup")
+#pragma warning restore AL0432
     var
         OutStream: OutStream;
         ApiUrl: Text;
@@ -587,7 +609,9 @@ codeunit 1432 "Satisfaction Survey Impl."
         Commit();
     end;
 
+#pragma warning disable AL0432
     local procedure CalculateApiUrl(var NetPromoterScoreSetup: Record "Net Promoter Score Setup"): Text
+#pragma warning restore AL0432
     var
         InStream: InStream;
         ApiUrl: Text;
@@ -756,7 +780,9 @@ codeunit 1432 "Satisfaction Survey Impl."
 
     local procedure TimeoutInMilliseconds(): Integer
     var
+#pragma warning disable AL0432
         NetPromoterScoreSetup: Record "Net Promoter Score Setup";
+#pragma warning restore AL0432
     begin
         if not NetPromoterScoreSetup.Get() then
             exit(DefaultRequestTimeout());
@@ -806,11 +832,5 @@ codeunit 1432 "Satisfaction Survey Impl."
             exit(true);
         end;
     end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Initialization", OnAfterLogin, '', false, false)]
-    local procedure HandleOnAfterLogin()
-    begin
-        ActivateSurvey();
-    end;
 }
-
+#endif

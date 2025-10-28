@@ -243,7 +243,7 @@ codeunit 130458 "Test Inputs Management"
         DataInputJsonArray: JsonArray;
     begin
         if not DataInputJsonObject.ReadFromYaml(TestData) then
-            Error(CouldNotParseInputErr);
+            Error(CouldNotParseYamlInputErr);
 
         if not DataInputJsonObject.Get(TestsTok, DataInputJsonToken) then begin
             InsertDataInputLine(DataInputJsonObject, TestInputGroup);
@@ -356,7 +356,8 @@ codeunit 130458 "Test Inputs Management"
         TestInputTok: Label 'testInput', Locked = true;
         ChooseFileLbl: Label 'Choose a file to import';
         TestInputNameTok: Label 'INPUT-', Locked = true;
-        CouldNotParseInputErr: Label 'Could not parse input dataset';
+        CouldNotParseYamlInputErr: Label 'The data does not represent valid YAML.';
+        CouldNotParseInputErr: Label 'Could not parse input dataset.';
         CouldNotParseJsonlInputErr: Label 'Could not parse JSONL input line: %1', Comment = '%1 = JSON Line Content';
         LineTypeMustBeCodeunitErr: Label 'Line type must be Codeunit.';
         JsonFileExtensionTxt: Label '.json', Locked = true;

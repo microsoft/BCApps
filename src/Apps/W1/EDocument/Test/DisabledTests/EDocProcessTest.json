@@ -1,0 +1,8 @@
+[
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139883,
+        "codeunitName": "E-Doc Process Test",
+        "method": "PostingInboundDocumentCreatesHistoricalRecords"
+    }
+]

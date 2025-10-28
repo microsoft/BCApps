@@ -319,6 +319,67 @@ codeunit 132912 "Azure AD Plan Tests"
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
+    procedure AssignMissingPlanToUser()
+    var
+        UserPlan: Record "User Plan";
+        AzureADPlan: Codeunit "Azure AD Plan";
+        UserPermissions: Codeunit "User Permissions";
+        PlanConfiguration: Codeunit "Plan Configuration";
+        AzureADPlanTestLibraries: Codeunit "Azure AD Plan Test Library";
+        AzureADUserTestLibrary: Codeunit "Azure AD User Test Library";
+        PlanConfigurationLibrary: Codeunit "Plan Configuration Library";
+        UserPermissionsLibrary: Codeunit "User Permissions Library";
+        AzureAdPlanTest: Codeunit "Azure AD Plan Tests";
+        PlanIds: Codeunit "Plan Ids";
+        UserSID: Guid;
+    begin
+        // [Scenario] Delegated admin plan is assigned to a user who is a delegated admin
+
+        DeleteAllFromTablePlanAndUserPlan();
+        PlanConfigurationLibrary.ClearPlanConfigurations();
+        BindSubscription(AzureAdPlanTest);
+        EnvironmentInformationTestLibrary.SetTestabilitySoftwareAsAService(true);
+
+        // [Given] Two SUPER users (need to have at least two users because if it's only one, the SUPER role will not be removed) 
+        UserSID := UserPermissionsLibrary.CreateSuperUser('NEWUSER');
+        UserPermissionsLibrary.CreateSuperUser('ANOTHERUSER');
+
+        // [Given] The Delegated Admin agent - Partner plan exists
+        AzureADPlanTestLibraries.CreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Admin agent - Partner', 9022, '7584DDCA-27B8-E911-BB26-000D3A2B005C');
+
+        // [Given] The plan is not assigned to the current user
+        LibraryAssert.IsFalse(UserPlan.Get(PlanIds.GetDelegatedAdminPlanId(), UserSID), 'Plan should not be assigned to user');
+
+        // [Given] The current user is a delegated admin
+        BindSubscription(AzureADUserTestLibrary);
+        AzureADUserTestLibrary.SetIsUserDelegatedAdmin(true);
+
+        // [Given] The plan configuration for the plan is not customized
+        LibraryAssert.IsFalse(PlanConfiguration.IsCustomized(PlanIds.GetDelegatedAdminPlanId()), 'Plan configuration should not be customized');
+
+        // [When] The plan is assigned per delegated role
+        AzureADPlan.AssignPlanToUserWithDelegatedRole(UserSID, false);
+
+        // [When] The plan is removed from the user
+        UserPlan.SetRange("User Security ID", UserSID);
+        UserPlan.DeleteAll();
+
+        // [When] The plan is assigned back to the user on login
+        AzureADPlan.AssignPlanToUserWithDelegatedRole(UserSID, true);
+
+        // [Then] There is an entry in the User Plan table
+        LibraryAssert.AreEqual(1, UserPlan.Count(), 'There should be only one plan assignments');
+        LibraryAssert.IsTrue(UserPlan.FindFirst(), 'The should be a plan assigned');
+        LibraryAssert.AreEqual(UserSID, UserPlan."User Security ID", 'Wrong user was assigned a plan');
+        LibraryAssert.AreEqual(PlanIds.GetDelegatedAdminPlanId(), UserPlan."Plan ID", 'Wrong plan was assigned');
+
+        // [Then] SUPER was not removed from the user
+        LibraryAssert.IsTrue(UserPermissions.IsSuper(UserSID), 'User should be SUPER');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
     procedure AssignPlansToUserDelegatedAdmin()
     var
         UserPlan: Record "User Plan";
@@ -358,7 +419,7 @@ codeunit 132912 "Azure AD Plan Tests"
         LibraryAssert.IsFalse(PlanConfiguration.IsCustomized(PlanIds.GetDelegatedAdminPlanId()), 'Plan configuration should not be customized');
 
         // [When] The plan is assigned per delegated role
-        AzureADPlan.AssignPlanToUserWithDelegatedRole(UserSID);
+        AzureADPlan.AssignPlanToUserWithDelegatedRole(UserSID, false);
 
         // [Then] There is an entry in the User Plan table
         LibraryAssert.AreEqual(1, UserPlan.Count(), 'There should be only one plan assignments');
@@ -412,7 +473,7 @@ codeunit 132912 "Azure AD Plan Tests"
         LibraryAssert.IsFalse(PlanConfiguration.IsCustomized(PlanIds.GetDelegatedAdminPlanId()), 'Plan configuration should not be customized');
 
         // [When] The plan is assigned per delegated role
-        AzureADPlan.AssignPlanToUserWithDelegatedRole(UserSID);
+        AzureADPlan.AssignPlanToUserWithDelegatedRole(UserSID, false);
 
         // [Then] There is no entry in the User Plan table
         LibraryAssert.AreEqual(0, UserPlan.Count(), 'There should not be any plan assignments');
@@ -464,7 +525,7 @@ codeunit 132912 "Azure AD Plan Tests"
         PlanConfiguration.AddCustomPermissionSetToPlan(PlanIds.GetDelegatedAdminPlanId(), 'SUPER', NullGuid, 0, '');
 
         // [When] The plan is assigned per delegated role
-        AzureADPlan.AssignPlanToUserWithDelegatedRole(UserSID);
+        AzureADPlan.AssignPlanToUserWithDelegatedRole(UserSID, false);
 
         // [Then] There is an entry in the User Plan table
         LibraryAssert.AreEqual(1, UserPlan.Count(), 'There should be only one plan assignments');
@@ -518,7 +579,7 @@ codeunit 132912 "Azure AD Plan Tests"
         LibraryAssert.IsFalse(PlanConfiguration.IsCustomized(PlanIds.GetHelpDeskPlanId()), 'Plan configuration should not be customized');
 
         // [When] The plan is assigned per delegated role
-        AzureADPlan.AssignPlanToUserWithDelegatedRole(UserSID);
+        AzureADPlan.AssignPlanToUserWithDelegatedRole(UserSID, false);
 
         // [Then] There is an entry in the User Plan table
         LibraryAssert.AreEqual(1, UserPlan.Count(), 'There should be only one plan assignments');
@@ -572,7 +633,7 @@ codeunit 132912 "Azure AD Plan Tests"
         LibraryAssert.IsFalse(PlanConfiguration.IsCustomized(PlanIds.GetHelpDeskPlanId()), 'Plan configuration should not be customized');
 
         // [When] The plan is assigned per delegated role
-        AzureADPlan.AssignPlanToUserWithDelegatedRole(UserSID);
+        AzureADPlan.AssignPlanToUserWithDelegatedRole(UserSID, false);
 
         // [Then] There is no entry in the User Plan table
         LibraryAssert.AreEqual(0, UserPlan.Count(), 'There should not be any plan assignments');
@@ -624,7 +685,7 @@ codeunit 132912 "Azure AD Plan Tests"
         PlanConfiguration.AddCustomPermissionSetToPlan(PlanIds.GetHelpDeskPlanId(), 'SUPER', NullGuid, 0, '');
 
         // [When] The plan is assigned per delegated role
-        AzureADPlan.AssignPlanToUserWithDelegatedRole(UserSID);
+        AzureADPlan.AssignPlanToUserWithDelegatedRole(UserSID, false);
 
         // [Then] There is an entry in the User Plan table
         LibraryAssert.AreEqual(1, UserPlan.Count(), 'There should be only one plan assignments');

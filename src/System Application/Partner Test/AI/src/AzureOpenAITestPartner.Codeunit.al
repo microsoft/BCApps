@@ -21,15 +21,12 @@ codeunit 139021 "Azure OpenAI Test Partner"
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
         EndpointTxt: Label 'https://resourcename.openai.azure.com/', Locked = true;
         DeploymentTxt: Label 'deploymentid', Locked = true;
-        AccountName1Txt: Label 'account1', Locked = true;
-        AccountName2Txt: Label 'account2', Locked = true;
         ManagedResourceDeploymentTxt: Label 'Managed AI Resource', Locked = true;
         LearMoreUrlLbl: Label 'http://LearnMore.com', Locked = true;
         BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.', Comment = '%1 is the capability name, %2 is the billing type';
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('MockHandlerForAccountVerification')]
     procedure GenerateTextCompletionsBillingTypeAuthorizationErr()
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
@@ -49,7 +46,7 @@ codeunit 139021 "Azure OpenAI Test Partner"
         // [GIVEN] The authorization key is set
         PrivacyNotice.SetApprovalState(AzureOpenAITxt, "Privacy Notice Approval State"::Agreed);
         //AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Text Completions", EndpointTxt, DeploymentTxt, Any.AlphanumericText(10));
-        AzureOpenAI.SetManagedResourceAuthorization(Enum::"AOAI Model Type"::"Text Completions", AccountName1Txt, Any.AlphanumericText(10), ManagedResourceDeploymentTxt);
+        AzureOpenAI.SetManagedResourceAuthorization(Enum::"AOAI Model Type"::"Text Completions", ManagedResourceDeploymentTxt);
 
         // [GIVEN] Capability is set
         RegisterCapabilityWithBillingType(Enum::"Copilot Capability"::"Text Partner Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::"Custom Billed");
@@ -78,6 +75,7 @@ codeunit 139021 "Azure OpenAI Test Partner"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure GenerateEmbeddingsBillingTypeAuthorizationErr()
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
@@ -107,7 +105,6 @@ codeunit 139021 "Azure OpenAI Test Partner"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('MockHandlerForAccountVerification')]
     procedure GenerateChatCompletionBillingTypeAuthorizationErr()
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
@@ -120,7 +117,36 @@ codeunit 139021 "Azure OpenAI Test Partner"
 
         // [GIVEN] The authorization key is set
         PrivacyNotice.SetApprovalState(AzureOpenAITxt, "Privacy Notice Approval State"::Agreed);
-        AzureOpenAI.SetManagedResourceAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AccountName2Txt, Any.AlphanumericText(10), ManagedResourceDeploymentTxt);
+        AzureOpenAI.SetManagedResourceAuthorization(Enum::"AOAI Model Type"::"Chat Completions", ManagedResourceDeploymentTxt);
+
+        // [GIVEN] Capability is set
+        RegisterCapabilityWithBillingType(Enum::"Copilot Capability"::"Chat Partner Capability", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Not Billed");
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Chat Partner Capability");
+
+        // [WHEN] GenerateChatCompletion is called
+        AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIOperationResponse);
+
+        // [THEN] GenerateChatCompletion fails [CAPI with Free billing type - Not allowed for Partner published capabilities]
+        LibraryAssert.AreEqual(AOAIOperationResponse.IsSuccess(), false, 'AOAI Operation Response should be an error');
+        ErrorMessage := StrSubstNo(BillingTypeAuthorizationErr, Enum::"Copilot Capability"::"Chat Partner Capability", Enum::"Copilot Billing Type"::"Not Billed");
+        LibraryAssert.ExpectedError(ErrorMessage);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure GenerateChatCompletionWoAOAIBillingTypeAuthErr()
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        ErrorMessage: Text;
+    begin
+        // [SCENARIO] GenerateEmbeddings returns an error when generate chat complete is called
+
+        // [GIVEN] The authorization key is set
+        PrivacyNotice.SetApprovalState(AzureOpenAITxt, "Privacy Notice Approval State"::Agreed);
+        AzureOpenAI.SetManagedResourceAuthorization(Enum::"AOAI Model Type"::"Chat Completions", ManagedResourceDeploymentTxt);
 
         // [GIVEN] Capability is set
         RegisterCapabilityWithBillingType(Enum::"Copilot Capability"::"Chat Partner Capability", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Not Billed");
@@ -143,21 +169,5 @@ codeunit 139021 "Azure OpenAI Test Partner"
             exit;
 
         CopilotCapability.RegisterCapability(Capability, Availability, BillingType, LearMoreUrlLbl);
-    end;
-
-    // HttpClient Mock Handler
-    [HttpClientHandler]
-    procedure MockHandlerForAccountVerification(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
-    begin
-        if (Request.RequestType = HttpRequestType::Get) and ((Request.Path = 'https://account1.openai.azure.com/openai/models') or
-            (Request.Path = 'https://account2.openai.azure.com/openai/models')) then begin
-            // Populate the mocked response with 200 Success
-            response.HttpStatusCode := 200;
-            response.ReasonPhrase := 'Success';
-
-            exit(false); // Use the mocked response
-        end;
-
-        exit(true); // fall through and issue the original request in case of other requests
     end;
 }

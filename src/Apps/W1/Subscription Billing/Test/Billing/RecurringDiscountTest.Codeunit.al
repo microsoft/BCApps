@@ -12,6 +12,7 @@ using Microsoft.Purchases.History;
 codeunit 139689 "Recurring Discount Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 

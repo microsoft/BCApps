@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,6 +14,9 @@ codeunit 1433 "Satisfaction Survey Mgt."
     Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteReason = 'This module is no longer used.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
 
     var
         SatisfactionSurveyImpl: Codeunit "Satisfaction Survey Impl.";
@@ -103,4 +107,4 @@ codeunit 1433 "Satisfaction Survey Mgt."
         exit(SatisfactionSurveyImpl.DeactivateSurvey());
     end;
 }
-
+#endif

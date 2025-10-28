@@ -8,6 +8,7 @@ using Microsoft.Sales.Customer;
 codeunit 148158 "Link Subscription To SO Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 

@@ -1,7 +1,6 @@
 namespace Microsoft.SubscriptionBilling;
 
 using System.Text;
-using System.Reflection;
 using Microsoft.Utilities;
 using Microsoft.Sales.Document;
 using Microsoft.Inventory.Item;
@@ -21,7 +20,7 @@ codeunit 8073 "Sales Report Printout Mgmt."
     begin
     end;
 
-    internal procedure ExcludeItemFromTotals(var SalesLine: Record "Sales Line"; var TotalSubTotal: Decimal; var TotalInvDiscAmount: Decimal; var TotalAmount: Decimal; var TotalAmountVAT: Decimal; var TotalAmountInclVAT: Decimal)
+    procedure ExcludeItemFromTotals(var SalesLine: Record "Sales Line"; var TotalSubTotal: Decimal; var TotalInvDiscAmount: Decimal; var TotalAmount: Decimal; var TotalAmountVAT: Decimal; var TotalAmountInclVAT: Decimal)
     var
         Item: Record Item;
         ContractRenewalMgt: Codeunit "Sub. Contract Renewal Mgt.";
@@ -68,7 +67,7 @@ codeunit 8073 "Sales Report Printout Mgmt."
         SalesLine.SetRange("Exclude from Doc. Total");
     end;
 
-    internal procedure FillServiceCommitmentsGroups(var SalesHeader: Record "Sales Header"; var ServCommGroupPerPeriod: Record "Name/Value Buffer"; var ServCommGroup: Record "Name/Value Buffer")
+    procedure FillServiceCommitmentsGroups(var SalesHeader: Record "Sales Header"; var ServCommGroupPerPeriod: Record "Name/Value Buffer"; var ServCommGroup: Record "Name/Value Buffer")
     begin
         FillServiceCommitmentsGroupPerPeriod(SalesHeader, ServCommGroupPerPeriod);
         if ServCommGroupPerPeriod.FindSet() then begin
@@ -102,7 +101,7 @@ codeunit 8073 "Sales Report Printout Mgmt."
             FillServiceCommitmentsGroupPerPeriod(TempSalesServiceCommitmentBuff, GroupPerPeriod, UniqueRhythmDictionary, SalesHeader."Currency Code", TotalInclVATText, TotalExclVATText);
     end;
 
-    internal procedure FillServiceCommitmentsForLine(var SalesHeader: Record "Sales Header"; var SalesLineServiceCommitments: Record "Sales Line"; var SalesLineServiceCommitmentsCaption: Record "Name/Value Buffer")
+    procedure FillServiceCommitmentsForLine(var SalesHeader: Record "Sales Header"; var SalesLineServiceCommitments: Record "Sales Line"; var SalesLineServiceCommitmentsCaption: Record "Name/Value Buffer")
     var
         SalesServiceCommitment: Record "Sales Subscription Line";
         SalesLine: Record "Sales Line";
@@ -191,28 +190,11 @@ codeunit 8073 "Sales Report Printout Mgmt."
             end;
     end;
 
-    local procedure CheckAppendAsteriskToFormattedLineAmount(SourceRecord: Variant): Boolean
+    local procedure CheckAppendAsteriskToFormattedLineAmount(SalesLine: Record "Sales Line"): Boolean
     begin
-        exit(IsServiceCommitmentItem(SourceRecord));
-    end;
-
-    local procedure IsServiceCommitmentItem(SourceRecord: Variant): Boolean
-    var
-        SalesLine: Record "Sales Line";
-        DataTypeManagement: Codeunit "Data Type Management";
-        RecRef: RecordRef;
-        SourceRecordNotDefinedForProcessingErr: Label 'Table %1 %2 has not been defined for processing.', Comment = '%1 = Table ID, %2 = Table Name';
-    begin
-        DataTypeManagement.GetRecordRef(SourceRecord, RecRef);
-        case RecRef.Number of
-            Database::"Sales Line":
-                begin
-                    RecRef.SetTable(SalesLine);
-                    exit(SalesLine.IsServiceCommitmentItem());
-                end;
-            else
-                Error(SourceRecordNotDefinedForProcessingErr, RecRef.Number, RecRef.Caption());
-        end;
+        if not (SalesLine."Document Type" in [SalesLine."Document Type"::Quote, SalesLine."Document Type"::Order]) then
+            exit(false);
+        exit(SalesLine.IsServiceCommitmentItem());
     end;
 
     local procedure AppendAsteriskToText(var TextToAppendAsterisk: Text)

@@ -1,0 +1,14 @@
+[
+    {
+        "bug": "597430",
+        "codeunitId": 139688,
+        "CodeunitName": "Recurring Billing Test",
+        "Method": "CheckBillingLineUpdateRequiredOnModifyCustomerContractLine"
+    },
+    {
+        "bug": "597430",
+        "codeunitId": 139688,
+        "CodeunitName": "Recurring Billing Test",
+        "Method": "CheckBillingLineUpdateRequiredOnModifyVendorContractLine"
+    }
+]

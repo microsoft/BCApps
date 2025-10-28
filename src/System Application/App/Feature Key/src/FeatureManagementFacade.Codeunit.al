@@ -80,6 +80,16 @@ codeunit 2611 "Feature Management Facade"
     end;
 
     /// <summary>
+    /// Schedules or starts update without any UI interaction.
+    /// </summary>
+    /// <param name="FeatureDataUpdateStatus">The current status record</param>
+    /// <returns>true if user picked Update or Schedule and the task is scheduled or executed.</returns>
+    procedure UpdateSilently(var FeatureDataUpdateStatus: Record "Feature Data Update Status"): Boolean;
+    begin
+        exit(FeatureManagementImpl.UpdateSilently(FeatureDataUpdateStatus));
+    end;
+
+    /// <summary>
     /// Schedules or starts update depending on the options picked on the wizard page.
     /// </summary>
     /// <param name="FeatureDataUpdateStatus">The current status record</param>
@@ -105,7 +115,7 @@ codeunit 2611 "Feature Management Facade"
         FeatureManagementImpl.UpdateData(FeatureDataUpdateStatus);
     end;
 
-    internal procedure GetFeatureDataUpdateStatus(FeatureKey: Record "Feature Key"; var FeatureDataUpdateStatus: Record "Feature Data Update Status")
+    procedure GetFeatureDataUpdateStatus(FeatureKey: Record "Feature Key"; var FeatureDataUpdateStatus: Record "Feature Data Update Status")
     begin
         FeatureManagementImpl.GetFeatureDataUpdateStatus(FeatureKey, FeatureDataUpdateStatus);
     end;

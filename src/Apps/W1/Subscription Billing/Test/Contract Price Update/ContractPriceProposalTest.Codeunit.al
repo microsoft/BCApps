@@ -14,6 +14,7 @@ using System.TestLibraries.Utilities;
 codeunit 139690 "Contract Price Proposal Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 

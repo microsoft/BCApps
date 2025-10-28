@@ -14,12 +14,20 @@ codeunit 8060 "Create Billing Documents"
     trigger OnRun()
     var
         BillingLine: Record "Billing Line";
+        PartnerFilter: Text;
+        ShowNotification: Boolean;
     begin
         BillingLine.Copy(Rec);
+        PartnerFilter := BillingLine.GetFilter(Partner);
+        ShowNotification := PartnerFilter <> BillingLine.GetFilters();
+        BillingLine.Reset();
+        BillingLine.SetFilter(Partner, PartnerFilter);
         BillingLine.SetRange("Document Type", Enum::"Rec. Billing Document Type"::None);
         if CreateContractInvoice then
             BillingLine.SetRange("Billing Template Code", '');
         CreateBillingDocuments(BillingLine);
+        if ShowNotification and (not CreateContractInvoice) then
+            ShowFiltersIgnoredNotification();
     end;
 
     local procedure CreateBillingDocuments(var BillingLine: Record "Billing Line")
@@ -212,6 +220,7 @@ codeunit 8060 "Create Billing Documents"
 
     local procedure InsertSalesLineFromTempBillingLine()
     var
+        Item: Record Item;
         SalesLine: Record "Sales Line";
         ServiceCommitment: Record "Subscription Line";
         ServiceObject: Record "Subscription Header";
@@ -233,11 +242,14 @@ codeunit 8060 "Create Billing Documents"
             ((ServiceObject."Source No." <> ServiceCommitment."Invoicing Item No.") or (ServiceObject.Type = ServiceObject.Type::"G/L Account"))
         then begin
             SalesLine.Type := SalesLine.Type::Item;
-            SalesLine.Validate("No.", ServiceCommitment."Invoicing Item No.")
+            SalesLine.Validate("No.", ServiceCommitment."Invoicing Item No.");
         end else begin
             SalesLine.Validate(Type, ServiceObject.GetSalesLineType());
             SalesLine.Validate("No.", ServiceObject."Source No.");
             SalesLine.Validate("Variant Code", ServiceObject."Variant Code");
+            if Item.Get(ServiceObject."Source No.") then
+                if Item.IsVariantMandatory() then
+                    ServiceObject.TestField("Variant Code");
         end;
         SubContractsItemManagement.SetAllowInsertOfInvoicingItem(false);
         if SalesLine.Type = SalesLine.Type::Item then
@@ -616,7 +628,9 @@ codeunit 8060 "Create Billing Documents"
         PurchaseHeader."Receiving No." := OldPurchaseHeader."Receiving No.";
         PurchaseHeader."Receiving No. Series" := OldPurchaseHeader."Receiving No. Series";
         PurchaseHeader."No. Printed" := 0;
+        DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(true);
         PurchaseHeader.Validate("Posting Date", PostingDate);
+        DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(false);
         PurchaseHeader.Validate("Document Date", DocumentDate);
         PurchaseHeader.Validate("Currency Code");
         PurchaseHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesHeader."Assigned User ID"));
@@ -662,9 +676,11 @@ codeunit 8060 "Create Billing Documents"
         PurchaseHeader."No." := '';
         PurchaseHeader.Insert(true);
         PurchaseHeader."Recurring Billing" := true;
+        DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(true);
         PurchaseHeader.Validate("Pay-to Vendor No.", VendorNo);
         PurchaseHeader.Validate("Buy-from Vendor No.", VendorNo);
         PurchaseHeader.Validate("Posting Date", PostingDate);
+        DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(false);
         PurchaseHeader.Validate("Document Date", DocumentDate);
         PurchaseHeader.Validate("Currency Code");
         PurchaseHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(SalesHeader."Assigned User ID"));
@@ -1023,6 +1039,17 @@ codeunit 8060 "Create Billing Documents"
 
         OnAfterIsNewHeaderNeededPerContract(CreateNewHeader, TempBillingLine, PreviousSubContractNo);
     end;
+
+    local procedure ShowFiltersIgnoredNotification()
+    var
+        FiltersIgnoredNotification: Notification;
+        FiltersIgnoredMsg: Label 'You have set filters on the Recurring Billing page. The filters were ignored to maintain data consistency.';
+    begin
+        FiltersIgnoredNotification.Message(FiltersIgnoredMsg);
+        FiltersIgnoredNotification.Scope := NotificationScope::LocalScope;
+        FiltersIgnoredNotification.Send();
+    end;
+
 
     internal procedure ErrorIfItemUnitOfMeasureCodeDoesNotExist(ItemNo: Code[20]; ServiceObject: Record "Subscription Header")
     var

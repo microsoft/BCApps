@@ -7,7 +7,9 @@ namespace System.Agents;
 
 using System.Security.AccessControl;
 
+#pragma warning disable AS0130, PTE0025 // The object is moved to the platform symbols.
 page 4307 "Agent Task Timeline"
+#pragma warning restore AS0130,PTE0025
 {
     PageType = ListPart;
     ApplicationArea = All;
@@ -148,7 +150,6 @@ page 4307 "Agent Task Timeline"
                 trigger OnAction()
                 var
                     UserInterventionRequestEntry: Record "Agent Task Log Entry";
-                    AgentTaskImpl: Codeunit "Agent Task Impl.";
                 begin
                     if UserInterventionRequestEntry.Get(Rec."Task ID", Rec."Last Log Entry ID") then
                         if UserInterventionRequestEntry.Type = "Agent Task Log Entry Type"::"User Intervention Request" then

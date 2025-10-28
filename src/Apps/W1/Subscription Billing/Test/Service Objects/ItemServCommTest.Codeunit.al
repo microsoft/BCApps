@@ -5,6 +5,7 @@ using Microsoft.Inventory.Item;
 codeunit 139884 "Item Serv. Comm. Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     Access = Internal;
 
     var

@@ -9,6 +9,7 @@ using Microsoft.Purchases.Vendor;
 codeunit 139914 "Imp. Service And Contract Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     Access = Internal;
 
     var
@@ -326,9 +327,6 @@ codeunit 139914 "Imp. Service And Contract Test"
         TestAssertErrorOnCreateServiceCommitmentRun(InitialImportedServiceCommitment);
 
         ImportedServiceCommitment."Calculation Base %" := LibraryRandom.RandDecInRange(-100, -1, 0);
-        TestAssertErrorOnCreateServiceCommitmentRun(InitialImportedServiceCommitment);
-
-        ImportedServiceCommitment."Calculation Base %" := LibraryRandom.RandDecInRange(101, 200, 0);
         TestAssertErrorOnCreateServiceCommitmentRun(InitialImportedServiceCommitment);
 
         ImportedServiceCommitment."Discount %" := LibraryRandom.RandDecInRange(-100, -1, 0);

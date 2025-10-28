@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System.Environment;
+
 /// <summary>
 /// This codeunit is used to create an agent task.
 /// </summary>
@@ -15,6 +17,7 @@ codeunit 4315 "Agent Task Builder"
 
     var
         AgentTaskBuilderImpl: Codeunit "Agent Task Builder Impl.";
+        FeatureAccessManagement: Codeunit "Feature Access Management";
 
     /// <summary>
     /// Initialize the agent task builder with the mandatory parameters.
@@ -22,9 +25,9 @@ codeunit 4315 "Agent Task Builder"
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
     /// <param name="ConversationId">The conversation ID to check.</param>
     /// <returns>This instance of the Agent Task Builder.</returns>
-    [Scope('OnPrem')]
     procedure Initialize(NewAgentUserSecurityId: Guid; NewTaskTitle: Text[150]): codeunit "Agent Task Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskBuilderImpl.Initialize(NewAgentUserSecurityId, NewTaskTitle);
         exit(this);
     end;
@@ -38,9 +41,9 @@ codeunit 4315 "Agent Task Builder"
     /// <remarks>
     /// The builder keeps the state, do not reuse the same instance of the builder to create multiple tasks. 
     /// </remarks>
-    [Scope('OnPrem')]
     procedure Create(): Record "Agent Task"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskBuilderImpl.Create(true));
     end;
 
@@ -56,9 +59,9 @@ codeunit 4315 "Agent Task Builder"
     /// <remarks>
     /// The builder keeps the state, do not reuse the same instance of the builder to create multiple tasks. 
     /// </remarks>
-    [Scope('OnPrem')]
     procedure Create(SetTaskStatusToReady: Boolean): Record "Agent Task"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskBuilderImpl.Create(SetTaskStatusToReady));
     end;
 
@@ -68,9 +71,9 @@ codeunit 4315 "Agent Task Builder"
     /// <returns>
     /// The agent task message that was created.
     /// </returns>
-    [Scope('OnPrem')]
     procedure GetAgentTaskMessageCreated(): Record "Agent Task Message"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskBuilderImpl.GetAgentTaskMessageCreated());
     end;
 
@@ -79,9 +82,9 @@ codeunit 4315 "Agent Task Builder"
     /// </summary>
     /// <param name="ExternalId">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
     /// <returns>This instance of the Agent Task Builder.</returns>
-    [Scope('OnPrem')]
     procedure SetExternalId(ExternalId: Text[2048]): codeunit "Agent Task Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskBuilderImpl.SetExternalId(ExternalId);
         exit(this);
     end;
@@ -94,9 +97,9 @@ codeunit 4315 "Agent Task Builder"
     /// <param name="MessageText">The message text.</param>
     /// <param name="AgentTaskMessageBuilder">The agent task message builder.</param>
     /// <returns>This instance of the Agent Task Builder.</returns>
-    [Scope('OnPrem')]
     procedure AddTaskMessage(From: Text[250]; MessageText: Text): codeunit "Agent Task Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskBuilderImpl.AddTaskMessage(From, MessageText);
         exit(this);
     end;
@@ -107,9 +110,9 @@ codeunit 4315 "Agent Task Builder"
     /// </summary>
     /// <param name="AgentTaskMessageBuilder">The agent task message builder.</param>
     /// <returns>This instance of the Agent Task Builder.</returns>
-    [Scope('OnPrem')]
     procedure AddTaskMessage(var AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder"): codeunit "Agent Task Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskBuilderImpl.AddTaskMessage(AgentTaskMessageBuilder);
         exit(this);
     end;
@@ -118,9 +121,9 @@ codeunit 4315 "Agent Task Builder"
     /// Get the agent task message builder.
     /// </summary>
     /// <returns>The agent task message builder.</returns>
-    [Scope('OnPrem')]
     procedure GetTaskMessageBuilder(): Codeunit "Agent Task Message Builder"
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskBuilderImpl.GetTaskMessageBuilder());
     end;
 
@@ -130,11 +133,11 @@ codeunit 4315 "Agent Task Builder"
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
     /// <param name="ConversationId">The conversation ID to check.</param>
     /// <returns>True if task exists, false if not.</returns>
-    [Scope('OnPrem')]
     procedure TaskExists(AgentUserSecurityId: Guid; ConversationId: Text): Boolean
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskImpl.TaskExists(AgentUserSecurityId, ConversationId));
     end;
 }

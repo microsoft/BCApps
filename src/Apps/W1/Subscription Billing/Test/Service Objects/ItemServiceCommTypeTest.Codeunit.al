@@ -11,6 +11,7 @@ using Microsoft.Pricing.Asset;
 codeunit 139885 "Item Service Comm. Type Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
 

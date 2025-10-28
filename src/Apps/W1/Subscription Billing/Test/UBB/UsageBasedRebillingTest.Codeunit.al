@@ -10,6 +10,7 @@ codeunit 139694 "Usage Based Rebilling Test"
 {
     Access = Internal;
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
 
     [Test]

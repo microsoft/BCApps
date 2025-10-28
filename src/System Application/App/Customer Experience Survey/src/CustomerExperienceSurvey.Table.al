@@ -1,3 +1,4 @@
+#if not CLEAN27
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -14,6 +15,9 @@ table 9260 "Customer Experience Survey"
     DataClassification = SystemMetadata;
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteReason = 'This module is no longer used.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '27.0';
 
     fields
     {
@@ -85,3 +89,4 @@ table 9260 "Customer Experience Survey"
         }
     }
 }
+#endif

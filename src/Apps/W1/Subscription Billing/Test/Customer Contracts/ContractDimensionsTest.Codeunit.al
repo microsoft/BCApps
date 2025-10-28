@@ -5,6 +5,7 @@ using Microsoft.Finance.Dimension;
 codeunit 139693 "Contract Dimensions Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     Access = Internal;
 
     var

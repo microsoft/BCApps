@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/1598a2b57bfbf523c09d70b47177965180a70e9c/Actions/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/13868260bf008b56d26fd739c1f764b2bb2c8239/Actions/.Modules/settings.schema.json",
   "projectName": "Apps (W1)",
   "appFolders": [
     "../../../src/Apps/W1/*/App",
@@ -14,7 +14,206 @@
     "../../../src/Apps/W1/*/*/Demo Data"
   ],
   "installOnlyReferencedApps": false,
+  "doNotRunPageScriptingTests": true,
+  "doNotRunBcptTests": true,
+  "buildModes": [
+    "AT",
+    "AU",
+    "BE",
+    "CA",
+    "CH",
+    "CZ",
+    "DE",
+    "DK",
+    "ES",
+    "FI",
+    "FR",
+    "GB",
+    "IN",
+    "IS",
+    "IT",
+    "MX",
+    "NL",
+    "NO",
+    "NZ",
+    "SE",
+    "US"
+  ],
   "ConditionalSettings": [
+    {
+      "buildModes": [
+        "AT"
+      ],
+      "settings": {
+        "country": "at"
+      }
+    },
+    {
+      "buildModes": [
+        "AU"
+      ],
+      "settings": {
+        "country": "au",
+        "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
+        "BE"
+      ],
+      "settings": {
+        "country": "be"
+      }
+    },
+    {
+      "buildModes": [
+        "CA"
+      ],
+      "settings": {
+        "country": "ca",
+        "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
+        "CH"
+      ],
+      "settings": {
+        "country": "ch"
+      }
+    },
+    {
+      "buildModes": [
+        "CZ"
+      ],
+      "settings": {
+        "country": "cz",
+        "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
+        "DE"
+      ],
+      "settings": {
+        "country": "de"
+      }
+    },
+    {
+      "buildModes": [
+        "DK"
+      ],
+      "settings": {
+        "country": "dk",
+        "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
+        "ES"
+      ],
+      "settings": {
+        "country": "es"
+      }
+    },
+    {
+      "buildModes": [
+        "FI"
+      ],
+      "settings": {
+        "country": "fi"
+      }
+    },
+    {
+      "buildModes": [
+        "FR"
+      ],
+      "settings": {
+        "country": "fr"
+      }
+    },
+    {
+      "buildModes": [
+        "GB"
+      ],
+      "settings": {
+        "country": "gb"
+      }
+    },
+    {
+      "buildModes": [
+        "IN"
+      ],
+      "settings": {
+        "country": "in"
+      }
+    },
+    {
+      "buildModes": [
+        "IS"
+      ],
+      "settings": {
+        "country": "is"
+      }
+    },
+    {
+      "buildModes": [
+        "IT"
+      ],
+      "settings": {
+        "country": "it",
+        "doNotRunTests": true
+      }
+    },
+    {
+      "buildModes": [
+        "MX"
+      ],
+      "settings": {
+        "country": "mx"
+      }
+    },
+    {
+      "buildModes": [
+        "NL"
+      ],
+      "settings": {
+        "country": "nl"
+      }
+    },
+    {
+      "buildModes": [
+        "NO"
+      ],
+      "settings": {
+        "country": "no"
+      }
+    },
+    {
+      "buildModes": [
+        "NZ"
+      ],
+      "settings": {
+        "country": "nz"
+      }
+    },
+    {
+      "buildModes": [
+        "SE"
+      ],
+      "settings": {
+        "country": "se"
+      }
+    },
+    {
+      "buildModes": [
+        "US"
+      ],
+      "settings": {
+        "country": "us",
+        "doNotRunTests": true
+      }
+    },
     {
       "buildModes": [
         "Clean"

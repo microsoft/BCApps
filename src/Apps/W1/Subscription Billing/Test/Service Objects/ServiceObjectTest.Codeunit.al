@@ -20,6 +20,7 @@ using Microsoft.Pricing.PriceList;
 codeunit 148157 "Service Object Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     Access = Internal;
 
     var
@@ -33,6 +34,9 @@ codeunit 148157 "Service Object Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         NoStartDateErr: Label 'Start Date is not entered.', Locked = true;
+        NaturalNumberRatioErr: Label 'The ratio of ''%1'' and ''%2'' or vice versa must give a natural number.', Comment = '%1=Field Caption, %2=Field Caption';
+        CurrentPeriodErr: Label 'Current Period cannot be used for The Date Formula.';
+        ComplexFormulaErr: Label 'The Date Formula cannot be complex.';
         IsInitialized: Boolean;
 
     #region Tests
@@ -197,34 +201,27 @@ codeunit 148157 "Service Object Test"
         Commit();  // retain data after asserterror
 
         ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<5D>', '<20D>');
-        ServiceCommitment.Modify(true);
         ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<1W>', '<4W>');
-        ServiceCommitment.Modify(true);
         ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<1M>', '<6Q>');
-        ServiceCommitment.Modify(true);
         ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<1Q>', '<3Q>');
-        ServiceCommitment.Modify(true);
         ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<1Y>', '<2Y>');
-        ServiceCommitment.Modify(true);
         ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<3M>', '<1Y>');
-        ServiceCommitment.Modify(true);
         ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<6M>', '<1Q>');
-        ServiceCommitment.Modify(true);
 
-        ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<1D>', '<1M>');
-        asserterror ServiceCommitment.Modify(true);
-        ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<1W>', '<1M>');
-        asserterror ServiceCommitment.Modify(true);
-        ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<2M>', '<7M>');
-        asserterror ServiceCommitment.Modify(true);
-        ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<2Q>', '<5Q>');
-        asserterror ServiceCommitment.Modify(true);
-        ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<2Y>', '<3Y>');
-        asserterror ServiceCommitment.Modify(true);
-        ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<CM>', '<1Y>');
-        asserterror ServiceCommitment.Modify(true);
-        ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<1M + 1Q>', '<1Y>');
-        asserterror ServiceCommitment.Modify(true);
+        asserterror ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<1D>', '<1M>');
+        Assert.ExpectedError(StrSubstNo(NaturalNumberRatioErr, ServiceCommitment.FieldCaption("Billing Base Period"), ServiceCommitment.FieldCaption("Billing Rhythm")));
+        asserterror ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<1W>', '<1M>');
+        Assert.ExpectedError(StrSubstNo(NaturalNumberRatioErr, ServiceCommitment.FieldCaption("Billing Base Period"), ServiceCommitment.FieldCaption("Billing Rhythm")));
+        asserterror ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<2M>', '<7M>');
+        Assert.ExpectedError(StrSubstNo(NaturalNumberRatioErr, ServiceCommitment.FieldCaption("Billing Base Period"), ServiceCommitment.FieldCaption("Billing Rhythm")));
+        asserterror ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<2Q>', '<5Q>');
+        Assert.ExpectedError(StrSubstNo(NaturalNumberRatioErr, ServiceCommitment.FieldCaption("Billing Base Period"), ServiceCommitment.FieldCaption("Billing Rhythm")));
+        asserterror ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<2Y>', '<3Y>');
+        Assert.ExpectedError(StrSubstNo(NaturalNumberRatioErr, ServiceCommitment.FieldCaption("Billing Base Period"), ServiceCommitment.FieldCaption("Billing Rhythm")));
+        asserterror ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<CM>', '<1Y>');
+        Assert.ExpectedError(StrSubstNo(CurrentPeriodErr));
+        asserterror ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<1M + 1Q>', '<1Y>');
+        Assert.ExpectedError(StrSubstNo(ComplexFormulaErr));
     end;
 
     [Test]
@@ -1476,7 +1473,7 @@ codeunit 148157 "Service Object Test"
 
         // [GIVEN] Create: Language, Subscription Item with translation defined
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
-        ContractTestLibrary.CreateItemTranslation(ItemTranslation, Item."No.", '');
+        ContractTestLibrary.CreateItemTranslation(ItemTranslation, Item."No.", '', '');
 
         // [WHEN] Create Subscription without End User
         ContractTestLibrary.CreateServiceObjectForItem(ServiceObject, Item, false);
@@ -1498,7 +1495,7 @@ codeunit 148157 "Service Object Test"
 
         // [GIVEN] Create: Language, Subscription Item with translation defined, Customer with Language Code, Subscription with End User
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
-        ContractTestLibrary.CreateItemTranslation(ItemTranslation, Item."No.", '');
+        ContractTestLibrary.CreateItemTranslation(ItemTranslation, Item."No.", '', '');
         LibrarySales.CreateCustomer(Customer);
         Customer."Language Code" := ItemTranslation."Language Code";
         Customer.Modify(false);
