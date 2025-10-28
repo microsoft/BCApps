@@ -48,8 +48,13 @@ report 30109 "Shpfy Sync Shipm. to Shopify"
                 end else
                     if ShopifyOrderHeader.Get("Sales Shipment Header"."Shpfy Order Id") then begin
                         Shop.Get(ShopifyOrderHeader."Shop Code");
+
+                        // Get assigned fulfillment orders if not already retrieved for this shop
+                        if not AssignedFulfillmentOrderIds.Values.Contains(Shop.Code) then
+                            FulfillmentOrdersAPI.GetAssignedFulfillmentOrders(Shop, AssignedFulfillmentOrderIds);
+
                         FulfillmentOrdersAPI.GetShopifyFulfillmentOrdersFromShopifyOrder(Shop, "Sales Shipment Header"."Shpfy Order Id");
-                        ExportShipments.CreateShopifyFulfillment("Sales Shipment Header");
+                        ExportShipments.CreateShopifyFulfillment("Sales Shipment Header", AssignedFulfillmentOrderIds);
                     end else
                         SkippedRecord.LogSkippedRecord("Sales Shipment Header"."Shpfy Order Id", "Sales Shipment Header".RecordId, StrSubstNo(ShopifyOrderNotExistsLbl, "Sales Shipment Header"."Shpfy Order Id"), Shop);
             end;
@@ -59,6 +64,7 @@ report 30109 "Shpfy Sync Shipm. to Shopify"
     var
         ExportShipments: Codeunit "Shpfy Export Shipments";
         FulfillmentOrdersAPI: Codeunit "Shpfy Fulfillment Orders API";
+        AssignedFulfillmentOrderIds: Dictionary of [BigInteger, Code[20]];
         NoLinesApplicableLbl: Label 'No lines applicable for fulfillment.';
         ShopifyOrderNotExistsLbl: Label 'Shopify order %1 does not exist.', Comment = '%1 = Shopify Order Id';
 }
