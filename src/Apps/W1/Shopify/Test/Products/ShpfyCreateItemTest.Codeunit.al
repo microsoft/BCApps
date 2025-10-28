@@ -22,6 +22,7 @@ codeunit 139567 "Shpfy Create Item Test"
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
 
     [Test]
@@ -486,5 +487,43 @@ codeunit 139567 "Shpfy Create Item Test"
                 ItemReference.SetRange("Reference No.", ShopifyVariant.SKU);
                 LibraryAssert.RecordIsNotEmpty(ItemReference);
             until ShopifyVariant.Next() = 0;
+    end;
+
+    [Test]
+    procedure UnitTestCreateItemFCYToLCYConversion()
+    var
+        Item: Record Item;
+        Shop: Record "Shpfy Shop";
+        ShopifyVariant: Record "Shpfy Variant";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+    begin
+        // [SCENARIO] Create a Item from a Shopify Product with the SKU value containing the Item No.
+
+        // [GIVEN] The Shop with the setting "SKU Mapping" = "Item No.";
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::"Item No.";
+        Shop."Currency Code" := CreateCurrencyAndExchangeRate(2, 2);
+        Shop.Modify();
+
+        // [GIVEN] A Shopify variant record of a standard shopify product. (The variant record always exists, even if the products don't have any variants.)
+        ShopifyVariant := ProductInitTest.CreateStandardProduct(Shop);
+        ShopifyVariant.Price := 10;
+        ShopifyVariant."Unit Cost" := 6;
+        ShopifyVariant.Modify();
+        ShopifyVariant.SetRecFilter();
+
+        // [WHEN] Executing the report "Shpfy Create Item" with the "Shpfy Variant" Record.
+        Codeunit.Run(Codeunit::"Shpfy Create Item", ShopifyVariant);
+
+        // [THEN] Check Item fields
+        LibraryAssert.IsTrue(Item.GetBySystemId(ShopifyVariant."Item SystemId"), 'Get Item');
+        LibraryAssert.AreNearlyEqual(ShopifyVariant."Unit Cost" / 2, Item."Unit Cost", 0.1, 'Unit Cost');
+        LibraryAssert.AreNearlyEqual(ShopifyVariant.Price / 2, Item."Unit Price", 0.1, 'Unit Price');
+    end;
+
+    local procedure CreateCurrencyAndExchangeRate(ExchangeRateAmount: Decimal; AdjustmentExchangeRateAmount: Decimal): Code[10]
+    begin
+        exit(LibraryERM.CreateCurrencyWithExchangeRate(WorkDate() - 1, ExchangeRateAmount, AdjustmentExchangeRateAmount));
     end;
 }

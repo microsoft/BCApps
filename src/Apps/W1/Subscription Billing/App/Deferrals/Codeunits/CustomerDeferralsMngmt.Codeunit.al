@@ -30,7 +30,7 @@ codeunit 8067 "Customer Deferrals Mngmt."
         TempCustomerContractDeferral.DeleteAll(false);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Post Invoice Events", 'OnPrepareLineOnBeforeSetAccount', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Post Invoice Events", OnPrepareLineOnBeforeSetAccount, '', false, false)]
     local procedure OnPrepareLineOnBeforeSetAccount(SalesLine: Record "Sales Line"; var SalesAccount: Code[20])
     var
         GeneralPostingSetup: Record "General Posting Setup";
@@ -48,7 +48,7 @@ codeunit 8067 "Customer Deferrals Mngmt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Post Invoice Events", 'OnPrepareLineOnBeforeSetLineDiscAccount', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Post Invoice Events", OnPrepareLineOnBeforeSetLineDiscAccount, '', false, false)]
     local procedure OnPrepareLineOnBeforeSetLineDiscAccount(SalesLine: Record "Sales Line"; GenPostingSetup: Record "General Posting Setup"; var InvDiscAccount: Code[20]; var IsHandled: Boolean)
     begin
         if SalesLine.CreateContractDeferrals() then begin

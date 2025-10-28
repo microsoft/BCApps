@@ -4,7 +4,7 @@ page 8037 "Usage Data Customers"
 {
     ApplicationArea = All;
     SourceTable = "Usage Data Supp. Customer";
-    Caption = 'Usage Data Customers';
+    Caption = 'Usage Data Supp. Customers';
     UsageCategory = Lists;
     PageType = List;
     LinksAllowed = false;

@@ -20,7 +20,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        exit(AgentMessageImpl.GetMessageText(AgentTaskMessage));
+        exit(AgentMessageImpl.GetText(AgentTaskMessage));
     end;
 
     /// <summary>
@@ -46,7 +46,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        exit(AgentMessageImpl.IsMessageEditable(AgentTaskMessage));
+        exit(AgentMessageImpl.IsEditable(AgentTaskMessage));
     end;
 
     /// <summary>

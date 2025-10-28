@@ -86,7 +86,7 @@ page 4301 "Agent Task Message List"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        GlobalMessageText := AgentMessageImpl.GetMessageText(Rec);
+        GlobalMessageText := AgentMessageImpl.GetText(Rec);
     end;
 
     var

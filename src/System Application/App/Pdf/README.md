@@ -137,7 +137,7 @@ procedure Example(ImageStream: InStream)
 var
     PDFDocument: Codeunit "PDF Document";
 begin
-    PDFDocument.ConvertToImage(ImageStream, Enum::"Image Format"::PNG, 1);
+    PDFDocument.ConvertPdfToImage(ImageStream, Enum::"Image Format"::PNG, 1);
 end;
 ```
 

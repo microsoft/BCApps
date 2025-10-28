@@ -47,6 +47,85 @@ codeunit 139686 "Billing Correction Test"
     #region Tests
 
     [Test]
+    [HandlerFunctions('CreateBillingDocsVendorPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CancelPostedPurchaseInvoiceIfContractLineNumberWasChanged()
+    var
+        CommentLine: Record "Vend. Sub. Contract Line";
+        ContractLine: Record "Vend. Sub. Contract Line";
+    begin
+        // [SCENARIO]: Create Vendor Contract with two lines and post invoice for that contract
+        // [SCENARIO]: Delete the second contract line in that contract, add comment line and assign second service commitment to the contract again
+        // [SCENARIO]: Create Credit Memo from Posted Purchase Invoice
+
+        // [GIVEN]: Create contract and post invoice for that contract
+        PostPurchaseInvoiceForContract();
+
+        // [WHEN]: Delete the second contract line in that contract
+        ContractLine.SetRange("Subscription Contract No.", VendorContract."No.");
+        ContractLine.FindLast();
+        ContractLine.Delete(true);
+
+        // [WHEN]: Add a comment line in the contract
+        CommentLine.Init();
+        CommentLine."Subscription Contract No." := VendorContract."No.";
+        CommentLine."Line No." := ContractLine."Line No." + 10000; // Add a new line after the last one
+        CommentLine."Contract Line Type" := "Contract Line Type"::Comment;
+        CommentLine."Subscription Description" := 'This is a comment line.';
+        CommentLine."Subscription Line Description" := 'This is a comment line.';
+        CommentLine.Insert(false);
+
+        // [WHEN]: Get the second service commitment into the contract again
+        ContractTestLibrary.AssignServiceObjectForItemToVendorContract(VendorContract, ServiceObject, false);
+
+        // [WHEN]: Create Credit Memo from Posted Sales Invoice using CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument
+        CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvoiceHeader, PurchaseHeader);
+
+        // [THEN]: Assert that the Credit Memo was created successfully
+        Assert.IsTrue(PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::"Credit Memo", 'Credit Memo was not created successfully.');
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateBillingDocsCustomerPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CancelPostedSalesInvoiceIfContractLineNumberWasChanged()
+    var
+        CommentLine: Record "Cust. Sub. Contract Line";
+        ContractLine: Record "Cust. Sub. Contract Line";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+    begin
+        // [SCENARIO]: Create Customer Contract with two lines and post invoice for that contract
+        // [SCENARIO]: Delete the second contract line in that contract, add comment line and assign second service commitment to the contract again
+        // [SCENARIO]: Create Credit Memo from Posted Sales Invoice
+
+        // [GIVEN]: Create contract and post invoice for that contract
+        PostSalesInvoiceForContract();
+
+        // [WHEN]: Delete the second contract line in that contract
+        ContractLine.SetRange("Subscription Contract No.", CustomerContract."No.");
+        ContractLine.FindLast();
+        ContractLine.Delete(true);
+
+        // [WHEN]: Add a comment line in the contract
+        CommentLine.Init();
+        CommentLine."Subscription Contract No." := CustomerContract."No.";
+        CommentLine."Line No." := ContractLine."Line No." + 10000; // Add a new line after the last one
+        CommentLine."Contract Line Type" := "Contract Line Type"::Comment;
+        CommentLine."Subscription Description" := 'This is a comment line.';
+        CommentLine."Subscription Line Description" := 'This is a comment line.';
+        CommentLine.Insert(false);
+
+        // [WHEN]: Get the second service commitment into the contract again
+        ContractTestLibrary.AssignServiceObjectForItemToCustomerContract(CustomerContract, ServiceObject, false);
+
+        // [WHEN]: Cancel Posted Sales Invoice
+        Commit(); // commit the changes before canceling the invoice
+        CorrectPostedSalesInvoice.CancelPostedInvoice(SalesInvoiceHeader);
+
+        // [THEN]: Assert that the Credit Memo was created successfully
+        SalesCrMemoHeader.SetRange("Applies-to Doc. No.", SalesInvoiceHeader."No.");
+        Assert.RecordIsNotEmpty(SalesCrMemoHeader);
+    end;
+
+    [Test]
     [HandlerFunctions('CreateBillingDocsCustomerPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure CheckBillingLinesCreatedForCreditMemo()
     begin
@@ -258,6 +337,7 @@ codeunit 139686 "Billing Correction Test"
         ClearAll();
         BillingTemplate.DeleteAll(false);
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, '', true);
+        ContractTestLibrary.DisableDeferralsForVendorContract(VendorContract, false);
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
         BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
         BillingLine.SetRange(Partner, BillingLine.Partner::Vendor);
@@ -276,6 +356,7 @@ codeunit 139686 "Billing Correction Test"
     begin
         ClearAll();
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '', true);
+        ContractTestLibrary.DisableDeferralsForCustomerContract(CustomerContract, false);
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
         BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
         BillingLine.SetRange(Partner, BillingLine.Partner::Customer);

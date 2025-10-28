@@ -170,6 +170,7 @@ table 8010 "Imported Cust. Sub. Contract"
         field(15; "Detail Overview"; Enum "Contract Detail Overview")
         {
             Caption = 'Detail Overview';
+            InitValue = Complete;
         }
         field(16; "Dimension from Job No."; Code[20])
         {

@@ -28,6 +28,7 @@ permissionset 8906 "Email - Objects"
                   codeunit "Email Message" = X,
                   codeunit "Email Scenario" = X,
                   codeunit "Email Test Mail" = X,
+                  page "Email Account Folders" = X,
                   page "Email Accounts" = X,
                   page "Email Account Wizard" = X,
                   page "Email Activities" = X,

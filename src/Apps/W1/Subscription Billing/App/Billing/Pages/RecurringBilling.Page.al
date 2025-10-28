@@ -115,6 +115,11 @@ page 8067 "Recurring Billing"
                     ToolTip = 'Specifies the date to which the Subscription Line is billed.';
                     StyleExpr = LineStyleExpr;
                 }
+                field("Billing Reference Date Changed"; Rec."Billing Reference Date Changed")
+                {
+                    StyleExpr = LineStyleExpr;
+                    Visible = false;
+                }
                 field("Service Amount"; Rec.Amount)
                 {
                     ToolTip = 'Specifies the amount for the Subscription Line including discount.';

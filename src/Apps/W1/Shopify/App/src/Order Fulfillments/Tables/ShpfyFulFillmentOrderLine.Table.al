@@ -51,6 +51,7 @@ table 30144 "Shpfy FulFillment Order Line"
         {
             Caption = 'Qty. to Fulfill';
             DataClassification = CustomerContent;
+            DecimalPlaces = 0 : 5;
             AutoFormatType = 0;
         }
         field(9; "Shopify Variant Id"; BigInteger)

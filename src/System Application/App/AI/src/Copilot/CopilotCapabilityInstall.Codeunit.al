@@ -26,7 +26,7 @@ codeunit 7760 "Copilot Capability Install"
 
     internal procedure RegisterCapabilities()
     begin
-        RegisterSaaSCapability(Enum::"Copilot Capability"::"Analyze List", Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", AnalyzeListLearnMoreLbl);
+        RegisterSaaSCapability(Enum::"Copilot Capability"::"Analyze List", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Not Billed", AnalyzeListLearnMoreLbl);
         RegisterSaaSCapability(Enum::"Copilot Capability"::Autofill, Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", AutofillLearnMoreLbl);
         RegisterSaaSCapability(Enum::"Copilot Capability"::Chat, Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", ChatLearnMoreLbl);
         RegisterSaaSCapability(Enum::"Copilot Capability"::Summarize, Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", SummarizeLearnMoreLbl);

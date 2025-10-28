@@ -527,6 +527,10 @@ page 30101 "Shpfy Shop Card"
                     ToolTip = 'Specifies if Business Central document no. is synchronized to Shopify as order attribute.';
                     Enabled = Rec."Allow Outgoing Requests" or Rec."Order Attributes To Shopify";
                 }
+                field("Create Invoices From Orders"; Rec."Create Invoices From Orders")
+                {
+                    ApplicationArea = All;
+                }
                 field(ArchiveProcessOrders; Rec."Archive Processed Orders")
                 {
                     ApplicationArea = All;

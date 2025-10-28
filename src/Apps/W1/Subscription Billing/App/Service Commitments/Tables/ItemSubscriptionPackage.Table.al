@@ -65,7 +65,7 @@ table 8058 "Item Subscription Package"
     end;
 
     var
-        DiscountCannotBeAssignedErr: Label 'Subscription Package Lines, which are discounts can only be assigned to Subscription Items.';
+        DiscountCannotBeAssignedErr: Label 'Subscription Package Lines, which are discounts, can only be assigned to Subscription Items.';
         EmptyInvoicingItemNoInPackageLineErr: Label 'The %1 %2 can not be used with Item %3, because at least one of the Service Commitment Package lines is missing an %4.', Comment = '%1 = Table Caption, %2 = Code, %3 = Item No., %4 = Invoicing Item No.';
 
     internal procedure ErrorIfInvoicingItemIsNotServiceCommitmentItemForDiscount(ServiceCommitmentPackageCode: Code[20])

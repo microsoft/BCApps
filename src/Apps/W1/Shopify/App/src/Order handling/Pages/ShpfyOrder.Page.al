@@ -653,10 +653,10 @@ page 30113 "Shpfy Order"
 
                     trigger OnAction()
                     var
-                        OrdersApi: Codeunit "Shpfy Orders API";
+                        Orders: Codeunit "Shpfy Orders";
                         ErrorInfo: ErrorInfo;
                     begin
-                        if OrdersApi.MarkAsPaid(Rec."Shopify Order Id", Rec."Shop Code") then
+                        if Orders.MarkAsPaid(Rec."Shopify Order Id", Rec."Shop Code") then
                             Message(MarkAsPaidMsg)
                         else begin
                             ErrorInfo.Message := MarkAsPaidFailedErr;
@@ -790,7 +790,7 @@ page 30113 "Shpfy Order"
             action(Fulfillments)
             {
                 ApplicationArea = All;
-                Caption = 'Fulfillments';
+                Caption = 'Completed Fulfillments';
                 Image = ShipmentLines;
                 Promoted = true;
                 PromotedCategory = Category4;

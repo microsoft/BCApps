@@ -112,10 +112,8 @@ page 4317 "Agent User Settings"
     end;
 
     trigger OnAfterGetCurrRecord()
-    var
-        AgentImpl: Codeunit "Agent Impl.";
     begin
-        ProfileDisplayName := AgentImpl.GetProfileName(Rec.Scope, Rec."App ID", Rec."Profile ID");
+        ProfileDisplayName := UserSettings.GetProfileName(Rec);
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean

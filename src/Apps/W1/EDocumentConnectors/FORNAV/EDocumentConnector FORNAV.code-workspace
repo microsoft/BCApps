@@ -1,0 +1,41 @@
+{
+    "folders": [
+        {
+            "name": "EDocumentConnector ForNav",
+            "path": "App"
+        },
+        {
+            "name": "EDocumentConnector ForNav",
+            "path": "Test"
+        }
+    ],    // "settings": {
+        "al.enableCodeAnalysis": true,
+        "al.codeAnalyzers": [
+            "${CodeCop}"
+        ],
+        "al.ruleSetPath": "../../../../../rulesets/ruleset.json",
+        "launch": {
+            "version": "0.2.0",
+            "configurations": [
+                {
+                    "name": "Your own server",
+                    "request": "launch",
+                    "type": "al",
+                    "environmentType": "OnPrem",
+                    "server": "https://bc-next",
+                    "serverInstance": "BC",
+                    "authentication": "UserPassword",
+                    "startupObjectId": 22,
+                    "startupObjectType": "Page",
+                    "breakOnError": "All",
+                    "launchBrowser": true,
+                    "enableLongRunningSqlStatements": true,
+                    "enableSqlInformationDebugger": true,
+                    "tenant": "default",
+                    "usePublicURLFromServer": true
+                }
+            ],
+            "compounds": []
+        }
+    } 
+}
