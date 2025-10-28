@@ -28,7 +28,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
 
     var
         QltyTraversal: Codeunit "Qlty. Traversal";

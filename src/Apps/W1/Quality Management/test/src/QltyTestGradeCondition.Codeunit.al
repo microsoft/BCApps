@@ -20,7 +20,7 @@ codeunit 139956 "Qlty. Test Grade Condition"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
 
     var
         QltyField: Record "Qlty. Field";

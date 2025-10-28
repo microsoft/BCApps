@@ -29,7 +29,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
 
     var
         LibraryAssert: Codeunit "Library Assert";
@@ -1641,6 +1641,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     var
         RoutingHeader: Record "Routing Header";
         RoutingLine: Record "Routing Line";
+        RoutingVersion: Record "Routing Version";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryUtility: Codeunit "Library - Utility";
         Version: Code[20];
@@ -1657,6 +1658,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         RoutingLine.SetRange("Routing No.", RoutingHeader."No.");
         if not RoutingLine.FindFirst() then begin
             Version := LibraryUtility.GenerateRandomCode(RoutingLine.FieldNo("Version Code"), Database::"Routing Line");
+            LibraryManufacturing.CreateRoutingVersion(RoutingVersion, RoutingHeader."No.", Version);
             No := LibraryUtility.GenerateRandomCode(RoutingLine.FieldNo("No."), Database::"Routing Line");
             OperationNo := '';
             LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, Version, OperationNo, Enum::"Capacity Type Routing"::" ", No);
@@ -1676,6 +1678,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     var
         RoutingHeader: Record "Routing Header";
         RoutingLine: Record "Routing Line";
+        RoutingVersion: Record "Routing Version";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryUtility: Codeunit "Library - Utility";
         Version: Code[20];
@@ -1692,6 +1695,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         RoutingLine.SetRange("Routing No.", RoutingHeader."No.");
         if not RoutingLine.FindFirst() then begin
             Version := LibraryUtility.GenerateRandomCode(RoutingLine.FieldNo("Version Code"), Database::"Routing Line");
+            LibraryManufacturing.CreateRoutingVersion(RoutingVersion, RoutingHeader."No.", Version);
             No := LibraryUtility.GenerateRandomCode(RoutingLine.FieldNo("No."), Database::"Routing Line");
             OperationNo := '';
             LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, Version, OperationNo, Enum::"Capacity Type Routing"::" ", No);
@@ -1710,6 +1714,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     var
         RoutingHeader: Record "Routing Header";
         RoutingLine: Record "Routing Line";
+        RoutingVersion: Record "Routing Version";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryUtility: Codeunit "Library - Utility";
         Version: Code[20];
@@ -1726,6 +1731,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         RoutingLine.SetRange("Routing No.", RoutingHeader."No.");
         if not RoutingLine.FindFirst() then begin
             Version := LibraryUtility.GenerateRandomCode(RoutingLine.FieldNo("Version Code"), Database::"Routing Line");
+            LibraryManufacturing.CreateRoutingVersion(RoutingVersion, RoutingHeader."No.", Version);
             No := LibraryUtility.GenerateRandomCode(RoutingLine.FieldNo("No."), Database::"Routing Line");
             OperationNo := '';
             LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, Version, OperationNo, Enum::"Capacity Type Routing"::" ", No);
@@ -1745,6 +1751,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     var
         RoutingHeader: Record "Routing Header";
         RoutingLine: Record "Routing Line";
+        RoutingVersion: Record "Routing Version";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryUtility: Codeunit "Library - Utility";
         Version: Code[20];
@@ -1761,6 +1768,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         RoutingLine.SetRange("Routing No.", RoutingHeader."No.");
         if not RoutingLine.FindFirst() then begin
             Version := LibraryUtility.GenerateRandomCode(RoutingLine.FieldNo("Version Code"), Database::"Routing Line");
+            LibraryManufacturing.CreateRoutingVersion(RoutingVersion, RoutingHeader."No.", Version);
             No := LibraryUtility.GenerateRandomCode(RoutingLine.FieldNo("No."), Database::"Routing Line");
             OperationNo := '';
             LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, Version, OperationNo, Enum::"Capacity Type Routing"::" ", No);

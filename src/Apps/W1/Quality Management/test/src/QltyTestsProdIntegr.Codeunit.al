@@ -24,7 +24,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
 
     var
         ReUsedProdOrderLine: Record "Prod. Order Line";

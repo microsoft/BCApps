@@ -36,7 +36,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
 
     var
         LibraryAssert: Codeunit "Library Assert";

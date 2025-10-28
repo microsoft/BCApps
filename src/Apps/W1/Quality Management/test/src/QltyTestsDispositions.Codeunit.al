@@ -45,7 +45,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
 
     var
         LibraryAssert: Codeunit "Library Assert";
@@ -309,7 +309,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry.SetRange("Location Code", AdvWhseLocation.Code);
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetRange("Lot No.", PurOrdResReservationEntry."Lot No.");
-        WarehouseEntry.SetFilter("Bin Type Code", '<>%1', 'RECEIVE');
+        WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
 
         // [GIVEN] A reclassification journal line is created to move 50 units to a different bin
@@ -1288,7 +1288,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry.SetRange("Location Code", Location.Code);
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetRange("Lot No.", PurOrdResReservationEntry."Lot No.");
-        WarehouseEntry.SetFilter("Bin Type Code", '<>%1', 'RECEIVE');
+        WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
 
         // [GIVEN] A warehouse reclassification journal is created to split items across multiple bins
@@ -3459,7 +3459,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry.SetRange("Location Code", Location.Code);
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetRange("Lot No.", ReservationEntry."Lot No.");
-        WarehouseEntry.SetFilter("Bin Type Code", '<>%1', 'RECEIVE');
+        WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
 
         // [GIVEN] Reclassification warehouse journal line is created to split inventory across two bins

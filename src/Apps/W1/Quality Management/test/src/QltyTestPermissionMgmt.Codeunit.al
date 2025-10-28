@@ -12,7 +12,7 @@ codeunit 139957 "Qlty. Test Permission Mgmt."
 {
     Subtype = Test;
     TestPermissions = Restrictive;
-    TestType = Uncategorized;
+    TestType = UnitTest;
 
     var
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";

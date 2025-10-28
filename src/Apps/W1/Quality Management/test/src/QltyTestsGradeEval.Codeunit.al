@@ -20,7 +20,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = Uncategorized;
+    TestType = UnitTest;
 
     var
         LibraryAssert: Codeunit "Library Assert";

@@ -19,7 +19,7 @@ codeunit 139955 "Qlty. Test Gen. Rule"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
 
     var
         LibraryAssert: Codeunit "Library Assert";

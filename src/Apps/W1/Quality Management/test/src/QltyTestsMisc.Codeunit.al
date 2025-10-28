@@ -44,7 +44,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
 
     var
         LibraryAssert: Codeunit "Library Assert";
@@ -175,8 +175,10 @@ codeunit 139964 "Qlty. Tests - Misc"
     procedure GetBasicPersonDetails_Contact()
     var
         Contact: Record Contact;
+        SalesPersonPurchaser: Record "Salesperson/Purchaser";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         LibraryMarketing: Codeunit "Library - Marketing";
+        LibrarySales: Codeunit "Library - Sales";
         OutSourceRecord: RecordId;
         FullName: Text;
         OutJobTitle: Text;
@@ -186,6 +188,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [SCENARIO] Get person details from a Contact record
 
         // [GIVEN] A Contact record with name, job title, email, and phone number
+        LibrarySales.CreateSalesperson(SalesPersonPurchaser);
         LibraryMarketing.CreatePersonContact(Contact);
         Contact."First Name" := 'David';
         Contact.Validate(Surname, 'Tennant');

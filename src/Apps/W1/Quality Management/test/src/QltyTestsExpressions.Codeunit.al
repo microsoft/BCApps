@@ -17,7 +17,7 @@ codeunit 139961 "Qlty. Tests - Expressions"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
 
     var
         LibraryAssert: Codeunit "Library Assert";
