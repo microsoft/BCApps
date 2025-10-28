@@ -6,6 +6,8 @@ namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 enum 6113 "E-Doc. PO M. Configuration"
 {
+    Access = Internal;
+    Extensible = false;
     value(0; "Always ask")
     {
         Caption = 'Always ask';

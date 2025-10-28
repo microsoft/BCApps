@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 enum 6112 "E-Doc. PO M. Config. Receipt"
 {
     Access = Internal;
+    Extensible = false;
 
     value(0; "Always ask")
     {

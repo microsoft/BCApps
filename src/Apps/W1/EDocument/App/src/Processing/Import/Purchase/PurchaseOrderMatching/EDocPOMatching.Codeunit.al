@@ -584,7 +584,7 @@ codeunit 6196 "E-Doc. PO Matching"
         CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
         TempPOMatchWarnings.SetRange("Warning Type", "E-Doc PO Match Warning"::NotYetReceived);
         // For each line that has a Not Yet Received warning, we check if it can be matched without receipt
-        if not TempPOMatchWarnings.IsEmpty() then
+        if TempPOMatchWarnings.FindSet() then
             repeat
                 EDocumentPurchaseLine.GetBySystemId(TempPOMatchWarnings."E-Doc. Purchase Line SystemId");
                 LoadPOLinesMatchedToEDocumentLine(EDocumentPurchaseLine, TempPurchaseLine);
