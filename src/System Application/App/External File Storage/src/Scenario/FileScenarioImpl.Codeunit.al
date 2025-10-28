@@ -28,8 +28,20 @@ codeunit 9453 "File Scenario Impl."
                 TempFileAccount := TempAllFileAccounts;
                 exit(true);
             end;
+    end;
+
+    procedure GetFileAccountOrDefault(Scenario: Enum "File Scenario"; var TempFileAccount: Record "File Account" temporary): Boolean
+    var
+        TempAllFileAccounts: Record "File Account" temporary;
+        FileScenario: Record "File Scenario";
+        FileAccounts: Codeunit "File Account";
+    begin
+        // Find the account for the provided scenario
+        if GetFileAccount(Scenario, TempFileAccount) then
+            exit(true);
 
         // Fallback to the default account if the scenario isn't mapped or the mapped account doesn't exist
+        FileAccounts.GetAllAccounts(TempAllFileAccounts);
         if FileScenario.Get(Enum::"File Scenario"::Default) then
             if TempAllFileAccounts.Get(FileScenario."Account Id", FileScenario.Connector) then begin
                 TempFileAccount := TempAllFileAccounts;
@@ -174,6 +186,8 @@ codeunit 9453 "File Scenario Impl."
         TempSelectedFileAccScenarios: Record "File Account Scenario" temporary;
         FileScenario: Record "File Scenario";
         FileScenariosForAccount: Page "File Scenarios for Account";
+        FileScenarioInterface: Interface "File Scenario";
+        FileScenarioEnum: Enum "File Scenario";
     begin
         FileAccountImpl.CheckPermissions();
 
@@ -193,6 +207,11 @@ codeunit 9453 "File Scenario Impl."
             exit;
 
         repeat
+            FileScenarioEnum := Enum::"File Scenario".FromInteger(TempSelectedFileAccScenarios.Scenario);
+            FileScenarioInterface := FileScenarioEnum;
+            if FileScenarioInterface.BeforeAddOrModifyFileScenarioCheck(FileScenarioEnum, TempSelectedFileAccScenarios.Connector) then
+                exit;
+
             if not FileScenario.Get(TempSelectedFileAccScenarios.Scenario) then begin
                 FileScenario."Account Id" := TempFileAccountScenario."Account Id";
                 FileScenario.Connector := TempFileAccountScenario.Connector;
@@ -289,6 +308,8 @@ codeunit 9453 "File Scenario Impl."
     procedure DeleteScenario(var TempFileAccountScenario: Record "File Account Scenario" temporary): Boolean
     var
         FileScenario: Record "File Scenario";
+        FileScenarioInterface: Interface "File Scenario";
+        FileScenarioEnum: Enum "File Scenario";
     begin
         FileAccountImpl.CheckPermissions();
 
@@ -301,7 +322,10 @@ codeunit 9453 "File Scenario Impl."
                 FileScenario.SetRange("Account Id", TempFileAccountScenario."Account Id");
                 FileScenario.SetRange(Connector, TempFileAccountScenario.Connector);
 
-                FileScenario.DeleteAll();
+                FileScenarioEnum := Enum::"File Scenario".FromInteger(TempFileAccountScenario.Scenario);
+                FileScenarioInterface := FileScenarioEnum;
+                if not FileScenarioInterface.BeforeDeleteFileScenarioCheck(FileScenarioEnum, TempFileAccountScenario.Connector) then
+                    FileScenario.DeleteAll();
             end;
         until TempFileAccountScenario.Next() = 0;
 
