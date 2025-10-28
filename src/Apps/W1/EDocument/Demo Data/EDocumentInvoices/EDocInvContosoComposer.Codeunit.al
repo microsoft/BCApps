@@ -123,18 +123,20 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
     /// </summary>
     procedure ProcessComposedEntries()
     var
+        EDocumentService: Record "E-Document Service";
         PurchHeader: Record "Purchase Header";
         PurchInvHeader: Record "Purch. Inv. Header";
         EDocument: Record "E-Document";
         TempBlob: Codeunit "Temp Blob";
     begin
+        EDocumentService := GetEDocService();
         TempPurchHeader.Reset();
         TempPurchHeader.FindSet();
         repeat
             PurchHeader := CreatePurchInvFromTempBuffer();
             PurchInvHeader := PostPurchaseInvoice(PurchHeader);
             TempBlob := SavePurchInvReportToPDF(PurchInvHeader);
-            EDocument := CreateEDocument(TempBlob, PurchInvHeader);
+            EDocument := CreateEDocument(TempBlob, PurchInvHeader, EDocumentService);
             CreateEDocPurchHeaderWithLines(EDocument."Entry No", PurchInvHeader);
         until TempPurchHeader.Next() = 0;
     end;
@@ -195,19 +197,17 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         FileManagement.BLOBImportFromServerFile(TempBlob, FilePath);
     end;
 
-    local procedure CreateEDocument(TempBlob: Codeunit "Temp Blob"; PurchInvHeader: Record "Purch. Inv. Header") EDocument: Record "E-Document"
+    local procedure CreateEDocument(TempBlob: Codeunit "Temp Blob"; PurchInvHeader: Record "Purch. Inv. Header"; EDocumentService: Record "E-Document Service") EDocument: Record "E-Document"
     var
-        EDocumentService: Record "E-Document Service";
         EDocImport: Codeunit "E-Doc. Import";
         ResInStream: InStream;
         FileName: Text;
     begin
-        EDocumentService := GetEDocService();
         TempBlob.CreateInStream(ResInStream);
         FileName := 'PurchaseInvoice' + PurchInvHeader."No." + '.pdf';
         EDocImport.CreateFromType(
             EDocument, EDocumentService, Enum::"E-Doc. File Format"::PDF, FileName, ResInStream);
-        CreateEDocServiceStatus(EDocument."Entry No");
+        UpdateEDocServiceStatus(EDocument."Entry No", EDocumentService);
     end;
 
     local procedure CreateEDocPurchHeaderWithLines(EDocEntryNo: Integer; PurchInvHeader: Record "Purch. Inv. Header")
@@ -325,17 +325,13 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         EDocPurchaseLineHistory."Purch. Inv. Line SystemId" := PurchInvLine.SystemId;
     end;
 
-    local procedure CreateEDocServiceStatus(EDocumentEnryNo: Integer)
+    local procedure UpdateEDocServiceStatus(EDocumentEnryNo: Integer; EDocumentService: Record "E-Document Service")
     var
         EDocServiceStatus: Record "E-Document Service Status";
-        EDocumentService: Record "E-Document Service";
     begin
-        EDocumentService := GetEDocService();
-        EDocServiceStatus.Init();
-        EDocServiceStatus."E-Document Entry No" := EDocumentEnryNo;
-        EDocServiceStatus."E-Document Service Code" := EDocumentService.Code;
+        EDocServiceStatus.Get(EDocumentEnryNo, EDocumentService.Code);
         EDocServiceStatus.Status := Enum::"E-Document Service Status"::Imported;
-        EDocServiceStatus.Insert();
+        EDocServiceStatus.Modify();
     end;
 
     local procedure GetEDocService() EDocumentService: Record "E-Document Service"
