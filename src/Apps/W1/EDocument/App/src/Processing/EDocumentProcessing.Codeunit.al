@@ -187,7 +187,7 @@ codeunit 6108 "E-Document Processing"
                 Clear(TempBlob);
                 if EDocumentLog.GetDocumentBlobFromLog(EDocument, EDocumentService, TempBlob, Enum::"E-Document Service Status"::Exported) then begin
                     TempBlobList.Add(TempBlob);
-                    ExtensionList.Add(EDocumentService.GetFileExtension());
+                    ExtensionList.Add(EDocumentService.GetDefaultFileExtension());
                 end;
             until EDocumentService.Next() = 0;
 

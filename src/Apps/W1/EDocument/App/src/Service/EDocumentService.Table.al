@@ -394,16 +394,25 @@ table 6103 "E-Document Service"
 #endif
     end;
 
-    procedure GetFileExtension() FileExtension: Text
+    /// <summary>
+    /// Gets the default file extension for the e-document service.
+    /// </summary>
+    /// <returns>The default file extension (e.g., '.xml'). Can be overridden via OnAfterGetDefaultFileExtension event.</returns>
+    procedure GetDefaultFileExtension() FileExtension: Text
     var
         XMLFileTypeTok: Label '.xml', Locked = true;
     begin
         FileExtension := XMLFileTypeTok;
-        OnAfterGetFileExtension(Rec, FileExtension);
+        OnAfterGetDefaultFileExtension(Rec, FileExtension);
     end;
 
+    /// <summary>
+    /// Integration event that allows subscribers to override the default file extension for the e-document service.
+    /// </summary>
+    /// <param name="EDocumentService">The E-Document Service record.</param>
+    /// <param name="FileExtension">The file extension to be used. By default, it is set to '.xml'.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterGetFileExtension(EDocumentService: Record "E-Document Service"; var FileExtension: Text)
+    local procedure OnAfterGetDefaultFileExtension(EDocumentService: Record "E-Document Service"; var FileExtension: Text)
     begin
     end;
 
