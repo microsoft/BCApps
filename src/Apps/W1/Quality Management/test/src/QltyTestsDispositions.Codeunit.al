@@ -4067,15 +4067,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TransferHeader.SetRange("Transfer-to Code", DestinationLocation.Code);
         TransferHeader.SetRange("Direct Transfer", true);
 #pragma warning restore AA0210
-
         LibraryAssert.AreEqual(1, TransferHeader.Count(), 'Should be one transfer header created.');
 
         // [THEN] One transfer line is created with requested quantity of 50 and transfer-from bin code
         TransferLine.SetRange("Transfer-from Code", Location.Code);
         TransferLine.SetRange("Transfer-to Code", DestinationLocation.Code);
         TransferLine.SetRange("Item No.", Item."No.");
-
         LibraryAssert.AreEqual(1, TransferLine.Count(), 'Should be one transfer line created.');
+
         TransferLine.FindFirst();
         LibraryAssert.AreEqual(50, TransferLine.Quantity, 'Should have requested quantity.');
         LibraryAssert.AreEqual(Bin.Code, TransferLine."Transfer-from Bin Code", 'Should have transfer-from bin code.');
@@ -4140,15 +4139,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TransferHeader.SetRange("Transfer-to Code", DestinationLocation.Code);
         TransferHeader.SetRange("Direct Transfer", true);
 #pragma warning restore AA0210
-
         LibraryAssert.AreEqual(1, TransferHeader.Count(), 'Should be one transfer header created.');
 
         // [THEN] One transfer line is created with correct quantity and bin code
         TransferLine.SetRange("Transfer-from Code", Location.Code);
         TransferLine.SetRange("Transfer-to Code", DestinationLocation.Code);
         TransferLine.SetRange("Item No.", Item."No.");
-
         LibraryAssert.AreEqual(1, TransferLine.Count(), 'Should be one transfer line created.');
+
         TransferLine.FindFirst();
         LibraryAssert.AreEqual(50, TransferLine.Quantity, 'Should have requested quantity.');
         LibraryAssert.AreEqual(Bin.Code, TransferLine."Transfer-from Bin Code", 'Should have transfer-from bin code.');
@@ -4231,7 +4229,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TransferHeader.SetRange("Transfer-to Code", DestinationLocation.Code);
         TransferHeader.SetRange("In-Transit Code", InTransitLocation.Code);
 #pragma warning restore AA0210
-
         LibraryAssert.AreEqual(1, TransferHeader.Count(), 'Should be one transfer header created.');
 
         // [THEN] One transfer line is created with correct item, variant, and bin code
@@ -4240,8 +4237,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TransferLine.SetRange("In-Transit Code", InTransitLocation.Code);
         TransferLine.SetRange("Item No.", Item."No.");
         TransferLine.SetRange("Variant Code", ItemVariant.Code);
-
         LibraryAssert.AreEqual(1, TransferLine.Count(), 'Should be one transfer line created.');
+
         TransferLine.FindFirst();
         LibraryAssert.AreEqual(TransferLine."Transfer-from Bin Code", Bin.Code, 'Transfer-from bin code should be provided when location is bin mandatory.');
 
@@ -4323,8 +4320,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TransferLine.SetRange("Transfer-to Code", DestinationLocation.Code);
         TransferLine.SetRange("In-Transit Code", InTransitLocation.Code);
         TransferLine.SetRange("Item No.", Item."No.");
-
         LibraryAssert.AreEqual(1, TransferLine.Count(), 'Should be one transfer line created.');
+
         TransferLine.FindFirst();
 
         // [THEN] Reservation entry is created with correct quantity, location, and shipment date
@@ -4446,15 +4443,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TransferHeader.SetRange("Transfer-to Code", DestinationLocation.Code);
         TransferHeader.SetRange("In-Transit Code", InTransitLocation.Code);
 #pragma warning restore AA0210
-
         LibraryAssert.AreEqual(2, TransferHeader.Count(), 'Should be two transfer headers created.');
 
         TransferLine.SetRange("Transfer-from Code", Location.Code);
         TransferLine.SetRange("Transfer-to Code", DestinationLocation.Code);
         TransferLine.SetRange("In-Transit Code", InTransitLocation.Code);
         TransferLine.SetRange("Item No.", Item."No.");
-
         LibraryAssert.AreEqual(2, TransferLine.Count(), 'Should be two transfer lines created.');
+
         TransferLine.FindSet();
         repeat
             Clear(ReservationEntry);
@@ -4529,14 +4525,12 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TransferHeader.SetRange("Transfer-to Code", DestinationLocation.Code);
         TransferHeader.SetRange("Direct Transfer", true);
 #pragma warning restore AA0210
-
         LibraryAssert.AreEqual(0, TransferHeader.Count(), 'Should be no transfer headers created.');
 
         TransferLine.SetRange("Transfer-from Code", Location.Code);
         TransferLine.SetRange("Transfer-to Code", DestinationLocation.Code);
         TransferLine.SetRange("Item No.", Item."No.");
         TransferLine.SetRange(Quantity, 50);
-
         LibraryAssert.AreEqual(0, TransferLine.Count(), 'Should be no transfer lines created.');
     end;
 

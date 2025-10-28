@@ -168,7 +168,7 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
     /// Finds the first matching generation rule and record.
     /// Note that TempQltyInTestGenerationRule can be used to supply optional input filters, however it will be replaced upon output.
     /// </summary>
-    /// <param name="MaxRecursion"></param>
+    /// <param name="CurrentRecursionDepth"></param>
     /// <param name="UseActivationFilter"></param>
     /// <param name="IsManualCreation"></param>
     /// <param name="TargetRecordRef"></param>
@@ -178,15 +178,15 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
     /// <param name="OptionalSpecificTemplate"></param>
     /// <param name="TempQltyInTestGenerationRule">Filters are copied from the input, but will be replaced on output.</param>
     /// <returns></returns>
-    local procedure FindFirstGenerationRuleAndRecordBasedOnRecursive(MaxRecursion: Integer; UseActivationFilter: Boolean; IsManualCreation: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; var TempAlreadySearchedsQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; OptionalSpecificTemplate: Code[20]; var TempQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule" temporary) Found: Boolean
+    local procedure FindFirstGenerationRuleAndRecordBasedOnRecursive(CurrentRecursionDepth: Integer; UseActivationFilter: Boolean; IsManualCreation: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; var TempAlreadySearchedsQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; OptionalSpecificTemplate: Code[20]; var TempQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule" temporary) Found: Boolean
     var
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         SearchItem: Record Item;
         FoundLinkRecordRef: RecordRef;
         TemporaryTestMatchRecordRef: RecordRef;
     begin
-        MaxRecursion := MaxRecursion - 1;
-        if MaxRecursion <= 0 then
+        CurrentRecursionDepth -= 1;
+        if CurrentRecursionDepth <= 0 then
             Error(UnexpectedAndNoDetailsErr);
 
         QltyInTestGenerationRule.CopyFilters(TempQltyInTestGenerationRule);
@@ -247,7 +247,7 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
                         TempAlreadySearchedsQltyInspectSourceConfig := TempAvailableQltyInspectSourceConfig;
                         if TempAlreadySearchedsQltyInspectSourceConfig.Insert() then;
                         if QltyTraversal.FindFromTableLinkedRecordWithToTable(true, false, TempAvailableQltyInspectSourceConfig, TargetRecordRef, FoundLinkRecordRef) then
-                            if FindFirstGenerationRuleAndRecordBasedOnRecursive(MaxRecursion, UseActivationFilter, IsManualCreation, FoundLinkRecordRef, OptionalItem, TempAvailableQltyInspectSourceConfig, TempAlreadySearchedsQltyInspectSourceConfig, OptionalSpecificTemplate, TempQltyInTestGenerationRule) then begin
+                            if FindFirstGenerationRuleAndRecordBasedOnRecursive(CurrentRecursionDepth, UseActivationFilter, IsManualCreation, FoundLinkRecordRef, OptionalItem, TempAvailableQltyInspectSourceConfig, TempAlreadySearchedsQltyInspectSourceConfig, OptionalSpecificTemplate, TempQltyInTestGenerationRule) then begin
                                 Found := true;
                                 TargetRecordRef := FoundLinkRecordRef;
                             end;

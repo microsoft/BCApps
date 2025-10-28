@@ -125,12 +125,12 @@ codeunit 20408 "Qlty. Traversal"
         exit(FindPossibleTargetsBasedOnConfigRecursiveWithList(QltyMiscHelpers.GetArbitraryMaximumRecursion(), InputTable, TempAvailableQltyInspectSourceConfig));
     end;
 
-    local procedure FindPossibleTargetsBasedOnConfigRecursiveWithList(MaxRecursion: Integer; InputTable: Integer; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary) Found: Boolean
+    local procedure FindPossibleTargetsBasedOnConfigRecursiveWithList(CurrentRecursionDepth: Integer; InputTable: Integer; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary) Found: Boolean
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
     begin
-        MaxRecursion -= 1;
-        if MaxRecursion <= 0 then
+        CurrentRecursionDepth -= 1;
+        if CurrentRecursionDepth <= 0 then
             Error(PleaseReviewSourceTableConfigErr);
 
         QltyInspectSourceConfig.SetRange(Enabled, true);
@@ -162,10 +162,7 @@ codeunit 20408 "Qlty. Traversal"
                     TempAvailableQltyInspectSourceConfig.Init();
                     TempAvailableQltyInspectSourceConfig := QltyInspectSourceConfig;
                     Found := Found or TempAvailableQltyInspectSourceConfig.Insert(false);
-                    Found := Found or FindPossibleTargetsBasedOnConfigRecursiveWithList(
-                        MaxRecursion,
-                        QltyInspectSourceConfig."From Table No.",
-                        TempAvailableQltyInspectSourceConfig);
+                    Found := Found or FindPossibleTargetsBasedOnConfigRecursiveWithList(CurrentRecursionDepth, QltyInspectSourceConfig."From Table No.", TempAvailableQltyInspectSourceConfig);
                 end;
             until QltyInspectSourceConfig.Next() = 0;
 
@@ -182,11 +179,7 @@ codeunit 20408 "Qlty. Traversal"
                     TempAvailableQltyInspectSourceConfig.Init();
                     TempAvailableQltyInspectSourceConfig := QltyInspectSourceConfig;
                     Found := Found or TempAvailableQltyInspectSourceConfig.Insert(false);
-                    Found := Found or
-                        FindPossibleTargetsBasedOnConfigRecursiveWithList(
-                            MaxRecursion,
-                            QltyInspectSourceConfig."To Table No.",
-                            TempAvailableQltyInspectSourceConfig);
+                    Found := Found or FindPossibleTargetsBasedOnConfigRecursiveWithList(CurrentRecursionDepth, QltyInspectSourceConfig."To Table No.", TempAvailableQltyInspectSourceConfig);
                 end;
             until QltyInspectSourceConfig.Next() = 0;
     end;
@@ -237,19 +230,19 @@ codeunit 20408 "Qlty. Traversal"
     /// This is the internal recursive implementation that walks up the chain of parent records,
     /// applying field mappings at each level until all source fields are populated.
     /// </summary>
-    /// <param name="MaxRecursion">Maximum recursion depth to prevent infinite loops (decremented with each call)</param>
+    /// <param name="CurrentRecursionDepth">Maximum recursion depth to prevent infinite loops (decremented with each call)</param>
     /// <param name="TargetRecordRef">Current record in the traversal chain</param>
     /// <param name="TempAvailableQltyInspectSourceConfig">Available source configurations for the current traversal level</param>
     /// <param name="QltyInspectionTestHeader">The Quality Inspection Test Header being populated</param>
     /// <param name="ForceSetValues">If true, overwrites existing field values; if false, only sets empty fields</param>
     /// <returns>True if source fields could be applied at this level or any parent level; False otherwise</returns>
-    local procedure ApplySourceRecursive(MaxRecursion: Integer; var TargetRecordRef: RecordRef; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; ForceSetValues: Boolean) CouldApply: Boolean
+    local procedure ApplySourceRecursive(CurrentRecursionDepth: Integer; var TargetRecordRef: RecordRef; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; ForceSetValues: Boolean) CouldApply: Boolean
     var
         LinkedQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         LinkedRecordRef: RecordRef;
     begin
-        MaxRecursion -= 1;
-        if MaxRecursion <= 0 then
+        CurrentRecursionDepth -= 1;
+        if CurrentRecursionDepth <= 0 then
             Error(PleaseReviewSourceTableConfigErr);
 
         TempAvailableQltyInspectSourceConfig.Reset();
@@ -281,12 +274,13 @@ codeunit 20408 "Qlty. Traversal"
         if LinkedQltyInspectSourceConfig.FindSet() then
             repeat
                 if FindFromTableLinkedRecordWithToTable(true, false, LinkedQltyInspectSourceConfig, TargetRecordRef, LinkedRecordRef) then
-                    CouldApply := CouldApply or ApplySourceRecursive(
-                        MaxRecursion,
-                        LinkedRecordRef,
-                        LinkedQltyInspectSourceConfig,
-                        QltyInspectionTestHeader,
-                        ForceSetValues)
+                    CouldApply := CouldApply or
+                        ApplySourceRecursive(
+                            CurrentRecursionDepth,
+                            LinkedRecordRef,
+                            LinkedQltyInspectSourceConfig,
+                            QltyInspectionTestHeader,
+                            ForceSetValues)
             until LinkedQltyInspectSourceConfig.Next() = 0;
     end;
 

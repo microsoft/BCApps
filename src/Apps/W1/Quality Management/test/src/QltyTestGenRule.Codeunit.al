@@ -17,8 +17,6 @@ using System.TestLibraries.Utilities;
 
 codeunit 139955 "Qlty. Test Gen. Rule"
 {
-#pragma warning disable AA0073
-
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = Uncategorized;

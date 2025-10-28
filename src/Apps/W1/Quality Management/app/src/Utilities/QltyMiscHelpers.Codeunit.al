@@ -239,7 +239,7 @@ codeunit 20599 "Qlty. Misc Helpers"
 
     /// <summary>
     /// Generates a CSV string of values for a specific field from a table with optional filtering.
-    /// Retrieves up to MaxRecords records and formats field values as comma-separated text.
+    /// Retrieves up to MaxCountRecords records and formats field values as comma-separated text.
     /// 
     /// Example: For Item table, Location Code field → "BLUE,RED,GREEN,YELLOW"
     /// 
@@ -248,13 +248,13 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="CurrentTable">The table number to retrieve records from</param>
     /// <param name="ChoiceField">The field number whose values should be extracted</param>
     /// <param name="TableFilter">Optional filter to apply to the table (AL filter syntax)</param>
-    /// <param name="MaxRecords">Maximum number of records to include in the CSV output</param>
+    /// <param name="MaxCountRecords">Maximum number of records to include in the CSV output</param>
     /// <returns>Comma-separated string of field values</returns>
-    procedure GetCSVOfValuesFromRecord(CurrentTable: Integer; ChoiceField: Integer; TableFilter: Text; MaxRecords: Integer) ResultText: Text
+    procedure GetCSVOfValuesFromRecord(CurrentTable: Integer; ChoiceField: Integer; TableFilter: Text; MaxCountRecords: Integer) ResultText: Text
     var
         TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
     begin
-        GetRecordsForTableField(CurrentTable, ChoiceField, 0, TableFilter, MaxRecords, TempBufferQltyLookupCode, ResultText);
+        GetRecordsForTableField(CurrentTable, ChoiceField, 0, TableFilter, MaxCountRecords, TempBufferQltyLookupCode, ResultText);
     end;
 
     /// <summary>
@@ -284,15 +284,15 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="ChoiceField"></param>
     /// <param name="DescriptionField"></param>
     /// <param name="TableFilter"></param>
-    /// <param name="MaxRecords"></param>
+    /// <param name="MaxCountRecords"></param>
     /// <param name="TempBufferQltyLookupCode"></param>
     /// <param name="CSVSimpleText"></param>
-    local procedure GetRecordsForTableField(CurrentTable: Integer; ChoiceField: Integer; DescriptionField: Integer; TableFilter: Text; MaxRecords: Integer; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; var CSVSimpleText: Text)
+    local procedure GetRecordsForTableField(CurrentTable: Integer; ChoiceField: Integer; DescriptionField: Integer; TableFilter: Text; MaxCountRecords: Integer; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; var CSVSimpleText: Text)
     var
         RecordRefToFetch: RecordRef;
         FieldRefToChoiceField: FieldRef;
         FieldRefToDescriptionField: FieldRef;
-        RemainingMaxRecordsToAdd: Integer;
+        RemainingCountRecordsToAdd: Integer;
         LoopSafety: Integer;
         HasAtLeastOne: Boolean;
         DuplicateChecker: List of [Text];
@@ -303,15 +303,15 @@ codeunit 20599 "Qlty. Misc Helpers"
         if ChoiceField = 0 then
             exit;
 
-        if MaxRecords <= 0 then begin
-            MaxRecords := GetDefaultMaximumRowsFieldLookup();
-            if MaxRecords <= 0 then
-                MaxRecords := 1;
-            if MaxRecords > 1000 then
-                MaxRecords := 1000;
+        if MaxCountRecords <= 0 then begin
+            MaxCountRecords := GetDefaultMaximumRowsFieldLookup();
+            if MaxCountRecords <= 0 then
+                MaxCountRecords := 1;
+            if MaxCountRecords > 1000 then
+                MaxCountRecords := 1000;
         end;
 
-        RemainingMaxRecordsToAdd := MaxRecords;
+        RemainingCountRecordsToAdd := MaxCountRecords;
         if DescriptionField = 0 then
             DescriptionField := ChoiceField;
         RecordRefToFetch.Open(CurrentTable);
@@ -324,10 +324,10 @@ codeunit 20599 "Qlty. Misc Helpers"
                 LoopSafety -= 1;
                 FieldRefToChoiceField := RecordRefToFetch.Field(ChoiceField);
                 FieldRefToDescriptionField := RecordRefToFetch.Field(DescriptionField);
-                TempBufferQltyLookupCode."Group Code" := CopyStr(PadStr(Format(RemainingMaxRecordsToAdd), MaxStrLen(TempBufferQltyLookupCode."Group Code"), '0'), 1, MaxStrLen(TempBufferQltyLookupCode."Group Code"));
+                TempBufferQltyLookupCode."Group Code" := CopyStr(PadStr(Format(RemainingCountRecordsToAdd), MaxStrLen(TempBufferQltyLookupCode."Group Code"), '0'), 1, MaxStrLen(TempBufferQltyLookupCode."Group Code"));
                 ValueToAddToList := CopyStr(Format(FieldRefToChoiceField.Value()), 1, MaxStrLen(TempBufferQltyLookupCode."Custom 1")).Trim();
                 if not DuplicateChecker.Contains(ValueToAddToList) then begin
-                    RemainingMaxRecordsToAdd -= 1;
+                    RemainingCountRecordsToAdd -= 1;
                     DuplicateChecker.Add(ValueToAddToList);
                     TempBufferQltyLookupCode."Custom 1" := CopyStr(ValueToAddToList, 1, MaxStrLen(TempBufferQltyLookupCode."Custom 1"));
                     TempBufferQltyLookupCode."Custom 2" := TempBufferQltyLookupCode."Custom 1".ToLower();
@@ -344,7 +344,7 @@ codeunit 20599 "Qlty. Misc Helpers"
                 end;
                 HasAtLeastOne := true;
 
-            until (RecordRefToFetch.Next() = 0) or (RemainingMaxRecordsToAdd <= 0) or (LoopSafety <= 0);
+            until (RecordRefToFetch.Next() = 0) or (RemainingCountRecordsToAdd <= 0) or (LoopSafety <= 0);
 
         RecordRefToFetch.Close();
     end;
@@ -670,9 +670,9 @@ codeunit 20599 "Qlty. Misc Helpers"
 
     internal procedure IsNumericText(Input: Text): Boolean
     var
-#pragma warning disable AA0206
         TestNumber: Decimal;
     begin
+#pragma warning disable AA0206
         exit(Evaluate(TestNumber, Input));
 #pragma warning restore AA0206
     end;
@@ -700,13 +700,13 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <returns>The guessed field type enum value</returns>
     procedure GuessDataTypeFromDescriptionAndValue(Description: Text; OptionalValue: Text) QltyFieldType: Enum "Qlty. Field Type"
     var
-#pragma warning disable AA0206
         TestDateTime: Date;
         TestDate: Date;
     begin
         Description := UpperCase(Description);
         QltyFieldType := QltyFieldType::"Field Type Text";
         if OptionalValue <> '' then
+#pragma warning disable AA0206
             case true of
                 CanTextBeInterpretedAsBooleanIsh(Text.DelChr(OptionalValue, '=', ' ').ToUpper()):
                     QltyFieldType := QltyFieldType::"Field Type Boolean";
@@ -719,6 +719,7 @@ codeunit 20599 "Qlty. Misc Helpers"
                 Evaluate(TestDateTime, OptionalValue, 9):
                     QltyFieldType := QltyFieldType::"Field Type DateTime";
             end;
+#pragma warning restore AA0206
 
         if Description <> '' then
             case true of
@@ -738,8 +739,6 @@ codeunit 20599 "Qlty. Misc Helpers"
                 Description.StartsWith(UpperCase(YesNoKeyword5Txt)):
                     QltyFieldType := QltyFieldType::"Field Type Boolean";
             end;
-
-#pragma warning restore AA0206
     end;
 
     /// <summary>
