@@ -1,0 +1,14 @@
+[
+    {
+        "bug": "611333",
+        "codeunitId": 139570,
+        "CodeunitName": "Shpfy Shipping Test",
+        "Method": "UnitTestExportShipment"
+    },
+    {
+        "bug": "611333",
+        "codeunitId": 139570,
+        "CodeunitName": "Shpfy Shipping Test",
+        "Method": "UnitTestExportFulfillmentServiceShipment"
+    }
+]
