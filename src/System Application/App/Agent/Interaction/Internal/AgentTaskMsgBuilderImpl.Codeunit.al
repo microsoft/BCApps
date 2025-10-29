@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System;
+
 codeunit 4311 "Agent Task Msg. Builder Impl."
 {
     Access = Internal;
@@ -258,5 +260,13 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         if FileName.EndsWith('.txt') then
             exit('text/plain');
         exit('');
+    end;
+
+    internal procedure SanitizeMessage(MessageBody: Text): Text
+    var
+        AppHTMLSanitizer: DotNet AppHtmlSanitizer;
+    begin
+        AppHTMLSanitizer := AppHTMLSanitizer.AppHtmlSanitizer();
+        exit(AppHTMLSanitizer.SanitizeEmail(MessageBody));
     end;
 }
