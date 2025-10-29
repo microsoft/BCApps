@@ -211,7 +211,6 @@ table 8019 "Sub. Contr. Analysis Entry"
             Caption = 'Quantity';
             Editable = false;
             AutoFormatType = 0;
-            DecimalPlaces = 0 : 5;
         }
         field(100; "Unit Cost"; Decimal)
         {

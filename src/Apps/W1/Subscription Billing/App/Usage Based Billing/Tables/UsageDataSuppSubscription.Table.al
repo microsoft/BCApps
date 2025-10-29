@@ -83,7 +83,6 @@ table 8016 "Usage Data Supp. Subscription"
         {
             Caption = 'Quantity';
             AutoFormatType = 0;
-            DecimalPlaces = 0 : 5;
         }
         field(12; "Start Date"; Date)
         {

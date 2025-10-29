@@ -98,13 +98,11 @@ table 8007 "Overdue Subscription Line"
         {
             Caption = 'Discount %';
             AutoFormatType = 0;
-            DecimalPlaces = 0 : 5;
         }
         field(19; Quantity; Decimal)
         {
             Caption = 'Quantity';
             AutoFormatType = 0;
-            DecimalPlaces = 0 : 5;
         }
         field(34; "Currency Code"; Code[10])
         {
