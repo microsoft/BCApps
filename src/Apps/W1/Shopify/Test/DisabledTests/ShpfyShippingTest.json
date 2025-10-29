@@ -1,14 +1,20 @@
 [
     {
         "bug": "611333",
-        "codeunitId": 139570,
+        "codeunitId": 139606,
         "CodeunitName": "Shpfy Shipping Test",
         "Method": "UnitTestExportShipment"
     },
     {
         "bug": "611333",
-        "codeunitId": 139570,
+        "codeunitId": 139606,
         "CodeunitName": "Shpfy Shipping Test",
         "Method": "UnitTestExportFulfillmentServiceShipment"
+    },
+    {
+        "bug": "611333",
+        "codeunitId": 139606,
+        "CodeunitName": "Shpfy Shipping Test",
+        "Method": "UnitTestExportShipment250Lines"
     }
 ]
