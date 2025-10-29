@@ -8,6 +8,7 @@ using Microsoft.Assembly.Document;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Interaction;
 using Microsoft.CRM.Team;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.HumanResources.Employee;
@@ -2086,6 +2087,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] Posting the assembly header
         // [THEN] An error is raised indicating assembly output is blocked by the most recent finished modified test grade
+        EnsureGenPostingSetupExistsForAssembly(AssemblyHeader);
         asserterror LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
         LibraryAssert.ExpectedError(StrSubstNo(
             EntryTypeBlocked2Err,
@@ -2748,6 +2750,25 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [THEN] The warehouse movement document page opens and the handler validates the correct document number
         LibraryAssert.AreEqual(WhseMovementWarehouseActivityHeader."No.", DocumentNo, 'Should navigate to the movement document');
+    end;
+
+    local procedure EnsureGenPostingSetupExistsForAssembly(AssemblyHeader: Record "Assembly Header")
+    var
+        AssemblyLine: Record "Assembly Line";
+        GeneralPostingSetup: Record "General Posting Setup";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        // Ensure that the general posting setup exists for the assembly lines of the given assembly header
+        AssemblyLine.SetRange("Document Type", AssemblyHeader."Document Type");
+        AssemblyLine.SetRange("Document No.", AssemblyHeader."No.");
+
+        if AssemblyLine.FindSet() then
+            repeat
+                if not GeneralPostingSetup.Get(AssemblyLine."Gen. Bus. Posting Group", AssemblyLine."Gen. Prod. Posting Group") then begin
+                    LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, AssemblyLine."Gen. Bus. Posting Group", AssemblyLine."Gen. Prod. Posting Group");
+                    GeneralPostingSetup.SuggestSetupAccounts();
+                end;
+            until AssemblyLine.Next() = 0;
     end;
 
     [MessageHandler]

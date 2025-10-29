@@ -6,6 +6,7 @@ namespace Microsoft.Test.QualityManagement;
 
 using Microsoft.Assembly.Document;
 using Microsoft.Assembly.History;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
@@ -1945,6 +1946,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionTestHeader.Count();
 
         // [WHEN] The assembly order is posted
+        EnsureGenPostingSetupExistsForAssembly(AssemblyHeader);
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
 
         // [THEN] Two tests are created (one for each lot number)
@@ -2021,6 +2023,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         BeforeCount := QltyInspectionTestHeader.Count();
 
         // [WHEN] The assembly order is posted
+        EnsureGenPostingSetupExistsForAssembly(AssemblyHeader);
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
 
         // [THEN] One test is created
@@ -2048,6 +2051,25 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         QltyInTestGenerationRule."Template Code" := QltyInspectionTemplateHdr.Code;
         QltyInTestGenerationRule."Source Table No." := Database::"Item Journal Line";
         QltyInTestGenerationRule.Insert(true);
+    end;
+
+    local procedure EnsureGenPostingSetupExistsForAssembly(AssemblyHeader: Record "Assembly Header")
+    var
+        AssemblyLine: Record "Assembly Line";
+        GeneralPostingSetup: Record "General Posting Setup";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        // Ensure that the general posting setup exists for the assembly lines for the given assembly header
+        AssemblyLine.SetRange("Document Type", AssemblyHeader."Document Type");
+        AssemblyLine.SetRange("Document No.", AssemblyHeader."No.");
+
+        if AssemblyLine.FindSet() then
+            repeat
+                if not GeneralPostingSetup.Get(AssemblyLine."Gen. Bus. Posting Group", AssemblyLine."Gen. Prod. Posting Group") then begin
+                    LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, AssemblyLine."Gen. Bus. Posting Group", AssemblyLine."Gen. Prod. Posting Group");
+                    GeneralPostingSetup.SuggestSetupAccounts();
+                end;
+            until AssemblyLine.Next() = 0;
     end;
 
     [ConfirmHandler]
