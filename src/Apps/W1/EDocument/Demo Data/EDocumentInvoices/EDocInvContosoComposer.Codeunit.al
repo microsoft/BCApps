@@ -17,6 +17,7 @@ using Microsoft.Foundation.Address;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.UOM;
 using Microsoft.eServices.EDocument.Processing;
+using Microsoft.eServices.EDocument.Processing.Import;
 
 /// <summary>
 /// The purpose of the codeunit is to compose entities for generating the e-document invoices
@@ -138,6 +139,11 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
             TempBlob := SavePurchInvReportToPDF(PurchInvHeader);
             EDocument := CreateEDocument(TempBlob, PurchInvHeader, EDocumentService);
             CreateEDocPurchHeaderWithLines(EDocument."Entry No", PurchInvHeader);
+            EDocument."Document Record ID" := PurchInvHeader.RecordId();
+            EDocument."Bill-to/Pay-to No." := PurchInvHeader."Pay-to Vendor No.";
+            EDocument."Bill-to/Pay-to Name" := PurchInvHeader."Pay-to Name";
+            EDocument."Document No." := PurchInvHeader."No.";
+            EDocument.Modify();
         until TempPurchHeader.Next() = 0;
     end;
 
@@ -207,7 +213,24 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         FileName := 'PurchaseInvoice' + PurchInvHeader."No." + '.pdf';
         EDocImport.CreateFromType(
             EDocument, EDocumentService, Enum::"E-Doc. File Format"::PDF, FileName, ResInStream);
+        EDocument."Document Type" := EDocument."Document Type"::"Purchase Invoice";
+        EDocument."Read into Draft Impl." := Enum::"E-Doc. Read into Draft"::"Demo Invoice";
+        EDocument.Status := EDocument.Status::Processed;
+        EDocument."Import Processing Status" := EDocument."Import Processing Status"::Processed; // TODO: Check why eventually i have unprocessed after executing all the steps
+        EDocument."Structured Data Entry No." := InsertDummyEDocDataStorage();
+        EDocument.Modify();
         UpdateEDocServiceStatus(EDocument."Entry No", EDocumentService);
+    end;
+
+    local procedure InsertDummyEDocDataStorage(): Integer
+    var
+        EDocumentDataStorage: Record "E-Doc. Data Storage";
+    begin
+        if EDocumentDataStorage.FindLast() then
+            EDocumentDataStorage."Entry No." := EDocumentDataStorage."Entry No." + 1;
+        EDocumentDataStorage.Init();
+        EDocumentDataStorage.Insert();
+        exit(EDocumentDataStorage."Entry No.");
     end;
 
     local procedure CreateEDocPurchHeaderWithLines(EDocEntryNo: Integer; PurchInvHeader: Record "Purch. Inv. Header")
@@ -237,7 +260,7 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         EDocPurchaseHeader."Due Date" := PurchInvHeader."Due Date";
         Vendor.Get(PurchInvHeader."Buy-from Vendor No.");
         EDocPurchaseHeader."Vendor Company Name" := Vendor.Name + ' ' + Vendor.Contact;
-        EDocPurchaseHeader."Vendor Address" := PurchInvHeader."Pay-to Address";
+        EDocPurchaseHeader."Vendor Address" := PurchInvHeader."Pay-to Address" + ', ' + Vendor.City + ', ' + Vendor.County + ', ' + Vendor."Post Code" + ' ' + Vendor."Country/Region Code";
         EDocPurchaseHeader."Vendor Address Recipient" := EDocPurchaseHeader."Vendor Company Name";
         GeneralLedgerSetup.Get();
         EDocPurchaseHeader."Currency Code" := GeneralLedgerSetup."LCY Code";
@@ -249,6 +272,7 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         CreateEDocVendorAssignHistory(EDocPurchaseHeader, PurchInvHeader);
 
         PurchInvLine.SetRange("Document No.", PurchInvHeader."No.");
+        PurchInvLine.Findset();
         repeat
             EDocPurchaseLine."E-Document Entry No." := EDocEntryNo;
             EDocPurchaseLine."Line No." := PurchInvLine."Line No.";
