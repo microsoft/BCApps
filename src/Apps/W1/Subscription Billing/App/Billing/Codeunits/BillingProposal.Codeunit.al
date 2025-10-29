@@ -154,7 +154,7 @@ codeunit 8062 "Billing Proposal"
         BillingTemplate: Record "Billing Template";
         CustomerContract: Record "Customer Subscription Contract";
         VendorContract: Record "Vendor Subscription Contract";
-        ContractBillingErrLog: Record "Contract Billing Err Log";
+        ContractBillingErrLog: Record "Contract Billing Err. Log";
         FilterText: Text;
         BillingRhythmFilterText: Text;
     begin
@@ -241,7 +241,7 @@ codeunit 8062 "Billing Proposal"
     local procedure ProcessServiceCommitment(var ServiceCommitment: Record "Subscription Line"; var BillingLine: Record "Billing Line"; BillingTemplate: Record "Billing Template"; BillingDate: Date; BillingToDate: Date; AutomatedBilling: Boolean)
     var
         UsageDataBilling: Record "Usage Data Billing";
-        ContractBillingErrLog: Record "Contract Billing Err Log";
+        ContractBillingErrLog: Record "Contract Billing Err. Log";
         SkipServiceCommitment: Boolean;
         BillingPeriodStart: Date;
         BillingPeriodEnd: Date;

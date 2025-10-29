@@ -23,7 +23,7 @@ tableextension 8053 "Sales Header" extends "Sales Header"
         {
             Caption = 'Auto Contract Billing';
             ToolTip = 'Specifies whether the Document has been created by an auto billing template.';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
             Editable = false;
         }
     }

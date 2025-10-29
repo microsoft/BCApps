@@ -24,7 +24,7 @@ tableextension 8055 "Sales Invoice Header" extends "Sales Invoice Header"
         {
             Caption = 'Auto Contract Billing';
             ToolTip = 'Specifies whether the Document has been created by an auto billing template. This is only relevant if you are using Subscription Billing functionalities.';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
             Editable = false;
         }
     }

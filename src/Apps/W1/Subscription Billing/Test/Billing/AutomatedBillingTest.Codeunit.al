@@ -83,7 +83,7 @@ codeunit 139684 "Automated Billing Test"
         JobQueueEntry: Record "Job Queue Entry";
         SalesHeader: Record "Sales Header";
     begin
-        // [SCENARIO] Verify that a Job Queue Entry is created correctly for a Billing Template with automation settings
+        // [SCENARIO] Verify that automated billing processes contracts correctly for a Billing Template with automation settings
         Initialize();
 
         // [GIVEN] A Billing Template with automation settings
@@ -98,6 +98,7 @@ codeunit 139684 "Automated Billing Test"
         BillingLine.FindSet();
         BillingLine.TestField("Document No.");
         SalesHeader.Get(BillingLine.GetSalesDocumentTypeFromBillingDocumentType(), BillingLine."Document No.");
+        SalesHeader.TestField("Auto Contract Billing", true);
     end;
 
     [Test]
@@ -108,7 +109,7 @@ codeunit 139684 "Automated Billing Test"
         SubscriptionHeader: Record "Subscription Header";
         SubscriptionLine: Record "Subscription Line";
         BillingTemplate: Record "Billing Template";
-        ContractBillingErrLog: Record "Contract Billing Err Log";
+        ContractBillingErrLog: Record "Contract Billing Err. Log";
         ItemUnitOfMeasure: Record "Item Unit of Measure";
         ItemUOMDoesNotExistErr: Label 'The Unit of Measure of the Subscription (%1) contains a value (%2) that cannot be found in the Item Unit of Measure of the corresponding Invoicing Item (%3).', Comment = '%1 = Subscription No., %2 = Unit Of Measure Code, %3 = Item No.', Locked = true;
     begin
@@ -140,14 +141,15 @@ codeunit 139684 "Automated Billing Test"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Automated Billing Test");
-        ClearAll();
-        ContractTestLibrary.InitContractsApp();
-
         if IsInitialized then
             exit;
-
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Automated Billing Test");
+
+        ContractTestLibrary.InitContractsApp();
+
         IsInitialized := true;
+        Commit();
+
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Automated Billing Test");
     end;
 
