@@ -7,10 +7,6 @@
         {
             "name":  "Quality Management - Test",
             "path":  "test"
-        },
-	{
-	    "name": "Code Review Instructions,
-	    "path": "CodeReviewInstructions"
-	}
+        }
 	]
 }
