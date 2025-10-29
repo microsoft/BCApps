@@ -23,7 +23,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         GlobalMessageText: Text;
         GlobalRequiresReview: Boolean;
         GlobalIgnoreAttachment: Boolean;
-        GlobalSanitizeMessage: Boolean;
+        GlobalSkipSanitizeMessage: Boolean;
 
     [Scope('OnPrem')]
     procedure Initialize(MessageText: Text): codeunit "Agent Task Msg. Builder Impl."
@@ -39,13 +39,8 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     begin
         GlobalRequiresReview := true;
         GlobalIgnoreAttachment := false;
-        GlobalSanitizeMessage := true;
         GlobalFrom := From;
-
-        if GlobalSanitizeMessage then
-            GlobalMessageText := SanitizeMessage(MessageText)
-        else
-            GlobalMessageText := MessageText;
+        GlobalMessageText := MessageText;
         exit(this);
     end;
 
@@ -66,7 +61,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     [Scope('OnPrem')]
     procedure SetSkipMessageSanitization(SkipSanitizeMessage: Boolean): codeunit "Agent Task Msg. Builder Impl."
     begin
-        GlobalSanitizeMessage := not SkipSanitizeMessage;
+        GlobalSkipSanitizeMessage := SkipSanitizeMessage;
         exit(this);
     end;
 
@@ -100,9 +95,16 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         AgentMessageImpl: Codeunit "Agent Message Impl.";
         IgnoreAttachment: Boolean;
+        MessageText: Text;
     begin
         VerifyMandatoryFieldsSet();
-        GlobalAgentTaskMessage := AgentTaskImpl.AddMessage(GlobalFrom, GlobalMessageText, GlobalMessageExternalID, GlobalAgentTask, GlobalRequiresReview);
+
+        if GlobalSkipSanitizeMessage then
+            MessageText := GlobalMessageText
+        else
+            MessageText := SanitizeMessage(GlobalMessageText);
+
+        GlobalAgentTaskMessage := AgentTaskImpl.AddMessage(GlobalFrom, MessageText, GlobalMessageExternalID, GlobalAgentTask, GlobalRequiresReview);
         TempAgentTaskFileToAttach.Reset();
         TempAgentTaskFileToAttach.SetAutoCalcFields(Content);
         if TempAgentTaskFileToAttach.FindSet() then
