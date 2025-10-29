@@ -169,7 +169,8 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
             PurchLine.Validate("No.", TempPurchLine."No.");
             if TempPurchLine."Tax Group Code" <> '' then
                 PurchLine.Validate("Tax Group Code", TempPurchLine."Tax Group Code");
-            PurchLine.Validate(Description, TempPurchLine.Description);
+            if TempPurchLine.Description <> '' then
+                PurchLine.Validate(Description, TempPurchLine.Description);
             PurchLine.Validate(Quantity, TempPurchLine.Quantity);
             PurchLine.Validate("Direct Unit Cost", TempPurchLine."Direct Unit Cost");
             PurchLine.Validate("Deferral Code", TempPurchLine."Deferral Code");
@@ -243,6 +244,7 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         EDocPurchaseLine: Record "E-Document Purchase Line";
         PurchInvLine: Record "Purch. Inv. Line";
         UnitOfMeasure: Record "Unit of Measure";
+        AllocAccSystemIds: List of [Guid];
     begin
         EDocPurchaseHeader."E-Document Entry No." := EDocEntryNo;
         CompanyInformation.Get();
@@ -274,6 +276,16 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         PurchInvLine.SetRange("Document No.", PurchInvHeader."No.");
         PurchInvLine.Findset();
         repeat
+            Clear(EDocPurchaseLine);
+            UpdatePuchLineTypeAndNumberOnEDocPurchaseLine(EDocPurchaseLine, PurchInvLine);
+            if EDocPurchaseLine."[BC] Purchase Line Type" = EDocPurchaseLine."[BC] Purchase Line Type"::"Allocation Account" then begin
+                if AllocAccSystemIds.Contains(PurchInvLine."Alloc. Purch. Line SystemId") then
+                    continue;
+                PurchInvLine.SetRange("Alloc. Purch. Line SystemId", PurchInvLine."Alloc. Purch. Line SystemId");
+                PurchInvLine.CalcSums("Direct Unit Cost", "Amount Including VAT");
+                PurchInvLine.SetRange("Alloc. Purch. Line SystemId");
+                AllocAccSystemIds.Add(PurchInvLine."Alloc. Purch. Line SystemId");
+            end;
             EDocPurchaseLine."E-Document Entry No." := EDocEntryNo;
             EDocPurchaseLine."Line No." := PurchInvLine."Line No.";
             // EDocumentPurchaseLine."Product Code" := '????' // TODO: Update
@@ -287,14 +299,23 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
             EDocPurchaseLine."Unit Price" := PurchInvLine."Direct Unit Cost";
             EDocPurchaseLine."Sub Total" := PurchInvLine."Amount Including VAT";
             EDocPurchaseLine."Currency Code" := EDocPurchaseHeader."Currency Code";
-            EDocPurchaseLine."[BC] Purchase Line Type" := PurchInvLine.Type;
-            EDocPurchaseLine."[BC] Purchase Type No." := PurchInvLine."No.";
             EDocPurchaseLine."[BC] Deferral Code" := PurchInvLine."Deferral Code";
             EDocPurchaseLine."[BC] Variant Code" := PurchInvLine."Variant Code";
             EDocPurchaseLine.Insert();
             CreateEDocRecordLink(EDocEntryNo, Database::"E-Document Purchase Line", EDocPurchaseLine.SystemId, Database::"Purch. Inv. Line", PurchInvLine.SystemId);
             CreateEDocPurchaseLineHistory(PurchInvLine, EDocPurchaseLine);
         until PurchInvLine.Next() = 0;
+    end;
+
+    local procedure UpdatePuchLineTypeAndNumberOnEDocPurchaseLine(var EDocPurchaseLine: Record "E-Document Purchase Line"; PurchInvLine: Record "Purch. Inv. Line")
+    begin
+        if PurchInvLine."Allocation Account No." = '' then begin
+            EDocPurchaseLine."[BC] Purchase Line Type" := PurchInvLine.Type;
+            EDocPurchaseLine."[BC] Purchase Type No." := PurchInvLine."No.";
+            exit;
+        end;
+        EDocPurchaseLine."[BC] Purchase Line Type" := EDocPurchaseLine."[BC] Purchase Line Type"::"Allocation Account";
+        EDocPurchaseLine."[BC] Purchase Type No." := PurchInvLine."Allocation Account No.";
     end;
 
     local procedure CreateEDocRecordLink(EDocEntryNo: Integer; SourceTableID: Integer; SourceSystemSystemID: Guid; TargetTableID: Integer; TargetSystemID: Guid)
