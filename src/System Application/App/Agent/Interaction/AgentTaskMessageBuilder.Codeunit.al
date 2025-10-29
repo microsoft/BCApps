@@ -6,7 +6,6 @@
 namespace System.Agents;
 
 using System.Environment;
-using System;
 
 /// <summary>
 /// This codeunit is used to create an agent task message.
