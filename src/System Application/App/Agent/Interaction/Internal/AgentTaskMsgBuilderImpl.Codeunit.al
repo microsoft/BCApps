@@ -99,11 +99,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     begin
         VerifyMandatoryFieldsSet();
 
-        if GlobalSkipSanitizeMessage then
-            MessageText := GlobalMessageText
-        else
-            MessageText := SanitizeMessage(GlobalMessageText);
-
+        MessageText := GlobalSkipSanitizeMessage ? GlobalMessageText : SanitizeMessage(GlobalMessageText);
         GlobalAgentTaskMessage := AgentTaskImpl.AddMessage(GlobalFrom, MessageText, GlobalMessageExternalID, GlobalAgentTask, GlobalRequiresReview);
         TempAgentTaskFileToAttach.Reset();
         TempAgentTaskFileToAttach.SetAutoCalcFields(Content);
