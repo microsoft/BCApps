@@ -3,9 +3,9 @@ namespace Microsoft.SubscriptionBilling;
 using System.Telemetry;
 using System.Threading;
 
-codeunit 8034 SubBillingBackgroundJobs
+codeunit 8034 "Sub. Billing Background Jobs"
 {
-    procedure ScheduleRecurrentImportJob(var BillingTemplate: Record "Billing Template")
+    procedure ScheduleRecurrentBillingJob(var BillingTemplate: Record "Billing Template")
     var
         JobQueueEntry: Record "Job Queue Entry";
         Telemetry: Codeunit Telemetry;
@@ -14,7 +14,7 @@ codeunit 8034 SubBillingBackgroundJobs
         if BillingTemplate.Code = '' then
             exit;
 
-        if not IsRecurrentJobScheduledForAService(BillingTemplate."Batch Recurrent Job Id") then begin
+        if not IsRecurrentJobScheduledForABillingTemplate(BillingTemplate."Batch Recurrent Job Id") then begin
             JobQueueEntry.ScheduleRecurrentJobQueueEntryWithFrequency(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"Auto Contract Billing", BillingTemplate.RecordId, BillingTemplate."Minutes between runs", BillingTemplate."Automation Start Time");
             BillingTemplate."Batch Recurrent Job Id" := JobQueueEntry.ID;
             BillingTemplate.Modify();
@@ -41,16 +41,16 @@ codeunit 8034 SubBillingBackgroundJobs
     end;
 
 
-    procedure HandleRecurrentImportJob(var BillingTemplate: Record "Billing Template")
+    procedure HandleRecurrentBillingJob(var BillingTemplate: Record "Billing Template")
     begin
         if BillingTemplate.Automation = BillingTemplate.Automation::"Create Billing Proposal and Documents" then begin
             BillingTemplate.TestField("Minutes between runs");
-            ScheduleRecurrentImportJob(BillingTemplate);
+            ScheduleRecurrentBillingJob(BillingTemplate);
         end else
-            RemoveJob(BillingTemplate);
+            RemovedRecurrentBillingJob(BillingTemplate);
     end;
 
-    procedure RemoveJob(var BillingTemplate: Record "Billing Template")
+    procedure RemovedRecurrentBillingJob(var BillingTemplate: Record "Billing Template")
     var
         JobQueueEntry: Record "Job Queue Entry";
     begin
@@ -60,7 +60,7 @@ codeunit 8034 SubBillingBackgroundJobs
         BillingTemplate.Modify();
     end;
 
-    local procedure IsRecurrentJobScheduledForAService(JobId: Guid): Boolean
+    local procedure IsRecurrentJobScheduledForABillingTemplate(JobId: Guid): Boolean
     var
         JobQueueEntry: Record "Job Queue Entry";
     begin

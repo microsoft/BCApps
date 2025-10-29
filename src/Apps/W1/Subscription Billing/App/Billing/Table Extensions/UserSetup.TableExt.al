@@ -10,7 +10,7 @@ tableextension 8011 "User Setup" extends "User Setup"
         {
             Caption = 'Auto Contract Billing';
             ToolTip = 'Specifies, whether the user can automate contract billing. It allows to work with and edit automated Billing Templates.';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
         }
     }
     internal procedure AutoContractBillingAllowed(): Boolean

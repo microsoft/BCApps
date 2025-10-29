@@ -144,7 +144,7 @@ table 8070 "Subscription Billing Cue"
         }
         field(30; "Errors Automated Billing"; Integer)
         {
-            CalcFormula = count("Contract Billing Err Log");
+            CalcFormula = count("Contract Billing Err. Log");
             Caption = 'Errors Automated Contract Billing';
             ToolTip = 'Specifies the number of errors that occurred during the automated contract billing process.';
             Editable = false;

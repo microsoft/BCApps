@@ -3,12 +3,15 @@ namespace Microsoft.SubscriptionBilling;
 using System.Security.User;
 using Microsoft.CRM.Team;
 
-table 8022 "Contract Billing Err Log"
+table 8022 "Contract Billing Err. Log"
 {
     Caption = 'Contract Billing Error Log';
     DataClassification = CustomerContent;
-    DrillDownPageId = "Contract Billing Err Log";
-    LookupPageId = "Contract Billing Err Log";
+    DrillDownPageId = "Contract Billing Err. Log";
+    LookupPageId = "Contract Billing Err. Log";
+    Permissions =
+        tabledata "Contract Billing Err. Log" = rmid,
+        tabledata "Billing Line" = rm;
 
     fields
     {
@@ -80,6 +83,7 @@ table 8022 "Contract Billing Err Log"
             Clustered = true;
         }
     }
+
     local procedure InitRecord()
     begin
         Rec.Init();
@@ -121,5 +125,40 @@ table 8022 "Contract Billing Err Log"
                 end;
         end;
         Rec.Insert();
+    end;
+
+    procedure DeleteEntries(DaysOld: Integer)
+    var
+        BillingLine: Record "Billing Line";
+        Window: Dialog;
+        ConfirmDeletingAllEntriesQst: Label 'Are you sure that you want to delete all entries?';
+        ConfirmDeletingEntriesQst: Label 'Are you sure that you want to delete log entries older than %1 days?', Comment = '%1 = Days Old';
+        DeletingMsg: Label 'Deleting Entries...';
+        DeletedMsg: Label 'Entries have been deleted.';
+    begin
+        if DaysOld = 0 then begin
+            if not Confirm(ConfirmDeletingAllEntriesQst) then
+                exit;
+        end else
+            if not Confirm(StrSubstNo(ConfirmDeletingEntriesQst, DaysOld)) then
+                exit;
+
+        Window.Open(DeletingMsg);
+        Rec.Reset();
+        if DaysOld = 0 then begin
+            BillingLine.ModifyAll("Billing Error Log Entry No.", 0);
+            Rec.DeleteAll();
+        end else begin
+            Rec.SetFilter(SystemCreatedAt, '<=%1', CreateDateTime(Today - DaysOld, Time));
+            if Rec.FindSet() then
+                repeat
+                    BillingLine.SetRange("Billing Error Log Entry No.", Rec."Entry No.");
+                    BillingLine.ModifyAll("Billing Error Log Entry No.", 0);
+                until Rec.Next() = 0;
+            Rec.DeleteAll();
+        end;
+
+        Window.Close();
+        Message(DeletedMsg);
     end;
 }

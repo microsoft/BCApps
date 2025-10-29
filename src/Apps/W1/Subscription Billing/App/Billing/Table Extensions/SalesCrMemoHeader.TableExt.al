@@ -24,7 +24,7 @@ tableextension 8057 "Sales Cr. Memo Header" extends "Sales Cr.Memo Header"
         {
             Caption = 'Auto Contract Billing';
             ToolTip = 'Specifies whether the Document has been created by an auto billing template.';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
             Editable = false;
         }
     }

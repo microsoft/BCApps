@@ -944,31 +944,48 @@ codeunit 8060 "Create Billing Documents"
 
     local procedure DisplayOrLogUnspecificError(ErrorText: Text)
     var
-        ContractBillingErrLog: Record "Contract Billing Err Log";
+        ContractBillingErrLog: Record "Contract Billing Err. Log";
+        ErrorTextInfo: ErrorInfo;
     begin
         if AutomatedBilling then
             ContractBillingErrLog.InsertUnspecificLog(ErrorText)
-        else
-            Error(ErrorText);
+        else begin
+            ErrorTextInfo.ErrorType := ErrorType::Client;
+            ErrorTextInfo.Message := ErrorText;
+            ErrorTextInfo.Verbosity := Verbosity::Error;
+            Error(ErrorTextInfo);
+        end;
     end;
 
     local procedure DisplayOrLogErrorFromBillingTemplate(BillingTemplateCode: Code[20]; ErrorText: Text)
     var
-        ContractBillingErrLog: Record "Contract Billing Err Log";
+        ContractBillingErrLog: Record "Contract Billing Err. Log";
+        BillingTemplate: Record "Billing Template";
+        ErrorTextInfo: ErrorInfo;
     begin
         if AutomatedBilling then
             ContractBillingErrLog.InsertLogFromBillingTemplate(
                 BillingTemplateCode,
                 ErrorText)
-        else
+        else begin
+            ErrorTextInfo.ErrorType := ErrorType::Client;
+            ErrorTextInfo.Message := ErrorText;
+            if BillingTemplate.Get(BillingTemplateCode) then begin
+                ErrorTextInfo.RecordId := BillingTemplate.RecordId;
+                ErrorTextInfo.SystemId := BillingTemplate.SystemId;
+                ErrorTextInfo.TableId := Database::"Billing Template";
+            end;
+            ErrorTextInfo.Verbosity := Verbosity::Error;
             Error(ErrorText);
+        end;
     end;
 
     local procedure DisplayOrLogErrorFromBillingLine(BillingLine: Record "Billing Line"; ErrorText: Text)
     var
-        ContractBillingErrLog: Record "Contract Billing Err Log";
+        ContractBillingErrLog: Record "Contract Billing Err. Log";
         SubscriptionLine: Record "Subscription Line";
         FilteredBillingLine: Record "Billing Line";
+        ErrorTextInfo: ErrorInfo;
     begin
         if AutomatedBilling then begin
             BillingLine.GetServiceCommitment(SubscriptionLine);
@@ -979,8 +996,15 @@ codeunit 8060 "Create Billing Documents"
             FilteredBillingLine.SetRange("Subscription Header No.", BillingLine."Subscription Header No.");
             FilteredBillingLine.SetRange("Subscription Line Entry No.", BillingLine."Subscription Line Entry No.");
             FilteredBillingLine.ModifyAll("Billing Error Log Entry No.", ContractBillingErrLog."Entry No.", false);
-        end else
+        end else begin
+            ErrorTextInfo.ErrorType := ErrorType::Client;
+            ErrorTextInfo.Message := ErrorText;
+            ErrorTextInfo.RecordId := BillingLine.RecordId;
+            ErrorTextInfo.SystemId := BillingLine.SystemId;
+            ErrorTextInfo.TableId := Database::"Billing Line";
+            ErrorTextInfo.Verbosity := Verbosity::Error;
             Error(ErrorText);
+        end;
     end;
 
     local procedure ProcessingFinishedMessage()

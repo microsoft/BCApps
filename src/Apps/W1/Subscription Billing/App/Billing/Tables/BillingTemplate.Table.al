@@ -24,6 +24,14 @@ table 8060 "Billing Template"
         field(3; Partner; Enum "Service Partner")
         {
             Caption = 'Partner';
+
+            trigger OnValidate()
+            begin
+                if Partner = Partner::Vendor then
+                    TestField(Automation, Automation::None);
+                if Partner <> xRec.Partner then
+                    Clear(Filter);
+            end;
         }
         field(5; "Billing Date Formula"; DateFormula)
         {
@@ -53,8 +61,7 @@ table 8060 "Billing Template"
             trigger OnValidate()
             begin
                 if Format("Posting Date Formula") <> '' then
-                    if Automation = Automation::None then
-                        Error(CanOnlyBeSetWhenAutomatedErr, FieldCaption("Posting Date Formula"), FieldCaption(Automation), Automation::"Create Billing Proposal and Documents");
+                    ThrowErrorIfAutomationIsNotSet(FieldCaption("Posting Date Formula"));
             end;
         }
         field(12; "Document Date Formula"; DateFormula)
@@ -64,8 +71,7 @@ table 8060 "Billing Template"
             trigger OnValidate()
             begin
                 if Format("Document Date Formula") <> '' then
-                    if Automation = Automation::None then
-                        Error(CanOnlyBeSetWhenAutomatedErr, FieldCaption("Document Date Formula"), FieldCaption(Automation), Automation::"Create Billing Proposal and Documents");
+                    ThrowErrorIfAutomationIsNotSet(FieldCaption("Document Date Formula"));
             end;
         }
         field(13; "Customer Document per"; Enum "Customer Rec. Billing Grouping")
@@ -75,8 +81,7 @@ table 8060 "Billing Template"
             trigger OnValidate()
             begin
                 if "Customer Document per" <> "Customer Document per"::Contract then
-                    if Automation = Automation::None then
-                        Error(CanOnlyBeSetWhenAutomatedErr, FieldCaption("Customer Document per"), FieldCaption(Automation), Automation::"Create Billing Proposal and Documents");
+                    ThrowErrorIfAutomationIsNotSet(FieldCaption("Customer Document per"));
             end;
         }
         field(15; Automation; Enum "Sub. Billing Automation")
@@ -101,7 +106,7 @@ table 8060 "Billing Template"
                             "Minutes between runs" := 60;
                         end;
                 end;
-                SubBillingBackgroundJobs.HandleRecurrentImportJob(Rec);
+                SubBillingBackgroundJobs.HandleRecurrentBillingJob(Rec);
             end;
         }
         field(16; "Automation Start Time"; Time)
@@ -113,7 +118,7 @@ table 8060 "Billing Template"
 
             trigger OnValidate()
             begin
-                SubBillingBackgroundJobs.HandleRecurrentImportJob(Rec);
+                SubBillingBackgroundJobs.HandleRecurrentBillingJob(Rec);
             end;
         }
         field(17; "Minutes between runs"; Integer)
@@ -124,7 +129,7 @@ table 8060 "Billing Template"
 
             trigger OnValidate()
             begin
-                SubBillingBackgroundJobs.HandleRecurrentImportJob(Rec);
+                SubBillingBackgroundJobs.HandleRecurrentBillingJob(Rec);
             end;
         }
         field(18; "Batch Recurrent Job Id"; Guid)
@@ -161,7 +166,7 @@ table 8060 "Billing Template"
 
     var
         UserSetup: Record "User Setup";
-        SubBillingBackgroundJobs: Codeunit SubBillingBackgroundJobs;
+        SubBillingBackgroundJobs: Codeunit "Sub. Billing Background Jobs";
         AutoContractBillingNotAllowedErr: Label 'You cannot change the auto billing templates because you are not set up as an Auto Contract Billing user in the User Setup.';
         CanOnlyBeSetWhenAutomatedErr: Label 'You can only set the field %1 if %2 is set to %3', Comment = '%1 - Customer Document per Field Caption, %2 - Automation Field Caption, %3 - Automation Field Value';
 
@@ -335,5 +340,11 @@ table 8060 "Billing Template"
             DocumentDate := CalcDate("Document Date Formula", ReferenceDate)
         else
             DocumentDate := ReferenceDate;
+    end;
+
+    local procedure ThrowErrorIfAutomationIsNotSet(FieldCaption: Text)
+    begin
+        if Automation = Automation::None then
+            Error(CanOnlyBeSetWhenAutomatedErr, FieldCaption, FieldCaption(Automation), Automation::"Create Billing Proposal and Documents");
     end;
 }
