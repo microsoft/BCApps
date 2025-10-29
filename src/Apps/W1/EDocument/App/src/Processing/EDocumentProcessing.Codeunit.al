@@ -168,9 +168,9 @@ codeunit 6108 "E-Document Processing"
         EDocumentLog: Codeunit "E-Document Log";
         TempBlob: Codeunit "Temp Blob";
         TempBlobList: Codeunit "Temp Blob List";
-        ExtensionList: List of [Text];
         TypeHelper: Codeunit "Type Helper";
         SourceReference: RecordRef;
+        ExtensionList: List of [Text];
     begin
         // Email if attachment is E-Document or PDF & E-Document
         TypeHelper.CopyRecVariantToRecRef(RecordVariant, SourceReference);
