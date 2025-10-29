@@ -80,6 +80,7 @@ table 149036 "AIT Run History"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No. Filter"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            AutoFormatType = 0;
         }
         field(20; "No. of Tests Executed - By Tag"; Integer)
         {
@@ -120,6 +121,7 @@ table 149036 "AIT Run History"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No. Filter"), Tag = field(Tag), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            AutoFormatType = 0;
         }
     }
 

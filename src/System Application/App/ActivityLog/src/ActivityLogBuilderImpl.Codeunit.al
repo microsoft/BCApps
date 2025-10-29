@@ -17,6 +17,7 @@ codeunit 3112 "Activity Log Builder Impl."
         AttributeType: DotNet ActivityLogAttribute;
         GlobalFieldNo: Integer;
         BuilderNotInitializedErr: Label 'Activity Log Builder not initialized.';
+        ConfidenceInvalidErr: Label 'Confidence value %1 is invalid. Allowed values are Low, Medium, High.', Comment = '%1 - Confidence value';
 
     procedure Init(TableNo: Integer; FieldNo: Integer; RecSystemId: Guid): Codeunit "Activity Log Builder Impl."
     begin
@@ -32,11 +33,17 @@ codeunit 3112 "Activity Log Builder Impl."
         exit(this);
     end;
 
+    procedure SetType(Type: Enum "Activity Log Type"): Codeunit "Activity Log Builder Impl."
+    begin
+        LogEntry.AddFieldAttribute(this.GlobalFieldNo, AttributeType::Type, Format(Type));
+        exit(this);
+    end;
+
     procedure SetReferenceSource(PageId: Integer; var Rec: RecordRef): Codeunit "Activity Log Builder Impl."
     var
         TextURL: Text;
     begin
-        TextURL := System.GetUrl(CurrentClientType(), CompanyName(), ObjectType::Page, PageId, Rec, true);
+        TextURL := System.GetUrl(CurrentClientType(), CompanyName(), ObjectType::Page, PageId, Rec, false);
         LogEntry.AddFieldAttribute(this.GlobalFieldNo, AttributeType::ReferenceSource, TextURL);
         exit(this);
     end;
@@ -44,6 +51,15 @@ codeunit 3112 "Activity Log Builder Impl."
     procedure SetReferenceSource(ReferenceSource: Text): Codeunit "Activity Log Builder Impl."
     begin
         LogEntry.AddFieldAttribute(this.GlobalFieldNo, AttributeType::ReferenceSource, ReferenceSource);
+        exit(this);
+    end;
+
+    procedure SetConfidence(Confidence: Text): Codeunit "Activity Log Builder Impl."
+    begin
+        if not (Confidence in ['Low', 'Medium', 'High']) then
+            Error(ConfidenceInvalidErr, Confidence);
+
+        LogEntry.AddFieldAttribute(this.GlobalFieldNo, AttributeType::Confidence, Confidence);
         exit(this);
     end;
 

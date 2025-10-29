@@ -55,6 +55,13 @@ page 7773 "Copilot Capabilities Preview"
                     ToolTip = 'Specifies the publisher of this Copilot.';
                     Editable = false;
                 }
+                field("Billing Type"; Rec."Billing Type")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Billing Type';
+                    ToolTip = 'Specifies the billing type of this Copilot.';
+                    Editable = false;
+                }
                 field("Learn More"; LearnMore)
                 {
                     ApplicationArea = All;
@@ -93,9 +100,11 @@ page 7773 "Copilot Capabilities Preview"
                         exit;
 
                     Rec.Status := Rec.Status::Active;
-                    Rec.Modify(true);
+                    if Rec.Modify(true) then begin
+                        CopilotCapabilityImpl.SendActivateTelemetry(Rec.Capability, Rec."App Id");
+                        CopilotNotifications.ShowCapabilityChange();
 
-                    CopilotCapabilityImpl.SendActivateTelemetry(Rec.Capability, Rec."App Id");
+                    end;
                 end;
             }
             action(Deactivate)
@@ -108,16 +117,8 @@ page 7773 "Copilot Capabilities Preview"
                 Scope = Repeater;
 
                 trigger OnAction()
-                var
-                    CopilotDeactivate: Page "Copilot Deactivate Capability";
                 begin
-                    CopilotDeactivate.SetCaption(Format(Rec.Capability));
-                    if CopilotDeactivate.RunModal() = Action::OK then begin
-                        Rec.Status := Rec.Status::Inactive;
-                        Rec.Modify(true);
-
-                        CopilotCapabilityImpl.SendDeactivateTelemetry(Rec.Capability, Rec."App Id", CopilotDeactivate.GetReason());
-                    end;
+                    CopilotCapabilityImpl.DeactivateCapability(Rec);
                 end;
             }
             action(SupplementalTerms)
@@ -152,6 +153,7 @@ page 7773 "Copilot Capabilities Preview"
 
     var
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
+        CopilotNotifications: Codeunit "Copilot Notifications";
         StatusStyleExpr: Text;
         LearnMore: Text;
         LearnMoreLbl: Label 'Learn More';

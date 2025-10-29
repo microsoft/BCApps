@@ -112,20 +112,20 @@ codeunit 9822 "Plan Configuration Impl."
 
         repeat
             if AccessControl.Get(UserSecurityId, CustomPermissionSetInPlan."Role ID", CustomPermissionSetInPlan."Company Name", CustomPermissionSetInPlan.Scope, CustomPermissionSetInPlan."App ID") then
-                    if not GetUserPlansAsFilter(UserSecurityId, PlanId, PlanIdFilter) then
-                        AccessControl.Delete() // there are no plans assigned to this user or we are deleting permissions for the only assigned plan
-                    else begin
-                        // Check if the permission set is assigned to other user plans that the user still has assigned
-                        CustomPermissionSetInOtherPlans.SetFilter("Plan ID", PlanIdFilter);
-                        CustomPermissionSetInOtherPlans.SetRange("Role ID", CustomPermissionSetInPlan."Role ID");
-                        CustomPermissionSetInOtherPlans.SetRange("Company Name", CustomPermissionSetInPlan."Company Name");
-                        CustomPermissionSetInOtherPlans.SetRange(Scope, CustomPermissionSetInPlan.Scope);
-                        CustomPermissionSetInOtherPlans.SetRange("App ID", CustomPermissionSetInPlan."App ID");
+                if not GetUserPlansAsFilter(UserSecurityId, PlanId, PlanIdFilter) then
+                    AccessControl.Delete() // there are no plans assigned to this user or we are deleting permissions for the only assigned plan
+                else begin
+                    // Check if the permission set is assigned to other user plans that the user still has assigned
+                    CustomPermissionSetInOtherPlans.SetFilter("Plan ID", PlanIdFilter);
+                    CustomPermissionSetInOtherPlans.SetRange("Role ID", CustomPermissionSetInPlan."Role ID");
+                    CustomPermissionSetInOtherPlans.SetRange("Company Name", CustomPermissionSetInPlan."Company Name");
+                    CustomPermissionSetInOtherPlans.SetRange(Scope, CustomPermissionSetInPlan.Scope);
+                    CustomPermissionSetInOtherPlans.SetRange("App ID", CustomPermissionSetInPlan."App ID");
 
-                        // If not, we remove the assigned permission set
-                        if CustomPermissionSetInOtherPlans.IsEmpty() then
-                            AccessControl.Delete();
-                    end;
+                    // If not, we remove the assigned permission set
+                    if CustomPermissionSetInOtherPlans.IsEmpty() then
+                        AccessControl.Delete();
+                end;
         until CustomPermissionSetInPlan.Next() = 0;
     end;
 
@@ -196,19 +196,19 @@ codeunit 9822 "Plan Configuration Impl."
             AccessControl.SetRange("App ID", DefaultPermissionSetInPlan."App ID");
 
             if AccessControl.FindFirst() then
-                    if not GetUserPlansAsFilter(UserSecurityId, PlanId, PlanIdFilter) then
-                        AccessControl.DeleteAll() // there are no plans assigned to this user or we are deleting permissions for the only assigned plan
-                    else begin
-                        // Check if the permission set is assigned to other user plans that the user still has assigned
-                        DefaultPermissionSetInOtherPlans.SetFilter("Plan ID", PlanIdFilter);
-                        DefaultPermissionSetInOtherPlans.SetRange("Role ID", DefaultPermissionSetInPlan."Role ID");
-                        DefaultPermissionSetInOtherPlans.SetRange(Scope, DefaultPermissionSetInPlan.Scope);
-                        DefaultPermissionSetInOtherPlans.SetRange("App ID", DefaultPermissionSetInPlan."App ID");
+                if not GetUserPlansAsFilter(UserSecurityId, PlanId, PlanIdFilter) then
+                    AccessControl.DeleteAll() // there are no plans assigned to this user or we are deleting permissions for the only assigned plan
+                else begin
+                    // Check if the permission set is assigned to other user plans that the user still has assigned
+                    DefaultPermissionSetInOtherPlans.SetFilter("Plan ID", PlanIdFilter);
+                    DefaultPermissionSetInOtherPlans.SetRange("Role ID", DefaultPermissionSetInPlan."Role ID");
+                    DefaultPermissionSetInOtherPlans.SetRange(Scope, DefaultPermissionSetInPlan.Scope);
+                    DefaultPermissionSetInOtherPlans.SetRange("App ID", DefaultPermissionSetInPlan."App ID");
 
-                        // If not, we remove all the assigned permission sets
-                        if DefaultPermissionSetInOtherPlans.IsEmpty() then
-                            AccessControl.DeleteAll();
-                    end;
+                    // If not, we remove all the assigned permission sets
+                    if DefaultPermissionSetInOtherPlans.IsEmpty() then
+                        AccessControl.DeleteAll();
+                end;
         until DefaultPermissionSetInPlan.Next() = 0;
     end;
 
@@ -460,6 +460,15 @@ codeunit 9822 "Plan Configuration Impl."
             exit(StrSubstNo(BCAdminCenterSaaSLinkTxt, CopyStr(Url, 1, Url.LastIndexOf('/') - 1))) // Remove environment segment from URL
         else
             exit(StrSubstNo(BCAdminCenterOnPremLinkTxt, Url, AzureADTenant.GetAadTenantId())); // Add tenant ID segment to URL
+    end;
+
+    procedure RestoreDefaultConfiguration(PlanConfiguration: Record "Plan Configuration")
+    var
+        DefaultPermissionSetInPlan: Record "Default Permission Set In Plan";
+    begin
+        DefaultPermissionSetInPlan.SetRange("Plan ID", PlanConfiguration."Plan ID");
+        DefaultPermissionSetInPlan.SetRange(Scope, DefaultPermissionSetInPlan.Scope::Tenant);
+        DefaultPermissionSetInPlan.DeleteAll(); // Tenant scope permission sets should not be in the default configuration
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Plan Configuration", OnAfterDeleteEvent, '', false, false)]

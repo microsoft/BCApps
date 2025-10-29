@@ -37,6 +37,7 @@ table 132616 "Page Action Provider Test"
         }
         field(9; TestDecimal; Decimal)
         {
+            AutoFormatType = 0;
         }
         field(10; TestDuration; Duration)
         {
@@ -71,6 +72,7 @@ table 132616 "Page Action Provider Test"
         }
         field(20; "Field With Spaces"; Decimal)
         {
+            AutoFormatType = 0;
         }
     }
 

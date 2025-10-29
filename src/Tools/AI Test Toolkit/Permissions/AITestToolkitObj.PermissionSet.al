@@ -25,6 +25,8 @@ permissionset 149031 "AI Test Toolkit - Obj"
         codeunit "AIT Run History" = X,
         xmlport "AIT Test Suite Import/Export" = X,
         page "AIT CommandLine Card" = X,
+        page "AIT Column Mappings" = X,
+        page "AIT Evaluators" = X,
         page "AIT Test Data" = X,
         page "AIT Test Data Compare" = X,
         page "AIT Batch Run Dialog" = X,

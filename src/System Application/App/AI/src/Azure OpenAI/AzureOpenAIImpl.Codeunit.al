@@ -47,6 +47,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         TelemetryMetapromptRetrievalErr: Label 'Unable to retrieve metaprompt from Azure Key Vault.', Locked = true;
         TelemetryFunctionCallingFailedErr: Label 'Function calling failed for function: %1', Comment = '%1 is the name of the function', Locked = true;
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
+        BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.', Comment = '%1 is the capability name, %2 is the billing type';
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
@@ -129,16 +130,26 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     end;
 #endif
 
+#if not CLEAN28
+#pragma warning disable AA0137
     [NonDebuggable]
     procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; AOAIAccountName: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
     begin
+        SetManagedResourceAuthorization(ModelType, ManagedResourceDeployment);
+    end;
+#pragma warning restore AA0137
+#endif
+
+    [NonDebuggable]
+    procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; ManagedResourceDeployment: Text)
+    begin
         case ModelType of
             Enum::"AOAI Model Type"::"Text Completions":
-                TextCompletionsAOAIAuthorization.SetMicrosoftManagedAuthorization(AOAIAccountName, ApiKey, ManagedResourceDeployment);
+                TextCompletionsAOAIAuthorization.SetMicrosoftManagedAuthorization(ManagedResourceDeployment);
             Enum::"AOAI Model Type"::Embeddings:
-                EmbeddingsAOAIAuthorization.SetMicrosoftManagedAuthorization(AOAIAccountName, ApiKey, ManagedResourceDeployment);
+                EmbeddingsAOAIAuthorization.SetMicrosoftManagedAuthorization(ManagedResourceDeployment);
             Enum::"AOAI Model Type"::"Chat Completions":
-                ChatCompletionsAOAIAuthorization.SetMicrosoftManagedAuthorization(AOAIAccountName, ApiKey, ManagedResourceDeployment);
+                ChatCompletionsAOAIAuthorization.SetMicrosoftManagedAuthorization(ManagedResourceDeployment);
             else
                 Error(InvalidModelTypeErr);
         end;
@@ -459,6 +470,12 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         EmptySecretText: SecretText;
     begin
         ClearLastError();
+
+        if not IsBillingTypeAuthorized(AOAIAuthorization, CallerModuleInfo) then begin
+            Error := StrSubstNo(BillingTypeAuthorizationErr, CopilotCapabilityImpl.GetCapabilityName(), CopilotCapabilityImpl.GetCopilotBillingType());
+            Error(Error);
+        end;
+
         case AOAIAuthorization.GetResourceUtilization() of
             Enum::"AOAI Resource Utilization"::"Microsoft Managed":
                 ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
@@ -602,4 +619,34 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         if not TempPrivacyNotice.Insert() then;
     end;
 
+    procedure IsBillingTypeAuthorized(AOAIAuthorization: Codeunit "AOAI Authorization"; CallerModuleInfo: ModuleInfo): Boolean
+    var
+        BillingType: Enum "Copilot Billing Type";
+    begin
+        BillingType := CopilotCapabilityImpl.GetCopilotBillingType();
+        if (CopilotCapabilityImpl.IsPublisherMicrosoft(CallerModuleInfo)) then begin
+            if (AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"First Party") then
+                exit(BillingType <> Enum::"Copilot Billing Type"::"Custom Billed")
+        end else
+            case BillingType of
+                Enum::"Copilot Billing Type"::"Custom Billed":
+                    exit(AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed");
+                Enum::"Copilot Billing Type"::"Microsoft Billed":
+                    case AOAIAuthorization.GetResourceUtilization() of
+                        Enum::"AOAI Resource Utilization"::"Microsoft Managed":
+                            exit(true);
+                        Enum::"AOAI Resource Utilization"::"Self-Managed":
+                            if CopilotCapabilityImpl.IsProductionEnvironment() then
+                                exit(false)
+                            else
+                                exit(true);
+                        else
+                            exit(false);
+                    end;
+                Enum::"Copilot Billing Type"::"Not Billed":
+                    exit(AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed");
+                else
+                    exit(true);
+            end;
+    end;
 }

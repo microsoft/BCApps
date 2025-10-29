@@ -27,11 +27,10 @@ xmlport 149031 "AIT Test Suite Import/Export"
                     trigger OnAfterAssignField()
                     var
                         AITTestSuiteRec: Record "AIT Test Suite";
-                        SameSuiteDifferentXMLErr: Label 'The test suite %1 is already imported with a different XML by the same app. Please delete the test suite and import again.', Comment = '%1 = Test Suite Code';
                         SameSuiteDifferentAppErr: Label 'The test suite %1 is already imported by a different app. Please rename the test suite and import again.', Comment = '%1 = Test Suite Code';
                     begin
-                        // Skip if the same suite is already imported by the same app
-                        // Error if the same suite is already imported with a different XML
+                        // Skip if the same suite is already imported by the same app with the same XML
+                        // Delete and override suite if the same suite is already imported with a different XML
                         // Error if the same suite is already imported by a different app
                         AITTestSuiteRec.SetLoadFields(Code, "Imported by AppId", "Imported XML's MD5");
                         AITTestSuiteRec.SetRange(Code, AITSuite.Code);
@@ -43,7 +42,7 @@ xmlport 149031 "AIT Test Suite Import/Export"
                                     currXMLport.Skip();
                                 end
                                 else
-                                    Error(SameSuiteDifferentXMLErr, AITSuite.Code)
+                                    AITTestSuiteRec.Delete()
                             else
                                 Error(SameSuiteDifferentAppErr, AITSuite.Code);
 
@@ -67,6 +66,29 @@ xmlport 149031 "AIT Test Suite Import/Export"
                 {
                     Occurrence = Optional;
                 }
+                tableelement(AITEvaluator; "AIT Evaluator")
+                {
+                    LinkFields = "Test Suite Code" = field("Code");
+                    LinkTable = "AITSuite";
+                    MinOccurs = Zero;
+                    XmlName = 'Evaluator';
+                    SourceTableView = where("Test Method Line" = const(0));
+
+                    fieldattribute(Evaluator; AITEvaluator.Evaluator)
+                    {
+                        Occurrence = Required;
+                    }
+                    fieldattribute(Type; AITEvaluator."Evaluator Type")
+                    {
+                        Occurrence = Required;
+                    }
+
+                    trigger OnAfterInitRecord()
+                    begin
+                        if SkipTestSuites.Contains(AITSuite.Code) then
+                            currXMLport.Skip();
+                    end;
+                }
                 tableelement(AITestMethodLine; "AIT Test Method Line")
                 {
                     LinkFields = "Test Suite Code" = field("Code");
@@ -86,10 +108,32 @@ xmlport 149031 "AIT Test Suite Import/Export"
                     {
                         Occurrence = Optional;
                     }
-                    textattribute(EvaluatorText)
+                    tableelement(AITLineEvaluator; "AIT Evaluator")
                     {
-                        Occurrence = Optional;
+                        LinkFields = "Test Suite Code" = field("Test Suite Code"), "Test Method Line" = field("Line No.");
+                        LinkTable = AITestMethodLine;
+                        MinOccurs = Zero;
                         XmlName = 'Evaluator';
+
+                        fieldattribute(Evaluator; AITLineEvaluator.Evaluator)
+                        {
+                            Occurrence = Required;
+                        }
+                        fieldattribute(Type; AITLineEvaluator."Evaluator Type")
+                        {
+                            Occurrence = Required;
+                        }
+
+                        trigger OnAfterInitRecord()
+                        begin
+                            if SkipTestSuites.Contains(AITSuite.Code) then
+                                currXMLport.Skip();
+                        end;
+
+                        trigger OnBeforeInsertRecord()
+                        begin
+                            AITLineEvaluator."Test Method Line" := AITestMethodLine."Line No.";
+                        end;
                     }
 
                     trigger OnAfterInitRecord()

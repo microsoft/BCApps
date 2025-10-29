@@ -41,6 +41,7 @@ table 2515 "AppSource Product"
         field(8; RatingAverage; Decimal)
         {
             Caption = 'Average Rating';
+            AutoFormatType = 0;
         }
         field(9; RatingCount; Integer)
         {
@@ -57,6 +58,7 @@ table 2515 "AppSource Product"
         field(12; Popularity; Decimal)
         {
             Caption = 'Popularity';
+            AutoFormatType = 0;
         }
         field(14; LastModifiedDateTime; DateTime)
         {

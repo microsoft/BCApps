@@ -7,7 +7,9 @@ namespace System.Agents;
 
 using System.Security.AccessControl;
 
+#pragma warning disable AS0130, PTE0025 // The object is moved to the platform symbols.
 page 4306 "Agent Tasks"
+#pragma warning restore AS0130, PTE0025
 {
     PageType = ListPlus;
     ApplicationArea = All;
@@ -100,7 +102,6 @@ page 4306 "Agent Tasks"
             {
                 Caption = 'Stop task';
                 ToolTip = 'Stops the task.';
-                Enabled = true;
                 Scope = Repeater;
                 trigger OnAction()
                 var
@@ -130,7 +131,7 @@ page 4306 "Agent Tasks"
 
         Rec.CalcFields("Summary");
         if Rec."Summary".HasValue() then begin
-            Rec."Summary".CreateInStream(InStream);
+            Rec."Summary".CreateInStream(InStream, AgentTaskImpl.GetDefaultEncoding());
             TaskSummary.Read(InStream);
         end;
 
@@ -143,7 +144,7 @@ page 4306 "Agent Tasks"
     end;
 
     var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
         TaskSummary: BigText;
         GlobalCreatedBy: Text[250];
 }
-

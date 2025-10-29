@@ -22,7 +22,8 @@ codeunit 8900 "Email Impl"
                   tabledata "Email Message" = r,
                   tabledata "Email Error" = r,
                   tabledata "Email Recipient" = r,
-                  tabledata "Email View Policy" = r;
+                  tabledata "Email View Policy" = r,
+                  tabledata "Email Retry" = r;
 
     var
         EmailCategoryLbl: Label 'Email', Locked = true;
@@ -45,6 +46,8 @@ codeunit 8900 "Email Impl"
         EmailconnectorDoesNotSupportReplyingErr: Label 'The selected email connector does not support replying to emails.';
         ExternalIdCannotBeEmptyErr: Label 'The external ID cannot be empty.';
         TelemetryRetrieveEmailsUsedTxt: Label 'Retrieving emails is used', Locked = true;
+        ErrorCallStackNotFoundErr: Label 'Error call stack not found for the email message with ID %1.', Locked = true;
+        EmailOutboxDoesNotExistErr: Label 'The email outbox does not exist for the email message with ID %1.', Locked = true;
 
     #region API
 
@@ -192,6 +195,7 @@ codeunit 8900 "Email Impl"
             TaskId := TaskScheduler.CreateTask(Codeunit::"Email Dispatcher", Codeunit::"Email Error Handler", true, CompanyName(), NotBefore, EmailOutbox.RecordId());
             EmailOutbox."Task Scheduler Id" := TaskId;
             EmailOutbox."Date Sending" := NotBefore;
+            EmailOutbox."Is Background Task" := true;
             EmailOutbox.Modify();
         end else begin // Send the email in foreground
             Commit();
@@ -215,16 +219,31 @@ codeunit 8900 "Email Impl"
         EmailConnectorv2: Interface "Email Connector v2";
 #pragma warning restore AL0432
 #endif
+#if not CLEAN28
+#pragma warning disable AL0432
         EmailConnectorv3: Interface "Email Connector v3";
+#pragma warning restore AL0432
+#endif
+        EmailConnectorv4: Interface "Email Connector v4";
     begin
         CheckRequiredPermissions();
 
+        if CheckAndGetEmailConnectorv4(Connector, EmailConnectorv4) then begin
+            TelemetryAppsAndPublishers(TelemetryRetrieveEmailsUsedTxt);
+            EmailConnectorv4.RetrieveEmails(EmailAccountId, EmailInbox, Filters);
+            EmailInbox.MarkedOnly(true);
+            exit;
+        end;
+#if not CLEAN28
+#pragma warning disable AL0432
         if CheckAndGetEmailConnectorv3(Connector, EmailConnectorv3) then begin
             TelemetryAppsAndPublishers(TelemetryRetrieveEmailsUsedTxt);
             EmailConnectorv3.RetrieveEmails(EmailAccountId, EmailInbox, Filters);
             EmailInbox.MarkedOnly(true);
             exit;
         end;
+#pragma warning restore AL0432
+#endif
 #if not CLEAN26
 #pragma warning disable AL0432
         if CheckAndGetEmailConnectorv2(Connector, EmailConnectorv2) then begin
@@ -237,6 +256,17 @@ codeunit 8900 "Email Impl"
 #endif
 
         Error(EmailConnectorDoesNotSupportRetrievingEmailsErr);
+    end;
+
+    procedure GetMailFolders(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailFolders: Record "Email Folders" temporary)
+    var
+        EmailConnectorv4: Interface "Email Connector v4";
+    begin
+        CheckRequiredPermissions();
+
+        CheckAndGetEmailConnectorv4(Connector, EmailConnectorv4);
+
+        EmailConnectorv4.GetEmailFolders(EmailAccountId, EmailFolders);
     end;
 
     local procedure TelemetryAppsAndPublishers(Message: Text)
@@ -268,17 +298,30 @@ codeunit 8900 "Email Impl"
         EmailConnectorv2: Interface "Email Connector v2";
 #pragma warning restore AL0432
 #endif
+#if not CLEAN28
+#pragma warning disable AL0432
         EmailConnectorv3: Interface "Email Connector v3";
+#pragma warning restore AL0432
+#endif
+        EmailConnectorv4: Interface "Email Connector v4";
     begin
         CheckRequiredPermissions();
 
         if ExternalId = '' then
             Error(ExternalIdCannotBeEmptyErr);
 
+        if CheckAndGetEmailConnectorv4(Connector, EmailConnectorv4) then begin
+            EmailConnectorv4.MarkAsRead(EmailAccountId, ExternalId);
+            exit;
+        end;
+#if not CLEAN28
+#pragma warning disable AL0432
         if CheckAndGetEmailConnectorv3(Connector, EmailConnectorv3) then begin
             EmailConnectorv3.MarkAsRead(EmailAccountId, ExternalId);
             exit;
         end;
+#pragma warning restore AL0432
+#endif
 #if not CLEAN26
 #pragma warning disable AL0432
         if CheckAndGetEmailConnectorv2(Connector, EmailConnectorv2) then begin
@@ -298,10 +341,21 @@ codeunit 8900 "Email Impl"
         EmailConnectorv2: Interface "Email Connector v2";
 #pragma warning restore AL0432
 #endif
+#if not CLEAN28
+#pragma warning disable AL0432
         EmailConnectorv3: Interface "Email Connector v3";
+#pragma warning restore AL0432
+#endif
+        EmailConnectorv4: Interface "Email Connector v4";
     begin
+        if CheckAndGetEmailConnectorv4(Connector, EmailConnectorv4) then
+            exit(true);
+#if not CLEAN28
+#pragma warning disable AL0432
         if CheckAndGetEmailConnectorv3(Connector, EmailConnectorv3) then
             exit(true);
+#pragma warning restore AL0432
+#endif
 #if not CLEAN26
 #pragma warning disable AL0432
         if CheckAndGetEmailConnectorv2(Connector, EmailConnectorv2) then
@@ -324,11 +378,24 @@ codeunit 8900 "Email Impl"
             exit(false);
     end;
 #endif
-
+#if not CLEAN28
+#pragma warning disable AL0432
+    [Obsolete('Replaced by CheckAndGetEmailConnectorv4.', '28.0')]
     procedure CheckAndGetEmailConnectorv3(Connector: Interface "Email Connector"; var Connectorv3: Interface "Email Connector v3"): Boolean
+#pragma warning restore AL0432
     begin
         if Connector is "Email Connector v3" then begin
             Connectorv3 := Connector as "Email Connector v3";
+            exit(true);
+        end else
+            exit(false);
+    end;
+#endif
+
+    procedure CheckAndGetEmailConnectorv4(Connector: Interface "Email Connector"; var Connectorv3: Interface "Email Connector v4"): Boolean
+    begin
+        if Connector is "Email Connector v4" then begin
+            Connectorv3 := Connector as "Email Connector v4";
             exit(true);
         end else
             exit(false);
@@ -464,6 +531,7 @@ codeunit 8900 "Email Impl"
             TaskId := TaskScheduler.CreateTask(Codeunit::"Email Dispatcher", Codeunit::"Email Error Handler", true, CompanyName(), NotBefore, EmailOutbox.RecordId());
             EmailOutbox."Task Scheduler Id" := TaskId;
             EmailOutbox."Date Sending" := NotBefore;
+            EmailOutbox."Is Background Task" := true;
             EmailOutbox.Modify();
         end else begin // Send the email in foreground
             Commit();
@@ -560,6 +628,27 @@ codeunit 8900 "Email Impl"
         exit(ErrorText);
     end;
 
+    procedure FindErrorCallStackWithMsgIDAndRetryNo(MessageId: Guid; RetryNo: Integer): Text
+    var
+        EmailError: Record "Email Error";
+        EmailOutbox: Record "Email Outbox";
+        ErrorInstream: InStream;
+        ErrorText: Text;
+    begin
+        EmailOutbox.SetRange("Message Id", MessageId);
+        if not EmailOutbox.FindFirst() then
+            Error(EmailOutboxDoesNotExistErr, MessageId);
+
+        EmailError.SetRange("Outbox Id", EmailOutbox.Id);
+        EmailError.SetRange("Retry No.", RetryNo);
+        if not EmailError.FindFirst() then
+            Error(ErrorCallStackNotFoundErr, MessageId);
+        EmailError.CalcFields(EmailError."Error Callstack");
+        EmailError."Error Callstack".CreateInStream(ErrorInstream, TextEncoding::UTF8);
+        ErrorInstream.ReadText(ErrorText);
+        exit(ErrorText);
+    end;
+
     procedure ShowSourceRecord(EmailMessageId: Guid);
     var
         EmailRelatedRecord: Record "Email Related Record";
@@ -585,6 +674,14 @@ codeunit 8900 "Email Impl"
 
         if not IsHandled then
             Error(SourceRecordErr);
+    end;
+
+    procedure HasRetryDetail(EmailMessageId: Guid): Boolean
+    var
+        EmailRetryDetail: Record "Email Retry";
+    begin
+        EmailRetryDetail.SetRange("Message Id", EmailMessageId);
+        exit(not EmailRetryDetail.IsEmpty());
     end;
 
     procedure HasSourceRecord(EmailMessageId: Guid): Boolean;

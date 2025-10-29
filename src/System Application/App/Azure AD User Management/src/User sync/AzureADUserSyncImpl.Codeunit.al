@@ -36,6 +36,7 @@ codeunit 9029 "Azure AD User Sync Impl."
         FetchingUpdatesForLicensedUsersGroupTxt: Label 'Fetching updates for licensed users.', Locked = true;
         FetchingUpdatesForDeviceGroupTxt: Label 'Fetching updates for device group.', Locked = true;
         ApplyingUserUpdateTxt: Label 'Applying update for user security ID [%1] with authentication object ID [%2]. Blank Guids indicate users not present in BC.', Comment = '%1 = user security ID (guid) and %2 = authentication object ID (guid)', Locked = true;
+        FailedToUpdateUserTxt: Label 'Failed to update user record. Error details: [%1]', Comment = '%1 = ErrorCallStack', Locked = true;
         UserCreatedTxt: Label 'A new user with authentication object ID [%1] and security ID [%2] has been created.', Comment = '%1 = authentication object ID (guid); %2 = user security ID (guid)', Locked = true;
         ApplyingEntityUpdateTxt: Label 'Updating %1 for user [%2]', Comment = '%1 = the update entity e.g. Full name, Plan etc.; %2 = user security ID (guid)', Locked = true;
         NewUserChangesTxt: Label 'A new user with authentication object ID [%1] received property [%2] from Graph.', Comment = '%1 = authentication object ID (guid); %2 = the update entity e.g. Full name, Plan etc.; %3 = new value of entity; %4 = original value of entity from Graph', Locked = true;
@@ -495,7 +496,7 @@ codeunit 9029 "Azure AD User Sync Impl."
             if UpdatedSuccessfully then
                 NumberOfSuccessfulUpdates += 1
             else
-                Session.LogMessage('0000BPA', GetLastErrorCallStack, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt); // to be taken out;
+                Session.LogMessage('0000BPA', StrSubstNo(FailedToUpdateUserTxt, GetLastErrorCallStack), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', UserSetupCategoryTxt);
         until AzureADUserUpdate.Next() = 0;
         Commit();
     end;

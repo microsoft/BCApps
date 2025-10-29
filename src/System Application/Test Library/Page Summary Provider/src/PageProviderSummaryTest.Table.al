@@ -36,6 +36,7 @@ table 132548 "Page Provider Summary Test"
         }
         field(9; TestDecimal; Decimal)
         {
+            AutoFormatType = 0;
         }
         field(10; TestDuration; Duration)
         {

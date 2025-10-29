@@ -33,6 +33,16 @@ page 130453 "Select Tests"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the Object Name';
                 }
+                field("Test Type"; Rec.TestType)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the type of the test, indicating the context in which it runs.';
+                }
+                field("Required Test Isolation"; Rec.RequiredTestIsolation)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies which Test Runner (Test Isolation) is required for the codeunit.';
+                }
             }
         }
     }

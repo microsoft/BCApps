@@ -24,6 +24,7 @@ codeunit 149043 "AIT Test Context Impl."
         IsMultiTurn: Boolean;
         AccuracySetManually: Boolean;
         AccuracyErr: Label 'Accuracy must be between 0 and 1.';
+        OnlySingleTurnErr: Label 'A query-and-response pair cannot be used in multi-turn tests. Use AddMessage instead.';
         AnswerTok: Label 'answer', Locked = true;
         ContextTok: Label 'context', Locked = true;
         GroundTruthTok: Label 'ground_truth', Locked = true;
@@ -32,6 +33,12 @@ codeunit 149043 "AIT Test Context Impl."
         TestSetupTok: Label 'test_setup', Locked = true;
         QuestionTok: Label 'question', Locked = true;
         TurnsTok: Label 'turns', Locked = true;
+        MessagesTok: Label 'messages', Locked = true;
+        QueryTok: Label 'query', Locked = true;
+        ResponseTok: Label 'response', Locked = true;
+        RoleTok: Label 'role', Locked = true;
+        ContentTok: Label 'content', Locked = true;
+        ConversationTok: Label 'conversation', Locked = true;
 
     /// <summary>
     /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
@@ -104,6 +111,64 @@ codeunit 149043 "AIT Test Context Impl."
         CopyElementToOutput(QuestionTok, CurrentTestOutputJson);
         CopyElementToOutput(GroundTruthTok, CurrentTestOutputJson);
         SetSuiteTestOutput(CurrentTestOutputJson.ToText());
+    end;
+
+    /// <summary>
+    /// Sets the query and respone for a single-turn evaluation.
+    /// Optionally, a context can be provided.
+    /// </summary>
+    /// <param name="Query">The query as text.</param>
+    /// <param name="Response">The response as text.</param>
+    /// <param name="Context">The context as text.</param>
+    procedure SetQueryResponse(Query: Text; Response: Text; Context: Text)
+    var
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+        CurrentTestOutputJson: Codeunit "Test Output Json";
+        TestOutputCU: Codeunit "Test Output";
+    begin
+        if IsMultiTurn then
+            Error(OnlySingleTurnErr);
+
+        CurrentTestOutputJson.Initialize();
+        CurrentTestOutputJson.Add(QueryTok, Query);
+        CurrentTestOutputJson.Add(ResponseTok, Response);
+
+        if Context <> '' then
+            CurrentTestOutputJson.Add(ContextTok, Context);
+
+        TestOutputCU.TestData().Initialize(CurrentTestOutputJson.ToText());
+
+        AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.Testdata().ToText());
+    end;
+
+    /// <summary>
+    /// Adds a message to the current test iteration.
+    /// This is used for multi-turn tests to add messages to the output.
+    /// </summary>
+    /// <param name="Content">The content of the message.</param>
+    /// <param name="Role">The role of the message (e.g., 'user', 'assistant').</param>
+    /// <param name="Context">The context of the message (can be blank).</param>
+    procedure AddMessage(Content: Text; Role: Text; Context: Text)
+    var
+        CurrentTestOutputJson: Codeunit "Test Output Json";
+    begin
+        CurrentTestOutputJson.Initialize();
+        CurrentTestOutputJson.Add(ContentTok, Content);
+        CurrentTestOutputJson.Add(RoleTok, Role);
+
+        if Context <> '' then
+            CurrentTestOutputJson.Add(ContextTok, Context);
+
+        AddMessageToOutput(CurrentTestOutputJson.ToText());
+    end;
+
+    /// <summary>
+    /// Sets the test output for the current iteration.
+    /// </summary>
+    /// <param name="TestOutputJson">The test output.</param>
+    procedure SetTestOutput(TestOutputJson: Codeunit "Test Output Json")
+    begin
+        SetSuiteTestOutput(TestOutputJson.ToText());
     end;
 
     /// <summary>
@@ -281,6 +346,24 @@ codeunit 149043 "AIT Test Context Impl."
             TestInputJson := TestInput.GetTestInput(TurnsTok).ElementAt(CurrentTurn - 1).Element(ElementName)
         else
             TestInputJson := TestInput.GetTestInput(ElementName);
+    end;
+
+    /// <summary>
+    /// Adds a message to the test output for the current iteration.
+    /// </summary>
+    local procedure AddMessageToOutput(Output: Text)
+    var
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+        TestOutputCU: Codeunit "Test Output";
+    begin
+        if not TestOutputCU.TestData().ElementExists(ConversationTok) then begin
+            TestOutputCU.TestData().Add(ConversationTok, '');
+            TestOutputCU.TestData().Element(ConversationTok).AddArray(MessagesTok);
+        end;
+
+        TestOutputCU.TestData().Element(ConversationTok).Element(MessagesTok).Add(Output);
+
+        AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.Testdata().ToText());
     end;
 
     /// <summary>

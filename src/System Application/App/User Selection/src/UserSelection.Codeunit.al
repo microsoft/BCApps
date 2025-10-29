@@ -15,7 +15,7 @@ codeunit 9843 "User Selection"
     Access = Public;
 
     /// <summary>
-    /// Opens the user lookup page and assigns the selected users on the <paramref name="SelectedUser"/> parameter.
+    /// Opens the user lookup page with external and system users (application, agent, etc.) filtered out and assigns the selected users on the <paramref name="SelectedUser"/> parameter.
     /// </summary>
     /// <param name="SelectedUser">The variable to return the selected users. Any filters on this record will influence the page view.</param>
     /// <returns>Returns true if a user was selected.</returns>
@@ -23,7 +23,19 @@ codeunit 9843 "User Selection"
     var
         UserSelectionImpl: Codeunit "User Selection Impl.";
     begin
-        exit(UserSelectionImpl.Open(SelectedUser));
+        exit(UserSelectionImpl.Open(SelectedUser, false));
+    end;
+
+    /// <summary>
+    /// Opens the user lookup page with only external users filtered out and assigns the selected users on the <paramref name="SelectedUser"/> parameter.
+    /// </summary>
+    /// <param name="SelectedUser">The variable to return the selected users. Any filters on this record will influence the page view.</param>
+    /// <returns>Returns true if a user was selected.</returns>
+    procedure OpenWithSystemUsers(var SelectedUser: Record User): Boolean
+    var
+        UserSelectionImpl: Codeunit "User Selection Impl.";
+    begin
+        exit(UserSelectionImpl.Open(SelectedUser, true));
     end;
 
     /// <summary>
@@ -38,14 +50,14 @@ codeunit 9843 "User Selection"
     end;
 
     /// <summary>
-    /// Sets Filter on the given User Record to exclude external users.
+    /// Sets Filter on the given User Record to exclude external and system (application, agent, etc.) users.
     /// </summary>
     /// <param name="User">The User Record to return.</param>
     procedure HideExternalUsers(var User: Record User)
     var
         UserSelectionImpl: Codeunit "User Selection Impl.";
     begin
-        UserSelectionImpl.HideExternalUsers(User);
+        UserSelectionImpl.HideExternalAndSystemUsers(User);
     end;
 
     /// <summary>

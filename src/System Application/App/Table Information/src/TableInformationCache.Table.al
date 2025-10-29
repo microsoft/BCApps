@@ -35,6 +35,7 @@ table 8700 "Table Information Cache"
         field(5; "Record Size"; Decimal)
         {
             Caption = 'Record Size';
+            AutoFormatType = 0;
         }
         field(6; "Size (KB)"; Integer)
         {
@@ -56,10 +57,12 @@ table 8700 "Table Information Cache"
         field(8700; "Last Period Data Size (KB)"; Integer)
         {
             Caption = 'Last Period Size (30D)';
+            AutoFormatType = 0;
         }
         field(8702; "Growth %"; Decimal)
         {
             Caption = 'Growth % (30D)';
+            AutoFormatType = 0;
         }
         field(8701; "Last Period No. of Records"; Integer)
         {

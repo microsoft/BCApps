@@ -5,7 +5,9 @@
 
 namespace System.Agents;
 
+#pragma warning disable AS0130, PTE0025 // The object is moved to the platform symbols.
 page 4313 "Agent Task Details"
+#pragma warning restore AS0130, PTE0025
 {
     PageType = ListPart;
     ApplicationArea = All;
@@ -96,7 +98,7 @@ page 4313 "Agent Task Details"
 
         if Rec.CalcFields("Client Context") then
             if Rec."Client Context".HasValue() then begin
-                Rec."Client Context".CreateInStream(InStream);
+                Rec."Client Context".CreateInStream(InStream, AgentTaskImpl.GetDefaultEncoding());
                 ClientContext.Read(InStream);
             end;
     end;

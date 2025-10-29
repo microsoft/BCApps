@@ -15,8 +15,8 @@ table 149034 "AIT Log Entry"
     DrillDownPageId = "AIT Log Entries";
     LookupPageId = "AIT Log Entries";
     DataCaptionFields = "Codeunit Name", "Procedure Name", "Test Input Code";
-    Extensible = false;
-    Access = Internal;
+    Extensible = true;
+    Access = Public;
     ReplicateData = false;
 
     fields
@@ -173,6 +173,8 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'Test Method Line Accuracy';
             ToolTip = 'Specifies the accuracy of the test line. The accuracy is calculated as the percentage of turns that passed or can be set manually in the test.';
+            AutoFormatType = 0;
+
         }
         field(50; "Tokens Consumed"; Integer)
         {

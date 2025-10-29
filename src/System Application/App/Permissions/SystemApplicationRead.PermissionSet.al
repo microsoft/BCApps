@@ -20,8 +20,11 @@ using System.DataAdministration;
 using System.Environment;
 using System.Security.User;
 using System.Integration.Word;
+#if not CLEAN28
 using System.Feedback;
+#endif
 using System.Apps;
+using System.MCP;
 
 permissionset 21 "System Application - Read"
 {
@@ -43,6 +46,7 @@ permissionset 21 "System Application - Read"
                              "File Storage - Read",
                              "Guided Experience - Read",
                              "Headlines - Read",
+                             "MCP - Read",
                              "Object Selection - Read",
                              "Page Summary Provider - Read",
                              "Page Action Provider - Read",
@@ -50,7 +54,9 @@ permissionset 21 "System Application - Read"
                              "Record Link Management - Read",
                              "Retention Policy - Read",
                              "Environment Cleanup - Read",
+#if not CLEAN28
                              "Satisfaction Survey - Read",
+#endif
                              "System Initialization - Exec",
                              "Security Groups - Read",
                              "Table Information - Read",

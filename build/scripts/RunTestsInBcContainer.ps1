@@ -19,49 +19,46 @@ function Get-DisabledTests
     return @($disabledTests)
 }
 
-function Get-TestsInGroup {
+function Invoke-TestsWithReruns {
     param(
-        [Parameter(Mandatory = $true)]
-        [string] $groupName
+        [Hashtable]$parameters,
+        [int]$maxReruns = 2
     )
+    $attempt = 0
+    while ($attempt -lt $maxReruns) {
+        $testsSucceeded = $false
+        # Run tests and catch any exceptions to prevent the script from terminating
+        try {
+            $testsSucceeded = Run-TestsInBcContainer @parameters
+        } catch {
+            $testsSucceeded = $false
+            Write-Host "Exception occurred while running tests: $($_.Exception.Message) / $($_.Exception.StackTrace)"
+        }
 
-    $baseFolder = Get-BaseFolder
-
-    $groupFiles = Get-ChildItem -Path $baseFolder -Filter 'TestGroups.json' -Recurse -File
-
-    $testsInGroup = @()
-    foreach($groupFile in $groupFiles)
-    {
-        $testsInGroup += Get-Content -Raw -Path $groupFile.FullName | ConvertFrom-Json | Where-Object { $_.group -eq $groupName }
-    }
-
-    return $testsInGroup
-}
-
-$disabledTests = @(Get-DisabledTests)
-$noIsolationTests = Get-TestsInGroup -groupName "No Test Isolation"
-
-if ($DisableTestIsolation)
-{
-    $parameters["testRunnerCodeunitId"] = "130451" # Test Runner with disabled test isolation
-
-    # When test isolation is disabled, only tests from the "No Test Isolation" group should be run
-    $parameters["testCodeunitRange"] = @($noIsolationTests | ForEach-Object { $_.codeunitId }) -join "|"
-}
-else { # Test isolation is enabled
-    # Manually disable the test codeunits, as they need to be run without test isolation
-    $noIsolationTests | ForEach-Object {
-        $disabledTests += @{
-            "codeunitId" = $_.codeunitId
-            "codeunitName" = $_.codeunitName
-            "method" = "*"
+        # Check if tests succeeded
+        if ($testsSucceeded) {
+            Write-Host "All tests passed on attempt $($attempt + 1)."
+            return $true
+        } else {
+            $attempt++
+            $parameters["ReRun"] = $true
+            if ($attempt -gt $maxReruns) {
+                Write-Host "Tests failed after $maxReruns attempts."
+                return $false
+            } else {
+                Write-Host "Some tests failed. Retrying... (Attempt $($attempt + 1) of $($maxReruns + 1))"
+            }
         }
     }
 }
 
-if ($disabledTests)
+if ($DisableTestIsolation)
 {
-    $parameters["disabledTests"] = $disabledTests
+    $parameters["requiredTestIsolation"] = "Disabled" # filtering on tests that require Disabled Test Isolation
+    $parameters["testRunnerCodeunitId"] = "130451" # Test Runner with disabled test isolation
 }
 
-Run-TestsInBcContainer @parameters
+$parameters["disabledTests"] = @(Get-DisabledTests) # Add disabled tests to parameters
+$parameters["renewClientContextBetweenTests"] = $true
+
+return Invoke-TestsWithReruns -parameters $parameters

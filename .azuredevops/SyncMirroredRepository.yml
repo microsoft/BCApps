@@ -8,10 +8,12 @@ schedules:
   branches:
     include:
     - main
-    - releases/*
+    - releases/25.*
+    - releases/26.*
+    - releases/27.*
 
 pool:
-  name: 'd365bc-agentpool-nonprod-bcapps-sync'
+  name: 'd365bc-agentpool-nonprod'
 
 resources:
   repositories:
@@ -29,28 +31,23 @@ jobs:
   dependsOn: []
   displayName: Sync mirror with upstream
   steps:
-  - powershell: |
-      git config --global user.email "BCApps-Sync@microsoft.com"
-      git config --global user.name "BCApps-Sync"
-    displayName: Update Git Config
-  - task: powershell@2
-    displayName: Sync mirror with upstream
+  - task: AzureCLI@2    
     inputs:
-      filePath: build\scripts\SyncMirror.ps1
-      arguments: '-SourceRepository "https://github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -Branch $(Build.SourceBranch) -ManagedIdentityAuth'
-
-- job: ReportBuildStatus
-  dependsOn:
-  - SyncMirror
-  pool: 'd365bc-agentpool-nonprod-build-official'
-  condition: failed()
-  displayName: Report build status
-  steps:
-  - checkout: none
+      azureSubscription: '1es-d365bc-agentpool-nonprod-bcapps-sync'
+      workingDirectory: $(System.DefaultWorkingDirectory)
+      useGlobalConfig: true
+      scriptType: pscore
+      scriptLocation: inlineScript      
+      inlineScript: |
+        git config --global user.email "BCApps-Sync@microsoft.com"
+        git config --global user.name "BCApps-Sync"
+        & build\scripts\SyncMirror.ps1 -SourceRepository "https://github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -Branch $(Build.SourceBranch)
+    displayName: Sync mirror with upstream
   - template: workitem-build-tracking.yml@PipelineTemplates
     parameters:
       Priority: '2'
       Severity: '2'
+      UseAzureCliAuth: true
       Issue: 'Build Break'
       SecurityImpact: 'No'
-      Condition: always()
+      Condition: failed()

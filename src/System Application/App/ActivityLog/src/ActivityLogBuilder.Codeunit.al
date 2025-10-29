@@ -37,6 +37,28 @@ codeunit 3111 "Activity Log Builder"
     end;
 
     /// <summary>
+    /// Sets the type of the activity log entry.
+    /// Allowed values are "AI" for AI-related activities and "AL" for general activities
+    /// </summary>
+    [Scope('OnPrem')]
+    procedure SetType(Type: Enum "Activity Log Type"): Codeunit "Activity Log Builder"
+    begin
+        ActivityLogBuilderImpl := ActivityLogBuilderImpl.SetType(Type);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Sets the confidence level for the activity log value.
+    /// </summary>
+    [Scope('OnPrem')]
+    procedure SetConfidence(Confidence: Text): Codeunit "Activity Log Builder"
+    begin
+        ActivityLogBuilderImpl := ActivityLogBuilderImpl.SetConfidence(Confidence);
+        exit(this);
+    end;
+
+
+    /// <summary>
     /// Sets the reference source for the activity log entry.
     /// The reference source can be a page ID and a record reference, which will be converted to a URL.
     /// </summary>

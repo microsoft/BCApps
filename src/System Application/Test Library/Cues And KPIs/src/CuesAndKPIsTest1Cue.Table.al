@@ -20,6 +20,7 @@ table 135039 "Cues And KPIs Test 1 Cue"
         }
         field(15; NormalDecimal; Decimal)
         {
+            AutoFormatType = 0;
         }
 #pragma warning disable AA0232
         field(20; FlowfieldInteger; Integer)
@@ -33,6 +34,7 @@ table 135039 "Cues And KPIs Test 1 Cue"
             FieldClass = FlowField;
             CalcFormula = sum("Cues And KPIs Test 1 Cue".NormalDecimal);
             Editable = false;
+            AutoFormatType = 0;
         }
 #pragma warning restore AA0232
     }

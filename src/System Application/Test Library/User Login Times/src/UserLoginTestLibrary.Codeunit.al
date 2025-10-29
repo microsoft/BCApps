@@ -5,12 +5,14 @@
 
 namespace System.TestLibraries.Security.AccessControl;
 
+using System.Security.AccessControl;
 using System.Security.User;
 
 codeunit 138049 "User Login Test Library"
 {
     Permissions = tabledata "User Environment Login" = rid,
-                  tabledata "User Login" = rimd;
+                  tabledata "User Login" = rimd,
+                  tabledata User = rd;
 
     /// <summary>
     /// Creates login information for a user.
@@ -81,5 +83,20 @@ codeunit 138049 "User Login Test Library"
     begin
         UserLogin.DeleteAll();
         UserEnvironmentLogin.DeleteAll();
+    end;
+
+    /// <summary>
+    /// Deletes all users that are not logged in yet.
+    /// </summary>
+    procedure DeleteAllUnLoggedInUsers()
+    var
+        User: Record User;
+        UserLoginTimeTracker: Codeunit "User Login Time Tracker";
+    begin
+        if User.FindSet() then
+            repeat
+                if not UserLoginTimeTracker.UserLoggedInEnvironment(User."User Security ID") then
+                    User.Delete();
+            until User.Next() = 0;
     end;
 }

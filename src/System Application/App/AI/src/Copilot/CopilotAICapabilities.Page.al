@@ -310,7 +310,6 @@ page 7775 "Copilot AI Capabilities"
 
     trigger OnOpenPage()
     var
-        CopilotNotifications: Codeunit "Copilot Notifications";
         EnvironmentInformation: Codeunit "Environment Information";
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
         WithinGeo: Boolean;
@@ -352,7 +351,6 @@ page 7775 "Copilot AI Capabilities"
 
     trigger OnPageBackgroundTaskCompleted(TaskId: Integer; Results: Dictionary of [Text, Text])
     var
-        CopilotNotifications: Codeunit "Copilot Notifications";
         Value: Text;
         CanConsume: Boolean;
         HasBilling: Boolean;
@@ -408,11 +406,12 @@ page 7775 "Copilot AI Capabilities"
         CurrPage.PreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
         CopilotCapabilityImpl.UpdateGuidedExperience(AllowDataMovement);
         CopilotTelemetry.SendCopilotDataMovementUpdatedTelemetry(AllowDataMovement);
+
+        CopilotNotifications.ShowCapabilityChange();
     end;
 
     local procedure UpdateBingSearchOptIn()
     var
-        CopilotNotifications: Codeunit "Copilot Notifications";
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
     begin
 
@@ -422,6 +421,8 @@ page 7775 "Copilot AI Capabilities"
             PrivacyNotice.SetApprovalState(SystemPrivacyNoticeReg.GetBingPrivacyNoticeName(), "Privacy Notice Approval State"::Disagreed);
             CopilotNotifications.ShowBingSearchOptOutNudgeMessage();
         end;
+
+        CopilotNotifications.ShowCapabilityChange();
     end;
 
     [IntegrationEvent(false, false)]
@@ -434,6 +435,7 @@ page 7775 "Copilot AI Capabilities"
         AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         PrivacyNotice: Codeunit "Privacy Notice";
+        CopilotNotifications: Codeunit "Copilot Notifications";
         WithinEUDBArea: Boolean;
         WithinAOAIServicesInRegionArea: Boolean;
         WithinAOAIOutOfRegionArea: Boolean;

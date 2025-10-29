@@ -57,6 +57,25 @@ codeunit 1460 SignedXml
     /// <summary>
     /// Sets the key used for signing a SignedXml object.
     /// </summary>
+    /// <param name="XmlString">The XML string containing key information.</param>
+    procedure SetSigningKey(XmlString: SecretText)
+    begin
+        SignedXmlImpl.SetSigningKey(XmlString);
+    end;
+
+    /// <summary>
+    /// Sets the key used for signing a SignedXml object.
+    /// </summary>
+    /// <param name="XmlString">The XML string containing key information.</param>
+    /// <param name="SignatureAlgorithm">The type of asymmetric algorithms.</param>
+    procedure SetSigningKey(XmlString: SecretText; SignatureAlgorithm: Enum SignatureAlgorithm)
+    begin
+        SignedXmlImpl.SetSigningKey(XmlString, SignatureAlgorithm);
+    end;
+    
+    /// <summary>
+    /// Sets the key used for signing a SignedXml object.
+    /// </summary>
     /// <param name="SignatureKey">The key used for signing the SignedXml object.</param>
     procedure SetSigningKey(SignatureKey: Codeunit "Signature Key")
     begin
@@ -79,6 +98,15 @@ codeunit 1460 SignedXml
     procedure SetDigestMethod(DigestMethod: Text)
     begin
         SignedXmlImpl.SetDigestMethod(DigestMethod);
+    end;
+
+    /// <summary>
+    /// Adds a XmlDsigC14NTransform object to the list of transforms to be performed on the data before passing it to the digest algorithm.
+    /// </summary>
+    /// <param name="IncludeComment">true to include comments; otherwise, false.</param>
+    procedure AddXmlDsigC14NTransformToReference(IncludeComments: Boolean)
+    begin
+        SignedXmlImpl.AddXmlDsigC14NTransformToReference(IncludeComments);
     end;
 
     /// <summary>
@@ -132,6 +160,16 @@ codeunit 1460 SignedXml
     procedure AddClause(KeyInfoNodeXmlElement: XmlElement)
     begin
         SignedXmlImpl.AddClause(KeyInfoNodeXmlElement);
+    end;
+
+    /// <summary>
+    /// Adds key information from an X509 certificate to the collection of KeyInfoClause.
+    /// </summary>
+    /// <param name="X509CertBase64Value">The X509Certificate2 in Base64 format that contains the public key information to be added to KeyInfoClause.</param>
+    /// <param name="CertPassword">The password for the X509Certificate2.</param>
+    procedure AddKeyInfoClauseFromX509Certificate(X509CertBase64Value: Text; CertPassword: SecretText)
+    begin
+        SignedXmlImpl.AddKeyInfoClauseFromX509Certificate(X509CertBase64Value, CertPassword);
     end;
 
     /// <summary>
@@ -241,6 +279,16 @@ codeunit 1460 SignedXml
     procedure GetXmlDsigDSAUrl(): Text[250]
     begin
         exit(SignedXmlImpl.GetXmlDsigDSAUrl());
+    end;
+
+    /// <summary>
+    /// Represents the Uniform Resource Identifier (URI) for canonical XML form.
+    /// </summary>
+    /// <returns>The value http://www.w3.org/TR/2001/REC-xml-c14n-20010315.</returns>
+    /// <see cref="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+    procedure GetXmlDsigC14NTransformUrl(): Text[250]
+    begin
+        exit(SignedXmlImpl.GetXmlDsigC14NTransformUrl());
     end;
 
     /// <summary>

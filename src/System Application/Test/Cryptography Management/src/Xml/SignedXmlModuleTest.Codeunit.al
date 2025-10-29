@@ -81,6 +81,120 @@ codeunit 132612 "Signed Xml Module Test"
         LibraryAssert.IsTrue(SignedXml.CheckSignature(CertBase64Data, Password, true), 'Failed to verify the xml signature.');
     end;
 
+    [Test]
+    procedure SetXmlDSigC14NTranform()
+    var
+        SignatureKey: Codeunit "Signature Key";
+        XmlToSign: XmlDocument;
+        KeyText: SecretText;
+        Signature: XmlElement;
+        NamespaceMgr: XmlNamespaceManager;
+        Node: XmlNode;
+        SignatureNamespaceUriTok: Label 'http://www.w3.org/2000/09/xmldsig#', Locked = true;
+        C14NTransformUriTok: Label 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315', Locked = true;
+    begin
+        XmlDocument.ReadFrom('<XmlData Id="ID01">This is a document</XmlData>', XmlToSign);
+        GetSignatureKeyXmlString(KeyText);
+        SignatureKey.FromXmlString(KeyText);
+
+        SignedXml.InitializeSignedXml(XmlToSign);
+        SignedXml.SetSigningKey(SignatureKey);
+        SignedXml.InitializeReference('#ID01');
+        SignedXml.SetCanonicalizationMethod(SignedXml.GetXmlDsigC14NTransformUrl());
+        SignedXml.AddXmlDsigC14NTransformToReference(false);
+        SignedXml.AddReferenceToSignedXML();
+
+        SignedXml.ComputeSignature();
+        Signature := SignedXml.GetXml();
+
+        NamespaceMgr.AddNamespace('ns', SignatureNamespaceUriTok);
+        Signature.SelectSingleNode('./ns:SignedInfo/ns:CanonicalizationMethod/@Algorithm', NamespaceMgr, Node);
+        LibraryAssert.AreEqual(C14NTransformUriTok, Node.AsXmlAttribute().Value, 'Incorrect canonicalization method was applied.');
+
+        Signature.SelectSingleNode('./ns:SignedInfo/ns:Reference/ns:Transforms/ns:Transform/@Algorithm', NamespaceMgr, Node);
+        LibraryAssert.AreEqual(C14NTransformUriTok, Node.AsXmlAttribute().Value, 'Incorrect transform was applied.');
+    end;
+
+    [Test]
+    procedure SignXmlDocumentWithSigningKeyAsSecretText()
+    var
+        XmlToSign: XmlDocument;
+        SignedXmlElement: XmlElement;
+        SigningKey: SecretText;
+    begin
+        XmlDocument.ReadFrom('<TestXml Id="ID01">XML to sign</TestXml>', XmlToSign);
+        SignedXml.InitializeSignedXml(XmlToSign);
+
+        GetSignatureKeyXmlString(SigningKey);
+        SignedXml.SetSigningKey(SigningKey);
+        SignedXml.InitializeReference('#ID01');
+
+        SignedXml.ComputeSignature();
+
+        SignedXmlElement := SignedXml.GetXml();
+        LibraryAssert.AreEqual('Signature', SignedXmlElement.LocalName, 'Signature was not computed.');
+    end;
+
+    [Test]
+    procedure SignXmlDocumentWithSigningKeyAsSecretTextAndRsaAlgorithm()
+    var
+        XmlToSign: XmlDocument;
+        SignedXmlElement: XmlElement;
+        SigningKey: SecretText;
+    begin
+        XmlDocument.ReadFrom('<TestXml Id="ID01">XML to sign</TestXml>', XmlToSign);
+        SignedXml.InitializeSignedXml(XmlToSign);
+
+        GetSignatureKeyXmlString(SigningKey);
+        SignedXml.SetSigningKey(SigningKey, Enum::SignatureAlgorithm::RSA);
+        SignedXml.InitializeReference('#ID01');
+
+        SignedXml.ComputeSignature();
+
+        SignedXmlElement := SignedXml.GetXml();
+        LibraryAssert.AreEqual('Signature', SignedXmlElement.LocalName, 'Signature was not computed.');
+    end;
+
+    [Test]
+    procedure SignXmlDocumentAddKeyInfoInSignature()
+    var
+        SignatureKey: Codeunit "Signature Key";
+        XmlDoc: XmlDocument;
+        DataElement: XmlElement;
+        PrivateKey: SecretText;
+        CertPassword: SecretText;
+        Signature: XmlElement;
+        NamespaceMgr: XmlNamespaceManager;
+        KeyInfoNode: XmlNode;
+    begin
+        // [SCENARIO] SignedXml can generate signature with X509Data node according to W3C XML Signature Syntax
+
+        // [GIVEN] Prepare XML document for signing
+        XmlDocument.ReadFrom('<Data Id="Id12345">XML element to sign</Data>', XmlDoc);
+        XmlDoc.GetRoot(DataElement);
+        SignedXml.InitializeSignedXml(DataElement);
+        
+        // [GIVEN] Set signing key on the SignedXml instance
+        GetSignatureKeyXmlString(PrivateKey);
+        SignatureKey.FromXmlString(PrivateKey);
+        SignedXml.SetSigningKey(SignatureKey);
+
+        // [GIVEN] Add the signed element reference
+        SignedXml.InitializeReference('#Id12345');
+        SignedXml.AddReferenceToSignedXML();
+
+        SignedXml.InitializeKeyInfo();
+
+        // [WHEN] Add a key info clause from the X509 certificate and generate signature
+        SignedXml.AddKeyInfoClauseFromX509Certificate(GetCertificateData(), CertPassword);
+        SignedXml.ComputeSignature();
+
+        // [THEN] The signature contains the X509Data element
+        Signature := SignedXml.GetXml();
+        NamespaceMgr.AddNamespace('ns', 'http://www.w3.org/2000/09/xmldsig#');
+        LibraryAssert.IsTrue(Signature.SelectSingleNode('./ns:KeyInfo/ns:X509Data/ns:X509Certificate', NamespaceMgr, KeyInfoNode), 'The XML signature must contain the X509Data element.');
+    end;
+
     local procedure GetSignatureElement(SignedXmlDocument: XmlDocument; var SignatureElement: XmlElement)
     var
         NSMgr: XmlNamespaceManager;

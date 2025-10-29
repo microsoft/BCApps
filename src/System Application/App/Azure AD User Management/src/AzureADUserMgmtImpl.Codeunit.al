@@ -55,12 +55,21 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
     procedure Run(ForUserSecurityId: Guid)
     var
         UserProperty: Record "User Property";
+        UserLoggedInEnvironment: Boolean;
     begin
         // This function exists for testability
         if not EnvironmentInformation.IsSaaS() then
             exit;
 
-        if UserLoginTimeTracker.UserLoggedInEnvironment(ForUserSecurityId) then // In case the user has logged in (which is almost always the case), this won't take any locks
+        UserLoggedInEnvironment := UserLoginTimeTracker.UserLoggedInEnvironment(ForUserSecurityId); // In case the user has logged in (which is almost always the case), this won't take any locks
+
+        // For delegated users, we can only assign plans on login
+        if AzureADGraphUser.IsUserDelegatedAdmin() or AzureADGraphUser.IsUserDelegatedHelpdesk() then begin
+            AzureADPlan.AssignPlanToUserWithDelegatedRole(ForUserSecurityId, UserLoggedInEnvironment);
+            exit;
+        end;
+
+        if UserLoggedInEnvironment then
             exit;
 
         if not UserProperty.Get(ForUserSecurityId) then
@@ -71,11 +80,6 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
         // RefreshUserPlans is used only when a user signs in while new user information in Office 365 has not been synchronized in Business Central.
         if AzureADPlan.DoesUserHavePlans(ForUserSecurityId) then
             exit;
-
-        if AzureADGraphUser.IsUserDelegatedAdmin() or AzureADGraphUser.IsUserDelegatedHelpdesk() then begin
-            AzureADPlan.AssignPlanToUserWithDelegatedRole(ForUserSecurityId);
-            exit;
-        end;
 
         AzureADPlan.RefreshUserPlanAssignments(ForUserSecurityId);
     end;

@@ -55,7 +55,7 @@ codeunit 9018 "Azure AD Plan Impl."
         PremiumPlanNameTxt: Label 'Dynamics 365 Business Central Premium', Locked = true;
         ClearPersonalizationTxt: Label 'Clear company in User Personalization', Locked = true;
         NoDelegatedRoleTxt: Label 'User does not have a delegated role (e.g. Delegated Admin or Delegated Helpdesk)', Locked = true;
-        AssigningPlanForDelegatedRoleTxt: Label 'Assigning plan %1 for a user with a delegated role (e.g. Delegated Admin or Delegated Helpdesk)', Comment = '%1 = the plan ID', Locked = true;
+        AssigningPlanForDelegatedRoleTxt: Label 'Assigning plan %1 for a user with a delegated role (e.g. Delegated Admin or Delegated Helpdesk). Updating user access: %2', Comment = '%1 = the plan ID, %2 = whether to update user access', Locked = true;
         RemovedSUPERFromUserTxt: Label 'Removed SUPER from the current user', Locked = true;
 
     [NonDebuggable]
@@ -77,6 +77,7 @@ codeunit 9018 "Azure AD Plan Impl."
     end;
 
     [NonDebuggable]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"User Plan", 'r')]
     procedure IsPlanAssignedToUser(PlanGUID: Guid; UserGUID: Guid): Boolean
     var
         UserPlan: Record "User Plan";
@@ -215,6 +216,7 @@ codeunit 9018 "Azure AD Plan Impl."
     end;
 
     [NonDebuggable]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"User Plan", 'r')]
     procedure DoesUserHavePlans(UserSecurityId: Guid): Boolean
     var
         UserPlan: Record "User Plan";
@@ -651,14 +653,16 @@ codeunit 9018 "Azure AD Plan Impl."
     end;
 
     [NonDebuggable]
-    procedure AssignPlanToUserWithDelegatedRole(UserSID: Guid)
+    [InherentPermissions(PermissionObjectType::TableData, Database::"User Plan", 'rimd')]
+    procedure AssignPlanToUserWithDelegatedRole(UserSID: Guid; SkipUpdateUserAccess: Boolean)
     var
         UserPlan: Record "User Plan";
+        UserProperty: Record "User Property";
         AzureADPlan: Codeunit "Azure AD Plan";
         PlanIds: Codeunit "Plan Ids";
         PlanConfigurationImpl: Codeunit "Plan Configuration Impl.";
         UserPermissions: Codeunit "User Permissions";
-        UserGroupsAdded, ShouldRemoveSuper : Boolean;
+        UserGroupsAdded, ShouldRemoveSuper, HasPlans : Boolean;
         PlanId: Guid;
     begin
         case true of
@@ -672,13 +676,34 @@ codeunit 9018 "Azure AD Plan Impl."
             end;
         end;
 
-        Session.LogMessage('0000IC4', StrSubstNo(AssigningPlanForDelegatedRoleTxt, PlanId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+        // Exit if the user already has the plan assigned
+        if IsPlanAssignedToUser(PlanId, UserSID) then
+            exit;
+
+        Session.LogMessage('0000IC4', StrSubstNo(AssigningPlanForDelegatedRoleTxt, PlanId, not SkipUpdateUserAccess), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+
+        // Check if the user have any plans assigned before removing
+        HasPlans := DoesUserHavePlans(UserSID);
+
+        // Delete any existing plans for the user
+        UserPlan.SetRange("User Security ID", UserSID);
+        UserPlan.DeleteAll();
 
         // Assign a plan for the user
         UserPlan.Init();
         UserPlan."Plan ID" := PlanId;
         UserPlan."User Security ID" := UserSID;
         UserPlan.Insert();
+
+        // Exit if user access should not be updated
+        if SkipUpdateUserAccess then
+            exit;
+
+        if not UserProperty.Get(UserSID) then
+            exit;
+
+        if HasPlans then
+            exit;
 
         // Assign user groups for the user
         AzureADPlan.OnUpdateUserAccessForSaaS(UserPlan."User Security ID", UserGroupsAdded);

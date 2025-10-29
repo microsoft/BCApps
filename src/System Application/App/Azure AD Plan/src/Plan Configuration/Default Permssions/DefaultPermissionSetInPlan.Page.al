@@ -12,7 +12,7 @@ page 9827 "Default Permission Set In Plan"
 {
     PageType = ListPart;
     SourceTable = "Default Permission Set In Plan";
-    Permissions = tabledata "Custom Permission Set In Plan" = rimd;
+    Permissions = tabledata "Default Permission Set In Plan" = rimd;
     Editable = false;
     Extensible = false;
     InsertAllowed = false;

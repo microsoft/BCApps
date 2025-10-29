@@ -1,0 +1,13 @@
+name: Test Object IDs and Application Manifests
+author: Microsoft Corporation
+description: Verifies that object IDs are valid and application IDs are unique in AL source code.
+runs:
+  using: composite
+  steps:
+    - name: Test Object IDs and Application Manifests
+      shell: pwsh
+      run: |
+        ${{ github.action_path }}/action.ps1
+branding:
+  icon: terminal
+  color: blue

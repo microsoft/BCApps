@@ -111,6 +111,32 @@ page 8887 "Email Accounts"
                         EmailRateLimitImpl.UpdateRateLimit(Rec);
                     end;
                 }
+
+                field(EmailConcurrencyLimit; ConcurrencyLimit)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Email Concurrency Limit';
+                    ToolTip = 'Specifies the maximum number of emails that can be sent simultaneously from this account.';
+                    Visible = true;
+
+                    trigger OnDrillDown()
+                    begin
+                        EmailRateLimitImpl.UpdateRateLimit(Rec);
+                    end;
+                }
+
+                field(EmailMaxRetryLimit; MaxRetryLimit)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Email Max. Attempt Limit';
+                    ToolTip = 'Specifies the maximum number of attempts for sending an email from this account.';
+                    Visible = true;
+
+                    trigger OnDrillDown()
+                    begin
+                        EmailRateLimitImpl.UpdateRateLimit(Rec);
+                    end;
+                }
             }
         }
 
@@ -152,7 +178,7 @@ page 8887 "Email Accounts"
                 Image = Add;
                 Caption = 'Add an email account';
                 ToolTip = 'Add an email account.';
-                Visible = (not IsLookupMode) and CanUserManageEmailSetup;
+                Visible = ((not IsLookupMode) or ShowCreateAccount) and CanUserManageEmailSetup;
 
                 trigger OnAction()
                 begin
@@ -364,6 +390,8 @@ page 8887 "Email Accounts"
         end;
 
         RateLimit := EmailRateLimitImpl.GetRateLimit(Rec."Account Id", Rec.Connector, Rec."Email Address");
+        ConcurrencyLimit := EmailRateLimitImpl.GetConcurrencyLimit(Rec."Account Id", Rec.Connector, Rec."Email Address");
+        MaxRetryLimit := EmailRateLimitImpl.GetMaxRetryLimit(Rec."Account Id", Rec.Connector, Rec."Email Address");
 
         DefaultTxt := '';
 
@@ -384,10 +412,16 @@ page 8887 "Email Accounts"
         IsSelected := not IsNullGuid(SelectedAccountId);
 
         EmailAccount.GetAllAccounts(true, Rec); // Refresh the email accounts
+#if not CLEAN28
+#pragma warning disable AL0432
         if V2V3Filter then
             FilterToConnectorv2v3Accounts(Rec);
         if V3Filter then
             FilterToConnectorv3Accounts(Rec);
+#pragma warning restore AL0432
+#endif
+        if V4Filter then
+            FilterToConnectorv4Accounts(Rec);
 
         EmailScenario.GetDefaultEmailAccount(DefaultEmailAccount); // Refresh the default email account
 
@@ -402,6 +436,8 @@ page 8887 "Email Accounts"
         CurrPage.Update(false);
     end;
 
+#if not CLEAN28
+    [Obsolete('Replaced by FilterToConnectorv4Accounts which only returns v4 accounts.', '28.0')]
     local procedure FilterToConnectorv3Accounts(var EmailAccounts: Record "Email Account")
     var
         IConnector: Interface "Email Connector";
@@ -416,7 +452,21 @@ page 8887 "Email Accounts"
                     EmailAccounts.Delete();
             until EmailAccounts.Next() = 0;
     end;
+#endif
 
+    local procedure FilterToConnectorv4Accounts(var EmailAccounts: Record "Email Account")
+    var
+        IConnector: Interface "Email Connector";
+    begin
+        if EmailAccounts.FindSet() then
+            repeat
+                IConnector := EmailAccounts.Connector;
+                if not (IConnector is "Email Connector v4") then
+                    EmailAccounts.Delete();
+            until EmailAccounts.Next() = 0;
+    end;
+#if not CLEAN28
+    [Obsolete('Replaced by FilterToConnectorv4Accounts which only returns v4 accounts.', '28.0')]
     local procedure FilterToConnectorv2v3Accounts(var EmailAccounts: Record "Email Account")
     var
         IConnector: Interface "Email Connector";
@@ -429,7 +479,7 @@ page 8887 "Email Accounts"
 
 #if not CLEAN26
 #pragma warning disable AL0432
-            if not (IConnector is "Email Connector v2") and not (IConnector is "Email Connector v3") then
+            if not (IConnector is "Email Connector v2") and not (IConnector is "Email Connector v3") and not (IConnector is "Email Connector v4") then
 #pragma warning restore AL0432
 #else
             if not (IConnector is "Email Connector v3") then
@@ -438,6 +488,7 @@ page 8887 "Email Accounts"
 
         until EmailAccounts.Next() = 0;
     end;
+#endif
 
     local procedure ShowAccountInformation()
     var
@@ -480,6 +531,15 @@ page 8887 "Email Accounts"
     end;
 
     /// <summary>
+    /// Sets whether the action to create a new email account is shown.
+    /// </summary>
+    /// <param name="Show">True to show the create account action, false to hide it</param>
+    procedure SetShowCreateAccount(Show: Boolean)
+    begin
+        ShowCreateAccount := Show;
+    end;
+
+    /// <summary>
     /// Filters the email accounts to only show accounts that are using the Email Connector v2 or v3.
     /// </summary>
     /// <param name="Filter">True to filter the email accounts, false to show all email accounts</param>
@@ -509,17 +569,30 @@ page 8887 "Email Accounts"
         V3Filter := Version3;
     end;
 
+    /// <summary>
+    /// Filters the email accounts to only show accounts using the Email Connector v4.
+    /// </summary>
+    /// <param name="UseFilter"></param>
+    procedure FilterConnectorV4Accounts(UseFilter: Boolean)
+    begin
+        V4Filter := UseFilter;
+    end;
+
     var
         DefaultEmailAccount: Record "Email Account";
         EmailAccountImpl: Codeunit "Email Account Impl.";
         EmailRateLimitImpl: Codeunit "Email Rate Limit Impl.";
         IsDefault: Boolean;
         RateLimit: Integer;
+        ConcurrencyLimit: Integer;
+        MaxRetryLimit: Integer;
         CanUserManageEmailSetup: Boolean;
         DefaultTxt: Text;
         UpdateAccounts: Boolean;
         IsLookupMode: Boolean;
+        ShowCreateAccount: Boolean;
         HasEmailAccount: Boolean;
         V2V3Filter, V3Filter : Boolean;
+        V4Filter: Boolean;
         EmailConnectorHasBeenUninstalledMsg: Label 'The selected email extension has been uninstalled. To view information about the email account, you must reinstall the extension.';
 }

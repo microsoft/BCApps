@@ -52,6 +52,14 @@ codeunit 1461 "SignedXml Impl."
         DotNetReference.DigestMethod := DigestMethod;
     end;
 
+    procedure AddXmlDsigC14NTransformToReference(IncludeComments: Boolean)
+    var
+        DotNetXmlDsigC14NTransform: DotNet XmlDsigC14NTransform;
+    begin
+        DotNetXmlDsigC14NTransform := DotNetXmlDsigC14NTransform.XmlDsigC14NTransform(IncludeComments);
+        DotNetReference.AddTransform(DotNetXmlDsigC14NTransform);
+    end;
+
     procedure AddXmlDsigExcC14NTransformToReference(InclusiveNamespacesPrefixList: Text)
     var
         DotNetXmlDsigExcC14NTransform: DotNet XmlDsigExcC14NTransform;
@@ -128,6 +136,17 @@ codeunit 1461 "SignedXml Impl."
     local procedure AddClause(DotNetKeyInfoClause: DotNet KeyInfoClause)
     begin
         DotNetKeyInfo.AddClause(DotNetKeyInfoClause);
+    end;
+
+    procedure AddKeyInfoClauseFromX509Certificate(X509CertBase64Value: Text; CertPassword: SecretText)
+    var
+        X509Certificate2Impl: Codeunit "X509Certificate2 Impl.";
+        DotNetX509Certificate2: DotNet X509Certificate2;
+        KeyInfoData: DotNet KeyInfoX509Data;
+    begin
+        X509Certificate2Impl.InitializeX509Certificate(X509CertBase64Value, CertPassword, DotNetX509Certificate2);
+        KeyInfoData := KeyInfoData.KeyInfoX509Data(DotNetX509Certificate2);
+        DotNetKeyInfo.AddClause(KeyInfoData);
     end;
     #endregion
 
@@ -224,6 +243,13 @@ codeunit 1461 "SignedXml Impl."
         XmlDsigDSAUrlTok: Label 'XmlDsigDSAUrl', Locked = true;
     begin
         exit(GetFieldValue(XmlDsigDSAUrlTok));
+    end;
+
+    procedure GetXmlDsigC14NTransformUrl(): Text[250]
+    var
+        XmlDsigC14NTransformUrlTok: Label 'XmlDsigC14NTransformUrl', Locked = true;
+    begin
+        exit(GetFieldValue(XmlDsigC14NTransformUrlTok));
     end;
 
     procedure GetXmlDsigExcC14NTransformUrl(): Text[250]

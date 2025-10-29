@@ -7,6 +7,7 @@ namespace System.Test.Apps;
 
 using System.Environment.Configuration;
 using System.Apps;
+using System.TestLibraries.Apps;
 using System.Media;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
@@ -17,7 +18,7 @@ codeunit 133100 "Extension Management Test"
     // For the purpose of this test, two sample extensions are pre-published.
     // The condition for the tests to pass is that one of the extensions is holding a dependency on the other one, and they are both 1st Party Extensions, version 1.0.
     // The appIds' of the two extensions are set in the SetNavAppIds procedure.
-    // The two extensions are pre-build outside the testing extension , and it is only the resulting .app files that are moved to a "testArtifacts" folder within this test extension.
+    // The two extensions are pre-build outside the testing extension , and it is only the resulting .app files that are moved to a "testArtifacts" folder within the test library of this extension.
     // The tests script will therefore publish the two extensions separately so the tests in this codeunit can execute and complete succesfully.
 
     Subtype = Test;
@@ -28,6 +29,7 @@ codeunit 133100 "Extension Management Test"
 
     var
         ExtensionManagement: Codeunit "Extension Management";
+        ExtensionMgtTestLibrary: Codeunit "Extension Mgt. Test Library";
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
         MainAppId: Guid;
@@ -246,7 +248,6 @@ codeunit 133100 "Extension Management Test"
     [HandlerFunctions('MessageHandler')]
     procedure MessageShownOnInvokingSetupThisAppWhenNoSetupDefinedForExtension()
     var
-        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         MainAppPackageId: Guid;
     begin
         PermissionsMock.Set('Exten. Mgt. - Admin');
@@ -261,14 +262,13 @@ codeunit 133100 "Extension Management Test"
 
         // [WHEN] RunExtensionSetup is invoked
         // [THEN] Message is shown
-        ExtensionInstallationImpl.RunExtensionSetup(MainAppId);
+        ExtensionMgtTestLibrary.RunExtensionSetup(MainAppId);
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure ErrorThrownOnInvokingSetupThisAppWhenSelectedExtensionIsNotInstalled()
     var
-        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
     begin
         PermissionsMock.Set('Exten. Mgt. - Admin');
 
@@ -278,7 +278,7 @@ codeunit 133100 "Extension Management Test"
 
         // [WHEN] RunExtensionSetup is invoked
         // [THEN] Error is thrown saying that the extension is not installed
-        asserterror ExtensionInstallationImpl.RunExtensionSetup(MainAppId);
+        asserterror ExtensionMgtTestLibrary.RunExtensionSetup(MainAppId);
         Assert.ExpectedError('is not installed');
     end;
 
@@ -287,7 +287,6 @@ codeunit 133100 "Extension Management Test"
     [Scope('OnPrem')]
     procedure SetupPageIsRunOnInvokingSetupThisAppWhenOnlyOneSetupExistsAndNoPrimarySetupDefinedForAnExtension()
     var
-        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         GuidedExperience: Codeunit "Guided Experience";
         ModuleInformation: ModuleInfo;
         Title: Text[2048];
@@ -309,7 +308,7 @@ codeunit 133100 "Extension Management Test"
         GuidedExperience.InsertAssistedSetup(Title, ShortTitle, Description, 0, ObjectType::Page, Page::"Extension Settings", "Assisted Setup Group"::Uncategorized, '', "Video Category"::Uncategorized, '');
 
         // [WHEN] RunExtensionSetup is invoked
-        ExtensionInstallationImpl.RunExtensionSetup(ModuleInformation.Id);
+        ExtensionMgtTestLibrary.RunExtensionSetup(ModuleInformation.Id);
 
         // [THEN] Modal handler handles the opened setup page
     end;
@@ -319,7 +318,6 @@ codeunit 133100 "Extension Management Test"
     [Scope('OnPrem')]
     procedure SetupIsRunOnInvokingSetupWhenObjectIsNonPageType()
     var
-        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         GuidedExperience: Codeunit "Guided Experience";
         ModuleInformation: ModuleInfo;
         Title: Text[2048];
@@ -341,7 +339,7 @@ codeunit 133100 "Extension Management Test"
         GuidedExperience.InsertAssistedSetup(Title, ShortTitle, Description, 0, ObjectType::Codeunit, Codeunit::"Sample Setup For Test", "Assisted Setup Group"::Uncategorized, '', "Video Category"::Uncategorized, '');
 
         // [WHEN] RunExtensionSetup is invoked
-        ExtensionInstallationImpl.RunExtensionSetup(ModuleInformation.Id);
+        ExtensionMgtTestLibrary.RunExtensionSetup(ModuleInformation.Id);
 
         // [THEN] Modal handler handles the opened setup page
     end;
@@ -351,7 +349,6 @@ codeunit 133100 "Extension Management Test"
     [Scope('OnPrem')]
     procedure SetupPageIsRunOnInvokingSetupThisAppWhenOnlyOneSetupExistsAndOnePrimarySetupDefinedForAnExtension()
     var
-        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         GuidedExperience: Codeunit "Guided Experience";
         ModuleInformation: ModuleInfo;
         Title: Text[2048];
@@ -373,7 +370,7 @@ codeunit 133100 "Extension Management Test"
         GuidedExperience.InsertAssistedSetup(Title, ShortTitle, Description, 0, ObjectType::Page, Page::"Extension Settings", "Assisted Setup Group"::Uncategorized, '', "Video Category"::Uncategorized, '', true);
 
         // [WHEN] RunExtensionSetup is invoked
-        ExtensionInstallationImpl.RunExtensionSetup(ModuleInformation.Id);
+        ExtensionMgtTestLibrary.RunExtensionSetup(ModuleInformation.Id);
 
         // [THEN] Modal handler handles the opened setup page
     end;
@@ -383,7 +380,6 @@ codeunit 133100 "Extension Management Test"
     [Scope('OnPrem')]
     procedure SetupPageIsRunOnInvokingSetupThisAppWhenOnlyTwoSetupExistsAndOnePrimarySetupDefinedForAnExtension()
     var
-        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         GuidedExperience: Codeunit "Guided Experience";
         AppSetupList: TestPage "App Setup List";
         ModuleInformation: ModuleInfo;
@@ -409,7 +405,7 @@ codeunit 133100 "Extension Management Test"
 
         // [WHEN] RunExtensionSetup is invoked
         AppSetupList.Trap();
-        ExtensionInstallationImpl.RunExtensionSetup(ModuleInformation.Id);
+        ExtensionMgtTestLibrary.RunExtensionSetup(ModuleInformation.Id);
 
         // [THEN] Modal handler handles the opened setup page
     end;
@@ -419,7 +415,6 @@ codeunit 133100 "Extension Management Test"
     [Scope('OnPrem')]
     procedure SetupListIsShownOnInvokingSetupThisAppWhenOnlyTwoSetupExistsAndNoPrimarySetupDefinedForAnExtension()
     var
-        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         GuidedExperience: Codeunit "Guided Experience";
         AppSetupList: TestPage "App Setup List";
         ModuleInformation: ModuleInfo;
@@ -445,7 +440,7 @@ codeunit 133100 "Extension Management Test"
 
         // [WHEN] RunExtensionSetup is invoked
         AppSetupList.Trap();
-        ExtensionInstallationImpl.RunExtensionSetup(ModuleInformation.Id);
+        ExtensionMgtTestLibrary.RunExtensionSetup(ModuleInformation.Id);
 
         // [THEN] Modal handler handles the opened setup page and then AppSetupList handles the resulting setup list
     end;
@@ -455,7 +450,6 @@ codeunit 133100 "Extension Management Test"
     [Scope('OnPrem')]
     procedure WhenDefiningMoreThanOneAsPrimarySetupForAnExtensionTheLastOneWins()
     var
-        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         GuidedExperience: Codeunit "Guided Experience";
         AppSetupList: TestPage "App Setup List";
         ModuleInformation: ModuleInfo;
@@ -482,7 +476,7 @@ codeunit 133100 "Extension Management Test"
 
         // [THEN] The last setup wins
         AppSetupList.Trap();
-        ExtensionInstallationImpl.RunExtensionSetup(ModuleInformation.Id);
+        ExtensionMgtTestLibrary.RunExtensionSetup(ModuleInformation.Id);
     end;
 
     [Test]
@@ -490,7 +484,6 @@ codeunit 133100 "Extension Management Test"
     [Scope('OnPrem')]
     procedure ExistingSetupCanBeMarkedAsPrimary()
     var
-        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         GuidedExperience: Codeunit "Guided Experience";
         AppSetupList: TestPage "App Setup List";
         ModuleInformation: ModuleInfo;
@@ -517,14 +510,13 @@ codeunit 133100 "Extension Management Test"
 
         // [THEN] Setup is marked as Primary and runs
         AppSetupList.Trap();
-        ExtensionInstallationImpl.RunExtensionSetup(ModuleInformation.Id);
+        ExtensionMgtTestLibrary.RunExtensionSetup(ModuleInformation.Id);
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure SetupCanBeUnmarkedAsPrimary()
     var
-        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         GuidedExperience: Codeunit "Guided Experience";
         AppSetupList: TestPage "App Setup List";
         ModuleInformation: ModuleInfo;
@@ -552,7 +544,7 @@ codeunit 133100 "Extension Management Test"
 
         // [THEN] PrimaryGuidedExperienceItem has been deleted
         AppSetupList.Trap();
-        ExtensionInstallationImpl.RunExtensionSetup(ModuleInformation.Id);
+        ExtensionMgtTestLibrary.RunExtensionSetup(ModuleInformation.Id);
     end;
 
     [MessageHandler]

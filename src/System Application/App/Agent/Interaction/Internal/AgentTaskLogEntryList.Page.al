@@ -11,13 +11,12 @@ page 4303 "Agent Task Log Entry List"
     PageType = List;
     ApplicationArea = All;
     SourceTable = "Agent Task Log Entry";
-    Caption = 'Agent Task Log';
+    Caption = 'Agent Task Log (Preview)';
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
     Editable = false;
     SourceTableView = sorting("ID") order(descending);
-    Extensible = false;
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -60,16 +59,37 @@ page 4303 "Agent Task Log Entry List"
                 {
                     Caption = 'Description';
                 }
-                field(Details; DetailsTxt)
+                field(Details; '')
                 {
+                    // Temporarily disabled until full support is added.
                     Caption = 'Details';
                     ToolTip = 'Specifies the step details.';
-
-                    trigger OnDrillDown()
-                    begin
-                        Message(DetailsTxt);
-                    end;
+                    Visible = false;
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Promoted)
+        {
+            actionref(Refresh_Promoted; Refresh)
+            {
+            }
+        }
+        area(Creation)
+        {
+            action(Refresh)
+            {
+                Caption = 'Refresh';
+                Image = Refresh;
+                ToolTip = 'Refresh the page.';
+
+                trigger OnAction()
+                begin
+                    CurrPage.Update(false);
+                end;
             }
         }
     }
@@ -85,10 +105,7 @@ page 4303 "Agent Task Log Entry List"
     end;
 
     local procedure UpdateControls()
-    var
-        AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        DetailsTxt := AgentTaskImpl.GetDetailsForAgentTaskLogEntry(Rec);
         case Rec.Level of
             Rec.Level::Error:
                 TypeStyle := 'Unfavorable';
@@ -100,7 +117,6 @@ page 4303 "Agent Task Log Entry List"
     end;
 
     var
-        DetailsTxt: Text;
         TypeStyle: Text;
 }
 #pragma warning restore AS0125

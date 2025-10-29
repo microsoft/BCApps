@@ -50,7 +50,7 @@ page 130455 "Command Line Test Tool"
                     TestSuiteMgt: Codeunit "Test Suite Mgt.";
                 begin
                     TestSuiteMgt.DeleteAllMethods(GlobalALTestSuite);
-                    TestSuiteMgt.SelectTestMethodsByRange(GlobalALTestSuite, TestCodeunitRangeFilter);
+                    TestSuiteMgt.SelectTestMethodsByRange(GlobalALTestSuite, TestCodeunitRangeFilter, TestType, RequiredTestIsolation);
                     if Rec.FindFirst() then;
                 end;
             }
@@ -96,6 +96,14 @@ page 130455 "Command Line Test Tool"
                     if Rec.FindFirst() then;
                 end;
             }
+            field(RequiredTestIsolation; RequiredTestIsolation)
+            {
+                ApplicationArea = All;
+                Caption = 'Required Test Isolation';
+                ToolTip = 'Specifies the RequiredTestIsolation for test filtering. Test methods will only be updated after TestType is set.';
+                BlankZero = true;
+                MinValue = 0;
+            }
             field(TestType; TestType)
             {
                 ApplicationArea = All;
@@ -109,7 +117,7 @@ page 130455 "Command Line Test Tool"
                     TestSuiteMgt: Codeunit "Test Suite Mgt.";
                 begin
                     TestSuiteMgt.DeleteAllMethods(GlobalALTestSuite);
-                    TestSuiteMgt.SelectTestMethodsByExtensionAndTestType(GlobalALTestSuite, ExtensionId, TestType);
+                    TestSuiteMgt.SelectTestMethodsByExtensionAndTestCategorization(GlobalALTestSuite, ExtensionId, TestType, RequiredTestIsolation);
                     if Rec.FindSet() then;
                 end;
             }
@@ -487,6 +495,7 @@ page 130455 "Command Line Test Tool"
         StackTrace: Text;
         ExtensionId: Text;
         TestType: Integer;
+        RequiredTestIsolation: Integer;
         RemoveTestMethod: Text;
         TestResultsJSONText: Text;
         CCResultsCSVText: Text;

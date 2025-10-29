@@ -36,7 +36,7 @@ codeunit 7779 "Azure DI Impl." implements "AI Service Name"
 
     procedure RegisterCopilotCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     begin
-        CopilotCapabilityImpl.RegisterCapability(CopilotCapability, CopilotAvailability, Enum::"Azure AI Service Type"::"Azure Document Intelligence", LearnMoreUrl, CallerModuleInfo);
+        CopilotCapabilityImpl.RegisterCapability(CopilotCapability, CopilotAvailability, Enum::"Copilot Billing Type"::"Undefined", Enum::"Azure AI Service Type"::"Azure Document Intelligence", LearnMoreUrl, CallerModuleInfo);
     end;
 
     /// <summary>

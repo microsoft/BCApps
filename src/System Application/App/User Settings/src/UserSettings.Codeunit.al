@@ -92,6 +92,18 @@ codeunit 9176 "User Settings"
     end;
 
     /// <summary>
+    /// Get the companies the specified user has access to.
+    /// </summary>
+    /// <param name="UserSecurityId">The user security ID.</param>
+    /// <param name="TempCompany">Companies the current user has access to.</param>
+    procedure GetAllowedCompaniesForUser(UserSecurityId: Guid; var TempCompany: Record Company temporary)
+    var
+        UserSettingsImpl: Codeunit "User Settings Impl.";
+    begin
+        UserSettingsImpl.GetAllowedCompaniesForUser(UserSecurityId, TempCompany);
+    end;
+
+    /// <summary>
     /// Allows the user to select the new profile for given User Settings
     /// </summary>
     /// <param name="UserSettingsRec">User settings to update with the new profile</param>
@@ -111,7 +123,7 @@ codeunit 9176 "User Settings"
     var
         UserSettingsImpl: Codeunit "User Settings Impl.";
     begin
-        UserSettingsImpl.GetProfileName(UserSettingsRec.Scope, UserSettingsRec."App ID", UserSettingsRec."Profile ID");
+        exit(UserSettingsImpl.GetProfileName(UserSettingsRec.Scope, UserSettingsRec."App ID", UserSettingsRec."Profile ID"));
     end;
 
     /// <summary>
