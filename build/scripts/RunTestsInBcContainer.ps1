@@ -42,7 +42,7 @@ function Invoke-TestsWithReruns {
         } else {
             $attempt++
             $parameters["ReRun"] = $true
-            if ($attempt -gt $maxReruns) {
+            if ($attempt -ge $maxReruns) {
                 Write-Host "Tests failed after $maxReruns attempts."
                 return $false
             } else {
