@@ -67,14 +67,6 @@ codeunit 4310 "Agent Task Builder Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure AddTaskMessage(From: Text[250]; MessageText: Text; SanitizeMessage: Boolean): codeunit "Agent Task Builder Impl."
-    begin
-        GlobalAgentTaskMessageBuilder.Initialize(From, MessageText, SanitizeMessage);
-        MessageSet := true;
-        exit(this);
-    end;
-
-    [Scope('OnPrem')]
     procedure AddTaskMessage(var AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder"): codeunit "Agent Task Builder Impl."
     begin
         GlobalAgentTaskMessageBuilder := AgentTaskMessageBuilder;

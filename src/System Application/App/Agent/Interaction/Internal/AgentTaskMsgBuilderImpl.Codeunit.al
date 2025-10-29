@@ -23,6 +23,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         GlobalMessageText: Text;
         GlobalRequiresReview: Boolean;
         GlobalIgnoreAttachment: Boolean;
+        GlobalSanitizeMessage: Boolean;
 
     [Scope('OnPrem')]
     procedure Initialize(MessageText: Text): codeunit "Agent Task Msg. Builder Impl."
@@ -36,10 +37,15 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     [Scope('OnPrem')]
     procedure Initialize(From: Text[250]; MessageText: Text): codeunit "Agent Task Msg. Builder Impl."
     begin
-        GlobalFrom := From;
-        GlobalMessageText := MessageText;
         GlobalRequiresReview := true;
         GlobalIgnoreAttachment := false;
+        GlobalSanitizeMessage := true;
+        GlobalFrom := From;
+
+        if GlobalSanitizeMessage then
+            GlobalMessageText := SanitizeMessage(MessageText)
+        else
+            GlobalMessageText := MessageText;
         exit(this);
     end;
 
@@ -54,6 +60,13 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     procedure SetIgnoreAttachment(IgnoreAttachment: Boolean): codeunit "Agent Task Msg. Builder Impl."
     begin
         GlobalIgnoreAttachment := IgnoreAttachment;
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
+    procedure SetSkipMessageSanitization(SkipSanitizeMessage: Boolean): codeunit "Agent Task Msg. Builder Impl."
+    begin
+        GlobalSanitizeMessage := not SkipSanitizeMessage;
         exit(this);
     end;
 

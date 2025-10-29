@@ -28,26 +28,7 @@ codeunit 4316 "Agent Task Message Builder"
     procedure Initialize(MessageText: Text): codeunit "Agent Task Message Builder"
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        AgentTaskMsgBuilderImpl.Initialize(AgentTaskMsgBuilderImpl.SanitizeMessage(MessageText));
-        exit(this);
-    end;
-
-    /// <summary>
-    /// Initialize the agent task message builder with the mandatory parameter.
-    /// From value will be set to the current user.
-    /// This OnPrem overload allows bypassing message sanitization.
-    /// </summary>
-    /// <param name="MessageText">The text of the message.</param>
-    /// <param name="SanitizeMessage">Specifies if the message should be sanitized. Set to false to bypass sanitization.</param>
-    /// <returns>This instance of the Agent Task Message Builder.</returns>
-    [Scope('OnPrem')]
-    procedure Initialize(MessageText: Text; SanitizeMessage: Boolean): codeunit "Agent Task Message Builder"
-    begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        if SanitizeMessage then
-            AgentTaskMsgBuilderImpl.Initialize(AgentTaskMsgBuilderImpl.SanitizeMessage(MessageText))
-        else
-            AgentTaskMsgBuilderImpl.Initialize(MessageText);
+        AgentTaskMsgBuilderImpl.Initialize(MessageText);
         exit(this);
     end;
 
@@ -60,26 +41,7 @@ codeunit 4316 "Agent Task Message Builder"
     procedure Initialize(From: Text[250]; MessageText: Text): codeunit "Agent Task Message Builder"
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        AgentTaskMsgBuilderImpl.Initialize(From, AgentTaskMsgBuilderImpl.SanitizeMessage(MessageText));
-        exit(this);
-    end;
-
-    /// <summary>
-    /// Initialize the agent task message builder with the mandatory parameters.
-    /// This OnPrem overload allows bypassing message sanitization.
-    /// </summary>
-    /// <param name="From">Text indicating the sender of the message.</param>
-    /// <param name="MessageText">The text of the message.</param>
-    /// <param name="SanitizeMessage">Specifies if the message should be sanitized. Set to false to bypass sanitization.</param>
-    /// <returns>This instance of the Agent Task Message Builder.</returns>
-    [Scope('OnPrem')]
-    procedure Initialize(From: Text[250]; MessageText: Text; SanitizeMessage: Boolean): codeunit "Agent Task Message Builder"
-    begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        if SanitizeMessage then
-            AgentTaskMsgBuilderImpl.Initialize(From, AgentTaskMsgBuilderImpl.SanitizeMessage(MessageText))
-        else
-            AgentTaskMsgBuilderImpl.Initialize(From, MessageText);
+        AgentTaskMsgBuilderImpl.Initialize(From, MessageText);
         exit(this);
     end;
 
@@ -105,6 +67,21 @@ codeunit 4316 "Agent Task Message Builder"
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.SetIgnoreAttachment(IgnoreAttachment);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Set whether to sanitize the message text.
+    /// When set to false, message sanitization will be bypassed.
+    /// The default value is true.
+    /// </summary>
+    /// <param name="SkipSanitizeMessage">Specifies if the message sanitization should be skipped.</param>
+    /// <returns>This instance of the Agent Task Message Builder.</returns>
+    [Scope('OnPrem')]
+    procedure SetSkipMessageSanitization(SkipSanitizeMessage: Boolean): codeunit "Agent Task Message Builder"
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        AgentTaskMsgBuilderImpl.SetSkipMessageSanitization(SkipSanitizeMessage);
         exit(this);
     end;
 

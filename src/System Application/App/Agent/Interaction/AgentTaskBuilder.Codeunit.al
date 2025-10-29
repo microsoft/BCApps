@@ -99,24 +99,7 @@ codeunit 4315 "Agent Task Builder"
     procedure AddTaskMessage(From: Text[250]; MessageText: Text): codeunit "Agent Task Builder"
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        AgentTaskBuilderImpl.AddTaskMessage(From, MessageText, true);
-        exit(this);
-    end;
-
-    /// <summary>
-    /// Add a task message to the task.
-    /// Only a single message can be added to the task.
-    /// This OnPrem overload allows bypassing message sanitization.
-    /// </summary>
-    /// <param name="From">The sender of the message.</param>
-    /// <param name="MessageText">The message text.</param>
-    /// <param name="SanitizeMessage">Specifies if the message should be sanitized. Set to false to bypass sanitization.</param>
-    /// <returns>This instance of the Agent Task Builder.</returns>
-    [Scope('OnPrem')]
-    procedure AddTaskMessage(From: Text[250]; MessageText: Text; SanitizeMessage: Boolean): codeunit "Agent Task Builder"
-    begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        AgentTaskBuilderImpl.AddTaskMessage(From, MessageText, SanitizeMessage);
+        AgentTaskBuilderImpl.AddTaskMessage(From, MessageText);
         exit(this);
     end;
 
