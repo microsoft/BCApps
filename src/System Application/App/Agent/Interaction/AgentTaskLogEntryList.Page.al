@@ -54,15 +54,38 @@ page 4303 "Agent Task Log Entry List"
                 {
                     Caption = 'Description';
                 }
-                field(Details; '')
+                field(Details; DetailsTxt)
                 {
-                    // Temporarily disabled until full support is added.
                     Caption = 'Details';
                     ToolTip = 'Specifies the step details.';
-                    Visible = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        Message(DetailsTxt);
+                    end;
                 }
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    begin
+        UpdateControls();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateControls();
+    end;
+
+    local procedure UpdateControls()
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        DetailsTxt := AgentTaskImpl.GetDetailsForAgentTaskLogEntry(Rec);
+    end;
+
+    var
+        DetailsTxt: Text;
 }
 #pragma warning restore AS0125
