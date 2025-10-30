@@ -50,7 +50,7 @@ codeunit 139624 "E-Doc E2E Test"
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
         LibraryService: Codeunit "Library - Service";
         LibraryRandom: Codeunit "Library - Random";
-        LibraryERM: Codeunit "Library - ERM";
+        LibraryERMGlobal: Codeunit "Library - ERM";
         IsInitialized: Boolean;
         IncorrectValueErr: Label 'Incorrect value found';
         DocumentSendingProfileWithWorkflowErr: Label 'Workflow %1 defined for %2 in Document Sending Profile %3 is not found.', Comment = '%1 - The workflow code, %2 - Enum value set in Electronic Document, %3 - Document Sending Profile Code';
@@ -2281,7 +2281,7 @@ codeunit 139624 "E-Doc E2E Test"
     local procedure FindVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup")
     begin
         VATPostingSetup.SetRange("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::" ");
-        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        LibraryERMGlobal.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
     end;
 
 #if not CLEAN26
