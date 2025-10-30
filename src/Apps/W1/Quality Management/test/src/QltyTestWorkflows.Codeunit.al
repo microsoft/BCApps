@@ -45,6 +45,7 @@ codeunit 139969 "Qlty. Test Workflows"
 
     var
         LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         ReUsableQltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         ReUsableQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWorkflow: Codeunit "Library - Workflow";
@@ -55,6 +56,7 @@ codeunit 139969 "Qlty. Test Workflows"
         EventFilterTok: Label 'Where("Grade Code"=Filter(%1))', Comment = '%1=grade code.';
         DefaultGrade1FailCodeTok: Label 'FAIL', Locked = true;
         DefaultGrade2PassCodeTok: Label 'PASS', Locked = true;
+        IsInitialized: Boolean;
 
     [Test]
     procedure PurchaseReturnWorkflow_OnTestFinished()
@@ -80,6 +82,7 @@ codeunit 139969 "Qlty. Test Workflows"
         Reason: Text;
     begin
         // [SCENARIO] Automatically create a purchase return order when a quality inspection test is finished
+        Initialize();
 
         // [GIVEN] A warehouse location and quality management setup with inspection template and generation rule
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
@@ -156,6 +159,8 @@ codeunit 139969 "Qlty. Test Workflows"
         BeforeCount: Integer;
     begin
         // [SCENARIO] Test-to-test source configuration is applied from a create test workflow when source test was filtered by status
+        
+        Initialize();
 
         // [GIVEN] A warehouse location and quality management setup with inspection template
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
@@ -258,6 +263,8 @@ codeunit 139969 "Qlty. Test Workflows"
         PutawayCount: Integer;
     begin
         // [SCENARIO] Create an internal warehouse put-away when a quality inspection test is reopened
+        
+        Initialize();
 
         // [GIVEN] A full warehouse management location with quality setup
         LibraryWarehouse.CreateFullWMSLocation(Location, 2);
@@ -351,6 +358,8 @@ codeunit 139969 "Qlty. Test Workflows"
         ReasonCodeToTest: Text;
     begin
         // [SCENARIO] Create and post a negative inventory adjustment when a quality inspection test is finished
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with inspection template and generation rule
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -442,6 +451,8 @@ codeunit 139969 "Qlty. Test Workflows"
         MoveBehavior: Enum "Qlty. Quantity Behavior";
     begin
         // [SCENARIO] Create a transfer order for failed quantity when a quality inspection test grade changes
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with inspection template and locations
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -529,6 +540,8 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
     begin
         // [SCENARIO] Update a database field value when a quality inspection test is finished
+        
+        Initialize();
 
         // [GIVEN] A full warehouse management location with quality setup
         LibraryWarehouse.CreateFullWMSLocation(Location, 2);
@@ -603,6 +616,8 @@ codeunit 139969 "Qlty. Test Workflows"
         WhseWorksheetTemplateToUseToUse: Text;
     begin
         // [SCENARIO] Move passed quantity using warehouse worksheet for directed put-away and pick location when test is finished
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with warehouse entry generation rule
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -713,6 +728,8 @@ codeunit 139969 "Qlty. Test Workflows"
         QuantityBehavior: Enum "Qlty. Quantity Behavior";
     begin
         // [SCENARIO] Move sample quantity using warehouse reclassification journal for directed put-away and pick location when test is finished
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with warehouse reclassification batch configured
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -811,6 +828,8 @@ codeunit 139969 "Qlty. Test Workflows"
         QuantityBehavior: Enum "Qlty. Quantity Behavior";
     begin
         // [SCENARIO] Move failed quantity using internal movement worksheet for non-directed put-away location when test is finished
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with purchase line generation rule
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -909,6 +928,8 @@ codeunit 139969 "Qlty. Test Workflows"
         QuantityBehavior: Enum "Qlty. Quantity Behavior";
     begin
         // [SCENARIO] Move item tracked quantity using reclassification journal with bin filters for non-directed put-away location when test is finished
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with item journal batch configured for bin moves
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -1029,6 +1050,8 @@ codeunit 139969 "Qlty. Test Workflows"
         QuantityBehavior: Enum "Qlty. Quantity Behavior";
     begin
         // [SCENARIO] Change item tracking lot number and expiration date using warehouse reclassification journal when test is finished
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with lot tracked item using expiration dates
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -1129,6 +1152,8 @@ codeunit 139969 "Qlty. Test Workflows"
         CreatedTests: Integer;
     begin
         // [SCENARIO] Automatically create a retest when a quality inspection test is finished
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with warehouse entry generation rule
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -1191,6 +1216,8 @@ codeunit 139969 "Qlty. Test Workflows"
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Automatically finish a quality inspection test when a purchase approval workflow is completed
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with purchase header source configuration and generation rule
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -1248,6 +1275,8 @@ codeunit 139969 "Qlty. Test Workflows"
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Automatically reopen a finished quality inspection test when a purchase approval workflow is completed
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with purchase header source configuration and generation rule
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -1304,6 +1333,8 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [SCENARIO] Block a lot number when a quality inspection test with failing grade is finished
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with lot tracked item and warehouse entry generation rule
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -1363,6 +1394,8 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [SCENARIO] Unblock a lot number when a quality inspection test with passing grade is finished
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with lot tracked item and blocked lot number
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -1426,6 +1459,8 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [SCENARIO] Block a serial number when a quality inspection test with failing grade is finished
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with serial tracked item and warehouse entry generation rule
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -1486,6 +1521,8 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [SCENARIO] Unblock a serial number when a quality inspection test with passing grade is finished
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with serial tracked item and blocked serial number
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -1549,6 +1586,8 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [SCENARIO] Block a package number when a quality inspection test with failing grade is finished
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with package tracked item and warehouse entry generation rule
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -1609,6 +1648,8 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [SCENARIO] Unblock a package number when a quality inspection test with passing grade is finished
+        
+        Initialize();
 
         // [GIVEN] Quality management setup with package tracked item and blocked package number
         ReUsableQltyTestsUtility.EnsureSetup();
@@ -1659,6 +1700,8 @@ codeunit 139969 "Qlty. Test Workflows"
         QuantityBehavior: Enum "Qlty. Quantity Behavior";
     begin
         // [SCENARIO] Retrieve quantity behavior enum value from workflow step configuration when value is 'true'
+        
+        Initialize();
 
         // [GIVEN] A workflow step argument with quantity configuration value set to 'true'
         QltyWorkflowResponse.SetStepConfigurationValue(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownKeyQuantity(), 'true');
@@ -1677,6 +1720,8 @@ codeunit 139969 "Qlty. Test Workflows"
         QuantityBehavior: Enum "Qlty. Quantity Behavior";
     begin
         // [SCENARIO] Retrieve quantity behavior enum value from workflow step configuration when value is 'false'
+        
+        Initialize();
 
         // [GIVEN] A workflow step argument with quantity configuration value set to 'false'
         QltyWorkflowResponse.SetStepConfigurationValue(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownKeyQuantity(), 'false');
@@ -1695,6 +1740,8 @@ codeunit 139969 "Qlty. Test Workflows"
         AdjPostBehavior: Enum "Qlty. Item Adj. Post Behavior";
     begin
         // [SCENARIO] Set and retrieve adjustment posting behavior enum value as Prepare only
+        
+        Initialize();
 
         // [GIVEN] A workflow step argument is prepared
         // [WHEN] Adjustment posting behavior is set to Prepare only and then retrieved
@@ -1713,6 +1760,8 @@ codeunit 139969 "Qlty. Test Workflows"
         AdjPostBehavior: Enum "Qlty. Item Adj. Post Behavior";
     begin
         // [SCENARIO] Set and retrieve adjustment posting behavior enum value as Post
+        
+        Initialize();
 
         // [GIVEN] A workflow step argument is prepared
         // [WHEN] Adjustment posting behavior is set to Post and then retrieved
@@ -1721,6 +1770,14 @@ codeunit 139969 "Qlty. Test Workflows"
         // [THEN] The retrieved value should match the set value of Post
         LibraryAssert.AreEqual(AdjPostBehavior::Post, QltyWorkflowResponse.GetStepConfigurationValueAsAdjPostingEnum(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownAdjPostingBehavior()),
         'Should return "post"');
+    end;
+
+    local procedure Initialize()
+    begin
+        if IsInitialized then
+            exit;
+        LibraryERMCountryData.CreateVATData();
+        IsInitialized := true;
     end;
 
     local procedure CreateWorkflowWithSingleResponse(var QltyManagementSetup: Record "Qlty. Management Setup"; var Workflow: Record Workflow; WorkflowEvent: Code[128]; WorkflowResponseName: Text; Enable: Boolean)

@@ -48,6 +48,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         NotFirstLoop: Boolean;
         AssistEditTemplateValue: Text;
@@ -94,6 +95,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         GradeCode1Tok: Label '><{}.@!`~''';
         GradeCode2Tok: Label '"|\/?&*()';
         CannotBeRemovedExistingTestErr: Label 'This grade cannot be removed because it is being used actively on at least one existing Quality Inspection Test. If you no longer want to use this grade consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the grade.';
+        IsInitialized: Boolean;
 
     [Test]
     procedure Table_GetControlCaptionClass()
@@ -103,6 +105,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
     begin
         // [SCENARIO] GetControlCaptionClass returns the correct caption for a custom control field
+        Initialize();
 
         // [GIVEN] A basic template and test instance are created
         QltyTestsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionTestHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
@@ -125,6 +128,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
     begin
         // [SCENARIO] GetControlVisibleState returns true for a visible custom control field
+
+        Initialize();
 
         // [GIVEN] A basic template and test instance are created
         QltyTestsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionTestHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
@@ -155,6 +160,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryInventory: Codeunit "Library - Inventory";
     begin
         // [SCENARIO] GetRelatedItem successfully retrieves the item associated with a test
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -196,6 +203,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] A test with no assigned user can be assigned to the current user
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -235,6 +244,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryPermissions: Codeunit "Library - Permissions";
     begin
         // [SCENARIO] A test assigned to another user can be reassigned to the current user using AssignToSelf
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -282,6 +293,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] A test can be reassigned from one user to another without persisting the change
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -326,6 +339,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryPermissions: Codeunit "Library - Permissions";
     begin
         // [SCENARIO] A test assigned to another user can be reassigned to the current user after persisting
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -372,6 +387,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] When sample size exceeds source quantity, it is automatically adjusted to match source quantity
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -407,6 +424,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         // [SCENARIO] When template uses Fixed Quantity sample source, test defaults to the fixed amount
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -447,6 +466,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] When fixed quantity exceeds source quantity, sample size is capped at source quantity
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -485,6 +506,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         // [SCENARIO] When template uses Percent of Quantity sample source, test defaults to calculated percentage
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -526,6 +549,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] An open test can be successfully deleted
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -563,6 +588,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         // [SCENARIO] AssistEditTestField allows editing a test field value through a modal page
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -618,6 +645,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         UnusedVariant2: Variant;
     begin
         // [SCENARIO] AssistEditLotNo allows changing the lot number on a test through item tracking summary
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -690,6 +719,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] AssistEditSerialNo allows changing the serial number on a test through item tracking summary
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -758,6 +789,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         UnusedVariant2: Variant;
     begin
         // [SCENARIO] AssistEditPackageNo allows changing the package number on a test through item tracking summary
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -831,6 +864,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] AssistEditLotNo allows selecting lot number from single document tracking entries
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -900,6 +935,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] AssistEditSerialNo allows selecting serial number from single document tracking entries
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -968,6 +1005,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         UnusedVariant2: Variant;
     begin
         // [SCENARIO] AssistEditPackageNo allows selecting package number from single document tracking entries
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -1040,6 +1079,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] AssistEditLotNo allows selecting lot number from any document tracking entries
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -1110,6 +1151,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         UnusedVariant2: Variant;
     begin
         // [SCENARIO] AssistEditSerialNo allows selecting serial number from any document tracking entries
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -1182,6 +1225,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] AssistEditPackageNo allows selecting package number from any document tracking entries
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -1234,6 +1279,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] VerifyTrackingBeforeFinish throws error when lot-tracked item has no lot number
 
+        Initialize();
+
         // [GIVEN] Item tracking cache is cleared
         ItemQltyItemTracking.ClearTrackingCache();
 
@@ -1268,6 +1315,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ItemQltyItemTracking: Codeunit "Qlty. Item Tracking";
     begin
         // [SCENARIO] Verify error when serial-tracked item has no serial number before finish
+
+        Initialize();
 
         // [GIVEN] Item tracking cache is cleared
         ItemQltyItemTracking.ClearTrackingCache();
@@ -1304,6 +1353,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ItemQltyItemTracking: Codeunit "Qlty. Item Tracking";
     begin
         // [SCENARIO] Verify error when package-tracked item has no package number before finish
+
+        Initialize();
 
         // [GIVEN] Item tracking cache is cleared
         ItemQltyItemTracking.ClearTrackingCache();
@@ -1355,6 +1406,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         UnusedVariant2: Variant;
     begin
         // [SCENARIO] Verify error when lot-tracked item has unposted lot number before finish
+
+        Initialize();
 
         // [GIVEN] Item tracking cache is cleared
         ItemQltyItemTracking.ClearTrackingCache();
@@ -1422,6 +1475,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] Verify error when serial-tracked item has unposted serial number before finish
 
+        Initialize();
+
         // [GIVEN] Item tracking cache is cleared
         ItemQltyItemTracking.ClearTrackingCache();
 
@@ -1488,6 +1543,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] Verify error when package-tracked item has unposted package number before finish
 
+        Initialize();
+
         // [GIVEN] Item tracking cache is cleared
         ItemQltyItemTracking.ClearTrackingCache();
 
@@ -1539,6 +1596,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] Verify error when lot number is not reserved or posted before finish
 
+        Initialize();
+
         // [GIVEN] Item tracking cache is cleared
         ItemQltyItemTracking.ClearTrackingCache();
 
@@ -1575,6 +1634,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] Verify error when serial number is not reserved or posted before finish
 
+        Initialize();
+
         // [GIVEN] Item tracking cache is cleared
         ItemQltyItemTracking.ClearTrackingCache();
 
@@ -1610,6 +1671,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ItemQltyItemTracking: Codeunit "Qlty. Item Tracking";
     begin
         // [SCENARIO] Verify error when package number is not reserved or posted before finish
+
+        Initialize();
 
         // [GIVEN] Item tracking cache is cleared
         ItemQltyItemTracking.ClearTrackingCache();
@@ -1650,6 +1713,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] Test is automatically assigned to current user on modification
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -1688,6 +1753,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] GetReferenceRecordId returns the triggering record's SystemId
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -1720,6 +1787,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         // [SCENARIO] GetReferenceRecordId returns Source RecordId's SystemId when set
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -1759,6 +1828,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] GetReferenceRecordId returns Source RecordId 2's SystemId when set
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -1796,6 +1867,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         // [SCENARIO] GetReferenceRecordId returns Source RecordId 3's SystemId when set
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -1835,6 +1908,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] GetReferenceRecordId returns Source RecordId 4's SystemId when set
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -1870,6 +1945,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         BeforeCount: Integer;
     begin
         // [SCENARIO] Taking a picture with mock camera creates document attachment
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -1929,6 +2006,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] SetRecordFiltersToFindTestFor applies item number filter
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -1970,6 +2049,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Filter: Text;
     begin
         // [SCENARIO] SetRecordFiltersToFindTestFor applies lot number filter
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -2017,6 +2098,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] SetRecordFiltersToFindTestFor applies source document number filter
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -2057,6 +2140,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionTestList: TestPage "Qlty. Inspection Test List";
     begin
         // [SCENARIO] Finish action on test page changes test status to Finished
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -2101,6 +2186,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionTestList: TestPage "Qlty. Inspection Test List";
     begin
         // [SCENARIO] Reopen action on test page changes test status from Finished to Open
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -2149,6 +2236,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] AssignToSelf action on test page assigns test to current user
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -2192,6 +2281,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] Unassign action on test page clears assigned user
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -2234,6 +2325,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] SetMeasurementNote creates and updates record link note for test line
 
+        Initialize();
+
         // [GIVEN] A basic template and test instance are created
         QltyTestsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionTestHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
@@ -2269,6 +2362,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] AssistEditDefaultValue for Option field type opens option menu
 
+        Initialize();
+
         // [GIVEN] A field record is initialized
         ToLoadQltyField.Init();
 
@@ -2293,6 +2388,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] AssistEditDefaultValue for Boolean field type opens Yes/No menu
 
+        Initialize();
+
         // [GIVEN] A field record is initialized
         ToLoadQltyField.Init();
 
@@ -2313,6 +2410,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ToLoadQltyField: Record "Qlty. Field";
     begin
         // [SCENARIO] AssistEditDefaultValue for Text field type opens text editor modal
+
+        Initialize();
 
         // [GIVEN] A field record is initialized
         ToLoadQltyField.Init();
@@ -2335,6 +2434,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
         // [SCENARIO] Deleting field used in template lines should error
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -2382,6 +2483,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] EnsureCanBeDeleted with confirm removes template lines but not the field
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -2420,6 +2523,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
     begin
         // [SCENARIO] Deleting field with existing test lines should error with specific message
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -2469,6 +2574,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] SuggestUnusedFieldCodeFromDescription generates code from description
 
+        Initialize();
+
         // [GIVEN] Existing fields with description are deleted
         ToLoadQltyField.SetRange(Description, DescriptionTxt);
         if not ToLoadQltyField.IsEmpty() then
@@ -2488,6 +2595,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         FieldCode: Code[20];
     begin
         // [SCENARIO] SuggestUnusedFieldCodeFromDescription handles description with no special characters
+
+        Initialize();
 
         // [GIVEN] Existing fields with description are deleted
         ToLoadQltyField.SetRange(Description, DescriptionTxt);
@@ -2509,6 +2618,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] SuggestUnusedFieldCodeFromDescription handles long description with special characters
 
+        Initialize();
+
         // [GIVEN] Existing fields with description are deleted
         ToLoadQltyField.SetRange(Description, Description2Txt);
         if not ToLoadQltyField.IsEmpty() then
@@ -2528,6 +2639,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         FieldCode: Code[20];
     begin
         // [SCENARIO] SuggestUnusedFieldCodeFromDescription increments code when field already exists
+
+        Initialize();
 
         // [GIVEN] Existing fields with description are cleaned up to have only one
         ToLoadQltyField.SetRange(Description, DescriptionTxt);
@@ -2558,6 +2671,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         FieldCodeTxt: Text;
     begin
         // [SCENARIO] AssistEditAllowableValues opens modal to edit allowable values
+
+        Initialize();
 
         // [GIVEN] A random field code is generated
         QltyTestsUtility.GenerateRandomCharacters(20, FieldCodeTxt);
@@ -2590,6 +2705,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         FieldCodeTxt: Text;
     begin
         // [SCENARIO] Field card page updates pass condition and description via AssistEdit
+
+        Initialize();
 
         // [GIVEN] Existing grades are deleted
         if not ToLoadQltyInspectionGrade.IsEmpty() then
@@ -2650,6 +2767,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] ValidateProductionTrigger updates existing production rules when setup trigger changes
 
+        Initialize();
+
         // [GIVEN] All existing generation rules are deleted
         if not QltyInTestGenerationRule.IsEmpty() then
             QltyInTestGenerationRule.DeleteAll();
@@ -2703,6 +2822,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] ValidateWarehouseTrigger creates source configurations for warehouse tables when trigger changes
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -2733,6 +2854,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] ValidateWarehouseTrigger adds trigger to new warehouse rules when setup trigger is configured
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -2762,6 +2885,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetupPage: TestPage "Qlty. Management Setup";
     begin
         // [SCENARIO] ValidateWarehouseTrigger removes trigger from existing warehouse rules when trigger is set to NoTrigger
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -2799,6 +2924,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetupPage: TestPage "Qlty. Management Setup";
     begin
         // [SCENARIO] LookupBinMoveBatchName allows selecting item journal batch for bin movements
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -2852,6 +2979,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetupPage: TestPage "Qlty. Management Setup";
     begin
         // [SCENARIO] LookupBinWhseMoveBatchName allows selecting warehouse journal batch for bin movements
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -2909,6 +3038,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         TemplateName: Text;
     begin
         // [SCENARIO] LookupWhseWkshName allows selecting warehouse worksheet name for movements
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -2972,6 +3103,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] LookupAdjustmentBatchName allows selecting item journal batch for inventory adjustments
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -3024,6 +3157,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetupPage: TestPage "Qlty. Management Setup";
     begin
         // [SCENARIO] LookupWhseAdjustmentBatchName allows selecting warehouse journal batch for inventory adjustments
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -3078,6 +3213,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] ValidateWarehouseReceiveTrigger updates warehouse receive rules when setup trigger changes
 
+        Initialize();
+
         // [GIVEN] All existing generation rules are deleted
         if not QltyInTestGenerationRule.IsEmpty() then
             QltyInTestGenerationRule.DeleteAll();
@@ -3130,6 +3267,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
     begin
         // [SCENARIO] ValidatePurchaseTrigger updates purchase rules when setup trigger changes
+
+        Initialize();
 
         // [GIVEN] All existing generation rules are deleted
         if not QltyInTestGenerationRule.IsEmpty() then
@@ -3184,6 +3323,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] ValidateSalesReturnTrigger updates sales return rules when setup trigger changes
 
+        Initialize();
+
         // [GIVEN] All existing generation rules are deleted
         if not QltyInTestGenerationRule.IsEmpty() then
             QltyInTestGenerationRule.DeleteAll();
@@ -3237,6 +3378,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] ValidateTransferTrigger updates transfer rules when setup trigger changes
 
+        Initialize();
+
         // [GIVEN] All existing generation rules are deleted
         if not QltyInTestGenerationRule.IsEmpty() then
             QltyInTestGenerationRule.DeleteAll();
@@ -3289,6 +3432,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
     begin
         // [SCENARIO] ValidateAssemblyTrigger updates assembly rules when setup trigger changes
+
+        Initialize();
 
         // [GIVEN] All existing generation rules are deleted
         if not QltyInTestGenerationRule.IsEmpty() then
@@ -3350,6 +3495,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] AssistEditBrickFieldExpression allows configuring brick field expressions via AssistEdit
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -3399,6 +3546,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetupPage: TestPage "Qlty. Management Setup";
     begin
         // [SCENARIO] UpdateBrickFieldsOnAllExistingTests recalculates brick fields on all existing tests
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -3453,6 +3602,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] GetVersion returns the installed app version information
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
@@ -3476,6 +3627,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
     begin
         // [SCENARIO] ValidateTemplateCode successfully validates and sets the template code
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -3501,6 +3654,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
     begin
         // [SCENARIO] UpdateSortOrder automatically assigns incremental sort order values to new rules
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -3541,6 +3696,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] GetTemplateCodeFromRecordOrFilter returns template code from current record
 
+        Initialize();
+
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
@@ -3566,6 +3723,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         TemplateCode: Code[20];
     begin
         // [SCENARIO] GetTemplateCodeFromRecordOrFilter returns template code from filter
+
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -3594,6 +3753,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] InferGenerationRuleIntent correctly infers intent from source table number for known tables
+
+        Initialize();
 
         // [WHEN] Source table is Warehouse Receipt Line
         QltyInTestGenerationRule."Source Table No." := Database::"Warehouse Receipt Line";
@@ -3682,6 +3843,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] Infer generation rule intent from Item Journal Line with Entry Type filter for Production Output
 
+        Initialize();
+
         // [GIVEN] A generation rule for Item Journal Line with Entry Type filter for Output
         QltyInTestGenerationRule."Source Table No." := Database::"Item Journal Line";
         QltyInTestGenerationRule."Condition Filter" := ConditionFilterOutputTok;
@@ -3701,6 +3864,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Item Journal Line with Order Type filter for Production
+
+        Initialize();
 
         // [GIVEN] A generation rule for Item Journal Line with Order Type filter for Production
         QltyInTestGenerationRule."Source Table No." := Database::"Item Journal Line";
@@ -3722,6 +3887,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] Infer generation rule intent from Item Journal Line with Document Type filter for Purchase
 
+        Initialize();
+
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Purchase Receipt
         QltyInTestGenerationRule."Source Table No." := Database::"Item Journal Line";
         QltyInTestGenerationRule."Condition Filter" := ConditionFilterPurchaseReceiptTok;
@@ -3741,6 +3908,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Item Journal Line with Document Type filter for Sales Return
+
+        Initialize();
 
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Sales Return Receipt
         QltyInTestGenerationRule."Source Table No." := Database::"Item Journal Line";
@@ -3762,6 +3931,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] Infer generation rule intent from Item Journal Line with Document Type filter for Transfer Receipt
 
+        Initialize();
+
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Transfer Receipt
         QltyInTestGenerationRule."Source Table No." := Database::"Item Journal Line";
         QltyInTestGenerationRule."Condition Filter" := ConditionFilterTransferReceiptTok;
@@ -3782,6 +3953,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
         // [SCENARIO] Infer generation rule intent from Item Journal Line with Document Type filter for Direct Transfer
 
+        Initialize();
+
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Direct Transfer
         QltyInTestGenerationRule."Source Table No." := Database::"Item Journal Line";
         QltyInTestGenerationRule."Condition Filter" := ConditionFilterDirectTransferTok;
@@ -3801,6 +3974,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Item Ledger Entry with Entry Type filter for Production Output
+        Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Output
         QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
@@ -3821,6 +3995,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Item Ledger Entry with Order Type filter for Production
+        Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Order Type filter for Production
         QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
@@ -3841,6 +4016,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Item Ledger Entry with Entry Type filter for Purchase
+        Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Purchase
         QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
@@ -3861,6 +4037,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Item Ledger Entry with Document Type filter for Sales Return
+        Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Sale
         QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
@@ -3881,6 +4058,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Item Ledger Entry with Entry Type filter for Transfer
+        Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Transfer
         QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
@@ -3901,6 +4079,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Item Ledger Entry with Document Type filter for Assembly Output
+        Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Assembly Output
         QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
@@ -3921,6 +4100,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Warehouse Journal Line with Warehouse Document Type filter for Receipt
+        Initialize();
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Warehouse Document Type filter for Receipt
         QltyInTestGenerationRule."Source Table No." := Database::"Warehouse Journal Line";
@@ -3941,6 +4121,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Warehouse Journal Line with Reference Document filter for Posted Receipt
+        Initialize();
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Reference Document filter for Posted Receipt
         QltyInTestGenerationRule."Source Table No." := Database::"Warehouse Journal Line";
@@ -3961,6 +4142,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Warehouse Journal Line with Warehouse Document Type filter for Internal Put-away
+        Initialize();
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Warehouse Document Type filter for Internal Put-away
         QltyInTestGenerationRule."Source Table No." := Database::"Warehouse Journal Line";
@@ -3981,6 +4163,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Warehouse Journal Line with Entry Type filter for Movement
+        Initialize();
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Entry Type filter for Movement
         QltyInTestGenerationRule."Source Table No." := Database::"Warehouse Journal Line";
@@ -4002,6 +4185,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Item Journal Line when only Production trigger is set in setup
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -4036,6 +4220,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Item Ledger Entry when only Production trigger is set in setup
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -4069,6 +4254,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Item Ledger Entry with multiple range values in filter
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -4130,6 +4316,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent returns Unknown when multiple triggers are enabled in setup
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -4168,6 +4355,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Warehouse Journal Line when only Warehouse Receive trigger is set in setup
+        Initialize();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -4198,6 +4386,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
     begin
         // [SCENARIO] Validate grade code by removing special characters
+        Initialize();
 
         // [WHEN] Validating grade code with special characters (GradeCode1Tok)
         ToLoadQltyInspectionGrade.Validate(Code, 'GRADE' + GradeCode1Tok);
@@ -4222,6 +4411,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         GradeCode: Text;
     begin
         // [SCENARIO] Cannot delete grade when it is referenced by existing test lines
+        Initialize();
 
         // [GIVEN] All existing grades are deleted
         ToLoadQltyInspectionGrade.DeleteAll();
@@ -4262,6 +4452,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         GradeCode: Text;
     begin
         // [SCENARIO] Cannot delete grade when it is referenced by existing test headers
+        Initialize();
 
         // [GIVEN] All existing grades are deleted
         ToLoadQltyInspectionGrade.DeleteAll();
@@ -4300,6 +4491,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         GradeCode: Text;
     begin
         // [SCENARIO] Delete grade with existing test grade conditions after confirmation
+        Initialize();
 
         // [GIVEN] All existing grades are deleted
         ToLoadQltyInspectionGrade.DeleteAll();
@@ -4358,6 +4550,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         GradeCode: Text;
     begin
         // [SCENARIO] Delete grade with existing field grade conditions after confirmation
+        Initialize();
 
         // [GIVEN] All existing grades are deleted
         ToLoadQltyInspectionGrade.DeleteAll();
@@ -4399,6 +4592,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         GradeCode: Text;
     begin
         // [SCENARIO] Delete grade with existing template grade conditions after confirmation
+        Initialize();
 
         // [GIVEN] All existing grades are deleted
         ToLoadQltyInspectionGrade.DeleteAll();
@@ -4439,6 +4633,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         GradeCode: Text;
     begin
         // [SCENARIO] Use AssistEdit to configure grade style on grade list page
+        Initialize();
 
         // [GIVEN] All existing grades are deleted
         if not ToLoadQltyInspectionGrade.IsEmpty() then
@@ -4473,6 +4668,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         GradeCode: Text;
     begin
         // [SCENARIO] Get appropriate grade style based on category and override style
+        Initialize();
 
         // [GIVEN] All existing grades are deleted
         ToLoadQltyInspectionGrade.DeleteAll();
@@ -4525,6 +4721,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
     begin
         // [SCENARIO] Template deletion cascades to template lines and generation rules
+        Initialize();
 
         // [GIVEN] A template with one field is created
         QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
@@ -4564,6 +4761,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         GradeCode: Text;
     begin
         // [SCENARIO] Add field to template creates template line and copies grade conditions
+        Initialize();
 
         // [GIVEN] A grade is created
         QltyTestsUtility.GenerateRandomCharacters(20, GradeCode);
@@ -4602,6 +4800,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [THEN] Template grade condition has correct field and grade codes
         LibraryAssert.AreEqual(ToLoadQltyField.Code, DurationTemplateToLoadQltyIGradeConditionConf."Field Code", 'Should be correct field code.');
         LibraryAssert.AreEqual(ToLoadQltyInspectionGrade.Code, DurationTemplateToLoadQltyIGradeConditionConf."Grade Code", 'Should be correct grade code.');
+    end;
+
+    local procedure Initialize()
+    begin
+        if IsInitialized then
+            exit;
+        LibraryERMCountryData.CreateVATData();
+        IsInitialized := true;
     end;
 
     [ConfirmHandler]

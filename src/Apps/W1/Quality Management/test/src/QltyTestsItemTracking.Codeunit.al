@@ -47,8 +47,10 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         NegativeTrackingErr: Label 'Cannot create negative tracking entries on the item %1 in the purchase document %2', Comment = '%1=the item no., %2=the purchase document no';
         SNAlreadyEnteredErr: Label 'Serial Number: [%1] has already been entered.', Comment = '%1 = The serial number';
+        IsInitialized: Boolean;
 
     [Test]
     procedure AddWhseItemJnlTracking_LotTracked_QtyPerUOM1_ViaChangeBin()
@@ -79,6 +81,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add warehouse item journal tracking for lot-tracked item with Qty per UOM=1 via bin change disposition
 
         // [GIVEN] Quality management setup is initialized with warehouse trigger disabled
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
         QltyManagementSetup."Warehouse Trigger" := QltyManagementSetup."Warehouse Trigger"::NoTrigger;
@@ -203,6 +206,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for lot-tracked item with Qty per UOM=1 via positive adjustment
 
         // [GIVEN] Lot number series and tracking code are created
+        Initialize();
         LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'H<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'H<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
@@ -267,6 +271,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for serial-tracked item via positive adjustment
 
         // [GIVEN] Serial number series and tracking code are created
+        Initialize();
         LibraryUtility.CreateNoSeries(SerialNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(SerialNoSeriesLine, SerialNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'I<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'I<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
@@ -332,6 +337,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for package-tracked item with Qty per UOM=1 via positive adjustment
 
         // [GIVEN] Package number series and tracking code are configured in inventory setup
+        Initialize();
         InventorySetup.Get();
         LibraryUtility.CreateNoSeries(PackageNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(PackageNoSeriesLine, PackageNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'J<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'J<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
@@ -405,6 +411,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for serial and package tracked item with Qty per UOM=1 via positive adjustment
 
         // [GIVEN] Serial number series and tracking code are created
+        Initialize();
         LibraryUtility.CreateNoSeries(SerialNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(SerialNoSeriesLine, SerialNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'I<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'I<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
@@ -484,6 +491,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for lot and serial tracked item with Qty per UOM=1 via positive adjustment
 
         // [GIVEN] Serial number series and tracking code are created
+        Initialize();
         LibraryUtility.CreateNoSeries(SerialNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(SerialNoSeriesLine, SerialNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'I<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'I<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
@@ -561,6 +569,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for lot and package tracked item with Qty per UOM=1 via positive adjustment
 
         // [GIVEN] Lot number series and tracking code are created
+        Initialize();
         LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'H<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'H<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
@@ -643,6 +652,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for lot, serial, and package tracked item with Qty per UOM=1 via positive adjustment
 
         // [GIVEN] Serial number series and tracking code are created
+        Initialize();
         LibraryUtility.CreateNoSeries(SerialNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(SerialNoSeriesLine, SerialNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'I<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'I<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
@@ -723,6 +733,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for item without item tracking
 
         // [GIVEN] Item without item tracking is created
+        Initialize();
         LibraryInventory.CreateItem(Item);
 
         // [GIVEN] Location is created
@@ -771,6 +782,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for lot-tracked item with Qty per UOM=1 via negative adjustment
 
         // [GIVEN] Lot number series and tracking code are created
+        Initialize();
         LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'K<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'K<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
@@ -844,6 +856,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for serial-tracked item with Qty per UOM=1 via negative adjustment
 
         // [GIVEN] Serial number series and tracking code are created
+        Initialize();
         LibraryUtility.CreateNoSeries(SerialNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(SerialNoSeriesLine, SerialNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'L<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'L<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
@@ -924,6 +937,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for package-tracked item with Qty per UOM=1 via negative adjustment
 
         // [GIVEN] Package number series is configured in inventory setup
+        Initialize();
         InventorySetup.Get();
         LibraryUtility.CreateNoSeries(PackageNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(PackageNoSeriesLine, PackageNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'M<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'M<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
@@ -1012,6 +1026,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for lot-tracked item with Qty per UOM=1 via reclassification to change lot number
 
         // [GIVEN] Quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
@@ -1124,6 +1139,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for lot-tracked item with Qty per UOM=1 via reclassification to change lot number while keeping expiration date
 
         // [GIVEN] Quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
@@ -1235,6 +1251,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for lot-tracked item with Qty per UOM=1 via reclassification to change both lot number and expiration date
 
         // [GIVEN] Quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
@@ -1349,6 +1366,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for serial-tracked item with Qty per UOM=1 via reclassification to change serial number
 
         // [GIVEN] Quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
@@ -1450,6 +1468,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for serial-tracked item with Qty per UOM=1 via reclassification to change serial number while keeping expiration date
 
         // [GIVEN] Quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
@@ -1563,6 +1582,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for serial-tracked item with Qty per UOM=1 via reclassification to change both serial number and expiration date
 
         // [GIVEN] Quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
@@ -1677,6 +1697,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add item journal reservation entry for package-tracked item with Qty per UOM=1 via reclassification to change package number
 
         // [GIVEN] Quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
@@ -1791,6 +1812,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add outbound transfer reservation entry for item without tracking - verify no entries are created
 
         // [GIVEN] Quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
@@ -1881,6 +1903,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Verify no outbound transfer reservation entries are created for lot-tracked items when transfer quantity is zero
 
         // [GIVEN] A lot-tracked item is created
+        Initialize();
         LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'V<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'V<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
         LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
@@ -1946,6 +1969,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add outbound transfer reservation entry for lot-tracked item with expiration date using specific quantity via transfer disposition
 
         // [GIVEN] Quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
@@ -2055,6 +2079,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add outbound transfer reservation entry for serial-tracked item with specific quantity via transfer disposition
 
         // [GIVEN] Quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
@@ -2153,6 +2178,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Verify no outbound transfer reservation entries are created for serial-tracked items with zero quantity
 
         // [GIVEN] Serial number series and tracking code are created
+        Initialize();
         LibraryUtility.CreateNoSeries(SerialNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(SerialNoSeriesLine, SerialNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'Y<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'Y<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
 
@@ -2222,6 +2248,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Add outbound transfer reservation entry for package-tracked item with specific quantity via transfer disposition
 
         // [GIVEN] Quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
@@ -2337,6 +2364,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Create outbound transfer using test quantity when specific quantity is set to zero for lot and package tracked item
 
         // [GIVEN] Quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
 
@@ -2463,6 +2491,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Delete and recreate purchase return order line tracking for lot-tracked item with positive quantity
 
         // [GIVEN] Lot number series and tracking code are created
+        Initialize();
         LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'AA<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 18, '0'), PadStr(Format(CurrentDateTime(), 0, 'AA<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 18, '9'));
 
@@ -2546,6 +2575,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Delete and recreate purchase return order line tracking with negative quantity should throw error
 
         // [GIVEN] Lot number series and tracking code are created
+        Initialize();
         LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'BB<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 18, '0'), PadStr(Format(CurrentDateTime(), 0, 'BB<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 18, '9'));
 
@@ -2620,6 +2650,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Delete and recreate purchase return order line tracking for serial-tracked item with quantity greater than 1 should throw error
 
         // [GIVEN] Serial number series and tracking code are created
+        Initialize();
         LibraryUtility.CreateNoSeries(SerialNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(SerialNoSeriesLine, SerialNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'CC<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 18, '0'), PadStr(Format(CurrentDateTime(), 0, 'CC<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 18, '9'));
 
@@ -2673,6 +2704,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Verify GetIsWarehouseTracked returns true for serial-tracked item
 
         // [GIVEN] Serial-tracked item is created
+        Initialize();
         LibraryUtility.CreateNoSeries(SerialNoSeries, true, true, false);
         LibraryItemTracking.CreateItemTrackingCode(SerialItemTrackingCode, true, false, false);
         LibraryInventory.CreateTrackedItem(Item, '', SerialNoSeries.Code, SerialItemTrackingCode.Code);
@@ -2693,6 +2725,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Verify GetIsWarehouseTracked returns false for non-tracked item
 
         // [GIVEN] Item without tracking is created
+        Initialize();
         LibraryInventory.CreateItem(Item);
 
         // [WHEN] Checking if item is warehouse tracked
@@ -2715,6 +2748,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Set lot block state to blocked for a lot-tracked item
 
         // [GIVEN] Lot-tracked item with number series is created
+        Initialize();
         QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [GIVEN] Inspection test header with lot number is prepared
@@ -2743,6 +2777,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Set lot block state to unblocked for a previously blocked lot
 
         // [GIVEN] Lot-tracked item with number series is created
+        Initialize();
         QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [GIVEN] Inspection test header with lot number is prepared
@@ -2779,6 +2814,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Set serial block state to blocked for a serial-tracked item
 
         // [GIVEN] Serial-tracked item with number series is created
+        Initialize();
         QltyTestsUtility.CreateSerialTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [GIVEN] Inspection test header with serial number is prepared
@@ -2807,6 +2843,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Set serial block state to unblocked for a previously blocked serial number
 
         // [GIVEN] Serial-tracked item with number series is created
+        Initialize();
         QltyTestsUtility.CreateSerialTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [GIVEN] Inspection test header with serial number is prepared
@@ -2843,6 +2880,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Set package block state to blocked for a package-tracked item
 
         // [GIVEN] Package-tracked item with number series is created
+        Initialize();
         QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [GIVEN] Inspection test header with package number is prepared
@@ -2871,6 +2909,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Set package block state to unblocked for a previously blocked package number
 
         // [GIVEN] Package-tracked item with number series is created
+        Initialize();
         QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [GIVEN] Inspection test header with package number is prepared
@@ -2902,6 +2941,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Verify IsLotTracked returns true for lot-tracked item
 
         // [GIVEN] Lot-tracked item is created
+        Initialize();
         QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
 
         // [WHEN] Checking if item is lot-tracked
@@ -2917,6 +2957,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Verify IsLotTracked returns false for non-lot-tracked item
 
         // [GIVEN] Item without lot tracking is created
+        Initialize();
         LibraryInventory.CreateItem(Item);
 
         // [WHEN] Checking if item is lot-tracked
@@ -2933,6 +2974,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Verify IsSerialTracked returns true for serial-tracked item
 
         // [GIVEN] Serial-tracked item is created
+        Initialize();
         QltyTestsUtility.CreateSerialTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [WHEN] Checking if item is serial-tracked
@@ -2948,6 +2990,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Verify IsSerialTracked returns false for non-serial-tracked item
 
         // [GIVEN] Item without serial tracking is created
+        Initialize();
         LibraryInventory.CreateItem(Item);
 
         // [WHEN] Checking if item is serial-tracked
@@ -2964,6 +3007,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Verify IsPackageTracked returns true for package-tracked item
 
         // [GIVEN] Package-tracked item is created
+        Initialize();
         QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [WHEN] Checking if item is package-tracked
@@ -2979,11 +3023,20 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [SCENARIO] Verify IsPackageTracked returns false for non-package-tracked item
 
         // [GIVEN] Item without package tracking is created
+        Initialize();
         LibraryInventory.CreateItem(Item);
 
         // [WHEN] Checking if item is package-tracked
         // [THEN] Result is false indicating item is not package-tracked
         LibraryAssert.IsFalse(QltyItemTracking.IsPackageTracked(Item."No."), 'Should return is not package-tracked (false)');
+    end;
+
+    local procedure Initialize()
+    begin
+        if IsInitialized then
+            exit;
+        LibraryERMCountryData.CreateVATData();
+        IsInitialized := true;
     end;
 
     [ConfirmHandler]

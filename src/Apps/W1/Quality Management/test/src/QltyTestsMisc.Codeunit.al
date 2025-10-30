@@ -49,6 +49,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         Any: Codeunit Any;
         DocumentNo: Text;
         FlagTestNavigateToSourceDocument: Text;
@@ -61,6 +62,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         TrackingDetailsTok: Label '%1 %2', Comment = '%1=lot no,%2=serial no';
         LockedYesLbl: Label 'Yes', Locked = true;
         LockedNoLbl: Label 'No', Locked = true;
+        IsInitialized: Boolean;
 
     [Test]
     procedure AttemptSplitSimpleRangeIntoMinMax_IntegerSimple()
@@ -75,6 +77,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the range string
         // [THEN] The function returns true and sets Min to 1 and Max to 2
+        Initialize();
         LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('1..2', Min, Max), 'simple conversion');
         LibraryAssert.AreEqual(1, Min, 'simple integer min');
         LibraryAssert.AreEqual(2, Max, 'simple integer max');
@@ -93,6 +96,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the negative range
         // [THEN] The function returns true and sets Min to -5 and Max to -1
+        Initialize();
         LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('-5..-1', Min, Max), 'negative');
         LibraryAssert.AreEqual(-5, Min, 'simple integer min');
         LibraryAssert.AreEqual(-1, Max, 'simple integer max');
@@ -111,6 +115,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the decimal range
         // [THEN] The function returns true and sets Min to 1.00000001 and Max to 2.999999999999
+        Initialize();
         LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('1.00000001..2.999999999999', Min, Max), 'simple conversion');
         LibraryAssert.AreEqual(1.00000001, Min, 'simple decimal min');
         LibraryAssert.AreEqual(2.999999999999, Max, 'simple decimal max');
@@ -129,6 +134,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] AttemptSplitSimpleRangeIntoMinMax is called with the formatted range
         // [THEN] The function returns true and correctly parses Min and Max values
+        Initialize();
         LibraryAssert.AreEqual(true, QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax('1.00000001..1,234,567,890.99', Min, Max), 'simple conversion');
         LibraryAssert.AreEqual(1.00000001, Min, 'thousands separator decimal min');
         LibraryAssert.AreEqual(1234567890.99, Max, 'thousands separator decimal max');
@@ -145,6 +151,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [WHEN] GetArbitraryMaximumRecursion is called
         // [THEN] The function returns 20 as the maximum recursion depth
+        Initialize();
         LibraryAssert.AreEqual(20, QltyMiscHelpers.GetArbitraryMaximumRecursion(), '20 levels of recursion maximum are expected');
     end;
 
@@ -159,6 +166,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         OutPhone: Text;
     begin
         // [SCENARIO] Attempt to get person details for a non-existent person
+
+        Initialize();
 
         // [GIVEN] A person identifier that does not exist in any person table
 
@@ -187,6 +196,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         OutPhone: Text;
     begin
         // [SCENARIO] Get person details from a Contact record
+
+        Initialize();
 
         // [GIVEN] A Contact record with name, job title, email, and phone number
         LibrarySales.CreateSalesperson(SalesPersonPurchaser);
@@ -225,6 +236,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [SCENARIO] Get person details from an Employee record
 
         // [GIVEN] An Employee record with name, job title, email, and phone number
+        Initialize();
         LibraryHumanResource.CreateEmployee(Employee);
         Employee."First Name" := 'David';
         Employee.Validate("Last Name", 'Tennant');
@@ -260,6 +272,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [SCENARIO] Get person details from a Resource record
 
         // [GIVEN] A Resource record with name and job title
+        Initialize();
         LibraryResource.CreateResourceNew(Resource);
         Resource.Name := CopyStr(Any.AlphanumericText(MaxStrLen(Resource.Name)), 1, MaxStrLen(Resource.Name));
         Resource."Job Title" := CopyStr(Any.AlphanumericText(MaxStrLen(Resource."Job Title")), 1, MaxStrLen(Resource."Job Title"));
@@ -290,6 +303,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         OutPhone: Text;
     begin
         // [SCENARIO] Get person details from a User record
+
+        Initialize();
 
         // [GIVEN] A User record with full name and contact email
         LibraryPermissions.CreateUser(User, '', false);
@@ -324,6 +339,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         OutPhone: Text;
     begin
         // [SCENARIO] Get person details from User Setup record
+
+        Initialize();
 
         // [GIVEN] A User record with full name
         LibraryPermissions.CreateUser(User, '', false);
@@ -368,6 +385,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         OutPhone: Text;
     begin
         // [SCENARIO] Get person details from Salesperson/Purchaser linked via User Setup
+
+        Initialize();
 
         // [GIVEN] A User record
         LibraryPermissions.CreateUser(User, '', false);
@@ -432,6 +451,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         OutPhone: Text;
     begin
         // [SCENARIO] Get person details from a test line with table lookup field
+
+        Initialize();
 
         // [GIVEN] User, Salesperson/Purchaser, and User Setup records configured
         LibraryPermissions.CreateUser(User, '', false);
@@ -515,6 +536,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Attempt to get person details from an empty test line
 
+        Initialize();
+
         // [GIVEN] An empty test line record
 
         // [WHEN] GetBasicPersonDetailsFromTestLine is called with the empty record
@@ -535,6 +558,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
         // [SCENARIO] Convert various text values to boolean
+
+        Initialize();
 
         // [GIVEN] Various text values representing true or false
 
@@ -585,6 +610,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Get CSV of values from all records without filter
 
+        Initialize();
+
         // [GIVEN] Multiple Salesperson/Purchaser records
         LibrarySales.CreateSalesperson(FirstSalespersonPurchaser);
         LibrarySales.CreateSalesperson(SecondSalespersonPurchaser);
@@ -619,6 +646,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         CountOfCommas: Integer;
     begin
         // [SCENARIO] Get CSV of values from filtered records
+
+        Initialize();
 
         // [GIVEN] Multiple Salesperson/Purchaser records with a filter applied to one record
         LibrarySales.CreateSalesperson(FirstSalespersonPurchaser);
@@ -658,6 +687,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         CountOfCommas: Integer;
     begin
         // [SCENARIO] Get CSV of values from records with row limit
+
+        Initialize();
 
         // [GIVEN] Multiple Salesperson/Purchaser records with the same email filtered
         LibrarySales.CreateSalesperson(FirstSalespersonPurchaser);
@@ -707,6 +738,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Get maximum rows for field lookup when configured
 
+        Initialize();
+
         // [GIVEN] Quality Management Setup with Max Rows Field Lookups set to 2
         QltyTestsUtility.EnsureSetup();
 
@@ -728,6 +761,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Get maximum rows for field lookup when not configured
 
+        Initialize();
+
         // [GIVEN] Quality Management Setup with Max Rows Field Lookups set to 0
         QltyTestsUtility.EnsureSetup();
 
@@ -745,6 +780,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Get locked "No" text value
 
+        Initialize();
+
         // [WHEN] GetLockedNo250 is called
         // [THEN] The function returns the locked string "No"
         LibraryAssert.AreEqual('No', LockedNoLbl, 'locked no.');
@@ -754,6 +791,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     procedure GetLockedYes250()
     begin
         // [SCENARIO] Get locked "Yes" text value
+
+        Initialize();
 
         // [WHEN] GetLockedYes250 is called
         // [THEN] The function returns the locked string "Yes"
@@ -786,6 +825,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         ProductionOrder: Code[20];
     begin
         // [SCENARIO] Get records for table field with single matching record
+
+        Initialize();
 
         // [GIVEN] A User with full name and contact email
         LibraryPermissions.CreateUser(User, '', false);
@@ -889,6 +930,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         ProductionOrder: Code[20];
     begin
         // [SCENARIO] Get records for table field with multiple matching records
+
+        Initialize();
 
         // [GIVEN] A User with full name and contact email
         LibraryPermissions.CreateUser(User, '', false);
@@ -999,6 +1042,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         ProductionOrder: Code[20];
     begin
         // [SCENARIO] Get records for table field using overloaded function with field and header parameters
+
+        Initialize();
 
         // [GIVEN] A User with full name and contact email
         LibraryPermissions.CreateUser(User, '', false);
@@ -1115,6 +1160,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Get records for table field as CSV string
 
+        Initialize();
+
         // [GIVEN] A User with full name and contact email
         LibraryPermissions.CreateUser(User, '', false);
         User."Full Name" := CopyStr(Any.AlphanumericText(MaxStrLen(User."Full Name")), 1, MaxStrLen(User."Full Name"));
@@ -1216,6 +1263,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Get translated "Yes" text value
 
+        Initialize();
+
         // [WHEN] GetTranslatedYes250 is called
         // [THEN] The function returns the translated string "Yes"
         LibraryAssert.AreEqual('Yes', QltyMiscHelpers.GetTranslatedYes250(), 'locked yes.');
@@ -1227,6 +1276,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
         // [SCENARIO] Get translated "No" text value
+
+        Initialize();
 
         // [WHEN] GetTranslatedNo250 is called
         // [THEN] The function returns the translated string "No"
@@ -1240,6 +1291,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         QltyFieldType: Enum "Qlty. Field Type";
     begin
         // [SCENARIO] Guess data type from description text
+
+        Initialize();
 
         // [GIVEN] Various field descriptions with question words, keywords, or phrases
         // [WHEN] GuessDataTypeFromDescriptionAndValue is called with description (empty value)
@@ -1266,6 +1319,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         QltyFieldType: Enum "Qlty. Field Type";
     begin
         // [SCENARIO] Guess data type from actual values
+
+        Initialize();
 
         // [GIVEN] Various sample values (boolean, numeric, date, text)
         // [WHEN] GuessDataTypeFromDescriptionAndValue is called with value (empty description)
@@ -1295,6 +1350,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Validate if text contains numeric values
 
+        Initialize();
+
         // [GIVEN] Various text values (numbers, text, mixed content)
         // [WHEN] IsNumericText is called with each value
         // [THEN] The function returns true for numeric text, false for non-numeric text
@@ -1314,6 +1371,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
         // [SCENARIO] Identify negative boolean text values
+
+        Initialize();
 
         // [GIVEN] Various text values representing positive and negative boolean states
         // [WHEN] IsTextValueNegativeBoolean is called with each value
@@ -1356,6 +1415,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
         // [SCENARIO] Identify positive boolean text values
+
+        Initialize();
 
         // [GIVEN] Various text values representing positive and negative boolean states
         // [WHEN] IsTextValuePositiveBoolean is called with each value
@@ -1401,6 +1462,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Navigate to find entries from test header
 
+        Initialize();
+
         // [GIVEN] A temporary test header with source document, item, lot, and serial number
         TempQltyInspectionTestHeader."No." := 'TESTSOURCE';
         TempQltyInspectionTestHeader."Source Document No." := 'MYDOC123';
@@ -1425,6 +1488,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibrarySales: Codeunit "Library - Sales";
     begin
         // [SCENARIO] Set table field values dynamically
+
+        Initialize();
 
         // [GIVEN] A Salesperson/Purchaser record with initial values
         LibrarySales.CreateSalesperson(SalespersonPurchaser);
@@ -1454,6 +1519,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Set table value error when field does not exist
 
+        Initialize();
+
         // [GIVEN] A Salesperson/Purchaser record
         LibrarySales.CreateSalesperson(SalespersonPurchaser);
         SalespersonPurchaser."Commission %" := 1;
@@ -1480,6 +1547,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         Format9NoOfInteractions: Text;
     begin
         // [SCENARIO] Read field values as text with different formats
+
+        Initialize();
 
         // [GIVEN] A Salesperson/Purchaser record with decimal field and calculated flowfield
         LibrarySales.CreateSalesperson(SalespersonPurchaser);
@@ -1518,6 +1587,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Navigate to source document from test header
 
+        Initialize();
+
         // [GIVEN] A temporary test header with source RecordId pointing to a Salesperson/Purchaser
         LibrarySales.CreateSalesperson(SalespersonPurchaser);
 
@@ -1553,6 +1624,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         LotNo: Code[20];
     begin
         // [SCENARIO] Block tracking transaction with no tests should not prevent posting
+
+        Initialize();
 
         // [GIVEN] Quality Management setup ensured
         QltyTestsUtility.EnsureSetup();
@@ -1758,6 +1831,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Block assembly consumption with AnyFinished behavior should error
 
+        Initialize();
+
         // [GIVEN] Item journal template and batch prepared
         if ItemJournalTemplate.Count() > 1 then
             ItemJournalTemplate.DeleteAll();
@@ -1861,6 +1936,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Block purchase with HighestRetestNumber behavior should error
 
+        Initialize();
+
         // [GIVEN] Inspection grades cleared
         if not ToLoadQltyInspectionGrade.IsEmpty() then
             ToLoadQltyInspectionGrade.DeleteAll();
@@ -1949,6 +2026,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         ConfigCode: Text;
     begin
         // [SCENARIO] Block assembly output with MostRecentFinishedModified behavior should error
+
+        Initialize();
 
         // [GIVEN] No series for generating unique template names created
         LibraryUtility.CreateNoSeries(ToUseNoSeries, true, true, false);
@@ -2122,6 +2201,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Block warehouse put-away with HighestFinishedRetest behavior should error
 
+        Initialize();
+
         // [GIVEN] Test generation rules cleared
         QltyInTestGenerationRule.DeleteAll();
 
@@ -2206,6 +2287,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Block warehouse put-away with AnyFinished behavior should error
 
+        Initialize();
+
         // [GIVEN] Test generation rules cleared
         QltyInTestGenerationRule.DeleteAll();
 
@@ -2286,6 +2369,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryPurchase: Codeunit "Library - Purchase";
     begin
         // [SCENARIO] Block warehouse inventory put-away with MostRecentFinishedModified behavior should error
+
+        Initialize();
 
         // [GIVEN] Test generation rules cleared
         QltyInTestGenerationRule.DeleteAll();
@@ -2390,6 +2475,8 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryPurchase: Codeunit "Library - Purchase";
     begin
         // [SCENARIO] Block warehouse inventory movement with HighestRetest behavior should error
+
+        Initialize();
 
         // [GIVEN] Test generation rules cleared
         QltyInTestGenerationRule.DeleteAll();
@@ -2536,6 +2623,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Block warehouse movement with MostRecentModified behavior should error
 
+        Initialize();
+
         // [GIVEN] Test generation rules cleared
         QltyInTestGenerationRule.DeleteAll();
 
@@ -2669,6 +2758,8 @@ codeunit 139964 "Qlty. Tests - Misc"
     begin
         // [SCENARIO] Notification management handles opening warehouse movement document
 
+        Initialize();
+
         // [GIVEN] Quality Management setup ensured
         QltyTestsUtility.EnsureSetup();
 
@@ -2750,6 +2841,14 @@ codeunit 139964 "Qlty. Tests - Misc"
 
         // [THEN] The warehouse movement document page opens and the handler validates the correct document number
         LibraryAssert.AreEqual(WhseMovementWarehouseActivityHeader."No.", DocumentNo, 'Should navigate to the movement document');
+    end;
+
+    local procedure Initialize()
+    begin
+        if IsInitialized then
+            exit;
+        LibraryERMCountryData.CreateVATData();
+        IsInitialized := true;
     end;
 
     local procedure EnsureGenPostingSetupExistsForAssembly(AssemblyHeader: Record "Assembly Header")

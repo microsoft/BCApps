@@ -53,6 +53,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         QltyDispPurchaseReturn: Codeunit "Qlty. Disp. Purchase Return";
         LibraryWarehouse: Codeunit "Library - Warehouse";
@@ -71,6 +72,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         RequestedBinMoveButUnableToFindSufficientDetailsErr: Label 'A bin movement for the inventory related to test %1 was requested, however insufficient inventory information is available to do this task.\\  Please verify that the test has sufficient details for the location, item, variant, lot, and serial. \\ If you are using PowerAutomate please make sure that your power automate flow has sufficient configuration.\\If you are moving in Business Central make sure to define the quantity to move.', Comment = '%1=the test';
         ThereIsNothingToMoveToErr: Label 'There is no location or bin to move to. Unable to perform the inventory related transaction on the test %1. Please define the target location and bin and try again.', Locked = true, Comment = '%1=the test';
         UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr: Label 'Unable to change location of the inventory from test %1 from location %2 to %3 because %2 is directed pick and put-away, you can only change bins with the same location.', Comment = '%1=the test, %2=from location, %3=to location';
+        IsInitialized: Boolean;
 
     [Test]
     procedure PurchaseReturnFullLotAdvLocation()
@@ -97,6 +99,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [SCENARIO] Create a purchase return order from a quality inspection test for a full lot-tracked quantity in an advanced warehouse location
 
         // [GIVEN] An advanced warehouse location with full warehouse management is created
+        Initialize();
         LibraryWarehouse.CreateFullWMSLocation(AdvWhseLocation, 3);
 
         // [GIVEN] Lot tracking is created with item tracking code
@@ -164,6 +167,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         UnitCost: Decimal;
     begin
         // [SCENARIO] Create purchase return orders from a quality inspection test for different quantity behaviors (sample size, pass quantity, fail quantity, and specific quantity) in an advanced warehouse location
+
+        Initialize();
 
         // [GIVEN] An advanced warehouse location with full warehouse management is created
         LibraryWarehouse.CreateFullWMSLocation(AdvWhseLocation, 3);
@@ -258,6 +263,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         UnitCost: Decimal;
     begin
         // [SCENARIO] Create a purchase return order for lot-tracked items distributed across multiple bins
+
+        Initialize();
 
         // [GIVEN] An advanced warehouse location with full warehouse management is created
         LibraryWarehouse.CreateFullWMSLocation(AdvWhseLocation, 3);
@@ -376,6 +383,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Create a purchase return order from a quality inspection test for serial-tracked items in an advanced warehouse location
 
+        Initialize();
+
         // [GIVEN] An advanced warehouse location with full warehouse management is created
         LibraryWarehouse.CreateFullWMSLocation(AdvWhseLocation, 3);
 
@@ -446,6 +455,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Create a purchase return order from a quality inspection test for full package-tracked quantity in an advanced warehouse location
 
+        Initialize();
+
         // [GIVEN] An advanced warehouse location with full warehouse management is created
         LibraryWarehouse.CreateFullWMSLocation(AdvWhseLocation, 3);
 
@@ -513,6 +524,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         UnitCost: Decimal;
     begin
         // [SCENARIO] Create purchase return orders from a quality inspection test for different quantity behaviors (sample size, pass quantity, fail quantity, and specific quantity) with package-tracked items
+
+        Initialize();
 
         // [GIVEN] An advanced warehouse location with full warehouse management is created
         LibraryWarehouse.CreateFullWMSLocation(AdvWhseLocation, 3);
@@ -601,6 +614,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Create purchase return orders from a quality inspection test for different quantity behaviors (sample size, pass quantity, fail quantity, and specific quantity) with untracked items in a basic location
 
+        Initialize();
+
         // [GIVEN] A basic warehouse location without advanced warehousing is created
         LibraryWarehouse.CreateLocationWMS(BasicLocation, false, false, false, false, false);
 
@@ -683,6 +698,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Validate that attempting to create a purchase return for an unreceived purchase order results in an error
 
+        Initialize();
+
         // [GIVEN] A basic warehouse location without advanced warehousing is created
         LibraryWarehouse.CreateLocationWMS(BasicLocation, false, false, false, false, false);
 
@@ -743,6 +760,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         BeforeCount: Integer;
     begin
         // [SCENARIO] Validate that no purchase return order is created when no inventory is found at the specified location
+
+        Initialize();
 
         // [GIVEN] A basic warehouse location and a filter location are created
         LibraryWarehouse.CreateLocationWMS(BasicLocation, false, false, false, false, false);
@@ -810,6 +829,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         OriginalLotNo: Code[50];
     begin
         // [SCENARIO] Validate negative inventory adjustment disposition for lot-tracked items in a bin location
+
+        Initialize();
 
         // [GIVEN] Quality management setup is initialized with warehouse trigger disabled
         QltyTestsUtility.EnsureSetup();
@@ -963,6 +984,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Validate negative inventory adjustment disposition for lot-tracked items in a full warehouse management location
 
+        Initialize();
+
         // [GIVEN] Quality management setup is initialized with warehouse trigger disabled
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
@@ -1100,6 +1123,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Create a negative inventory adjustment for untracked items in a bin location
 
+        Initialize();
+
         // [GIVEN] Quality management setup is initialized and a test template and rule are created
         QltyTestsUtility.EnsureSetup();
         EnsureTestTemplateAndRuleForPurchaseLine(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
@@ -1179,6 +1204,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyItemAdjPostBehavior: Enum "Qlty. Item Adj. Post Behavior";
     begin
         // [SCENARIO] Create a negative inventory adjustment for untracked items in a directed put-away location
+
+        Initialize();
 
         // [GIVEN] Quality management setup is initialized and a test template is created for warehouse entries
         QltyTestsUtility.EnsureSetup();
@@ -1264,6 +1291,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyItemAdjPostBehavior: Enum "Qlty. Item Adj. Post Behavior";
     begin
         // [SCENARIO] Create negative warehouse adjustments for lot-tracked items split across multiple bins
+
+        Initialize();
 
         // [GIVEN] Quality management setup is initialized and a test template is created for purchase lines
         QltyTestsUtility.EnsureSetup();
@@ -1380,6 +1409,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Post a negative inventory adjustment for lot-tracked items in a bin location
 
+        Initialize();
+
         // [GIVEN] Quality management setup is initialized and a test template is created for purchase lines
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
@@ -1459,6 +1490,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Register a warehouse negative adjustment for lot-tracked items in a directed location
 
+        Initialize();
+
         // [GIVEN] Quality management setup is initialized and a test template is created for warehouse entries
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry");
@@ -1532,6 +1565,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Raise an error when attempting item tracked quantity disposition on untracked items
 
+        Initialize();
+
         // [GIVEN] Quality management setup is initialized and a test template is created for warehouse entries
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
@@ -1584,6 +1619,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyItemAdjPostBehavior: Enum "Qlty. Item Adj. Post Behavior";
     begin
         // [SCENARIO] Exit without creating adjustment lines when no inventory is found at the filtered location
+
+        Initialize();
 
         // [GIVEN] Quality management setup is initialized and a test template is created for purchase lines
         QltyTestsUtility.EnsureSetup();
@@ -1644,6 +1681,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Raise an error when adjustment batch is not configured for non-directed location
 
+        Initialize();
+
         // [GIVEN] Quality management setup is initialized and a test template is created for purchase lines
         QltyTestsUtility.EnsureSetup();
         EnsureTestTemplateAndRuleForPurchaseLine(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
@@ -1699,6 +1738,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyItemAdjPostBehavior: Enum "Qlty. Item Adj. Post Behavior";
     begin
         // [SCENARIO] Raise an error when warehouse adjustment batch is not configured for directed location
+
+        Initialize();
 
         // [GIVEN] Quality management setup is initialized and a test template is created for warehouse entries
         QltyTestsUtility.EnsureSetup();
@@ -7172,6 +7213,15 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         PutawayWarehouseActivityLine.SetRange("Action Type", PutawayWarehouseActivityLine."Action Type"::Place);
         PutawayWarehouseActivityLine.FindFirst();
         LibraryAssert.AreEqual(50, PutawayWarehouseActivityLine.Quantity, 'Should have created warehouse put-away with quantity 50');
+    end;
+
+    local procedure Initialize()
+    begin
+        if IsInitialized then
+            exit;
+
+        LibraryERMCountryData.CreateVATData();
+        IsInitialized := true;
     end;
 
     local procedure CreateLotTracking(var LotNoSeries: Record "No. Series"; var LotNoSeriesLine: Record "No. Series Line"; var LotItemTrackingCode: Record "Item Tracking Code")

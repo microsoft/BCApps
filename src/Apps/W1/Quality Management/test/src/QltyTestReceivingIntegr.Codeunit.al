@@ -32,7 +32,9 @@ codeunit 139958 "Qlty. Test Receiving Integr."
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        IsInitialized: Boolean;
 
     [Test]
     procedure AttemptCreateTestWithPurchaseLineAndTracking_LotTracked()
@@ -55,6 +57,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from a lot-tracked purchase order when receiving
 
         // [GIVEN] A WMS location, quality inspection template, and generation rule are set up
+        Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -112,6 +115,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from a purchase order without lot tracking when receiving
 
         // [GIVEN] A WMS location, quality inspection template, and generation rule are set up
+        Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -167,6 +171,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from warehouse journal line for lot-tracked item on receipt post
 
         // [GIVEN] A full WMS location, quality inspection template, and warehouse journal generation rule are set up
+        Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -224,6 +229,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from warehouse receipt line for lot-tracked item on receipt create
 
         // [GIVEN] A full WMS location, quality inspection template, and warehouse receipt line generation rule are set up
+        Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -280,6 +286,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from warehouse journal line for standard item on receipt post
 
         // [GIVEN] A full WMS location, quality inspection template, and warehouse journal generation rule are set up
+        Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -335,6 +342,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from purchase line for lot-tracked item on warehouse receipt post
 
         // [GIVEN] A full WMS location, quality inspection template, and purchase line generation rule are set up
+        Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -390,6 +398,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from purchase line for lot-tracked item on warehouse receipt create
 
         // [GIVEN] A full WMS location, quality inspection template, and purchase line generation rule are set up
+        Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -445,6 +454,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from purchase line for standard item on warehouse receipt create
 
         // [GIVEN] A full WMS location, quality inspection template, and purchase line generation rule are set up
+        Initialize();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -509,6 +519,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from sales return order for lot-tracked item on receive post
 
         // [GIVEN] A WMS location, quality inspection template, and sales line generation rule are set up
+        Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -595,6 +606,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from sales return order for standard item on receive post
 
         // [GIVEN] A WMS location, quality inspection template, and sales line generation rule are set up
+        Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -671,6 +683,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from direct transfer order for lot-tracked item on receive post
 
         // [GIVEN] From and To locations are set up
+        Initialize();
         LibraryWarehouse.CreateLocationWMS(FromLocation, false, false, false, false, false);
         LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, false, false);
 
@@ -749,6 +762,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from direct transfer order for standard item on receive post
 
         // [GIVEN] From and To locations are set up
+        Initialize();
         LibraryWarehouse.CreateLocationWMS(FromLocation, false, false, false, false, false);
         LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, false, false);
 
@@ -825,6 +839,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from transfer order with in-transit for lot-tracked item on receive post
 
         // [GIVEN] From, To, and In-Transit locations are set up
+        Initialize();
         LibraryWarehouse.CreateLocationWMS(FromLocation, false, false, false, false, false);
         LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, false, false);
         LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
@@ -898,6 +913,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from transfer order with in-transit for standard item on receive post
 
         // [GIVEN] From, To, and In-Transit locations are set up
+        Initialize();
         LibraryWarehouse.CreateLocationWMS(FromLocation, false, false, false, false, false);
         LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, false, false);
         LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
@@ -971,6 +987,8 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from warehouse journal line with warehouse movement integration
 
         // [GIVEN] Setup is ensured and a quality inspection template is created
+        Initialize();
+        LibraryERMCountryData.CreateVATData();
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
         QltyInTestGenerationRule.DeleteAll();
@@ -1071,6 +1089,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create quality inspection tests from purchase line with multiple lot tracking on purchase release
 
         // [GIVEN] A WMS location and quality inspection template with purchase line generation rule are set up
+        Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1133,6 +1152,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from purchase line with lot-tracked item but unassigned lot on purchase release
 
         // [GIVEN] A WMS location and quality inspection template with purchase line generation rule are set up
+        Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1192,6 +1212,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         // [SCENARIO] Create a quality inspection test from purchase line with untracked item on purchase release
 
         // [GIVEN] A WMS location and quality inspection template with purchase line generation rule are set up
+        Initialize();
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1226,6 +1247,15 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyInspectionTestHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
         LibraryAssert.AreEqual(50, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity (base) should match qty. to receive.');
+    end;
+
+    local procedure Initialize()
+    begin
+        if IsInitialized then
+            exit;
+
+        LibraryERMCountryData.CreateVATData();
+        IsInitialized := true;
     end;
 
     [ConfirmHandler]

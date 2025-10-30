@@ -31,6 +31,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        IsInitialized: Boolean;
         DefaultGrade2PassCodeTok: Label 'PASS', Locked = true;
         InitialConditionTok: Label '1..3';
         ChangedConditionTok: Label '2..4';
@@ -53,6 +55,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
         FieldCode: Text;
     begin
         // [SCENARIO] Update template grade conditions when field grade condition changes and user confirms the update
+
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -110,6 +114,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
     begin
         // [SCENARIO] Do not update template grade conditions when field grade condition changes and user declines the update
 
+        Initialize();
+
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
 
@@ -163,6 +169,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
     begin
         // [SCENARIO] Update field grade conditions when grade default number condition changes and user confirms the update
 
+        Initialize();
+
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
 
@@ -199,6 +207,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
         FieldCode: Text;
     begin
         // [SCENARIO] Do not update field grade conditions when grade default number condition changes and user declines the update
+
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -237,6 +247,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
     begin
         // [SCENARIO] Update field grade conditions when grade default text condition changes and user confirms the update
 
+        Initialize();
+
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
 
@@ -272,6 +284,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
         FieldCode: Text;
     begin
         // [SCENARIO] Do not update field grade conditions when grade default text condition changes and user declines the update
+
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -310,6 +324,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
     begin
         // [SCENARIO] Update field grade conditions when grade default boolean condition changes and user confirms the update
 
+        Initialize();
+
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
 
@@ -345,6 +361,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
         FieldCode: Text;
     begin
         // [SCENARIO] Do not update field grade conditions when grade default boolean condition changes and user declines the update
+
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -387,6 +405,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
         FieldCode: Text;
     begin
         // [SCENARIO] Copy grade conditions from one template line to another template line and verify conditions are copied correctly
+
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -449,6 +469,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
         FieldCode: Text;
     begin
         // [SCENARIO] Copy grade conditions from one template line to another template line when the destination has no existing config line
+
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -515,6 +537,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
     begin
         // [SCENARIO] Copy grade conditions from a template line to a test when the test has no existing config line
 
+        Initialize();
+
         // [GIVEN] A quality inspection template with a prioritized rule for purchase lines is created
         QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
         QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line");
@@ -572,6 +596,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
     begin
         // [SCENARIO] Get promoted grades for a field with custom grade condition and verify the grade information is returned correctly
 
+        Initialize();
+
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
 
@@ -614,6 +640,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
     begin
         // [SCENARIO] Get promoted grades for a field without custom grade condition and verify default grade information is returned
 
+        Initialize();
+
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
 
@@ -652,6 +680,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
         FieldCode: Text;
     begin
         // [SCENARIO] Get promoted grades for a template line and verify the grade information from the template is returned correctly
+
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -708,6 +738,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
     begin
         // [SCENARIO] Get default promoted grades for a template line when no custom conditions exist
 
+        Initialize();
+
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
 
@@ -751,6 +783,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
         MatrixVisible: array[10] of Boolean;
     begin
         // [SCENARIO] Get promoted grades for a template line that has no associated field
+
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -801,6 +835,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
         FieldCode: Text;
     begin
         // [SCENARIO] Get promoted grades for a test line and verify the grade information from the test is returned correctly
+
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -881,6 +917,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
     begin
         // [SCENARIO] Get default promoted grades for a test line when no custom conditions exist at test level
 
+        Initialize();
+
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
 
@@ -951,6 +989,8 @@ codeunit 139956 "Qlty. Test Grade Condition"
     begin
         // [SCENARIO] Get promoted grades for a test line that has no associated template line
 
+        Initialize();
+
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
 
@@ -991,6 +1031,15 @@ codeunit 139956 "Qlty. Test Grade Condition"
         LibraryAssert.IsTrue(MatrixConditionDescriptionCellData[1] = '', 'Should be no array elements.');
         LibraryAssert.IsTrue(MatrixCaptionSet[1] = '', 'Should be no array elements.');
         LibraryAssert.IsTrue(MatrixVisible[1] = false, 'Should be no array elements.');
+    end;
+
+    local procedure Initialize()
+    begin
+        if IsInitialized then
+            exit;
+
+        LibraryERMCountryData.CreateVATData();
+        IsInitialized := true;
     end;
 
     [ConfirmHandler]

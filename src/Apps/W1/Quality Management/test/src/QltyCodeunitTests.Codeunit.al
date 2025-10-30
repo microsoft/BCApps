@@ -29,6 +29,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         FileName: Text;
         OutStreamLbl: Label 'test';
@@ -37,6 +38,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         SecondFileNameTxt: Label 'Second';
         FileNameTxt: Label 'filename';
         AttachFileLbl: Label 'Attach a file';
+        IsInitialized: Boolean;
 
     [Test]
     procedure HandleOnBeforeInsertAttachment_Test()
@@ -48,6 +50,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         OutStreamToTest: OutStream;
     begin
         // [SCENARIO] Attach a document to a Quality Inspection Test Header and verify attachment details
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -80,6 +83,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
         OutStreamToTest: OutStream;
     begin
         // [SCENARIO] Attach a document to a Quality Inspection Template and verify attachment details
+        
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -111,6 +116,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
         FieldCode: Text;
     begin
         // [SCENARIO] Attach a document to a Quality Field and verify attachment details
+        
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -145,6 +152,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
         OutStreamToTest: OutStream;
     begin
         // [SCENARIO] Attach a document to a Quality Inspection Test Line and verify attachment details
+        
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -184,6 +193,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
         OutStreamToTest: OutStream;
     begin
         // [SCENARIO] Attach a document to a Quality Inspection Template Line and verify attachment details
+        
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -221,6 +232,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
         QltyInspectionTest: TestPage "Qlty. Inspection Test";
     begin
         // [SCENARIO] Open attachments page for a test record and verify correct attachment filtering
+        
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -270,6 +283,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
         TemplateCode2: Text;
     begin
         // [SCENARIO] Open attachments page for a template record and verify correct attachment filtering
+        
+        Initialize();
 
         // [GIVEN] Two Quality Inspection Templates with unique codes are created
         QltyInspectionTemplateHdr.Init();
@@ -317,6 +332,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
         FieldCode: Text;
     begin
         // [SCENARIO] Filter document attachments for a Quality Field record and verify correct filter is applied
+        
+        Initialize();
 
         // [GIVEN] A Quality Field with a randomly generated code is created
         ToLoadQltyField.Init();
@@ -349,6 +366,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Filter document attachments for a Quality Inspection Test Line and verify correct filters are applied
+        
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -392,6 +411,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
         TemplateCode: Text;
     begin
         // [SCENARIO] Filter document attachments for a Quality Inspection Template Line and verify correct filters are applied
+        
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -434,6 +455,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
         Navigate: TestPage Navigate;
     begin
         // [SCENARIO] Navigate to a Quality Inspection Test record from the Navigate page and verify correct test is opened
+        
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -473,6 +496,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
         Count: Integer;
     begin
         // [SCENARIO] Navigate to multiple Quality Inspection Test records (original and retest) from the Navigate page and verify both tests are shown
+        
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -525,6 +550,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
         LotNoInformationCard: TestPage "Lot No. Information Card";
     begin
         // [SCENARIO] Navigate from a lot number to find associated Quality Inspection Test records and verify tracking records are found
+        
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized and a full WMS location is created
         QltyTestsUtility.EnsureSetup();
@@ -573,6 +600,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Get the conditional card page ID for a Quality Inspection Test Header record and verify correct page is returned
+        
+        Initialize();
 
         // [GIVEN] A record reference is opened for the Quality Inspection Test Header table
         RecordRef.Open(Database::"Qlty. Inspection Test Header");
@@ -589,6 +618,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Get the conditional list page ID for a Quality Inspection Test Header record and verify correct page is returned
+        
+        Initialize();
 
         // [GIVEN] A record reference is opened for the Quality Inspection Test Header table
         RecordRef.Open(Database::"Qlty. Inspection Test Header");
@@ -611,6 +642,8 @@ codeunit 139970 "Qlty. Codeunit Tests"
         CaptionJsonToken: JsonToken;
     begin
         // [SCENARIO] Get page summary for a Quality Inspection Test and verify brick headers are correctly populated from setup
+        
+        Initialize();
 
         // [GIVEN] Quality Management setup is initialized
         QltyTestsUtility.EnsureSetup();
@@ -648,6 +681,14 @@ codeunit 139970 "Qlty. Codeunit Tests"
             FieldJsonObject.Get('caption', CaptionJsonToken);
             LibraryAssert.IsTrue(CaptionJsonToken.AsValue().AsText() in [QltyManagementSetup."Brick Bottom Left Header", QltyManagementSetup."Brick Bottom Right Header", QltyManagementSetup."Brick Middle Left Header", QltyManagementSetup."Brick Middle Right Header", QltyManagementSetup."Brick Top Left Header"], 'Should be correct header.');
         end;
+    end;
+
+    local procedure Initialize()
+    begin
+        if IsInitialized then
+            exit;
+        LibraryERMCountryData.CreateVATData();
+        IsInitialized := true;
     end;
 
     [ConfirmHandler]

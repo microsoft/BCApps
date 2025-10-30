@@ -29,11 +29,13 @@ codeunit 139959 "Qlty. Tests - Create Test"
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         ReUsableQltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
         CannotFindTemplateErr: Label 'Cannot find a Quality Inspection Template or Quality Inspection Test Generation Rule to match  %1. Ensure there is a Quality Inspection Test Generation Rule that will match this record.', Comment = '%1=The record identifier';
         ProgrammerErrNotARecordRefErr: Label 'Cannot find tests with %1. Please supply a "Record" or "RecordRef".', Comment = '%1=the variant being supplied that is not a recordref. Your system might have an extension or customization that needs to be re-configured.';
         UnableToCreateATestForRecordErr: Label 'Cannot find enough details to make a test for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your test generation rules.  The table involved is %1.', Comment = '%1=the table involved.';
         UnableToCreateATestForParentOrChildErr: Label 'Cannot find enough details to make a test for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your test generation rules.  Two tables involved are %1 and %2.', Comment = '%1=the parent table, %2=the child and original table.';
+        IsInitialized: Boolean;
 
     [Test]
     procedure BasicCreate()
@@ -51,6 +53,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
         AfterCount: Integer;
     begin
         // [SCENARIO] Create a basic quality inspection test from production order routing line
+
+        Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -110,6 +114,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
     begin
         // [SCENARIO] Create test with AlwaysCreate behavior creates a new test even when one exists
 
+        Initialize();
+
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
@@ -168,6 +174,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
     begin
         // [SCENARIO] Create test with CreateARetestAny behavior creates a retest when a test already exists
 
+        Initialize();
+
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
@@ -224,6 +232,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
     begin
         // [SCENARIO] Create test with CreateARetestFinished behavior, using a production order routing line, retrieves existing test when it is not finished
 
+        Initialize();
+
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
@@ -278,6 +288,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
         ClaimedATestWasFoundOrCreated: Boolean;
     begin
         // [SCENARIO] Create test with CreateARetestFinished behavior, using a production order routing line, creates a retest when the existing test is finished
+
+        Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -338,6 +350,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
     begin
         // [SCENARIO] Create test with UseExistingTestOpenElseNew behavior, using a production order routing line, creates a new test when existing test is finished
 
+        Initialize();
+
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
@@ -396,6 +410,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
     begin
         // [SCENARIO] Create test with UseExistingTestOpenElseNew behavior, using a production order routing line, retrieves existing open test
 
+        Initialize();
+
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
@@ -449,6 +465,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
         ClaimedATestWasFoundOrCreated: Boolean;
     begin
         // [SCENARIO] Create test with UseExistingTestAnyElseNew behavior, using a production order routing line, retrieves existing test even if finished
+
+        Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -505,6 +523,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
     begin
         // [SCENARIO] Create test with UseExistingTestAnyElseNew behavior, using a production order routing line, creates a new test when no existing test
 
+        Initialize();
+
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
@@ -550,6 +570,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
         AfterCount: Integer;
     begin
         // [SCENARIO] Create a quality inspection test from production order routing line with variant support
+
+        Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -607,6 +629,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
         AfterCount: Integer;
     begin
         // [SCENARIO] Create a quality inspection test using a production order routing line with specified template and variant support
+
+        Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -669,6 +693,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
         AfterCount: Integer;
     begin
         // [SCENARIO] Creates a quality inspection test with multiple variants from production output
+
+        Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -746,6 +772,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
     begin
         // [SCENARIO] Create a quality inspection test from production output using the 2nd variant parameter
 
+        Initialize();
+
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
@@ -814,6 +842,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
         AfterCount: Integer;
     begin
         // [SCENARIO] Create a quality inspection test from production output using the 3rd variant parameter
+
+        Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -888,6 +918,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
     begin
         // [SCENARIO] Create a quality inspection test from production output using the 4th variant parameter
 
+        Initialize();
+
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
@@ -955,6 +987,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
         AfterCount: Integer;
     begin
         // [SCENARIO] Create a quality inspection test from production output with specified template using variant parameters
+
+        Initialize();
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -1034,6 +1068,8 @@ codeunit 139959 "Qlty. Tests - Create Test"
     begin
         // [SCENARIO] Create a quality inspection test from production output with specified template when no generation rule exists
 
+        Initialize();
+
         // [GIVEN] Quality inspection setup is initialized
         QltyTestsUtility.EnsureSetup();
         QltyManagementSetup.Get();
@@ -1108,6 +1144,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         AfterCount: Integer;
     begin
         // [SCENARIO] Create a quality inspection test using a specified template code from production order routing line
+        Initialize();
 
         // [GIVEN] A production order with routing line is set up with a test template and generation rule
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
@@ -1167,6 +1204,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Verify error when creating test with specific template but generation rule and template do not exist
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
+        Initialize();
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
         // [GIVEN] All generation rules are deleted
@@ -1200,6 +1238,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Verify no tests are found when searching for nonexistent tests with FindAll option
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
+        Initialize();
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
         QltyInspectionTestHeader.Reset();
@@ -1238,6 +1277,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Retrieve all existing tests including retests when FindAll is true. Uses a production order routing line and a retest. Should find both tests.
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
+        Initialize();
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
         // [GIVEN] A test is created with a retest
@@ -1277,6 +1317,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Verify no test is found when searching for nonexistent test with FindAll=false
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
+        Initialize();
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
@@ -1311,6 +1352,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Retrieve only the last test created when FindAll is false. Uses a production order routing line and a retest to ensure it only finds the last test created.
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
+        Initialize();
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
         // [GIVEN] A test is created with a retest
@@ -1344,6 +1386,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Verify no tests are found when searching for nonexistent tests
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
+        Initialize();
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
         // [WHEN] FindExistingTestsWithVariant is called when no tests exist
@@ -1370,6 +1413,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Retrieve an existing test when one exists for the production order routing line
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
+        Initialize();
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
         // [GIVEN] A test is created for the production order routing line
@@ -1398,6 +1442,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Verify error when no generation rule exists and ThrowError is true
 
         // [GIVEN] Quality Management setup is initialized and a template is created
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
 
@@ -1424,6 +1469,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Verify error when an invalid variant is provided to search function
 
         // [GIVEN] Quality Management setup is initialized and a template is created
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
 
@@ -1449,6 +1495,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Verify error when no generation rule exists and ThrowError is true
 
         // [GIVEN] Quality Management setup is initialized and a template is created
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
 
@@ -1484,6 +1531,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Retrieve an existing test created from production output with multiple variants
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
+        Initialize();
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
         // [GIVEN] Production trigger is disabled temporarily
@@ -1541,6 +1589,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Verify no tests are found when searching for nonexistent tests with multiple variants
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
+        Initialize();
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
         // [GIVEN] A production order line is created and output is posted
@@ -1583,6 +1632,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Find an existing test from a purchase order for a lot-tracked item, by searching using standard source fields matching
 
         // [GIVEN] A purchase order with a lot-tracked item is set up
+        Initialize();
         SetupCreateTestPurchaseOrder(PurOrdPurchaseLine, TempSpecTrackingSpecification);
 
         // [GIVEN] The find existing behavior is set to "By Standard Source Fields"
@@ -1628,6 +1678,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Find an existing test from a purchase order for a lot-tracked item, by searching using source record matching
 
         // [GIVEN] A purchase order with a lot-tracked item is set up
+        Initialize();
         SetupCreateTestPurchaseOrder(PurOrdPurchaseLine, TempSpecTrackingSpecification);
 
         // [GIVEN] The find existing behavior is set to "By Source Record"
@@ -1677,6 +1728,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Find an existing test from a purchase order for a lot-tracked item, by source record matching even when no generation rule exists
 
         // [GIVEN] A purchase order with a lot-tracked item is set up
+        Initialize();
         SetupCreateTestPurchaseOrder(PurOrdPurchaseLine, TempSpecTrackingSpecification);
 
         // [GIVEN] The find existing behavior is set to "By Source Record"
@@ -1730,6 +1782,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Find an existing test from a purchase order for a lot-tracked item, by searching using item tracking information
 
         // [GIVEN] A purchase order with a lot-tracked item is set up
+        Initialize();
         SetupCreateTestPurchaseOrder(PurOrdPurchaseLine, TempSpecTrackingSpecification);
 
         // [GIVEN] The find existing behavior is set to "By Item Tracking"
@@ -1779,6 +1832,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Find an existing test from a purchase order for a lot-tracked item, by searching using document and item only
 
         // [GIVEN] A purchase order with a lot-tracked item is set up
+        Initialize();
         SetupCreateTestPurchaseOrder(PurOrdPurchaseLine, TempSpecTrackingSpecification);
 
         // [GIVEN] The find existing behavior is set to "By Document and Item only"
@@ -1827,6 +1881,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Verify no tests are found when searching for nonexistent tests using standard source fields search
 
         // [GIVEN] A purchase order with a lot-tracked item is set up
+        Initialize();
         SetupCreateTestPurchaseOrder(PurOrdPurchaseLine, TempSpecTrackingSpecification);
 
         // [GIVEN] The find existing behavior is set to "By Standard Source Fields"
@@ -1874,6 +1929,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Verify no tests are found when searching for nonexistent tests using source record search
 
         // [GIVEN] A purchase order with a lot-tracked item is set up
+        Initialize();
         SetupCreateTestPurchaseOrder(PurOrdPurchaseLine, TempSpecTrackingSpecification);
 
         // [GIVEN] The find existing behavior is set to "By Source Record"
@@ -1914,6 +1970,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Verify no tests are found when searching for nonexistent tests using item tracking search
 
         // [GIVEN] A purchase order with a lot-tracked item is set up
+        Initialize();
         SetupCreateTestPurchaseOrder(PurOrdPurchaseLine, TempSpecTrackingSpecification);
 
         // [GIVEN] The find existing behavior is set to "By Item Tracking"
@@ -1954,6 +2011,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Verify no tests are found when searching for nonexistent tests using document and item only search
 
         // [GIVEN] A purchase order with a lot-tracked item is set up
+        Initialize();
         SetupCreateTestPurchaseOrder(PurOrdPurchaseLine, TempSpecTrackingSpecification);
 
         // [GIVEN] The find existing behavior is set to "By Document and Item only"
@@ -1992,6 +2050,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Create a retest for an existing quality inspection test
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
+        Initialize();
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
         // [GIVEN] A test is created from the production order routing line
@@ -2032,6 +2091,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Retrieve the most recently created quality inspection test
 
         // [GIVEN] A quality inspection template, generation rule, item, and production order with routing line are set up
+        Initialize();
         SetupCreateTestProductionOrder(QltyInspectionTemplateHdr, QltyInTestGenerationRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
         // [GIVEN] A test is created from the production order routing line
@@ -2086,6 +2146,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Create quality inspection tests for multiple marked tracking specifications from purchase lines
 
         // [GIVEN] Quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         // [GIVEN] A quality inspection template is created
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -2173,6 +2234,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Create quality inspection tests for marked tracking specifications with existing reservation entries
 
         // [GIVEN] The quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         // [GIVEN] A quality inspection template with 3 tests and a prioritized generation rule for Purchase Line are created
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -2239,6 +2301,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Create quality inspection tests for multiple production order routing lines
 
         // [GIVEN] The quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         // [GIVEN] A quality inspection template with 3 tests and a prioritized generation rule for Prod. Order Routing Line are created
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -2298,6 +2361,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Create tests and display the test list page for multiple production order routing lines
 
         // [GIVEN] The quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         // [GIVEN] The quality management setup is configured to show automatic and manually created tests
         QltyManagementSetup.Get();
@@ -2364,6 +2428,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Create a single test and display the test page for one production order routing line
 
         // [GIVEN] The quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         // [GIVEN] The quality management setup is configured to show automatic and manually created tests
         QltyManagementSetup.Get();
@@ -2417,6 +2482,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Verify an error is returned when attempting to create tests with no valid records
 
         // [GIVEN] An empty RecordRef for Prod. Order Routing Line is opened
+        Initialize();
         ProdOrderRoutingLineRecordRef.Open(Database::"Prod. Order Routing Line", true);
         // [GIVEN] The current count of quality inspection test headers is recorded
         BeforeCount := QltyInspectionTestHeader.Count();
@@ -2446,6 +2512,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [SCENARIO] Verify an error is returned when no generation rule exists for production order routing lines
 
         // [GIVEN] The quality management setup is initialized
+        Initialize();
         QltyTestsUtility.EnsureSetup();
         // [GIVEN] A quality inspection template with 3 tests is created
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -2552,6 +2619,15 @@ codeunit 139959 "Qlty. Tests - Create Test"
         QltyTestsUtility.CreateItemJournalTemplateAndBatch(Enum::"Item Journal Template Type"::Output, ItemJournalBatch);
         GenQltyProdOrderGenerator.CreateOutputJournal(Item, ProdOrderLine, ItemJournalBatch, ItemJournalLine, Qty);
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+    end;
+
+    local procedure Initialize()
+    begin
+        if IsInitialized then
+            exit;
+
+        LibraryERMCountryData.CreateVATData();
+        IsInitialized := true;
     end;
 
     [PageHandler]
