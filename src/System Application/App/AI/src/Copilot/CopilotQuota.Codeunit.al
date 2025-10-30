@@ -53,6 +53,20 @@ codeunit 7785 "Copilot Quota"
     end;
 
     /// <summary>
+    /// Checks if the Agent usage with the given UniqueID has already been logged.
+    /// </summary>
+    /// <param name="UniqueID">A unique identifier for this log entry. Parameter is mandatory. This value is used to avoid double charging. Platform will check if we have the entry already logged and will not double charge. If you want to charge always use CreateGuid() or a strategy that will always issue a charge.</param>
+    /// <returns>True if the usage has already been logged, false otherwise.</returns>
+    [Scope('OnPrem')]
+    procedure IsAgentUserAIConsumptionLogged(UniqueID: Text[1024]): Boolean
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(CopilotQuotaImpl.IsAgentUserAIConsumptionLogged(UniqueID));
+    end;
+
+    /// <summary>
     /// Checks if the tenant is allowed to consume Copilot quota.
     /// </summary>
     /// <returns>True if allowed, false otherwise.</returns>
