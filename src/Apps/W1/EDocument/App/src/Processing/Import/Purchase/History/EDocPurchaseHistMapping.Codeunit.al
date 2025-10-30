@@ -146,21 +146,14 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
     /// </summary>
     /// <param name="PurchInvLine"></param>
     /// <param name="EDocumentPurchaseLine"></param>
-    procedure UpdateMissingLineValuesFromHistory(PurchInvLine: Record "Purch. Inv. Line"; var EDocumentPurchaseLine: Record "E-Document Purchase Line"; CustomExplanationTxt: Text[250])
+    procedure UpdateMissingLineValuesFromHistory(PurchInvLine: Record "Purch. Inv. Line"; var EDocumentPurchaseLine: Record "E-Document Purchase Line"; ExplanationTxt: Text[250])
     var
         PurchInvHeader: Record "Purch. Inv. Header";
         DeferralTemplate: Record "Deferral Template";
         UnitOfMeasure: Record "Unit of Measure";
         EDocActivityLogSession: Codeunit "E-Doc. Activity Log Session";
         DeferralActivityLog, AccountNumberActivityLog : Codeunit "Activity Log Builder";
-        ExplanationTxt: Label 'Line value was retrieved from posted purchase invoice history. See source for details.';
-        CurrentExplanationTxt: Text[250];
     begin
-        if CustomExplanationTxt <> '' then
-            CurrentExplanationTxt := CopyStr(CustomExplanationTxt, 1, MaxStrLen(CurrentExplanationTxt))
-        else
-            CurrentExplanationTxt := ExplanationTxt;
-
         PurchInvHeader.SetRange("No.", PurchInvLine."Document No.");
         if not PurchInvHeader.FindFirst() then
             exit;
@@ -171,7 +164,7 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
         if EDocumentPurchaseLine."[BC] Deferral Code" = '' then
             if DeferralTemplate.Get(PurchInvLine."Deferral Code") then begin // we only assign if it's a valid deferral template
                 EDocumentPurchaseLine."[BC] Deferral Code" := PurchInvLine."Deferral Code";
-                SetActivityLog(EDocumentPurchaseLine.SystemId, EDocumentPurchaseLine.FieldNo("[BC] Deferral Code"), PurchInvHeader, CurrentExplanationTxt, DeferralActivityLog, EDocActivityLogSession.DeferralTok());
+                SetActivityLog(EDocumentPurchaseLine.SystemId, EDocumentPurchaseLine.FieldNo("[BC] Deferral Code"), PurchInvHeader, ExplanationTxt, DeferralActivityLog, EDocActivityLogSession.DeferralTok());
             end;
         if EDocumentPurchaseLine."[BC] Shortcut Dimension 1 Code" = '' then
             EDocumentPurchaseLine."[BC] Shortcut Dimension 1 Code" := PurchInvLine."Shortcut Dimension 1 Code";
@@ -193,7 +186,7 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
             end;
             // If we assigned something in this if-branch, we set the activity log
             if (EDocumentPurchaseLine."[BC] Purchase Line Type" <> "Purchase Line Type"::" ") or (EDocumentPurchaseLine."[BC] Purchase Type No." <> '') then
-                SetActivityLog(EDocumentPurchaseLine.SystemId, EDocumentPurchaseLine.FieldNo("[BC] Purchase Type No."), PurchInvHeader, CurrentExplanationTxt, AccountNumberActivityLog, EDocActivityLogSession.AccountNumberTok());
+                SetActivityLog(EDocumentPurchaseLine.SystemId, EDocumentPurchaseLine.FieldNo("[BC] Purchase Type No."), PurchInvHeader, ExplanationTxt, AccountNumberActivityLog, EDocActivityLogSession.AccountNumberTok());
         end;
     end;
 
@@ -218,6 +211,7 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
         ActivityLog
             .Init(Database::"E-Document Purchase Line", FieldNo, SystemId)
             .SetExplanation(Reasoning)
+            .SetType(Enum::"Activity Log Type"::"AI")
             .SetReferenceSource(Page::"Posted Purchase Invoice", RecordRef)
             .SetReferenceTitle(StrSubstNo(HistoricalExplanationTxt, PurchInvHeader.GetFilter("No.")));
         EDocActivityLogSession.Set(ActivityLogSessionToken, ActivityLog);
