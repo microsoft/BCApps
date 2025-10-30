@@ -221,13 +221,15 @@ codeunit 148153 "Usage Based Billing Test"
         // [GIVEN] Create Usage data and process it
         Initialize();
         CreateUsageDataBilling("Usage Based Pricing"::"Unit Cost Surcharge", LibraryRandom.RandDec(10, 2));
+
+        // [WHEN] Process Usage Data Import
         PostDocument := false;
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
         UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
         UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
-        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.");
 
         // [THEN] Test that Subscription Line Entry No and Product details are populated in Usage Data Billing
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.");
         UsageDataGenericImport.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
         UsageDataGenericImport.FindFirst();
         UsageDataBilling.FindSet();
