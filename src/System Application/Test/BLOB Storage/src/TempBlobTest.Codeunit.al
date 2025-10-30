@@ -136,7 +136,7 @@ codeunit 135030 "Temp Blob Test"
 
         // [THEN] cannot set the BLOB from non-BLOB field.
         asserterror TempBlob.FromRecord(Media, IntegerFieldNo);
-        Assert.ExpectedError('Invalid Conversion');
+        Assert.ExpectedError('can't be evaluated into type');
 
         // [GIVEN] A value is written on the record.
         Media.Content.CreateOutStream(BlobOutStream);
@@ -175,7 +175,7 @@ codeunit 135030 "Temp Blob Test"
 
         // [THEN] Cannot set the BLOB from a non-BLOB field.
         asserterror TempBlob.FromRecordRef(MediaRecordRef, IntegerFieldNo);
-        Assert.ExpectedError('Invalid Conversion');
+        Assert.ExpectedError('can't be evaluated into type');
 
         // [GIVEN] Some value is written on the record.
         Media.Content.CreateOutStream(BlobOutStream);
@@ -256,7 +256,7 @@ codeunit 135030 "Temp Blob Test"
 
         // [THEN] Cannot set the BLOB from a non-BLOB field.
         asserterror TempBlob.FromFieldRef(MediaFieldRef);
-        Assert.ExpectedError('Invalid Conversion');
+        Assert.ExpectedError('can't be evaluated into type');
 
         // [GIVEN] Some value is written on the record.
 
