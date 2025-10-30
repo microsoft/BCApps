@@ -56,7 +56,7 @@ codeunit 6188 "E-Document Emailing"
         SourceRelationTypes: List of [Integer];
         SendToEmailAddress: Text[250];
         AttachmentFileName: Text[250];
-        AttachmentFileExtension: Text[4];
+        AttachmentFileExtension: Text;
     begin
         TypeHelper.CopyRecVariantToRecRef(RecordVariant, SourceReference);
         CreateSourceLists(ToCust, SourceReference, SourceTableIDs, SourceIDs, SourceRelationTypes);
@@ -148,7 +148,7 @@ codeunit 6188 "E-Document Emailing"
         DocName: Text[150];
         ToCust: Code[20];
         var AttachmentFileName: Text[250];
-        var AttachmentFileExtension: Text[4]): Codeunit "Temp Blob"
+        var AttachmentFileExtension: Text): Codeunit "Temp Blob"
     var
         DataCompression: Codeunit "Data Compression";
         TempBlob: Codeunit "Temp Blob";
