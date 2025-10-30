@@ -1,0 +1,409 @@
+cultureInfo is-IS
+	translations
+		model Model
+			table Item
+				caption: Vara
+				column 'Item No. & Description'
+					caption: Vörunr. og lýsing
+				column 'Item No.'
+					caption: Vörunr.
+				column 'Item Description'
+					caption: Lýsing atriðis
+				column 'Item Base Unit of Measure'
+					caption: Grunnmælieining vöru
+				column 'Item Unit Cost (LCY)'
+					caption: Kostn.verð (SGM)
+				column 'Item Inventory Posting Group'
+					caption: Bókunarflokkur vörubirgða
+				column 'Item Category Code'
+					caption: Vöruflokkskóði
+				column 'Item Category Description'
+					caption: Lýsing vöruflokks
+			table Location
+				caption: Staðsetning
+				column 'Location Code'
+					caption: Staðsetningarkóði
+				column 'Location Name'
+					caption: Heiti staðsetningar
+				column 'Location Adjustment Bin Code'
+					caption: Hólfakóði staðsetningarleiðréttingar
+			table 'Value Entries'
+				caption: Virðisfærslur
+				column 'Entry No.'
+					caption: Færslunr.
+				column 'Valuation Date'
+					caption: Reikningsdagur innlausnarvirðis
+				column 'Item Ledger Entry Type'
+					caption: Færslugerð birgðahöfuðbókar
+				column 'Document Type'
+					caption: Tegund fylgiskjals
+				column Type
+					caption: Gerð
+				measure 'As of Beg. Date Label'
+					caption: Frá upphafsdegi Merki
+				measure 'As of End Date Label'
+					caption: Frá lokadegi Merki
+				measure 'Beginning Balance Cost Posted to G/L'
+					caption: Upphafsstaða kostnaðar bókaður í fjárhag
+				measure 'Beginning Balance Expected Cost Posted to G/L'
+					caption: Upphafsstaða væntanl. kostn. bók. í fjárhag
+				measure 'Beginning Balance Qty'
+					caption: Upphafsstaða Magn
+				measure 'Beginning Balance Cost Amount (Actual)'
+					caption: Kostnaðarupphæð í upphafi (raunvirði)
+				measure 'Beginning Balance Cost Amount (Expected)'
+					caption: Kostnaðarupphæð í upphafi (áætluð)
+				measure 'Beginning Balance Cost Amount (Incl. Exp Cost)'
+					caption: Kostnaðarupphæð í upphafi (með áætlun)
+				measure 'Cost Amount (Actual)'
+					caption: Kostnaðarupphæð (raunverul.)
+				measure 'Cost Amount (Expected)'
+					caption: Kostnaðarupphæð (væntanl.)
+				measure 'Cost Posted to G/L'
+					caption: Kostnaður bókaður í fjárhag
+				measure 'Expected Cost Posted to G/L'
+					caption: Væntanl. kostn. bók. í fjárhag
+				measure 'Decrease Qty.'
+					caption: Minnka magn
+				measure 'Decrease Value'
+					caption: Minnka gildi
+				measure 'Decrease Value (Expected)'
+					caption: Lækkunargildi (Vænst)
+				measure 'Decrease Value Expected Cost Included'
+					caption: Áætlaður kostnaður innifalinn í minnkuðu virði
+				measure 'Ending Balance Cost Amount (Incl. Exp Cost)'
+					caption: Kostnaðarupphæð í lok (með áætlun)
+				measure 'Ending Balance Cost Posted to G/L'
+					caption: Lokastaða kostnaðar bókaður í fjárhag
+				measure 'Ending Balance Qty.'
+					caption: Magn lokastöðu
+				measure 'Ending Balance Cost Amount (Actual)'
+					caption: Lokastaða kostnaðarupphæðar (raun)
+				measure 'Ending Balance Cost Amount (Expected)'
+					caption: Lokastaða kostnaðarupphæðar (væntanleg)
+				measure 'Ending Balance Expected Cost Posted to G/L'
+					caption: Lokastaða væntanl. kostn. bók. í fjárhag
+				measure 'Increase Value Expected Cost Included'
+					caption: Áætlaður kostnaður innifalinn í auknu virði
+				measure 'Increases Qty.'
+					caption: Auka magn
+				measure 'Increases Value'
+					caption: Auka virði
+				measure 'Increases Value (Expected)'
+					caption: Auka virði (áætlað)
+				measure 'Invoiced Quantity'
+					caption: Reikningsfært magn
+				measure 'Cost Amount (Incl. Exp Cost)'
+					caption: Kostnaðarupphæð (með áætluðum kostnaði)
+				measure 'Variance Cost Posted to G/L'
+					caption: Kostnaður bókaður í fjárhag
+				measure 'Base Link'
+					caption: Grunntengill
+				measure 'Value Entry Back Link'
+					caption: Baktengill virðisfærslu
+			table 'Dimension Sets'
+				caption: Víddasamstæður
+				column 'Global Dimension 1'
+					caption: Altæk vídd 1
+				column 'Global Dimension 2'
+					caption: Altæk vídd 2
+				column 'Shortcut Dimension 3'
+					caption: Flýtivídd 3
+				column 'Shortcut Dimension 4'
+					caption: Flýtivídd 4
+				column 'Shortcut Dimension 5'
+					caption: Flýtivídd 5
+				column 'Shortcut Dimension 6'
+					caption: Flýtivídd 6
+				column 'Shortcut Dimension 7'
+					caption: Flýtivídd 7
+				column 'Shortcut Dimension 8'
+					caption: Flýtivídd 8
+			table Date
+				caption: Dagsetning
+				column 'Week Day'
+					caption: Vikudagur
+				column 'Relative Day'
+					caption: Tengdur dagur
+				column 'Calendar Year'
+					caption: Almanaksár
+				column 'Calendar Quarter'
+					caption: Dagatal Ársfjórðungur
+				column 'Calendar Quarter Year'
+					caption: Dagatal Ársfjórðungur Ár
+				column 'Calendar Month'
+					caption: Almanaksmánuður
+				column 'Calendar Month Year'
+					caption: Almanaksmánuður Ár
+				column 'Calendar Week'
+					caption: Almanaksvika
+				column 'Calendar Week Year'
+					caption: Almanaksvika Ár
+				column 'Calendar WeekYearOrder'
+					caption: Dagatal VikaÁrPöntun
+				column 'Calendar RelativeWeekPos'
+					caption: Dagatal TengtVikaJákv
+				column 'Calendar RelativeMonthPos'
+					caption: Dagatal TengtMánuðurJákv
+				column 'Calendar RelativeQuarterPos'
+					caption: Dagatal TengtÁrsfjórðungurJákv
+				column 'Calendar RelativeYearPos'
+					caption: Dagatal TengtÁrJákv
+				column 'Calendar StartOfMonth'
+					caption: Dagatal Upphafmánaðar
+				column 'Calendar EndOfMonth'
+					caption: Dagatal Mánaðarlok
+				column 'Calendar StartOfQuarter'
+					caption: Dagatal UpphafÁrsfjórðungs
+				column 'Calendar EndOfQuarter'
+					caption: Dagatal Ársfjórðungslok
+				column 'Calendar StartOfYear'
+					caption: Dagatal Upphafárs
+				column 'Calendar EndOfYear'
+					caption: Dagatal Árslok
+				column 'Calendar MonthDays'
+					caption: Dagatal MánuðurDagur
+				column 'Calendar QuarterDays'
+					caption: Dagatal ÁrsfjórðungurDagar
+				column 'Calendar YearDays'
+					caption: Dagatal ÁrDagar
+				column 'Calendar DayOfMonthNumber'
+					caption: Dagatal MánaðardagurNúmer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Dagatal DagurÁrsfjórðungurNúmer
+				column 'Calendar DayOfYearNumber'
+					caption: Dagatal DagurÁrsNúmer
+				column 'Calendar DatePreviousWeek'
+					caption: Dagatal DagsetningFyrriVika
+				column 'Calendar DatePreviousMonth'
+					caption: Dagatal DagasetningFyrriMánuður
+				column 'Calendar DatePreviousQuarter'
+					caption: Dagatal DagsetningFyrriFjórðungur
+				column 'Calendar DatePreviousYear'
+					caption: Dagatal DagsetningFyrraÁr
+				column 'Fiscal Year'
+					caption: Reikningsár
+				column 'Fiscal QuarterNumber'
+					caption: Fjárhagur Númer ársfjórðungs
+				column 'Fiscal Quarter'
+					caption: Fjórðungur fjárhagsárs
+				column 'Fiscal Quarter Year'
+					caption: Fjárhagsfjórðungur Ár
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Fjárhagur MánuðurÍÁrsfjórðungurNúmer
+				column 'Fiscal Month'
+					caption: Mánuður fjárhagsárs
+				column 'Fiscal Month Year'
+					caption: Reikningsmánuður Ár
+				column 'Fiscal WeekNumber'
+					caption: Fjárhagur Númer viku
+				column 'Fiscal Week'
+					caption: Vika fjárhagsárs
+				column 'Fiscal Week Year'
+					caption: Fjárhagsvik Ár
+				column 'Fiscal WeekYearOrder'
+					caption: Fjárhagur VikaÁrPöntun
+				column 'Fiscal RelativeWeekPos'
+					caption: Fjárhagur TengtVikaJákv
+				column 'Fiscal RelativeMonthPos'
+					caption: Fjárhagur TengtMánuðurJákv
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fjárhagur TengtÁrsfjórðungurJákv
+				column 'Fiscal RelativeYearPos'
+					caption: Fjárhagur TengtÁrJákv
+				column 'Fiscal StartOfMonth'
+					caption: Fjárhagur Upphafmánaðar
+				column 'Fiscal EndOfMonth'
+					caption: Fjárhagur Mánaðarlok
+				column 'Fiscal StartOfQuarter'
+					caption: Fjárhagur UpphafÁrsfjórðungs
+				column 'Fiscal EndOfQuarter'
+					caption: Fjárhagur Ársfjórðungslok
+				column 'Fiscal StartOfYear'
+					caption: Fjárhagur Upphafárs
+				column 'Fiscal EndOfYear'
+					caption: Fjárhagur Árslok
+				column 'Fiscal MonthDays'
+					caption: Fjárhagur MánuðurDagur
+				column 'Fiscal QuarterDays'
+					caption: Fjárhagur ÁrsfjórðungurDagar
+				column 'Fiscal YearDays'
+					caption: Reikningsár ÁrDagar
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fjárhagur MánaðardagurNúmer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fjárhagur DagurÁrsfjórðungsNúmer
+				column 'Fiscal DayOfYearNumber'
+					caption: Fjárhagur DagurÁrsNúmer
+				column 'Fiscal DatePreviousWeek'
+					caption: Fjárhagur DagsetningFyrriVika
+				column 'Fiscal DatePreviousMonth'
+					caption: Fjárhagur DagsetningFyrriMánuður
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fjárhagur DagsetningFyrriÁrsfjórðungur
+				column 'Fiscal DatePreviousYear'
+					caption: Fjárhagur DagsetningFyrraÁr
+				column 'FW Year'
+					caption: Fjárhagsvika Ár
+				column 'FW Quarter'
+					caption: Fjárhagsvika Ársfjórðungur
+				column 'FW Quarter Year'
+					caption: Fjárhagsvika Ársfjórðungur Ár
+				column 'FW Month'
+					caption: Fjárhagsvika Mánuður
+				column 'FW Month Year'
+					caption: Fjárhagsvika Mánuður Ár
+				column 'FW Week'
+					caption: Fjárhagsvika Vika
+				column 'FW Period'
+					caption: Fjárhagsvika Tímabil
+				column 'FW Week Year'
+					caption: Fjárhagsvika Vika Ár
+				column 'FW StartOfWeek'
+					caption: Fjárhagsvika UpphafViku
+				column 'FW EndOfWeek'
+					caption: Fjárhagsvika Vikulok
+				column 'FW RelativeWeekPos'
+					caption: Fjárhagsvika TengtVikaJákv
+				column 'FW RelativeMonthPos'
+					caption: Fjárhagsvika TengtMánuðurJákv
+				column 'FW RelativeQuarterPos'
+					caption: Fjárhagsvika TengtÁrsfjórðungurJákv
+				column 'FW RelativeYearPos'
+					caption: Fjárhagsvika TengtÁrJákv
+				column 'FW StartOfMonth'
+					caption: Fjárhagsvika Upphafmánaðar
+				column 'FW EndOfMonth'
+					caption: Fjárhagsvika Mánaðarlok
+				column 'FW StartOfQuarter'
+					caption: Fjárhagsvika UpphafÁrsfjórðungs
+				column 'FW EndOfQuarter'
+					caption: Fjárhagsvika Ársfjórðungslok
+				column 'FW StartOfYear'
+					caption: Fjárhagsvika Upphafárs
+				column 'FW EndOfYear'
+					caption: Fjárhagsvika Árslok
+				column 'FW MonthDays'
+					caption: Fjárhagsvika MánuðurDagar
+				column 'FW QuarterDays'
+					caption: Fjárhagsvika ÁrsfjórðungurDagar
+				column 'FW YearDays'
+					caption: Fjárhagsvika ÁrDagar
+				column 'FW DayOfMonthNumber'
+					caption: Fjárhagsvika MánaðardagurNúmer
+				column 'FW DayOfQuarterNumber'
+					caption: Fjárhagsvika DagurÁrsfjórðungsNúmer
+				column 'FW DayOfYearNumber'
+					caption: Fjárhagsvika DagurÁrsNúmer
+				column 'FW DatePreviousWeek'
+					caption: Fjárhagsvika DagsetningFyrriVika
+				column 'FW DatePreviousMonth'
+					caption: Fjárhagsvika DagsetningFyrriMánuður
+				column 'FW DatePreviousQuarter'
+					caption: Fjárhagsvika DagsetningFyrriÁrsfjórðungur
+				column 'FW DatePreviousYear'
+					caption: Fjárhagsvika DagsetningFyrraÁr
+				column 'Holiday Name'
+					caption: Heiti frídags
+				column IsWorkingDay
+					caption: ErVinnudagur
+				column 'Day Type'
+					caption: Dagsgerð
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Skýrslutitill notanda
+				measure 'My Button Caption'
+					caption: Texti hnapps notanda
+				measure 'My Visual Title'
+					caption: Sjónrænn titill notanda
+				measure 'Inventory Valuation'
+					caption: Birgðavirði
+				measure 'for Business Central'
+					caption: fyrir Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: TENGIÐ GÖGN
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Sækið birgðatengilinn fyrir Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Grunnstillið Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: NOTIÐ, BREYTIÐ OG BÚIÐ TIL EIGIN SKÝRSLUR
+				measure 'Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Birgðavirði felur í sér innbyggðar skýrslur af ólíkum toga til að skoða gögn samstundis.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Hægt er að breyta þessum skýrslum eða búa til nýja skýrslu frá grunni.
+				measure 'HELP AND SUPPORT'
+					caption: HJÁLP OG STUÐNINGUR
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Lesið fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð við nýju skýrsluna.
+				measure 'OTHER POWER BI REPORTS'
+					caption: AÐRAR POWER BI-SKÝRSLUR
+				measure PURCHASE
+					caption: KAUP
+				measure FINANCE
+					caption: FJÁRMÁL
+				measure PROJECTS
+					caption: VERKEFNI
+				measure INVENTORY
+					caption: BIRGÐIR
+				measure SALES
+					caption: SALA
+				measure 'Inventory Valuation Overview'
+					caption: Yfirlit birgðamats
+				measure 'Inventory Value & Cost Posted to G/L by Month Year'
+					caption: Birgðavirði og kostnaður bókaður í fjárhag eftir mánuði og ári
+				measure 'Inventory Value by Location'
+					caption: Birgðavirði eftir staðsetningu
+				measure 'Inventory Quantity'
+					caption: Birgðamagn
+				measure 'Inventory Valuation by Item'
+					caption: Birgðamat eftir vöru
+				measure 'Inventory Valuation by Location'
+					caption: Birgðavirðismat eftir staðsetningu
+				measure 'Detailed Inventory Valuation'
+					caption: Ítarlegt birgðavirði
+				measure 'The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: „Birgðavirði eftir vöru“ sýnir vörunúmer, virði upphafsstöðu, hækkað virði, lækkað virði og virði lokastöðu.
+				measure 'The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: „Birgðavirði eftir staðsetningu“ sýnir staðsetningarkóða, virði upphafsstöðu, hækkað virði, lækkað virði og virði lokastöðu.
+				measure 'The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).'
+					caption: „Ítarlegt birgðavirði“ sýnir dagsetningu, vörunúmer, lýsingu, staðsetningarkóða, tegund fylgiskjals, færslunúmer, reikningsfært magn, kostnaðarupphæð (raunveruleg), kostnaðarupphæð (áætluð), kostnað bókaðan í fjárhag (raunverulegan) og kostnað bókaðan í fjárhag (áætlaðan).
+				measure 'The inventory valuation by location shows location and ending balance value.'
+					caption: „Birgðavirði eftir staðsetningu“ sýnir staðsetningu og virði lokastöðu.
+				measure 'The inventory valuation by item shows item category and ending balance quantity.'
+					caption: „Birgðavirði eftir vöru“ sýnir vöruflokk og magn lokastöðu.
+				measure 'Last Refreshed'
+					caption: Síðast uppfært
+				measure 'Company Name'
+					caption: Heiti fyrirtækis
+				measure 'Inventory value as of '
+					caption: "Birgðavirði frá og með "
+				measure 'Ending Balance Value and Invoiced Quantity by Location Code'
+					caption: Virði lokastöðu og reikningsfært magn eftir staðsetningarkóða
+				measure 'Ending Balance Value, Ending Balance Posted to G/L and Variance by Month'
+					caption: Virði lokastöðu, lokastaða bókuð í fjárhag og frávik eftir mánuði
+				measure 'Ending Balance Quantity by Item Category Code'
+					caption: Magn lokastöðu eftir vöruflokkskóða
+				measure 'Ending Balance Value by Location Name'
+					caption: Virði lokastöðu eftir heiti staðsetningar
+			table COMPANY
+				caption: FYRIRTÆKI
+				measure 'Company Label'
+					caption: Merki fyrirtækis
+			table 'Item Category'
+				caption: Vöruflokkur
+				column 'Item Category Code'
+					caption: Kóði yfirflokks vöru
+				column 'Item Category Description'
+					caption: Lýsing vöruflokks
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Stigveldi vöruflokkskóða
+					level 'Item Category Code Level 1'
+						caption: Vöruflokkakóði af stigi 1
+					level 'Item Category Code Level 2'
+						caption: Vöruflokkakóði af stigi 2
+					level 'Item Category Code Level 3'
+						caption: Vöruflokkakóði af stigi 3
+					level 'Item Category Code'
+						caption: Kóði yfirflokks vöru
+

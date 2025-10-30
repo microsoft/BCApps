@@ -1,0 +1,250 @@
+table 'Prod Order Capacity Need'
+	lineageTag: 5c9dd830-0220-4958-bb24-ab50888fc261
+
+	measure 'Needed Time' =
+			
+			VAR TimeFactor =
+			    LOOKUPVALUE (
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], VALUES ( 'Manufacturing Setup'[Show Capacity In] )
+			    )
+			return DIVIDE([Needed Time (MS)], TimeFactor)
+		formatString: #,0.00
+		displayFolder: _Prod Order Capacity Need Measures
+		lineageTag: 42a27b04-567c-46c3-90f1-5d2282817edf
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Needed Time (MS)' = ```
+			SUM('Prod Order Capacity Need'[neededTimeMs])
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Prod Order Capacity Need Measures
+		lineageTag: 7edb988e-6dfe-4839-8083-57c5cddb5c20
+
+	measure 'Allocated Time' = ```
+			
+			
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR TimeFactor =
+			    LOOKUPVALUE(
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], SelectedUOM
+			    )
+			VAR TimeFactoredProdOrderCapacityNeed =
+			    ADDCOLUMNS(
+			        CALCULATETABLE(
+			            'Prod Order Capacity Need',
+			            'Prod Order Capacity Need'[Requested Only] = FALSE()
+			        ),
+			        "@Factored",
+			            DIVIDE(
+			                VAR WCUOM = LOOKUPVALUE(
+			                    'Work Center'[Work Center Unit of Measure Code],
+			                    'Work Center'[Work Center No.], 'Prod Order Capacity Need'[workCenterNo]
+			                )
+			                VAR WCUOMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], WCUOM
+			                )
+			                RETURN WCUOMFactor * 'Prod Order Capacity Need'[allocatedTime],
+			                TimeFactor
+			            )
+			    )
+			RETURN
+			    SUMX(
+			        TimeFactoredProdOrderCapacityNeed,
+			        [@Factored]
+			    )
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Prod Order Capacity Need Measures
+		lineageTag: 664bd943-dd13-454d-bbbf-d9eeff67e4fd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column allocatedTime
+		dataType: double
+		isHidden
+		lineageTag: 87739342-55b6-4652-b102-9e371c81b225
+		summarizeBy: sum
+		sourceColumn: allocatedTime
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Status
+		dataType: string
+		isHidden
+		lineageTag: 25823125-5976-4bde-a467-3921c5344671
+		summarizeBy: none
+		sourceColumn: Status
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod. Order No.'
+		dataType: string
+		isHidden
+		lineageTag: bc686901-749d-4132-bd32-1b2c68cabeea
+		summarizeBy: none
+		sourceColumn: Prod. Order No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Routing No.'
+		dataType: string
+		isHidden
+		lineageTag: 9153da68-2b78-4617-929d-1545d5f92f2a
+		summarizeBy: none
+		sourceColumn: Routing No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Routing Reference No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2bed573b-69ec-44d2-b5a2-34fef867cf65
+		summarizeBy: sum
+		sourceColumn: Routing Reference No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Operation No.'
+		dataType: string
+		lineageTag: 67a49778-b191-493b-8f75-d20f8a0aa22e
+		summarizeBy: none
+		sourceColumn: Operation No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod. Order Key'
+		dataType: string
+		isHidden
+		lineageTag: 4e04cfcc-a213-4137-be7d-9ec853e87fe1
+		summarizeBy: none
+		sourceColumn: Prod. Order Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Requested Only'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 2fe1017f-da57-435f-954e-12ecc45d0468
+		summarizeBy: none
+		sourceColumn: Requested Only
+
+		annotation SummarizationSetBy = Automatic
+
+	column workCenterNo
+		dataType: string
+		isHidden
+		lineageTag: 8b3b4192-2565-47c6-99b9-978766a7179d
+		summarizeBy: none
+		sourceColumn: workCenterNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column workCenterGroupCode
+		dataType: string
+		isHidden
+		lineageTag: 4591fcc3-9453-4fe4-bc8e-7db58ddb33cb
+		summarizeBy: none
+		sourceColumn: workCenterGroupCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column date
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: f6d5dc64-9000-49d0-bd73-ac1e17a6db7b
+		summarizeBy: none
+		sourceColumn: date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column no
+		dataType: string
+		isHidden
+		lineageTag: 71d03222-0b19-4109-af9b-226b27d5976f
+		summarizeBy: none
+		sourceColumn: no
+
+		annotation SummarizationSetBy = Automatic
+
+	column Type
+		dataType: string
+		lineageTag: f51dfebe-4ee2-4f13-96c2-21f5785e9bee
+		summarizeBy: none
+		sourceColumn: Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column neededTimeMs
+		dataType: double
+		isHidden
+		lineageTag: ed06e782-1ec1-4e76-8c1b-b06bb73e4c4b
+		summarizeBy: sum
+		sourceColumn: neededTimeMs
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column neededTime
+		dataType: double
+		isHidden
+		lineageTag: 46c20f6f-bede-4bb0-8a06-5deda0f0ea25
+		summarizeBy: sum
+		sourceColumn: neededTime
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Prod Order Capacity Need Line No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 04409ee7-9701-4dc8-8e29-43574e03a430
+		summarizeBy: none
+		sourceColumn: Prod Order Capacity Need Line No.
+
+		annotation SummarizationSetBy = User
+
+	partition 'Prod Order Capacity Need' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+				        ENVIRONMENT, COMPANY,API_ENDPOINT, []
+				    ),
+				    TableData = Source{[Name = "prodOrderCapacityNeeds", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(TableData,{{"status", type text}, {"prodOrderNo", type text}, {"routingNo", type text}, {"routingReferenceNo", Int64.Type}, {"operationNo", type text}, {"allocatedTime", type number}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"status", "Status"}, {"prodOrderNo", "Prod. Order No."}, {"routingNo", "Routing No."}, {"routingReferenceNo", "Routing Reference No."}, {"operationNo", "Operation No."}, {"type", "Type"}, {"requestedOnly", "Requested Only"}, {"lineNo", "Prod Order Capacity Need Line No."}}),
+				    #"Added Column" = Table.AddColumn(
+				        #"Renamed Columns", "Prod. Order Key", each [Status] & " " & [#"Prod. Order No."], type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Column",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

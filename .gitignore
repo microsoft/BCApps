@@ -324,5 +324,9 @@ TestResults.xml
 *.ipynb_checkpoints
 *.ipynb
 
+# Power BI pbip files
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+
 # Exceptions
 !src/System Application/Test/Extension Management/testArtifacts/*.app

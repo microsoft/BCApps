@@ -1,0 +1,49 @@
+table 'Aging Date Parameter'
+	lineageTag: d395b9e2-7b87-44cf-99bf-01c40c709b0b
+
+	column 'AGING PARAMETER'
+		lineageTag: d65f0609-200e-46cc-bbb7-3ec48c12080a
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'AGING PARAMETER Order'
+
+		relatedColumnDetails
+			groupByColumn: 'AGING PARAMETER Fields'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'AGING PARAMETER Fields'
+		isHidden
+		lineageTag: b5810254-ef69-4c81-88ad-71f770dd385b
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'AGING PARAMETER Order'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "kind": 2,
+				  "version": 3
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'AGING PARAMETER Order'
+		isHidden
+		formatString: 0
+		lineageTag: 64954085-0c55-46f8-9262-177dbca83181
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Aging Date Parameter-1221f2cf-7d77-4d92-a4db-5ae804783d67' = calculated
+		mode: import
+		source =
+				{
+				    ("Document Date", NAMEOF('Vendor Ledger Entries'[VLE Document Date]), 0),
+				    ("Due Date", NAMEOF('Vendor Ledger Entries'[VLE Due Date]), 1),
+				    ("Posting Date", NAMEOF('Vendor Ledger Entries'[VLE Posting Date]), 2)
+				}
+
+	annotation PBI_Id = c294db85138f4e0cb9c1df17ec160d25
+

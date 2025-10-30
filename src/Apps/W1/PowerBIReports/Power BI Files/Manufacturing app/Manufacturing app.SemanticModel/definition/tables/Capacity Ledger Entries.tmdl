@@ -1,0 +1,526 @@
+table 'Capacity Ledger Entries'
+	lineageTag: d3a9e322-8d27-43c8-a393-abd960820103
+
+	measure 'Direct Cost' = ```
+			
+			CALCULATE(
+			    SUM('Value Entries'[costAmountActual]),
+			    TREATAS(
+			        VALUES('Capacity Ledger Entries'[Entry No.]), 
+			        'Value Entries'[Capacity Ledger Entry No.]
+			    ),
+			    'Value Entries'[Entry Type] = "Direct Cost"
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Capacity Measures
+		lineageTag: 497a0e8f-6282-4c2c-86bd-44a4020a6532
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Overhead Cost' = ```
+			
+			CALCULATE(
+			    SUM('Value Entries'[costAmountActual]),
+			    TREATAS(
+			        VALUES('Capacity Ledger Entries'[Entry No.]), 
+			        'Value Entries'[Capacity Ledger Entry No.]
+			    ),
+			    'Value Entries'[Entry Type] = "Indirect Cost"
+			)
+			```
+		formatString: #,0.00
+		displayFolder: _Capacity Measures
+		lineageTag: 1ffd2b25-b3ed-4589-b75b-8667ea5088a4
+
+	measure 'Run Time' =
+			
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR TimeFactor =
+			    LOOKUPVALUE(
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], SelectedUOM
+			    )
+			VAR TimeFactoredRunTime =
+			    ADDCOLUMNS(
+			        'Capacity Ledger Entries',
+			        "@Factored",
+			            DIVIDE(
+			                VAR CapacityUoMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], 'Capacity Ledger Entries'[Capacity Unit of Measure]
+			                )
+			                RETURN CapacityUoMFactor * 'Capacity Ledger Entries'[runTime],
+			                TimeFactor
+			            )
+			    )
+			RETURN
+			    SUMX(
+			        TimeFactoredRunTime,
+			        [@Factored]
+			    )
+		formatString: #,0.00
+		displayFolder: _Capacity Measures
+		lineageTag: de8835e8-dde7-4132-8459-edbae89f24c9
+
+	measure 'Setup Time' =
+			
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR TimeFactor =
+			    LOOKUPVALUE(
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], SelectedUOM
+			    )
+			VAR TimeFactoredSetupTime =
+			    ADDCOLUMNS(
+			        'Capacity Ledger Entries',
+			        "@Factored",
+			            DIVIDE(
+			                VAR CapacityUoMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], 'Capacity Ledger Entries'[Capacity Unit of Measure]
+			                )
+			                RETURN CapacityUoMFactor * 'Capacity Ledger Entries'[setupTime],
+			                TimeFactor
+			            )
+			    )
+			RETURN
+			    SUMX(
+			        TimeFactoredSetupTime,
+			        [@Factored]
+			    )
+		formatString: #,0.00
+		displayFolder: _Capacity Measures
+		lineageTag: d354637d-7fc5-4f01-a198-38478d894693
+
+	measure 'Stop Time' =
+			
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR TimeFactor =
+			    LOOKUPVALUE(
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], SelectedUOM
+			    )
+			VAR TimeFactoredStopTime =
+			    ADDCOLUMNS(
+			        'Capacity Ledger Entries',
+			        "@Factored",
+			            DIVIDE(
+			                VAR CapacityUoMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], 'Capacity Ledger Entries'[Capacity Unit of Measure]
+			                )
+			                RETURN CapacityUoMFactor * 'Capacity Ledger Entries'[stopTime],
+			                TimeFactor
+			            )
+			    )
+			RETURN
+			    SUMX(
+			        TimeFactoredStopTime,
+			        [@Factored]
+			    )
+		formatString: #,0.00
+		displayFolder: _Capacity Measures
+		lineageTag: d70a6af1-9db7-4744-92b5-15f2a421afc6
+
+	measure 'Scrap Quantity' = SUM('Capacity Ledger Entries'[scrapQuantity])
+		formatString: #,0.00
+		displayFolder: _Capacity Measures
+		lineageTag: ce2f91ad-6beb-472e-aef0-5e30489fbd64
+
+	measure 'Scrap %' = DIVIDE([Scrap Quantity],SUM('Capacity Ledger Entries'[outputQuantity]))
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Capacity Measures
+		lineageTag: 16a933e0-0207-4840-bd08-5da149f27ae5
+
+	measure 'Capacity Ledger Output Quantity' = SUM('Capacity Ledger Entries'[outputQuantity])
+		formatString: #,0.00
+		displayFolder: _Capacity Measures
+		lineageTag: 4934bd0d-3c29-4573-a9a1-d0ac91b02aec
+
+	measure 'Capacity Ledger Quantity' = SUM('Capacity Ledger Entries'[quantity])
+		formatString: #,0.00
+		displayFolder: _Capacity Measures
+		lineageTag: 6abcd84f-2b09-45b6-a45e-18397ff512a5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Order Type'
+		dataType: string
+		lineageTag: 2b565327-88f6-4016-a2f0-223e1c686c8a
+		summarizeBy: none
+		sourceColumn: Order Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Order No.'
+		dataType: string
+		isHidden
+		lineageTag: f843a911-0d4a-428f-b68c-a5f21e473e44
+		summarizeBy: none
+		sourceColumn: Order No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Order Line No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 53bcefeb-73e6-4989-a85b-f64e67a63fcc
+		summarizeBy: none
+		sourceColumn: Order Line No.
+
+		annotation SummarizationSetBy = User
+
+	column Type
+		dataType: string
+		lineageTag: 155653ba-ace3-4da6-8d6c-41025b2018c9
+		summarizeBy: none
+		sourceColumn: Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'No.'
+		dataType: string
+		lineageTag: e9a56e57-668f-42b1-9691-08f28971ebc0
+		summarizeBy: none
+		sourceColumn: No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: ad9bdce2-409a-4426-8a0c-95c59ca8e401
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Posting Date'
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 50f1f37b-4019-4b7a-80af-7522a3a7a40f
+		summarizeBy: none
+		sourceColumn: Posting Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Item No.'
+		dataType: string
+		isHidden
+		lineageTag: d1208101-36b5-4233-ae6c-04f3d3d9d1e3
+		summarizeBy: none
+		sourceColumn: Item No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column setupTime
+		dataType: double
+		isHidden
+		formatString: 0.00
+		lineageTag: d0ed7d02-b14e-444f-a909-6592f84d3f75
+		summarizeBy: sum
+		sourceColumn: setupTime
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column runTime
+		dataType: double
+		isHidden
+		formatString: 0.00
+		lineageTag: dc2dfe18-df32-42ff-b93c-96f0086e28d5
+		summarizeBy: sum
+		sourceColumn: runTime
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column stopTime
+		dataType: double
+		isHidden
+		formatString: 0.00
+		lineageTag: e7c4ddd0-068d-4773-8c17-90aa3e6a6b1d
+		summarizeBy: sum
+		sourceColumn: stopTime
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column quantity
+		dataType: double
+		isHidden
+		lineageTag: f8924d22-613a-4548-bcac-6f05662d4be0
+		summarizeBy: sum
+		sourceColumn: quantity
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column outputQuantity
+		dataType: double
+		isHidden
+		lineageTag: e5a0edb6-b68b-4595-ae6a-f4620f1bfb46
+		summarizeBy: sum
+		sourceColumn: outputQuantity
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column scrapQuantity
+		dataType: double
+		isHidden
+		lineageTag: 8fb01c8d-b504-45d1-8f86-ad9ac40d6853
+		summarizeBy: sum
+		sourceColumn: scrapQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Routing No.'
+		dataType: string
+		lineageTag: 17b880a9-dbff-455c-ac44-b88ec96cb5fc
+		summarizeBy: none
+		sourceColumn: Routing No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Routing Reference No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 896ad073-7665-4b49-9809-00831cc98800
+		summarizeBy: sum
+		sourceColumn: Routing Reference No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Operation No.'
+		dataType: string
+		lineageTag: 89b84f30-87bc-449b-8973-938e244e9b8f
+		summarizeBy: none
+		sourceColumn: Operation No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Center Group Code'
+		dataType: string
+		isHidden
+		lineageTag: 7c32f7cd-4168-48fa-b92e-3fc459053f19
+		summarizeBy: none
+		sourceColumn: Work Center Group Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Scrap Code'
+		dataType: string
+		lineageTag: be7c56d6-25a9-4fe7-aad6-f18c93bba4e6
+		summarizeBy: none
+		sourceColumn: Scrap Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dimension Set ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b9fc547e-dcf7-4d58-ad67-49882bc4e30d
+		summarizeBy: count
+		sourceColumn: Dimension Set ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column directCost
+		dataType: double
+		isHidden
+		lineageTag: a9029f62-6093-46b3-a80a-9db05708eae5
+		summarizeBy: sum
+		sourceColumn: directCost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column overheadCost
+		dataType: double
+		isHidden
+		lineageTag: 3a467b20-d5f3-4fce-bc05-209efaa9c7e9
+		summarizeBy: sum
+		sourceColumn: overheadCost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Type & No.'
+		dataType: string
+		isHidden
+		lineageTag: c59b0cc4-c15a-4036-862c-3cba274d05b9
+		summarizeBy: none
+		sourceColumn: Type & No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entry No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 9ea76157-75e8-4cbd-b355-8a85036b2710
+		summarizeBy: sum
+		sourceColumn: Entry No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column workCenterNo
+		dataType: string
+		isHidden
+		lineageTag: 9b94c91f-7bad-48b7-a4a5-abedc5ed1697
+		summarizeBy: none
+		sourceColumn: workCenterNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Shift Code'
+		dataType: string
+		lineageTag: d7fc457e-a7c5-469a-afed-8ac0cee7b7a9
+		summarizeBy: none
+		sourceColumn: Work Shift Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column Subcontracting
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 2d8940a5-5103-41d1-85e7-26975582d66f
+		summarizeBy: none
+		sourceColumn: Subcontracting
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Capacity Unit of Measure'
+		dataType: string
+		lineageTag: 01bd477b-86de-4494-8a3b-feed70f17113
+		summarizeBy: none
+		sourceColumn: Capacity Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Qty. Per Unit of Measure'
+		dataType: double
+		lineageTag: 35196a0b-24fe-456f-bbad-7b017f28416b
+		summarizeBy: sum
+		sourceColumn: Qty. Per Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Production Order'
+		dataType: string
+		isHidden
+		lineageTag: a1185619-7188-44fa-b075-fbd1bb0d29aa
+		summarizeBy: none
+		sourceColumn: Production Order
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Qty. Per Capacity Unit of Measure'
+		dataType: double
+		lineageTag: d35a1f53-afbc-477a-8ab0-2d605c19b8fe
+		summarizeBy: sum
+		sourceColumn: Qty. Per Capacity Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Capacity Ledger Entries' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "capacityLedgerEntries", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"orderType", type text},
+				            {"orderNo", type text},
+				            {"orderLineNo", Int64.Type},
+				            {"type", type text},
+				            {"no", type text},
+				            {"description", type text},
+				            {"postingDate", type date},
+				            {"itemNo", type text},
+				            {"setupTime", type number},
+				            {"runTime", type number},
+				            {"stopTime", type number},
+				            {"quantity", type number},
+				            {"outputQuantity", type number},
+				            {"scrapQuantity", type number},
+				            {"routingNo", type text},
+				            {"routingReferenceNo", Int64.Type},
+				            {"operationNo", type text},
+				            {"workCenterGroupCode", type text},
+				            {"scrapCode", type text},
+				            {"dimensionSetID", Int64.Type},
+				            {"directCost", type number},
+				            {"overheadCost", type number}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"orderType", "Order Type"}, {"orderNo", "Order No."}, {"orderLineNo", "Order Line No."}, {"type", "Type"}, {"no", "No."}, {"description", "Description"}, {"postingDate", "Posting Date"}, {"itemNo", "Item No."}, {"routingNo", "Routing No."}, {"routingReferenceNo", "Routing Reference No."}, {"operationNo", "Operation No."}, {"workCenterGroupCode", "Work Center Group Code"}, {"scrapCode", "Scrap Code"}, {"dimensionSetID", "Dimension Set ID"}, {"capUnitOfMeasureCode", "Capacity Unit of Measure"}, {"qtyPerCapUnitOfMeasure", "Qty. Per Capacity Unit of Measure"}, {"entryNo", "Entry No."}, {"subcontracting", "Subcontracting"}, {"qtyPerUnitOfMeasure", "Qty. Per Unit of Measure"}, {"workShiftCode", "Work Shift Code"}}),
+				    #"Added Column" = Table.AddColumn(#"Renamed Columns", "Type & No.", each [Type] & " " & [#"No."], type text),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Column", {"ETag"}),
+				    #"Merged Queries" = Table.NestedJoin(
+				        #"Removed Columns",
+				        {"Order No."},
+				        #"Production Orders (Released or Finished)",
+				        {"Prod Order No."},
+				        "Production Orders (Released or Finished)",
+				        JoinKind.LeftOuter
+				    ),
+				    #"Expanded Production Orders (Released or Finished)" = Table.ExpandTableColumn(
+				        #"Merged Queries", "Production Orders (Released or Finished)", {"Production Order"}, {"Production Order"}
+				    ),
+				    #"Replaced Value" = Table.ReplaceValue(
+				        #"Expanded Production Orders (Released or Finished)", 0, null, Replacer.ReplaceValue, {"setupTime"}
+				    ),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value", 0, null, Replacer.ReplaceValue, {"runTime"}),
+				    #"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1", 0, null, Replacer.ReplaceValue, {"stopTime"}),
+				    #"Replaced Value3" = Table.ReplaceValue(#"Replaced Value2", 0, null, Replacer.ReplaceValue, {"scrapQuantity"}),
+				    #"Replaced Value4" = Table.ReplaceValue(#"Replaced Value3", 0, null, Replacer.ReplaceValue, {"directCost"}),
+				    #"Replaced Value5" = Table.ReplaceValue(#"Replaced Value4", 0, null, Replacer.ReplaceValue, {"overheadCost"})
+				in
+				    #"Replaced Value5"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,461 @@
+table 'Purchase Value Entries'
+	lineageTag: 19fc67f9-f834-46b9-978d-03d45803d13f
+
+	measure 'Purchase Value Entries Amount' = ```
+			
+			CALCULATE(
+			    SUM('Purchase Value Entries'[Cost Amount Actual])     
+			    ,'Purchase Value Entries'[Value Entry Type] = "Direct Cost"
+			    ,'Purchase Value Entries'[Adjustment] = FALSE()
+			)
+			```
+		formatString: #,0.00
+		displayFolder: _Purchase Value Entries Measures
+		lineageTag: 768ae9c4-0e9b-4f89-b290-11a188790719
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Purchase Value Entries Quantity' = SUM('Purchase Value Entries'[Invoiced Quantity])
+		formatString: #,0.00
+		displayFolder: _Purchase Value Entries Measures
+		lineageTag: 2491cee8-aa38-4fac-b782-f3c4a928693e
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure ShowValueForDates =
+			
+			VAR LastDateWithData =
+			    CALCULATE (
+			        INT (
+			            MAXX (
+			                {
+			                    MAX ( 'Purchase Value Entries'[Date] ),
+			                    MAX ( 'Purchase Invoice Lines'[postingDate] ),
+			                    MAX ( 'Purchase Credit Lines'[postingDate] )
+			                },
+			                [Value]
+			            )
+			        ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDateVisible =
+			    MIN ( 'Date'[Date] )
+			VAR Result = FirstDateVisible <= LastDateWithData
+			RETURN
+			    Result
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		isHidden
+		lineageTag: 4d38d90f-89fb-4c16-b59e-af4a50dc288e
+
+		changedProperty = IsHidden
+
+	measure 'No. of Posted Purchase Invoices' =
+			CALCULATE(
+			    DISTINCTCOUNT('Purchase Value Entries'[Document No.]),
+			    REMOVEFILTERS('Purchase Value Entries'[Document Type]),
+			    'Purchase Value Entries'[Document Type] = "Posted Purchase Invoice"
+			)
+		formatString: #,0
+		displayFolder: _Purchase Value Entries Measures\_Counters
+		lineageTag: edb12ff5-41be-4373-86f0-5edab3ebffbe
+
+	measure 'No. of Vendors' = DISTINCTCOUNT('Purchase Value Entries'[Vendor No.])
+		formatString: #,0
+		displayFolder: _Purchase Value Entries Measures\_Counters
+		lineageTag: 0ac4a914-43db-4127-a48b-ae69ec2d27d7
+
+	measure 'No. of Single-Supplier Items' = COUNTROWS( FILTER( 'Item', [No. of Vendors] = 1))
+		formatString: #,0
+		displayFolder: _Purchase Value Entries Measures\_Counters
+		lineageTag: 3064e53b-f0aa-486f-b84b-ba2746516bd3
+
+	measure 'Purchase Value Entries Discount %' = DIVIDE([Purchase Value Entries Discount Amount], 'Purchase Value Entries'[Purchase Value Entries Amount])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Purchase Value Entries Measures
+		lineageTag: 1938bb31-e410-4fe0-a4eb-f596dc252186
+
+	measure 'Purchase Value Entries Discount Amount' = SUM('Purchase Value Entries'[discountAmount])
+		formatString: #,0.00
+		displayFolder: _Purchase Value Entries Measures
+		lineageTag: 7f012521-d849-4aae-b122-c775dc57e3ce
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'No. of Distinct Items' = DISTINCTCOUNT('Purchase Value Entries'[itemNo])
+		formatString: #,0
+		displayFolder: _Purchase Value Entries Measures\_Counters
+		lineageTag: 84b5e403-e0f3-42e4-9214-2a5471b9e164
+
+	measure 'Posted Purchase CR/Adj Note Quantity' =
+			
+			CALCULATE(
+			    SUM('Purchase Value Entries'[Invoiced Quantity]),
+			    'Purchase Value Entries'[Document Type] = "Posted Purchase CR/Adj Note"
+			)
+		formatString: 0.00
+		displayFolder: _Purchase Value Entries Measures\Purchase Cr/Adj Note
+		lineageTag: 71e220ce-b620-4bf7-b251-db5c5816a9d7
+
+	measure 'Posted Purchase CR/Adj Note Amount' =
+			
+			CALCULATE(
+			    [Purchase Value Entries Amount],
+			    REMOVEFILTERS('Purchase Value Entries'[Document Type]),
+			    'Purchase Value Entries'[Document Type] = "Posted Purchase CR/Adj Note"
+			)
+		formatString: #,0.00
+		displayFolder: _Purchase Value Entries Measures\Purchase Cr/Adj Note
+		lineageTag: 8d74302f-b1f3-4063-b884-b2da02e8b00f
+
+	measure 'Posted Purchase Invoice Quantity' =
+			
+			CALCULATE(
+			    [Purchase Value Entries Quantity],
+			    REMOVEFILTERS('Purchase Value Entries'[Document Type]),
+			    'Purchase Value Entries'[Document Type] = "Posted Purchase Invoice"
+			    )
+		formatString: 0.00
+		displayFolder: _Purchase Value Entries Measures\_Purchase Invoice
+		lineageTag: 9149b423-2541-4b8e-b90e-ed1c986cfab3
+
+	measure 'Posted Purchase Invoice Amount' =
+			
+			CALCULATE(
+			    [Purchase Value Entries Amount],
+			    REMOVEFILTERS('Purchase Value Entries'[Document Type]),
+			    'Purchase Value Entries'[Document Type] = "Posted Purchase Invoice"
+			    )
+		formatString: #,0.00
+		displayFolder: _Purchase Value Entries Measures\_Purchase Invoice
+		lineageTag: f4cc5f28-8306-4174-a957-ee7fa37c8ae7
+
+	column 'Item Ledger Entry No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: caa04869-02d6-40f4-8d2f-6b4229792e59
+		summarizeBy: none
+		sourceColumn: Item Ledger Entry No.
+
+		annotation SummarizationSetBy = User
+
+	column 'Value Entry No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: d3c0c3c5-375a-4e82-ac9e-7a1f96042979
+		summarizeBy: none
+		sourceColumn: Value Entry No.
+
+		annotation SummarizationSetBy = User
+
+	column 'Value Entry Type'
+		dataType: string
+		lineageTag: 6af08aed-2168-419a-86af-1529eb047cef
+		summarizeBy: none
+		sourceColumn: Value Entry Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: 1d4188c2-16a5-42d5-845d-d8547b0bf36c
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document Type'
+		dataType: string
+		lineageTag: 0adffb3d-842f-412c-93de-89c085eb3a4c
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor No.'
+		dataType: string
+		isHidden
+		lineageTag: 4efb894d-c079-4c3f-b28c-ce21ce00c551
+		summarizeBy: none
+		sourceColumn: Vendor No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: f8d708c9-2efc-4396-aaac-cf9cb3104168
+		summarizeBy: none
+		sourceColumn: Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: 42772512-788d-446e-90fb-819f09fc95c3
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 8017a516-6823-4dd7-b2e2-23b1698d63fc
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Invoiced Quantity'
+		dataType: double
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: e89e0377-b3e7-4e67-ae19-d9bc861f6705
+		summarizeBy: sum
+		sourceColumn: Invoiced Quantity
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Cost Amount Actual'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 79481d94-0d95-47ad-93d7-8859d14e11df
+		summarizeBy: sum
+		sourceColumn: Cost Amount Actual
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column salespersonPurchaserCode
+		dataType: string
+		isHidden
+		lineageTag: 008df27a-5680-426e-ac5b-82db84d808fa
+		summarizeBy: none
+		sourceColumn: salespersonPurchaserCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Purchase Key'
+		dataType: string
+		isHidden
+		lineageTag: fd152fa3-5514-42ab-a8b5-32119c88ec10
+		summarizeBy: none
+		sourceColumn: Purchase Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source Table'
+		dataType: string
+		isHidden
+		lineageTag: 1bdf4b8d-1fb3-4b02-9dcc-28d697f5844c
+		summarizeBy: none
+		sourceColumn: Source Table
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column returnReasonCode
+		dataType: string
+		isHidden
+		lineageTag: 4b81d692-9fa2-4bc5-8793-8c40cf01c668
+		summarizeBy: none
+		sourceColumn: returnReasonCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Ledger Entry Type'
+		dataType: string
+		lineageTag: 2107a3a4-e599-4d5a-8bd4-ab7649e9024d
+		summarizeBy: none
+		sourceColumn: Item Ledger Entry Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column projectNo
+		dataType: string
+		isHidden
+		lineageTag: 7e8a2c51-35b3-4327-b753-8351734c168f
+		summarizeBy: none
+		sourceColumn: projectNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column type
+		dataType: string
+		isHidden
+		lineageTag: 17ff4191-4fb2-41db-b3de-618f0864f686
+		summarizeBy: none
+		sourceColumn: type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Adjustment
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 2c1e6e87-4a5c-4f54-aef0-5828d13eefbc
+		summarizeBy: none
+		sourceColumn: Adjustment
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Capacity Ledger Entry No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 658c4bea-1ab5-4c3d-a138-228999fb1e43
+		summarizeBy: none
+		sourceColumn: Capacity Ledger Entry No.
+
+		annotation SummarizationSetBy = User
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: 2614464f-b1d0-4386-a02d-c418d24a5965
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column discountAmount
+		dataType: double
+		isHidden
+		lineageTag: 40cdfaa1-d8c4-4001-9f88-a269c26d2edc
+		summarizeBy: sum
+		sourceColumn: discountAmount
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Type Key'
+		dataType: string
+		isHidden
+		lineageTag: 40dfd4f2-627f-4ee6-9f57-aa651b14b4a4
+		summarizeBy: none
+		sourceColumn: Type Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Purchase Value Entries' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "purchaseValueEntries", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"vendorNo", type text},
+				            {"itemNo", type text},
+				            {"locationCode", type text},
+				            {"postingDate", type date},
+				            {"salespersonPurchaserCode", type text},
+				            {"dimensionSetID", Int64.Type},
+				            {"costAmountActual", Currency.Type}
+				        }
+				    ),
+				    #"Added Source Table" = Table.AddColumn(#"Changed Type", "Source Table", each "Purchase Value Entries"),
+				    #"Replaced Credit Memo Document Name" = Table.ReplaceValue(
+				        #"Added Source Table", "Credit Memo", "CR/Adj Note", Replacer.ReplaceText, {"documentType"}
+				    ),
+				    #"Appended Posted to Document Type" = Table.AddColumn(
+				        #"Replaced Credit Memo Document Name",
+				        "documentType2",
+				        each
+				            if [documentType] <> null and Text.Trim([documentType]) <> "" then
+				                "Posted " & [documentType]
+				            else
+				                "Non-Document",
+				        type text
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Appended Posted to Document Type",
+				        {
+				            {"vendorNo", "Vendor No."},
+				            {"postingDate", "Date"},
+				            {"invoicedQuantity", "Invoiced Quantity"},
+				            {"costAmountActual", "Cost Amount Actual"},
+				            {"entryNo", "Value Entry No."},
+				            {"entryType", "Value Entry Type"},
+				            {"documentNo", "Document No."},
+				            {"itemLedgerEntryNo", "Item Ledger Entry No."},
+				            {"itemLedgerEntryType", "Item Ledger Entry Type"},
+				            {"capacityLedgerEntryNo", "Capacity Ledger Entry No."},
+				            {"adjustment", "Adjustment"},
+				            {"documentType2", "Document Type"}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns", {"documentType", "ETag"}),
+				    #"Added Purchase Key" = Table.AddColumn(
+				        #"Removed Columns",
+				        "Purchase Key",
+				        each [Document Type] & " " & [#"Document No."] & " " & [#"Source Table"],
+				        type text
+				    ),
+				    // Type will be used to relate to the Type dimension.
+				    // Sales Value Entries will only ever have Type = Item.
+				    #"Added Type column" = Table.AddColumn(
+				        #"Added Purchase Key", "type", each if [itemNo] = null then null else "Item", type text
+				    ),
+				    // Merged Capacity Ledger Entries to capture subcontracted costs
+				    #"Merged Queries" = Table.NestedJoin(
+				        #"Added Type column",
+				        {"Capacity Ledger Entry No."},
+				        #"Capacity Ledger Entries",
+				        {"entryNo"},
+				        "Capacity Ledger Entries",
+				        JoinKind.LeftOuter
+				    ),
+				    #"Expanded Capacity Ledger Entries" = Table.ExpandTableColumn(
+				        #"Merged Queries", "Capacity Ledger Entries", {"itemNo"}, {"Capacity Ledger Entries.itemNo"}
+				    ),
+				    // Create a new item no field with data from both Value Entries and Capacity Entries
+				    #"Filled itemNo from Capacity Ledger Entries" = Table.AddColumn(
+				        #"Expanded Capacity Ledger Entries",
+				        "itemNo_filled",
+				        each if [itemNo] = null or Text.Trim([itemNo]) = "" then [#"Capacity Ledger Entries.itemNo"] else [itemNo],
+				        type text
+				    ),
+				    #"Removed Old itemNo" = Table.RemoveColumns(
+				        #"Filled itemNo from Capacity Ledger Entries", {"itemNo", "Capacity Ledger Entries.itemNo"}
+				    ),
+				    #"Renamed itemNo_filled" = Table.RenameColumns(#"Removed Old itemNo", {{"itemNo_filled", "itemNo"}}),
+				    #"Added Custom" = Table.AddColumn(#"Renamed itemNo_filled", "Type Key", each [type ]& " " & [itemNo], type text)
+				in
+				    #"Added Custom"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
