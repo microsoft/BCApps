@@ -132,18 +132,22 @@ codeunit 6140 "E-Doc. Import"
     var
         EDocDraftSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        LastErrorText: Text;
     begin
         EDocumentErrorHelper.ClearErrorMessages(EDocument);
         Commit();
         if not ImportEDocumentProcess.Run() then begin
-            EDocument.SetRecFilter();
-            EDocument.FindFirst();
+            LastErrorText := GetLastErrorText();
+            if LastErrorText <> '' then begin // We don't insert an error when empty, following the convention of empty error meaning "operation cancelled by user"
+                EDocument.SetRecFilter();
+                EDocument.FindFirst();
 
-            EDocErrorHelper.LogSimpleErrorMessage(EDocument, GetLastErrorText());
-            EDocument.CalcFields("Import Processing Status");
-            EDocumentLog.InsertLog(Enum::"E-Document Service Status"::"Imported Document Processing Error", EDocument."Import Processing Status");
-            EDocumentProcessing.ModifyServiceStatus(EDocument, EDocument.GetEDocumentService(), Enum::"E-Document Service Status"::"Imported Document Processing Error");
-            EDocumentProcessing.ModifyEDocumentStatus(EDocument);
+                EDocErrorHelper.LogSimpleErrorMessage(EDocument, LastErrorText);
+                EDocument.CalcFields("Import Processing Status");
+                EDocumentLog.InsertLog(Enum::"E-Document Service Status"::"Imported Document Processing Error", EDocument."Import Processing Status");
+                EDocumentProcessing.ModifyServiceStatus(EDocument, EDocument.GetEDocumentService(), Enum::"E-Document Service Status"::"Imported Document Processing Error");
+                EDocumentProcessing.ModifyEDocumentStatus(EDocument);
+            end;
             EDocDraftSessionTelemetry.SetText('Step', Format(ImportEDocumentProcess.GetStep()));
             EDocDraftSessionTelemetry.SetBool('Success', false);
             exit(false);

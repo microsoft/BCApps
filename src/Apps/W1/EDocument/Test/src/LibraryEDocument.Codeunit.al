@@ -164,6 +164,7 @@ codeunit 139629 "Library - E-Document"
 
         // Create Customer for sales scenario
         LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.SetOrderNoSeriesInSetup();
         LibraryERM.FindCountryRegion(CountryRegion);
         Vendor.Validate(Address, LibraryUtility.GenerateRandomCode(Vendor.FieldNo(Address), DATABASE::Vendor));
         Vendor.Validate("Country/Region Code", CountryRegion.Code);
@@ -425,23 +426,9 @@ codeunit 139629 "Library - E-Document"
     end;
 
     procedure CreateGenericItem(var Item: Record Item)
-    var
-        UOM: Record "Unit of Measure";
-        ItemUOM: Record "Item Unit of Measure";
-        QtyPerUnit: Integer;
     begin
-        QtyPerUnit := LibraryRandom.RandInt(10);
-
-        LibraryInvt.CreateUnitOfMeasureCode(UOM);
-        UOM.Validate("International Standard Code",
-          LibraryUtility.GenerateRandomCode(UOM.FieldNo("International Standard Code"), DATABASE::"Unit of Measure"));
-        UOM.Modify(true);
-
         CreateItemWithPrice(Item, LibraryRandom.RandInt(10));
-
-        LibraryInvt.CreateItemUnitOfMeasure(ItemUOM, Item."No.", UOM.Code, QtyPerUnit);
-
-        Item.Validate("Sales Unit of Measure", UOM.Code);
+        Item.Validate("Sales Unit of Measure", Item."Base Unit of Measure");
         Item.Modify(true);
     end;
 
