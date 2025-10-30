@@ -95,7 +95,6 @@ codeunit 4315 "Agent Task Builder"
     /// </summary>
     /// <param name="From">The sender of the message.</param>
     /// <param name="MessageText">The message text.</param>
-    /// <param name="AgentTaskMessageBuilder">The agent task message builder.</param>
     /// <returns>This instance of the Agent Task Builder.</returns>
     procedure AddTaskMessage(From: Text[250]; MessageText: Text): codeunit "Agent Task Builder"
     begin

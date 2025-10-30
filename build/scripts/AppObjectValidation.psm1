@@ -79,6 +79,53 @@ function Test-ApplicationIds {
 
 <#
     .SYNOPSIS
+    Tests that all test objects are categorized correctly with allowed test types.
+    .DESCRIPTION
+    This function scans the specified source code paths for AL files, identifies test objects,
+    and checks their TestType property. It ensures that all test objects have a TestType that is
+    within the allowed list, except for those listed in the Exceptions parameter.
+    .PARAMETER SourceCodePaths
+    An array of paths to the source code directories to be scanned for AL files.
+    .PARAMETER AllowedTestTypes
+    An array of allowed test types. Default is "UnitTest", "IntegrationTest", and "AITest".
+    .PARAMETER Exceptions
+    An array of object IDs that are exceptions
+#>
+function Test-ApplicationTestTypes {
+    param(
+        [string[]] $SourceCodePaths = @(),
+        [string[]] $AllowedTestTypes = @("UnitTest", "IntegrationTest", "AITest"),
+        [string[]] $Exceptions = @()
+    )
+    $alFiles = Get-ChildItem -Path $SourceCodePaths -File -Recurse -Filter '*.al'
+    $uncategorizedTests = @()
+    foreach ($alFile in $alFiles) {
+        if (IsTestObject -FilePath $alFile.FullName) {
+            $testType = GetTestType -FilePath $alFile.FullName
+            $objectId = GetALObjectInformation -FilePath $alFile.FullName | Select-Object -ExpandProperty ObjectId
+
+            if (($null -eq $testType) -or ($null -eq $objectId)) {
+                continue
+            }
+
+            if ($Exceptions -contains $objectId) {
+                Write-Host "Test object ID $objectId in file $($alFile.FullName) is in the list of exceptions."
+                continue
+            }
+
+            if (-not ($AllowedTestTypes -contains $testType)) {
+                $uncategorizedTests += "$objectId"
+            }
+        }
+    }
+    if ($uncategorizedTests.Count -gt 0) {
+        Write-Host "##[error]Found new added test objects with Uncategorized TestType: $($uncategorizedTests -join ','). Allowed TestTypes are: $($AllowedTestTypes -join ',')"
+        throw "Invalid test types detected. When adding new test objects, ensure that their TestType is one of the following: $($AllowedTestTypes -join ', ')."
+    }
+}
+
+<#
+    .SYNOPSIS
     Scans the provided source code paths for AL files and extracts object signatures, test objects, and duplicate objects.
     .DESCRIPTION
     This function recursively scans the specified source code paths for AL files, extracts object signatures (in the format "<object type> <object id>"),
@@ -102,11 +149,6 @@ function Get-FilesCollection
     $TestObjectSignatures = @()
     $DuplicateObjectSignatures = @()
 
-    # (?<!\/\/.*) - negative lookbehind to exclude the comments on top of the file containing object signatures, for example:
-    # // These tests rely on codeunit 138704 "Reten. Pol. Test Installer"
-    #codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
-    $RegexPattern = '(?<!\/\/.*)(codeunit|page|table|query|report|xmlport) (\d+) (.*)'
-
     foreach ($Path in $SourceCodePaths) {
         if (-not (Test-Path -Path $Path)) {
             Write-Host "The provided path '$Path' does not exist and will be skipped."
@@ -114,31 +156,20 @@ function Get-FilesCollection
         }
         $filesInPath = Get-ChildItem -Path $Path -File -Recurse -Filter '*.al'
         foreach ($file in $filesInPath) {
-            $MatchedString = Select-String -Path $file.FullName -List -Pattern $RegexPattern
-            if ($null -eq $MatchedString) {
-                continue
-            }
-            if (-not ($MatchedString.PSObject.Properties.Name -eq "Matches")) {
-                Write-Host "No matches found in file: $($file.FullName)"
+            $objectInfo = GetALObjectInformation -FilePath $file.FullName
+            if ($null -eq $objectInfo) {
                 continue
             }
 
-            if ($MatchedString.Matches.Success) {
-                $objectType = $MatchedString.Matches[0].Groups[1].Value.ToLower()
-                $ObjectId = $MatchedString.Matches[0].Groups[2].Value
-                $ObjectName = $MatchedString.Matches[0].Groups[3].Value -replace '"', ''
-                $ObjectSignature = ($objectType + ' ' + $objectId).ToLower()
-
-                if (-not $SourceFiles.ContainsKey($ObjectSignature)) {
-                    if (IsTestObject -FilePath $file.FullName) {
-                        $TestObjectSignatures += $ObjectSignature
-                    }
-                    $SourceFiles.Add($ObjectSignature, $ObjectName)
+            if (-not $SourceFiles.ContainsKey($objectInfo.Signature)) {
+                if (IsTestObject -FilePath $file.FullName) {
+                    $TestObjectSignatures += $objectInfo.Signature
                 }
-                else {
-                    $DuplicateObjectSignatures += $ObjectSignature
-                    Write-Warning "Object signature $ObjectSignature is used for multiple objects"
-                }
+                $SourceFiles.Add($objectInfo.Signature, $objectInfo.ObjectName)
+            }
+            else {
+                $DuplicateObjectSignatures += $objectInfo.Signature
+                Write-Warning "Object signature $($objectInfo.Signature) is used for multiple objects"
             }
         }
     }
@@ -148,6 +179,36 @@ function Get-FilesCollection
         TestObjects      = $TestObjectSignatures
         DuplicateObjects = $DuplicateObjectSignatures
     }
+}
+
+function GetALObjectInformation
+(
+    [string] $FilePath
+) {
+    # (?<!\/\/.*) - negative lookbehind to exclude the comments on top of the file containing object signatures, for example:
+    # // These tests rely on codeunit 138704 "Reten. Pol. Test Installer"
+    #codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
+    $RegexPattern = '(?<!\/\/.*)(codeunit|page|table|query|report|xmlport) (\d+) (.*)'
+    $MatchedString = Select-String -Path $FilePath -List -Pattern $RegexPattern
+
+    if ($null -eq $MatchedString) {
+        return $null
+    }
+
+    if ($MatchedString.Matches.Success) {
+        $objectType = $MatchedString.Matches[0].Groups[1].Value.ToLower()
+        $ObjectId = $MatchedString.Matches[0].Groups[2].Value
+        $ObjectName = $MatchedString.Matches[0].Groups[3].Value -replace '"', ''
+        $ObjectSignature = ($objectType + ' ' + $objectId).ToLower()
+        return @{
+            ObjectType = $objectType
+            ObjectId   = $ObjectId
+            ObjectName = $ObjectName
+            Signature  = $ObjectSignature
+        }
+    }
+
+    return $null
 }
 
 <#
@@ -222,6 +283,24 @@ function IsTestObject
     return ($MatchedString.Matches.Success -eq $true)
 }
 
+function GetTestType
+(
+    [string] $FilePath
+) {
+    $RegexPattern = '(?<!\/\/.*)TestType\s+=\s+(\w+)\s*;'
+    $MatchedString = Select-String -Path $FilePath -List -Pattern $RegexPattern
+
+    if ($null -eq $MatchedString) {
+        return $null
+    }
+
+    if ($MatchedString.Matches.Success) {
+        return $MatchedString.Matches[0].Groups[1].Value
+    }
+
+    return $null
+}
+
 function GetObjectId
 (
     [string] $TypeAndIdString
@@ -234,5 +313,6 @@ function GetObjectId
 
 Export-ModuleMember -Function Test-ObjectIDsAreValid
 Export-ModuleMember -Function Test-ApplicationIds
+Export-ModuleMember -Function Test-ApplicationTestTypes
 Export-ModuleMember -Function Test-ApplicationManifests
 Export-ModuleMember -Function Get-FilesCollection
