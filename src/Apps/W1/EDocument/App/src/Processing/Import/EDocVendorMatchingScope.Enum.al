@@ -10,7 +10,7 @@ enum 6185 "EDoc Vendor Matching Scope"
     Access = Internal;
     Extensible = false;
     ObsoleteState = Pending;
-    ObsoleteTag = '27.0';
+    ObsoleteTag = '28.0';
     ObsoleteReason = 'Replaced with experiment-based matching.';
 
     value(0; "Same Vendor")
