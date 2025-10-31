@@ -5,7 +5,7 @@ using System.Threading;
 
 codeunit 8034 "Sub. Billing Background Jobs"
 {
-    procedure ScheduleRecurrentBillingJob(var BillingTemplate: Record "Billing Template")
+    procedure ScheduleAutomatedBillingJob(var BillingTemplate: Record "Billing Template")
     var
         JobQueueEntry: Record "Job Queue Entry";
         Telemetry: Codeunit Telemetry;
@@ -14,24 +14,10 @@ codeunit 8034 "Sub. Billing Background Jobs"
         if BillingTemplate.Code = '' then
             exit;
 
-        if not IsRecurrentJobScheduledForABillingTemplate(BillingTemplate."Batch Recurrent Job Id") then begin
-            JobQueueEntry.ScheduleRecurrentJobQueueEntryWithFrequency(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"Auto Contract Billing", BillingTemplate.RecordId, BillingTemplate."Minutes between runs", BillingTemplate."Automation Start Time");
-            BillingTemplate."Batch Recurrent Job Id" := JobQueueEntry.ID;
-            BillingTemplate.Modify();
-
-            JobQueueEntry."Rerun Delay (sec.)" := 600;
-            JobQueueEntry."No. of Attempts to Run" := 0;
-            JobQueueEntry."Job Queue Category Code" := JobQueueCategoryTok;
-            JobQueueEntry.Modify();
-        end else begin
-            JobQueueEntry.Get(BillingTemplate."Batch Recurrent Job Id");
-            JobQueueEntry."Starting Time" := BillingTemplate."Automation Start Time";
-            JobQueueEntry."No. of Minutes between Runs" := BillingTemplate."Minutes between runs";
-            JobQueueEntry."No. of Attempts to Run" := 0;
-            JobQueueEntry.Modify();
-            if not JobQueueEntry.IsReadyToStart() then
-                JobQueueEntry.Restart();
-        end;
+        if not IsAutomatedBillingJobScheduled(BillingTemplate."Batch Recurrent Job Id") then
+            CreateJobQueueEntryForAutomatedBilling(BillingTemplate, JobQueueEntry)
+        else
+            UpdateJobQueueEntryForAutomatedBilling(BillingTemplate, JobQueueEntry);
         TelemetryDimensions.Add('Job Queue Id', JobQueueEntry.ID);
         TelemetryDimensions.Add('Codeunit Id', Format(Codeunit::"Auto Contract Billing"));
         TelemetryDimensions.Add('Record Id', Format(BillingTemplate.RecordId));
@@ -41,16 +27,16 @@ codeunit 8034 "Sub. Billing Background Jobs"
     end;
 
 
-    procedure HandleRecurrentBillingJob(var BillingTemplate: Record "Billing Template")
+    procedure HandleAutomatedBillingJob(var BillingTemplate: Record "Billing Template")
     begin
         if BillingTemplate.Automation = BillingTemplate.Automation::"Create Billing Proposal and Documents" then begin
             BillingTemplate.TestField("Minutes between runs");
-            ScheduleRecurrentBillingJob(BillingTemplate);
+            ScheduleAutomatedBillingJob(BillingTemplate);
         end else
-            RemovedRecurrentBillingJob(BillingTemplate);
+            RemoveAutomatedBillingJob(BillingTemplate);
     end;
 
-    procedure RemovedRecurrentBillingJob(var BillingTemplate: Record "Billing Template")
+    procedure RemoveAutomatedBillingJob(var BillingTemplate: Record "Billing Template")
     var
         JobQueueEntry: Record "Job Queue Entry";
     begin
@@ -60,7 +46,7 @@ codeunit 8034 "Sub. Billing Background Jobs"
         BillingTemplate.Modify();
     end;
 
-    local procedure IsRecurrentJobScheduledForABillingTemplate(JobId: Guid): Boolean
+    local procedure IsAutomatedBillingJobScheduled(JobId: Guid): Boolean
     var
         JobQueueEntry: Record "Job Queue Entry";
     begin
@@ -68,6 +54,29 @@ codeunit 8034 "Sub. Billing Background Jobs"
             exit(false);
 
         exit(JobQueueEntry.Get(JobId));
+    end;
+
+    local procedure CreateJobQueueEntryForAutomatedBilling(var BillingTemplate: Record "Billing Template"; var JobQueueEntry: Record "Job Queue Entry")
+    begin
+        JobQueueEntry.ScheduleRecurrentJobQueueEntryWithFrequency(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"Auto Contract Billing", BillingTemplate.RecordId, BillingTemplate."Minutes between runs", BillingTemplate."Automation Start Time");
+        BillingTemplate."Batch Recurrent Job Id" := JobQueueEntry.ID;
+        BillingTemplate.Modify();
+
+        JobQueueEntry."Rerun Delay (sec.)" := 600;
+        JobQueueEntry."No. of Attempts to Run" := 0;
+        JobQueueEntry."Job Queue Category Code" := JobQueueCategoryTok;
+        JobQueueEntry.Modify();
+    end;
+
+    local procedure UpdateJobQueueEntryForAutomatedBilling(var BillingTemplate: Record "Billing Template"; var JobQueueEntry: Record "Job Queue Entry")
+    begin
+        JobQueueEntry.Get(BillingTemplate."Batch Recurrent Job Id");
+        JobQueueEntry."Starting Time" := BillingTemplate."Automation Start Time";
+        JobQueueEntry."No. of Minutes between Runs" := BillingTemplate."Minutes between runs";
+        JobQueueEntry."No. of Attempts to Run" := 0;
+        JobQueueEntry.Modify();
+        if not JobQueueEntry.IsReadyToStart() then
+            JobQueueEntry.Restart();
     end;
 
     var

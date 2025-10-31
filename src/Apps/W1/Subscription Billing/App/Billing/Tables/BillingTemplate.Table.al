@@ -57,7 +57,7 @@ table 8060 "Billing Template"
         field(11; "Posting Date Formula"; DateFormula)
         {
             Caption = 'Posting Date Formula';
-            ToolTip = 'Specifies the date formula, the Posting Date will be calculated with.';
+            ToolTip = 'Specifies the date formula used to calculate the Posting Date. If the field is left empty, the Posting Date is prefilled with workdate, or with today when the process runs automatically.';
             trigger OnValidate()
             begin
                 if Format("Posting Date Formula") <> '' then
@@ -67,7 +67,7 @@ table 8060 "Billing Template"
         field(12; "Document Date Formula"; DateFormula)
         {
             Caption = 'Document Date Formula';
-            ToolTip = 'Specifies the date formula the Document Date will be calculated with.';
+            ToolTip = 'Specifies the date formula used to calculate the Document Date. If the field is left empty, the Document Date is prefilled with workdate, or with today when the process runs automatically.';
             trigger OnValidate()
             begin
                 if Format("Document Date Formula") <> '' then
@@ -106,7 +106,7 @@ table 8060 "Billing Template"
                             "Minutes between runs" := 60;
                         end;
                 end;
-                SubBillingBackgroundJobs.HandleRecurrentBillingJob(Rec);
+                SubBillingBackgroundJobs.HandleAutomatedBillingJob(Rec);
             end;
         }
         field(16; "Automation Start Time"; Time)
@@ -118,7 +118,7 @@ table 8060 "Billing Template"
 
             trigger OnValidate()
             begin
-                SubBillingBackgroundJobs.HandleRecurrentBillingJob(Rec);
+                SubBillingBackgroundJobs.HandleAutomatedBillingJob(Rec);
             end;
         }
         field(17; "Minutes between runs"; Integer)
@@ -129,7 +129,7 @@ table 8060 "Billing Template"
 
             trigger OnValidate()
             begin
-                SubBillingBackgroundJobs.HandleRecurrentBillingJob(Rec);
+                SubBillingBackgroundJobs.HandleAutomatedBillingJob(Rec);
             end;
         }
         field(18; "Batch Recurrent Job Id"; Guid)
