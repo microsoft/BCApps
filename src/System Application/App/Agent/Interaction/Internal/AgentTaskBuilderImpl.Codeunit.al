@@ -62,6 +62,7 @@ codeunit 4310 "Agent Task Builder Impl."
     procedure AddTaskMessage(From: Text[250]; MessageText: Text): codeunit "Agent Task Builder Impl."
     begin
         GlobalAgentTaskMessageBuilder.Initialize(From, MessageText);
+        MessageSet := true;
         exit(this);
     end;
 
