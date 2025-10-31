@@ -48,6 +48,31 @@ page 8066 "Billing Templates"
                 {
                     ToolTip = 'Specifies the option for grouping contract billing lines.';
                 }
+                field("Customer Document per"; Rec."Customer Document per")
+                {
+                }
+                field("Posting Date Formula"; Rec."Posting Date Formula")
+                {
+                }
+                field("Document Date Formula"; Rec."Document Date Formula")
+                {
+                }
+                field(Automation; Rec.Automation)
+                {
+                }
+                field("Automation Start Time"; Rec."Automation Start Time")
+                {
+                    Enabled = Rec.Automation = Rec.Automation::"Create Billing Proposal and Documents";
+                }
+                field("Minutes between runs"; Rec."Minutes between runs")
+                {
+                    Enabled = Rec.Automation = Rec.Automation::"Create Billing Proposal and Documents";
+                }
+                field("Batch Recurrent Job Id"; Rec."Batch Recurrent Job Id")
+                {
+                    Enabled = Rec.Automation = Rec.Automation::"Create Billing Proposal and Documents";
+                    Visible = false;
+                }
             }
         }
     }
