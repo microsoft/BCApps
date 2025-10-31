@@ -74,7 +74,7 @@ pageextension 4406 EXRFinRoleCenter extends "Finance Manager Role Center"
                 ToolTip = 'View which customers purchase the most or owe the most in a selected period. Only customers that have either purchases during the period or a balance at the end of the period will be included.';
             }
         }
-        addafter("Vendor - Labels")
+        addlast(Group42)
         {
             action(EXRVendorTopList)
             {
