@@ -1,0 +1,355 @@
+relationship 7537ec28-c4a5-40ba-a23a-74205ebc8c86
+	fromColumn: 'Item Ledger Entries'.'Location Code'
+	toColumn: Location.'Location Code'
+
+relationship 3195cafe-ee01-4350-a6a4-4aaad05181a0
+	fromColumn: 'Item Ledger Entries'.'Source No. (Vendor)'
+	toColumn: Vendor.'Vendor No.'
+
+relationship 35f78644-4b28-4547-9347-756ae5bd3f27
+	fromColumn: 'Item Ledger Entries'.'Source No. (Customer)'
+	toColumn: Customer.'Customer No.'
+
+relationship b2bd27fb-e2ac-47f9-ac3c-bd303613abe1
+	fromColumn: 'Purchase Lines'.'Vendor No.'
+	toColumn: Vendor.'Vendor No.'
+
+relationship dc8808f4-3c7f-4326-b522-7066314ccb15
+	fromColumn: 'Purchase Lines'.'Location Code'
+	toColumn: Location.'Location Code'
+
+relationship e4d6d9f1-d811-4bc0-aaf5-e64e4716f7f9
+	fromColumn: 'Sales Lines'.sellToCustomerNo
+	toColumn: Customer.'Customer No.'
+
+relationship 1ecf8bf9-4970-43dc-ab0c-fd3170b19b4f
+	fromColumn: 'Sales Lines'.'Location Code'
+	toColumn: Location.'Location Code'
+
+relationship 8a13f61e-d86b-49dd-8705-10abb445561e
+	fromColumn: 'Project Planning Lines'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship c31a8e3b-9ffe-42ea-a90e-5e333374b0c8
+	fromColumn: 'Assembly Headers'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship 3cf9d051-ade9-411a-b398-9537e26f6d43
+	fromColumn: 'Assembly Lines'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship 54201f17-a336-430e-9bd2-c505c7338250
+	fromColumn: 'Warehouse Entries'.'Location Code'
+	toColumn: Location.'Location Code'
+
+relationship 34f12ba3-140e-464f-bb4b-5bf3f90a1d97
+	fromColumn: 'Warehouse Journal Lines (To Bin)'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship 93609a58-9705-401a-b175-f2f0c20b558e
+	fromColumn: 'Warehouse Journal Lines (From Bin)'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship bb919145-2e75-45f2-8cb2-a2ae7f2bb057
+	isActive: false
+	fromColumn: Zone.'Zone Location Code'
+	toColumn: Location.'Location Code'
+
+relationship 93e63dce-cdca-44ee-b43f-6c60191f6deb
+	fromColumn: 'Warehouse Activity Lines'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship e9a22f00-79f5-44b8-8be7-6e213352bc5e
+	fromColumn: 'Production Order Lines'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship 020c12f7-7a9f-489c-97e8-9487352ada7f
+	fromColumn: 'Prod Order Component Lines'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship ffcd8049-b415-40a5-a9d3-7499eee54eac
+	fromColumn: 'Service Lines'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship ca70595b-2633-41fe-99f3-b2ed129bf161
+	fromColumn: 'Transfer Lines'.'In Transit Location Code'
+	toColumn: Location.'Location Code'
+
+relationship ed191613-9df2-4a7c-b615-36dfdeb6bfad
+	isActive: false
+	fromColumn: 'Transfer Lines'.'Transfer To Location Code'
+	toColumn: Location.'Location Code'
+
+relationship e3880f6d-ec97-473a-991f-36a35105ef56
+	isActive: false
+	fromColumn: 'Transfer Lines'.'Transfer From Location Code'
+	toColumn: Location.'Location Code'
+
+relationship d60ac96c-6b39-4505-8cdf-a00328557393
+	fromColumn: 'Requisition Line'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship b707ee12-e59f-40f8-838e-ae4de5e69ef7
+	isActive: false
+	fromColumn: 'Requisition Line'.transferFromCode
+	toColumn: Location.'Location Code'
+
+relationship 142f259f-ae13-4839-b237-9273524e4842
+	fromColumn: 'Planning Component Lines'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship 04d887c2-6cb5-4425-9f74-ddafa54f76df
+	fromColumn: 'Item Ledger Entries'.'Lot Key'
+	toColumn: 'Lot No'.'Lot Key'
+
+relationship cd735ec3-5317-4e23-8cdc-c288010e1799
+	fromColumn: 'Item Ledger Entries'.'Serial Key'
+	toColumn: 'Serial No'.'Serial Key'
+
+relationship 0c83ab63-5118-4140-b496-c3a6fd73270c
+	fromColumn: 'Warehouse Activity Lines'.'Lot Key'
+	toColumn: 'Lot No'.'Lot Key'
+
+relationship f26abb78-1976-434a-ad8c-9f3c70ab7bb2
+	fromColumn: 'Warehouse Activity Lines'.'Serial Key'
+	toColumn: 'Serial No'.'Serial Key'
+
+relationship 451a9c0e-6902-4246-9153-59e5af29f775
+	fromColumn: 'Warehouse Journal Lines (To Bin)'.'Lot Key'
+	toColumn: 'Lot No'.'Lot Key'
+
+relationship 1392676c-6014-44e0-80d1-cc7c2d02c728
+	fromColumn: 'Warehouse Journal Lines (To Bin)'.'Serial Key'
+	toColumn: 'Serial No'.'Serial Key'
+
+relationship 92f88d3b-a7cd-41c1-8071-f32c353d6c76
+	fromColumn: 'Warehouse Journal Lines (From Bin)'.'Lot Key'
+	toColumn: 'Lot No'.'Lot Key'
+
+relationship dffd1095-c535-47bc-ba4c-840ab8c8d1cd
+	fromColumn: 'Warehouse Journal Lines (From Bin)'.'Serial Key'
+	toColumn: 'Serial No'.'Serial Key'
+
+relationship 624b24f0-05b1-4b1e-9e4a-1cf6c18836b6
+	fromColumn: 'Warehouse Entries'.'Lot Key'
+	toColumn: 'Lot No'.'Lot Key'
+
+relationship 1d93a1b3-6d2a-4a0e-904b-c604df7a5f7e
+	fromColumn: 'Warehouse Entries'.'Serial Key'
+	toColumn: 'Serial No'.'Serial Key'
+
+relationship 2d69229f-ad0a-441d-89ca-16cc4aea38c0
+	fromColumn: 'Warehouse Entries'.'Bin Key'
+	toColumn: Bin.'Bin Key'
+
+relationship 181cf998-46ab-4b34-bd07-23b4f0f213fe
+	fromColumn: 'Warehouse Journal Lines (To Bin)'.'To Bin Key'
+	toColumn: Bin.'Bin Key'
+
+relationship 6e8300ab-c117-40a4-a5a2-9f743cf41478
+	fromColumn: 'Warehouse Journal Lines (From Bin)'.'From Bin Key'
+	toColumn: Bin.'Bin Key'
+
+relationship 506a62f4-e378-4217-9d69-97a00130089e
+	fromColumn: 'Warehouse Activity Lines'.'Bin Key'
+	toColumn: Bin.'Bin Key'
+
+relationship 0036d83b-8db9-47a4-a1da-96ecba4807df
+	fromColumn: 'Warehouse Entries'.'Zone Key'
+	toColumn: Zone.'Zone Key'
+
+relationship 8dccad71-4b94-49f4-bfb8-28331891efa9
+	fromColumn: 'Warehouse Journal Lines (To Bin)'.'Zone Key'
+	toColumn: Zone.'Zone Key'
+
+relationship 2ab25497-29b2-40a7-9edd-5436483279fd
+	fromColumn: 'Warehouse Journal Lines (From Bin)'.'Zone Key'
+	toColumn: Zone.'Zone Key'
+
+relationship 6d4c878b-272f-4db8-93b1-2568afecf61b
+	fromColumn: 'Item Ledger Entries'.'Item No.'
+	toColumn: Item.'Item No.'
+
+relationship 66667e42-0a92-4e49-8d8b-8be7b4260b2c
+	fromColumn: 'Item Ledger Entries'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship e342b48b-4682-445f-8c2c-18e06362bf7c
+	fromColumn: 'Purchase Lines'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 472a2906-d4c5-4cb5-b276-037227855a44
+	fromColumn: 'Purchase Lines'.'Item No.'
+	toColumn: Item.'Item No.'
+
+relationship 68426385-60a3-4f16-b527-f7f109f2dcf4
+	fromColumn: 'Warehouse Entries'.'Item No.'
+	toColumn: Item.'Item No.'
+
+relationship fbec5978-480f-4294-aa2c-1faa658ae7a8
+	fromColumn: 'Sales Lines'.'Item No.'
+	toColumn: Item.'Item No.'
+
+relationship 52041bef-e107-4e26-bfc2-bce46c9df8a5
+	fromColumn: 'Project Planning Lines'.itemNo
+	toColumn: Item.'Item No.'
+
+relationship 7a52d004-c331-44df-a8f0-c02405620b16
+	fromColumn: 'Assembly Headers'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 1be827ab-ad69-407a-8bc2-f89bf43e6479
+	fromColumn: 'Assembly Headers'.itemNo
+	toColumn: Item.'Item No.'
+
+relationship 75729ce0-5bdd-2196-2f0c-04d95862c7a1
+	fromColumn: 'Assembly Lines'.itemNo
+	toColumn: Item.'Item No.'
+
+relationship c5ed965c-7afa-47da-be8f-c2ab6cdf0928
+	fromColumn: 'Assembly Lines'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship be8f3e5a-ba87-4aa8-b55b-baf8812f3c5c
+	fromColumn: 'Warehouse Journal Lines (To Bin)'.itemNo
+	toColumn: Item.'Item No.'
+
+relationship 0e3e86fe-c96d-4c56-9bd5-19c81d57f970
+	fromColumn: 'Warehouse Journal Lines (From Bin)'.itemNo
+	toColumn: Item.'Item No.'
+
+relationship 66b8d690-1727-4dca-bc2b-ada2a92ed701
+	fromColumn: 'Warehouse Activity Lines'.itemNo
+	toColumn: Item.'Item No.'
+
+relationship a4c2419a-91e9-42f8-9fd5-03addbe5dc48
+	fromColumn: 'Production Order Lines'.itemNo
+	toColumn: Item.'Item No.'
+
+relationship 2356eb16-c9f0-4dba-851d-ebaeb0334dd8
+	fromColumn: 'Production Order Lines'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship bdc47181-e745-4375-95ea-921060b6c7c0
+	fromColumn: 'Prod Order Component Lines'.itemNo
+	toColumn: Item.'Item No.'
+
+relationship d29e5ad4-fa6a-4b28-b87f-6364608d261f
+	fromColumn: 'Prod Order Component Lines'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 2863de0f-2f33-451d-883f-6be3f0573209
+	fromColumn: 'Service Lines'.itemNo
+	toColumn: Item.'Item No.'
+
+relationship 6eb8f055-81dd-4ee5-ba32-b3e7f9f74cd5
+	fromColumn: 'Service Lines'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 7dcc8076-f3ba-4402-a8b2-cb9f2ca1eaba
+	fromColumn: 'Transfer Lines'.itemNo
+	toColumn: Item.'Item No.'
+
+relationship 50b8ae05-5299-4e5e-8771-cabac23b0247
+	fromColumn: 'Transfer Lines'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 53c6f984-4b4a-4d8e-af09-51ece3aec34a
+	fromColumn: 'Requisition Line'.itemNo
+	toColumn: Item.'Item No.'
+
+relationship a69406fb-d892-4191-a0a8-b60bde2c1ca4
+	fromColumn: 'Requisition Line'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 00e9b7d2-b621-47a3-afb1-087eec2e772c
+	fromColumn: 'Planning Component Lines'.itemNo
+	toColumn: Item.'Item No.'
+
+relationship 8641548f-a392-46bd-b8f4-4533161b78a0
+	fromColumn: 'Planning Component Lines'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 2cb769e7-9fc0-da08-c24e-9d603fe2141b
+	fromColumn: Item.'Item Category Code'
+	toColumn: 'Item Category'.'Item Category Code'
+
+relationship 483e78d3-117e-4e5d-85da-51324e96fdeb
+	fromColumn: 'Item Ledger Entries'.'Posting Date'
+	toColumn: Date.Date
+
+relationship d0f42925-aae8-480c-9c90-eeb3c3ab3abb
+	isActive: false
+	fromColumn: 'Item Ledger Entries'.'Expiration Date'
+	toColumn: Date.Date
+
+relationship 127e7f4d-db2a-4f6c-9775-e7871c6645e2
+	fromColumn: 'Purchase Lines'.'Expected Receipt Date'
+	toColumn: Date.Date
+
+relationship a52769d3-1378-4908-9625-6537f7f92b2a
+	fromColumn: 'Sales Lines'.'Shipment Date'
+	toColumn: Date.Date
+
+relationship 5b15969b-0854-4580-b4f9-7dc5a5f251c8
+	fromColumn: 'Project Planning Lines'.planningDate
+	toColumn: Date.Date
+
+relationship f48b2a9d-f702-40df-b095-328c7a5b571b
+	fromColumn: 'Production Order Lines'.'Due Date'
+	toColumn: Date.Date
+
+relationship b15fa514-075f-48c7-af5d-08fe12eae5bf
+	fromColumn: 'Prod Order Component Lines'.'Due Date'
+	toColumn: Date.Date
+
+relationship 03bb0ced-b027-47b4-afd7-b67d4f82b78e
+	fromColumn: 'Service Lines'.'Needed By Date'
+	toColumn: Date.Date
+
+relationship 09179228-2dea-4865-9ea2-7035b15388cd
+	isActive: false
+	fromColumn: 'Transfer Lines'.'Receipt Date'
+	toColumn: Date.Date
+
+relationship adddc227-fe50-49f6-bd7c-3037befb6717
+	isActive: false
+	fromColumn: 'Transfer Lines'.'Shipment Date'
+	toColumn: Date.Date
+
+relationship a6ccbb96-b658-4397-91b0-7a90653b80d5
+	isActive: false
+	fromColumn: 'Requisition Line'.startingDate
+	toColumn: Date.Date
+
+relationship 82ffd0a0-0100-40e9-958d-84da8804c777
+	isActive: false
+	fromColumn: 'Requisition Line'.transferShipmentDate
+	toColumn: Date.Date
+
+relationship b18442f7-869d-4f82-acad-b9dc7db55446
+	fromColumn: 'Requisition Line'.dueDate
+	toColumn: Date.Date
+
+relationship fe81bb54-69d0-4ad4-911c-b9fa11eac97c
+	isActive: false
+	fromColumn: 'Production Order Lines'.'Starting Date'
+	toColumn: Date.Date
+
+relationship 1000547a-1d6c-4212-aa80-727a4083c0f6
+	fromColumn: 'Planning Component Lines'.'Due Date'
+	toColumn: Date.Date
+
+relationship 6b2fa779-7b45-42cc-9d8a-97549c3a071a
+	fromColumn: 'Assembly Headers'.'Due Date'
+	toColumn: Date.Date
+
+relationship 06101872-1050-4f8b-b91a-df22564954eb
+	isActive: false
+	fromColumn: 'Requisition Line'.orderDate
+	toColumn: Date.Date
+
+relationship 07b470b4-3721-4239-9781-5f95763dc3b9
+	fromColumn: 'Assembly Lines'.'Due Date'
+	toColumn: Date.Date
+

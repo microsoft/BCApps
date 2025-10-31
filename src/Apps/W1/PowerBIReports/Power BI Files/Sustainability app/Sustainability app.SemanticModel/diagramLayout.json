@@ -1,0 +1,510 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 22006.360441153651,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 425.06620209059281,
+            "y": 311.94558240261466
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "1617752a-65ec-4d0c-b652-07eb46ba12e3",
+          "size": {
+            "height": 104,
+            "width": 254
+          },
+          "zIndex": 54,
+          "expandedHeight": 187
+        },
+        {
+          "location": {
+            "x": 13078.1,
+            "y": 16.572345192592252
+          },
+          "nodeIndex": "Working Days",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 14
+        },
+        {
+          "location": {
+            "x": 1360.6892857142861,
+            "y": 855.22859519259237
+          },
+          "nodeIndex": "Date Ref",
+          "size": {
+            "height": 200,
+            "width": 391.14285714285722
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 428.32857142857722,
+            "y": 453.71520233544936
+          },
+          "nodeIndex": "Date",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 7,
+          "expandedHeight": 200
+        },
+        {
+          "location": {
+            "x": 11570.9,
+            "y": 16.572345192592252
+          },
+          "nodeIndex": "Date Table Setup",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 19854.800056087141,
+            "y": 54.572345192592252
+          },
+          "nodeIndex": "Localized Labels",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 23000.902862116265,
+            "y": 483.90047019259225
+          },
+          "nodeIndex": "COMPANY",
+          "nodeLineageTag": "d4a507c0-3b24-4242-a536-0cca34435194",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 788.11931944598007,
+            "y": 596.57234519259225
+          },
+          "nodeIndex": "Sustainability Account Category",
+          "size": {
+            "height": 187,
+            "width": 254
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 23847.041835472348,
+            "y": 929.00807778488365
+          },
+          "nodeIndex": "Sustainability Accounts",
+          "nodeLineageTag": "816fcc93-a534-482d-bf58-a75c40d24465",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 23711.836660025674,
+            "y": 385.90047019259225
+          },
+          "nodeIndex": "Sustainability Ledger Entries",
+          "nodeLineageTag": "2a0cf939-2176-4b5a-970c-8d0ef8334663",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 24423.153507949777,
+            "y": 459.68557339753079
+          },
+          "nodeIndex": "Country/Region",
+          "nodeLineageTag": "60f5456e-1b5c-4448-9a86-e4c1970e18f3",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 24707.153507949777,
+            "y": 459.68557339753079
+          },
+          "nodeIndex": "Responsibility Centre",
+          "nodeLineageTag": "a8623892-be7f-4115-9213-a5a049ea3eef",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 24991.153507949777,
+            "y": 385.68557339753079
+          },
+          "nodeIndex": "Sustainability Goals",
+          "nodeLineageTag": "da071c77-b29a-499b-a452-91aa43e7f707",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 24149.153507949777,
+            "y": 405.27066902780842
+          },
+          "nodeIndex": "Employee Qualifications",
+          "nodeLineageTag": "0dff38e4-da38-4481-bce4-10332ddefc77",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 23580.770457935083,
+            "y": 375.25577980740786
+          },
+          "nodeIndex": "Employee Ledger Entries",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 25418.087305859186,
+            "y": 385.18557339753079
+          },
+          "nodeIndex": "Emission Fees",
+          "nodeLineageTag": "3a19b8b1-42d9-483b-8642-4b80854e6852",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 25212.119262879936,
+            "y": 170.07457222097139
+          },
+          "nodeIndex": "Employee Absences",
+          "nodeLineageTag": "a2fed5db-ebdc-40c8-88e3-9e005cd56347",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 24415.165642633827,
+            "y": 996.90545476048214
+          },
+          "nodeIndex": "Sustainability Sub-Account Categories",
+          "nodeLineageTag": "69811130-f179-45c5-b874-e277cc1470f4",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 24831.281593171891,
+            "y": 150.9778527626531
+          },
+          "nodeIndex": "Employees",
+          "nodeLineageTag": "c080803e-a4fd-4a9e-b16d-0c0d3de20837",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 25986.087305859186,
+            "y": 481.18557339753079
+          },
+          "nodeIndex": "ENVIRONMENT",
+          "nodeLineageTag": "590f8a19-3913-4ba2-b72c-798eaefd2a8d",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 26270.087305859186,
+            "y": 383.18557339753079
+          },
+          "nodeIndex": "Translated Localized Labels",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 78.481855489842161,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 1,
+      "scrollPosition": {
+        "x": 0,
+        "y": 238.1442166899204
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 737,
+            "y": 151
+          },
+          "nodeIndex": "Sustainability Ledger Entries",
+          "nodeLineageTag": "2a0cf939-2176-4b5a-970c-8d0ef8334663",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 379,
+            "y": 122
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "1617752a-65ec-4d0c-b652-07eb46ba12e3",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 375,
+            "y": 249
+          },
+          "nodeIndex": "Sustainability Accounts",
+          "nodeLineageTag": "816fcc93-a534-482d-bf58-a75c40d24465",
+          "size": {
+            "height": 213,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 35.480606891312647,
+            "y": 363.16020229710421
+          },
+          "nodeIndex": "Sustainability Account Category",
+          "nodeLineageTag": "c3ba4558-e02a-404b-b4a1-a2903520532a",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 379,
+            "y": 413
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "43a65c75-84cf-4e19-b893-90aa5fbee72b",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 373.54037047397151,
+            "y": 562.23970585860786
+          },
+          "nodeIndex": "Responsibility Centre",
+          "nodeLineageTag": "a8623892-be7f-4115-9213-a5a049ea3eef",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 7,
+          "expandedHeight": 152
+        },
+        {
+          "location": {
+            "x": 373.54037047397156,
+            "y": 709.97014986792738
+          },
+          "nodeIndex": "Country/Region",
+          "nodeLineageTag": "60f5456e-1b5c-4448-9a86-e4c1970e18f3",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 152
+        },
+        {
+          "location": {
+            "x": 30.325480776993587,
+            "y": 42.936817187256324
+          },
+          "nodeIndex": "Sustainability Sub-Account Categories",
+          "nodeLineageTag": "69811130-f179-45c5-b874-e277cc1470f4",
+          "size": {
+            "height": 228.62362840713604,
+            "width": 234
+          },
+          "zIndex": 8
+        }
+      ],
+      "name": "Sustainability Ledger Entries",
+      "zoomValue": 112.11693641406029,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 2,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 73,
+            "y": 141
+          },
+          "nodeIndex": "Employee Qualifications",
+          "nodeLineageTag": "0dff38e4-da38-4481-bce4-10332ddefc77",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 737,
+            "y": 195
+          },
+          "nodeIndex": "Employee Ledger Entries",
+          "nodeLineageTag": "efc44628-dbc3-4b0a-a873-6e698c2b747f",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 400,
+            "y": 139
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "43a65c75-84cf-4e19-b893-90aa5fbee72b",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 394,
+            "y": 388
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "1617752a-65ec-4d0c-b652-07eb46ba12e3",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 393,
+            "y": 263
+          },
+          "nodeIndex": "Employees",
+          "nodeLineageTag": "c080803e-a4fd-4a9e-b16d-0c0d3de20837",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 74,
+            "y": 370
+          },
+          "nodeIndex": "Employee Absences",
+          "nodeLineageTag": "a2fed5db-ebdc-40c8-88e3-9e005cd56347",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 296
+        }
+      ],
+      "name": "Employees",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

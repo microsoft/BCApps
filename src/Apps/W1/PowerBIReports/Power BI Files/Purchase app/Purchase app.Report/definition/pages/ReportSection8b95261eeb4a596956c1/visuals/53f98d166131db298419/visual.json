@@ -1,0 +1,365 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "53f98d166131db298419",
+  "position": {
+    "x": 25.725490196078432,
+    "y": 62.117647058823529,
+    "z": 0,
+    "height": 316.86274509803923,
+    "width": 1228.5490196078431,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor"
+                    }
+                  },
+                  "Property": "Vendor Name"
+                }
+              },
+              "queryRef": "Vendor.Vendor Name",
+              "nativeQueryRef": "Vendor Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Source Table"
+                }
+              },
+              "queryRef": "Purchase Documents.Source Table",
+              "nativeQueryRef": "Source Table"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchaser"
+                    }
+                  },
+                  "Property": "Purchaser Code"
+                }
+              },
+              "queryRef": "Purchaser.Purchaser Code",
+              "nativeQueryRef": "Purchaser Code"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Location"
+                    }
+                  },
+                  "Property": "Location Code"
+                }
+              },
+              "queryRef": "Location.Location Code",
+              "nativeQueryRef": "Location Code"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Date"
+                }
+              },
+              "queryRef": "Date.Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Document Type"
+                }
+              },
+              "queryRef": "Purchases.Document Type",
+              "nativeQueryRef": "Document Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Document No."
+                }
+              },
+              "queryRef": "Purchases.Document No.",
+              "nativeQueryRef": "Document No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item No. & Description"
+                }
+              },
+              "queryRef": "Item.Item No. & Description"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Purchase Quantity"
+                }
+              },
+              "queryRef": "Purchases.Purchase Quantity",
+              "nativeQueryRef": "Purchase Quantity"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Purchase (LCY)"
+                }
+              },
+              "queryRef": "Purchases.Purchase Amount",
+              "nativeQueryRef": "Purchase Amount"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Documents"
+                  }
+                },
+                "Property": "Document No."
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "80.91062002955873D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Item.Item No."
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Item.Item No. & Description"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "101.02768835269524D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales.Sales Quantity"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "115.3723056214385D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales.Sales Amount"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "145.72500845605788D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Item.Base Unit of Measure"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Vendor.Vendor Name"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Purchaser.Purchaser Code"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Location.Location Code"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Date.Date"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Purchases.Document Type"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Purchases.Document No."
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Purchases.Purchase Quantity"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Purchases.Purchase Amount"
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "autoSizeColumnWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "urlIcon": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Purchases Drillthrough Details Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

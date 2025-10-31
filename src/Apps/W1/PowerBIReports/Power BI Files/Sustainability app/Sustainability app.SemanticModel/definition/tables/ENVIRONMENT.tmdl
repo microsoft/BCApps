@@ -1,0 +1,26 @@
+table ENVIRONMENT
+	isHidden
+	lineageTag: 590f8a19-3913-4ba2-b72c-798eaefd2a8d
+
+	column ENVIRONMENT
+		dataType: string
+		isHidden
+		lineageTag: ec0a24db-74b5-4ba9-8fed-418142a6be67
+		summarizeBy: none
+		sourceColumn: ENVIRONMENT
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ENVIRONMENT = m
+		mode: import
+		queryGroup: 'Parameters and Functions\Connection Parameters'
+		source = "Sandbox" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
