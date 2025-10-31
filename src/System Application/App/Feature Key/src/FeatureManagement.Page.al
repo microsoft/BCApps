@@ -5,6 +5,8 @@
 
 namespace System.Environment.Configuration;
 
+using System.Agents;
+
 /// <summary>
 /// Page that enables a user to pick which new features to use
 /// </summary>
@@ -231,9 +233,12 @@ page 2610 "Feature Management"
 
     trigger OnOpenPage()
     var
+        AgentUtilities: Codeunit "Agent Utilities";
         FeatureIDFilter: Text;
         IgnoreFilter: Boolean;
     begin
+        AgentUtilities.BlockPageFromBeingOpenedByAgent();
+
         OnOpenFeatureMgtPage(FeatureIDFilter, IgnoreFilter);
         if not IgnoreFilter and (FeatureIDFilter <> '') then begin
             Rec.FilterGroup(2);
