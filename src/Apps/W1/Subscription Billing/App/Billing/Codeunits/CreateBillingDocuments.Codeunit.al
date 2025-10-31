@@ -948,7 +948,7 @@ codeunit 8060 "Create Billing Documents"
         ErrorTextInfo: ErrorInfo;
     begin
         if AutomatedBilling then
-            ContractBillingErrLog.InsertUnspecificLog(ErrorText)
+            ContractBillingErrLog.InsertUnspecificLog(CopyStr(ErrorText, 1, 250))
         else begin
             ErrorTextInfo.ErrorType := ErrorType::Client;
             ErrorTextInfo.Message := ErrorText;
@@ -966,7 +966,7 @@ codeunit 8060 "Create Billing Documents"
         if AutomatedBilling then
             ContractBillingErrLog.InsertLogFromBillingTemplate(
                 BillingTemplateCode,
-                ErrorText)
+                CopyStr(ErrorText, 1, 250))
         else begin
             ErrorTextInfo.ErrorType := ErrorType::Client;
             ErrorTextInfo.Message := ErrorText;
@@ -992,7 +992,7 @@ codeunit 8060 "Create Billing Documents"
             ContractBillingErrLog.InsertLogFromSubscriptionLine(
                 BillingLine."Billing Template Code",
                 SubscriptionLine,
-                ErrorText);
+                CopyStr(ErrorText, 1, 250));
             FilteredBillingLine.SetRange("Subscription Header No.", BillingLine."Subscription Header No.");
             FilteredBillingLine.SetRange("Subscription Line Entry No.", BillingLine."Subscription Line Entry No.");
             FilteredBillingLine.ModifyAll("Billing Error Log Entry No.", ContractBillingErrLog."Entry No.", false);

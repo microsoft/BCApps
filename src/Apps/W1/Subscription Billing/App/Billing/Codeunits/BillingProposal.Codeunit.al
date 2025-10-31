@@ -261,7 +261,7 @@ codeunit 8062 "Billing Proposal"
                                     ContractBillingErrLog.InsertLogFromSubscriptionLine(
                                         BillingTemplate.Code,
                                         ServiceCommitment,
-                                        StrSubstNo(CreditMemoExistsForSubscriptionLineTxt, ServiceCommitment."Subscription Header No.", ServiceCommitment."Entry No."))
+                                        CopyStr(StrSubstNo(CreditMemoExistsForSubscriptionLineTxt, ServiceCommitment."Subscription Header No.", ServiceCommitment."Entry No."), 1, 250))
                                 else
                                     SalesHeaderGlobal.Mark(true);
                         Enum::"Service Partner"::Vendor:
@@ -270,7 +270,7 @@ codeunit 8062 "Billing Proposal"
                                     ContractBillingErrLog.InsertLogFromSubscriptionLine(
                                         BillingTemplate.Code,
                                         ServiceCommitment,
-                                        StrSubstNo(CreditMemoExistsForSubscriptionLineTxt, ServiceCommitment."Subscription Header No.", ServiceCommitment."Entry No."))
+                                        CopyStr(StrSubstNo(CreditMemoExistsForSubscriptionLineTxt, ServiceCommitment."Subscription Header No.", ServiceCommitment."Entry No."), 1, 250))
                                 else
                                     PurchaseHeaderGlobal.Mark(true);
                     end;
