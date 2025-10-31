@@ -4,5 +4,6 @@
   "testFolders": [
     "../../../src/Business Foundation/Test"
   ],
-  "installOnlyReferencedApps": false
+  "installOnlyReferencedApps": false,
+  "testType": "UnitTest"
 }
