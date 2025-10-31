@@ -104,7 +104,11 @@ page 4317 "Agent User Settings"
     }
 
     trigger OnOpenPage()
+    var
+        AgentUtilities: Codeunit "Agent Utilities";
     begin
+        AgentUtilities.BlockPageFromBeingOpenedByAgent();
+
         if not Rec.Initialized then
             UserSettings.GetUserSettings(Rec."User Security ID", Rec);
 
