@@ -2,8 +2,6 @@ namespace Microsoft.SubscriptionBilling;
 
 codeunit 8011 "Recent Item Price" implements "Contract Price Update"
 {
-    Access = Internal;
-
     var
         PriceUpdateTemplate: Record "Price Update Template";
         ServiceCommitment: Record "Subscription Line";
@@ -37,6 +35,7 @@ codeunit 8011 "Recent Item Price" implements "Contract Price Update"
                     ContractPriceUpdateLine.UpdateFromContract(ServiceCommitment.Partner, ServiceCommitment."Subscription Contract No.");
                     CalculateNewPrice(PriceUpdateTemplate."Update Value %", ContractPriceUpdateLine);
                     ContractPriceUpdateLine."Next Price Update" := CalcDate(PriceUpdateTemplate."Price Binding Period", ContractPriceUpdateLine."Perform Update On");
+                    PriceUpdateManagement.OnAfterCalculateNewPriceForSubscriptionLine(ServiceCommitment, ContractPriceUpdateLine, PriceUpdateTemplate, PerformUpdateOnDate);
                     if ContractPriceUpdateLine.ShouldContractPriceUpdateLineBeInserted() then
                         ContractPriceUpdateLine.Insert(false)
                     else

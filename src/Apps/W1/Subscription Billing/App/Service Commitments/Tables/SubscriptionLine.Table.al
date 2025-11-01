@@ -1686,6 +1686,7 @@ table 8059 "Subscription Line"
         Rec.Modify(true);
         Rec.SetSkipArchiving(false);
         Rec.CreateServiceCommitmentArchive(ServiceCommitmentArchive, xServiceCommitment, CalcDate('<-1D>', ContractPriceUpdateLine."Perform Update On"), Enum::"Type Of Price Update"::"Price Update");
+        OnAfterUpdateServiceCommitmentFromContractPriceUpdateLine(Rec, ContractPriceUpdateLine);
     end;
 
     internal procedure ServiceCommitmentArchiveExistsForPeriodExists(var ServiceCommitmentArchive: Record "Subscription Line Archive"; RecurringBillingFrom: Date; RecurringBillingTo: Date): Boolean
@@ -2080,6 +2081,11 @@ table 8059 "Subscription Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckServiceDates(ServiceStartDate: Date; ServiceEndDate: Date; NextBillingDate: Date; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdateServiceCommitmentFromContractPriceUpdateLine(var SubscriptionLine: Record "Subscription Line"; ContractPriceUpdateLine: Record "Sub. Contr. Price Update Line")
     begin
     end;
 }
