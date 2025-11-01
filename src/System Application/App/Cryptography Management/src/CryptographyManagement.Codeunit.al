@@ -111,11 +111,33 @@ codeunit 1266 "Cryptography Management"
     /// <param name="InputString">Input string.</param>
     /// <param name="HashAlgorithmType">The available hash algorithms include MD5, SHA1, SHA256, SHA384, and SHA512.</param>
     /// <returns>Hashed value.</returns>
+    procedure GenerateHash(InputString: SecretText; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): SecretText
+    begin
+        exit(CryptographyManagementImpl.GenerateHash(InputString, HashAlgorithmType));
+    end;
+
+    /// <summary>
+    /// Generates a hash from a string based on the provided hash algorithm.
+    /// </summary>
+    /// <param name="InputString">Input string.</param>
+    /// <param name="HashAlgorithmType">The available hash algorithms include MD5, SHA1, SHA256, SHA384, and SHA512.</param>
+    /// <returns>Hashed value.</returns>
     procedure GenerateHash(InputString: Text; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text
     begin
         exit(CryptographyManagementImpl.GenerateHash(InputString, HashAlgorithmType));
     end;
 
+    /// <summary>
+    /// Generates a keyed hash from a string based on provided hash algorithm and key.
+    /// </summary>
+    /// <param name="InputString">Input string.</param>
+    /// <param name="Key">Key to use in the hash algorithm.</param>
+    /// <param name="HashAlgorithmType">The available hash algorithms include HMACMD5, HMACSHA1, HMACSHA256, HMACSHA384, and HMACSHA512.</param>
+    /// <returns>Hashed value.</returns>
+    procedure GenerateHash(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): SecretText
+    begin
+        exit(CryptographyManagementImpl.GenerateHash(InputString, Key, HashAlgorithmType));
+    end;
 
     /// <summary>
     /// Generates a keyed hash from a string based on provided hash algorithm and key.
@@ -146,9 +168,32 @@ codeunit 1266 "Cryptography Management"
     /// <param name="InputString">Input string.</param>
     /// <param name="HashAlgorithmType">The available hash algorithms include MD5, SHA1, SHA256, SHA384, and SHA512.</param>
     /// <returns>Base64 hashed value.</returns>
+    procedure GenerateHashAsBase64String(InputString: SecretText; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): SecretText
+    begin
+        exit(CryptographyManagementImpl.GenerateHashAsBase64String(InputString, HashAlgorithmType));
+    end;
+
+    /// <summary>
+    /// Generates a base64 encoded hash from a string based on provided hash algorithm.
+    /// </summary>
+    /// <param name="InputString">Input string.</param>
+    /// <param name="HashAlgorithmType">The available hash algorithms include MD5, SHA1, SHA256, SHA384, and SHA512.</param>
+    /// <returns>Base64 hashed value.</returns>
     procedure GenerateHashAsBase64String(InputString: Text; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text
     begin
         exit(CryptographyManagementImpl.GenerateHashAsBase64String(InputString, HashAlgorithmType));
+    end;
+
+    /// <summary>
+    /// Generates a keyed base64 encoded hash from a string based on provided hash algorithm and key.
+    /// </summary>
+    /// <param name="InputString">Input string.</param>
+    /// <param name="Key">Key to use in the hash algorithm.</param>
+    /// <param name="HashAlgorithmType">The available hash algorithms include HMACMD5, HMACSHA1, HMACSHA256, HMACSHA384, and HMACSHA512.</param>
+    /// <returns>Base64 hashed value.</returns>
+    procedure GenerateHashAsBase64String(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): SecretText
+    begin
+        exit(CryptographyManagementImpl.GenerateHashAsBase64String(InputString, Key, HashAlgorithmType));
     end;
 
 
@@ -164,6 +209,18 @@ codeunit 1266 "Cryptography Management"
         exit(CryptographyManagementImpl.GenerateHashAsBase64String(InputString, Key, HashAlgorithmType));
     end;
 
+    /// <summary>
+    /// Generates keyed base64 encoded hash from provided string based on provided hash algorithm and base64 key.
+    /// </summary>
+    /// <param name="InputString">Input string.</param>
+    /// <param name="Key">Key to use in the hash algorithm.</param>
+    /// <param name="HashAlgorithmType">The available hash algorithms include HMACMD5, HMACSHA1, HMACSHA256, HMACSHA384, and HMACSHA512.</param>
+    /// <returns>Base64 hashed value.</returns>
+    procedure GenerateBase64KeyedHashAsBase64String(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): SecretText
+    begin
+        exit(CryptographyManagementImpl.GenerateBase64KeyedHashAsBase64String(InputString, Key, HashAlgorithmType));
+    end;
+
 
     /// <summary>
     /// Generates keyed base64 encoded hash from provided string based on provided hash algorithm and base64 key.
@@ -175,6 +232,18 @@ codeunit 1266 "Cryptography Management"
     procedure GenerateBase64KeyedHashAsBase64String(InputString: Text; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     begin
         exit(CryptographyManagementImpl.GenerateBase64KeyedHashAsBase64String(InputString, Key, HashAlgorithmType));
+    end;
+
+    /// <summary>
+    /// Generates keyed base64 encoded hash from provided string based on provided hash algorithm and base64 key.
+    /// </summary>
+    /// <param name="InputString">Input string.</param>
+    /// <param name="Key">Key to use in the hash algorithm.</param>
+    /// <param name="HashAlgorithmType">The available hash algorithms include HMACMD5, HMACSHA1, HMACSHA256, HMACSHA384, and HMACSHA512.</param>
+    /// <returns>Hashed value.</returns>
+    procedure GenerateBase64KeyedHash(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): SecretText
+    begin
+        exit(CryptographyManagementImpl.GenerateBase64KeyedHash(InputString, Key, HashAlgorithmType));
     end;
 
 
@@ -203,6 +272,18 @@ codeunit 1266 "Cryptography Management"
         CryptographyManagementImpl.SignData(InputString, XmlString, HashAlgorithm, SignatureOutStream);
     end;
 
+    /// <summary>
+    /// Computes the hash value of the specified string and signs it.
+    /// </summary>
+    /// <param name="InputString">Input string for signing.</param>
+    /// <param name="XmlString">The private key to use in the hash algorithm.</param>
+    /// <param name="HashAlgorithm">The available hash algorithms are MD5, SHA1, SHA256, SHA384, and SHA512.</param>
+    /// <param name="SignatureOutStream">The stream to write the signature for the specified string.</param>
+    procedure SignData(InputString: SecretText; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    begin
+        CryptographyManagementImpl.SignData(InputString, XmlString, HashAlgorithm, SignatureOutStream);
+    end;
+
 
     /// <summary>
     /// Computes the hash value of the specified data and signs it.
@@ -224,6 +305,18 @@ codeunit 1266 "Cryptography Management"
     /// <param name="HashAlgorithm">The available hash algorithms are MD5, SHA1, SHA256, SHA384, and SHA512.</param>
     /// <param name="SignatureOutStream">The stream to write the signature for the specified string.</param>
     procedure SignData(InputString: Text; SignatureKey: Codeunit "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    begin
+        CryptographyManagementImpl.SignData(InputString, SignatureKey, HashAlgorithm, SignatureOutStream);
+    end;
+
+    /// <summary>
+    /// Computes the hash value of the specified string and signs it.
+    /// </summary>
+    /// <param name="InputString">Input string for signing.</param>
+    /// <param name="SignatureKey">The private key to use in the hash algorithm.</param>
+    /// <param name="HashAlgorithm">The available hash algorithms are MD5, SHA1, SHA256, SHA384, and SHA512.</param>
+    /// <param name="SignatureOutStream">The stream to write the signature for the specified string.</param>
+    procedure SignData(InputString: SecretText; SignatureKey: Codeunit "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
     begin
         CryptographyManagementImpl.SignData(InputString, SignatureKey, HashAlgorithm, SignatureOutStream);
     end;
@@ -290,6 +383,19 @@ codeunit 1266 "Cryptography Management"
     procedure VerifyData(InputString: Text; SignatureKey: Codeunit "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
     begin
         exit(CryptographyManagementImpl.VerifyData(InputString, SignatureKey, HashAlgorithm, SignatureInStream));
+    end;
+
+    /// <summary>
+    /// Verifies that a digital signature is valid.
+    /// </summary>
+    /// <param name="InputString">Input string.</param>
+    /// <param name="XmlString">The public key to use in the hash algorithm.</param>
+    /// <param name="HashAlgorithm">The available hash algorithms are MD5, SHA1, SHA256, SHA384, and SHA512.</param>
+    /// <param name="SignatureInStream">The stream of signature.</param>
+    /// <returns>True if the signature is valid; otherwise, false.</returns>
+    procedure VerifyData(InputString: SecretText; XmlString: Text; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    begin
+        exit(CryptographyManagementImpl.VerifyData(InputString, XmlString, HashAlgorithm, SignatureInStream));
     end;
 
     /// <summary>
