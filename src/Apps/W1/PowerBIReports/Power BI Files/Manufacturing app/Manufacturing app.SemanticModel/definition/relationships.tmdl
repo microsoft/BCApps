@@ -1,0 +1,176 @@
+relationship AutoDetected_2bc00587-37d3-4ee0-a9e5-fe055aef002c
+	fromColumn: 'Prod Order Components'.'Item No.'
+	toColumn: Item.'Item No.'
+
+relationship AutoDetected_5b928da4-dcd3-427a-ba2e-0d3341e3619f
+	fromColumn: 'Item Ledger Entries'.'Item No.'
+	toColumn: Item.'Item No.'
+
+relationship AutoDetected_39d9c3d5-e12d-4c2a-b5e5-4fe1b893716a
+	fromColumn: 'Capacity Ledger Entries'.'Item No.'
+	toColumn: Item.'Item No.'
+
+relationship c72dd2bd-1bfb-77ad-18be-ae2b07bde577
+	fromColumn: 'Production Order Lines'.'Item No.'
+	toColumn: Item.'Item No.'
+
+relationship 4f717b0f-324a-6263-3774-45024bc6af10
+	fromColumn: 'Production Order Lines'.'Location Code'
+	toColumn: Location.'Location Code'
+
+relationship 15c87c59-7d9e-f624-cc2a-246cc1814f7e
+	fromColumn: 'Production Order Lines'.'Due Date'
+	toColumn: Date.Date
+
+relationship b6bf1b72-978f-18cf-de54-59e9702cadcd
+	fromColumn: 'Prod Order Components'.'Due Date'
+	toColumn: Date.Date
+
+relationship 59407598-697e-4ecf-3cbb-1500e281a9ba
+	fromColumn: 'Prod Order Components'.'Routing Link Code'
+	toColumn: 'Routing Link'.'Routing Link Code'
+
+relationship cfbecb7c-6391-1b36-6240-78c6b1211ee3
+	fromColumn: 'Prod Order Routing Lines'.'Location Code'
+	toColumn: Location.'Location Code'
+
+relationship a5ea4607-bd0b-a3e3-de33-80cefd74fbca
+	fromColumn: 'Prod Order Routing Lines'.'Routing Link Code'
+	toColumn: 'Routing Link'.'Routing Link Code'
+
+relationship 0835fd93-0aef-6fdb-c0a6-e12cd06b8215
+	fromColumn: 'Prod Order Routing Lines'.'Ending Date'
+	toColumn: Date.Date
+
+relationship 8605a405-29b9-a4e7-e380-d391df1b09f9
+	fromColumn: 'Prod Order Routing Lines'.'Routing No.'
+	toColumn: Routing.'Routing No.'
+
+relationship 253d0595-4d3f-7462-4efc-2e3334759e05
+	fromColumn: 'Prod Order Capacity Need'.'Routing No.'
+	toColumn: Routing.'Routing No.'
+
+relationship 2471e45f-4710-fdb4-fd7a-c54ae69f2aa0
+	fromColumn: 'Item Ledger Entries'.'Location Code'
+	toColumn: Location.'Location Code'
+
+relationship 46fbf699-3e4b-f2e6-6622-39bbef9965ae
+	fromColumn: 'Item Ledger Entries'.'Posting Date'
+	toColumn: Date.Date
+
+relationship 9b7d6629-14dd-c289-2149-7a31544dfa50
+	fromColumn: 'Capacity Ledger Entries'.'Routing No.'
+	toColumn: Routing.'Routing No.'
+
+relationship 91da1bd7-1c88-3db4-25a4-98f7c2056efa
+	fromColumn: 'Capacity Ledger Entries'.'Posting Date'
+	toColumn: Date.Date
+
+relationship 8c88f816-0cc8-1627-b563-a6ce15b1f054
+	fromColumn: 'Calendar Entries'.Date
+	toColumn: Date.Date
+
+relationship c6a246cc-36f9-397b-bcca-544d04934348
+	fromColumn: 'Calendar Entries'.'Capacity Type & No.'
+	toColumn: 'Machine Center'.'Machine Center Key'
+
+relationship 5f87ecfc-27d6-5cec-a048-d3a1718905d0
+	fromColumn: 'Capacity Ledger Entries'.'Type & No.'
+	toColumn: 'Machine Center'.'Machine Center Key'
+
+relationship AutoDetected_e322758e-6d76-4048-93d2-6bc8eaa4f128
+	fromColumn: 'Prod Order Routing Lines'.'Work Center Group Code'
+	toColumn: 'Work Center Group'.'Work Center Group Code'
+
+relationship AutoDetected_ccdb1d21-a71f-41f7-8943-1ba8df789d70
+	fromColumn: 'Calendar Entries'.'Work Center Group Code'
+	toColumn: 'Work Center Group'.'Work Center Group Code'
+
+relationship c7dc44a5-3ea6-5f4a-364a-b1fc14e0d56b
+	fromColumn: 'Capacity Ledger Entries'.'Work Center Group Code'
+	toColumn: 'Work Center Group'.'Work Center Group Code'
+
+relationship c0f4e8b3-2de3-be93-5d14-19cd36eb5e4c
+	fromColumn: 'Prod Order Components'.'Location Code'
+	toColumn: Location.'Location Code'
+
+relationship 4b64915e-e104-8c69-eb68-53597c0b5acd
+	fromColumn: 'Value Entries'.itemNo
+	toColumn: Item.'Item No.'
+
+relationship b593c1f6-2327-234a-60bb-938ec8ef3c85
+	fromColumn: 'Value Entries'.postingDate
+	toColumn: Date.Date
+
+relationship 314285e7-4951-f3a9-15a7-ac2f03c5ca61
+	fromColumn: 'Value Entries'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship 90d7500a-d870-dff8-0efe-26865563d7f0
+	fromColumn: 'Prod Order Capacity Need'.workCenterGroupCode
+	toColumn: 'Work Center Group'.'Work Center Group Code'
+
+relationship 06e6cc7f-d96b-03c9-1a3d-081aa0c63eec
+	fromColumn: 'Prod Order Capacity Need'.date
+	toColumn: Date.Date
+
+relationship 42f72655-8b70-77af-0a91-af73b9a7887c
+	fromColumn: 'Capacity Ledger Entries'.workCenterNo
+	toColumn: 'Work Center'.'Work Center No.'
+
+relationship 49ad81a2-7f31-1c6e-f9a0-60ac81dd4a99
+	fromColumn: 'Prod Order Capacity Need'.no
+	toColumn: 'Machine Center'.'Machine Center No.'
+
+relationship 26b2e293-e893-be63-4c57-93a08313e4a1
+	fromColumn: 'Prod Order Capacity Need'.workCenterNo
+	toColumn: 'Work Center'.'Work Center No.'
+
+relationship 78ea86bf-7cc6-d0e5-357c-db73e295cc00
+	fromColumn: 'Prod Order Routing Lines'.'No.'
+	toColumn: 'Machine Center'.'Machine Center No.'
+
+relationship 0fe9713f-d19f-60e1-9217-394ad5da60bf
+	fromColumn: 'Calendar Entries'.'Capacity Type & No.'
+	toColumn: 'Work Center'.'Work Center Key'
+
+relationship f1185eb9-d357-aacb-5b62-2c1b3d70a0c5
+	fromColumn: Item.'Item Category Code'
+	toColumn: 'Item Category'.'Item Category Code'
+
+relationship 072a10df-4f7a-fa69-f188-9a1874148070
+	fromColumn: 'Prod Order Routing Lines'.'Prod. Order Key'
+	toColumn: 'Production Orders'.'Production Order'
+
+relationship d8c00638-5796-d210-4808-ab1e2874c0fb
+	fromColumn: 'Production Order Lines'.'Prod. Order Key'
+	toColumn: 'Production Orders'.'Production Order'
+
+relationship c0452764-71ed-dba1-6c09-91b63b2f3ab5
+	fromColumn: 'Prod Order Components'.'Prod. Order Key'
+	toColumn: 'Production Orders'.'Production Order'
+
+relationship 28807b00-f42f-de0e-70c2-02fe20a11b64
+	fromColumn: 'Prod Order Capacity Need'.'Prod. Order Key'
+	toColumn: 'Production Orders'.'Production Order'
+
+relationship 046c1f69-32f3-c07c-2867-c42e83fd4e10
+	fromColumn: 'Item Ledger Entries'.'Production Order'
+	toColumn: 'Production Orders'.'Production Order'
+
+relationship 5b78c0e5-1893-c219-7504-cc49aa7189d7
+	fromColumn: 'Capacity Ledger Entries'.'Production Order'
+	toColumn: 'Production Orders'.'Production Order'
+
+relationship 8533afc1-f7c6-a4c1-b9e6-b5d760eba6b2
+	fromColumn: 'Value Entries'.'Production Order'
+	toColumn: 'Production Orders'.'Production Order'
+
+relationship 8ffb6af2-22d3-fba4-5717-385b812fa2fd
+	fromColumn: 'Prod Order Routing Lines'.workCenterNo
+	toColumn: 'Work Center'.'Work Center No.'
+
+relationship f4d0140b-dfcd-a2d5-2b01-7ad97b9efd16
+	fromColumn: 'Production Order Lines'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+

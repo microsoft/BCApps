@@ -25,6 +25,9 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Service.Test;
+using Microsoft.Service.Document;
 using Microsoft.Finance.Currency;
 
 codeunit 139624 "E-Doc E2E Test"
@@ -45,6 +48,9 @@ codeunit 139624 "E-Doc E2E Test"
         LibraryInventory: Codeunit "Library - Inventory";
         EDocImplState: Codeunit "E-Doc. Impl. State";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
+        LibraryService: Codeunit "Library - Service";
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryERMGlobal: Codeunit "Library - ERM";
         IsInitialized: Boolean;
         IncorrectValueErr: Label 'Incorrect value found';
         DocumentSendingProfileWithWorkflowErr: Label 'Workflow %1 defined for %2 in Document Sending Profile %3 is not found.', Comment = '%1 - The workflow code, %2 - Enum value set in Electronic Document, %3 - Document Sending Profile Code';
@@ -2047,6 +2053,49 @@ codeunit 139624 "E-Doc E2E Test"
         Reply := true;
     end;
 
+    [Test]
+    procedure CheckEDocumentServiceOrderErrorForYourReferance()
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+        ServiceHeader: Record "Service Header";
+        ExpectedErr: Text;
+        WorkflowCode: Code[20];
+    begin
+        // [SCENARIO 608765] E-Documents: Check 'Your reference' not available in service documents in Belgian localisation
+        this.Initialize(Enum::"Service Integration"::"Mock");
+
+        // [WHEN] Team member create invoice
+        LibraryLowerPermission.SetTeamMember();
+        LibraryLowerPermission.SetOutsideO365Scope();
+        LibraryLowerPermission.AddO365BusFull();
+        this.LibraryEDoc.AddEDocServiceSupportedType(this.EDocumentService, Enum::"E-Document Type"::"Sales Shipment");
+
+        // [GIVEN] Setup E-Document service for sending shipment
+        this.EDocumentService."Document Format" := Enum::"E-Document Format"::"PEPPOL BIS 3.0";
+        this.EDocumentService.Modify(false);
+        LibraryEDoc.CreateDocSendingProfile(DocumentSendingProfile);
+        WorkflowCode := LibraryEDoc.CreateFlowWithServices(DocumentSendingProfile.Code, EDocumentService.Code, '');
+        DocumentSendingProfile."Electronic Document" := DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow";
+        DocumentSendingProfile."Electronic Service Flow" := WorkflowCode;
+        DocumentSendingProfile.Modify();
+        Customer."Document Sending Profile" := DocumentSendingProfile.Code;
+        Customer.Modify();
+        EDocImplState.EnableOnCheckEvent();
+        BindSubscription(EDocImplState);
+        LibraryVariableStorage.AssertEmpty();
+        EDocImplState.SetVariableStorage(LibraryVariableStorage);
+
+        // [GIVEN] Create service order with empty Your Reference.
+        CreateServiceDocument(ServiceHeader, ServiceHeader."Document Type"::Order);
+
+        // [WHEN] Posting service order
+        asserterror LibraryService.PostServiceOrder(ServiceHeader, true, false, false);
+
+        // [THEN] Check Your Reference error message
+        ExpectedErr := 'Your Reference must have a value';
+        Assert.ExpectedMessage(ExpectedErr, CopyStr(GetLastErrorText(), 1, StrLen(ExpectedErr)));
+    end;
+
     local procedure Initialize(Integration: Enum "Service Integration")
     var
         TransformationRule: Record "Transformation Rule";
@@ -2188,6 +2237,51 @@ codeunit 139624 "E-Doc E2E Test"
         TransferShipmentHeader.FindFirst();
         EDocument.SetRange("Document Record ID", TransferShipmentHeader.RecordId);
         Assert.IsFalse(EDocument.IsEmpty(), 'E-Document not created for Transfer Shipment Header');
+    end;
+
+    local procedure CreateServiceDocument(var ServiceHeader: Record "Service Header"; DocumentType: Enum "Service Document Type")
+    var
+        ServiceItemLine: Record "Service Item Line";
+        ServiceLine: Record "Service Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, Customer."No.");
+        ServiceHeader.Validate("Your Reference", '');
+        ServiceHeader.Modify(true);
+        LibraryService.CreateServiceItemLine(ServiceItemLine, ServiceHeader, '');
+        CreateServiceLineWithItem(ServiceLine, ServiceHeader);
+        VATPostingSetup.Get(ServiceLine."VAT Bus. Posting Group", ServiceLine."VAT Prod. Posting Group");
+        VATPostingSetup.Validate("Tax Category", 'AA');
+        VATPostingSetup.Modify(true);
+    end;
+
+    local procedure CreateServiceLineWithItem(var ServiceLine: Record "Service Line"; ServiceHeader: Record "Service Header")
+    var
+        Item: Record Item;
+    begin
+        CreateItem(Item);
+        Item.Validate("Last Direct Cost", LibraryRandom.RandInt(100));
+        Item.Modify(true);
+
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, Item."No.");
+        ServiceLine.Validate(Quantity, LibraryRandom.RandInt(10));
+        ServiceLine.Modify(true);
+    end;
+
+    local procedure CreateItem(var Item: Record Item)
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        FindVATPostingSetup(VATPostingSetup);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+    end;
+
+    local procedure FindVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup")
+    begin
+        VATPostingSetup.SetRange("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::" ");
+        LibraryERMGlobal.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
     end;
 
 #if not CLEAN26

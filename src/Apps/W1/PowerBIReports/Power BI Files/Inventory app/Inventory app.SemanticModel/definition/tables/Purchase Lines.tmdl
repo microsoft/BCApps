@@ -1,0 +1,224 @@
+table 'Purchase Lines'
+	lineageTag: cee0c6aa-d784-461b-95a7-aa94750809c3
+
+	/// This measure shows how many items are yet to be received for purchase orders by summing up the outstanding quantity of items on all purchase order lines.
+	measure 'Qty. on Purch. Order' =
+			
+			CALCULATE(
+			SUM('Purchase Lines'[outstandingQtyBase]),
+			'Purchase Lines'[Document Type] = "Order"
+			)
+		formatString: #,0.00
+		displayFolder: _Purchase Lines Measures
+		lineageTag: dcf696e6-3e1c-4b0a-9204-792535569ae1
+
+		changedProperty = IsHidden
+
+	/// This measure shows how many items have been returned to the supplier but are yet to be received or credited by summing up the total outstanding quantity of items on all purchase return order lines.
+	measure 'Qty. on Purch. Return' =
+			
+			CALCULATE(
+			SUM('Purchase Lines'[outstandingQtyBase]),
+			'Purchase Lines'[Document Type] = "Return Order"
+			)
+		formatString: #,0.00
+		displayFolder: _Purchase Lines Measures
+		lineageTag: 1d71357d-436b-4051-8f3f-e4df98451fec
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Specifies the earliest date you expect the items to be leaving your warehouse.
+	measure 'Purchase Return - Earliest Expected Receipt Date' =
+			CALCULATE(
+			    MIN('Purchase Lines'[Expected Receipt Date]),
+			    'Purchase Lines'[Document Type] = "Return Order"
+			    )
+		formatString: Short Date
+		displayFolder: _Purchase Lines Measures
+		lineageTag: be638e2c-82ee-4585-a395-798808260369
+
+	/// Specifies the earliest date you expect the items to be available in your warehouse.
+	measure 'Purchase Order - Earliest Expected Receipt Date' =
+			CALCULATE(
+			    MIN('Purchase Lines'[Expected Receipt Date]),
+			    'Purchase Lines'[Document Type] = "Order"
+			    )
+		formatString: Short Date
+		displayFolder: _Purchase Lines Measures
+		lineageTag: 038490e0-2bf5-468f-bd13-27541406b081
+
+	measure 'Purchase Order Quantity Link' =
+			
+			VAR Endpoint = "&page=518&"
+			VAR BaseLink = [Base Link] & Endpoint
+			VAR OrderBaseLink = BaseLink & "filter='Purchase Line'.'Document Type' IS 'Order'"
+			// Filter Context
+			VAR Items = CONCATENATEX(VALUES('Purchase Lines'[Item No.]),'Purchase Lines'[Item No.], "|")
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Purchase Lines'[dimensionSetID]), 'Purchase Lines'[dimensionSetID], "|")
+			
+			VAR ItemFilter = " AND 'Purchase Line'.'No.' IS '" & Items & "'"
+			VAR DateFilter = " AND 'Purchase Line'.'Order Date' IS '" & [Ranged] & "'"
+			VAR DimensionFilter = " AND 'Purchase Line'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			RETURN
+			OrderBaseLink & ItemFilter & DateFilter & DimensionFilter
+		displayFolder: _Back Link
+		lineageTag: de410091-38b3-4d67-bcdb-d206f804793c
+		dataCategory: WebUrl
+
+	measure 'Purchase Return Order Quantity Link' =
+			
+			VAR Endpoint = "&page=518&"
+			VAR BaseLink = [Base Link] & Endpoint
+			VAR OrderBaseLink = BaseLink & "filter='Purchase Line'.'Document Type' IS 'Return Order'"
+			// Filter Context
+			VAR Items = CONCATENATEX(VALUES('Purchase Lines'[Item No.]),'Purchase Lines'[Item No.], "|")
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Purchase Lines'[dimensionSetID]), 'Purchase Lines'[dimensionSetID], "|")
+			
+			VAR ItemFilter = " AND 'Purchase Line'.'No.' IS '" & Items & "'"
+			VAR DateFilter = " AND 'Purchase Line'.'Order Date' IS '" & [Ranged] & "'"
+			VAR DimensionFilter = " AND 'Purchase Line'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			RETURN
+			OrderBaseLink & ItemFilter & DateFilter & DimensionFilter
+		displayFolder: _Back Link
+		lineageTag: 8e2e9ce7-f6ac-4042-b54d-7e3bc891641a
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: 010e1c84-eac5-4af6-b632-17d3e5780117
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor No.'
+		dataType: string
+		isHidden
+		lineageTag: 8250b6f3-a2fd-4174-ab58-d3d019a323c0
+		summarizeBy: none
+		sourceColumn: Vendor No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item No.'
+		dataType: string
+		isHidden
+		lineageTag: a8117a46-5400-49fd-9886-a8d9738e8ec4
+		summarizeBy: none
+		sourceColumn: Item No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Expected Receipt Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: eaa16784-86ee-45bf-b2cf-e6762a0cd1fe
+		summarizeBy: none
+		sourceColumn: Expected Receipt Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Location Code'
+		dataType: string
+		isHidden
+		lineageTag: a3869656-84fd-4e12-a65b-4c5f99c99cfd
+		summarizeBy: none
+		sourceColumn: Location Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column outstandingQtyBase
+		dataType: double
+		isHidden
+		lineageTag: 95fed7b3-5616-4d63-9ef4-1219a941ca5a
+		summarizeBy: sum
+		sourceColumn: outstandingQtyBase
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Document Type'
+		dataType: string
+		lineageTag: d6bcfdc2-e209-4e4d-ad68-514721cdf97f
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 45023727-2ac3-4ba3-9ec2-21965f5a18ed
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Quantity Per Unit of Measure'
+		dataType: double
+		lineageTag: 3e7039d0-f20f-4fb8-b9d1-38f8064563a4
+		summarizeBy: sum
+		sourceColumn: Quantity Per Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Unit of Measure Code'
+		dataType: string
+		lineageTag: 75039692-3057-4ef1-b9b8-de6f5d8c62e8
+		summarizeBy: none
+		sourceColumn: Unit of Measure Code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Purchase Lines' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="outstandingPurchaseLines",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"itemNo", type text},
+				            {"outstandingQtyBase", type number},
+				            {"expectedReceiptDate", type date},
+				            {"locationCode", type text},
+				            {"buyFromVendorNo", type text},
+				            {"documentNo", type text},
+				            {"documentType", type text},
+				            {"dimensionSetID", Int64.Type},
+				            {"qtyPerUnitOfMeasure", type number},
+				            {"unitOfMeasureCode", type text}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type", {"ETag"}),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Removed Columns",
+				        {
+				            {"documentNo", "Document No."},
+				            {"itemNo", "Item No."},
+				            {"expectedReceiptDate", "Expected Receipt Date"},
+				            {"buyFromVendorNo", "Vendor No."},
+				            {"locationCode", "Location Code"},
+				            {"documentType", "Document Type"},
+				            {"qtyPerUnitOfMeasure","Quantity Per Unit of Measure"},
+				            {"unitOfMeasureCode","Unit of Measure Code"}
+				        }
+				    )
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

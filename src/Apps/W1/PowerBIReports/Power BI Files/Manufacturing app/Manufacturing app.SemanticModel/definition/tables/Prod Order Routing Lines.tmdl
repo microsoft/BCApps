@@ -1,0 +1,484 @@
+table 'Prod Order Routing Lines'
+	lineageTag: 619d4105-2170-4e3d-8c4d-fb50f10866b6
+
+	measure 'Operation Run Time' = SUM('Prod Order Routing Lines'[Run Time])
+		formatString: #,0.00
+		displayFolder: _Prod Order Routing Line Measures
+		lineageTag: 998f7a9a-fb30-47b8-aa08-09b801256458
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Operation Setup Time' = SUM('Prod Order Routing Lines'[Setup Time])
+		formatString: #,0.00
+		displayFolder: _Prod Order Routing Line Measures
+		lineageTag: a65606ee-cf7b-41e6-86d5-84beaf77973a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Operation Wait Time' = SUM('Prod Order Routing Lines'[Wait Time])
+		formatString: #,0.00
+		displayFolder: _Prod Order Routing Line Measures
+		lineageTag: 0066d9f4-a6ea-417d-b1e8-d0a123651dfa
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Operation Move Time' = SUM('Prod Order Routing Lines'[Move Time])
+		formatString: #,0.00
+		displayFolder: _Prod Order Routing Line Measures
+		lineageTag: 1a7d68d4-50bf-432b-a92c-3aed3fd9c0d2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Duration Hours' = SUM('Prod Order Routing Lines'[Duration Total Hours])
+		formatString: #,0.00
+		displayFolder: _Prod Order Routing Line Measures
+		lineageTag: 27f1ce34-733d-4619-a5b6-f43895d2f6e8
+
+	measure 'Expected Operation Cost' = ```
+			SUMX('Prod Order Routing Lines', 
+			'Prod Order Routing Lines'[Expected Operation Cost Amt.] - 'Prod Order Routing Lines'[Expected Capacity Ovhd. Cost])
+			```
+		formatString: #,0.00
+		displayFolder: _Prod Order Routing Line Measures
+		lineageTag: a392f024-8834-4953-b930-7412b1b9c9a1
+
+	measure 'Total Duration Days' = SUM('Prod Order Routing Lines'[Duration Total Days])
+		formatString: #,0.00
+		displayFolder: _Prod Order Routing Line Measures
+		lineageTag: 22bf3396-f129-4689-9b14-66d838713a5e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Prod Order Routing Expected Capacity Need' = SUM('Prod Order Routing Lines'[Expected Capacity Need])
+		formatString: #,0.00
+		displayFolder: _Prod Order Routing Line Measures
+		lineageTag: fae7ac87-5098-481a-a93b-915c3a59a8fd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Prod Order Routing Expected Capacity Ovhd. Cost' = SUM('Prod Order Routing Lines'[Expected Capacity Ovhd. Cost])
+		formatString: #,0.00
+		displayFolder: _Prod Order Routing Line Measures
+		lineageTag: ee8c1dbe-1edc-425d-99cf-ee625336f482
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Prod Order Routing Expected Operation Cost Amt.' = SUM('Prod Order Routing Lines'[Expected Operation Cost Amt.])
+		formatString: #,0.00
+		displayFolder: _Prod Order Routing Line Measures
+		lineageTag: 27c51304-77b5-4119-bc1a-d49752f1131a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Posted Output Quantity' =
+			
+			VAR ProdOrderRoutingLines =
+			    SUMMARIZECOLUMNS(
+			        'Prod Order Routing Lines'[Routing No.],
+			        'Prod Order Routing Lines'[Prod. Order No.],
+			        'Prod Order Routing Lines'[Operation No.],
+			        'Prod Order Routing Lines'[Routing Reference No.]
+			    )
+			RETURN
+			    CALCULATE(
+			        SUM ( 'Capacity Ledger Entries'[outputQuantity] ),
+			        KEEPFILTERS(
+			            TREATAS(
+			                ProdOrderRoutingLines,
+			                'Capacity Ledger Entries'[Routing No.],
+			                'Capacity Ledger Entries'[Order No.],
+			                'Capacity Ledger Entries'[Operation No.],
+			                'Capacity Ledger Entries'[Routing Reference No.]
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: _Prod Order Routing Line Measures
+		lineageTag: b20b9aa0-d4b2-4f48-82c2-15b7c1ac2df7
+
+	column Status
+		dataType: string
+		isHidden
+		lineageTag: ce40413f-8ccf-4ab1-9c72-e46a285d3e58
+		summarizeBy: none
+		sourceColumn: Status
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Type
+		dataType: string
+		isHidden
+		lineageTag: dca7cc83-5440-4336-acef-2050b6233b8f
+		summarizeBy: none
+		sourceColumn: Type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'No.'
+		dataType: string
+		lineageTag: 7e381750-6f37-438e-b7c5-29d3f8b00d64
+		summarizeBy: none
+		sourceColumn: No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location Code'
+		dataType: string
+		isHidden
+		lineageTag: f49f9429-a2a0-421a-b79e-3540e4b6c4af
+		summarizeBy: none
+		sourceColumn: Location Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Expected Capacity Need'
+		dataType: double
+		isHidden
+		lineageTag: e1b73d2b-8040-4537-bfdc-538e965eb201
+		summarizeBy: sum
+		sourceColumn: Expected Capacity Need
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Expected Capacity Ovhd. Cost'
+		dataType: double
+		isHidden
+		lineageTag: 0d793e11-590d-40ab-90d5-ba0f4dfb48e2
+		summarizeBy: sum
+		sourceColumn: Expected Capacity Ovhd. Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Ending Date'
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: f3c9d568-e294-4c38-ae44-4868fe23db91
+		summarizeBy: none
+		sourceColumn: Ending Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Work Center Group Code'
+		dataType: string
+		isHidden
+		lineageTag: 28f9a8c4-e804-4a8c-b69c-6bd172af9a4d
+		summarizeBy: none
+		sourceColumn: Work Center Group Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Routing Link Code'
+		dataType: string
+		lineageTag: 7afa13b5-db51-40f8-ab4a-627cadb99b20
+		summarizeBy: none
+		sourceColumn: Routing Link Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod. Order No.'
+		dataType: string
+		isHidden
+		lineageTag: a281ea91-dbf1-487d-9eb5-c530bd271437
+		summarizeBy: none
+		sourceColumn: Prod. Order No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 3378f16d-e296-4b39-af26-0baebdda96b2
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Expected Operation Cost Amt.'
+		dataType: double
+		isHidden
+		lineageTag: c1bd9b38-d2ff-40f9-811b-588af90fbc4e
+		summarizeBy: sum
+		sourceColumn: Expected Operation Cost Amt.
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Routing No.'
+		dataType: string
+		lineageTag: c00e3991-9dc4-4521-a762-d2974393b205
+		summarizeBy: none
+		sourceColumn: Routing No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Routing Reference No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: b71595b8-d70d-4506-ae07-32a5f110d54d
+		summarizeBy: none
+		sourceColumn: Routing Reference No.
+
+		annotation SummarizationSetBy = User
+
+	column 'Operation No.'
+		dataType: string
+		lineageTag: f1e1879b-948c-4f3e-9da8-467808a0c0bb
+		summarizeBy: none
+		sourceColumn: Operation No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod. Order Key'
+		dataType: string
+		isHidden
+		lineageTag: bd3714a5-5a0b-4c70-9739-a37b5248f02b
+		summarizeBy: none
+		sourceColumn: Prod. Order Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column locationName
+		dataType: string
+		isHidden
+		lineageTag: b8551c87-cd99-469c-b423-ba063022e858
+		summarizeBy: none
+		sourceColumn: locationName
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Setup Time'
+		dataType: double
+		lineageTag: 6fbc156f-426e-47d4-a2ef-35c9569be5f7
+		summarizeBy: sum
+		sourceColumn: Setup Time
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Run Time'
+		dataType: double
+		lineageTag: da9b7272-db73-45ae-8a24-70cb8750cc65
+		summarizeBy: sum
+		sourceColumn: Run Time
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Wait Time'
+		dataType: double
+		lineageTag: 7e291eaf-8c17-4e75-80bb-e5e98bcddde3
+		summarizeBy: sum
+		sourceColumn: Wait Time
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Move Time'
+		dataType: double
+		lineageTag: 3c643d4d-9fe2-44ad-8076-1cf6e2fee0d3
+		summarizeBy: sum
+		sourceColumn: Move Time
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Routing Status'
+		dataType: string
+		lineageTag: 4511c343-9af5-4d3d-a72d-c9d3253d7a3b
+		summarizeBy: none
+		sourceColumn: Routing Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Duration Total Hours'
+		dataType: double
+		isHidden
+		formatString: 0.00
+		lineageTag: af25f65f-2bbc-43bf-a328-0a133a40718b
+		summarizeBy: sum
+		sourceColumn: Duration Total Hours
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Duration Total Days'
+		dataType: double
+		isHidden
+		lineageTag: 8925f4ae-7a03-4114-b7f3-6140c23f7afb
+		summarizeBy: sum
+		sourceColumn: Duration Total Days
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Work/Machine Center Name' = ```
+			
+			IF( 'Prod Order Routing Lines'[Type] = "Work Center", 
+			    LOOKUPVALUE('Work Center'[Work Center Name], 'Work Center'[Work Center No.], 'Prod Order Routing Lines'[No.]), 
+			    LOOKUPVALUE('Machine Center'[Machine Center Name], 'Machine Center'[Machine Center No.], 'Prod Order Routing Lines'[No.] )
+			)
+			```
+		lineageTag: 7ab902f4-e7c1-441f-8ab0-1bf2cd534b76
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column workCenterNo
+		dataType: string
+		isHidden
+		lineageTag: 2287f978-e700-499f-b4b7-820985033600
+		summarizeBy: none
+		sourceColumn: workCenterNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ending Date Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 30cd2b15-33de-4840-ad40-7abffd7d245b
+		summarizeBy: none
+		sourceColumn: Ending Date Time
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Starting Date Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 3b34e1fc-0041-4854-950a-bfeb61d63c18
+		summarizeBy: none
+		sourceColumn: Starting Date Time
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Prod Order Routing Lines' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "prodOrderRoutingLines", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"status", type text},
+				            {"prodOrderNo", type text},
+				            {"type", type text},
+				            {"no", type text},
+				            {"description", type text},
+				            {"locationCode", type text},
+				            {"expectedCapacityNeed", type number},
+				            {"expectedOperationCostAmt", type number},
+				            {"expectedCapacityOvhdCost", type number},
+				            {"endingDate", type date},
+				            {"routingNo", type text},
+				            {"routingReferenceNo", Int64.Type},
+				            {"operationNo", type text},
+				            {"workCenterGroupCode", type text},
+				            {"routingLinkCode", type text},
+				            {"startingDateTime", type datetimezone},
+				            {"endingDateTime", type datetimezone}
+				        }
+				    ),
+				    #"Invoked Custom Function" = Table.AddColumn(
+				        #"Changed Type", "Ending Date Time", each ConvertManufacturingStartEndTimes([endingDateTime]), type datetime
+				    ),
+				    #"Invoked Custom Function1" = Table.AddColumn(
+				        #"Invoked Custom Function",
+				        "Starting Date Time",
+				        each ConvertManufacturingStartEndTimes([startingDateTime]),
+				        type datetime
+				    ),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Invoked Custom Function1", {"startingDateTime", "endingDateTime"}),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Removed Columns1",
+				        {
+				            {"status", "Status"},
+				            {"prodOrderNo", "Prod. Order No."},
+				            {"type", "Type"},
+				            {"no", "No."},
+				            {"description", "Description"},
+				            {"locationCode", "Location Code"},
+				            {"expectedCapacityNeed", "Expected Capacity Need"},
+				            {"expectedOperationCostAmt", "Expected Operation Cost Amt."},
+				            {"expectedCapacityOvhdCost", "Expected Capacity Ovhd. Cost"},
+				            {"endingDate", "Ending Date"},
+				            {"routingNo", "Routing No."},
+				            {"routingReferenceNo", "Routing Reference No."},
+				            {"operationNo", "Operation No."},
+				            {"workCenterGroupCode", "Work Center Group Code"},
+				            {"routingLinkCode", "Routing Link Code"},
+				            {"routingStatus", "Routing Status"},
+				            {"setupTime", "Setup Time"},
+				            {"runTime", "Run Time"},
+				            {"waitTime", "Wait Time"},
+				            {"moveTime", "Move Time"}
+				        }
+				    ),
+				    #"Added Prod Order Key" = Table.AddColumn(
+				        #"Renamed Columns", "Prod. Order Key", each [Status] & " " & [#"Prod. Order No."], type text
+				    ),
+				    #"Added Duration Total Hours" = Table.AddColumn(
+				        #"Added Prod Order Key",
+				        "Duration Total Hours",
+				        each Duration.TotalHours([Ending Date Time] - [Starting Date Time]),
+				        type number
+				    ),
+				    #"Added Duration Total Days" = Table.AddColumn(
+				        #"Added Duration Total Hours",
+				        "Duration Total Days",
+				        each Duration.TotalDays([Ending Date Time] - [Starting Date Time]),
+				        type number
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Duration Total Days", {"ETag"}),
+				    #"Replaced Value" = Table.ReplaceValue(
+				        #"Removed Columns", 0, null, Replacer.ReplaceValue, {"Expected Operation Cost Amt."}
+				    ),
+				    #"Replaced Value1" = Table.ReplaceValue(
+				        #"Replaced Value", 0, null, Replacer.ReplaceValue, {"Expected Capacity Ovhd. Cost"}
+				    )
+				in
+				    #"Replaced Value1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
