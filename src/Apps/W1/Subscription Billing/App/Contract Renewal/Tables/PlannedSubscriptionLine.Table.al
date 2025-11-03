@@ -1,10 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Inventory.Item;
-using Microsoft.Sales.Pricing;
-using Microsoft.Sales.Document;
-using Microsoft.Finance.Dimension;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
+using Microsoft.Inventory.Item;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Pricing;
 
 table 8002 "Planned Subscription Line"
 {

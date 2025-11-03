@@ -2,28 +2,28 @@ namespace Microsoft.SubscriptionBilling;
 
 #region Using
 
-using System.Reflection;
-using System.Environment.Configuration;
-using System.Globalization;
+using Microsoft.CRM.Contact;
+using Microsoft.CRM.Team;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
-using Microsoft.Inventory.BOM;
-using Microsoft.CRM.Team;
-using Microsoft.CRM.Contact;
-using Microsoft.Sales.Setup;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
-using Microsoft.Purchases.Document;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.Dimension;
-using Microsoft.Finance.Currency;
-using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.TestLibraries.Foundation.NoSeries;
+using Microsoft.Sales.Setup;
+using System.Environment.Configuration;
+using System.Globalization;
+using System.Reflection;
 using System.TestLibraries.Utilities;
 
 #endregion Using

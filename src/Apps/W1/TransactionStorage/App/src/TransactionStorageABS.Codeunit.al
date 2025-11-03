@@ -3,7 +3,6 @@ namespace System.DataAdministration;
 using Microsoft.EServices.EDocument;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Period;
-using System.Utilities;
 using System.Azure.Functions;
 using System.Azure.Identity;
 using System.Azure.KeyVault;
@@ -12,6 +11,7 @@ using System.Environment;
 using System.Reflection;
 using System.Telemetry;
 using System.Text;
+using System.Utilities;
 
 codeunit 6205 "Transaction Storage ABS"
 {
