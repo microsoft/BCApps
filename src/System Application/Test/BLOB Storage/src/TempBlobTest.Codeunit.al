@@ -215,7 +215,7 @@ codeunit 135030 "Temp Blob Test"
 
         // [THEN] Cannot get a value for a non-BLOB field.
         asserterror TempBlob.ToRecordRef(MediaRecordRef, IntegerFieldNo);
-        Assert.ExpectedError('Unable to convert from');
+        Assert.ExpectedError('can''t be evaluated into type');
 
         TempBlob.ToRecordRef(MediaRecordRef, BlobFieldNo);
 
@@ -304,7 +304,7 @@ codeunit 135030 "Temp Blob Test"
 
         // [THEN] Cannot get a value for a non-BLOB field.
         asserterror TempBlob.ToFieldRef(MediaFieldRef);
-        Assert.ExpectedError('Unable to convert');
+        Assert.ExpectedError('can''t be evaluated into type');
 
         MediaFieldRef := MediaRecordRef.Field(BlobFieldNo);
         TempBlob.ToFieldRef(MediaFieldRef);
