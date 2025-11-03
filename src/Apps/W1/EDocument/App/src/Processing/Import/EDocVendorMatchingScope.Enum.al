@@ -9,9 +9,11 @@ enum 6185 "EDoc Vendor Matching Scope"
 {
     Access = Internal;
     Extensible = false;
+#pragma warning disable AS0072 // this change is backported to 27.x
     ObsoleteState = Pending;
     ObsoleteTag = '27.0';
     ObsoleteReason = 'Replaced with experiment-based matching.';
+#pragma warning restore AS0072
 
     value(0; "Same Vendor")
     {
