@@ -319,7 +319,7 @@ report 20404 "Qlty. Move Inventory"
         IsMovePassed: Boolean;
         IsMoveFailed: Boolean;
         InventoryNeedsQuantityErr: Label 'Please enter a quantity to use.';
-        SampleMoveErr: Label 'No samples to move. Sample size is zero.', Locked = true;
+        SampleMoveErr: Label 'No samples to move. Sample size is zero.';
 
     trigger OnInitReport()
     begin

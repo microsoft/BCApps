@@ -9,6 +9,6 @@ profile "Qlty. Mgmt. Main Role Center"
     Description = 'Quality Management';
     RoleCenter = "Qlty. Mgmt. Main Role Center";
     ProfileDescription = 'Record Quality Inspection Tests.';
-    Caption = 'Quality Management';
+    Caption = 'Quality Manager';
     Promoted = true;
 }

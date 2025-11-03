@@ -93,7 +93,7 @@ page 20400 "Qlty. Management Setup"
                     group(SettingsForExplainShowTest)
                     {
                         Caption = 'Show Test';
-                        InstructionalText = 'For demonstrations and training it can be useful to show automatically created tests immediately to the user, however for production scenarios in most circumstances automatically created tests will end up in a queue or dispatch for quality inspectors. [Only Manually Created Tests] will let you see tests created manually with a button, and will just let automatically created tests be created without showing it.';
+                        InstructionalText = 'For demonstrations and training it can be useful to show automatically created tests immediately to the user, however for production scenarios in most circumstances automatically created tests will end up in a queue or dispatch for quality inspectors. [Only manually created tests] will let you see tests created manually with a button, and will just let automatically created tests be created without showing it.';
                         field("Show Test Behavior"; Rec."Show Test Behavior")
                         {
                             ApplicationArea = All;
