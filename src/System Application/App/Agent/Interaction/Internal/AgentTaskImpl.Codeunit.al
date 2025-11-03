@@ -143,7 +143,7 @@ codeunit 4300 "Agent Task Impl."
 
         if UserConfirm then
             if not Confirm(AreYouSureThatYouWantToStopTheTaskQst) then
-            exit;
+                exit;
 
         AgentTask.Status := AgentTaskStatus;
         AgentTask."Needs Attention" := false;
