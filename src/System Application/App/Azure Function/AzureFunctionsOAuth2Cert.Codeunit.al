@@ -5,9 +5,9 @@
 
 namespace System.Azure.Functions;
 
-using System.Utilities;
 using System.Security.Authentication;
 using System.Telemetry;
+using System.Utilities;
 
 codeunit 7807 "Azure Functions OAuth2 Cert" implements "Azure Functions Authentication"
 {

@@ -5,9 +5,9 @@
 
 namespace System.Agents;
 
+using System.Environment;
 using System.Environment.Configuration;
 using System.Reflection;
-using System.Environment;
 using System.Security.AccessControl;
 
 codeunit 4301 "Agent Impl."

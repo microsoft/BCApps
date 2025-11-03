@@ -5,8 +5,8 @@
 
 namespace System.Environment.Configuration;
 
-using System.Security.AccessControl;
 using System.Reflection;
+using System.Security.AccessControl;
 
 table 1994 "User Checklist Status"
 {
