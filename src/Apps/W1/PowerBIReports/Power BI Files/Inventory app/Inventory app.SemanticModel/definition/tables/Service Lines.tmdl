@@ -1,0 +1,153 @@
+table 'Service Lines'
+	lineageTag: 5e951371-6fb1-4de6-9a5b-6ee2abcbfe8f
+
+	/// This measure represents how many service items or hours have been ordered by customers but are yet to be fulfilled by summing up the total outstanding quantity of items or hours on all service order lines.
+	measure 'Qty. on Service Order' = SUM('Service Lines'[outstandingQtyBase])
+		formatString: 0.00
+		displayFolder: _Service Line Measures
+		lineageTag: c976008c-d2d4-4c25-b198-204f4ef163cd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Specifies the earliest date when the item is to be available for a service order.
+	measure 'Service Lines - Earliest Needed by Date' = ```
+			MIN('Service Lines'[Needed By Date])
+			
+			```
+		formatString: Short Date
+		displayFolder: _Service Line Measures
+		lineageTag: ab174953-d991-40a7-a873-82f68eea5c18
+
+	measure 'Service Order Link' =
+			
+			VAR Endpoint = "&page=5907&"
+			VAR BaseLink = [Base Link] & Endpoint
+			// Filter Context
+			VAR DocumentNo = CONCATENATEX(VALUES('Service Lines'[Document No.]),'Service Lines'[Document No.], "|")
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Service Lines'[dimensionSetID]), 'Service Lines'[dimensionSetID], "|")
+			
+			VAR DocumentNoFilter = "filter='Service Line'.'Document No.' IS '" & DocumentNo & "'"
+			VAR DimensionFilter = " AND 'Service Line'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			RETURN
+			BaseLink & DocumentNoFilter & DimensionFilter
+		displayFolder: _Back Link
+		lineageTag: d78656af-d260-4205-a5b7-fd3471197afa
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: 09b51987-7b07-4e9c-83fe-3e221e709ce3
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: b234fdb4-83ad-482b-ae31-ee136a4652e6
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: 52a10a39-266f-4fcb-b60e-ef0ff257e7be
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column outstandingQtyBase
+		dataType: double
+		isHidden
+		lineageTag: 9da21955-2332-472d-86bb-d8635a4828bc
+		summarizeBy: sum
+		sourceColumn: outstandingQtyBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Needed By Date'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 3fdc48cc-fcc1-4f20-89f3-9934e1408160
+		summarizeBy: none
+		sourceColumn: Needed By Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 0f74d0e6-bd21-4bb4-9bf9-3a81f0b5ec00
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Quantity Per Unit of Measure'
+		dataType: double
+		lineageTag: 3a1632d7-29dd-48f8-a715-4f404bcebbbc
+		summarizeBy: sum
+		sourceColumn: Quantity Per Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Unit of Measure Code'
+		dataType: string
+		lineageTag: 058075f3-f480-4c41-82a1-f4e22ab3910a
+		summarizeBy: none
+		sourceColumn: Unit of Measure Code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Service Lines' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="orderServiceLines",Signature="table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(
+				        TableData, {{"documentNo", "Document No."}, {"neededByDate", "Needed By Date"},{"qtyPerUnitOfMeasure","Quantity Per Unit of Measure"},{"unitOfMeasureCode","Unit of Measure Code"}}
+				    ),
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        #"Renamed Columns",
+				        {
+				            {"Document No.", type text},
+				            {"itemNo", type text},
+				            {"locationCode", type text},
+				            {"outstandingQtyBase", type number},
+				            {"Needed By Date", type date},
+				            {"dimensionSetID", Int64.Type},
+				            {"Quantity Per Unit of Measure", type number},
+				            {"Unit of Measure Code", type text}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type", {"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

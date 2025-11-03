@@ -1,0 +1,175 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/1.4.0/schema.json",
+  "displayName": "Activity KPIs Link",
+  "name": "Bookmarkb27f7bff097c6d0905d6",
+  "options": {
+    "targetVisualNames": [],
+    "suppressData": true
+  },
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "ReportSection3993550d709336a53a17",
+    "sections": {
+      "ReportSection3993550d709336a53a17": {
+        "visualContainers": {
+          "b131d6b39c730e831b30": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "83bcf7d6758c83561bfe",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Property": "Year Month"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "d59b6ab38f24ddf69ad2",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Activity KPIs"
+                        }
+                      },
+                      "Property": "Cash Conversion Cycle - CCC"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "bc05456b2a9c9a48e3fe",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Activity KPIs"
+                        }
+                      },
+                      "Property": "Days Payable Outstanding - DPO"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "ceed4aef551ffc3baae3",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Activity KPIs"
+                        }
+                      },
+                      "Property": "Days Sales Of Inventory - DSI"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "0833c78aaafd900f235b",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Activity KPIs"
+                        }
+                      },
+                      "Property": "Days Sales Outstanding - DSO"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "lineChart",
+              "objects": {},
+              "activeProjections": {
+                "Category": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Property": "Year Month"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "26fadd080912e1289544": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "28d7917fdf55eaad4d2a",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Property": "No. of Days"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "multiRowCard",
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Property": "No. of Days"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "objects": {
+      "merge": {
+        "outspacePane": [
+          {
+            "properties": {
+              "expanded": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

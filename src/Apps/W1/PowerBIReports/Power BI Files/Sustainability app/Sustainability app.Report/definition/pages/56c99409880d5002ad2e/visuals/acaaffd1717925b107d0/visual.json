@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "acaaffd1717925b107d0",
+  "position": {
+    "x": 22.581424422638207,
+    "y": 62.288713910761146,
+    "z": 2000,
+    "height": 230,
+    "width": 294.669703691939,
+    "tabOrder": 9000
+  },
+  "visualGroup": {
+    "displayName": "Net Profit Group",
+    "groupMode": "ScaleMode",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Net Profit, Revenue, Cost of Goods Sold, Expense.'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
