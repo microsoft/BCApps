@@ -5,12 +5,12 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Sales.Receivables;
-using Microsoft.Finance.Dimension;
-using Microsoft.Sales.History;
 using Microsoft.Bank.BankAccount;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 
 report 30118 "Shpfy Suggest Payments"
 {

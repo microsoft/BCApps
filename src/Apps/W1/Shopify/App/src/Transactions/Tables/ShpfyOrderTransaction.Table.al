@@ -6,8 +6,8 @@
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Sales.Document;
-using Microsoft.Sales.Receivables;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 
 /// <summary>
 /// Table Shpfy Order Transaction (ID 30133).

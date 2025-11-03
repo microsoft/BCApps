@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.PowerBIReports.Test;
 
-using System.Utilities;
+using Microsoft.Inventory.Item;
+using Microsoft.PowerBIReports.Test;
 using Microsoft.Projects.Project.Job;
-using System.Text;
-using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Project.Journal;
 using Microsoft.Projects.Project.Ledger;
+using Microsoft.Projects.Project.Planning;
 using Microsoft.Purchases.Document;
-using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Vendor;
-using Microsoft.PowerBIReports.Test;
+using System.Text;
+using System.Utilities;
 
 /// <summary>
 /// E2E tests for Power BI Projects reports

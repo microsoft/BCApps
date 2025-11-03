@@ -5,14 +5,14 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
-using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Sales.Customer;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Location;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Integration.Shopify;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
+using Microsoft.Sales.Customer;
+using System.TestLibraries.Utilities;
 
 codeunit 139607 "Shpfy Order Handling Helper"
 {

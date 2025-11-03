@@ -6,8 +6,8 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
 using Microsoft.Sales.History;
+using System.TestLibraries.Utilities;
 
 codeunit 139606 "Shpfy Shipping Test"
 {

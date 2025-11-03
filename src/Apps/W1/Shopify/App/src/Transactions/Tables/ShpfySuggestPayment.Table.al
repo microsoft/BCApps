@@ -6,8 +6,8 @@
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Sales.History;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
 /// <summary>

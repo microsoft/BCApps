@@ -5,13 +5,13 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using System.IO;
-using System.Reflection;
-using Microsoft.Sales.Customer;
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
-using System.Upgrade;
+using Microsoft.Sales.Customer;
 using System.Integration;
+using System.IO;
+using System.Reflection;
+using System.Upgrade;
 
 /// <summary>
 /// Codeunit Shpfy Upgrade Mgt. (ID 30106).
