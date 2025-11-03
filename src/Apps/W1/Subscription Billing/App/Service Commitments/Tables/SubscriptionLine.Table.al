@@ -2085,7 +2085,7 @@ table 8059 "Subscription Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateServiceCommitmentFromContractPriceUpdateLine(var SubscriptionLine: Record "Subscription Line"; ContractPriceUpdateLine: Record "Sub. Contr. Price Update Line")
+    local procedure OnAfterUpdateServiceCommitmentFromContractPriceUpdateLine(var SubscriptionLine: Record "Subscription Line"; SubContractPriceUpdateLine: Record "Sub. Contr. Price Update Line")
     begin
     end;
 }

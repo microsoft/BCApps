@@ -302,7 +302,7 @@ codeunit 8009 "Price Update Management"
     /// Use this to update ContractPriceUpdateLine after new price has been calculated.
     /// </summary>
     [IntegrationEvent(false, false)]
-    internal procedure OnAfterCalculateNewPriceForSubscriptionLine(ServiceCommitment: Record "Subscription Line"; var ContractPriceUpdateLine: Record "Sub. Contr. Price Update Line"; PriceUpdateTemplate: Record "Price Update Template"; PerformUpdateOnDate: Date)
+    internal procedure OnAfterCalculateNewPriceForSubscriptionLine(SubscriptionLine: Record "Subscription Line"; var SubContrPriceUpdateLine: Record "Sub. Contr. Price Update Line"; PriceUpdateTemplate: Record "Price Update Template"; PerformUpdateOnDate: Date)
     begin
     end;
 }
