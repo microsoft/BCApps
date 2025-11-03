@@ -5,16 +5,16 @@
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Finance.Dimension;
-using Microsoft.Purchases.Document;
-using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
-using System.Utilities;
+using Microsoft.Foundation.Attachment;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Posting;
 using System.Telemetry;
-using Microsoft.Foundation.Attachment;
+using System.Utilities;
 
 /// <summary>
 /// Dealing with the creation of the purchase invoice after the draft has been populated.

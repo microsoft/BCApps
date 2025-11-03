@@ -3,9 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
+
 using Microsoft.Foundation.Attachment;
-using Microsoft.Purchases.History;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 
 
 codeunit 6169 "E-Doc. Attachment Processor"

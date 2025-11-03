@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Service.Participant;
 
-using Microsoft.Sales.Customer;
-using Microsoft.Purchases.Vendor;
 using Microsoft.eServices.EDocument;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 
 /// <summary>
 /// Represents the service participant. 

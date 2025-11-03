@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.AI;
 
-using Microsoft.Purchases.Document;
 using Microsoft.Finance.Deferral;
-using Microsoft.Foundation.UOM;
 using Microsoft.Finance.Dimension;
+using Microsoft.Foundation.UOM;
+using Microsoft.Purchases.Document;
 table 6129 "EDoc Historical Match Buffer"
 {
     Access = Internal;

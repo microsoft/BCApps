@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.Processing.Import;
 using System.Telemetry;
 using System.Utilities;
-using Microsoft.eServices.EDocument.Processing.Import;
 
 codeunit 6132 "E-Document Log"
 {

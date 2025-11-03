@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
-using Microsoft.Foundation.Attachment;
 using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.Foundation.Attachment;
 
 page 6105 "Inbound E-Documents"
 {

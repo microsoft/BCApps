@@ -5,9 +5,9 @@
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.eServices.EDocument;
-using System.Telemetry;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
+using System.Telemetry;
 
 table 6100 "E-Document Purchase Header"
 {

@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
+using Microsoft.eServices.EDocument;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using System.Reflection;
-using Microsoft.Purchases.Document;
-using Microsoft.eServices.EDocument;
 
 table 6112 "ED Purchase Line Field Setup"
 {

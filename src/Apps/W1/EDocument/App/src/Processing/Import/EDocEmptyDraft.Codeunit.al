@@ -3,10 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import;
-using Microsoft.eServices.EDocument.Processing.Interfaces;
+
 using Microsoft.eServices.EDocument;
-using System.Utilities;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
+using System.Utilities;
 
 codeunit 6193 "E-Doc. Empty Draft" implements IStructureReceivedEDocument, IStructuredDataType, IStructuredFormatReader
 {

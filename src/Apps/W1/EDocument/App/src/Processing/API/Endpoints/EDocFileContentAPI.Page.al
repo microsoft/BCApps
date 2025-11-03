@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.API;
 
-using System.Utilities;
 using Microsoft.eServices.EDocument;
+using System.Utilities;
 
 
 page 6119 "E-Doc. File Content API"

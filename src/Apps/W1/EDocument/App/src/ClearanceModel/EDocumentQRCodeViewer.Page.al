@@ -4,6 +4,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
+
 using Microsoft.Sales.History;
 using System.IO;
 using System.Text;

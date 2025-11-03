@@ -4,15 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Deferral;
 using Microsoft.Foundation.UOM;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Purchases.Document;
-using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.History;
-using Microsoft.eServices.EDocument;
+using Microsoft.Purchases.Posting;
+using Microsoft.Purchases.Vendor;
 using System.Log;
 
 codeunit 6120 "E-Doc. Purchase Hist. Mapping"
