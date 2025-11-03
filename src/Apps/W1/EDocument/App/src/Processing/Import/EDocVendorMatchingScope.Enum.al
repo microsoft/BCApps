@@ -1,4 +1,4 @@
-#if not CLEANSCHEMA31
+#if not CLEANSCHEMA30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -10,7 +10,7 @@ enum 6185 "EDoc Vendor Matching Scope"
     Access = Internal;
     Extensible = false;
     ObsoleteState = Pending;
-    ObsoleteTag = '28.0';
+    ObsoleteTag = '27.0';
     ObsoleteReason = 'Replaced with experiment-based matching.';
 
     value(0; "Same Vendor")
