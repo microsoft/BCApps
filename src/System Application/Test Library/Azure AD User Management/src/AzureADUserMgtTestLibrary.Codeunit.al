@@ -5,9 +5,9 @@
 
 namespace System.TestLibraries.Azure.ActiveDirectory;
 
+using System;
 using System.Azure.Identity;
 using System.Security.AccessControl;
-using System;
 
 codeunit 132914 "Azure AD User Mgt Test Library"
 {

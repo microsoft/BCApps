@@ -6,8 +6,8 @@
 namespace System.Test.Telemetry;
 
 using System.Telemetry;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 139483 "Feature Uptake Telemetry Test"
 {
