@@ -205,7 +205,7 @@ table 30133 "Shpfy Order Transaction"
             CalcFormula = lookup("Shpfy Order Header"."Shop Code" where("Shopify Order Id" = field("Shopify Order Id")));
             ObsoleteReason = 'Use field Shop instead.';
 #if CLEAN28
-            ObsoleteState = Removed
+            ObsoleteState = Removed;
             ObsoleteTag = '31.0';
 #else
             ObsoleteState = Pending;

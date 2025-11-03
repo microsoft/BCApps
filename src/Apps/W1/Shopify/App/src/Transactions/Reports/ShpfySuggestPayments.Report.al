@@ -23,7 +23,6 @@ report 30118 "Shpfy Suggest Payments"
         {
             RequestFilterFields = "Created At";
             DataItemTableView = sorting(Type) where(Type = filter(Capture | Sale | Refund), Status = filter(Success));
-            CalcFields = "Payment Method", Used;
 
             trigger OnAfterGetRecord()
             begin
@@ -36,6 +35,7 @@ report 30118 "Shpfy Suggest Payments"
 
             trigger OnPreDataItem()
             begin
+                SetAutoCalcFields("Payment Method", Used);
                 SetLoadFields(Amount, "Rounding Amount", Type, "Shopify Order Id", "Shopify Transaction Id", Gateway, "Gift Card Id", "Payment Method");
                 if PostingDate = 0D then
                     Error(NoPostingDateErr);
