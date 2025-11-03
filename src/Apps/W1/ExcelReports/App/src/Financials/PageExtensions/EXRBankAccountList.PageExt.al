@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Finance.ExcelReports;
+
 using Microsoft.Bank.BankAccount;
 
 pageextension 4426 "EXR Bank Account List" extends "Bank Account List"

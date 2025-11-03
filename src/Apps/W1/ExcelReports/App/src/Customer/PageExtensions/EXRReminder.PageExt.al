@@ -4,8 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Sales.ExcelReports;
-using Microsoft.Sales.Reminder;
+
 using Microsoft.Finance.ExcelReports;
+using Microsoft.Sales.Reminder;
 
 pageextension 4435 "EXR Reminder" extends Reminder
 {

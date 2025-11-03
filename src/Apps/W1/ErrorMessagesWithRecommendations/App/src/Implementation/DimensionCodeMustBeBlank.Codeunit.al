@@ -6,8 +6,8 @@
 namespace Microsoft.Shared.Error;
 
 using Microsoft.Finance.Dimension;
-using System.Utilities;
 using System.Reflection;
+using System.Utilities;
 codeunit 7904 "Dimension Code Must Be Blank" implements ErrorMessageFix
 {
     Access = Internal;

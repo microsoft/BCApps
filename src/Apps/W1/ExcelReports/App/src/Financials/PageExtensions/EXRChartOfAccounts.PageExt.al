@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Finance.ExcelReports;
+
 using Microsoft.Finance.GeneralLedger.Account;
 
 pageextension 4427 "EXR Chart of Accounts" extends "Chart of Accounts"
