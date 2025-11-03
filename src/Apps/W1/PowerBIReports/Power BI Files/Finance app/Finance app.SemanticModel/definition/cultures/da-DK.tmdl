@@ -1,0 +1,1533 @@
+cultureInfo da-DK
+	translations
+		model Model
+			table 'G/L Account Category'
+				caption: Finanskontokategori
+				column 'G/L Acc. Category Description'
+					caption: Beskrivelse af finanskontokategori
+				column siblingSequenceNo
+					caption: siblingSequenceNo
+				column indentation
+					caption: indrykning
+				column accountCategory
+					caption: accountCategory
+				column incomeBalance
+					caption: incomeBalance
+				column additionalReportDefinition
+					caption: additionalReportDefinition
+				column systemGenerated
+					caption: systemGenerated
+				column hasChildren
+					caption: hasChildren
+				measure GLAccCategoryBrowseDepth
+					caption: GLAccCategoryBrowseDepth
+				measure GLAccCategoryMaxNodeDepth
+					caption: GLAccCategoryMaxNodeDepth
+				measure 'G/L Acc. Category Balance at Date'
+					caption: Budgetsaldo til dato på finanskontokategori
+				measure 'G/L Acc. Category Net Change'
+					caption: Nettoændring på finanskontokategori
+				measure 'G/L Acc. Category Budget Balance at Date'
+					caption: Budgetsaldo til dato på finanskontokategori
+				measure 'G/L Acc. Category Budget Amount'
+					caption: Budgetbeløb på finanskontokategori
+				hierarchy 'G/L Account Category Hierarchy'
+					caption: Hierarki for finanskontokategori
+					level 'G/L Account Category (Level 1)'
+						caption: Finanskontokategori (Niveau 1)
+					level 'G/L Account Category (Level 2)'
+						caption: Finanskontokategori (Niveau 2)
+					level 'G/L Account Category (Level 3)'
+						caption: Finanskontokategori (Niveau 3)
+			table 'Balance Sheet Measures'
+				caption: Mål for statusopgørelse
+				measure 'Current Assets'
+					caption: Omsætningsaktiver
+				measure 'Current Liabilities'
+					caption: Aktuelle passiver
+				measure Inventory
+					caption: Lagerbeholdning
+				measure 'Working Capital'
+					caption: Arbejdskapital
+				measure 'Shareholders'' Equity'
+					caption: Egenkapital
+				measure Liabilities
+					caption: Passiver
+				measure Assets
+					caption: Aktiver
+				measure Equity
+					caption: Egenkapital
+				measure 'Liabilities & Equity'
+					caption: Passiver og egenkapital
+				measure 'Accounts Payable'
+					caption: Kreditor
+				measure 'Accounts Receivable'
+					caption: Debitor
+				measure 'Accounts Receivable (Beginning Balance)'
+					caption: Tilgodehavender (primosaldo)
+				measure 'Accounts Receivable (Average)'
+					caption: Tilgodehavende (Gennemsnit)
+				measure 'Inventory (Beginning Balance)'
+					caption: Lager (primosaldo)
+				measure 'Inventory (Average)'
+					caption: Lager (gennemsnit)
+				measure 'Purchase Prepayments'
+					caption: Køb af forudbetalinger
+				measure 'Liquid Assets'
+					caption: Likvide beholdninger
+				measure 'Fixed Assets'
+					caption: Anlægsaktiver
+				measure 'Capital Employed'
+					caption: Investeret kapital
+				measure 'Liabilities (Neg)'
+					caption: Passiver (Neg)
+				measure 'Accounts Payable (Neg)'
+					caption: Gæld (neg)
+				measure 'Payroll Liabilites'
+					caption: Udestående lønudgifter
+				measure 'Longterm Liabilities'
+					caption: Langfristet gæld
+			table 'Income Statement Measures'
+				caption: Mål for resultatopgørelse
+				measure Revenue
+					caption: Omsætning
+				measure 'Cost of Goods Sold'
+					caption: Omkostning ved solgte varer
+				measure Expense
+					caption: Udgift
+				measure 'Interest Expense'
+					caption: Renteudgifter
+				measure 'Tax Expense'
+					caption: Momsudgift
+				measure 'Extraordinary Expense'
+					caption: Ekstraordinær udgift
+				measure 'Operating Expense - OPEX'
+					caption: Driftsudgift – OPEX
+				measure Purchases
+					caption: Køb
+				measure 'FX Losses Expense'
+					caption: RU Udgiftstab
+				measure 'Depreciation and Amortization'
+					caption: Afskrivning og amortisering
+				measure 'Revenue (Balance at Date)'
+					caption: Indtægt (saldo til dato)
+				measure 'Revenue (Beginning Balance)'
+					caption: Indtægter (primosaldo)
+				measure 'Interest Revenue'
+					caption: Renteindtægter
+				measure 'FX Gains Revenue'
+					caption: RU Gevinstindtægter
+				measure 'Extraordinary Revenue'
+					caption: Ekstraordinære indtægter
+				measure 'Operating Revenue'
+					caption: Driftsindtægter
+				measure 'Expense (Balance at Date)'
+					caption: Udgift (saldo til dato)
+				measure 'Expense (Beginning Balance)'
+					caption: Udgifter (primosaldo)
+				measure 'Interest Expense (Balance at Date)'
+					caption: Renteudgifter (saldo til dato)
+				measure 'Interest Expense (Beginning Balance)'
+					caption: Renteudgifter (primosaldo)
+				measure 'FX Losses Expense (Balance at Date)'
+					caption: RU Udgiftstab (saldo til dato)
+				measure 'FX Losses Expense (Beginning Balance)'
+					caption: RU Udgiftstab (primosaldo)
+				measure 'Tax Expense (Balance at Date)'
+					caption: Momsudgift (saldo til dato)
+				measure 'Tax Expense (Beginning Balance)'
+					caption: Momsudgift (primosaldo)
+				measure 'Extraordinary Expense (Balance at Date)'
+					caption: Ekstraordinære udgifter (saldo til dato)
+				measure 'Extraordinary Expense (Beginning Balance)'
+					caption: Ekstraordinære udgifter (primosaldo)
+				measure 'Interest Revenue (Balance at Date)'
+					caption: Renteindtægter (saldo til dato)
+				measure 'Interest Revenue (Beginning Balance)'
+					caption: Renteindtægter (primosaldo)
+				measure 'FX Gains Revenue (Balance at Date)'
+					caption: RU Gevinstindtægter (saldo til dato)
+				measure 'FX Gains Revenue (Beginning Balance)'
+					caption: RU Gevinstindtægter (primosaldo)
+				measure 'Extraordinary Revenue (Balance at Date)'
+					caption: Ekstraordinære indtægter (saldo til dato)
+				measure 'Extraordinary Revenue (Beginning Balance)'
+					caption: Ekstraordinære indtægter (primosaldo)
+				measure 'Operating Expense - OPEX (Balance at Date)'
+					caption: Driftsudgifter – OPEX (saldo til dato)
+				measure 'Operating Expense - OPEX (Beginning Balance)'
+					caption: Driftsudgifter – OPEX (primosaldo)
+				measure 'Operating Revenue (Balance at Date)'
+					caption: Driftsindtægter (saldo til dato)
+				measure 'Operating Revenue (Beginning Balance)'
+					caption: Driftsindtægter (primosaldo)
+			table 'G/L Account'
+				caption: Finanskonto
+				column 'G/L Account No./Name'
+					caption: Finanskontonr./navn
+				column 'G/L Account No./Name Indented'
+					caption: Indrykket finanskontonr./navn
+				column 'Parent G/L Account No.'
+					caption: Overordnet finanskontonr.
+				column 'G/L Account No.'
+					caption: Finanskontonr.
+				column 'G/L Account Name'
+					caption: Finanskontonavn
+				column 'Account Type'
+					caption: Kontotype
+				column Income/Balance
+					caption: Indtægter/saldo
+				column 'Account Subcategory Entry No.'
+					caption: Løbenr. for kontounderkategori
+				measure 'G/L Acc. Balance at Date'
+					caption: Saldo til dato på finanskonto
+				measure 'G/L Acc. Net Change'
+					caption: Nettoændring på finanskonto
+				measure 'G/L Acc. Budget Balance at Date'
+					caption: Budgetsaldo til dato på finanskonto
+				measure 'G/L Acc. Budget Amount'
+					caption: Budgetbeløb på finanskonto
+				hierarchy 'G/L Account Hierarchy'
+					caption: Hierarki for finanskonto
+					level 'G/L Account (Level 1)'
+						caption: Finanskonto (niveau 1)
+					level 'G/L Account (Level 2)'
+						caption: Finanskonto (niveau 2)
+					level 'G/L Account (Level 3)'
+						caption: Finanskonto (niveau 3)
+					level 'G/L Account (Level 4)'
+						caption: Finanskonto (niveau 4)
+					level 'G/L Account (Level 5)'
+						caption: Finanskonto (niveau 5)
+			table 'Activity KPIs'
+				caption: Aktivitets-KPI'er
+				measure 'Average Collection Period (Days)'
+					caption: Gnsn. antal kreditdage
+				measure '% Change in Revenue'
+					caption: Ændringsprocent i omsætning
+				measure '% Change in Operating Profit - EBIT'
+					caption: Ændring i resultat af primær drift i % – EBIT
+				measure 'Days Sales Outstanding - DSO'
+					caption: Dage med udestående salg – DSO
+				measure 'Days Payable Outstanding - DPO'
+					caption: Dage med udestående gæld – DPO
+				measure 'Days Sales Of Inventory - DSI'
+					caption: Dage med salg af lagerbeholdning – DSI
+				measure 'Cash Conversion Cycle - CCC'
+					caption: Konverteringscyklus af kontanter – CCC
+				measure 'Degree Of Operating Leverage - DOL'
+					caption: Grad af operationel gearing – DOL
+				measure 'Asset Turnover Ratio'
+					caption: Aktivers omsætningshastighedsgrad
+				measure 'Inventory Turnover'
+					caption: Lageromsætning
+			table 'Liquidity KPIs'
+				caption: Likviditets-KPI'er
+				measure 'Current Ratio'
+					caption: Aktuel dækningsgrad
+				measure 'Quick Ratio'
+					caption: Likviditetsgrad på kort sigt
+				measure 'Cash Ratio'
+					caption: Likviditetsprocent
+			table 'Profitability KPIs'
+				caption: Rentabilitets-KPI'er
+				measure 'Gross Profit Margin'
+					caption: Dækningsgrad
+				measure 'Net Profit Margin'
+					caption: Nettodækningsgrad
+				measure 'Gross Profit'
+					caption: Bruttofortjeneste
+				measure 'Net Profit'
+					caption: Nettofortjeneste
+				measure 'Operating Profit - EBIT (Beginning Balance)'
+					caption: Driftsoverskud – EBIT (primosaldo)
+				measure 'Operating Profit - EBIT'
+					caption: Driftsoverskud – EBIT
+				measure 'Operating Profit - EBIT (Balance at Date)'
+					caption: Driftsoverskud – EBIT (saldo til dato)
+				measure 'Operating Profit Margin'
+					caption: Dækningsgrad for drift
+				measure EBITDA
+					caption: EBITDA
+				measure 'Return On Assets - ROA'
+					caption: Afkastningsgrad – AG
+				measure 'Return On Equity - ROE'
+					caption: Egenkapitalforrentning – ROE
+				measure 'Return On Net Assets - RONA'
+					caption: Afkastning på nettoaktiver – APN
+				measure 'Return On Capital Employed - ROCE'
+					caption: Afkast af investeret kapital – AAIK
+				measure 'Debt/Equity Ratio'
+					caption: Forhold af gæld/egenkapital
+				measure 'Shareholder Equity Ratio'
+					caption: Egenkapitalprocent for aktionærer
+				measure 'Debt Ratio'
+					caption: Gældskvote
+			table 'G/L Budget Entries'
+				caption: Finansbudgetposter
+				column 'Budget Name'
+					caption: Budgetnavn
+				column 'Budget Date'
+					caption: Budgetdato
+				column 'Entry No.'
+					caption: Løbenr.
+				measure 'Budget Balance at Date'
+					caption: Budgetsaldo til dato
+				measure 'Budget Amount'
+					caption: Budgetbeløb
+				measure 'Budget Entry Back Link'
+					caption: Tilbagelink til budgetpost
+			table 'Dimension Sets'
+				caption: Dimensionsgrupper
+				column 'Global Dimension 1'
+					caption: Global dimension 1
+				column 'Global Dimension 2'
+					caption: Global dimension 2
+				column 'Shortcut Dimension 3'
+					caption: Genvejsdimension 3
+				column 'Shortcut Dimension 4'
+					caption: Genvejsdimension 4
+				column 'Shortcut Dimension 5'
+					caption: Genvejsdimension 5
+				column 'Shortcut Dimension 6'
+					caption: Genvejsdimension 6
+				column 'Shortcut Dimension 7'
+					caption: Genvejsdimension 7
+				column 'Shortcut Dimension 8'
+					caption: Genvejsdimension 8
+				column id
+					caption: id
+			table 'G/L Entries'
+				caption: Finansposter
+				column 'Posting Date'
+					caption: Bogføringsdato
+				column 'Closing Entry'
+					caption: Ultimopost
+				column 'Source Code'
+					caption: Kildespor
+				column 'Source Type'
+					caption: Kildetype
+				column 'Source No.'
+					caption: Kildenr.
+				column 'Entry No.'
+					caption: Løbenr.
+				column Description
+					caption: Beskrivelse
+				measure 'Net Change'
+					caption: Nettoændring
+				measure 'Net Change (Neg)'
+					caption: Nettoændring (neg)
+				measure 'Balance at Date'
+					caption: Saldo til dato
+				measure Amount
+					caption: Beløb
+				measure Balance
+					caption: Saldo
+				measure 'Variance to Budget'
+					caption: Afvigelse fra budget
+				measure 'Variance to Budget %'
+					caption: Afvigelse fra budget %
+				measure 'Balance at Date (Neg)'
+					caption: Saldo til dato (neg)
+				measure 'Net Change Back Link'
+					caption: Tilbagelink til nettoændring
+				measure 'Balance At Date Back Link'
+					caption: Tilbagelink til saldo til dato
+				measure 'Base Link'
+					caption: Basislink
+			table 'Standard Calendar Time Intelligence'
+				caption: Tidsintelligens standardkalender
+				measure 'Net Change AVG 1Y'
+					caption: Nettoændring GNS 1Å
+				measure 'Net Change AVG 3M'
+					caption: Netto ændring GNS 3M
+				measure 'Net Change AVG 30D'
+					caption: Nettoændring GNS 30D
+				measure 'Net Change MTDOPM %'
+					caption: Nettoændring MTDOFM %
+				measure 'Net Change MTDOPM'
+					caption: Nettoændring MTDOFM
+				measure 'Net Change PMC'
+					caption: Nettoændring FMA
+				measure 'Net Change QTDOPQ %'
+					caption: Nettoændring KTDOFK %
+				measure 'Net Change QTDOPQ'
+					caption: Nettoændring KTDOFK
+				measure 'Net Change PQC'
+					caption: Nettoændring FKA
+				measure 'Net Change YTDOPY %'
+					caption: Nettoændring ÅTDOFÅ %
+				measure 'Net Change YTDOPY'
+					caption: Nettoændring ÅTDOFÅ
+				measure 'Net Change PYC'
+					caption: Nettoændring FÅA
+				measure 'Net Change MATG %'
+					caption: Nettoændring GÅTV %
+				measure 'Net Change MATG'
+					caption: Nettoændring GÅTV
+				measure 'Net Change PYMAT'
+					caption: Nettoændring FÅGÅT
+				measure 'Net Change MAT'
+					caption: Nettoændring GÅT
+				measure 'Net Change MOMTD %'
+					caption: Nettoændring MOMTD %
+				measure 'Net Change MOMTD'
+					caption: Nettoændring MOMTD
+				measure 'Net Change PMTD'
+					caption: Nettoændring FKTD
+				measure 'Net Change QOQTD %'
+					caption: Nettoændring KOKTD %
+				measure 'Net Change QOQTD'
+					caption: Nettoændring KOKTD
+				measure 'Net Change YOYTD %'
+					caption: Nettoændring ÅOÅTD %
+				measure 'Net Change YOYTD'
+					caption: Nettoændring ÅOÅTD
+				measure 'Net Change PQTD'
+					caption: Nettoændring FKTD
+				measure 'Net Change PYTD'
+					caption: Nettoændring FÅTD
+				measure 'Net Change POP %'
+					caption: Nettoændring POP %
+				measure 'Net Change POP'
+					caption: Nettoændring POP
+				measure 'Net Change PP'
+					caption: Nettoændring FP
+				measure 'Net Change MOM %'
+					caption: Nettoændring MOM %
+				measure 'Net Change MOM'
+					caption: Nettoændring MOM
+				measure 'Net Change QOQ %'
+					caption: Nettoændring KOK %
+				measure 'Net Change PM'
+					caption: Nettoændring FM
+				measure 'Net Change QOQ'
+					caption: Nettoændring KOK
+				measure 'Net Change PQ'
+					caption: Nettoændring FK
+				measure 'Net Change YOY'
+					caption: Nettoændring ÅOÅ
+				measure 'Net Change YOY %'
+					caption: Nettoændring ÅOÅ %
+				measure 'Net Change PY'
+					caption: Nettoændring FÅ
+				measure 'Net Change MTD'
+					caption: Nettoændring MTD
+				measure 'Net Change QTD'
+					caption: Nettoændring KTD
+				measure 'Net Change YTD'
+					caption: Nettoændring ÅTD
+				measure 'Balance at Date AVG 1Y'
+					caption: Saldo til dato GNS 1Å
+				measure 'Balance at Date AVG 3M'
+					caption: Saldo til dato GNS 3M
+				measure 'Balance at Date AVG 30D'
+					caption: Saldo til dato GNS 30D
+				measure 'Balance at Date MTDOPM %'
+					caption: Saldo til dato MTDOFM %
+				measure 'Balance at Date MTDOPM'
+					caption: Saldo til dato MTDOFM
+				measure 'Balance at Date PMC'
+					caption: Saldo til dato FMA
+				measure 'Balance at Date QTDOPQ %'
+					caption: Saldo til dato KTDOFK %
+				measure 'Balance at Date QTDOPQ'
+					caption: Saldo til dato KTDOFK
+				measure 'Balance at Date PQC'
+					caption: Saldo til dato FKA
+				measure 'Balance at Date YTDOPY %'
+					caption: Saldo til dato ÅTDOFÅ %
+				measure 'Balance at Date YTDOPY'
+					caption: Saldo til dato ÅTDOFÅ
+				measure 'Balance at Date PYC'
+					caption: Saldo til dato FÅA
+				measure 'Balance at Date MATG %'
+					caption: Saldo til dato GÅTV %
+				measure 'Balance at Date MATG'
+					caption: Saldo til dato GÅTV
+				measure 'Balance at Date PYMAT'
+					caption: Saldo til dato FÅGÅT
+				measure 'Balance at Date MAT'
+					caption: Saldo til dato GÅT
+				measure 'Balance at Date MOMTD %'
+					caption: Saldo til dato MOMTD %
+				measure 'Balance at Date MOMTD'
+					caption: Saldo til dato MOMTD
+				measure 'Balance at Date PMTD'
+					caption: Saldo til dato FKTD
+				measure 'Balance at Date QOQTD %'
+					caption: Saldo til dato KOKTD %
+				measure 'Balance at Date QOQTD'
+					caption: Saldo til dato KOKTD
+				measure 'Balance at Date YOYTD %'
+					caption: Saldo til dato ÅOÅTD %
+				measure 'Balance at Date YOYTD'
+					caption: Saldo til dato ÅOÅTD
+				measure 'Balance at Date PQTD'
+					caption: Saldo til dato FKTD
+				measure 'Balance at Date PYTD'
+					caption: Saldo til dato FÅTD
+				measure 'Balance at Date POP %'
+					caption: Saldo til dato POP %
+				measure 'Balance at Date POP'
+					caption: Saldo til dato POP
+				measure 'Balance at Date PP'
+					caption: Saldo til dato FP
+				measure 'Balance at Date MOM %'
+					caption: Saldo til dato MOM %
+				measure 'Balance at Date MOM'
+					caption: Saldo til dato MOM
+				measure 'Balance at Date QOQ %'
+					caption: Saldo til dato KOK %
+				measure 'Balance at Date PM'
+					caption: Saldo til dato FM
+				measure 'Balance at Date QOQ'
+					caption: Saldo til dato KOK
+				measure 'Balance at Date PQ'
+					caption: Saldo til dato FK
+				measure 'Balance at Date YOY'
+					caption: Saldo til dato ÅOÅ
+				measure 'Balance at Date YOY %'
+					caption: Saldo til dato ÅOÅ %
+				measure 'Balance at Date PY'
+					caption: Saldo til dato FÅ
+				measure 'Balance at Date MTD'
+					caption: Saldo til dato MTD
+				measure 'Balance at Date QTD'
+					caption: Saldo til dato KTD
+				measure 'Balance at Date YTD'
+					caption: Saldo til dato ÅTD
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Tidsintelligens regnskabskalender
+				measure 'Net Change YTD (Fiscal)'
+					caption: Nettoændring ÅTD (regnskab)
+				measure 'Net Change QTD (Fiscal)'
+					caption: Nettoændring KTD (regnskab)
+				measure 'Net Change MTD (Fiscal)'
+					caption: Nettoændring MTD (regnskab)
+				measure 'Net Change PY (Fiscal)'
+					caption: Nettoændring FÅ (regnskab)
+				measure 'Net Change YOY % (Fiscal)'
+					caption: Nettoændring ÅOÅ % (regnskab)
+				measure 'Net Change YOY (Fiscal)'
+					caption: Nettoændring ÅOÅ (regnskab)
+				measure 'Net Change PQ (Fiscal)'
+					caption: Nettoændring FK (regnskab)
+				measure 'Net Change QOQ (Fiscal)'
+					caption: Nettoændring KOK (regnskab)
+				measure 'Net Change QOQ % (Fiscal)'
+					caption: Nettoændring KOK % (regnskab)
+				measure 'Net Change PM (Fiscal)'
+					caption: Nettoændring FM (regnskab)
+				measure 'Net Change MOM (Fiscal)'
+					caption: Nettoændring MOM (regnskab)
+				measure 'Net Change MOM % (Fiscal)'
+					caption: Nettoændring MOM % (regnskab)
+				measure 'Net Change PP (Fiscal)'
+					caption: Nettoændring FP (regnskab)
+				measure 'Net Change POP (Fiscal)'
+					caption: Nettoændring POP (regnskab)
+				measure 'Net Change POP % (Fiscal)'
+					caption: Nettoændring POP % (regnskab)
+				measure 'Net Change PYTD (Fiscal)'
+					caption: Nettoændring FÅTD (regnskab)
+				measure 'Net Change PQTD (Fiscal)'
+					caption: Nettoændring FKTD (regnskab)
+				measure 'Net Change YOYTD (Fiscal)'
+					caption: Nettoændring ÅOÅTD (regnskab)
+				measure 'Net Change YOYTD % (Fiscal)'
+					caption: Nettoændring ÅOÅTD % (regnskab)
+				measure 'Net Change QOQTD (Fiscal)'
+					caption: Nettoændring KOKTD (regnskab)
+				measure 'Net Change QOQTD % (Fiscal)'
+					caption: Nettoændring KOKTD % (regnskab)
+				measure 'Net Change PMTD (Fiscal)'
+					caption: Nettoændring FMTD (regnskab)
+				measure 'Net Change MOMTD % (Fiscal)'
+					caption: Nettoændring MOMTD % (regnskab)
+				measure 'Net Change MOMTD (Fiscal)'
+					caption: Nettoændring MOMTD (regnskab)
+				measure 'Net Change MAT (Fiscal)'
+					caption: Nettoændring GÅT (regnskab)
+				measure 'Net Change PYMAT (Fiscal)'
+					caption: Nettoændring FÅGÅT (regnskab)
+				measure 'Net Change MATG (Fiscal)'
+					caption: Nettoændring GÅTV (regnskab)
+				measure 'Net Change MATG % (Fiscal)'
+					caption: Nettoændring GÅTV % (regnskab)
+				measure 'Net Change MAT (364) (Fiscal)'
+					caption: Nettoændring GÅT (364) (regnskab)
+				measure 'Net Change PYMAT (364) (Fiscal)'
+					caption: Nettoændring FÅGÅT (364) (regnskab)
+				measure 'Net Change PYC (Fiscal)'
+					caption: Nettoændring FÅA (regnskab)
+				measure 'Net Change YTDOPY (Fiscal)'
+					caption: Nettoændring ÅTDOFÅ (regnskab)
+				measure 'Net Change YTDOPY % (Fiscal)'
+					caption: Nettoændring ÅTDOFÅ % (regnskab)
+				measure 'Net Change PQC (Fiscal)'
+					caption: Nettoændring FKA (regnskab)
+				measure 'Net Change QTDOPQ (Fiscal)'
+					caption: Nettoændring KTDOFK (regnskab)
+				measure 'Net Change QTDOPQ % (Fiscal)'
+					caption: Nettoændring KTDOFK % (regnskab)
+				measure 'Net Change PMC (Fiscal)'
+					caption: Nettoændring FMA (regnskab)
+				measure 'Net Change MTDOPM (Fiscal)'
+					caption: Nettoændring MTDOFM (regnskab)
+				measure 'Net Change MTDOPM % (Fiscal)'
+					caption: Nettoændring MTDOFM % (regnskab)
+				measure 'Net Change AVG 30D (Fiscal)'
+					caption: Nettoændring GNS 30D (regnskab)
+				measure 'Net Change AVG 3M (Fiscal)'
+					caption: Nettoændring GNS 3M (regnskab)
+				measure 'Net Change AVG 1Y (Fiscal)'
+					caption: Nettoændring GNS 1Å (regnskab)
+				measure 'Balance at Date YTD (Fiscal)'
+					caption: Saldo til dato ÅTD (regnskab)
+				measure 'Balance at Date QTD (Fiscal)'
+					caption: Saldo til dato KTD (regnskab)
+				measure 'Balance at Date MTD (Fiscal)'
+					caption: Saldo til dato MTD (regnskab)
+				measure 'Balance at Date PY (Fiscal)'
+					caption: Saldo til dato FÅ (regnskab)
+				measure 'Balance at Date YOY % (Fiscal)'
+					caption: Saldo til dato ÅOÅ % (regnskab)
+				measure 'Balance at Date YOY (Fiscal)'
+					caption: Saldo til dato ÅOÅ (regnskab)
+				measure 'Balance at Date PQ (Fiscal)'
+					caption: Saldo til dato FK (regnskab)
+				measure 'Balance at Date QOQ (Fiscal)'
+					caption: Saldo til dato KOK (regnskab)
+				measure 'Balance at Date QOQ % (Fiscal)'
+					caption: Saldo til dato KOK % (regnskab)
+				measure 'Balance at Date PM (Fiscal)'
+					caption: Saldo til dato FM (regnskab)
+				measure 'Balance at Date MOM (Fiscal)'
+					caption: Saldo til dato MOM (regnskab)
+				measure 'Balance at Date MOM % (Fiscal)'
+					caption: Saldo til dato MOM % (regnskab)
+				measure 'Balance at Date PP (Fiscal)'
+					caption: Saldo til dato FP (regnskab)
+				measure 'Balance at Date POP (Fiscal)'
+					caption: Saldo til dato POP (regnskab)
+				measure 'Balance at Date POP % (Fiscal)'
+					caption: Saldo til dato POP % (regnskab)
+				measure 'Balance at Date PYTD (Fiscal)'
+					caption: Saldo til dato FÅTD (regnskab)
+				measure 'Balance at Date PQTD (Fiscal)'
+					caption: Saldo til dato FKTD (regnskab)
+				measure 'Balance at Date YOYTD (Fiscal)'
+					caption: Saldo til dato ÅOÅTD (regnskab)
+				measure 'Balance at Date YOYTD % (Fiscal)'
+					caption: Saldo til dato ÅOÅTD % (regnskab)
+				measure 'Balance at Date QOQTD (Fiscal)'
+					caption: Saldo til dato KOKTD (regnskab)
+				measure 'Balance at Date QOQTD % (Fiscal)'
+					caption: Saldo til dato KOKTD % (regnskab)
+				measure 'Balance at Date PMTD (Fiscal)'
+					caption: Saldo til dato FMTD (regnskab)
+				measure 'Balance at Date MOMTD % (Fiscal)'
+					caption: Saldo til dato MOMTD % (regnskab)
+				measure 'Balance at Date MOMTD (Fiscal)'
+					caption: Saldo til dato MOMTD (regnskab)
+				measure 'Balance at Date MAT (Fiscal)'
+					caption: Saldo til dato GÅT (regnskab)
+				measure 'Balance at Date PYMAT (Fiscal)'
+					caption: Saldo til dato FÅGÅT (regnskab)
+				measure 'Balance at Date MATG (Fiscal)'
+					caption: Saldo til dato GÅTV (regnskab)
+				measure 'Balance at Date MATG % (Fiscal)'
+					caption: Saldo til dato GÅTV % (regnskab)
+				measure 'Balance at Date MAT (364) (Fiscal)'
+					caption: Saldo til dato GÅT (364) (regnskab)
+				measure 'Balance at Date PYMAT (364) (Fiscal)'
+					caption: Saldo til dato FÅGÅT (364) (regnskab)
+				measure 'Balance at Date PYC (Fiscal)'
+					caption: Saldo til dato FÅA (regnskab)
+				measure 'Balance at Date YTDOPY (Fiscal)'
+					caption: Saldo til dato ÅTDOFÅ (regnskab)
+				measure 'Balance at Date YTDOPY % (Fiscal)'
+					caption: Saldo til dato ÅTDOFÅ % (regnskab)
+				measure 'Balance at Date PQC (Fiscal)'
+					caption: Saldo til dato FKA (regnskab)
+				measure 'Balance at Date QTDOPQ (Fiscal)'
+					caption: Saldo til dato KTDOFK (regnskab)
+				measure 'Balance at Date QTDOPQ % (Fiscal)'
+					caption: Saldo til dato KTDOFK % (regnskab)
+				measure 'Balance at Date PMC (Fiscal)'
+					caption: Saldo til dato FMA (regnskab)
+				measure 'Balance at Date MTDOPM (Fiscal)'
+					caption: Saldo til dato MTDOFM (regnskab)
+				measure 'Balance at Date MTDOPM % (Fiscal)'
+					caption: Saldo til dato MTDOFM % (regnskab)
+				measure 'Balance at Date AVG 30D (Fiscal)'
+					caption: Saldo til dato GNS 30D (regnskab)
+				measure 'Balance at Date AVG 3M (Fiscal)'
+					caption: Saldo til dato GNS 3M (regnskab)
+				measure 'Balance at Date AVG 1Y (Fiscal)'
+					caption: Saldo til dato GNS 1Å (regnskab)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Tidsintelligens ugentlig kalender
+				measure 'Net Change YTD (Weekly)'
+					caption: Nettoændring ÅTD (ugentlig)
+				measure 'Net Change QTD (Weekly)'
+					caption: Nettoændring KTD (ugentlig)
+				measure 'Net Change MTD (Weekly)'
+					caption: Nettoændring MTD (ugentlig)
+				measure 'Net Change WTD (Weekly)'
+					caption: Nettoændring UTD (ugentlig)
+				measure 'Net Change PY (Weekly)'
+					caption: Nettoændring FÅ (ugentlig)
+				measure 'Net Change YOY % (Weekly)'
+					caption: Nettoændring ÅOÅ % (ugentlig)
+				measure 'Net Change YOY (Weekly)'
+					caption: Nettoændring ÅOÅ (ugentlig)
+				measure 'Net Change PQ (Weekly)'
+					caption: Nettoændring FK (ugentlig)
+				measure 'Net Change QOQ (Weekly)'
+					caption: Nettoændring KOK (ugentlig)
+				measure 'Net Change QOQ % (Weekly)'
+					caption: Nettoændring KOK % (ugentlig)
+				measure 'Net Change PW (Weekly)'
+					caption: Nettoændring FU (ugentlig)
+				measure 'Net Change WOW (Weekly)'
+					caption: Nettoændring UOU (ugentlig)
+				measure 'Net Change WOW % (Weekly)'
+					caption: Nettoændring UOU % (ugentlig)
+				measure 'Net Change PP (Weekly)'
+					caption: Nettoændring FP (ugentlig)
+				measure 'Net Change POP (Weekly)'
+					caption: Nettoændring POP (ugentlig)
+				measure 'Net Change POP % (Weekly)'
+					caption: Nettoændring POP % (ugentlig)
+				measure 'Net Change PYTD (Weekly)'
+					caption: Nettoændring FÅTD (ugentlig)
+				measure 'Net Change PQTD (Weekly)'
+					caption: Nettoændring FKTD (ugentlig)
+				measure 'Net Change YOYTD (Weekly)'
+					caption: Nettoændring ÅOÅTD (ugentlig)
+				measure 'Net Change YOYTD % (Weekly)'
+					caption: Nettoændring ÅOÅTD % (ugentlig)
+				measure 'Net Change QOQTD (Weekly)'
+					caption: Nettoændring KOKTD (ugentlig)
+				measure 'Sales Amount QOQTD % (Weekly)'
+					caption: Salgsbeløb KOKTD % (ugentlig)
+				measure 'Net Change PWTD (Weekly)'
+					caption: Nettoændring FUTD (ugentlig)
+				measure 'Net Change WOWTD (Weekly)'
+					caption: Nettoændring UOUTD (ugentlig)
+				measure 'Net Change WOWTD % (Weekly)'
+					caption: Nettoændring UOUTD % (ugentlig)
+				measure 'Net Change MAT (364) (Weekly)'
+					caption: Nettoændring GÅT (364) (ugentlig)
+				measure 'Net Change PYMAT (364) (Weekly)'
+					caption: Nettoændring FÅGÅT (364) (ugentlig)
+				measure 'Net Change MATG (Weekly)'
+					caption: Nettoændring GÅTV (ugentlig)
+				measure 'Net Change MATG % (Weekly)'
+					caption: Nettoændring GÅTV % (ugentlig)
+				measure 'Net Change PYC (Weekly)'
+					caption: Nettoændring FÅA (ugentlig)
+				measure 'Net Change YTDOPY (Weekly)'
+					caption: Nettoændring ÅTDOFK (ugentlig)
+				measure 'Net Change YTDOPY % (Weekly)'
+					caption: Nettoændring ÅTDOFK % (ugentlig)
+				measure 'Net Change PQC (Weekly)'
+					caption: Nettoændring FKA (ugentlig)
+				measure 'Net Change QTDOPQ (Weekly)'
+					caption: Nettoændring KTDOFK (ugentlig)
+				measure 'Net Change QTDOPQ % (Weekly)'
+					caption: Nettoændring KTDOFK % (ugentlig)
+				measure 'Net Change PWC (Weekly)'
+					caption: Nettoændring FUA (ugentlig)
+				measure 'Net Change WTDOPW (Weekly)'
+					caption: Nettoændring UTDOTU (ugentlig)
+				measure 'Net Change WTDOPW % (Weekly)'
+					caption: Nettoændring UTDOTU % (ugentlig)
+				measure 'Net Change AVG 4W (Weekly)'
+					caption: Nettoændring GNS 4U (ugentlig)
+				measure 'Net Change AVG 1Q (Weekly)'
+					caption: Nettoændring GNS 1K (ugentlig)
+				measure 'Net Change AVG 1Y (Weekly)'
+					caption: Nettoændring GNS 1Å (ugentlig)
+				measure 'Balance at Date YTD (Weekly)'
+					caption: Saldo til dato ÅTD (ugentlig)
+				measure 'Balance at Date QTD (Weekly)'
+					caption: Saldo til dato KTD (ugentlig)
+				measure 'Balance at Date MTD (Weekly)'
+					caption: Saldo til dato MTD (ugentlig)
+				measure 'Balance at Date WTD (Weekly)'
+					caption: Saldo til dato UTD (ugentlig)
+				measure 'Balance at Date PY (Weekly)'
+					caption: Saldo til dato FÅ (ugentlig)
+				measure 'Balance at Date YOY % (Weekly)'
+					caption: Saldo til dato ÅOÅ % (ugentlig)
+				measure 'Balance at Date YOY (Weekly)'
+					caption: Saldo til dato ÅOÅ (ugentlig)
+				measure 'Balance at Date PQ (Weekly)'
+					caption: Saldo til dato FK (ugentlig)
+				measure 'Balance at Date QOQ (Weekly)'
+					caption: Saldo til dato KOK (ugentlig)
+				measure 'Balance at Date QOQ % (Weekly)'
+					caption: Saldo til dato KOK % (ugentlig)
+				measure 'Balance at Date PW (Weekly)'
+					caption: Saldo til dato FU (ugentlig)
+				measure 'Balance at Date WOW (Weekly)'
+					caption: Saldo til dato UOU (ugentlig)
+				measure 'Balance at Date WOW % (Weekly)'
+					caption: Saldo til dato UOU % (ugentlig)
+				measure 'Balance at Date PP (Weekly)'
+					caption: Saldo til dato FP (ugentlig)
+				measure 'Balance at Date POP (Weekly)'
+					caption: Saldo til dato POP (ugentlig)
+				measure 'Balance at Date POP % (Weekly)'
+					caption: Saldo til dato POP % (ugentlig)
+				measure 'Balance at Date PYTD (Weekly)'
+					caption: Saldo til dato FÅTD (ugentlig)
+				measure 'Balance at Date PQTD (Weekly)'
+					caption: Saldo til dato FKTD (ugentlig)
+				measure 'Balance at Date YOYTD (Weekly)'
+					caption: Saldo til dato ÅOÅTD (ugentlig)
+				measure 'Balance at Date YOYTD % (Weekly)'
+					caption: Saldo til dato ÅOÅTD % (ugentlig)
+				measure 'Balance at Date QOQTD (Weekly)'
+					caption: Saldo til dato KOKTD (ugentlig)
+				measure 'Balance at Date QOQTD % (Weekly)'
+					caption: Saldo til dato KOKTD % (ugentlig)
+				measure 'Balance at Date PWTD (Weekly)'
+					caption: Saldo til dato FUTD (ugentlig)
+				measure 'Balance at Date WOWTD (Weekly)'
+					caption: Saldo til dato UOUTD (ugentlig)
+				measure 'Balance at Date WOWTD % (Weekly)'
+					caption: Saldo til dato UOUTD % (ugentlig)
+				measure 'Balance at Date MAT (364) (Weekly)'
+					caption: Saldo til dato GÅT (364) (ugentlig)
+				measure 'Balance at Date PYMAT (364) (Weekly)'
+					caption: Saldo til dato FÅGÅT (364) (ugentlig)
+				measure 'Balance at Date MATG (Weekly)'
+					caption: Saldo til dato GÅTV (ugentlig)
+				measure 'Balance at Date MATG % (Weekly)'
+					caption: Saldo til dato GÅTV % (ugentlig)
+				measure 'Balance at Date PYC (Weekly)'
+					caption: Saldo til dato FÅA (ugentlig)
+				measure 'Balance at Date YTDOPY (Weekly)'
+					caption: Saldo til dato ÅTDOFÅ (ugentlig)
+				measure 'Balance at Date YTDOPY % (Weekly)'
+					caption: Saldo til dato ÅTDOFÅ % (ugentlig)
+				measure 'Balance at Date PQC (Weekly)'
+					caption: Saldo til dato FKA (ugentlig)
+				measure 'Balance at Date QTDOPQ (Weekly)'
+					caption: Saldo til dato KTDOFK (ugentlig)
+				measure 'Balance at Date QTDOPQ % (Weekly)'
+					caption: Saldo til dato KTDOFK % (ugentlig)
+				measure 'Balance at Date PWC (Weekly)'
+					caption: Saldo til dato FUA (ugentlig)
+				measure 'Balance at Date WTDOPW (Weekly)'
+					caption: Saldo til dato UTDOTU (ugentlig)
+				measure 'Balance at Date WTDOPW % (Weekly)'
+					caption: Saldo til dato UTDOTU % (ugentlig)
+				measure 'Balance at Date AVG 4W (Weekly)'
+					caption: Saldo til dato GNS 4U (ugentlig)
+				measure 'Balance at Date AVG 1Q (Weekly)'
+					caption: Saldo til dato GNS 1K (ugentlig)
+				measure 'Balance at Date AVG 1Y (Weekly)'
+					caption: Saldo til dato GNS 1Å (ugentlig)
+			table 'Customer Ledger Entries'
+				caption: Debitorfinansposter
+				column 'CLE Entry No.'
+					caption: CLE-løbenr.
+				column 'CLE Due Date'
+					caption: CLE-forfaldsdato
+				column 'CLE Open'
+					caption: CLE-åben
+				column 'CLE Posting Date'
+					caption: CLE-bogføringsdato
+				column 'CLE Document Date'
+					caption: CLE-dokumentdato
+				column 'DCLE Entry No.'
+					caption: DCLE-løbenr.
+				column 'DCLE Posting Date'
+					caption: DCLE-bogføringsdato
+				column 'Ledger Entry Amount'
+					caption: Posteringsbeløb
+				column 'Entry Type'
+					caption: Posttype
+				column 'Document Type'
+					caption: Dokumenttype
+				column 'Document No.'
+					caption: Dokumentnr.
+				column 'DCLE Initial Entry Due Date'
+					caption: DCLE-forfaldsdato for startpost
+				column 'Customer No.'
+					caption: Debitornr.
+				column 'Application No.'
+					caption: Udligningsnr.
+				column 'Applied Customer Ledger Entry No.'
+					caption: Udlignet debitorpostnr.
+				column 'Sales Invoice Header Document No.'
+					caption: Nummer på hoved i salgsfakturadokument
+				column 'Payment Terms Code'
+					caption: Kode for betalingsbetingelser
+				column 'Payment Discount Date'
+					caption: Kontantrabatdato
+				measure 'Original Amount (LCY)'
+					caption: Oprindeligt beløb (LV)
+				measure 'Amount Receivable (LCY)'
+					caption: Beløb modtaget (LV)
+				measure 'Balance (Accounts Receivable)'
+					caption: Saldo (Tilgodehavender)
+				measure 'Bucket 1 (Receivables)'
+					caption: Bucket 1 (Tilgodehavender)
+				measure 'Bucket 2 (Receivables)'
+					caption: Bucket 2 (Tilgodehavender)
+				measure 'Bucket 3 (Receivables)'
+					caption: Bucket 3 (Tilgodehavender)
+				measure 'Bucket 4 (Receivables)'
+					caption: Bucket 4 (Tilgodehavender)
+				measure 'Current (Receivables)'
+					caption: Aktuel (Tilgodehavender)
+				measure 'CLE Bucket 1 Back Link'
+					caption: Tilbagelink til DFP-bucket 1
+				measure 'CLE Bucket 2 Back Link'
+					caption: Tilbagelink til DFP-bucket 2
+				measure 'CLE Bucket 3 Back Link'
+					caption: Tilbagelink til DFP-bucket 3
+				measure 'CLE Bucket 4 Back Link'
+					caption: Tilbagelink til DFP-bucket 4
+				measure 'CLE Current Back Link'
+					caption: Tilbagelink til aktuel DFP
+				measure 'CLE Balance Back Link'
+					caption: Tilbagelink til DFP-saldo
+			table 'Vendor Ledger Entries'
+				caption: Kreditorposter
+				column 'VLE Entry No.'
+					caption: VLE-løbenr.
+				column 'VLE Due Date'
+					caption: VLE-forfaldsdato
+				column 'VLE Open'
+					caption: VLE-åben
+				column 'VLE Posting Date'
+					caption: VLE-bogføringsdato
+				column 'VLE Document Date'
+					caption: VLE-dokumentdato
+				column 'DVLE Entry No.'
+					caption: DVLE-løbenr.
+				column 'DVLE Posting Date'
+					caption: DVLE-bogføringsdato
+				column 'DVLE Ledger Entry Amount'
+					caption: DVLE-posteringsbeløb
+				column 'Entry Type'
+					caption: Posttype
+				column 'Document Type'
+					caption: Dokumenttype
+				column 'Document No.'
+					caption: Dokumentnr.
+				column 'DVLE Initial Entry Due Date'
+					caption: DVLE-forfaldsdato for startpost
+				column 'Vendor No.'
+					caption: Kreditornummer
+				column 'Application No.'
+					caption: Udligningsnr.
+				column 'Applied Vendor Ledger Entry No.'
+					caption: Udlignet kreditorpostløbenr.
+				column 'PIH Document No.'
+					caption: PIH-dokumentnr.
+				column 'Payment Terms Code'
+					caption: Kode for betalingsbetingelser
+				column 'Payment Discount Date'
+					caption: Kontantrabatdato
+				measure 'Amount Payable (LCY)'
+					caption: Skyldigt beløb (LV)
+				measure 'Bucket 2 (Payables)'
+					caption: Bucket 2 (gæld)
+				measure 'Bucket 1 (Payables)'
+					caption: Bucket 1 (gæld)
+				measure 'Bucket 3 (Payables)'
+					caption: Bucket 3 (gæld)
+				measure 'Bucket 4 (Payables)'
+					caption: Bucket 4 (gæld)
+				measure 'Current (Payables)'
+					caption: Kortfristet (gæld)
+				measure 'Balance (Accounts Payable)'
+					caption: Saldo (leverandør)
+				measure 'Original Amount'
+					caption: Oprindeligt beløb
+				measure 'VLE Bucket 1 Back Link'
+					caption: Tilbagelink til KFP-bucket 1
+				measure 'VLE Bucket 2 Back Link'
+					caption: Tilbagelink til KFP-bucket 2
+				measure 'VLE Bucket 3 Back Link'
+					caption: Tilbagelink til KFP-bucket 3
+				measure 'VLE Bucket 4 Back Link'
+					caption: Tilbagelink til KFP-bucket 4
+				measure 'VLE Current Back Link'
+					caption: Tilbagelink til aktuel KFP
+				measure 'VLE Balance Back Link'
+					caption: Tilbagelink til KFP-saldo
+			table Vendors
+				caption: Leverandører
+				column 'Vendor No.'
+					caption: Kreditornummer
+				column 'Vendor Name'
+					caption: Kreditornavn
+				column 'Vendor Address'
+					caption: Adresse
+				column 'Vendor Address 2'
+					caption: Adresse 2
+				column 'Vendor City'
+					caption: By
+				column 'Vendor Post Code'
+					caption: Postnr.
+				column 'Vendor State'
+					caption: Stat
+				column 'Vendor Country/Region Code'
+					caption: Landekode
+				column 'Vendor Posting Group'
+					caption: Kreditorbogføringsgruppe
+				column 'Vendor No. & Name'
+					caption: Kreditornummer og -navn
+			table 'Calc. Group - Time Intelligence for Calendar (Standard)'
+				caption: Beregningsgruppe – Tidsintelligens til kalender (Standard)
+				column 'Selected Measure'
+					caption: Valgt mål
+				column Type
+					caption: Type
+				column 'Sub Type'
+					caption: Undertype
+				hierarchy 'Calc. Group Hierarchy (Standard)'
+					caption: Hierarki af beregningsgruppe (Standard)
+					level Type
+						caption: Type
+					level 'Sub Type'
+						caption: Undertype
+					level 'Selected Measure'
+						caption: Valgt mål
+			table 'Aging Date Parameter'
+				caption: Parameter for aldersfordelingsdato
+				column 'AGING PARAMETER'
+					caption: ALDRINGSPARAMETER
+			table 'Aging Bucket Period'
+				caption: Aldrende bucket-periode
+				measure 'Aging Bucket Period Value'
+					caption: Værdi for aldrende bucket-periode
+				measure 'Bucket 1 Range'
+					caption: Bucket 1 interval
+				measure 'Bucket 2 Range'
+					caption: Bucket 2 interval
+				measure 'Bucket 3 Range'
+					caption: Bucket 3 interval
+				measure 'Bucket 4 Range'
+					caption: Bucket 4 interval
+				measure 'Bucket 1 Date Range'
+					caption: Bucket 1 datointerval
+				measure 'Bucket 2 Date Range'
+					caption: Budget 2 datointerval
+				measure 'Bucket 3 Date Range'
+					caption: Bucket 3 datointerval
+				measure 'Bucket 4 Date Range'
+					caption: Bucket 4 datointerval
+			table Customers
+				caption: Debitor
+				column 'Customer No.'
+					caption: Debitornr.
+				column 'Customer Name'
+					caption: Debitornavn
+				column 'Customer Address'
+					caption: Adresse
+				column 'Customer Address 2'
+					caption: Adresse 2
+				column 'Customer City'
+					caption: By
+				column 'CustomerPost Code'
+					caption: Postnr.
+				column 'Customer State'
+					caption: Stat
+				column 'Country/Region Code'
+					caption: Landekode
+				column 'Customer Posting Group'
+					caption: Debitorbogføringsgruppe
+				column 'Customer Price Group'
+					caption: Debitorprisgruppe
+				column 'Customer Discount Group'
+					caption: Kunderabatgruppe
+				column 'Customer No. & Name'
+					caption: Debitornr. og -navn
+			table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+				caption: Beregningsgruppe – Tidsintelligens til kalender (regnskab)
+				column 'Selected Measure'
+					caption: Valgt mål
+				column Type
+					caption: Type
+				column 'Sub Type'
+					caption: Undertype
+				hierarchy 'Calc. Group Hierarchy (Fiscal)'
+					caption: Hierarki af beregningsgruppe (regnskab)
+					level Type
+						caption: Type
+					level 'Sub Type'
+						caption: Undertype
+					level 'Selected Measure'
+						caption: Valgt mål
+			table 'Calc. Group - Time Intelligence for Calenday (Weekly)'
+				caption: Beregningsgruppe – Tidsintelligens til kalender (ugentligt)
+				column 'Selected Measure'
+					caption: Valgt mål
+				column Type
+					caption: Type
+				column 'Sub Type'
+					caption: Undertype
+				hierarchy 'Calc. Group Hierarchy (Weekly)'
+					caption: Hierarki af beregningsgruppe (ugentligt)
+					level Type
+						caption: Type
+					level 'Sub Type'
+						caption: Undertype
+					level 'Selected Measure'
+						caption: Valgt mål
+			table Date
+				caption: Dato
+				column 'Week Day'
+					caption: Ugedag
+				column 'Day Type'
+					caption: Dagtype
+				column 'Calendar Year'
+					caption: Kalender År
+				column 'Calendar Quarter'
+					caption: Kalenderkvartal
+				column 'Calendar Quarter Year'
+					caption: Kalender Kvartal År
+				column 'Calendar Month'
+					caption: Kalendermåned
+				column 'Calendar Month Year'
+					caption: Kalender Måned År
+				column 'Calendar Week'
+					caption: Kalenderuge
+				column 'Calendar Week Year'
+					caption: Kalender Uge År
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativUgePosition
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativMånedsPosition
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelativKvartalsPosition
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativÅrsPosition
+				column 'Calendar StartOfMonth'
+					caption: Kalender StartPåMåned
+				column 'Calendar EndOfMonth'
+					caption: Kalender SlutPåMåned
+				column 'Calendar StartOfQuarter'
+					caption: Kalender StartPåKvartal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender SlutPåKvartal
+				column 'Calendar StartOfYear'
+					caption: Kalender StartPåÅr
+				column 'Calendar EndOfYear'
+					caption: Kalender SlutPåÅr
+				column 'Calendar MonthDays'
+					caption: Kalender MånedDage
+				column 'Calendar QuarterDays'
+					caption: Kalender KvartalsDage
+				column 'Calendar YearDays'
+					caption: Kalender ÅrDage
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender NummerPåDagIMåned
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender NummerPåDagIKvartal
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender NummerPåDagIÅr
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatoForrigeUge
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatoForrigeMåned
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatoForrigeKvartal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatoForrigeÅr
+				column 'Fiscal Year'
+					caption: Regnskabsår
+				column 'Fiscal Quarter'
+					caption: Regnskabskvartal
+				column 'Fiscal Quarter Year'
+					caption: Regnskab Kvartal År
+				column 'Fiscal Month'
+					caption: Regnskabsmåned
+				column 'Fiscal Month Year'
+					caption: Regnskab Måned År
+				column 'Fiscal Week'
+					caption: Regnskabsuge
+				column 'Fiscal Week Year'
+					caption: Regnskab Uge År
+				column 'Fiscal RelativeWeekPos'
+					caption: Regnskab RelativUgePosition
+				column 'Fiscal RelativeMonthPos'
+					caption: Regnskab RelativMånedsPosition
+				column 'Fiscal RelativeQuarterPos'
+					caption: Regnskab RelativKvartalsPosition
+				column 'Fiscal RelativeYearPos'
+					caption: Regnskab RelativÅrsPosition
+				column 'Fiscal StartOfMonth'
+					caption: Regnskab StartPåMåned
+				column 'Fiscal EndOfMonth'
+					caption: Regnskab SlutPåMåned
+				column 'Fiscal StartOfQuarter'
+					caption: Regnskab StartPåKvartal
+				column 'Fiscal EndOfQuarter'
+					caption: Regnskab SlutPåKvartal
+				column 'Fiscal StartOfYear'
+					caption: Regnskab StartPåÅr
+				column 'Fiscal EndOfYear'
+					caption: Regnskab SlutPåÅr
+				column 'Fiscal MonthDays'
+					caption: Regnskab MånedsDage
+				column 'Fiscal QuarterDays'
+					caption: Regnskab KvartalsDage
+				column 'Fiscal YearDays'
+					caption: Regnskabsår Dage
+				column 'Fiscal DayOfMonthNumber'
+					caption: Regnskab NummerPåDagIMåned
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Regnskab NummerPåDagIKvartal
+				column 'Fiscal DayOfYearNumber'
+					caption: Regnskab NummerPåDagiÅr
+				column 'Fiscal DatePreviousWeek'
+					caption: Regnskab DatoForrigeUge
+				column 'Fiscal DatePreviousMonth'
+					caption: Regnskab DatoForrigeMåned
+				column 'Fiscal DatePreviousQuarter'
+					caption: Regnskab DatoForrigeKvartal
+				column 'Fiscal DatePreviousYear'
+					caption: Regnskab DatoForrigeÅr
+				column 'FW Year'
+					caption: RU År
+				column 'FW Quarter'
+					caption: RU Kvartal
+				column 'FW Quarter Year'
+					caption: RU Kvartal År
+				column 'FW Month'
+					caption: RU Måned
+				column 'FW Month Year'
+					caption: RU Måned År
+				column 'FW Week'
+					caption: RU Uge
+				column 'FW Period'
+					caption: RU Periode
+				column 'FW Week Year'
+					caption: RU Uge År
+				column 'FW StartOfWeek'
+					caption: RU StartPåUge
+				column 'FW EndOfWeek'
+					caption: RU SlutPåUge
+				column 'FW RelativeWeekPos'
+					caption: RU RelativUgesPosition
+				column 'FW RelativeMonthPos'
+					caption: RU RelativMånedsPosition
+				column 'FW RelativeQuarterPos'
+					caption: RU RelativKvartalsPosition
+				column 'FW RelativeYearPos'
+					caption: RU RelativÅrsPosition
+				column 'FW StartOfMonth'
+					caption: RU StartPåMåned
+				column 'FW EndOfMonth'
+					caption: RU SlutPåMåned
+				column 'FW StartOfQuarter'
+					caption: RU StartPåKvartal
+				column 'FW EndOfQuarter'
+					caption: RU SlutPåKvartal
+				column 'FW StartOfYear'
+					caption: RU StartPåÅr
+				column 'FW EndOfYear'
+					caption: RU SlutPåÅr
+				column 'FW MonthDays'
+					caption: RU MånedsDage
+				column 'FW QuarterDays'
+					caption: RU KvartalDage
+				column 'FW YearDays'
+					caption: RU ÅrDage
+				column 'FW DayOfMonthNumber'
+					caption: RU NummerPåDagIMåned
+				column 'FW DayOfQuarterNumber'
+					caption: RU NummerPåDagIKvartal
+				column 'FW DayOfYearNumber'
+					caption: RU NummerPåDagiÅr
+				column 'FW DatePreviousWeek'
+					caption: RU DatoForrigeUge
+				column 'FW DatePreviousMonth'
+					caption: RU DatoForrigeMåned
+				column 'FW DatePreviousQuarter'
+					caption: RU DatoForrigeKvartal
+				column 'FW DatePreviousYear'
+					caption: RU DatoForrigeÅr
+				column 'Relative Day'
+					caption: Relativ dag
+				column Sequential365DayNumber
+					caption: Fortløbende 365-dagsnummer
+				measure 'No. of Days'
+					caption: Antal dage
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Regnskab År-Kvartal-Måned-Uge
+					level 'Fiscal Year'
+						caption: Regnskabsår
+					level 'Fiscal Quarter Year'
+						caption: Regnskab Kvartal År
+					level 'Fiscal Month Year'
+						caption: Regnskab Måned År
+					level 'Fiscal Week Year'
+						caption: Regnskab Uge År
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender År-Kvartal-Måned-Uge
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Quarter Year'
+						caption: Kalender Kvartal År
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+					level 'Calendar Week Year'
+						caption: Kalender Uge År
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: RU År-Kvartal-Måned-Uge
+					level 'FW Year'
+						caption: RU År
+					level 'FW Quarter Year'
+						caption: RU Kvartal År
+					level 'FW Month Year'
+						caption: RU Måned År
+					level 'FW Week Year'
+						caption: RU Uge År
+				hierarchy 'Fiscal Year-Month'
+					caption: Regnskab År-Måned
+					level 'Fiscal Year'
+						caption: Regnskabsår
+					level 'Fiscal Month Year'
+						caption: Regnskab Måned År
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Regnskabsår-Måned-Uge
+					level 'Fiscal Year'
+						caption: Regnskabsår
+					level 'Fiscal Month Year'
+						caption: Regnskab Måned År
+					level 'Fiscal Week Year'
+						caption: Regnskab Uge År
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender År-måned
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender År-måned-uge
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+					level 'Calendar Week Year'
+						caption: Kalender Uge År
+				hierarchy 'FW Year-Month-Week'
+					caption: RU År-Måned-Uge
+					level 'FW Year'
+						caption: RU År
+					level 'FW Month Year'
+						caption: RU Måned År
+					level 'FW Week Year'
+						caption: RU Uge År
+				hierarchy 'FW Year-Quarter-Week'
+					caption: RU År-Kvartal-Uge
+					level 'FW Year'
+						caption: RU År
+					level 'FW Quarter Year'
+						caption: RU Kvartal År
+					level 'FW Week Year'
+						caption: RU Uge År
+				hierarchy 'FW Year-Week'
+					caption: RU År-Uge
+					level 'FW Year'
+						caption: RU År
+					level 'FW Week Year'
+						caption: RU Uge År
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Min rapporttitel
+				measure 'My Button Caption'
+					caption: Min knaptitel
+				measure 'My Visual Title'
+					caption: Min visuelle titel
+				measure 'Financial Overview'
+					caption: Økonomisk oversigt
+				measure 'Income Statement by Month'
+					caption: Resultatopgørelse pr. måned
+				measure 'Balance Sheet by Month'
+					caption: Balance pr. måned
+				measure 'Budget Comparison'
+					caption: Budgetsammenligning
+				measure 'Liquidity KPIs'
+					caption: Likviditets-KPI'er
+				measure Profitability
+					caption: Rentabilitet
+				measure 'Liabilities '
+					caption: "Passiver "
+				measure 'Average Collection Period '
+					caption: "Gennemsnitlig rykkerperiode "
+				measure 'Aged Receivables (Back Dating)'
+					caption: Ældre tilgodehavender (Back Dating)
+				measure 'Aged Payables (Back Dating)'
+					caption: Ældre gæld (Back Dating)
+				measure 'G/L Entries'
+					caption: Finansposter
+				measure 'Detailed Vendor Ledger Entries'
+					caption: Detaljerede kreditorposter
+				measure 'Detailed Customer Ledger Entries'
+					caption: Detaljerede debitorposter
+				measure 'Income Statement Drill Through'
+					caption: Detaljeudledning af resultatopgørelse
+				measure 'Balance Sheet Drill Through'
+					caption: Gennemgang af balance
+				measure 'Vendor Ledger Entries Drill Through'
+					caption: Detaljeadgang for kreditorfinansposter
+				measure 'Customer Ledger Entries Drill Through'
+					caption: Detaljeadgang for kundefinansposter
+				measure 'Liabilities Drill Through'
+					caption: Detailudledning af passiver
+				measure 'Finance App Change Log'
+					caption: Ændringslog for appen Finance
+				measure 'As At Date'
+					caption: Pr. dato
+				measure 'Aging Bucket Length'
+					caption: Aldrende bucket-længde
+				measure 'Use Aging Date'
+					caption: Brug aldringsdato
+				measure 'Cost of Goods Sold '
+					caption: "Omkostning ved solgte varer "
+				measure 'Net Profit '
+					caption: "Nettofortjeneste "
+				measure 'Current Assets / Current Liabilities'
+					caption: Omsætningsaktiver/kortfristede forpligtelser
+				measure '(Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities'
+					caption: (Omsætningsaktiver - Lager - Køb. Forudbetalinger) / kortfristede forpligtelser
+				measure 'Liquid Assets / Current Liabilities'
+					caption: Likvide aktiver/kortfristede forpligtelser
+				measure 'Revenue - Cost of Goods Sold - Expenses'
+					caption: Omsætning – Omkostning ved solgte varer – Udgifter
+				measure 'Net Profit / Revenue'
+					caption: Nettoindtægt/omsætning
+				measure 'Revenue - Cost of Goods Sold'
+					caption: Omsætning – Omkostning ved solgte varer
+				measure 'Gross Profit / Revenue'
+					caption: Bruttofortjeneste/omsætning
+				measure 'Liabilities by Month'
+					caption: Passiver pr. måned
+				measure 'Revenue & Accounts Receivable (Average) by Month'
+					caption: Omsætning og tilgodehavender (gennemsnit) pr. måned
+				measure 'Average Collection Period (Days) by Month'
+					caption: Gennemsnitlig antal kredit (dage) pr. måned
+				measure 'Operating Revenue '
+					caption: "Driftsindtægter "
+				measure 'Operating Expenses '
+					caption: "Eksterne udgifter "
+				measure 'AGED AR / AP'
+					caption: ALDERSFORDELT AR/AP
+				measure 'Finance Analytics'
+					caption: Økonomisk analyse
+				measure for
+					caption: for
+				measure 'CONNECT YOUR DATA'
+					caption: FORBIND DINE DATA
+				measure '1. Download the Finance Connector for Power BI'
+					caption: 1. Download Finance Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurer Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: BRUG, REDIGER OG OPRET DINE EGNE RAPPORTER
+				measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Finans indeholder en række færdigbyggede rapporter, der hjælper dig med at få vist dine data med det samme. Du kan redigere disse rapporter eller oprette din egen rapport fra bunden.
+				measure 'HELP AND SUPPORT'
+					caption: HJÆLP OG SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Du kan få hjælp og support til din nye rapport i dokumentationen til analyseoversigten.
+				measure 'OTHER POWER BI REPORTS'
+					caption: ANDRE POWER BI-RAPPORTER
+				measure PURCHASE
+					caption: INDKØB
+				measure SALES
+					caption: SALG
+				measure 'INVENTORY '
+					caption: "LAGERBEHOLDNING "
+				measure MANUFACTURING
+					caption: PRODUKTION
+				measure JOBS
+					caption: JOB
+				measure 'for Business Central'
+					caption: til Business Central
+				measure 'Aged Accounts Receivable (AR) & Accounts Payable (AP)'
+					caption: Aldersfordelt tilgodehavender (AR) og kreditor (AP)
+				measure 'Aged Accounts Receivable & Accounts Payable'
+					caption: Aldersfordelt tilgodehavender og kreditor
+				measure 'Aged Accounts'
+					caption: Forældede konti
+				measure 'General Ledger (G/L) Entries'
+					caption: Finansposter (G/L)
+				measure 'General Ledger Entries'
+					caption: Finansposter
+				measure 'Return On Assets - ROA by Month'
+					caption: Afkastningsgrad – AG efter måned
+				measure 'Top 5 Customers by Balance'
+					caption: Top 5 over debitorer efter saldo
+				measure 'Top 5 Vendors by Balance'
+					caption: Top 5 over kreditorer efter saldo
+				measure 'Net Profit Margin by Month'
+					caption: Nettodækningsgrad efter måned
+				measure 'Asset Turnover Ratio by Month'
+					caption: Aktivers omsætningshastighed efter måneder
+				measure 'Last Refreshed'
+					caption: Sidst opdateret
+				measure 'Company Name'
+					caption: Virksomhedsnavn
+				measure 'Liquidity Line Chart'
+					caption: Linjediagram til likviditet
+				measure 'Net Profit by Month'
+					caption: Nettofortjeneste efter måned
+				measure 'Gross Profit by Month'
+					caption: Bruttofortjeneste efter måned
+				measure 'Operating Profit - EBIT and EBITDA by Month'
+					caption: Driftsoverskud - EBIT og EBITDA efter måneder
+				measure 'EBITDA '
+					caption: "EBITDA "
+				measure 'Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month'
+					caption: Omsætning, Tilgodehavender (gennemsnit), Antal dage og gennemsnitligt antal kreditdage (dage) pr. måned
+				measure 'Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding.'
+					caption: Omsætning, Nettofortjeneste, Nettodækningsgrad, Aktiver, Udestående salg i dage, Salg af lager i dage, Udestående gæld i dage.
+				measure 'Current Ratio, Current Assets, Current Liabilities.'
+					caption: Likviditetsgrad, Omsætningsaktiver, kortfristet gæld.
+				measure 'Quick Ratio, Current Assets, Inventory.'
+					caption: Likviditetsgrad på kort sigt, Omsætningsaktiver, Lager.
+				measure 'Cash Ratio, Liquid Assets, Current Liabilities.'
+					caption: Likviditetsgrad, Likvide beholdninger, Kortfristet gæld.
+				measure 'Net Profit, Revenue, Cost of Goods Sold.'
+					caption: Nettofortjeneste, Omsætning, Omkostning ved solgte varer.
+				measure 'Net Profit Margin, Net Profit, Revenue.'
+					caption: Nettodækningsgrad, nettofortjeneste, omsætning.
+				measure 'Gross Profit, Revenue, Cost of Goods Sold.'
+					caption: Bruttofortjeneste, Omsætning, Omkostning ved solgte varer.
+				measure 'Gross Profit Marging, Gross Profit, Revenue.'
+					caption: Bruttodækningsgrad, bruttofortjeneste, omsætning.
+				measure 'Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities.'
+					caption: Passiver, Kortfristet gæld, Lønforpligtelser, Gældsgrad, Forholdet mellem gæld/egenkapital, Aktiver, Langfristet gæld.
+				measure 'Gross Profit Margin, Gross Profit, Revenue.'
+					caption: Bruttodækningsgrad, bruttofortjeneste, omsætning.
+				measure 'Net Profit Margin by Fiscal Year and Month'
+					caption: Nettodækningsgrad efter regnskabsår og måned
+				measure 'Asset Turnover Ratio by Fiscal Year and Month'
+					caption: Aktivers omsætningshastighedsgrad efter regnskabsår og måned
+				measure 'Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name'
+					caption: Saldo til dato (neg) efter regnskabsår, måned og finanskontonr./navn
+			table COMPANY
+				caption: VIRKSOMHED
+				measure 'Company Label'
+					caption: Virksomhedens etiket
+			table 'Closing Entry Filter Table'
+				caption: Filtertabel for ultimopost
+				column CloseIncomeSourceCodeFilter
+					caption: CloseIncomeSourceCodeFilter
+			table 'Back Links'
+				caption: Tilbagelinks
+

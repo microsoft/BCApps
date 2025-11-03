@@ -1,0 +1,328 @@
+table Item
+	lineageTag: 913f87da-54a8-4aa9-a1af-494493f9dc27
+
+	/// This measure shows the total quantity of items that are scheduled to be received by the company.
+	/// 
+	/// Scheduled Receipt = FP Order Receipt (Qty.) + Rel. Order Receipt (Qty.) + Qty. on Purch. Order + Qty. in Transit + Trans. Order Receipt (Qty.) + Qty. on Assembly Order + Qty. on Sales Return Order
+	measure 'Scheduled Receipt' = [FP Order Receipt (Qty.)] + [Rel. Order Receipt (Qty.)] + [Qty. on Purch. Order] + [Qty. in Transit] + [Trans. Order Receipt (Qty.)] + [Qty. on Assembly Order] + [Qty. on Sales Return Order]
+		displayFolder: _Item Availability Measures
+		lineageTag: c3449f65-1ae1-44df-92cd-85f0262233b1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure shows the total quantity of items that are planned to be released through planned orders and purchase requisitions.
+	/// 
+	/// Planned Order Releases = Planned Order Release (Qty.) + Purch. Req. Release (Qty.)
+	measure 'Planned Order Releases' = [Planned Order Release (Qty.)] + [Purch. Req. Release (Qty.)]
+		displayFolder: _Item Availability Measures
+		lineageTag: 41a971c8-759a-4e80-9c20-f0f50ee881e4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure calculates the total quantity of an item that is needed to fulfil various orders and projects. It includes the quantity that is on sales orders, service orders, projects, production order component lines, transaction order shipments, planning issues, assembly components, and purchased returns.
+	/// 
+	/// Gross Requirement = Qty. on Sales Order + Qty. on Service Order + Qty. on Projects + Qty. on Prod. Order Comp. Lines + - Trans. Order Shipment (Qty.) + Planning Issues (Qty.) + Qty. on Asm. Component + Qty. on Purch. Return
+	measure 'Gross Requirement' = [Qty. on Sales Order] + [Qty. on Service Order] + [Qty. on Projects] + [Qty. on Prod. Order Comp. Lines] + [Trans. Order Shipment (Qty.)] + [Planning Issues (Qty.)] + [Qty. on Asm. Component] + [Qty. on Purch. Return]
+		displayFolder: _Item Availability Measures
+		lineageTag: d3408da1-07c0-4953-8728-5d30269e7ed5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure calculates the current inventory quantity, planned order receipts, scheduled receipts, and gross requirements based on the data up until the most recent date available.
+	/// 
+	/// Projected Available Balance = Inventory (Quantity) + Planned Order Receipt + Scheduled Receipt - Gross Requirement
+	measure 'Projected Available Balance' =
+			
+			CALCULATE(
+			[Inventory (Quantity)] + [Planned Order Receipt] + [Scheduled Receipt] - [Gross Requirement]
+			    ,FILTER ( ALL ( 'Date'[Date]), 'Date'[Date] <= MAX ( 'Date'[Date] ) )
+			)
+		displayFolder: _Item Availability Measures
+		lineageTag: ccb5da3a-ae8f-4770-9cfd-b00fb66f8c38
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure shows the total quantity of items that are planned to be received by the company through planned orders and purchase requisitions.
+	/// 
+	/// Planned Order Receipt = Planned Order Receipt (Qty.) + Purch. Req. Receipt (Qty.)
+	measure 'Planned Order Receipt' = [Planned Order Receipt (Qty.)] + [Purch. Req. Receipt (Qty.)]
+		displayFolder: _Item Availability Measures
+		lineageTag: 2f7af786-850b-480a-ae52-0e1630732f90
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Item No. & Description'
+		dataType: string
+		lineageTag: f923590e-20af-43be-ba76-1deb48889fbc
+		summarizeBy: none
+		sourceColumn: Item No. & Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item No.'
+		dataType: string
+		isKey
+		lineageTag: 719bf83e-fd7e-4772-b1e6-c1b3c53f3a80
+		summarizeBy: none
+		sourceColumn: Item No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Description'
+		dataType: string
+		lineageTag: 9c50f163-baaf-4a15-b5db-a0579efb1e12
+		summarizeBy: none
+		sourceColumn: Item Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Base Unit of Measure'
+		dataType: string
+		lineageTag: b6be051b-28a9-4370-b14e-ad28ce0035d6
+		summarizeBy: none
+		sourceColumn: Item Base Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Unit Cost (LCY)'
+		dataType: decimal
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: c834db7a-bff0-41fd-9529-2a9bb04ea7f6
+		summarizeBy: sum
+		sourceColumn: Item Unit Cost (LCY)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Item Inventory Posting Group'
+		dataType: string
+		lineageTag: 95afddbc-fd96-45ee-a13d-a20f8510c4b5
+		summarizeBy: none
+		sourceColumn: Item Inventory Posting Group
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Category Code'
+		dataType: string
+		isHidden
+		lineageTag: b578bc49-f077-4628-a4cf-69ade0284175
+		summarizeBy: none
+		sourceColumn: Item Category Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Category Description'
+		dataType: string
+		isHidden
+		lineageTag: d5823d3c-fded-4157-aa17-d98d8d019d7c
+		summarizeBy: none
+		sourceColumn: Item Category Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Routing No.'
+		dataType: string
+		lineageTag: abdb8cab-716c-413a-835d-766ebe19f586
+		summarizeBy: none
+		sourceColumn: Item Routing No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Production BOM No.'
+		dataType: string
+		lineageTag: 3bc3bdcf-876f-4d14-9da1-8052c2634de9
+		summarizeBy: none
+		sourceColumn: Item Production BOM No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Replenishment System'
+		dataType: string
+		lineageTag: abea4d5c-78cb-4f3a-8b4c-fd45a2f7441c
+		summarizeBy: none
+		sourceColumn: Item Replenishment System
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Single-Level Cap. Ovhd Cost'
+		dataType: double
+		lineageTag: 897aad19-5a03-411c-9b65-dd6f31549635
+		summarizeBy: sum
+		sourceColumn: Item Single-Level Cap. Ovhd Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Item Single-Level Capacity Cost'
+		dataType: double
+		lineageTag: 9b45b574-0e7e-4b06-afcf-74fcccbdf77b
+		summarizeBy: sum
+		sourceColumn: Item Single-Level Capacity Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Item Single-Level Material Cost'
+		dataType: double
+		lineageTag: c7ba7c51-18d8-441d-915e-4d96a3b490e2
+		summarizeBy: sum
+		sourceColumn: Item Single-Level Material Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Item Single-Level Mfg. Ovhd Cost'
+		dataType: double
+		lineageTag: ebeaec3f-5d3f-41c7-8740-6475ab3b865e
+		summarizeBy: sum
+		sourceColumn: Item Single-Level Mfg. Ovhd Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Item Single-Level Subcontrd. Cost'
+		dataType: double
+		lineageTag: 928e1001-9080-4c06-8ad1-ced2fb044519
+		summarizeBy: sum
+		sourceColumn: Item Single-Level Subcontrd. Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Item Single-Lvl Mat. Non-Invt. Cost'
+		dataType: double
+		lineageTag: 773ab1db-d857-4fb2-a84a-67908405fb8a
+		summarizeBy: sum
+		sourceColumn: Item Single-Lvl Mat. Non-Invt. Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Item Rolled-up Cap. Overhead Cost'
+		dataType: double
+		lineageTag: b41d3dc1-2a51-42e6-b9d4-728cc3462a92
+		summarizeBy: sum
+		sourceColumn: Item Rolled-up Cap. Overhead Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Item Rolled-up Capacity Cost'
+		dataType: double
+		lineageTag: b46b373c-ff46-4838-9ac9-29dc006ad031
+		summarizeBy: sum
+		sourceColumn: Item Rolled-up Capacity Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Item Rolled-up Mat. Non-Invt. Cost'
+		dataType: double
+		lineageTag: 7ab432c8-691c-450f-804b-1a1f8b262964
+		summarizeBy: sum
+		sourceColumn: Item Rolled-up Mat. Non-Invt. Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Item Rolled-up Material Cost'
+		dataType: double
+		lineageTag: e9bf54a3-7ce7-4ddf-ba5f-05e607268597
+		summarizeBy: sum
+		sourceColumn: Item Rolled-up Material Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Item Rolled-up Mfg. Ovhd Cost'
+		dataType: double
+		lineageTag: 2650f5aa-a315-4b3d-b9fb-a0f8cf5e7780
+		summarizeBy: sum
+		sourceColumn: Item Rolled-up Mfg. Ovhd Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Item Rolled-up Subcontracted Cost'
+		dataType: double
+		lineageTag: aa0d1443-66a3-41ba-8307-85adaeeec681
+		summarizeBy: sum
+		sourceColumn: Item Rolled-up Subcontracted Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Item Scrap %'
+		dataType: double
+		lineageTag: 7c729072-24d5-420f-a098-8bbc0288918a
+		summarizeBy: sum
+		sourceColumn: Item Scrap %
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition Item-239072cc-c802-4b3e-8de9-e5402e6d7b52 = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "items", Signature = "table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(
+				        TableData,
+				        {
+				            {"itemNo", "Item No."},
+				            {"unitCost", "Item Unit Cost (LCY)"},
+				            {"itemCategoryCode", "Item Category Code"},
+				            {"itemCategoryDescription", "Item Category Description"},
+				            {"baseUnitofMeasure", "Item Base Unit of Measure"},
+				            {"itemDescription", "Item Description"},
+				            {"inventoryPostingGroup", "Item Inventory Posting Group"},
+				            {"routingNo", "Item Routing No."},
+				            {"productionBomNo", "Item Production BOM No."},
+				            {"replenishmentSystem", "Item Replenishment System"},
+				            {"singleLevelCapOvhdCost", "Item Single-Level Cap. Ovhd Cost"},
+				            {"singleLevelCapacityCost", "Item Single-Level Capacity Cost"},
+				            {"singleLevelMaterialCost", "Item Single-Level Material Cost"},
+				            {"singleLevelMfgOvhdCost", "Item Single-Level Mfg. Ovhd Cost"},
+				            {"singleLevelSubcontrdCost", "Item Single-Level Subcontrd. Cost"},
+				            {"singleLvlMatNonInvtCost", "Item Single-Lvl Mat. Non-Invt. Cost"},
+				            {"rolledUpCapacityCost", "Item Rolled-up Capacity Cost"},
+				            {"rolledUpCapOverheadCost", "Item Rolled-up Cap. Overhead Cost"},
+				            {"rolledUpMatNonInvtCost", "Item Rolled-up Mat. Non-Invt. Cost"},
+				            {"rolledUpMaterialCost", "Item Rolled-up Material Cost"},
+				            {"rolledUpMfgOvhdCost", "Item Rolled-up Mfg. Ovhd Cost"},
+				            {"rolledUpSubcontractedCost", "Item Rolled-up Subcontracted Cost"},
+				            {"scrapPrc", "Item Scrap %"}
+				        }
+				    ),
+				    #"Added Custom" = Table.AddColumn(
+				        #"Renamed Columns", "Item No. & Description", each [#"Item No."] & " " & [Item Description], type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Custom", {"ETag"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Removed Columns", {{"Item Unit Cost (LCY)", Currency.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

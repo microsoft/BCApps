@@ -1,0 +1,724 @@
+table 'Value Entries'
+	lineageTag: cb2fa5ad-1ff6-4280-af99-b2c5b09058f6
+
+	measure 'As of Beg. Date Label' =
+			
+			VAR BeginningDate =
+			    FORMAT (
+			        FIRSTDATE ( 'Date'[Date] ),
+			        BLANK(),
+			        USERCULTURE ()
+			    )
+			RETURN
+			    "Beginning value as of " & BeginningDate
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Date Labels
+		lineageTag: 2e65c71b-e02a-4a9e-ba8b-000f88e4dda6
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	measure 'As of End Date Label' =
+			
+			VAR StartingDate =
+			    FORMAT (
+			        MIN ( 'Date'[Date] ),
+			        BLANK(),
+			        USERCULTURE ()
+			    )
+			VAR EndingDate =
+			    FORMAT (
+			        MAX ( 'Date'[Date] ),
+			        BLANK(),
+			        USERCULTURE ()
+			    )
+			RETURN
+			    [Inventory value as of  Label] &": " & StartingDate & " .. " & EndingDate
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Date Labels
+		lineageTag: 5560f5bd-7876-4ef8-bec4-0dc21f4359f4
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	/// This measure calculates the cumulative Cost Posted to G/L for dates before the earliest date in the current context, allowing visibility into costs posted up to the start of the selected period.
+	measure 'Beginning Balance Cost Posted to G/L' =
+			CALCULATE (
+			    [Cost Posted to G/L],
+				FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] < MIN ( 'Date'[Date] ) )
+			)
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Beginning Balance
+		lineageTag: 678897b1-b135-48d8-b0de-ba1e3df1ea3b
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// This measure calculates the cumulative Cost Posted to G/L (Expected) for dates before the earliest date in the current context, allowing visibility into costs posted up to the start of the selected period.
+	measure 'Beginning Balance Expected Cost Posted to G/L' =
+			CALCULATE (
+			    [Expected Cost Posted to G/L],
+				FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] < MIN ( 'Date'[Date] ) )
+			)
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Beginning Balance
+		lineageTag: b0997b9b-0dbe-4317-956f-f16354e345ab
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// This measure calculates the cumulative Invoiced Qty for dates before the earliest date in the current context, allowing visibility into quantities posted up to the start of the selected period.
+	measure 'Beginning Balance Qty' =
+			CALCULATE (
+			    [Invoiced Quantity],
+				FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] < MIN ( 'Date'[Date] ) )
+			)
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Beginning Balance
+		lineageTag: 4e4e482e-00f5-469d-851a-b274703204fb
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure calculates the cumulative Cost Amount (Actual) for dates before the earliest date in the current context, providing the total value up to the start of the selected period.
+	measure 'Beginning Balance Cost Amount (Actual)' =
+			CALCULATE (
+			    [Cost Amount (Actual)],
+				FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] < MIN ( 'Date'[Date] ) )
+			)
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Beginning Balance
+		lineageTag: 06a7af57-7f92-4c5f-8eb0-7a071be4823c
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// This measure calculates the cumulative Cost Amount (Expected) for dates before the earliest date in the current context, providing the total expected value up to the start of the selected period.
+	measure 'Beginning Balance Cost Amount (Expected)' =
+			CALCULATE (
+			    [Cost Amount (Expected)],
+				FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] < MIN ( 'Date'[Date] ) )
+			)
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Beginning Balance
+		lineageTag: ca4133c3-1e2c-4dfe-8687-3554f834a40a
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// Beginning Balance Cost Amount (Actual) + Beginning Balance Cost Amount (Expected)
+	measure 'Beginning Balance Cost Amount (Incl. Exp Cost)' = ```
+			[Beginning Balance Cost Amount (Actual)] + [Beginning Balance Cost Amount (Expected)]  
+			```
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Beginning Balance
+		lineageTag: 5ee70734-3c7e-4538-ab22-86be20c6af87
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// This measure calculates the total sum of the Cost Amt. (Actual) column in the Value Entries table.
+	measure 'Cost Amount (Actual)' = SUM('Value Entries'[costAmountActual])
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Costs
+		lineageTag: 07267191-c77b-4362-b4ba-b0d2a88ef3d7
+
+	/// This measure calculates the total sum of the Cost Amt. (Expected) column in the Value Entries table.
+	measure 'Cost Amount (Expected)' = SUM('Value Entries'[costAmountExpected])
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Costs
+		lineageTag: 283c0363-f568-49ac-8be4-b4137efa0661
+
+		changedProperty = IsHidden
+
+	/// This measure calculates the total sum of the Cost Posted to G/L column in the Value Entries table.
+	measure 'Cost Posted to G/L' = SUM('Value Entries'[costPostedToGL])
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Costs
+		lineageTag: 7c144933-c690-4019-bb13-bb7f4ca119f5
+
+		changedProperty = IsHidden
+
+	/// This measure calculates the total sum of the Expected Cost Posted to G/L column in the Value Entries table.
+	measure 'Expected Cost Posted to G/L' = SUM('Value Entries'[expectedCostPostedToGL])
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Costs
+		lineageTag: 8f6094eb-559a-46c8-8a9a-1a7eea4c6aa9
+
+		changedProperty = IsHidden
+
+	/// This measure calculates the total sum of the Invoiced Quantity column from the Value Entries table, but only for rows where the Item Ledger Entry Type is one of the following: Sale, Negative Adjustment, Consumption, or Assembly Consumption. This measure captures quantities associated with these specific entry types that represent decreases in inventory.
+	measure 'Decrease Qty.' =
+			CALCULATE(SUM('Value Entries'[InvoicedQuantity]),
+			'Value Entries'[Item Ledger Entry Type]="Sale" ||
+			'Value Entries'[Item Ledger Entry Type]="Negative Adjmt." ||
+			'Value Entries'[Item Ledger Entry Type]="Consumption" ||
+			'Value Entries'[Item Ledger Entry Type]="Assembly Consumption"
+			)
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Decreases
+		lineageTag: 3c399e7d-ea3e-4446-8b80-c3d97524ef58
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure calculates the total sum of the Cost Amt. (Actual) column from the Value Entries table, but only for rows where the Item Ledger Entry Type is one of the following: Sale, Negative Adjustment, Consumption, or Assembly Consumption. This measure reflects the cost associated with these specific entry types that represent decreases in inventory.
+	measure 'Decrease Value' =
+			CALCULATE(SUM('Value Entries'[costAmountActual]),
+			'Value Entries'[Item Ledger Entry Type]="Sale" ||
+			'Value Entries'[Item Ledger Entry Type]="Negative Adjmt." ||
+			'Value Entries'[Item Ledger Entry Type]="Consumption" ||
+			'Value Entries'[Item Ledger Entry Type]="Assembly Consumption"
+			)
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Decreases
+		lineageTag: 40a8bd33-527b-480f-9f26-25bf1aeb1e1c
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// This measure calculates the total sum of the Cost Amt. (Expected) column from the Value Entries table, but only for rows where the Item Ledger Entry Type is one of the following: Sale, Negative Adjustment, Consumption, or Assembly Consumption. This measure reflects the expected cost associated with these specific entry types that represent decreases in inventory.
+	measure 'Decrease Value (Expected)' =
+			CALCULATE(SUM('Value Entries'[costAmountExpected]),
+			'Value Entries'[Item Ledger Entry Type]="Sale" ||
+			'Value Entries'[Item Ledger Entry Type]="Negative Adjmt." ||
+			'Value Entries'[Item Ledger Entry Type]="Consumption" ||
+			'Value Entries'[Item Ledger Entry Type]="Assembly Consumption"
+			)
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Decreases
+		lineageTag: 206a1feb-1237-4306-bbd5-144aafdfe810
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// Decrease Value + Decrease Value (Expected)
+	measure 'Decrease Value Expected Cost Included' = [Decrease Value] + [Decrease Value (Expected)]
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Decreases
+		lineageTag: da1c90fc-b937-49af-85e4-0595782e46f5
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// Ending Balance Cost Amount (Actual) + Ending Balance Cost Amount (Expected)
+	measure 'Ending Balance Cost Amount (Incl. Exp Cost)' = [Ending Balance Cost Amount (Actual)] + [Ending Balance Cost Amount (Expected)]
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Ending Balance
+		lineageTag: 4320f265-c69e-4c45-b2b9-f81800026dbc
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// Beginning Balance Cost Posted to G/L + Cost Posted to G/L
+	measure 'Ending Balance Cost Posted to G/L' = [Beginning Balance Cost Posted to G/L] + [Cost Posted to G/L]
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Ending Balance
+		lineageTag: d5584326-4d62-45d8-a349-18811247b117
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// Beginning Balance Qty. + Invoiced Quantity.
+	measure 'Ending Balance Qty.' = [Beginning Balance Qty] + [Invoiced Quantity]
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Ending Balance
+		lineageTag: d959788d-b750-4840-bfbe-a23c69971846
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Beginning Balance Cost Amount (Actual) + Cost Amount (Actual)
+	measure 'Ending Balance Cost Amount (Actual)' = [Beginning Balance Cost Amount (Actual)] + [Cost Amount (Actual)]
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Ending Balance
+		lineageTag: a98d2d60-22a1-4024-8d23-e5433ace08fd
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// Beginning Balance Cost Amount (Expected) + Cost Amount (Expected)
+	measure 'Ending Balance Cost Amount (Expected)' = ([Beginning Balance Cost Amount (Expected)] + [Cost Amount (Expected)])
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Ending Balance
+		lineageTag: ecbf1f2d-3a05-4ffc-8990-beeb925751a7
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// Beginning Balance Expected Cost Posted to G/L + Expected Cost Posted to G/L
+	measure 'Ending Balance Expected Cost Posted to G/L' = [Beginning Balance Expected Cost Posted to G/L] + [Expected Cost Posted to G/L]
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Ending Balance
+		lineageTag: 355cfc6e-d526-4b5f-a08a-88e59db8d9ff
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// Increases Value + Increases Value (Expected)
+	measure 'Increase Value Expected Cost Included' = [Increases Value] + [Increases Value (Expected)]
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Increases
+		lineageTag: 8bb20b95-7311-4ccd-b4b5-2fc9d4f8b82a
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// This measure calculates the total sum of the Invoiced Quantity column from the Value Entries table, but only for rows where the Item Ledger Entry Type is one of the following: Purchase, Positive Adjustment, Output, or Assembly Output. This measure reflects the quantity associated with these entry types that represent increases in inventory.
+	measure 'Increases Qty.' =
+			CALCULATE(SUM('Value Entries'[InvoicedQuantity]),
+			'Value Entries'[Item Ledger Entry Type]="Purchase" ||
+			'Value Entries'[Item Ledger Entry Type]="Positive Adjmt." ||
+			'Value Entries'[Item Ledger Entry Type]="Output" ||
+			'Value Entries'[Item Ledger Entry Type]="Assembly Output"
+			)
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Increases
+		lineageTag: a9e126db-870b-41b8-b76d-45283066d0a4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure calculates the total sum of the Cost Amt. (Actual) column from the Value Entries table, but only for rows where the Item Ledger Entry Type is one of the following: Purchase, Positive Adjustment, Output, or Assembly Output. This measure reflects the value associated with these entry types that represent increases in inventory value.
+	measure 'Increases Value' = ```
+			
+			CALCULATE (
+			    SUM ( 'Value Entries'[costAmountActual] ),
+			    'Value Entries'[Item Ledger Entry Type] = "Purchase"
+			        || 'Value Entries'[Item Ledger Entry Type] = "Positive Adjmt."
+			        || 'Value Entries'[Item Ledger Entry Type] = "Output"
+			        || 'Value Entries'[Item Ledger Entry Type] = "Assembly Output"
+			)
+			
+			```
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Increases
+		lineageTag: d065fe5d-32e1-4900-8b2c-5b1b13521f8d
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// This measure calculates the total sum of the Cost Amt. (Expected) column from the Value Entries table, but only for rows where the Item Ledger Entry Type is one of the following: Purchase, Positive Adjustment, Output, or Assembly Output. This measure reflects the expected value associated with these entry types that represent increases in inventory value.
+	measure 'Increases Value (Expected)' =
+			CALCULATE(SUM('Value Entries'[costAmountExpected]),
+			'Value Entries'[Item Ledger Entry Type]="Purchase" ||
+			'Value Entries'[Item Ledger Entry Type]="Positive Adjmt." ||
+			'Value Entries'[Item Ledger Entry Type]="Output" ||
+			'Value Entries'[Item Ledger Entry Type]="Assembly Output"
+			)
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Increases
+		lineageTag: c0d157bd-6791-4db1-8779-591652186f0e
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// This measure calculates the total sum of the Invoiced Quantity column from the Value Entries table.
+	measure 'Invoiced Quantity' = SUM('Value Entries'[InvoicedQuantity])
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Quantity
+		lineageTag: e1171b61-7e24-4e3f-934e-be33a9af3dae
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Ending Balance Cost Amount (Incl. Exp Cost) - Beginning Balance Cost Amount (Incl. Exp Cost)
+	measure 'Cost Amount (Incl. Exp Cost)' = [Ending Balance Cost Amount (Incl. Exp Cost)] - [Beginning Balance Cost Amount (Incl. Exp Cost)]
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Costs
+		lineageTag: f280a158-bced-4feb-89c0-1ccc6155c146
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// Ending Balance Cost Posted to G/L - Ending Balance Cost Amount (Actual)
+	measure 'Variance Cost Posted to G/L' = [Ending Balance Cost Posted to G/L] - [Ending Balance Cost Amount (Actual)]
+		formatString: #,0.00
+		displayFolder: _Inventory Value Entry Measures\Costs
+		lineageTag: 2c70d15d-b72b-4d88-b80d-7b76a3838676
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Base Link' =
+			
+			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
+			VAR TenantID = VALUES('Date Table Setup'[tenantID])
+			VAR Environment = VALUES(ENVIRONMENT[ENVIRONMENT])
+			VAR Company = "?company=" & VALUES(COMPANY[COMPANY])
+			RETURN BusinessCentral & TenantID & "/" & Environment & "/" & Company
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Back Links
+		lineageTag: 73bbcd34-48ed-453b-9d24-9e5202028e23
+
+		changedProperty = IsHidden
+
+	measure 'Date Ranged' = ```
+			
+			VAR _FilterTable = VALUES('Date'[Date])
+			VAR IndexedDates = 
+			    ADDCOLUMNS(
+			        _FilterTable,
+			        "@Index", RANKX(
+			            SUMMARIZECOLUMNS(
+			                'Date'[Date], _FilterTable
+			            ),
+			            'Date'[Date],
+			            ,
+			            ASC,
+			            DENSE
+			        )
+			    )
+			VAR PreviousIndexedDate = 
+				ADDCOLUMNS(
+					IndexedDates,
+					"@Previous Date", 
+						VAR PrevIndex = [@Index] - 1
+						RETURN SELECTCOLUMNS(
+							FILTER(IndexedDates, [@Index] = PrevIndex),
+							[Date])
+				)
+			
+			VAR CalculateBreakPoint = 
+				ADDCOLUMNS(
+					PreviousIndexedDate,
+					"@Break Point", 
+					IF( NOT DATEDIFF([@Previous Date],'Date'[Date],DAY) = 1, TRUE(), FALSE() )
+				)
+			VAR BreakPointTable = FILTER(CalculateBreakPoint, [@Break Point] = TRUE())
+			
+			VAR MaxDate = CALCULATE(MAX('Date'[Date]),_FilterTable)
+			
+			var NextIndex = 
+				ADDCOLUMNS(
+					BreakPointTable,
+					"@NextIndex", 
+					SELECTCOLUMNS(
+						OFFSET( +1, BreakPointTable ),
+						[@Index]
+					) - 1
+				)
+			
+			VAR NextDate = 
+				ADDCOLUMNS(
+					NextIndex,
+					"@NextDate", 
+						VAR PrevIndex = [@Index] - 1
+						RETURN SELECTCOLUMNS(
+							FILTER(IndexedDates, [@Index] = [@NextIndex]),
+							[Date])
+				)
+			
+			VAR Ranged = 
+			ADDCOLUMNS(
+				NextDate,
+				"@Range",
+				IF( ISBLANK([@NextDate]), 
+				FORMAT ( 'Date'[Date], "yyyy-mm-dd" ) & ".." & FORMAT ( MaxDate ,"yyyy-mm-dd"),
+				FORMAT ( 'Date'[Date], "yyyy-mm-dd" ) & ".." & FORMAT ( [@NextDate] ,"yyyy-mm-dd")
+				)
+			)
+			
+			Return CONCATENATEX(Ranged, [@Range], "|")
+			```
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Back Links
+		lineageTag: 31307c3c-bdf6-4b6f-a4d3-fd530739fa32
+
+		changedProperty = IsHidden
+
+	measure 'Value Entry Back Link' = ```
+			
+			VAR PostingDateFilter = " AND 'Value Entry'.'Posting Date' IS '" & [Date Ranged] & "'"
+			RETURN
+			    IF (
+			        NOT ISFILTERED ( 'Date' ),
+			        BLANK (),
+			        [Base Link] & "&page=5802&filter='Value Entry'.'Entry No.' IS '" & [Value Entry Ranged] & "'" & PostingDateFilter
+			    )
+			
+			```
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Back Links
+		lineageTag: 67a7fa38-a978-4ffd-affb-9386901f2585
+
+		changedProperty = IsHidden
+
+	measure 'Value Entry Ranged' = ```
+			
+			VAR _FilterTable =
+			    VALUES ( 'Value Entries'[Entry No.] )
+			VAR IndexedEntries =
+			    ADDCOLUMNS (
+			        _FilterTable,
+			        "@Index",
+			            RANKX (
+			                VALUES ( 'Value Entries'[Entry No.] ),
+			                'Value Entries'[Entry No.],
+			                ,
+			                ASC,
+			                DENSE
+			            )
+			    )
+			VAR PreviousIndexedEntry =
+			    ADDCOLUMNS (
+			        IndexedEntries,
+			        "@Previous Entry",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN
+			                SELECTCOLUMNS ( FILTER ( IndexedEntries, [@Index] = PrevIndex ), [Entry No.] )
+			    )
+			VAR CalculateBreakPoint =
+			    ADDCOLUMNS (
+			        PreviousIndexedEntry,
+			        "@Break Point",
+			            IF ( 'Value Entries'[Entry No.] - [@Previous Entry] <> 1, TRUE (), FALSE () )
+			    )
+			VAR BreakPointTable =
+			    FILTER ( CalculateBreakPoint, [@Break Point] = TRUE () )
+			VAR MaxEntry =
+			    CALCULATE ( MAX ( 'Value Entries'[Entry No.] ), _FilterTable )
+			VAR NextIndex =
+			    ADDCOLUMNS (
+			        BreakPointTable,
+			        "@NextIndex", SELECTCOLUMNS ( OFFSET ( +1, BreakPointTable ), [@Index] ) - 1
+			    )
+			VAR NextEntry =
+			    ADDCOLUMNS (
+			        NextIndex,
+			        "@NextEntry",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN
+			                SELECTCOLUMNS (
+			                    FILTER ( IndexedEntries, [@Index] = [@NextIndex] ),
+			                    [Entry No.]
+			                )
+			    )
+			VAR Ranged =
+			    ADDCOLUMNS (
+			        NextEntry,
+			        "@Range",
+			            IF (
+			                ISBLANK ( [@NextEntry] ),
+			                'Value Entries'[Entry No.] & ".." & MaxEntry,
+			                'Value Entries'[Entry No.] & ".." & [@NextEntry]
+			            )
+			    )
+			RETURN
+			    CONCATENATEX ( Ranged, [@Range], "|" )
+			
+			```
+		isHidden
+		displayFolder: _Inventory Value Entry Measures\Back Links
+		lineageTag: 90426cdb-8373-4e60-bcbe-f07b49cf0591
+
+		changedProperty = IsHidden
+
+	column 'Entry No.'
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: 5043c6f8-a275-4b24-8c08-90162c69b86b
+		summarizeBy: none
+		sourceColumn: Entry No.
+
+		annotation SummarizationSetBy = User
+
+	column 'Valuation Date'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 72894e89-88e0-42e2-92e5-1e02e330a0be
+		summarizeBy: none
+		sourceColumn: Valuation Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: c9a85c0b-15fc-4c6a-bea4-9708d971fe2b
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column costAmountActual
+		dataType: double
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 20942383-1e03-4acc-a6c1-51e01ae2734c
+		summarizeBy: sum
+		sourceColumn: costAmountActual
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column costPostedToGL
+		dataType: double
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 0099daa3-f936-4b41-b20a-b47627d2aeba
+		summarizeBy: sum
+		sourceColumn: costPostedToGL
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column costAmountExpected
+		dataType: double
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 31ee6e6f-d4bd-40ae-a666-5fd3f8c917e4
+		summarizeBy: sum
+		sourceColumn: costAmountExpected
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column invoicedQuantity
+		dataType: double
+		isHidden
+		lineageTag: 1d68c625-b7e4-4a8c-86e8-c5f2249c5dc9
+		summarizeBy: sum
+		sourceColumn: invoicedQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column expectedCostPostedToGL
+		dataType: double
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: f682350f-4444-40eb-9e82-83921c856c43
+		summarizeBy: sum
+		sourceColumn: expectedCostPostedToGL
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: 2b7dca40-44d7-4057-919f-98baec31be6b
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Ledger Entry Type'
+		dataType: string
+		lineageTag: 1e808af0-77dd-445d-a6ba-e17217be8eac
+		summarizeBy: none
+		sourceColumn: Item Ledger Entry Type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column postingDate
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: b5540b44-4bda-4859-93c2-fb7b677e8586
+		summarizeBy: none
+		sourceColumn: postingDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Document Type'
+		dataType: string
+		lineageTag: c2a60907-a9cc-4c05-b04c-4eec12adbcc1
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Type
+		dataType: string
+		isHidden
+		lineageTag: a3cea16a-7414-4ab6-bcc1-a1c00854ddda
+		summarizeBy: none
+		sourceColumn: Type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e90f7e0e-4b49-4f74-9642-bb80a8f35f29
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ETag
+		dataType: string
+		isHidden
+		lineageTag: b3734b01-2910-4846-8824-c0b8689d20e7
+		summarizeBy: none
+		sourceColumn: ETag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Value Entries-6e59183f-8b6e-4fd1-84f6-82e70d96c587' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "itemValueEntries", Signature = "table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(
+				        TableData,
+				        {
+				            {"valuationDate", "Valuation Date"},
+				            {"itemLedgerEntryType", "Item Ledger Entry Type"},
+				            {"entryNo", "Entry No."},
+				            {"documentType", "Document Type"},
+				            {"type", "Type"}
+				        }
+				    )
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

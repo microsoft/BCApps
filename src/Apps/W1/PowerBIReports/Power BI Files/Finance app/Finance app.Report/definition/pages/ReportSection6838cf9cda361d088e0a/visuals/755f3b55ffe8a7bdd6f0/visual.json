@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "755f3b55ffe8a7bdd6f0",
+  "position": {
+    "x": 859.554873369148,
+    "y": 61.887950882578657,
+    "z": 2000,
+    "height": 230,
+    "width": 394.90406753645431,
+    "tabOrder": 1000
+  },
+  "visualGroup": {
+    "displayName": "Cash Ratio Group",
+    "groupMode": "ScaleMode",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Cash Ratio, Liquid Assets, Current Liabilities.'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

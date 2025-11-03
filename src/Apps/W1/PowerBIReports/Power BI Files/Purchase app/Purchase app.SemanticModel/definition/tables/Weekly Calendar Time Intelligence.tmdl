@@ -1,0 +1,3468 @@
+table 'Weekly Calendar Time Intelligence'
+	lineageTag: 2622aeff-99bb-4997-a6ad-1f8d09869ec5
+
+	measure 'Purchase Amount YTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayAvailable = MAX ( 'Date'[FW DayOfYearNumber] )
+			    VAR LastFiscalYearAvailable = MAX ( 'Date'[FW YearNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase (LCY)],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW DayOfYearNumber] <= LastDayAvailable,
+			            'Date'[FW YearNumber] = LastFiscalYearAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date total
+		lineageTag: 35e5bef9-fedc-4710-959f-5f2a0628608c
+
+	measure 'Purchase Amount QTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayAvailable =  MAX ( 'Date'[FW DayOfQuarterNumber] )
+			    VAR LastFiscalYearQuarterAvailable = MAX ( 'Date'[FW YearQuarterNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase (LCY)],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW DayOfQuarterNumber] <= LastDayAvailable,
+			            'Date'[FW YearQuarterNumber] = LastFiscalYearQuarterAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date total
+		lineageTag: 9bfc2331-17dc-4d6b-9699-aa43c8485aed
+
+	measure 'Purchase Amount MTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayAvailable =  MAX ( 'Date'[FW DayOfMonthNumber] )
+			    VAR LastFiscalYearMonthAvailable = MAX ( 'Date'[FW YearMonthNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase (LCY)],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW DayOfMonthNumber] <= LastDayAvailable,
+			            'Date'[FW YearMonthNumber] = LastFiscalYearMonthAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date total
+		lineageTag: b58846fe-e97d-411e-ad99-aaf567d9cb7c
+
+	measure 'Purchase Amount WTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayOfWeekAvailable =  MAX ( 'Date'[WeekDayNumber] )
+			    VAR LastFiscalYearWeekAvailable = MAX ( 'Date'[FW YearWeekNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase (LCY)],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[WeekDayNumber] <= LastDayOfWeekAvailable,
+			            'Date'[FW YearWeekNumber] = LastFiscalYearWeekAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date total
+		lineageTag: 169797d0-6c4b-45aa-9d88-5270cdfc7589
+
+	measure 'Purchase Amount PY (Weekly)' =
+			
+			IF (
+			    [ShowValueForDates],
+			    SUMX (
+			        VALUES ( 'Date'[FW YearNumber] ),
+			        VAR CurrentFiscalYearNumber = 'Date'[FW YearNumber]
+			        VAR DaysSelected =
+			            CALCULATETABLE (
+			                VALUES ( 'Date'[FW DayOfYearNumber] ),
+			                REMOVEFILTERS (
+			                    'Date'[Day Type],
+			                    'Date'[Week Day],
+			                    'Date'[WeekDayNumber]
+			                ),
+			                'Date'[DateWithPurchases] = TRUE
+			            )
+			        RETURN
+			            CALCULATE (
+			                [Purchase (LCY)],
+			                'Date'[FW YearNumber] = CurrentFiscalYearNumber - 1,
+			                DaysSelected,
+			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] )
+			            )
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: a9f13252-7838-4cd9-a990-31111634ea1e
+
+	measure 'Purchase Amount YOY % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount YOY (Weekly)],
+			    [Purchase Amount PY (Weekly)]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: fc67c855-6b59-4925-931c-cdbef6bcc249
+
+	measure 'Purchase Amount YOY (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase (LCY)]
+			VAR ValuePreviousPeriod = [Purchase Amount PY (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 03e75369-e0fc-4a1b-b20c-9852dab62611
+
+	measure 'Purchase Amount PQ (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    SUMX ( 
+			        VALUES ( 'Date'[FW YearQuarterNumber] ),
+			        VAR CurrentFiscalYearQuarterNumber = 'Date'[FW YearQuarterNumber]
+			        VAR DaysSelected = 
+			            CALCULATETABLE (
+			                VALUES ( 'Date'[FW DayOfQuarterNumber] ),
+			                REMOVEFILTERS (
+			                    'Date'[Day Type],
+			                    'Date'[Week Day],
+			                    'Date'[WeekDayNumber]
+			                ),
+			                'Date'[DateWithPurchases] = TRUE
+			            )
+			        RETURN 
+			            CALCULATE (
+			                [Purchase (LCY)],
+			                'Date'[FW YearQuarterNumber] = CurrentFiscalYearQuarterNumber - 1,
+			                DaysSelected,
+			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] )
+			            )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 6f8d87f7-1ca3-406f-8a9c-b8c807531421
+
+	measure 'Purchase Amount QOQ (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase (LCY)]
+			VAR ValuePreviousPeriod = [Purchase Amount PQ (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: d99b8a3e-90cc-4b04-aadd-8d03f6a7a019
+
+	measure 'Purchase Amount QOQ % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount QOQ (Weekly)],
+			    [Purchase Amount PQ (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 30d03f12-45c1-4066-b783-cab9266fdc2b
+
+	measure 'Purchase Amount PW (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    SUMX ( 
+			        VALUES ( 'Date'[FW YearWeekNumber] ),
+			        VAR CurrentFiscalYearWeekNumber = 'Date'[FW YearWeekNumber] 
+			        VAR DaysSelected = 
+			            CALCULATETABLE (
+			                VALUES ( 'Date'[WeekDayNumber] ),
+			                REMOVEFILTERS (
+			                    'Date'[Day Type],
+			                    'Date'[Week Day],
+			                    'Date'[WeekDayNumber]
+			                ),
+			                'Date'[DateWithPurchases] = TRUE
+			            )
+			        RETURN 
+			            CALCULATE (
+			                [Purchase (LCY)],
+			                'Date'[FW YearWeekNumber] = CurrentFiscalYearWeekNumber - 1,
+			                KEEPFILTERS ( DaysSelected ),
+			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] )
+			            )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 59c41d02-ff6f-40c3-8c7d-83b41856d347
+
+	measure 'Purchase Amount WOW (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase (LCY)]
+			VAR ValuePreviousPeriod = [Purchase Amount PW (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 945859ee-674d-403b-966c-4003fc49876f
+
+	measure 'Purchase Amount WOW % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount WOW (Weekly)],
+			    [Purchase Amount PW (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 55ed0d8e-74f9-4f73-85ae-ac4129ae1b8b
+
+	measure 'Purchase Amount PP (Weekly)' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[FW Week Year] ), [Purchase Amount PW (Weekly)],
+			    -- The month level should not be managed in a 445 calendar
+			    ISINSCOPE ( 'Date'[FW Quarter Year] ), [Purchase Amount PQ (Weekly)],
+			    ISINSCOPE ( 'Date'[FW Year] ), [Purchase Amount PY (Weekly)]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 36befecf-a0fe-4b30-a66c-9a7235751b5c
+
+	measure 'Purchase Amount POP (Weekly)' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[FW Week Year] ), [Purchase Amount WOW (Weekly)],
+			    -- The month level should not be managed in a 445 calendar
+			    ISINSCOPE ( 'Date'[FW Quarter Year] ), [Purchase Amount QOQ (Weekly)],
+			    ISINSCOPE ( 'Date'[FW Year] ), [Purchase Amount YOY (Weekly)]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 7b65a8fa-f6b1-45c0-b6c0-6cd1cbf7eae9
+
+	measure 'Purchase Amount POP % (Weekly)' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[FW Week Year] ), [Purchase Amount WOW % (Weekly)],
+			    -- The month level should not be managed in a 445 calendar
+			    ISINSCOPE ( 'Date'[FW Quarter Year] ), [Purchase Amount QOQ % (Weekly)],
+			    ISINSCOPE ( 'Date'[FW Year] ), [Purchase Amount YOY % (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: ec7b1165-d702-415c-b91d-4fffadb37698
+
+	measure 'Purchase Amount PYTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR PreviousFiscalYear = MAX ( 'Date'[FW YearNumber] ) - 1
+			    VAR LastDayOfFiscalYearAvailable = 
+			        CALCULATE ( 
+			            MAX ( 'Date'[FW DayOfYearNumber] ),
+			            REMOVEFILTERS (                -- Remove filters from
+			                'Date'[Day Type],       -- filter-safe columns
+			                'Date'[Week Day],       -- to get the last day with data
+			                'Date'[WeekDayNumber] -- selected in the report
+			            ),
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase (LCY)],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearNumber] = PreviousFiscalYear,
+			            'Date'[FW DayOfYearNumber] <= LastDayOfFiscalYearAvailable,
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: d88b9f2e-4364-4fe2-9780-18bc12cac95a
+
+	measure 'Purchase Amount PQTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR PreviousFiscalYearQuarter = MAX ( 'Date'[FW YearQuarterNumber] ) - 1
+			    VAR LastDayOfFiscalYearQuarterAvailable = 
+			        CALCULATE ( 
+			            MAX ( 'Date'[FW DayOfQuarterNumber] ),
+			            REMOVEFILTERS (                -- Remove filters from
+			                'Date'[Day Type],       -- filter-safe columns
+			                'Date'[Week Day],       -- to get the last day with data
+			                'Date'[WeekDayNumber] -- selected in the report
+			            ),
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase (LCY)],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearQuarterNumber] = PreviousFiscalYearQuarter,
+			            'Date'[FW DayOfQuarterNumber] <= LastDayOfFiscalYearQuarterAvailable,
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: 3d38ddd5-66c1-45a0-8756-c3564fc83296
+
+	measure 'Purchase Amount YOYTD (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Amount YTD (Weekly)]
+			VAR ValuePreviousPeriod = [Purchase Amount PYTD (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: e3e283a0-0d86-45a7-ab8c-54cc8b1b1b23
+
+	measure 'Purchase Amount YOYTD % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount YOYTD (Weekly)],
+			    [Purchase Amount PYTD (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: 925ac25b-2b46-4294-bbee-285db2ee8258
+
+	measure 'Purchase Amount QOQTD (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Amount QTD (Weekly)]
+			VAR ValuePreviousPeriod = [Purchase Amount PQTD (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: 736c2d33-05d6-4ea9-9b3d-de875d15470c
+
+	measure 'Purchase Amount QOQTD % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount QOQTD (Weekly)],
+			    [Purchase Amount PQTD (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: e1b4b96a-338f-4fb0-9aa3-a54bb1ef80a6
+
+	measure 'Purchase Amount PWTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR PreviousFiscalYearWeek = MAX ( 'Date'[FW YearWeekNumber] ) - 1
+			    VAR LastDayOfWeekAvailable = 
+			        CALCULATE ( 
+			            MAX ( 'Date'[WeekDayNumber] ),
+			            REMOVEFILTERS (                -- Remove filters from
+			                'Date'[Day Type],       -- filter-safe columns
+			                'Date'[Week Day],       -- to get the last day with data
+			                'Date'[WeekDayNumber] -- selected in the report
+			            ),
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase (LCY)],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearWeekNumber] = PreviousFiscalYearWeek,
+			            'Date'[WeekDayNumber] <= LastDayOfWeekAvailable,
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: fabe338f-81d2-4723-8d77-2806614f60ec
+
+	measure 'Purchase Amount WOWTD (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Amount WTD (Weekly)]
+			VAR ValuePreviousPeriod = [Purchase Amount PWTD (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: 05c21805-01cb-4e14-bfbc-460f83b07485
+
+	measure 'Purchase Amount WOWTD % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount WOWTD (Weekly)],
+			    [Purchase Amount PWTD (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: f40a2634-809f-4511-b213-013d6260efa2
+
+	measure 'Purchase Amount MAT (364) (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    VAR LastDayMAT =  MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 363
+			    VAR Result = 
+			        CALCULATE ( 
+			            [Purchase (LCY)], 
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT
+			        ) 
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Moving annual total growth
+		lineageTag: 0724560a-d35e-4418-a280-bb25c5780c9d
+
+	measure 'Purchase Amount PYMAT (364) (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    VAR LastDayAvailable = MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR LastDayMAT = LastDayAvailable - 364 -- go back 52 weeks
+			    VAR FirstDayMAT = LastDayMAT - 363
+			    VAR Result = 
+			        CALCULATE ( 
+			            [Purchase (LCY)], 
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT
+			        ) 
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Moving annual total growth
+		lineageTag: 8d68cc17-2385-4005-9d25-c8bc824ef7cf
+
+	measure 'Purchase Amount MATG (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Amount MAT (364) (Weekly)]
+			VAR ValuePreviousPeriod = [Purchase Amount PYMAT (364) (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Moving annual total growth
+		lineageTag: 869fdf47-40ed-4bbf-9944-c412dadaede6
+
+	measure 'Purchase Amount MATG % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount MATG (Weekly)],
+			    [Purchase Amount PYMAT (364) (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Moving annual total growth
+		lineageTag: 55c1f1aa-3886-4e6f-8472-1da90b874ae1
+
+	measure 'Purchase Amount PYC (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[FW YearNumber] ),
+			    VAR PreviousFiscalYear = MAX ( 'Date'[FW YearNumber] ) - 1
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase (LCY)],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearNumber] = PreviousFiscalYear
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: 55b87502-00d9-4e72-ba9f-8661dd5dca43
+
+	measure 'Purchase Amount YTDOPY (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Amount YTD (Weekly)]
+			VAR ValuePreviousPeriod = [Purchase Amount PYC (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: 1314c377-da87-4dbf-adb5-097d1f71242f
+
+	measure 'Purchase Amount YTDOPY % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount YTDOPY (Weekly)],
+			    [Purchase Amount PYC (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: 9bc170a7-427d-46a6-805c-90c6f8f80865
+
+	measure 'Purchase Amount PQC (Weekly)' =
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[FW YearQuarterNumber] ),
+			    VAR PreviousFiscalYearQuarter = MAX ( 'Date'[FW YearQuarterNumber] ) - 1
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase (LCY)],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearQuarterNumber] = PreviousFiscalYearQuarter
+			        )
+			    RETURN
+			        Result
+			)
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: 7a3acbed-71ab-4732-9c86-928428a689b2
+
+	measure 'Purchase Amount QTDOPQ (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Amount QTD (Weekly)]
+			VAR ValuePreviousPeriod = [Purchase Amount PQC (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: c58081ee-78f0-49d1-b2a8-c23f473d0725
+
+	measure 'Purchase Amount QTDOPQ % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount QTDOPQ (Weekly)],
+			    [Purchase Amount PQC (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: 714aff0f-939d-495c-813a-1c103c95215f
+
+	measure 'Purchase Amount PWC (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[FW YearWeekNumber] ),
+			    VAR PreviousFiscalYearWeek = MAX ( 'Date'[FW YearWeekNumber] ) - 1
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase (LCY)],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearWeekNumber] = PreviousFiscalYearWeek
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: 5b90fe9a-f598-4dbc-a792-751affe61e00
+
+	measure 'Purchase Amount WTDOPW (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Amount WTD (Weekly)]
+			VAR ValuePreviousPeriod = [Purchase Amount PWC (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: 01d319d9-6747-42d3-a481-c4d940379cd1
+
+	measure 'Purchase Amount WTDOPW % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount WTDOPW (Weekly)],
+			    [Purchase Amount PWC (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: 89898970-5c55-4563-b894-e11ae0787bed
+
+	measure 'Purchase Amount AVG 4W (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    VAR LastDayMAT =
+			        MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 27
+			    VAR Period4W =
+			        CALCULATETABLE (
+			            VALUES ( 'Date'[Sequential365DayNumber] ),
+			            ALLEXCEPT (
+			                'Date',
+			                'Date'[Day Type],
+			                'Date'[Week Day]
+			            ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT,
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Purchase Value Entries'[Date] ),
+			                        MIN ( 'Purchase Invoice Lines'[postingDate] ),
+			                        MIN ( 'Purchase Credit Lines'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			    VAR FirstDayInPeriod =
+			        MINX (
+			            Period4W,
+			            'Date'[Sequential365DayNumber]
+			        )
+			    VAR Result =
+			        IF (
+			            FirstDayWithData <= FirstDayInPeriod,
+			            CALCULATE (
+			                AVERAGEX ( Period4W, [Purchase (LCY)] ),
+			                REMOVEFILTERS ( 'Date' )
+			            )
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Moving averages
+		lineageTag: 2e6fecfd-9ec2-4b31-a2cc-e4d151001b46
+
+	measure 'Purchase Amount AVG 1Q (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    VAR LastDayMAT =
+			        MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 13 * 7 + 1
+			    VAR Period1Q =
+			        CALCULATETABLE (
+			            VALUES ( 'Date'[Sequential365DayNumber] ),
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT,
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        INT (
+			            MINX (
+			                {
+			                    MIN ( 'Purchase Value Entries'[Date] ),
+			                    MIN ( 'Purchase Invoice Lines'[postingDate] ),
+			                    MIN ( 'Purchase Credit Lines'[postingDate] )
+			                },
+			                [Value]
+			            )
+			        ),
+			        REMOVEFILTERS ()
+			    )
+			    VAR FirstDayInPeriod =
+			        MINX (
+			            Period1Q,
+			            'Date'[Sequential365DayNumber]
+			        )
+			    VAR Result =
+			        IF (
+			            FirstDayWithData <= FirstDayInPeriod,
+			            CALCULATE (
+			                AVERAGEX ( Period1Q, [Purchase (LCY)] ),
+			                REMOVEFILTERS ( 'Date' )
+			            )
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Moving averages
+		lineageTag: dec79265-4253-4c69-bf55-d8c2b1824c93
+
+	measure 'Purchase Amount AVG 1Y (Weekly)' =
+			
+			IF (
+			    [ShowValueForDates],
+			    VAR LastDayMAT =
+			        MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 363
+			    VAR Period1Y =
+			        CALCULATETABLE (
+			            VALUES ( 'Date'[Sequential365DayNumber] ),
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT,
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Purchase Value Entries'[Date] ),
+			                        MIN ( 'Purchase Invoice Lines'[postingDate] ),
+			                        MIN ( 'Purchase Credit Lines'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			    VAR FirstDayInPeriod =
+			        MINX ( Period1Y, 'Date'[Sequential365DayNumber] )
+			    VAR Result =
+			        IF (
+			            FirstDayWithData <= FirstDayInPeriod,
+			            CALCULATE ( AVERAGEX ( Period1Y, [Purchase (LCY)] ), REMOVEFILTERS ( 'Date' ) )
+			        )
+			    RETURN
+			        Result
+			)
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Moving averages
+		lineageTag: b643f42a-b51b-4967-a4e3-11777a77e082
+
+	measure 'Purchase Quantity YTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayAvailable = MAX ( 'Date'[FW DayOfYearNumber] )
+			    VAR LastFiscalYearAvailable = MAX ( 'Date'[FW YearNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW DayOfYearNumber] <= LastDayAvailable,
+			            'Date'[FW YearNumber] = LastFiscalYearAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date total
+		lineageTag: a539ca31-7086-4631-ad68-cc2bef5c46ee
+
+	measure 'Purchase Quantity QTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayAvailable =  MAX ( 'Date'[FW DayOfQuarterNumber] )
+			    VAR LastFiscalYearQuarterAvailable = MAX ( 'Date'[FW YearQuarterNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW DayOfQuarterNumber] <= LastDayAvailable,
+			            'Date'[FW YearQuarterNumber] = LastFiscalYearQuarterAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date total
+		lineageTag: e19b359b-38b2-4cba-82a4-064dcf19e787
+
+	measure 'Purchase Quantity MTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayAvailable =  MAX ( 'Date'[FW DayOfMonthNumber] )
+			    VAR LastFiscalYearMonthAvailable = MAX ( 'Date'[FW YearMonthNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW DayOfMonthNumber] <= LastDayAvailable,
+			            'Date'[FW YearMonthNumber] = LastFiscalYearMonthAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date total
+		lineageTag: c8e747c9-ad8a-4280-ae3a-91b94181de4e
+
+	measure 'Purchase Quantity WTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayOfWeekAvailable =  MAX ( 'Date'[WeekDayNumber] )
+			    VAR LastFiscalYearWeekAvailable = MAX ( 'Date'[FW YearWeekNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[WeekDayNumber] <= LastDayOfWeekAvailable,
+			            'Date'[FW YearWeekNumber] = LastFiscalYearWeekAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date total
+		lineageTag: 0abde7bb-7f2a-4489-a5fb-b17de197080a
+
+	measure 'Purchase Quantity PY (Weekly)' =
+			
+			IF (
+			    [ShowValueForDates],
+			    SUMX (
+			        VALUES ( 'Date'[FW YearNumber] ),
+			        VAR CurrentFiscalYearNumber = 'Date'[FW YearNumber]
+			        VAR DaysSelected =
+			            CALCULATETABLE (
+			                VALUES ( 'Date'[FW DayOfYearNumber] ),
+			                REMOVEFILTERS (
+			                    'Date'[Day Type],
+			                    'Date'[Week Day],
+			                    'Date'[WeekDayNumber]
+			                ),
+			                'Date'[DateWithPurchases] = TRUE
+			            )
+			        RETURN
+			            CALCULATE (
+			                [Purchase Quantity],
+			                'Date'[FW YearNumber] = CurrentFiscalYearNumber - 1,
+			                DaysSelected,
+			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] )
+			            )
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 092a651c-2c77-45b3-b8c0-1da1ff184008
+
+	measure 'Purchase Quantity YOY % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity YOY (Weekly)],
+			    [Purchase Quantity PY (Weekly)]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: dfc3902e-4fc8-4185-b486-a161c619d6b3
+
+	measure 'Purchase Quantity YOY (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity]
+			VAR ValuePreviousPeriod = [Purchase Quantity PY (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 39105880-58e0-4b4d-a3f9-a72446f4e3ae
+
+	measure 'Purchase Quantity PQ (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    SUMX ( 
+			        VALUES ( 'Date'[FW YearQuarterNumber] ),
+			        VAR CurrentFiscalYearQuarterNumber = 'Date'[FW YearQuarterNumber]
+			        VAR DaysSelected = 
+			            CALCULATETABLE (
+			                VALUES ( 'Date'[FW DayOfQuarterNumber] ),
+			                REMOVEFILTERS (
+			                    'Date'[Day Type],
+			                    'Date'[Week Day],
+			                    'Date'[WeekDayNumber]
+			                ),
+			                'Date'[DateWithPurchases] = TRUE
+			            )
+			        RETURN 
+			            CALCULATE (
+			                [Purchase Quantity],
+			                'Date'[FW YearQuarterNumber] = CurrentFiscalYearQuarterNumber - 1,
+			                DaysSelected,
+			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] )
+			            )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 65b5265b-4925-4709-9757-9e8faa3025b0
+
+	measure 'Purchase Quantity QOQ (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity]
+			VAR ValuePreviousPeriod = [Purchase Quantity PQ (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 92deaefb-2f75-437e-a727-11b56e0f5297
+
+	measure 'Purchase Quantity QOQ % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity QOQ (Weekly)],
+			    [Purchase Quantity PQ (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: d15e2a27-5fb8-4ab5-9718-effd7c8ae01b
+
+	measure 'Purchase Quantity PW (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    SUMX ( 
+			        VALUES ( 'Date'[FW YearWeekNumber] ),
+			        VAR CurrentFiscalYearWeekNumber = 'Date'[FW YearWeekNumber] 
+			        VAR DaysSelected = 
+			            CALCULATETABLE (
+			                VALUES ( 'Date'[WeekDayNumber] ),
+			                REMOVEFILTERS (
+			                    'Date'[Day Type],
+			                    'Date'[Week Day],
+			                    'Date'[WeekDayNumber]
+			                ),
+			                'Date'[DateWithPurchases] = TRUE
+			            )
+			        RETURN 
+			            CALCULATE (
+			                [Purchase Quantity],
+			                'Date'[FW YearWeekNumber] = CurrentFiscalYearWeekNumber - 1,
+			                KEEPFILTERS ( DaysSelected ),
+			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] )
+			            )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 7120a982-2f02-4bbc-a125-b5914997c33a
+
+	measure 'Purchase Quantity WOW (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity]
+			VAR ValuePreviousPeriod = [Purchase Quantity PW (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 7eee14ca-fd9a-40da-99b3-ad83bfa67f71
+
+	measure 'Purchase Quantity WOW % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity WOW (Weekly)],
+			    [Purchase Quantity PW (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 9b1056ce-0100-4bb9-b305-0f5160d967ec
+
+	measure 'Purchase Quantity PP (Weekly)' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[FW Week Year] ), [Purchase Quantity PW (Weekly)],
+			    -- The month level should not be managed in a 445 calendar
+			    ISINSCOPE ( 'Date'[FW Quarter Year] ), [Purchase Quantity PQ (Weekly)],
+			    ISINSCOPE ( 'Date'[FW Year] ), [Purchase Quantity PY (Weekly)]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: f5ca42f7-d872-4ee7-b1a9-0d58b7d1deae
+
+	measure 'Purchase Quantity POP (Weekly)' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[FW Week Year] ), [Purchase Quantity WOW (Weekly)],
+			    -- The month level should not be managed in a 445 calendar
+			    ISINSCOPE ( 'Date'[FW Quarter Year] ), [Purchase Quantity QOQ (Weekly)],
+			    ISINSCOPE ( 'Date'[FW Year] ), [Purchase Quantity YOY (Weekly)]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 3728cd47-1dd3-4287-9726-870ac95c885f
+
+	measure 'Purchase Quantity POP % (Weekly)' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[FW Week Year] ), [Purchase Quantity WOW % (Weekly)],
+			    -- The month level should not be managed in a 445 calendar
+			    ISINSCOPE ( 'Date'[FW Quarter Year] ), [Purchase Quantity QOQ % (Weekly)],
+			    ISINSCOPE ( 'Date'[FW Year] ), [Purchase Quantity YOY % (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 51b01e62-39e5-4462-a37c-a6dc90bc7291
+
+	measure 'Purchase Quantity PYTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR PreviousFiscalYear = MAX ( 'Date'[FW YearNumber] ) - 1
+			    VAR LastDayOfFiscalYearAvailable = 
+			        CALCULATE ( 
+			            MAX ( 'Date'[FW DayOfYearNumber] ),
+			            REMOVEFILTERS (                -- Remove filters from
+			                'Date'[Day Type],       -- filter-safe columns
+			                'Date'[Week Day],       -- to get the last day with data
+			                'Date'[WeekDayNumber] -- selected in the report
+			            ),
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearNumber] = PreviousFiscalYear,
+			            'Date'[FW DayOfYearNumber] <= LastDayOfFiscalYearAvailable,
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: 7c098fb1-9f93-446d-a0fb-230022ffcc4e
+
+	measure 'Purchase Quantity PQTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR PreviousFiscalYearQuarter = MAX ( 'Date'[FW YearQuarterNumber] ) - 1
+			    VAR LastDayOfFiscalYearQuarterAvailable = 
+			        CALCULATE ( 
+			            MAX ( 'Date'[FW DayOfQuarterNumber] ),
+			            REMOVEFILTERS (                -- Remove filters from
+			                'Date'[Day Type],       -- filter-safe columns
+			                'Date'[Week Day],       -- to get the last day with data
+			                'Date'[WeekDayNumber] -- selected in the report
+			            ),
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearQuarterNumber] = PreviousFiscalYearQuarter,
+			            'Date'[FW DayOfQuarterNumber] <= LastDayOfFiscalYearQuarterAvailable,
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: 332ce39f-111a-4acf-aedf-6b1dd8b2cd16
+
+	measure 'Purchase Quantity YOYTD (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity YTD (Weekly)]
+			VAR ValuePreviousPeriod = [Purchase Quantity PYTD (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: 923d5216-d209-43c8-bda0-f88d724e0913
+
+	measure 'Purchase Quantity YOYTD % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity YOYTD (Weekly)],
+			    [Purchase Quantity PYTD (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: 878ee6fd-2e24-40c2-b361-244b9b794ed5
+
+	measure 'Purchase Quantity QOQTD (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity QTD (Weekly)]
+			VAR ValuePreviousPeriod = [Purchase Quantity PQTD (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: b5d6b1e0-c627-4027-8dd2-38b0a9a8c0fe
+
+	measure 'Purchase Quantity QOQTD % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity QOQTD (Weekly)],
+			    [Purchase Quantity PQTD (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: 9d2d49b6-d02d-492a-9157-4b9b5cccbd10
+
+	measure 'Purchase Quantity PWTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR PreviousFiscalYearWeek = MAX ( 'Date'[FW YearWeekNumber] ) - 1
+			    VAR LastDayOfWeekAvailable = 
+			        CALCULATE ( 
+			            MAX ( 'Date'[WeekDayNumber] ),
+			            REMOVEFILTERS (                -- Remove filters from
+			                'Date'[Day Type],       -- filter-safe columns
+			                'Date'[Week Day],       -- to get the last day with data
+			                'Date'[WeekDayNumber] -- selected in the report
+			            ),
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearWeekNumber] = PreviousFiscalYearWeek,
+			            'Date'[WeekDayNumber] <= LastDayOfWeekAvailable,
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: 6b7a4e1e-e6ac-4e95-9362-df0e753a8848
+
+	measure 'Purchase Quantity WOWTD (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity WTD (Weekly)]
+			VAR ValuePreviousPeriod = [Purchase Quantity PWTD (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: 257a02ce-88de-4959-98d4-55c9dc5b4860
+
+	measure 'Purchase Quantity WOWTD % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity WOWTD (Weekly)],
+			    [Purchase Quantity PWTD (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: 18fdb4f8-604d-478d-9f3f-b6f969989971
+
+	measure 'Purchase Quantity MAT (364) (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    VAR LastDayMAT =  MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 363
+			    VAR Result = 
+			        CALCULATE ( 
+			            [Purchase Quantity], 
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT
+			        ) 
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Moving annual total growth
+		lineageTag: de1abaeb-3d20-4599-af95-b09063b52ed2
+
+	measure 'Purchase Quantity PYMAT (364) (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    VAR LastDayAvailable = MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR LastDayMAT = LastDayAvailable - 364 -- go back 52 weeks
+			    VAR FirstDayMAT = LastDayMAT - 363
+			    VAR Result = 
+			        CALCULATE ( 
+			            [Purchase Quantity], 
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT
+			        ) 
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Moving annual total growth
+		lineageTag: 9ce3c063-f039-463c-992d-66b20b858419
+
+	measure 'Purchase Quantity MATG (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity MAT (364) (Weekly)]
+			VAR ValuePreviousPeriod = [Purchase Quantity PYMAT (364) (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Moving annual total growth
+		lineageTag: a44b9cde-7a4c-48ff-84a8-7f8b0ed6ae4a
+
+	measure 'Purchase Quantity MATG % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity MATG (Weekly)],
+			    [Purchase Quantity PYMAT (364) (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Moving annual total growth
+		lineageTag: a714909c-71b0-4806-958f-85e1684c5d85
+
+	measure 'Purchase Quantity PYC (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[FW YearNumber] ),
+			    VAR PreviousFiscalYear = MAX ( 'Date'[FW YearNumber] ) - 1
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearNumber] = PreviousFiscalYear
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: ce9f550f-92db-4178-97cd-68b4901f1f57
+
+	measure 'Purchase Quantity YTDOPY (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity YTD (Weekly)]
+			VAR ValuePreviousPeriod = [Purchase Quantity PYC (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: fafb2641-54c9-4594-85d2-54d3cf736f67
+
+	measure 'Purchase Quantity YTDOPY  % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity YTDOPY (Weekly)],
+			    [Purchase Quantity PYC (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: e83dcd4f-19d6-43a6-b347-e9350a6e8cbe
+
+	measure 'Purchase Quantity PQC (Weekly)' =
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[FW YearQuarterNumber] ),
+			    VAR PreviousFiscalYearQuarter = MAX ( 'Date'[FW YearQuarterNumber] ) - 1
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearQuarterNumber] = PreviousFiscalYearQuarter
+			        )
+			    RETURN
+			        Result
+			)
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: b919b396-3374-4f73-bcca-dd3f34fb0b72
+
+	measure 'Purchase Quantity QTDOPQ (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity QTD (Weekly)]
+			VAR ValuePreviousPeriod = [Purchase Quantity PQC (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: 21c7f249-3007-4a34-b237-7a6794c82085
+
+	measure 'Purchase Quantity QTDOPQ % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity QTDOPQ (Weekly)],
+			    [Purchase Quantity PQC (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: 1ce36d1e-807f-4cfc-a9aa-632245aea350
+
+	measure 'Purchase Quantity PWC (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[FW YearWeekNumber] ),
+			    VAR PreviousFiscalYearWeek = MAX ( 'Date'[FW YearWeekNumber] ) - 1
+			    VAR Result =
+			        CALCULATE (
+			            [Purchase Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearWeekNumber] = PreviousFiscalYearWeek
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: f369e6a2-5a62-4287-9d51-6684a7e35bfd
+
+	measure 'Purchase Quantity WTDOPW (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity WTD (Weekly)]
+			VAR ValuePreviousPeriod = [Purchase Quantity PWC (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: 1fa5f8b3-cc1c-4a12-96ae-c695d0f39358
+
+	measure 'Purchase Quantity WTDOPW % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity WTDOPW (Weekly)],
+			    [Purchase Quantity PWC (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: 7ba031f3-8aec-4061-8786-d638c88e3733
+
+	measure 'Purchase Quantity AVG 4W (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    VAR LastDayMAT =
+			        MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 27
+			    VAR Period4W =
+			        CALCULATETABLE (
+			            VALUES ( 'Date'[Sequential365DayNumber] ),
+			            ALLEXCEPT (
+			                'Date',
+			                'Date'[Day Type],
+			                'Date'[Week Day]
+			            ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT,
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Purchase Value Entries'[Date] ),
+			                        MIN ( 'Purchase Invoice Lines'[postingDate] ),
+			                        MIN ( 'Purchase Credit Lines'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			    VAR FirstDayInPeriod =
+			        MINX (
+			            Period4W,
+			            'Date'[Sequential365DayNumber]
+			        )
+			    VAR Result =
+			        IF (
+			            FirstDayWithData <= FirstDayInPeriod,
+			            CALCULATE (
+			                AVERAGEX ( Period4W, [Purchase Quantity] ),
+			                REMOVEFILTERS ( 'Date' )
+			            )
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Moving averages
+		lineageTag: 8495b3d0-85f5-4669-b7b6-066a78aa18d0
+
+	measure 'Purchase Quantity AVG 1Q (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    VAR LastDayMAT =
+			        MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 13 * 7 + 1
+			    VAR Period1Q =
+			        CALCULATETABLE (
+			            VALUES ( 'Date'[Sequential365DayNumber] ),
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT,
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Purchase Value Entries'[Date] ),
+			                        MIN ( 'Purchase Invoice Lines'[postingDate] ),
+			                        MIN ( 'Purchase Credit Lines'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			    VAR FirstDayInPeriod =
+			        MINX (
+			            Period1Q,
+			            'Date'[Sequential365DayNumber]
+			        )
+			    VAR Result =
+			        IF (
+			            FirstDayWithData <= FirstDayInPeriod,
+			            CALCULATE (
+			                AVERAGEX ( Period1Q, [Purchase Quantity] ),
+			                REMOVEFILTERS ( 'Date' )
+			            )
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Moving averages
+		lineageTag: 66027818-377a-47c9-9af8-09062252e446
+
+	measure 'Purchase Quantity AVG 1Y (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    VAR LastDayMAT =
+			        MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 363
+			    VAR Period1Y =
+			        CALCULATETABLE (
+			            VALUES ( 'Date'[Sequential365DayNumber] ),
+			            ALLEXCEPT (
+			                'Date',
+			                'Date'[Day Type],
+			                'Date'[Week Day]
+			            ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT,
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Purchase Value Entries'[Date] ),
+			                        MIN ( 'Purchase Invoice Lines'[postingDate] ),
+			                        MIN ( 'Purchase Credit Lines'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			    VAR FirstDayInPeriod =
+			        MINX (
+			            Period1Y,
+			            'Date'[Sequential365DayNumber]
+			        )
+			    VAR Result =
+			        IF (
+			            FirstDayWithData <= FirstDayInPeriod,
+			            CALCULATE (
+			                AVERAGEX ( Period1Y, [Purchase Quantity] ),
+			                REMOVEFILTERS ( 'Date' )
+			            )
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Moving averages
+		lineageTag: b48b674c-674b-4897-8aaf-82be7addb069
+
+	measure 'Budget Quantity YTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayAvailable = MAX ( 'Date'[FW DayOfYearNumber] )
+			    VAR LastFiscalYearAvailable = MAX ( 'Date'[FW YearNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW DayOfYearNumber] <= LastDayAvailable,
+			            'Date'[FW YearNumber] = LastFiscalYearAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date total
+		lineageTag: 61c16698-d690-4986-b2c9-639676bdc754
+
+	measure 'Budget Quantity QTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayAvailable =  MAX ( 'Date'[FW DayOfQuarterNumber] )
+			    VAR LastFiscalYearQuarterAvailable = MAX ( 'Date'[FW YearQuarterNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW DayOfQuarterNumber] <= LastDayAvailable,
+			            'Date'[FW YearQuarterNumber] = LastFiscalYearQuarterAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date total
+		lineageTag: 47dc9f93-aa32-44f4-ac93-5765db023d2d
+
+	measure 'Budget Quantity MTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayAvailable =  MAX ( 'Date'[FW DayOfMonthNumber] )
+			    VAR LastFiscalYearMonthAvailable = MAX ( 'Date'[FW YearMonthNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW DayOfMonthNumber] <= LastDayAvailable,
+			            'Date'[FW YearMonthNumber] = LastFiscalYearMonthAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date total
+		lineageTag: 4b94e3b2-75b3-4c82-9217-62e6d1d61e2e
+
+	measure 'Budget Quantity WTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayOfWeekAvailable =  MAX ( 'Date'[WeekDayNumber] )
+			    VAR LastFiscalYearWeekAvailable = MAX ( 'Date'[FW YearWeekNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[WeekDayNumber] <= LastDayOfWeekAvailable,
+			            'Date'[FW YearWeekNumber] = LastFiscalYearWeekAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date total
+		lineageTag: 6264404c-5dc0-4265-8d3d-0762156272f4
+
+	measure 'Budget Quantity PY (Weekly)' =
+			
+			IF (
+			    [ShowValueForDates],
+			    SUMX (
+			        VALUES ( 'Date'[FW YearNumber] ),
+			        VAR CurrentFiscalYearNumber = 'Date'[FW YearNumber]
+			        VAR DaysSelected =
+			            CALCULATETABLE (
+			                VALUES ( 'Date'[FW DayOfYearNumber] ),
+			                REMOVEFILTERS (
+			                    'Date'[Day Type],
+			                    'Date'[Week Day],
+			                    'Date'[WeekDayNumber]
+			                ),
+			                'Date'[DateWithPurchases] = TRUE
+			            )
+			        RETURN
+			            CALCULATE (
+			                [Budget Quantity],
+			                'Date'[FW YearNumber] = CurrentFiscalYearNumber - 1,
+			                DaysSelected,
+			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] )
+			            )
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: 81d2d03b-57d8-46fc-b019-dc4277e412a7
+
+	measure 'Budget Quantity YOY % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity YOY (Weekly)],
+			    [Budget Quantity PY (Weekly)]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: 6e3a2d7f-391a-40b1-b758-f9d9919b1985
+
+	measure 'Budget Quantity YOY (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity]
+			VAR ValuePreviousPeriod = [Budget Quantity PY (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: af131357-a5f6-4852-b9a0-3b8a60673a16
+
+	measure 'Budget Quantity PQ (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    SUMX ( 
+			        VALUES ( 'Date'[FW YearQuarterNumber] ),
+			        VAR CurrentFiscalYearQuarterNumber = 'Date'[FW YearQuarterNumber]
+			        VAR DaysSelected = 
+			            CALCULATETABLE (
+			                VALUES ( 'Date'[FW DayOfQuarterNumber] ),
+			                REMOVEFILTERS (
+			                    'Date'[Day Type],
+			                    'Date'[Week Day],
+			                    'Date'[WeekDayNumber]
+			                ),
+			                'Date'[DateWithPurchases] = TRUE
+			            )
+			        RETURN 
+			            CALCULATE (
+			                [Budget Quantity],
+			                'Date'[FW YearQuarterNumber] = CurrentFiscalYearQuarterNumber - 1,
+			                DaysSelected,
+			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] )
+			            )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: c76598cd-4d60-445e-a494-74b7ee8fcad3
+
+	measure 'Budget Quantity QOQ (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity]
+			VAR ValuePreviousPeriod = [Budget Quantity PQ (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: d63e9122-478a-4e59-9e24-9b2532a7ec9e
+
+	measure 'Budget Quantity QOQ % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity QOQ (Weekly)],
+			    [Budget Quantity PQ (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: 5233ce21-1636-4ddd-88d3-a927173b402e
+
+	measure 'Budget Quantity PW (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    SUMX ( 
+			        VALUES ( 'Date'[FW YearWeekNumber] ),
+			        VAR CurrentFiscalYearWeekNumber = 'Date'[FW YearWeekNumber] 
+			        VAR DaysSelected = 
+			            CALCULATETABLE (
+			                VALUES ( 'Date'[WeekDayNumber] ),
+			                REMOVEFILTERS (
+			                    'Date'[Day Type],
+			                    'Date'[Week Day],
+			                    'Date'[WeekDayNumber]
+			                ),
+			                'Date'[DateWithPurchases] = TRUE
+			            )
+			        RETURN 
+			            CALCULATE (
+			                [Budget Quantity],
+			                'Date'[FW YearWeekNumber] = CurrentFiscalYearWeekNumber - 1,
+			                KEEPFILTERS ( DaysSelected ),
+			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] )
+			            )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: 9817cb31-b6b4-4e15-98ce-efbf1e443232
+
+	measure 'Budget Quantity WOW (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity]
+			VAR ValuePreviousPeriod = [Budget Quantity PW (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: f1688f97-dab4-4e99-8165-da43faf053db
+
+	measure 'Budget Quantity WOW % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity WOW (Weekly)],
+			    [Budget Quantity PW (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: 4c9a21c2-0894-484d-bc37-031915e02355
+
+	measure 'Budget Quantity PP (Weekly)' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[FW Week Year] ), [Budget Quantity PW (Weekly)],
+			    -- The month level should not be managed in a 445 calendar
+			    ISINSCOPE ( 'Date'[FW Quarter Year] ), [Budget Quantity PQ (Weekly)],
+			    ISINSCOPE ( 'Date'[FW Year] ), [Budget Quantity PY (Weekly)]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: a0162301-424f-482f-b97e-3b6593ce1aba
+
+	measure 'Budget Quantity POP (Weekly)' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[FW Week Year] ), [Budget Quantity WOW (Weekly)],
+			    -- The month level should not be managed in a 445 calendar
+			    ISINSCOPE ( 'Date'[FW Quarter Year] ), [Budget Quantity QOQ (Weekly)],
+			    ISINSCOPE ( 'Date'[FW Year] ), [Budget Quantity YOY (Weekly)]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: dcf85b02-5155-4c2a-bde9-4c6894602c91
+
+	measure 'Budget Quantity POP % (Weekly)' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[FW Week Year] ), [Budget Quantity WOW % (Weekly)],
+			    -- The month level should not be managed in a 445 calendar
+			    ISINSCOPE ( 'Date'[FW Quarter Year] ), [Budget Quantity QOQ % (Weekly)],
+			    ISINSCOPE ( 'Date'[FW Year] ), [Budget Quantity YOY % (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: 1720d34f-a7f6-484c-9ff6-8fa34c2bd4c8
+
+	measure 'Budget Quantity PYTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR PreviousFiscalYear = MAX ( 'Date'[FW YearNumber] ) - 1
+			    VAR LastDayOfFiscalYearAvailable = 
+			        CALCULATE ( 
+			            MAX ( 'Date'[FW DayOfYearNumber] ),
+			            REMOVEFILTERS (                -- Remove filters from
+			                'Date'[Day Type],       -- filter-safe columns
+			                'Date'[Week Day],       -- to get the last day with data
+			                'Date'[WeekDayNumber] -- selected in the report
+			            ),
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearNumber] = PreviousFiscalYear,
+			            'Date'[FW DayOfYearNumber] <= LastDayOfFiscalYearAvailable,
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: 636cb090-0052-4645-a78c-95af7a54b0a4
+
+	measure 'Budget Quantity PQTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR PreviousFiscalYearQuarter = MAX ( 'Date'[FW YearQuarterNumber] ) - 1
+			    VAR LastDayOfFiscalYearQuarterAvailable = 
+			        CALCULATE ( 
+			            MAX ( 'Date'[FW DayOfQuarterNumber] ),
+			            REMOVEFILTERS (                -- Remove filters from
+			                'Date'[Day Type],       -- filter-safe columns
+			                'Date'[Week Day],       -- to get the last day with data
+			                'Date'[WeekDayNumber] -- selected in the report
+			            ),
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearQuarterNumber] = PreviousFiscalYearQuarter,
+			            'Date'[FW DayOfQuarterNumber] <= LastDayOfFiscalYearQuarterAvailable,
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: 70323e3e-73df-47ae-b3be-1a1e448eb467
+
+	measure 'Budget Quantity YOYTD (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity YTD (Weekly)]
+			VAR ValuePreviousPeriod = [Budget Quantity PYTD (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: dee5bd9a-3af5-4258-8545-ca7bc482845b
+
+	measure 'Budget Quantity YOYTD % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity YOYTD (Weekly)],
+			    [Budget Quantity PYTD (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: 9b11107f-878b-4c21-96c3-0d9ab651d230
+
+	measure 'Budget Quantity QOQTD (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity QTD (Weekly)]
+			VAR ValuePreviousPeriod = [Budget Quantity PQTD (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: 0abbc8fb-9831-4f04-ab3e-16dbb716a15a
+
+	measure 'Budget Quantity QOQTD % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity QOQTD (Weekly)],
+			    [Budget Quantity PQTD (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: 283bb2b2-7f34-4dee-89d3-c443c32414ad
+
+	measure 'Budget Quantity PWTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR PreviousFiscalYearWeek = MAX ( 'Date'[FW YearWeekNumber] ) - 1
+			    VAR LastDayOfWeekAvailable = 
+			        CALCULATE ( 
+			            MAX ( 'Date'[WeekDayNumber] ),
+			            REMOVEFILTERS (                -- Remove filters from
+			                'Date'[Day Type],       -- filter-safe columns
+			                'Date'[Week Day],       -- to get the last day with data
+			                'Date'[WeekDayNumber] -- selected in the report
+			            ),
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearWeekNumber] = PreviousFiscalYearWeek,
+			            'Date'[WeekDayNumber] <= LastDayOfWeekAvailable,
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: 6a492b5a-d0ae-49dc-8668-c97a451b3473
+
+	measure 'Budget Quantity WOWTD (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity WTD (Weekly)]
+			VAR ValuePreviousPeriod = [Budget Quantity PWTD (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: 6592d07b-0c3a-4bc3-8b09-6b8827255e4b
+
+	measure 'Budget Quantity WOWTD % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity WOWTD (Weekly)],
+			    [Budget Quantity PWTD (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: e9941501-db17-4487-a5a0-b890ddd9961e
+
+	measure 'Budget Quantity MAT (364) (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    VAR LastDayMAT =  MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 363
+			    VAR Result = 
+			        CALCULATE ( 
+			            [Budget Quantity], 
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT
+			        ) 
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Moving annual total growth
+		lineageTag: ed6b16a1-6849-400e-b166-8b6ba4605abd
+
+	measure 'Budget Quantity PYMAT (364) (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    VAR LastDayAvailable = MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR LastDayMAT = LastDayAvailable - 364 -- go back 52 weeks
+			    VAR FirstDayMAT = LastDayMAT - 363
+			    VAR Result = 
+			        CALCULATE ( 
+			            [Budget Quantity], 
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT
+			        ) 
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Moving annual total growth
+		lineageTag: 0f73008c-1776-4467-bbc8-f7d2889ee710
+
+	measure 'Budget Quantity MATG (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity MAT (364) (Weekly)]
+			VAR ValuePreviousPeriod = [Budget Quantity PYMAT (364) (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Moving annual total growth
+		lineageTag: 15ff4724-dcee-4393-8ef7-1fe31ef0a932
+
+	measure 'Budget Quantity MATG % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity MATG (Weekly)],
+			    [Budget Quantity PYMAT (364) (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Moving annual total growth
+		lineageTag: 357ba45f-6e66-4c60-b4a1-401faaac3c14
+
+	measure 'Budget Quantity PYC (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[FW YearNumber] ),
+			    VAR PreviousFiscalYear = MAX ( 'Date'[FW YearNumber] ) - 1
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearNumber] = PreviousFiscalYear
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: eb8eba9a-a47c-4089-a923-28373a06f554
+
+	measure 'Budget Quantity YTDOPY (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity YTD (Weekly)]
+			VAR ValuePreviousPeriod = [Budget Quantity PYC (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: 29f614ba-872d-44bf-8bd6-5263a5ba3e1d
+
+	measure 'Budget Quantity YTDOPY  % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity YTDOPY (Weekly)],
+			    [Budget Quantity PYC (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: ebb32e22-657d-49ef-ab8e-0d10c78c5f40
+
+	measure 'Budget Quantity PQC (Weekly)' =
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[FW YearQuarterNumber] ),
+			    VAR PreviousFiscalYearQuarter = MAX ( 'Date'[FW YearQuarterNumber] ) - 1
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearQuarterNumber] = PreviousFiscalYearQuarter
+			        )
+			    RETURN
+			        Result
+			)
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: e567caf3-02b1-4408-8c78-cab49ec82d74
+
+	measure 'Budget Quantity QTDOPQ (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity QTD (Weekly)]
+			VAR ValuePreviousPeriod = [Budget Quantity PQC (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: 3319ac0f-1fbb-413b-b7ff-b665a63ad52c
+
+	measure 'Budget Quantity QTDOPQ % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity QTDOPQ (Weekly)],
+			    [Budget Quantity PQC (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: 2e61e112-3772-432c-8c05-5352e2bd3f0f
+
+	measure 'Budget Quantity PWC (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[FW YearWeekNumber] ),
+			    VAR PreviousFiscalYearWeek = MAX ( 'Date'[FW YearWeekNumber] ) - 1
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Quantity],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearWeekNumber] = PreviousFiscalYearWeek
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: cbc26125-e60a-4e42-9685-91954078559c
+
+	measure 'Budget Quantity WTDOPW (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity WTD (Weekly)]
+			VAR ValuePreviousPeriod = [Budget Quantity PWC (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: 58d9d82a-4ab6-45d3-93d0-dbdf970cfd0e
+
+	measure 'Budget Quantity WTDOPW % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity WTDOPW (Weekly)],
+			    [Budget Quantity PWC (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: 2c1d83b7-7310-4496-bd07-a8cfaae6bbf8
+
+	measure 'Budget Quantity AVG 4W (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    VAR LastDayMAT =
+			        MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 27
+			    VAR Period4W =
+			        CALCULATETABLE (
+			            VALUES ( 'Date'[Sequential365DayNumber] ),
+			            ALLEXCEPT (
+			                'Date',
+			                'Date'[Day Type],
+			                'Date'[Week Day]
+			            ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT,
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    VAR FirstDayWithData =
+			        CALCULATE (
+			            MIN ( 'Purchase Budget'[Date] ),
+			            REMOVEFILTERS ()
+			        )
+			    VAR FirstDayInPeriod =
+			        MINX (
+			            Period4W,
+			            'Date'[Sequential365DayNumber]
+			        )
+			    VAR Result =
+			        IF (
+			            FirstDayWithData <= FirstDayInPeriod,
+			            CALCULATE (
+			                AVERAGEX ( Period4W, [Budget Quantity] ),
+			                REMOVEFILTERS ( 'Date' )
+			            )
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Moving averages
+		lineageTag: 0aaa793e-44f7-4ce6-99f8-f08dd954fe03
+
+	measure 'Budget Quantity AVG 1Q (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    VAR LastDayMAT =
+			        MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 13 * 7 + 1
+			    VAR Period1Q =
+			        CALCULATETABLE (
+			            VALUES ( 'Date'[Sequential365DayNumber] ),
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT,
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    VAR FirstDayWithData =
+			        CALCULATE (
+			            MIN ( 'Purchase Budget'[Date] ),
+			            REMOVEFILTERS ()
+			        )
+			    VAR FirstDayInPeriod =
+			        MINX (
+			            Period1Q,
+			            'Date'[Sequential365DayNumber]
+			        )
+			    VAR Result =
+			        IF (
+			            FirstDayWithData <= FirstDayInPeriod,
+			            CALCULATE (
+			                AVERAGEX ( Period1Q, [Budget Quantity] ),
+			                REMOVEFILTERS ( 'Date' )
+			            )
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Moving averages
+		lineageTag: e831fbdc-bc5f-4c3c-afd2-e4a497f0ddd8
+
+	measure 'Budget Quantity AVG 1Y (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    VAR LastDayMAT =
+			        MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 363
+			    VAR Period1Y =
+			        CALCULATETABLE (
+			            VALUES ( 'Date'[Sequential365DayNumber] ),
+			            ALLEXCEPT (
+			                'Date',
+			                'Date'[Day Type],
+			                'Date'[Week Day]
+			            ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT,
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    VAR FirstDayWithData =
+			        CALCULATE (
+			            MIN ( 'Purchase Budget'[Date] ),
+			            REMOVEFILTERS ()
+			        )
+			    VAR FirstDayInPeriod =
+			        MINX (
+			            Period1Y,
+			            'Date'[Sequential365DayNumber]
+			        )
+			    VAR Result =
+			        IF (
+			            FirstDayWithData <= FirstDayInPeriod,
+			            CALCULATE (
+			                AVERAGEX ( Period1Y, [Budget Quantity] ),
+			                REMOVEFILTERS ( 'Date' )
+			            )
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Moving averages
+		lineageTag: b462a22a-3e7e-4aac-a47d-8f7fed085715
+
+	measure 'Budget Amount YTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayAvailable = MAX ( 'Date'[FW DayOfYearNumber] )
+			    VAR LastFiscalYearAvailable = MAX ( 'Date'[FW YearNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Amount],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW DayOfYearNumber] <= LastDayAvailable,
+			            'Date'[FW YearNumber] = LastFiscalYearAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date total
+		lineageTag: b778ede7-2abb-4a56-9045-16219796ca3f
+
+	measure 'Budget Amount QTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayAvailable =  MAX ( 'Date'[FW DayOfQuarterNumber] )
+			    VAR LastFiscalYearQuarterAvailable = MAX ( 'Date'[FW YearQuarterNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Amount],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW DayOfQuarterNumber] <= LastDayAvailable,
+			            'Date'[FW YearQuarterNumber] = LastFiscalYearQuarterAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date total
+		lineageTag: cef0ae47-a908-433d-a1a4-a52959dd427a
+
+	measure 'Budget Amount MTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayAvailable =  MAX ( 'Date'[FW DayOfMonthNumber] )
+			    VAR LastFiscalYearMonthAvailable = MAX ( 'Date'[FW YearMonthNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Amount],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW DayOfMonthNumber] <= LastDayAvailable,
+			            'Date'[FW YearMonthNumber] = LastFiscalYearMonthAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date total
+		lineageTag: b7389093-86cd-4c62-8e26-971332531733
+
+	measure 'Budget Amount WTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR LastDayOfWeekAvailable =  MAX ( 'Date'[WeekDayNumber] )
+			    VAR LastFiscalYearWeekAvailable = MAX ( 'Date'[FW YearWeekNumber] )
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Amount],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[WeekDayNumber] <= LastDayOfWeekAvailable,
+			            'Date'[FW YearWeekNumber] = LastFiscalYearWeekAvailable
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date total
+		lineageTag: 77381a54-c882-499d-8143-526ad1b2ce82
+
+	measure 'Budget Amount PY (Weekly)' =
+			
+			IF (
+			    [ShowValueForDates],
+			    SUMX (
+			        VALUES ( 'Date'[FW YearNumber] ),
+			        VAR CurrentFiscalYearNumber = 'Date'[FW YearNumber]
+			        VAR DaysSelected =
+			            CALCULATETABLE (
+			                VALUES ( 'Date'[FW DayOfYearNumber] ),
+			                REMOVEFILTERS (
+			                    'Date'[Day Type],
+			                    'Date'[Week Day],
+			                    'Date'[WeekDayNumber]
+			                ),
+			                'Date'[DateWithPurchases] = TRUE
+			            )
+			        RETURN
+			            CALCULATE (
+			                [Budget Amount],
+			                'Date'[FW YearNumber] = CurrentFiscalYearNumber - 1,
+			                DaysSelected,
+			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] )
+			            )
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: 30a62de6-e11c-4332-b3f8-a3466818fd0f
+
+	measure 'Budget Amount YOY % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount YOY (Weekly)],
+			    [Budget Amount PY (Weekly)]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: c25cc74f-5e8c-4424-a9c1-2ebfa6c30d2f
+
+	measure 'Budget Amount YOY (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount]
+			VAR ValuePreviousPeriod = [Budget Amount PY (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: b6b983d7-6869-4c25-a96a-0d717e4e67cd
+
+	measure 'Budget Amount PQ (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    SUMX ( 
+			        VALUES ( 'Date'[FW YearQuarterNumber] ),
+			        VAR CurrentFiscalYearQuarterNumber = 'Date'[FW YearQuarterNumber]
+			        VAR DaysSelected = 
+			            CALCULATETABLE (
+			                VALUES ( 'Date'[FW DayOfQuarterNumber] ),
+			                REMOVEFILTERS (
+			                    'Date'[Day Type],
+			                    'Date'[Week Day],
+			                    'Date'[WeekDayNumber]
+			                ),
+			                'Date'[DateWithPurchases] = TRUE
+			            )
+			        RETURN 
+			            CALCULATE (
+			                [Budget Amount],
+			                'Date'[FW YearQuarterNumber] = CurrentFiscalYearQuarterNumber - 1,
+			                DaysSelected,
+			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] )
+			            )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: 79e12dbd-401c-48d0-bfc3-24d2a5a7c71b
+
+	measure 'Budget Amount QOQ (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount]
+			VAR ValuePreviousPeriod = [Budget Amount PQ (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: 184324e6-c621-40c2-ab61-50b9833fdb90
+
+	measure 'Budget Amount QOQ % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount QOQ (Weekly)],
+			    [Budget Amount PQ (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: 77f8259f-71fd-4a16-8ea7-6ccfa7200a08
+
+	measure 'Budget Amount PW (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    SUMX ( 
+			        VALUES ( 'Date'[FW YearWeekNumber] ),
+			        VAR CurrentFiscalYearWeekNumber = 'Date'[FW YearWeekNumber] 
+			        VAR DaysSelected = 
+			            CALCULATETABLE (
+			                VALUES ( 'Date'[WeekDayNumber] ),
+			                REMOVEFILTERS (
+			                    'Date'[Day Type],
+			                    'Date'[Week Day],
+			                    'Date'[WeekDayNumber]
+			                ),
+			                'Date'[DateWithPurchases] = TRUE
+			            )
+			        RETURN 
+			            CALCULATE (
+			                [Budget Amount],
+			                'Date'[FW YearWeekNumber] = CurrentFiscalYearWeekNumber - 1,
+			                KEEPFILTERS ( DaysSelected ),
+			                ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] )
+			            )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: edbb56d1-68da-4718-a5df-f3e23acd6ae9
+
+	measure 'Budget Amount WOW (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount]
+			VAR ValuePreviousPeriod = [Budget Amount PW (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: 487233ae-8978-46cc-ba13-d821d4f7ba58
+
+	measure 'Budget Amount WOW % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount WOW (Weekly)],
+			    [Budget Amount PW (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: d82e72d9-7a10-4e9a-aa0c-eb02febaf7e7
+
+	measure 'Budget Amount PP (Weekly)' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[FW Week Year] ), [Budget Amount PW (Weekly)],
+			    -- The month level should not be managed in a 445 calendar
+			    ISINSCOPE ( 'Date'[FW Quarter Year] ), [Budget Amount PQ (Weekly)],
+			    ISINSCOPE ( 'Date'[FW Year] ), [Budget Amount PY (Weekly)]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: 9e2b943c-429b-498f-b127-5cfe72606d79
+
+	measure 'Budget Amount POP (Weekly)' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[FW Week Year] ), [Budget Amount WOW (Weekly)],
+			    -- The month level should not be managed in a 445 calendar
+			    ISINSCOPE ( 'Date'[FW Quarter Year] ), [Budget Amount QOQ (Weekly)],
+			    ISINSCOPE ( 'Date'[FW Year] ), [Budget Amount YOY (Weekly)]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: 01dd87ba-1f0e-4fb2-a464-9aa29dae6342
+
+	measure 'Budget Amount POP % (Weekly)' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[FW Week Year] ), [Budget Amount WOW % (Weekly)],
+			    -- The month level should not be managed in a 445 calendar
+			    ISINSCOPE ( 'Date'[FW Quarter Year] ), [Budget Amount QOQ % (Weekly)],
+			    ISINSCOPE ( 'Date'[FW Year] ), [Budget Amount YOY % (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: 2686be53-74b2-4e35-abed-a5aa682f1dc1
+
+	measure 'Budget Amount PYTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR PreviousFiscalYear = MAX ( 'Date'[FW YearNumber] ) - 1
+			    VAR LastDayOfFiscalYearAvailable = 
+			        CALCULATE ( 
+			            MAX ( 'Date'[FW DayOfYearNumber] ),
+			            REMOVEFILTERS (                -- Remove filters from
+			                'Date'[Day Type],       -- filter-safe columns
+			                'Date'[Week Day],       -- to get the last day with data
+			                'Date'[WeekDayNumber] -- selected in the report
+			            ),
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Amount],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearNumber] = PreviousFiscalYear,
+			            'Date'[FW DayOfYearNumber] <= LastDayOfFiscalYearAvailable,
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: 807fe193-2649-4d89-9494-2fd932418911
+
+	measure 'Budget Amount PQTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR PreviousFiscalYearQuarter = MAX ( 'Date'[FW YearQuarterNumber] ) - 1
+			    VAR LastDayOfFiscalYearQuarterAvailable = 
+			        CALCULATE ( 
+			            MAX ( 'Date'[FW DayOfQuarterNumber] ),
+			            REMOVEFILTERS (                -- Remove filters from
+			                'Date'[Day Type],       -- filter-safe columns
+			                'Date'[Week Day],       -- to get the last day with data
+			                'Date'[WeekDayNumber] -- selected in the report
+			            ),
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Amount],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearQuarterNumber] = PreviousFiscalYearQuarter,
+			            'Date'[FW DayOfQuarterNumber] <= LastDayOfFiscalYearQuarterAvailable,
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: acc1a998-1326-4f66-9401-eaaea2d947a5
+
+	measure 'Budget Amount YOYTD (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount YTD (Weekly)]
+			VAR ValuePreviousPeriod = [Budget Amount PYTD (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: 01943b26-8594-4226-900c-f5d1ec059cc4
+
+	measure 'Budget Amount YOYTD % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount YOYTD (Weekly)],
+			    [Budget Amount PYTD (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: 6642321f-5de1-4884-9564-1f4ff417339a
+
+	measure 'Budget Amount QOQTD (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount QTD (Weekly)]
+			VAR ValuePreviousPeriod = [Budget Amount PQTD (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: 68333961-3805-4b08-a989-8955b8700e1b
+
+	measure 'Budget Amount QOQTD % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount QOQTD (Weekly)],
+			    [Budget Amount PQTD (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: 5efc147f-8f6f-45eb-9507-7b0118d29551
+
+	measure 'Budget Amount PWTD (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates],
+			    VAR PreviousFiscalYearWeek = MAX ( 'Date'[FW YearWeekNumber] ) - 1
+			    VAR LastDayOfWeekAvailable = 
+			        CALCULATE ( 
+			            MAX ( 'Date'[WeekDayNumber] ),
+			            REMOVEFILTERS (                -- Remove filters from
+			                'Date'[Day Type],       -- filter-safe columns
+			                'Date'[Week Day],       -- to get the last day with data
+			                'Date'[WeekDayNumber] -- selected in the report
+			            ),
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Amount],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearWeekNumber] = PreviousFiscalYearWeek,
+			            'Date'[WeekDayNumber] <= LastDayOfWeekAvailable,
+			            'Date'[DateWithPurchases] = TRUE 
+			        )
+			    RETURN
+			        Result
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: d7ebf826-e380-47f7-a8c7-9bd9e7bc5492
+
+	measure 'Budget Amount WOWTD (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount WTD (Weekly)]
+			VAR ValuePreviousPeriod = [Budget Amount PWTD (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: 4ca20926-3466-4f70-91bd-6ce6cd071919
+
+	measure 'Budget Amount WOWTD % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount WOWTD (Weekly)],
+			    [Budget Amount PWTD (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: 71a43098-969a-49ee-ad52-7f0f10651b20
+
+	measure 'Budget Amount MAT (364) (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    VAR LastDayMAT =  MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 363
+			    VAR Result = 
+			        CALCULATE ( 
+			            [Budget Amount], 
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT
+			        ) 
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Moving annual total growth
+		lineageTag: b90c1fc9-4860-46a7-8300-8af3c00cf256
+
+	measure 'Budget Amount PYMAT (364) (Weekly)' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    VAR LastDayAvailable = MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR LastDayMAT = LastDayAvailable - 364 -- go back 52 weeks
+			    VAR FirstDayMAT = LastDayMAT - 363
+			    VAR Result = 
+			        CALCULATE ( 
+			            [Budget Amount], 
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT
+			        ) 
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Moving annual total growth
+		lineageTag: 5f9e3367-9ee9-47bd-a13e-b00dfdc53a5a
+
+	measure 'Budget Amount MATG (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount MAT (364) (Weekly)]
+			VAR ValuePreviousPeriod = [Budget Amount PYMAT (364) (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Moving annual total growth
+		lineageTag: 2bc81d3d-6805-482e-a44b-5786df62d0bc
+
+	measure 'Budget Amount MATG % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount MATG (Weekly)],
+			    [Budget Amount PYMAT (364) (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Moving annual total growth
+		lineageTag: 169f9654-06fa-410f-b0ca-78fc4d6d8763
+
+	measure 'Budget Amount PYC (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[FW YearNumber] ),
+			    VAR PreviousFiscalYear = MAX ( 'Date'[FW YearNumber] ) - 1
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Amount],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearNumber] = PreviousFiscalYear
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: 93270fc8-98b5-4f4e-9328-b84f89cf6803
+
+	measure 'Budget Amount YTDOPY (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount YTD (Weekly)]
+			VAR ValuePreviousPeriod = [Budget Amount PYC (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: 54c66c46-8487-43ee-85bf-edd34ff99814
+
+	measure 'Budget Amount YTDOPY % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount YTDOPY (Weekly)],
+			    [Budget Amount PYC (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: fec462c3-fe5c-47f5-87b7-0a461522b6ef
+
+	measure 'Budget Amount PQC (Weekly)' =
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[FW YearQuarterNumber] ),
+			    VAR PreviousFiscalYearQuarter = MAX ( 'Date'[FW YearQuarterNumber] ) - 1
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Amount],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearQuarterNumber] = PreviousFiscalYearQuarter
+			        )
+			    RETURN
+			        Result
+			)
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: 97648c15-5b46-429f-9bfe-6545b5850833
+
+	measure 'Budget Amount QTDOPQ (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount QTD (Weekly)]
+			VAR ValuePreviousPeriod = [Budget Amount PQC (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: 7deb5bc4-6340-4e22-abb5-f47dcb2f327a
+
+	measure 'Budget Amount QTDOPQ % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount QTDOPQ (Weekly)],
+			    [Budget Amount PQC (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: b9842380-1eed-456f-82fc-77a9699d8403
+
+	measure 'Budget Amount PWC (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[FW YearWeekNumber] ),
+			    VAR PreviousFiscalYearWeek = MAX ( 'Date'[FW YearWeekNumber] ) - 1
+			    VAR Result =
+			        CALCULATE (
+			            [Budget Amount],
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[FW YearWeekNumber] = PreviousFiscalYearWeek
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: f59d6eb5-63d3-49dc-a68b-22f0da18827f
+
+	measure 'Budget Amount WTDOPW (Weekly)' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount WTD (Weekly)]
+			VAR ValuePreviousPeriod = [Budget Amount PWC (Weekly)]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: 66c6b048-c127-4b72-946b-a5c5cdb143e9
+
+	measure 'Budget Amount WTDOPW % (Weekly)' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount WTDOPW (Weekly)],
+			    [Budget Amount PWC (Weekly)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: afb82b60-ccab-4209-ba66-6ba0e9f443f3
+
+	measure 'Budget Amount AVG 4W (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    VAR LastDayMAT =
+			        MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 27
+			    VAR Period4W =
+			        CALCULATETABLE (
+			            VALUES ( 'Date'[Sequential365DayNumber] ),
+			            ALLEXCEPT (
+			                'Date',
+			                'Date'[Day Type],
+			                'Date'[Week Day]
+			            ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT,
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    VAR FirstDayWithData =
+			        CALCULATE (
+			            MIN ( 'Purchase Budget'[Date]), 
+			            REMOVEFILTERS ()
+			        )
+			    VAR FirstDayInPeriod =
+			        MINX (
+			            Period4W,
+			            'Date'[Sequential365DayNumber]
+			        )
+			    VAR Result =
+			        IF (
+			            FirstDayWithData <= FirstDayInPeriod,
+			            CALCULATE (
+			                AVERAGEX ( Period4W, [Budget Amount] ),
+			                REMOVEFILTERS ( 'Date' )
+			            )
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Moving averages
+		lineageTag: f33e1160-bc16-434f-9ee9-d23b77ddef18
+
+	measure 'Budget Amount AVG 1Q (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    VAR LastDayMAT =
+			        MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 13 * 7 + 1
+			    VAR Period1Q =
+			        CALCULATETABLE (
+			            VALUES ( 'Date'[Sequential365DayNumber] ),
+			            ALLEXCEPT ( 'Date', 'Date'[Day Type], 'Date'[Week Day] ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT,
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    VAR FirstDayWithData =
+			        CALCULATE (
+			        MIN ( 'Purchase Budget'[Date]),
+			            REMOVEFILTERS ()
+			        )
+			    VAR FirstDayInPeriod =
+			        MINX (
+			            Period1Q,
+			            'Date'[Sequential365DayNumber]
+			        )
+			    VAR Result =
+			        IF (
+			            FirstDayWithData <= FirstDayInPeriod,
+			            CALCULATE (
+			                AVERAGEX ( Period1Q, [Budget Amount] ),
+			                REMOVEFILTERS ( 'Date' )
+			            )
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Moving averages
+		lineageTag: dd2e004b-bfe4-4e93-8a82-027181e0edde
+
+	measure 'Budget Amount AVG 1Y (Weekly)' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    VAR LastDayMAT =
+			        MAX ( 'Date'[Sequential365DayNumber] )
+			    VAR FirstDayMAT = LastDayMAT - 363
+			    VAR Period1Y =
+			        CALCULATETABLE (
+			            VALUES ( 'Date'[Sequential365DayNumber] ),
+			            ALLEXCEPT (
+			                'Date',
+			                'Date'[Day Type],
+			                'Date'[Week Day]
+			            ),
+			            'Date'[Sequential365DayNumber] >= FirstDayMAT
+			                && 'Date'[Sequential365DayNumber] <= LastDayMAT,
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    VAR FirstDayWithData =
+			        CALCULATE (
+			            MIN ( 'Purchase Budget'[Date]),
+			            REMOVEFILTERS ()
+			        )
+			    VAR FirstDayInPeriod =
+			        MINX (
+			            Period1Y,
+			            'Date'[Sequential365DayNumber]
+			        )
+			    VAR Result =
+			        IF (
+			            FirstDayWithData <= FirstDayInPeriod,
+			            CALCULATE (
+			                AVERAGEX ( Period1Y, [Budget Amount] ),
+			                REMOVEFILTERS ( 'Date' )
+			            )
+			        )
+			    RETURN
+			        Result
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Moving averages
+		lineageTag: b7564638-2c3e-4245-afbf-9227ae75ca9b
+
+	column Column1
+		dataType: string
+		isHidden
+		lineageTag: b824902d-ec6e-4f66-bc0a-b7d2b28ca6d5
+		summarizeBy: none
+		sourceColumn: Column1
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Weekly Calendar Time Intelligence-eda367ef-cd4b-45b5-b3e4-9070ddd1f613' = m
+		mode: import
+		queryGroup: 'Parameters and Functions'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

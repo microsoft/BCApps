@@ -1,0 +1,170 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/1.4.0/schema.json",
+  "displayName": "Respect Layers",
+  "name": "Bookmarkea23a0b0d1b16d9032e8",
+  "options": {
+    "applyOnlyToTargetVisuals": true,
+    "targetVisualNames": [],
+    "suppressActiveSection": true,
+    "suppressData": true,
+    "suppressDisplay": true
+  },
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "ReportSection1356fdbebe72ad7283d3",
+    "sections": {
+      "ReportSection1356fdbebe72ad7283d3": {
+        "visualContainers": {
+          "5f39bd163cf0bb18ae0e": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "fe9f369e834875ea8a69",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Sales Measures"
+                        }
+                      },
+                      "Property": "Gross Profit"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "d397c49b0ecef03d4fb5",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Sales Measures"
+                        }
+                      },
+                      "Property": "Sales Amount"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "d4cfa181ed879275b3f8",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Sales Measures"
+                        }
+                      },
+                      "Property": "Cost Amount"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "36d19c89aa35008fc6f1",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item"
+                        }
+                      },
+                      "Property": "Item Category Description"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "6678cf0857e1555218d6",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item"
+                        }
+                      },
+                      "Property": "Item No. & Description"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "pivotTable",
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item"
+                        }
+                      },
+                      "Property": "Item Category Description"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Rows": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item"
+                        }
+                      },
+                      "Property": "Item Category Description"
+                    }
+                  },
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item"
+                        }
+                      },
+                      "Property": "Item No. & Description"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "objects": {
+      "merge": {
+        "outspacePane": [
+          {
+            "properties": {
+              "expanded": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "visible": {
+                "expr": {
+                  "Literal": {
+                    "Value": "true"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

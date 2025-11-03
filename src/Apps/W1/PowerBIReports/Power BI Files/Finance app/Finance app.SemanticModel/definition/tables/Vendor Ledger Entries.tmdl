@@ -1,0 +1,782 @@
+table 'Vendor Ledger Entries'
+	lineageTag: 09757853-7ec3-497c-9202-77e914eb21aa
+
+	measure 'Amount Payable (LCY)' = SUM('Vendor Ledger Entries'[Amount (LCY)])
+		formatString: #,0.00
+		displayFolder: _Vendor Ledger Measures
+		lineageTag: 8484be59-ff8d-4b28-b4b7-b93f5550dcc2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Bucket 2 (Payables)' =
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] * -1
+			VAR AGINGENDDATEVALUE = AGINGBUCKETLENGTH
+			VAR AGINGSTARTDATEVALUE = (AGINGBUCKETLENGTH * 2) + 1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			VAR STARTDATE = DATEADD(ASATDATE,AGINGSTARTDATEVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    [Amount Payable (LCY)],
+			    DATESBETWEEN('Vendor Ledger Entries'[VLE Due Date],STARTDATE,ENDDATE))
+			
+			VAR USEPOSTINGDATE = CALCULATE(
+			    [Amount Payable (LCY)],
+			    DATESBETWEEN('Vendor Ledger Entries'[Posting Date (Calculated)],STARTDATE,ENDDATE))
+			
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    [Amount Payable (LCY)],
+			    DATESBETWEEN('Vendor Ledger Entries'[Document Date (Calculated)],STARTDATE,ENDDATE))
+			
+			VAR RESULT = SWITCH(
+			                VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                "Due Date", USEDUEDATE,
+			                "Posting Date",USEPOSTINGDATE,
+			                "Document Date",USEDOCUMENTDATE
+			                )
+			
+			RETURN RESULT
+		formatString: #,0.00
+		displayFolder: _Vendor Ledger Measures\_Aging Buckets
+		lineageTag: 7cf9adad-e61f-4c56-ae9d-791da1bb5639
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Bucket 1 (Payables)' = ```
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] - 1
+			VAR STARTAGINGVALUE = AGINGBUCKETLENGTH * -1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR STARTDATE = DATEADD(ASATDATE,STARTAGINGVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    [Amount Payable (LCY)],
+			    DATESBETWEEN('Vendor Ledger Entries'[VLE Due Date],STARTDATE,ASATDATE))
+			
+			VAR USEPOSTINGDATE = CALCULATE(
+			    [Amount Payable (LCY)],
+			    DATESBETWEEN('Vendor Ledger Entries'[Posting Date (Calculated)],STARTDATE,ASATDATE))
+			    
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    [Amount Payable (LCY)],
+			    DATESBETWEEN('Vendor Ledger Entries'[Document Date (Calculated)],STARTDATE,ASATDATE))
+			
+			VAR RESULT = SWITCH(
+			                VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                "Due Date", USEDUEDATE,
+			                "Posting Date",USEPOSTINGDATE,
+			                "Document Date",USEDOCUMENTDATE
+			                )
+			
+			RETURN RESULT
+			```
+		formatString: #,0.00
+		displayFolder: _Vendor Ledger Measures\_Aging Buckets
+		lineageTag: 6101afd0-9f73-4cad-863e-31a4888fd0c2
+
+		changedProperty = FormatString
+
+	measure 'Bucket 3 (Payables)' =
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] * -1
+			VAR AGINGENDDATEVALUE =  AGINGBUCKETLENGTH * 2
+			VAR AGINGSTARTDATEVALUE = (AGINGBUCKETLENGTH * 3) + 1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			VAR STARTDATE = DATEADD(ASATDATE,AGINGSTARTDATEVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    [Amount Payable (LCY)],
+			    DATESBETWEEN('Vendor Ledger Entries'[VLE Due Date],STARTDATE,ENDDATE))
+			
+			VAR USEPOSTINGDATE = CALCULATE(
+			    [Amount Payable (LCY)],
+			    DATESBETWEEN('Vendor Ledger Entries'[Posting Date (Calculated)],STARTDATE,ENDDATE))
+			
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    [Amount Payable (LCY)],
+			    DATESBETWEEN('Vendor Ledger Entries'[Document Date (Calculated)],STARTDATE,ENDDATE))
+			
+			VAR RESULT = SWITCH(
+			                VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                "Due Date", USEDUEDATE,
+			                "Posting Date",USEPOSTINGDATE,
+			                "Document Date",USEDOCUMENTDATE
+			                )
+			
+			RETURN RESULT
+		formatString: #,0.00
+		displayFolder: _Vendor Ledger Measures\_Aging Buckets
+		lineageTag: c1155840-eb3b-456a-9ae4-d0ded0517954
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Bucket 4 (Payables)' =
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] * -1
+			VAR AGINGENDDATEVALUE = (AGINGBUCKETLENGTH * 3) + 1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    [Amount Payable (LCY)],
+			    'Vendor Ledger Entries'[VLE Due Date] < ENDDATE)
+			
+			 VAR USEPOSTINGDATE = CALCULATE(
+			    [Amount Payable (LCY)],
+			    'Vendor Ledger Entries'[Posting Date (Calculated)] < ENDDATE)
+			
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    [Amount Payable (LCY)],
+			    'Vendor Ledger Entries'[Document Date (Calculated)] < ENDDATE)
+			
+			VAR RESULT = SWITCH(
+			                VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                "Due Date", USEDUEDATE,
+			                "Posting Date",USEPOSTINGDATE,
+			                "Document Date",USEDOCUMENTDATE
+			                )
+			
+			RETURN RESULT
+		formatString: #,0.00
+		displayFolder: _Vendor Ledger Measures\_Aging Buckets
+		lineageTag: 8af74228-0c0c-4855-a932-13a7b4218d09
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Current (Payables)' = ```
+			
+			VAR STARTDATE = LASTDATE('Date'[Date])
+			
+			VAR USEDUEDATE = CALCULATE(
+			    [Amount Payable (LCY)],
+			    'Vendor Ledger Entries'[VLE Due Date] >= STARTDATE )
+			
+			 VAR USEPOSTINGDATE = CALCULATE(
+			    [Amount Payable (LCY)],
+			    'Vendor Ledger Entries'[Posting Date (Calculated)] >= STARTDATE )
+			
+			 VAR USEDOCUMENTDATE = CALCULATE(
+			    [Amount Payable (LCY)],
+			    'Vendor Ledger Entries'[Document Date (Calculated)] >= STARTDATE )     
+			
+			VAR RESULT = SWITCH(
+			                VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                "Due Date", USEDUEDATE,
+			                "Posting Date",USEPOSTINGDATE,
+			                "Document Date",USEDOCUMENTDATE
+			                )
+			    
+			RETURN RESULT
+			```
+		displayFolder: _Vendor Ledger Measures\_Aging Buckets
+		lineageTag: 5f36dcd4-cd39-4f3b-b106-e1a93a3780c3
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Balance (Accounts Payable)' =
+			
+			CALCULATE (
+			    [Amount Payable (LCY)],
+			    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] <= MAX ( 'Date'[Date] ) )
+			)
+		formatString: #,0.00
+		displayFolder: _Vendor Ledger Measures
+		lineageTag: e4b97e20-6fb4-4287-919e-971b774d4598
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Original Amount' =
+			CALCULATE(
+			    [Amount Payable (LCY)],
+			    'Vendor Ledger Entries'[Entry Type] = "Initial Entry"
+			)
+		formatString: #,0.00
+		displayFolder: _Vendor Ledger Measures
+		lineageTag: 07d0d657-d4ec-4c0e-854a-8a9e712d6614
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'VLE Bucket 1 Back Link' = ```
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] - 1
+			VAR STARTAGINGVALUE = AGINGBUCKETLENGTH * -1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR STARTDATE = DATEADD(ASATDATE,STARTAGINGVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Vendor Ledger Entries'[Document No.]), 'Vendor Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Vendor Ledger Entries'[VLE Due Date],STARTDATE,ASATDATE))
+			
+			VAR USEPOSTINGDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Vendor Ledger Entries'[Document No.]), 'Vendor Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Vendor Ledger Entries'[Posting Date (Calculated)],STARTDATE,ASATDATE))
+			    
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Vendor Ledger Entries'[Document No.]), 'Vendor Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Vendor Ledger Entries'[Document Date (Calculated)],STARTDATE,ASATDATE))
+			
+			VAR RESULT =  [Base Link] & "&page=29&filter='Vendor Ledger Entry'.'Document Type' IS '"
+			                    & CONCATENATEX(VALUES('Vendor Ledger Entries'[Document Type]), 'Vendor Ledger Entries'[Document Type], "|") & "' 
+			                AND 'Document No.' IS '"
+			                    & SWITCH(
+			                        VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                        "Due Date", USEDUEDATE,
+			                        "Posting Date",USEPOSTINGDATE,
+			                        "Document Date",USEDOCUMENTDATE
+			                    ) & "'"
+			
+			RETURN RESULT
+			```
+		formatString: #,0.00
+		displayFolder: _Vendor Ledger Measures\_VLE Back Links
+		lineageTag: 877c623f-77d9-4bb9-b61e-a87e1c6d3e2d
+
+		changedProperty = FormatString
+
+	measure 'VLE Bucket 2 Back Link' = ```
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] * -1
+			VAR AGINGENDDATEVALUE = AGINGBUCKETLENGTH
+			VAR AGINGSTARTDATEVALUE = (AGINGBUCKETLENGTH * 2) + 1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			VAR STARTDATE = DATEADD(ASATDATE,AGINGSTARTDATEVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Vendor Ledger Entries'[Document No.]), 'Vendor Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Vendor Ledger Entries'[VLE Due Date],STARTDATE,ENDDATE))
+			
+			VAR USEPOSTINGDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Vendor Ledger Entries'[Document No.]), 'Vendor Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Vendor Ledger Entries'[Posting Date (Calculated)],STARTDATE,ENDDATE))
+			
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Vendor Ledger Entries'[Document No.]), 'Vendor Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Vendor Ledger Entries'[Document Date (Calculated)],STARTDATE,ENDDATE))
+			
+			VAR RESULT = [Base Link] & "&page=29&filter='Vendor Ledger Entry'.'Document Type' IS '"
+			                    & CONCATENATEX(VALUES('Vendor Ledger Entries'[Document Type]), 'Vendor Ledger Entries'[Document Type], "|") & "' 
+			                AND 'Document No.' IS '"
+			                    & SWITCH(
+			                        VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                        "Due Date", USEDUEDATE,
+			                        "Posting Date",USEPOSTINGDATE,
+			                        "Document Date",USEDOCUMENTDATE
+			                    ) & "'"
+			
+			RETURN RESULT
+			```
+		formatString: #,0.00
+		displayFolder: _Vendor Ledger Measures\_VLE Back Links
+		lineageTag: 97757442-858e-4743-8d38-bac8a1aa6bf3
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'VLE Bucket 3 Back Link' = ```
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] * -1
+			VAR AGINGENDDATEVALUE =  AGINGBUCKETLENGTH * 2
+			VAR AGINGSTARTDATEVALUE = (AGINGBUCKETLENGTH * 3) + 1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			VAR STARTDATE = DATEADD(ASATDATE,AGINGSTARTDATEVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Vendor Ledger Entries'[Document No.]), 'Vendor Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Vendor Ledger Entries'[VLE Due Date],STARTDATE,ENDDATE))
+			
+			VAR USEPOSTINGDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Vendor Ledger Entries'[Document No.]), 'Vendor Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Vendor Ledger Entries'[Posting Date (Calculated)],STARTDATE,ENDDATE))
+			
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Vendor Ledger Entries'[Document No.]), 'Vendor Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Vendor Ledger Entries'[Document Date (Calculated)],STARTDATE,ENDDATE))
+			
+			VAR RESULT = [Base Link] & "&page=29&filter='Vendor Ledger Entry'.'Document Type' IS '"
+			                    & CONCATENATEX(VALUES('Vendor Ledger Entries'[Document Type]), 'Vendor Ledger Entries'[Document Type], "|") & "' 
+			                AND 'Document No.' IS '"
+			                    & SWITCH(
+			                        VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                        "Due Date", USEDUEDATE,
+			                        "Posting Date",USEPOSTINGDATE,
+			                        "Document Date",USEDOCUMENTDATE
+			                    ) & "'"
+			                    
+			RETURN RESULT
+			```
+		formatString: #,0.00
+		displayFolder: _Vendor Ledger Measures\_VLE Back Links
+		lineageTag: 2e6aa4e7-eb73-4338-a70b-9bbd0111e3c3
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'VLE Bucket 4 Back Link' = ```
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] * -1
+			VAR AGINGENDDATEVALUE = (AGINGBUCKETLENGTH * 3) + 1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Vendor Ledger Entries'[Document No.]), 'Vendor Ledger Entries'[Document No.], "|"),
+			    'Vendor Ledger Entries'[VLE Due Date] < ENDDATE)
+			
+			 VAR USEPOSTINGDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Vendor Ledger Entries'[Document No.]), 'Vendor Ledger Entries'[Document No.], "|"),
+			    'Vendor Ledger Entries'[Posting Date (Calculated)] < ENDDATE)
+			
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Vendor Ledger Entries'[Document No.]), 'Vendor Ledger Entries'[Document No.], "|"),
+			    'Vendor Ledger Entries'[Document Date (Calculated)] < ENDDATE)
+			
+			VAR RESULT = [Base Link] & "&page=29&filter='Vendor Ledger Entry'.'Document Type' IS '"
+			                    & CONCATENATEX(VALUES('Vendor Ledger Entries'[Document Type]), 'Vendor Ledger Entries'[Document Type], "|") & "' 
+			                AND 'Document No.' IS '"
+			                    & SWITCH(
+			                        VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                        "Due Date", USEDUEDATE,
+			                        "Posting Date",USEPOSTINGDATE,
+			                        "Document Date",USEDOCUMENTDATE
+			                    ) & "'"
+			
+			RETURN RESULT
+			```
+		formatString: #,0.00
+		displayFolder: _Vendor Ledger Measures\_VLE Back Links
+		lineageTag: 8d5fb314-cb2f-4a48-8b84-ef7ceaa168dc
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'VLE Current Back Link' = ```
+			
+			VAR STARTDATE = LASTDATE('Date'[Date])
+			
+			VAR USEDUEDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Vendor Ledger Entries'[Document No.]), 'Vendor Ledger Entries'[Document No.], "|"),
+			    'Vendor Ledger Entries'[VLE Due Date] >= STARTDATE )
+			
+			 VAR USEPOSTINGDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Vendor Ledger Entries'[Document No.]), 'Vendor Ledger Entries'[Document No.], "|"),
+			    'Vendor Ledger Entries'[Posting Date (Calculated)] >= STARTDATE )
+			
+			 VAR USEDOCUMENTDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Vendor Ledger Entries'[Document No.]), 'Vendor Ledger Entries'[Document No.], "|"),
+			    'Vendor Ledger Entries'[Document Date (Calculated)] >= STARTDATE )     
+			
+			VAR RESULT = [Base Link] & "&page=29&filter='Vendor Ledger Entry'.'Document Type' IS '"
+			                    & CONCATENATEX(VALUES('Vendor Ledger Entries'[Document Type]), 'Vendor Ledger Entries'[Document Type], "|") & "' 
+			                AND 'Document No.' IS '"
+			                    & SWITCH(
+			                        VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                        "Due Date", USEDUEDATE,
+			                        "Posting Date",USEPOSTINGDATE,
+			                        "Document Date",USEDOCUMENTDATE
+			                    ) & "'"
+			    
+			RETURN RESULT
+			```
+		displayFolder: _Vendor Ledger Measures\_VLE Back Links
+		lineageTag: ed2109be-d4cb-45ae-a9ce-1c6e5ba61283
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'VLE Balance Back Link' = ```
+			
+			VAR DocumentsInContext =
+			    CALCULATE (
+			        CONCATENATEX (
+			            VALUES ( 'Vendor Ledger Entries'[Document No.] ),
+			            'Vendor Ledger Entries'[Document No.],
+			            "|"
+			        ),
+			        FILTER (
+			            ALL ( 'Date'[Date] ),
+			            'Date'[Date] <= MAX ( 'Date'[Date] )
+			        )
+			    )
+			VAR RESULT =
+			    [Base Link] & "&page=29&filter='Vendor Ledger Entry'.'Document Type' IS '"
+			        & CONCATENATEX (
+			            VALUES ( 'Vendor Ledger Entries'[Document Type] ),
+			            'Vendor Ledger Entries'[Document Type],
+			            "|"
+			        ) & "' 
+			                AND 'Document No.' IS '" & DocumentsInContext & "'"
+			RETURN
+			    RESULT
+			
+			```
+		displayFolder: _Vendor Ledger Measures\_VLE Back Links
+		lineageTag: 9ba542f3-47f0-4edc-89d0-cac2fc586c15
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'No. of VLE Payments' =
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( 'Vendor Ledger Entries'[Document No.] ),
+			    'Vendor Ledger Entries'[Document Type] = "Payment"
+			)
+		displayFolder: _Vendor Ledger Measures\_Counters
+		lineageTag: d4f4568c-28b9-414f-a7e4-2310e7102aec
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Posting Date (Calculated)' = ```
+			
+			 IF(
+			    'Vendor Ledger Entries'[Entry Type] = "Application" && 'Vendor Ledger Entries'[Applied Vendor Ledger Entry No.] <> 0,
+			    'Vendor Ledger Entries'[VLE Posting Date],
+			    'Vendor Ledger Entries'[DVLE Posting Date]
+			    )
+			```
+		isHidden
+		formatString: Short Date
+		lineageTag: ee223ef8-9ece-46d6-be1f-31e314cf4f97
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		changedProperty = FormatString
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Document Date (Calculated)' =
+			'Vendor Ledger Entries'[VLE Document Date]
+			//  IF(
+			//     'Vendor Ledger Entries'[Entry Type] = "Application" && 'Vendor Ledger Entries'[Applied Vendor Ledger Entry No.] <> 0,
+			//     'Vendor Ledger Entries'[VLE Document Date],
+			//     'Vendor Ledger Entries'[DVLE Document Date]
+			//     )
+		isHidden
+		formatString: Short Date
+		lineageTag: d3384be1-93d0-407d-b921-6b6236cb4c00
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		changedProperty = FormatString
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'VLE Entry No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 4ddfb6eb-6471-4ba1-bc74-304c01b61282
+		summarizeBy: sum
+		sourceColumn: VLE Entry No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'VLE Due Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 18e1ba3d-446e-47b2-9bd4-946679621ebf
+		summarizeBy: none
+		sourceColumn: VLE Due Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'VLE Open'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: df1794c3-7fc2-4568-88f3-a2140c5d1c98
+		summarizeBy: none
+		sourceColumn: VLE Open
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'VLE Posting Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 977d0475-f47b-47cb-9b2a-4373108cf0e9
+		summarizeBy: none
+		sourceColumn: VLE Posting Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'VLE Document Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 907f49bb-a8a2-412a-a3c0-72b29a85cc29
+		summarizeBy: none
+		sourceColumn: VLE Document Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column vleDimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 46ba3e32-33c3-4e3f-924e-e963ff0d2d7f
+		summarizeBy: none
+		sourceColumn: vleDimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DVLE Entry No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: a792cf30-13ee-42f0-95a3-36bb48c7f406
+		summarizeBy: sum
+		sourceColumn: DVLE Entry No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DVLE Posting Date'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: ccd0221a-a35c-4cd1-b3a7-c68913b8ba95
+		summarizeBy: none
+		sourceColumn: DVLE Posting Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'DVLE Ledger Entry Amount'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 9b82f702-b59b-431b-bc43-383f35a72f20
+		summarizeBy: none
+		sourceColumn: DVLE Ledger Entry Amount
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entry Type'
+		dataType: string
+		lineageTag: 4b86f1ea-fbaf-4c51-b12d-aeccc5e47548
+		summarizeBy: none
+		sourceColumn: Entry Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document Type'
+		dataType: string
+		lineageTag: 6ff41b46-1c7e-4264-aa0d-d1ed00423976
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: 696631e6-a0fe-4087-904b-eaffd3c1074d
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DVLE Initial Entry Due Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 74a111dd-b373-4759-b8bb-265a2bcf6207
+		summarizeBy: none
+		sourceColumn: DVLE Initial Entry Due Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Amount (LCY)'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: a771c934-328f-4ba9-bb7c-fa32546c92f5
+		summarizeBy: sum
+		sourceColumn: Amount (LCY)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Vendor No.'
+		dataType: string
+		lineageTag: f53b70fa-016a-4ba9-acaf-b56f2c549f27
+		summarizeBy: none
+		sourceColumn: Vendor No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Application No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: bbfc035e-4aec-41ae-93b8-5dfac78d69e0
+		summarizeBy: sum
+		sourceColumn: Application No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Applied Vendor Ledger Entry No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2879c05d-ccbb-49f3-aeb2-0b680d3136b7
+		summarizeBy: sum
+		sourceColumn: Applied Vendor Ledger Entry No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'PIH Document No.'
+		dataType: string
+		lineageTag: c88a3e66-d00e-4c6e-9859-481ac81ad00f
+		summarizeBy: none
+		sourceColumn: PIH Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Payment Terms Code'
+		dataType: string
+		lineageTag: e0fb000c-1fb6-46c9-8e8c-074a21c5bf99
+		summarizeBy: none
+		sourceColumn: Payment Terms Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Payment Discount Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: e5d9bec2-7d12-4c97-b024-e7b4d8d5aa4e
+		summarizeBy: none
+		sourceColumn: Payment Discount Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column vleReasonCode
+		dataType: string
+		isHidden
+		lineageTag: dd5c1c3a-f5aa-4ebb-895f-fa4bc5c50b64
+		summarizeBy: none
+		sourceColumn: vleReasonCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'VLE Closed At Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 82d9bdd2-2836-43d7-b488-30bf6dbaad42
+		summarizeBy: none
+		sourceColumn: VLE Closed At Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition 'Vendor Ledger Entries-aa98b36e-6f72-499c-9709-af339ef1385a' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+				        ENVIRONMENT, COMPANY,API_ENDPOINT, []
+				    ),
+				    TableData = Source{[Name = "vendorLedgerEntries", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"vleEntryNo", Int64.Type},
+				            {"vleDueDate", type date},
+				            {"vleOpen", type logical},
+				            {"vlePostingDate", type date},
+				            {"vleDocumentDate", type date},
+				            {"vleDimensionSetID", Int64.Type},
+				            {"dvleEntryNo", Int64.Type},
+				            {"dvlePostingDate", type date},
+				            {"dvleLedgerEntryAmount", type logical},
+				            {"dvleEntryType", type text},
+				            {"dvleDocumentType", type text},
+				            {"dvleDocumentNo", type text},
+				            {"dvleInitialEntryDueDate", type date},
+				            {"dvleAmountLCY", Currency.Type},
+				            {"dvleVendorNo", type text},
+				            {"dvleApplicationNo", Int64.Type},
+				            {"dvleAppliedVendLedgerEntryNo", Int64.Type},
+				            {"purchInvHeaderDocumentNo", type text},
+				            {"purchInvHeaderPaymentTermsCode", type text},
+				            {"purchInvHeaderPmtDiscountDate", type date}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {
+				            {"vleEntryNo", "VLE Entry No."},
+				            {"vleDueDate", "VLE Due Date"},
+				            {"vleOpen", "VLE Open"},
+				            {"vlePostingDate", "VLE Posting Date"},
+				            {"vleDocumentDate", "VLE Document Date"},
+				            {"vleClosedAtDate", "VLE Closed At Date"},
+				            {"dvleEntryNo", "DVLE Entry No."},
+				            {"dvlePostingDate", "DVLE Posting Date"},
+				            {"dvleLedgerEntryAmount", "DVLE Ledger Entry Amount"},
+				            {"dvleEntryType", "Entry Type"},
+				            {"dvleDocumentType", "Document Type"},
+				            {"dvleDocumentNo", "Document No."},
+				            {"dvleInitialEntryDueDate", "DVLE Initial Entry Due Date"},
+				            {"dvleAmountLCY", "Amount (LCY)"},
+				            {"dvleVendorNo", "Vendor No."},
+				            {"dvleApplicationNo", "Application No."},
+				            {"dvleAppliedVendLedgerEntryNo", "Applied Vendor Ledger Entry No."},
+				            {"purchInvHeaderDocumentNo", "PIH Document No."},
+				            {"purchInvHeaderPaymentTermsCode", "Payment Terms Code"},
+				            {"purchInvHeaderPmtDiscountDate", "Payment Discount Date"}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns", {"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
