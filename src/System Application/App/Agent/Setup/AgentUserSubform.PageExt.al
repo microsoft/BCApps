@@ -5,10 +5,10 @@
 
 namespace System.Agents;
 
-using System.Security.AccessControl;
-using System.Security.User;
 using System.Environment;
 using System.Environment.Configuration;
+using System.Security.AccessControl;
+using System.Security.User;
 
 pageextension 4318 "Agent User Subform" extends "User Subform"
 {

@@ -6,8 +6,8 @@
 namespace Microsoft.Shared.Error;
 
 using Microsoft.Finance.Dimension;
-using System.Utilities;
 using System.Reflection;
+using System.Utilities;
 codeunit 7906 "Dim. Code Same But Missing Err" implements ErrorMessageFix
 {
     Access = Internal;

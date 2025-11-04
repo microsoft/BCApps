@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
-using System.Security.AccessControl;
 using Microsoft.eServices.EDocument.Processing.Import;
+using System.Security.AccessControl;
 
 page 6108 "Inbound E-Doc. Factbox"
 {

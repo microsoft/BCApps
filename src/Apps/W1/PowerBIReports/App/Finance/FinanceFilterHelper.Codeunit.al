@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.PowerBIReports;
 
-using Microsoft.PowerBIReports;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.PowerBIReports;
 
 codeunit 36954 "Finance Filter Helper"
 {

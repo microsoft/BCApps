@@ -6,8 +6,8 @@
 namespace System.Test.Security.AccessControl;
 
 using System.Security.AccessControl;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 135033 "Password Dialog Test"
 {

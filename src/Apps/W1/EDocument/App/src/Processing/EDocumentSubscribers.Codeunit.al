@@ -1,39 +1,39 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.IO.Peppol;
+using Microsoft.eServices.EDocument.OrderMatch;
+using Microsoft.EServices.EDocument.Processing;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
-using Microsoft.eServices.EDocument.OrderMatch;
-using Microsoft.eServices.EDocument.Service.Participant;
-using Microsoft.eServices.EDocument.Processing.Import.Purchase;
-using Microsoft.Inventory.Transfer;
+using Microsoft.Purchases.Setup;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
-using System.Telemetry;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;
-using Microsoft.Utilities;
 using Microsoft.Sales.Reminder;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Posting;
-using Microsoft.EServices.EDocument.Processing;
-using Microsoft.eServices.EDocument.Processing.Import;
-using Microsoft.eServices.EDocument.IO.Peppol;
-using Microsoft.Purchases.Setup;
+using Microsoft.Utilities;
 using System.Automation;
-using System.Utilities;
 using System.Reflection;
+using System.Telemetry;
+using System.Utilities;
 
 codeunit 6103 "E-Document Subscribers"
 {

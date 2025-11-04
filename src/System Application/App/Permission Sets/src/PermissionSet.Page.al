@@ -6,8 +6,8 @@
 namespace System.Security.AccessControl;
 
 using System.Agents;
-using System.Telemetry;
 using System.Security.User;
+using System.Telemetry;
 
 /// <summary>
 /// Card page for the permission set.
@@ -173,7 +173,7 @@ page 9855 "Permission Set"
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         AgentUtilities.BlockPageFromBeingOpenedByAgent();
-        
+
         FeatureTelemetry.LogUptake('0000HZJ', ComposablePermissionSetsTok, Enum::"Feature Uptake Status"::Discovered);
         UpdatePageParts();
     end;

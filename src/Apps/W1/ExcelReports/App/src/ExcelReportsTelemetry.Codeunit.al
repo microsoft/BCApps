@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.ExcelReports;
+
 using System.Telemetry;
 
 codeunit 4412 "Excel Reports Telemetry"

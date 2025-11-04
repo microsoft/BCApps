@@ -5,9 +5,9 @@
 
 namespace Microsoft.Sales.ExcelReports;
 
-using Microsoft.Sales.Customer;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
+using Microsoft.Sales.Customer;
 
 table 4405 "EXR Top Customer Report Buffer"
 {

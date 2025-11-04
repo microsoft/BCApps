@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.Integration.Send;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Sales.FinanceCharge;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Reminder;
+using Microsoft.Service.History;
 using System.Automation;
 using System.Telemetry;
 using System.Utilities;
-using Microsoft.Sales.History;
-using Microsoft.Sales.Reminder;
-using Microsoft.Sales.FinanceCharge;
-using Microsoft.Service.History;
-using Microsoft.Inventory.Transfer;
-using Microsoft.eServices.EDocument.Integration.Send;
-using Microsoft.Foundation.Reporting;
 
 codeunit 6135 "E-Document WorkFlow Processing"
 {

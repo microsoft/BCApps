@@ -5,8 +5,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Interfaces;
 
-using Microsoft.Purchases.Document;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Purchases.Document;
 
 /// <summary>
 /// Interface for retrieving a purchase order based on an E-Document purchase header.

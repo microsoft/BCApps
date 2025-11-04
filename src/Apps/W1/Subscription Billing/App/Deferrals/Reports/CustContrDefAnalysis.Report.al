@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Text;
 using Microsoft.Sales.Customer;
+using System.Text;
 
 report 8052 "Cust. Contr. Def. Analysis"
 {

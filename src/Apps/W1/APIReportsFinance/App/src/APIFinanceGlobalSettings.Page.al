@@ -1,7 +1,7 @@
 namespace Microsoft.API.FinancialManagement;
 
-using System.Environment;
 using Microsoft.Finance.GeneralLedger.Setup;
+using System.Environment;
 
 page 30306 "API Finance - Global Settings"
 {

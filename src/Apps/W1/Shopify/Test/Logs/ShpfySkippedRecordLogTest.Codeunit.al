@@ -5,12 +5,12 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Integration.Shopify;
+using Microsoft.Inventory.Item;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using System.TestLibraries.Utilities;
-using Microsoft.Sales.Customer;
-using Microsoft.Inventory.Item;
-using Microsoft.Foundation.PaymentTerms;
 
 codeunit 139581 "Shpfy Skipped Record Log Test"
 {

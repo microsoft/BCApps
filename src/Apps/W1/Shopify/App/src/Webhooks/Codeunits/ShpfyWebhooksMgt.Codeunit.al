@@ -5,10 +5,10 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using System.Environment;
 using System.Integration;
 using System.Telemetry;
 using System.Threading;
-using System.Environment;
 
 codeunit 30269 "Shpfy Webhooks Mgt."
 {

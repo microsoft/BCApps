@@ -5,8 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using System.Telemetry;
 using System.DateTime;
+using System.Telemetry;
 
 /// <summary>
 /// Page Shpfy Shop Card (ID 30101).

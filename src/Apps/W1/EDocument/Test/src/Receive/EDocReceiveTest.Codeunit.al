@@ -4,25 +4,25 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Test;
 
-using Microsoft.Purchases.Document;
-using Microsoft.Foundation.UOM;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Foundation.Address;
-using System.TestLibraries.Utilities;
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.IO.Peppol;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.Enums;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Foundation.Attachment;
-using System.IO;
-using Microsoft.Finance.VAT.Setup;
-using System.Utilities;
-using Microsoft.eServices.EDocument.IO.Peppol;
-using System.Environment;
-using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
+using System.Environment;
+using System.IO;
 using System.Reflection;
-using Microsoft.eServices.EDocument.Integration;
-using Microsoft.Foundation.Enums;
+using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 139628 "E-Doc. Receive Test"
 {

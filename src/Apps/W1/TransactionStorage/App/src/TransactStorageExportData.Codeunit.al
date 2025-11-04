@@ -7,8 +7,8 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Ledger;
-using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Projects.Project.Ledger;
@@ -22,9 +22,9 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Service.History;
+using System.IO;
 using System.Reflection;
 using System.Telemetry;
-using System.IO;
 
 codeunit 6202 "Transact. Storage Export Data"
 {

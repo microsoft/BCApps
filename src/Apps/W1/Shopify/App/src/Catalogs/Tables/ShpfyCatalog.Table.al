@@ -5,13 +5,13 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Sales.Pricing;
-using Microsoft.Sales.Customer;
-using Microsoft.Foundation.Address;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Address;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Pricing;
 
 /// <summary>
 /// Table Shpfy Catalog (ID 30152).

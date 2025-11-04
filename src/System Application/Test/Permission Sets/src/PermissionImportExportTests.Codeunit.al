@@ -6,8 +6,8 @@
 namespace System.Test.Security.AccessControl;
 
 using System.Security.AccessControl;
-using System.Utilities;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 132437 "Permission Import Export Tests"
 {

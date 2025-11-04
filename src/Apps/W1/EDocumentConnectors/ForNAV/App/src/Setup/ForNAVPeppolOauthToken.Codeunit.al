@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
+
 using System.Text;
 using System.Reflection;
 codeunit 6423 "ForNAV Peppol Oauth Token"

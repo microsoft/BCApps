@@ -5,21 +5,21 @@
 
 namespace Microsoft.Test.Shared.Error;
 
-using System.TestLibraries.Utilities;
-using Microsoft.Purchases.Document;
-using System.Utilities;
-using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.Dimension;
-using Microsoft.Shared.Error;
-using Microsoft.Sales.Receivables;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
-using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Sales.Receivables;
+using Microsoft.Shared.Error;
 using Microsoft.Utilities;
-using Microsoft.Bank.BankAccount;
-using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Purchases.Vendor;
+using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 139621 ErrorMessageExtensibilityTests
 {

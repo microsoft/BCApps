@@ -4,19 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.Format;
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Integration.Action;
+using Microsoft.eServices.EDocument.Integration.Receive;
+using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.eServices.EDocument.IO;
 using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.EServices.EDocument.OrderMatch;
 using Microsoft.EServices.EDocument.OrderMatch.Copilot;
-using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Service;
-using Microsoft.eServices.EDocument.Integration.Receive;
-using Microsoft.eServices.EDocument.Integration.Action;
-using Microsoft.eServices.EDocument.Format;
-using Microsoft.eServices.EDocument.Integration.Send;
-using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Service.Participant;
 
 permissionset 6100 "E-Doc. Core - Objects"
 {

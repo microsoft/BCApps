@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
-using System.Environment;
 using System.Azure.Identity;
+using System.Environment;
 
 table 6107 "E-Documents Setup"
 {
@@ -68,7 +68,7 @@ table 6107 "E-Documents Setup"
         EnvironmentEnabledValueTok: Label 'true', Locked = true;
         TenantId: Text;
     begin
-        
+
         if TryGetAadTenantId(TenantId) then
             if TenantId in [
             '7bfacc13-5977-43eb-ae75-63e4cbf78029',

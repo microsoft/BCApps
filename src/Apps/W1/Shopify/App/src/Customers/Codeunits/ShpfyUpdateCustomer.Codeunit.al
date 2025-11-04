@@ -5,9 +5,9 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Sales.Customer;
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.Foundation.Address;
+using Microsoft.Sales.Customer;
 
 /// <summary>
 /// Codeunit Shpfy Update Customer (ID 30124).

@@ -7,8 +7,8 @@ namespace System.Test.Environment.Configuration;
 
 using System.Environment.Configuration;
 using System.TestLibraries.Environment.Configuration;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 134934 "Manual Setup Test"
 {

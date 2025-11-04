@@ -5,10 +5,10 @@
 
 namespace System.Test.Visualization;
 
+using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 using System.TestLibraries.Visualization;
 using System.Visualization;
-using System.TestLibraries.Utilities;
-using System.TestLibraries.Security.AccessControl;
 
 codeunit 135039 "Cues And KPIs Test"
 {

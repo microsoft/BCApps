@@ -5,9 +5,9 @@
 
 namespace System.Agents;
 
-using System.Security.User;
 using System.Environment.Configuration;
 using System.Globalization;
+using System.Security.User;
 
 page 4315 "Agent Card"
 {

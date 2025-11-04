@@ -5,8 +5,8 @@
 
 namespace Microsoft.Finance.ExcelReports.Test;
 
-using Microsoft.FixedAssets.Depreciation;
 using Microsoft.Finance.ExcelReports;
+using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Posting;
 using System.TestLibraries.Utilities;

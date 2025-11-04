@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.PowerBIReports;
 
-using System.Integration.PowerBI;
-using System.Globalization;
 using System.Environment.Configuration;
+using System.Globalization;
+using System.Integration.PowerBI;
 
 codeunit 36962 "Power BI Report Setup"
 {

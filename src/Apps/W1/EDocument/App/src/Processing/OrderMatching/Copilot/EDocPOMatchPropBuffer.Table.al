@@ -1,6 +1,7 @@
 namespace Microsoft.EServices.EDocument.OrderMatch.Copilot;
-using Microsoft.eServices.EDocument.OrderMatch;
+
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.OrderMatch;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 
