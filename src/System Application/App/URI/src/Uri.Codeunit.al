@@ -193,6 +193,22 @@ codeunit 3060 Uri
     end;
 
     /// <summary>
+    /// Validates whether two URLs have the same host.
+    /// </summary>
+    /// <param name="UriString1">The first URI string.</param>
+    /// <param name="UriString2">The second URI string.</param>
+    /// <returns>True if both URIs have the same host; otherwise, false.</returns>
+    procedure ValidateURLsAreSameHost(UriString1: Text; UriString2: Text): Boolean
+    var
+        Uri1, Uri2 : DotNet Uri;
+    begin
+        Uri1 := Uri1.Uri(UriString1);
+        Uri2 := Uri2.Uri(UriString2);
+
+        exit(Uri1.Host = Uri2.Host);
+    end;
+
+    /// <summary>
     /// Gets the underlying .Net Uri variable.
     /// </summary>
     /// <param name="OutUri">A .Net object of class Uri that holds the underlying .Net Uri variable.</param>
