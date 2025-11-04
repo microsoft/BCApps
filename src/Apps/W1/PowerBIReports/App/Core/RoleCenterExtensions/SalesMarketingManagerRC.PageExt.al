@@ -1,7 +1,3 @@
-// ------------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License. See License.txt in the project root for license information.
-// ------------------------------------------------------------------------------------------------
 namespace Microsoft.PowerBIReports;
 
 using Microsoft.CRM.RoleCenters;
@@ -174,6 +170,14 @@ pageextension 36960 "Sales & Marketing Manager RC" extends "Sales & Marketing Ma
                     Image = "PowerBI";
                     RunObject = page "Sales Forecasting";
                     Tooltip = 'Open the Power BI Report that predicts your sales trends, including forecasting of sales metrics across item, customer, document type and salespeople.';
+                }
+                action("Sales by Projects (Power BI)")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Sales by Projects (Power BI)';
+                    Image = "PowerBI";
+                    RunObject = page "Sales by Projects";
+                    Tooltip = 'Open the Power BI Report that breaks down sales performance by project, including sales metrics across customer, item, resources and general ledger accounts.';
                 }
             }
         }
