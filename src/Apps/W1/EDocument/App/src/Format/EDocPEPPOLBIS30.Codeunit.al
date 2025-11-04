@@ -9,7 +9,6 @@ using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Peppol;
 using Microsoft.Sales.Reminder;
-using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using System.Utilities;
 
