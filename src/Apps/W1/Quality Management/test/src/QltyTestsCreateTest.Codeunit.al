@@ -32,7 +32,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         ReUsableQltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
         CannotFindTemplateErr: Label 'Cannot find a Quality Inspection Template or Quality Inspection Test Generation Rule to match  %1. Ensure there is a Quality Inspection Test Generation Rule that will match this record.', Comment = '%1=The record identifier';
-        ProgrammerErrNotARecordRefErr: Label 'Cannot find tests with %1. Please supply a "Record" or "RecordRef".', Comment = '%1=the variant being supplied that is not a recordref. Your system might have an extension or customization that needs to be re-configured.';
+        ProgrammerErrNotARecordRefErr: Label 'Cannot find tests with %1. Please supply a "Record" or "RecordRef".', Comment = '%1=the variant being supplied that is not a RecordRef. Your system might have an extension or customization that needs to be re-configured.';
         UnableToCreateATestForRecordErr: Label 'Cannot find enough details to make a test for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your test generation rules.  The table involved is %1.', Comment = '%1=the table involved.';
         UnableToCreateATestForParentOrChildErr: Label 'Cannot find enough details to make a test for your record(s).  Try making sure that there is a source configuration for your record, and then also make sure there is sufficient information in your test generation rules.  Two tables involved are %1 and %2.', Comment = '%1=the parent table, %2=the child and original table.';
         IsInitialized: Boolean;

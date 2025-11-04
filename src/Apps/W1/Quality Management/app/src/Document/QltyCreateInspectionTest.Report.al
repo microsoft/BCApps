@@ -347,12 +347,12 @@ report 20400 "Qlty. Create Inspection Test"
     /// <summary>
     /// Provides an opportunity to create defaults in the Create Test report page.
     /// </summary>
-    /// <param name="QltyInspectionTemplateCode">VAR Code[20].</param>
-    /// <param name="SourceTable">VAR Code[20].</param>
-    /// <param name="CustomFilter">VAR Text.</param>
-    /// <param name="Target">VAR RecordId.</param>
-    /// <param name="TargetRecordRef">VAR RecordRef.</param>
-    /// <param name="TempQltyInspectionTestHeader">VAR Record "Qlty. Inspection Test Header" temporary.</param>
+    /// <param name="QltyInspectionTemplateCode">var Code[20].</param>
+    /// <param name="SourceTable">var Code[20].</param>
+    /// <param name="CustomFilter">var Text.</param>
+    /// <param name="Target">var RecordId.</param>
+    /// <param name="TargetRecordRef">var RecordRef.</param>
+    /// <param name="TempQltyInspectionTestHeader">var Record "Qlty. Inspection Test Header" temporary.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitializeCreateTestReportParameters(var QltyInspectionTemplateCode: Code[20]; var SourceTable: Code[20]; var CustomFilter: Text; var Target: RecordId; var TargetRecordRef: RecordRef; var TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary)
     begin

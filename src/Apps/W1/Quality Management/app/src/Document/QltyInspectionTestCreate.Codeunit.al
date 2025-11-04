@@ -34,7 +34,7 @@ codeunit 20404 "Qlty. Inspection Test - Create"
         QltyTraversal: Codeunit "Qlty. Traversal";
         PreventShowingGeneratedTestEvenIfConfigured: Boolean;
         AvoidThrowingErrorWhenPossible: Boolean;
-        ProgrammerErrNotARecordRefErr: Label 'Cannot find tests with %1. Please supply a "Record" or "RecordRef".', Comment = '%1=the variant being supplied that is not a recordref. Your system might have an extension or customization that needs to be re-configured.';
+        ProgrammerErrNotARecordRefErr: Label 'Cannot find tests with %1. Please supply a "Record" or "RecordRef".', Comment = '%1=the variant being supplied that is not a RecordRef. Your system might have an extension or customization that needs to be re-configured.';
         CannotFindTemplateErr: Label 'Cannot find a Quality Inspection Template or Quality Inspection Test Generation Rule to match  %1. Ensure there is a Quality Inspection Test Generation Rule that will match this record.', Comment = '%1=The record identifier';
         UnableToCreateATestForErr: Label 'Unable to create a test for the record [%1], please review the Quality Inspection Source Configuration and also the Quality Inspection Test Generation Rules, you likely need additional configuration to work with this record.', Comment = '%1=the record id of what is being attempted to have a test created for.';
         NoSpecificTemplateTok: Label '', Locked = true;

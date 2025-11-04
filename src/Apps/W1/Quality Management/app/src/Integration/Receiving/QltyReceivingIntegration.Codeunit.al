@@ -460,7 +460,7 @@ codeunit 20411 "Qlty. Receiving Integration"
     /// <summary>
     /// USe this to integrate with purchase auto tests before the tests are created.
     /// </summary>
-    /// <param name="WarehouseJournalLine">VAR Record "Warehouse Journal Line".</param>
+    /// <param name="WarehouseJournalLine">var Record "Warehouse Journal Line".</param>
     /// <param name="PostedWhseReceiptHeader">Record "Posted Whse. Receipt Header".</param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
@@ -473,7 +473,7 @@ codeunit 20411 "Qlty. Receiving Integration"
     /// </summary>
     /// <param name="HasTest"></param>
     /// <param name="QltyInspectionTestHeader">The quality inspection test involved</param>
-    /// <param name="WarehouseJournalLine">VAR Record "Warehouse Journal Line".</param>
+    /// <param name="WarehouseJournalLine">var Record "Warehouse Journal Line".</param>
     /// <param name="PostedWhseReceiptHeader">Record "Posted Whse. Receipt Header".</param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
@@ -486,7 +486,7 @@ codeunit 20411 "Qlty. Receiving Integration"
     /// </summary>
     /// <param name="PurchaseLine">The purchase line</param>
     /// <param name="PurchaseHeader">The purchase header</param>
-    /// <param name="TempTrackingSpecification">Temporary VAR Record "Tracking Specification".</param>
+    /// <param name="TempTrackingSpecification">Temporary var Record "Tracking Specification".</param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePurchaseAttemptCreateTestWithPurchaseLine(var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var Handled: Boolean)
@@ -500,7 +500,7 @@ codeunit 20411 "Qlty. Receiving Integration"
     /// <param name="QltyInspectionTestHeader">The quality inspection test involved</param>
     /// <param name="PurchaseLine">The purchase line</param>
     /// <param name="PurchaseHeader">The purchase header</param>
-    /// <param name="TempSpecTrackingSpecification">Temporary VAR Record "Tracking Specification".</param>
+    /// <param name="TempSpecTrackingSpecification">Temporary var Record "Tracking Specification".</param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPurchaseAttemptCreateTestWithPurchaseLine(var HasTest: Boolean; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var Handled: Boolean)

@@ -1781,7 +1781,7 @@ codeunit 20402 "Qlty. Auto Configure"
 
     /// <summary>
     /// GuessDoesAppearToBeSetup will guess if the system appears to be setup.
-    /// Use this if you need to not just make sure that Quality Inspection is installed but some basic setup has been done.
+    /// Use this if you need to not just make sure that Quality Management is installed but some basic setup has been done.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
     procedure GuessDoesAppearToBeSetup(): Boolean

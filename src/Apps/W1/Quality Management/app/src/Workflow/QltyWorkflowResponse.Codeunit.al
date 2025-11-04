@@ -879,14 +879,14 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// OnWorkflowHandleOnExecuteWorkflowResponseAfterFindRelatedRecord occurs after the system has found the related record for the workflow step.
     /// </summary>
-    /// <param name="ResponseExecuted">VAR Boolean.</param>
-    /// <param name="pVariant">VAR Variant.</param>
+    /// <param name="ResponseExecuted">var Boolean.</param>
+    /// <param name="pVariant">var Variant.</param>
     /// <param name="pxVariant">Variant.</param>
     /// <param name="ResponseWorkflowStepInstance">Record "Workflow Step Instance".</param>
-    /// <param name="TargetRecordRef">VAR recordref.</param>
+    /// <param name="TargetRecordRef">var RecordRef.</param>
     /// <param name="Handled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnWorkflowHandleOnExecuteWorkflowResponseAfterFindRelatedRecord(var ResponseExecuted: Boolean; var pVariant: Variant; pxVariant: Variant; ResponseWorkflowStepInstance: Record "Workflow Step Instance"; var TargetRecordRef: recordref; var Handled: Boolean)
+    local procedure OnWorkflowHandleOnExecuteWorkflowResponseAfterFindRelatedRecord(var ResponseExecuted: Boolean; var pVariant: Variant; pxVariant: Variant; ResponseWorkflowStepInstance: Record "Workflow Step Instance"; var TargetRecordRef: RecordRef; var Handled: Boolean)
     begin
     end;
 }

@@ -1774,7 +1774,7 @@ table 20405 "Qlty. Inspection Test Header"
     /// OnBeforeTakePicture occurs before a picture has been taken.
     /// Use this to replace with your own picture taking dialog.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">VAR Record "Qlty. Inspection Test Header".</param>
+    /// <param name="QltyInspectionTestHeader">var Record "Qlty. Inspection Test Header".</param>
     /// <param name="Handled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTakePicture(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var Handled: Boolean)
@@ -1785,7 +1785,7 @@ table 20405 "Qlty. Inspection Test Header"
     /// OnAfterTakePicture occurs after a picture has been taken.
     /// Picture storage will depend on the "Picture Upload Behavior" setting.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">VAR Record "Qlty. Inspection Test Header".</param>
+    /// <param name="QltyInspectionTestHeader">var Record "Qlty. Inspection Test Header".</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTakePicture(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
     begin
@@ -1794,11 +1794,11 @@ table 20405 "Qlty. Inspection Test Header"
     /// <summary>
     /// OnBeforeAddPicture occurs before the supplied picture instream is added to the test.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">VAR Record "Qlty. Inspection Test Header"</param>
-    /// <param name="nPictureInStream">VAR InStream</param>
-    /// <param name="PictureName">VAR Text</param>
-    /// <param name="FileExtension">VAR Text</param>
-    /// <param name="FullFileNameWithExtension">VAR Text</param>
+    /// <param name="QltyInspectionTestHeader">var Record "Qlty. Inspection Test Header"</param>
+    /// <param name="nPictureInStream">var InStream</param>
+    /// <param name="PictureName">var Text</param>
+    /// <param name="FileExtension">var Text</param>
+    /// <param name="FullFileNameWithExtension">var Text</param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAddPicture(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var nPictureInStream: InStream; var PictureName: Text; var FileExtension: Text; var FullFileNameWithExtension: Text; var Handled: Boolean)
@@ -1808,11 +1808,11 @@ table 20405 "Qlty. Inspection Test Header"
     /// <summary>
     /// OnAfterAddPicture occurs after the supplied picture instream is added to the test.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">VAR Record "Qlty. Inspection Test Header"</param>
-    /// <param name="nPictureInStream">VAR InStream</param>
-    /// <param name="PictureName">VAR Text</param>
-    /// <param name="FileExtension">VAR Text</param>
-    /// <param name="FullFileNameWithExtension">VAR Text</param>
+    /// <param name="QltyInspectionTestHeader">var Record "Qlty. Inspection Test Header"</param>
+    /// <param name="nPictureInStream">var InStream</param>
+    /// <param name="PictureName">var Text</param>
+    /// <param name="FileExtension">var Text</param>
+    /// <param name="FullFileNameWithExtension">var Text</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAddPicture(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var nPictureInStream: InStream; var PictureName: Text; var FileExtension: Text; var FullFileNameWithExtension: Text)
     begin
