@@ -5,10 +5,10 @@
 
 namespace System.Text;
 
-using System.Globalization;
 using System.AI;
 using System.Azure.KeyVault;
 using System.Environment;
+using System.Globalization;
 
 /// <summary>
 /// Implements functionality to call Azure OpenAI.

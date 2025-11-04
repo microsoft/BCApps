@@ -5,13 +5,13 @@
 
 namespace System.Test.Environment.Configuration;
 
+using System.Environment;
 using System.Environment.Configuration;
 using System.Media;
 using System.Reflection;
 using System.Security.AccessControl;
-using System.Environment;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 132604 "Checklist Facade Test"
 {

@@ -6,11 +6,11 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.AI;
-using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Foundation.UOM;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 using System.Log;
 
 codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
@@ -119,7 +119,7 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         EDocPurchaseLineHistory: Record "E-Doc. Purchase Line History";
         EDocHistoricalMatchingSetup: Record "EDoc Historical Matching Setup";
-        EDocSetup : Record "E-Documents Setup";
+        EDocSetup: Record "E-Documents Setup";
         EDocPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
     begin
         EDocHistoricalMatchingSetup.GetSetup();

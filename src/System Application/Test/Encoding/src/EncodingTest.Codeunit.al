@@ -5,8 +5,8 @@
 
 namespace System.Test.Text;
 
-using System.Text;
 using System.TestLibraries.Utilities;
+using System.Text;
 
 codeunit 132512 "Encoding Test"
 {

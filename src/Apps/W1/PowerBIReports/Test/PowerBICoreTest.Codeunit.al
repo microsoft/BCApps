@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.PowerBIReports.Test;
 
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.PowerBIReports;
 using Microsoft.PowerBIReports;
 using Microsoft.PowerBIReports.Test;
 using System.TestLibraries.Security.AccessControl;
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.PowerBIReports;
 
 
 codeunit 139875 "PowerBI Core Test"

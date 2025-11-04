@@ -5,12 +5,12 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Sales.Document;
+using System.TestLibraries.Utilities;
 
 codeunit 139648 "Shpfy Suggest Payment Test"
 {

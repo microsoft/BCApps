@@ -4,14 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Test;
 
-using Microsoft.eServices.EDocument.Integration;
-using Microsoft.Purchases.Vendor;
 using Microsoft.eServices.EDocument;
-using Microsoft.Purchases.Document;
+using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.OrderMatch;
-using Microsoft.Inventory.Item;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 using System.TestLibraries.Utilities;
 
 codeunit 139659 "E-Doc. Line Matching Test"

@@ -1,10 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Address;
-using Microsoft.Sales.Customer;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
+using Microsoft.Sales.Customer;
 
 page 8060 "Service Object"
 {

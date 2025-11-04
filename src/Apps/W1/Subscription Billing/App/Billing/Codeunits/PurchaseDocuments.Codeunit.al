@@ -1,11 +1,11 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Purchases.Document;
-using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
-using Microsoft.Finance.GeneralLedger.Posting;
-using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Purchases.Posting;
 
 codeunit 8066 "Purchase Documents"
 {

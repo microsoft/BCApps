@@ -5,8 +5,8 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Purchases.Document;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.Purchases.Document;
 
 codeunit 133503 "E-Doc. Processing Mocks" implements IEDocumentCreatePurchaseInvoice
 {

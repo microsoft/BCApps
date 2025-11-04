@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
-using Microsoft.Purchases.Vendor;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
 
 /// <summary>
 /// This table contains the history of field values that were on draft purchase lines, and the systemid of the purchase invoice line it was mapped to.

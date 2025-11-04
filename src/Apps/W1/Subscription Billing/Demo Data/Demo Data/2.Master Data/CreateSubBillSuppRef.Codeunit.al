@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.DemoData.Purchases;
 using Microsoft.DemoData.Common;
+using Microsoft.DemoData.Purchases;
 
 codeunit 8114 "Create Sub. Bill. Supp. Ref."
 {

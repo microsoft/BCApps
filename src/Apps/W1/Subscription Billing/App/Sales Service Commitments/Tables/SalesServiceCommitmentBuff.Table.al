@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Foundation.Enums;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Foundation.Enums;
 
 table 8020 "Sales Service Commitment Buff."
 {

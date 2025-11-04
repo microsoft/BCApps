@@ -5,7 +5,6 @@
 
 namespace System.Test.ExternalFileStorage;
 
-
 using System.Environment;
 using System.ExternalFileStorage;
 using System.TestLibraries.Utilities;

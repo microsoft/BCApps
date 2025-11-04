@@ -1,10 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
-using Microsoft.Pricing.PriceList;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Pricing.PriceList;
+using System.Utilities;
 
 tableextension 8052 Item extends Item
 {

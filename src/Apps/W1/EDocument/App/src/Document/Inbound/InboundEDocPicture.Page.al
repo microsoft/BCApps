@@ -3,8 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
-using System.Utilities;
+
 using System.IO;
+using System.Utilities;
 
 page 6111 "Inbound E-Doc. Picture"
 {

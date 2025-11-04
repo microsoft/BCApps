@@ -5,10 +5,10 @@
 
 namespace System.Agents;
 
-using System.Globalization;
 using System.DateTime;
-using System.Security.AccessControl;
 using System.Environment.Configuration;
+using System.Globalization;
+using System.Security.AccessControl;
 
 /// <summary>
 /// Page that shows the settings of a given user.

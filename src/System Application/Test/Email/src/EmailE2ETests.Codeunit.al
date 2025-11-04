@@ -7,9 +7,9 @@ namespace System.Test.Email;
 
 using System.Email;
 using System.TestLibraries.Email;
-using System.Text;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
+using System.Text;
 
 codeunit 134692 "Email E2E Tests"
 {

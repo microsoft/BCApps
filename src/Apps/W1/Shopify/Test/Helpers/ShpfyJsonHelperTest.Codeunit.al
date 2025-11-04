@@ -5,10 +5,10 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Company;
 using Microsoft.Integration.Shopify;
 using System.TestLibraries.Utilities;
-using Microsoft.Foundation.Company;
-using Microsoft.Foundation.Address;
 
 /// <summary>
 /// Codeunit Shpfy Json Helper Test (ID 139574).

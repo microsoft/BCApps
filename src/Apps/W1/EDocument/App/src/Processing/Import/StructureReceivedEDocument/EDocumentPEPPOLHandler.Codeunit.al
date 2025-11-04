@@ -8,8 +8,8 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
-using System.Utilities;
 using Microsoft.Finance.GeneralLedger.Setup;
+using System.Utilities;
 
 codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
 {

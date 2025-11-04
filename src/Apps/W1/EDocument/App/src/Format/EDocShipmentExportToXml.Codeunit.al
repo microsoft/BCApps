@@ -1,13 +1,13 @@
 namespace Microsoft.EServices.EDocument.Format;
 
-using Microsoft.Sales.History;
-using Microsoft.Sales.Customer;
+using Microsoft.eServices.EDocument;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.History;
+using System.Text;
 using System.Utilities;
 using System.Xml;
-using Microsoft.eServices.EDocument;
-using System.Text;
-using Microsoft.Foundation.Reporting;
 
 codeunit 6130 "E-Doc. Shipment Export To XML"
 {

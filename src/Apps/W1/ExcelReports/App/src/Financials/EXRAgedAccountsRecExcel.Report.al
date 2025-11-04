@@ -5,11 +5,11 @@
 
 namespace Microsoft.Finance.ExcelReports;
 
-using Microsoft.Sales.Customer;
-using Microsoft.Finance.Dimension;
-using Microsoft.Sales.Receivables;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.ExcelReports;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Receivables;
 
 report 4402 "EXR Aged Accounts Rec Excel"
 {

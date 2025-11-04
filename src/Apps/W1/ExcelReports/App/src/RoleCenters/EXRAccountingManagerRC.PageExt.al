@@ -4,8 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.ExcelReports;
-using Microsoft.Finance.RoleCenters;
+
 using Microsoft.Finance.ExcelReports;
+using Microsoft.Finance.RoleCenters;
 
 pageextension 4423 "EXR Accounting Manager RC" extends "Accounting Manager Role Center"
 {

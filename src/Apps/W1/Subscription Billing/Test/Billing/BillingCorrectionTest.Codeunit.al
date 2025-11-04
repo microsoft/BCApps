@@ -1,10 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Utilities;
-using Microsoft.Sales.Document;
-using Microsoft.Sales.History;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Utilities;
 
 codeunit 139686 "Billing Correction Test"
 {

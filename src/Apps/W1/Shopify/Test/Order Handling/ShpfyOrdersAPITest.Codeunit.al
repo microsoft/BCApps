@@ -5,14 +5,14 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
-using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
-using Microsoft.Sales.Document;
 using Microsoft.Finance.SalesTax;
-using Microsoft.Sales.Customer;
+using Microsoft.Foundation.Address;
+using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
-using Microsoft.Foundation.Address;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using System.TestLibraries.Utilities;
 
 codeunit 139608 "Shpfy Orders API Test"
 {

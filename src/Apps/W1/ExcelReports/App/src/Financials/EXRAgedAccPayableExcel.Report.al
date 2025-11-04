@@ -5,11 +5,11 @@
 
 namespace Microsoft.Finance.ExcelReports;
 
-using Microsoft.Purchases.Vendor;
-using Microsoft.Purchases.Payables;
+using Microsoft.ExcelReports;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.ExcelReports;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Vendor;
 
 report 4403 "EXR Aged Acc Payable Excel"
 {
