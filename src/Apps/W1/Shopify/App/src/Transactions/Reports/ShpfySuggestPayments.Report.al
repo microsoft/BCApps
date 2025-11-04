@@ -5,12 +5,12 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Sales.Receivables;
-using Microsoft.Finance.Dimension;
-using Microsoft.Sales.History;
 using Microsoft.Bank.BankAccount;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 
 report 30118 "Shpfy Suggest Payments"
 {
@@ -36,6 +36,7 @@ report 30118 "Shpfy Suggest Payments"
             trigger OnPreDataItem()
             begin
                 SetAutoCalcFields("Payment Method", Used);
+                SetLoadFields(Amount, "Rounding Amount", Type, "Shopify Order Id", "Shopify Transaction Id", Gateway, "Gift Card Id", "Payment Method");
                 if PostingDate = 0D then
                     Error(NoPostingDateErr);
                 if this.Gateway <> '' then
@@ -132,6 +133,13 @@ report 30118 "Shpfy Suggest Payments"
                     ToolTip = 'Specifies the gateway of the Shopify Order Transaction.';
                     TableRelation = "Shpfy Transaction Gateway";
                 }
+                field("Order No. In Description"; OrderNoInDescription)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Include Order No. in Description';
+                    Importance = Additional;
+                    ToolTip = 'Specifies whether the Shopify order number should be included in the description of the journal lines instead of order ID. Turning on this setting may decrease performance.';
+                }
             }
         }
 
@@ -169,6 +177,7 @@ report 30118 "Shpfy Suggest Payments"
         IsGenJournalLineSet: Boolean;
         IgnorePostedTransactions: Boolean;
         IsJournalTemplateFound: Boolean;
+        OrderNoInDescription: Boolean;
         Gateway: Text[30];
         ShopifyTransactionLbl: Label 'Shopify order %1 %2 %3', Comment = '%1=Shopify Order No., %2=Shopify Gateway, %3=Shopify Gift Card Id';
         NoPostingDateErr: Label 'In the Posting Date field, specify the date that will be used as the posting date for the journal entries.';
@@ -298,7 +307,6 @@ report 30118 "Shpfy Suggest Payments"
         TempSuggestPayment.Init();
         EntryNo += 1;
         TempSuggestPayment."Entry No." := EntryNo;
-        TempSuggestPayment."Shop Code" := OrderTransaction."Shop Code";
         TempSuggestPayment."Shpfy Transaction Id" := OrderTransaction."Shopify Transaction Id";
         TempSuggestPayment."Customer Ledger Entry No." := CustLedgerEntry."Entry No.";
         TempSuggestPayment."Customer No." := CustLedgerEntry."Customer No.";
@@ -333,7 +341,6 @@ report 30118 "Shpfy Suggest Payments"
         TempSuggestPayment.Init();
         EntryNo += 1;
         TempSuggestPayment."Entry No." := EntryNo;
-        TempSuggestPayment."Shop Code" := OrderTransaction."Shop Code";
         TempSuggestPayment."Shpfy Transaction Id" := OrderTransaction."Shopify Transaction Id";
         if IsInvoice then
             TempSuggestPayment.Amount := AmountToApply
@@ -350,6 +357,7 @@ report 30118 "Shpfy Suggest Payments"
     var
         NoSeriesBatch: Codeunit "No. Series - Batch";
         LastLineNo: Integer;
+        OrderIdentifier: Text;
     begin
         GenJournalLine.LockTable();
         GenJournalLine.SetRange("Journal Template Name", GeneralJournalTemplateName);
@@ -357,10 +365,15 @@ report 30118 "Shpfy Suggest Payments"
         if GenJournalLine.FindLast() then
             LastLineNo := GenJournalLine."Line No.";
 
-        TempSuggestPayment.SetAutoCalcFields("Shpfy Order No.");
+        if OrderNoInDescription then
+            TempSuggestPayment.SetAutoCalcFields("Shpfy Order No.");
         if TempSuggestPayment.FindSet() then
             repeat
                 LastLineNo += 10000;
+                if OrderNoInDescription then
+                    OrderIdentifier := TempSuggestPayment."Shpfy Order No."
+                else
+                    OrderIdentifier := Format(TempSuggestPayment."Shpfy Order Id");
                 GenJournalLine.Init();
                 GenJournalLine."Journal Template Name" := GeneralJournalTemplateName;
                 GenJournalLine."Journal Batch Name" := GeneralJournalBatchName;
@@ -378,10 +391,10 @@ report 30118 "Shpfy Suggest Payments"
                 SetGenJournallLineDimension(TempSuggestPayment."Cust. Ledger Entry Dim. Set Id");
                 if TempSuggestPayment."Shpfy Gift Card Id" <> 0 then
                     GenJournalLine.Description := CopyStr(
-                        StrSubstNo(ShopifyTransactionLbl, TempSuggestPayment."Shpfy Order No.", TempSuggestPayment.Gateway, TempSuggestPayment."Shpfy Gift Card Id"), 1, MaxStrLen(GenJournalLine.Description))
+                        StrSubstNo(ShopifyTransactionLbl, OrderIdentifier, TempSuggestPayment.Gateway, TempSuggestPayment."Shpfy Gift Card Id"), 1, MaxStrLen(GenJournalLine.Description))
                 else
                     GenJournalLine.Description := CopyStr(
-                        StrSubstNo(ShopifyTransactionLbl, TempSuggestPayment."Shpfy Order No.", TempSuggestPayment.Gateway, ''), 1, MaxStrLen(GenJournalLine.Description));
+                        StrSubstNo(ShopifyTransactionLbl, OrderIdentifier, TempSuggestPayment.Gateway, ''), 1, MaxStrLen(GenJournalLine.Description));
                 GenJournalLine.Validate("Currency Code", TempSuggestPayment."Currency Code");
                 GenJournalLine.Validate(Amount, -TempSuggestPayment.Amount);
                 if TempSuggestPayment."Invoice No." <> '' then begin

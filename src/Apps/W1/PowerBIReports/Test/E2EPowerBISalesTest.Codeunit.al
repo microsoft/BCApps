@@ -4,21 +4,21 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.PowerBIReports.Test;
 
+using Microsoft.CRM.Contact;
 using Microsoft.CRM.Opportunity;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
-using Microsoft.Sales.Document;
-using Microsoft.Sales.History;
+using Microsoft.PowerBIReports.Test;
+using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Ledger;
 using Microsoft.Projects.Project.Planning;
-using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Resources.Resource;
-using Microsoft.PowerBIReports.Test;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
 using System.Text;
 using System.Utilities;
-using Microsoft.CRM.Contact;
-using Microsoft.Foundation.AuditCodes;
 
 /// <summary>
 /// E2E tests for Power BI Sales reports

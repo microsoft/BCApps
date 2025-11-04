@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
 using System.Environment.Configuration;
+using System.Utilities;
 
 table 8053 "Subscription Contract Type"
 {

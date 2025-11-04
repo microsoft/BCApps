@@ -1,9 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Pricing;
-using Microsoft.Finance.Dimension;
-using Microsoft.Finance.Currency;
 
 table 8073 "Subscription Line Archive"
 {

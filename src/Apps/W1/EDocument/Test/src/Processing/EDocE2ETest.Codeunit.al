@@ -4,28 +4,31 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Test;
 
-using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument;
-using Microsoft.Sales.Customer;
-using System.TestLibraries.Utilities;
-using Microsoft.Sales.History;
-using Microsoft.Sales.Document;
-using Microsoft.Foundation.Reporting;
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Service;
-using System.Threading;
-using System.Utilities;
-using Microsoft.Inventory.Transfer;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
-using Microsoft.eServices.EDocument.Processing.Import;
-using System.IO;
 using Microsoft.Purchases.Setup;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Sales.Reminder;
-using Microsoft.Sales.FinanceCharge;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Finance.Currency;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.FinanceCharge;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Reminder;
+using Microsoft.Service.Document;
+using Microsoft.Service.Test;
+using System.IO;
+using System.TestLibraries.Utilities;
+using System.Threading;
+using System.Utilities;
 
 codeunit 139624 "E-Doc E2E Test"
 {

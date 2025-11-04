@@ -1,25 +1,25 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
-using System.Security.User;
-using System.Reflection;
-using System.Environment.Configuration;
-using System.EMail;
-using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Bank.BankAccount;
+using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Contact;
+using Microsoft.CRM.Outlook;
+using Microsoft.CRM.Team;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
-using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
-using Microsoft.Projects.Project.Job;
-using Microsoft.CRM.Contact;
-using Microsoft.CRM.Team;
-using Microsoft.CRM.BusinessRelation;
-using Microsoft.CRM.Outlook;
-using Microsoft.Finance.Dimension;
-using Microsoft.Finance.Currency;
-using Microsoft.Bank.BankAccount;
+using System.EMail;
+using System.Environment.Configuration;
+using System.Reflection;
+using System.Security.User;
+using System.Utilities;
 
 table 8052 "Customer Subscription Contract"
 {

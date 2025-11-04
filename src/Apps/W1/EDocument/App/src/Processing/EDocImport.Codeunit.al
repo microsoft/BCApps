@@ -4,18 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
-using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Purchases.Document;
-using Microsoft.eServices.EDocument.OrderMatch;
-using Microsoft.eServices.EDocument.Integration.Receive;
-using Microsoft.eServices.EDocument.Processing.Import;
 #if not CLEAN26
 using Microsoft.eServices.EDocument.Integration;
 #endif
-using System.Utilities;
-using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.eServices.EDocument.Integration.Receive;
+using Microsoft.eServices.EDocument.OrderMatch;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
+using System.Utilities;
 
 codeunit 6140 "E-Doc. Import"
 {

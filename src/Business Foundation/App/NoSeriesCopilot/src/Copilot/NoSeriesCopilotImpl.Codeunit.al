@@ -5,9 +5,9 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-using System.Telemetry;
-using System.Azure.KeyVault;
 using System.AI;
+using System.Azure.KeyVault;
+using System.Telemetry;
 using System.Text.Json;
 
 codeunit 324 "No. Series Copilot Impl."

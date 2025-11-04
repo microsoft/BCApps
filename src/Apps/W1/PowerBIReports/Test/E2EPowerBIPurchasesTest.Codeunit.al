@@ -4,18 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.PowerBIReports.Test;
 
-using System.Utilities;
-using Microsoft.Projects.Project.Job;
-using Microsoft.Purchases.Document;
-using Microsoft.Inventory.Item;
-using System.Text;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Analysis;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.PowerBIReports.Test;
-using System.TestLibraries.Security.AccessControl;
-using Microsoft.Purchases.History;
+using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using System.TestLibraries.Security.AccessControl;
+using System.Text;
+using System.Utilities;
 
 /// <summary>
 /// E2E tests for Power BI Purchases reports

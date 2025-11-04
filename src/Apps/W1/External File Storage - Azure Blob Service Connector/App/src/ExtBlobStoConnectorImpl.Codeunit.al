@@ -5,10 +5,10 @@
 
 namespace System.ExternalFileStorage;
 
-using System.Text;
-using System.Utilities;
 using System.Azure.Storage;
 using System.DataAdministration;
+using System.Text;
+using System.Utilities;
 
 codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage Connector"
 {

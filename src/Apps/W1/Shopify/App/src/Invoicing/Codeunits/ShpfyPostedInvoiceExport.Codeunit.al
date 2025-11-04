@@ -5,8 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Sales.History;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Sales.History;
 
 /// <summary>
 /// Codeunit Shpfy Posted Invoice Export" (ID 30316).

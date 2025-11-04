@@ -6,12 +6,12 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
 using Microsoft.Inventory.Item;
-using Microsoft.Sales.Pricing;
+using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
-using Microsoft.Pricing.Asset;
+using Microsoft.Sales.Pricing;
+using System.TestLibraries.Utilities;
 
 /// <summary>
 /// Codeunit Shpfy Product Price Calc. Test (ID 139605).

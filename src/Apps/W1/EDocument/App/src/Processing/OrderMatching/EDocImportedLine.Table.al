@@ -1,7 +1,7 @@
 namespace Microsoft.eServices.EDocument.OrderMatch;
 
-using Microsoft.Purchases.Document;
 using Microsoft.eServices.EDocument;
+using Microsoft.Purchases.Document;
 
 
 table 6165 "E-Doc. Imported Line"

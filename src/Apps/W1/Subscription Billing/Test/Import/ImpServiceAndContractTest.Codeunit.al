@@ -2,8 +2,8 @@ namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
-using Microsoft.Sales.Customer;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 
 #pragma warning disable AA0210
 codeunit 139914 "Imp. Service And Contract Test"

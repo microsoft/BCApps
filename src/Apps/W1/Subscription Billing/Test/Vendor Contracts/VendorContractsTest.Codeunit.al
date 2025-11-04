@@ -1,11 +1,11 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Inventory.Item;
-using Microsoft.Sales.Customer;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Purchases.Vendor;
+using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 
 #pragma warning disable AA0210
 codeunit 148154 "Vendor Contracts Test"

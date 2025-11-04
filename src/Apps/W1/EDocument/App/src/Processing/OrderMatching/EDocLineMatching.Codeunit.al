@@ -2,11 +2,11 @@ namespace Microsoft.eServices.EDocument.OrderMatch;
 
 using Microsoft.Bank.Reconciliation;
 using Microsoft.eServices.EDocument;
-using Microsoft.Purchases.Document;
-using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
 codeunit 6164 "E-Doc. Line Matching"

@@ -6,9 +6,9 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
+using System.Integration;
 using System.TestLibraries.Utilities;
 using System.Threading;
-using System.Integration;
 
 codeunit 139612 "Shpfy Webhooks Test"
 {

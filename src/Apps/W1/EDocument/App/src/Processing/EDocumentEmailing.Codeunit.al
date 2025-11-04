@@ -5,12 +5,12 @@
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.Foundation.Reporting;
-using System.Telemetry;
-using System.EMail;
 using Microsoft.Sales.Customer;
-using System.Utilities;
+using System.EMail;
 using System.IO;
 using System.Reflection;
+using System.Telemetry;
+using System.Utilities;
 
 codeunit 6188 "E-Document Emailing"
 {
