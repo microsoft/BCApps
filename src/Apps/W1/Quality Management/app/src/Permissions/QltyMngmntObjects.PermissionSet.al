@@ -25,8 +25,9 @@ using Microsoft.QualityManagement.Integration.Foundation.Attachment;
 using Microsoft.QualityManagement.Integration.Foundation.Navigate;
 using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Integration.Inventory.Transfer;
-using Microsoft.QualityManagement.Integration.Manufacturing;
-using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
+// TODO: Decouple Manufacturing dependency
+//using Microsoft.QualityManagement.Integration.Manufacturing;
+//using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Utilities;
 using Microsoft.QualityManagement.Integration.Warehouse;
@@ -75,7 +76,8 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. Misc Helpers" = X,
         codeunit "Qlty. Notification Mgmt." = X,
         codeunit "Qlty. Permission Mgmt." = X,
-        codeunit "Qlty. Manufactur. Integration" = X,
+        // TODO: Decouple Manufacturing dependency
+        //codeunit "Qlty. Manufactur. Integration" = X,
         codeunit "Qlty. Assembly Integration" = X,
         codeunit "Qlty. Receiving Integration" = X,
         codeunit "Qlty. Report Mgmt." = X,
@@ -105,11 +107,13 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Management Setup Wizard" = X,
         page "Qlty. Management Setup" = X,
         page "Qlty. Most Recent Picture" = X,
-        page "Qlty. Prod. Gen. Rule Wizard" = X,
+        // TODO: Decouple Manufacturing dependency
+        //page "Qlty. Prod. Gen. Rule Wizard" = X,
         page "Qlty. Rec. Gen. Rule Wizard" = X,
         page "Qlty. Related Transfer Orders" = X,
         page "Qlty. Report Selection" = X,
-        page "Qlty. Routing Line Lookup" = X,
+        // TODO: Decouple Manufacturing dependency
+        //page "Qlty. Routing Line Lookup" = X,
         page "Qlty. Inspection Template List" = X,
         page "Qlty. Inspection Template Subf" = X,
         page "Qlty. Inspection Template" = X,

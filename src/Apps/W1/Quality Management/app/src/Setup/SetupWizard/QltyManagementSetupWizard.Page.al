@@ -69,19 +69,21 @@ page 20438 "Qlty. Management Setup Wizard"
                 Visible = (StepWhatAreYouMakingQITestsFor = CurrentStepCounter);
                 InstructionalText = 'Where do you plan on using Quality Inspection Tests?';
 
-                group(SettingsFor_WhatFor_ProductionOutput)
-                {
-                    Caption = 'Production';
-                    InstructionalText = 'I want to create tests when recording production output. The most common scenarios are when inventory is posted from the output journal, but it could also be for intermediate steps or other triggers.';
+                // TODO: Decouple Manufacturing dependency
+                /*                group(SettingsFor_WhatFor_ProductionOutput)
+                                {
+                                    Caption = 'Production';
+                                    InstructionalText = 'I want to create tests when recording production output. The most common scenarios are when inventory is posted from the output journal, but it could also be for intermediate steps or other triggers.';
 
-                    field(ChooseWhatFor_ProductionOutput; WhatForProduction)
-                    {
-                        ApplicationArea = Manufacturing;
-                        ShowCaption = false;
-                        Caption = 'I want to create tests when recording production output.';
-                        ToolTip = 'I want to create tests when recording production output. The most common scenarios are when inventory is posted from the output journal, but it could also be for intermediate steps or other triggers.';
-                    }
-                }
+                                    field(ChooseWhatFor_ProductionOutput; WhatForProduction)
+                                    {
+                                        ApplicationArea = Manufacturing;
+                                        ShowCaption = false;
+                                        Caption = 'I want to create tests when recording production output.';
+                                        ToolTip = 'I want to create tests when recording production output. The most common scenarios are when inventory is posted from the output journal, but it could also be for intermediate steps or other triggers.';
+                                    }
+                                }
+                */
                 group(SettingsFor_WhatFor_Receiving)
                 {
                     Caption = 'Receiving';
@@ -109,49 +111,50 @@ page 20438 "Qlty. Management Setup Wizard"
                     }
                 }
             }
-            group(SettingsFor_StepProductionConfig)
-            {
-                Caption = 'Production Test Configuration';
-                Visible = (StepProductionConfig = CurrentStepCounter);
-                InstructionalText = 'In production scenarios, how do you want to make the tests?';
+            // TODO: Decouple Manufacturing dependency
+            /*            group(SettingsFor_StepProductionConfig)
+                        {
+                            Caption = 'Production Test Configuration';
+                            Visible = (StepProductionConfig = CurrentStepCounter);
+                            InstructionalText = 'In production scenarios, how do you want to make the tests?';
 
-                group(SettingsFor_Production_Production_CreateTestsAutomatically)
-                {
-                    Caption = 'I want tests created automatically when output is recorded.';
-                    InstructionalText = 'Creating a test automatically when output is recorded means that as output is recorded, the system will make tests for you. Use this option when tests must exist when production is output. Do not use this option if your process requires that the Quality Management users make the tests.';
+                            group(SettingsFor_Production_Production_CreateTestsAutomatically)
+                            {
+                                Caption = 'I want tests created automatically when output is recorded.';
+                                InstructionalText = 'Creating a test automatically when output is recorded means that as output is recorded, the system will make tests for you. Use this option when tests must exist when production is output. Do not use this option if your process requires that the Quality Management users make the tests.';
 
-                    field(ChooseProduction_Production_CreateTestsAutomatically; ProductionCreateTestsAutomatically)
-                    {
-                        ApplicationArea = All;
-                        ShowCaption = false;
-                        Caption = 'I want tests created automatically when output is recorded.';
-                        ToolTip = 'Creating a test automatically when output is recorded means that as output is recorded, the system will make tests for you. Use this option when tests must exist when production is output. Do not use this option if your process requires that the Quality Management users make the tests.';
+                                field(ChooseProduction_Production_CreateTestsAutomatically; ProductionCreateTestsAutomatically)
+                                {
+                                    ApplicationArea = All;
+                                    ShowCaption = false;
+                                    Caption = 'I want tests created automatically when output is recorded.';
+                                    ToolTip = 'Creating a test automatically when output is recorded means that as output is recorded, the system will make tests for you. Use this option when tests must exist when production is output. Do not use this option if your process requires that the Quality Management users make the tests.';
 
-                        trigger OnValidate()
-                        begin
-                            ProductionCreateTestsManually := not ProductionCreateTestsAutomatically;
-                        end;
-                    }
-                }
-                group(SettingsFor_Production_Production_CreateTestsManually)
-                {
-                    Caption = 'I want a person to make a test.';
-                    InstructionalText = 'In this scenario a person is manually creating tests by clicking a button. Use this option when your process requires a person to create a test, or are performing ad-hoc tests. Examples could be creating tests for Non Conformance Reports, or to track re-work, or to track damage.';
+                                    trigger OnValidate()
+                                    begin
+                                        ProductionCreateTestsManually := not ProductionCreateTestsAutomatically;
+                                    end;
+                                }
+                            }
+                            group(SettingsFor_Production_Production_CreateTestsManually)
+                            {
+                                Caption = 'I want a person to make a test.';
+                                InstructionalText = 'In this scenario a person is manually creating tests by clicking a button. Use this option when your process requires a person to create a test, or are performing ad-hoc tests. Examples could be creating tests for Non Conformance Reports, or to track re-work, or to track damage.';
 
-                    field(ChooseProduction_Production_CreateTestsManually; ProductionCreateTestsManually)
-                    {
-                        ApplicationArea = All;
-                        ShowCaption = false;
-                        Caption = 'I want an inspector or another person to make a test.';
-                        ToolTip = 'In this scenario a person is manually creating tests by clicking a button. Use this option when your process requires a person to create a test, or are performing ad-hoc tests. Examples could be creating tests for Non Conformance Reports, or to track re-work, or to track damage.';
+                                field(ChooseProduction_Production_CreateTestsManually; ProductionCreateTestsManually)
+                                {
+                                    ApplicationArea = All;
+                                    ShowCaption = false;
+                                    Caption = 'I want an inspector or another person to make a test.';
+                                    ToolTip = 'In this scenario a person is manually creating tests by clicking a button. Use this option when your process requires a person to create a test, or are performing ad-hoc tests. Examples could be creating tests for Non Conformance Reports, or to track re-work, or to track damage.';
 
-                        trigger OnValidate()
-                        begin
-                            ProductionCreateTestsAutomatically := not ProductionCreateTestsManually;
-                        end;
-                    }
-                }
-            }
+                                    trigger OnValidate()
+                                    begin
+                                        ProductionCreateTestsAutomatically := not ProductionCreateTestsManually;
+                                    end;
+                                }
+                            }
+                        }*/
             group(SettingsFor_StepReceivingConfig)
             {
                 Caption = 'Receiving Test Configuration';
@@ -211,7 +214,8 @@ page 20438 "Qlty. Management Setup Wizard"
             {
                 Caption = 'Show Automatic Tests?';
                 Visible = (StepShowTests = CurrentStepCounter) and (
-                    ProductionCreateTestsAutomatically or
+                    // TODO: Decouple Manufacturing dependency
+                    //ProductionCreateTestsAutomatically or
                     ReceiveCreateTestsAutomaticallyPurchase or
                     ReceiveCreateTestsAutomaticallyTransfer or
                     ReceiveCreateTestsAutomaticallyWarehouseReceipt or
@@ -280,7 +284,8 @@ page 20438 "Qlty. Management Setup Wizard"
             {
                 Caption = 'Show Tests As They Are Created';
                 Visible = (StepShowTests = CurrentStepCounter) and not
-                    (ProductionCreateTestsAutomatically or
+                    // TODO: Decouple Manufacturing dependency
+                    (/*ProductionCreateTestsAutomatically or*/
                     ReceiveCreateTestsAutomaticallyPurchase or
                     ReceiveCreateTestsAutomaticallyTransfer or
                     ReceiveCreateTestsAutomaticallyWarehouseReceipt or
@@ -418,11 +423,13 @@ page 20438 "Qlty. Management Setup Wizard"
         IsNextEnabled: Boolean;
         IsFinishEnabled: Boolean;
         IsMovingForward: Boolean;
-        WhatForProduction: Boolean;
+        // TODO: Decouple Manufacturing dependency
+        //      WhatForProduction: Boolean;
         WhatForReceiving: Boolean;
         WhatForSomethingElse: Boolean;
-        ProductionCreateTestsAutomatically: Boolean;
-        ProductionCreateTestsManually: Boolean;
+        // TODO: Decouple Manufacturing dependency
+        //        ProductionCreateTestsAutomatically: Boolean;
+        //        ProductionCreateTestsManually: Boolean;
         ReceiveCreateTestsAutomaticallyTransfer: Boolean;
         ReceiveCreateTestsAutomaticallyPurchase: Boolean;
         ReceiveCreateTestsAutomaticallySalesReturn: Boolean;
@@ -570,8 +577,9 @@ page 20438 "Qlty. Management Setup Wizard"
                 end;
             StepWhatAreYouMakingQITestsFor:
                 case true of
-                    WhatForProduction:
-                        MovingToThisStep := StepProductionConfig;
+                    // TODO: Decouple Manufacturing dependency
+                    //                    WhatForProduction:
+                    //                        MovingToThisStep := StepProductionConfig;
                     WhatForReceiving:
                         MovingToThisStep := StepReceivingConfig;
                     else
@@ -615,16 +623,17 @@ page 20438 "Qlty. Management Setup Wizard"
 
         GetLatestSetupRecord(false, true);
 
-        if WhatForProduction then begin
-            case true of
-                ProductionCreateTestsManually:
-                    QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
-                ProductionCreateTestsAutomatically:
-                    QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOutputPost;
-            end;
-
-            QltyAutoConfigure.EnsureBasicSetup(false);
-        end;
+        // TODO: Decouple Manufacturing dependency
+        /*        if WhatForProduction then begin
+                    case true of
+                        ProductionCreateTestsManually:
+                            QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+                        ProductionCreateTestsAutomatically:
+                            QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOutputPost;
+                    end;
+        
+        QltyAutoConfigure.EnsureBasicSetup(false);
+    end;*/
 
         if WhatForReceiving then begin
             case true of
@@ -685,15 +694,17 @@ page 20438 "Qlty. Management Setup Wizard"
             end;
 
         if ResetWizardPageVariables then begin
-            WhatForProduction := (QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger);
+            // TODO: Decouple Manufacturing dependency
+            //            WhatForProduction := (QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger);
 
             WhatForReceiving := (QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger) or
                 (QltyManagementSetup."Warehouse Receive Trigger" <> QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger) or
                 (QltyManagementSetup."Sales Return Trigger" <> QltyManagementSetup."Sales Return Trigger"::NoTrigger) or
                 (QltyManagementSetup."Transfer Trigger" <> QltyManagementSetup."Transfer Trigger"::NoTrigger);
 
-            ProductionCreateTestsAutomatically := QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger;
-            ProductionCreateTestsManually := not ProductionCreateTestsAutomatically;
+            // TODO: Decouple Manufacturing dependency
+            //            ProductionCreateTestsAutomatically := QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger;
+            //            ProductionCreateTestsManually := not ProductionCreateTestsAutomatically;
 
             ReceiveCreateTestsAutomaticallyPurchase := (QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger);
             ReceiveCreateTestsAutomaticallyWarehouseReceipt := (QltyManagementSetup."Warehouse Receive Trigger" <> QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger);

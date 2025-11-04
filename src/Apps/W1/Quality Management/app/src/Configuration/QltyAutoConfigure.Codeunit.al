@@ -195,6 +195,7 @@ codeunit 20402 "Qlty. Auto Configure"
         CreateDefaultProductionConfiguration();
         CreateDefaultReceivingConfiguration();
         CreateDefaultWarehousingConfiguration();
+        OnAfterEnsureAtLeastOneSourceConfiguration();
     end;
 
     /// <summary>
@@ -1875,5 +1876,10 @@ codeunit 20402 "Qlty. Auto Configure"
         NavApp.GetResource(ResourcePath, InStreamFromResource);
         CopyStream(OutStreamToConfigPackage, InStreamFromResource);
         ConfigPackageImport.ImportAndApplyRapidStartPackageStream(TempBlob);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterEnsureAtLeastOneSourceConfiguration()
+    begin
     end;
 }

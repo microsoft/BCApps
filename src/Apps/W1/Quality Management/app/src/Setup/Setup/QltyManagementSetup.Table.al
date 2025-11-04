@@ -15,7 +15,8 @@ using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Integration.Inventory;
-using Microsoft.QualityManagement.Integration.Manufacturing;
+// TODO: Decouple Manufacturing dependency
+//using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
@@ -65,32 +66,33 @@ table 20400 "Qlty. Management Setup"
             TableRelation = Contact."No.";
             ToolTip = 'Specifies the contact details that will appear on the Certificate of Analysis report when supplied.';
         }
-        field(10; "Production Trigger"; Enum "Qlty. Production Trigger")
-        {
-            Description = 'Optionally choose a production related trigger to try and create a test.';
-            Caption = 'Production Trigger';
-            ToolTip = 'Specifies a default production-related trigger value for Test Generation Rules to try and create a test.';
+        // TODO: Decouple Manufacturing dependency - FIXED
+        /*        field(10; "Production Trigger"; Enum "Qlty. Production Trigger")
+                {
+                    Description = 'Optionally choose a production related trigger to try and create a test.';
+                    Caption = 'Production Trigger';
+                    ToolTip = 'Specifies a default production-related trigger value for Test Generation Rules to try and create a test.';
 
-            trigger OnValidate()
-            var
-                QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-            begin
-                if (Rec."Production Trigger" <> xRec."Production Trigger") and (xRec."Production Trigger" <> xRec."Production Trigger"::NoTrigger) then begin
-                    QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Production);
-                    QltyInTestGenerationRule.SetRange("Production Trigger", xRec."Production Trigger");
-                    if (not QltyInTestGenerationRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInTestGenerationRule.Count(), xRec."Production Trigger", Rec."Production Trigger")) then
-                            QltyInTestGenerationRule.ModifyAll("Production Trigger", Rec."Production Trigger", false);
-                end;
-            end;
-        }
-        field(11; "Production Update Control"; Enum "Qlty. Update Source Behavior")
-        {
-            Description = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the test.';
-            InitValue = "Do not update";
-            Caption = 'Production Update Control';
-            ToolTip = 'Specifies whether to update when the source changes. Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the test.';
-        }
+                    trigger OnValidate()
+                    var
+                        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+                    begin
+                        if (Rec."Production Trigger" <> xRec."Production Trigger") and (xRec."Production Trigger" <> xRec."Production Trigger"::NoTrigger) then begin
+                            QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Production);
+                            QltyInTestGenerationRule.SetRange("Production Trigger", xRec."Production Trigger");
+                            if (not QltyInTestGenerationRule.IsEmpty()) and GuiAllowed() then
+                                if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInTestGenerationRule.Count(), xRec."Production Trigger", Rec."Production Trigger")) then
+                                    QltyInTestGenerationRule.ModifyAll("Production Trigger", Rec."Production Trigger", false);
+                        end;
+                    end;
+                }
+                field(11; "Production Update Control"; Enum "Qlty. Update Source Behavior")
+                {
+                    Description = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the test.';
+                    InitValue = "Do not update";
+                    Caption = 'Production Update Control';
+                    ToolTip = 'Specifies whether to update when the source changes. Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the test.';
+                }*/
         field(21; "Receive Update Control"; Enum "Qlty. Update Source Behavior")
         {
             Description = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the test.';
@@ -315,11 +317,12 @@ table 20400 "Qlty. Management Setup"
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the maximum number of rows to fetch on data lookups. Keeping the number as low as possible will increase usability and performance. A larger number will reduce performance and reduce usability.';
         }
-        field(92; "Auto Output Configuration"; Enum "Qlty. Auto. Production Trigger")
-        {
-            Caption = 'Auto Output Configuration';
-            ToolTip = 'Specifies granular options for when a test should be created automatically during the production process.';
-        }
+        // TODO: Decouple Manufacturing dependency
+        /*        field(92; "Auto Output Configuration"; Enum "Qlty. Auto. Production Trigger")
+                {
+                    Caption = 'Auto Output Configuration';
+                    ToolTip = 'Specifies granular options for when a test should be created automatically during the production process.';
+                }*/
         field(93; "Whse. Wksh. Name"; Code[10])
         {
             Caption = 'Warehouse Worksheet Name';
