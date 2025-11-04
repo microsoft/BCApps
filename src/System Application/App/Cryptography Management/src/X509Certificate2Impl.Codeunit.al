@@ -163,7 +163,7 @@ codeunit 1285 "X509Certificate2 Impl."
         X509KeyStorageFlags: DotNet X509KeyStorageFlags;
         Convert: DotNet Convert;
     begin
-        X509Certificate2 := X509Certificate2.X509Certificate2(Convert.FromBase64String(CertBase64Value), Password.Unwrap(), X509KeyStorageFlags.EphemeralKeySet);
+        X509Certificate2 := X509Certificate2.X509Certificate2(Convert.FromBase64String(CertBase64Value), Password.Unwrap(), X509KeyStorageFlags.Exportable);
         if IsNull(X509Certificate2) then
             Error('');
     end;
