@@ -2781,18 +2781,18 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Line");
         QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Production Order");
 
-        // [GIVEN] Production rules with OnProductionOrderRelease trigger are filtered
+        // [GIVEN] Production rules with OnProductionOrderRelease trigger (value 2) are filtered
         QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Production);
-        QltyInTestGenerationRule.SetRange("Production Trigger", QltyInTestGenerationRule."Production Trigger"::OnProductionOrderRelease);
+        QltyInTestGenerationRule.SetRange("Production Trigger", 2); // OnProductionOrderRelease
         LibraryAssert.IsTrue(QltyInTestGenerationRule.IsEmpty(), 'Should be no rules with trigger.');
 
         // [GIVEN] Setup is updated to OnProductionOrderRelease trigger
         QltyManagementSetup.Get();
-        QltyManagementSetup.Validate("Production Trigger", QltyManagementSetup."Production Trigger"::OnProductionOrderRelease);
+        QltyManagementSetup.Validate("Production Trigger", 2); // OnProductionOrderRelease
         QltyManagementSetup.Modify();
 
         // [GIVEN] Rules with OnProductionOrderRelease trigger are verified as still empty
-        QltyInTestGenerationRule.SetRange("Production Trigger", QltyInTestGenerationRule."Production Trigger"::OnProductionOrderRelease);
+        QltyInTestGenerationRule.SetRange("Production Trigger", 2); // OnProductionOrderRelease
         LibraryAssert.IsTrue(QltyInTestGenerationRule.IsEmpty(), 'Should be no rules with trigger.');
 
         // [GIVEN] A new production rule is created
@@ -2802,10 +2802,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Source table is changed to Prod. Order Line
         QltyInTestGenerationRule.Validate("Source Table No.", Database::"Prod. Order Line");
         QltyInTestGenerationRule.Modify();
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Production Trigger" = QltyInTestGenerationRule."Production Trigger"::OnProductionOrderRelease, 'Should have default trigger.');
+        LibraryAssert.IsTrue(QltyInTestGenerationRule."Production Trigger" = 2, 'Should have default trigger.'); // OnProductionOrderRelease
 
-        // [WHEN] Setup production trigger is changed to OnProductionOutputPost
-        QltyManagementSetup.Validate("Production Trigger", QltyManagementSetup."Production Trigger"::OnProductionOutputPost);
+        // [WHEN] Setup production trigger is changed to OnProductionOutputPost (value 1)
+        QltyManagementSetup.Validate("Production Trigger", 1); // OnProductionOutputPost
         QltyManagementSetup.Modify();
 
         // [THEN] Existing production rule is updated to new trigger

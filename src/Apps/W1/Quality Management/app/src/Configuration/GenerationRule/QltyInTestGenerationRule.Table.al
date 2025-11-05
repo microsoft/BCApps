@@ -15,7 +15,6 @@ using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule.JobQueue;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Integration.Assembly;
-using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
 using Microsoft.QualityManagement.Setup.Setup;
@@ -213,18 +212,15 @@ table 20404 "Qlty. In. Test Generation Rule"
                     QltyNotificationMgmt.Notify(StrSubstNo(RuleCurrentlyDisabledLbl, Rec."Sort Order", Rec."Template Code", Rec."Transfer Trigger"));
             end;
         }
-        field(26; "Production Trigger"; Enum "Qlty. Production Trigger")
+        field(26; "Production Trigger"; Integer)
         {
             Caption = 'Production Trigger';
             ToolTip = 'Specifies whether the generation rule should be used to automatically create tests based on a production trigger.';
 
             trigger OnValidate()
-            var
-                QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
             begin
                 ConfirmUpdateManualTriggerStatus();
-                if (Rec."Activation Trigger" = Rec."Activation Trigger"::Disabled) and (Rec."Template Code" <> '') and (Rec."Production Trigger" <> Rec."Production Trigger"::NoTrigger) and GuiAllowed() then
-                    QltyNotificationMgmt.Notify(StrSubstNo(RuleCurrentlyDisabledLbl, Rec."Sort Order", Rec."Template Code", Rec."Production Trigger"));
+                OnValidateProductionTrigger(Rec);
             end;
         }
         field(27; "Assembly Trigger"; Enum "Qlty. Assembly Trigger")
@@ -459,7 +455,7 @@ table 20404 "Qlty. In. Test Generation Rule"
     begin
         if (Rec."Activation Trigger" = Rec."Activation Trigger"::"Manual only") and GuiAllowed() then
             if not ((Rec."Assembly Trigger" = Rec."Assembly Trigger"::NoTrigger) and (Rec."Transfer Trigger" = Rec."Transfer Trigger"::NoTrigger) and
-               (Rec."Production Trigger" = Rec."Production Trigger"::NoTrigger) and (Rec."Purchase Trigger" = Rec."Purchase Trigger"::NoTrigger) and
+               (Rec."Production Trigger" = 0) and (Rec."Purchase Trigger" = Rec."Purchase Trigger"::NoTrigger) and
                (Rec."Sales Return Trigger" = Rec."Sales Return Trigger"::NoTrigger) and (Rec."Warehouse Receive Trigger" = Rec."Warehouse Receive Trigger"::NoTrigger) and
                (Rec."Warehouse Movement Trigger" = Rec."Warehouse Movement Trigger"::NoTrigger))
             then
@@ -473,7 +469,7 @@ table 20404 "Qlty. In. Test Generation Rule"
         Rec."Purchase Trigger" := Rec."Purchase Trigger"::NoTrigger;
         Rec."Sales Return Trigger" := Rec."Sales Return Trigger"::NoTrigger;
         Rec."Transfer Trigger" := Rec."Transfer Trigger"::NoTrigger;
-        Rec."Production Trigger" := Rec."Production Trigger"::NoTrigger;
+        Rec."Production Trigger" := 0; // NoTrigger
         Rec."Assembly Trigger" := Rec."Assembly Trigger"::NoTrigger;
         Rec."Warehouse Movement Trigger" := Rec."Warehouse Movement Trigger"::NoTrigger;
     end;
@@ -740,7 +736,7 @@ table 20404 "Qlty. In. Test Generation Rule"
             if IntentToCheck = IntentToCheck::Transfer then
                 IntentSet := true;
         end;
-        if QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger then begin
+        if QltyManagementSetup."Production Trigger" <> 0 then begin
             TriggerCount += 1;
             if IntentToCheck = IntentToCheck::Production then
                 IntentSet := true;
@@ -752,5 +748,10 @@ table 20404 "Qlty. In. Test Generation Rule"
         end;
 
         exit((TriggerCount = 1) and IntentSet);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateProductionTrigger(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule")
+    begin
     end;
 }

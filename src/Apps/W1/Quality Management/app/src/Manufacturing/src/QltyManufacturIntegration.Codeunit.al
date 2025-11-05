@@ -24,7 +24,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyTraversal: Codeunit "Qlty. Traversal";
-        QltySessionHelper: Codeunit "Qlty. Session Helper";
+        QltyMfgSessionHelper: Codeunit "Qlty. Mfg. Session Helper";
         PermissionErr: Label 'User %1 not have permission to modify Quality Inspection Results tables, this will prevent test being updated.', Comment = '%1:User ID';
         ProductionRegisteredLogEventIDTok: Label 'QMERR0002', Locked = true;
         TargetDetailRecordTok: Label 'Target', Locked = true;
@@ -53,13 +53,13 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             exit;
 
         case QltyManagementSetup."Auto Output Configuration" of
-            QltyManagementSetup."Auto Output Configuration"::OnAnyQuantity:
+            1: // OnAnyQuantity
                 if (ItemJournalLine.Quantity = 0) and (ItemJournalLine."Scrap Quantity" = 0) then
                     exit;
-            QltyManagementSetup."Auto Output Configuration"::OnlyWithQuantity:
+            2: // OnlyWithQuantity
                 if ItemJournalLine.Quantity = 0 then
                     exit;
-            QltyManagementSetup."Auto Output Configuration"::OnlyWithScrap:
+            3: // OnlyWithScrap
                 if ItemJournalLine."Scrap Quantity" = 0 then
                     exit;
         end;
@@ -87,7 +87,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             if ProdOrderRoutingLine."Next Operation No." <> '' then
                 Clear(VerifiedItemLedgerEntry);
 
-        QltyInTestGenerationRule.SetRange("Production Trigger", QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost);
+        QltyInTestGenerationRule.SetRange("Production Trigger", 1); // OnProductionOutputPost
         QltyInTestGenerationRule.SetFilter("Activation Trigger", '%1|%2', QltyInTestGenerationRule."Activation Trigger"::"Manual or Automatic", QltyInTestGenerationRule."Activation Trigger"::"Automatic only");
         if not QltyInTestGenerationRule.IsEmpty() then
             AttemptCreateTestPosting(ProdOrderRoutingLine, VerifiedItemLedgerEntry, ProdOrderLine, ItemJournalLine, QltyInTestGenerationRule);
@@ -101,7 +101,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if not QltyManagementSetup.Get() then
             exit;
 
-        QltySessionHelper.SetProductionOrderBeforeChangingStatus(ProductionOrder);
+        QltyMfgSessionHelper.SetProductionOrderBeforeChangingStatus(ProductionOrder);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnAfterChangeStatusOnProdOrder', '', true, true)]
@@ -116,7 +116,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if not QltyManagementSetup.Get() then
             exit;
 
-        QltySessionHelper.GetProductionOrderBeforeChangingStatus(OldProductionOrder);
+        QltyMfgSessionHelper.GetProductionOrderBeforeChangingStatus(OldProductionOrder);
 
         OnBeforeProductionHandleOnAfterChangeStatusOnProdOrder(OldProductionOrder, ToProdOrder, Handled);
         if Handled then
@@ -128,7 +128,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if ToProdOrder.Status <> ToProdOrder.Status::Released then
             exit;
 
-        QltyInTestGenerationRule.SetRange("Production Trigger", QltyInTestGenerationRule."Production Trigger"::OnProductionOrderRelease);
+        QltyInTestGenerationRule.SetRange("Production Trigger", 2); // OnProductionOrderRelease
         QltyInTestGenerationRule.SetFilter("Activation Trigger", '%1|%2', QltyInTestGenerationRule."Activation Trigger"::"Manual or Automatic", QltyInTestGenerationRule."Activation Trigger"::"Automatic only");
         if not QltyInTestGenerationRule.IsEmpty() then
             AttemptCreateTestReleased(ToProdOrder, QltyInTestGenerationRule);
@@ -178,7 +178,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if not QltyManagementSetup.Get() then
             exit;
 
-        QltyInTestGenerationRule.SetRange("Production Trigger", QltyInTestGenerationRule."Production Trigger"::OnReleasedProductionOrderRefresh);
+        QltyInTestGenerationRule.SetRange("Production Trigger", 3); // OnReleasedProductionOrderRefresh
         QltyInTestGenerationRule.SetFilter("Activation Trigger", '%1|%2', QltyInTestGenerationRule."Activation Trigger"::"Manual or Automatic", QltyInTestGenerationRule."Activation Trigger"::"Automatic only");
         if not QltyInTestGenerationRule.IsEmpty() then
             AttemptCreateTestReleased(ProductionOrder, QltyInTestGenerationRule);
@@ -344,13 +344,13 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     begin
         OldStatusValue := OldProductionOrder.Status.AsInteger();
         NewStatusValue := NewProductionOrder.Status.AsInteger();
-        if not QltyTraversal.ApplySourceFields(TargetRecordRef, QltyInspectionTestHeader, false, true) then begin
-            if QltyInspectionTestHeader."Source Type" = OldStatusValue then
-                QltyInspectionTestHeader."Source Type" := NewStatusValue;
 
-            if QltyInspectionTestHeader."Source Document No." = OldProductionOrder."No." then
-                QltyInspectionTestHeader."Source Document No." := NewProductionOrder."No.";
-        end;
+        // Update source fields directly
+        if QltyInspectionTestHeader."Source Type" = OldStatusValue then
+            QltyInspectionTestHeader."Source Type" := NewStatusValue;
+
+        if QltyInspectionTestHeader."Source Document No." = OldProductionOrder."No." then
+            QltyInspectionTestHeader."Source Document No." := NewProductionOrder."No.";
 
         if QltyInspectionTestHeader.Modify(false) then;
     end;
@@ -362,16 +362,17 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     begin
         OldStatusValue := OldProdOrderLine.Status.AsInteger();
         NewStatusValue := NewProdOrderLine.Status.AsInteger();
-        if not QltyTraversal.ApplySourceFields(TargetRecordRef, QltyInspectionTestHeader, false, true) then begin
-            if QltyInspectionTestHeader."Source Type" = OldStatusValue then
-                QltyInspectionTestHeader."Source Type" := NewStatusValue;
 
-            if QltyInspectionTestHeader."Source Document No." = OldProdOrderLine."Prod. Order No." then
-                QltyInspectionTestHeader."Source Document No." := NewProdOrderLine."Prod. Order No.";
+        // Update source fields directly
+        if QltyInspectionTestHeader."Source Type" = OldStatusValue then
+            QltyInspectionTestHeader."Source Type" := NewStatusValue;
 
-            if QltyInspectionTestHeader."Source Document Line No." = OldProdOrderLine."Line No." then
-                QltyInspectionTestHeader."Source Document Line No." := NewProdOrderLine."Line No.";
-        end;
+        if QltyInspectionTestHeader."Source Document No." = OldProdOrderLine."Prod. Order No." then
+            QltyInspectionTestHeader."Source Document No." := NewProdOrderLine."Prod. Order No.";
+
+        if QltyInspectionTestHeader."Source Document Line No." = OldProdOrderLine."Line No." then
+            QltyInspectionTestHeader."Source Document Line No." := NewProdOrderLine."Line No.";
+
         if QltyInspectionTestHeader.Modify(false) then;
     end;
 
@@ -382,16 +383,17 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     begin
         OldStatusValue := OldProdOrderRoutingLine.Status.AsInteger();
         NewStatusValue := NewProdOrderRoutingLine.Status.AsInteger();
-        if not QltyTraversal.ApplySourceFields(TargetRecordRef, QltyInspectionTestHeader, false, true) then begin
-            if QltyInspectionTestHeader."Source Type" = OldStatusValue then
-                QltyInspectionTestHeader."Source Type" := NewStatusValue;
 
-            if QltyInspectionTestHeader."Source Document No." = OldProdOrderRoutingLine."Prod. Order No." then
-                QltyInspectionTestHeader."Source Document No." := NewProdOrderRoutingLine."Prod. Order No.";
+        // Update source fields directly
+        if QltyInspectionTestHeader."Source Type" = OldStatusValue then
+            QltyInspectionTestHeader."Source Type" := NewStatusValue;
 
-            if QltyInspectionTestHeader."Source Task No." = OldProdOrderRoutingLine."Operation No." then
-                QltyInspectionTestHeader."Source Task No." := NewProdOrderRoutingLine."Operation No.";
-        end;
+        if QltyInspectionTestHeader."Source Document No." = OldProdOrderRoutingLine."Prod. Order No." then
+            QltyInspectionTestHeader."Source Document No." := NewProdOrderRoutingLine."Prod. Order No.";
+
+        if QltyInspectionTestHeader."Source Task No." = OldProdOrderRoutingLine."Operation No." then
+            QltyInspectionTestHeader."Source Task No." := NewProdOrderRoutingLine."Operation No.";
+
         if QltyInspectionTestHeader.Modify(false) then;
     end;
 

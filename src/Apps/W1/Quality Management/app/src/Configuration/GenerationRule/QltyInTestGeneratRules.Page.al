@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Configuration.GenerationRule;
 
 using Microsoft.QualityManagement.Configuration.GenerationRule.JobQueue;
-using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
 using Microsoft.QualityManagement.Setup.Setup;
@@ -190,10 +189,8 @@ page 20405 "Qlty. In. Test Generat. Rules"
                 ApplicationArea = Manufacturing;
 
                 trigger OnAction()
-                var
-                    RecQltyProdGenRuleWizard: Page "Qlty. Prod. Gen. Rule Wizard";
                 begin
-                    RecQltyProdGenRuleWizard.RunModalWithGenerationRule(Rec);
+                    OnEditGenerationRuleForProduction(Rec);
                     CurrPage.Update(false);
                 end;
             }
@@ -208,11 +205,10 @@ page 20405 "Qlty. In. Test Generat. Rules"
 
                 trigger OnAction()
                 var
-                    QltyProdGenRuleWizard: Page "Qlty. Prod. Gen. Rule Wizard";
                     PreviousEntryNo: Integer;
                 begin
                     PreviousEntryNo := Rec."Entry No.";
-                    QltyProdGenRuleWizard.RunModalWithGenerationRule(Rec);
+                    OnEditGenerationRuleForProductionWizard(Rec);
 
                     CurrPage.Update(false);
                     Rec.Reset();
@@ -611,7 +607,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
             exit;
         if QltyManagementSetup."Assembly Trigger" <> QltyManagementSetup."Assembly Trigger"::NoTrigger then
             ShowAssemblyTrigger := true;
-        if QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger then
+        if QltyManagementSetup."Production Trigger" <> 0 then // NoTrigger
             ShowProductionTrigger := true;
         if QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger then
             ShowPurchaseTrigger := true;
@@ -639,5 +635,15 @@ page 20405 "Qlty. In. Test Generat. Rules"
                     QltyInTestGenerationRule.SetIntentAndDefaultTriggerValuesFromSetup();
                     if QltyInTestGenerationRule.Modify() then;
                 until QltyInTestGenerationRule.Next() = 0;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnEditGenerationRuleForProduction(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnEditGenerationRuleForProductionWizard(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule")
+    begin
     end;
 }

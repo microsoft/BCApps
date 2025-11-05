@@ -8,7 +8,6 @@ using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Grade;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
@@ -226,11 +225,9 @@ page 20400 "Qlty. Management Setup"
                         ApplicationArea = Assembly, Manufacturing;
 
                         trigger OnDrillDown()
-                        var
-                            QltyProdGenRuleWizard: Page "Qlty. Prod. Gen. Rule Wizard";
                         begin
                             CurrPage.Update(true);
-                            QltyProdGenRuleWizard.RunModal();
+                            OnDrillDownCreateNewProductionRule();
                             CurrPage.Update(false);
                         end;
                     }
@@ -536,5 +533,10 @@ page 20400 "Qlty. Management Setup"
         QltyApplicationAreaMgmt: Codeunit "Qlty. Application Area Mgmt.";
     begin
         QltyApplicationAreaMgmt.RefreshExperienceTierCurrentCompany();
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnDrillDownCreateNewProductionRule()
+    begin
     end;
 }

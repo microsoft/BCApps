@@ -16,7 +16,6 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Setup.Setup;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using System.TestLibraries.Utilities;
@@ -687,7 +686,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         OutputItemLedgerEntry: Record "Item Ledger Entry";
         Item: Record Item;
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        ProductionTrigger: Enum "Qlty. Production Trigger";
+        ProductionTrigger: Integer;
         ClaimedATestWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
@@ -702,7 +701,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [GIVEN] Production trigger is disabled temporarily
         QltyManagementSetup.Get();
         ProductionTrigger := QltyManagementSetup."Production Trigger";
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+        QltyManagementSetup."Production Trigger" := 0; // NoTrigger
         QltyManagementSetup.Modify();
 
         // [GIVEN] A production order line is created and output is posted

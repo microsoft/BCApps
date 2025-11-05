@@ -10,12 +10,8 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
-using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
 using Microsoft.Sales.Customer;
 using Microsoft.Warehouse.Structure;
 using System.IO;
@@ -555,22 +551,10 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// <returns></returns>
     procedure AssistEditMachine(var MachineNoFilter: Code[20]): Boolean
     var
-        MachineCenter: Record "Machine Center";
-        MachineCenterList: Page "Machine Center List";
+        IsHandled: Boolean;
     begin
-        MachineCenterList.LookupMode(true);
-        if MachineNoFilter <> '' then begin
-            MachineCenter.SetFilter("No.", MachineNoFilter);
-            if MachineCenter.FindSet() then
-                MachineCenterList.SetRecord(MachineCenter);
-        end;
-        MachineCenter.SetRange("No.");
-
-        if MachineCenterList.RunModal() in [Action::LookupOK, Action::OK] then begin
-            MachineCenterList.GetRecord(MachineCenter);
-            MachineNoFilter := MachineCenter."No.";
-            exit(true);
-        end;
+        OnAssistEditMachine(MachineNoFilter, IsHandled);
+        exit(IsHandled);
     end;
 
     /// <summary>
@@ -580,69 +564,27 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// <returns></returns>
     procedure AssistEditRouting(var RoutingNoFilter: Code[20]): Boolean
     var
-        RoutingHeader: Record "Routing Header";
-        RoutingList: Page "Routing List";
+        IsHandled: Boolean;
     begin
-        RoutingList.LookupMode(true);
-        if RoutingNoFilter <> '' then begin
-            RoutingHeader.SetFilter("No.", RoutingNoFilter);
-            if RoutingHeader.FindSet() then
-                RoutingList.SetRecord(RoutingHeader);
-        end;
-        RoutingHeader.SetRange("No.");
-
-        if RoutingList.RunModal() in [Action::LookupOK, Action::OK] then begin
-            RoutingList.GetRecord(RoutingHeader);
-            RoutingNoFilter := RoutingHeader."No.";
-            exit(true);
-        end;
+        OnAssistEditRouting(RoutingNoFilter, IsHandled);
+        exit(IsHandled);
     end;
 
     procedure AssistEditRoutingOperation(InRoutingNoFilter: Code[20]; var OperationNoFilter: Code[20]): Boolean
     var
-        RoutingLine: Record "Routing Line";
-        QltyRoutingLineLookup: Page "Qlty. Routing Line Lookup";
+        IsHandled: Boolean;
 
     begin
-        QltyRoutingLineLookup.LookupMode(true);
-
-        if InRoutingNoFilter <> '' then
-            RoutingLine.SetFilter("Routing No.", InRoutingNoFilter);
-
-        if OperationNoFilter <> '' then begin
-            RoutingLine.SetFilter("Operation No.", OperationNoFilter);
-            if RoutingLine.FindSet() then
-                QltyRoutingLineLookup.SetRecord(RoutingLine);
-            RoutingLine.SetRange("Operation No.");
-        end;
-
-        QltyRoutingLineLookup.SetTableView(RoutingLine);
-
-        if QltyRoutingLineLookup.RunModal() in [Action::LookupOK, Action::OK] then begin
-            QltyRoutingLineLookup.GetRecord(RoutingLine);
-            OperationNoFilter := RoutingLine."Operation No.";
-            exit(true);
-        end;
+        OnAssistEditRoutingOperation(InRoutingNoFilter, OperationNoFilter, IsHandled);
+        exit(IsHandled);
     end;
 
-    procedure AssistEditWorkCenter(var RoutingNoFilter: Code[20]): Boolean
+    procedure AssistEditWorkCenter(var WorkCenterNoFilter: Code[20]): Boolean
     var
-        WorkCenter: Record "Work Center";
-        WorkCenterList: Page "Work Center List";
+        IsHandled: Boolean;
     begin
-        WorkCenterList.LookupMode(true);
-        if RoutingNoFilter <> '' then begin
-            WorkCenter.SetFilter("No.", RoutingNoFilter);
-            if WorkCenter.FindSet() then
-                WorkCenterList.SetRecord(WorkCenter);
-        end;
-        WorkCenter.SetRange("No.");
-
-        if WorkCenterList.RunModal() in [Action::LookupOK, Action::OK] then begin
-            WorkCenterList.GetRecord(WorkCenter);
-            RoutingNoFilter := WorkCenter."No.";
-            exit(true);
-        end;
+        OnAssistEditWorkCenter(WorkCenterNoFilter, IsHandled);
+        exit(IsHandled);
     end;
 
     procedure AssistEditPurchasingCode(var PurchasingCode: Code[20]): Boolean
@@ -856,94 +798,6 @@ codeunit 20403 "Qlty. Filter Helpers"
     end;
 
     /// <summary>
-    /// Gets the standard task code from either the selected record, or the filter.
-    /// </summary>
-    /// <returns></returns>
-    procedure GetStandardTaskCodeFromRecordOrFilter(var StandardTaskQualityMeasure: Record "Standard Task Quality Measure") StandardTaskCode: Code[10]
-    var
-        FilterGroupIterator: Integer;
-    begin
-        if StandardTaskQualityMeasure."Standard Task Code" <> '' then
-            exit(StandardTaskQualityMeasure."Standard Task Code");
-
-        FilterGroupIterator := 4;
-        repeat
-            StandardTaskQualityMeasure.FilterGroup(FilterGroupIterator);
-            if StandardTaskQualityMeasure.GetFilter("Standard Task Code") <> '' then
-                StandardTaskCode := StandardTaskQualityMeasure.GetRangeMin("Standard Task Code");
-
-            FilterGroupIterator -= 1;
-        until (FilterGroupIterator < 0) or (StandardTaskCode <> '');
-        StandardTaskQualityMeasure.FilterGroup(0);
-    end;
-
-    /// <summary>
-    /// Gets the routing code from either the selected record, or the filter.
-    /// </summary>
-    /// <returns></returns>
-    procedure GetRoutingCodeFromRecordOrFilter(var RoutingQualityMeasure: Record "Routing Quality Measure") RoutingNo: Code[20]
-    var
-        FilterGroupIterator: Integer;
-    begin
-        if RoutingQualityMeasure."Routing No." <> '' then
-            exit(RoutingQualityMeasure."Routing No.");
-
-        FilterGroupIterator := 4;
-        repeat
-            RoutingQualityMeasure.FilterGroup(FilterGroupIterator);
-            if RoutingQualityMeasure.GetFilter("Routing No.") <> '' then
-                RoutingNo := RoutingQualityMeasure.GetRangeMin("Routing No.");
-
-            FilterGroupIterator -= 1;
-        until (FilterGroupIterator < 0) or (RoutingNo <> '');
-        RoutingQualityMeasure.FilterGroup(0);
-    end;
-
-    /// <summary>
-    /// Gets the operation no from either the selected record, or the filter.
-    /// </summary>
-    /// <returns></returns>
-    procedure GetOperationNoFromRecordOrFilter(var RoutingQualityMeasure: Record "Routing Quality Measure") OperationNo: Code[10]
-    var
-        FilterGroupIterator: Integer;
-    begin
-        if RoutingQualityMeasure."Operation No." <> '' then
-            exit(RoutingQualityMeasure."Operation No.");
-
-        FilterGroupIterator := 4;
-        repeat
-            RoutingQualityMeasure.FilterGroup(FilterGroupIterator);
-            if RoutingQualityMeasure.GetFilter("Operation No.") <> '' then
-                OperationNo := RoutingQualityMeasure.GetRangeMin("Operation No.");
-
-            FilterGroupIterator -= 1;
-        until (FilterGroupIterator < 0) or (OperationNo <> '');
-        RoutingQualityMeasure.FilterGroup(0);
-    end;
-
-    /// <summary>
-    /// Gets the version no from either the selected record, or the filter.
-    /// </summary>
-    /// <returns></returns>
-    procedure VersionCodeFromRecordOrFilter(var RoutingQualityMeasure: Record "Routing Quality Measure") RoutingVersionCode: Code[20]
-    var
-        FilterGroupIterator: Integer;
-    begin
-        if RoutingQualityMeasure."Version Code" <> '' then
-            exit(RoutingQualityMeasure."Version Code");
-
-        FilterGroupIterator := 4;
-        repeat
-            RoutingQualityMeasure.FilterGroup(FilterGroupIterator);
-            if RoutingQualityMeasure.GetFilter("Version Code") <> '' then
-                RoutingVersionCode := RoutingQualityMeasure.GetRangeMin("Version Code");
-
-            FilterGroupIterator -= 1;
-        until (FilterGroupIterator < 0) or (RoutingVersionCode <> '');
-        RoutingQualityMeasure.FilterGroup(0);
-    end;
-
-    /// <summary>
     /// Returns a true or false if the supplied field has a filter and it's set to the value.
     /// </summary>
     /// <param name="TableNo"></param>
@@ -984,4 +838,44 @@ codeunit 20403 "Qlty. Filter Helpers"
     end;
 
     #endregion Event Subscribers
+
+    #region Integration Events
+
+    /// <summary>
+    /// Event to handle machine assist edit functionality.
+    /// Subscribed by the Manufacturing extension.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnAssistEditMachine(var MachineNoFilter: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Event to handle routing assist edit functionality.
+    /// Subscribed by the Manufacturing extension.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnAssistEditRouting(var RoutingNoFilter: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Event to handle routing operation assist edit functionality.
+    /// Subscribed by the Manufacturing extension.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnAssistEditRoutingOperation(InRoutingNoFilter: Code[20]; var OperationNoFilter: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Event to handle work center assist edit functionality.
+    /// Subscribed by the Manufacturing extension.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnAssistEditWorkCenter(var WorkCenterNoFilter: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
+    #endregion Integration Events
 }

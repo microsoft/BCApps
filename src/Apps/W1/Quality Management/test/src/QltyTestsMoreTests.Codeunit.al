@@ -921,11 +921,11 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInTestGenerationRule."Activation Trigger" := QltyInTestGenerationRule."Activation Trigger"::Disabled;
         QltyInTestGenerationRule."Source Table No." := Database::"Prod. Order Routing Line";
 
-        // [WHEN] Production Trigger is validated and set to OnProductionOrderRelease
-        QltyInTestGenerationRule.Validate("Production Trigger", QltyInTestGenerationRule."Production Trigger"::OnProductionOrderRelease);
+        // [WHEN] Production Trigger is validated and set to OnProductionOrderRelease (value 2)
+        QltyInTestGenerationRule.Validate("Production Trigger", 2); // OnProductionOrderRelease
 
         // [THEN] The Production Trigger is successfully set to OnProductionOrderRelease
-        LibraryAssert.AreEqual(QltyInTestGenerationRule."Production Trigger"::OnProductionOrderRelease, QltyInTestGenerationRule."Production Trigger", 'Production trigger should be set to on release');
+        LibraryAssert.AreEqual(2, QltyInTestGenerationRule."Production Trigger", 'Production trigger should be set to on release');
     end;
 
     [Test]

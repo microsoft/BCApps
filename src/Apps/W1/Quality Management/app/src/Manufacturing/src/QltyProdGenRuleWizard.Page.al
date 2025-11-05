@@ -702,7 +702,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         if LeavingThisStep = StepAssemblyOrProductionCounter then
             if IsProductionOrder then begin
                 MovingToThisStep := StepWhichLineCounter;
-                QltyProductionTrigger := QltyManagementSetup."Production Trigger";
+                QltyProductionTrigger := Enum::"Qlty. Production Trigger".FromInteger(QltyManagementSetup."Production Trigger");
             end else begin
                 MovingToThisStep := StepWhichAssemblyOrderCounter;
                 QltyAssemblyTrigger := QltyManagementSetup."Assembly Trigger";
@@ -791,9 +791,8 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
     begin
         if not QltyInTestGenerationRule.Get(TempQltyInTestGenerationRule.RecordId()) then begin
             QltyInTestGenerationRule.Init();
-            QltyInTestGenerationRule.SetEntryNo();
-            QltyInTestGenerationRule.UpdateSortOrder();
-            QltyInTestGenerationRule.Insert();
+            // SetEntryNo and UpdateSortOrder are internal - let the table handle it
+            QltyInTestGenerationRule.Insert(true);
         end;
         QltyInTestGenerationRule.Validate("Template Code", TemplateCode);
         QltyManagementSetup.Get();
@@ -802,9 +801,9 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
             QltyInTestGenerationRule.Intent := QltyInTestGenerationRule.Intent::Production;
             QltyInTestGenerationRule."Condition Filter" := ProdOrderRoutingLineRuleFilter;
             QltyInTestGenerationRule.SetIntentAndDefaultTriggerValuesFromSetup();
-            QltyInTestGenerationRule."Production Trigger" := QltyProductionTrigger;
+            QltyInTestGenerationRule."Production Trigger" := QltyProductionTrigger.AsInteger();
 
-            QltyManagementSetup."Production Trigger" := QltyProductionTrigger;
+            QltyManagementSetup."Production Trigger" := QltyProductionTrigger.AsInteger();
         end else begin
             QltyInTestGenerationRule."Source Table No." := Database::"Posted Assembly Header";
             QltyInTestGenerationRule.Intent := QltyInTestGenerationRule.Intent::Assembly;

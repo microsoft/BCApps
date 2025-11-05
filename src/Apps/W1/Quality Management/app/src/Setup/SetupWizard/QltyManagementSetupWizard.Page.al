@@ -618,9 +618,9 @@ page 20438 "Qlty. Management Setup Wizard"
         if WhatForProduction then begin
             case true of
                 ProductionCreateTestsManually:
-                    QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+                    QltyManagementSetup."Production Trigger" := 0; // NoTrigger
                 ProductionCreateTestsAutomatically:
-                    QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOutputPost;
+                    QltyManagementSetup."Production Trigger" := 1; // OnProductionOutputPost
             end;
 
             QltyAutoConfigure.EnsureBasicSetup(false);
@@ -685,14 +685,14 @@ page 20438 "Qlty. Management Setup Wizard"
             end;
 
         if ResetWizardPageVariables then begin
-            WhatForProduction := (QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger);
+            WhatForProduction := (QltyManagementSetup."Production Trigger" <> 0); // NoTrigger
 
             WhatForReceiving := (QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger) or
                 (QltyManagementSetup."Warehouse Receive Trigger" <> QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger) or
                 (QltyManagementSetup."Sales Return Trigger" <> QltyManagementSetup."Sales Return Trigger"::NoTrigger) or
                 (QltyManagementSetup."Transfer Trigger" <> QltyManagementSetup."Transfer Trigger"::NoTrigger);
 
-            ProductionCreateTestsAutomatically := QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger;
+            ProductionCreateTestsAutomatically := QltyManagementSetup."Production Trigger" <> 0; // NoTrigger
             ProductionCreateTestsManually := not ProductionCreateTestsAutomatically;
 
             ReceiveCreateTestsAutomaticallyPurchase := (QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger);
