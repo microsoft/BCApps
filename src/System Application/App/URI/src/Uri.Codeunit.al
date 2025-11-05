@@ -209,6 +209,27 @@ codeunit 3060 Uri
     end;
 
     /// <summary>
+    /// Validates and returns the integration URL from the setup table if it has the same host as the provided integration URL.
+    /// </summary>
+    /// <param name="SetupTableNo">The table number of the setup table.</param>
+    /// <param name="FieldNo">The field number of the integration URL field in the setup table.</param>
+    /// <param name="IntegrationURL">The hardcoded integration URL to validate.</param>   
+    /// <returns>The integration URL from the setup table if it has the same host; otherwise, the provided integration URL.</returns>
+    procedure ValidateIntegrationURLFromFieldInSetupTable(SetupTableNo: Integer; FieldNo: Integer; IntegrationURL: Text): Text
+    var
+        RecRef: RecordRef;
+    begin
+        RecRef.Open(SetupTableNo);
+        if not RecRef.FindFirst() then
+            exit(IntegrationURL);
+
+        if ValidateURLsAreSameHost(RecRef.Field(FieldNo).Value, IntegrationURL) then
+            exit(RecRef.Field(FieldNo).Value)
+        else
+            exit(IntegrationURL);
+    end;
+
+    /// <summary>
     /// Gets the underlying .Net Uri variable.
     /// </summary>
     /// <param name="OutUri">A .Net object of class Uri that holds the underlying .Net Uri variable.</param>
