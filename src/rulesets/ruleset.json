@@ -36,7 +36,8 @@
     },
     {
       "id": "AL0897",
-      "action": "Info"
+      "action": "Info",
+      "justification": "TODO(#611991) - Temporarily downgraded to unblock compiler uptake."
     },
     {
       "id": "AS0116",
