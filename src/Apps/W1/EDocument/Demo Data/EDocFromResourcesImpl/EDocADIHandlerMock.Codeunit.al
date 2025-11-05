@@ -5,8 +5,8 @@
 namespace Microsoft.EServices.EDocument.Format;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
 using System.Utilities;
 
 codeunit 5428 "E-Doc ADI Handler Mock" implements IStructureReceivedEDocument, IStructuredFormatReader, IStructuredDataType

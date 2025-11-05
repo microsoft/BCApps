@@ -5,9 +5,9 @@
 
 namespace Microsoft.eServices.EDocument.Extensions;
 
-using Microsoft.Sales.Customer;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Service.Participant;
+using Microsoft.Sales.Customer;
 
 /// <summary>
 /// A page extension for the Customer Card page to show the E-Document service participation.

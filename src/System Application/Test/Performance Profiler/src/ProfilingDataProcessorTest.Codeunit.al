@@ -6,8 +6,8 @@
 namespace System.Test.Tooling;
 
 using System.TestLibraries.Tooling;
-using System.Tooling;
 using System.TestLibraries.Utilities;
+using System.Tooling;
 
 codeunit 135014 "Profiling Data Processor Test"
 {

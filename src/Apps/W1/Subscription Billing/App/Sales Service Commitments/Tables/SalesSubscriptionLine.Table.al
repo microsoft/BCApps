@@ -1,10 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.SalesTax;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
-using Microsoft.Finance.Currency;
-using Microsoft.Finance.SalesTax;
 
 table 8068 "Sales Subscription Line"
 {

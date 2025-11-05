@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
-using System.Environment;
 using System.Azure.Identity;
+using System.Environment;
 
 table 6107 "E-Documents Setup"
 {

@@ -5,10 +5,10 @@
 
 namespace System.Test.Tooling;
 
-using System.Tooling;
 using System.TestLibraries.Tooling;
-using System.Utilities;
 using System.TestLibraries.Utilities;
+using System.Tooling;
+using System.Utilities;
 
 codeunit 135013 "Sampling Perf. Profiler Test"
 {
@@ -101,7 +101,7 @@ codeunit 135013 "Sampling Perf. Profiler Test"
         PerfProfilerTestLibrary.ClearData();
     end;
 
-[Test]
+    [Test]
     procedure TestSetInvalidJsonData()
     var
         TempBlob: Codeunit "Temp Blob";

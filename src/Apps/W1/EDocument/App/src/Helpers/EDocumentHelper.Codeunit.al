@@ -1,15 +1,15 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
-using Microsoft.Foundation.Reporting;
-using System.Environment.Configuration;
-using System.Automation;
-using System.Utilities;
-using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.Foundation.Reporting;
+using System.Automation;
+using System.Environment.Configuration;
+using System.Utilities;
 
 codeunit 6148 "E-Document Helper"
 {

@@ -1,15 +1,15 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Sales.Customer;
-using Microsoft.Sales.Document;
-using Microsoft.Purchases.Document;
-using Microsoft.Purchases.Posting;
-using Microsoft.Pricing.Calculation;
-using Microsoft.Pricing.PriceList;
+using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Inventory.BOM;
+using Microsoft.Pricing.Calculation;
+using Microsoft.Pricing.PriceList;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Posting;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 
 codeunit 8055 "Sub. Contracts Item Management"
 {

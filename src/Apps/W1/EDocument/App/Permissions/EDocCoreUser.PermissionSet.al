@@ -4,14 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument.OrderMatch;
-using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.eServices.EDocument.Service.Participant;
-using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
 using Microsoft.eServices.EDocument.Processing;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
-using Microsoft.eServices.EDocument.IO.Peppol;
+using Microsoft.eServices.EDocument.Service.Participant;
+using Microsoft.Finance.GeneralLedger.Journal;
 
 permissionset 6105 "E-Doc. Core - User"
 {

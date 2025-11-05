@@ -6,11 +6,11 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.EServices.EDocument.OrderMatch;
-using Microsoft.eServices.EDocument.Service.Participant;
-using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
-using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Service.Participant;
 
 permissionset 6101 "E-Doc. Core - Read"
 {

@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Document;
-using Microsoft.Finance.Dimension;
 
 tableextension 8054 "Sales Line" extends "Sales Line"
 {

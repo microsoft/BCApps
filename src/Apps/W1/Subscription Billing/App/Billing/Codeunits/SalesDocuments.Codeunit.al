@@ -1,18 +1,18 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Sales.Document;
-using Microsoft.Sales.Posting;
-using Microsoft.Sales.History;
-using Microsoft.Sales.Receivables;
-using Microsoft.Purchases.Posting;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Inventory;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
-using Microsoft.Warehouse.Activity;
-using Microsoft.Finance.GeneralLedger.Posting;
-using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Purchases.Posting;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Posting;
+using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
+using Microsoft.Warehouse.Activity;
 
 codeunit 8063 "Sales Documents"
 {

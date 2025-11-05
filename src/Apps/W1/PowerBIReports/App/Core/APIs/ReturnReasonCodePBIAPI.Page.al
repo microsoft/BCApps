@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.PowerBIReports;
+
 using Microsoft.Foundation.AuditCodes;
 
 page 36965 "Return Reason Code - PBI API"

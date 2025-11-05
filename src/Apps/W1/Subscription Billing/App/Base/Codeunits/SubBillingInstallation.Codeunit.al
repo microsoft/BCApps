@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Upgrade;
 using Microsoft.Foundation.Company;
+using System.Upgrade;
 
 codeunit 8051 "Sub. Billing Installation"
 {

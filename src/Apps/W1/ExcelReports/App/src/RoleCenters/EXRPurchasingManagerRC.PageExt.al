@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Purchases.ExcelReports;
+
 using Microsoft.Purchases.RoleCenters;
 
 pageextension 4420 "EXR Purchasing Manager RC" extends "Purchasing Manager Role Center"

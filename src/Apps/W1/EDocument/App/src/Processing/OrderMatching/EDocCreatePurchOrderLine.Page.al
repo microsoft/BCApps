@@ -1,8 +1,8 @@
 namespace Microsoft.eServices.EDocument.OrderMatch;
 
-using Microsoft.Purchases.Document;
-using Microsoft.Finance.Currency;
 using Microsoft.eServices.EDocument;
+using Microsoft.Finance.Currency;
+using Microsoft.Purchases.Document;
 
 page 6171 "E-Doc. Create Purch Order Line"
 {

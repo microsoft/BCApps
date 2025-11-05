@@ -3,8 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing.Import;
-using System.Reflection;
+
 using Microsoft.Purchases.History;
+using System.Reflection;
 
 page 6107 "E-Doc. Field Value Edit"
 {

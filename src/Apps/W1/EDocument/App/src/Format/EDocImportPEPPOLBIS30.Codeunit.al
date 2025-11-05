@@ -1,13 +1,13 @@
 namespace Microsoft.eServices.EDocument.IO.Peppol;
 
 using Microsoft.eServices.EDocument;
-using System.Utilities;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 using System.IO;
 using System.Text;
-using Microsoft.Foundation.Attachment;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Finance.GeneralLedger.Setup;
+using System.Utilities;
 
 codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
 {

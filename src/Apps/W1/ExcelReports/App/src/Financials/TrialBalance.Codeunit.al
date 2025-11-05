@@ -1,8 +1,9 @@
 namespace Microsoft.Finance.ExcelReports;
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.GeneralLedger.Ledger;
+
 using Microsoft.Finance.Consolidation;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Ledger;
 
 codeunit 4410 "Trial Balance"
 {

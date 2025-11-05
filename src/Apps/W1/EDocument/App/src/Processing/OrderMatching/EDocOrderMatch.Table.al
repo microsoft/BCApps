@@ -1,8 +1,8 @@
 namespace Microsoft.eServices.EDocument.OrderMatch;
 
-using Microsoft.Purchases.Document;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
+using Microsoft.Purchases.Document;
 
 table 6164 "E-Doc. Order Match"
 {
