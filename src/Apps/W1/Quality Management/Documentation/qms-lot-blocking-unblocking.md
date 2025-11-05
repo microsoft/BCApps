@@ -36,7 +36,7 @@ Workflow-based blocking creates or modifies **Lot Number Information Cards** to 
 
 The following procedure describes the key settings for a workflow that blocks lots when quality tests fail.
 
-1. [!INCLUDE [open-search](includes/open-search.md)], enter **Workflow**, and then choose the related link.
+1. [!INCLUDE [open-search](includes/open-search.md)], enter **Workflows**, and then choose the related link.
 1. Create a new workflow. For example, name it "Block Lot Example."
 1. Configure the **When Event**, as follows:
 
