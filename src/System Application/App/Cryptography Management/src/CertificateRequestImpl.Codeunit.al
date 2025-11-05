@@ -152,9 +152,11 @@ codeunit 1464 "CertificateRequest Impl."
         DotNetNotBefore: DotNet DateTimeOffset;
         DotNetNotAfter: DotNet DateTimeOffset;
         DotNetX509Certificate2: DotNet X509Certificate2;
+        DotNetTimeSpan: DotNet TimeSpan;
     begin
-        DotNetNotBefore := DotNetNotBefore.DateTimeOffset(NotBefore);
-        DotNetNotAfter := DotNetNotBefore.DateTimeOffset(NotAfter);
+        DotNetTimeSpan := DotNetTimeSpan.TimeSpan(0, 0, 0);
+        DotNetNotBefore := DotNetNotBefore.DateTimeOffset(NotBefore, DotNetTimeSpan);
+        DotNetNotAfter := DotNetNotAfter.DateTimeOffset(NotAfter, DotNetTimeSpan);
         DotNetX509Certificate2 := DotNetCertificateRequest.CreateSelfSigned(DotNetNotBefore, DotNetNotAfter);
         TryExportToBase64String(DotNetX509Certificate2, X509ContentType, CertBase64Value);
     end;
