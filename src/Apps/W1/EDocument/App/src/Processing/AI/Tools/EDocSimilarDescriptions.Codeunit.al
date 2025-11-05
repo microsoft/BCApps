@@ -232,8 +232,8 @@ codeunit 6105 "E-Doc. Similar Descriptions" implements "AOAI Function", IEDocAIS
         AzureKeyVault: Codeunit "Azure Key Vault";
         SecurityPromptSecretText, CompletePromptSecretText : SecretText;
         EDocSimilarDescriptionsPromptText: Text;
-        EDocSimilarDescriptionsPromptTok: Label 'Prompts/EDocSimilarDescriptions-SystemPrompt', Locked = true;
-        SecurityPromptTok: Label 'Prompts/EDocSimilarDescriptions-SecurityPrompt', Locked = true;
+        EDocSimilarDescriptionsPromptTok: Label 'Prompts/EDocSimilarDescriptions-SystemPrompt.md', Locked = true;
+        SecurityPromptTok: Label 'EDocSimilarDescriptions-SecurityPrompt', Locked = true;
     begin
         EDocSimilarDescriptionsPromptText := NavApp.GetResourceAsText(EDocSimilarDescriptionsPromptTok);
         if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then

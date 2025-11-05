@@ -526,8 +526,8 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         AzureKeyVault: Codeunit "Azure Key Vault";
         SecurityPromptSecretText, CompletePromptSecretText : SecretText;
         EDocHistoricalMatchingPromptText: Text;
-        EDocHistoricalMatchingPromptTok: Label 'Prompts/EDocHistoricalMatching-SystemPrompt', Locked = true;
-        SecurityPromptTok: Label 'Prompts/EDocHistoricalMatching-SecurityPrompt', Locked = true;
+        EDocHistoricalMatchingPromptTok: Label 'Prompts/EDocHistoricalMatching-SystemPrompt.md', Locked = true;
+        SecurityPromptTok: Label 'EDocHistoricalMatching-SecurityPrompt', Locked = true;
     begin
         EDocHistoricalMatchingPromptText := NavApp.GetResourceAsText(EDocHistoricalMatchingPromptTok);
         if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then

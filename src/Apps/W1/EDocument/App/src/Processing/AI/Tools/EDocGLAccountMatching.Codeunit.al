@@ -263,8 +263,8 @@ codeunit 6126 "E-Doc. GL Account Matching" implements "AOAI Function", IEDocAISy
         AzureKeyVault: Codeunit "Azure Key Vault";
         SecurityPromptSecretText, CompletePromptSecretText : SecretText;
         GLAccountMatchingPromptText: Text;
-        GLAccountMatchingPromptTok: Label 'Prompts/GLAccountMatching-SystemPrompt', Locked = true;
-        SecurityPromptTok: Label 'Prompts/GLAccountMatching-SecurityPrompt', Locked = true;
+        GLAccountMatchingPromptTok: Label 'Prompts/GLAccountMatching-SystemPrompt.md', Locked = true;
+        SecurityPromptTok: Label 'GLAccountMatching-SecurityPrompt', Locked = true;
     begin
         GLAccountMatchingPromptText := NavApp.GetResourceAsText(GLAccountMatchingPromptTok);
         if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then
