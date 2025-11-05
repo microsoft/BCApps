@@ -261,12 +261,19 @@ codeunit 6126 "E-Doc. GL Account Matching" implements "AOAI Function", IEDocAISy
     procedure GetSystemPrompt(): SecretText
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
-        PromptSecretText: SecretText;
-        PromptSecretNameTok: Label 'EDocMatchLineToGLAccountV271', Locked = true;
+        SecurityPromptSecretText, CompletePromptSecretText : SecretText;
+        GLAccountMatchingPromptText: Text;
+        GLAccountMatchingPromptTok: Label 'Prompts/GLAccountMatching-SystemPrompt', Locked = true;
+        SecurityPromptTok: Label 'Prompts/GLAccountMatching-SecurityPrompt', Locked = true;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret(PromptSecretNameTok, PromptSecretText) then
-            PromptSecretText := SecretStrSubstNo('');
-        exit(PromptSecretText);
+        GLAccountMatchingPromptText := NavApp.GetResourceAsText(GLAccountMatchingPromptTok);
+        if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then
+            CompletePromptSecretText := SecretText.SecretStrSubstNo(GLAccountMatchingPromptText, SecurityPromptSecretText)
+        else begin
+            Session.LogMessage('', 'Failed to retrieve security prompt', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetFeatureName());
+            CompletePromptSecretText := SecretStrSubstNo('');
+        end;
+        exit(CompletePromptSecretText);
     end;
 
     procedure GetTools(): List of [Interface "AOAI Function"]

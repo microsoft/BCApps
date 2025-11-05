@@ -176,12 +176,19 @@ codeunit 6129 "E-Doc. Deferral Matching" implements "AOAI Function", IEDocAISyst
     procedure GetSystemPrompt(): SecretText
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
-        PromptSecretText: SecretText;
-        PromptSecretNameTok: Label 'DeferralMatching-SystemPrompt271', Locked = true;
+        SecurityPromptSecretText, CompletePromptSecretText : SecretText;
+        DeferralMatchingPromptText: Text;
+        DeferralMatchingPromptTok: Label 'Prompts/DeferralMatching-SystemPrompt', Locked = true;
+        SecurityPromptTok: Label 'Prompts/DeferralMatching-SecurityPrompt', Locked = true;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret(PromptSecretNameTok, PromptSecretText) then
-            PromptSecretText := SecretStrSubstNo('');
-        exit(PromptSecretText);
+        DeferralMatchingPromptText := NavApp.GetResourceAsText(DeferralMatchingPromptTok);
+        if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then
+            CompletePromptSecretText := SecretText.SecretStrSubstNo(DeferralMatchingPromptText, SecurityPromptSecretText)
+        else begin
+            Session.LogMessage('', 'Failed to retrieve security prompt', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetFeatureName());
+            CompletePromptSecretText := SecretStrSubstNo('');
+        end;
+        exit(CompletePromptSecretText);
     end;
 
     procedure GetTools(): List of [Interface "AOAI Function"]

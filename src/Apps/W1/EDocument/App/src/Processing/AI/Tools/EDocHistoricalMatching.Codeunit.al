@@ -524,12 +524,19 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
     procedure GetSystemPrompt(): SecretText
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
-        PromptSecretText: SecretText;
-        PromptSecretNameTok: Label 'EDocHistoricalMatching-SystemPrompt', Locked = true;
+        SecurityPromptSecretText, CompletePromptSecretText : SecretText;
+        EDocHistoricalMatchingPromptText: Text;
+        EDocHistoricalMatchingPromptTok: Label 'Prompts/EDocHistoricalMatching-SystemPrompt', Locked = true;
+        SecurityPromptTok: Label 'Prompts/EDocHistoricalMatching-SecurityPrompt', Locked = true;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret(PromptSecretNameTok, PromptSecretText) then
-            PromptSecretText := SecretStrSubstNo('');
-        exit(PromptSecretText);
+        EDocHistoricalMatchingPromptText := NavApp.GetResourceAsText(EDocHistoricalMatchingPromptTok);
+        if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then
+            CompletePromptSecretText := SecretText.SecretStrSubstNo(EDocHistoricalMatchingPromptText, SecurityPromptSecretText)
+        else begin
+            Session.LogMessage('', 'Failed to retrieve security prompt', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetFeatureName());
+            CompletePromptSecretText := SecretStrSubstNo('');
+        end;
+        exit(CompletePromptSecretText);
     end;
 
     procedure GetTools(): List of [Interface "AOAI Function"]

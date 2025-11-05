@@ -230,12 +230,19 @@ codeunit 6105 "E-Doc. Similar Descriptions" implements "AOAI Function", IEDocAIS
     procedure GetSystemPrompt(): SecretText
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
-        PromptSecretText: SecretText;
-        PromptSecretNameTok: Label 'EDocSimilarDescriptions-SystemPrompt', Locked = true;
+        SecurityPromptSecretText, CompletePromptSecretText : SecretText;
+        EDocSimilarDescriptionsPromptText: Text;
+        EDocSimilarDescriptionsPromptTok: Label 'Prompts/EDocSimilarDescriptions-SystemPrompt', Locked = true;
+        SecurityPromptTok: Label 'Prompts/EDocSimilarDescriptions-SecurityPrompt', Locked = true;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret(PromptSecretNameTok, PromptSecretText) then
-            PromptSecretText := SecretStrSubstNo('');
-        exit(PromptSecretText);
+        EDocSimilarDescriptionsPromptText := NavApp.GetResourceAsText(EDocSimilarDescriptionsPromptTok);
+        if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then
+            CompletePromptSecretText := SecretText.SecretStrSubstNo(EDocSimilarDescriptionsPromptText, SecurityPromptSecretText)
+        else begin
+            Session.LogMessage('', 'Failed to retrieve security prompt', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetFeatureName());
+            CompletePromptSecretText := SecretStrSubstNo('');
+        end;
+        exit(CompletePromptSecretText);
     end;
 
     procedure GetTools(): List of [Interface "AOAI Function"]
