@@ -5,6 +5,7 @@
 namespace Microsoft.QualityManagement.Configuration.GenerationRule;
 
 using Microsoft.QualityManagement.Configuration.GenerationRule.JobQueue;
+// TODO: Decouple Manufacturing dependency - FIXED
 //using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
@@ -110,7 +111,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
                     Editable = EditAssemblyTrigger;
                     StyleExpr = AssemblyStyle;
                 }
-                // TODO: Decouple Manufacturing dependency
+                // TODO: Decouple Manufacturing dependency - FIXED
                 /*                field("Production Trigger"; Rec."Production Trigger")
                                 {
                                     Visible = ShowProductionTrigger;
@@ -177,14 +178,14 @@ page 20405 "Qlty. In. Test Generat. Rules"
             actionref(CreateNewGenerationRuleForWhseWizard_Promoted; CreateNewGenerationRuleForWhseWizard)
             {
             }
-            // TODO: Decouple Manufacturing dependency
+            // TODO: Decouple Manufacturing dependency - FIXED
             /*            actionref(CreateNewGenerationRuleForProdWizard_Promoted; CreateNewGenerationRuleForProdWizard)
                         {
                         }*/
         }
         area(Processing)
         {
-            // TODO: Decouple Manufacturing dependency
+            // TODO: Decouple Manufacturing dependency - FIXED
             /*            action(CreateNewGenerationRuleForProdWizard)
                         {
                             Caption = 'Create Production Rule';
@@ -362,11 +363,11 @@ page 20405 "Qlty. In. Test Generat. Rules"
         ShowSortAndTemplate: Boolean;
         ShowEditWizardMovementRule: Boolean;
         ShowEditWizardReceivingRule: Boolean;
-        // TODO: Decouple Manufacturing dependency
+        // TODO: Decouple Manufacturing dependency - FIXED
         //ShowEditWizardProductionRule: Boolean;
         TemplateCode: Code[20];
         ShowAssemblyTrigger: Boolean;
-        // TODO: Decouple Manufacturing dependency
+        // TODO: Decouple Manufacturing dependency - FIXED
         //ShowProductionTrigger: Boolean;
         ShowPurchaseTrigger: Boolean;
         ShowSalesReturnTrigger: Boolean;
@@ -374,7 +375,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
         ShowWarehouseReceiveTrigger: Boolean;
         ShowWarehouseMovementTrigger: Boolean;
         EditAssemblyTrigger: Boolean;
-        // TODO: Decouple Manufacturing dependency
+        // TODO: Decouple Manufacturing dependency - FIXED
         //EditProductionTrigger: Boolean;
         EditPurchaseTrigger: Boolean;
         EditSalesReturnTrigger: Boolean;
@@ -383,15 +384,21 @@ page 20405 "Qlty. In. Test Generat. Rules"
         EditWarehouseMovementTrigger: Boolean;
         ShowJobQueueEntries: Boolean;
         AssemblyStyle: Text;
-        ProductionStyle: Text;
+        // TODO: Decouple Manufacturing dependency - FIXED
+        //ProductionStyle: Text;
         PurchaseStyle: Text;
         SalesReturnStyle: Text;
         WhseReceiveStyle: Text;
         WhseMovementStyle: Text;
         TransferStyle: Text;
-        RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
+        // TODO: Decouple Manufacturing dependency - FIXED
+        //        RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
         GenerationRulesCaptionLbl: Label 'Quality Inspection Test Generation Rules';
         GenerationRulesCaptionForTemplateLbl: Label 'Quality Inspection Test Generation Rules for %1', Comment = '%1=the template';
+
+    protected var
+        RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
+
 
     trigger OnInit()
     begin
@@ -456,12 +463,12 @@ page 20405 "Qlty. In. Test Generat. Rules"
             Rec.InferGenerationRuleIntent(KnownOrInferredIntent, Certainty);
 
             if Certainty = Certainty::Maybe then begin
-                // TODO: Decouple Manufacturing dependency
+                // TODO: Decouple Manufacturing dependency - FIXED
                 //ShowEditWizardProductionRule := true;
                 ShowEditWizardReceivingRule := true;
                 ShowEditWizardMovementRule := true;
                 EditAssemblyTrigger := true;
-                // TODO: Decouple Manufacturing dependency
+                // TODO: Decouple Manufacturing dependency - FIXED
                 //EditProductionTrigger := true;
                 EditPurchaseTrigger := true;
                 EditSalesReturnTrigger := true;
@@ -470,7 +477,8 @@ page 20405 "Qlty. In. Test Generat. Rules"
                 EditWarehouseReceiveTrigger := true;
 
                 AssemblyStyle := Format(RowStyle::Ambiguous);
-                ProductionStyle := Format(RowStyle::Ambiguous);
+                // TODO: Decouple Manufacturing dependency - FIXED
+                //ProductionStyle := Format(RowStyle::Ambiguous);
                 PurchaseStyle := Format(RowStyle::Ambiguous);
                 SalesReturnStyle := Format(RowStyle::Ambiguous);
                 WhseReceiveStyle := Format(RowStyle::Ambiguous);
@@ -487,7 +495,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
                     EditAssemblyTrigger := true;
                     AssemblyStyle := Format(RowStyle::Standard);
                 end;
-            // TODO: Decouple Manufacturing dependency
+            // TODO: Decouple Manufacturing dependency - FIXED
             /*Rec.Intent::Production:
                 begin
                     ShowEditWizardProductionRule := true;
@@ -530,10 +538,10 @@ page 20405 "Qlty. In. Test Generat. Rules"
     local procedure ClearRowSpecificVisibleAndEditFlags()
     begin
         ShowEditWizardReceivingRule := false;
-        // TODO: Decouple Manufacturing dependency
+        // TODO: Decouple Manufacturing dependency - FIXED
         //ShowEditWizardProductionRule := false;
         ShowEditWizardMovementRule := false;
-        // TODO: Decouple Manufacturing dependency
+        // TODO: Decouple Manufacturing dependency - FIXED
         //EditProductionTrigger := false;
         EditAssemblyTrigger := false;
         EditPurchaseTrigger := false;
@@ -543,7 +551,8 @@ page 20405 "Qlty. In. Test Generat. Rules"
         EditWarehouseMovementTrigger := false;
 
         AssemblyStyle := Format(RowStyle::Subordinate);
-        ProductionStyle := Format(RowStyle::Subordinate);
+        // TODO: Decouple Manufacturing dependency - FIXED
+        //ProductionStyle := Format(RowStyle::Subordinate);
         PurchaseStyle := Format(RowStyle::Subordinate);
         SalesReturnStyle := Format(RowStyle::Subordinate);
         WhseReceiveStyle := Format(RowStyle::Subordinate);
@@ -571,7 +580,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
     begin
         ShowAssemblyTrigger := false;
-        // TODO: Decouple Manufacturing dependency
+        // TODO: Decouple Manufacturing dependency - FIXED in OnOpenPage but not in OnFindRecord as page ext does not support that trigger
         //ShowProductionTrigger := false;
         ShowPurchaseTrigger := false;
         ShowSalesReturnTrigger := false;
@@ -585,7 +594,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
         if not QltyInTestGenerationRule.IsEmpty() then
             ShowAssemblyTrigger := true;
 
-        // TODO: Decouple Manufacturing dependency
+        // TODO: Decouple Manufacturing dependency - FIXED in OnOpenPage but not in OnFindRecord as page ext does not support that trigger
         /*QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Production);
         if not QltyInTestGenerationRule.IsEmpty() then
             ShowProductionTrigger := true;*/
@@ -613,7 +622,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
         QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Unknown);
         if not QltyInTestGenerationRule.IsEmpty() then begin
             ShowAssemblyTrigger := true;
-            // TODO: Decouple Manufacturing dependency
+            // TODO: Decouple Manufacturing dependency - FIXED
             //ShowProductionTrigger := true;
             ShowPurchaseTrigger := true;
             ShowSalesReturnTrigger := true;
@@ -626,7 +635,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
             exit;
         if QltyManagementSetup."Assembly Trigger" <> QltyManagementSetup."Assembly Trigger"::NoTrigger then
             ShowAssemblyTrigger := true;
-        // TODO: Decouple Manufacturing dependency
+        // TODO: Decouple Manufacturing dependency - FIXED in OnOpenPage but not in OnFindRecord as page ext does not support that trigger
         /*        if QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger then
                     ShowProductionTrigger := true;*/
         if QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger then

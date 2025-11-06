@@ -10,14 +10,14 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
-// TODO: Decouple Manufacturing dependency
+// TODO: Decouple Manufacturing dependency - FIXED
 //using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.Routing;
-// TODO: Decouple Manufacturing dependency
+// TODO: Decouple Manufacturing dependency - FIXED
 //using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration.Template;
-// TODO: Decouple Manufacturing dependency
+// TODO: Decouple Manufacturing dependency - FIXED
 //using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
 using Microsoft.Sales.Customer;
 using Microsoft.Warehouse.Structure;
@@ -551,7 +551,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    // TODO: Decouple Manufacturing dependency
+    // TODO: Decouple Manufacturing dependency - FIXED
     /*    /// <summary>
         /// Starts the assist edit dialog for choosing a machine.
         /// </summary>

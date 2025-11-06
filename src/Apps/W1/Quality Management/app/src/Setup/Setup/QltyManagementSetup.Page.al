@@ -8,7 +8,7 @@ using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Grade;
 using Microsoft.QualityManagement.Configuration.Template;
-// TODO: Decouple Manufacturing dependency
+// TODO: Decouple Manufacturing dependency - FIXED
 //using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
@@ -197,7 +197,7 @@ page 20400 "Qlty. Management Setup"
                     AboutTitle = 'Production Related Automation Settings';
                     AboutText = 'Production related settings are configured in this group. You can choose to automatically create tests when output is created, whether or not to update the source, and other automatic features.';
 
-                    // TODO: Decouple Manufacturing dependency
+                    // TODO: Decouple Manufacturing dependency - FIXED
                     /*                    field("Production Trigger"; Rec."Production Trigger")
                                         {
                                             Caption = 'Production - Create Test';
@@ -222,7 +222,7 @@ page 20400 "Qlty. Management Setup"
                         AboutTitle = 'Assembly related trigger';
                         AboutText = 'Optionally choose an assembly-related trigger to try and create a test.';
                     }
-                    // TODO: Decouple Manufacturing dependency
+                    // TODO: Decouple Manufacturing dependency - FIXED
                     /*                    field(ChooseCreateNewRule_Production; 'Click here to create a new generation rule...')
                                         {
                                             ShowCaption = false;

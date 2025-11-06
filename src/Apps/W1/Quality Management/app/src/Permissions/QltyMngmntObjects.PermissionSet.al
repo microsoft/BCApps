@@ -25,7 +25,7 @@ using Microsoft.QualityManagement.Integration.Foundation.Attachment;
 using Microsoft.QualityManagement.Integration.Foundation.Navigate;
 using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Integration.Inventory.Transfer;
-// TODO: Decouple Manufacturing dependency
+// TODO: Decouple Manufacturing dependency - FIXED
 //using Microsoft.QualityManagement.Integration.Manufacturing;
 //using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
 using Microsoft.QualityManagement.Integration.Receiving;
@@ -76,7 +76,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         codeunit "Qlty. Misc Helpers" = X,
         codeunit "Qlty. Notification Mgmt." = X,
         codeunit "Qlty. Permission Mgmt." = X,
-        // TODO: Decouple Manufacturing dependency
+        // TODO: Decouple Manufacturing dependency - FIXED
         //codeunit "Qlty. Manufactur. Integration" = X,
         codeunit "Qlty. Assembly Integration" = X,
         codeunit "Qlty. Receiving Integration" = X,
@@ -107,12 +107,12 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Management Setup Wizard" = X,
         page "Qlty. Management Setup" = X,
         page "Qlty. Most Recent Picture" = X,
-        // TODO: Decouple Manufacturing dependency
+        // TODO: Decouple Manufacturing dependency - FIXED
         //page "Qlty. Prod. Gen. Rule Wizard" = X,
         page "Qlty. Rec. Gen. Rule Wizard" = X,
         page "Qlty. Related Transfer Orders" = X,
         page "Qlty. Report Selection" = X,
-        // TODO: Decouple Manufacturing dependency
+        // TODO: Decouple Manufacturing dependency - FIXED
         //page "Qlty. Routing Line Lookup" = X,
         page "Qlty. Inspection Template List" = X,
         page "Qlty. Inspection Template Subf" = X,

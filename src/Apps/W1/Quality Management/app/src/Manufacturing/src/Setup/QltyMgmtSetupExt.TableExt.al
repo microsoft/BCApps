@@ -28,6 +28,11 @@ tableextension 20400 "Qlty. Mgmt. Setup - Mfg" extends "Qlty. Management Setup"
             Caption = 'Production Update Control';
             ToolTip = 'Specifies whether to update when the source changes. Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the test.';
         }
+        field(92; "Auto Output Configuration"; Enum "Qlty. Auto. Production Trigger")
+        {
+            Caption = 'Auto Output Configuration';
+            ToolTip = 'Specifies granular options for when a test should be created automatically during the production process.';
+        }
     }
 
     keys

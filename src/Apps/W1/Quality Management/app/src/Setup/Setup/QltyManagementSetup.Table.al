@@ -15,7 +15,7 @@ using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Integration.Inventory;
-// TODO: Decouple Manufacturing dependency
+// TODO: Decouple Manufacturing dependency - FIXED
 //using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
@@ -317,7 +317,7 @@ table 20400 "Qlty. Management Setup"
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the maximum number of rows to fetch on data lookups. Keeping the number as low as possible will increase usability and performance. A larger number will reduce performance and reduce usability.';
         }
-        // TODO: Decouple Manufacturing dependency
+        // TODO: Decouple Manufacturing dependency - FIXED
         /*        field(92; "Auto Output Configuration"; Enum "Qlty. Auto. Production Trigger")
                 {
                     Caption = 'Auto Output Configuration';
