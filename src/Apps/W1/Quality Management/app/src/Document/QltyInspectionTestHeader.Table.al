@@ -201,11 +201,9 @@ table 20405 "Qlty. Inspection Test Header"
 
             trigger OnValidate()
             begin
-                if Rec.IsTemporary() then
-                    exit;
-
-                if not GetIsCreating() then
-                    QltyPermissionMgmt.TestCanChangeSourceQuantity();
+                if not Rec.IsTemporary() then
+                    if not GetIsCreating() then
+                        QltyPermissionMgmt.TestCanChangeSourceQuantity();
 
                 if Rec."Source Quantity (Base)" < 0 then
                     Rec."Source Quantity (Base)" := Abs(Rec."Source Quantity (Base)");
@@ -497,7 +495,7 @@ table 20405 "Qlty. Inspection Test Header"
         field(65; "Sample Size"; Integer)
         {
             Caption = 'Sample Size';
-            Description = 'How many samples are included in this test.  You can change this manually, however it can also be determined by configuring your AQL tables.';
+            Description = 'How many samples are included in this test. You can change this manually, however it can also be determined by configuring your AQL tables.';
             ToolTip = 'Specifies the number of units that must be inspected. This will be used to fill out the sample size field on a Quality Inspection Test when possible based on the other characteristics that were applied.';
 
             trigger OnValidate()

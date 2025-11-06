@@ -872,7 +872,6 @@ codeunit 139968 "Qlty. Tests - Traversal"
         // [SCENARIO] Find a related vendor from purchase line by traversing to parent purchase header
 
         // [GIVEN] Quality management setup is ensured
-        QltyTestsUtility.EnsureSetup();
         if not SpecificQltyInspectSourceConfig.IsEmpty() then
             SpecificQltyInspectSourceConfig.DeleteAll();
 
