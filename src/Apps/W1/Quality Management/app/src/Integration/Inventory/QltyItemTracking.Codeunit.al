@@ -173,6 +173,26 @@ codeunit 20428 "Qlty. Item Tracking"
     end;
 
     /// <summary>
+    /// Returns true if the item is either lot, or serial, or package tracked.
+    /// </summary>
+    /// <param name="ItemNo"></param>
+    /// <returns></returns>
+    internal procedure IsItemTracked(ItemNo: Code[20]): Boolean
+    begin
+        if ItemNo = '' then
+            exit(false);
+
+        if IsLotTracked(ItemNo) then
+            exit(true);
+        if IsSerialTracked(ItemNo) then
+            exit(true);
+        if IsPackageTracked(ItemNo) then
+            exit(true);
+
+        exit(false);
+    end;
+
+    /// <summary>
     /// If the item is lot tracked.
     /// </summary>
     /// <param name="ItemNo"></param>

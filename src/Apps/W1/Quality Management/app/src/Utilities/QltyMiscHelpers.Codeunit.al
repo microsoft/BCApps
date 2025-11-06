@@ -887,6 +887,9 @@ codeunit 20599 "Qlty. Misc Helpers"
         if not DataTypeManagement.GetRecordRef(CurrentRecordVariant, RecordRefToRead) then
             exit;
 
+        if RecordRefToRead.Number() = 0 then
+            exit;
+
         ResultText := StrSubstNo(BadFieldTok, RecordRefToRead.Number(), NumberOrNameOfFieldName);
         FieldNo := QltyFilterHelpers.IdentifyFieldIDFromText(RecordRefToRead.Number(), NumberOrNameOfFieldName);
         if FieldNo <= 0 then

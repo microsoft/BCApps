@@ -523,7 +523,6 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
         QltyInspectionGrade: Record "Qlty. Inspection Grade";
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         Iterator: Integer;
-        EvaluatedExpression: Text;
     begin
         Clear(MatrixArrayToSetConditionCellData);
         Clear(MatrixArrayToSetConditionDescriptionCellData);
@@ -547,16 +546,10 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
                         if MatrixArrayToSetConditionDescriptionCellData[Iterator] = '' then
                             MatrixArrayToSetConditionDescriptionCellData[Iterator] := MatrixArrayToSetConditionCellData[Iterator];
 
-                        if (not OptionalQltyInspectionTestHeader.IsTemporary()) and (OptionalQltyInspectionTestHeader."No." <> '') then begin
+                        if (not OptionalQltyInspectionTestHeader.IsTemporary()) and (OptionalQltyInspectionTestHeader."No." <> '') then
                             if MatrixArrayToSetConditionDescriptionCellData[Iterator].Contains('[') then
                                 MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyExpressionMgmt.EvaluateTextExpression(MatrixArrayToSetConditionDescriptionCellData[Iterator], OptionalQltyInspectionTestHeader, OptionalQltyInspectionTestLine);
 
-                            if MatrixArrayToSetConditionDescriptionCellData[Iterator].Contains('{') then begin
-                                Clear(EvaluatedExpression);
-                                if QltyExpressionMgmt.TryEvaluateEmbeddedNumericalExpressions(MatrixArrayToSetConditionDescriptionCellData[Iterator], OptionalQltyInspectionTestHeader, EvaluatedExpression) then
-                                    MatrixArrayToSetConditionDescriptionCellData[Iterator] := EvaluatedExpression;
-                            end;
-                        end;
                         MatrixSourceRecordId[Iterator] := QltyIGradeConditionConf.RecordId();
                     end else
                         break;

@@ -39,7 +39,6 @@ codeunit 20423 "Qlty. Workflow Setup"
         QMWorkflowResponseQuarantineLicensePlateTok: Label 'QLTY-R-QLP-1', Locked = true;
         QMWorkflowResponseUnQuarantineLicensePlateTok: Label 'QLTY-R-UQLP-1', Locked = true;
         QMWorkflowResponseInternalPutAwayTok: Label 'QLTY-R-IPUT-1', Locked = true;
-        QMWorkflowResponseSetTestValueTok: Label 'QLTY-R-STV-1', Locked = true;
         QMWorkflowResponseSetDatabaseValueTok: Label 'QLTY-R-SDB-1', Locked = true;
         QMWorkflowResponseAdjInventoryTok: Label 'QLTY-R-ADJ-1', Locked = true;
         QMWorkflowResponseChangeItemTrackingTok: Label 'QLTY-R-ITEMTRACK-1', Locked = true;
@@ -202,15 +201,6 @@ codeunit 20423 "Qlty. Workflow Setup"
     procedure GetWorkflowResponseInternalPutAway(): Text
     begin
         exit(QMWorkflowResponseInternalPutAwayTok);
-    end;
-
-    /// <summary>
-    /// Returns the token for a workflow response to set a test value
-    /// </summary>
-    /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseSetTestValue(): Text
-    begin
-        exit(QMWorkflowResponseSetTestValueTok);
     end;
 
     /// <summary>

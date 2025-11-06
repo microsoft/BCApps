@@ -107,7 +107,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         Item: Record Item;
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
-        CreateTestBehavior: Enum "Qlty. Create Test Behavior";
+        QltyCreateTestBehavior: Enum "Qlty. Create Test Behavior";
         ClaimedATestWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
@@ -126,7 +126,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
 
         // [GIVEN] The Create Test Behavior is set to "Always create new test"
         QltyManagementSetup.Get();
-        CreateTestBehavior := QltyManagementSetup."Create Test Behavior";
+        QltyCreateTestBehavior := QltyManagementSetup."Create Test Behavior";
         QltyManagementSetup."Create Test Behavior" := QltyManagementSetup."Create Test Behavior"::"Always create new test";
         QltyManagementSetup.Modify();
 
@@ -140,7 +140,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         ClaimedATestWasFoundOrCreated := ReUsableQltyInspectionTestCreate.CreateTest(ProdOrderRoutingLineRecordRefRecordRef, true);
         ReUsableQltyInspectionTestCreate.GetCreatedTest(CreatedTestSecondQltyInspectionTestHeader);
 
-        QltyManagementSetup."Create Test Behavior" := CreateTestBehavior;
+        QltyManagementSetup."Create Test Behavior" := QltyCreateTestBehavior;
         QltyManagementSetup.Modify();
         QltyInTestGenerationRule.Delete();
 
@@ -167,7 +167,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         Item: Record Item;
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
-        CreateTestBehavior: Enum "Qlty. Create Test Behavior";
+        QltyCreateTestBehavior: Enum "Qlty. Create Test Behavior";
         ClaimedATestWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
@@ -186,7 +186,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
 
         // [GIVEN] The Create Test Behavior is set to "Always create retest"
         QltyManagementSetup.Get();
-        CreateTestBehavior := QltyManagementSetup."Create Test Behavior";
+        QltyCreateTestBehavior := QltyManagementSetup."Create Test Behavior";
         QltyManagementSetup."Create Test Behavior" := QltyManagementSetup."Create Test Behavior"::"Always create retest";
         QltyManagementSetup.Modify();
 
@@ -198,7 +198,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         ClaimedATestWasFoundOrCreated := ReUsableQltyInspectionTestCreate.CreateTest(ProdOrderRoutingLineRecordRefRecordRef, true);
         ReUsableQltyInspectionTestCreate.GetCreatedTest(CreatedTestSecondQltyInspectionTestHeader);
 
-        QltyManagementSetup."Create Test Behavior" := CreateTestBehavior;
+        QltyManagementSetup."Create Test Behavior" := QltyCreateTestBehavior;
         QltyManagementSetup.Modify();
         QltyInTestGenerationRule.Delete();
 
@@ -225,7 +225,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         Item: Record Item;
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
-        CreateTestBehavior: Enum "Qlty. Create Test Behavior";
+        QltyCreateTestBehavior: Enum "Qlty. Create Test Behavior";
         BeforeCount: Integer;
         AfterCount: Integer;
         ClaimedATestWasFoundOrCreated: Boolean;
@@ -244,7 +244,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
 
         // [GIVEN] The Create Test Behavior is set to "Create retest if matching test is finished"
         QltyManagementSetup.Get();
-        CreateTestBehavior := QltyManagementSetup."Create Test Behavior";
+        QltyCreateTestBehavior := QltyManagementSetup."Create Test Behavior";
         QltyManagementSetup."Create Test Behavior" := QltyManagementSetup."Create Test Behavior"::"Create retest if matching test is finished";
         QltyManagementSetup.Modify();
 
@@ -255,7 +255,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         ClaimedATestWasFoundOrCreated := ReUsableQltyInspectionTestCreate.CreateTest(ProdOrderRoutingLineRecordRefRecordRef, true);
         ReUsableQltyInspectionTestCreate.GetCreatedTest(CreatedTestSecondQltyInspectionTestHeader);
 
-        QltyManagementSetup."Create Test Behavior" := CreateTestBehavior;
+        QltyManagementSetup."Create Test Behavior" := QltyCreateTestBehavior;
         QltyManagementSetup.Modify();
         QltyInTestGenerationRule.Delete();
 
@@ -282,7 +282,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         Item: Record Item;
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
-        CreateTestBehavior: Enum "Qlty. Create Test Behavior";
+        QltyCreateTestBehavior: Enum "Qlty. Create Test Behavior";
         BeforeCount: Integer;
         AfterCount: Integer;
         ClaimedATestWasFoundOrCreated: Boolean;
@@ -301,7 +301,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
 
         // [GIVEN] The Create Test Behavior is set to "Create retest if matching test is finished"
         QltyManagementSetup.Get();
-        CreateTestBehavior := QltyManagementSetup."Create Test Behavior";
+        QltyCreateTestBehavior := QltyManagementSetup."Create Test Behavior";
         QltyManagementSetup."Create Test Behavior" := QltyManagementSetup."Create Test Behavior"::"Create retest if matching test is finished";
         QltyManagementSetup.Modify();
 
@@ -316,7 +316,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         ClaimedATestWasFoundOrCreated := ReUsableQltyInspectionTestCreate.CreateTest(ProdOrderRoutingLineRecordRefRecordRef, true);
         ReUsableQltyInspectionTestCreate.GetCreatedTest(CreatedTestSecondQltyInspectionTestHeader);
 
-        QltyManagementSetup."Create Test Behavior" := CreateTestBehavior;
+        QltyManagementSetup."Create Test Behavior" := QltyCreateTestBehavior;
         QltyManagementSetup.Modify();
         QltyInTestGenerationRule.Delete();
 
@@ -343,7 +343,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         Item: Record Item;
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
-        CreateTestBehavior: Enum "Qlty. Create Test Behavior";
+        QltyCreateTestBehavior: Enum "Qlty. Create Test Behavior";
         BeforeCount: Integer;
         AfterCount: Integer;
         ClaimedATestWasFoundOrCreated: Boolean;
@@ -362,7 +362,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
 
         // [GIVEN] The Create Test Behavior is set to "Use existing open test if available"
         QltyManagementSetup.Get();
-        CreateTestBehavior := QltyManagementSetup."Create Test Behavior";
+        QltyCreateTestBehavior := QltyManagementSetup."Create Test Behavior";
         QltyManagementSetup."Create Test Behavior" := QltyManagementSetup."Create Test Behavior"::"Use existing open test if available";
         QltyManagementSetup.Modify();
 
@@ -377,7 +377,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         ClaimedATestWasFoundOrCreated := ReUsableQltyInspectionTestCreate.CreateTest(ProdOrderRoutingLineRecordRefRecordRef, true);
         ReUsableQltyInspectionTestCreate.GetCreatedTest(CreatedTestSecondQltyInspectionTestHeader);
 
-        QltyManagementSetup."Create Test Behavior" := CreateTestBehavior;
+        QltyManagementSetup."Create Test Behavior" := QltyCreateTestBehavior;
         QltyManagementSetup.Modify();
         QltyInTestGenerationRule.Delete();
 
@@ -403,7 +403,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         Item: Record Item;
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
-        CreateTestBehavior: Enum "Qlty. Create Test Behavior";
+        QltyCreateTestBehavior: Enum "Qlty. Create Test Behavior";
         BeforeCount: Integer;
         AfterCount: Integer;
         ClaimedATestWasFoundOrCreated: Boolean;
@@ -422,7 +422,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
 
         // [GIVEN] The Create Test Behavior is set to "Use existing open test if available"
         QltyManagementSetup.Get();
-        CreateTestBehavior := QltyManagementSetup."Create Test Behavior";
+        QltyCreateTestBehavior := QltyManagementSetup."Create Test Behavior";
         QltyManagementSetup."Create Test Behavior" := QltyManagementSetup."Create Test Behavior"::"Use existing open test if available";
         QltyManagementSetup.Modify();
 
@@ -433,7 +433,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         ClaimedATestWasFoundOrCreated := ReUsableQltyInspectionTestCreate.CreateTest(ProdOrderRoutingLineRecordRefRecordRef, true);
         ReUsableQltyInspectionTestCreate.GetCreatedTest(CreatedTestSecondQltyInspectionTestHeader);
 
-        QltyManagementSetup."Create Test Behavior" := CreateTestBehavior;
+        QltyManagementSetup."Create Test Behavior" := QltyCreateTestBehavior;
         QltyManagementSetup.Modify();
         QltyInTestGenerationRule.Delete();
 
@@ -459,7 +459,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         Item: Record Item;
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
-        CreateTestBehavior: Enum "Qlty. Create Test Behavior";
+        PreviousQltyCreateTestBehavior: Enum "Qlty. Create Test Behavior";
         BeforeCount: Integer;
         AfterCount: Integer;
         ClaimedATestWasFoundOrCreated: Boolean;
@@ -478,7 +478,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
 
         // [GIVEN] The Create Test Behavior is set to "Use any existing test if available"
         QltyManagementSetup.Get();
-        CreateTestBehavior := QltyManagementSetup."Create Test Behavior";
+        PreviousQltyCreateTestBehavior := QltyManagementSetup."Create Test Behavior";
         QltyManagementSetup."Create Test Behavior" := QltyManagementSetup."Create Test Behavior"::"Use any existing test if available";
         QltyManagementSetup.Modify();
 
@@ -493,7 +493,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         ClaimedATestWasFoundOrCreated := ReUsableQltyInspectionTestCreate.CreateTest(ProdOrderRoutingLineRecordRefRecordRef, true);
         ReUsableQltyInspectionTestCreate.GetCreatedTest(CreatedTestSecondQltyInspectionTestHeader);
 
-        QltyManagementSetup."Create Test Behavior" := CreateTestBehavior;
+        QltyManagementSetup."Create Test Behavior" := PreviousQltyCreateTestBehavior;
         QltyManagementSetup.Modify();
         QltyInTestGenerationRule.Delete();
 
@@ -516,7 +516,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         Item: Record Item;
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         ProdOrderRoutingLineRecordRefRecordRef: RecordRef;
-        CreateTestBehavior: Enum "Qlty. Create Test Behavior";
+        QltyCreateTestBehavior: Enum "Qlty. Create Test Behavior";
         BeforeCount: Integer;
         AfterCount: Integer;
         ClaimedATestWasFoundOrCreated: Boolean;
@@ -530,7 +530,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
 
         // [GIVEN] The Create Test Behavior is set to "Use any existing test if available"
         QltyManagementSetup.Get();
-        CreateTestBehavior := QltyManagementSetup."Create Test Behavior";
+        QltyCreateTestBehavior := QltyManagementSetup."Create Test Behavior";
         QltyManagementSetup."Create Test Behavior" := QltyManagementSetup."Create Test Behavior"::"Use any existing test if available";
         QltyManagementSetup.Modify();
 
@@ -542,7 +542,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         // [WHEN] CreateTest is called when no existing test exists
         ClaimedATestWasFoundOrCreated := ReUsableQltyInspectionTestCreate.CreateTest(ProdOrderRoutingLineRecordRefRecordRef, true);
 
-        QltyManagementSetup."Create Test Behavior" := CreateTestBehavior;
+        QltyManagementSetup."Create Test Behavior" := QltyCreateTestBehavior;
         QltyManagementSetup.Modify();
         QltyInTestGenerationRule.Delete();
 
@@ -2125,19 +2125,13 @@ codeunit 139959 "Qlty. Tests - Create Test"
         PurOrder1PurchaseHeader: Record "Purchase Header";
         PurOrderSecondPurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        ResReservationEntry: Record "Reservation Entry";
-        LotNoSeries: Record "No. Series";
-        LotNoSeriesLine: Record "No. Series Line";
-        LotItemTrackingCode: Record "Item Tracking Code";
+        ReservationEntry: Record "Reservation Entry";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
-        asePurchLineReserve: Codeunit "Purch. Line-Reserve";
+        PurchLineReserve: Codeunit "Purch. Line-Reserve";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        LibraryInventory: Codeunit "Library - Inventory";
         LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryUtility: Codeunit "Library - Utility";
-        LibraryItemTracking: Codeunit "Library - Item Tracking";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         CountBefore: Integer;
@@ -2152,35 +2146,32 @@ codeunit 139959 "Qlty. Tests - Create Test"
         QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
         // [GIVEN] A generation rule is created for purchase lines
         QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
-        // [GIVEN] A location, lot tracking setup, and vendor are created
+        // [GIVEN] A location, lot tracked item, and vendor are created
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
-        LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, '', '');
-        LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
-        LibraryInventory.CreateTrackedItem(Item, LotNoSeries.Code, '', LotItemTrackingCode.Code);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
         LibraryPurchase.CreateVendor(Vendor);
 
         // [GIVEN] A first purchase order is created, released, and received with lot tracking
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrder1PurchaseHeader, PurchaseLine, ResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrder1PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrder1PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrder1PurchaseHeader, PurchaseLine);
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
         // [GIVEN] A tracking specification is created and marked for the first purchase order
-        asePurchLineReserve.InitFromPurchLine(TempSpecTrackingSpecification, PurchaseLine);
+        PurchLineReserve.InitFromPurchLine(TempSpecTrackingSpecification, PurchaseLine);
         TempSpecTrackingSpecification."Entry No." := 1;
-        TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ResReservationEntry);
+        TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         TempSpecTrackingSpecification.Insert();
         TempSpecTrackingSpecification.Mark(true);
 
         // [GIVEN] A second purchase order is created, released, and received with lot tracking
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrderSecondPurchaseHeader, PurchaseLine, ResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrderSecondPurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrder1PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderSecondPurchaseHeader, PurchaseLine);
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
         // [GIVEN] A tracking specification is created and marked for the second purchase order
-        asePurchLineReserve.InitFromPurchLine(TempSpecTrackingSpecification, PurchaseLine);
+        PurchLineReserve.InitFromPurchLine(TempSpecTrackingSpecification, PurchaseLine);
         TempSpecTrackingSpecification."Entry No." := 2;
-        TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ResReservationEntry);
+        TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         TempSpecTrackingSpecification.Insert();
         TempSpecTrackingSpecification.Mark(true);
         // [GIVEN] The initial test count is recorded
@@ -2220,7 +2211,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
-        asePurchLineReserve: Codeunit "Purch. Line-Reserve";
+        PurchLineReserve: Codeunit "Purch. Line-Reserve";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -2257,7 +2248,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
 
         // [GIVEN] A tracking specification is created and marked from the second reservation entry
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
-        asePurchLineReserve.InitFromPurchLine(TempSpecTrackingSpecification, PurchaseLine);
+        PurchLineReserve.InitFromPurchLine(TempSpecTrackingSpecification, PurchaseLine);
         TempSpecTrackingSpecification."Entry No." := 1;
         AllReservationEntry.FindSet();
         AllReservationEntry.Next();
@@ -2560,7 +2551,7 @@ codeunit 139959 "Qlty. Tests - Create Test"
         Item: Record Item;
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
-        ResReservationEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
         LotNoSeries: Record "No. Series";
         LotNoSeriesLine: Record "No. Series Line";
         LotItemTrackingCode: Record "Item Tracking Code";
@@ -2583,11 +2574,11 @@ codeunit 139959 "Qlty. Tests - Create Test"
         LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
         LibraryInventory.CreateTrackedItem(Item, LotNoSeries.Code, '', LotItemTrackingCode.Code);
         LibraryPurchase.CreateVendor(Vendor);
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrderPurchaseHeader, OutPurchaseLine, ResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrderPurchaseHeader, OutPurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, OutPurchaseLine);
         OutPurchaseLine.Get(OutPurchaseLine."Document Type", OutPurchaseLine."Document No.", OutPurchaseLine."Line No.");
-        TempOutSpecTrackingSpecification.CopyTrackingFromReservEntry(ResReservationEntry);
+        TempOutSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
     end;
 
     local procedure SetupCreateTestProductionOrder(var QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; var Item: Record Item; var ProdProductionOrder: Record "Production Order"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line")

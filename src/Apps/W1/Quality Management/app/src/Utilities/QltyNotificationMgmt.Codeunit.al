@@ -103,7 +103,8 @@ codeunit 20437 "Qlty. Notification Mgmt."
         Source := GetSourceSummaryText(QltyInspectionTestHeader);
 
         if DataTypeManagement.GetRecordRef(RelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then
-            RelatedDocument := OptionalRelatedDocumentRecordRef.RecordId();
+            if OptionalRelatedDocumentRecordRef.Number() <> 0 then
+                RelatedDocument := OptionalRelatedDocumentRecordRef.RecordId();
 
         if (DocumentType <> '') and (DocumentType[1] in ['A', 'E', 'I', 'O', 'U']) then
             CurrentMessage := StrSubstNo(
@@ -181,11 +182,12 @@ codeunit 20437 "Qlty. Notification Mgmt."
                 Item."Base Unit of Measure");
 
         if OptionalRelatedDocumentVariant.IsRecord() or OptionalRelatedDocumentVariant.IsRecordRef() or OptionalRelatedDocumentVariant.IsRecordId() then
-            if DataTypeManagement.GetRecordRef(OptionalRelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then begin
-                RelatedDocument := OptionalRelatedDocumentRecordRef.RecordId();
-                DocumentCreationFailedNotification.SetData(NotificationDataRelatedRecordIdTok, Format(RelatedDocument));
-                AvailableOptions.Add(OpenTheDocumentLbl, HandleOpenDocumentTok);
-            end;
+            if DataTypeManagement.GetRecordRef(OptionalRelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then
+                if OptionalRelatedDocumentRecordRef.Number() <> 0 then begin
+                    RelatedDocument := OptionalRelatedDocumentRecordRef.RecordId();
+                    DocumentCreationFailedNotification.SetData(NotificationDataRelatedRecordIdTok, Format(RelatedDocument));
+                    AvailableOptions.Add(OpenTheDocumentLbl, HandleOpenDocumentTok);
+                end;
 
         CreateActionNotification(DocumentCreationFailedNotification, CurrentMessage, AvailableOptions);
     end;
@@ -368,6 +370,9 @@ codeunit 20437 "Qlty. Notification Mgmt."
         RecordIdData := NotificationToShow.GetData(NotificationDataRelatedRecordIdTok);
         if Evaluate(RelatedRecordId, RecordIdData) then
             if DataTypeManagement.GetRecordRef(RelatedRecordId, RecordRef) then begin
+                if RecordRef.Number() = 0 then
+                    exit;
+
                 RecordRefVariant := RecordRef;
 
                 if RecordRef.Number() = Database::"Warehouse Activity Header" then begin

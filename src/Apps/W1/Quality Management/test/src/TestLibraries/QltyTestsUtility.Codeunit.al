@@ -8,6 +8,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Document;
@@ -19,6 +20,7 @@ using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Field;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Utilities;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Setup;
@@ -30,6 +32,9 @@ codeunit 139950 "Qlty. Tests - Utility"
 {
     var
         LibraryAssert: Codeunit "Library Assert";
+        LibraryUtility: Codeunit "Library - Utility";
+        NoSeriesCodeunit: Codeunit "No. Series";
+        DefaultGrade2PassCodeLbl: Label 'PASS', Locked = true;
 
     procedure EnsureSetup()
     var
@@ -93,15 +98,15 @@ codeunit 139950 "Qlty. Tests - Utility"
     procedure CreateTemplate(var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; HowManyFields: Integer)
     var
         IgnoredQltyField: Record "Qlty. Field";
-        RecordRef: RecordRef;
+        ToTemplateRecordRef: RecordRef;
         FieldNumberToCreate: Integer;
     begin
         Clear(OutQltyInspectionTemplateHdr);
         OutQltyInspectionTemplateHdr.Init();
-        RecordRef.GetTable(OutQltyInspectionTemplateHdr);
-        FillTextField(RecordRef, OutQltyInspectionTemplateHdr.FieldNo("Code"), true);
-        FillTextField(RecordRef, OutQltyInspectionTemplateHdr.FieldNo(Description), true);
-        RecordRef.SetTable(OutQltyInspectionTemplateHdr);
+        ToTemplateRecordRef.GetTable(OutQltyInspectionTemplateHdr);
+        FillTextField(ToTemplateRecordRef, OutQltyInspectionTemplateHdr.FieldNo("Code"), true);
+        FillTextField(ToTemplateRecordRef, OutQltyInspectionTemplateHdr.FieldNo(Description), true);
+        ToTemplateRecordRef.SetTable(OutQltyInspectionTemplateHdr);
         OutQltyInspectionTemplateHdr.Insert(true);
         if HowManyFields > 0 then
             for FieldNumberToCreate := 1 to HowManyFields do
@@ -135,29 +140,40 @@ codeunit 139950 "Qlty. Tests - Utility"
         QltyInspectionTemplateLine.Insert(true);
     end;
 
-    procedure CreateFieldAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; QltyFieldType: Enum "Qlty. Field Type"; var OutQltyField: Record "Qlty. Field"; var OutQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
+    procedure CreateFieldAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; QltyFieldType: Enum "Qlty. Field Type"; var QltyField: Record "Qlty. Field"; var OutQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
     begin
         Clear(OutQltyInspectionTemplateLine);
-        CreateField(OutQltyField, QltyFieldType);
+        CreateField(QltyField, QltyFieldType);
         OutQltyInspectionTemplateLine.Init();
         OutQltyInspectionTemplateLine."Template Code" := InExistingQltyInspectionTemplateHdr.Code;
         OutQltyInspectionTemplateLine.InitLineNoIfNeeded();
-        OutQltyInspectionTemplateLine.Validate("Field Code", OutQltyField.Code);
+        OutQltyInspectionTemplateLine.Validate("Field Code", QltyField.Code);
         OutQltyInspectionTemplateLine.Insert(true);
     end;
 
-    procedure CreateField(var OutQltyField: Record "Qlty. Field"; QltyFieldType: Enum "Qlty. Field Type")
+    procedure CreateField(var QltyField: Record "Qlty. Field"; QltyFieldType: Enum "Qlty. Field Type")
     var
-        RecordRef: RecordRef;
+        QltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToFieldRecordRef: RecordRef;
     begin
-        Clear(OutQltyField);
-        OutQltyField.Init();
-        OutQltyField."Field Type" := QltyFieldType;
-        RecordRef.GetTable(OutQltyField);
-        FillTextField(RecordRef, OutQltyField.FieldNo(Code), true);
-        FillTextField(RecordRef, OutQltyField.FieldNo(Description), true);
-        RecordRef.SetTable(OutQltyField);
-        OutQltyField.Insert();
+        Clear(QltyField);
+        QltyField.Init();
+        QltyField."Field Type" := QltyFieldType;
+        ToFieldRecordRef.GetTable(QltyField);
+        FillTextField(ToFieldRecordRef, QltyField.FieldNo(Code), true);
+        FillTextField(ToFieldRecordRef, QltyField.FieldNo(Description), true);
+        ToFieldRecordRef.SetTable(QltyField);
+        QltyField.Insert();
+
+        if QltyInspectionGrade.Get(DefaultGrade2PassCodeLbl) then
+            case QltyFieldType of
+                QltyFieldType::"Field Type Text", QltyFieldType::"Field Type Text Expression":
+                    QltyField.SetGradeCondition(DefaultGrade2PassCodeLbl, '<>HARDCODEDFAIL', true);
+                QltyFieldType::"Field Type Decimal", QltyFieldType::"Field Type Integer":
+                    QltyField.SetGradeCondition(DefaultGrade2PassCodeLbl, '<>-123', true);
+                QltyFieldType::"Field Type Boolean":
+                    QltyField.SetGradeCondition(DefaultGrade2PassCodeLbl, '<>FALSE', true);
+            end;
     end;
 
     procedure CreatePrioritizedRule(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; SourceTableNo: Integer)
@@ -173,6 +189,8 @@ codeunit 139950 "Qlty. Tests - Utility"
     begin
         if InExistingQltyInspectionTemplateHdr.Code = '' then
             CreateTemplate(InExistingQltyInspectionTemplateHdr, 0);
+
+        FindLowestQltyInTestGenerationRule.ModifyAll("Activation Trigger", FindLowestQltyInTestGenerationRule."Activation Trigger"::Disabled);
 
         FindLowestQltyInTestGenerationRule.Reset();
         FindLowestQltyInTestGenerationRule.SetCurrentKey("Sort Order");
@@ -279,54 +297,101 @@ codeunit 139950 "Qlty. Tests - Utility"
     /// Creates a lot no. series and a lot-tracked item
     /// </summary>
     /// <param name="OutItem"></param>
-    procedure CreateLotTrackedItemWithNoSeries(var OutItem: Record Item)
+    procedure CreateLotTrackedItem(var OutItem: Record Item)
     var
-        LotNoSeries: Record "No. Series";
-        LotNoSeriesLine: Record "No. Series Line";
-        LotItemTrackingCode: Record "Item Tracking Code";
-        LibraryItemTracking: Codeunit "Library - Item Tracking";
-        LibraryUtility: Codeunit "Library - Utility";
-        LibraryInventory: Codeunit "Library - Inventory";
+        NoSeries: Record "No. Series";
     begin
-        LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
-        LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
-        LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
-        LibraryInventory.CreateTrackedItem(OutItem, LotNoSeries.Code, '', LotItemTrackingCode.Code);
+        CreateLotTrackedItem(OutItem, NoSeries);
     end;
+
     /// <summary>
     /// Creates a lot no. series and a lot-tracked item
     /// </summary>
     /// <param name="OutItem"></param>
-    procedure CreateLotTrackedItemWithNoSeries(var OutItem: Record Item; var OutLotNoSeries: Record "No. Series")
+    procedure CreateLotTrackedItem(var OutItem: Record Item; var OutLotNoSeries: Record "No. Series")
     var
+        InventorySetup: Record "Inventory Setup";
+        ItemNoSeries: Record "No. Series";
+        ItemNoSeriesLine: Record "No. Series Line";
         LotNoSeriesLine: Record "No. Series Line";
         LotItemTrackingCode: Record "Item Tracking Code";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
-        LibraryUtility: Codeunit "Library - Utility";
+        LibraryUtility2: Codeunit "Library - Utility";
         LibraryInventory: Codeunit "Library - Inventory";
+        StartingNo: Code[20];
+        EndingNo: Code[20];
     begin
-        LibraryUtility.CreateNoSeries(OutLotNoSeries, true, true, false);
-        LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, OutLotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
+        LibraryUtility2.CreateNoSeries(ItemNoSeries, true, true, false);
+        GetCode20NoSeries('IL', StartingNo, EndingNo);
+        LibraryUtility2.CreateNoSeriesLine(ItemNoSeriesLine, ItemNoSeries.Code, StartingNo, EndingNo);
+        LibraryUtility2.CreateNoSeries(OutLotNoSeries, true, true, false);
+        GetCode20NoSeries('L', StartingNo, EndingNo);
+        LibraryUtility2.CreateNoSeriesLine(LotNoSeriesLine, OutLotNoSeries.Code, StartingNo, EndingNo);
+
         LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
+
+        InventorySetup.Get();
+        InventorySetup.Validate("Item Nos.", ItemNoSeries.Code);
+        InventorySetup.Modify(true);
+
         LibraryInventory.CreateTrackedItem(OutItem, OutLotNoSeries.Code, '', LotItemTrackingCode.Code);
+        OutItem.Rename(NoSeriesCodeunit.PeekNextNo(ItemNoSeries.Code));
+        OutItem.Modify();
+
+        OutItem.Validate("Unit Cost", 1.234);
+        OutItem.Validate("Unit Price", 2.2345);
+        OutItem.Modify();
     end;
 
     /// <summary>
     /// Creates a serial no. series and a serial-tracked item
     /// </summary>
     /// <param name="OutItem"></param>
-    procedure CreateSerialTrackedItemWithNoSeries(var OutItem: Record Item; var OutSerialNoSeries: Record "No. Series")
+    procedure CreateSerialTrackedItem(var OutItem: Record Item)
     var
+        NoSeries: Record "No. Series";
+    begin
+        CreateSerialTrackedItem(OutItem, NoSeries);
+    end;
+
+    /// <summary>
+    /// Creates a serial no. series and a serial-tracked item
+    /// </summary>
+    /// <param name="OutItem"></param>
+    procedure CreateSerialTrackedItem(var OutItem: Record Item; var OutSerialNoSeries: Record "No. Series")
+    var
+        InventorySetup: Record "Inventory Setup";
+        ItemNoSeries: Record "No. Series";
+        ItemNoSeriesLine: Record "No. Series Line";
         SerialNoSeriesLine: Record "No. Series Line";
         SerialItemTrackingCode: Record "Item Tracking Code";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
-        LibraryUtility: Codeunit "Library - Utility";
+        LibraryUtility2: Codeunit "Library - Utility";
         LibraryInventory: Codeunit "Library - Inventory";
+        StartingNo: Code[20];
+        EndingNo: Code[20];
     begin
-        LibraryUtility.CreateNoSeries(OutSerialNoSeries, true, true, false);
-        LibraryUtility.CreateNoSeriesLine(SerialNoSeriesLine, OutSerialNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
+        LibraryUtility2.CreateNoSeries(ItemNoSeries, true, true, false);
+        GetCode20NoSeries('IS', StartingNo, EndingNo);
+        LibraryUtility2.CreateNoSeriesLine(ItemNoSeriesLine, ItemNoSeries.Code, StartingNo, EndingNo);
+        LibraryUtility2.CreateNoSeries(OutSerialNoSeries, true, true, false);
+        GetCode20NoSeries('S', StartingNo, EndingNo);
+        LibraryUtility2.CreateNoSeriesLine(SerialNoSeriesLine, OutSerialNoSeries.Code, StartingNo, EndingNo);
+
         LibraryItemTracking.CreateItemTrackingCode(SerialItemTrackingCode, true, false, false);
+
+        InventorySetup.Get();
+        InventorySetup.Validate("Item Nos.", ItemNoSeries.Code);
+        InventorySetup.Modify(true);
+
         LibraryInventory.CreateTrackedItem(OutItem, '', OutSerialNoSeries.Code, SerialItemTrackingCode.Code);
+        OutItem.Rename(NoSeriesCodeunit.PeekNextNo(ItemNoSeries.Code));
+
+        OutItem.Modify();
+
+        OutItem.Validate("Unit Cost", 1.234);
+        OutItem.Validate("Unit Price", 2.2345);
+        OutItem.Modify();
     end;
 
     /// <summary>
@@ -339,18 +404,21 @@ codeunit 139950 "Qlty. Tests - Utility"
         PackageNoSeriesLine: Record "No. Series Line";
         PackageItemTrackingCode: Record "Item Tracking Code";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
-        LibraryUtility: Codeunit "Library - Utility";
+        LibraryUtility2: Codeunit "Library - Utility";
         LibraryInventory: Codeunit "Library - Inventory";
+        StartingNo: Code[20];
+        EndingNo: Code[20];
     begin
         InventorySetup.Get();
+        GetCode20NoSeries('P', StartingNo, EndingNo);
         if InventorySetup."Package Nos." <> '' then begin
             OutPackageNoSeries.Get(InventorySetup."Package Nos.");
             PackageNoSeriesLine.SetRange(PackageNoSeriesLine."Series Code");
             if PackageNoSeriesLine.Count = 0 then
-                LibraryUtility.CreateNoSeriesLine(PackageNoSeriesLine, OutPackageNoSeries.Code, '', '');
+                LibraryUtility2.CreateNoSeriesLine(PackageNoSeriesLine, OutPackageNoSeries.Code, StartingNo, EndingNo);
         end else begin
-            LibraryUtility.CreateNoSeries(OutPackageNoSeries, true, true, false);
-            LibraryUtility.CreateNoSeriesLine(PackageNoSeriesLine, OutPackageNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
+            LibraryUtility2.CreateNoSeries(OutPackageNoSeries, true, true, false);
+            LibraryUtility2.CreateNoSeriesLine(PackageNoSeriesLine, OutPackageNoSeries.Code, StartingNo, EndingNo);
             InventorySetup.Validate("Package Nos.", OutPackageNoSeries.Code);
             InventorySetup.Modify(true);
         end;
@@ -358,6 +426,8 @@ codeunit 139950 "Qlty. Tests - Utility"
 
         LibraryInventory.CreateItem(OutItem);
         OutItem.Validate("Item Tracking Code", PackageItemTrackingCode.Code);
+        OutItem.Validate("Unit Cost", 1.234);
+        OutItem.Validate("Unit Price", 2.2345);
         OutItem.Modify();
     end;
 
@@ -379,9 +449,9 @@ codeunit 139950 "Qlty. Tests - Utility"
     /// Creates Quality Inspection Test from purchase line for tracked item
     /// </summary>
     /// <param name="PurOrdPurchaseLine"></param>
-    /// <param name="ResReservationEntry"></param>
+    /// <param name="ReservationEntry"></param>
     /// <param name="OutQltyInspectionTestHeader"></param>
-    procedure CreateTestWithPurchaseLineAndTracking(PurOrdPurchaseLine: Record "Purchase Line"; ResReservationEntry: Record "Reservation Entry"; var OutQltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    procedure CreateTestWithPurchaseLineAndTracking(PurOrdPurchaseLine: Record "Purchase Line"; ReservationEntry: Record "Reservation Entry"; var OutQltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
     var
         SpecTrackingSpecification: Record "Tracking Specification";
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
@@ -391,7 +461,7 @@ codeunit 139950 "Qlty. Tests - Utility"
         TestCreated: Boolean;
     begin
         PurchaseLineRecordRef.GetTable(PurOrdPurchaseLine);
-        SpecTrackingSpecification.CopyTrackingFromReservEntry(ResReservationEntry);
+        SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         TestCreated := QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(PurchaseLineRecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
         LibraryAssert.IsTrue(TestCreated, 'Quality Inspection Test not created.');
 
@@ -403,9 +473,9 @@ codeunit 139950 "Qlty. Tests - Utility"
     /// Creates Quality Inspection Test from warehouse entry for tracked item
     /// </summary>
     /// <param name="WarehouseEntry"></param>
-    /// <param name="ResReservationEntry"></param>
+    /// <param name="ReservationEntry"></param>
     /// <param name="OutQltyInspectionTestHeader"></param>
-    procedure CreateTestWithWarehouseEntryAndTracking(WarehouseEntry: Record "Warehouse Entry"; ResReservationEntry: Record "Reservation Entry"; var OutQltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
+    procedure CreateTestWithWarehouseEntryAndTracking(WarehouseEntry: Record "Warehouse Entry"; ReservationEntry: Record "Reservation Entry"; var OutQltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
     var
         SpecTrackingSpecification: Record "Tracking Specification";
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
@@ -415,7 +485,7 @@ codeunit 139950 "Qlty. Tests - Utility"
         TestCreated: Boolean;
     begin
         RecordRef.GetTable(WarehouseEntry);
-        SpecTrackingSpecification.CopyTrackingFromReservEntry(ResReservationEntry);
+        SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         TestCreated := QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
         LibraryAssert.IsTrue(TestCreated, 'Quality Inspection Test not created.');
 
@@ -478,10 +548,9 @@ codeunit 139950 "Qlty. Tests - Utility"
     procedure CreateReclassWhseJournalLine(var ReclassWarehouseJournalLine: Record "Warehouse Journal Line"; JournalTemplateName: Code[10]; JournalBatchName: Code[10]; LocationCode: Code[10]; ZoneCode: Code[10]; BinCode: Code[20]; EntryType: Option; ItemNo: Code[20]; NewQuantity: Decimal)
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        NoSeries: Record "No. Series";
+        BatchNoSeries: Record "No. Series";
         WarehouseJournalBatch: Record "Warehouse Journal Batch";
-        CodeunitNoSeries: Codeunit "No. Series";
-        LibraryUtility: Codeunit "Library - Utility";
+        BatchGeneratorNoSeries: Codeunit "No. Series";
         RecordRef: RecordRef;
         DocumentNo: Code[20];
     begin
@@ -510,8 +579,8 @@ codeunit 139950 "Qlty. Tests - Utility"
         ReclassWarehouseJournalLine.Insert(true);
         ReclassWarehouseJournalLine.Validate("Registering Date", WorkDate());
         ReclassWarehouseJournalLine.Validate("Entry Type", EntryType);
-        if NoSeries.Get(WarehouseJournalBatch."No. Series") then
-            DocumentNo := CodeunitNoSeries.PeekNextNo(WarehouseJournalBatch."No. Series", ReclassWarehouseJournalLine."Registering Date")
+        if BatchNoSeries.Get(WarehouseJournalBatch."No. Series") then
+            DocumentNo := BatchGeneratorNoSeries.PeekNextNo(WarehouseJournalBatch."No. Series", ReclassWarehouseJournalLine."Registering Date")
         else
             DocumentNo := 'Default Document No.';
         ReclassWarehouseJournalLine.Validate("Whse. Document No.", DocumentNo);
@@ -548,5 +617,151 @@ codeunit 139950 "Qlty. Tests - Utility"
         QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
         QltyManagementSetup."Assembly Trigger" := QltyManagementSetup."Assembly Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
+    end;
+
+    procedure CreatePackageTracking(var PackageNoSeries: Record "No. Series"; var PackageNoSeriesLine: Record "No. Series Line"; var PackageItemTrackingCode: Record "Item Tracking Code")
+    var
+        InventorySetup: Record "Inventory Setup";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+    begin
+        InventorySetup.Get();
+        if InventorySetup."Package Nos." <> '' then begin
+            PackageNoSeries.Get(InventorySetup."Package Nos.");
+            PackageNoSeriesLine.SetRange(PackageNoSeriesLine."Series Code");
+            if not PackageNoSeriesLine.FindFirst() then
+                LibraryUtility.CreateNoSeriesLine(PackageNoSeriesLine, PackageNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'P<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'P<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
+        end else begin
+            LibraryUtility.CreateNoSeries(PackageNoSeries, true, true, false);
+            LibraryUtility.CreateNoSeriesLine(PackageNoSeriesLine, PackageNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'P<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'P<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
+            InventorySetup.Validate("Package Nos.", PackageNoSeries.Code);
+            InventorySetup.Modify(true);
+        end;
+        LibraryItemTracking.CreateItemTrackingCode(PackageItemTrackingCode, false, false, true);
+    end;
+
+    procedure CreateLotTrackedItemWithVariant(var LotTrackedItem: Record Item; var OutOptionalItemVariant: Code[10])
+    var
+        ItemVariant: Record "Item Variant";
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        CreateLotTrackedItem(LotTrackedItem);
+        OutOptionalItemVariant := LibraryInventory.CreateItemVariant(ItemVariant, LotTrackedItem."No.");
+        LotTrackedItem.Modify(true);
+    end;
+
+    procedure CreateSerialTrackedItemWithVariant(var SerialTrackedItem: Record Item; var OutOptionalItemVariant: Code[10])
+    var
+        ItemVariant: Record "Item Variant";
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        CreateSerialTrackedItem(SerialTrackedItem);
+        OutOptionalItemVariant := LibraryInventory.CreateItemVariant(ItemVariant, SerialTrackedItem."No.");
+        SerialTrackedItem.Modify(true);
+    end;
+
+    procedure CreateSerialTrackedItemWithVariant(var SerialTrackedItem: Record Item; SerialNoSeries: Code[20]; SerialTrackingCode: Code[10]; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
+    var
+        ItemVariant: Record "Item Variant";
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        CreateSerialTrackedItem(SerialTrackedItem);
+        OutOptionalItemVariant := LibraryInventory.CreateItemVariant(ItemVariant, SerialTrackedItem."No.");
+    end;
+
+    procedure CreatePackageTrackedItem(var PackageTrackedItem: Record Item; PackageTrackingCode: Code[10]; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
+    var
+        ItemVariant: Record "Item Variant";
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        LibraryInventory.CreateItem(PackageTrackedItem);
+        OutOptionalItemVariant := LibraryInventory.CreateItemVariant(ItemVariant, PackageTrackedItem."No.");
+        PackageTrackedItem.Validate("Item Tracking Code", PackageTrackingCode);
+        PackageTrackedItem.Validate("Unit Cost", UnitCost);
+        PackageTrackedItem.Modify(true);
+    end;
+
+    procedure CreateUntrackedItem(var UntrackedItem: Record Item; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
+    var
+        ItemVariant: Record "Item Variant";
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        LibraryInventory.CreateItem(UntrackedItem);
+        OutOptionalItemVariant := LibraryInventory.CreateItemVariant(ItemVariant, UntrackedItem."No.");
+        UntrackedItem.Validate("Unit Cost", UnitCost);
+        UntrackedItem.Modify(true);
+    end;
+
+    procedure GetCode20NoSeries(InPrefix: Text; var OutStart: Code[20]; var OutEnd: Code[20])
+    var
+        Temp: Text;
+    begin
+        Temp :=
+            InPrefix + Format(CurrentDateTime(), 0, '<Year><Month,2><Day,2><Hours24><Minutes><Seconds>') +
+            GetNextSequenceNoAsText(InPrefix, 3);
+        OutStart := CopyStr(Temp.PadRight(MaxStrLen(OutStart), '1'), 1, MaxStrLen(OutStart));
+        OutEnd := CopyStr(Temp.PadRight(MaxStrLen(OutEnd), '9'), 1, MaxStrLen(OutEnd));
+    end;
+
+    local procedure GetNextSequenceNoAsText(SequenceKey: Text; PadSize: Integer) Out: Text;
+    var
+        QltySessionHelper: Codeunit "Qlty. Session Helper";
+        BigResult: BigInteger;
+        CurrentSessionValue: Text;
+        PreviousessionDateTime: DateTime;
+        Sequence: BigInteger;
+    begin
+        SequenceKey := SequenceKey + Format(CurrentDateTime(), 0, '<Year><Month,2><Day,2><Hours24><Minutes>');
+        CurrentSessionValue := QltySessionHelper.GetSessionValue(SequenceKey);
+        PreviousessionDateTime := CurrentDateTime();
+        if CurrentSessionValue <> '' then
+            Evaluate(PreviousessionDateTime, CurrentSessionValue, 9);
+        QltySessionHelper.SetSessionValue(SequenceKey, Format(CurrentDateTime(), 0, 9));
+
+        if PreviousessionDateTime <> 0DT then
+            BigResult := CurrentDateTime() - PreviousessionDateTime;
+
+        if not NumberSequence.Exists(SequenceKey, true) then
+            NumberSequence.Insert(SequenceKey, BigResult);
+
+        Sequence := NumberSequence.Next(SequenceKey);
+        if Sequence < BigResult then
+            NumberSequence.Restart(SequenceKey, BigResult);
+
+        Sequence := NumberSequence.Next(SequenceKey);
+        Out := Format(Sequence, 0, 9);
+        Out := Out.PadLeft(PadSize, '0');
+    end;
+
+    procedure CreateWarehouseReceiptSetup(var CreatedQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; var OutPurchaseLine: Record "Purchase Line"; var OutReservationEntry: Record "Reservation Entry")
+    begin
+        CreateWarehouseReceiptSetup(CreatedQltyInTestGenerationRule, OutPurchaseLine, OutReservationEntry, 123);
+    end;
+
+    procedure CreateWarehouseReceiptSetup(var CreatedQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; var OutPurchaseLine: Record "Purchase Line"; var OutReservationEntry: Record "Reservation Entry"; Quantity: Decimal)
+    var
+        Item: Record Item;
+        Location: Record Location;
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        PurchaseHeader: Record "Purchase Header";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        OrdQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+    begin
+        EnsureSetup();
+        LibraryWarehouse.CreateFullWMSLocation(Location, 1);
+        CreateTemplate(QltyInspectionTemplateHdr, 1);
+        CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", CreatedQltyInTestGenerationRule);
+
+        CreatedQltyInTestGenerationRule."Purchase Trigger" := CreatedQltyInTestGenerationRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        CreatedQltyInTestGenerationRule.Modify();
+
+        CreateLotTrackedItem(Item);
+
+        Item.SetRecFilter();
+        CreatedQltyInTestGenerationRule."Item Filter" := CopyStr(Item.GetView(), 1, MaxStrLen(CreatedQltyInTestGenerationRule."Item Filter"));
+        CreatedQltyInTestGenerationRule."Activation Trigger" := CreatedQltyInTestGenerationRule."Activation Trigger"::"Manual or Automatic";
+        CreatedQltyInTestGenerationRule."Purchase Trigger" := CreatedQltyInTestGenerationRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        CreatedQltyInTestGenerationRule.Modify();
+
+        OrdQltyPurOrderGenerator.CreatePurchaseOrder(Quantity, Location, Item, PurchaseHeader, OutPurchaseLine, OutReservationEntry);
     end;
 }

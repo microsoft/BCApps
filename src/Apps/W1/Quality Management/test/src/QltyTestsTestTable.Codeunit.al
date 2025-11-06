@@ -661,7 +661,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -733,8 +733,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A serial-tracked item with no series is created
-        QltyTestsUtility.CreateSerialTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        // [GIVEN] A serial-tracked item is created
+        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -879,7 +879,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -950,7 +950,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A serial-tracked item is created
-        QltyTestsUtility.CreateSerialTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -1094,7 +1094,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -1167,7 +1167,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A serial-tracked item is created
-        QltyTestsUtility.CreateSerialTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -1288,7 +1288,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyTestsUtility.EnsureSetup();
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A test header is initialized with the item but no lot number
         QltyInspectionTestHeader.Init();
@@ -1324,8 +1324,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
-        // [GIVEN] A serial-tracked item with no series is created
-        QltyTestsUtility.CreateSerialTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        // [GIVEN] A serial-tracked item is created
+        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] A test header is initialized without serial number
         QltyInspectionTestHeader.Init();
@@ -1423,7 +1423,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A lot-tracked item with no series is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -1490,8 +1490,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A serial-tracked item with no series is created
-        QltyTestsUtility.CreateSerialTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        // [GIVEN] A serial-tracked item is created
+        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -1605,7 +1605,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyTestsUtility.EnsureSetup();
 
         // [GIVEN] A lot-tracked item with no series is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Quality setup requires reserved or posted item tracking
         QltyManagementSetup.Get();
@@ -1642,8 +1642,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
 
-        // [GIVEN] A serial-tracked item with no series is created
-        QltyTestsUtility.CreateSerialTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        // [GIVEN] A serial-tracked item is created
+        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Quality setup requires reserved or posted item tracking
         QltyManagementSetup.Get();
@@ -2063,7 +2063,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A lot-tracked item with no series is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -2111,7 +2111,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A lot-tracked item with no series is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -4724,6 +4724,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A template with one field is created
+        QltyTestsUtility.EnsureSetup();
         QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for the template

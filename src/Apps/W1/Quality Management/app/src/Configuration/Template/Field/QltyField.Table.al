@@ -64,12 +64,24 @@ table 20401 "Qlty. Field"
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
 
             trigger OnValidate()
+            var
+                TempFilteringOnlyQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+                QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+                LookupFilter: Text;
             begin
-                if "Lookup Table No." <> xRec."Lookup Table No." then begin
+                if Rec."Lookup Table No." <> xRec."Lookup Table No." then begin
                     Rec.Validate("Lookup Field No.", 0);
                     Rec."Lookup Table Filter" := '';
+                    Rec."Allowable Values" := '';
+                    if (Rec."Lookup Table No." = Database::"Qlty. Lookup Code") then begin
+                        TempFilteringOnlyQltyLookupCode.SetRange("Group Code", Rec."Code");
+                        LookupFilter := QltyFilterHelpers.CleanUpWhereClause(TempFilteringOnlyQltyLookupCode.GetView());
+                        Rec.Validate("Lookup Table Filter", CopyStr(LookupFilter, 1, MaxStrLen(Rec."Lookup Table Filter")));
+                        Rec.Validate("Lookup Field No.", TempFilteringOnlyQltyLookupCode.FieldNo(Code));
+                    end;
                 end;
-                Rec.CalcFields("Lookup Table Caption");
+
+                Rec.CalcFields("Lookup Table Caption", "Lookup Field Caption");
             end;
         }
         field(7; "Lookup Table Caption"; Text[250])
@@ -93,7 +105,7 @@ table 20401 "Qlty. Field"
             var
                 CurrentField: Record "Field";
             begin
-                if "Lookup Table No." <> 0 then begin
+                if Rec."Lookup Table No." <> 0 then begin
                     CurrentField.FilterGroup(50);
                     CurrentField.SetRange(TableNo, "Lookup Table No.");
                     CurrentField.SetFilter(Class, '%1|%2', CurrentField.Class::Normal, CurrentField.Class::FlowField);
@@ -121,6 +133,11 @@ table 20401 "Qlty. Field"
         {
             Caption = 'Lookup Table Filter';
             ToolTip = 'Specifies which data are available from the Lookup Table by using a standard Business Central filter expression. For example, if you were using table 231 "Reason Code" as your lookup table and wanted to restrict the options to codes that started with "R", then you could enter: where("Code"=filter(R*))';
+
+            trigger OnValidate()
+            begin
+                Rec.UpdateAllowedValuesFromTableLookup();
+            end;
         }
         field(14; "Wizard Internal"; Enum "Qlty. Field Wizard State")
         {
@@ -317,12 +334,14 @@ table 20401 "Qlty. Field"
     procedure AssistEditLookupTableFilter()
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
-        Value: Text;
+        TextValue: Text;
     begin
-        Value := Rec."Lookup Table Filter";
-        QltyFilterHelpers.BuildFilter(Rec."Lookup Table No.", true, Value);
-        if (Value <> Rec."Lookup Table Filter") and (Value <> '') then
-            Rec."Lookup Table Filter" := CopyStr(Value, 1, MaxStrLen(Rec."Lookup Table Filter"));
+        TextValue := Rec."Lookup Table Filter";
+        QltyFilterHelpers.BuildFilter(Rec."Lookup Table No.", true, TextValue);
+        if (TextValue <> Rec."Lookup Table Filter") and (TextValue <> '') then
+            Rec."Lookup Table Filter" := CopyStr(TextValue, 1, MaxStrLen(Rec."Lookup Table Filter"));
+
+        Rec.UpdateAllowedValuesFromTableLookup();
     end;
 
     /// <summary>
@@ -524,10 +543,6 @@ table 20401 "Qlty. Field"
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
         QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
     begin
-        Rec."Allowable Values" := '';
-        Rec.Validate("Lookup Table No.", 0);
-        Rec.Validate("Lookup Field No.", 0);
-        Rec."Lookup Table Filter" := '';
         QltyInspectionTestLine.SetRange("Field Code", Rec.Code);
         if QltyInspectionTestLine.FindLast() then begin
             if QltyInspectionTestHeader.Get(QltyInspectionTestLine."Test No.", QltyInspectionTestLine."Retest No.") then;
@@ -536,6 +551,17 @@ table 20401 "Qlty. Field"
             else
                 Error(FieldTypeErrInfoMsg, FieldTypeErrTitleMsg, QltyInspectionTestHeader."No.");
         end;
+
+        if Rec."Field Type" <> xRec."Field Type" then begin
+            Rec."Allowable Values" := '';
+            Rec.Validate("Lookup Table No.", 0);
+            Rec.Validate("Lookup Field No.", 0);
+            Rec."Lookup Table Filter" := '';
+
+            if Rec."Field Type" = Rec."Field Type"::"Field Type Table Lookup" then
+                Rec.Validate("Lookup Table No.", Database::"Qlty. Lookup Code");
+        end;
+
         QltyGradeConditionMgmt.CopyGradeConditionsFromDefaultToField(Rec.Code, Rec."Field Type");
     end;
 

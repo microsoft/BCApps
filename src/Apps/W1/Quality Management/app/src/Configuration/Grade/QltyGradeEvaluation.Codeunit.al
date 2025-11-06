@@ -91,9 +91,6 @@ codeunit 20410 "Qlty. Grade Evaluation"
                     if Condition.Contains('[') then
                         Condition := QltyExpressionMgmt.EvaluateTextExpression(Condition, OptionalQltyInspectionTestHeader, OptionalQltyInspectionTestLine);
 
-                    if Condition.Contains('{') then
-                        Condition := QltyExpressionMgmt.EvaluateEmbeddedNumericalExpressions(Condition, OptionalQltyInspectionTestHeader);
-
                     case QltyFieldType of
                         QltyFieldType::"Field Type Decimal":
                             LoopConditionMet := TestValueDecimal(TestValue, Condition);
@@ -282,9 +279,6 @@ codeunit 20410 "Qlty. Grade Evaluation"
         AllowableValues := QltyInspectionTestLine."Allowable Values";
         if AllowableValues.Contains('[') then
             AllowableValues := QltyExpressionMgmt.EvaluateTextExpression(AllowableValues, OptionalQltyInspectionTestHeader, QltyInspectionTestLine);
-
-        if AllowableValues.Contains('{') then
-            AllowableValues := QltyExpressionMgmt.EvaluateEmbeddedNumericalExpressions(AllowableValues, OptionalQltyInspectionTestHeader);
 
         ValidateAllowableValuesOnText(
             FieldNameForError,

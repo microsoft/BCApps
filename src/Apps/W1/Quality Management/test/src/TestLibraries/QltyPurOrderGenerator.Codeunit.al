@@ -120,12 +120,30 @@ codeunit 139951 "Qlty. Pur. Order Generator"
     /// <param name="OrderPurchaseHeader">purchase order to be received</param>
     /// <param name="PurchaseLine">purchase line to be received</param>
     procedure ReceivePurchaseOrder(Location: Record Location; var OrderPurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line")
+    begin
+        ReceivePurchaseLine(PurchaseLine, PurchaseLine."Outstanding Quantity");
+    end;
+
+    procedure ReceivePurchaseLine(var PurchaseLine: Record "Purchase Line"; QtyToReceive: Decimal)
     var
         WhseWarehouseReceiptHeader: Record "Warehouse Receipt Header";
         WhseWarehouseReceiptLine: Record "Warehouse Receipt Line";
         PutAwayWarehouseActivityLine: Record "Warehouse Activity Line";
         PutAwayWarehouseActivityHeader: Record "Warehouse Activity Header";
+        Location: Record Location;
+        OrderPurchaseHeader: Record "Purchase Header";
     begin
+        Location.Get(PurchaseLine."Location Code");
+        OrderPurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        if OrderPurchaseHeader.Status = OrderPurchaseHeader.Status::Released then
+            LibraryPurchase.ReopenPurchaseDocument(OrderPurchaseHeader);
+
+        if not Location."Require Receive" then
+            PurchaseLine.Validate("Qty. to Receive", QtyToReceive);
+
+        if OrderPurchaseHeader.Status = OrderPurchaseHeader.Status::Open then
+            LibraryPurchase.ReleasePurchaseDocument(OrderPurchaseHeader);
+
         if Location.RequireReceive(Location.Code) then begin
             LibraryWarehouse.CreateWhseReceiptFromPO(OrderPurchaseHeader);
             WhseWarehouseReceiptLine.SetRange("Source Document", WhseWarehouseReceiptLine."Source Document"::"Purchase Order");
@@ -133,7 +151,11 @@ codeunit 139951 "Qlty. Pur. Order Generator"
             WhseWarehouseReceiptLine.SetRange("Source No.", OrderPurchaseHeader."No.");
             WhseWarehouseReceiptLine.FindFirst();
             WhseWarehouseReceiptHeader.Get(WhseWarehouseReceiptLine."No.");
-            LibraryWarehouse.AutofillQtyToRecvWhseReceipt(WhseWarehouseReceiptHeader);
+            if QtyToReceive = 0 then
+                LibraryWarehouse.AutofillQtyToRecvWhseReceipt(WhseWarehouseReceiptHeader)
+            else
+                WhseWarehouseReceiptLine.Validate("Qty. to Receive", QtyToReceive);
+            WhseWarehouseReceiptLine.Modify();
             LibraryWarehouse.PostWhseReceipt(WhseWarehouseReceiptHeader);
         end;
         if Location.RequireReceive(Location.Code) and Location.RequirePutaway(Location.Code) then begin
@@ -211,7 +233,7 @@ codeunit 139951 "Qlty. Pur. Order Generator"
         UnusedVariant2: Variant;
         UnitCost: Decimal;
     begin
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
         UnitCost := LibraryRandom.RandDecInRange(1, 10, 2);
         Item.Validate("Unit Cost", UnitCost);
         Item.Modify();

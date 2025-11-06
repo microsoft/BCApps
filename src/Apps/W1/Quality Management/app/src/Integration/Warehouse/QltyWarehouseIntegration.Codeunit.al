@@ -128,6 +128,9 @@ codeunit 20438 "Qlty. - Warehouse Integration"
         if not DataTypeManagement.GetRecordRef(OptionalSourceLineVariant, RecordRefToSource) then
             exit;
 
+        if RecordRefToSource.Number() = 0 then
+            exit;
+
         case RecordRefToSource.Number() of
             Database::"Purchase Line":
                 PurchLineReserve.FindReservEntry(OptionalSourceLineVariant, ReservationEntry);

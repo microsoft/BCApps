@@ -2207,6 +2207,9 @@ End Function
         <Field Name="Field_ModifiedByUserPhone">
           <DataField>Field_ModifiedByUserPhone</DataField>
         </Field>
+        <Field Name="Field_EnteredByNameAndTimestamp">
+          <DataField>Field_EnteredByNameAndTimestamp</DataField>
+        </Field>
         <Field Name="Test_Value">
           <DataField>Test_Value</DataField>
         </Field>
@@ -2308,6 +2311,12 @@ End Function
         </Field>
         <Field Name="PromptedGradeVisible_10">
           <DataField>PromptedGradeVisible_10</DataField>
+        </Field>
+        <Field Name="LabelField_Description">
+          <DataField>LabelField_Description</DataField>
+        </Field>
+        <Field Name="CarriageReturnPersonFieldDetails">
+          <DataField>CarriageReturnPersonFieldDetails</DataField>
         </Field>
       </Fields>
       <Query>

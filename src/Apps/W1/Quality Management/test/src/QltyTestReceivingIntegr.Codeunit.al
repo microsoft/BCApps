@@ -17,6 +17,7 @@ using Microsoft.QualityManagement.Setup.Setup;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Test.QualityManagement.TestLibraries;
+using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
@@ -47,7 +48,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        ResReservationEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
@@ -65,11 +66,11 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created and released
         UnusedItemVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on purchase order receive
@@ -89,7 +90,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionTestHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ResReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
         LibraryAssert.AreEqual(100, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
     end;
 
@@ -104,7 +105,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        UnusedResReservationEntry: Record "Reservation Entry";
+        DummyReservationEntry: Record "Reservation Entry";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -127,7 +128,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
 
         // [GIVEN] A purchase order is created and released
         UnusedItemVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, UnusedResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on purchase order receive
@@ -161,7 +162,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        ResReservationEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
@@ -179,11 +180,11 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInTestGenerationRule);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created and released
         UnusedItemVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt post
@@ -203,7 +204,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionTestHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ResReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
 
         LibraryAssert.AreEqual(100, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
     end;
@@ -219,7 +220,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        ResReservationEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
@@ -237,11 +238,11 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Receipt Line", QltyInTestGenerationRule);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created and released
         UnusedItemVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt create
@@ -261,7 +262,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionTestHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ResReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
     end;
 
     [Test]
@@ -275,7 +276,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        UnusedResReservationEntry: Record "Reservation Entry";
+        DummyReservationEntry: Record "Reservation Entry";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -298,7 +299,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
 
         // [GIVEN] A purchase order is created and released
         UnusedItemVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, UnusedResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt post
@@ -332,7 +333,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        ResReservationEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
@@ -350,11 +351,11 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created and released
         UnusedItemVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt post
@@ -374,7 +375,9 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionTestHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ResReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        LibraryAssert.AreEqual(PurOrdPurchaseLine."Document No.", QltyInspectionTestHeader."Source Document No.", 'Test source document should be for purchase order.');
+        LibraryAssert.AreEqual(PurOrdPurchaseLine."Line No.", QltyInspectionTestHeader."Source Document Line No.", 'Test source document line no. should match purchase order line.');
     end;
 
     [Test]
@@ -388,7 +391,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        ResReservationEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
@@ -406,11 +409,11 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created and released
         UnusedItemVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt create
@@ -429,7 +432,9 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionTestHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ResReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        LibraryAssert.AreEqual(PurOrdPurchaseLine."Document No.", QltyInspectionTestHeader."Source Document No.", 'Test source document should be for purchase order.');
+        LibraryAssert.AreEqual(PurOrdPurchaseLine."Line No.", QltyInspectionTestHeader."Source Document Line No.", 'Test source document line no. should match purchase order line.');
     end;
 
     [Test]
@@ -443,7 +448,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        UnusedResReservationEntry: Record "Reservation Entry";
+        DummyReservationEntry: Record "Reservation Entry";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -466,7 +471,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
 
         // [GIVEN] A purchase order is created and released
         UnusedItemVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, UnusedResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt create
@@ -504,7 +509,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         SalesLine: Record "Sales Line";
         RtnOrderSalesHeader: Record "Sales Header";
         RtnSalesLine: Record "Sales Line";
-        ResReservationEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
         LibraryRandom: Codeunit "Library - Random";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -527,7 +532,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Sales Line", QltyInTestGenerationRule);
 
         // [GIVEN] A lot-tracked item with unit cost and price is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
         UnitCost := LibraryRandom.RandDecInDecimalRange(1, 10, 2);
         UnitPrice := LibraryRandom.RandDecInDecimalRange(2, 20, 2);
         Item."Unit Cost" := UnitCost;
@@ -536,7 +541,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
 
         // [GIVEN] A purchase order is created, received, and inventory is available
         UnusedItemVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrdPurchaseLine);
 
@@ -547,13 +552,13 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         SalesLine.Validate("Location Code", Location.Code);
         SalesLine.Validate("Qty. to Ship", 100);
         SalesLine.Modify();
-        LibraryItemTracking.CreateSalesOrderItemTracking(ResReservationEntry, SalesLine, '', ResReservationEntry."Lot No.", 100);
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, '', ReservationEntry."Lot No.", 100);
         LibrarySales.PostSalesDocument(OrderSalesHeader, true, false);
 
         // [GIVEN] A sales return order is created with lot tracking and released
         LibrarySales.CreateSalesReturnOrderWithLocation(RtnOrderSalesHeader, Customer."No.", Location.Code);
         LibrarySales.CreateSalesLineWithUnitPrice(RtnSalesLine, RtnOrderSalesHeader, Item."No.", UnitPrice, 100);
-        LibraryItemTracking.CreateSalesOrderItemTracking(ResReservationEntry, RtnSalesLine, '', ResReservationEntry."Lot No.", 100);
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, RtnSalesLine, '', ReservationEntry."Lot No.", 100);
         LibrarySales.ReleaseSalesDocument(RtnOrderSalesHeader);
 
         // [GIVEN] The generation rule is set to trigger on sales return order receive
@@ -572,7 +577,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
         QltyInspectionTestHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
-        LibraryAssert.AreEqual(ResReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match purchase.');
     end;
 
     [Test]
@@ -591,7 +596,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         SalesLine: Record "Sales Line";
         RtnOrderSalesHeader: Record "Sales Header";
         RtnSalesLine: Record "Sales Line";
-        UnusedResReservationEntry: Record "Reservation Entry";
+        DummyReservationEntry: Record "Reservation Entry";
         LibraryRandom: Codeunit "Library - Random";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -620,7 +625,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
 
         // [GIVEN] A purchase order is created, received, and inventory is available
         UnusedItemVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, UnusedResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrdPurchaseLine);
 
@@ -672,7 +677,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         PurOrdPurchaseLine: Record "Purchase Line";
         OrderTransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
-        ResReservationEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
@@ -694,11 +699,11 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInTestGenerationRule);
 
         // [GIVEN] A lot-tracked item is created with lot number series
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created, received at From location, and inventory is available with lot tracking
         UnusedItemVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, FromLocation, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, FromLocation, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(FromLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
 
@@ -711,7 +716,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         OrderTransferHeader.Modify();
 
         LibraryWarehouse.CreateTransferLine(OrderTransferHeader, TransferLine, Item."No.", 100);
-        LibraryItemTracking.CreateTransferOrderItemTracking(ResReservationEntry, TransferLine, '', ResReservationEntry."Lot No.", 100);
+        LibraryItemTracking.CreateTransferOrderItemTracking(ReservationEntry, TransferLine, '', ReservationEntry."Lot No.", 100);
         LibraryWarehouse.ReleaseTransferOrder(OrderTransferHeader);
 
         // [GIVEN] The generation rule is set to trigger on transfer order receive post
@@ -732,7 +737,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyInspectionTestHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
         LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionTestHeader."Location Code", 'Location code should match the "To" Location');
-        LibraryAssert.AreEqual(ResReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Lot no. should match source');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Lot no. should match source');
         LibraryAssert.AreEqual(100, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
     end;
 
@@ -751,7 +756,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         PurOrdPurchaseLine: Record "Purchase Line";
         OrderTransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
-        UnusedResReservationEntry: Record "Reservation Entry";
+        UnusedReservationEntry: Record "Reservation Entry";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -777,7 +782,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
 
         // [GIVEN] A purchase order is created, received at From location, and inventory is available
         UnusedItemVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, FromLocation, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, UnusedResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, FromLocation, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, UnusedReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(FromLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
 
@@ -828,7 +833,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         PurOrdPurchaseLine: Record "Purchase Line";
         OrderTransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
-        ResReservationEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
@@ -851,18 +856,18 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Transfer Line", QltyInTestGenerationRule);
 
         // [GIVEN] A lot-tracked item is created with lot number series
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created, received at From location, and inventory is available with lot tracking
         UnusedItemVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, FromLocation, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, FromLocation, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(FromLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
 
         // [GIVEN] A transfer order is created with in-transit location, lot tracking is assigned, and it is released
         LibraryWarehouse.CreateTransferHeader(OrderTransferHeader, FromLocation.Code, ToLocation.Code, InTransitLocation.Code);
         LibraryWarehouse.CreateTransferLine(OrderTransferHeader, TransferLine, Item."No.", 100);
-        LibraryItemTracking.CreateTransferOrderItemTracking(ResReservationEntry, TransferLine, '', ResReservationEntry."Lot No.", 100);
+        LibraryItemTracking.CreateTransferOrderItemTracking(ReservationEntry, TransferLine, '', ReservationEntry."Lot No.", 100);
         LibraryWarehouse.ReleaseTransferOrder(OrderTransferHeader);
 
         // [GIVEN] The generation rule is set to trigger on transfer order receive post
@@ -883,7 +888,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyInspectionTestHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
         LibraryAssert.AreEqual(ToLocation.Code, QltyInspectionTestHeader."Location Code", 'Location code should match the "To" Location');
-        LibraryAssert.AreEqual(ResReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Lot no. should match source');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Lot no. should match source');
         LibraryAssert.AreEqual(100, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match.');
     end;
 
@@ -902,7 +907,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         PurOrdPurchaseLine: Record "Purchase Line";
         OrderTransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
-        UnusedResReservationEntry: Record "Reservation Entry";
+        DummyReservationEntry: Record "Reservation Entry";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -929,7 +934,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
 
         // [GIVEN] A purchase order is created, received at From location, and inventory is available
         UnusedItemVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, FromLocation, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, UnusedResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, FromLocation, Item, Vendor, UnusedItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(FromLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
 
@@ -999,18 +1004,13 @@ codeunit 139958 "Qlty. Test Receiving Integr."
 
         // [GIVEN] A warehouse journal template and batch are created for reclassification
         QltyManagementSetup.Get();
-        LibraryWarehouse.CreateWhseJournalTemplate(
-            WarehouseJournalTemplate,
-            WarehouseJournalTemplate.Type::Reclassification);
-        LibraryWarehouse.CreateWhseJournalBatch(
-            WarehouseJournalBatch,
-            WarehouseJournalTemplate.Name,
-            Location.Code);
+        LibraryWarehouse.CreateWhseJournalTemplate(WarehouseJournalTemplate, WarehouseJournalTemplate.Type::Reclassification);
+        LibraryWarehouse.CreateWhseJournalBatch(WarehouseJournalBatch, WarehouseJournalTemplate.Name, Location.Code);
         QltyManagementSetup."Bin Whse. Move Batch Name" := WarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A lot-tracked item is created with lot number series
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created, received, and inventory is available with lot tracking
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -1069,6 +1069,263 @@ codeunit 139958 "Qlty. Test Receiving Integr."
     end;
 
     [Test]
+    procedure WarehouseIntegration_CreateTestDuringReceive()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        Location: Record Location;
+        WarehouseJournalTemplate: Record "Warehouse Journal Template";
+        WarehouseJournalBatch: Record "Warehouse Journal Batch";
+        Item: Record Item;
+        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        ForCountQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        OrdQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO] Create a quality inspection test during warehouse receipt process for lot-tracked items into bin
+
+        // [GIVEN] Quality management setup with template and warehouse entry generation rule are configured
+        Initialize();
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInTestGenerationRule.DeleteAll();
+        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+
+        // [GIVEN] A full WMS location with warehouse journal template and batch are set up
+        LibraryWarehouse.CreateFullWMSLocation(Location, 3);
+
+        QltyManagementSetup.Get();
+        LibraryWarehouse.CreateWhseJournalTemplate(WarehouseJournalTemplate, WarehouseJournalTemplate.Type::Reclassification);
+        LibraryWarehouse.CreateWhseJournalBatch(WarehouseJournalBatch, WarehouseJournalTemplate.Name, Location.Code);
+        QltyManagementSetup."Bin Whse. Move Batch Name" := WarehouseJournalBatch.Name;
+        QltyManagementSetup.Modify();
+
+        // [GIVEN] The generation rule is set to trigger on movement into bin and a lot-tracked item is created
+        QltyInTestGenerationRule."Warehouse Movement Trigger" := QltyInTestGenerationRule."Warehouse Movement Trigger"::OnWhseMovementRegister;
+        QltyInTestGenerationRule.Modify();
+
+        QltyTestsUtility.CreateLotTrackedItem(Item);
+
+        // [GIVEN] A purchase order is created and released
+        OrdQltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        BeforeCount := ForCountQltyInspectionTestHeader.Count();
+
+        // [WHEN] The purchase order is received
+        OrdQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
+
+        // [THEN] One quality inspection test is created with matching template code, lot number, and full received quantity
+        LibraryAssert.AreEqual(BeforeCount + 1, ForCountQltyInspectionTestHeader.Count(), 'Should be one new test created during receive.');
+        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionTestHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match.');
+        LibraryAssert.AreEqual(100, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match full received quantity.');
+    end;
+
+    [Test]
+    procedure WarehouseIntegration_SalesPickShipBin()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        Location: Record Location;
+        Zone: Record Zone;
+        BinType: Record "Bin Type";
+        WarehouseEntry: Record "Warehouse Entry";
+        Item: Record Item;
+        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        ForCountQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        Customer: Record Customer;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ReservationEntry: Record "Reservation Entry";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        OrdQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO] Create a quality inspection test during warehouse pick operation from storage bin to ship bin for sales order
+
+        // [GIVEN] Quality management setup with template and warehouse entry generation rule are configured
+        Initialize();
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInTestGenerationRule.DeleteAll();
+
+        // [GIVEN] A full WMS location is created and a lot-tracked item is available in inventory
+        LibraryWarehouse.CreateFullWMSLocation(Location, 3);
+
+        QltyTestsUtility.CreateLotTrackedItem(Item);
+        OrdQltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        OrdQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
+
+        // [GIVEN] A warehouse entry is found and the bin type is configured for picking
+        WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::Movement);
+        WarehouseEntry.SetRange("Location Code", Location.Code);
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetRange("Lot No.", ReservationEntry."Lot No.");
+        WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
+        WarehouseEntry.FindFirst();
+
+        Zone.Get(Location.Code, WarehouseEntry."Zone Code");
+        BinType.Get(Zone."Bin Type Code");
+        if not BinType.Pick then begin
+            BinType.Pick := true;
+            BinType.Modify();
+        end;
+
+        // [GIVEN] A sales order is created with lot tracking and warehouse shipment is prepared
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 50);
+        SalesLine.Validate("Location Code", Location.Code);
+        SalesLine.Modify();
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, '', ReservationEntry."Lot No.", 50);
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeader);
+        WarehouseShipmentHeader.SetRange("Location Code", Location.Code);
+        WarehouseShipmentHeader.FindFirst();
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+
+        // [GIVEN] The generation rule is set to trigger on movement into bin
+        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyInTestGenerationRule."Warehouse Movement Trigger" := QltyInTestGenerationRule."Warehouse Movement Trigger"::OnWhseMovementRegister;
+        QltyInTestGenerationRule.Modify();
+
+        BeforeCount := ForCountQltyInspectionTestHeader.Count();
+
+        // [WHEN] The warehouse pick activity is registered to move items to ship bin
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
+        WarehouseActivityLine.SetRange("Item No.", Item."No.");
+        WarehouseActivityLine.SetRange("Location Code", Location.Code);
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityHeader.Get(WarehouseActivityHeader.Type::Pick, WarehouseActivityLine."No.");
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [THEN] One quality inspection test is created with matching template code, lot number, and picked quantity
+        LibraryAssert.AreEqual(BeforeCount + 1, ForCountQltyInspectionTestHeader.Count(), 'Should be one new test created during warehouse pick to ship bin.');
+        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionTestHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match.');
+        LibraryAssert.AreEqual(50, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match picked quantity.');
+    end;
+
+    [Test]
+    procedure WarehouseIntegration_TransferPickShipBin()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+        Zone: Record Zone;
+        BinType: Record "Bin Type";
+        WarehouseEntry: Record "Warehouse Entry";
+        Item: Record Item;
+        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        ForCountQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        ReservationEntry: Record "Reservation Entry";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        BeforeCount: Integer;
+    begin
+        // [SCENARIO] Create a quality inspection test during warehouse pick operation from storage bin to ship bin for transfer order
+
+        // [GIVEN] Quality management setup with template and warehouse entry generation rule are configured
+        Initialize();
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyInTestGenerationRule.DeleteAll();
+
+        // [GIVEN] From, To, and In-Transit locations are set up with lot-tracked item in inventory
+        LibraryWarehouse.CreateFullWMSLocation(FromLocation, 3);
+        LibraryWarehouse.CreateLocationWMS(ToLocation, false, false, false, false, false);
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+
+        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, FromLocation, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        QltyPurOrderGenerator.ReceivePurchaseOrder(FromLocation, PurchaseHeader, PurchaseLine);
+
+        // [GIVEN] A warehouse entry is found and the bin type is configured for picking
+        WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::Movement);
+        WarehouseEntry.SetRange("Location Code", FromLocation.Code);
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetRange("Lot No.", ReservationEntry."Lot No.");
+        WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
+        WarehouseEntry.FindFirst();
+
+        Zone.Get(FromLocation.Code, WarehouseEntry."Zone Code");
+        BinType.Get(Zone."Bin Type Code");
+        if not BinType.Pick then begin
+            BinType.Pick := true;
+            BinType.Modify();
+        end;
+
+        // [GIVEN] A transfer order is created with lot tracking and warehouse shipment is prepared
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code, InTransitLocation.Code);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 50);
+        LibraryItemTracking.CreateTransferOrderItemTracking(ReservationEntry, TransferLine, '', ReservationEntry."Lot No.", 50);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+
+        LibraryWarehouse.CreateWhseShipmentFromTO(TransferHeader);
+        WarehouseShipmentHeader.SetRange("Location Code", FromLocation.Code);
+        WarehouseShipmentHeader.FindFirst();
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+
+        // [GIVEN] The generation rule is set to trigger on movement into bin
+        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyInTestGenerationRule."Warehouse Movement Trigger" := QltyInTestGenerationRule."Warehouse Movement Trigger"::OnWhseMovementRegister;
+        QltyInTestGenerationRule.Modify();
+
+        BeforeCount := ForCountQltyInspectionTestHeader.Count();
+
+        // [WHEN] The warehouse pick activity is registered to move items to ship bin
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
+        WarehouseActivityLine.SetRange("Item No.", Item."No.");
+        WarehouseActivityLine.SetRange("Location Code", FromLocation.Code);
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityHeader.Get(WarehouseActivityHeader.Type::Pick, WarehouseActivityLine."No.");
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [THEN] One quality inspection test is created with matching template code, lot number, and picked quantity
+        LibraryAssert.AreEqual(BeforeCount + 1, ForCountQltyInspectionTestHeader.Count(), 'Should be one new test created during warehouse pick to ship bin.');
+        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionTestHeader.FindFirst();
+        LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
+        LibraryAssert.AreEqual(ReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Test lot no. should match.');
+        LibraryAssert.AreEqual(50, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should match picked quantity.');
+    end;
+
+    [Test]
     procedure AttemptCreateTestWithPurchaseLineAndTracking_MultiLot_OnPurchRelease()
     var
         Location: Record Location;
@@ -1097,7 +1354,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
 
         // [GIVEN] A lot-tracked item is created with lot number series
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created with one reservation entry
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, FirstReservationEntry);
@@ -1160,7 +1417,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
 
         // [GIVEN] A lot-tracked item is created with lot number series
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created with a reservation entry that is then deleted to simulate unassigned lot
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
@@ -1202,7 +1459,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        UnusedReservationEntry: Record "Reservation Entry";
+        DummyReservationEntry: Record "Reservation Entry";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -1223,7 +1480,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         LibraryInventory.CreateItem(Item);
 
         // [GIVEN] A purchase order is created for the untracked item
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, UnusedReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
 
         // [GIVEN] The generation rule is set to trigger on purchase order release
         QltyInTestGenerationRule."Purchase Trigger" := QltyInTestGenerationRule."Purchase Trigger"::OnPurchaseOrderRelease;
@@ -1247,6 +1504,52 @@ codeunit 139958 "Qlty. Test Receiving Integr."
         QltyInspectionTestHeader.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
         LibraryAssert.AreEqual(50, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity (base) should match qty. to receive.');
+    end;
+
+    [Test]
+    procedure AttemptCreateTestWithPurchaseLineAndTracking_SerialTracked_OnPurchRelease()
+    var
+        Location: Record Location;
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        PurOrderPurchaseHeader: Record "Purchase Header";
+        PurOrdPurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        IWXOrdQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        BeforeCount: Integer;
+    begin
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInTestGenerationRule.DeleteAll();
+        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+
+        QltyTestsUtility.CreateSerialTrackedItem(Item);
+
+        IWXOrdQltyPurOrderGenerator.CreatePurchaseOrder(2, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
+
+        QltyInTestGenerationRule."Purchase Trigger" := QltyInTestGenerationRule."Purchase Trigger"::OnPurchaseOrderRelease;
+        QltyInTestGenerationRule.Modify();
+
+        BeforeCount := QltyInspectionTestHeader.Count();
+
+        LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
+
+        QltyInTestGenerationRule.Delete();
+        QltyInspectionTemplateHdr.Delete();
+
+        LibraryAssert.AreEqual(BeforeCount + 2, QltyInspectionTestHeader.Count(), 'Should be two tests created.');
+        QltyInspectionTestHeader.SetRange("Source Item No.", Item."No.");
+        QltyInspectionTestHeader.FindSet();
+        repeat
+            LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Template code should match provided template');
+            LibraryAssert.AreEqual(1, QltyInspectionTestHeader."Source Quantity (Base)", 'Test quantity(base) should be 1 for serial-tracked items.');
+        until QltyInspectionTestHeader.Next() = 0;
     end;
 
     local procedure Initialize()

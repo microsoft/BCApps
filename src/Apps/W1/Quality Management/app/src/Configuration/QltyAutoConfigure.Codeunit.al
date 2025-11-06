@@ -123,7 +123,8 @@ codeunit 20402 "Qlty. Auto Configure"
             0,
             DefaultGrade0InProgressConditionNumberTok,
             DefaultGrade0InProgressConditionTextTok,
-            DefaultGrade0InProgressConditionBooleanTok);
+            DefaultGrade0InProgressConditionBooleanTok,
+            false);
         EnsureSingleGrade(
             DefaultGrade1FailCodeTok,
             DefaultGrade1FailDescriptionTok,
@@ -131,7 +132,8 @@ codeunit 20402 "Qlty. Auto Configure"
             1,
             DefaultGrade1FailConditionNumberTok,
             DefaultGrade1FailConditionTextTok,
-            DefaultGrade1FailConditionBooleanTok);
+            DefaultGrade1FailConditionBooleanTok,
+            true);
         EnsureSingleGrade(
             DefaultGrade2PassCodeTok,
             DefaultGrade2PassDescriptionTok,
@@ -139,27 +141,37 @@ codeunit 20402 "Qlty. Auto Configure"
             2,
             DefaultGrade2PassConditionNumberTok,
             DefaultGrade2PassConditionTextTok,
-            DefaultGrade2PassConditionBooleanTok);
+            DefaultGrade2PassConditionBooleanTok,
+            true);
     end;
 
-    local procedure EnsureSingleGrade(GradeCode: Text; GradeDescription: Text; IsPromoted: Boolean; EvaluationOrderLowestFirstHighestLast: Integer; DefaultNumericalCondition: Text; DefaultTextCondition: Text; DefaultBooleanCondition: Text)
+    local procedure EnsureSingleGrade(GradeCode: Text; GradeDescription: Text; IsPromoted: Boolean; EvaluationOrderLowestFirstHighestLast: Integer; DefaultNumericalCondition: Text; DefaultTextCondition: Text; DefaultBooleanCondition: Text; AllowFinish: Boolean)
     var
         QltyInspectionGrade: Record "Qlty. Inspection Grade";
     begin
-        if QltyInspectionGrade.Get(CopyStr(GradeCode, 1, MaxStrLen(QltyInspectionGrade.Code))) then
-            exit;
-
-        QltyInspectionGrade.Init();
-        QltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(QltyInspectionGrade.Code));
-        QltyInspectionGrade.Description := CopyStr(GradeDescription, 1, MaxStrLen(QltyInspectionGrade.Description));
-        QltyInspectionGrade."Evaluation Sequence" := EvaluationOrderLowestFirstHighestLast;
-        QltyInspectionGrade."Default Number Condition" := CopyStr(DefaultNumericalCondition, 1, MaxStrLen(QltyInspectionGrade."Default Number Condition"));
-        QltyInspectionGrade."Default Text Condition" := CopyStr(DefaultTextCondition, 1, MaxStrLen(QltyInspectionGrade."Default Text Condition"));
-        QltyInspectionGrade."Default Boolean Condition" := CopyStr(DefaultBooleanCondition, 1, MaxStrLen(QltyInspectionGrade."Default Boolean Condition"));
-        if IsPromoted then
-            QltyInspectionGrade."Grade Visibility" := QltyInspectionGrade."Grade Visibility"::Promoted;
-        QltyInspectionGrade.AutoSetGradeCategoryFromName();
-        QltyInspectionGrade.Insert(true);
+        if not QltyInspectionGrade.Get(CopyStr(GradeCode, 1, MaxStrLen(QltyInspectionGrade.Code))) then begin
+            QltyInspectionGrade.Init();
+            QltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(QltyInspectionGrade.Code));
+            QltyInspectionGrade.Description := CopyStr(GradeDescription, 1, MaxStrLen(QltyInspectionGrade.Description));
+            QltyInspectionGrade."Evaluation Sequence" := EvaluationOrderLowestFirstHighestLast;
+            QltyInspectionGrade."Default Number Condition" := CopyStr(DefaultNumericalCondition, 1, MaxStrLen(QltyInspectionGrade."Default Number Condition"));
+            QltyInspectionGrade."Default Text Condition" := CopyStr(DefaultTextCondition, 1, MaxStrLen(QltyInspectionGrade."Default Text Condition"));
+            QltyInspectionGrade."Default Boolean Condition" := CopyStr(DefaultBooleanCondition, 1, MaxStrLen(QltyInspectionGrade."Default Boolean Condition"));
+            if IsPromoted then
+                QltyInspectionGrade."Grade Visibility" := QltyInspectionGrade."Grade Visibility"::Promoted;
+            QltyInspectionGrade.AutoSetGradeCategoryFromName();
+            if AllowFinish then
+                QltyInspectionGrade."Finish Allowed" := QltyInspectionGrade."Finish Allowed"::"Allow Finish"
+            else
+                QltyInspectionGrade."Finish Allowed" := QltyInspectionGrade."Finish Allowed"::"Do Not Allow Finish";
+            QltyInspectionGrade.Insert(true);
+        end else begin
+            if AllowFinish then
+                QltyInspectionGrade."Finish Allowed" := QltyInspectionGrade."Finish Allowed"::"Allow Finish"
+            else
+                QltyInspectionGrade."Finish Allowed" := QltyInspectionGrade."Finish Allowed"::"Do Not Allow Finish";
+            QltyInspectionGrade.Modify();
+        end;
     end;
 
     local procedure EnsureSetupRecord()

@@ -853,7 +853,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         SpecificQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        UnusedReservationEntry: Record "Reservation Entry";
+        DummyReservationEntry: Record "Reservation Entry";
         Item: Record Item;
         Vendor: Record Vendor;
         FoundVendor: Record Vendor;
@@ -952,7 +952,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
         LibraryWarehouse.CreateLocation(Location);
         LibraryPurchase.CreateVendor(Vendor);
         LibraryInventory.CreateItem(Item);
-        QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, UnusedReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurchaseLine);
 
         // [WHEN] Finding related vendor from purchase line by traversing to parent header

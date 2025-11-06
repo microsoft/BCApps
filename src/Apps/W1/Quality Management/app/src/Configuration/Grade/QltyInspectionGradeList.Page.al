@@ -59,6 +59,11 @@ page 20416 "Qlty. Inspection Grade List"
                     AboutTitle = 'About This Field';
                     AboutText = 'A general categorization of whether this grade represents good or bad.';
                 }
+                field("Finish Allowed"; Rec."Finish Allowed")
+                {
+                    AboutTitle = 'About This Field';
+                    AboutText = 'Specifies if a test can be finished when this is the applicable grade.';
+                }
                 field("Default Number Condition"; Rec."Default Number Condition")
                 {
                     Visible = false;

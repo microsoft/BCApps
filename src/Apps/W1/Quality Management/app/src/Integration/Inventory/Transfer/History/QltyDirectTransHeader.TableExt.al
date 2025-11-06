@@ -29,6 +29,7 @@ tableextension 20410 "Qlty. Direct Trans. Header" extends "Direct Trans. Header"
             DataClassification = CustomerContent;
             TableRelation = "Qlty. Inspection Test Header"."Retest No." where("No." = field("Qlty. Inspection Test No."));
             Description = 'Only used to link to the test that created the original Transfer document that generated this.';
+            BlankZero = true;
         }
     }
 

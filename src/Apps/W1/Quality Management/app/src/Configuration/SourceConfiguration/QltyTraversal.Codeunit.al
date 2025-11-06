@@ -593,13 +593,14 @@ codeunit 20408 "Qlty. Traversal"
     /// <param name="ChildRecordVariant">The child record as a Record, RecordId, or RecordRef</param>
     /// <param name="FoundParentRecordRef">Output: The resolved parent RecordRef if found</param>
     /// <returns>True if a single parent record was found; False otherwise</returns>
-    procedure FindSingleParentRecordWithVariant(ChildRecordVariant: Variant; var FoundParentRecordRef: RecordRef) Worked: Boolean;
+    procedure FindSingleParentRecordWithVariant(ChildRecordVariant: Variant; var FoundParentRecordRef: RecordRef): Boolean;
     var
         DataTypeManagement: Codeunit "Data Type Management";
         ChildRecordRef: RecordRef;
     begin
         if DataTypeManagement.GetRecordRef(ChildRecordVariant, ChildRecordRef) then
-            exit(FindSingleParentRecord(ChildRecordRef, FoundParentRecordRef));
+            if ChildRecordRef.Number() <> 0 then
+                exit(FindSingleParentRecord(ChildRecordRef, FoundParentRecordRef));
     end;
 
     /// <summary>
@@ -754,7 +755,7 @@ codeunit 20408 "Qlty. Traversal"
     /// Lookup strategy:
     /// 1. If CurrentVariant is an Item record → return it directly
     /// 2. Search Quality Inspection Source Field Configuration for mappings to "Source Item No."
-    /// 3. For each enabled mapping, read the source field value and attempt Item.Get()
+    /// 3. For each enabled mapping, read the source field value and attempt Item.SetRange()
     /// 4. Return first successfully found Item
     /// 
     /// Common scenarios:
@@ -802,9 +803,19 @@ codeunit 20408 "Qlty. Traversal"
                     if FromFieldReference.Class() = FieldClass::FlowField then
                         FromFieldReference.CalcField();
                     PossibleItemNo := Format(FromFieldReference.Value());
-                    if PossibleItemNo <> '' then
-                        if Item.Get(CopyStr(PossibleItemNo, 1, MaxStrLen(Item."No."))) then
+                    if PossibleItemNo <> '' then begin
+                        Item.FilterGroup(21);
+                        Item.SetRange("No.", CopyStr(PossibleItemNo, 1, MaxStrLen(Item."No.")));
+                        if Item.FindFirst() then begin
+                            Item.SetRange("No.");
+                            Item.FilterGroup(0);
+                            Item.SetRecFilter();
                             exit(true);
+                        end else begin
+                            Item.SetRange("No.");
+                            Item.FilterGroup(0);
+                        end;
+                    end;
                 end;
             until QltyInspectSrcFldConf.Next() = 0;
 

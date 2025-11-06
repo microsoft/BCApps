@@ -200,6 +200,9 @@ report 20401 "Qlty. Certificate of Analysis"
                 column(PromptedGradeVisible_10; MatrixVisibleState[10])
                 {
                 }
+                column(LabelField_Description; LabelFieldDescription)
+                {
+                }
 
                 trigger OnAfterGetRecord()
                 var
@@ -230,6 +233,11 @@ report 20401 "Qlty. Certificate of Analysis"
                     if GradeDescription = '' then
                         GradeDescription := CurrentTestLine."Grade Code";
                     QltyGradeConditionMgmt.GetPromotedGradesForTestLine(CurrentTestLine, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+
+                    if FieldIsLabel then
+                        LabelFieldDescription := CurrentTestLine.Description
+                    else
+                        LabelFieldDescription := '';
                 end;
             }
 
@@ -296,6 +304,13 @@ report 20401 "Qlty. Certificate of Analysis"
             Summary = 'Alternate certificate of analysis report.';
             LayoutFile = './src/Reports/QltyCertificateOfAnalysisAlternate.rdl';
         }
+        layout(QualityManagement_CertificateOfAnalysis_Default)
+        {
+            Type = Word;
+            Caption = 'Word Layout';
+            Summary = 'Word layout for certificate of analysis report.';
+            LayoutFile = './src/Reports/QltyCertificateOfAnalysis.docx';
+        }
     }
 
     var
@@ -332,6 +347,7 @@ report 20401 "Qlty. Certificate of Analysis"
         FinishedByPhone: Text;
         DirectorTitle: Text;
         DirectorName: Text;
+        LabelFieldDescription: Text;
         DefaultDirectorTitleLbl: Label 'Director';
         DefaultQualityInspectorTitleLbl: Label 'Quality Inspection';
 

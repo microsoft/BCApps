@@ -23,7 +23,7 @@ report 20412 "Qlty. Schedule Inspection Test"
         dataitem(CurrentTestGenerationRule; "Qlty. In. Test Generation Rule")
         {
             RequestFilterFields = "Schedule Group", "Template Code", Description;
-            DataItemTableView = where("Activation Trigger" = filter(<> Disabled));
+            DataItemTableView = where("Activation Trigger" = filter(<> Disabled), "Schedule Group" = filter(<> ''));
 
             trigger OnAfterGetRecord()
             begin
@@ -68,7 +68,11 @@ report 20412 "Qlty. Schedule Inspection Test"
 
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
+        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
         ShowWarningIfCreateTest: Boolean;
+        Createds: List of [Code[20]];
+        ZeroTestsCreatedMsg: Label 'No tests were created.';
+        SomeTestsWereCreatedQst: Label '%1 tests were created. Do you want to see them?', Comment = '%1=the count of tests that were created.';
         ScheduleGroupIsMandatoryErr: Label 'It is mandatory to define a schedule group on the test generation rule(s), and then configure the schedule with the same group. This will help make sure that inadvertent configuration does not cause excessive test generation. ';
 
     trigger OnInitReport()
@@ -78,17 +82,35 @@ report 20412 "Qlty. Schedule Inspection Test"
             ShowWarningIfCreateTest := true;
     end;
 
+    trigger OnPreReport()
+    begin
+        Clear(QltyInspectionTestCreate);
+        Clear(Createds);
+    end;
+
+    trigger OnPostReport()
+    begin
+        if GuiAllowed() then
+            if Createds.Count() = 0 then
+                Message(ZeroTestsCreatedMsg)
+            else
+                if Confirm(StrSubstNo(SomeTestsWereCreatedQst, Createds.Count())) then
+                    QltyInspectionTestCreate.DisplayTestsIfConfigured(true, Createds);
+    end;
+
     /// <summary>
     /// This will use the generation rule, and create tests that match the records found with that rule.
     /// </summary>
     /// <param name="QltyInTestGenerationRule"></param>
     procedure CreateTestsThatMatchRule(QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule")
     var
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
         QltyJobQueueManagement: Codeunit "Qlty. Job Queue Management";
         SourceRecordRef: RecordRef;
     begin
         if QltyInTestGenerationRule."Activation Trigger" = QltyInTestGenerationRule."Activation Trigger"::Disabled then
+            exit;
+
+        if QltyInTestGenerationRule."Schedule Group" = '' then
             exit;
 
         QltyJobQueueManagement.TestIfGenerationRuleCanBeScheduled(QltyInTestGenerationRule);
@@ -98,7 +120,9 @@ report 20412 "Qlty. Schedule Inspection Test"
             SourceRecordRef.SetView(QltyInTestGenerationRule."Condition Filter");
 
         QltyInTestGenerationRule.SetRecFilter();
+        QltyInTestGenerationRule.SetRange("Schedule Group", QltyInTestGenerationRule."Schedule Group");
+        QltyInTestGenerationRule.SetRange("Template Code", QltyInTestGenerationRule."Template Code");
         if SourceRecordRef.FindSet() then
-            QltyInspectionTestCreate.CreateMultipleTestsForMultipleRecords(SourceRecordRef, GuiAllowed(), QltyInTestGenerationRule);
+            QltyInspectionTestCreate.CreateMultipleTestsWithoutDisplaying(SourceRecordRef, GuiAllowed(), QltyInTestGenerationRule, Createds);
     end;
 }

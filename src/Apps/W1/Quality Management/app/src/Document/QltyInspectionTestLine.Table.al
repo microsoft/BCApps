@@ -35,8 +35,9 @@ table 20406 "Qlty. Inspection Test Line"
         field(2; "Retest No."; Integer)
         {
             Caption = 'Retest No.';
-            Editable = false;
             ToolTip = 'Specifies which retest this is for.';
+            Editable = false;
+            BlankZero = true;
         }
         field(3; "Line No."; Integer)
         {
@@ -53,8 +54,9 @@ table 20406 "Qlty. Inspection Test Line"
         field(5; "Template Line No."; Integer)
         {
             Caption = 'Quality Inspection Template Line No.';
+            TableRelation = "Qlty. Inspection Template Line"."Line No." where("Template Code" = field("Template Code"));
             Editable = false;
-            TableRelation = "Qlty. Inspection Test Header"."Template Code";
+            BlankZero = true;
         }
         field(12; "Field Code"; Code[20])
         {

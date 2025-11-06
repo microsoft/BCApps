@@ -80,21 +80,17 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         AdvWhseLocation: Record Location;
-        LotNoSeries: Record "No. Series";
-        LotNoSeriesLine: Record "No. Series Line";
-        LotItemTrackingCode: Record "Item Tracking Code";
         Item: Record Item;
         Vendor: Record Vendor;
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        PurOrdResReservationEntry: Record "Reservation Entry";
+        PurOrdReservationEntry: Record "Reservation Entry";
         TempTrackedPurRtnBufferPurchaseHeader: Record "Purchase Header" temporary;
         OptionalItemVariant: Code[10];
         Reason: Code[10];
         CreditMemo: Code[35];
         SpecificQty: Decimal;
-        UnitCost: Decimal;
     begin
         // [SCENARIO] Create a purchase return order from a quality inspection test for a full lot-tracked quantity in an advanced warehouse location
 
@@ -102,16 +98,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Initialize();
         LibraryWarehouse.CreateFullWMSLocation(AdvWhseLocation, 3);
 
-        // [GIVEN] Lot tracking is created with item tracking code
-        CreateLotTracking(LotNoSeries, LotNoSeriesLine, LotItemTrackingCode);
-        UnitCost := LibraryRandom.RandDecInRange(1, 10, 2);
-        CreateLotTrackedItem(Item, LotNoSeries.Code, LotItemTrackingCode.Code, UnitCost, OptionalItemVariant);
+        // [GIVEN] Lot tracked item is created
+        QltyTestsUtility.CreateLotTrackedItemWithVariant(Item, OptionalItemVariant);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
 
         // [GIVEN] A purchase order is created, released, and received
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, AdvWhseLocation, Item, Vendor, OptionalItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, PurOrdResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, AdvWhseLocation, Item, Vendor, OptionalItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, PurOrdReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(AdvWhseLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
         PurOrdPurchaseLine.Get(PurOrdPurchaseLine."Document Type", PurOrdPurchaseLine."Document No.", PurOrdPurchaseLine."Line No.");
@@ -121,7 +115,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A quality inspection test template and generation rule are created for the purchase line
         EnsureTestTemplateAndRuleForPurchaseLine(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
         // [GIVEN] A quality inspection test is created with purchase line and tracking
-        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdResReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdReservationEntry, QltyInspectionTestHeader);
 
         // [GIVEN] A return reason code is obtained or created
         Reason := GetOrCreateReturnReasonCode();
@@ -147,15 +141,12 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         AdvWhseLocation: Record Location;
-        LotNoSeries: Record "No. Series";
-        LotNoSeriesLine: Record "No. Series Line";
-        LotItemTrackingCode: Record "Item Tracking Code";
         Item: Record Item;
         Vendor: Record Vendor;
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        PurOrdResReservationEntry: Record "Reservation Entry";
+        PurOrdReservationEntry: Record "Reservation Entry";
         TempSamplePurRtnBufferPurchaseHeader: Record "Purchase Header" temporary;
         TempPassPurRtnBufferPurchaseHeader: Record "Purchase Header" temporary;
         TempFailPurRtnBufferPurchaseHeader: Record "Purchase Header" temporary;
@@ -164,7 +155,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Reason: Code[10];
         CreditMemo: Code[35];
         SpecificQty: Decimal;
-        UnitCost: Decimal;
     begin
         // [SCENARIO] Create purchase return orders from a quality inspection test for different quantity behaviors (sample size, pass quantity, fail quantity, and specific quantity) in an advanced warehouse location
 
@@ -173,16 +163,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] An advanced warehouse location with full warehouse management is created
         LibraryWarehouse.CreateFullWMSLocation(AdvWhseLocation, 3);
 
-        // [GIVEN] Lot tracking is created with item tracking code
-        CreateLotTracking(LotNoSeries, LotNoSeriesLine, LotItemTrackingCode);
-        UnitCost := LibraryRandom.RandDecInRange(1, 10, 2);
-        CreateLotTrackedItem(Item, LotNoSeries.Code, LotItemTrackingCode.Code, UnitCost, OptionalItemVariant);
+        // [GIVEN] Lot tracked item is created
+        QltyTestsUtility.CreateLotTrackedItemWithVariant(Item, OptionalItemVariant);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
 
         // [GIVEN] A purchase order is created, released, and fully received
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, AdvWhseLocation, Item, Vendor, OptionalItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, PurOrdResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, AdvWhseLocation, Item, Vendor, OptionalItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, PurOrdReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(AdvWhseLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
         PurOrdPurchaseLine.Get(PurOrdPurchaseLine."Document Type", PurOrdPurchaseLine."Document No.", PurOrdPurchaseLine."Line No.");
@@ -192,7 +180,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A quality inspection test template and generation rule are created
         EnsureTestTemplateAndRuleForPurchaseLine(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
         // [GIVEN] A quality inspection test is created with sample, pass, and fail quantities
-        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdResReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdReservationEntry, QltyInspectionTestHeader);
         QltyInspectionTestHeader."Sample Size" := 5;
         QltyInspectionTestHeader."Pass Quantity" := 3;
         QltyInspectionTestHeader."Fail Quantity" := 2;
@@ -239,9 +227,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         AdvWhseLocation: Record Location;
-        LotNoSeries: Record "No. Series";
-        LotNoSeriesLine: Record "No. Series Line";
-        LotItemTrackingCode: Record "Item Tracking Code";
         ReclassWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
         ReclassWarehouseJournalBatch: Record "Warehouse Journal Batch";
         ReclassWarehouseJournalLine: Record "Warehouse Journal Line";
@@ -254,13 +239,12 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        PurOrdResReservationEntry: Record "Reservation Entry";
+        PurOrdReservationEntry: Record "Reservation Entry";
         TempSamplePurRtnBufferPurchaseHeader: Record "Purchase Header" temporary;
         OptionalItemVariant: Code[10];
         Reason: Code[10];
         CreditMemo: Code[35];
         SpecificQty: Decimal;
-        UnitCost: Decimal;
     begin
         // [SCENARIO] Create a purchase return order for lot-tracked items distributed across multiple bins
 
@@ -269,16 +253,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] An advanced warehouse location with full warehouse management is created
         LibraryWarehouse.CreateFullWMSLocation(AdvWhseLocation, 3);
 
-        // [GIVEN] Lot tracking is created with item tracking code
-        CreateLotTracking(LotNoSeries, LotNoSeriesLine, LotItemTrackingCode);
-        UnitCost := LibraryRandom.RandDecInRange(1, 10, 2);
-        CreateLotTrackedItem(Item, LotNoSeries.Code, LotItemTrackingCode.Code, UnitCost, OptionalItemVariant);
+        // [GIVEN] Lot tracked item is created
+        QltyTestsUtility.CreateLotTrackedItemWithVariant(Item, OptionalItemVariant);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
 
         // [GIVEN] A purchase order is created, released, and fully received
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, AdvWhseLocation, Item, Vendor, OptionalItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, PurOrdResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, AdvWhseLocation, Item, Vendor, OptionalItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, PurOrdReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(AdvWhseLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
         PurOrdPurchaseLine.Get(PurOrdPurchaseLine."Document Type", PurOrdPurchaseLine."Document No.", PurOrdPurchaseLine."Line No.");
@@ -288,7 +270,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A quality inspection test template and generation rule are created
         EnsureTestTemplateAndRuleForPurchaseLine(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
         // [GIVEN] A quality inspection test is created with sample, pass, and fail quantities
-        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdResReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdReservationEntry, QltyInspectionTestHeader);
         QltyInspectionTestHeader."Sample Size" := 5;
         QltyInspectionTestHeader."Pass Quantity" := 3;
         QltyInspectionTestHeader."Fail Quantity" := 2;
@@ -315,7 +297,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] Warehouse entry is found for the received lot
         WarehouseEntry.SetRange("Location Code", AdvWhseLocation.Code);
         WarehouseEntry.SetRange("Item No.", Item."No.");
-        WarehouseEntry.SetRange("Lot No.", PurOrdResReservationEntry."Lot No.");
+        WarehouseEntry.SetRange("Lot No.", PurOrdReservationEntry."Lot No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
 
@@ -332,11 +314,11 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalLine."From Bin Code" := ReclassWarehouseJournalLine."Bin Code";
         ReclassWarehouseJournalLine."To Zone Code" := WarehouseEntry."Zone Code";
         ReclassWarehouseJournalLine."To Bin Code" := Bin.Code;
-        ReclassWarehouseJournalLine."Lot No." := PurOrdResReservationEntry."Lot No.";
+        ReclassWarehouseJournalLine."Lot No." := PurOrdReservationEntry."Lot No.";
         ReclassWarehouseJournalLine."New Lot No." := ReclassWarehouseJournalLine."Lot No.";
         ReclassWarehouseJournalLine.Modify();
         // [GIVEN] Item tracking is created for the reclassification journal line
-        ReUsedLibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', PurOrdResReservationEntry."Lot No.", 50);
+        ReUsedLibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', PurOrdReservationEntry."Lot No.", 50);
         ReclassWarehouseJournalWhseItemTrackingLine."New Lot No." := ReclassWarehouseJournalWhseItemTrackingLine."Lot No.";
         ReclassWarehouseJournalWhseItemTrackingLine.Modify();
         // [GIVEN] The warehouse journal is registered to complete the movement
@@ -365,21 +347,17 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         AdvWhseLocation: Record Location;
-        SerialNoSeries: Record "No. Series";
-        SerialNoSeriesLine: Record "No. Series Line";
-        SerialItemTrackingCode: Record "Item Tracking Code";
         Item: Record Item;
         Vendor: Record Vendor;
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        PurOrdResReservationEntry: Record "Reservation Entry";
+        PurOrdReservationEntry: Record "Reservation Entry";
         TempTrackedPurRtnBufferPurchaseHeader: Record "Purchase Header" temporary;
         OptionalItemVariant: Code[10];
         Reason: Code[10];
         CreditMemo: Code[35];
         SpecificQty: Decimal;
-        UnitCost: Decimal;
     begin
         // [SCENARIO] Create a purchase return order from a quality inspection test for serial-tracked items in an advanced warehouse location
 
@@ -388,16 +366,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] An advanced warehouse location with full warehouse management is created
         LibraryWarehouse.CreateFullWMSLocation(AdvWhseLocation, 3);
 
-        // [GIVEN] Serial tracking is created with item tracking code
-        CreateSerialTracking(SerialNoSeries, SerialNoSeriesLine, SerialItemTrackingCode);
-        UnitCost := LibraryRandom.RandDecInRange(1, 10, 2);
-        CreateSerialTrackedItem(Item, SerialNoSeries.Code, SerialItemTrackingCode.Code, UnitCost, OptionalItemVariant);
+        // [GIVEN] Serial tracked item is created
+        QltyTestsUtility.CreateSerialTrackedItemWithVariant(Item, OptionalItemVariant);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
 
         // [GIVEN] A purchase order for 3 serial-tracked items is created, released, and fully received
-        QltyPurOrderGenerator.CreatePurchaseOrder(3, AdvWhseLocation, Item, Vendor, OptionalItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, PurOrdResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(3, AdvWhseLocation, Item, Vendor, OptionalItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, PurOrdReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(AdvWhseLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
         PurOrdPurchaseLine.Get(PurOrdPurchaseLine."Document Type", PurOrdPurchaseLine."Document No.", PurOrdPurchaseLine."Line No.");
@@ -407,7 +383,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A quality inspection test template and generation rule are created
         EnsureTestTemplateAndRuleForPurchaseLine(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
         // [GIVEN] A quality inspection test is created with purchase line and tracking
-        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdResReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdReservationEntry, QltyInspectionTestHeader);
 
         // [GIVEN] A return reason code and credit memo number are prepared
         Reason := GetOrCreateReturnReasonCode();
@@ -445,7 +421,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        PurOrdResReservationEntry: Record "Reservation Entry";
+        PurOrdReservationEntry: Record "Reservation Entry";
         TempTrackedPurRtnBufferPurchaseHeader: Record "Purchase Header" temporary;
         OptionalItemVariant: Code[10];
         Reason: Code[10];
@@ -461,15 +437,15 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateFullWMSLocation(AdvWhseLocation, 3);
 
         // [GIVEN] Package tracking is created with item tracking code
-        CreatePackageTracking(PackageNoSeries, PackageNoSeriesLine, PackageItemTrackingCode);
+        QltyTestsUtility.CreatePackageTracking(PackageNoSeries, PackageNoSeriesLine, PackageItemTrackingCode);
         UnitCost := LibraryRandom.RandDecInRange(1, 10, 2);
-        CreatePackageTrackedItem(Item, PackageItemTrackingCode.Code, UnitCost, OptionalItemVariant);
+        QltyTestsUtility.CreatePackageTrackedItem(Item, PackageItemTrackingCode.Code, UnitCost, OptionalItemVariant);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
 
         // [GIVEN] A purchase order for 100 package-tracked items is created, released, and fully received
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, AdvWhseLocation, Item, Vendor, OptionalItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, PurOrdResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, AdvWhseLocation, Item, Vendor, OptionalItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, PurOrdReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(AdvWhseLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
         PurOrdPurchaseLine.Get(PurOrdPurchaseLine."Document Type", PurOrdPurchaseLine."Document No.", PurOrdPurchaseLine."Line No.");
@@ -479,7 +455,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A quality inspection test template and generation rule are created
         EnsureTestTemplateAndRuleForPurchaseLine(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
         // [GIVEN] A quality inspection test is created with purchase line and tracking
-        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdResReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdReservationEntry, QltyInspectionTestHeader);
 
         // [GIVEN] A return reason code and credit memo number are prepared
         Reason := GetOrCreateReturnReasonCode();
@@ -512,7 +488,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        PurOrdResReservationEntry: Record "Reservation Entry";
+        PurOrdReservationEntry: Record "Reservation Entry";
         TempSamplePurRtnBufferPurchaseHeader: Record "Purchase Header" temporary;
         TempPassPurRtnBufferPurchaseHeader: Record "Purchase Header" temporary;
         TempFailPurRtnBufferPurchaseHeader: Record "Purchase Header" temporary;
@@ -531,15 +507,15 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateFullWMSLocation(AdvWhseLocation, 3);
 
         // [GIVEN] Package tracking is created with item tracking code
-        CreatePackageTracking(PackageNoSeries, PackageNoSeriesLine, PackageItemTrackingCode);
+        QltyTestsUtility.CreatePackageTracking(PackageNoSeries, PackageNoSeriesLine, PackageItemTrackingCode);
         UnitCost := LibraryRandom.RandDecInRange(1, 10, 2);
-        CreatePackageTrackedItem(Item, PackageItemTrackingCode.Code, UnitCost, OptionalItemVariant);
+        QltyTestsUtility.CreatePackageTrackedItem(Item, PackageItemTrackingCode.Code, UnitCost, OptionalItemVariant);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
 
         // [GIVEN] A purchase order for 100 package-tracked items is created, released, and fully received
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, AdvWhseLocation, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, PurOrdResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, AdvWhseLocation, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, PurOrdReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(AdvWhseLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
         PurOrdPurchaseLine.Get(PurOrdPurchaseLine."Document Type", PurOrdPurchaseLine."Document No.", PurOrdPurchaseLine."Line No.");
@@ -549,7 +525,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A quality inspection test template and generation rule are created
         EnsureTestTemplateAndRuleForPurchaseLine(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
         // [GIVEN] A quality inspection test is created with sample, pass, and fail quantities
-        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdResReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdReservationEntry, QltyInspectionTestHeader);
         QltyInspectionTestHeader."Sample Size" := 5;
         QltyInspectionTestHeader."Pass Quantity" := 3;
         QltyInspectionTestHeader."Fail Quantity" := 2;
@@ -600,7 +576,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        UnusedResReservationEntry: Record "Reservation Entry";
+        DummyReservationEntry: Record "Reservation Entry";
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
         TempSamplePurRtnBufferPurchaseHeader: Record "Purchase Header" temporary;
         TempPassPurRtnBufferPurchaseHeader: Record "Purchase Header" temporary;
@@ -621,13 +597,13 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] An untracked item is created
         UnitCost := LibraryRandom.RandDecInRange(1, 10, 2);
-        CreateUntrackedItem(Item, UnitCost, OptionalItemVariant);
+        QltyTestsUtility.CreateUntrackedItem(Item, UnitCost, OptionalItemVariant);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
 
         // [GIVEN] A purchase order for 100 untracked items is created, released, and fully received
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, BasicLocation, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, UnusedResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, BasicLocation, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(BasicLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
         PurOrdPurchaseLine.Get(PurOrdPurchaseLine."Document Type", PurOrdPurchaseLine."Document No.", PurOrdPurchaseLine."Line No.");
@@ -688,7 +664,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        UnusedResReservationEntry: Record "Reservation Entry";
+        DummyReservationEntry: Record "Reservation Entry";
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
         OptionalItemVariant: Code[10];
         Reason: Code[10];
@@ -705,13 +681,13 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] An untracked item is created
         UnitCost := LibraryRandom.RandDecInRange(1, 10, 2);
-        CreateUntrackedItem(Item, UnitCost, OptionalItemVariant);
+        QltyTestsUtility.CreateUntrackedItem(Item, UnitCost, OptionalItemVariant);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
 
         // [GIVEN] A purchase order is created but NOT received
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, BasicLocation, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, UnusedResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, BasicLocation, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
 
         // [GIVEN] A quality inspection test template and generation rule are created
         EnsureTestTemplateAndRuleForPurchaseLine(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
@@ -750,7 +726,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
         ReturnOrderPurchaseHeader: Record "Purchase Header";
-        UnusedResReservationEntry: Record "Reservation Entry";
+        DummyReservationEntry: Record "Reservation Entry";
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
         OptionalItemVariant: Code[10];
         Reason: Code[10];
@@ -769,13 +745,13 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] An untracked item is created
         UnitCost := LibraryRandom.RandDecInRange(1, 10, 2);
-        CreateUntrackedItem(Item, UnitCost, OptionalItemVariant);
+        QltyTestsUtility.CreateUntrackedItem(Item, UnitCost, OptionalItemVariant);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
 
         // [GIVEN] A purchase order is created (not received to avoid inventory)
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, BasicLocation, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, UnusedResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, BasicLocation, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
 
         // [GIVEN] A quality inspection test template and generation rule are created
         EnsureTestTemplateAndRuleForPurchaseLine(QltyInspectionTemplateHdr, QltyInTestGenerationRule);
@@ -811,9 +787,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Location: Record Location;
         PickBin: Record Bin;
         Item: Record Item;
-        LotNoSeries: Record "No. Series";
-        LotNoSeriesLine: Record "No. Series Line";
-        LotItemTrackingCode: Record "Item Tracking Code";
         TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -844,12 +817,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup."Adjustment Batch Name" := NegativeAdjustItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
-        // [GIVEN] Lot tracking is created with number series and item tracking code
-        LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
-        LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
-
-        ReUsedLibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
-        LibraryInventory.CreateTrackedItem(Item, LotNoSeries.Code, '', LotItemTrackingCode.Code);
+        // [GIVEN] Item with lot tracking is created
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A location with bins is created
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -875,7 +844,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(1, NegativeAdjustmentItemJournalLine.Count(), 'test setup failed, should be only 1 line.');
 
         // [GIVEN] Lot number is generated and journal line is updated with location and bin
-        OriginalLotNo := NoSeries.GetNextNo(LotNoSeries.Code);
+        OriginalLotNo := NoSeries.GetNextNo(Item."Lot Nos.");
         InitialTestInventoryJnlItemJournalLine.Validate("Location Code", Location.Code);
         InitialTestInventoryJnlItemJournalLine.Validate("Bin Code", PickBin.Code);
         InitialTestInventoryJnlItemJournalLine.Modify();
@@ -1273,7 +1242,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        PurOrdResReservationEntry: Record "Reservation Entry";
+        PurOrdReservationEntry: Record "Reservation Entry";
         Bin: Record Bin;
         WarehouseEntry: Record "Warehouse Entry";
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
@@ -1303,20 +1272,20 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
         // [GIVEN] A lot-tracked item with number series is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created, released, and received
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, PurOrdResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, PurOrdReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
         // [GIVEN] A quality inspection test is created with purchase line and item tracking
-        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, PurOrdResReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, PurOrdReservationEntry, QltyInspectionTestHeader);
 
         // [GIVEN] A warehouse entry is found for the received items
         WarehouseEntry.SetRange("Location Code", Location.Code);
         WarehouseEntry.SetRange("Item No.", Item."No.");
-        WarehouseEntry.SetRange("Lot No.", PurOrdResReservationEntry."Lot No.");
+        WarehouseEntry.SetRange("Lot No.", PurOrdReservationEntry."Lot No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
 
@@ -1339,11 +1308,11 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalLine."From Bin Code" := ReclassWarehouseJournalLine."Bin Code";
         ReclassWarehouseJournalLine."To Zone Code" := WarehouseEntry."Zone Code";
         ReclassWarehouseJournalLine."To Bin Code" := Bin.Code;
-        ReclassWarehouseJournalLine."Lot No." := PurOrdResReservationEntry."Lot No.";
+        ReclassWarehouseJournalLine."Lot No." := PurOrdReservationEntry."Lot No.";
         ReclassWarehouseJournalLine."New Lot No." := ReclassWarehouseJournalLine."Lot No.";
         ReclassWarehouseJournalLine.Modify();
 
-        ReUsedLibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', PurOrdResReservationEntry."Lot No.", 50);
+        ReUsedLibraryItemTracking.CreateWhseJournalLineItemTracking(ReclassWarehouseJournalWhseItemTrackingLine, ReclassWarehouseJournalLine, '', PurOrdReservationEntry."Lot No.", 50);
         ReclassWarehouseJournalWhseItemTrackingLine."New Lot No." := ReclassWarehouseJournalWhseItemTrackingLine."Lot No.";
         ReclassWarehouseJournalWhseItemTrackingLine.Modify();
 
@@ -1395,7 +1364,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        PurOrdResReservationEntry: Record "Reservation Entry";
+        PurOrdReservationEntry: Record "Reservation Entry";
         Bin: Record Bin;
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
         ReasonCode: Record "Reason Code";
@@ -1421,10 +1390,10 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
 
         // [GIVEN] A lot-tracked item with number series is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created with a specific bin, released, and received
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, PurOrdResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, PurOrdReservationEntry);
         Bin.SetRange("Location Code", Location.Code);
         Bin.FindFirst();
         PurchaseLine.Validate("Bin Code", Bin.Code);
@@ -1433,7 +1402,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
         // [GIVEN] A quality inspection test is created with purchase line and item tracking
-        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, PurOrdResReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, PurOrdReservationEntry, QltyInspectionTestHeader);
 
         // [GIVEN] A reason code is generated and created
         QltyTestsUtility.GenerateRandomCharacters(20, ReasonCodeToTest);
@@ -1460,7 +1429,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Negative Adjmt.");
         ItemLedgerEntry.SetRange("Location Code", Location.Code);
         ItemLedgerEntry.SetRange("Item No.", Item."No.");
-        ItemLedgerEntry.SetRange("Lot No.", PurOrdResReservationEntry."Lot No.");
+        ItemLedgerEntry.SetRange("Lot No.", PurOrdReservationEntry."Lot No.");
         ItemLedgerEntry.SetRange(Quantity, -50);
 
         // [THEN] One negative adjustment item ledger entry is posted
@@ -1477,7 +1446,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        PurOrdResReservationEntry: Record "Reservation Entry";
+        PurOrdReservationEntry: Record "Reservation Entry";
         WarehouseEntry: Record "Warehouse Entry";
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
         ReasonCode: Record "Reason Code";
@@ -1500,10 +1469,10 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
         // [GIVEN] A lot-tracked item with number series is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created, released, and received
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, PurOrdResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, PurOrdReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
@@ -1513,7 +1482,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        QltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, PurOrdResReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, PurOrdReservationEntry, QltyInspectionTestHeader);
 
         // [GIVEN] A reason code is generated and created
         QltyTestsUtility.GenerateRandomCharacters(20, ReasonCodeToTest);
@@ -3478,7 +3447,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Modify();
 
         // [GIVEN] Lot-tracked item with expiration dates is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         LotItemTrackingCode.Get(Item."Item Tracking Code");
         LotItemTrackingCode."Use Expiration Dates" := true;
@@ -3771,7 +3740,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
         // [GIVEN] A lot-tracked item with number series is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created, released, and received at the location
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -3853,7 +3822,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateLocation(FilterLocation);
 
         // [GIVEN] A lot-tracked item with number series is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order for 100 units is created and released at the main location
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -3915,7 +3884,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
         // [GIVEN] A lot-tracked item with number series is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order for 100 units is created with lot tracking
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -3965,7 +3934,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
         // [GIVEN] A lot-tracked item with number series is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created, released, and received
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -4022,7 +3991,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
 
         // [GIVEN] A lot-tracked item with number series is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created with bin assignment, released, and received
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -4241,7 +4210,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TransferRoute.Modify();
 
         // [GIVEN] A lot-tracked item with variant is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
         LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
 
         // [GIVEN] A vendor is created
@@ -4328,7 +4297,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
 
         // [GIVEN] A lot-tracked item with number series is created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order for 100 units is created, released, and received at directed location
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -4415,7 +4384,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
 
         // [GIVEN] A lot-tracked item is purchased and received at the directed location
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
@@ -5041,7 +5010,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Modify();
 
         // [GIVEN] A lot-tracked item is purchased and received in the directed location
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
@@ -5158,7 +5127,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Modify();
 
         // [GIVEN] A lot-tracked item with 100 units is purchased and received
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
@@ -5666,7 +5635,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
 
         // [GIVEN] A lot-tracked item is purchased and received
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         Bin.SetRange("Location Code", Location.Code);
@@ -5777,7 +5746,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
 
         // [GIVEN] A lot-tracked item with 100 units is purchased and received
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         Bin.SetRange("Location Code", Location.Code);
@@ -6185,7 +6154,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Modify();
 
         // [GIVEN] A lot-tracked item is purchased and received at the directed location
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
@@ -6467,7 +6436,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
 
         // [GIVEN] A lot-tracked item is purchased and received at the non-directed location
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
         Bin.SetRange("Location Code", Location.Code);
@@ -7215,6 +7184,72 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(50, PutawayWarehouseActivityLine.Quantity, 'Should have created warehouse put-away with quantity 50');
     end;
 
+    [Test]
+    procedure GetFromLocationAndBinBasedOnNamingConventions_PurchaseLine()
+    var
+        Location: Record Location;
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
+        TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
+        QltyInventoryAvailability: Codeunit "Qlty. Inventory Availability";
+        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        RecordRef: RecordRef;
+    begin
+        // [SCENARIO] Automatic location detection from purchase line using naming conventions when populating quantity buffer for inventory availability
+
+        // [GIVEN] Quality management setup with template and generation rule for purchase lines are configured
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+
+        // [GIVEN] A location, item, vendor, and purchase order with purchase line are created
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+
+        LibraryPurchase.CreatePurchaseOrderWithLocation(PurchaseHeader, Vendor."No.", Location.Code);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
+        PurchaseLine."Location Code" := Location.Code;
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] A quality order is created from the purchase line and cleared for testing
+        RecordRef.GetTable(PurchaseLine);
+        if QltyInspectionTestCreate.CreateTest(RecordRef, false) then
+            QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+
+        // [GIVEN] A disposition buffer is configured for automatic choice with specific quantity of 5 units
+        TempInstructionQltyDispositionBuffer.Init();
+        TempInstructionQltyDispositionBuffer."Buffer Entry No." := 1;
+        TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Move with automatic choice";
+        TempInstructionQltyDispositionBuffer."Quantity Behavior" := TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
+        TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)" := 5;
+        TempInstructionQltyDispositionBuffer.Insert();
+
+        // [GIVEN] The test quality order location and quantity are cleared to test naming convention detection
+        QltyInspectionTestHeader."Location Code" := '';
+        QltyInspectionTestHeader."Source Quantity (Base)" := 0;
+        QltyInspectionTestHeader.Modify();
+
+        // [WHEN] The quantity buffer is populated using inventory availability logic
+        QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer);
+
+        QltyInTestGenerationRule.Delete();
+        QltyInspectionTemplateHdr.Delete();
+
+        TempQuantityQltyDispositionBuffer.Reset();
+        TempQuantityQltyDispositionBuffer.FindFirst();
+
+        // [THEN] The location is correctly detected from the purchase line through naming conventions and quantity matches the specified amount
+        LibraryAssert.AreEqual(PurchaseLine."Location Code", TempQuantityQltyDispositionBuffer."Location Filter", 'Location from purchase line should be detected through GetFromLocationAndBinBasedOnNamingConventions');
+        LibraryAssert.AreEqual(5, TempQuantityQltyDispositionBuffer."Qty. To Handle (Base)", 'Quantity should match the specified quantity');
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
@@ -7222,85 +7257,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         LibraryERMCountryData.CreateVATData();
         IsInitialized := true;
-    end;
-
-    local procedure CreateLotTracking(var LotNoSeries: Record "No. Series"; var LotNoSeriesLine: Record "No. Series Line"; var LotItemTrackingCode: Record "Item Tracking Code")
-    var
-        LibraryItemTracking: Codeunit "Library - Item Tracking";
-    begin
-        LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
-        LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, '', '');
-        LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
-    end;
-
-    local procedure CreateSerialTracking(var SerialNoSeries: Record "No. Series"; var SerialNoSeriesLine: Record "No. Series Line"; var SerialItemTrackingCode: Record "Item Tracking Code")
-    var
-        LibraryItemTracking: Codeunit "Library - Item Tracking";
-    begin
-        LibraryUtility.CreateNoSeries(SerialNoSeries, true, true, false);
-        LibraryUtility.CreateNoSeriesLine(SerialNoSeriesLine, SerialNoSeries.Code, '', '');
-        LibraryItemTracking.CreateItemTrackingCode(SerialItemTrackingCode, true, false, false);
-    end;
-
-    local procedure CreatePackageTracking(var PackageNoSeries: Record "No. Series"; var PackageNoSeriesLine: Record "No. Series Line"; var PackageItemTrackingCode: Record "Item Tracking Code")
-    var
-        InventorySetup: Record "Inventory Setup";
-        LibraryItemTracking: Codeunit "Library - Item Tracking";
-    begin
-        InventorySetup.Get();
-        if InventorySetup."Package Nos." <> '' then begin
-            PackageNoSeries.Get(InventorySetup."Package Nos.");
-            PackageNoSeriesLine.SetRange(PackageNoSeriesLine."Series Code");
-            if not PackageNoSeriesLine.FindFirst() then
-                LibraryUtility.CreateNoSeriesLine(PackageNoSeriesLine, PackageNoSeries.Code, '', '');
-        end else begin
-            LibraryUtility.CreateNoSeries(PackageNoSeries, true, true, false);
-            LibraryUtility.CreateNoSeriesLine(PackageNoSeriesLine, PackageNoSeries.Code, '', '');
-            InventorySetup.Validate("Package Nos.", PackageNoSeries.Code);
-            InventorySetup.Modify(true);
-        end;
-        LibraryItemTracking.CreateItemTrackingCode(PackageItemTrackingCode, false, false, true);
-    end;
-
-    local procedure CreateLotTrackedItem(var LotTrackedItem: Record Item; LotNoSeries: Code[20]; LotTrackingCode: Code[10]; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
-    var
-        ItemVariant: Record "Item Variant";
-    begin
-        LibraryInventory.CreateTrackedItem(LotTrackedItem, LotNoSeries, '', LotTrackingCode);
-        OutOptionalItemVariant := LibraryInventory.CreateItemVariant(ItemVariant, LotTrackedItem."No.");
-        LotTrackedItem.Validate("Unit Cost", UnitCost);
-        LotTrackedItem.Modify(true);
-    end;
-
-    local procedure CreateSerialTrackedItem(var SerialTrackedItem: Record Item; SerialNoSeries: Code[20]; SerialTrackingCode: Code[10]; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
-    var
-        ItemVariant: Record "Item Variant";
-    begin
-        LibraryInventory.CreateTrackedItem(SerialTrackedItem, '', SerialNoSeries, SerialTrackingCode);
-        OutOptionalItemVariant := LibraryInventory.CreateItemVariant(ItemVariant, SerialTrackedItem."No.");
-        SerialTrackedItem.Validate("Unit Cost", UnitCost);
-        SerialTrackedItem.Modify(true);
-    end;
-
-    local procedure CreatePackageTrackedItem(var PackageTrackedItem: Record Item; PackageTrackingCode: Code[10]; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
-    var
-        ItemVariant: Record "Item Variant";
-    begin
-        LibraryInventory.CreateItem(PackageTrackedItem);
-        OutOptionalItemVariant := LibraryInventory.CreateItemVariant(ItemVariant, PackageTrackedItem."No.");
-        PackageTrackedItem.Validate("Item Tracking Code", PackageTrackingCode);
-        PackageTrackedItem.Validate("Unit Cost", UnitCost);
-        PackageTrackedItem.Modify(true);
-    end;
-
-    local procedure CreateUntrackedItem(var UntrackedItem: Record Item; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
-    var
-        ItemVariant: Record "Item Variant";
-    begin
-        LibraryInventory.CreateItem(UntrackedItem);
-        OutOptionalItemVariant := LibraryInventory.CreateItemVariant(ItemVariant, UntrackedItem."No.");
-        UntrackedItem.Validate("Unit Cost", UnitCost);
-        UntrackedItem.Modify(true);
     end;
 
     local procedure GetOrCreateReturnReasonCode(): Code[10]

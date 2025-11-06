@@ -48,9 +48,9 @@ table 20405 "Qlty. Inspection Test Header"
         }
         field(2; "Retest No."; Integer)
         {
-            BlankZero = true;
             Caption = 'Retest No.';
             ToolTip = 'Specifies which retest this is for.';
+            BlankZero = true;
         }
         field(3; "Template Code"; Code[20])
         {
@@ -147,7 +147,7 @@ table 20405 "Qlty. Inspection Test Header"
         field(16; "Source Item No."; Code[20])
         {
             Caption = 'Item No.';
-            TableRelation = Item;
+            TableRelation = Item."No.";
             OptimizeForTextSearch = true;
             ToolTip = 'Specifies the item that the Quality Inspection Test is for. When used with production orders this typically refers to the item being produced.';
         }
@@ -203,6 +203,7 @@ table 20405 "Qlty. Inspection Test Header"
             begin
                 if Rec.IsTemporary() then
                     exit;
+
                 if not GetIsCreating() then
                     QltyPermissionMgmt.TestCanChangeSourceQuantity();
 
@@ -322,9 +323,14 @@ table 20405 "Qlty. Inspection Test Header"
 
             trigger OnValidate()
             var
+                QltyInspectionGrade: Record "Qlty. Inspection Grade";
                 QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
             begin
                 if Rec.Status = Rec.Status::Finished then begin
+                    if QltyInspectionGrade.Get(Rec."Grade Code") then
+                        if not (QltyInspectionGrade."Finish Allowed" = QltyInspectionGrade."Finish Allowed"::"Allow Finish") then
+                            Error(CannotFinishTestBecauseTheTestIsInGradeErr, Rec."No.", QltyInspectionGrade.Code);
+
                     Rec."Finished By User ID" := CopyStr(UserId(), 1, MaxStrLen(Rec."Finished By User ID"));
                     Rec."Finished Date" := CurrentDateTime();
                     if Rec.Modify(false) then;
@@ -498,11 +504,8 @@ table 20405 "Qlty. Inspection Test Header"
             var
                 Math: Codeunit Math;
             begin
-                if Rec.IsTemporary() then
-                    exit;
-
                 if (Rec."Sample Size" > Rec."Source Quantity (Base)") and (Rec."Source Quantity (Base)" > 0) then begin
-                    if GuiAllowed() and not Rec.GetIsCreating() then
+                    if GuiAllowed() and not Rec.GetIsCreating() and (not Rec.IsTemporary()) then
                         Message(SampleSizeInvalidMsg, Rec."Sample Size", Rec."No.", Rec."Source Quantity (Base)");
 
                     Rec."Sample Size" := Math.Truncate(Rec."Source Quantity (Base)");
@@ -636,6 +639,7 @@ table 20405 "Qlty. Inspection Test Header"
         NotSerialTrackedErr: Label 'The item %1 does not appear to be serial tracked.', Comment = '%1=the item';
         NotLotTrackedErr: Label 'The item %1 does not appear to be lot tracked.', Comment = '%1=the item';
         NotPackageTrackedErr: Label 'The item %1 does not appear to be package tracked.', Comment = '%1=the item';
+        CannotFinishTestBecauseTheTestIsInGradeErr: Label 'Cannot finish the test %1 because the test currently has the grade %2, which is configured to disallow finishing.', Comment = '%1=the test, %2=the grade code.';
         MimeTypeTok: Label 'image/jpeg', Locked = true;
         AttachmentNameTok: Label '%1.%2', Locked = true, Comment = '%1=name,%2=extension';
 
@@ -1440,6 +1444,10 @@ table 20405 "Qlty. Inspection Test Header"
 
         if not DataTypeManagement.GetRecordRef(RecordVariant, TargetRecordRef) then
             Error(UnableToFindRecordErr, RecordVariant);
+
+        if TargetRecordRef.Number() = 0 then
+            Error(UnableToFindRecordErr, RecordVariant);
+
         if not QltyTraversal.ApplySourceFields(TargetRecordRef, TempQltyInspectionTestHeader, true, false) then
             Error(UnableToFindRecordErr, TargetRecordRef.RecordId());
         TempQltyInspectionTestHeader.SetRecFilter();
@@ -1598,6 +1606,7 @@ table 20405 "Qlty. Inspection Test Header"
     begin
         if not QltyInspectionTemplateHdr.Get(Rec."Template Code") then
             exit;
+
         case QltyInspectionTemplateHdr."Sample Source" of
             QltyInspectionTemplateHdr."Sample Source"::"Fixed Quantity":
                 Rec.Validate("Sample Size", QltyInspectionTemplateHdr."Sample Fixed Amount");
@@ -1621,8 +1630,14 @@ table 20405 "Qlty. Inspection Test Header"
             exit(Item.Get(Rec."Source Item No."));
 
         if NullForComparison = Rec."Trigger RecordId" then
-            exit;
-        DataTypeManagement.GetRecordRef(Rec."Trigger RecordId", TriggerAsRecordRef);
+            exit(false);
+
+        if not DataTypeManagement.GetRecordRef(Rec."Trigger RecordId", TriggerAsRecordRef) then
+            exit(false);
+
+        if TriggerAsRecordRef.Number() = 0 then
+            exit(false);
+
         exit(QltyTraversal.FindRelatedItem(Item, TriggerAsRecordRef, Rec."Source RecordId", Rec."Source RecordId 2", Rec."Source RecordId 3", Rec."Source RecordId 4"));
     end;
 
@@ -1682,7 +1697,7 @@ table 20405 "Qlty. Inspection Test Header"
 
     /// <summary>
     /// Returns the Test No. and Retest No. (if not 0) in the format No.,Retest No.
-    /// /// </summary>
+    /// </summary>
     /// <returns>Text of No.,Retest No.</returns>
     procedure GetFriendlyIdentifier(): Text
     begin

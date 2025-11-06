@@ -257,19 +257,6 @@ codeunit 20424 "Qlty. Workflow Response"
                             ResponseExecuted := true;
                         end;
                     end;
-                QltyWorkflowSetup.GetWorkflowResponseSetTestValue():
-                    begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
-
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            ValueToSet := GetStepConfigurationValue(ForOriginalWorkflowStepArgument, GetWellKnownKeyValueExpression());
-                            if ValueToSet.Contains('[') or ValueToSet.Contains('{') then
-                                ValueToSet := QltyExpressionMgmt.EvaluateTextExpression(ValueToSet, QltyInspectionTestHeader, QltyInspectionTestLine, true);
-
-                            QltyInspectionTestHeader.SetTestValue(GetStepConfigurationValue(ForOriginalWorkflowStepArgument, GetWellKnownKeyField()), ValueToSet);
-                            ResponseExecuted := true;
-                        end;
-                    end;
                 QltyWorkflowSetup.GetWorkflowResponseSetDatabaseValue():
                     begin
                         EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
@@ -477,19 +464,6 @@ codeunit 20424 "Qlty. Workflow Response"
         end;
         CustomQltyExpressConfigValue.Value := CopyStr(Value, 1, MaxStrLen(CustomQltyExpressConfigValue.Value));
         CustomQltyExpressConfigValue.Modify();
-    end;
-    /// <summary>
-    /// Gets the step configuration value as a Code[50].
-    /// </summary>
-    /// <param name="WorkflowStepArgument">Workflow Step Argument</param>
-    /// <param name="CurrentKey">Configuration Key</param>
-    /// <returns>Value as Code[50]</returns>
-    procedure GetStepConfigurationValueAsCode50(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultCode: Code[50]
-    var
-        StepConfigurationValue: Text;
-    begin
-        StepConfigurationValue := GetStepConfigurationValue(WorkflowStepArgument, CurrentKey);
-        ResultCode := CopyStr(StepConfigurationValue, 1, MaxStrLen(ResultCode));
     end;
 
     /// <summary>
@@ -707,6 +681,7 @@ codeunit 20424 "Qlty. Workflow Response"
     begin
         exit('INTRANSIT');
     end;
+
     /// <summary>
     /// Returns the key value for the external doc. no.
     /// </summary>

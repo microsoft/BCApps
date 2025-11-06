@@ -121,6 +121,12 @@ table 20411 "Qlty. Inspection Grade"
             Description = 'A general categorization of whether this grade represents a passing or failing grade.';
             ToolTip = 'Specifies a general categorization of whether this grade represents good or bad.';
         }
+        field(14; "Finish Allowed"; Enum "Qlty. Grade Finish Allowed")
+        {
+            Caption = 'Finish Allowed';
+            ToolTip = 'Specifies if a test can be finished when this is the applicable grade.';
+            InitValue = "Allow Finish";
+        }
         field(20; "Lot Allow Sales"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Description = 'When a test for a lot/serial/package has this grade this determines whether or not to allow sales transactions.';
@@ -232,10 +238,14 @@ table 20411 "Qlty. Inspection Grade"
         PromptFirstExistingTestQst: Label 'This grade, although not set on a test, is available to previous tests. Are you sure you want to remove this grade? This cannot be undone.';
         PromptFirstExistingTemplateQst: Label 'This grade is currently defined on some Quality Inspection Templates. Are you sure you want to remove this grade? This cannot be undone.';
         PromptFirstExistingFieldQst: Label 'This grade is currently defined on some fields. Are you sure you want to remove this grade? This cannot be undone.';
+        DefaultGrade0InProgressCodeTok: Label 'INPROGRESS', Locked = true;
 
     trigger OnInsert()
     begin
         AutoSetGradeCategoryFromName();
+
+        if Rec.Code = DefaultGrade0InProgressCodeTok then
+            Rec."Finish Allowed" := Rec."Finish Allowed"::"Do Not Allow Finish";
     end;
 
     trigger OnModify()

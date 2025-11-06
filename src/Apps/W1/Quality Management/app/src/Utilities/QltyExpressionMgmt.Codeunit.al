@@ -215,8 +215,6 @@ codeunit 20416 "Qlty. Expression Mgmt."
             end;
         end;
         Result := EvaluateStringOnlyFunctions(Result);
-        if EvaluateEmbeddedNumericExpressions and Result.Contains('{') then
-            Result := EvaluateEmbeddedNumericalExpressions(Result, CurrentQltyInspectionTestHeader);
     end;
 
     /// <summary>
@@ -240,6 +238,9 @@ codeunit 20416 "Qlty. Expression Mgmt."
         Result := Input;
 
         if not DataTypeManagement.GetRecordRef(RecordVariant, AlternateRecordRef) then
+            exit;
+
+        if AlternateRecordRef.Number() = 0 then
             exit;
 
         MaxFields := AlternateRecordRef.FieldCount();
@@ -352,53 +353,6 @@ codeunit 20416 "Qlty. Expression Mgmt."
             ResultText := TextReplace(ResultText, '<br/>', Format(CarriageReturn) + Format(LineFeed));
             ResultText := TextReplace(ResultText, '<br>', Format(CarriageReturn) + Format(LineFeed));
         end;
-    end;
-
-    [TryFunction]
-    procedure TryEvaluateEmbeddedNumericalExpressions(Input: Text; CurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var Result: Text)
-    begin
-        Result := EvaluateEmbeddedNumericalExpressions(Input, CurrentQltyInspectionTestHeader);
-    end;
-
-    /// <summary>
-    /// Evaluates embedded numerical expressions within a given text.
-    /// Input:
-    ///         ABC{3.1 + 3}DEF{7+1}
-    /// Output:
-    ///         ABC6.1DEF8
-    /// </summary>
-    /// <param name="Input"></param>
-    /// <param name="CurrentQltyInspectionTestHeader"></param>
-    /// <returns></returns>
-    procedure EvaluateEmbeddedNumericalExpressions(Input: Text; CurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header") Result: Text
-    var
-        StartOfNumberExpression: Integer;
-        EndOfNumberExpression: Integer;
-        Safety: Integer;
-        NumericalExpression: Text;
-        ResultDecimal: Decimal;
-        Handled: Boolean;
-    begin
-        OnBeforeEvaluateEmbeddedNumericalExpressions(Input, CurrentQltyInspectionTestHeader, Result, Handled);
-        if Handled then
-            exit;
-
-        Result := Input;
-        StartOfNumberExpression := Result.IndexOf('{');
-        if StartOfNumberExpression > 0 then
-            EndOfNumberExpression := Result.IndexOf('}', StartOfNumberExpression);
-        Safety := 100;
-        while ((StartOfNumberExpression > 0) and (EndOfNumberExpression > StartOfNumberExpression) and (Safety > 0)) do begin
-            Safety := Safety - 1;
-            NumericalExpression := Result.Substring(StartOfNumberExpression + 1, EndOfNumberExpression - StartOfNumberExpression - 1);
-            ResultDecimal := EvaluateNumericalExpression(NumericalExpression, CurrentQltyInspectionTestHeader);
-            Result := Result.Substring(1, StartOfNumberExpression - 1) + Format(ResultDecimal, 0, 1) + Result.Substring(EndOfNumberExpression + 1);
-            StartOfNumberExpression := Result.IndexOf('{');
-            Clear(EndOfNumberExpression);
-            if StartOfNumberExpression > 0 then
-                EndOfNumberExpression := Result.IndexOf('}', StartOfNumberExpression);
-        end;
-        OnAfterEvaluateEmbeddedNumericalExpressions(Input, CurrentQltyInspectionTestHeader, Result);
     end;
 
     /// <summary>
@@ -757,29 +711,6 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="EntireReplaceText"></param>
     [IntegrationEvent(false, false)]
     local procedure OnEvaluateCustomStringOnlyFunctionThreeParamExpression(var EntireTextBeingEvaluated: Text; var StringFunction: Text; var Param1: Text; var Param2: Text; var Param3: Text; var EntireFindText: Text; var EntireReplaceText: Text)
-    begin
-    end;
-
-    /// <summary>
-    /// Use this to extend or replace embedded numerical expression calculations.
-    /// </summary>
-    /// <param name="Input"></param>
-    /// <param name="CurrentQltyInspectionTestHeader"></param>
-    /// <param name="ResultText"></param>
-    /// <param name="Handled"></param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeEvaluateEmbeddedNumericalExpressions(var Input: Text; var CurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var ResultText: Text; var Handled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Use this to extend embedded numerical expressions.
-    /// </summary>
-    /// <param name="Input"></param>
-    /// <param name="CurrentQltyInspectionTestHeader"></param>
-    /// <param name="ResultText"></param>
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterEvaluateEmbeddedNumericalExpressions(var Input: Text; var CurrentQltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var ResultText: Text)
     begin
     end;
 }

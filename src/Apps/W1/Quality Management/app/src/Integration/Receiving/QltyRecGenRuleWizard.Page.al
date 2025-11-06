@@ -18,8 +18,8 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 {
     Caption = 'Quality Management - Receipt Quality Test Generation Rule Wizard';
     PageType = NavigatePage;
-    UsageCategory = Administration;
-    ApplicationArea = All;
+    UsageCategory = None;
+    ApplicationArea = QualityManagement;
     SourceTable = "Qlty. Management Setup";
 
     layout

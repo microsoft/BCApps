@@ -19,6 +19,8 @@ using System.IO;
 
 codeunit 20415 "Qlty. Tracking Integration"
 {
+    InherentPermissions = X;
+
     var
         EntryTypeBlockedErr: Label 'This transaction was blocked because the quality inspection %1 has the grade of %2 for item %4 with tracking %5, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Grades.', Comment = '%1=quality test, %2=grade, %3=entry type being blocked, %4=item, %5=combined package tracking details of lot, serial, and package no.';
         WarehouseEntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the grade of %2 for item %4 with tracking %5 %6, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Grades.', Comment = '%1=quality test, %2=grade, %3=entry type being blocked, %4=item, %5=lot, %6=serial';
