@@ -20,7 +20,6 @@ using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Setup.Setup;
 using Microsoft.QualityManagement.Workflow;
 using Microsoft.Test.QualityManagement.TestLibraries;
@@ -76,7 +75,6 @@ codeunit 139969 "Qlty. Test Workflows"
         ReturnPurchaseLine: Record "Purchase Line";
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
         QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
-        QltyItemTracking: Codeunit "Qlty. Item Tracking";
         MoveBehavior: Enum "Qlty. Quantity Behavior";
         CreditMemo: Text;
         Reason: Text;
@@ -91,7 +89,6 @@ codeunit 139969 "Qlty. Test Workflows"
         ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
 
         // [GIVEN] A purchase order with inspection test created and received
-        QltyItemTracking.ClearTrackingCache();
         ReUsableQltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
         PurchaseLine.Get(PurchaseLine."Document Type"::Order, QltyInspectionTestHeader."Source Document No.", QltyInspectionTestHeader."Source Document Line No.");
         ReUsableQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);

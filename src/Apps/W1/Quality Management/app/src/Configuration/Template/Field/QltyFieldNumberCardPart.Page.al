@@ -1010,7 +1010,7 @@ page 20434 "Qlty. Field Number Card Part"
         MatrixArrayConditionDescriptionCellData: array[10] of Text;
         MatrixArrayCaptionSet: array[10] of Text;
         MatrixVisibleState: array[10] of Boolean;
-        IsUserChosenAdvancedRange: List of [Code[20]];
+        QltyFieldIds: List of [Code[20]];
         SimpleRangeTok: Label '%1..%2', Locked = true, Comment = '%1=Min, %2=max';
         RangeNonZeroTok: Label '<>0', Locked = true;
         RangeNonZeroHumanDescriptionTok: Label 'Any entered value.', Locked = true;
@@ -1084,7 +1084,7 @@ page 20434 "Qlty. Field Number Card Part"
         Clear(AdvancedRange);
 
         RangeNumberType := RangeNumberType::"A range of numbers";
-        if IsUserChosenAdvancedRange.Contains(QltyField.Code) then
+        if QltyFieldIds.Contains(QltyField.Code) then
             RangeNumberType := RangeNumberType::Advanced;
 
         AdvancedRange := QltyField."Allowable Values";
@@ -1097,7 +1097,7 @@ page 20434 "Qlty. Field Number Card Part"
                 AdvancedRange := DefaultRangeTok;
 
         if QltyMiscHelpers.AttemptSplitSimpleRangeIntoMinMax(AdvancedRange, MinAllowed, MaxAllowed) then begin
-            if not IsUserChosenAdvancedRange.Contains(QltyField.Code) then
+            if not QltyFieldIds.Contains(QltyField.Code) then
                 RangeNumberType := RangeNumberType::"A range of numbers";
         end else
             RangeNumberType := RangeNumberType::Advanced;
@@ -1191,11 +1191,11 @@ page 20434 "Qlty. Field Number Card Part"
     local procedure HandleFieldValidateNumberRangeType()
     begin
         if RangeNumberType = RangeNumberType::Advanced then begin
-            if not IsUserChosenAdvancedRange.Contains(QltyField.Code) then
-                IsUserChosenAdvancedRange.Add(QltyField.Code);
+            if not QltyFieldIds.Contains(QltyField.Code) then
+                QltyFieldIds.Add(QltyField.Code);
         end else
-            if IsUserChosenAdvancedRange.Contains(QltyField.Code) then
-                IsUserChosenAdvancedRange.Remove(QltyField.Code);
+            if QltyFieldIds.Contains(QltyField.Code) then
+                QltyFieldIds.Remove(QltyField.Code);
 
         UpdateFieldVisibilityState();
     end;

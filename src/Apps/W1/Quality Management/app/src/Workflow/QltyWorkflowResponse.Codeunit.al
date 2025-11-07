@@ -832,6 +832,7 @@ codeunit 20424 "Qlty. Workflow Response"
 
         if ResponseWorkflowStepInstance."Previous Workflow Step ID" = 0 then
             exit;
+
         WorkflowStep.Get(ResponseWorkflowStepInstance."Workflow Code", ResponseWorkflowStepInstance."Previous Workflow Step ID");
         if not (WorkflowStep."Previous Workflow Step ID" = 0) then
             repeat

@@ -70,7 +70,7 @@ report 20412 "Qlty. Schedule Inspection Test"
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
         ShowWarningIfCreateTest: Boolean;
-        Createds: List of [Code[20]];
+        CreatedQltyInspectionTestIds: List of [Code[20]];
         ZeroTestsCreatedMsg: Label 'No tests were created.';
         SomeTestsWereCreatedQst: Label '%1 tests were created. Do you want to see them?', Comment = '%1=the count of tests that were created.';
         ScheduleGroupIsMandatoryErr: Label 'It is mandatory to define a schedule group on the test generation rule(s), and then configure the schedule with the same group. This will help make sure that inadvertent configuration does not cause excessive test generation. ';
@@ -85,17 +85,17 @@ report 20412 "Qlty. Schedule Inspection Test"
     trigger OnPreReport()
     begin
         Clear(QltyInspectionTestCreate);
-        Clear(Createds);
+        Clear(CreatedQltyInspectionTestIds);
     end;
 
     trigger OnPostReport()
     begin
         if GuiAllowed() then
-            if Createds.Count() = 0 then
+            if CreatedQltyInspectionTestIds.Count() = 0 then
                 Message(ZeroTestsCreatedMsg)
             else
-                if Confirm(StrSubstNo(SomeTestsWereCreatedQst, Createds.Count())) then
-                    QltyInspectionTestCreate.DisplayTestsIfConfigured(true, Createds);
+                if Confirm(StrSubstNo(SomeTestsWereCreatedQst, CreatedQltyInspectionTestIds.Count())) then
+                    QltyInspectionTestCreate.DisplayTestsIfConfigured(true, CreatedQltyInspectionTestIds);
     end;
 
     /// <summary>
@@ -123,6 +123,6 @@ report 20412 "Qlty. Schedule Inspection Test"
         QltyInTestGenerationRule.SetRange("Schedule Group", QltyInTestGenerationRule."Schedule Group");
         QltyInTestGenerationRule.SetRange("Template Code", QltyInTestGenerationRule."Template Code");
         if SourceRecordRef.FindSet() then
-            QltyInspectionTestCreate.CreateMultipleTestsWithoutDisplaying(SourceRecordRef, GuiAllowed(), QltyInTestGenerationRule, Createds);
+            QltyInspectionTestCreate.CreateMultipleTestsWithoutDisplaying(SourceRecordRef, GuiAllowed(), QltyInTestGenerationRule, CreatedQltyInspectionTestIds);
     end;
 }

@@ -8,7 +8,6 @@ using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Field;
 using Microsoft.QualityManagement.Document;
-using System.Reflection;
 using System.Utilities;
 
 /// <summary>
@@ -227,7 +226,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     procedure EvaluateExpressionForRecord(Input: Text; RecordVariant: Variant; FormatText: Boolean) Result: Text
     var
         TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-        DataTypeManagement: Codeunit "Data Type Management";
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         AlternateRecordRef: RecordRef;
         SearchForFieldRef: FieldRef;
         MaxFields: Integer;
@@ -237,11 +236,8 @@ codeunit 20416 "Qlty. Expression Mgmt."
     begin
         Result := Input;
 
-        if not DataTypeManagement.GetRecordRef(RecordVariant, AlternateRecordRef) then
-            exit;
-
-        if AlternateRecordRef.Number() = 0 then
-            exit;
+        if not QltyMiscHelpers.GetRecordRefFromVariant(RecordVariant, AlternateRecordRef) then
+            exit(Result);
 
         MaxFields := AlternateRecordRef.FieldCount();
         for FieldIterator := 1 to MaxFields do begin

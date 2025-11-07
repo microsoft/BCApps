@@ -448,7 +448,7 @@ codeunit 20408 "Qlty. Traversal"
         SourceField: Record Field;
         TestText: Text;
         BackupFieldCaption: Text;
-        OFFromTables: List of [Integer];
+        OFFromTableIds: List of [Integer];
         FromTableIterator: Integer;
         ListOfConsideredSourceRecords: List of [Text];
     begin
@@ -464,18 +464,18 @@ codeunit 20408 "Qlty. Traversal"
         end;
 
         if InputQltyInspectionTestHeader."Source RecordId".TableNo() > 0 then
-            OFFromTables.Add(InputQltyInspectionTestHeader."Source RecordId".TableNo());
+            OFFromTableIds.Add(InputQltyInspectionTestHeader."Source RecordId".TableNo());
 
         if InputQltyInspectionTestHeader."Source RecordId 2".TableNo() > 0 then
-            OFFromTables.Add(InputQltyInspectionTestHeader."Source RecordId 2".TableNo());
+            OFFromTableIds.Add(InputQltyInspectionTestHeader."Source RecordId 2".TableNo());
 
         if InputQltyInspectionTestHeader."Source RecordId 3".TableNo() > 0 then
-            OFFromTables.Add(InputQltyInspectionTestHeader."Source RecordId 3".TableNo());
+            OFFromTableIds.Add(InputQltyInspectionTestHeader."Source RecordId 3".TableNo());
 
         if InputQltyInspectionTestHeader."Source RecordId 4".TableNo() > 0 then
-            OFFromTables.Add(InputQltyInspectionTestHeader."Source RecordId 4".TableNo());
+            OFFromTableIds.Add(InputQltyInspectionTestHeader."Source RecordId 4".TableNo());
 
-        foreach FromTableIterator in OFFromTables do begin
+        foreach FromTableIterator in OFFromTableIds do begin
             TestText := GetSourceFieldInfoFromChain(ListOfConsideredSourceRecords, QltyMiscHelpers.GetArbitraryMaximumRecursion(), FromTableIterator, InputTable, SourceField."No.", BackupFieldCaption);
             if TestText <> '' then
                 break;
@@ -595,12 +595,12 @@ codeunit 20408 "Qlty. Traversal"
     /// <returns>True if a single parent record was found; False otherwise</returns>
     procedure FindSingleParentRecordWithVariant(ChildRecordVariant: Variant; var FoundParentRecordRef: RecordRef): Boolean;
     var
-        DataTypeManagement: Codeunit "Data Type Management";
         ChildRecordRef: RecordRef;
     begin
-        if DataTypeManagement.GetRecordRef(ChildRecordVariant, ChildRecordRef) then
-            if ChildRecordRef.Number() <> 0 then
-                exit(FindSingleParentRecord(ChildRecordRef, FoundParentRecordRef));
+        if not QltyMiscHelpers.GetRecordRefFromVariant(ChildRecordVariant, ChildRecordRef) then
+            exit(false);
+
+        exit(FindSingleParentRecord(ChildRecordRef, FoundParentRecordRef));
     end;
 
     /// <summary>
@@ -724,20 +724,14 @@ codeunit 20408 "Qlty. Traversal"
     var
         ParentRecordRef: RecordRef;
     begin
-        if FindRelatedItemIn(Item, TargetRecordRef) then
-            exit(true);
-
-        if FindRelatedItemIn(Item, Optional2Variant) then
-            exit(true);
-
-        if FindRelatedItemIn(Item, Optional3Variant) then
-            exit(true);
-
-        if FindRelatedItemIn(Item, Optional4Variant) then
-            exit(true);
-
-        if FindRelatedItemIn(Item, Optional5Variant) then
-            exit(true);
+        case true of
+            FindRelatedItemIn(Item, TargetRecordRef),
+            FindRelatedItemIn(Item, Optional2Variant),
+            FindRelatedItemIn(Item, Optional3Variant),
+            FindRelatedItemIn(Item, Optional4Variant),
+            FindRelatedItemIn(Item, Optional5Variant):
+                exit(true);
+        end;
 
         // Try to find parent record and search in it
         if not FindSingleParentRecord(TargetRecordRef, ParentRecordRef) then
@@ -771,15 +765,11 @@ codeunit 20408 "Qlty. Traversal"
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         QltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
         TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-        DataTypeManagement: Codeunit "Data Type Management";
         RecordRef: RecordRef;
         FromFieldReference: FieldRef;
         PossibleItemNo: Text;
     begin
-        if not DataTypeManagement.GetRecordRef(CurrentVariant, RecordRef) then
-            exit(false);
-
-        if RecordRef.Number() = 0 then
+        if not QltyMiscHelpers.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
             exit(false);
 
         // Try direct record match first
@@ -847,20 +837,14 @@ codeunit 20408 "Qlty. Traversal"
     var
         ParentRecordRef: RecordRef;
     begin
-        if FindRelatedVendorIn(Vendor, Optional1Variant) then
-            exit(true);
-
-        if FindRelatedVendorIn(Vendor, Optional2Variant) then
-            exit(true);
-
-        if FindRelatedVendorIn(Vendor, Optional3Variant) then
-            exit(true);
-
-        if FindRelatedVendorIn(Vendor, Optional4Variant) then
-            exit(true);
-
-        if FindRelatedVendorIn(Vendor, Optional5Variant) then
-            exit(true);
+        case true of
+            FindRelatedVendorIn(Vendor, Optional1Variant),
+            FindRelatedVendorIn(Vendor, Optional2Variant),
+            FindRelatedVendorIn(Vendor, Optional3Variant),
+            FindRelatedVendorIn(Vendor, Optional4Variant),
+            FindRelatedVendorIn(Vendor, Optional5Variant):
+                exit(true);
+        end;
 
         // Try to find parent record and search in it
         if not FindSingleParentRecordWithVariant(Optional1Variant, ParentRecordRef) then
@@ -888,14 +872,10 @@ codeunit 20408 "Qlty. Traversal"
     /// <returns>True if a Vendor was found and loaded into Vendor; False otherwise</returns>
     procedure FindRelatedVendorIn(var Vendor: Record Vendor; CurrentVariant: Variant): Boolean
     var
-        DataTypeManagement: Codeunit "Data Type Management";
         RecordRef: RecordRef;
         VendorNo: Text;
     begin
-        if not DataTypeManagement.GetRecordRef(CurrentVariant, RecordRef) then
-            exit(false);
-
-        if RecordRef.Number() = 0 then
+        if not QltyMiscHelpers.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
             exit(false);
 
         // Try direct record match first
@@ -936,20 +916,14 @@ codeunit 20408 "Qlty. Traversal"
     var
         ParentRecordRef: RecordRef;
     begin
-        if FindRelatedCustomerIn(Customer, Optional1Variant) then
-            exit(true);
-
-        if FindRelatedCustomerIn(Customer, Optional2Variant) then
-            exit(true);
-
-        if FindRelatedCustomerIn(Customer, Optional3Variant) then
-            exit(true);
-
-        if FindRelatedCustomerIn(Customer, Optional4Variant) then
-            exit(true);
-
-        if FindRelatedCustomerIn(Customer, Optional5Variant) then
-            exit(true);
+        case true of
+            FindRelatedCustomerIn(Customer, Optional1Variant),
+            FindRelatedCustomerIn(Customer, Optional2Variant),
+            FindRelatedCustomerIn(Customer, Optional3Variant),
+            FindRelatedCustomerIn(Customer, Optional4Variant),
+            FindRelatedCustomerIn(Customer, Optional5Variant):
+                exit(true);
+        end;
 
         // Try to find parent record and search in it
         if not FindSingleParentRecordWithVariant(Optional1Variant, ParentRecordRef) then
@@ -977,14 +951,10 @@ codeunit 20408 "Qlty. Traversal"
     /// <returns>True if a Customer was found and loaded into Customer; False otherwise</returns>
     procedure FindRelatedCustomerIn(var Customer: Record Customer; CurrentVariant: Variant): Boolean
     var
-        DataTypeManagement: Codeunit "Data Type Management";
         RecordRef: RecordRef;
         CustomerNo: Text;
     begin
-        if not DataTypeManagement.GetRecordRef(CurrentVariant, RecordRef) then
-            exit(false);
-
-        if RecordRef.Number() = 0 then
+        if not QltyMiscHelpers.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
             exit(false);
 
         // Try direct record match first
@@ -1025,20 +995,14 @@ codeunit 20408 "Qlty. Traversal"
     var
         ParentRecordRef: RecordRef;
     begin
-        if FindRelatedRoutingIn(RoutingHeader, Optional1Variant) then
-            exit(true);
-
-        if FindRelatedRoutingIn(RoutingHeader, Optional2Variant) then
-            exit(true);
-
-        if FindRelatedRoutingIn(RoutingHeader, Optional3Variant) then
-            exit(true);
-
-        if FindRelatedRoutingIn(RoutingHeader, Optional4Variant) then
-            exit(true);
-
-        if FindRelatedRoutingIn(RoutingHeader, Optional5Variant) then
-            exit(true);
+        case true of
+            FindRelatedRoutingIn(RoutingHeader, Optional1Variant),
+            FindRelatedRoutingIn(RoutingHeader, Optional2Variant),
+            FindRelatedRoutingIn(RoutingHeader, Optional3Variant),
+            FindRelatedRoutingIn(RoutingHeader, Optional4Variant),
+            FindRelatedRoutingIn(RoutingHeader, Optional5Variant):
+                exit(true);
+        end;
 
         // Try to find parent record and search in it
         if not FindSingleParentRecordWithVariant(Optional1Variant, ParentRecordRef) then
@@ -1066,14 +1030,10 @@ codeunit 20408 "Qlty. Traversal"
     /// <returns>True if a Routing Header was found and loaded into RoutingHeader; False otherwise</returns>
     procedure FindRelatedRoutingIn(var RoutingHeader: Record "Routing Header"; CurrentVariant: Variant): Boolean
     var
-        DataTypeManagement: Codeunit "Data Type Management";
         RecordRef: RecordRef;
         RoutingNo: Text;
     begin
-        if not DataTypeManagement.GetRecordRef(CurrentVariant, RecordRef) then
-            exit(false);
-
-        if RecordRef.Number() = 0 then
+        if not QltyMiscHelpers.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
             exit(false);
 
         // Try direct record match first
@@ -1114,20 +1074,14 @@ codeunit 20408 "Qlty. Traversal"
     var
         ParentRecordRef: RecordRef;
     begin
-        if FindRelatedBillOfMaterialIn(ProductionBOMHeader, Optional1Variant) then
-            exit(true);
-
-        if FindRelatedBillOfMaterialIn(ProductionBOMHeader, Optional2Variant) then
-            exit(true);
-
-        if FindRelatedBillOfMaterialIn(ProductionBOMHeader, Optional3Variant) then
-            exit(true);
-
-        if FindRelatedBillOfMaterialIn(ProductionBOMHeader, Optional4Variant) then
-            exit(true);
-
-        if FindRelatedBillOfMaterialIn(ProductionBOMHeader, Optional5Variant) then
-            exit(true);
+        case true of
+            FindRelatedBillOfMaterialIn(ProductionBOMHeader, Optional1Variant),
+            FindRelatedBillOfMaterialIn(ProductionBOMHeader, Optional2Variant),
+            FindRelatedBillOfMaterialIn(ProductionBOMHeader, Optional3Variant),
+            FindRelatedBillOfMaterialIn(ProductionBOMHeader, Optional4Variant),
+            FindRelatedBillOfMaterialIn(ProductionBOMHeader, Optional5Variant):
+                exit(true);
+        end;
 
         // Try to find parent record and search in it
         if not FindSingleParentRecordWithVariant(Optional1Variant, ParentRecordRef) then
@@ -1162,15 +1116,11 @@ codeunit 20408 "Qlty. Traversal"
         CurrentField: Record Field;
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         QltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
-        DataTypeManagement: Codeunit "Data Type Management";
         RecordRef: RecordRef;
         FromFieldReference: FieldRef;
         PossibleBillOfMaterialNo: Text;
     begin
-        if not DataTypeManagement.GetRecordRef(CurrentVariant, RecordRef) then
-            exit(false);
-
-        if RecordRef.Number() = 0 then
+        if not QltyMiscHelpers.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
             exit(false);
 
         // Try direct record match first
@@ -1289,20 +1239,14 @@ codeunit 20408 "Qlty. Traversal"
     var
         ParentRecordRef: RecordRef;
     begin
-        if GetIfAnExactMatch(FoundRecordRef, Optional1Variant) then
-            exit(true);
-
-        if GetIfAnExactMatch(FoundRecordRef, Optional2Variant) then
-            exit(true);
-
-        if GetIfAnExactMatch(FoundRecordRef, Optional3Variant) then
-            exit(true);
-
-        if GetIfAnExactMatch(FoundRecordRef, Optional4Variant) then
-            exit(true);
-
-        if GetIfAnExactMatch(FoundRecordRef, Optional5Variant) then
-            exit(true);
+        case true of
+            GetIfAnExactMatch(FoundRecordRef, Optional1Variant),
+            GetIfAnExactMatch(FoundRecordRef, Optional2Variant),
+            GetIfAnExactMatch(FoundRecordRef, Optional3Variant),
+            GetIfAnExactMatch(FoundRecordRef, Optional4Variant),
+            GetIfAnExactMatch(FoundRecordRef, Optional5Variant):
+                exit(true);
+        end;
 
         // Try to find parent record and search in it
         if not FindSingleParentRecordWithVariant(Optional1Variant, ParentRecordRef) then
@@ -1329,13 +1273,9 @@ codeunit 20408 "Qlty. Traversal"
     /// <returns>True if CurrentVariant's table number matches FoundRecordRef's table number and record exists; False otherwise</returns>
     local procedure GetIfAnExactMatch(var FoundRecordRef: RecordRef; CurrentVariant: Variant): Boolean
     var
-        DataTypeManagement: Codeunit "Data Type Management";
         RecordRef: RecordRef;
     begin
-        if not DataTypeManagement.GetRecordRef(CurrentVariant, RecordRef) then
-            exit(false);
-
-        if RecordRef.Number() = 0 then
+        if not QltyMiscHelpers.GetRecordRefFromVariant(CurrentVariant, RecordRef) then
             exit(false);
 
         if RecordRef.Number() = FoundRecordRef.Number() then begin

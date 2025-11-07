@@ -7,6 +7,7 @@ namespace Microsoft.QualityManagement.Document;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Tracking;
 using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Dispositions.InventoryAdjustment;
@@ -837,13 +838,22 @@ page 20406 "Qlty. Inspection Test"
     end;
 
     local procedure UpdateControlVisibilityStates(UpdateCurrPageNoModify: Boolean)
+    var
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
         CanReopen := QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentRetest();
         CanFinish := QltyPermissionMgmt.CanFinishTest() and not (Rec.Status = Rec.Status::Finished);
         CanCreateRetest := QltyPermissionMgmt.CanCreateRetest();
-        CanChangeLotTracking := Rec.IsLotTracked() and (Rec.Status = Rec.Status::Open) and QltyPermissionMgmt.CanChangeTrackingNo();
-        CanChangeSerialTracking := Rec.IsSerialTracked() and (Rec.Status = Rec.Status::Open) and QltyPermissionMgmt.CanChangeTrackingNo();
-        CanChangePackageTracking := Rec.IsPackageTracked() and (Rec.Status = Rec.Status::Open) and QltyPermissionMgmt.CanChangeTrackingNo();
+        if Rec.Status = Rec.Status::Open then
+            if QltyPermissionMgmt.CanChangeTrackingNo() then begin
+                TempItemTrackingSetup."Lot No. Required" := true;
+                TempItemTrackingSetup."Serial No. Required" := true;
+                TempItemTrackingSetup."Package No. Required" := true;
+                Rec.IsItemTrackingUsed(TempItemTrackingSetup);
+                CanChangeLotTracking := TempItemTrackingSetup."Lot No. Required";
+                CanChangeSerialTracking := TempItemTrackingSetup."Serial No. Required";
+                CanChangePackageTracking := TempItemTrackingSetup."Package No. Required";
+            end;
         CanChangeQuantity := QltyPermissionMgmt.CanChangeSourceQuantity();
 
         Rec.CalcFields("Table Name");

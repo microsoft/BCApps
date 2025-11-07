@@ -314,6 +314,7 @@ report 20400 "Qlty. Create Inspection Test"
 
     local procedure AssistEditChooseRecord()
     var
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
         QltyTraversal: Codeunit "Qlty. Traversal";
     begin
         if QltyInspectSourceConfig."From Table No." <> 0 then begin
@@ -332,9 +333,13 @@ report 20400 "Qlty. Create Inspection Test"
                 if not QltyTraversal.ApplySourceFields(TargetRecordRef, TempQltyInspectionTestHeader, false, false) then
                     Clear(TempQltyInspectionTestHeader);
 
-                EditLotNo := TempQltyInspectionTestHeader.IsLotTracked();
-                EditSerialNo := TempQltyInspectionTestHeader.IsSerialTracked();
-                EditPackageNo := TempQltyInspectionTestHeader.IsPackageTracked();
+                TempItemTrackingSetup."Lot No. Required" := true;
+                TempItemTrackingSetup."Serial No. Required" := true;
+                TempItemTrackingSetup."Package No. Required" := true;
+                TempQltyInspectionTestHeader.IsItemTrackingUsed(TempItemTrackingSetup);
+                EditLotNo := TempItemTrackingSetup."Lot No. Required";
+                EditSerialNo := TempItemTrackingSetup."Serial No. Required";
+                EditPackageNo := TempItemTrackingSetup."Package No. Required";
             end;
             EditSourceQuantity := QltyPermissionMgmt.CanChangeSourceQuantity();
             VisibleSourceQuantity := TempQltyInspectionTestHeader."Source Quantity (Base)" <> 0;

@@ -62,7 +62,7 @@ page 20416 "Qlty. Inspection Grade List"
                 field("Finish Allowed"; Rec."Finish Allowed")
                 {
                     AboutTitle = 'About This Field';
-                    AboutText = 'Specifies if a test can be finished when this is the applicable grade.';
+                    AboutText = 'Specifies if a test can be finished given the applicable grade.';
                 }
                 field("Default Number Condition"; Rec."Default Number Condition")
                 {

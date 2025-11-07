@@ -12,7 +12,6 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 
@@ -194,11 +193,9 @@ codeunit 139951 "Qlty. Pur. Order Generator"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryRandom: Codeunit "Library - Random";
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
-        ItemQltyItemTracking: Codeunit "Qlty. Item Tracking";
         RecordRef: RecordRef;
         UnitCost: Decimal;
     begin
-        ItemQltyItemTracking.ClearTrackingCache();
         UnitCost := LibraryRandom.RandDecInRange(1, 10, 2);
         LibraryInventory.CreateItem(Item);
         Item.Validate("Unit Cost", UnitCost);

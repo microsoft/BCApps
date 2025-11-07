@@ -37,14 +37,12 @@ codeunit 20415 "Qlty. Tracking Integration"
         Handled: Boolean;
         TrackingDetails: Text;
     begin
-        if not QltyInspectionTestHeader.ReadPermission() then
-            exit;
-        if not QltyInspectionGrade.ReadPermission() then
-            exit;
-        if not QltyManagementSetup.ReadPermission() then
-            exit;
-        if not QltyManagementSetup.Get() then
-            exit;
+        case true of
+            not QltyInspectionTestHeader.ReadPermission(),
+            not QltyInspectionGrade.ReadPermission(),
+            not QltyManagementSetup.GetSetupRecord():
+                exit;
+        end;
 
         QltyInspectionTestHeader.SetRange("Source Item No.", ItemJnlLine2."Item No.");
         QltyInspectionTestHeader.SetRange("Source Variant Code", ItemJnlLine2."Variant Code");
@@ -187,14 +185,12 @@ codeunit 20415 "Qlty. Tracking Integration"
         IsFinished: Boolean;
         Handled: Boolean;
     begin
-        if not QltyInspectionTestHeader.ReadPermission() then
-            exit;
-        if not QltyInspectionGrade.ReadPermission() then
-            exit;
-        if not QltyManagementSetup.ReadPermission() then
-            exit;
-        if not QltyManagementSetup.Get() then
-            exit;
+        case true of
+            not QltyInspectionTestHeader.ReadPermission(),
+            not QltyInspectionGrade.ReadPermission(),
+            not QltyManagementSetup.GetSetupRecord():
+                exit;
+        end;
 
         QltyInspectionTestHeader.SetRange("Source Item No.", WarehouseActivityLine."Item No.");
         QltyInspectionTestHeader.SetRange("Source Variant Code", WarehouseActivityLine."Variant Code");

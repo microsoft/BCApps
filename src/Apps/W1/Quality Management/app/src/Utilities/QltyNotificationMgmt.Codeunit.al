@@ -92,7 +92,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
         DocumentNo: Text;
         RelatedDocumentVariant: Variant)
     var
-        DataTypeManagement: Codeunit "Data Type Management";
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         DocumentCreatedNotification: Notification;
         RelatedDocument: RecordId;
         OptionalRelatedDocumentRecordRef: RecordRef;
@@ -102,9 +102,8 @@ codeunit 20437 "Qlty. Notification Mgmt."
     begin
         Source := GetSourceSummaryText(QltyInspectionTestHeader);
 
-        if DataTypeManagement.GetRecordRef(RelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then
-            if OptionalRelatedDocumentRecordRef.Number() <> 0 then
-                RelatedDocument := OptionalRelatedDocumentRecordRef.RecordId();
+        if QltyMiscHelpers.GetRecordRefFromVariant(RelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then
+            RelatedDocument := OptionalRelatedDocumentRecordRef.RecordId();
 
         if (DocumentType <> '') and (DocumentType[1] in ['A', 'E', 'I', 'O', 'U']) then
             CurrentMessage := StrSubstNo(
@@ -152,7 +151,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     procedure NotifyDocumentCreationFailed(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentType: Text; OptionalAdditionalMessageContext: Text; OptionalRelatedDocumentVariant: Variant)
     var
         Item: Record Item;
-        DataTypeManagement: Codeunit "Data Type Management";
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         DocumentCreationFailedNotification: Notification;
         OptionalRelatedDocumentRecordRef: RecordRef;
         RelatedDocument: RecordId;
@@ -182,12 +181,11 @@ codeunit 20437 "Qlty. Notification Mgmt."
                 Item."Base Unit of Measure");
 
         if OptionalRelatedDocumentVariant.IsRecord() or OptionalRelatedDocumentVariant.IsRecordRef() or OptionalRelatedDocumentVariant.IsRecordId() then
-            if DataTypeManagement.GetRecordRef(OptionalRelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then
-                if OptionalRelatedDocumentRecordRef.Number() <> 0 then begin
-                    RelatedDocument := OptionalRelatedDocumentRecordRef.RecordId();
-                    DocumentCreationFailedNotification.SetData(NotificationDataRelatedRecordIdTok, Format(RelatedDocument));
-                    AvailableOptions.Add(OpenTheDocumentLbl, HandleOpenDocumentTok);
-                end;
+            if QltyMiscHelpers.GetRecordRefFromVariant(OptionalRelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then begin
+                RelatedDocument := OptionalRelatedDocumentRecordRef.RecordId();
+                DocumentCreationFailedNotification.SetData(NotificationDataRelatedRecordIdTok, Format(RelatedDocument));
+                AvailableOptions.Add(OpenTheDocumentLbl, HandleOpenDocumentTok);
+            end;
 
         CreateActionNotification(DocumentCreationFailedNotification, CurrentMessage, AvailableOptions);
     end;

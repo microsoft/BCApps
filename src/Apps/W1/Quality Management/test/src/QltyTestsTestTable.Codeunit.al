@@ -24,7 +24,6 @@ using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Field;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Setup.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Sales.Document;
@@ -1275,14 +1274,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup: Record "Qlty. Management Setup";
         Item: Record Item;
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ItemQltyItemTracking: Codeunit "Qlty. Item Tracking";
     begin
         // [SCENARIO] VerifyTrackingBeforeFinish throws error when lot-tracked item has no lot number
 
         Initialize();
-
-        // [GIVEN] Item tracking cache is cleared
-        ItemQltyItemTracking.ClearTrackingCache();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -1312,14 +1307,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ItemQltyItemTracking: Codeunit "Qlty. Item Tracking";
     begin
         // [SCENARIO] Verify error when serial-tracked item has no serial number before finish
 
         Initialize();
-
-        // [GIVEN] Item tracking cache is cleared
-        ItemQltyItemTracking.ClearTrackingCache();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -1350,14 +1341,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ItemQltyItemTracking: Codeunit "Qlty. Item Tracking";
     begin
         // [SCENARIO] Verify error when package-tracked item has no package number before finish
 
         Initialize();
-
-        // [GIVEN] Item tracking cache is cleared
-        ItemQltyItemTracking.ClearTrackingCache();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -1398,7 +1385,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
-        ItemQltyItemTracking: Codeunit "Qlty. Item Tracking";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         RecordRef: RecordRef;
@@ -1408,9 +1394,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [SCENARIO] Verify error when lot-tracked item has unposted lot number before finish
 
         Initialize();
-
-        // [GIVEN] Item tracking cache is cleared
-        ItemQltyItemTracking.ClearTrackingCache();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -1466,7 +1449,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
-        ItemQltyItemTracking: Codeunit "Qlty. Item Tracking";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         RecordRef: RecordRef;
@@ -1476,9 +1458,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [SCENARIO] Verify error when serial-tracked item has unposted serial number before finish
 
         Initialize();
-
-        // [GIVEN] Item tracking cache is cleared
-        ItemQltyItemTracking.ClearTrackingCache();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -1534,7 +1513,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
-        ItemQltyItemTracking: Codeunit "Qlty. Item Tracking";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         RecordRef: RecordRef;
@@ -1544,9 +1522,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [SCENARIO] Verify error when package-tracked item has unposted package number before finish
 
         Initialize();
-
-        // [GIVEN] Item tracking cache is cleared
-        ItemQltyItemTracking.ClearTrackingCache();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -1592,14 +1567,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ItemQltyItemTracking: Codeunit "Qlty. Item Tracking";
     begin
         // [SCENARIO] Verify error when lot number is not reserved or posted before finish
 
         Initialize();
-
-        // [GIVEN] Item tracking cache is cleared
-        ItemQltyItemTracking.ClearTrackingCache();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -1630,14 +1601,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ItemQltyItemTracking: Codeunit "Qlty. Item Tracking";
     begin
         // [SCENARIO] Verify error when serial number is not reserved or posted before finish
 
         Initialize();
-
-        // [GIVEN] Item tracking cache is cleared
-        ItemQltyItemTracking.ClearTrackingCache();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();
@@ -1668,14 +1635,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        ItemQltyItemTracking: Codeunit "Qlty. Item Tracking";
     begin
         // [SCENARIO] Verify error when package number is not reserved or posted before finish
 
         Initialize();
-
-        // [GIVEN] Item tracking cache is cleared
-        ItemQltyItemTracking.ClearTrackingCache();
 
         // [GIVEN] Quality management setup is configured
         QltyTestsUtility.EnsureSetup();

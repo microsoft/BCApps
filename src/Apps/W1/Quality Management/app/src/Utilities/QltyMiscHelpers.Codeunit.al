@@ -85,9 +85,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         if Handled then
             exit;
 
-        if not QltyManagementSetup.ReadPermission() then
-            exit;
-        if not QltyManagementSetup.Get() then
+        if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
         if QltyManagementSetup."Max Rows Field Lookups" > 0 then
@@ -298,9 +296,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         DuplicateChecker: List of [Text];
         ValueToAddToList: Text;
     begin
-        if CurrentTable = 0 then
-            exit;
-        if ChoiceField = 0 then
+        if (CurrentTable = 0) or (ChoiceField = 0) then
             exit;
 
         if MaxCountRecords <= 0 then begin
@@ -877,17 +873,14 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <returns>The field value as formatted text, or error marker if field/table invalid</returns>
     procedure ReadFieldAsText(CurrentRecordVariant: Variant; NumberOrNameOfFieldName: Text; FormatNumber: Integer) ResultText: Text
     var
-        DataTypeManagement: Codeunit "Data Type Management";
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         RecordRefToRead: RecordRef;
         FieldRefToRead: FieldRef;
         FieldNo: Integer;
     begin
         ResultText := BadTableTok;
-        if not DataTypeManagement.GetRecordRef(CurrentRecordVariant, RecordRefToRead) then
-            exit;
 
-        if RecordRefToRead.Number() = 0 then
+        if not GetRecordRefFromVariant(CurrentRecordVariant, RecordRefToRead) then
             exit;
 
         ResultText := StrSubstNo(BadFieldTok, RecordRefToRead.Number(), NumberOrNameOfFieldName);
@@ -906,17 +899,24 @@ codeunit 20599 "Qlty. Misc Helpers"
         User: Record "User";
         EmptyGuid: Guid;
     begin
-        if UserSecurityID = EmptyGuid then
-            exit('');
-
-        if not User.ReadPermission() then
-            exit('');
-
-
-        if not User.Get(UserSecurityID) then
-            exit('');
+        case true of
+            UserSecurityID = EmptyGuid,
+            not User.ReadPermission(),
+            not User.Get(UserSecurityID):
+                exit('');
+        end;
 
         exit(User."User Name");
+    end;
+
+    internal procedure GetRecordRefFromVariant(CurrentVariant: Variant; var RecordRef: RecordRef): Boolean
+    var
+        DataTypeManagement: Codeunit "Data Type Management";
+    begin
+        if not DataTypeManagement.GetRecordRef(CurrentVariant, RecordRef) then
+            exit(false);
+
+        exit(RecordRef.Number() <> 0);
     end;
 
     /// <summary>

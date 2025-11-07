@@ -73,7 +73,7 @@ table 20401 "Qlty. Field"
                     Rec.Validate("Lookup Field No.", 0);
                     Rec."Lookup Table Filter" := '';
                     Rec."Allowable Values" := '';
-                    if (Rec."Lookup Table No." = Database::"Qlty. Lookup Code") then begin
+                    if Rec."Lookup Table No." = Database::"Qlty. Lookup Code" then begin
                         TempFilteringOnlyQltyLookupCode.SetRange("Group Code", Rec."Code");
                         LookupFilter := QltyFilterHelpers.CleanUpWhereClause(TempFilteringOnlyQltyLookupCode.GetView());
                         Rec.Validate("Lookup Table Filter", CopyStr(LookupFilter, 1, MaxStrLen(Rec."Lookup Table Filter")));
@@ -302,12 +302,12 @@ table 20401 "Qlty. Field"
     internal procedure AssistEditFreeText()
     var
         QltyEditLargeText: Page "Qlty. Edit Large Text";
-        ExistingText: Text;
+        ExistingValue: Text;
     begin
-        ExistingText := Rec."Default Value";
+        ExistingValue := Rec."Default Value";
 
-        if QltyEditLargeText.RunModalWith(ExistingText) in [Action::LookupOK, Action::OK, Action::Yes] then
-            Rec."Default Value" := CopyStr(ExistingText, 1, MaxStrLen(Rec."Default Value"));
+        if QltyEditLargeText.RunModalWith(ExistingValue) in [Action::LookupOK, Action::OK, Action::Yes] then
+            Rec."Default Value" := CopyStr(ExistingValue, 1, MaxStrLen(Rec."Default Value"));
     end;
 
     procedure AssistEditLookupTable()
@@ -334,12 +334,12 @@ table 20401 "Qlty. Field"
     procedure AssistEditLookupTableFilter()
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
-        TextValue: Text;
+        LookupFilter: Text;
     begin
-        TextValue := Rec."Lookup Table Filter";
-        QltyFilterHelpers.BuildFilter(Rec."Lookup Table No.", true, TextValue);
-        if (TextValue <> Rec."Lookup Table Filter") and (TextValue <> '') then
-            Rec."Lookup Table Filter" := CopyStr(TextValue, 1, MaxStrLen(Rec."Lookup Table Filter"));
+        LookupFilter := Rec."Lookup Table Filter";
+        QltyFilterHelpers.BuildFilter(Rec."Lookup Table No.", true, LookupFilter);
+        if (LookupFilter <> Rec."Lookup Table Filter") and (LookupFilter <> '') then
+            Rec."Lookup Table Filter" := CopyStr(LookupFilter, 1, MaxStrLen(Rec."Lookup Table Filter"));
 
         Rec.UpdateAllowedValuesFromTableLookup();
     end;
@@ -351,13 +351,13 @@ table 20401 "Qlty. Field"
     procedure UpdateAllowedValuesFromTableLookup()
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        EntireList: Text;
+        AllowableValues: Text;
     begin
         if Rec."Field Type" <> Rec."Field Type"::"Field Type Table Lookup" then
             exit;
 
-        EntireList := QltyMiscHelpers.GetCSVOfValuesFromRecord(Rec."Lookup Table No.", Rec."Lookup Field No.", Rec."Lookup Table Filter");
-        Rec."Allowable Values" := CopyStr(EntireList, 1, MaxStrLen(Rec."Allowable Values"));
+        AllowableValues := QltyMiscHelpers.GetCSVOfValuesFromRecord(Rec."Lookup Table No.", Rec."Lookup Field No.", Rec."Lookup Table Filter");
+        Rec."Allowable Values" := CopyStr(AllowableValues, 1, MaxStrLen(Rec."Allowable Values"));
     end;
 
     trigger OnModify()
@@ -439,7 +439,7 @@ table 20401 "Qlty. Field"
     /// If the supplied field code has already been used then it will suggest an alternative.
     /// </summary>
     /// <param name="Suggestion"></param>
-    local procedure EnsureUnusedCode(var Suggestion: Code[20]; OptionalAdditionalUSed: List of [Text])
+    local procedure EnsureUnusedCode(var Suggestion: Code[20]; OptionalAdditionalUsed: List of [Text])
     var
         QltyField: Record "Qlty. Field";
         TempNumber: Text;
@@ -455,7 +455,7 @@ table 20401 "Qlty. Field"
         repeat
             Iterator += 1;
             FieldAlreadyExists := false;
-            FieldAlreadyExists := OptionalAdditionalUSed.Contains(Suggestion);
+            FieldAlreadyExists := OptionalAdditionalUsed.Contains(Suggestion);
             if not FieldAlreadyExists then begin
                 QltyField.Reset();
                 QltyField.SetRange(Code, Suggestion);

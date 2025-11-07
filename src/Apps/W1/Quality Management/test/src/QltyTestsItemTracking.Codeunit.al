@@ -2924,32 +2924,40 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
     procedure IsLotTracked_True()
     var
         Item: Record Item;
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
-        // [SCENARIO] Verify IsLotTracked returns true for lot-tracked item
+        // [SCENARIO] Verify that checking if an item is lot-tracked returns true for lot-tracked item
 
         // [GIVEN] Lot-tracked item is created
         Initialize();
         QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [WHEN] Checking if item is lot-tracked
+        TempItemTrackingSetup."Lot No. Required" := true;
+        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+
         // [THEN] Result is true indicating item is lot-tracked
-        LibraryAssert.IsTrue(QltyItemTracking.IsLotTracked(Item."No."), 'Should return is lot-tracked (true)');
+        LibraryAssert.IsTrue(TempItemTrackingSetup."Lot No. Required", 'Should return is lot-tracked (true)');
     end;
 
     [Test]
     procedure IsLotTracked_False()
     var
         Item: Record Item;
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
-        // [SCENARIO] Verify IsLotTracked returns false for non-lot-tracked item
+        // [SCENARIO] Verify that checking if an item is lot-tracked returns false for non-lot-tracked item
 
         // [GIVEN] Item without lot tracking is created
         Initialize();
         LibraryInventory.CreateItem(Item);
 
         // [WHEN] Checking if item is lot-tracked
+        TempItemTrackingSetup."Lot No. Required" := true;
+        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+
         // [THEN] Result is false indicating item is not lot-tracked
-        LibraryAssert.IsFalse(QltyItemTracking.IsLotTracked(Item."No."), 'Should return is not lot-tracked (false)');
+        LibraryAssert.IsFalse(TempItemTrackingSetup."Lot No. Required", 'Should return is not lot-tracked (false)');
     end;
 
     [Test]
@@ -2957,32 +2965,40 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
     var
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
-        // [SCENARIO] Verify IsSerialTracked returns true for serial-tracked item
+        // [SCENARIO] Verify that checking if an item is serial-tracked returns true for serial-tracked item
 
         // [GIVEN] Serial-tracked item is created
         Initialize();
         QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [WHEN] Checking if item is serial-tracked
+        TempItemTrackingSetup."Serial No. Required" := true;
+        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+
         // [THEN] Result is true indicating item is serial-tracked
-        LibraryAssert.IsTrue(QltyItemTracking.IsSerialTracked(Item."No."), 'Should return is serial-tracked (true)');
+        LibraryAssert.IsTrue(TempItemTrackingSetup."Serial No. Required", 'Should return is serial-tracked (true)');
     end;
 
     [Test]
     procedure IsSerialTracked_False()
     var
         Item: Record Item;
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
-        // [SCENARIO] Verify IsSerialTracked returns false for non-serial-tracked item
+        // [SCENARIO] Verify that checking if an item is serial-tracked returns false for non-serial-tracked item
 
         // [GIVEN] Item without serial tracking is created
         Initialize();
         LibraryInventory.CreateItem(Item);
 
         // [WHEN] Checking if item is serial-tracked
+        TempItemTrackingSetup."Serial No. Required" := true;
+        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+
         // [THEN] Result is false indicating item is not serial-tracked
-        LibraryAssert.IsFalse(QltyItemTracking.IsSerialTracked(Item."No."), 'Should return is not serial-tracked (false)');
+        LibraryAssert.IsFalse(TempItemTrackingSetup."Serial No. Required", 'Should return is not serial-tracked (false)');
     end;
 
     [Test]
@@ -2990,32 +3006,40 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
     var
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
-        // [SCENARIO] Verify IsPackageTracked returns true for package-tracked item
+        // [SCENARIO] Verify that checking if an item is package-tracked returns true for package-tracked item
 
         // [GIVEN] Package-tracked item is created
         Initialize();
         QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [WHEN] Checking if item is package-tracked
+        TempItemTrackingSetup."Package No. Required" := true;
+        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+
         // [THEN] Result is true indicating item is package-tracked
-        LibraryAssert.IsTrue(QltyItemTracking.IsPackageTracked(Item."No."), 'Should return is package-tracked (true)');
+        LibraryAssert.IsTrue(TempItemTrackingSetup."Package No. Required", 'Should return is package-tracked (true)');
     end;
 
     [Test]
     procedure IsPackageTracked_False()
     var
         Item: Record Item;
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
-        // [SCENARIO] Verify IsPackageTracked returns false for non-package-tracked item
+        // [SCENARIO] Verify that checking if an item is package-tracked returns false for non-package-tracked item
 
         // [GIVEN] Item without package tracking is created
         Initialize();
         LibraryInventory.CreateItem(Item);
 
         // [WHEN] Checking if item is package-tracked
+        TempItemTrackingSetup."Package No. Required" := true;
+        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+
         // [THEN] Result is false indicating item is not package-tracked
-        LibraryAssert.IsFalse(QltyItemTracking.IsPackageTracked(Item."No."), 'Should return is not package-tracked (false)');
+        LibraryAssert.IsFalse(TempItemTrackingSetup."Package No. Required", 'Should return is not package-tracked (false)');
     end;
 
     local procedure Initialize()

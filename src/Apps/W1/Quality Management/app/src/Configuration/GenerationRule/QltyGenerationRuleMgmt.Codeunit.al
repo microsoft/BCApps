@@ -270,6 +270,7 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
     begin
         if Item."No." = '' then
             exit(false);
+
         if QltyInTestGenerationRule."Item Attribute Filter" = '' then
             exit(true);
 

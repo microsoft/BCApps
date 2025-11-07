@@ -124,7 +124,7 @@ table 20411 "Qlty. Inspection Grade"
         field(14; "Finish Allowed"; Enum "Qlty. Grade Finish Allowed")
         {
             Caption = 'Finish Allowed';
-            ToolTip = 'Specifies if a test can be finished when this is the applicable grade.';
+            ToolTip = 'Specifies if a test can be finished given the applicable grade.';
             InitValue = "Allow Finish";
         }
         field(20; "Lot Allow Sales"; Enum "Qlty. Item Trkg Block Behavior")
@@ -238,13 +238,13 @@ table 20411 "Qlty. Inspection Grade"
         PromptFirstExistingTestQst: Label 'This grade, although not set on a test, is available to previous tests. Are you sure you want to remove this grade? This cannot be undone.';
         PromptFirstExistingTemplateQst: Label 'This grade is currently defined on some Quality Inspection Templates. Are you sure you want to remove this grade? This cannot be undone.';
         PromptFirstExistingFieldQst: Label 'This grade is currently defined on some fields. Are you sure you want to remove this grade? This cannot be undone.';
-        DefaultGrade0InProgressCodeTok: Label 'INPROGRESS', Locked = true;
+        DefaultGradeInProgressCodeLbl: Label 'INPROGRESS', Locked = true, MaxLength = 20;
 
     trigger OnInsert()
     begin
         AutoSetGradeCategoryFromName();
 
-        if Rec.Code = DefaultGrade0InProgressCodeTok then
+        if Rec.Code = DefaultGradeInProgressCodeLbl then
             Rec."Finish Allowed" := Rec."Finish Allowed"::"Do Not Allow Finish";
     end;
 

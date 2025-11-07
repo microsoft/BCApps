@@ -160,16 +160,10 @@ codeunit 20402 "Qlty. Auto Configure"
             if IsPromoted then
                 QltyInspectionGrade."Grade Visibility" := QltyInspectionGrade."Grade Visibility"::Promoted;
             QltyInspectionGrade.AutoSetGradeCategoryFromName();
-            if AllowFinish then
-                QltyInspectionGrade."Finish Allowed" := QltyInspectionGrade."Finish Allowed"::"Allow Finish"
-            else
-                QltyInspectionGrade."Finish Allowed" := QltyInspectionGrade."Finish Allowed"::"Do Not Allow Finish";
+            QltyInspectionGrade."Finish Allowed" := AllowFinish ? QltyInspectionGrade."Finish Allowed"::"Allow Finish" : QltyInspectionGrade."Finish Allowed"::"Do Not Allow Finish";
             QltyInspectionGrade.Insert(true);
         end else begin
-            if AllowFinish then
-                QltyInspectionGrade."Finish Allowed" := QltyInspectionGrade."Finish Allowed"::"Allow Finish"
-            else
-                QltyInspectionGrade."Finish Allowed" := QltyInspectionGrade."Finish Allowed"::"Do Not Allow Finish";
+            QltyInspectionGrade."Finish Allowed" := AllowFinish ? QltyInspectionGrade."Finish Allowed"::"Allow Finish" : QltyInspectionGrade."Finish Allowed"::"Do Not Allow Finish";
             QltyInspectionGrade.Modify();
         end;
     end;
@@ -1803,14 +1797,13 @@ codeunit 20402 "Qlty. Auto Configure"
         QltyField: Record "Qlty. Field";
         QltyInspectionGrade: Record "Qlty. Inspection Grade";
     begin
-        if QltyInTestGenerationRule.IsEmpty() then
-            exit(false);
-        if QltyInspectionTemplateHdr.IsEmpty() then
-            exit(false);
-        if QltyField.IsEmpty() then
-            exit(false);
-        if QltyInspectionGrade.IsEmpty() then
-            exit(false);
+        case true of
+            QltyInTestGenerationRule.IsEmpty(),
+            QltyInspectionTemplateHdr.IsEmpty(),
+            QltyField.IsEmpty(),
+            QltyInspectionGrade.IsEmpty():
+                exit(false);
+        end;
 
         exit(true);
     end;

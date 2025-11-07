@@ -7314,7 +7314,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(PurPurchaseLine."Unit of Measure Code", RtnPurchaseLine."Unit of Measure Code", 'Return Order unit of measure does not match.');
         LibraryAssert.AreEqual(PurPurchaseLine."Direct Unit Cost", RtnPurchaseLine."Direct Unit Cost", 'Return Order direct unit cost does not match.');
         LibraryAssert.AreEqual(Reason, RtnPurchaseLine."Return Reason Code", 'Return Order reason code does not match.');
-        if QltyInspectionTestHeader.IsLotTracked() or QltyInspectionTestHeader.IsSerialTracked() or QltyInspectionTestHeader.IsPackageTracked() then begin
+        if QltyInspectionTestHeader.IsItemTrackingUsed() then begin
             RtnReservationEntry.SetRange("Location Code", RtnPurchaseLine."Location Code");
             RtnReservationEntry.SetRange("Item No.", QltyInspectionTestHeader."Source Item No.");
             RtnReservationEntry.SetRange("Source Type", Database::"Purchase Line");
