@@ -22,6 +22,7 @@ using System.Security.User;
 using System.Integration.Word;
 using System.Feedback;
 using System.Apps;
+using System.MCP;
 
 permissionset 21 "System Application - Read"
 {
@@ -43,6 +44,7 @@ permissionset 21 "System Application - Read"
                              "File Storage - Read",
                              "Guided Experience - Read",
                              "Headlines - Read",
+                             "MCP - Read",
                              "Object Selection - Read",
                              "Page Summary Provider - Read",
                              "Page Action Provider - Read",

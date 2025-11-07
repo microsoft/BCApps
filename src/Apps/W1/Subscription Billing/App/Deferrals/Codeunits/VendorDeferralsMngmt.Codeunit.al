@@ -85,10 +85,10 @@ codeunit 8068 "Vendor Deferrals Mngmt."
         InsertContractDeferrals(PurchaseHeader, PurchaseLine, PurchaseHeader."Posting No.");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostPurchLineOnBeforeInsertInvoiceLine, '', false, false)]
-    local procedure InsertVendorDeferralsFromPurchaseInvoiceOnPostPurchLineOnBeforeInsertInvoiceLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforePurchInvLineInsert, '', false, false)]
+    local procedure InsertVendorDeferralsFromPurchaseInvoiceOnBeforePurchInvLineInsert(var PurchInvHeader: Record "Purch. Inv. Header"; var PurchaseLine: Record "Purchase Line")
     begin
-        InsertContractDeferrals(PurchaseHeader, PurchaseLine, PurchaseHeader."Posting No.");
+        InsertContractDeferrals(PurchaseLine.GetPurchHeader(), PurchaseLine, PurchInvHeader."No.");
     end;
 
     local procedure InsertContractDeferrals(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; DocumentNo: Code[20])
