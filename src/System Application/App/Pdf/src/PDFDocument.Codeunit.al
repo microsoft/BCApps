@@ -164,10 +164,7 @@ codeunit 3110 "PDF Document"
     /// <param name="FileInStream">The stream with content to attach in the PDF.</param>
     /// <param name="Description">A textual description of the attachment.</param>
     /// <param name="PrimaryDocument">Indicates whether this attachment is the primary document.</param>
-    procedure AddAttachment(AttachmentName: Text; PDFAttachmentDataType: Enum "PDF Attach. Data Relationship"; MimeType: Text;
-                                                                             FileInStream: InStream;
-                                                                             Description: Text;
-                                                                             PrimaryDocument: Boolean)
+    procedure AddAttachment(AttachmentName: Text; PDFAttachmentDataType: Enum "PDF Attach. Data Relationship"; MimeType: Text; FileInStream: InStream; Description: Text; PrimaryDocument: Boolean)
     begin
         PDFDocumentImpl.AddAttachment(AttachmentName, PDFAttachmentDataType, MimeType, FileInStream, Description, PrimaryDocument);
     end;
