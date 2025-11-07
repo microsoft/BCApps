@@ -44,7 +44,7 @@ codeunit 3110 "PDF Document"
     /// <param name="ImageStream">Stream of the image file.</param>
     /// <param name="ImageFormat">Image format to convert the PDF to.</param>
     /// <param name="PageNumber">Page number to convert.</param>
-    [Obsolete('Use the ConvertPdfToImage procedure instead.', '27.1')]
+    [Obsolete('Use the ConvertPdfToImage procedure instead.', '27.2')]
     procedure ConvertToImage(var ImageStream: InStream; ImageFormat: Enum "Image Format"; PageNumber: Integer)
     begin
         PDFDocumentImpl.ConvertToImage(ImageStream, ImageFormat, PageNumber);
