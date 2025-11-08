@@ -41,22 +41,6 @@ codeunit 20416 "Qlty. Expression Mgmt."
         SpecialTextFormulaOptionsTok: Label '[Item:No.],[ATTRIBUTE:AttributeName],[Measure:Min.Value],[CLASSIFY(IfThisText;MatchesThisText;ThenThisValue)],[REPLACE(SearchThisText;ReplaceThis;WithThis)],[COPYSTR(OriginalText;Position;Length)],[Lookup(TableName;FieldName;Field1=Value1)]', Locked = true;
         UOMTok: Label 'UOM', Locked = true;
 
-    procedure EvaluateNumericalExpression(NumericalExpression: Text; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"): Decimal
-    var
-        AdditionalVariables: Dictionary of [Text, Decimal];
-    begin
-        exit(EvaluateNumericalExpression(NumericalExpression, QltyInspectionTestHeader, AdditionalVariables));
-    end;
-
-    procedure EvaluateNumericalExpression(NumericalExpression: Text; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var AdditionalVariables: Dictionary of [Text, Decimal]) Result: Decimal
-    var
-        Handled: Boolean;
-    begin
-        OnBeforeEvaluateNumericalExpression(NumericalExpression, QltyInspectionTestHeader, AdditionalVariables, Result, Handled);
-        if Handled then
-            exit;
-    end;
-
     /// <summary>
     /// Evaluates a text expression on a test line for a specific test.
     /// Validates that the line is a text expression field type and matches its template configuration.
@@ -601,19 +585,6 @@ codeunit 20416 "Qlty. Expression Mgmt."
     procedure GetTextFormulaOptions(): Text
     begin
         exit(SpecialTextFormulaOptionsTok);
-    end;
-
-    /// <summary>
-    /// Use this to extend or replace numerical expression evaluation.
-    /// </summary>
-    /// <param name="NumericalExpression"></param>
-    /// <param name="QltyInspectionTestHeader"></param>
-    /// <param name="AdditionalVariables"></param>
-    /// <param name="Result"></param>
-    /// <param name="Handled"></param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeEvaluateNumericalExpression(var NumericalExpression: Text; var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var AdditionalVariables: Dictionary of [Text, Decimal]; var Result: Decimal; var Handled: Boolean)
-    begin
     end;
 
     /// <summary>
