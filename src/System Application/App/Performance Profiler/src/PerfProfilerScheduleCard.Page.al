@@ -174,6 +174,7 @@ page 1932 "Perf. Profiler Schedule Card"
                 field("User Name"; UserName)
                 {
                     ApplicationArea = All;
+                    ShowMandatory = true;
                     Caption = 'User Name';
                     ToolTip = 'Specifies the name of the user associated with the schedule.';
                     AboutText = 'Only this user''s sessions will be profiled.';
@@ -185,6 +186,7 @@ page 1932 "Perf. Profiler Schedule Card"
                     begin
                         if not UserSelection.OpenWithSystemUsers(SelectedUser) then
                             exit;
+                        ScheduledPerfProfiler.ValidateScheduleCreationPermissions(UserSecurityId(), SelectedUser."User Security ID");
                         UserName := SelectedUser."User Name";
                         Rec.Validate("User ID", SelectedUser."User Security ID");
                     end;
