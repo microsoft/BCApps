@@ -28,7 +28,6 @@ table 6113 "EDoc Historical Matching Setup"
         {
             DataClassification = SystemMetadata;
         }
-        #pragma warning disable AS0105
         field(2; "Vendor Matching Scope"; Enum "EDoc Vendor Matching Scope")
         {
             DataClassification = SystemMetadata;
@@ -39,7 +38,6 @@ table 6113 "EDoc Historical Matching Setup"
             DataClassification = SystemMetadata;
             InitValue = "Same Product Description";
         }
-        #pragma warning restore AS0105
     }
     keys
     {
@@ -49,7 +47,6 @@ table 6113 "EDoc Historical Matching Setup"
         }
     }
 
-    #pragma warning disable AS0105
     internal procedure GetSetup()
     begin
         if Rec.FindFirst() then
@@ -59,6 +56,5 @@ table 6113 "EDoc Historical Matching Setup"
         Rec."Vendor Matching Scope" := "EDoc Vendor Matching Scope"::"Same Vendor";
         Rec.Insert();
     end;
-    #pragma warning restore AS0105
 }
 #endif
