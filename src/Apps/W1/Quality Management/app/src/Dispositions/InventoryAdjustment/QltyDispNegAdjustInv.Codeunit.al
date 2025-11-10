@@ -89,10 +89,9 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
         if Handled then
             exit;
 
-        if (not QltyInspectionTestHeader.IsLotTracked()) and (not QltyInspectionTestHeader.IsSerialTracked() and (not QltyInspectionTestHeader.IsPackageTracked())) and
-           (TempInstructionQltyDispositionBuffer."Quantity Behavior" = TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity")
-        then
-            Error(WriteOffEntireLotErr, QltyInspectionTestHeader.GetFriendlyIdentifier());
+        if TempInstructionQltyDispositionBuffer."Quantity Behavior" = TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity" then
+            if not QltyInspectionTestHeader.IsItemTrackingUsed() then
+                Error(WriteOffEntireLotErr, QltyInspectionTestHeader.GetFriendlyIdentifier());
 
         QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
 

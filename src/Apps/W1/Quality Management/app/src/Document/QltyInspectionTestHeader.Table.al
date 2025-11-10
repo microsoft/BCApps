@@ -48,9 +48,9 @@ table 20405 "Qlty. Inspection Test Header"
         }
         field(2; "Retest No."; Integer)
         {
-            BlankZero = true;
             Caption = 'Retest No.';
             ToolTip = 'Specifies which retest this is for.';
+            BlankZero = true;
         }
         field(3; "Template Code"; Code[20])
         {
@@ -147,7 +147,7 @@ table 20405 "Qlty. Inspection Test Header"
         field(16; "Source Item No."; Code[20])
         {
             Caption = 'Item No.';
-            TableRelation = Item;
+            TableRelation = Item."No.";
             OptimizeForTextSearch = true;
             ToolTip = 'Specifies the item that the Quality Inspection Test is for. When used with production orders this typically refers to the item being produced.';
         }
@@ -201,10 +201,9 @@ table 20405 "Qlty. Inspection Test Header"
 
             trigger OnValidate()
             begin
-                if Rec.IsTemporary() then
-                    exit;
-                if not GetIsCreating() then
-                    QltyPermissionMgmt.TestCanChangeSourceQuantity();
+                if not Rec.IsTemporary() then
+                    if not GetIsCreating() then
+                        QltyPermissionMgmt.TestCanChangeSourceQuantity();
 
                 if Rec."Source Quantity (Base)" < 0 then
                     Rec."Source Quantity (Base)" := Abs(Rec."Source Quantity (Base)");
@@ -322,9 +321,14 @@ table 20405 "Qlty. Inspection Test Header"
 
             trigger OnValidate()
             var
+                QltyInspectionGrade: Record "Qlty. Inspection Grade";
                 QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
             begin
                 if Rec.Status = Rec.Status::Finished then begin
+                    if QltyInspectionGrade.Get(Rec."Grade Code") then
+                        if QltyInspectionGrade."Finish Allowed" <> QltyInspectionGrade."Finish Allowed"::"Allow Finish" then
+                            Error(CannotFinishTestBecauseTheTestIsInGradeErr, Rec."No.", QltyInspectionGrade.Code);
+
                     Rec."Finished By User ID" := CopyStr(UserId(), 1, MaxStrLen(Rec."Finished By User ID"));
                     Rec."Finished Date" := CurrentDateTime();
                     if Rec.Modify(false) then;
@@ -491,18 +495,15 @@ table 20405 "Qlty. Inspection Test Header"
         field(65; "Sample Size"; Integer)
         {
             Caption = 'Sample Size';
-            Description = 'How many samples are included in this test.  You can change this manually, however it can also be determined by configuring your AQL tables.';
+            Description = 'How many samples are included in this test. You can change this manually, however it can also be determined by configuring your AQL tables.';
             ToolTip = 'Specifies the number of units that must be inspected. This will be used to fill out the sample size field on a Quality Inspection Test when possible based on the other characteristics that were applied.';
 
             trigger OnValidate()
             var
                 Math: Codeunit Math;
             begin
-                if Rec.IsTemporary() then
-                    exit;
-
                 if (Rec."Sample Size" > Rec."Source Quantity (Base)") and (Rec."Source Quantity (Base)" > 0) then begin
-                    if GuiAllowed() and not Rec.GetIsCreating() then
+                    if GuiAllowed() and not Rec.GetIsCreating() and (not Rec.IsTemporary()) then
                         Message(SampleSizeInvalidMsg, Rec."Sample Size", Rec."No.", Rec."Source Quantity (Base)");
 
                     Rec."Sample Size" := Math.Truncate(Rec."Source Quantity (Base)");
@@ -636,6 +637,7 @@ table 20405 "Qlty. Inspection Test Header"
         NotSerialTrackedErr: Label 'The item %1 does not appear to be serial tracked.', Comment = '%1=the item';
         NotLotTrackedErr: Label 'The item %1 does not appear to be lot tracked.', Comment = '%1=the item';
         NotPackageTrackedErr: Label 'The item %1 does not appear to be package tracked.', Comment = '%1=the item';
+        CannotFinishTestBecauseTheTestIsInGradeErr: Label 'Cannot finish the test %1 because the test currently has the grade %2, which is configured to disallow finishing.', Comment = '%1=the test, %2=the grade code.';
         MimeTypeTok: Label 'image/jpeg', Locked = true;
         AttachmentNameTok: Label '%1.%2', Locked = true, Comment = '%1=name,%2=extension';
 
@@ -937,9 +939,7 @@ table 20405 "Qlty. Inspection Test Header"
 
     internal procedure VerifyTrackingBeforeFinish()
     var
-        ItemIsLotTracked: Boolean;
-        ItemIsSerialTracked: Boolean;
-        ItemIsPackageTracked: Boolean;
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
         PostedQuantity: Decimal;
         ReservedQuantity: Decimal;
     begin
@@ -947,48 +947,48 @@ table 20405 "Qlty. Inspection Test Header"
         if QltyManagementSetup."Item Tracking Before Finishing" = QltyManagementSetup."Item Tracking Before Finishing"::"Allow without Item Tracking" then
             exit;
 
-        ItemIsLotTracked := Rec.IsLotTracked();
-        ItemIsSerialTracked := Rec.IsSerialTracked();
-        ItemIsPackageTracked := Rec.IsPackageTracked();
-        if not ItemIsLotTracked and not ItemIsSerialTracked and not ItemIsPackageTracked then
+        TempItemTrackingSetup."Lot No. Required" := true;
+        TempItemTrackingSetup."Serial No. Required" := true;
+        TempItemTrackingSetup."Package No. Required" := true;
+        Rec.IsItemTrackingUsed(TempItemTrackingSetup);
+        if (not TempItemTrackingSetup."Lot No. Required") and (not TempItemTrackingSetup."Serial No. Required") and (not TempItemTrackingSetup."Package No. Required") then
             exit;
 
-        if ItemIsLotTracked and (Rec."Source Lot No." = '') then
+        if TempItemTrackingSetup."Lot No. Required" and (Rec."Source Lot No." = '') then
             Error(ItemIsTrackingErr, Rec."Source Item No.", LotLbl);
 
-        if ItemIsSerialTracked and (Rec."Source Serial No." = '') then
+        if TempItemTrackingSetup."Serial No. Required" and (Rec."Source Serial No." = '') then
             Error(ItemIsTrackingErr, Rec."Source Item No.", SerialLbl);
 
-        if ItemIsPackageTracked and (Rec."Source Package No." = '') then
+        if TempItemTrackingSetup."Package No. Required" and (Rec."Source Package No." = '') then
             Error(ItemIsTrackingErr, Rec."Source Item No.", PackageLbl);
 
         PostedQuantity := Rec.GetPostedInventory();
         case QltyManagementSetup."Item Tracking Before Finishing" of
             QltyManagementSetup."Item Tracking Before Finishing"::"Allow only posted Item Tracking":
                 if PostedQuantity = 0 then
-                    if ItemIsSerialTracked then
-                        Error(ItemInsufficientPostedErr, Rec."Source Item No.", SerialLbl, Rec."Source Serial No.", PostedQuantity)
-                    else
-                        if ItemIsLotTracked then
-                            Error(ItemInsufficientPostedErr, Rec."Source Item No.", LotLbl, Rec."Source Lot No.", PostedQuantity)
-                        else
-                            if ItemIsPackageTracked then
-                                Error(ItemInsufficientPostedErr, Rec."Source Item No.", PackageLbl, Rec."Source Package No.", PostedQuantity);
-
+                    case true of
+                        TempItemTrackingSetup."Serial No. Required":
+                            Error(ItemInsufficientPostedErr, Rec."Source Item No.", SerialLbl, Rec."Source Serial No.", PostedQuantity);
+                        TempItemTrackingSetup."Lot No. Required":
+                            Error(ItemInsufficientPostedErr, Rec."Source Item No.", LotLbl, Rec."Source Lot No.", PostedQuantity);
+                        TempItemTrackingSetup."Package No. Required":
+                            Error(ItemInsufficientPostedErr, Rec."Source Item No.", PackageLbl, Rec."Source Package No.", PostedQuantity);
+                    end;
             QltyManagementSetup."Item Tracking Before Finishing"::"Allow reserved or posted Item Tracking":
                 begin
                     if PostedQuantity <= 0 then
                         ReservedQuantity := Rec.GetReservedInventory();
 
                     if (PostedQuantity = 0) and (ReservedQuantity = 0) then
-                        if ItemIsSerialTracked then
-                            Error(ItemInsufficientPostedOrUnpostedErr, Rec."Source Item No.", SerialLbl, Rec."Source Serial No.", PostedQuantity)
-                        else
-                            if ItemIsLotTracked then
-                                Error(ItemInsufficientPostedOrUnpostedErr, Rec."Source Item No.", LotLbl, Rec."Source Lot No.", PostedQuantity)
-                            else
-                                if ItemIsPackageTracked then
-                                    Error(ItemInsufficientPostedOrUnpostedErr, Rec."Source Item No.", PackageLbl, Rec."Source Package No.", PostedQuantity)
+                        case true of
+                            TempItemTrackingSetup."Serial No. Required":
+                                Error(ItemInsufficientPostedOrUnpostedErr, Rec."Source Item No.", SerialLbl, Rec."Source Serial No.", PostedQuantity);
+                            TempItemTrackingSetup."Lot No. Required":
+                                Error(ItemInsufficientPostedOrUnpostedErr, Rec."Source Item No.", LotLbl, Rec."Source Lot No.", PostedQuantity);
+                            TempItemTrackingSetup."Package No. Required":
+                                Error(ItemInsufficientPostedOrUnpostedErr, Rec."Source Item No.", PackageLbl, Rec."Source Package No.", PostedQuantity);
+                        end;
                 end;
         end;
     end;
@@ -1000,14 +1000,20 @@ table 20405 "Qlty. Inspection Test Header"
     procedure GetPostedInventory() PostedInventory: Decimal
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
+        TempItemTrackingSetup."Lot No. Required" := true;
+        TempItemTrackingSetup."Serial No. Required" := true;
+        TempItemTrackingSetup."Package No. Required" := true;
+        Rec.IsItemTrackingUsed(TempItemTrackingSetup);
+
         ItemLedgerEntry.SetRange("Item No.", Rec."Source Item No.");
         ItemLedgerEntry.SetRange("Variant Code", Rec."Source Variant Code");
-        if Rec.IsLotTracked() then
+        if TempItemTrackingSetup."Lot No. Required" then
             ItemLedgerEntry.SetRange("Lot No.", Rec."Source Lot No.");
-        if Rec.IsSerialTracked() then
+        if TempItemTrackingSetup."Serial No. Required" then
             ItemLedgerEntry.SetRange("Serial No.", Rec."Source Serial No.");
-        if Rec.IsPackageTracked() then
+        if TempItemTrackingSetup."Package No. Required" then
             ItemLedgerEntry.SetRange("Package No.", Rec."Source Package No.");
 
         ItemLedgerEntry.CalcSums(Quantity);
@@ -1017,14 +1023,20 @@ table 20405 "Qlty. Inspection Test Header"
     procedure GetReservedInventory() ReservedInventory: Decimal
     var
         ReservationEntry: Record "Reservation Entry";
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
+        TempItemTrackingSetup."Lot No. Required" := true;
+        TempItemTrackingSetup."Serial No. Required" := true;
+        TempItemTrackingSetup."Package No. Required" := true;
+        Rec.IsItemTrackingUsed(TempItemTrackingSetup);
+
         ReservationEntry.SetRange("Item No.", Rec."Source Item No.");
         ReservationEntry.SetRange("Variant Code", Rec."Source Variant Code");
-        if Rec.IsLotTracked() then
+        if TempItemTrackingSetup."Lot No. Required" then
             ReservationEntry.SetRange("Lot No.", Rec."Source Lot No.");
-        if Rec.IsSerialTracked() then
+        if TempItemTrackingSetup."Serial No. Required" then
             ReservationEntry.SetRange("Serial No.", Rec."Source Serial No.");
-        if Rec.IsPackageTracked() then
+        if TempItemTrackingSetup."Package No. Required" then
             ReservationEntry.SetRange("Package No.", Rec."Source Package No.");
 
         ReservationEntry.CalcSums("Quantity (Base)");
@@ -1070,48 +1082,21 @@ table 20405 "Qlty. Inspection Test Header"
     end;
 
     internal procedure IsItemTrackingUsed(): Boolean
-    begin
-        if IsLotTracked() then
-            exit(true);
-        if IsSerialTracked() then
-            exit(true);
-        if IsPackageTracked() then
-            exit(true);
-
-        exit(false);
-    end;
-
-    /// <summary>
-    /// If this test is associated with an item that requires lot tracking.
-    /// </summary>
-    /// <returns></returns>
-    procedure IsLotTracked(): Boolean
     var
         QltyItemTracking: Codeunit "Qlty. Item Tracking";
     begin
-        exit(QltyItemTracking.IsLotTracked(Rec."Source Item No."));
+        exit(QltyItemTracking.IsItemTrackingUsed(Rec."Source Item No."));
     end;
 
     /// <summary>
-    /// If this test is associated with an item that requires serial tracking.
+    /// If this test is associated with an item that requires item tracking of any type.
     /// </summary>
     /// <returns></returns>
-    procedure IsSerialTracked(): Boolean
+    internal procedure IsItemTrackingUsed(var TempItemTrackingSetup: Record "Item Tracking Setup" temporary): Boolean
     var
         QltyItemTracking: Codeunit "Qlty. Item Tracking";
     begin
-        exit(QltyItemTracking.IsSerialTracked(Rec."Source Item No."));
-    end;
-
-    /// <summary>
-    /// If this test is associated with an item that requires package tracking.
-    /// </summary>
-    /// <returns></returns>
-    procedure IsPackageTracked(): Boolean
-    var
-        QltyItemTracking: Codeunit "Qlty. Item Tracking";
-    begin
-        exit(QltyItemTracking.IsPackageTracked(Rec."Source Item No."));
+        exit(QltyItemTracking.IsItemTrackingUsed(Rec."Source Item No.", TempItemTrackingSetup));
     end;
 
     internal procedure GetControlCaptionClass(Input: Text): Text
@@ -1131,15 +1116,19 @@ table 20405 "Qlty. Inspection Test Header"
 
     procedure AssistEditLotNo();
     var
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         ItemTrackingDataCollection: Codeunit "Item Tracking Data Collection";
+        QltyItemTracking: Codeunit "Qlty. Item Tracking";
         LoopAgainBecauseSpecialFlag: Boolean;
         OnlyForTheDocument: Boolean;
     begin
         if Rec."Source Item No." = '' then
             Error(NoItemErr, Rec."No.", Rec."Retest No.");
 
-        if not Rec.IsLotTracked() then
+        TempItemTrackingSetup."Lot No. Required" := true;
+        QltyItemTracking.IsItemTrackingUsed(Rec."Source Item No.", TempItemTrackingSetup);
+        if not TempItemTrackingSetup."Lot No. Required" then
             Error(NotLotTrackedErr, Rec."Source Item No.");
 
         QltyPermissionMgmt.TestCanChangeTrackingNo();
@@ -1197,15 +1186,19 @@ table 20405 "Qlty. Inspection Test Header"
 
     procedure AssistEditPackageNo()
     var
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         ItemTrackingDataCollection: Codeunit "Item Tracking Data Collection";
+        QltyItemTracking: Codeunit "Qlty. Item Tracking";
         LoopAgainBecauseSpecialFlag: Boolean;
         OnlyForTheDocument: Boolean;
     begin
         if Rec."Source Item No." = '' then
             Error(NoItemErr, Rec."No.", Rec."Retest No.");
 
-        if not Rec.IsPackageTracked() then
+        TempItemTrackingSetup."Package No. Required" := true;
+        QltyItemTracking.IsItemTrackingUsed(Rec."Source Item No.", TempItemTrackingSetup);
+        if not TempItemTrackingSetup."Package No. Required" then
             Error(NotPackageTrackedErr, Rec."Source Item No.");
 
         QltyPermissionMgmt.TestCanChangeTrackingNo();
@@ -1261,15 +1254,19 @@ table 20405 "Qlty. Inspection Test Header"
 
     procedure AssistEditSerialNo();
     var
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         ItemTrackingDataCollection: Codeunit "Item Tracking Data Collection";
+        QltyItemTracking: Codeunit "Qlty. Item Tracking";
         LoopAgainBecauseSpecialFlag: Boolean;
         OnlyForTheDocument: Boolean;
     begin
         if Rec."Source Item No." = '' then
             Error(NoItemErr, Rec."No.", Rec."Retest No.");
 
-        if not Rec.IsSerialTracked() then
+        TempItemTrackingSetup."Serial No. Required" := true;
+        QltyItemTracking.IsItemTrackingUsed(Rec."Source Item No.", TempItemTrackingSetup);
+        if not TempItemTrackingSetup."Serial No. Required" then
             Error(NotSerialTrackedErr, Rec."Source Item No.");
 
         QltyPermissionMgmt.TestCanChangeTrackingNo();
@@ -1377,7 +1374,7 @@ table 20405 "Qlty. Inspection Test Header"
     /// <summary>
     /// Adds the supplied instream to the test.
     /// </summary>
-    /// <param name="nPictureInStream"></param>
+    /// <param name="PictureInStream"></param>
     /// <param name="PictureName"></param>
     /// <param name="FileExtension"></param>
     /// <returns></returns>
@@ -1430,7 +1427,7 @@ table 20405 "Qlty. Inspection Test Header"
     procedure SetRecordFiltersToFindTestFor(ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; UseDocument: Boolean)
     var
         TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-        DataTypeManagement: Codeunit "Data Type Management";
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         TargetRecordRef: RecordRef;
         Handled: Boolean;
     begin
@@ -1438,8 +1435,9 @@ table 20405 "Qlty. Inspection Test Header"
         if Handled then
             exit;
 
-        if not DataTypeManagement.GetRecordRef(RecordVariant, TargetRecordRef) then
+        if not QltyMiscHelpers.GetRecordRefFromVariant(RecordVariant, TargetRecordRef) then
             Error(UnableToFindRecordErr, RecordVariant);
+
         if not QltyTraversal.ApplySourceFields(TargetRecordRef, TempQltyInspectionTestHeader, true, false) then
             Error(UnableToFindRecordErr, TargetRecordRef.RecordId());
         TempQltyInspectionTestHeader.SetRecFilter();
@@ -1598,6 +1596,7 @@ table 20405 "Qlty. Inspection Test Header"
     begin
         if not QltyInspectionTemplateHdr.Get(Rec."Template Code") then
             exit;
+
         case QltyInspectionTemplateHdr."Sample Source" of
             QltyInspectionTemplateHdr."Sample Source"::"Fixed Quantity":
                 Rec.Validate("Sample Size", QltyInspectionTemplateHdr."Sample Fixed Amount");
@@ -1613,7 +1612,7 @@ table 20405 "Qlty. Inspection Test Header"
     /// <returns></returns>
     procedure GetRelatedItem(var Item: Record Item): Boolean
     var
-        DataTypeManagement: Codeunit "Data Type Management";
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         TriggerAsRecordRef: RecordRef;
         NullForComparison: RecordId;
     begin
@@ -1621,8 +1620,11 @@ table 20405 "Qlty. Inspection Test Header"
             exit(Item.Get(Rec."Source Item No."));
 
         if NullForComparison = Rec."Trigger RecordId" then
-            exit;
-        DataTypeManagement.GetRecordRef(Rec."Trigger RecordId", TriggerAsRecordRef);
+            exit(false);
+
+        if not QltyMiscHelpers.GetRecordRefFromVariant(Rec."Trigger RecordId", TriggerAsRecordRef) then
+            exit(false);
+
         exit(QltyTraversal.FindRelatedItem(Item, TriggerAsRecordRef, Rec."Source RecordId", Rec."Source RecordId 2", Rec."Source RecordId 3", Rec."Source RecordId 4"));
     end;
 
@@ -1682,14 +1684,11 @@ table 20405 "Qlty. Inspection Test Header"
 
     /// <summary>
     /// Returns the Test No. and Retest No. (if not 0) in the format No.,Retest No.
-    /// /// </summary>
+    /// </summary>
     /// <returns>Text of No.,Retest No.</returns>
     procedure GetFriendlyIdentifier(): Text
     begin
-        if Rec."Retest No." = 0 then
-            exit(Rec."No.")
-        else
-            exit(StrSubstNo(TestLbl, Rec."No.", Rec."Retest No."));
+        exit((Rec."Retest No." = 0) ? Rec."No." : StrSubstNo(TestLbl, Rec."No.", Rec."Retest No."));
     end;
 
     /// <summary>
@@ -1774,7 +1773,7 @@ table 20405 "Qlty. Inspection Test Header"
     /// OnBeforeTakePicture occurs before a picture has been taken.
     /// Use this to replace with your own picture taking dialog.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">VAR Record "Qlty. Inspection Test Header".</param>
+    /// <param name="QltyInspectionTestHeader">var Record "Qlty. Inspection Test Header".</param>
     /// <param name="Handled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTakePicture(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var Handled: Boolean)
@@ -1785,7 +1784,7 @@ table 20405 "Qlty. Inspection Test Header"
     /// OnAfterTakePicture occurs after a picture has been taken.
     /// Picture storage will depend on the "Picture Upload Behavior" setting.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">VAR Record "Qlty. Inspection Test Header".</param>
+    /// <param name="QltyInspectionTestHeader">var Record "Qlty. Inspection Test Header".</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTakePicture(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header")
     begin
@@ -1794,27 +1793,27 @@ table 20405 "Qlty. Inspection Test Header"
     /// <summary>
     /// OnBeforeAddPicture occurs before the supplied picture instream is added to the test.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">VAR Record "Qlty. Inspection Test Header"</param>
-    /// <param name="nPictureInStream">VAR InStream</param>
-    /// <param name="PictureName">VAR Text</param>
-    /// <param name="FileExtension">VAR Text</param>
-    /// <param name="FullFileNameWithExtension">VAR Text</param>
+    /// <param name="QltyInspectionTestHeader">var Record "Qlty. Inspection Test Header"</param>
+    /// <param name="PictureInStream">var InStream</param>
+    /// <param name="PictureName">var Text</param>
+    /// <param name="FileExtension">var Text</param>
+    /// <param name="FullFileNameWithExtension">var Text</param>
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAddPicture(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var nPictureInStream: InStream; var PictureName: Text; var FileExtension: Text; var FullFileNameWithExtension: Text; var Handled: Boolean)
+    local procedure OnBeforeAddPicture(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var PictureInStream: InStream; var PictureName: Text; var FileExtension: Text; var FullFileNameWithExtension: Text; var Handled: Boolean)
     begin
     end;
 
     /// <summary>
     /// OnAfterAddPicture occurs after the supplied picture instream is added to the test.
     /// </summary>
-    /// <param name="QltyInspectionTestHeader">VAR Record "Qlty. Inspection Test Header"</param>
-    /// <param name="nPictureInStream">VAR InStream</param>
-    /// <param name="PictureName">VAR Text</param>
-    /// <param name="FileExtension">VAR Text</param>
-    /// <param name="FullFileNameWithExtension">VAR Text</param>
+    /// <param name="QltyInspectionTestHeader">var Record "Qlty. Inspection Test Header"</param>
+    /// <param name="PictureInStream">var InStream</param>
+    /// <param name="PictureName">var Text</param>
+    /// <param name="FileExtension">var Text</param>
+    /// <param name="FullFileNameWithExtension">var Text</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterAddPicture(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var nPictureInStream: InStream; var PictureName: Text; var FileExtension: Text; var FullFileNameWithExtension: Text)
+    local procedure OnAfterAddPicture(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var PictureInStream: InStream; var PictureName: Text; var FileExtension: Text; var FullFileNameWithExtension: Text)
     begin
     end;
 
