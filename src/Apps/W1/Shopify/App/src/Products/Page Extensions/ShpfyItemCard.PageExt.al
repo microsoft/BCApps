@@ -105,10 +105,12 @@ pageextension 30119 "Shpfy Item Card" extends "Item Card"
     var
         Shop: Record "Shpfy Shop";
         ShopifyProduct: Record "Shpfy Product";
+        ShopifyProductEvent: Codeunit "Shpfy Product Events";
     begin
         IsProductMapped := false;
         ShopifyProduct.SetLoadFields("Item SystemId", "Shop Code");
         ShopifyProduct.SetRange("Item SystemId", Rec.SystemId);
+        ShopifyProductEvent.OnAfterSetFilterShopifyProductSetIsProductMapped(ShopifyProduct);
         if ShopifyProduct.FindSet() then
             repeat
                 if Shop.Get(ShopifyProduct."Shop Code") then
@@ -123,9 +125,11 @@ pageextension 30119 "Shpfy Item Card" extends "Item Card"
     var
         Shop: Record "Shpfy Shop";
         ShopifyProduct: Record "Shpfy Product";
+        ShopifyProductEvent: Codeunit "Shpfy Product Events";
     begin
         AvailableStoresToMap := false;
         Shop.SetRange(Enabled, true);
+        ShopifyProductEvent.OnAfterSetFilterShopifyShopOnSetAvailableStoresToMap(Shop, Rec);
         if Shop.FindSet() then
             repeat
                 ShopifyProduct.SetRange("Item SystemId", Rec.SystemId);

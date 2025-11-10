@@ -211,4 +211,12 @@ report 30106 "Shpfy Add Item to Shopify"
     begin
         ShopCode := ShopifyShopCode;
     end;
+
+    /// <summary> 
+    /// Returns the Shop value selected on request page.
+    /// </summary>
+    procedure GetShop(): Code[20]
+    begin
+        exit(ShopCode);
+    end;
 }

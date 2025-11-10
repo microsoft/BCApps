@@ -39,6 +39,7 @@ codeunit 30195 "Shpfy Inventory API"
         StockCalculation: Interface "Shpfy Stock Calculation";
         UOM: Code[10];
         SalesUOM: Code[10];
+        IsHandled: Boolean;
     begin
         SetShop(ShopInventory."Shop Code");
         if ShopifyProduct.Get(ShopInventory."Product Id") and ShopifyVariant.Get(ShopInventory."Variant Id") then begin
@@ -55,11 +56,12 @@ codeunit 30195 "Shpfy Inventory API"
 
             StockCalculationFactory(StockCalculation, ShopLocation."Stock Calculation");
             SalesUOM := Item."Sales Unit of Measure";
-
-            if StockCalculation is "Shpfy Extended Stock Calculation" then
-                Stock := (StockCalculation as "Shpfy Extended Stock Calculation").GetStock(Item, ShopLocation)
-            else
-                Stock := StockCalculation.GetStock(Item);
+            InventoryEvents.OnBeforeCalculationStock(Item, ShopifyShop, ShopLocation, Stock, StockCalculation, ShopInventory, IsHandled);
+            if not IsHandled then
+                if StockCalculation is "Shpfy Extended Stock Calculation" then
+                    Stock := (StockCalculation as "Shpfy Extended Stock Calculation").GetStock(Item, ShopLocation)
+                else
+                    Stock := StockCalculation.GetStock(Item);
 
             case ShopifyVariant."UoM Option Id" of
                 1:
