@@ -14,7 +14,7 @@ reportextension 5429 "Sample Purchase Invoice" extends "Purchase - Invoice"
         {
             Type = RDLC;
             Caption = 'Sample Purchase Invoice';
-            LayoutFile = './resources/Layouts/PurchaseInvoice.rdlc';
+            LayoutFile = './EDocumentInvoices/SamplePurchaseInvoice.rdlc';
         }
     }
 }
