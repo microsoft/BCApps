@@ -18,6 +18,8 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.UOM;
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
+using System.Environment.Configuration;
+using Microsoft.Foundation.Reporting;
 
 /// <summary>
 /// The purpose of the codeunit is to compose entities for generating the e-document invoices
@@ -129,12 +131,17 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         PurchInvHeader: Record "Purch. Inv. Header";
         EDocument: Record "E-Document";
         TempBlob: Codeunit "Temp Blob";
+        DesignTimeReportSelection: codeunit "Design-time Report Selection";
+        LayoutName: Text[250];
     begin
         EDocumentService := GetEDocService();
+        LayoutName := InsertTenantReportLayout();
+        DesignTimeReportSelection.SetSelectedLayout(LayoutName);
         TempPurchHeader.Reset();
         TempPurchHeader.FindSet();
         repeat
             PurchHeader := CreatePurchInvFromTempBuffer();
+            //GeneratePDFWithCustomLayout(PurchHeader); // TODO: Double check
             PurchInvHeader := PostPurchaseInvoice(PurchHeader);
             TempBlob := SavePurchInvReportToPDF(PurchInvHeader);
             EDocument := CreateEDocument(TempBlob, PurchInvHeader, EDocumentService);
@@ -145,6 +152,8 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
             EDocument."Document No." := PurchInvHeader."No.";
             EDocument.Modify();
         until TempPurchHeader.Next() = 0;
+        DesignTimeReportSelection.ClearLayoutSelection();
+        //CleanupTenantReportLayout(LayoutName); // TODO: Double check
     end;
 
     local procedure CreatePurchInvFromTempBuffer() PurchHeader: Record "Purchase Header"
@@ -178,6 +187,64 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
             PurchLine.Modify(true);
         until TempPurchLine.Next() = 0;
     end;
+
+#pragma warning disable AA0228
+    local procedure GeneratePDFWithCustomLayout(var PurchaseHeader: Record "Purchase Header")
+    var
+        StandardPurchaseOrder: Report "Standard Purchase - Order";
+        TempBlob: Codeunit "Temp Blob";
+        FileManagement: Codeunit "File Management";
+        FilePath: Text;
+    begin
+        PurchaseHeader.SetRecFilter();
+        StandardPurchaseOrder.SetTableView(PurchaseHeader);
+        FilePath := CopyStr(FileManagement.ServerTempFileName('pdf'), 1, 250);
+        StandardPurchaseOrder.SaveAsPdf(FilePath);
+        FileManagement.BLOBImportFromServerFile(TempBlob, FilePath);
+    end;
+#pragma warning restore AA0228
+
+    local procedure InsertTenantReportLayout(): Text[250]
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        InStream: InStream;
+        ResourceName: Text;
+    begin
+        ResourceName := 'Layouts/PurchaseInvoice.rdlc';
+        NavApp.GetResource(ResourceName, InStream);
+        TenantReportLayout.Layout.ImportStream(InStream, ResourceName);
+        TenantReportLayout."Report ID" := Report::"Purchase - Invoice";
+        TenantReportLayout.Name := GetLayoutName();
+        TenantReportLayout."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayout."Company Name"));
+        TenantReportLayout."Layout Format" := TenantReportLayout."Layout Format"::RDLC;
+        TenantReportLayout."MIME Type" := 'reportlayout/rdlc';
+        TenantReportLayout.Insert(true);
+        TenantReportLayoutSelection."App ID" := TenantReportLayout."App ID";
+        TenantReportLayoutSelection."Company Name" := TenantReportLayout."Company Name";
+        TenantReportLayoutSelection."Layout Name" := TenantReportLayout.Name;
+        TenantReportLayoutSelection."Report ID" := TenantReportLayout."Report ID";
+        TenantReportLayoutSelection.Insert(true);
+        exit(TenantReportLayout.Name);
+    end;
+
+    local procedure GetLayoutName(): Text[250]
+    begin
+        exit('SamplePurchaseInvoice');
+    end;
+
+#pragma warning disable AA0228
+    local procedure CleanupTenantReportLayout(LayoutName: Text)
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+    begin
+        TenantReportLayout.SetRange(Name, LayoutName);
+        TenantReportLayout.DeleteAll(true);
+        TenantReportLayoutSelection.SetRange("Layout Name", LayoutName);
+        TenantReportLayoutSelection.DeleteAll(true);
+    end;
+#pragma warning restore AA0228
 
     local procedure PostPurchaseInvoice(PurchHeader: Record "Purchase Header") PurchInvHeader: Record "Purch. Inv. Header"
     var
