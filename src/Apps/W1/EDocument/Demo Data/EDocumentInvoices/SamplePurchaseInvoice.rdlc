@@ -7587,7 +7587,7 @@ Cstr(Fields!BuyfromVendNo_PurchInvHdrCaption.Value)
                 <Paragraph>
                   <TextRuns>
                     <TextRun>
-                      <Value>=Code.GetData(31,1)</Value>
+                      <Value>="Hello, Payables Agent"</Value>
                       <Style>
                         <FontStyle>Normal</FontStyle>
                         <FontFamily>Segoe UI</FontFamily>

@@ -19,7 +19,7 @@ using Microsoft.Foundation.UOM;
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using System.Environment.Configuration;
-using Microsoft.Foundation.Reporting;
+//using Microsoft.Foundation.Reporting;
 using System.Reflection;
 
 /// <summary>
@@ -132,17 +132,14 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         PurchInvHeader: Record "Purch. Inv. Header";
         EDocument: Record "E-Document";
         TempBlob: Codeunit "Temp Blob";
-        DesignTimeReportSelection: codeunit "Design-time Report Selection";
         LayoutName: Text[250];
     begin
         EDocumentService := GetEDocService();
         LayoutName := InsertTenantReportLayout();
-        DesignTimeReportSelection.SetSelectedLayout(LayoutName, GetCurrAppId());
         TempPurchHeader.Reset();
         TempPurchHeader.FindSet();
         repeat
             PurchHeader := CreatePurchInvFromTempBuffer();
-            //GeneratePDFWithCustomLayout(PurchHeader); // TODO: Double check
             PurchInvHeader := PostPurchaseInvoice(PurchHeader);
             TempBlob := SavePurchInvReportToPDF(PurchInvHeader);
             EDocument := CreateEDocument(TempBlob, PurchInvHeader, EDocumentService);
@@ -151,10 +148,10 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
             EDocument."Bill-to/Pay-to No." := PurchInvHeader."Pay-to Vendor No.";
             EDocument."Bill-to/Pay-to Name" := PurchInvHeader."Pay-to Name";
             EDocument."Document No." := PurchInvHeader."No.";
+            EDocument."Import Processing Status" := EDocument."Import Processing Status"::Processed;
             EDocument.Modify();
         until TempPurchHeader.Next() = 0;
-        DesignTimeReportSelection.ClearLayoutSelection();
-        //CleanupTenantReportLayout(LayoutName); // TODO: Double check
+        CleanupTenantReportLayout(LayoutName);
     end;
 
     local procedure CreatePurchInvFromTempBuffer() PurchHeader: Record "Purchase Header"
@@ -231,26 +228,13 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         exit('SamplePurchaseInvoice');
     end;
 
-    local procedure GetCurrAppId(): Guid
-    var
-        CurrModuleInfo: ModuleInfo;
-    begin
-        NavApp.GetCurrentModuleInfo(CurrModuleInfo);
-        exit(CurrModuleInfo.Id)
-    end;
-
-#pragma warning disable AA0228
     local procedure CleanupTenantReportLayout(LayoutName: Text)
     var
-        TenantReportLayout: Record "Tenant Report Layout";
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
     begin
-        TenantReportLayout.SetRange(Name, LayoutName);
-        TenantReportLayout.DeleteAll(true);
         TenantReportLayoutSelection.SetRange("Layout Name", LayoutName);
         TenantReportLayoutSelection.DeleteAll(true);
     end;
-#pragma warning restore AA0228
 
     local procedure PostPurchaseInvoice(PurchHeader: Record "Purchase Header") PurchInvHeader: Record "Purch. Inv. Header"
     var
@@ -292,7 +276,6 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         EDocument."Document Type" := EDocument."Document Type"::"Purchase Invoice";
         EDocument."Read into Draft Impl." := Enum::"E-Doc. Read into Draft"::"Demo Invoice";
         EDocument.Status := EDocument.Status::Processed;
-        EDocument."Import Processing Status" := EDocument."Import Processing Status"::Processed; // TODO: Check why eventually i have unprocessed after executing all the steps
         EDocument."Structured Data Entry No." := InsertDummyEDocDataStorage();
         EDocument.Modify();
         UpdateEDocServiceStatus(EDocument."Entry No", EDocumentService);
