@@ -1,0 +1,94 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "490f2478c708bdd6637e",
+  "position": {
+    "x": 26.175869120654397,
+    "y": 61,
+    "z": 1000,
+    "height": 632.14723926380373,
+    "width": 601.39059304703483,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Location"
+                    }
+                  },
+                  "Property": "Location Name"
+                }
+              },
+              "queryRef": "Location.Location Name",
+              "nativeQueryRef": "Location Name",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Value Entries"
+                    }
+                  },
+                  "Property": "Ending Balance Cost Amount (Actual)"
+                }
+              },
+              "queryRef": "Value Entries.Ending Balance Value",
+              "nativeQueryRef": "Ending Balance Value"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Value Entries"
+                  }
+                },
+                "Property": "Ending Balance Cost Amount (Actual)"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Ending Balance Value by Location Name Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

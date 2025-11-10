@@ -5,10 +5,10 @@
 namespace Microsoft.eServices.EDocument.Processing.AI;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Purchases.Document;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.Deferral;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Purchases.Document;
 
 table 6111 "EDoc Line Match Buffer"
 {

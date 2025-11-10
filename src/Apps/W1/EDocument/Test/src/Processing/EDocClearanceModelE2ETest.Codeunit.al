@@ -9,8 +9,8 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Setup;
-using System.Utilities;
 using System.Text;
+using System.Utilities;
 
 codeunit 139890 "E-Doc Clearance Model E2E Test"
 {

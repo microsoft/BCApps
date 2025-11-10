@@ -6,10 +6,10 @@
 namespace System.Apps;
 
 using System;
-using System.Utilities;
 using System.Azure.KeyVault;
 using System.Environment;
 using System.Environment.Configuration;
+using System.Utilities;
 
 /// <summary>
 /// This codeunit is used as a helper for managing interactions between

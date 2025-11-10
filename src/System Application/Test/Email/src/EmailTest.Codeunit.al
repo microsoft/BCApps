@@ -6,12 +6,12 @@
 namespace System.Test.Email;
 
 using System.Email;
-using System.Text;
-using System.TestLibraries.Email;
 using System.Environment;
+using System.TestLibraries.Email;
 using System.TestLibraries.Reflection;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
+using System.Text;
 
 codeunit 134685 "Email Test"
 {

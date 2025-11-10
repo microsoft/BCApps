@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
-using System.Upgrade;
 using System.Environment;
+using System.Upgrade;
 
 codeunit 7781 "Copilot Telemetry Upgrade"
 {

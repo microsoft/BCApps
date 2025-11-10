@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Test;
 
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Finance.GeneralLedger.Setup;
 
 codeunit 139896 "PEPPOL Structured Validations"
 {

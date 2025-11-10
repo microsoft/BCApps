@@ -5,10 +5,10 @@
 
 namespace System.DataAdministration;
 
-using System.Reflection;
-using System.Environment.Configuration;
 using System.Apps;
 using System.Environment;
+using System.Environment.Configuration;
+using System.Reflection;
 
 permissionset 3900 "Retention Policy - Read"
 {

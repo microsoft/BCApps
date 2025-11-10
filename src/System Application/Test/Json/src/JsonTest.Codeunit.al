@@ -5,9 +5,9 @@
 
 namespace System.Test.Text.Json;
 
-using System.Text.Json;
 using System.Device;
 using System.TestLibraries.Utilities;
+using System.Text.Json;
 
 codeunit 139910 "Json Test"
 {

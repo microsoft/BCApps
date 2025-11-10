@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
-using System.Utilities;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Vendor;
 using System.Telemetry;
+using System.Utilities;
 
 page 6181 "E-Document Purchase Draft"
 {
@@ -405,6 +405,7 @@ page 6181 "E-Document Purchase Draft"
             EDocPOMatching.RemoveAllMatchesForEDocument(EDocumentPurchaseHeader);
             Message(MatchesRemovedMsg);
         end;
+        CurrPage.Lines.Page.SetEDocumentPurchaseHeader(EDocumentPurchaseHeader);
         HasPDFSource := Rec."Read into Draft Impl." = "E-Doc. Read into Draft"::ADI;
         EDocumentServiceStatus := Rec.GetEDocumentServiceStatus();
         HasErrorsOrWarnings := false;
@@ -538,9 +539,11 @@ page 6181 "E-Document Purchase Draft"
         PageEditable := IsEditable();
         CurrPage.Lines.Page.Update();
         CurrPage.Update();
-        Session.LogMessage('0000PCP', FinalizeDraftPerformedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EDocumentPurchaseHeader.FeatureName());
-        FeatureTelemetry.LogUsage('0000PCU', EDocumentPurchaseHeader.FeatureName(), 'Finalize draft');
-        Rec.ShowRecord();
+        if Rec.Status = Rec.Status::Processed then begin
+            Session.LogMessage('0000PCP', FinalizeDraftPerformedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EDocumentPurchaseHeader.FeatureName());
+            FeatureTelemetry.LogUsage('0000PCU', EDocumentPurchaseHeader.FeatureName(), 'Finalize draft');
+            Rec.ShowRecord();
+        end;
     end;
 
     local procedure ResetDraft()

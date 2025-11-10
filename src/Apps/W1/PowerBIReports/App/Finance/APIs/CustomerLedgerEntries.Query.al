@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.PowerBIReports;
 
-using Microsoft.Sales.Receivables;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 
 query 36957 "Customer Ledger Entries"
 {

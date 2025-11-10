@@ -1,4 +1,5 @@
 namespace Microsoft.Finance.ExcelReports;
+
 using Microsoft.Finance.Consolidation;
 
 pageextension 4408 "Business Unit List" extends "Business Unit List"

@@ -16,6 +16,7 @@
   "installOnlyReferencedApps": false,
   "doNotRunPageScriptingTests": true,
   "doNotRunBcptTests": true,
+  "testType": "IntegrationTest",
   "buildModes": [
     "AT",
     "AU",
@@ -37,7 +38,9 @@
     "NO",
     "NZ",
     "SE",
-    "US"
+    "US",
+    "UnitTests",
+    "UncategorizedTests"
   ],
   "ConditionalSettings": [
     {
@@ -53,8 +56,7 @@
         "AU"
       ],
       "settings": {
-        "country": "au",
-        "doNotRunTests": true
+        "country": "au"
       }
     },
     {
@@ -70,8 +72,7 @@
         "CA"
       ],
       "settings": {
-        "country": "ca",
-        "doNotRunTests": true
+        "country": "ca"
       }
     },
     {
@@ -104,8 +105,7 @@
         "DK"
       ],
       "settings": {
-        "country": "dk",
-        "doNotRunTests": true
+        "country": "dk"
       }
     },
     {
@@ -161,8 +161,7 @@
         "IT"
       ],
       "settings": {
-        "country": "it",
-        "doNotRunTests": true
+        "country": "it"
       }
     },
     {
@@ -210,8 +209,7 @@
         "US"
       ],
       "settings": {
-        "country": "us",
-        "doNotRunTests": true
+        "country": "us"
       }
     },
     {
@@ -222,6 +220,22 @@
         "doNotRunTests": true,
         "useCompilerFolder": true,
         "doNotPublishApps": true
+      }
+    },
+    {
+      "buildModes": [
+        "UnitTests"
+      ],
+      "settings": {
+        "testType": "UnitTest"
+      }
+    },
+    {
+      "buildModes": [
+        "UncategorizedTests"
+      ],
+      "settings": {
+        "testType": "Uncategorized"
       }
     },
     {

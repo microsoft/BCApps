@@ -7,9 +7,9 @@ namespace System.Test.DataAdministration;
 
 using System.DataAdministration;
 using System.Environment;
-using System.Utilities;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 135018 "Media Cleanup Test"
 {

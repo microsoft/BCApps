@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI.DocumentIntelligence;
 
-using System.Telemetry;
 using System;
 using System.AI;
+using System.Telemetry;
 
 /// <summary>
 /// Azure Document Intelligence implementation.

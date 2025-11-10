@@ -1,15 +1,15 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Foundation.Navigate;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.Purchases.Document;
-using Microsoft.Purchases.Posting;
-using Microsoft.Purchases.History;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.GeneralLedger.Preview;
-using Microsoft.Finance.GeneralLedger.Posting;
-using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.Finance.GeneralLedger.Preview;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Navigate;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Posting;
 
 codeunit 8068 "Vendor Deferrals Mngmt."
 {

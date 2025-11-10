@@ -5,9 +5,9 @@
 
 namespace Microsoft.ExcelReports;
 
-using Microsoft.Sales.ExcelReports;
-using Microsoft.Purchases.ExcelReports;
 using Microsoft.Finance.ExcelReports;
+using Microsoft.Purchases.ExcelReports;
+using Microsoft.Sales.ExcelReports;
 using Microsoft.Utilities;
 
 pageextension 4403 "EXT Company Detail" extends "Company Detail"

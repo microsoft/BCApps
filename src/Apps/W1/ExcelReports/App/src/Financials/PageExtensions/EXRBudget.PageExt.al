@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Finance.ExcelReports;
+
 using Microsoft.Finance.Analysis;
 
 pageextension 4433 "EXR Budget" extends Budget

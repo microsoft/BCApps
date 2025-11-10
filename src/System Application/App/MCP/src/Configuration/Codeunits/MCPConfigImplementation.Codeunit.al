@@ -426,6 +426,8 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         repeat
+            if CheckAPIToolExists(ConfigId, PageMetadata.ID) then
+                continue;
             CreateAPITool(ConfigId, PageMetadata.ID, false);
         until PageMetadata.Next() = 0;
     end;
@@ -442,8 +444,20 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         repeat
+            if CheckAPIToolExists(ConfigId, PageMetadata.ID) then
+                continue;
             CreateAPITool(ConfigId, PageMetadata.ID, false);
         until PageMetadata.Next() = 0;
+    end;
+
+    local procedure CheckAPIToolExists(ConfigId: Guid; PageId: Integer): Boolean
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+    begin
+        MCPConfigurationTool.SetRange(ID, ConfigId);
+        MCPConfigurationTool.SetRange("Object Type", MCPConfigurationTool."Object Type"::Page);
+        MCPConfigurationTool.SetRange("Object ID", PageId);
+        exit(not MCPConfigurationTool.IsEmpty());
     end;
 
     internal procedure GetObjectCaption(ToolId: Guid): Text[100]

@@ -5,6 +5,7 @@
 
 namespace System.Apps;
 
+using System.Agents;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Integration;
@@ -395,7 +396,11 @@ page 2500 "Extension Management"
     end;
 
     trigger OnOpenPage()
+    var
+        AgentUtilities: Codeunit "Agent Utilities";
     begin
+        AgentUtilities.BlockPageFromBeingOpenedByAgent();
+
         DetermineEnvironmentConfigurations();
         SetExtensionManagementFilter();
         if not IsInstallAllowed then

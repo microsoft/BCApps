@@ -44,7 +44,7 @@ pageextension 8052 "Customer List" extends "Customer List"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Subscriptions';
                 Image = ServiceItem;
-                RunObject = page "Service Object";
+                RunObject = page "Service Objects";
                 RunPageLink = "End-User Customer No." = field("No.");
                 ToolTip = 'View a list of Subscriptions for the customer.';
             }

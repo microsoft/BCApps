@@ -5,9 +5,9 @@
 
 namespace System.TestLibraries.Azure.ActiveDirectory;
 
-using System.TestLibraries.Mocking;
 using System;
 using System.Azure.Identity;
+using System.TestLibraries.Mocking;
 
 codeunit 132922 "Azure AD Graph Test Library"
 {

@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Text;
 using Microsoft.Purchases.Vendor;
+using System.Text;
 
 report 8053 "Vend Contr. Def. Analysis"
 {
