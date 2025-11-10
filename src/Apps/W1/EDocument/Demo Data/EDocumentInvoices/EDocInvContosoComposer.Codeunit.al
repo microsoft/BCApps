@@ -20,6 +20,7 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using System.Environment.Configuration;
 using Microsoft.Foundation.Reporting;
+using System.Reflection;
 
 /// <summary>
 /// The purpose of the codeunit is to compose entities for generating the e-document invoices
@@ -136,7 +137,7 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
     begin
         EDocumentService := GetEDocService();
         LayoutName := InsertTenantReportLayout();
-        DesignTimeReportSelection.SetSelectedLayout(LayoutName);
+        DesignTimeReportSelection.SetSelectedLayout(LayoutName, GetCurrAppId());
         TempPurchHeader.Reset();
         TempPurchHeader.FindSet();
         repeat
@@ -206,31 +207,36 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
 
     local procedure InsertTenantReportLayout(): Text[250]
     var
-        TenantReportLayout: Record "Tenant Report Layout";
+        ReportLayoutList: Record "Report Layout List";
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
-        InStream: InStream;
-        ResourceName: Text;
+        EmptyGuid: Guid;
     begin
-        ResourceName := 'Layouts/PurchaseInvoice.rdlc';
-        NavApp.GetResource(ResourceName, InStream);
-        TenantReportLayout.Layout.ImportStream(InStream, ResourceName);
-        TenantReportLayout."Report ID" := Report::"Purchase - Invoice";
-        TenantReportLayout.Name := GetLayoutName();
-        TenantReportLayout."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayout."Company Name"));
-        TenantReportLayout."Layout Format" := TenantReportLayout."Layout Format"::RDLC;
-        TenantReportLayout."MIME Type" := 'reportlayout/rdlc';
-        TenantReportLayout.Insert(true);
-        TenantReportLayoutSelection."App ID" := TenantReportLayout."App ID";
-        TenantReportLayoutSelection."Company Name" := TenantReportLayout."Company Name";
-        TenantReportLayoutSelection."Layout Name" := TenantReportLayout.Name;
-        TenantReportLayoutSelection."Report ID" := TenantReportLayout."Report ID";
-        TenantReportLayoutSelection.Insert(true);
-        exit(TenantReportLayout.Name);
+        ReportLayoutList.SetRange("Report ID", Report::"Purchase - Invoice");
+        ReportLayoutList.SetRange(Name, GetLayoutName());
+        ReportLayoutList.FindFirst();
+        if not TenantReportLayoutSelection.Get(ReportLayoutList."Report ID", CompanyName, EmptyGuid) then begin
+            TenantReportLayoutSelection.Init();
+            TenantReportLayoutSelection."App ID" := ReportLayoutList."Application ID";
+            TenantReportLayoutSelection."Company Name" := CopyStr(CompanyName, 1, MaxStrLen(TenantReportLayoutSelection."Company Name"));
+            TenantReportLayoutSelection."Layout Name" := ReportLayoutList.Name;
+            TenantReportLayoutSelection."Report ID" := ReportLayoutList."Report ID";
+            TenantReportLayoutSelection."User ID" := EmptyGuid;
+            TenantReportLayoutSelection.Insert(true);
+        end;
+        exit(TenantReportLayoutSelection."Layout Name");
     end;
 
     local procedure GetLayoutName(): Text[250]
     begin
         exit('SamplePurchaseInvoice');
+    end;
+
+    local procedure GetCurrAppId(): Guid
+    var
+        CurrModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCurrentModuleInfo(CurrModuleInfo);
+        exit(CurrModuleInfo.Id)
     end;
 
 #pragma warning disable AA0228
@@ -269,6 +275,8 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         FilePath := CopyStr(FileManagement.ServerTempFileName('pdf'), 1, 250);
         PurchaseInvoiceReport.SaveAsPdf(FilePath);
         FileManagement.BLOBImportFromServerFile(TempBlob, FilePath);
+        if TempBlob.Length() = 0 then
+            Error('Failed to generate PDF for Purchase Invoice %1', PurchInvHeader."No.");
     end;
 
     local procedure CreateEDocument(TempBlob: Codeunit "Temp Blob"; PurchInvHeader: Record "Purch. Inv. Header"; EDocumentService: Record "E-Document Service") EDocument: Record "E-Document"
