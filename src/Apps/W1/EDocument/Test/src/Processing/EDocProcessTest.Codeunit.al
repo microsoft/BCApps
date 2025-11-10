@@ -18,7 +18,6 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Service.Setup;
 using Microsoft.Service.Document;
 using Microsoft.Foundation.Reporting;
-using Microsoft.Bank.Payment;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
