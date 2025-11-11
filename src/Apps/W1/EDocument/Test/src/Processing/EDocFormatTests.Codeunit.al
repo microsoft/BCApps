@@ -43,7 +43,7 @@ codeunit 139616 "E-Doc. Format Tests"
         LibraryERMGlobal: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
         IsInitialized: Boolean;
-        UnexpectedMessageErr: Label 'The actual message is: [%1], while the expected message is: [%2].';
+        UnexpectedMessageErr: Label 'The actual message is: [%1], while the expected message is: [%2].', Comment = '%1 - Last error message, %2 - expected message';
 
     [Test]
     procedure CheckEDocumentServiceOrderErrorForYourReferance()
