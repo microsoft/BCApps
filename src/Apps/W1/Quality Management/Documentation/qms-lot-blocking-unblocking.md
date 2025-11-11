@@ -23,7 +23,7 @@ Both approaches help ensure that noncompliant inventory isn't used inappropriate
 
 ## Prerequisites
 
-- Enable **Workflow integration** in **Quality Inspection Setup**.
+- Enable **Workflow integration** in **Quality Management Setup**.
 - Configure **Quality Templates** with pass/fail criteria.
 - Set up **Test Generation Rules** for automatic test creation.
 - Configure **Items** with lot tracking.
@@ -36,14 +36,14 @@ Workflow-based blocking creates or modifies **Lot Number Information Cards** to 
 
 The following procedure describes the key settings for a workflow that blocks lots when quality tests fail.
 
-1. [!INCLUDE [open-search](includes/open-search.md)], enter **Workflows**, and then choose the related link.
+1. [!INCLUDE [open-search](includes/open-search.md)], enter **Workflow**, and then choose the related link.
 1. Create a new workflow. For example, name it "Block Lot Example."
 1. Configure the **When Event**, as follows:
 
-   - **Event**: When a **Quality Inspection Test is Finished**
-   - **Condition**: Grade Code equals **"Fail"**
+   - **Event**: When ** A Quality Inspection Test is Finished**
+   - **Condition**: Grade Code equals **FAIL**
 
-1. Configure the **Response** as **Block the lot in the test**. This setting creates a lot information card with the status **Blocked**.
+1. Configure the **Response** as **Block Lot in the Test**. This setting creates a lot information card with the status **Blocked**.
 
 ### Set up block-on-creation, and unblock on pass workflows
 
@@ -62,13 +62,16 @@ The following procedures describe the key settings for workflows that block lots
 1. Create a new workflow. For example, name it "Unblock on Pass."  
 2. Set the **When Event** as **Quality Inspection Test is Finished**.
 3. Set the **Condition** as **Grade Code equals Pass**.
-4. Set the **Response** as **Unblock the lot in the test**.
+4. Set the **Response** as **Unblock Lot in the Test**.
 5. Set the **Result** as **Lots unblocked only when tests pass**.
 
 ### Enable workflow integration
 
-1. [!INCLUDE [open-search](includes/open-search.md)], enter **Quality Inspection Setup**, and then choose the related link.
-2. Turn on the **Enable Workflow Integration** toggle.
+1. [!INCLUDE [open-search](includes/open-search.md)], enter **Quality Management Setup**, and then choose the related link.
+2. On the **Defaults** FastTab, turn on the **Workflow Integration Enabled** toggle.
+
+   > [!TIP]
+   > By default, the toggle is hidden. To access it, you might have to choose **Show more**.
 
 > [!NOTE]
 > If you don't turn on the **Enable Workflow Integration** toggle, the quality management events for workflows aren't available.
@@ -275,7 +278,7 @@ This section lists some typical issues and describes how to get unblocked.
 
 ### My workflow doesn't start
 
-- The **Workflow Integration** toggle isn't enabled on the **Quality Inspection Setup** page. Turn on the toggle.
+- The **Workflow Integration** toggle isn't enabled on the **Quality Management Setup** page. Turn on the toggle.
 - The workflow isn't active. Activate the workflow.
 - There's an incorrect event or condition in your workflow configuration. Review the settings in your workflow.
 

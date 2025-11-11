@@ -122,7 +122,7 @@ You can access tests in the following ways:
 
 1. **Quality Inspection Tests** page (view all tests)
 2. **Show Tests for Item and Document** from the purchase order
-3. Automatic popup, if you specified that on the **Quality Inspection Setup** page.
+3. Automatic popup, if you specified that on the **Quality Management Setup** page.
 
 Each created test contains:
 
@@ -143,7 +143,7 @@ To complete a test, follow these steps:
 
 ## Configuration options
 
-The following sections describe various configuration options on the **Quality Inspection Setup** page.
+The following sections describe various configuration options on the **Quality Management Setup** page.
 
 ### Control test display behavior
 

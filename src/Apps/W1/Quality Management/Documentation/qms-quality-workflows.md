@@ -6,7 +6,7 @@ ms.author: bholtorf
 ms.reviewer: bholtorf
 ms.topic: concept-article
 ms.search.form: 
-ms.date: 10/20/2025
+ms.date: 11/10/2025
 ms.service: dynamics-365-business-central
 ms.custom: bap-template
 
@@ -24,18 +24,22 @@ Quality Management integrates with workflows in [!INCLUDE [prod_short](includes/
 
 ## Prerequisites
 
-- **Workflow integration** is enabled on the **Quality Inspection Setup** page.
-- The workflows feature is activated.
-- Appropriate permissions for workflow configuration.
-- Required journal batches and templates are configured.
+- Workflow integration is enabled on the **Quality Management Setup** page.
+- The workflows feature is enabled.
+- You have permissions required to configure workflows.
+- You configured the required journal batches and templates.
 
 ## Enable workflow integration
 
 Before creating quality management workflows, ensure that workflow integration is enabled:
 
-1. [!INCLUDE [open-search](includes/open-search.md)], enter **Quality Inspection Setup**, and then choose the related link.
-2. In the **Workflow Integration** field, choose **Enable Workflow Integration**.
-3. Configure required journal batches for automated processes.
+1. [!INCLUDE [open-search](includes/open-search.md)], enter **Quality Management Setup**, and then choose the related link.
+2. On the **Defaults** FastTab, turn on the **Workflow Integration Enabled** toggle.
+
+   > [!TIP]
+   > By default, the toggle is hidden. To access it, you might have to choose **Show more**.
+
+3. Configure the required journal batches for automated processes.
 
 > [!IMPORTANT]
 > If you don't enable workflow integration, quality inspection events aren't available when you configure your quality management workflows.
@@ -241,7 +245,7 @@ You can integrate your quality management workflows with production processes:
 
 ### Requirements for batches
 
-Workflows require that you configure journal batches on the **Quality Inspection Setup** page:
+Workflows require that you configure journal batches on the **Quality Management Setup** page:
 
 - Use the **Item Journal Batch** for nonwarehouse location adjustments.
 - Use the **Warehouse Item Journal Batch** for warehouse location adjustments.
@@ -299,7 +303,7 @@ The following sections describe typical issues and suggest solutions.
 
 ### Workflow events for quality management aren't available
 
-- Double-check that you enabled workflow integration on **Quality Inspection Setup** page.
+- Double-check that you enabled workflow integration on **Quality Management Setup** page.
 - Verify that your workflows are active.
 - Confirm that your users have the correct permissions
 

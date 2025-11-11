@@ -28,7 +28,7 @@ Production output testing creates quality inspection tests automatically when pr
 - At least one quality inspection template is configured
 - Production orders have routing operations
 - Items are assigned item tracking codes (optional, but recommended)
-- Production trigger is configured on the **Quality Inspection Setup** page
+- Production trigger is configured on the **Quality Management Setup** page
 
 ## Set up requirements
 
@@ -46,7 +46,7 @@ Prepare items for production output testing:
 
 Set up a global trigger for production output, as follows:
 
-1. [!INCLUDE [open-search](includes/open-search.md)], enter **Quality Inspection Setup**, and then choose the related link.
+1. [!INCLUDE [open-search](includes/open-search.md)], enter **Quality Management Setup**, and then choose the related link.
 2. In the **Production Trigger** field, choose **When Output is Posted**. This option creates tests automatically.
 
 ### Create test generation rules
