@@ -193,25 +193,27 @@ codeunit 8062 "Billing Proposal"
                 end;
         end;
 
-        if not AutomatedBilling then
-            case BillingTemplate.Partner of
-                Enum::"Service Partner"::Customer:
-                    begin
-                        SalesHeaderGlobal.MarkedOnly(true);
-                        if SalesHeaderGlobal.Count <> 0 then begin
-                            Page.Run(Page::"Sales Credit Memos", SalesHeaderGlobal);
-                            Message(CreditMemoPreventsProposalCreationLbl);
-                        end;
+        if AutomatedBilling then
+            exit;
+
+        case BillingTemplate.Partner of
+            Enum::"Service Partner"::Customer:
+                begin
+                    SalesHeaderGlobal.MarkedOnly(true);
+                    if SalesHeaderGlobal.Count <> 0 then begin
+                        Page.Run(Page::"Sales Credit Memos", SalesHeaderGlobal);
+                        Message(CreditMemoPreventsProposalCreationLbl);
                     end;
-                Enum::"Service Partner"::Vendor:
-                    begin
-                        PurchaseHeaderGlobal.MarkedOnly(true);
-                        if PurchaseHeaderGlobal.Count <> 0 then begin
-                            Page.Run(Page::"Purchase Credit Memos", PurchaseHeaderGlobal);
-                            Message(CreditMemoPreventsProposalCreationLbl);
-                        end;
+                end;
+            Enum::"Service Partner"::Vendor:
+                begin
+                    PurchaseHeaderGlobal.MarkedOnly(true);
+                    if PurchaseHeaderGlobal.Count <> 0 then begin
+                        Page.Run(Page::"Purchase Credit Memos", PurchaseHeaderGlobal);
+                        Message(CreditMemoPreventsProposalCreationLbl);
                     end;
-            end;
+                end;
+        end;
     end;
 
     local procedure ProcessContractServiceCommitments(BillingTemplate: Record "Billing Template"; ContractNo: Code[20]; ContractLineFilter: Text; BillingDate: Date; BillingToDate: Date; BillingRhythmFilterText: Text; AutomatedBilling: Boolean)
