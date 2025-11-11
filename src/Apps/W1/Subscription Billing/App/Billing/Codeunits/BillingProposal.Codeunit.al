@@ -549,7 +549,7 @@ codeunit 8062 "Billing Proposal"
         BillingLine: Record "Billing Line";
         BillingTemplate: Record "Billing Template";
         ClearBillingProposalOptionsTxt: Label 'All billing proposals, Only current billing template proposal';
-        ClearBillingProposalOptionsMySuggestionsOnlyTxt: Label 'All billing proposals (user %1 only), Only current billing template proposal';
+        ClearBillingProposalOptionsMySuggestionsOnlyTxt: Label 'All billing proposals (user %1 only), Only current billing template proposal', Comment = '%1: User ID';
         ClearBillingProposalQst: Label 'Which billing proposal(s) should be deleted?';
         StrMenuResponse: Integer;
     begin
@@ -897,6 +897,7 @@ codeunit 8062 "Billing Proposal"
             StrMenuResponse := Dialog.StrMenu(StrSubstNo(DeleteBillingDocumentOptionsMySuggestionsOnlyTxt, UserId()), 1, DeleteBillingDocumentQst)
         else
             StrMenuResponse := Dialog.StrMenu(DeleteBillingDocumentOptionsTxt, 1, DeleteBillingDocumentQst);
+        BillingLine.SetLoadFields("Subscription Header No.", "Subscription Line Entry No.", "Billing to", "Document Type", "Document No.", "Partner", "User ID");
         BillingLine.SetCurrentKey("Subscription Header No.", "Subscription Line Entry No.", "Billing to");
         BillingLine.SetAscending("Billing to", false);
         BillingLine.SetFilter("Document No.", '<>%1', '');

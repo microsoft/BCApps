@@ -902,7 +902,7 @@ codeunit 8060 "Create Billing Documents"
 
     local procedure ThrowSubscriptionLineConsistencyError(var BillingLine: Record "Billing Line"; FilteredCount: Integer; TotalCount: Integer)
     var
-        ConsistencyErr: Label 'The number of filtered billing lines for Subscription Line %1 %2 (%3) does not match the total number of billing lines for this Subscription Line (%4). Adjust the page filters so that there are no gaps in the billing period.';
+        ConsistencyErr: Label 'The number of filtered billing lines for Subscription Line %1 %2 (%3) does not match the total number of billing lines for this Subscription Line (%4). Adjust the page filters so that there are no gaps in the billing period.', Comment = '%1 = Subscription Header No., %2 = Subscription Line Entry No., %3 = Filtered Count, %4 = Total Count';
     begin
         DisplayOrLogErrorFromBillingLine(BillingLine, StrSubstNo(ConsistencyErr, BillingLine."Subscription Header No.", BillingLine."Subscription Line Entry No.", FilteredCount, TotalCount));
     end;
