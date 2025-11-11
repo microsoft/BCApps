@@ -38,6 +38,11 @@
             "id": "aa5fc5d3-ef4e-4b03-8512-9c584cdc1ceb",
             "name": "Quality Management-Tests",
             "publisher": "Microsoft"
+        },
+        {
+            "id": "547e43c1-3f32-4791-a9d6-874e6aef462b",
+            "name": "Quality Management - Manufacturing",
+            "publisher": "Microsoft"
         }
     ]
 }

@@ -7,7 +7,7 @@ namespace Microsoft.QualityManagement.Configuration.GenerationRule;
 enum 20460 "Qlty. Gen. Rule Intent"
 {
     Caption = 'Generation Rule Intent';
-    Extensible = false;
+    Extensible = true;
 
     value(0; Unknown)
     {
@@ -32,10 +32,6 @@ enum 20460 "Qlty. Gen. Rule Intent"
     value(5; Transfer)
     {
         Caption = 'Transfer';
-    }
-    value(6; Production)
-    {
-        Caption = 'Production';
     }
     value(7; "Assembly")
     {

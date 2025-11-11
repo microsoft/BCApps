@@ -12,7 +12,6 @@ using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
-using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
@@ -168,13 +167,6 @@ page 20426 "Qlty. Mgmt. Main Role Center"
                 Caption = 'Purchase Orders';
                 RunObject = Page "Purchase Order List";
                 ToolTip = 'Create purchase orders to mirror sales documents that vendors send to you. This enables you to record the cost of purchases and to track accounts payable. Posting purchase orders dynamically updates inventory levels so that you can minimize inventory costs and provide better customer service. Purchase orders allow partial receipts, unlike with purchase invoices, and enable drop shipment directly from your vendor to your customer. Purchase orders can be created automatically from PDF or image files from your vendors by using the Incoming Documents feature.';
-            }
-            action(Qlty_Embedding_ReleasedProductionOrders)
-            {
-                ApplicationArea = Manufacturing;
-                Caption = 'Released Production Orders';
-                RunObject = Page "Released Production Orders";
-                ToolTip = 'View the list of released production order that are ready for warehouse activities.';
             }
             action(Qlty_Embedding_LotNoInformation)
             {

@@ -7,7 +7,6 @@ namespace Microsoft.QualityManagement.Workflow;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
-using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Field;
@@ -690,25 +689,25 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             Qlty_SetCommonDatabaseVariables();
                         end;
                     }
-                    field(Qlty_SetDatabaseTable_Helper3; 'Flag BOM as under development.')
-                    {
-                        ApplicationArea = Manufacturing;
-                        ShowCaption = false;
-                        Editable = false;
-                        Caption = ' ';
-                        Tooltip = ' ';
+                    // field(Qlty_SetDatabaseTable_Helper3; 'Flag BOM as under development.')
+                    // {
+                    //     ApplicationArea = Manufacturing;
+                    //     ShowCaption = false;
+                    //     Editable = false;
+                    //     Caption = ' ';
+                    //     Tooltip = ' ';
 
-                        trigger OnDrillDown()
-                        var
-                            ProductionBOMHeader: Record "Production BOM Header";
-                        begin
-                            DatabaseTableName := ProductionBOMHeader.TableName();
-                            DatabaseTableFilter := 'WHERE(No.=FILTER([BOM:No.]))';
-                            TestFieldToSet := ProductionBOMHeader.FieldName("Status");
-                            TestValueExpressionToSet := UnderDevelopmentTxt;
-                            Qlty_SetCommonDatabaseVariables();
-                        end;
-                    }
+                    //     trigger OnDrillDown()
+                    //     var
+                    //         ProductionBOMHeader: Record "Production BOM Header";
+                    //     begin
+                    //         DatabaseTableName := ProductionBOMHeader.TableName();
+                    //         DatabaseTableFilter := 'WHERE(No.=FILTER([BOM:No.]))';
+                    //         TestFieldToSet := ProductionBOMHeader.FieldName("Status");
+                    //         TestValueExpressionToSet := UnderDevelopmentTxt;
+                    //         Qlty_SetCommonDatabaseVariables();
+                    //     end;
+                    // }
                 }
                 group(Qlty_SetDatabaseConfiguration_Group)
                 {
@@ -884,7 +883,6 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
         QltyShouldShowGrpReturnReason: Boolean;
         QltyShouldShowGrpExternalDocNo: Boolean;
         QltyChooseTableFirstErr: Label 'Please choose a valid table first.';
-        UnderDevelopmentTxt: Label 'Under Development', Comment = 'Text value to set a Production BOM Header to Under Development status.';
 
     trigger OnAfterGetRecord()
     begin

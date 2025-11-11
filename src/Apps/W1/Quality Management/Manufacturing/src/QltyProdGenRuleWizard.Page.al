@@ -798,7 +798,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         QltyManagementSetup.Get();
         if IsProductionOrder then begin
             QltyInTestGenerationRule."Source Table No." := Database::"Prod. Order Routing Line";
-            QltyInTestGenerationRule.Intent := QltyInTestGenerationRule.Intent::Production;
+            QltyInTestGenerationRule.Intent := "Qlty. Gen. Rule Intent".FromInteger(20470); // Production
             QltyInTestGenerationRule."Condition Filter" := ProdOrderRoutingLineRuleFilter;
             QltyInTestGenerationRule.SetIntentAndDefaultTriggerValuesFromSetup();
             QltyInTestGenerationRule."Production Trigger" := QltyProductionTrigger.AsInteger();

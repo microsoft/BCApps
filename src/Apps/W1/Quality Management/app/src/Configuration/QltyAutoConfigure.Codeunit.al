@@ -6,11 +6,8 @@ namespace Microsoft.QualityManagement.Configuration;
 
 using Microsoft.Assembly.History;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Inventory.Journal;
-using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
-using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Grade;
@@ -60,8 +57,6 @@ codeunit 20402 "Qlty. Auto Configure"
         SalesLineToTrackingDescriptionTok: Label 'Tracking Specification to Sales Line', Locked = true;
         WhseReceiptToPurchLineTok: Label 'WRTOPURCH', Locked = true;
         WhseReceiptToPurchLineDescriptionTok: Label 'Whse. Receipt to Purchase Line', Locked = true;
-        ProdLineToTrackingTok: Label 'TRACKINGTOPROD', Locked = true;
-        ProdLineToTrackingDescriptionTok: Label 'Tracking Specification to Prod. Order Line', Locked = true;
         PurchLineToTrackingTok: Label 'TRACKINGTOPURCH', Locked = true;
         PurchLineToTrackingDescriptionTok: Label 'Tracking Specification to Purchase Line', Locked = true;
         WhseReceiptToSalesLineTok: Label 'WRTOSALESRET', Locked = true;
@@ -80,24 +75,10 @@ codeunit 20402 "Qlty. Auto Configure"
         SalesReturnLineToTestTok: Label 'SALESRETURNTOTEST', Locked = true;
         SalesReturnLineToTestDescriptionTok: Label 'Sales Return to Test', Locked = true;
         SalesReturnLineToTestFilterTok: Label 'WHERE(Document Type=FILTER(Return Order),Type=FILTER(Item))', Locked = true;
-        ProdJnlToTestTok: Label 'PRODJNLTOTEST', Locked = true;
-        ProdJnlToTestDescriptionTok: Label 'Production Output Journal to Test', Locked = true;
-        LedgerToTestTok: Label 'ITEMLDGEROUTTOTEST', Locked = true;
-        LedgerToTestDescriptionTok: Label 'Output Item Ledger to Test', Locked = true;
-        RtngToItemJnlTok: Label 'ROUTINGLINETOITEMJNL', Locked = true;
-        RtngToItemJnlDescriptionTok: Label 'Prod. Routing Line to Item Journal Line', Locked = true;
-        ProdLineToJnlTok: Label 'PRODLINETOITEMJNL', Locked = true;
-        ProdLineToJnlDescriptionTok: Label 'Prod. Order Line to Item Journal Line', Locked = true;
-        ProdLineToRoutingTok: Label 'PRODLINETOROUTING', Locked = true;
-        ProdLineToRoutingDescriptionTok: Label 'Prod. Order Line to Prod. Rtng.', Locked = true;
         InTransLineToTestTok: Label 'TRANSFERRECEIPTTOTEST', Locked = true;
         InTransLineToTestDescriptionTok: Label 'Inbound Transfer Line to Test', Locked = true;
-        ProdLineToLedgerTok: Label 'PRODLINETOITEMLEDGER', Locked = true;
-        ProdLineToLedgerDescriptionTok: Label 'Prod. Order Line to Item Ledger Entry.', Locked = true;
-        ProdRoutingToTestTok: Label 'ROUTINGTOTEST', Locked = true;
-        ProdRoutingToTestDescriptionTok: Label 'Prod. Order Routing Line to Test', Locked = true;
         AssemblyOutputToTestTok: Label 'ASSEMBLYOUTPUTTOTEST', Locked = true;
-        AssemblyOutputToTestDescriptionTok: Label 'Posted Assembly Header to Test', Locked = true;
+        AssemblyOutputToTestDescriptionTok: Label 'Assembly Output to Test', Locked = true;
         ResourceBasedInstallFileTok: Label 'InstallFiles/PackageQM-EXPRESSDEMO.rapidstart', Locked = true;
 
     internal procedure GetDefaultPassGrade(): Text
@@ -192,9 +173,10 @@ codeunit 20402 "Qlty. Auto Configure"
                 exit;
 
         CreateDefaultTrackingSpecificationToTestConfiguration();
-        CreateDefaultProductionConfiguration();
         CreateDefaultReceivingConfiguration();
         CreateDefaultWarehousingConfiguration();
+        CreateDefaultAssemblyOutputToTestConfiguration();
+        OnAfterEnsureAtLeastOneSourceConfiguration(ForceAll);
     end;
 
     /// <summary>
@@ -237,21 +219,6 @@ codeunit 20402 "Qlty. Auto Configure"
             ToAlterQltyManagementSetup."Quality Inspection Test Nos." := NoSeries.Code;
             DidSomething := true;
         end;
-    end;
-
-    internal procedure CreateDefaultProductionConfiguration()
-    begin
-        CreateDefaultProdOrderRoutingLineToTestConfiguration();
-        CreateDefaultProdOrderLineToProdOrderRoutingConfiguration();
-
-        CreateDefaultItemLedgerOutputToTestConfiguration();
-        CreateDefaultProdOrderLineToItemLedgerConfiguration();
-
-        CreateDefaultItemProdJournalToTestConfiguration();
-        CreateDefaultProdOrderLineToItemJournalLineConfiguration();
-        CreateDefaultProdOrderRoutingLineToItemJournalLineConfiguration();
-        CreateDefaultTrackingSpecificationToProdConfiguration();
-        CreateDefaultAssemblyOutputToTestConfiguration();
     end;
 
     internal procedure CreateDefaultWarehousingConfiguration()
@@ -495,92 +462,6 @@ codeunit 20402 "Qlty. Auto Configure"
             Database::"Qlty. Inspection Test Header",
             TempQltyInspectionTestHeader.FieldNo("Source Serial No."),
             '',
-            true);
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Package No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Package No."),
-            '');
-        EnsureSourceConfigLineWithTrackFlag(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Location Code"),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Location Code"),
-            '',
-            true);
-    end;
-
-    local procedure CreateDefaultTrackingSpecificationToProdConfiguration()
-    var
-        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        TempProdOrderLine: Record "Prod. Order Line" temporary;
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-        TempTrackingSpecification: Record "Tracking Specification" temporary;
-    begin
-        EnsureSourceConfigWithFilterAndTrackFlag(
-            ProdLineToTrackingTok,
-            ProdLineToTrackingDescriptionTok,
-            Database::"Tracking Specification",
-            Database::"Prod. Order Line",
-            QltyInspectSourceConfig,
-            'WHERE(Source Type=CONST(5406))',
-            true);
-        EnsureSourceConfigLineWithTrackFlag(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Source Subtype"),
-            Database::"Prod. Order Line",
-            TempProdOrderLine.FieldNo(Status),
-               '',
-            true);
-        EnsureSourceConfigLineWithTrackFlag(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Source ID"),
-            Database::"Prod. Order Line",
-            TempProdOrderLine.FieldNo("Prod. Order No."),
-               '',
-            true);
-        EnsureSourceConfigLineWithTrackFlag(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Source Prod. Order Line"),
-            Database::"Prod. Order Line",
-            TempProdOrderLine.FieldNo("Line No."),
-               '',
-            true);
-        EnsureSourceConfigLineWithTrackFlag(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Item No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Item No."),
-               '',
-            true);
-        EnsureSourceConfigLineWithTrackFlag(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Quantity (Base)"),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Quantity (Base)"),
-            '',
-            true);
-        EnsureSourceConfigLineWithTrackFlag(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Variant Code"),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Variant Code"),
-               '',
-            true);
-        EnsureSourceConfigLineWithTrackFlag(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Lot No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Lot No."),
-               '',
-            true);
-        EnsureSourceConfigLineWithTrackFlag(
-            QltyInspectSourceConfig,
-            TempTrackingSpecification.FieldNo("Serial No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Serial No."),
-               '',
             true);
         EnsureSourceConfigLine(
             QltyInspectSourceConfig,
@@ -1132,435 +1013,46 @@ codeunit 20402 "Qlty. Auto Configure"
             '');
     end;
 
-    local procedure CreateDefaultItemProdJournalToTestConfiguration()
+    local procedure CreateDefaultAssemblyOutputToTestConfiguration()
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        TempItemJournalLine: Record "Item Journal Line" temporary;
+        TempPostedAssemblyHeader: Record "Posted Assembly Header" temporary;
         TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-        ConfigFieldPriority: Enum "Qlty. Config. Field Priority";
     begin
         EnsureSourceConfigWithFilter(
-            ProdJnlToTestTok,
-            ProdJnlToTestDescriptionTok,
-            Database::"Item Journal Line",
+            AssemblyOutputToTestTok,
+            AssemblyOutputToTestDescriptionTok,
+            Database::"Posted Assembly Header",
             Database::"Qlty. Inspection Test Header",
             QltyInspectSourceConfig,
-            'WHERE(Entry Type=FILTER(Output),Order Type=FILTER(Production))');
+            '');
         EnsureSourceConfigLine(
             QltyInspectSourceConfig,
-            TempItemJournalLine.FieldNo("Order No."),
+            TempPostedAssemblyHeader.FieldNo("No."),
             Database::"Qlty. Inspection Test Header",
             TempQltyInspectionTestHeader.FieldNo("Source Document No."),
             '');
         EnsureSourceConfigLine(
             QltyInspectSourceConfig,
-            TempItemJournalLine.FieldNo("Order Line No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Document Line No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempItemJournalLine.FieldNo("Operation No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Task No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempItemJournalLine.FieldNo("Item No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Item No."),
-            '');
-        EnsurePrioritizedSourceConfigLineWithTrackFlag(
-            QltyInspectSourceConfig,
-            TempItemJournalLine.FieldNo("Quantity (Base)"),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Quantity (Base)"),
-            '',
-            false,
-            ConfigFieldPriority::Priority);
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempItemJournalLine.FieldNo("Variant Code"),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Variant Code"),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempItemJournalLine.FieldNo("Lot No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Lot No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempItemJournalLine.FieldNo("Serial No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Serial No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempItemJournalLine.FieldNo("Package No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Package No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempItemJournalLine.FieldNo("Description"),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Description"),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempItemJournalLine.FieldNo("Location Code"),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Location Code"),
-            '');
-    end;
-
-    local procedure CreateDefaultItemLedgerOutputToTestConfiguration()
-    var
-        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-    begin
-        EnsureSourceConfigWithFilter(
-            LedgerToTestTok,
-            LedgerToTestDescriptionTok,
-            Database::"Item Ledger Entry",
-            Database::"Qlty. Inspection Test Header",
-            QltyInspectSourceConfig,
-            'WHERE(Entry Type=FILTER(Output),Order Type=FILTER(Production))');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempItemLedgerEntry.FieldNo("Order No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Document No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempItemLedgerEntry.FieldNo("Order Line No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Document Line No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempItemLedgerEntry.FieldNo("Item No."),
+            TempPostedAssemblyHeader.FieldNo("Item No."),
             Database::"Qlty. Inspection Test Header",
             TempQltyInspectionTestHeader.FieldNo("Source Item No."),
             '');
         EnsureSourceConfigLine(
             QltyInspectSourceConfig,
-            TempItemLedgerEntry.FieldNo(Quantity),
+            TempPostedAssemblyHeader.FieldNo(Quantity),
             Database::"Qlty. Inspection Test Header",
             TempQltyInspectionTestHeader.FieldNo("Source Quantity (Base)"),
             '');
         EnsureSourceConfigLine(
             QltyInspectSourceConfig,
-            TempItemLedgerEntry.FieldNo("Variant Code"),
+            TempPostedAssemblyHeader.FieldNo("Variant Code"),
             Database::"Qlty. Inspection Test Header",
             TempQltyInspectionTestHeader.FieldNo("Source Variant Code"),
             '');
         EnsureSourceConfigLine(
             QltyInspectSourceConfig,
-            TempItemLedgerEntry.FieldNo("Lot No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Lot No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempItemLedgerEntry.FieldNo("Serial No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Serial No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempItemLedgerEntry.FieldNo("Package No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Package No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempItemLedgerEntry.FieldNo(Description),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo(Description),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempItemLedgerEntry.FieldNo("Location Code"),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Location Code"),
-            '');
-    end;
-
-    local procedure CreateDefaultProdOrderRoutingLineToItemJournalLineConfiguration()
-    var
-        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
-        TempItemJournalLine: Record "Item Journal Line" temporary;
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-    begin
-        EnsureSourceConfigWithFilter(
-            RtngToItemJnlTok,
-            RtngToItemJnlDescriptionTok,
-            Database::"Prod. Order Routing Line",
-            Database::"Item Journal Line",
-            QltyInspectSourceConfig,
-            'WHERE(Status=FILTER(Released))');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderRoutingLine.FieldNo("Prod. Order No."),
-            Database::"Item Journal Line",
-            TempItemJournalLine.FieldNo("Order No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderRoutingLine.FieldNo("Routing No."),
-            Database::"Item Journal Line",
-            TempItemJournalLine.FieldNo("Routing No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderRoutingLine.FieldNo("Routing Reference No."),
-            Database::"Item Journal Line",
-            TempItemJournalLine.FieldNo("Routing Reference No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderRoutingLine.FieldNo("Operation No."),
-            Database::"Item Journal Line",
-            TempItemJournalLine.FieldNo("Operation No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderRoutingLine.FieldNo(Status),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Type"),
-            ' ');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderRoutingLine.FieldNo(Status),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Custom 1"),
-            '');
-    end;
-
-    local procedure CreateDefaultProdOrderLineToItemJournalLineConfiguration()
-    var
-        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        TempProdOrderLine: Record "Prod. Order Line" temporary;
-        TempItemJournalLine: Record "Item Journal Line" temporary;
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-    begin
-        EnsureSourceConfigWithFilter(
-            ProdLineToJnlTok,
-            ProdLineToJnlDescriptionTok,
-            Database::"Prod. Order Line",
-            Database::"Item Journal Line",
-            QltyInspectSourceConfig,
-            'WHERE(Status=FILTER(Released))');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Prod. Order No."),
-            Database::"Item Journal Line",
-            TempItemJournalLine.FieldNo("Order No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Line No."),
-            Database::"Item Journal Line",
-            TempItemJournalLine.FieldNo("Order Line No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Item No."),
-            Database::"Item Journal Line",
-            TempItemJournalLine.FieldNo("Item No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Variant Code"),
-            Database::"Item Ledger Entry",
-            TempItemJournalLine.FieldNo("Variant Code"),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo(Status),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Type"),
-            ' ');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo(Status),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Custom 1"),
-            '');
-    end;
-
-    local procedure CreateDefaultProdOrderLineToItemLedgerConfiguration()
-    var
-        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        TempProdOrderLine: Record "Prod. Order Line" temporary;
-        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-    begin
-        EnsureSourceConfigWithFilter(
-            ProdLineToLedgerTok,
-            ProdLineToLedgerDescriptionTok,
-            Database::"Prod. Order Line",
-            Database::"Item Ledger Entry",
-            QltyInspectSourceConfig,
-            'WHERE(Status=FILTER(Released))');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Prod. Order No."),
-            Database::"Item Ledger Entry",
-            TempItemLedgerEntry.FieldNo("Order No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Line No."),
-            Database::"Item Ledger Entry",
-            TempItemLedgerEntry.FieldNo("Order Line No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Item No."),
-            Database::"Item Ledger Entry",
-            TempItemLedgerEntry.FieldNo("Item No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Variant Code"),
-            Database::"Item Ledger Entry",
-            TempItemLedgerEntry.FieldNo("Variant Code"),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo(Status),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Type"),
-            ' ');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo(Status),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Custom 1"),
-            '');
-    end;
-
-    local procedure CreateDefaultProdOrderRoutingLineToTestConfiguration()
-    var
-        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-    begin
-        EnsureSourceConfig(
-            ProdRoutingToTestTok,
-            ProdRoutingToTestDescriptionTok,
-            Database::"Prod. Order Routing Line",
-            Database::"Qlty. Inspection Test Header",
-            QltyInspectSourceConfig);
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderRoutingLine.FieldNo("Prod. Order No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Document No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderRoutingLine.FieldNo(Status),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Type"),
-            ' ');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderRoutingLine.FieldNo(Status),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Custom 1"),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderRoutingLine.FieldNo("Operation No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Task No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderRoutingLine.FieldNo("Description"),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Description"),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderRoutingLine.FieldNo("Location Code"),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Location Code"),
-            '');
-    end;
-
-    local procedure CreateDefaultProdOrderLineToProdOrderRoutingConfiguration()
-    var
-        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        TempProdOrderLine: Record "Prod. Order Line" temporary;
-        TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-    begin
-        EnsureSourceConfig(
-            ProdLineToRoutingTok,
-            ProdLineToRoutingDescriptionTok,
-            Database::"Prod. Order Line",
-            Database::"Prod. Order Routing Line",
-            QltyInspectSourceConfig);
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Status"),
-            Database::"Prod. Order Routing Line",
-            TempProdOrderRoutingLine.FieldNo("Status"),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Prod. Order No."),
-            Database::"Prod. Order Routing Line",
-            TempProdOrderRoutingLine.FieldNo("Prod. Order No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Routing No."),
-            Database::"Prod. Order Routing Line",
-            TempProdOrderRoutingLine.FieldNo("Routing No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Routing Reference No."),
-            Database::"Prod. Order Routing Line",
-            TempProdOrderRoutingLine.FieldNo("Routing Reference No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Item No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Item No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Quantity (Base)"),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Quantity (Base)"),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Variant Code"),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Variant Code"),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Line No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Document Line No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempProdOrderLine.FieldNo("Location Code"),
+            TempPostedAssemblyHeader.FieldNo("Location Code"),
             Database::"Qlty. Inspection Test Header",
             TempQltyInspectionTestHeader.FieldNo("Location Code"),
             '');
@@ -1621,79 +1113,6 @@ codeunit 20402 "Qlty. Auto Configure"
             Database::"Qlty. Inspection Test Header",
             TempQltyInspectionTestHeader.FieldNo("Description"),
             '');
-    end;
-
-    local procedure CreateDefaultAssemblyOutputToTestConfiguration()
-    var
-        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        TempPostedAssemblyHeader: Record "Posted Assembly Header" temporary;
-        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
-    begin
-        EnsureSourceConfig(
-            AssemblyOutputToTestTok,
-            AssemblyOutputToTestDescriptionTok,
-            Database::"Posted Assembly Header",
-            Database::"Qlty. Inspection Test Header",
-            QltyInspectSourceConfig);
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempPostedAssemblyHeader.FieldNo("No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Document No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempPostedAssemblyHeader.FieldNo("Location Code"),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Location Code"),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempPostedAssemblyHeader.FieldNo("Quantity (Base)"),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Quantity (Base)"),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempPostedAssemblyHeader.FieldNo("Item No."),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Item No."),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempPostedAssemblyHeader.FieldNo(Description),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo(Description),
-            '');
-        EnsureSourceConfigLine(
-            QltyInspectSourceConfig,
-            TempPostedAssemblyHeader.FieldNo("Variant Code"),
-            Database::"Qlty. Inspection Test Header",
-            TempQltyInspectionTestHeader.FieldNo("Source Variant Code"),
-            '');
-    end;
-
-    local procedure EnsureSourceConfig(Name: Text; Description: Text; FromTable: Integer; ToTable: Integer; var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.")
-    begin
-        EnsureSourceConfigWithTrackFlag(
-            Name,
-            Description,
-            FromTable,
-            ToTable,
-            QltyInspectSourceConfig,
-            false);
-    end;
-
-    local procedure EnsureSourceConfigWithTrackFlag(Name: Text; Description: Text; FromTable: Integer; ToTable: Integer; var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; TrackingOnly: Boolean)
-    begin
-        EnsureSourceConfigWithFilterAndTrackFlag(
-            Name,
-            Description,
-            FromTable,
-            ToTable,
-            QltyInspectSourceConfig,
-            '',
-            TrackingOnly);
     end;
 
     local procedure EnsureSourceConfigWithFilter(Name: Text; Description: Text; FromTable: Integer; ToTable: Integer; var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromFilter: Text)
@@ -1876,4 +1295,15 @@ codeunit 20402 "Qlty. Auto Configure"
         CopyStream(OutStreamToConfigPackage, InStreamFromResource);
         ConfigPackageImport.ImportAndApplyRapidStartPackageStream(TempBlob);
     end;
+
+    /// <summary>
+    /// Event raised after default source configurations are created.
+    /// Subscribe to this event to add additional source configurations (e.g., production configurations).
+    /// </summary>
+    /// <param name="ForceAll">True if all configurations should be created regardless of existing enabled configurations.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterEnsureAtLeastOneSourceConfiguration(ForceAll: Boolean)
+    begin
+    end;
 }
+

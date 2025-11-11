@@ -569,6 +569,55 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         LogProductionProblem(ContextVariant, StrSubstNo(Input, Variable1));
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Qlty. In. Test Generation Rule", 'OnInferItemJournalIntent', '', false, false)]
+    local procedure HandleOnInferItemJournalIntent(QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"; var QltyCertainty: Enum "Qlty. Certainty")
+    begin
+        if QltyCertainty in [QltyCertainty::Yes, QltyCertainty::Maybe] then
+            exit;
+
+        if GetIsOnlyAutoTriggerInSetupForProduction() then begin
+            QltyGenRuleIntent := "Qlty. Gen. Rule Intent".FromInteger(20470); // Production
+            QltyCertainty := QltyCertainty::Maybe;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Qlty. In. Test Generation Rule", 'OnInferItemLedgerIntent', '', false, false)]
+    local procedure HandleOnInferItemLedgerIntent(QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"; var QltyCertainty: Enum "Qlty. Certainty")
+    begin
+        if QltyCertainty in [QltyCertainty::Yes, QltyCertainty::Maybe] then
+            exit;
+
+        if GetIsOnlyAutoTriggerInSetupForProduction() then begin
+            QltyGenRuleIntent := "Qlty. Gen. Rule Intent".FromInteger(20470); // Production
+            QltyCertainty := QltyCertainty::Maybe;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Qlty. In. Test Generation Rule", 'OnGetIsOnlyAutoTriggerInSetup', '', false, false)]
+    local procedure HandleOnGetIsOnlyAutoTriggerInSetup(QltyManagementSetup: Record "Qlty. Management Setup"; IntentToCheck: Enum "Qlty. Gen. Rule Intent"; var TriggerCount: Integer; var IntentSet: Boolean)
+    begin
+        if QltyManagementSetup."Production Trigger" <> 0 then begin
+            TriggerCount += 1;
+            if IntentToCheck = "Qlty. Gen. Rule Intent".FromInteger(20470) then // Production
+                IntentSet := true;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Qlty. In. Test Generation Rule", 'OnSetIntentDefaultTriggerValues', '', false, false)]
+    local procedure HandleOnSetIntentDefaultTriggerValues(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; QltyManagementSetup: Record "Qlty. Management Setup"; InferredIntent: Enum "Qlty. Gen. Rule Intent")
+    begin
+        if InferredIntent = "Qlty. Gen. Rule Intent".FromInteger(20470) then // Production
+            QltyInTestGenerationRule."Production Trigger" := QltyManagementSetup."Production Trigger";
+    end;
+
+    local procedure GetIsOnlyAutoTriggerInSetupForProduction(): Boolean
+    begin
+        if not QltyManagementSetup.Get() then
+            exit(false);
+
+        exit(QltyManagementSetup."Production Trigger" <> 0);
+    end;
+
     /// <summary>
     /// OnBeforeProductionAttemptCreatePostAutomaticTest is called before attempting to automatically create a test for production related events prior to posting to posting.
     /// </summary>

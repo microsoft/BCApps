@@ -4,10 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Integration.Manufacturing;
 
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
 using Microsoft.QualityManagement.Utilities;
 
@@ -149,6 +153,48 @@ codeunit 20470 "Qlty. Mfg. Filter Helpers"
             exit;
 
         IsHandled := AssistEditWorkCenter(WorkCenterNoFilter);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Qlty. In. Test Generation Rule", 'OnInferGenerationRuleIntentForSourceTable', '', false, false)]
+    local procedure HandleOnInferGenerationRuleIntentForSourceTable(SourceTableNo: Integer; var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"; var QltyCertainty: Enum "Qlty. Certainty")
+    begin
+        case SourceTableNo of
+            Database::"Prod. Order Routing Line", Database::"Prod. Order Line", Database::"Production Order":
+                begin
+                    QltyGenRuleIntent := "Qlty. Gen. Rule Intent".FromInteger(20470); // Production
+                    QltyCertainty := QltyCertainty::Yes;
+                end;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Qlty. In. Test Generation Rule", 'OnGetIsProductionIntent', '', false, false)]
+    local procedure HandleOnGetIsProductionIntent(SourceTableNo: Integer; ConditionFilter: Text[400]; var IsProduction: Boolean)
+    var
+        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
+        TempItemJournalLine: Record "Item Journal Line" temporary;
+        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+    begin
+        if IsProduction then
+            exit;
+
+        case SourceTableNo of
+            Database::"Prod. Order Routing Line",
+            Database::"Prod. Order Line",
+            Database::"Production Order":
+                IsProduction := true;
+            Database::"Item Ledger Entry":
+                if QltyFilterHelpers.GetIsFilterSetToValue(SourceTableNo, ConditionFilter, TempItemLedgerEntry.FieldNo("Entry Type"), TempItemLedgerEntry."Entry Type"::Output) then
+                    IsProduction := true
+                else
+                    if QltyFilterHelpers.GetIsFilterSetToValue(SourceTableNo, ConditionFilter, TempItemLedgerEntry.FieldNo("Order Type"), TempItemLedgerEntry."Order Type"::Production) then
+                        IsProduction := true;
+            Database::"Item Journal Line":
+                if QltyFilterHelpers.GetIsFilterSetToValue(SourceTableNo, ConditionFilter, TempItemJournalLine.FieldNo("Entry Type"), TempItemJournalLine."Entry Type"::Output) then
+                    IsProduction := true
+                else
+                    if QltyFilterHelpers.GetIsFilterSetToValue(SourceTableNo, ConditionFilter, TempItemJournalLine.FieldNo("Order Type"), TempItemJournalLine."Order Type"::Production) then
+                        IsProduction := true;
+        end;
     end;
 
     #endregion Event Subscribers

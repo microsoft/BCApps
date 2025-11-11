@@ -10,7 +10,6 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Transfer;
-using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule.JobQueue;
 using Microsoft.QualityManagement.Configuration.Template;
@@ -431,12 +430,10 @@ table 20404 "Qlty. In. Test Generation Rule"
         if Certainty = Certainty::Yes then begin
             Rec.Intent := InferredIntent;
             SetDefaultTriggerValuesToNoTrigger();
-            if Rec."Activation Trigger" in [Rec."Activation Trigger"::"Manual or Automatic", Rec."Activation Trigger"::"Automatic only"] then
+            if Rec."Activation Trigger" in [Rec."Activation Trigger"::"Manual or Automatic", Rec."Activation Trigger"::"Automatic only"] then begin
                 case InferredIntent of
                     InferredIntent::Assembly:
                         Rec."Assembly Trigger" := QltyManagementSetup."Assembly Trigger";
-                    InferredIntent::Production:
-                        Rec."Production Trigger" := QltyManagementSetup."Production Trigger";
                     InferredIntent::Purchase:
                         Rec."Purchase Trigger" := QltyManagementSetup."Purchase Trigger";
                     InferredIntent::"Sales Return":
@@ -448,6 +445,8 @@ table 20404 "Qlty. In. Test Generation Rule"
                     InferredIntent::"Warehouse Receipt":
                         Rec."Warehouse Receive Trigger" := QltyManagementSetup."Warehouse Receive Trigger";
                 end;
+                OnSetIntentDefaultTriggerValues(Rec, QltyManagementSetup, InferredIntent);
+            end;
         end;
     end;
 
@@ -513,40 +512,35 @@ table 20404 "Qlty. In. Test Generation Rule"
                     QltyGenRuleIntent := QltyGenRuleIntent::Transfer;
                     QltyCertainty := QltyCertainty::Yes;
                 end;
-            Database::"Prod. Order Routing Line", Database::"Prod. Order Line", Database::"Production Order":
-                begin
-                    QltyGenRuleIntent := QltyGenRuleIntent::Production;
-                    QltyCertainty := QltyCertainty::Yes;
-                end;
             Database::"Posted Assembly Header", Database::"Assembly Line":
                 begin
                     QltyGenRuleIntent := QltyGenRuleIntent::Assembly;
                     QltyCertainty := QltyCertainty::Yes;
                 end;
+            else begin
+                OnInferGenerationRuleIntentForSourceTable(Rec."Source Table No.", QltyGenRuleIntent, QltyCertainty);
+                if QltyCertainty in [QltyCertainty::Yes, QltyCertainty::Maybe] then
+                    exit;
+            end;
+        end;
+
+        case Rec."Source Table No." of
             Database::"Item Journal Line":
-                if GetIsProductionIntent() then begin
-                    QltyGenRuleIntent := QltyGenRuleIntent::Production;
-                    QltyCertainty := QltyCertainty::Yes;
-                end else
+                if GetIsProductionIntent() then
+                    exit
+                else
                     if InferItemJournalIntentFromConditionFilter(QltyGenRuleIntent) then
                         QltyCertainty := QltyCertainty::Yes
                     else
-                        if GetIsOnlyAutoTriggerInSetup(QltyGenRuleIntent::Production) then begin
-                            QltyGenRuleIntent := QltyGenRuleIntent::Production;
-                            QltyCertainty := QltyCertainty::Maybe;
-                        end;
+                        OnInferItemJournalIntent(Rec, QltyGenRuleIntent, QltyCertainty);
             Database::"Item Ledger Entry":
-                if GetIsProductionIntent() then begin
-                    QltyGenRuleIntent := QltyGenRuleIntent::Production;
-                    QltyCertainty := QltyCertainty::Yes;
-                end else
+                if GetIsProductionIntent() then
+                    exit
+                else
                     if InferItemLedgerIntentFromConditionFilter(QltyGenRuleIntent) then
                         QltyCertainty := QltyCertainty::Yes
                     else
-                        if GetIsOnlyAutoTriggerInSetup(QltyGenRuleIntent::Production) then begin
-                            QltyGenRuleIntent := QltyGenRuleIntent::Production;
-                            QltyCertainty := QltyCertainty::Maybe;
-                        end;
+                        OnInferItemLedgerIntent(Rec, QltyGenRuleIntent, QltyCertainty);
             Database::"Warehouse Journal Line":
                 case true of
                     InferIsWarehouseReceiveIntentFromCondition():
@@ -583,33 +577,15 @@ table 20404 "Qlty. In. Test Generation Rule"
     /// <returns></returns>
     local procedure GetIsProductionIntent(): Boolean
     var
-        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
-        TempItemJournalLine: Record "Item Journal Line" temporary;
-        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+        IsProduction: Boolean;
     begin
         if Rec."Source Table No." = 0 then
             exit(false);
         if Rec."Condition Filter" = '' then
             exit(false);
 
-        case Rec."Source Table No." of
-            Database::"Prod. Order Routing Line",
-            Database::"Prod. Order Line",
-            Database::"Production Order":
-                exit(true);
-            Database::"Item Ledger Entry":
-                if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemLedgerEntry.FieldNo("Entry Type"), TempItemLedgerEntry."Entry Type"::Output) then
-                    exit(true)
-                else
-                    if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemLedgerEntry.FieldNo("Order Type"), TempItemLedgerEntry."Order Type"::Production) then
-                        exit(true);
-            Database::"Item Journal Line":
-                if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemJournalLine.FieldNo("Entry Type"), TempItemJournalLine."Entry Type"::Output) then
-                    exit(true)
-                else
-                    if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemJournalLine.FieldNo("Order Type"), TempItemJournalLine."Order Type"::Production) then
-                        exit(true);
-        end;
+        OnGetIsProductionIntent(Rec."Source Table No.", Rec."Condition Filter", IsProduction);
+        exit(IsProduction);
     end;
 
     local procedure InferIsWarehouseReceiveIntentFromCondition(): Boolean
@@ -736,22 +712,49 @@ table 20404 "Qlty. In. Test Generation Rule"
             if IntentToCheck = IntentToCheck::Transfer then
                 IntentSet := true;
         end;
-        if QltyManagementSetup."Production Trigger" <> 0 then begin
-            TriggerCount += 1;
-            if IntentToCheck = IntentToCheck::Production then
-                IntentSet := true;
-        end;
         if QltyManagementSetup."Assembly Trigger" <> QltyManagementSetup."Assembly Trigger"::NoTrigger then begin
             TriggerCount += 1;
             if IntentToCheck = IntentToCheck::Assembly then
                 IntentSet := true;
         end;
 
+        OnGetIsOnlyAutoTriggerInSetup(QltyManagementSetup, IntentToCheck, TriggerCount, IntentSet);
+
         exit((TriggerCount = 1) and IntentSet);
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnInferGenerationRuleIntentForSourceTable(SourceTableNo: Integer; var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"; var QltyCertainty: Enum "Qlty. Certainty")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetIsProductionIntent(SourceTableNo: Integer; ConditionFilter: Text[400]; var IsProduction: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnValidateProductionTrigger(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInferItemJournalIntent(QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"; var QltyCertainty: Enum "Qlty. Certainty")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInferItemLedgerIntent(QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"; var QltyCertainty: Enum "Qlty. Certainty")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetIsOnlyAutoTriggerInSetup(QltyManagementSetup: Record "Qlty. Management Setup"; IntentToCheck: Enum "Qlty. Gen. Rule Intent"; var TriggerCount: Integer; var IntentSet: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetIntentDefaultTriggerValues(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; QltyManagementSetup: Record "Qlty. Management Setup"; InferredIntent: Enum "Qlty. Gen. Rule Intent")
     begin
     end;
 }

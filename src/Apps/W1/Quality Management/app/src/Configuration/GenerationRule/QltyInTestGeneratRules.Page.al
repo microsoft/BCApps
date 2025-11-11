@@ -109,12 +109,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
                     Editable = EditAssemblyTrigger;
                     StyleExpr = AssemblyStyle;
                 }
-                field("Production Trigger"; Rec."Production Trigger")
-                {
-                    Visible = ShowProductionTrigger;
-                    Editable = EditProductionTrigger;
-                    StyleExpr = ProductionStyle;
-                }
                 field("Purchase Trigger"; Rec."Purchase Trigger")
                 {
                     Visible = ShowPurchaseTrigger;
@@ -175,48 +169,9 @@ page 20405 "Qlty. In. Test Generat. Rules"
             actionref(CreateNewGenerationRuleForWhseWizard_Promoted; CreateNewGenerationRuleForWhseWizard)
             {
             }
-            actionref(CreateNewGenerationRuleForProdWizard_Promoted; CreateNewGenerationRuleForProdWizard)
-            {
-            }
         }
         area(Processing)
         {
-            action(CreateNewGenerationRuleForProdWizard)
-            {
-                Caption = 'Create Production Rule';
-                ToolTip = 'Specifies to create a rule for production.';
-                Image = Receipt;
-                ApplicationArea = Manufacturing;
-
-                trigger OnAction()
-                begin
-                    OnEditGenerationRuleForProduction(Rec);
-                    CurrPage.Update(false);
-                end;
-            }
-            action(EditGenerationRuleForProdWizard)
-            {
-                ApplicationArea = Manufacturing;
-                Caption = 'Edit Production Rule';
-                ToolTip = 'Edit a Rule for production.';
-                Image = Receipt;
-                Scope = Repeater;
-                Visible = ShowEditWizardProductionRule;
-
-                trigger OnAction()
-                var
-                    PreviousEntryNo: Integer;
-                begin
-                    PreviousEntryNo := Rec."Entry No.";
-                    OnEditGenerationRuleForProductionWizard(Rec);
-
-                    CurrPage.Update(false);
-                    Rec.Reset();
-                    Rec.SetRange("Entry No.", PreviousEntryNo);
-                    if Rec.FindSet() then;
-                    Rec.SetRange("Entry No.");
-                end;
-            }
             action(CreateNewGenerationRuleForRecWizard)
             {
                 Caption = 'Create Receiving Rule';
@@ -355,17 +310,16 @@ page 20405 "Qlty. In. Test Generat. Rules"
         ShowSortAndTemplate: Boolean;
         ShowEditWizardMovementRule: Boolean;
         ShowEditWizardReceivingRule: Boolean;
-        ShowEditWizardProductionRule: Boolean;
+        //ShowEditWizardProductionRule: Boolean;
+        ShowEditWizardAssemblyRule: Boolean;
         TemplateCode: Code[20];
         ShowAssemblyTrigger: Boolean;
-        ShowProductionTrigger: Boolean;
         ShowPurchaseTrigger: Boolean;
         ShowSalesReturnTrigger: Boolean;
         ShowTransferTrigger: Boolean;
         ShowWarehouseReceiveTrigger: Boolean;
         ShowWarehouseMovementTrigger: Boolean;
         EditAssemblyTrigger: Boolean;
-        EditProductionTrigger: Boolean;
         EditPurchaseTrigger: Boolean;
         EditSalesReturnTrigger: Boolean;
         EditTransferTrigger: Boolean;
@@ -373,7 +327,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
         EditWarehouseMovementTrigger: Boolean;
         ShowJobQueueEntries: Boolean;
         AssemblyStyle: Text;
-        ProductionStyle: Text;
         PurchaseStyle: Text;
         SalesReturnStyle: Text;
         WhseReceiveStyle: Text;
@@ -446,11 +399,11 @@ page 20405 "Qlty. In. Test Generat. Rules"
             Rec.InferGenerationRuleIntent(KnownOrInferredIntent, Certainty);
 
             if Certainty = Certainty::Maybe then begin
-                ShowEditWizardProductionRule := true;
+                //ShowEditWizardProductionRule := true;
+                ShowEditWizardAssemblyRule := true;
                 ShowEditWizardReceivingRule := true;
                 ShowEditWizardMovementRule := true;
                 EditAssemblyTrigger := true;
-                EditProductionTrigger := true;
                 EditPurchaseTrigger := true;
                 EditSalesReturnTrigger := true;
                 EditTransferTrigger := true;
@@ -458,7 +411,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
                 EditWarehouseReceiveTrigger := true;
 
                 AssemblyStyle := Format(RowStyle::Ambiguous);
-                ProductionStyle := Format(RowStyle::Ambiguous);
                 PurchaseStyle := Format(RowStyle::Ambiguous);
                 SalesReturnStyle := Format(RowStyle::Ambiguous);
                 WhseReceiveStyle := Format(RowStyle::Ambiguous);
@@ -470,16 +422,11 @@ page 20405 "Qlty. In. Test Generat. Rules"
         case KnownOrInferredIntent of
             Rec.Intent::Assembly:
                 begin
-                    ShowEditWizardProductionRule := true;
+                    ShowEditWizardAssemblyRule := true;
                     EditAssemblyTrigger := true;
                     AssemblyStyle := Format(RowStyle::Standard);
                 end;
-            Rec.Intent::Production:
-                begin
-                    ShowEditWizardProductionRule := true;
-                    EditProductionTrigger := true;
-                    ProductionStyle := Format(RowStyle::Standard);
-                end;
+            // Production-specific logic handled by Manufacturing app extension
             Rec.Intent::Purchase:
                 begin
                     ShowEditWizardReceivingRule := true;
@@ -516,9 +463,8 @@ page 20405 "Qlty. In. Test Generat. Rules"
     local procedure ClearRowSpecificVisibleAndEditFlags()
     begin
         ShowEditWizardReceivingRule := false;
-        ShowEditWizardProductionRule := false;
+        //ShowEditWizardProductionRule := false;
         ShowEditWizardMovementRule := false;
-        EditProductionTrigger := false;
         EditAssemblyTrigger := false;
         EditPurchaseTrigger := false;
         EditSalesReturnTrigger := false;
@@ -527,7 +473,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
         EditWarehouseMovementTrigger := false;
 
         AssemblyStyle := Format(RowStyle::Subordinate);
-        ProductionStyle := Format(RowStyle::Subordinate);
         PurchaseStyle := Format(RowStyle::Subordinate);
         SalesReturnStyle := Format(RowStyle::Subordinate);
         WhseReceiveStyle := Format(RowStyle::Subordinate);
@@ -555,7 +500,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
     begin
         ShowAssemblyTrigger := false;
-        ShowProductionTrigger := false;
         ShowPurchaseTrigger := false;
         ShowSalesReturnTrigger := false;
         ShowTransferTrigger := false;
@@ -567,10 +511,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
         QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Assembly);
         if not QltyInTestGenerationRule.IsEmpty() then
             ShowAssemblyTrigger := true;
-
-        QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Production);
-        if not QltyInTestGenerationRule.IsEmpty() then
-            ShowProductionTrigger := true;
 
         QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Purchase);
         if not QltyInTestGenerationRule.IsEmpty() then
@@ -595,7 +535,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
         QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Unknown);
         if not QltyInTestGenerationRule.IsEmpty() then begin
             ShowAssemblyTrigger := true;
-            ShowProductionTrigger := true;
             ShowPurchaseTrigger := true;
             ShowSalesReturnTrigger := true;
             ShowTransferTrigger := true;
@@ -607,8 +546,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
             exit;
         if QltyManagementSetup."Assembly Trigger" <> QltyManagementSetup."Assembly Trigger"::NoTrigger then
             ShowAssemblyTrigger := true;
-        if QltyManagementSetup."Production Trigger" <> 0 then // NoTrigger
-            ShowProductionTrigger := true;
         if QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger then
             ShowPurchaseTrigger := true;
         if QltyManagementSetup."Sales Return Trigger" <> QltyManagementSetup."Sales Return Trigger"::NoTrigger then
@@ -635,15 +572,5 @@ page 20405 "Qlty. In. Test Generat. Rules"
                     QltyInTestGenerationRule.SetIntentAndDefaultTriggerValuesFromSetup();
                     if QltyInTestGenerationRule.Modify() then;
                 until QltyInTestGenerationRule.Next() = 0;
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnEditGenerationRuleForProduction(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnEditGenerationRuleForProductionWizard(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule")
-    begin
     end;
 }
