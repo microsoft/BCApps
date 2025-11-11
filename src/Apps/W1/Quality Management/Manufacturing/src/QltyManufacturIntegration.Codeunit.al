@@ -14,7 +14,6 @@ using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup.Setup;
 using Microsoft.QualityManagement.Utilities;
-using System.Reflection;
 
 /// <summary>
 /// Used to integrate with manufacturing related events.
@@ -22,7 +21,6 @@ using System.Reflection;
 codeunit 20407 "Qlty. Manufactur. Integration"
 {
     var
-        QltyManagementSetup: Record "Qlty. Management Setup";
         QltyTraversal: Codeunit "Qlty. Traversal";
         QltyMfgSessionHelper: Codeunit "Qlty. Mfg. Session Helper";
         PermissionErr: Label 'User %1 not have permission to modify Quality Inspection Results tables, this will prevent test being updated.', Comment = '%1:User ID';
@@ -42,14 +40,13 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Item Jnl.-Post Line", 'OnAfterPostOutput', '', true, true)]
     local procedure HandleOnAfterPostOutput(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
     var
+        QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         VerifiedItemLedgerEntry: Record "Item Ledger Entry";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         Handled: Boolean;
     begin
-        if not QltyManagementSetup.ReadPermission() then
-            exit;
-        if not QltyManagementSetup.Get() then
+        if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
         case QltyManagementSetup."Auto Output Configuration" of
@@ -95,10 +92,10 @@ codeunit 20407 "Qlty. Manufactur. Integration"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnBeforeChangeStatusOnProdOrder', '', true, true)]
     local procedure HandleOnBeforeChangeStatusOnProdOrder(var ProductionOrder: Record "Production Order"; NewStatus: Option Quote,Planned,"Firm Planned",Released,Finished; var IsHandled: Boolean; NewPostingDate: Date; NewUpdateUnitCost: Boolean)
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
     begin
-        if not QltyManagementSetup.ReadPermission() then
-            exit;
-        if not QltyManagementSetup.Get() then
+        if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
         QltyMfgSessionHelper.SetProductionOrderBeforeChangingStatus(ProductionOrder);
@@ -107,13 +104,12 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnAfterChangeStatusOnProdOrder', '', true, true)]
     local procedure HandleOnAfterChangeStatusOnProdOrder(var ProdOrder: Record "Production Order"; var ToProdOrder: Record "Production Order"; NewStatus: Enum "Production Order Status"; NewPostingDate: Date; NewUpdateUnitCost: Boolean; var SuppressCommit: Boolean)
     var
+        QltyManagementSetup: Record "Qlty. Management Setup";
         OldProductionOrder: Record "Production Order";
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
         Handled: Boolean;
     begin
-        if not QltyManagementSetup.ReadPermission() then
-            exit;
-        if not QltyManagementSetup.Get() then
+        if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
         QltyMfgSessionHelper.GetProductionOrderBeforeChangingStatus(OldProductionOrder);
@@ -136,10 +132,10 @@ codeunit 20407 "Qlty. Manufactur. Integration"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnAfterToProdOrderLineModify', '', true, true)]
     local procedure HandleOnAfterToProdOrderLineModify(var ToProdOrderLine: Record "Prod. Order Line"; var FromProdOrderLine: Record "Prod. Order Line"; var NewStatus: Option Quote,Planned,"Firm Planned",Released,Finished)
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
     begin
-        if not QltyManagementSetup.ReadPermission() then
-            exit;
-        if not QltyManagementSetup.Get() then
+        if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
         if not (QltyManagementSetup."Production Update Control" in [QltyManagementSetup."Production Update Control"::"Update when source changes"]) then
@@ -150,10 +146,10 @@ codeunit 20407 "Qlty. Manufactur. Integration"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnAfterToProdOrderRtngLineInsert', '', true, true)]
     local procedure HandleOnAfterToProdOrderRtngLineInsert(var ToProdOrderRoutingLine: Record "Prod. Order Routing Line"; var FromProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
     begin
-        if not QltyManagementSetup.ReadPermission() then
-            exit;
-        if not QltyManagementSetup.Get() then
+        if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
         if not (QltyManagementSetup."Production Update Control" in [QltyManagementSetup."Production Update Control"::"Update when source changes"]) then
@@ -165,6 +161,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     [EventSubscriber(ObjectType::Report, Report::"Refresh Production Order", 'OnAfterRefreshProdOrder', '', true, true)]
     local procedure HandleOnAfterRefreshProdOrder(var ProductionOrder: Record "Production Order"; ErrorOccured: Boolean)
     var
+        QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
     begin
         if ErrorOccured then
@@ -173,9 +170,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if ProductionOrder.Status <> ProductionOrder.Status::Released then
             exit;
 
-        if not QltyManagementSetup.ReadPermission() then
-            exit;
-        if not QltyManagementSetup.Get() then
+        if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
         QltyInTestGenerationRule.SetRange("Production Trigger", 3); // OnReleasedProductionOrderRefresh
@@ -413,7 +408,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
         ProdOrderLineReserve: Codeunit "Prod. Order Line-Reserve";
-        OfTests: List of [RecordId];
+        OfTestIds: List of [RecordId];
         HasReservationEntries: Boolean;
         Handled: Boolean;
         CreatedAtLeastOneTestForRoutingLine: Boolean;
@@ -451,7 +446,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
 
                                 if MadeTest then begin
                                     QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-                                    OfTests.Add(QltyInspectionTestHeader.RecordId());
+                                    OfTestIds.Add(QltyInspectionTestHeader.RecordId());
                                     CreatedAtLeastOneTestForRoutingLine := true;
                                 end;
                             until ReservationEntry.Next() = 0;
@@ -460,7 +455,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
 
                             if MadeTest then begin
                                 QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-                                OfTests.Add(QltyInspectionTestHeader.RecordId());
+                                OfTestIds.Add(QltyInspectionTestHeader.RecordId());
                                 CreatedAtLeastOneTestForRoutingLine := true;
                             end;
                         end;
@@ -480,7 +475,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
 
                             if MadeTest then begin
                                 QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-                                OfTests.Add(QltyInspectionTestHeader.RecordId());
+                                OfTestIds.Add(QltyInspectionTestHeader.RecordId());
                                 CreatedAtLeastOneTestForOrderLine := true;
                             end;
 
@@ -489,7 +484,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                         MadeTest := QltyInspectionTestCreate.CreateTestWithMultiVariants(ProdOrderLine, ProductionOrder, DummyVariant, DummyVariant, false, OptionalFiltersQltyInTestGenerationRule);
                         if MadeTest then begin
                             QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-                            OfTests.Add(QltyInspectionTestHeader.RecordId());
+                            OfTestIds.Add(QltyInspectionTestHeader.RecordId());
                             CreatedAtLeastOneTestForOrderLine := true;
                         end;
                     end;
@@ -499,12 +494,12 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             MadeTest := QltyInspectionTestCreate.CreateTestWithMultiVariants(ProductionOrder, DummyVariant, DummyVariant, DummyVariant, false, OptionalFiltersQltyInTestGenerationRule);
             if MadeTest then begin
                 QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
-                OfTests.Add(QltyInspectionTestHeader.RecordId());
+                OfTestIds.Add(QltyInspectionTestHeader.RecordId());
                 CreatedTestForProdOrder := MadeTest;
             end;
         end;
 
-        OnAfterProductionAttemptCreateReleaseAutomaticTest(ProductionOrder, CreatedAtLeastOneTestForRoutingLine, CreatedAtLeastOneTestForOrderLine, CreatedTestForProdOrder, OfTests);
+        OnAfterProductionAttemptCreateReleaseAutomaticTest(ProductionOrder, CreatedAtLeastOneTestForRoutingLine, CreatedAtLeastOneTestForOrderLine, CreatedTestForProdOrder, OfTestIds);
     end;
 
     /// <summary>
@@ -549,16 +544,13 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="Input"></param>
     local procedure LogProductionProblem(ContextVariant: Variant; Input: Text)
     var
-        DataTypeManagement: Codeunit "Data Type Management";
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         ContextRecordRef: RecordRef;
         DetailRecord: Text;
     begin
-        if DataTypeManagement.GetRecordRef(ContextVariant, ContextRecordRef) then begin
-            if ContextRecordRef.Number() <> 0 then
-                DetailRecord := Format(ContextRecordRef.RecordId())
-            else
-                DetailRecord := UnknownRecordTok;
-        end else
+        if QltyMiscHelpers.GetRecordRefFromVariant(ContextVariant, ContextRecordRef) then
+            DetailRecord := Format(ContextRecordRef.RecordId())
+        else
             DetailRecord := UnknownRecordTok;
 
         LogMessage(ProductionRegisteredLogEventIDTok, Input, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TargetDetailRecordTok, DetailRecord);
@@ -663,7 +655,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="CreatedTestForProdOrder">A flag indicating if at least one test for the production order was created</param>
     /// <param name="OfTests">A list of record ids of the tests that were created</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterProductionAttemptCreateReleaseAutomaticTest(var ProductionOrder: Record "Production Order"; CreatedAtLeastOneTestForRoutingLine: Boolean; CreatedAtLeastOneTestForOrderLine: Boolean; CreatedTestForProdOrder: Boolean; OfTests: List of [RecordId])
+    local procedure OnAfterProductionAttemptCreateReleaseAutomaticTest(var ProductionOrder: Record "Production Order"; CreatedAtLeastOneTestForRoutingLine: Boolean; CreatedAtLeastOneTestForOrderLine: Boolean; CreatedTestForProdOrder: Boolean; OfTestIds: List of [RecordId])
     begin
     end;
 

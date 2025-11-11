@@ -243,9 +243,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     var
         ToFindField: Record Field;
     begin
-        if CurrentTable = 0 then
-            exit;
-        if NumberOrNameOfField = '' then
+        if (CurrentTable = 0) or (NumberOrNameOfField = '') then
             exit;
 
         ToFindField.SetRange(TableNo, CurrentTable);
@@ -349,6 +347,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     begin
         if TableNo = 0 then
             exit;
+
         CurrentField.SetRange(TableNo, TableNo);
         if OptionalTypeFilter >= 0 then
             if OptionalTypeFilter in [CurrentField.Type::Integer, CurrentField.Type::Option] then
@@ -398,7 +397,6 @@ codeunit 20403 "Qlty. Filter Helpers"
         if ZoneList.RunModal() in [Action::LookupOK, Action::OK] then begin
             ZoneList.GetRecord(Zone);
             ToZoneCodeFilter := Zone.Code;
-
             exit(true);
         end;
     end;
@@ -817,13 +815,9 @@ codeunit 20403 "Qlty. Filter Helpers"
         FieldRef := RecordRef.Field(FieldNo);
         FilterOfSpecificField := FieldRef.GetFilter();
         FormattedExpectedValueToCompare := Format(ExpectedVariant);
-        if FilterOfSpecificField.StartsWith(FormattedExpectedValueToCompare) or
+        exit(FilterOfSpecificField.StartsWith(FormattedExpectedValueToCompare) or
            FilterOfSpecificField.Contains('|' + FormattedExpectedValueToCompare) or
-           FilterOfSpecificField.Contains('..' + FormattedExpectedValueToCompare)
-        then
-            exit(true)
-        else
-            exit(false);
+           FilterOfSpecificField.Contains('..' + FormattedExpectedValueToCompare));
     end;
 
     #region Event Subscribers

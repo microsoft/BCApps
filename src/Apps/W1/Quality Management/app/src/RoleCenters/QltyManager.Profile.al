@@ -4,11 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.RoleCenters;
 
-profile "Qlty. Mgmt. Main Role Center"
+profile "Qlty. Manager"
 {
-    Description = 'Quality Management';
-    RoleCenter = "Qlty. Mgmt. Main Role Center";
-    ProfileDescription = 'Record Quality Inspection Tests.';
-    Caption = 'Quality Management';
+    RoleCenter = "Qlty. Manager Role Center";
+    Caption = 'Quality Manager';
+    ProfileDescription = 'Functionallity for setup and managing quality processes.';
     Promoted = true;
 }

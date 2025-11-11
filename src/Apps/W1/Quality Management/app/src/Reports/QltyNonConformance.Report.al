@@ -107,6 +107,7 @@ report 20403 "Qlty. Non-Conformance"
                 column(Field_ModifiedByUserJobTitle; TestLineModifiedByJobTitle) { }
                 column(Field_ModifiedByUserEmail; TestLineModifiedByEmail) { }
                 column(Field_ModifiedByUserPhone; TestLineModifiedByPhone) { }
+                column(Field_EnteredByNameAndTimestamp; EnteredByNameAndTimestamp) { }
 
                 column(Test_Value; CurrentTestLine.GetLargeText()) { }
                 column(Test_Grade; CurrentTestLine."Grade Code") { }
@@ -202,11 +203,18 @@ report 20403 "Qlty. Non-Conformance"
                 column(PromptedGradeVisible_10; MatrixVisibleState[10])
                 {
                 }
+                column(LabelField_Description; LabelFieldDescription)
+                {
+                }
+                column(CarriageReturnPersonFieldDetails; CarriageReturnPersonFieldDetails)
+                {
+                }
 
                 trigger OnAfterGetRecord()
                 var
                     QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
                     DummyRecordId: RecordId;
+                    CombinedText: TextBuilder;
                 begin
                     Clear(MatrixSourceRecordId);
                     Clear(MatrixArrayConditionCellData);
@@ -228,10 +236,35 @@ report 20403 "Qlty. Non-Conformance"
                     HasEnteredValue := not FieldIsLabel and
                         ((CurrentTestLine."Test Value" <> '') and (CurrentTestLine.SystemCreatedAt <> CurrentTestLine.SystemModifiedAt));
 
+                    if HasEnteredValue then
+                        EnteredByNameAndTimestamp := StrSubstNo(EnteredByNameAndTimestampLbl, TestLinePreviousModifiedByUserId, CurrentTestLine.SystemModifiedAt)
+                    else
+                        Clear(EnteredByNameAndTimestamp);
+
                     GradeDescription := CurrentTestLine."Grade Description";
                     if GradeDescription = '' then
                         GradeDescription := CurrentTestLine."Grade Code";
                     QltyGradeConditionMgmt.GetPromotedGradesForTestLine(CurrentTestLine, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
+
+                    if FieldIsLabel then
+                        LabelFieldDescription := CurrentTestLine.Description
+                    else
+                        LabelFieldDescription := '';
+
+                    if IsPersonField then begin
+                        Clear(CombinedText);
+                        CarriageReturnPersonFieldDetails := '';
+                        if OptionalTitleIfPerson <> '' then
+                            CombinedText.AppendLine(TitleLbl + ': ' + OptionalTitleIfPerson);
+                        if OptionalNameIfPerson <> '' then
+                            CombinedText.AppendLine(NameLbl + ': ' + OptionalNameIfPerson);
+                        if OptionalEmailIfPerson <> '' then
+                            CombinedText.AppendLine(OptionalEmailIfPerson);
+                        if OptionalPhoneIfPerson <> '' then
+                            CombinedText.AppendLine(OptionalPhoneIfPerson);
+                        CarriageReturnPersonFieldDetails := CombinedText.ToText();
+                    end else
+                        CarriageReturnPersonFieldDetails := '';
                 end;
             }
 
@@ -289,15 +322,22 @@ report 20403 "Qlty. Non-Conformance"
         {
             Type = RDLC;
             Caption = 'Default Layout';
-            Summary = 'The default layout for the Non-Conformance Report.';
+            Summary = 'The default layout for the non-conformance Report.';
             LayoutFile = './src/Reports/QltyNonConformanceDefault.rdl';
         }
         layout(QltyNonConformanceAlternate)
         {
             Type = RDLC;
             Caption = 'Alternate Layout';
-            Summary = 'An alternate layout for the Non-Conformance Report.';
+            Summary = 'An alternate layout for the non-conformance Report.';
             LayoutFile = './src/Reports/QltyNonConformanceAlternate.rdl';
+        }
+        layout(QualityManagement_NonConformance_Default)
+        {
+            Type = Word;
+            Caption = 'Word Layout';
+            Summary = 'Word layout for the non-conformance Report.';
+            LayoutFile = './src/Reports/QltyNonConformance.docx';
         }
     }
 
@@ -322,6 +362,7 @@ report 20403 "Qlty. Non-Conformance"
         TestLineModifiedByUserId: Code[50];
         TestLinePreviousModifiedByUserId: Text;
         TestLineModifiedByUserName: Text;
+        EnteredByNameAndTimestamp: Text;
         TestLineModifiedByJobTitle: Text;
         TestLineModifiedByPhone: Text;
         TestLineModifiedByEmail: Text;
@@ -335,8 +376,13 @@ report 20403 "Qlty. Non-Conformance"
         FinishedByPhone: Text;
         DirectorTitle: Text;
         DirectorName: Text;
+        LabelFieldDescription: Text;
+        CarriageReturnPersonFieldDetails: Text;
+        TitleLbl: Label 'Title';
+        NameLbl: Label 'Name';
         DefaultDirectorTitleLbl: Label 'Director';
         DefaultQualityInspectorTitleLbl: Label 'Quality Inspection';
+        EnteredByNameAndTimestampLbl: Label '%1 %2', Locked = true;
 
     local procedure CombineToCarriageReturnString(var InTextToCombine: array[8] of Text[100]; var CombinedTextResult: Text)
     var

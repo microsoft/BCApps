@@ -65,8 +65,6 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         BinContent: Record "Bin Content";
         Item: Record Item;
         LotNoSeries: Record "No. Series";
-        LotNoSeriesLine: Record "No. Series Line";
-        LotItemTrackingCode: Record "Item Tracking Code";
         WarehouseEntry: Record "Warehouse Entry";
         ReclassWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
         InitialInventoryWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
@@ -86,13 +84,8 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         QltyManagementSetup.Get();
         QltyManagementSetup."Warehouse Trigger" := QltyManagementSetup."Warehouse Trigger"::NoTrigger;
 
-        // [GIVEN] Lot number series and tracking code are created
-        LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
-        LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
-
-        // [GIVEN] Lot-tracked item is created with Qty per UOM = 1
-        LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
-        LibraryInventory.CreateTrackedItem(Item, LotNoSeries.Code, '', LotItemTrackingCode.Code);
+        // [GIVEN] Lot-tracked item with no. series is created
+        QltyTestsUtility.CreateLotTrackedItem(Item, LotNoSeries);
 
         // [GIVEN] Full WMS location with bins is created and bin content is set up
         LibraryWarehouse.CreateFullWMSLocation(Location, 2);
@@ -2059,9 +2052,6 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         SourceLocation: Record Location;
         DestinationLocation: Record Location;
         Item: Record Item;
-        SerialNoSeries: Record "No. Series";
-        SerialNoSeriesLine: Record "No. Series Line";
-        SerialItemTrackingCode: Record "Item Tracking Code";
         ItemJournalTemplate: Record "Item Journal Template";
         ItemJournalBatch: Record "Item Journal Batch";
         InitialTestInventoryJnlItemJournalLine: Record "Item Journal Line";
@@ -2084,10 +2074,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         QltyManagementSetup.Get();
 
         // [GIVEN] A serial-tracked item is created
-        LibraryUtility.CreateNoSeries(SerialNoSeries, true, true, false);
-        LibraryUtility.CreateNoSeriesLine(SerialNoSeriesLine, SerialNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'X<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'X<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
-        LibraryItemTracking.CreateItemTrackingCode(SerialItemTrackingCode, true, false, false);
-        LibraryInventory.CreateTrackedItem(Item, '', SerialNoSeries.Code, SerialItemTrackingCode.Code);
+        QltyTestsUtility.CreateSerialTrackedItem(Item);
 
         // [GIVEN] Source and destination locations are created
         LibraryWarehouse.CreateLocationWMS(SourceLocation, false, false, false, false, false);
@@ -2097,7 +2084,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryInventory.CreateItemJournalTemplateByType(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
         LibraryInventory.CreateItemJournalLine(InitialTestInventoryJnlItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, InitialTestInventoryJnlItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 1);
-        SerialNo := NoSeries.GetNextNo(SerialNoSeries.Code);
+        SerialNo := NoSeries.GetNextNo(Item."Serial Nos.");
         InitialTestInventoryJnlItemJournalLine."Location Code" := SourceLocation.Code;
         InitialTestInventoryJnlItemJournalLine."Serial No." := SerialNo;
         InitialTestInventoryJnlItemJournalLine.Modify();
@@ -2115,7 +2102,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ItemLedgerEntry.FindLast();
 
         // [WHEN] Transfer disposition is performed with specific quantity for outbound transfer
-        TempQltyInspectionTestHeader."No." := NoSeries.GetNextNo(SerialNoSeries.Code);
+        TempQltyInspectionTestHeader."No." := NoSeries.GetNextNo(Item."Serial Nos.");
         TempQltyInspectionTestHeader."Source RecordId" := ItemLedgerEntry.RecordId();
         TempQltyInspectionTestHeader."Source Table No." := Database::"Item Ledger Entry";
         TempQltyInspectionTestHeader."Source Item No." := Item."No.";
@@ -2474,7 +2461,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         PurRtnOrderPurchaseHeader: Record "Purchase Header";
         PurPurchRcptLine: Record "Purch. Rcpt. Line";
         PurRtnOrderPurchaseLine: Record "Purchase Line";
-        ResReservationEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -2502,7 +2489,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [GIVEN] Location, vendor, purchase order with 10 units are created and received
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
         LibraryPurchase.CreateVendor(Vendor);
-        OrdGenQltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrderPurchaseLine, ResReservationEntry);
+        OrdGenQltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrderPurchaseLine, ReservationEntry);
         OrdGenQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrderPurchaseLine);
 
         // [GIVEN] Quality inspection template and test are created for purchase line
@@ -2510,8 +2497,8 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         TestQltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
         TestQltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
         RecordRef.GetTable(PurOrderPurchaseLine);
-        SpecTrackingSpecification.CopyTrackingFromReservEntry(ResReservationEntry);
-        LotNo := ResReservationEntry."Lot No.";
+        SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
+        LotNo := ReservationEntry."Lot No.";
         QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
         QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
 
@@ -2531,16 +2518,16 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         QltyItemTrackingMgmt.DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionTestHeader, PurRtnOrderPurchaseLine, 10);
 
         // [THEN] One reservation entry is created with correct location, lot number, and negative quantity
-        Clear(ResReservationEntry);
-        ResReservationEntry.SetRange("Source Type", Database::"Purchase Line");
-        ResReservationEntry.SetRange("Source ID", PurRtnOrderPurchaseHeader."No.");
-        ResReservationEntry.SetRange("Source Ref. No.", PurRtnOrderPurchaseLine."Line No.");
-        LibraryAssert.IsTrue(ResReservationEntry.Count() = 1, 'There should be one reservation entry.');
-        ResReservationEntry.FindFirst();
-        LibraryAssert.AreEqual(Location.Code, ResReservationEntry."Location Code", 'The location of the reservation entry should match.');
-        LibraryAssert.AreEqual(LotNo, ResReservationEntry."Lot No.", 'The lot no. should match the originating lot no.');
-        LibraryAssert.AreEqual((PurRtnOrderPurchaseLine."Quantity (Base)" * -1), ResReservationEntry."Quantity (Base)", 'The quantity should be negative and match the originating line.');
-        LibraryAssert.AreEqual(PurRtnOrderPurchaseLine."Qty. per Unit of Measure", ResReservationEntry."Qty. per Unit of Measure", 'The quantity per unit of measure should match the originating line.');
+        Clear(ReservationEntry);
+        ReservationEntry.SetRange("Source Type", Database::"Purchase Line");
+        ReservationEntry.SetRange("Source ID", PurRtnOrderPurchaseHeader."No.");
+        ReservationEntry.SetRange("Source Ref. No.", PurRtnOrderPurchaseLine."Line No.");
+        LibraryAssert.IsTrue(ReservationEntry.Count() = 1, 'There should be one reservation entry.');
+        ReservationEntry.FindFirst();
+        LibraryAssert.AreEqual(Location.Code, ReservationEntry."Location Code", 'The location of the reservation entry should match.');
+        LibraryAssert.AreEqual(LotNo, ReservationEntry."Lot No.", 'The lot no. should match the originating lot no.');
+        LibraryAssert.AreEqual((PurRtnOrderPurchaseLine."Quantity (Base)" * -1), ReservationEntry."Quantity (Base)", 'The quantity should be negative and match the originating line.');
+        LibraryAssert.AreEqual(PurRtnOrderPurchaseLine."Qty. per Unit of Measure", ReservationEntry."Qty. per Unit of Measure", 'The quantity per unit of measure should match the originating line.');
     end;
 
     [Test]
@@ -2559,7 +2546,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         PurRtnOrderPurchaseHeader: Record "Purchase Header";
         PurPurchRcptLine: Record "Purch. Rcpt. Line";
         PurRtnOrderPurchaseLine: Record "Purchase Line";
-        ResReservationEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -2586,7 +2573,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [GIVEN] Location, vendor, purchase order with 10 units are created and received
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
         LibraryPurchase.CreateVendor(Vendor);
-        OrdGenQltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrderPurchaseLine, ResReservationEntry);
+        OrdGenQltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrderPurchaseLine, ReservationEntry);
         OrdGenQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrderPurchaseLine);
 
         // [GIVEN] Quality inspection template and test are created for purchase line
@@ -2594,7 +2581,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         TestQltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
         TestQltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
         RecordRef.GetTable(PurOrderPurchaseLine);
-        SpecTrackingSpecification.CopyTrackingFromReservEntry(ResReservationEntry);
+        SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
         QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
 
@@ -2633,7 +2620,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         PurRtnOrderPurchaseHeader: Record "Purchase Header";
         PurPurchRcptLine: Record "Purch. Rcpt. Line";
         PurRtnOrderPurchaseLine: Record "Purchase Line";
-        ResReservationEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
         SpecTrackingSpecification: Record "Tracking Specification";
         OrdGenQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -2661,7 +2648,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [GIVEN] Location, vendor, purchase order with 10 units are created and received
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
         LibraryPurchase.CreateVendor(Vendor);
-        OrdGenQltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrderPurchaseLine, ResReservationEntry);
+        OrdGenQltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrderPurchaseLine, ReservationEntry);
         OrdGenQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurOrderPurchaseHeader, PurOrderPurchaseLine);
 
         // [GIVEN] Quality inspection template and test are created for purchase line with serial number tracking
@@ -2669,8 +2656,8 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         TestQltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 2);
         TestQltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
         RecordRef.GetTable(PurOrderPurchaseLine);
-        SpecTrackingSpecification.CopyTrackingFromReservEntry(ResReservationEntry);
-        Serial := ResReservationEntry."Serial No.";
+        SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
+        Serial := ReservationEntry."Serial No.";
         QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
         QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
 
@@ -2749,7 +2736,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Lot-tracked item with number series is created
         Initialize();
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Inspection test header with lot number is prepared
         TempQltyInspectionTestHeader."Source Item No." := Item."No.";
@@ -2778,7 +2765,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Lot-tracked item with number series is created
         Initialize();
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Inspection test header with lot number is prepared
         TempQltyInspectionTestHeader."Source Item No." := Item."No.";
@@ -2815,7 +2802,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Serial-tracked item with number series is created
         Initialize();
-        QltyTestsUtility.CreateSerialTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Inspection test header with serial number is prepared
         TempQltyInspectionTestHeader."Source Item No." := Item."No.";
@@ -2844,7 +2831,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] Serial-tracked item with number series is created
         Initialize();
-        QltyTestsUtility.CreateSerialTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Inspection test header with serial number is prepared
         TempQltyInspectionTestHeader."Source Item No." := Item."No.";
@@ -2937,32 +2924,40 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
     procedure IsLotTracked_True()
     var
         Item: Record Item;
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
-        // [SCENARIO] Verify IsLotTracked returns true for lot-tracked item
+        // [SCENARIO] Verify that checking if an item is lot-tracked returns true for lot-tracked item
 
         // [GIVEN] Lot-tracked item is created
         Initialize();
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [WHEN] Checking if item is lot-tracked
+        TempItemTrackingSetup."Lot No. Required" := true;
+        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+
         // [THEN] Result is true indicating item is lot-tracked
-        LibraryAssert.IsTrue(QltyItemTracking.IsLotTracked(Item."No."), 'Should return is lot-tracked (true)');
+        LibraryAssert.IsTrue(TempItemTrackingSetup."Lot No. Required", 'Should return is lot-tracked (true)');
     end;
 
     [Test]
     procedure IsLotTracked_False()
     var
         Item: Record Item;
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
-        // [SCENARIO] Verify IsLotTracked returns false for non-lot-tracked item
+        // [SCENARIO] Verify that checking if an item is lot-tracked returns false for non-lot-tracked item
 
         // [GIVEN] Item without lot tracking is created
         Initialize();
         LibraryInventory.CreateItem(Item);
 
         // [WHEN] Checking if item is lot-tracked
+        TempItemTrackingSetup."Lot No. Required" := true;
+        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+
         // [THEN] Result is false indicating item is not lot-tracked
-        LibraryAssert.IsFalse(QltyItemTracking.IsLotTracked(Item."No."), 'Should return is not lot-tracked (false)');
+        LibraryAssert.IsFalse(TempItemTrackingSetup."Lot No. Required", 'Should return is not lot-tracked (false)');
     end;
 
     [Test]
@@ -2970,32 +2965,40 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
     var
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
-        // [SCENARIO] Verify IsSerialTracked returns true for serial-tracked item
+        // [SCENARIO] Verify that checking if an item is serial-tracked returns true for serial-tracked item
 
         // [GIVEN] Serial-tracked item is created
         Initialize();
-        QltyTestsUtility.CreateSerialTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [WHEN] Checking if item is serial-tracked
+        TempItemTrackingSetup."Serial No. Required" := true;
+        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+
         // [THEN] Result is true indicating item is serial-tracked
-        LibraryAssert.IsTrue(QltyItemTracking.IsSerialTracked(Item."No."), 'Should return is serial-tracked (true)');
+        LibraryAssert.IsTrue(TempItemTrackingSetup."Serial No. Required", 'Should return is serial-tracked (true)');
     end;
 
     [Test]
     procedure IsSerialTracked_False()
     var
         Item: Record Item;
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
-        // [SCENARIO] Verify IsSerialTracked returns false for non-serial-tracked item
+        // [SCENARIO] Verify that checking if an item is serial-tracked returns false for non-serial-tracked item
 
         // [GIVEN] Item without serial tracking is created
         Initialize();
         LibraryInventory.CreateItem(Item);
 
         // [WHEN] Checking if item is serial-tracked
+        TempItemTrackingSetup."Serial No. Required" := true;
+        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+
         // [THEN] Result is false indicating item is not serial-tracked
-        LibraryAssert.IsFalse(QltyItemTracking.IsSerialTracked(Item."No."), 'Should return is not serial-tracked (false)');
+        LibraryAssert.IsFalse(TempItemTrackingSetup."Serial No. Required", 'Should return is not serial-tracked (false)');
     end;
 
     [Test]
@@ -3003,32 +3006,40 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
     var
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
-        // [SCENARIO] Verify IsPackageTracked returns true for package-tracked item
+        // [SCENARIO] Verify that checking if an item is package-tracked returns true for package-tracked item
 
         // [GIVEN] Package-tracked item is created
         Initialize();
         QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [WHEN] Checking if item is package-tracked
+        TempItemTrackingSetup."Package No. Required" := true;
+        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+
         // [THEN] Result is true indicating item is package-tracked
-        LibraryAssert.IsTrue(QltyItemTracking.IsPackageTracked(Item."No."), 'Should return is package-tracked (true)');
+        LibraryAssert.IsTrue(TempItemTrackingSetup."Package No. Required", 'Should return is package-tracked (true)');
     end;
 
     [Test]
     procedure IsPackageTracked_False()
     var
         Item: Record Item;
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
-        // [SCENARIO] Verify IsPackageTracked returns false for non-package-tracked item
+        // [SCENARIO] Verify that checking if an item is package-tracked returns false for non-package-tracked item
 
         // [GIVEN] Item without package tracking is created
         Initialize();
         LibraryInventory.CreateItem(Item);
 
         // [WHEN] Checking if item is package-tracked
+        TempItemTrackingSetup."Package No. Required" := true;
+        QltyItemTracking.IsItemTrackingUsed(Item."No.", TempItemTrackingSetup);
+
         // [THEN] Result is false indicating item is not package-tracked
-        LibraryAssert.IsFalse(QltyItemTracking.IsPackageTracked(Item."No."), 'Should return is not package-tracked (false)');
+        LibraryAssert.IsFalse(TempItemTrackingSetup."Package No. Required", 'Should return is not package-tracked (false)');
     end;
 
     local procedure Initialize()

@@ -10,6 +10,8 @@ using Microsoft.QualityManagement.Utilities;
 
 codeunit 20417 "Qlty. Navigate Integration"
 {
+    InherentPermissions = X;
+
     var
         NavigatePageSearchFiltersTok: Label 'NAVIGATEFILTERS', Locked = true;
 

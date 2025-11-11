@@ -746,6 +746,14 @@ table 20400 "Qlty. Management Setup"
         exit(WhseWorksheetLine.GetRangeMin("Worksheet Template Name"));
     end;
 
+    internal procedure GetSetupRecord(): Boolean
+    begin
+        if not Rec.ReadPermission() then
+            exit(false);
+
+        exit(Rec.Get());
+    end;
+
     /// <summary>
     /// Occurs when changing settings on the quality inspector setup page.
     /// </summary>

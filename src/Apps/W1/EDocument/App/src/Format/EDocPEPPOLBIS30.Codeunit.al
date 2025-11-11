@@ -9,7 +9,6 @@ using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Peppol;
 using Microsoft.Sales.Reminder;
-using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using System.Utilities;
 
@@ -20,7 +19,6 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
-        ServiceHeader: Record "Service Header";
         ServiceInvoiceHeader: Record "Service Invoice Header";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         ReminderHeader: Record "Reminder Header";
@@ -64,11 +62,6 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
                 begin
                     SourceDocumentHeader.SetTable(FinChargeMemoHeader);
                     EDocPEPPOLValidation.CheckFinChargeMemo(FinChargeMemoHeader);
-                end;
-            Database::"Service Header":
-                begin
-                    SourceDocumentHeader.SetTable(ServiceHeader);
-                    PEPPOLServiceValidation.CheckServiceHeader(ServiceHeader);
                 end;
         end;
     end;

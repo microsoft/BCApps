@@ -17,7 +17,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 {
     Caption = 'Quality Management - Production and Assembly Quality Test Generation Rule Wizard';
     PageType = NavigatePage;
-    UsageCategory = Administration;
+    UsageCategory = None;
     ApplicationArea = QualityManagement;
     SourceTable = "Qlty. Management Setup";
 
@@ -844,10 +844,12 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         if QltyInTestGenerationRule."Source Table No." = Database::"Prod. Order Routing Line" then begin
             TempProdOrderRoutingLine.SetView(TempQltyInTestGenerationRule."Condition Filter");
             IsProductionOrder := true;
+            IsAssemblyOrder := false;
         end;
         if QltyInTestGenerationRule."Source Table No." = Database::"Posted Assembly Header" then begin
             TempPostedAssemblyHeader.SetView(TempQltyInTestGenerationRule."Condition Filter");
             IsAssemblyOrder := true;
+            IsProductionOrder := false;
         end;
 
         TempItem.SetView(TempQltyInTestGenerationRule."Item Filter");

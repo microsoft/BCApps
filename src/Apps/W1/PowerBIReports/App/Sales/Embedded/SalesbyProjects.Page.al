@@ -6,14 +6,14 @@ namespace Microsoft.PowerBIReports;
 
 using System.Integration.PowerBI;
 
-page 37116 "Purchase Return Overview"
+page 37119 "Sales by Projects"
 {
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchase Return Overview';
-    AboutTitle = 'About Purchase Return Overview';
-    AboutText = 'The Purchase Return Overview report tracks purchase returns, showing trends by vendor, reason, and item category. Key measures include return rate, purchase value, and outstanding returns.';
+    Caption = 'Sales by Projects';
+    AboutTitle = 'About Sales by Projects';
+    AboutText = 'The Sales by Projects report breaks down sales performance by project, highlighting metrics such as sales amount and sales quantity. This report provides key insights into the customers, items, general ledger accounts and resources driving project sales and contributing to revenue.';
 
     layout
     {
@@ -45,14 +45,14 @@ page 37116 "Purchase Return Overview"
     var
         SetupHelper: Codeunit "Power BI Report Setup";
         ReportId: Guid;
-        ReportPageLbl: Label '63a53744a60debfbb8ac', Locked = true;
+        ReportPageLbl: Label '3f3a8251c4943f8c8fb2', Locked = true;
 
     trigger OnOpenPage()
     var
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
         SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Purchases Report Id"));
+        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sales Report Id"));
     end;
 }
 
