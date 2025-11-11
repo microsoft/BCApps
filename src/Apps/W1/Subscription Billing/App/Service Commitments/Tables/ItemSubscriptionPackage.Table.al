@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.Pricing;
 
 table 8058 "Item Subscription Package"
 {

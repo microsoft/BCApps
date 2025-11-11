@@ -5,10 +5,10 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Finance.GeneralLedger.Posting;
-using Microsoft.Sales.Receivables;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Reversal;
+using Microsoft.Sales.Receivables;
 
 codeunit 30311 "Shpfy Suggest Payments"
 {

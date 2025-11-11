@@ -1,0 +1,92 @@
+table Subscription
+	lineageTag: 2ed6d60b-8267-4f92-a751-3689f3be8a5e
+
+	column 'Subscription No.'
+		dataType: string
+		lineageTag: 0c16a49c-64da-46b0-827c-577a26f0c6e5
+		summarizeBy: none
+		sourceColumn: Subscription No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Package Code'
+		dataType: string
+		lineageTag: e605a6bc-fa17-40f9-96d1-1586fa0c5331
+		summarizeBy: none
+		sourceColumn: Package Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Subscription Desc.'
+		dataType: string
+		lineageTag: fe3468db-3f4b-493b-88b0-6f1f8deddc59
+		summarizeBy: none
+		sourceColumn: Subscription Desc.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Analysis Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: cf83c839-2d39-45ad-85b5-73fe1475feb4
+		summarizeBy: none
+		sourceColumn: Analysis Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Subscription Package Key'
+		dataType: string
+		isHidden
+		isKey
+		lineageTag: 6a637c34-f94a-481f-8465-a96d742b1f0f
+		summarizeBy: none
+		sourceColumn: Subscription Package Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Subscription No. Desc.'
+		dataType: string
+		lineageTag: 2280128a-2625-4941-9aa4-22a69182b035
+		summarizeBy: none
+		sourceColumn: Subscription No. Desc.
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Subscription = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source = ```
+				let
+				  Source = SourceContractAnalysisEntries, 
+				  #"Removed Other Columns" = Table.SelectColumns(
+				    Source, 
+				    {
+				      "serviceObjectNo", 
+				      "packageCode", 
+				      "serviceObjectDescription", 
+				      "analysisDate", 
+				      "Subscription Package Key"
+				    }
+				  ), 
+				  #"Sorted Rows" = Table.Sort(#"Removed Other Columns", {{"analysisDate", Order.Descending}}), 
+				  #"Removed Duplicates1" = Table.Distinct(#"Sorted Rows", {"Subscription Package Key"}), 
+				  #"Added No.Name" = Table.AddColumn(
+				    #"Removed Duplicates1", 
+				    "Subscription No. Desc.", 
+				    each [serviceObjectNo] & ": " & [serviceObjectDescription], 
+				    type text
+				  ), 
+				  ConvertColumnNames = Table.TransformColumnNames(#"Added No.Name", fctImproveColumnNames), 
+				  #"Renamed Columns" = Table.RenameColumns(ConvertColumnNames,{{"Service Object Description", "Subscription Desc."}, {"Service Object No.", "Subscription No."}})
+				in
+				  #"Renamed Columns"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

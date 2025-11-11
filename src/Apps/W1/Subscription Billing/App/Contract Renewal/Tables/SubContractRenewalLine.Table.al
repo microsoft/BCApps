@@ -194,7 +194,13 @@ table 8001 "Sub. Contract Renewal Line"
         OnAfterRefreshContractInfo(Rec, ServiceCommitment);
     end;
 
-    internal procedure InitFromServiceCommitment(var ServiceCommitment: Record "Subscription Line"): Boolean
+    /// <summary>
+    /// Initiates the Subscription Contract Renewal Line from Subscription Line
+    /// </summary>
+    /// <param name="ServiceCommitment">VAR Record "Subscription Line".</param>
+    /// <returns>Return value of type Boolean true indicates that there is niether Subscription Contract Renewal Line
+    /// nor Planned Subscription Line for the Subscription Line exist and the Subscription Contract Renewal Line is initiated successfully</returns>
+    procedure InitFromServiceCommitment(var ServiceCommitment: Record "Subscription Line"): Boolean
     begin
         Clear(Rec);
         if ContractRenewalLineExists(ServiceCommitment) then

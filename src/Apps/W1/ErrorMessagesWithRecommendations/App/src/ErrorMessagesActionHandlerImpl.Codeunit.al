@@ -5,10 +5,10 @@
 
 namespace Microsoft.Shared.Error;
 
-using System.Utilities;
-using System.Telemetry;
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Journal;
+using System.Telemetry;
+using System.Utilities;
 codeunit 7905 ErrorMessagesActionHandlerImpl
 {
     Access = Internal;

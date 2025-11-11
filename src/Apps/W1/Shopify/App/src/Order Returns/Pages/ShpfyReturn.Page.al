@@ -12,6 +12,7 @@ page 30151 "Shpfy Return"
     PageType = Document;
     SourceTable = "Shpfy Return Header";
     UsageCategory = None;
+    InsertAllowed = false;
 
     layout
     {

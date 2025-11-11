@@ -1,11 +1,11 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.IO;
-using System.Utilities;
+using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Posting;
-using Microsoft.Purchases.Document;
-using Microsoft.Inventory.Item;
+using System.IO;
+using System.Utilities;
 
 codeunit 8060 "Create Billing Documents"
 {
@@ -220,6 +220,7 @@ codeunit 8060 "Create Billing Documents"
 
     local procedure InsertSalesLineFromTempBillingLine()
     var
+        Item: Record Item;
         SalesLine: Record "Sales Line";
         ServiceCommitment: Record "Subscription Line";
         ServiceObject: Record "Subscription Header";
@@ -241,11 +242,14 @@ codeunit 8060 "Create Billing Documents"
             ((ServiceObject."Source No." <> ServiceCommitment."Invoicing Item No.") or (ServiceObject.Type = ServiceObject.Type::"G/L Account"))
         then begin
             SalesLine.Type := SalesLine.Type::Item;
-            SalesLine.Validate("No.", ServiceCommitment."Invoicing Item No.")
+            SalesLine.Validate("No.", ServiceCommitment."Invoicing Item No.");
         end else begin
             SalesLine.Validate(Type, ServiceObject.GetSalesLineType());
             SalesLine.Validate("No.", ServiceObject."Source No.");
             SalesLine.Validate("Variant Code", ServiceObject."Variant Code");
+            if Item.Get(ServiceObject."Source No.") then
+                if Item.IsVariantMandatory() then
+                    ServiceObject.TestField("Variant Code");
         end;
         SubContractsItemManagement.SetAllowInsertOfInvoicingItem(false);
         if SalesLine.Type = SalesLine.Type::Item then
@@ -944,7 +948,7 @@ codeunit 8060 "Create Billing Documents"
         DescriptionText := GetAdditionalLineText(ServiceContractSetupFieldNo, ParentSalesLine, ServiceObject, ServiceCommitment);
         if DescriptionText = '' then
             exit;
-        SalesLine.InsertDescriptionSalesLine(SalesHeader2, DescriptionText, ParentSalesLine."Line No.");
+        SalesLine.CreateAttachedSalesLine(SalesHeader2, DescriptionText, ParentSalesLine."Line No.");
         OnAfterCreateAdditionalInvoiceLine(SalesLine, ParentSalesLine);
     end;
 

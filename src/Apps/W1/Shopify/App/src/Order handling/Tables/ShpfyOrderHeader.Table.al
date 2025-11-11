@@ -5,11 +5,11 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using System.IO;
-using Microsoft.Sales.Customer;
-using Microsoft.Sales.Document;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Foundation.Shipping;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using System.IO;
 using System.Reflection;
 
 /// <summary>

@@ -5,10 +5,10 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
-using Microsoft.Sales.Customer;
-using Microsoft.Sales.History;
-using Microsoft.Sales.Document;
 using Microsoft.Sales.Archive;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
 
 codeunit 139609 "Shpfy Order Test"
 {

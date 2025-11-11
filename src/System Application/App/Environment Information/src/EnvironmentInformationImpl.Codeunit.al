@@ -19,6 +19,8 @@ codeunit 3702 "Environment Information Impl."
         NavTenantSettingsHelper: DotNet NavTenantSettingsHelper;
         TestabilitySoftwareAsAService: Boolean;
         TestabilitySandbox: Boolean;
+        TestabilityPreview: Boolean;
+        TestabilityEarlyPreview: Boolean;
         IsSaasInitialized: Boolean;
         IsSaaSConfig: Boolean;
         IsSandboxConfig: Boolean;
@@ -105,6 +107,33 @@ codeunit 3702 "Environment Information Impl."
     procedure GetApplicationFamily(): Text
     begin
         exit(NavTenantSettingsHelper.GetApplicationFamily());
+    end;
+
+    procedure IsPreview(): Boolean
+    begin
+        if TestabilityPreview then
+            exit(true);
+        exit(NavTenantSettingsHelper.GetRingName() = 'PREVIEW');
+    end;
+
+    procedure SetTestabilityPreview(EnablePreviewForTest: Boolean)
+    begin
+        TestabilityPreview := EnablePreviewForTest;
+    end;
+
+    procedure IsEarlyPreview(): Boolean
+    var
+        RingName: Text;
+    begin
+        if TestabilityEarlyPreview then
+            exit(true);
+        RingName := NavTenantSettingsHelper.GetRingName();
+        exit((RingName = 'EARLYPREVIEW') or (RingName = 'EARLYPREV'));
+    end;
+
+    procedure SetTestabilityEarlyPreview(EnableEarlyPreviewForTest: Boolean)
+    begin
+        TestabilityEarlyPreview := EnableEarlyPreviewForTest;
     end;
 
     procedure VersionInstalled(AppID: Guid): Integer

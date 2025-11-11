@@ -5,9 +5,9 @@
 
 namespace System.Test.Visualization;
 
-using System.Visualization;
 using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
+using System.Visualization;
 
 codeunit 139481 "Headlines Test"
 {

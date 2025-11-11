@@ -46,11 +46,11 @@ codeunit 139610 SendRemittanceAdvice
         CustomReportSelection: Record "Custom Report Selection";
         GenJournalLine: Record "Gen. Journal Line";
         Vendor: Record Vendor;
-        LibraryWorkflow: Codeunit "Library - Workflow";
+        LibraryEmail: Codeunit "Library - Email";
     begin
         // [SCENARIO 339846] Send remittance advice report to vendor by email from Payment Journal using customized Document Sending Profile
         Initialize();
-        LibraryWorkflow.SetUpEmailAccount();
+        LibraryEmail.SetUpEmailAccount();
 
         // [GIVEN] Vendor with email
         // [GIVEN] Payment journal line
@@ -77,11 +77,11 @@ codeunit 139610 SendRemittanceAdvice
     var
         CustomReportSelection: Record "Custom Report Selection";
         Vendor: Record Vendor;
-        LibraryWorkflow: Codeunit "Library - Workflow";
+        LibraryEmail: Codeunit "Library - Email";
     begin
         // [SCENARIO 339846] Send remittance advice report to vendor by email from Payment Journal using customized Document Sending Profile
         Initialize();
-        LibraryWorkflow.SetUpEmailAccount();
+        LibraryEmail.SetUpEmailAccount();
 
         // [GIVEN] Vendor with email
         // [GIVEN] Vendor Ledger Entry

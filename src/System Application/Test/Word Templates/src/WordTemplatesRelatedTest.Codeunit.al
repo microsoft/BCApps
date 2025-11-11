@@ -6,12 +6,12 @@
 namespace System.Test.Integration.Word;
 
 using System.Integration.Word;
+using System.Reflection;
 using System.TestLibraries.Integration.Word;
+using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 using System.Text;
 using System.Utilities;
-using System.Reflection;
-using System.TestLibraries.Utilities;
-using System.TestLibraries.Security.AccessControl;
 
 /// <summary>
 /// Tests for Word Templates related tables.

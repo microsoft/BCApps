@@ -9,6 +9,7 @@ page 30150 "Shpfy Returns"
 {
     ApplicationArea = All;
     Caption = 'Shopify Returns';
+    InsertAllowed = false;
     PageType = List;
     SourceTable = "Shpfy Return Header";
     UsageCategory = Lists;

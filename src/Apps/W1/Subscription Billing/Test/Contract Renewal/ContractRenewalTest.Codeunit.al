@@ -3,10 +3,10 @@ namespace Microsoft.SubscriptionBilling;
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 
 #pragma warning disable AA0210

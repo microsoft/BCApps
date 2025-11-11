@@ -1,8 +1,8 @@
 namespace System.Test.AI;
 
 using System.AI;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.AI;
+using System.TestLibraries.Utilities;
 
 codeunit 132683 "Copilot Test"
 {

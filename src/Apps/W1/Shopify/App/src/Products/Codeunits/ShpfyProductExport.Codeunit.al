@@ -8,9 +8,9 @@ namespace Microsoft.Integration.Shopify;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
-using System.Text;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Purchases.Vendor;
+using System.Text;
 
 /// <summary>
 /// Codeunit Shpfy Product Export (ID 30178).

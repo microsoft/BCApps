@@ -1,10 +1,10 @@
 namespace Microsoft.Finance.ExcelReports;
 
-using Microsoft.FixedAssets.FixedAsset;
-using Microsoft.FixedAssets.Depreciation;
-using Microsoft.FixedAssets.Setup;
-using Microsoft.FixedAssets.Posting;
 using Microsoft.ExcelReports;
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Posting;
+using Microsoft.FixedAssets.Setup;
 
 report 4412 "EXR Fixed Asset Analysis Excel"
 {

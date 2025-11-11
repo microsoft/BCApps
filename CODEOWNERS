@@ -17,6 +17,9 @@
 # App Foundation
 /src/System\ Application/App/AI @microsoft/d365-bc-copilot-toolkit
 
+# App Finance
+/src/Apps/W1/PowerBIReports @microsoft/d365-bc-finance-1
+
 # App Security
 dotnet.al @microsoft/d365-bc-app-security
 

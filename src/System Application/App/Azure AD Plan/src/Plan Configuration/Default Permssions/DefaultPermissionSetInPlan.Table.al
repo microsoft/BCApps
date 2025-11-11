@@ -5,8 +5,8 @@
 
 namespace System.Azure.Identity;
 
-using System.Security.AccessControl;
 using System.Apps;
+using System.Security.AccessControl;
 
 table 9019 "Default Permission Set In Plan"
 {

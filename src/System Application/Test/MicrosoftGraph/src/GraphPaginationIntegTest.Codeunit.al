@@ -6,8 +6,8 @@ namespace System.Test.Integration.Graph;
 
 using System.Integration.Graph;
 using System.RestClient;
-using System.Utilities;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 135146 "Graph Pagination Integ. Test"
 {

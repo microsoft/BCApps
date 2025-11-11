@@ -1,9 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Sales.Document;
-using Microsoft.Sales.History;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
 
 table 8006 "Usage Data Billing"
 {
@@ -160,6 +160,7 @@ table 8006 "Usage Data Billing"
         {
             Caption = 'Quantity';
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(23; "Unit Cost"; Decimal)
         {
@@ -197,6 +198,7 @@ table 8006 "Usage Data Billing"
         {
             Caption = 'Pricing Unit Cost Surcharge %';
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(30; "Billing Line Entry No."; Integer)
         {
@@ -577,7 +579,7 @@ table 8006 "Usage Data Billing"
         Rec.SetRange("Subscription Contract Line No.", EntryNo);
     end;
 
-    local procedure FilterDocumentWithLine(ServicePartner: Enum "Service Partner"; DocumentType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]; EntryNo: Integer)
+    internal procedure FilterDocumentWithLine(ServicePartner: Enum "Service Partner"; DocumentType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]; EntryNo: Integer)
     begin
         Rec.FilterOnDocumentTypeAndDocumentNo(ServicePartner, DocumentType, DocumentNo);
         Rec.SetRange("Document Line No.", EntryNo);

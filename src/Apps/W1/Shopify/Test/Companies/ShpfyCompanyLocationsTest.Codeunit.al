@@ -23,6 +23,7 @@ codeunit 139539 "Shpfy Company Locations Test"
         Customer: Record Customer;
         InitializeTest: Codeunit "Shpfy Initialize Test";
         OutboundHttpRequests: Codeunit "Library - Variable Storage";
+        Assert: Codeunit "Library Assert";
         IsInitialized: Boolean;
         ResponseResourceUrl: Text;
         UnexpectedAPICallsErr: Label 'More than expected API calls to Shopify detected.';
@@ -57,6 +58,37 @@ codeunit 139539 "Shpfy Company Locations Test"
         ShopifyCompanies.OpenEdit();
         ShopifyCompanies.GoToRecord(ShopifyCompany);
         ShopifyCompanies.Locations.GoToRecord(CompanyLocation);
+
+        // Cleanup
+        CompanyLocation.Delete();
+    end;
+
+    [Test]
+    [HandlerFunctions('HttpSubmitHandler')]
+    procedure TestCreateCompanyLocationSellToBillTo()
+    var
+        ShopifyCustomer: Record "Shpfy Customer";
+        CompanyAPI: Codeunit "Shpfy Company API";
+    begin
+        // [GIVEN] A valid customer and company location setup
+        RegExpectedOutboundHttpRequests();
+        Initialize();
+        ShopifyCompany.GetBySystemId(CompanyLocation."Company SystemId");
+        Customer."Bill-to Customer No." := 'BILLTO';
+        Customer.Modify(true);
+
+        // [WHEN] CreateCompanyLocation is called
+        CompanyAPI.SetCompany(ShopifyCompany);
+        CompanyAPI.SetShop(Shop);
+        CompanyAPI.CreateCustomerAsCompanyLocation(Customer, ShopifyCompany, ShopifyCustomer);
+
+        // [THEN] Company location should be created successfully
+#pragma warning disable AA0210
+        CompanyLocation.SetRange("Customer Id", Customer.SystemId);
+#pragma warning restore AA0210
+        CompanyLocation.FindFirst();
+        Assert.AreEqual(Customer."No.", CompanyLocation."Sell-to Customer No.", 'Sell-to Customer No. mismatch');
+        Assert.AreEqual(Customer."Bill-to Customer No.", CompanyLocation."Bill-to Customer No.", 'Bill-to Customer No. mismatch');
     end;
 
     [Test]

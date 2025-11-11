@@ -1,0 +1,220 @@
+table 'Item Ledger Entries'
+	lineageTag: fe65b27a-8945-4e5d-868d-f3cef8834849
+
+	measure 'Output Quantity' = CALCULATE([Quantity], 'Item Ledger Entries'[Entry Type] = "Output")
+		formatString: #,0.00
+		displayFolder: _Item Ledger Entry Measures
+		lineageTag: 4c621207-ed6b-426f-b0a2-1ca544b5c35c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Consumption Quantity' = CALCULATE([Quantity], 'Item Ledger Entries'[Entry Type] = "Consumption")
+		formatString: #,0.00
+		displayFolder: _Item Ledger Entry Measures
+		lineageTag: 98a7a41d-df9d-4156-9cd7-86680dd23341
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Quantity = SUM('Item Ledger Entries'[qty])
+		formatString: #,0.00
+		displayFolder: _Item Ledger Entry Measures
+		lineageTag: 4e84a45a-b77f-48c9-8570-7fd8bfaa9acb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Item Ledger Entry Cost Amount Actual' = SUM('Item Ledger Entries'[costAmountActual])
+		formatString: #,0.00
+		displayFolder: _Item Ledger Entry Measures
+		lineageTag: 82ecef0c-e306-4fa2-a6f2-ad8b2d37f5a6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Posting Date'
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 77925874-53cc-4054-b4e6-d04c394f42ab
+		summarizeBy: none
+		sourceColumn: Posting Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Item No.'
+		dataType: string
+		isHidden
+		lineageTag: 9589e9f9-783d-4749-bf5d-0a9c58d09bec
+		summarizeBy: none
+		sourceColumn: Item No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location Code'
+		dataType: string
+		isHidden
+		lineageTag: b381f269-fcdc-453a-b5cd-22f2b8cd0923
+		summarizeBy: none
+		sourceColumn: Location Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Serial No.'
+		dataType: string
+		lineageTag: 20af9340-a0de-4c75-b489-f2f4233895d7
+		summarizeBy: none
+		sourceColumn: Serial No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Lot No.'
+		dataType: string
+		lineageTag: fd77ad27-b703-4dc7-b34c-f29f0a512b4f
+		summarizeBy: none
+		sourceColumn: Lot No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column qty
+		dataType: double
+		isHidden
+		lineageTag: b6514c2f-b084-4715-bc0c-de46db2c5717
+		summarizeBy: sum
+		sourceColumn: qty
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Dimension Set ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 51671907-341e-4083-b926-e466e00c11bf
+		summarizeBy: count
+		sourceColumn: Dimension Set ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column costAmountActual
+		dataType: double
+		isHidden
+		lineageTag: e93036c0-e467-46f0-ad65-ff7264c69880
+		summarizeBy: sum
+		sourceColumn: costAmountActual
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Location Name'
+		dataType: string
+		isHidden
+		lineageTag: ce4fe2c9-9b5c-4e91-b34d-95106c91df22
+		summarizeBy: none
+		sourceColumn: Location Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entry Type'
+		dataType: string
+		lineageTag: 03fd552b-0546-499d-9aa1-5eae8f4eac06
+		summarizeBy: none
+		sourceColumn: Entry Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Order Type'
+		dataType: string
+		lineageTag: dc9891ca-0da3-48c8-8560-9825453957be
+		summarizeBy: none
+		sourceColumn: Order Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Order No.'
+		dataType: string
+		isHidden
+		lineageTag: 4df4aca2-514f-4d96-b7bd-1cddcd47f8e0
+		summarizeBy: none
+		sourceColumn: Order No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Order Line No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 4e4d9afc-7c04-4d10-8c68-71d94b8c6e74
+		summarizeBy: sum
+		sourceColumn: Order Line No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Production Order'
+		dataType: string
+		isHidden
+		lineageTag: 70185226-eaa3-49ef-ac3c-595b91d1e259
+		summarizeBy: none
+		sourceColumn: Production Order
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Positive
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: b48f5224-f649-42d4-b8b3-fb78db2f8be7
+		summarizeBy: none
+		sourceColumn: Positive
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Item Ledger Entries' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "prodItemLedgerEntries", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"entryType", type text},
+				            {"orderType", type text},
+				            {"orderNo", type text},
+				            {"orderLineNo", Int64.Type},
+				            {"postingDate", type date},
+				            {"itemNo", type text},
+				            {"locationCode", type text},
+				            {"serialNo", type text},
+				            {"lotNo", type text},
+				            {"quantity", type number},
+				            {"dimensionSetID", Int64.Type},
+				            {"costAmountActual", type number},
+				            {"locationName", type text}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"entryType", "Entry Type"}, {"orderType", "Order Type"}, {"orderNo", "Order No."}, {"orderLineNo", "Order Line No."}, {"postingDate", "Posting Date"}, {"itemNo", "Item No."}, {"locationCode", "Location Code"}, {"serialNo", "Serial No."}, {"lotNo", "Lot No."}, {"dimensionSetID", "Dimension Set ID"}, {"locationName", "Location Name"}, {"quantity", "qty"}, {"positive", "Positive"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns", {"ETag"}),
+				    #"Merged Queries" = Table.NestedJoin(#"Removed Columns", {"Order No."}, #"Production Orders (Released or Finished)", {"Prod Order No."}, "Production Orders", JoinKind.LeftOuter),
+				    #"Expanded Finished or Released Production Orders" = Table.ExpandTableColumn(#"Merged Queries", "Production Orders", {"Production Order"}, {"Production Order"})
+				in
+				    #"Expanded Finished or Released Production Orders"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

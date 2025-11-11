@@ -6,9 +6,9 @@
 namespace System.Test.Security.Encryption;
 
 using System.Security.Encryption;
-using System.Utilities;
-using System.Text;
 using System.TestLibraries.Utilities;
+using System.Text;
+using System.Utilities;
 
 codeunit 132588 "DESCryptoServiceProvider Test"
 {

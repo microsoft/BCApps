@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Inventory.Item;
+using System.Utilities;
 
 table 8062 "Cust. Sub. Contract Line"
 {
@@ -49,23 +49,25 @@ table 8062 "Cust. Sub. Contract Line"
                 GLAccount: Record "G/L Account";
                 TempCustomerContractLine: Record "Cust. Sub. Contract Line" temporary;
             begin
-                case "Contract Line Type" of
-                    "Contract Line Type"::Item:
-                        begin
-                            if not Item.Get("No.") then
-                                Error(EntityDoesNotExistErr, Item.TableCaption, "No.");
-                            if Item.Blocked or Item."Subscription Option" in ["Item Service Commitment Type"::"Sales without Service Commitment", "Item Service Commitment Type"::"Sales without Service Commitment"] then
-                                Error(ItemBlockedOrWithoutServiceCommitmentsErr, "No.");
-                        end;
-                    "Contract Line Type"::"G/L Account":
-                        begin
-                            if not GLAccount.Get("No.") then
-                                Error(EntityDoesNotExistErr, GLAccount.TableCaption, "No.");
-                            if GLAccount.Blocked or not GLAccount."Direct Posting" or (GLAccount."Account Type" <> GLAccount."Account Type"::Posting) then
-                                Error(GLAccountBlockedOrNotForDirectPostingErr, "No.");
-                        end;
-                end;
+                if "No." <> '' then
+                    case "Contract Line Type" of
+                        "Contract Line Type"::Item:
+                            begin
+                                if not Item.Get("No.") then
+                                    Error(EntityDoesNotExistErr, Item.TableCaption, "No.");
+                                if Item.Blocked or Item."Subscription Option" in ["Item Service Commitment Type"::"Sales without Service Commitment", "Item Service Commitment Type"::"Sales without Service Commitment"] then
+                                    Error(ItemBlockedOrWithoutServiceCommitmentsErr, "No.");
+                            end;
+                        "Contract Line Type"::"G/L Account":
+                            begin
+                                if not GLAccount.Get("No.") then
+                                    Error(EntityDoesNotExistErr, GLAccount.TableCaption, "No.");
+                                if GLAccount.Blocked or not GLAccount."Direct Posting" or (GLAccount."Account Type" <> GLAccount."Account Type"::Posting) then
+                                    Error(GLAccountBlockedOrNotForDirectPostingErr, "No.");
+                            end;
+                    end;
 
+                CheckAndDisconnectContractLine();
                 TempCustomerContractLine := Rec;
                 Init();
                 SystemId := TempCustomerContractLine.SystemId;
@@ -116,6 +118,7 @@ table 8062 "Cust. Sub. Contract Line"
             CalcFormula = lookup("Subscription Header".Quantity where("No." = field("Subscription Header No.")));
             Editable = false;
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
 
         field(200; "Planned Sub. Line exists"; Boolean)
@@ -178,6 +181,8 @@ table 8062 "Cust. Sub. Contract Line"
         ServiceObject: Record "Subscription Header";
         ServiceCommitment: Record "Subscription Line";
     begin
+        if "No." = '' then
+            exit;
         CustomerContract.Get("Subscription Contract No.");
         ServiceObject.InitForSourceNo("Contract Line Type", "No.");
         ServiceObject.UpdateCustomerDataFromCustomerContract(CustomerContract);

@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Purchases.Document;
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Document;
 
 tableextension 8065 "Purchase Line" extends "Purchase Line"
 {

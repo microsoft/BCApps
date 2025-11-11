@@ -11,7 +11,7 @@ codeunit 30228 "Shpfy Refunds API"
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         JsonHelper: Codeunit "Shpfy Json Helper";
         RefundEnumConvertor: Codeunit "Shpfy Refund Enum Convertor";
-        RefundCantCreateCreditMemoErr: Label 'The refund imported from Shopify can''t be used to create a credit memo. Only refunds for paid items can be used to create credit memos.';
+        RefundCantCreateCreditMemoErr: Label 'This refund cannot be used to create a credit memo because it has already been considered during order import and reduced the quantity and amounts of the order. Only refunds with a non-zero refunded amount and related to real item returns can be used to create credit memos.';
 
     internal procedure GetRefunds(JRefunds: JsonArray)
     var
@@ -166,7 +166,7 @@ codeunit 30228 "Shpfy Refunds API"
         JsonHelper.GetValueIntoField(JLine, 'totalTaxSet.presentmentMoney.amount', RefundLineRecordRef, RefundLine.FieldNo("Presentment Total Tax Amount"));
         RefundLineRecordRef.SetTable(RefundLine);
 
-        RefundLine."Can Create Credit Memo" := NonZeroOrReturnRefund;
+        RefundLine."Can Create Credit Memo" := NonZeroOrReturnRefund or (RefundLine."Restock Type" = RefundLine."Restock Type"::Return);
         RefundLine."Location Id" := JsonHelper.GetValueAsBigInteger(JLine, 'location.legacyResourceId');
 
         // If refund was created from a return, the location needs to come from the return

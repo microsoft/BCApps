@@ -1,0 +1,78 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-AU
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup 'Parameters and Functions'
+
+	annotation PBI_QueryGroupOrder = 1
+
+queryGroup 'Dimension Tables'
+
+	annotation PBI_QueryGroupOrder = 2
+
+queryGroup 'Fact Tables'
+
+	annotation PBI_QueryGroupOrder = 2
+
+queryGroup 'Date Tables'
+
+	annotation PBI_QueryGroupOrder = 3
+
+queryGroup 'Parameters and Functions\Functions'
+
+	annotation PBI_QueryGroupOrder = 0
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["Item","Location","ENVIRONMENT","COMPANY","Value Entries","Working Days","Date Table Setup","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","Dimension Sets","API_ENDPOINT","ConvertUTC","Item Category"]
+
+annotation __TEdtr = 1
+
+annotation TranslationsBuilder = Version:2.2-Updated:2025-05-05
+
+annotation PBI_ProTooling = ["DaxQueryView_Desktop","DevMode"]
+
+ref table Item
+ref table Location
+ref table 'Value Entries'
+ref table 'Working Days'
+ref table 'Date Table Setup'
+ref table 'Dimension Sets'
+ref table 'Date Ref'
+ref table Date
+ref table 'Localized Labels'
+ref table COMPANY
+ref table ENVIRONMENT
+ref table 'Item Category'
+ref table 'Translated Localized Labels'
+
+ref cultureInfo en-US
+ref cultureInfo cs-CZ
+ref cultureInfo da-DK
+ref cultureInfo de-AT
+ref cultureInfo de-CH
+ref cultureInfo de-DE
+ref cultureInfo en-AU
+ref cultureInfo en-CA
+ref cultureInfo en-GB
+ref cultureInfo en-NZ
+ref cultureInfo es-ES
+ref cultureInfo es-MX
+ref cultureInfo fi-FI
+ref cultureInfo fr-BE
+ref cultureInfo fr-CA
+ref cultureInfo fr-CH
+ref cultureInfo fr-FR
+ref cultureInfo is-IS
+ref cultureInfo it-CH
+ref cultureInfo it-IT
+ref cultureInfo nb-NO
+ref cultureInfo nl-BE
+ref cultureInfo nl-NL
+ref cultureInfo sv-SE
+

@@ -5,8 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Sales.Document;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 
 /// <summary>
 /// Page Shpfy Orders (ID 30115).
@@ -151,6 +151,18 @@ page 30115 "Shpfy Orders"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the sum of the line amounts on all lines in the document minus any discount amounts plus the shipping costs.';
+                }
+                field(AppName; Rec."App Name")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the name of the app used by the channel where you sell your products. A channel can be a platform or a marketplace such as an online store or POS.';
+                    Visible = false;
+                }
+                field(CancelReason; Rec."Cancel Reason")
+                {
+                    ApplicationArea = All;
+                    Visible = false;
+                    ToolTip = 'Specifies the reason why the order was cancelled. Valid values are: customer, fraud, inventory, declined, other.';
                 }
                 field(Processed; Rec.Processed)
                 {

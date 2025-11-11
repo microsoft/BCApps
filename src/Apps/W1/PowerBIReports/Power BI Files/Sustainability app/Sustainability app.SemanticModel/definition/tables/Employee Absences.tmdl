@@ -1,0 +1,108 @@
+table 'Employee Absences'
+	lineageTag: a2fed5db-ebdc-40c8-88e3-9e005cd56347
+
+	measure 'Employee Absences' =
+			
+			SUM ( 'Employee Absences'[Qty (Base)] )
+		displayFolder: _Employee Absences Measures
+		lineageTag: 81db14f9-ad5e-41c8-a8ce-310ed2f83794
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Absence Hours (%)' =
+			
+			VAR ActiveEmployeesQty =
+			    CALCULATE (
+			        'Employee Absences'[Employee Absences],
+			        Employees[Employee Status] = "Active"
+			    )
+			VAR TotalWorkingDays = [Active Employees] * [Working Days]
+			RETURN
+			    DIVIDE ( ActiveEmployeesQty, TotalWorkingDays )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Employee Absences Measures
+		lineageTag: 8815b958-50bd-4a9e-91fa-2cf049b876a0
+
+	column 'Employee No'
+		dataType: string
+		isHidden
+		lineageTag: 23abc348-80f5-49c1-a559-a6a7d8b1fb3b
+		summarizeBy: none
+		sourceColumn: Employee No
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entry No'
+		dataType: int64
+		formatString: 0
+		lineageTag: ebcc2a78-4a30-49cc-9841-b1d44e062b77
+		summarizeBy: sum
+		sourceColumn: Entry No
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'From Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a0576715-4fe1-4a23-a1f8-8d164ab164d5
+		summarizeBy: none
+		sourceColumn: From Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'To Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: fad3bfa4-f42a-47ef-b1a0-77fc3bd1b07d
+		summarizeBy: none
+		sourceColumn: To Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Cause of Absence'
+		dataType: string
+		lineageTag: 1f814577-9ab7-49a3-9a85-97934275b69a
+		summarizeBy: none
+		sourceColumn: Cause of Absence
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Qty (Base)'
+		dataType: double
+		isHidden
+		lineageTag: 45168c86-cb0a-4cc9-8a8d-db000436f789
+		summarizeBy: sum
+		sourceColumn: Qty (Base)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Description
+		dataType: string
+		lineageTag: dea41a73-65cb-4fc7-b371-8e02616a048d
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Employee Absences' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="pbiEmployeeAbsences",Signature="table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(TableData,{{"employeeNo", "Employee No"}, {"entryNo", "Entry No"}, {"fromDate", "From Date"}, {"toDate", "To Date"}, {"causeofAbsenceCode", "Cause of Absence"}, {"quantitybase", "Qty (Base)"}, {"description", "Description"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

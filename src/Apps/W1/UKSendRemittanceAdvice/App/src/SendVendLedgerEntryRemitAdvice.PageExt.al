@@ -5,8 +5,8 @@
 
 namespace Microsoft.Purchases.Vendor.RemittanceAdvice;
 
-using Microsoft.Purchases.Payables;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Purchases.Payables;
 
 pageextension 4023 SendVendLedgerEntryRemitAdvice extends "Vendor Ledger Entries"
 {

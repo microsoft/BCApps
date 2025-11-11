@@ -1,12 +1,12 @@
 namespace Microsoft.Foundation.DataSearch;
 
 using Microsoft.Assembly.Document;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Projects.Project.Job;
-using Microsoft.Utilities;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
@@ -18,9 +18,9 @@ using Microsoft.Sales.Reminder;
 using Microsoft.Service.Contract;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
+using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Activity.History;
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
 using System.Reflection;
@@ -38,8 +38,10 @@ codeunit 2685 "Data Search Object Mapping"
         DataSearchEvents: Codeunit "Data Search Events";
         SalesDocumentType: Enum "Sales Document Type";
         PurchaseDocumentType: Enum "Purchase Document Type";
+#pragma warning disable AL0801
         ServiceDocumentType: Enum "Service Document Type";
         ServiceContractType: Enum "Service Contract Type";
+#pragma warning restore AL0801
         ParentTableNo: Integer;
         PageNo: Integer;
     begin
@@ -81,6 +83,7 @@ codeunit 2685 "Data Search Object Mapping"
                     PurchaseDocumentType::"Return Order".AsInteger():
                         PageNo := Page::"Purchase Return Order List";
                 end;
+#pragma warning disable AL0801
             Database::"Service Header":
                 case TableSubType of
                     ServiceDocumentType::"Credit Memo".AsInteger():
@@ -101,6 +104,7 @@ codeunit 2685 "Data Search Object Mapping"
                     ServiceContractType::Template.AsInteger():
                         PageNo := Page::"Service Contract Template List";
                 end;
+#pragma warning restore AL0801
         end;
         if PageNo = 0 then
             DataSearchEvents.OnGetListPageNo(TableNo, TableSubType, PageNo);
@@ -120,10 +124,12 @@ codeunit 2685 "Data Search Object Mapping"
                 ParentTableNo := Database::"Sales Header";
             Database::"Purchase Line":
                 ParentTableNo := Database::"Purchase Header";
+#pragma warning disable AL0801
             Database::"Service Item Line":
                 ParentTableNo := Database::"Service Header";
             Database::"Service Contract Line":
                 ParentTableNo := Database::"Service Contract Header";
+#pragma warning restore AL0801
             Database::"Sales Invoice Line":
                 ParentTableNo := Database::"Sales Invoice Header";
             Database::"Sales Shipment Line":
@@ -136,12 +142,14 @@ codeunit 2685 "Data Search Object Mapping"
                 ParentTableNo := Database::"Purch. Cr. Memo Hdr.";
             Database::"Purch. Rcpt. Line":
                 ParentTableNo := Database::"Purch. Rcpt. Header";
+#pragma warning disable AL0801
             Database::"Service Shipment Item Line", Database::"Service Shipment Line":
                 ParentTableNo := Database::"Service Shipment Header";
             Database::"Service Invoice Line":
                 ParentTableNo := Database::"Service Invoice Header";
             Database::"Service Cr.Memo Line":
                 ParentTableNo := Database::"Service Cr.Memo Header";
+#pragma warning restore AL0801
             Database::"Reminder Line":
                 ParentTableNo := Database::"Reminder Header";
             Database::"Issued Reminder Line":
@@ -154,12 +162,14 @@ codeunit 2685 "Data Search Object Mapping"
                 ParentTableNo := Database::"Job";
             Database::"Job Planning Line":
                 ParentTableNo := Database::"Job";
+#pragma warning disable AL0801
             Database::"Prod. Order Line":
                 ParentTableNo := Database::"Production Order";
             Database::"Production BOM Line":
                 ParentTableNo := Database::"Production BOM Header";
             Database::"Routing Line":
                 ParentTableNo := Database::"Routing Header";
+#pragma warning restore AL0801
             Database::"Warehouse Shipment Line":
                 ParentTableNo := Database::"Warehouse Shipment Header";
             Database::"Warehouse Receipt Line":
@@ -193,10 +203,12 @@ codeunit 2685 "Data Search Object Mapping"
                 SubTableNos.Add(Database::"Sales Line");
             Database::"Purchase Header":
                 SubTableNos.Add(Database::"Purchase Line");
+#pragma warning disable AL0801
             Database::"Service Header":
                 SubTableNos.Add(Database::"Service Item Line");
             Database::"Service Contract Header":
                 SubTableNos.Add(Database::"Service Contract Line");
+#pragma warning restore AL0801
             Database::"Sales Invoice Header":
                 SubTableNos.Add(Database::"Sales Invoice Line");
             Database::"Sales Shipment Header":
@@ -209,6 +221,7 @@ codeunit 2685 "Data Search Object Mapping"
                 SubTableNos.Add(Database::"Purch. Cr. Memo Line");
             Database::"Purch. Rcpt. Header":
                 SubTableNos.Add(Database::"Purch. Rcpt. Line");
+#pragma warning disable AL0801
             Database::"Service Shipment Header":
                 begin
                     SubTableNos.Add(Database::"Service Shipment Item Line");
@@ -218,6 +231,7 @@ codeunit 2685 "Data Search Object Mapping"
                 SubTableNos.Add(Database::"Service Invoice Line");
             Database::"Service Cr.Memo Header":
                 SubTableNos.Add(Database::"Service Cr.Memo Line");
+#pragma warning restore AL0801
             Database::"Reminder Header":
                 SubTableNos.Add(Database::"Reminder Line");
             Database::"Issued Reminder Header":
@@ -231,12 +245,14 @@ codeunit 2685 "Data Search Object Mapping"
                     SubTableNos.Add(Database::"Job Task");
                     SubTableNos.Add(Database::"Job Planning Line");
                 end;
+#pragma warning disable AL0801
             Database::"Production Order":
                 SubTableNos.Add(Database::"Prod. Order Line");
             Database::"Production BOM Header":
                 SubTableNos.Add(Database::"Production BOM Line");
             Database::"Routing Header":
                 SubTableNos.Add(Database::"Routing Line");
+#pragma warning restore AL0801
             Database::"Warehouse Shipment Header":
                 SubTableNos.Add(Database::"Warehouse Shipment Line");
             Database::"Warehouse Receipt Header":
@@ -270,6 +286,7 @@ codeunit 2685 "Data Search Object Mapping"
                 FieldNo := 1;
             Database::"Sales Header", Database::"Sales Line",
             Database::"Purchase Header", Database::"Purchase Line",
+#pragma warning disable AL0801
             Database::"Service Header", Database::"Service Line",
             Database::"Service Contract Line":
                 FieldNo := 1;
@@ -277,6 +294,7 @@ codeunit 2685 "Data Search Object Mapping"
                 FieldNo := 43;
             Database::"Service Contract Header":
                 FieldNo := 2;
+#pragma warning restore AL0801
         end;
         if FieldNo = 0 then
             DataSearchEvents.OnGetFieldNoForTableType(TableNo, FieldNo);
@@ -353,11 +371,13 @@ codeunit 2685 "Data Search Object Mapping"
                 FieldNo := 1;
             Database::"Sales Header", Database::"Sales Line",
             Database::"Purchase Header", Database::"Purchase Line",
+#pragma warning disable AL0801
             Database::"Service Header", Database::"Service Item Line",
             Database::"Service Contract Line":
                 FieldNo := 1;
             Database::"Service Contract Header":
                 FieldNo := 2;
+#pragma warning restore AL0801
         end;
         if FieldNo = 0 then
             DataSearchEvents.OnGetFieldNoForTableType(DataSearchSetupTable."Table No.", FieldNo);
@@ -387,8 +407,10 @@ codeunit 2685 "Data Search Object Mapping"
         DataSearchEvents: Codeunit "Data Search Events";
         SalesDocumentType: Enum "Sales Document Type";
         PurchaseDocumentType: Enum "Purchase Document Type";
+#pragma warning disable AL0801
         ServiceDocumentType: Enum "Service Document Type";
         ServiceContractType: Enum "Service Contract Type";
+#pragma warning restore AL0801
         TableSubtype: Integer;
     begin
         case PageNo of
@@ -416,6 +438,7 @@ codeunit 2685 "Data Search Object Mapping"
                 exit(PurchaseDocumentType::Quote.AsInteger());
             Page::"Purchase Return Order List":
                 exit(PurchaseDocumentType::"Return Order".AsInteger());
+#pragma warning disable AL0801
             Page::"Service Credit Memos":
                 exit(ServiceDocumentType::"Credit Memo".AsInteger());
             Page::"Service Invoices":
@@ -430,6 +453,7 @@ codeunit 2685 "Data Search Object Mapping"
                 exit(ServiceContractType::Quote.AsInteger());
             Page::"Service Contract Template List":
                 exit(ServiceContractType::Template.AsInteger());
+#pragma warning restore AL0801
             else begin
                 if PageMetaData.Get(PageNo) and (PageMetaData.SourceTable = Database::"Gen. Journal Line") then
                     exit(FindGenJournalTemplateType(PageNo));
@@ -559,6 +583,7 @@ codeunit 2685 "Data Search Object Mapping"
                 JobTaskToJob(RecRef);
             Database::"Job Planning Line":
                 JobPlanningLineToJob(RecRef);
+#pragma warning disable AL0801
             Database::"Service Item Line":
                 ServiceItemLineToHeader(RecRef);
             Database::"Service Shipment Item Line":
@@ -577,6 +602,7 @@ codeunit 2685 "Data Search Object Mapping"
                 ProductionBOMLineToHeader(RecRef);
             Database::"Routing Line":
                 RoutingLineToHeader(RecRef);
+#pragma warning restore AL0801
             Database::"Warehouse Shipment Line":
                 WarehouseShipmentLineToHeader(RecRef);
             Database::"Warehouse Receipt Line":
@@ -680,6 +706,7 @@ codeunit 2685 "Data Search Object Mapping"
         RecRef.GetTable(PurchCrMemoHdr);
     end;
 
+#pragma warning disable AL0801
     local procedure ServiceItemLineToHeader(var RecRef: RecordRef)
     var
         ServiceHeader: Record "Service Header";
@@ -739,6 +766,7 @@ codeunit 2685 "Data Search Object Mapping"
         ServiceContractHeader.Get(ServiceContractLine."Contract Type", ServiceContractLine."Contract No.");
         RecRef.GetTable(ServiceContractHeader);
     end;
+#pragma warning restore AL0801
 
     local procedure SalesLineArchiveToHeader(var RecRef: RecordRef)
     var

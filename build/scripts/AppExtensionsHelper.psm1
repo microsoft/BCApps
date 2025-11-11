@@ -44,7 +44,7 @@ function GetSourceCodeFromArtifact() {
         } else {
             Write-Host "No artifact found. Using default artifact version."
             Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
-            $artifact = Get-ConfigValue -ConfigType "AL-GO" -Key "artifact"
+            $artifact = Get-CurrentBCArtifactUrl
         }
         # Test that artifact is a url
         if ($artifact -notmatch "^https?://") {
@@ -183,11 +183,27 @@ function Install-AppFromFile() {
     )
     if ($PSCmdlet.ParameterSetName -eq "ByAppName") {
         Write-Host "[Install App from file] - Searching for app file with name: $AppName"
-        # Looking for app files under the Applications folder on the container
-        $allApps = (Invoke-ScriptInBCContainer -containerName $ContainerName -scriptblock { Get-ChildItem -Path "C:\Applications\" -Filter "*.app" -Recurse })
 
-        # Find the app file by looking for an app file with the base name "Microsoft_AppName"
-        $AppFilePath = $allApps | Where-Object { $($_.BaseName) -eq "Microsoft_$($AppName)" } | ForEach-Object { $_.FullName }
+        # First, look for app files under Applications.<CountryCode> folder on the container
+        $countryApps = (Invoke-ScriptInBCContainer -containerName $ContainerName -scriptblock {
+            Get-ChildItem -Path "C:\" -Directory -Filter "Applications.*" | Where-Object { $_.Name -ne "Applications" } | ForEach-Object {
+                Get-ChildItem -Path $_.FullName -Filter "*.app" -Recurse -ErrorAction SilentlyContinue
+            }
+        })
+
+        # Find the app file by looking for an app file with the base name "Microsoft_AppName_Major.Minor.Build.Revision" pattern
+        $AppFilePath = $countryApps | Where-Object { $($_.BaseName) -match "^Microsoft_$($AppName)_\d+\.\d+\.\d+\.\d+$" } | Select-Object -First 1 | ForEach-Object { $_.FullName }
+
+        # If not found in country-specific folders, fall back to the main Applications folder
+        if (-not $AppFilePath) {
+            Write-Host "[Install App from file] - Not found in Application.<CountryCode> folders, searching in Applications folder"
+            $allApps = (Invoke-ScriptInBCContainer -containerName $ContainerName -scriptblock { Get-ChildItem -Path "C:\Applications\" -Filter "*.app" -Recurse })
+
+            # Find the app file by looking for an app file with the base name "Microsoft_AppName"
+            $AppFilePath = $allApps | Where-Object { $($_.BaseName) -eq "Microsoft_$($AppName)" } | ForEach-Object { $_.FullName }
+        } else {
+            Write-Host "[Install App from file] - Found app in country-specific folder"
+        }
     }
 
     if (-not $AppFilePath) {
@@ -200,15 +216,18 @@ function Install-AppFromFile() {
 
 <#
     .Synopsis
-        Install Container App
+        Install apps in a container
     .Description
-        This function will Install Container App
+        This function will try to install a list of provided apps in a BC Container. Apps will only be installed if they are published to the BC Environment and not already installed.
+        If an app cannot be installed, it will be returned as a missing dependency.
     .Parameter ContainerName
-        The name of the container to install the dependencies in.
-    .Parameter DependenciesToInstall
-        The list of dependencies to install.
+        The name of the container to install the apps in.
+    .Parameter AppsToInstall
+        The list of apps to install.
+    .Returns
+        A list of apps that could not be installed.
 #>
-function Install-AppFromContainer() {
+function Install-AppInContainer() {
     param(
         [Parameter(Mandatory = $true)]
         [string] $ContainerName,
@@ -239,8 +258,7 @@ function Install-AppFromContainer() {
         $appToInstall = $uninstalledApps[0]
         Write-Host "[Install Container App] - Installing $($dependency)"
         try {
-            Sync-BcContainerApp -containerName $ContainerName -appName $appToInstall.Name -appPublisher $appToInstall.Publisher -Mode ForceSync -Force
-            Install-BcContainerApp -containerName $ContainerName -appName $appToInstall.Name -appPublisher $appToInstall.Publisher -appVersion $appToInstall.Version -Force
+            InstallContainerAppWithRetry -ContainerName $ContainerName -AppName $appToInstall.Name -AppVersion $appToInstall.Version -AppPublisher $appToInstall.Publisher
         } catch {
             Write-Host "[Install Container App] - Failed to install $($dependency) ($($appToInstall.Version))"
             Write-Host $_.Exception.Message
@@ -253,6 +271,41 @@ function Install-AppFromContainer() {
         Write-Host "[Install Container App] - The following dependencies are missing: $($missingDependencies -join ', ')"
     }
     return $missingDependencies
+}
+
+
+function InstallContainerAppWithRetry() {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $ContainerName,
+        [Parameter(Mandatory = $true)]
+        [string] $AppName,
+        [Parameter(Mandatory = $true)]
+        [string] $AppVersion,
+        [Parameter(Mandatory = $true)]
+        [string] $AppPublisher,
+        [int] $MaxRetries = 3,
+        [int] $DelaySeconds = 10
+    )
+    $attempt = 0
+    while ($attempt -lt $MaxRetries) {
+        try {
+            Sync-BcContainerApp -containerName $ContainerName -appName $AppName -appPublisher $AppPublisher -Mode ForceSync -Force
+            Install-BcContainerApp -containerName $ContainerName -appName $AppName -appPublisher $AppPublisher -appVersion $AppVersion -Force
+            Write-Host "[Install Container App With Retry] - Successfully installed $AppName ($AppVersion) on attempt $($attempt + 1)"
+            return
+        } catch {
+            Write-Host "[Install Container App With Retry] - Attempt $($attempt + 1) to install $AppName ($AppVersion) failed: $($_.Exception.Message)"
+            $attempt++
+            if ($attempt -lt $MaxRetries) {
+                Write-Host "[Install Container App With Retry] - Retrying in $DelaySeconds seconds..."
+                Start-Sleep -Seconds $DelaySeconds
+            } else {
+                Write-Host "[Install Container App With Retry] - All attempts to install $AppName ($AppVersion) have failed."
+                throw
+            }
+        }
+    }
 }
 
 <#

@@ -1,11 +1,11 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Inventory.Item;
-using Microsoft.Sales.Customer;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Purchases.Vendor;
+using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 
 #pragma warning disable AA0210
 codeunit 148154 "Vendor Contracts Test"
@@ -337,11 +337,15 @@ codeunit 148154 "Vendor Contracts Test"
     procedure ContractLineDisconnectServiceOnTypeChange()
     var
         EntryNo: Integer;
+        SubscriptionLineDisconnectErr: Label 'Subscription Line should be disconnected from the contract after Type has changed.', Locked = true;
     begin
-        // Test: Subscription Line should be disconnected from the contract when the line type changes
+        // [SCENARIO] Subscription Line should be disconnected from the contract when the line type changes
         Initialize();
+
+        // [GIVEN] A vendor contract with a connected Subscription Line
         SetupNewContract(false);
 
+        // [GIVEN] Find a contract line that has a connected Subscription Line
         VendorContractLine.Reset();
         VendorContractLine.SetRange("Subscription Contract No.", VendorContract."No.");
         VendorContractLine.SetRange("Contract Line Type", Enum::"Contract Line Type"::Item);
@@ -349,9 +353,43 @@ codeunit 148154 "Vendor Contracts Test"
         VendorContractLine.SetFilter("Subscription Line Entry No.", '<>%1', 0);
         VendorContractLine.FindFirst();
         EntryNo := VendorContractLine."Subscription Line Entry No.";
+
+        // [WHEN] The contract line type is changed from Item to Comment
         VendorContractLine.Validate("Contract Line Type", VendorContractLine."Contract Line Type"::Comment);
+
+        // [THEN] The Subscription Line should be disconnected from the contract
         ServiceCommitment.Get(EntryNo);
-        ServiceCommitment.TestField("Subscription Contract No.", '');
+        AssertThat.AreEqual('', ServiceCommitment."Subscription Contract No.", SubscriptionLineDisconnectErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure ContractLineDisconnectServiceOnNoChange()
+    var
+        EntryNo: Integer;
+        SubscriptionLineDisconnectErr: Label 'Subscription Line should be disconnected from the contract after No. has changed.', Locked = true;
+    begin
+        // [SCENARIO] Subscription Line should be disconnected from the contract when the Item No. is cleared
+        Initialize();
+
+        // [GIVEN] A vendor contract with a connected Subscription Line
+        SetupNewContract(false);
+
+        // [GIVEN] Find a contract line that has a connected Subscription Line
+        VendorContractLine.Reset();
+        VendorContractLine.SetRange("Subscription Contract No.", VendorContract."No.");
+        VendorContractLine.SetRange("Contract Line Type", Enum::"Contract Line Type"::Item);
+        VendorContractLine.SetFilter("Subscription Header No.", '<>%1', '');
+        VendorContractLine.SetFilter("Subscription Line Entry No.", '<>%1', 0);
+        VendorContractLine.FindFirst();
+        EntryNo := VendorContractLine."Subscription Line Entry No.";
+
+        // [WHEN] The Item No. is cleared on the contract line
+        VendorContractLine.Validate("No.", '');
+
+        // [THEN] The Subscription Line should be disconnected from the contract
+        ServiceCommitment.Get(EntryNo);
+        AssertThat.AreEqual('', ServiceCommitment."Subscription Contract No.", SubscriptionLineDisconnectErr);
     end;
 
     [Test]

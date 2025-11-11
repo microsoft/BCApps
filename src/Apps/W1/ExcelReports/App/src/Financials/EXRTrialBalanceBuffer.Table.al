@@ -5,12 +5,13 @@
 
 namespace Microsoft.Finance.ExcelReports;
 
-using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.Consolidation;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 
 table 4402 "EXR Trial Balance Buffer"
 {
+    AllowInCustomizations = Never;
     Caption = 'Trial Balance Buffer';
     DataClassification = CustomerContent;
     TableType = Temporary;
