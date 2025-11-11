@@ -120,13 +120,13 @@ codeunit 7779 "Azure DI Impl." implements "AI Service Name"
         JsonObject: JsonObject;
         InputsObject: JsonObject;
         InnerObject: JsonObject;
-        JsonArray: JsonArray;
+        RequiredFeatures: JsonArray;
         JsonText: Text;
     begin
-        JsonArray.Add('isV4');
+        RequiredFeatures.Add('isV4');
         // Create the inner object with the base64Encoded property  
         InnerObject.Add('base64_encoded', Base64);
-        InnerObject.Add('required_features', JsonArray);
+        InnerObject.Add('required_features', RequiredFeatures);
         // Create the inputs object and add the inner object to it  
         InputsObject.Add('1', InnerObject);
         // Create the main JSON object and add the inputs object to it  
