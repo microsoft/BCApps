@@ -17,7 +17,6 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
 {
     Caption = 'Quality Management - Production and Assembly Quality Test Generation Rule Wizard';
     PageType = NavigatePage;
-    UsageCategory = None;
     ApplicationArea = QualityManagement;
     SourceTable = "Qlty. Management Setup";
 
@@ -702,7 +701,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         if LeavingThisStep = StepAssemblyOrProductionCounter then
             if IsProductionOrder then begin
                 MovingToThisStep := StepWhichLineCounter;
-                QltyProductionTrigger := Enum::"Qlty. Production Trigger".FromInteger(QltyManagementSetup."Production Trigger");
+                QltyProductionTrigger := QltyManagementSetup."Production Trigger";
             end else begin
                 MovingToThisStep := StepWhichAssemblyOrderCounter;
                 QltyAssemblyTrigger := QltyManagementSetup."Assembly Trigger";
@@ -791,19 +790,20 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
     begin
         if not QltyInTestGenerationRule.Get(TempQltyInTestGenerationRule.RecordId()) then begin
             QltyInTestGenerationRule.Init();
-            // SetEntryNo and UpdateSortOrder are internal - let the table handle it
-            QltyInTestGenerationRule.Insert(true);
+            QltyInTestGenerationRule.SetEntryNo();
+            QltyInTestGenerationRule.UpdateSortOrder();
+            QltyInTestGenerationRule.Insert();
         end;
         QltyInTestGenerationRule.Validate("Template Code", TemplateCode);
         QltyManagementSetup.Get();
         if IsProductionOrder then begin
             QltyInTestGenerationRule."Source Table No." := Database::"Prod. Order Routing Line";
-            QltyInTestGenerationRule.Intent := "Qlty. Gen. Rule Intent".FromInteger(20470); // Production
+            QltyInTestGenerationRule.Intent := QltyInTestGenerationRule.Intent::Production;
             QltyInTestGenerationRule."Condition Filter" := ProdOrderRoutingLineRuleFilter;
             QltyInTestGenerationRule.SetIntentAndDefaultTriggerValuesFromSetup();
-            QltyInTestGenerationRule."Production Trigger" := QltyProductionTrigger.AsInteger();
+            QltyInTestGenerationRule."Production Trigger" := QltyProductionTrigger;
 
-            QltyManagementSetup."Production Trigger" := QltyProductionTrigger.AsInteger();
+            QltyManagementSetup."Production Trigger" := QltyProductionTrigger;
         end else begin
             QltyInTestGenerationRule."Source Table No." := Database::"Posted Assembly Header";
             QltyInTestGenerationRule.Intent := QltyInTestGenerationRule.Intent::Assembly;
