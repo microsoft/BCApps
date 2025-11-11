@@ -92,7 +92,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
         DocumentNo: Text;
         RelatedDocumentVariant: Variant)
     var
-        DataTypeManagement: Codeunit "Data Type Management";
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         DocumentCreatedNotification: Notification;
         RelatedDocument: RecordId;
         OptionalRelatedDocumentRecordRef: RecordRef;
@@ -102,7 +102,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     begin
         Source := GetSourceSummaryText(QltyInspectionTestHeader);
 
-        if DataTypeManagement.GetRecordRef(RelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then
+        if QltyMiscHelpers.GetRecordRefFromVariant(RelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then
             RelatedDocument := OptionalRelatedDocumentRecordRef.RecordId();
 
         if (DocumentType <> '') and (DocumentType[1] in ['A', 'E', 'I', 'O', 'U']) then
@@ -151,7 +151,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     procedure NotifyDocumentCreationFailed(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentType: Text; OptionalAdditionalMessageContext: Text; OptionalRelatedDocumentVariant: Variant)
     var
         Item: Record Item;
-        DataTypeManagement: Codeunit "Data Type Management";
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         DocumentCreationFailedNotification: Notification;
         OptionalRelatedDocumentRecordRef: RecordRef;
         RelatedDocument: RecordId;
@@ -181,7 +181,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
                 Item."Base Unit of Measure");
 
         if OptionalRelatedDocumentVariant.IsRecord() or OptionalRelatedDocumentVariant.IsRecordRef() or OptionalRelatedDocumentVariant.IsRecordId() then
-            if DataTypeManagement.GetRecordRef(OptionalRelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then begin
+            if QltyMiscHelpers.GetRecordRefFromVariant(OptionalRelatedDocumentVariant, OptionalRelatedDocumentRecordRef) then begin
                 RelatedDocument := OptionalRelatedDocumentRecordRef.RecordId();
                 DocumentCreationFailedNotification.SetData(NotificationDataRelatedRecordIdTok, Format(RelatedDocument));
                 AvailableOptions.Add(OpenTheDocumentLbl, HandleOpenDocumentTok);
@@ -368,6 +368,9 @@ codeunit 20437 "Qlty. Notification Mgmt."
         RecordIdData := NotificationToShow.GetData(NotificationDataRelatedRecordIdTok);
         if Evaluate(RelatedRecordId, RecordIdData) then
             if DataTypeManagement.GetRecordRef(RelatedRecordId, RecordRef) then begin
+                if RecordRef.Number() = 0 then
+                    exit;
+
                 RecordRefVariant := RecordRef;
 
                 if RecordRef.Number() = Database::"Warehouse Activity Header" then begin

@@ -83,7 +83,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         OutStreamToTest: OutStream;
     begin
         // [SCENARIO] Attach a document to a Quality Inspection Template and verify attachment details
-        
+
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
@@ -116,7 +116,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         FieldCode: Text;
     begin
         // [SCENARIO] Attach a document to a Quality Field and verify attachment details
-        
+
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
@@ -152,7 +152,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         OutStreamToTest: OutStream;
     begin
         // [SCENARIO] Attach a document to a Quality Inspection Test Line and verify attachment details
-        
+
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
@@ -193,7 +193,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         OutStreamToTest: OutStream;
     begin
         // [SCENARIO] Attach a document to a Quality Inspection Template Line and verify attachment details
-        
+
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
@@ -232,7 +232,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         QltyInspectionTest: TestPage "Qlty. Inspection Test";
     begin
         // [SCENARIO] Open attachments page for a test record and verify correct attachment filtering
-        
+
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
@@ -266,6 +266,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         QltyInspectionTest.GotoRecord(QltyInspectionTestHeader);
         FileName := FirstFileNameTxt;
         QltyInspectionTest.Attachments.Invoke();
+        QltyInspectionTest."Attached Documents".OpenInDetail.Invoke();
 
         // [THEN] Only the attachment for the first test is displayed (verified in modal page handler)
     end;
@@ -283,7 +284,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         TemplateCode2: Text;
     begin
         // [SCENARIO] Open attachments page for a template record and verify correct attachment filtering
-        
+
         Initialize();
 
         // [GIVEN] Two Quality Inspection Templates with unique codes are created
@@ -323,6 +324,60 @@ codeunit 139970 "Qlty. Codeunit Tests"
     end;
 
     [Test]
+    [HandlerFunctions('DocumentAttachmentDetailsModalPageHandler')]
+    procedure HandleOnAfterOpenForRecRef_Field()
+    var
+        QltyField: Record "Qlty. Field";
+        SecondQltyField: Record "Qlty. Field";
+        DocumentAttachment: Record "Document Attachment";
+        SecondDocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentDetails: Page "Document Attachment Details";
+        RecordRef: RecordRef;
+        FieldCode: Text;
+        SecondFieldCode: Text;
+    begin
+        // [SCENARIO] Opening document attachment details for a Quality Field record through RecordRef shows only attachments for that specific field
+
+        Initialize();
+
+        QltyTestsUtility.EnsureSetup();
+
+        // [GIVEN] Two Quality Field records with different codes are created
+        QltyField.Init();
+        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(QltyField.Code), FieldCode);
+        QltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(QltyField.Code));
+        QltyField.Insert();
+
+        SecondQltyField.Init();
+        repeat
+            QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SecondQltyField.Code), SecondFieldCode);
+        until SecondFieldCode <> FieldCode;
+        SecondQltyField.Code := CopyStr(SecondFieldCode, 1, MaxStrLen(SecondQltyField.Code));
+        SecondQltyField.Insert();
+
+        // [GIVEN] Document attachments are created for both field records
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Qlty. Field";
+        DocumentAttachment."No." := QltyField.Code;
+        DocumentAttachment."File Name" := FirstFileNameTxt;
+        DocumentAttachment.Insert();
+
+        SecondDocumentAttachment.Init();
+        SecondDocumentAttachment."Table ID" := Database::"Qlty. Field";
+        SecondDocumentAttachment."No." := SecondQltyField.Code;
+        SecondDocumentAttachment."File Name" := SecondFileNameTxt;
+        SecondDocumentAttachment.Insert();
+
+        // [WHEN] The document attachment details page is opened for the first field via RecordRef
+        RecordRef.GetTable(QltyField);
+        FileName := FirstFileNameTxt;
+        DocumentAttachmentDetails.OpenForRecRef(RecordRef);
+        DocumentAttachmentDetails.RunModal();
+
+        // [THEN] Only the attachment for the first field is displayed (verified in modal page handler)
+    end;
+
+    [Test]
     procedure FilterDocumentAttachment_Field()
     var
         ToLoadQltyField: Record "Qlty. Field";
@@ -332,7 +387,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         FieldCode: Text;
     begin
         // [SCENARIO] Filter document attachments for a Quality Field record and verify correct filter is applied
-        
+
         Initialize();
 
         // [GIVEN] A Quality Field with a randomly generated code is created
@@ -366,7 +421,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Filter document attachments for a Quality Inspection Test Line and verify correct filters are applied
-        
+
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
@@ -411,7 +466,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         TemplateCode: Text;
     begin
         // [SCENARIO] Filter document attachments for a Quality Inspection Template Line and verify correct filters are applied
-        
+
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
@@ -455,7 +510,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         Navigate: TestPage Navigate;
     begin
         // [SCENARIO] Navigate to a Quality Inspection Test record from the Navigate page and verify correct test is opened
-        
+
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
@@ -496,7 +551,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         Count: Integer;
     begin
         // [SCENARIO] Navigate to multiple Quality Inspection Test records (original and retest) from the Navigate page and verify both tests are shown
-        
+
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized
@@ -550,7 +605,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         LotNoInformationCard: TestPage "Lot No. Information Card";
     begin
         // [SCENARIO] Navigate from a lot number to find associated Quality Inspection Test records and verify tracking records are found
-        
+
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized and a full WMS location is created
@@ -558,7 +613,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
 
         // [GIVEN] A lot-tracked item with a purchase order and reservation entry are created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
 
         // [GIVEN] A quality inspection template and rule are created for purchase lines
@@ -600,7 +655,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Get the conditional card page ID for a Quality Inspection Test Header record and verify correct page is returned
-        
+
         Initialize();
 
         // [GIVEN] A record reference is opened for the Quality Inspection Test Header table
@@ -618,7 +673,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Get the conditional list page ID for a Quality Inspection Test Header record and verify correct page is returned
-        
+
         Initialize();
 
         // [GIVEN] A record reference is opened for the Quality Inspection Test Header table
@@ -642,7 +697,7 @@ codeunit 139970 "Qlty. Codeunit Tests"
         CaptionJsonToken: JsonToken;
     begin
         // [SCENARIO] Get page summary for a Quality Inspection Test and verify brick headers are correctly populated from setup
-        
+
         Initialize();
 
         // [GIVEN] Quality Management setup is initialized

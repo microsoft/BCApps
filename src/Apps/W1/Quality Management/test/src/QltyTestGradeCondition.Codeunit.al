@@ -527,7 +527,7 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        UnusedResReservationEntry: Record "Reservation Entry";
+        DummyReservationEntry: Record "Reservation Entry";
         ToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
@@ -566,7 +566,7 @@ codeunit 139956 "Qlty. Test Grade Condition"
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreateVendor(Vendor);
         UnusedVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, UnusedResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurOrdPurchaseLine);
         QltyInspectionTestCreate.SetPreventDisplayingTestEvenIfConfigured(true);
         QltyInspectionTestCreate.CreateTest(RecordRef, false);
@@ -822,7 +822,7 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        UnusedResReservationEntry: Record "Reservation Entry";
+        DummyReservationEntry: Record "Reservation Entry";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
         RecordRef: RecordRef;
@@ -870,7 +870,7 @@ codeunit 139956 "Qlty. Test Grade Condition"
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreateVendor(Vendor);
         UnusedVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, UnusedResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurOrdPurchaseLine);
         QltyInspectionTestCreate.CreateTest(RecordRef, false);
         QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
@@ -903,7 +903,7 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        UnusedResReservationEntry: Record "Reservation Entry";
+        DummyReservationEntry: Record "Reservation Entry";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
         RecordRef: RecordRef;
@@ -945,7 +945,7 @@ codeunit 139956 "Qlty. Test Grade Condition"
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreateVendor(Vendor);
         UnusedVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, UnusedResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurOrdPurchaseLine);
         QltyInspectionTestCreate.CreateTest(RecordRef, false);
         QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
@@ -974,7 +974,7 @@ codeunit 139956 "Qlty. Test Grade Condition"
         Vendor: Record Vendor;
         PurOrderPurchaseHeader: Record "Purchase Header";
         PurOrdPurchaseLine: Record "Purchase Line";
-        UnusedResReservationEntry: Record "Reservation Entry";
+        DummyReservationEntry: Record "Reservation Entry";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
         RecID: RecordId;
@@ -1011,7 +1011,7 @@ codeunit 139956 "Qlty. Test Grade Condition"
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreateVendor(Vendor);
         UnusedVariant := '';
-        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, UnusedResReservationEntry);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurOrdPurchaseLine);
         QltyInspectionTestCreate.CreateTest(RecordRef, false);
         QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);

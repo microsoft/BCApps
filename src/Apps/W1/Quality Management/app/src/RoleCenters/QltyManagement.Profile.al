@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.RoleCenters;
 
-profile "Qlty. Mgmt. Explore All RC"
+profile "Qlty. Management"
 {
-    RoleCenter = "Qlty. Mgmt. Explore All RC";
-    Description = 'Quality Management';
+    RoleCenter = "Qlty. Manager RC";
     Caption = 'Quality Management';
     ProfileDescription = 'Navigation menu only.';
     Promoted = true;
