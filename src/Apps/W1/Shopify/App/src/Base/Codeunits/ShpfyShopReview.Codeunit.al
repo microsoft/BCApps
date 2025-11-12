@@ -94,7 +94,7 @@ codeunit 30407 "Shpfy Shop Review"
 
     local procedure LogReviewReminderTelemetry()
     begin
-        Session.LogMessage('', ReviewReminderTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+        Session.LogMessage('0000QN1', ReviewReminderTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
     end;
 
     local procedure GetReviewReminderNotificationId(): Guid
