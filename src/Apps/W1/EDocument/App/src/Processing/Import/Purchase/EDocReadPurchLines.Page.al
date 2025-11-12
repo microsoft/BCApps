@@ -82,7 +82,7 @@ page 6184 "E-Doc. Read. Purch. Lines"
         if EDocumentPurchaseLine.FindSet() then
             repeat
                 Rec := EDocumentPurchaseLine;
-                Rec.Insert();
+                if Rec.Insert() then;
             until EDocumentPurchaseLine.Next() = 0;
         if Rec.FindFirst() then;
     end;
