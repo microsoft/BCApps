@@ -105,7 +105,6 @@ pageextension 30119 "Shpfy Item Card" extends "Item Card"
     var
         Shop: Record "Shpfy Shop";
         ShopifyProduct: Record "Shpfy Product";
-        ShopifyProductEvent: Codeunit "Shpfy Product Events";
     begin
         IsProductMapped := false;
         ShopifyProduct.SetLoadFields("Item SystemId", "Shop Code");
@@ -124,7 +123,6 @@ pageextension 30119 "Shpfy Item Card" extends "Item Card"
     var
         Shop: Record "Shpfy Shop";
         ShopifyProduct: Record "Shpfy Product";
-        ShopifyProductEvent: Codeunit "Shpfy Product Events";
     begin
         AvailableStoresToMap := false;
         Shop.SetRange(Enabled, true);
