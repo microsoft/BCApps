@@ -10,6 +10,11 @@
 	],
   "rules": [
         {
+          "id": "PTE0020",
+          "action": "None",
+          "justification": "The application app shouldn't point at itself."
+        },
+        {
           "id": "AL0254",
           "action": "Warning"
         },
