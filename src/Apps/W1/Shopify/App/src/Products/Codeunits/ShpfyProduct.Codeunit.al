@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Integration.Shopify;
+using Microsoft.Inventory.Item;
 
 /// <summary>
 /// Provides functionality for retrieving Shopify product information.
@@ -15,6 +16,15 @@ codeunit 30234 "Shpfy Product"
     var
         SyncProducts: Codeunit "Shpfy Sync Products";
 
+    /// <summary>
+    /// Adds the specified item to the specified Shopify shop.
+    /// </summary>
+    /// <param name="Item">The item record to be added.</param>
+    /// <param name="ShopifyShop">The Shopify shop record where the item will be added.</param>
+    procedure AddItemToShopify(Item: Record Item; ShopifyShop: Record "Shpfy Shop")
+    begin
+        SyncProducts.AddItemToShopify(Item, ShopifyShop);
+    end;
     /// <summary>
     /// Retrieves the product URL for the specified Shopify Variant.
     /// </summary>

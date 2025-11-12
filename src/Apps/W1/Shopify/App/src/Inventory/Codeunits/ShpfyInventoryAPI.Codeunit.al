@@ -39,7 +39,6 @@ codeunit 30195 "Shpfy Inventory API"
         StockCalculation: Interface "Shpfy Stock Calculation";
         UOM: Code[10];
         SalesUOM: Code[10];
-        IsHandled: Boolean;
     begin
         SetShop(ShopInventory."Shop Code");
         if ShopifyProduct.Get(ShopInventory."Product Id") and ShopifyVariant.Get(ShopInventory."Variant Id") then begin

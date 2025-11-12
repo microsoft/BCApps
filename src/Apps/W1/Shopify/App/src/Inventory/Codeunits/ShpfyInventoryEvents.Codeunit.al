@@ -12,7 +12,6 @@ using Microsoft.Inventory.Item;
 /// </summary>
 codeunit 30196 "Shpfy Inventory Events"
 {
-
     [IntegrationEvent(false, false)]
     /// <summary> 
     /// Raised After Calculation Stock.

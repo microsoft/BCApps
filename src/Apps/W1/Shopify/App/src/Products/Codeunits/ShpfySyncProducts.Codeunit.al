@@ -186,10 +186,8 @@ codeunit 30185 "Shpfy Sync Products"
         ShopSelection: Page "Shpfy Shop Selection";
         AddItemConfirm: Page "Shpfy Add Item Confirm";
         MappedShopsFilter: Text;
-        ShpfyProductEvent: Codeunit "Shpfy Product Events";
     begin
         ShopifyShop.SetRange(Enabled, true);
-        ShpfyProductEvent.OnAfterSetFilterShopifyShopOnConfirmAddItemToShopify(ShopifyShop);
         if ShopifyShop.Count = 1 then begin
             ShopifyShop.FindFirst();
             AddItemConfirm.SetItemDescription(Item.Description);
@@ -199,7 +197,6 @@ codeunit 30185 "Shpfy Sync Products"
                 exit(true);
         end else begin
             ShopifyProduct.SetRange("Item SystemId", Item.systemId);
-            ShpfyProductEvent.OnAfterSetFilterShopifyProductOnConfirmAddItemToShopify(ShopifyProduct);
             if ShopifyProduct.FindSet() then begin
                 repeat
                     MappedShopsFilter += '<>' + ShopifyProduct."Shop Code" + '&';
