@@ -78,7 +78,7 @@ foreach ($company in $existingCompanies) {
 }
 
 Write-Host "Creating new test company in container $($parameters.ContainerName)"
-New-CompanyInBcContainer -containerName $parameters.ContainerName -companyName "CRONUS International TestCompany" -evaluationCompany
+New-CompanyInBcContainer -containerName $parameters.ContainerName -companyName "CRONUS TestCompany" -evaluationCompany
 
 # Reinstall all the uninstalled apps in the container
 # This is needed to ensure that the various Demo Data apps are installed in the container when we generate demo data
