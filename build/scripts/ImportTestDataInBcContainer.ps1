@@ -80,7 +80,7 @@ foreach ($company in $existingCompanies) {
 Write-Host "Creating new test company in container $($parameters.ContainerName)"
 New-CompanyInBcContainer -containerName $parameters.ContainerName -companyName "CRONUS UnitTests" -evaluationCompany
 New-CompanyInBcContainer -containerName $parameters.ContainerName -companyName "CRONUS IntegrationTest" -evaluationCompany
-New-CompanyInBcContainer -containerName $parameters.ContainerName -companyName "CRONUS UncategorizedTests" -evaluationCompany
+#New-CompanyInBcContainer -containerName $parameters.ContainerName -companyName "CRONUS UncategorizedTests" -evaluationCompany
 
 # Reinstall all the uninstalled apps in the container
 # This is needed to ensure that the various Demo Data apps are installed in the container when we generate demo data
@@ -99,5 +99,8 @@ if ($failedToInstallApps.Count -gt 0) {
 foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesLast)) {
     Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - $($app.IsInstalled) / $($app.IsPublished)"
 }
+
+Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "EnableTaskScheduler" -keyValue false
+Restart-BcContainerServiceTier -ContainerName $parameters.ContainerName
 
 Invoke-DemoDataGeneration -ContainerName $parameters.ContainerName -TestType (Get-ALGoSetting -Key "testType")
