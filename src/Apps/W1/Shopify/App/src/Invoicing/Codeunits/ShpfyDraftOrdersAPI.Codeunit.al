@@ -5,9 +5,9 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.History;
-using Microsoft.Finance.Currency;
 
 /// <summary>
 /// Codeunit Draft Orders API (ID 30159).

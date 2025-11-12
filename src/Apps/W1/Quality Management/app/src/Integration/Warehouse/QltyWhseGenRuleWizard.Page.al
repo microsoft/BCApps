@@ -17,7 +17,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 {
     Caption = 'Quality Management - Warehouse Movement Quality Test Generation Rule Wizard';
     PageType = NavigatePage;
-    UsageCategory = Administration;
+    UsageCategory = None;
     ApplicationArea = Warehouse;
     SourceTable = "Qlty. Management Setup";
 

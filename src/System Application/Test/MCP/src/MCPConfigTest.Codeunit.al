@@ -6,9 +6,9 @@
 namespace System.Test.MCP;
 
 using System.MCP;
+using System.Reflection;
 using System.TestLibraries.MCP;
 using System.TestLibraries.Utilities;
-using System.Reflection;
 
 codeunit 130130 "MCP Config Test"
 {

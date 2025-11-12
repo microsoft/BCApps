@@ -24,6 +24,7 @@ tableextension 20409 "Qlty. Transfer Header" extends "Transfer Header"
             ToolTip = 'Specifies the related quality inspection test.';
             DataClassification = CustomerContent;
             TableRelation = "Qlty. Inspection Test Header"."Retest No." where("No." = field("Qlty. Inspection Test No."));
+            BlankZero = true;
         }
     }
 

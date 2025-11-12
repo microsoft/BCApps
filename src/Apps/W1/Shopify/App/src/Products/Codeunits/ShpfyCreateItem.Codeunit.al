@@ -5,11 +5,11 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Inventory.Item;
-using Microsoft.Foundation.UOM;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Finance.Currency;
+using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Purchases.Vendor;
 
 /// <summary>
 /// Codeunit Shpfy Create Item (ID 30171).

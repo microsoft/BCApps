@@ -12,9 +12,9 @@ using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.Setup.Setup;
 
-page 20421 "Qlty. Mgmt. Explore All RC"
+page 20421 "Qlty. Manager RC"
 {
-    Caption = 'Quality Management';
+    Caption = 'Quality Manager Role Center';
     PageType = RoleCenter;
     ApplicationArea = QualityManagement;
 

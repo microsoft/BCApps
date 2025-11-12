@@ -137,14 +137,12 @@ codeunit 20454 "Qlty. Item Journal Management"
     local procedure CheckConditionsForWarehouseMovement(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Location: Record Location): Boolean
     begin
         // Check for item tracking movement
-        if (TempQuantityToActQltyDispositionBuffer."New Lot No." <> '') and (QltyInspectionTestHeader."Source Lot No." <> TempQuantityToActQltyDispositionBuffer."New Lot No.") then
-            exit(true);
-
-        if (TempQuantityToActQltyDispositionBuffer."New Serial No." <> '') and (QltyInspectionTestHeader."Source Serial No." <> TempQuantityToActQltyDispositionBuffer."New Serial No.") then
-            exit(true);
-
-        if (TempQuantityToActQltyDispositionBuffer."New Package No." <> '') and (QltyInspectionTestHeader."Source Package No." <> TempQuantityToActQltyDispositionBuffer."New Package No.") then
-            exit(true);
+        case true of
+            (TempQuantityToActQltyDispositionBuffer."New Lot No." <> '') and (QltyInspectionTestHeader."Source Lot No." <> TempQuantityToActQltyDispositionBuffer."New Lot No."),
+            (TempQuantityToActQltyDispositionBuffer."New Serial No." <> '') and (QltyInspectionTestHeader."Source Serial No." <> TempQuantityToActQltyDispositionBuffer."New Serial No."),
+            (TempQuantityToActQltyDispositionBuffer."New Package No." <> '') and (QltyInspectionTestHeader."Source Package No." <> TempQuantityToActQltyDispositionBuffer."New Package No."):
+                exit(true);
+        end;
 
         // Check for movement between bins
         if TempQuantityToActQltyDispositionBuffer."New Bin Code" = '' then

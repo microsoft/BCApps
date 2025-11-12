@@ -192,9 +192,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         SearchItemJournalTemplate: Record "Item Journal Template";
         ItemJournalBatch: Record "Item Journal Batch";
     begin
-        if not QltyManagementSetup.ReadPermission() then
-            exit;
-        if not QltyManagementSetup.Get() then
+        if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
         if ItemJnlTemplate.GetFilter("Page ID") = '' then
@@ -252,9 +250,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         SearchWarehouseJournalTemplate: Record "Warehouse Journal Template";
         WarehouseJournalBatch: Record "Warehouse Journal Batch";
     begin
-        if not QltyManagementSetup.ReadPermission() then
-            exit;
-        if not QltyManagementSetup.Get() then
+        if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
         if WhseJnlTemplate.GetFilter("Page ID") = '' then
@@ -357,6 +353,9 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     var
         Item: Record Item;
     begin
+        if ItemNo = '' then
+            exit(false);
+
         if not Item.Get(ItemNo) then
             exit(false);
 
@@ -373,8 +372,14 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     internal procedure DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; ReturnOrderPurchaseLine: Record "Purchase Line"; QtyToReturn: Decimal)
     var
         ReservationEntry: Record "Reservation Entry";
+        TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
         ExpirationDate: Date;
     begin
+        TempItemTrackingSetup."Lot No. Required" := true;
+        TempItemTrackingSetup."Serial No. Required" := true;
+        TempItemTrackingSetup."Package No. Required" := true;
+        QltyInspectionTestHeader.IsItemTrackingUsed(TempItemTrackingSetup);
+
         ReservationEntry.SetRange("Location Code", ReturnOrderPurchaseLine."Location Code");
         ReservationEntry.SetRange("Item No.", QltyInspectionTestHeader."Source Item No.");
         ReservationEntry.SetRange("Source Type", Database::"Purchase Line");
@@ -383,11 +388,11 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         ReservationEntry.SetRange(Positive, false);
         if QltyInspectionTestHeader."Source Variant Code" <> '' then
             ReservationEntry.SetRange("Variant Code", QltyInspectionTestHeader."Source Variant Code");
-        if QltyInspectionTestHeader.IsLotTracked() then
+        if TempItemTrackingSetup."Lot No. Required" then
             ReservationEntry.SetRange("Lot No.", QltyInspectionTestHeader."Source Lot No.");
-        if QltyInspectionTestHeader.IsSerialTracked() then
+        if TempItemTrackingSetup."Serial No. Required" then
             ReservationEntry.SetRange("Serial No.", QltyInspectionTestHeader."Source Serial No.");
-        if QltyInspectionTestHeader.IsPackageTracked() then
+        if TempItemTrackingSetup."Package No. Required" then
             ReservationEntry.SetRange("Package No.", QltyInspectionTestHeader."Source Package No.");
         if ReservationEntry.FindFirst() then
             ExpirationDate := ReservationEntry."Expiration Date";

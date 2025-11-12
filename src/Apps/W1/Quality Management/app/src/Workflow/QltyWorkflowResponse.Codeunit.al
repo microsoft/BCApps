@@ -257,19 +257,6 @@ codeunit 20424 "Qlty. Workflow Response"
                             ResponseExecuted := true;
                         end;
                     end;
-                QltyWorkflowSetup.GetWorkflowResponseSetTestValue():
-                    begin
-                        EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
-
-                        if QltyInspectionTestHeader."No." <> '' then begin
-                            ValueToSet := GetStepConfigurationValue(ForOriginalWorkflowStepArgument, GetWellKnownKeyValueExpression());
-                            if ValueToSet.Contains('[') or ValueToSet.Contains('{') then
-                                ValueToSet := QltyExpressionMgmt.EvaluateTextExpression(ValueToSet, QltyInspectionTestHeader, QltyInspectionTestLine, true);
-
-                            QltyInspectionTestHeader.SetTestValue(GetStepConfigurationValue(ForOriginalWorkflowStepArgument, GetWellKnownKeyField()), ValueToSet);
-                            ResponseExecuted := true;
-                        end;
-                    end;
                 QltyWorkflowSetup.GetWorkflowResponseSetDatabaseValue():
                     begin
                         EnsureTestHeaderIsLoaded(QltyInspectionTestHeader, PrimaryRecordRefInWorkflow);
@@ -477,19 +464,6 @@ codeunit 20424 "Qlty. Workflow Response"
         end;
         CustomQltyExpressConfigValue.Value := CopyStr(Value, 1, MaxStrLen(CustomQltyExpressConfigValue.Value));
         CustomQltyExpressConfigValue.Modify();
-    end;
-    /// <summary>
-    /// Gets the step configuration value as a Code[50].
-    /// </summary>
-    /// <param name="WorkflowStepArgument">Workflow Step Argument</param>
-    /// <param name="CurrentKey">Configuration Key</param>
-    /// <returns>Value as Code[50]</returns>
-    procedure GetStepConfigurationValueAsCode50(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultCode: Code[50]
-    var
-        StepConfigurationValue: Text;
-    begin
-        StepConfigurationValue := GetStepConfigurationValue(WorkflowStepArgument, CurrentKey);
-        ResultCode := CopyStr(StepConfigurationValue, 1, MaxStrLen(ResultCode));
     end;
 
     /// <summary>
@@ -707,6 +681,7 @@ codeunit 20424 "Qlty. Workflow Response"
     begin
         exit('INTRANSIT');
     end;
+
     /// <summary>
     /// Returns the key value for the external doc. no.
     /// </summary>
@@ -857,6 +832,7 @@ codeunit 20424 "Qlty. Workflow Response"
 
         if ResponseWorkflowStepInstance."Previous Workflow Step ID" = 0 then
             exit;
+
         WorkflowStep.Get(ResponseWorkflowStepInstance."Workflow Code", ResponseWorkflowStepInstance."Previous Workflow Step ID");
         if not (WorkflowStep."Previous Workflow Step ID" = 0) then
             repeat
@@ -879,14 +855,14 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// OnWorkflowHandleOnExecuteWorkflowResponseAfterFindRelatedRecord occurs after the system has found the related record for the workflow step.
     /// </summary>
-    /// <param name="ResponseExecuted">VAR Boolean.</param>
-    /// <param name="pVariant">VAR Variant.</param>
+    /// <param name="ResponseExecuted">var Boolean.</param>
+    /// <param name="pVariant">var Variant.</param>
     /// <param name="pxVariant">Variant.</param>
     /// <param name="ResponseWorkflowStepInstance">Record "Workflow Step Instance".</param>
-    /// <param name="TargetRecordRef">VAR recordref.</param>
+    /// <param name="TargetRecordRef">var RecordRef.</param>
     /// <param name="Handled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnWorkflowHandleOnExecuteWorkflowResponseAfterFindRelatedRecord(var ResponseExecuted: Boolean; var pVariant: Variant; pxVariant: Variant; ResponseWorkflowStepInstance: Record "Workflow Step Instance"; var TargetRecordRef: recordref; var Handled: Boolean)
+    local procedure OnWorkflowHandleOnExecuteWorkflowResponseAfterFindRelatedRecord(var ResponseExecuted: Boolean; var pVariant: Variant; pxVariant: Variant; ResponseWorkflowStepInstance: Record "Workflow Step Instance"; var TargetRecordRef: RecordRef; var Handled: Boolean)
     begin
     end;
 }

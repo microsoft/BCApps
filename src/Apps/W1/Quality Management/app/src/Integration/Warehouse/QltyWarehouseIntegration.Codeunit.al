@@ -10,10 +10,10 @@ using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Utilities;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
-using System.Reflection;
 
 codeunit 20438 "Qlty. - Warehouse Integration"
 {
@@ -23,15 +23,10 @@ codeunit 20438 "Qlty. - Warehouse Integration"
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
     begin
-        if WarehouseEntry.Quantity <= 0 then
+        if (WarehouseEntry."Entry Type" <> WarehouseEntry."Entry Type"::Movement) or (WarehouseEntry.Quantity <= 0) then
             exit;
 
-        if WarehouseEntry."Entry Type" <> WarehouseEntry."Entry Type"::Movement then
-            exit;
-
-        if not QltyManagementSetup.ReadPermission() then
-            exit;
-        if not QltyManagementSetup.Get() then
+        if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
         QltyInTestGenerationRule.SetRange("Warehouse Movement Trigger", QltyInTestGenerationRule."Warehouse Movement Trigger"::OnWhseMovementRegister);
@@ -117,15 +112,15 @@ codeunit 20438 "Qlty. - Warehouse Integration"
         TransferLineReserve: Codeunit "Transfer Line-Reserve";
         PurchLineReserve: Codeunit "Purch. Line-Reserve";
         SalesLineReserve: Codeunit "Sales Line-Reserve";
-        DataTypeManagement: Codeunit "Data Type Management";
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         RecordRefToSource: RecordRef;
-        Counter: Integer;
+        ReservationCounter: Integer;
     begin
         TempTrackingSpecification.Reset();
         if TempTrackingSpecification.IsTemporary() then
             TempTrackingSpecification.DeleteAll();
 
-        if not DataTypeManagement.GetRecordRef(OptionalSourceLineVariant, RecordRefToSource) then
+        if not QltyMiscHelpers.GetRecordRefFromVariant(OptionalSourceLineVariant, RecordRefToSource) then
             exit;
 
         case RecordRefToSource.Number() of
@@ -143,9 +138,9 @@ codeunit 20438 "Qlty. - Warehouse Integration"
         ReservationEntry.SetFilter("Qty. to Handle (Base)", '<>0');
         if ReservationEntry.FindSet() then
             repeat
-                Counter += 1;
+                ReservationCounter += 1;
                 Clear(TempTrackingSpecification);
-                TempTrackingSpecification."Entry No." := Counter;
+                TempTrackingSpecification."Entry No." := ReservationCounter;
                 TempTrackingSpecification.SetSourceFromReservEntry(ReservationEntry);
                 TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
                 TempTrackingSpecification."Package No." := ReservationEntry."Package No.";

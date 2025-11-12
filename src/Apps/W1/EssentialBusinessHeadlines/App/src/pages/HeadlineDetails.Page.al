@@ -5,11 +5,11 @@
 
 namespace System.Visualization;
 
-using Microsoft.Sales.Customer;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
-using Microsoft.Finance.GeneralLedger.Setup;
 
 page 1439 "Headline Details"
 {

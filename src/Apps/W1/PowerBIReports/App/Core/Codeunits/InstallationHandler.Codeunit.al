@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.PowerBIReports;
 
-using System.Environment.Configuration;
 using Microsoft.Foundation.Company;
 using System.DataAdministration;
+using System.Environment.Configuration;
 
 codeunit 36950 "Installation Handler"
 {

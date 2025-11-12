@@ -5,18 +5,18 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
-using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Foundation.ExtendedText;
+using Microsoft.Integration.Shopify;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
-using Microsoft.Sales.Pricing;
-using Microsoft.Purchases.Vendor;
+using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Pricing.PriceList;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Pricing;
+using System.TestLibraries.Utilities;
 
 /// <summary>
 /// Codeunit Shpfy Product Init Test (ID 139603).

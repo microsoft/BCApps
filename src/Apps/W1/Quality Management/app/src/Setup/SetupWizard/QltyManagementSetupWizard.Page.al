@@ -358,7 +358,7 @@ page 20438 "Qlty. Management Setup Wizard"
                 {
                     ShowCaption = false;
                     Visible = ShowHTMLHeader;
-                    InstructionalText = 'Thank you for installing Quality Inspections. Get started by navigating to Quality Inspection Templates and Test Generation Rules.';
+                    InstructionalText = 'Thank you for installing Quality Management. Get started by navigating to Quality Inspection Templates and Test Generation Rules.';
                 }
             }
         }

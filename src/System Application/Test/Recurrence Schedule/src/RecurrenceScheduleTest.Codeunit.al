@@ -6,8 +6,8 @@
 namespace System.Test.DateTime;
 
 using System.DateTime;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 codeunit 134691 "Recurrence Schedule Test"
 {
     Subtype = Test;

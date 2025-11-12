@@ -7,8 +7,8 @@ namespace System.Test.DataAdministration;
 
 using System.DataAdministration;
 using System.TestLibraries.DataAdministration;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 // These tests rely on codeunit 138704 "Reten. Pol. Test Installer"
 // if/when we get the function NavApp.GetCalllerModuleInfo(var Info: ModuleInfo) we can refactor and remove the installer dependency

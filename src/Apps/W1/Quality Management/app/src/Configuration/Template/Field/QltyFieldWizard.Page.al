@@ -558,7 +558,6 @@ page 20432 "Qlty. Field Wizard"
                     QltyField."Field Type" := QltyField."Field Type"::"Field Type Table Lookup";
                     if QltyField."Lookup Table No." = 0 then begin
                         QltyField.Validate("Lookup Table No.", Database::"Qlty. Lookup Code");
-                        QltyField."Lookup Table Filter" := 'where(' + QltyLookupCode.FieldName("Group Code") + '=const(' + QltyField.Code + '))';
                         QltyField.Validate("Lookup Field No.", QltyLookupCode.FieldNo(Code));
                     end;
                 end;

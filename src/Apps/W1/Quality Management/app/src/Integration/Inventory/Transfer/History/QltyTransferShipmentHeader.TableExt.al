@@ -26,6 +26,7 @@ tableextension 20411 "Qlty. Transfer Shipment Header" extends "Transfer Shipment
             DataClassification = CustomerContent;
             TableRelation = "Qlty. Inspection Test Header"."Retest No." where("No." = field("Qlty. Inspection Test No."));
             Description = 'Only used to link to the test that created the original Transfer document that generated this.';
+            BlankZero = true;
         }
     }
 

@@ -9,8 +9,13 @@ using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Field;
 using Microsoft.QualityManagement.Document;
 
+/// <summary>
+/// Includes event subscribers and tools to help deal with attachments to quality inspection tests.
+/// </summary>
 codeunit 20414 "Qlty. Attachment Integration"
 {
+    InherentPermissions = X;
+
     /// <summary>
     /// Used for taking pictures and attaching documents to a Quality Inspection Test.
     /// </summary>
@@ -93,9 +98,9 @@ codeunit 20414 "Qlty. Attachment Integration"
         TempQltyInspectionTestLine: Record "Qlty. Inspection Test Line" temporary;
         TempQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr." temporary;
         TempQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line" temporary;
-        Template: Code[20];
+        TemplateCode: Code[20];
         TestNo: Code[20];
-        CurrentField: Code[20];
+        QltyFieldCode: Code[20];
         LineNo: Integer;
         RetestNo: Integer;
     begin
@@ -109,13 +114,13 @@ codeunit 20414 "Qlty. Attachment Integration"
                 end;
             Database::"Qlty. Inspection Template Hdr.":
                 begin
-                    Template := CopyStr(Format(RecRef.Field(TempQltyInspectionTemplateHdr.FieldNo("Code")).Value()), 1, MaxStrLen(Template));
-                    DocumentAttachment."No." := Template;
+                    TemplateCode := CopyStr(Format(RecRef.Field(TempQltyInspectionTemplateHdr.FieldNo("Code")).Value()), 1, MaxStrLen(TemplateCode));
+                    DocumentAttachment."No." := TemplateCode;
                 end;
             Database::"Qlty. Field":
                 begin
-                    CurrentField := CopyStr(Format(RecRef.Field(TempQltyField.FieldNo("Code")).Value()), 1, MaxStrLen(CurrentField));
-                    DocumentAttachment."No." := CurrentField;
+                    QltyFieldCode := CopyStr(Format(RecRef.Field(TempQltyField.FieldNo("Code")).Value()), 1, MaxStrLen(QltyFieldCode));
+                    DocumentAttachment."No." := QltyFieldCode;
                 end;
             Database::"Qlty. Inspection Test Line":
                 begin
@@ -126,9 +131,9 @@ codeunit 20414 "Qlty. Attachment Integration"
                 end;
             Database::"Qlty. Inspection Template Line":
                 begin
-                    Template := CopyStr(Format(RecRef.Field(TempQltyInspectionTemplateLine.FieldNo("Template Code")).Value()), 1, MaxStrLen(Template));
+                    TemplateCode := CopyStr(Format(RecRef.Field(TempQltyInspectionTemplateLine.FieldNo("Template Code")).Value()), 1, MaxStrLen(TemplateCode));
                     LineNo := RecRef.Field(TempQltyInspectionTemplateLine.FieldNo("Line No.")).Value();
-                    DocumentAttachment."No." := Template;
+                    DocumentAttachment."No." := TemplateCode;
                     DocumentAttachment."Line No." := LineNo;
                 end;
         end;

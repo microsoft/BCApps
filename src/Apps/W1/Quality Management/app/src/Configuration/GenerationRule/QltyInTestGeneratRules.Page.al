@@ -568,10 +568,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
 
     local procedure GetDataCaptionExpression(): Text
     begin
-        if TemplateCode <> '' then
-            exit(StrSubstNo(GenerationRulesCaptionForTemplateLbl, TemplateCode))
-        else
-            exit(GenerationRulesCaptionLbl);
+        exit((TemplateCode = '') ? GenerationRulesCaptionLbl : StrSubstNo(GenerationRulesCaptionForTemplateLbl, TemplateCode));
     end;
 
     local procedure SetTriggerColumnVisibleState()

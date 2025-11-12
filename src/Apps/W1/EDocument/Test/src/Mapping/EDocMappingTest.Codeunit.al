@@ -5,9 +5,9 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
-using System.TestLibraries.Utilities;
-using System.IO;
 using Microsoft.eServices.EDocument.Integration;
+using System.IO;
+using System.TestLibraries.Utilities;
 
 codeunit 139617 "E-Doc. Mapping Test"
 {

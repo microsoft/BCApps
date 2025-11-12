@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Sales.Customer;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 
 codeunit 139691 "Contract Price Update Test"
 {

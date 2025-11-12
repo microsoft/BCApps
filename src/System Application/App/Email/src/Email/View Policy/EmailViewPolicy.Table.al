@@ -5,8 +5,8 @@
 
 namespace System.Email;
 
-using System.Security.User;
 using System.Security.AccessControl;
+using System.Security.User;
 
 /// <summary>
 /// Contains what policy each user is given in the system

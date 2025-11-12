@@ -1,8 +1,8 @@
 namespace Microsoft.FixedAssets.Repair;
 
+using Microsoft.Finance.Currency;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Setup;
-using Microsoft.Finance.Currency;
 
 codeunit 6090 "FA Ledger Entries Scan"
 {

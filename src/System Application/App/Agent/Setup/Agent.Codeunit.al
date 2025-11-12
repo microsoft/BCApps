@@ -5,9 +5,9 @@
 
 namespace System.Agents;
 
+using System.Environment.Configuration;
 using System.Reflection;
 using System.Security.AccessControl;
-using System.Environment.Configuration;
 
 codeunit 4321 Agent
 {

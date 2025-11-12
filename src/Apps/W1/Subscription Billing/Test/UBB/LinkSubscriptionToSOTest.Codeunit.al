@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.IO;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
+using System.IO;
 
 #pragma warning disable AA0210
 codeunit 148158 "Link Subscription To SO Test"

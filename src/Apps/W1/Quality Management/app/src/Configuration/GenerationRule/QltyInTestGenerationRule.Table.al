@@ -430,6 +430,7 @@ table 20404 "Qlty. In. Test Generation Rule"
     begin
         if not TryInferGenerationRuleIntent(InferredIntent, Certainty) then
             exit;
+
         if (InferredIntent = InferredIntent::Unknown) or (InferredIntent = Rec.Intent) then
             exit;
 
@@ -616,6 +617,7 @@ table 20404 "Qlty. In. Test Generation Rule"
     begin
         if Rec."Source Table No." = 0 then
             exit(false);
+
         if Rec."Condition Filter" = '' then
             exit(false);
 

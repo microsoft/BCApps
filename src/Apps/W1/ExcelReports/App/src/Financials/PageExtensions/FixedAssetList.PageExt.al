@@ -1,4 +1,5 @@
 namespace Microsoft.Finance.ExcelReports;
+
 using Microsoft.FixedAssets.FixedAsset;
 
 pageextension 4407 "Fixed Asset List" extends "Fixed Asset List"

@@ -5,8 +5,8 @@
 
 namespace System.Environment.Configuration;
 
-using System.Reflection;
 using System.Environment;
+using System.Reflection;
 
 /// <summary>
 /// Temporary table that combines the settings defined by platform and application

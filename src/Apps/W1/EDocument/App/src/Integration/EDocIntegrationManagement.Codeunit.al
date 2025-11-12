@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
-using System.Telemetry;
-using System.Utilities;
+using Microsoft.eServices.EDocument.Integration.Action;
+using Microsoft.eServices.EDocument.Integration.Interfaces;
 using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Integration.Send;
-using Microsoft.eServices.EDocument.Integration.Interfaces;
-using Microsoft.eServices.EDocument.Integration.Action;
+using System.Telemetry;
+using System.Utilities;
 
 codeunit 6134 "E-Doc. Integration Management"
 {

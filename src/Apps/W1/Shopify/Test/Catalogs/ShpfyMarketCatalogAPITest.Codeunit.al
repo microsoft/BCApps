@@ -5,9 +5,9 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
-using Microsoft.Finance.GeneralLedger.Setup;
 using System.TestLibraries.Utilities;
 
 codeunit 134247 "Shpfy Market Catalog API Test"

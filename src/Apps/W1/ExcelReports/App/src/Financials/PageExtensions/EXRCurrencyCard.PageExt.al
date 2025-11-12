@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Finance.ExcelReports;
+
 using Microsoft.Finance.Currency;
 
 pageextension 4428 "EXR Currency Card" extends "Currency Card"

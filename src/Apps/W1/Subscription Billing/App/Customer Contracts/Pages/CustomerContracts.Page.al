@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Customer;
-using Microsoft.Finance.Dimension;
 
 page 8053 "Customer Contracts"
 {

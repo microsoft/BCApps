@@ -2,9 +2,9 @@ namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Pricing;
-using Microsoft.Purchases.Vendor;
 
 #pragma warning disable AA0210
 codeunit 148152 "Extend Contract Test"

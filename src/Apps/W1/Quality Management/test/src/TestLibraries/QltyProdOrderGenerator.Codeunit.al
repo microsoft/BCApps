@@ -5,11 +5,9 @@
 namespace Microsoft.Test.QualityManagement.TestLibraries;
 
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
-using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Family;
@@ -35,7 +33,8 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
-        Sources: Dictionary of [enum "Prod. Order Source Type", boolean];
+        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        Sources: Dictionary of [Enum "Prod. Order Source Type", boolean];
         ProdOrderStatus: Enum "Production Order Status";
         OrderLinesMin: Integer;
         OrderLinesMax: Integer;
@@ -315,16 +314,8 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     procedure CreateLotTrackedItem(var Item: Record "Item")
     var
         RoutingHeader: Record "Routing Header";
-        LotNoSeries: Record "No. Series";
-        LotNoSeriesLine: Record "No. Series Line";
-        LotItemTrackingCode: Record "Item Tracking Code";
-        LibraryItemTracking: Codeunit "Library - Item Tracking";
-        LibraryUtility: Codeunit "Library - Utility";
     begin
-        LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
-        LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, '', '');
-        LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
-        LibraryInventory.CreateTrackedItem(Item, LotNoSeries.Code, '', LotItemTrackingCode.Code);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         CreateBoM(Item);
         CreateSerialRouting(RoutingHeader);
