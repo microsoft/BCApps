@@ -39,7 +39,6 @@
     "NZ",
     "SE",
     "US",
-    "UnitTests",
     "UncategorizedTests"
   ],
   "ConditionalSettings": [
@@ -220,14 +219,6 @@
         "doNotRunTests": true,
         "useCompilerFolder": true,
         "doNotPublishApps": true
-      }
-    },
-    {
-      "buildModes": [
-        "UnitTests"
-      ],
-      "settings": {
-        "testType": "UnitTest"
       }
     },
     {

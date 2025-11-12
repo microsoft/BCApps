@@ -8,14 +8,15 @@ $parameters["returnTrueIfAllPassed"] = $true
 
 # Run test codeunits with specified TestType, RequiredTestIsolation set to None or Codeunit
 $script = Join-Path $PSScriptRoot "../../../scripts/RunTestsInBcContainer.ps1" -Resolve
-$AllTestsPassed = (. $script -parameters $parameters -TestType $testType)
 
-# TODO: For now only run disabled test isolation for unit tests
-if ($testType -ne "UnitTest") {
-    return $AllTestsPassed
-}
+# Unit Tests
+$parameters["companyName"] = "CRONUS UnitTest"
+$AllUnitTestsPassed = (. $script -parameters $parameters -TestType "UnitTest")
 
+# Integration Tests
+$parameters["companyName"] = "CRONUS IntegrationTest"
+$AllIntegrationTestsPassed = (. $script -parameters $parameters -TestType "IntegrationTest")
 # Run test codeunits with RequiredTestIsolation set to Disabled
-$AllTestsPassedIsolation = (. $script -parameters $parameters -DisableTestIsolation -TestType $testType)
+$AllIntegrationTestsPassedWithIsolationDisabled = (. $script -parameters $parameters -DisableTestIsolation -TestType $testType)
 
-return $AllTestsPassed -and $AllTestsPassedIsolation
+return $AllUnitTestsPassed -and $AllIntegrationTestsPassed -and $AllIntegrationTestsPassedWithIsolationDisabled
