@@ -70,6 +70,16 @@ function Invoke-DemoDataGeneration
 
 }
 
+# Delete existing companies in the container
+$existingCompanies = Get-CompanyInBcContainer -containerName $parameters.ContainerName
+foreach ($company in $existingCompanies) {
+    Write-Host "Deleting company $($company.CompanyName) in container $($parameters.ContainerName)"
+    Remove-CompanyInBcContainer -containerName $parameters.ContainerName -companyName $company.CompanyName
+}
+
+Write-Host "Creating new test company in container $($parameters.ContainerName)"
+New-CompanyInBcContainer -containerName $parameters.ContainerName -companyName "CRONUS International TestCompany" -evaluationCompany
+
 # Reinstall all the uninstalled apps in the container
 # This is needed to ensure that the various Demo Data apps are installed in the container when we generate demo data
 $allUninstalledApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesFirst | Where-Object { $_.IsInstalled -eq $false }
