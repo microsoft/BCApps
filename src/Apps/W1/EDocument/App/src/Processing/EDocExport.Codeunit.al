@@ -48,7 +48,7 @@ codeunit 6102 "E-Doc. Export"
             if EDocumentService.FindSet() then
                 repeat
                     Type := EDocumentProcessing.GetTypeFromSourceDocument(EDocSourceRecRef);
-                    if IsDocumentSupported(EDocSourceRecRef, EDocumentService, Type) then begin
+                    if IsDocumentSupported(EDocumentService, EDocSourceRecRef, Type) then begin
                         EDocumentInterface := EDocumentService."Document Format";
                         EDocumentInterface.Check(EDocSourceRecRef, EDocumentService, EDocumentProcessingPhase);
                     end;
@@ -486,7 +486,7 @@ codeunit 6102 "E-Doc. Export"
             EDocumentType::"Purchase Return Order":
                 exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Purchase Return Order") or EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Purchase Credit Memo"));
         end;
-        exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType));
+        exit(EDocServiceSupportedType.Get(EDocService.Code, EDocumentType));
     end;
 
     local procedure IsDocumentSupported(EDocumentService: Record "E-Document Service"; SourceDocumentHeader: RecordRef; DocumentType: Enum "E-Document Type"): Boolean
