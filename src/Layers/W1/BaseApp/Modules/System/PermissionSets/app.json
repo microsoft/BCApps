@@ -1,0 +1,58 @@
+{
+    "id":  "3c1c3f4d-b12f-41b6-84b2-de2dd05c0518",
+    "name":  "System Permission Sets",
+    "publisher":  "Microsoft",
+    "description":  "This module provides functionality for interacting with permissions.",
+    "version":  "$(app_currentVersion)",
+    "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
+    "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help":  "https://go.microsoft.com/fwlink/?linkid=2104024",
+    "url":  "https://go.microsoft.com/fwlink/?LinkId=724011",
+    "dependencies":  [
+                        {
+                            "id":  "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
+                            "name":  "System Application",
+                            "publisher":  "Microsoft",
+                            "version":  "$(app_minimumVersion)"
+                        },
+                        {
+                            "id":  "3667cf40-7596-4595-bfe9-556fb4fc5dec",
+                            "name":  "Profile",
+                            "publisher":  "Microsoft",
+                            "version":  "$(app_minimumVersion)"
+                        },
+                        {
+                            "id":  "163f82f9-7b3a-4e7d-85cc-11dd9adf75ad",
+                            "name":  "System DotNet Aliases",
+                            "publisher":  "Microsoft",
+                            "version":  "$(app_minimumVersion)"
+                        },
+                        {
+                            "id":  "3bc592c2-de0c-4d31-b5ac-21d356c98301",
+                            "name":  "User",
+                            "publisher":  "Microsoft",
+                            "version":  "$(app_minimumVersion)"
+                        },
+                        {
+                            "id":  "59997dbf-584a-4f17-9c2a-9a7704e66422",
+                            "name":  "File Operations",
+                            "publisher":  "Microsoft",
+                            "version":  "$(app_minimumVersion)"
+                        }
+                     ],
+    "screenshots":  [
+                    ],
+    "internalsVisibleTo":  [
+                           ],
+    "platform":  "$(app_platformVersion)",
+    "idRanges":  [
+                     {
+                         "from":  1,
+                         "to":  9999
+                     }
+                 ],
+    "target":  "OnPrem",
+    "features":  [
+                     "NoImplicitWith"
+                 ]
+}

@@ -1,0 +1,266 @@
+{
+	"folders": [
+		{
+			"name": "GitHub rulesets",
+			"path": "../../../BCApps/src/rulesets"
+		},
+		{
+			"name": "Rulesets",
+			"path": "../../../Rulesets"
+		},
+		{
+			"name": "Any",
+			"path": "../../../BCApps/src/Tools/Test Framework/Test Libraries/Any"
+		},
+		{
+			"name": "Assert",
+			"path": "../../../BCApps/src/Tools/Test Framework/Test Libraries/Assert"
+		},
+		{
+			"name": "Variable Storage",
+			"path": "../../../BCApps/src/Tools/Test Framework/Test Libraries/Variable Storage"
+		},
+		{
+			"name": "Permissions Mock",
+			"path": "../../../BCApps/src/Tools/Test Framework/Test Libraries/Permissions Mock"
+		},
+		{
+			"name": "TestRunner",
+			"path": "../../../BCApps/src/Tools/Test Framework/Test Runner"
+		},
+		{
+			"name": "System Application",
+			"path": "../../../BCApps/src/System Application/App"
+		},
+		{
+			"name": "System Application Test Library",
+			"path": "../../../BCApps/src/System Application/Test Library"
+		},
+		{
+			"name": "System Application Test",
+			"path": "../../../BCApps/src/System Application/Test"
+		},
+		{
+			"name": "Business Foundation",
+			"path": "../../../BCApps/src/Business Foundation/App"
+		},
+		{
+			"name": "Business Foundation Test Libraries",
+			"path": "../../../BCApps/src/Business Foundation/Test Library"
+		},
+		{
+			"name": "Business Foundation Tests",
+			"path": "../../../BCApps/src/Business Foundation/Test"
+		},
+		{
+			"name": "BaseApp",
+			"path": "."
+		},
+		{
+			"name": "Application",
+			"path": "../Application"
+		},
+		{
+			"name": "DemoTool",
+			"path": "../DemoTool"
+		},
+		{
+			"name": "TestLibraries",
+			"path": "../Tests/TestLibraries"
+		},
+		{
+			"path": "../Tests/Azure AI"
+		},
+		{
+			"name": "Bank",
+			"path": "../Tests/Bank"
+		},
+		{
+			"path": "../Tests/BCPT-SampleTests"
+		},
+		{
+			"name": "Cash Flow",
+			"path": "../Tests/Cash Flow"
+		},
+		{
+			"name": "Cost Accounting",
+			"path": "../Tests/Cost Accounting"
+		},
+		{
+			"name": "CRM integration",
+			"path": "../Tests/CRM integration"
+		},
+		{
+			"name": "Data Exchange",
+			"path": "../Tests/Data Exchange"
+		},
+		{
+			"name": "Dimension",
+			"path": "../Tests/Dimension"
+		},
+		{
+			"name": "DotNet-Internal",
+			"path": "../Tests/DotNet-Internal"
+		},
+		{
+			"name": "ERM",
+			"path": "../Tests/ERM"
+		},
+		{
+			"name": "Fixed Asset",
+			"path": "../Tests/Fixed Asset"
+		},
+		{
+			"name": "General Journal",
+			"path": "../Tests/General Journal"
+		},
+		{
+			"name": "Graph",
+			"path": "../Tests/Graph"
+		},
+		{
+			"name": "Integration",
+			"path": "../Tests/Integration"
+		},
+		{
+			"path": "../Tests/Integration-Internal"
+		},
+		{
+			"name": "Invoicing",
+			"path": "../Tests/Invoicing"
+		},
+		{
+			"name": "Job",
+			"path": "../Tests/Job"
+		},
+		{
+			"name": "Marketing",
+			"path": "../Tests/Marketing"
+		},
+		{
+			"name": "Misc",
+			"path": "../Tests/Misc"
+		},
+		{
+			"name": "MOCKSERVICETESTS-Internal",
+			"path": "../Tests/MOCKSERVICETESTS-Internal"
+		},
+		{
+			"path": "../Tests/Monitor Sensitive Fields"
+		},
+		{
+			"path": "../Tests/NewObjectTests-Internal"
+		},
+		{
+			"name": "Performance-Internal",
+			"path": "../Tests/Performance-Internal"
+		},
+		{
+			"name": "Permissions",
+			"path": "../Tests/Permissions"
+		},
+		{
+			"name": "Physical Inventory",
+			"path": "../Tests/Physical Inventory"
+		},
+		{
+			"name": "Prepayment",
+			"path": "../Tests/Prepayment"
+		},
+		{
+			"name": "Rapid Start",
+			"path": "../Tests/Rapid Start"
+		},
+		{
+			"name": "Report",
+			"path": "../Tests/Report"
+		},
+		{
+			"name": "Resource",
+			"path": "../Tests/Resource"
+		},
+		{
+			"name": "Reverse",
+			"path": "../Tests/Reverse"
+		},
+		{
+			"name": "SCM",
+			"path": "../Tests/SCM"
+		},
+		{
+			"name": "Service",
+			"path": "../Tests/Service"
+		},
+		{
+			"name": "SINGLESERVER",
+			"path": "../Tests/SINGLESERVER"
+		},
+		{
+			"name": "SINGLESERVER-Internal",
+			"path": "../Tests/SINGLESERVER-Internal"
+		},
+		{
+			"name": "SMB",
+			"path": "../Tests/SMB"
+		},
+		{
+			"name": "Upgrade",
+			"path": "../Tests/Upgrade"
+		},
+		{
+			"name": "User",
+			"path": "../Tests/User"
+		},
+		{
+			"name": "VAT",
+			"path": "../Tests/VAT"
+		},
+		{
+			"name": "Workflow",
+			"path": "../Tests/Workflow"
+		},
+		{
+			"name": "Local",
+			"path": "../Tests/Local"
+		},
+		{
+			"path": "../AlCosting"
+		}
+	],
+	"settings": {
+		"al.compilationOptions": {"generateReportLayout": false},
+		"al.enableCodeActions": true,
+		"al.enableCodeAnalysis": true,
+		"al.enableExternalRulesets": false,
+		"al.codeAnalyzers": ["${AppSourceCop}","${CodeCop}","${PerTenantExtensionCop}","${UICop}"],
+		"al.backgroundCodeAnalysis": "File",
+		"al.showExplorerAtStartup": "Never",
+		"al.showHomeAtStartup": "Never",
+		"al.outputAnalyzerStatistics": false,
+		"github-enterprise.uri": "https://dynamicssmb2.visualstudio.com/"
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Your own server",
+				"request": "launch",
+				"type": "al",
+				"environmentType": "OnPrem",
+				"server": "http://localhost:48900",
+				"serverInstance": "",
+				"authentication": "Windows",
+				"breakOnError": "All",
+				"launchBrowser": true,
+				"startupObjectId": 130451,
+				"startupObjectType": "Page",	
+				"enableLongRunningSqlStatements": true,
+				"enableSqlInformationDebugger": true,
+				"tenant": "default",
+				"usePublicURLFromServer": false,
+				"schemaUpdateMode": "ForceSync",
+				"dependencyPublishingOption": "Ignore"
+			}
+		]
+	}
+}

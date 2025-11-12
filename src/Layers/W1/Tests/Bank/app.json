@@ -1,0 +1,28 @@
+{
+  "id": "1fb2e583-f2c3-4484-a8d4-387e3adce46d",
+  "name": "Tests-Bank",
+  "publisher": "Microsoft",
+  "version": "$(app_currentVersion)",
+  "platform": "$(app_platformVersion)",
+  "dependencies": [
+    {
+      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    },
+    {
+      "id": "5095f467-0a01-4b99-99d1-9ff1237d286f",
+      "publisher": "Microsoft",
+      "name": "Library Variable Storage",
+      "version": "$(app_minimumVersion)"
+    }
+  ],
+  "target": "OnPrem",
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "application": "$(app_minimumVersion)"
+}

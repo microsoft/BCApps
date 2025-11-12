@@ -1,0 +1,48 @@
+{
+  "id": "9d82cdd7-9882-4493-aa5b-35e983b9362c",
+  "name": "System Email",
+  "publisher": "Microsoft",
+  "description": "Enables user to send emails from Business Central.",
+  "version": "$(app_currentVersion)",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "dependencies": [
+    {
+      "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
+      "name": "System Application",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    },
+    {
+      "id": "9d82cdd7-9882-4493-aa5b-35e983b9362a",
+      "name": "Error Message",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    },
+    {
+      "id": "59997dbf-584a-4f17-9c2a-9a7704e66422",
+      "name": "File Operations",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    }
+  ],
+  "screenshots": [],
+  "internalsVisibleTo": [],
+  "platform": "$(app_platformVersion)",
+  "idRanges": [
+    {
+      "from": 1,
+      "to": 9999
+    },
+    {
+      "from": 99008535,
+      "to": 99008535
+    }
+  ],
+  "target": "OnPrem",
+  "features": [
+    "NoImplicitWith"
+  ]
+}

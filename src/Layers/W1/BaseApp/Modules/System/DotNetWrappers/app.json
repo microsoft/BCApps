@@ -1,0 +1,36 @@
+{
+  "id": "b28d4c7e-67d9-4279-9988-69446b241960",
+  "name": "Obsolete DotNet Wrappers",
+  "publisher": "Microsoft",
+  "description": "These DotNet Wrappers should go away soon. This module is purely used for existing dependencies and should not be further referenced.",
+  "version": "$(app_currentVersion)",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "dependencies": [
+    {
+      "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
+      "name": "System Application",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    }
+  ],
+  "screenshots": [],
+  "internalsVisibleTo": [],
+  "platform": "$(app_platformVersion)",
+  "idRanges": [
+    {
+      "from": 1,
+      "to": 9999
+    },
+    {
+      "from": 99008535,
+      "to": 99008535
+    }
+  ],
+  "target": "OnPrem",
+  "features": [
+    "NoImplicitWith"
+  ]
+}

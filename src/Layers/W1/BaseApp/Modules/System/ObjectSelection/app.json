@@ -1,0 +1,25 @@
+{
+  "id": "10fcedfc-1400-4dde-b0dd-5cda709a5603",
+  "name": "Object Selection",
+  "publisher": "Microsoft",
+  "description": "Object Selection",
+  "version": "$(app_currentVersion)",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "dependencies": [],
+  "screenshots": [],
+  "internalsVisibleTo": [],
+  "platform": "$(app_platformVersion)",
+  "idRanges": [
+    {
+      "from": 1,
+      "to": 9999
+    }
+  ],
+  "target": "OnPrem",
+  "features": [
+    "NoImplicitWith"
+  ]
+}

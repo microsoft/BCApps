@@ -1,0 +1,80 @@
+{
+  "id": "c59fd01b-780f-4bcb-bc1d-0413f905edf1",
+  "name": "Power BI",
+  "publisher": "Microsoft",
+  "description": "This module provides functionality to interact with Power BI reports, including embedding Power BI reports and visuals in Business Central.",
+  "version": "$(app_currentVersion)",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "dependencies": [
+    {
+      "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
+      "name": "System Application",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    },
+    {
+      "id": "cfdcb306-cc79-4ab0-a686-ae349de1f1aa",
+      "name": "Azure AD Authentication",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    },
+    {
+      "id": "59997dbf-584a-4f17-9c2a-9a7704e66422",
+      "name": "File Operations",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    },
+    {
+      "id": "441daa03-2353-466a-b3ce-79325cf8b0b1",
+      "name": "Job Queue",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    },
+    {
+      "id": "9e2d6fa1-813f-4c28-a92b-4092657e85ab",
+      "name": "Notifications",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    },
+    {
+      "id": "3667cf40-7596-4595-bfe9-556fb4fc5dec",
+      "name": "Profile",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    },
+    {
+      "id": "36560748-e620-4577-b8d9-3fd62a1a84f9",
+      "name": "System Media",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    },
+    {
+      "id": "3bc592c2-de0c-4d31-b5ac-21d356c98301",
+      "name": "User",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    },
+    {
+      "id": "6c65bd2d-884c-4f88-9bd4-5acdefc7b3bb",
+      "name": "Web Request",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    }
+  ],
+  "screenshots": [],
+  "internalsVisibleTo": [],
+  "platform": "$(app_platformVersion)",
+  "idRanges": [
+    {
+      "from": 6300,
+      "to": 6399
+    }
+  ],
+  "target": "OnPrem",
+  "features": [
+    "NoImplicitWith"
+  ]
+}

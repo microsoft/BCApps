@@ -1,0 +1,259 @@
+{
+  "id": "437dbf0e-84ff-417a-965d-ed2bb9650972",
+  "name": "Base Application",
+  "publisher": "Microsoft",
+  "description": "Provides business processes that are typical for small and mid-sized companies, such as sales and purchasing, and customer and vendor management, plus complex processes, such as assembly, manufacturing, service, and directed warehouse management. https://go.microsoft.com/fwlink/?LinkId=2205496",
+  "brief": "Provides business processes that are typical for small and mid-sized companies, such as sales and purchasing, and customer and vendor management, plus complex processes, such as assembly, manufacturing, service, and directed warehouse management.",
+  "version": "$(app_currentVersion)",
+  "logo": "ExtensionLogo.png",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "propagateDependencies": true,
+  "dependencies": [
+    {
+      "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
+      "name": "System Application",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    },
+    {
+      "id": "f3552374-a1f2-4356-848e-196002525837",
+      "name": "Business Foundation",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    }
+  ],
+  "internalsVisibleTo": [
+    {
+      "id": "6992416f-3f39-4d3c-8242-3fff61350bea",
+      "name": "Business Central Cloud Migration - Previous Release",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "4d6c453d-e61d-4872-b35d-6c731c0fd93e",
+      "name": "Manufacturing",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "2fd9cbd8-c94a-46d6-8274-ea6ccb244f12",
+      "name": "Service Management",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "c388f3e5-e3f0-4965-bf61-97a385cbdaa1",
+      "name": "Tests-Azure AI",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "d852d5d2-a39d-4179-baeb-f99a19e32510",
+      "name": "Test Libraries SaaS",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "c49d9d39-1c94-46d2-8bf7-3cce15ba54dc",
+      "name": "Tests-SMTP",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "7fe10be7-575f-4cce-957b-bcd0df8f9bd7",
+      "name": "Tests-Rapid Start",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "4564dd2f-e8b2-41ff-9905-9d7a950475a5",
+      "name": "Tests-Misc",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "8c9fc75f-dc51-40de-a6fa-55e7bbe0c0c2",
+      "name": "Tests-What's New Notifier Test",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "74e323c4-70a3-49ce-b18e-fe9ccaff01d3",
+      "name": "Tests-Marketing",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "c49d9d12-1c94-4362-8bf7-3cce15be54dc",
+      "name": "Tests-Monitor Sensitive Fields",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "fa3e2564-a39e-417f-9be6-c0dbe3d94069",
+      "name": "Tests-ERM",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "79447c3f-14b4-4c10-8779-03911f30ab26",
+      "name": "Tests-Report",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "9bf23d52-8194-4857-8896-5e48b24493f6",
+      "name": "Tests-Job",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "155bc500-e420-4113-803e-7aa8e8eea112",
+      "name": "Tests-CRM integration",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "bd6c6741-7734-4109-bf2d-db58545d482c",
+      "name": "Tests-Local",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "2b634ad5-63df-4a3c-9e35-e347f646e940",
+      "name": "Tests-Integration",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "2a5ff629-58b0-48e8-9414-319055c49e8d",
+      "name": "Tests-MOCKSERVICETESTS-Internal",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "1a424ad5-63df-4a3c-9e35-e347f644a831",
+      "name": "Tests-Integration-Internal",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "d0e99b97-089b-449f-a0f5-a2ab994dbfd7",
+      "name": "Tests-Upgrade",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "d94a0cee-f211-4941-b609-7c984f85ad03",
+      "name": "Tests-Permissions",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "6f0b528b-a4de-4ccd-a948-d1350e228e4a",
+      "name": "Tests-SCM",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "88f3615c-370c-4f39-bb5f-54e096c984e9",
+      "name": "Tests-SCM-Manufacturing",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "e737590a-fede-4692-ac4e-d1d4849dd043",
+      "name": "Tests-Service",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "6555cb10-63ea-4ec0-99aa-8e6a4db67c87",
+      "name": "Core Localization Pack for Czech Tests",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "0243a4ea-21b3-4fa8-ad70-9915a4400be0",
+      "name": "Tests-Resource",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "ebe4330a-f7c1-4d4f-b292-7c03251321c4",
+      "name": "Manufacturing Tests",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "a5972688-3d9f-44ff-b3f9-71f08bb98c2c",
+      "name": "Service Management Tests",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "23b1772f-b823-4e87-2339-9ff7cbb2364b",
+      "name": "Sales Order Agent Test",
+      "publisher": "Microsoft"
+    }
+  ],
+  "platform": "$(app_platformVersion)",
+  "idRanges": [
+    {
+      "from": 1,
+      "to": 49999
+    },
+    {
+      "from": 104000,
+      "to": 104999
+    },
+    {
+      "from": 130400,
+      "to": 130419
+    },
+    {
+      "from": 99000700,
+      "to": 99000701
+    },
+    {
+      "from": 99000750,
+      "to": 99001049
+    },
+    {
+      "from": 99003500,
+      "to": 99004399
+    },
+    {
+      "from": 99004600,
+      "to": 99005899
+    },
+    {
+      "from": 99008500,
+      "to": 99009699
+    },
+    {
+      "from": 5055250,
+      "to": 5055999
+    },
+    {
+      "from": 2000000,
+      "to": 2000059
+    },
+    {
+      "from": 32000000,
+      "to": 32000199
+    },
+    {
+      "from": 5000000,
+      "to": 5005399
+    },
+    {
+      "from": 11000000,
+      "to": 11000499
+    },
+    {
+      "from": 15000000,
+      "to": 15000499
+    },
+    {
+      "from": 7000000,
+      "to": 7000099
+    },
+    {
+      "from": 3005000,
+      "to": 3011499
+    }
+  ],
+  "target": "OnPrem",
+  "features": [
+    "NoImplicitWith"
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "resourceFolders": [
+    ".resources"
+  ]
+}

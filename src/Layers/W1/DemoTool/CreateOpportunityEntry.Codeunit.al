@@ -1,0 +1,205 @@
+codeunit 101593 "Create Opportunity Entry"
+{
+
+    trigger OnRun()
+    begin
+        InsertData(1, XOP100001, 1, 19031111D, '', 19020926D, true, 0D, 0, 200000, 2, 15, '', 0);
+        InsertData(2, XOP100015, 1, 19030119D, '', 19030106D, false, 0D, 0, 10000, 2, 10, '', 0);
+        InsertData(3, XOP100015, 2, 19030119D, '', 19030107D, false, 0D, 1, 10000, 35, 30, '', 1);
+        InsertData(4, XOP100015, 3, 19030119D, '', 19030111D, false, 0D, 1, 12000, 70, 45, '', 2);
+        InsertData(5, XOP100015, 4, 19030119D, '', 19030113D, false, 0D, 1, 9000, 85, 70, '', 3);
+        InsertData(6, XOP100015, 5, 19030119D, '', 19030117D, false, 0D, 1, 9000, 95, 95, '', 4);
+        InsertData(7, XOP100015, 0, 19030126D, '', 19030126D, true, 19030126D, 5, 9000, 100, 100, XBUSINESSW, 5);
+        InsertData(8, XOP100016, 1, 19030121D, '', 19030106D, false, 0D, 0, 5000, 2, 20, '', 0);
+        InsertData(9, XOP100016, 2, 19030121D, '', 19030108D, false, 0D, 1, 5500, 50, 35, '', 1);
+        InsertData(10, XOP100016, 3, 19030121D, '', 19030112D, false, 0D, 1, 5500, 80, 65, '', 2);
+        InsertData(11, XOP100016, 4, 19030121D, '', 19030117D, false, 0D, 1, 5500, 95, 90, '', 3);
+        InsertData(12, XOP100016, 0, 19030121D, '', 19030121D, true, 19030121D, 5, 5500, 100, 100, XCONSULTW, 4);
+        InsertData(13, XOP100017, 1, 19030117D, '', 19030106D, false, 0D, 0, 8000, 2, 25, '', 0);
+        InsertData(14, XOP100017, 2, 19030117D, '', 19030111D, false, 0D, 1, 7000, 50, 50, '', 1);
+        InsertData(15, XOP100017, 3, 19030117D, '', 19030112D, false, 0D, 1, 7000, 80, 65, '', 2);
+        InsertData(16, XOP100017, 4, 19030117D, '', 19030114D, false, 0D, 1, 6000, 95, 70, '', 3);
+        InsertData(17, XOP100017, 0, 19030120D, '', 19030120D, true, 19030120D, 5, 6000, 100, 100, XRELATIONW, 4);
+        InsertData(18, XOP100018, 1, 19030120D, '', 19030109D, false, 0D, 0, 25000, 2, 30, '', 0);
+        InsertData(19, XOP100018, 2, 19030120D, '', 19030113D, false, 0D, 1, 20000, 5, 50, '', 1);
+        InsertData(20, XOP100018, 3, 19030120D, '', 19030114D, false, 0D, 1, 21000, 40, 70, '', 2);
+        InsertData(21, XOP100018, 4, 19030120D, '', 19030115D, false, 0D, 1, 21000, 60, 85, '', 3);
+        InsertData(22, XOP100018, 5, 19030120D, '', 19030116D, false, 0D, 1, 21000, 95, 95, '', 4);
+        InsertData(23, XOP100018, 0, 19030120D, '', 19030120D, true, 19030120D, 5, 21000, 100, 100, XPRICEW, 5);
+        InsertData(24, XOP100019, 1, 19030111D, '', 19030103D, false, 0D, 0, 7500, 2, 25, '', 0);
+        InsertData(25, XOP100019, 2, 19030111D, '', 19030105D, false, 0D, 1, 8000, 35, 55, '', 1);
+        InsertData(26, XOP100019, 3, 19030111D, '', 19030106D, false, 0D, 1, 8000, 70, 80, '', 2);
+        InsertData(27, XOP100019, 4, 19030111D, '', 19030107D, false, 0D, 1, 8000, 85, 80, '', 3);
+        InsertData(28, XOP100019, 5, 19030111D, '', 19030111D, false, 0D, 1, 8000, 95, 90, '', 4);
+        InsertData(29, XOP100019, 0, 19030111D, '', 19030111D, true, 19030111D, 5, 8000, 100, 100, XPRODUCTW, 5);
+        InsertData(30, XOP100020, 1, 19030116D, '', 19030105D, false, 0D, 0, 60000, 2, 40, '', 0);
+        InsertData(31, XOP100020, 2, 19030116D, '', 19030106D, false, 0D, 1, 60000, 50, 60, '', 1);
+        InsertData(32, XOP100020, 3, 19030116D, '', 19030108D, false, 0D, 1, 65000, 80, 75, '', 2);
+        InsertData(33, XOP100020, 4, 19030116D, '', 19030111D, false, 0D, 1, 58000, 95, 85, '', 3);
+        InsertData(34, XOP100020, 0, 19030112D, '', 19030112D, true, 19030112D, 5, 58000, 100, 100, XPRESW, 4);
+        InsertData(35, XOP100021, 1, 19030119D, '', 19030111D, false, 0D, 0, 100000, 2, 10, '', 0);
+        InsertData(36, XOP100021, 2, 19030119D, '', 19030112D, false, 0D, 1, 100000, 5, 35, '', 1);
+        InsertData(37, XOP100021, 3, 19030119D, '', 19030114D, false, 0D, 1, 95000, 40, 60, '', 2);
+        InsertData(38, XOP100021, 4, 19030119D, '', 19030116D, false, 0D, 1, 95000, 60, 85, '', 3);
+        InsertData(39, XOP100021, 5, 19030119D, '', 19030116D, false, 0D, 1, 95000, 95, 95, '', 4);
+        InsertData(40, XOP100021, 0, 19030116D, '', 19030116D, true, 19030116D, 5, 95000, 100, 100, XSALESREPW, 5);
+        InsertData(41, XOP100022, 1, 19030203D, '', 19030124D, true, 0D, 0, 5000, 2, 25, '', 0);
+        InsertData(42, XOP100023, 1, 19030216D, '', 19021116D, true, 0D, 0, 500, 2, 95, '', 0);
+        InsertData(43, XOP100024, 1, 19030321D, '', 19021215D, true, 0D, 0, 2000, 2, 30, '', 0);
+        InsertData(44, XOP100025, 1, 19030201D, '', 19030126D, true, 0D, 0, 10000, 2, 20, '', 0);
+        InsertData(45, XOP100026, 1, 19030304D, '', 19021129D, true, 0D, 0, 3000, 2, 10, '', 0);
+        InsertData(46, XOP100045, 1, 19021213D, '', 19021016D, true, 0D, 0, 45000, 2, 15, '', 0);
+        InsertData(47, XOP100046, 1, 19021203D, '', 19021110D, true, 0D, 0, 4500, 2, 20, '', 0);
+        InsertData(48, XOP100047, 1, 19021101D, '', 19021021D, false, 0D, 0, 3000, 2, 50, '', 0);
+        InsertData(49, XOP100047, 2, 19021101D, '', 19021024D, true, 0D, 1, 3000, 5, 50, '', 1);
+        InsertData(50, XOP100048, 1, 19030103D, '', 19021114D, true, 0D, 0, 50000, 2, 5, '', 0);
+        InsertData(51, XOP100049, 1, 19021221D, '', 19021208D, true, 0D, 0, 2400, 2, 20, '', 0);
+        InsertData(52, XOP100028, 1, 19021124D, '', 19021026D, true, 0D, 0, 150000, 2, 35, '', 0);
+        InsertData(53, XOP100029, 1, 19021116D, '', 19021011D, true, 0D, 0, 4500, 2, 15, '', 0);
+        InsertData(54, XOP100030, 1, 19021121D, '', 19021115D, false, 0D, 0, 1000, 2, 60, '', 0);
+        InsertData(55, XOP100030, 2, 19021121D, '', 19021116D, true, 0D, 1, 10000, 50, 60, '', 1);
+        InsertData(56, XOP100031, 1, 19030105D, '', 19021119D, true, 0D, 0, 6000, 2, 30, '', 0);
+        InsertData(57, XOP100032, 1, 19030121D, '', 19030114D, true, 0D, 0, 800, 2, 65, '', 0);
+        InsertData(58, XOP100033, 1, 19021101D, '', 19021017D, true, 0D, 0, 1500, 2, 35, '', 0);
+        InsertData(59, XOP100034, 1, 19021221D, '', 19021215D, true, 0D, 0, 300, 2, 80, '', 0);
+        InsertData(60, XOP100035, 1, 19030104D, '', 19021229D, true, 0D, 0, 300, 2, 80, '', 0);
+        InsertData(61, XOP100036, 1, 19021223D, '', 19021204D, true, 0D, 0, 500, 2, 5, '', 0);
+        InsertData(62, XOP100037, 1, 19021003D, '', 19020928D, false, 0D, 0, 450, 2, 10, '', 0);
+        InsertData(63, XOP100037, 0, 19021016D, '', 19021016D, true, 19021016D, 6, 450, 100, 0, XBUSINESSL, 1);
+        InsertData(64, XOP100038, 0, 19021003D, '', 19021003D, true, 19021003D, 6, 0, 100, 0, XCONSULTL, 0);
+        InsertData(65, XOP100039, 0, 19030116D, '', 19030116D, true, 19030116D, 6, 0, 100, 0, XRELATIONL, 0);
+        InsertData(66, XOP100040, 0, 19030124D, '', 19030124D, true, 19030124D, 6, 0, 100, 0, XPRICEL, 0);
+        InsertData(67, XOP100041, 0, 19021024D, '', 19021024D, true, 19021024D, 6, 0, 100, 0, XPRODUCTL, 0);
+        InsertData(68, XOP100042, 0, 19030121D, '', 19030121D, true, 19030121D, 6, 0, 100, 0, XPRESL, 0);
+        InsertData(69, XOP100043, 0, 19021120D, '', 19021120D, true, 19021120D, 6, 0, 100, 0, XSALESREPL, 0);
+        InsertData(70, XOP100044, 0, 19030121D, '', 19030121D, true, 19030121D, 6, 0, 100, 0, XWALKEDL, 0);
+    end;
+
+    var
+        "Opportunity Entry": Record "Opportunity Entry";
+        XOP100001: Label 'OP100001';
+        XOP100015: Label 'OP100015';
+        XBUSINESSW: Label 'BUSINESS_W';
+        XOP100016: Label 'OP100016';
+        XCONSULTW: Label 'CONSULT_W';
+        XOP100017: Label 'OP100017';
+        XRELATIONW: Label 'RELATION_W';
+        XOP100018: Label 'OP100018';
+        XPRICEW: Label 'PRICE_W';
+        XOP100019: Label 'OP100019';
+        XPRODUCTW: Label 'PRODUCT_W';
+        XOP100020: Label 'OP100020';
+        XOP100021: Label 'OP100021';
+        XPRESW: Label 'PRES_W';
+        XSALESREPW: Label 'SALESREP_W';
+        XOP100022: Label 'OP100022';
+        XOP100023: Label 'OP100023';
+        XOP100024: Label 'OP100024';
+        XOP100025: Label 'OP100025';
+        XOP100026: Label 'OP100026';
+        XOP100045: Label 'OP100045';
+        XOP100046: Label 'OP100046';
+        XOP100047: Label 'OP100047';
+        XOP100048: Label 'OP100048';
+        XOP100049: Label 'OP100049';
+        XOP100028: Label 'OP100028';
+        XOP100029: Label 'OP100029';
+        XOP100030: Label 'OP100030';
+        XOP100031: Label 'OP100031';
+        XOP100032: Label 'OP100032';
+        XOP100033: Label 'OP100033';
+        XOP100034: Label 'OP100034';
+        XOP100035: Label 'OP100035';
+        XOP100036: Label 'OP100036';
+        XOP100037: Label 'OP100037';
+        XOP100038: Label 'OP100038';
+        XOP100039: Label 'OP100039';
+        XOP100040: Label 'OP100040';
+        XOP100041: Label 'OP100041';
+        XOP100042: Label 'OP100042';
+        XOP100043: Label 'OP100043';
+        XOP100044: Label 'OP100044';
+        XBUSINESSL: Label 'BUSINESS_L';
+        XCONSULTL: Label 'CONSULT_L';
+        XRELATIONL: Label 'RELATION_L';
+        XPRICEL: Label 'PRICE_L';
+        XPRODUCTL: Label 'PRODUCT_L';
+        XPRESL: Label 'PRES_L';
+        XSALESREPL: Label 'SALESREP_L';
+        XWALKEDL: Label 'WALKED_L';
+        MakeAdjustments: Codeunit "Make Adjustments";
+
+    procedure InsertData("Entry No.": Integer; "Opportunity No.": Code[10]; "Sales Cycle Stage": Integer; "Estimated Close Date": Date; "Campaign No.": Code[10]; "Date of Change": Date; Active: Boolean; "Date Closed": Date; "Action Taken": Option; "Estimated Value (LCY)": Decimal; "Completed %": Decimal; "Chances of Success %": Decimal; "Close Opportunity Code": Code[10]; "Previous Sales Cycle Stage": Decimal)
+    var
+        Opportunity: Record Opportunity;
+    begin
+        "Opportunity Entry".Init();
+        "Opportunity Entry".Validate("Entry No.", "Entry No.");
+        "Opportunity Entry".Validate("Opportunity No.", "Opportunity No.");
+
+        Opportunity.Get("Opportunity No.");
+        "Opportunity Entry".Validate("Sales Cycle Code", Opportunity."Sales Cycle Code");
+        "Opportunity Entry".Validate("Contact No.", Opportunity."Contact No.");
+        "Opportunity Entry".Validate("Contact Company No.", Opportunity."Contact Company No.");
+        "Opportunity Entry".Validate("Salesperson Code", Opportunity."Salesperson Code");
+        "Opportunity Entry".Validate("Campaign No.", Opportunity."Campaign No.");
+
+        "Opportunity Entry".Validate("Sales Cycle Stage", "Sales Cycle Stage");
+        "Opportunity Entry".Validate("Estimated Close Date", MakeAdjustments.AdjustDate("Estimated Close Date"));
+        "Opportunity Entry".Validate("Date of Change", MakeAdjustments.AdjustDate("Date of Change"));
+        "Opportunity Entry".Validate(Active, Active);
+        "Opportunity Entry".Validate("Date Closed", MakeAdjustments.AdjustDate("Date Closed"));
+        "Opportunity Entry".Validate("Action Taken", "Opportunity Action Taken".FromInteger("Action Taken"));
+        "Opportunity Entry".Validate("Estimated Value (LCY)", "Estimated Value (LCY)");
+        "Opportunity Entry".Validate("Completed %", "Completed %");
+        "Opportunity Entry".Validate("Chances of Success %", "Chances of Success %");
+        "Opportunity Entry".Validate("Close Opportunity Code", "Close Opportunity Code");
+        "Opportunity Entry".Validate("Previous Sales Cycle Stage", "Previous Sales Cycle Stage");
+        "Opportunity Entry".Insert();
+        "Opportunity Entry".UpdateEstimates();
+        if "Opportunity Entry"."Action Taken" = "Opportunity Entry"."Action Taken"::Won then begin
+            "Opportunity Entry"."Calcd. Current Value (LCY)" := "Estimated Value (LCY)";
+            "Opportunity Entry".Modify();
+        end;
+    end;
+
+    procedure CreateEvaluationData()
+    begin
+        InsertData(2, XOP100015, 1, 19030119D, '', 19030106D, false, 0D, 0, 10000, 2, 10, '', 0);
+        InsertData(3, XOP100015, 2, 19030119D, '', 19030107D, false, 0D, 1, 10000, 35, 30, '', 1);
+        InsertData(4, XOP100015, 3, 19030119D, '', 19030111D, false, 0D, 1, 12000, 70, 55, '', 2);
+        InsertData(5, XOP100015, 4, 19030119D, '', 19030113D, false, 0D, 1, 9000, 95, 95, '', 3);
+        InsertData(7, XOP100015, 0, 19030126D, '', 19030126D, true, 19030126D, 5, 9000, 100, 100, XBUSINESSW, 4);
+        InsertData(8, XOP100016, 1, 19030121D, '', 19030106D, false, 0D, 0, 5000, 2, 20, '', 0);
+        InsertData(9, XOP100016, 2, 19030121D, '', 19030108D, false, 0D, 1, 5500, 50, 35, '', 1);
+        InsertData(10, XOP100016, 3, 19030121D, '', 19030112D, false, 0D, 1, 5500, 80, 65, '', 2);
+        InsertData(11, XOP100016, 4, 19030121D, '', 19030117D, false, 0D, 1, 5500, 95, 90, '', 3);
+        InsertData(12, XOP100016, 0, 19030121D, '', 19030121D, true, 19030121D, 5, 5500, 100, 100, XCONSULTW, 4);
+        InsertData(13, XOP100017, 1, 19030117D, '', 19030106D, false, 0D, 0, 8000, 2, 25, '', 0);
+        InsertData(14, XOP100017, 2, 19030117D, '', 19030111D, false, 0D, 1, 7000, 50, 50, '', 1);
+        InsertData(15, XOP100017, 3, 19030117D, '', 19030112D, false, 0D, 1, 7000, 80, 65, '', 2);
+        InsertData(16, XOP100017, 4, 19030117D, '', 19030114D, false, 0D, 1, 6000, 95, 70, '', 3);
+        InsertData(17, XOP100017, 0, 19030120D, '', 19030120D, true, 19030120D, 5, 6000, 100, 100, XRELATIONW, 4);
+        InsertData(18, XOP100018, 1, 19030120D, '', 19030109D, false, 0D, 0, 25000, 2, 30, '', 0);
+        InsertData(19, XOP100018, 2, 19030120D, '', 19030113D, false, 0D, 1, 20000, 5, 50, '', 1);
+        InsertData(20, XOP100018, 3, 19030120D, '', 19030114D, false, 0D, 1, 21000, 40, 70, '', 2);
+        InsertData(21, XOP100018, 4, 19030120D, '', 19030115D, false, 0D, 1, 21000, 95, 95, '', 3);
+        InsertData(23, XOP100018, 0, 19030120D, '', 19030120D, true, 19030120D, 5, 21000, 100, 100, XPRICEW, 4);
+        InsertData(24, XOP100019, 1, 19030111D, '', 19030103D, false, 0D, 0, 7500, 2, 25, '', 0);
+        InsertData(25, XOP100019, 2, 19030111D, '', 19030105D, false, 0D, 1, 8000, 35, 55, '', 1);
+        InsertData(26, XOP100019, 3, 19030111D, '', 19030106D, false, 0D, 1, 8000, 70, 80, '', 2);
+        InsertData(27, XOP100019, 4, 19030111D, '', 19030107D, false, 0D, 1, 8000, 85, 80, '', 3);
+        InsertData(29, XOP100019, 0, 19030111D, '', 19030111D, true, 19030111D, 5, 8000, 100, 100, XPRODUCTW, 4);
+        InsertData(41, XOP100022, 1, 19030203D, '', 19030124D, true, 0D, 0, 5000, 2, 25, '', 0);
+        InsertData(42, XOP100023, 1, 19030216D, '', 19021116D, true, 0D, 0, 500, 2, 95, '', 0);
+        InsertData(43, XOP100024, 1, 19030321D, '', 19021215D, true, 0D, 0, 2000, 2, 30, '', 0);
+        InsertData(44, XOP100025, 1, 19030201D, '', 19030126D, true, 0D, 0, 10000, 2, 20, '', 0);
+        InsertData(45, XOP100026, 1, 19030304D, '', 19021129D, true, 0D, 0, 3000, 2, 10, '', 0);
+        InsertData(62, XOP100037, 1, 19021003D, '', 19020928D, false, 0D, 0, 450, 2, 10, '', 0);
+        InsertData(63, XOP100037, 0, 19021016D, '', 19021016D, true, 19021016D, 6, 450, 100, 0, XBUSINESSL, 1);
+        InsertData(64, XOP100038, 0, 19021003D, '', 19021003D, true, 19021003D, 6, 0, 100, 0, XCONSULTL, 0);
+        InsertData(65, XOP100039, 0, 19030116D, '', 19030116D, true, 19030116D, 6, 0, 100, 0, XRELATIONL, 0);
+        InsertData(66, XOP100040, 0, 19030124D, '', 19030124D, true, 19030124D, 6, 0, 100, 0, XPRICEL, 0);
+    end;
+}
+

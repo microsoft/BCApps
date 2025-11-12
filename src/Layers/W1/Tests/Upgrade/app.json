@@ -1,0 +1,32 @@
+{
+  "id": "d0e99b97-089b-449f-a0f5-a2ab994dbfd7",
+  "name": "Tests-Upgrade",
+  "publisher": "Microsoft",
+  "version": "$(app_currentVersion)",
+  "platform": "$(app_platformVersion)",
+  "dependencies": [
+    {
+      "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+      "name": "Library Assert",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    }
+  ],
+  "target": "OnPrem",
+  "idRanges": [
+    {
+      "from": 132800,
+      "to": 132899
+    },
+    {
+      "from": 135950,
+      "to": 135999
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "application": "$(app_minimumVersion)"
+}
