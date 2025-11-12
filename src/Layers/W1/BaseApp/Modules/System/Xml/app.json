@@ -3,7 +3,7 @@
     "name":  "Xml",
     "publisher":  "Microsoft",
     "description":  "This module provides the ability to work with XML data.",
-    "version":  "$(app_currentVersion)",
+    "version":  "28.0.0.0",
     "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
     "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
     "help":  "https://go.microsoft.com/fwlink/?linkid=2104024",
@@ -13,26 +13,26 @@
                             "id":  "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
                             "name":  "System Application",
                             "publisher":  "Microsoft",
-                            "version":  "$(app_minimumVersion)"
+                            "version":  "28.0.0.0"
                         },
                         {
                             "id":  "b28d4c7e-67d9-4279-9988-69446b241960",
                             "name":  "Obsolete DotNet Wrappers",
                             "publisher":  "Microsoft",
-                            "version":  "$(app_minimumVersion)"
+                            "version":  "28.0.0.0"
                         },
                         {
                             "id":  "59997dbf-584a-4f17-9c2a-9a7704e66422",
                             "name":  "File Operations",
                             "publisher":  "Microsoft",
-                            "version":  "$(app_minimumVersion)"
+                            "version":  "28.0.0.0"
                         }
                      ],
     "screenshots":  [
                     ],
     "internalsVisibleTo":  [
                            ],
-    "platform":  "$(app_platformVersion)",
+    "platform":  "28.0.0.0",
     "idRanges":  [
                      {
                          "from":  1,

@@ -3,7 +3,7 @@
   "name": "Page Designer",
   "publisher": "Microsoft",
   "description": "This module allows you to design your pages. It is invoked by the client.",
-  "version": "$(app_currentVersion)",
+  "version": "28.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
@@ -13,18 +13,18 @@
       "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
       "name": "System Application",
       "publisher": "Microsoft",
-      "version": "$(app_minimumVersion)"
+      "version": "28.0.0.0"
     },
     {
       "id": "aa31a446-8788-4f78-ac47-53a75f58a853",
       "name": "Record Lookup",
       "publisher": "Microsoft",
-      "version": "$(app_minimumVersion)"
+      "version": "28.0.0.0"
     }
   ],
   "screenshots": [],
   "internalsVisibleTo": [],
-  "platform": "$(app_platformVersion)",
+  "platform": "28.0.0.0",
   "idRanges": [
     {
       "from": 1,

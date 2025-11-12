@@ -3,7 +3,7 @@
   "name":  "Notifications",
   "publisher":  "Microsoft",
   "description":  "Provides the ability to manage the notification lifecycle.",
-  "version":  "$(app_currentVersion)",
+  "version":  "28.0.0.0",
   "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help":  "https://go.microsoft.com/fwlink/?linkid=2104024",
@@ -13,26 +13,26 @@
                           "id":  "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
                           "name":  "System Application",
                           "publisher":  "Microsoft",
-                          "version":  "$(app_minimumVersion)"
+                          "version":  "28.0.0.0"
                       },
                       {
                           "id":  "f1f8072d-8663-40f2-82fc-8594a7e7a558",
                           "name":  "Xml",
                           "publisher":  "Microsoft",
-                          "version":  "$(app_minimumVersion)"
+                          "version":  "28.0.0.0"
                       },
                       {
                         "id": "bcfdde68-a7f7-45d1-8231-5216af6ec904",
                         "name": "Request Page",
                         "publisher": "Microsoft",
-                        "version": "$(app_minimumVersion)"
+                        "version": "28.0.0.0"
                       }
                    ],
   "screenshots":  [
                   ],
   "internalsVisibleTo":  [
                          ],
-  "platform":  "$(app_platformVersion)",
+  "platform":  "28.0.0.0",
   "idRanges":  [
                    {
                        "from":  1,

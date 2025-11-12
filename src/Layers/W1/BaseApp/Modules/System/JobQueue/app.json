@@ -3,7 +3,7 @@
     "name":  "Job Queue",
     "publisher":  "Microsoft",
     "description":  "This module provides capabilities running reports and codeunits async.",
-    "version":  "$(app_currentVersion)",
+    "version":  "28.0.0.0",
     "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
     "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
     "help":  "https://go.microsoft.com/fwlink/?linkid=2104024",
@@ -13,56 +13,56 @@
                              "id":  "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
                              "name":  "System Application",
                              "publisher":  "Microsoft",
-                             "version":  "$(app_minimumVersion)"
+                             "version":  "28.0.0.0"
                          },
                          {
                              "id":  "b5c1bc57-472a-4df0-8f23-2d5f306b542d",
                              "name":  "System Translation",
                              "publisher":  "Microsoft",
-                             "version":  "$(app_minimumVersion)"
+                             "version":  "28.0.0.0"
                          },
                          {
                              "id":  "163f82f9-7b3a-4e7d-85cc-11dd9adf75ad",
                              "name":  "System DotNet Aliases",
                              "publisher":  "Microsoft",
-                             "version":  "$(app_minimumVersion)"
+                             "version":  "28.0.0.0"
                          },
                          {
                              "id":  "9d82cdd7-9882-4493-aa5b-35e983b9362a",
                              "name":  "Error Message",
                              "publisher":  "Microsoft",
-                             "version":  "$(app_minimumVersion)"
+                             "version":  "28.0.0.0"
                          },
                          {
                              "id":  "36560748-e620-4577-b8d9-3fd62a1a84f9",
                              "name":  "System Media",
                              "publisher":  "Microsoft",
-                             "version":  "$(app_minimumVersion)"
+                             "version":  "28.0.0.0"
                          },
                          {
                              "id":  "9e2d6fa1-813f-4c28-a92b-4092657e85ab",
                              "name":  "Notifications",
                              "publisher":  "Microsoft",
-                             "version":  "$(app_minimumVersion)"
+                             "version":  "28.0.0.0"
                          },
                          {
                              "id":  "d87b1939-141c-4362-a7fa-e5dcc7a47f27",
                              "name":  "System Printer Management",
                              "publisher":  "Microsoft",
-                             "version":  "$(app_minimumVersion)"
+                             "version":  "28.0.0.0"
                          },
                          {
                              "id":  "4f6ebd98-3726-4025-875d-bacaa13c4f79",
                              "name":  "Power Automate",
                              "publisher":  "Microsoft",
-                             "version":  "$(app_minimumVersion)"
+                             "version":  "28.0.0.0"
                          }
                      ],
     "screenshots":  [
                     ],
     "internalsVisibleTo":  [
                            ],
-    "platform":  "$(app_platformVersion)",
+    "platform":  "28.0.0.0",
     "idRanges":  [
                      {
                          "from":  1,

@@ -3,7 +3,7 @@
     "name":  "Profile",
     "publisher":  "Microsoft",
     "description":  "This module provides functionality for interacting with profiles.",
-    "version":  "$(app_currentVersion)",
+    "version":  "28.0.0.0",
     "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
     "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
     "help":  "https://go.microsoft.com/fwlink/?linkid=2104024",
@@ -13,44 +13,44 @@
                             "id":  "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
                             "name":  "System Application",
                             "publisher":  "Microsoft",
-                            "version":  "$(app_minimumVersion)"
+                            "version":  "28.0.0.0"
                         },
                         {
                             "id":  "59997dbf-584a-4f17-9c2a-9a7704e66422",
                             "name":  "File Operations",
                             "publisher":  "Microsoft",
-                            "version":  "$(app_minimumVersion)"
+                            "version":  "28.0.0.0"
                         },
                         {
                             "id":  "9e2d6fa1-813f-4c28-a92b-4092657e85ab",
                             "name":  "Notifications",
                             "publisher":  "Microsoft",
-                            "version":  "$(app_minimumVersion)"
+                            "version":  "28.0.0.0"
                         },
                         {
                             "id":  "9cd70b92-26ab-4c2c-8a4d-226c478ec452",
                             "name":  "Designer Diagnostics",
                             "publisher":  "Microsoft",
-                            "version":  "$(app_minimumVersion)"
+                            "version":  "28.0.0.0"
                         },
                         {
                             "id":  "3bc592c2-de0c-4d31-b5ac-21d356c98301",
                             "name":  "User",
                             "publisher":  "Microsoft",
-                            "version":  "$(app_minimumVersion)"
+                            "version":  "28.0.0.0"
                         },
                         {
                             "id":  "10fcedfc-1400-4dde-b0dd-5cda709a5603",
                             "name":  "Object Selection",
                             "publisher":  "Microsoft",
-                            "version":  "$(app_minimumVersion)"
+                            "version":  "28.0.0.0"
                         }
                      ],
     "screenshots":  [
                     ],
     "internalsVisibleTo":  [
                            ],
-    "platform":  "$(app_platformVersion)",
+    "platform":  "28.0.0.0",
     "idRanges":  [
                      {
                          "from":  1,

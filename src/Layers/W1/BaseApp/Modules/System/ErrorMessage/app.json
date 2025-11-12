@@ -3,7 +3,7 @@
   "name": "Error Message",
   "publisher": "Microsoft",
   "description": "The Error Message framework",
-  "version": "$(app_currentVersion)",
+  "version": "28.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
@@ -13,30 +13,30 @@
       "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
       "name": "System Application",
       "publisher": "Microsoft",
-      "version": "$(app_minimumVersion)"
+      "version": "28.0.0.0"
     },
     {
       "id": "9e2d6fa1-813f-4c28-a92b-4092657e85ab",
       "name": "Notifications",
       "publisher": "Microsoft",
-      "version": "$(app_minimumVersion)"
+      "version": "28.0.0.0"
     },
     {
       "id": "10dc1d23-a225-43fc-affe-936a8ad8e611",
       "name": "Forward Links",
       "publisher": "Microsoft",
-      "version": "$(app_minimumVersion)"
+      "version": "28.0.0.0"
     },
     {
       "id": "89ed8e15-0ff8-4c30-8e28-fc6670eaeed1",
       "name": "Record Conversion",
       "publisher": "Microsoft",
-      "version": "$(app_minimumVersion)"
+      "version": "28.0.0.0"
     }
   ],
   "screenshots": [],
   "internalsVisibleTo": [],
-  "platform": "$(app_platformVersion)",
+  "platform": "28.0.0.0",
   "idRanges": [
     {
       "from": 1,
