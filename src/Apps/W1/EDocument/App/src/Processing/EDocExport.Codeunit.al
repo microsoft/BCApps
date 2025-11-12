@@ -12,14 +12,14 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Reminder;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using System.Automation;
 using System.Telemetry;
 using System.Utilities;
 
-
-codeunit 6102 "E-Doc. Export"
+codeunit 6102 "E-Doc. Export" implements IExportEligibilityEvaluator
 {
     Permissions =
         tabledata "E-Document" = im,
@@ -101,7 +101,7 @@ codeunit 6102 "E-Doc. Export"
     /// If services do not support the document type they are filtered out
     ///
     /// </summary>
-    local procedure CreateEDocument(var EDocument: Record "E-Document"; var DocumentHeader: RecordRef; var EDocumentService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type"): Boolean
+    internal procedure CreateEDocument(var EDocument: Record "E-Document"; var DocumentHeader: RecordRef; var EDocumentService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type"): Boolean
     var
         EDocumentLog: Codeunit "E-Document Log";
         SupportedServices: List of [Code[20]];
@@ -113,7 +113,7 @@ codeunit 6102 "E-Doc. Export"
 
         if EDocumentService.FindSet() then
             repeat
-                if IsDocumentTypeSupported(EDocumentService, EDocumentType) then
+                if IsDocumentSupported(EDocument, EDocumentService, DocumentHeader, EDocumentType) then
                     SupportedServices.Add(EDocumentService.Code);
             until EDocumentService.Next() = 0;
 
@@ -565,12 +565,26 @@ codeunit 6102 "E-Doc. Export"
         exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType));
     end;
 
-    local procedure IsDocumentTypeSupported(EDocService: Record "E-Document Service"; DocumentType: Enum "E-Document Type"): Boolean
+    local procedure IsDocumentSupported(EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; SourceDocumentHeader: RecordRef; DocumentType: Enum "E-Document Type"): Boolean
     var
         EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
+        IExportEligibilityEvaluator: Interface IExportEligibilityEvaluator;
     begin
-        exit(EDocServiceSupportedType.Get(EDocService.Code, DocumentType));
+        if not EDocServiceSupportedType.Get(EDocumentService.Code, DocumentType) then
+            exit(false);
+
+        IExportEligibilityEvaluator := EDocumentService."Export Eligibility Evaluator";
+        exit(IExportEligibilityEvaluator.ShouldExport(EDocument, EDocumentService, SourceDocumentHeader, DocumentType));
     end;
+
+    #region IExportEligibilityEvaluator
+
+    procedure ShouldExport(EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; SourceDocumentHeader: RecordRef; DocumentType: Enum "E-Document Type"): Boolean
+    begin
+        exit(true);
+    end;
+
+    #endregion
 
     var
         EDocumentProcessing: Codeunit "E-Document Processing";

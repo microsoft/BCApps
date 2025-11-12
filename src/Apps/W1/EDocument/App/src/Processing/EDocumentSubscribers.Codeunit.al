@@ -581,13 +581,8 @@ codeunit 6103 "E-Document Subscribers"
         TypeHelper: Codeunit "Type Helper";
         RecordRef: RecordRef;
         PostedSourceDocumentHeader: RecordRef;
-        IsHandled: Boolean;
         UnsupportedRecordTypeErr: Label 'Unsupported record %1.', Comment = '%1 - Record Type';
     begin
-        OnBeforeCreateEDocumentFromPostedDocument(PostedRecord, IsHandled);
-        if IsHandled then
-            exit;
-
         if DocumentType = DocumentType::None then begin // Undefined document type is not supported
             TypeHelper.CopyRecVariantToRecRef(PostedRecord, RecordRef);
             Error(UnsupportedRecordTypeErr, RecordRef.Name());
@@ -630,8 +625,4 @@ codeunit 6103 "E-Document Subscribers"
         Telemetry.LogMessage('0000PYF', DraftChangeTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
     end;
 
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateEDocumentFromPostedDocument(PostedRecord: Variant; var IsHandled: Boolean)
-    begin
-    end;
 }
