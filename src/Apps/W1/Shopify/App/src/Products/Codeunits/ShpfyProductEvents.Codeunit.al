@@ -424,22 +424,4 @@ codeunit 30177 "Shpfy Product Events"
     begin
     end;
 
-    /// <summary>
-    /// Raised after the filter is set on the Shopify Shop record when setting available stores to map.
-    /// </summary>  
-    /// <param name="ShopifyShop">Parameter of type Record "Shpfy Shop".</param>
-    /// <param name="Item">Parameter of type Record Item.</param>
-    [IntegrationEvent(false, false)]
-    internal procedure OnAfterSetFilterShopifyShopOnSetAvailableStoresToMap(var ShopifyShop: Record "Shpfy Shop"; Item: Record Item)
-    begin
-    end;
-
-    /// <summary>
-    /// Raised after the filter is set on the Shopify Product record when checking if Product is already Mapped to a shop.
-    /// </summary>  
-    /// <param name="ShopifyProduct">Parameter of type Record "Shpfy Product".</param>
-    [IntegrationEvent(false, false)]
-    internal procedure OnAfterSetFilterShopifyProductSetIsProductMapped(var ShopifyProduct: Record "Shpfy Product")
-    begin
-    end;
 }
