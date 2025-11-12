@@ -35,8 +35,12 @@ pageextension 20472 "Qlty. In Test Generat Rules" extends "Qlty. In. Test Genera
                 ApplicationArea = Manufacturing;
 
                 trigger OnAction()
+                //begin
+                //OnEditGenerationRuleForProduction(Rec);
+                var
+                    RecQltyProdGenRuleWizard: Page "Qlty. Prod. Gen. Rule Wizard";
                 begin
-                    OnEditGenerationRuleForProduction(Rec);
+                    RecQltyProdGenRuleWizard.RunModalWithGenerationRule(Rec);
                     CurrPage.Update(false);
                 end;
             }
@@ -51,12 +55,18 @@ pageextension 20472 "Qlty. In Test Generat Rules" extends "Qlty. In. Test Genera
 
                 trigger OnAction()
                 var
+                    QltyProdGenRuleWizard: Page "Qlty. Prod. Gen. Rule Wizard";
                     PreviousEntryNo: Integer;
                 begin
                     PreviousEntryNo := Rec."Entry No.";
-                    OnEditGenerationRuleForProduction(Rec);
-                    if PreviousEntryNo = Rec."Entry No." then
-                        CurrPage.Update(false);
+                    //OnEditGenerationRuleForProduction(Rec);
+                    QltyProdGenRuleWizard.RunModalWithGenerationRule(Rec);
+
+                    CurrPage.Update(false);
+                    Rec.Reset();
+                    Rec.SetRange("Entry No.", PreviousEntryNo);
+                    if Rec.FindSet() then;
+                    Rec.SetRange("Entry No.");
                 end;
             }
         }
@@ -138,7 +148,7 @@ pageextension 20472 "Qlty. In Test Generat Rules" extends "Qlty. In. Test Genera
     var
         QltySourceConfig: Record "Qlty. Source Configuration";
     begin
-        if not QltySourceConfig.Get(Rec."Source Table Configuration") then
+        if not QltySourceConfig.Get(Rec.So."Source Table Configuration") then
             exit(false);
         exit(QltySourceConfig.SupportsProductionOutputSource());
     end;

@@ -400,7 +400,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
 
             if Certainty = Certainty::Maybe then begin
                 //ShowEditWizardProductionRule := true;
-                ShowEditWizardAssemblyRule := true;
+                //ShowEditWizardAssemblyRule := true;
                 ShowEditWizardReceivingRule := true;
                 ShowEditWizardMovementRule := true;
                 EditAssemblyTrigger := true;
