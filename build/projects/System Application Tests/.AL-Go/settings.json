@@ -8,5 +8,6 @@
     "../../../src/Tools/Performance Toolkit/Test"
   ],
   "gitHubRunner": "self-hosted, 1ES.Pool=GitHub-BCApps",
+  "memoryLimit": "16G",
   "testType": "UnitTest"
 }
