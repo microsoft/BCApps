@@ -60,10 +60,10 @@ function Invoke-DemoDataGeneration
         return
     } elseif( $TestType -eq "IntegrationTest" ) {
         Write-Host "Proceeding with demo data generation (SetupData) as test type is set to IntegrationTest"
-        Invoke-ContosoDemoTool -ContainerName $ContainerName -SetupData
+        Invoke-ContosoDemoTool -ContainerName $ContainerName -SetupData -CompanyName "CRONUS IntegrationTest"
     } elseif( $TestType -eq "Uncategorized" ) {
         Write-Host "Proceeding with full demo data generation as test type is set to Uncategorized"
-        Invoke-ContosoDemoTool -ContainerName $ContainerName
+        Invoke-ContosoDemoTool -ContainerName $ContainerName -CompanyName "CRONUS Uncategorized"
     } else {
         throw "Unknown test type $TestType."
     }
@@ -78,7 +78,9 @@ foreach ($company in $existingCompanies) {
 }
 
 Write-Host "Creating new test company in container $($parameters.ContainerName)"
-New-CompanyInBcContainer -containerName $parameters.ContainerName -companyName "CRONUS TestCompany" -evaluationCompany
+New-CompanyInBcContainer -containerName $parameters.ContainerName -companyName "CRONUS UnitTests" -evaluationCompany
+New-CompanyInBcContainer -containerName $parameters.ContainerName -companyName "CRONUS IntegrationTest" -evaluationCompany
+New-CompanyInBcContainer -containerName $parameters.ContainerName -companyName "CRONUS UncategorizedTests" -evaluationCompany
 
 # Reinstall all the uninstalled apps in the container
 # This is needed to ensure that the various Demo Data apps are installed in the container when we generate demo data

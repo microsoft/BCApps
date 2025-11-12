@@ -61,6 +61,9 @@ if ($null -ne $TestType) {
 
 $parameters["disabledTests"] = @(Get-DisabledTests) # Add disabled tests to parameters
 $parameters["renewClientContextBetweenTests"] = $true
+$parameters["companyName"] = "CRONUS $TestType"
+
+Write-Host "Running tests in container $($parameters.ContainerName) in company $($parameters.companyName)"
 
 if ($DisableTestIsolation)
 {
