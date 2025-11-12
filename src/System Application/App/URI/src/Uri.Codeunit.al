@@ -193,73 +193,33 @@ codeunit 3060 Uri
     end;
 
     /// <summary>
-    /// Validates and returns the integration URL from the setup table if it has the same host as the provided integration URL.
+    /// Validates integration URI from setup table field, returns the hardcoded integration URI if validation fails.
     /// </summary>
     /// <param name="SetupTableNo">The table number of the setup table.</param>
     /// <param name="FieldNo">The field number of the integration URL field in the setup table.</param>
     /// <param name="IntegrationURL">The hardcoded integration URL to validate.</param>   
     /// <returns>The integration URL from the setup table if it has the same host; otherwise, the provided integration URL.</returns>
-    procedure ValidateIntegrationURLFromSetupTableField(SetupTableNo: Integer; FieldNo: Integer; IntegrationURL: Text; OnlyValidateDomain: Boolean): Text
+    procedure ValidateIntegrationURLFromSetupTableField(SetupTableNo: Integer; FieldNo: Integer; IntegrationURL: Text): Text
     var
         RecRef: RecordRef;
-        IsValid: Boolean;
     begin
         RecRef.Open(SetupTableNo);
         if not RecRef.FindFirst() then
             exit(IntegrationURL);
 
-        if OnlyValidateDomain then
-            IsValid := AreURLsHaveSameDomain(RecRef.Field(FieldNo).Value, IntegrationURL)
-        else
-            IsValid := AreURLsHaveSameHost(RecRef.Field(FieldNo).Value, IntegrationURL);
-
-        if IsValid then
+        if AreURIsHaveSameHost(RecRef.Field(FieldNo).Value, IntegrationURL) then
             exit(RecRef.Field(FieldNo).Value)
         else
             exit(IntegrationURL);
     end;
 
     /// <summary>
-    /// Validates whether two URLs have the same host or domain based on the specified validation mode.
-    /// </summary>
-    /// <param name="UriString1">The first URI string.</param>
-    /// <param name="UriString2">The second URI string.</param>
-    /// <param name="OnlyDomain">If true, validates only the domain (e.g., both subdomain1.example.com and subdomain2.example.com have domain example.com). If false, validates the full host (e.g., both subdomain.example.com\test1 and subdomain.example.com\test2 have the same host subdomain.example.com).</param>
-    /// <returns>True if both URIs have the same host or domain based on the validation mode; otherwise, false.</returns>
-    procedure AreURLsSame(UriString1: Text; UriString2: Text; OnlyDomain: Boolean): Boolean
-    begin
-        if OnlyDomain then
-            exit(AreURLsHaveSameDomain(UriString1, UriString2))
-        else
-            exit(AreURLsHaveSameHost(UriString1, UriString2));
-    end;
-
-    /// <summary>
-    /// Verifies whether two URLs have the same domain (e.g., both subdomain1.example.com and subdomain2.example.com have domain example.com).
-    /// </summary>
-    /// <param name="UriString1">The first URI string.</param>
-    /// <param name="UriString2">The second URI string.</param>
-    /// <returns>True if both URIs have the same domain; otherwise, false.</returns>
-    procedure AreURLsHaveSameDomain(UriString1: Text; UriString2: Text): Boolean
-    var
-        Domain1, Domain2 : Text;
-    begin
-        Domain1 := GetDomainFromUri(UriString1.ToLower());
-        Domain2 := GetDomainFromUri(UriString2.ToLower());
-
-        if (Domain1 = '') or (Domain2 = '') then
-            exit(false);
-
-        exit(Domain1 = Domain2);
-    end;
-
-    /// <summary>
-    /// Verifies whether two URLs have the same host (e.g., both subdomain.example.com\test1 and subdomain.example.com\test2 have the same host subdomain.example.com).
+    /// Verifies whether two URIs have the same host (e.g., both subdomain.example.com\test1 and subdomain.example.com\test2 have the same host subdomain.example.com).
     /// </summary>
     /// <param name="UriString1">The first URI string.</param>
     /// <param name="UriString2">The second URI string.</param>
     /// <returns>True if both URIs have the same host; otherwise, false.</returns>
-    procedure AreURLsHaveSameHost(UriString1: Text; UriString2: Text): Boolean
+    procedure AreURIsHaveSameHost(UriString1: Text; UriString2: Text): Boolean
     var
         Uri1, Uri2 : DotNet Uri;
     begin
@@ -270,30 +230,16 @@ codeunit 3060 Uri
     end;
 
     /// <summary>
-    /// Gets the domain from a given URI string (e.g., subdomain.example.com -> example.com).
+    /// Verifies whether the URI is in a valid pattern.
     /// </summary>
-    /// <param name="UriString">The URI string to extract the domain from.</param>
-    /// <returns>The domain extracted from the URI string.</returns>
-    procedure GetDomainFromUri(UriString: Text): Text
+    /// <param name="UriString">The URI string to validate.</param>
+    /// <param name="Pattern">The regular expression pattern to match against.</param>
+    /// <returns>True if the URI string is in a valid pattern; otherwise, false.</returns>
+    procedure IsValidURIPattern(UriString: Text; Pattern: Text): Boolean
     var
-        LocalUri: DotNet Uri;
-        Host: Text;
-        HostParts: List of [Text];
+        RegEx: Codeunit Regex;
     begin
-        if not IsValidUri(UriString) then
-            exit('');
-
-        LocalUri := LocalUri.Uri(UriString);
-        Host := LocalUri.Host;
-
-        if Host = '' then
-            exit('');
-
-        HostParts := Host.Split('.');
-        if HostParts.Count() < 2 then
-            exit('');
-
-        exit(HostParts.Get(HostParts.Count() - 1) + '.' + HostParts.Get(HostParts.Count()));
+        exit(Regex.IsMatch(UriString, Pattern));
     end;
 
     /// <summary>
