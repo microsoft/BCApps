@@ -3,7 +3,9 @@
   "projectName": "System Application Tests",
   "testFolders": [
     "../../../src/System Application/Test",
-    "../../../src/System Application/Partner Test"
+    "../../../src/System Application/Partner Test",
+    "../../../src/Business Foundation/Test",
+    "../../../src/Tools/Performance Toolkit/Test"
   ],
   "testType": "UnitTest"
 }
