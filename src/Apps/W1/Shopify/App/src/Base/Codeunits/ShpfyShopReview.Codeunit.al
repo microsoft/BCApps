@@ -94,7 +94,7 @@ codeunit 30407 "Shpfy Shop Review"
 
     local procedure LogReviewReminderTelemetry()
     begin
-        Session.LogMessage('0000SVO', ReviewReminderTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ReviewReminderTelemetryCategoryTok);
+        Session.LogMessage('', ReviewReminderTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
     end;
 
     local procedure GetReviewReminderNotificationId(): Guid
@@ -104,7 +104,7 @@ codeunit 30407 "Shpfy Shop Review"
 
     local procedure GetReviewReminderMinimumProcessedOrders(): Integer
     begin
-        exit(100);
+        exit(10);
     end;
 
     local procedure GetStoreNameKey(): Text
@@ -117,5 +117,5 @@ codeunit 30407 "Shpfy Shop Review"
         ReviewReminderReviewActionLbl: Label 'Review';
         ReviewReminderAlreadyDidActionLbl: Label 'Already did';
         ReviewReminderTelemetryMsg: Label 'Shopify review reminder notification displayed.', Locked = true;
-        ReviewReminderTelemetryCategoryTok: Label 'Shopify Integration', Locked = true;
+        CategoryTok: Label 'Shopify Integration', Locked = true;
 }

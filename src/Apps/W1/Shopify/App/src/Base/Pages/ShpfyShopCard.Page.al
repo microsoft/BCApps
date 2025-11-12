@@ -1271,9 +1271,8 @@ page 30101 "Shpfy Shop Card"
 #if not CLEAN28
             Rec.UpdateFulfillmentService();
 #endif
+            ShopReview.MaybeShowReviewReminder(Rec.GetStoreName());
         end;
-
-        ShopReview.MaybeShowReviewReminder(Rec.GetStoreName());
     end;
 
     trigger OnAfterGetCurrRecord()
