@@ -140,6 +140,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
         TestValue: Text;
         CaseOption: Enum "Qlty. Case Sensitivity";
+        DatabaseIsCaseSensitive: Boolean;
     begin
         // [SCENARIO] Validate string value testing with exact matches, wildcards, and case sensitivity options
 
@@ -148,6 +149,7 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
 
         // [WHEN] Testing string values with various conditions including wildcards and case sensitivity
         // [THEN] Values pass validation for exact matches, wildcard patterns, and respect case sensitivity settings
+        DatabaseIsCaseSensitive := IsDatabaseCaseSensitive();
         LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString(TestValue, ''), 'String basic no condition');
         LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString(TestValue, '3'), 'String basic exact');
         LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueString(TestValue, '2'), 'String basic not 3');
@@ -156,10 +158,17 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('abcdefg', '*b*'), 'String basic wildcard 1');
         LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('abcdefg', '*g'), 'String basic wildcard 2');
         LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('caseSensitive', 'caseSensitive'), 'String case sensitive 1');
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueString('caseSensitive', 'casesensitive'), 'String case sensitive 2');
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueString('caseSensitive', 'CaseSensitive'), 'String case sensitive 3');
-        LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('caseSensitive', 'casesensitive', CaseOption::Insensitive), 'String case sensitive 4');
-        LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueString('caseSensitive', 'casesensitive', CaseOption::Sensitive), 'String case sensitive 5');
+        if DatabaseIsCaseSensitive then begin
+            LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueString('caseSensitive', 'casesensitive'), 'String case sensitive 2');
+            LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueString('caseSensitive', 'CaseSensitive'), 'String case sensitive 3');
+            LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('caseSensitive', 'casesensitive', CaseOption::Insensitive), 'String case sensitive 4');
+            LibraryAssert.IsFalse(QltyGradeEvaluation.TestValueString('caseSensitive', 'casesensitive', CaseOption::Sensitive), 'String case sensitive 5');
+        end else begin
+            LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('caseSensitive', 'casesensitive'), 'String case sensitive 2');
+            LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('caseSensitive', 'CaseSensitive'), 'String case sensitive 3');
+            LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('caseSensitive', 'casesensitive', CaseOption::Insensitive), 'String case sensitive 4');
+            LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('caseSensitive', 'casesensitive', CaseOption::Sensitive), 'String case sensitive 5');
+        end;
         LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('wildCardSearch', '*ard*'), 'String wildcard 1');
         LibraryAssert.IsTrue(QltyGradeEvaluation.TestValueString('wildCardSearch', 'wild*'), 'String wildcard 2');
     end;
@@ -928,10 +937,12 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
         ProductionOrder: Code[20];
+        DatabaseIsCaseSensitive: Boolean;
     begin
         // [SCENARIO] Evaluate grade for text field with template-level conditions overriding field-level, testing case sensitivity and blank grade validation
 
         // [GIVEN] No blank grades exist in the system initially
+        DatabaseIsCaseSensitive := IsDatabaseCaseSensitive();
         SanityCheckQltyInspectionGrade.Reset();
         SanityCheckQltyInspectionGrade.SetFilter(Code, '=''''');
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionGrade.Count(), 'should be no blank grades - a');
@@ -1005,8 +1016,12 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionTestHeader, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'D', TextQltyField."Case Sensitive"), 'first text method2 test with no line.');
         // [THEN] Value 'e' (lowercase) with insensitive comparison evaluates to PASS
         LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionTestHeader, QltyInspectionTestLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'e', TextQltyField."Case Sensitive"::Insensitive), 'second text lowercase insensitive ');
-        // [THEN] Value 'e' (lowercase) with sensitive comparison evaluates to FAIL
-        LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionTestHeader, QltyInspectionTestLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'e', TextQltyField."Case Sensitive"::Sensitive), 'second text lowercase sensitive');
+        if DatabaseIsCaseSensitive then
+            // [THEN] Value 'e' (lowercase) with sensitive comparison evaluates to FAIL
+            LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionTestHeader, QltyInspectionTestLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'e', TextQltyField."Case Sensitive"::Sensitive), 'second text lowercase sensitive')
+        else
+            // [THEN] Value 'e' (lowercase) with sensitive comparison evaluates to PASS
+            LibraryAssert.AreEqual('PASS', QltyGradeEvaluation.EvaluateGrade(QltyInspectionTestHeader, QltyInspectionTestLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'e', TextQltyField."Case Sensitive"::Sensitive), 'second text lowercase sensitive');
         // [THEN] Value 'A' (in field-level condition) evaluates to FAIL (template override works)
         LibraryAssert.AreEqual('FAIL', QltyGradeEvaluation.EvaluateGrade(QltyInspectionTestHeader, QltyInspectionTestLine, TestQltyIGradeConditionConf, TextQltyField."Field Type", 'A', TextQltyField."Case Sensitive"), 'original field pass, which should be overwritten by the template.');
         // [THEN] Value 'c' (lowercase field-level condition) evaluates to FAIL
@@ -2180,5 +2195,19 @@ codeunit 139963 "Qlty. Tests - Grade Eval."
         OutTemplateLineQltyIGradeConditionConf.SetRange("Target Retest No.");
         OutTemplateLineQltyIGradeConditionConf.SetRange("Target Line No.");
         OutTemplateLineQltyIGradeConditionConf.SetRange("Field Code", QltyField.Code);
+    end;
+
+    local procedure IsDatabaseCaseSensitive(): Boolean
+    var
+        TempQltyInspectionTestHeader: Record "Qlty. Inspection Test Header" temporary;
+    begin
+        TempQltyInspectionTestHeader.Init();
+        TempQltyInspectionTestHeader."No." := 'A';
+        TempQltyInspectionTestHeader.Description := 'CASESENSITIVE';
+        TempQltyInspectionTestHeader.Insert();
+
+        Clear(TempQltyInspectionTestHeader);
+        TempQltyInspectionTestHeader.SetFilter(Description, 'casesensitive');
+        exit(TempQltyInspectionTestHeader.IsEmpty());
     end;
 }
