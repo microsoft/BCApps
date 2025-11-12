@@ -1,0 +1,43 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.DemoData.Manufacturing;
+
+using Microsoft.DemoTool.Helpers;
+using Microsoft.DemoData.Finance;
+
+codeunit 4782 "Create Mfg Posting Group"
+{
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
+    trigger OnRun()
+    var
+        FinanceModuleSetup: Record "Finance Module Setup";
+        ContosoPostingGroup: Codeunit "Contoso Posting Group";
+    begin
+        FinanceModuleSetup.Get();
+
+        ContosoPostingGroup.InsertGenProductPostingGroup(Manufacturing(), CapacitiesTok, FinanceModuleSetup."VAT Prod. Post Grp. Standard");
+
+        ContosoPostingGroup.InsertInventoryPostingGroup(Finished(), FinishedItemsLbl);
+    end;
+
+    var
+        ManufacturingTok: Label 'MANUFACT', MaxLength = 10;
+        FinishedTok: Label 'FINISHED', MaxLength = 10;
+        CapacitiesTok: Label 'Capacities', MaxLength = 50;
+        FinishedItemsLbl: Label 'Finished Items', MaxLength = 50;
+
+    procedure Manufacturing(): Code[20]
+    begin
+        exit(ManufacturingTok);
+    end;
+
+    procedure Finished(): Code[20]
+    begin
+        exit(FinishedTok);
+    end;
+}
