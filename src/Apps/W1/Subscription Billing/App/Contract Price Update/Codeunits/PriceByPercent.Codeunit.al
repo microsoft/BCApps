@@ -37,7 +37,7 @@ codeunit 8012 "Price By Percent" implements "Contract Price Update"
                     ContractPriceUpdateLine.UpdateFromContract(ServiceCommitment.Partner, ServiceCommitment."Subscription Contract No.");
                     CalculateNewPrice(PriceUpdateTemplate."Update Value %", ContractPriceUpdateLine);
                     ContractPriceUpdateLine."Next Price Update" := CalcDate(PriceUpdateTemplate."Price Binding Period", ContractPriceUpdateLine."Perform Update On");
-                    PriceUpdateManagement.OnAfterCalculateNewPriceForSubscriptionLine(ServiceCommitment, ContractPriceUpdateLine, PriceUpdateTemplate, PerformUpdateOnDate);
+                    OnAfterCalculateNewPriceForSubscriptionLine(ServiceCommitment, ContractPriceUpdateLine, PriceUpdateTemplate, PerformUpdateOnDate);
                     if ContractPriceUpdateLine.ShouldContractPriceUpdateLineBeInserted() then
                         ContractPriceUpdateLine.Insert(false)
                     else
@@ -58,5 +58,10 @@ codeunit 8012 "Price By Percent" implements "Contract Price Update"
         NewContractPriceUpdateLine."Discount Amount" := Round(NewContractPriceUpdateLine."Discount %" * NewContractPriceUpdateLine."New Amount" / 100, Currency."Amount Rounding Precision");
         NewContractPriceUpdateLine."New Amount" := NewContractPriceUpdateLine."New Amount" - NewContractPriceUpdateLine."Discount Amount";
         NewContractPriceUpdateLine."Additional Amount" := NewContractPriceUpdateLine."New Amount" - NewContractPriceUpdateLine."Old Amount";
+    end;
+
+    [IntegrationEvent(false, false)]
+    internal procedure OnAfterCalculateNewPriceForSubscriptionLine(SubscriptionLine: Record "Subscription Line"; var SubContrPriceUpdateLine: Record "Sub. Contr. Price Update Line"; PriceUpdateTemplate: Record "Price Update Template"; PerformUpdateOnDate: Date)
+    begin
     end;
 }

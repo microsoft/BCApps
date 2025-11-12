@@ -297,12 +297,4 @@ codeunit 8009 "Price Update Management"
     local procedure OnAfterFilterSubscriptionLineOnAfterGetAndApplyFiltersOnSubscriptionLine(var SubscriptionLine: Record "Subscription Line")
     begin
     end;
-
-    /// <summary>
-    /// Use this to update ContractPriceUpdateLine after new price has been calculated.
-    /// </summary>
-    [IntegrationEvent(false, false)]
-    internal procedure OnAfterCalculateNewPriceForSubscriptionLine(SubscriptionLine: Record "Subscription Line"; var SubContrPriceUpdateLine: Record "Sub. Contr. Price Update Line"; PriceUpdateTemplate: Record "Price Update Template"; PerformUpdateOnDate: Date)
-    begin
-    end;
 }
