@@ -178,7 +178,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         URI: Codeunit Uri;
         PatternLbl: Label '^(https)\:\/\/[a-zA-Z0-9][a-zA-Z0-9\-]*\.myshopify\.com[\/]*$', Locked = true;
     begin
-        if URI.IsValidURIPattern(ShopUrl, PatternLbl) then
+        if not URI.IsValidURIPattern(ShopUrl, PatternLbl) then
             Error(InvalidShopUrlErr);
     end;
 
