@@ -573,7 +573,7 @@ codeunit 6103 "E-Document Subscribers"
 
     procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile")
     begin
-        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, EDocumentProcessing.GetTypeFromPostedSourceDocument(PostedRecord));
+        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, EDocumentProcessing.GetTypeFromSourceDocument(PostedRecord));
     end;
 
     procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type")

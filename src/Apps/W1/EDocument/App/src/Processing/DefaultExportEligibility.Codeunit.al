@@ -12,8 +12,9 @@ codeunit 6198 "Default Export Eligibility" implements IExportEligibilityEvaluato
     /// Default implementation that allows all documents to be exported.
     /// This maintains backward compatibility with the standard behavior.
     /// </summary>
-    procedure ShouldExport(EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; SourceDocumentHeader: RecordRef; DocumentType: Enum "E-Document Type"): Boolean
+    procedure ShouldExport(EDocumentService: Record "E-Document Service"; SourceDocumentHeader: RecordRef; DocumentType: Enum "E-Document Type"): Boolean
     begin
         exit(true);
     end;
+
 }

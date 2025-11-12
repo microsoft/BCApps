@@ -22,8 +22,7 @@ interface IExportEligibilityEvaluator
     /// <param name="SourceDocumentHeader"></param>
     /// <param name="DocumentType"></param>
     /// <returns>True if the document is eligible for export; otherwise, false.</returns>
-    procedure ShouldExport(EDocument: Record "E-Document";
-        EDocumentService: Record "E-Document Service";
+    procedure ShouldExport(EDocumentService: Record "E-Document Service";
         SourceDocumentHeader: RecordRef;
         DocumentType: Enum "E-Document Type"): Boolean;
 
