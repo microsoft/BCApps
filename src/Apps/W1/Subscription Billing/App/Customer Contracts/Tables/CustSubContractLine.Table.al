@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Inventory.Item;
+using System.Utilities;
 
 table 8062 "Cust. Sub. Contract Line"
 {
@@ -118,6 +118,7 @@ table 8062 "Cust. Sub. Contract Line"
             CalcFormula = lookup("Subscription Header".Quantity where("No." = field("Subscription Header No.")));
             Editable = false;
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
 
         field(200; "Planned Sub. Line exists"; Boolean)

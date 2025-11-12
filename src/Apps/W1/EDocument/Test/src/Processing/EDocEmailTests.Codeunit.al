@@ -3,16 +3,18 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Test;
-using System.TestLibraries.Email;
-using System.Email;
+
+using Microsoft.CRM.Contact;
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.eServices.EDocument.Integration;
-using Microsoft.Foundation.Reporting;
-using Microsoft.eServices.EDocument;
-using Microsoft.Purchases.Vendor;
+using System.Email;
 using System.IO;
+using System.TestLibraries.Email;
 
 
 codeunit 139746 "E-Doc. Email Tests"
@@ -45,7 +47,9 @@ codeunit 139746 "E-Doc. Email Tests"
     var
         SalesHeader: Record "Sales Header";
         SentEmails: Record "Sent Email";
+        Contact: Record Contact;
         DocumentSendingProfile: Record "Document Sending Profile";
+        ReportSelections: Record "Report Selections";
         DataCompression: Codeunit "Data Compression";
         EmailMessage: Codeunit "Email Message";
         SalesInvoicePage: TestPage "Sales Invoice";
@@ -77,6 +81,19 @@ codeunit 139746 "E-Doc. Email Tests"
 
         Customer."E-Mail" := 'Test123@example.com';
         Customer.Modify();
+
+        Customer.GetPrimaryContact(Customer."No.", Contact); // Some localizations require contact to have email address
+        if Contact."No." <> '' then begin
+            Contact."E-Mail" := Customer."E-Mail";
+            Contact.Modify();
+        end;
+
+        ReportSelections.SetRange("Report ID", 31018); // CZ localization report rendering requires specific layout: Bug 609737
+        if ReportSelections.FindSet() then
+            repeat
+                ReportSelections.Validate("Email Body Layout Name", 'SalesInvoicewithAdvEmail.docx');
+                ReportSelections.Modify();
+            until ReportSelections.Next() = 0;
 
         LibraryEDoc.CreateSalesHeaderWithItem(Customer, SalesHeader, Enum::"Sales Document Type"::Invoice);
         SalesInvoicePage.OpenView();

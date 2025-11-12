@@ -11,6 +11,7 @@ using Microsoft.Purchases.History;
 using System.AI;
 using System.Azure.KeyVault;
 using System.Telemetry;
+using System.Config;
 
 codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISystem
 {
@@ -25,6 +26,8 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         TempHistoricalMatchBuffer: Record "EDoc Historical Match Buffer" temporary;
         EDocSimilarDescriptions: Codeunit "E-Doc. Similar Descriptions";
         EDocumentNo: Integer;
+        HistoricalDataLoadFailedErr: Label 'Failed to load historical data for e-document line %1. Error: %2', Comment = '%1 = E-Document System Id, %2 = Error message', Locked = true;
+        AIHistoricalDataLoadEventTok: Label 'Historical Data Load', Locked = true;
 
     trigger OnRun()
     var
@@ -35,17 +38,23 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         FeatureTelemetry: Codeunit "Feature Telemetry";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         EDocPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
+        FeatureConfiguration: Codeunit "Feature Configuration";
         MistakesCount: Integer;
         MatchedCount: Integer;
         TelemetryDimensions: Dictionary of [Text, Text];
         AIHistoricalMatchEventTok: Label 'Historical Matching AI Match', Locked = true;
+        HistoricalMatchingExperimentTok: Label 'EDocHistoricalMatchingExperiment', Locked = true;
+        HistoricalMatchingConfig: Text;
     begin
-        if not PrepareHistoricalData(Rec) then
+        // Get experiment configuration
+        HistoricalMatchingConfig := FeatureConfiguration.GetConfiguration(HistoricalMatchingExperimentTok);
+
+        if not PrepareHistoricalData(Rec, HistoricalMatchingConfig) then
             exit;
 
         if not EDocumentAIProcessor.Setup(this) then
             exit;
-        if not EDocumentAIProcessor.Process(CreateUserMessage(Rec), Response) then
+        if not EDocumentAIProcessor.Process(CreateUserMessage(Rec, HistoricalMatchingConfig), Response) then
             exit;
 
         foreach FunctionResponse in Response.GetFunctionResponses() do begin
@@ -76,15 +85,19 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         FeatureTelemetry.LogUsage('0000PUP', EDocumentAIProcessor.GetEDocumentMatchingAssistanceName(), GetFeatureName(), TelemetryDimensions);
     end;
 
-    local procedure PrepareHistoricalData(var EDocumentPurchaseLine: Record "E-Document Purchase Line"): Boolean
+    local procedure PrepareHistoricalData(var EDocumentPurchaseLine: Record "E-Document Purchase Line"; HistoricalMatchingConfig: Text): Boolean
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        EDocHistoricalMatchingSetup: Record "EDoc Historical Matching Setup";
         TempPurchInvLine: Record "Purch. Inv. Line" temporary;
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         VendorNo: Code[20];
+        EDocSystemId: Guid;
+        ErrorMessage: Text;
     begin
         if not EDocumentPurchaseLine.FindFirst() then
             exit(false);
+
+        EDocSystemId := EDocumentPurchaseLine.SystemId;
 
         // Get vendor from header
         EDocumentPurchaseHeader.SetRange("E-Document Entry No.", EDocumentPurchaseLine."E-Document Entry No.");
@@ -92,40 +105,48 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
             exit(false);
         VendorNo := EDocumentPurchaseHeader."[BC] Vendor No.";
 
-        // Get setup
-        EDocHistoricalMatchingSetup.GetSetup();
-
         // Ensure we only process unmatched lines
         EDocumentPurchaseLine.SetRange("[BC] Purchase Type No.", '');
         if not EDocumentPurchaseLine.FindSet() then
             exit(false);
 
-        // Load historical data
-        LoadHistoricalDataIntoTempTable(TempPurchInvLine, VendorNo, EDocHistoricalMatchingSetup);
+        // Load historical data with error handling
+        if not LoadHistoricalDataIntoTempTable(TempPurchInvLine, VendorNo, HistoricalMatchingConfig) then begin
+            ErrorMessage := GetLastErrorText();
+            FeatureTelemetry.LogError('0000PUQ', GetFeatureName(), AIHistoricalDataLoadEventTok, StrSubstNo(HistoricalDataLoadFailedErr, EDocSystemId, ErrorMessage), GetLastErrorCallStack());
+            exit(false);
+        end;
+
         if TempPurchInvLine.IsEmpty() then
             exit(false);
 
         // Collect potential matches
         Clear(TempHistoricalMatchBuffer);
-        CollectPotentialMatches(EDocumentPurchaseLine, TempPurchInvLine, EDocHistoricalMatchingSetup, VendorNo);
+        CollectPotentialMatches(EDocumentPurchaseLine, TempPurchInvLine, VendorNo);
 
         exit(not TempHistoricalMatchBuffer.IsEmpty());
     end;
 
-    local procedure LoadHistoricalDataIntoTempTable(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20]; EDocHistoricalMatchingSetup: Record "EDoc Historical Matching Setup")
+    [TryFunction]
+    local procedure LoadHistoricalDataIntoTempTable(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20]; HistoricalMatchingConfig: Text)
     var
         PurchInvLine: Record "Purch. Inv. Line";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         OneYearAgoDate: Date;
         RecordCount: Integer;
         MaxHistoricalRecords: Integer;
+        StartTime: DateTime;
+        ElapsedTime: Duration;
+        TelemetryDimensions: Dictionary of [Text, Text];
     begin
+        StartTime := CurrentDateTime();
         OneYearAgoDate := CalcDate('<-1Y>', Today);
         MaxHistoricalRecords := 5000; // Limit historical data to prevent performance issues
 
         PurchInvLine.Reset();
         PurchInvLine.ReadIsolation(IsolationLevel::ReadUncommitted);
 
-        if EDocHistoricalMatchingSetup."Vendor Matching Scope" = EDocHistoricalMatchingSetup."Vendor Matching Scope"::"Same Vendor" then
+        if (HistoricalMatchingConfig = 'control') or (HistoricalMatchingConfig = '') then
             PurchInvLine.SetRange("Buy-from Vendor No.", VendorNo);
 
         PurchInvLine.SetFilter("Posting Date", '>=%1', OneYearAgoDate);
@@ -139,14 +160,21 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
                 RecordCount += 1;
             until (PurchInvLine.Next() = 0) or (RecordCount >= MaxHistoricalRecords);
         end;
+
+        ElapsedTime := CurrentDateTime() - StartTime;
+        TelemetryDimensions.Add('Records loaded', Format(RecordCount));
+        TelemetryDimensions.Add('Duration', Format(ElapsedTime));
+        if (HistoricalMatchingConfig = 'control') or (HistoricalMatchingConfig = '') then
+            TelemetryDimensions.Add('Vendor matching scope', 'Same Vendor')
+        else
+            TelemetryDimensions.Add('Vendor matching scope', 'All Vendors');
+        TelemetryDimensions.Add('Max records limit', Format(MaxHistoricalRecords));
+        TelemetryDimensions.Add('Limit reached', Format(RecordCount >= MaxHistoricalRecords));
+        FeatureTelemetry.LogUsage('0000PUR', GetFeatureName(), AIHistoricalDataLoadEventTok, TelemetryDimensions);
     end;
 
-    local procedure CollectPotentialMatches(var EDocumentPurchaseLine: Record "E-Document Purchase Line"; var TempPurchInvLine: Record "Purch. Inv. Line" temporary; EDocHistoricalMatchingSetup: Record "EDoc Historical Matching Setup"; VendorNo: Code[20])
-    var
-        UseSimilarTerms: Boolean;
+    local procedure CollectPotentialMatches(var EDocumentPurchaseLine: Record "E-Document Purchase Line"; var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20])
     begin
-        UseSimilarTerms := EDocHistoricalMatchingSetup."Line Matching Scope" = EDocHistoricalMatchingSetup."Line Matching Scope"::"Similar Product Descriptions";
-
         if EDocumentPurchaseLine.FindSet() then
             repeat
                 // Search for exact Product Code matches
@@ -157,8 +185,8 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
                 if EDocumentPurchaseLine.Description <> '' then
                     SearchAndAddMatches(EDocumentPurchaseLine, TempPurchInvLine, 'Description', EDocumentPurchaseLine.Description, 0.9, VendorNo);
 
-                // Search for similar descriptions if enabled using the new AI system
-                if UseSimilarTerms and (EDocumentPurchaseLine.Description <> '') then
+                // Search for similar descriptions
+                if EDocumentPurchaseLine.Description <> '' then
                     ProcessSimilarDescriptionsWithAI(EDocumentPurchaseLine, TempPurchInvLine, VendorNo);
             until EDocumentPurchaseLine.Next() = 0;
     end;
@@ -335,9 +363,8 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
             Error(PurchInvLineNotFoundErr, TempBuffer."Matched PurchInvLine SystemId", TempBuffer."Line No.");
     end;
 
-    local procedure CreateUserMessage(var EDocumentPurchaseLine: Record "E-Document Purchase Line"): Text
+    local procedure CreateUserMessage(var EDocumentPurchaseLine: Record "E-Document Purchase Line"; HistoricalMatchingConfig: Text): Text
     var
-        EDocHistoricalMatchingSetup: Record "EDoc Historical Matching Setup";
         UserMessage: JsonObject;
         CurrentLinesJson: JsonArray;
         HistoricalMatchesJson: JsonArray;
@@ -350,16 +377,18 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         // Build JSON structures
         CurrentLinesJson := BuildEDocumentPurchaseLinesJson(EDocumentPurchaseLine);
         HistoricalMatchesJson := BuildHistoricalMatchesJson();
-        EDocHistoricalMatchingSetup.GetSetup();
-        MatchingSetup.Add('vendorMatchingScope', Format(EDocHistoricalMatchingSetup."Vendor Matching Scope"));
-        MatchingSetup.Add('lineMatchingScope', Format(EDocHistoricalMatchingSetup."Line Matching Scope"));
+        if (HistoricalMatchingConfig = 'control') or (HistoricalMatchingConfig = '') then
+            MatchingSetup.Add('vendorMatchingScope', 'Same Vendor')
+        else
+            MatchingSetup.Add('vendorMatchingScope', 'All Vendors');
+        MatchingSetup.Add('lineMatchingScope', 'Similar product descriptions');
 
         // Build the user message
         UserMessage.Add('currentLines', CurrentLinesJson);
         UserMessage.Add('historicalMatches', HistoricalMatchesJson);
         UserMessage.Add('matchingSetup', MatchingSetup);
         UserMessage.WriteTo(UserMessageTxt);
-        
+
         OnUserMessageCreated(UserMessageTxt);
         exit(UserMessageTxt);
     end;

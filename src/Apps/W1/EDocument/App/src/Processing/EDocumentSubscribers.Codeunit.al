@@ -1,39 +1,39 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.IO.Peppol;
+using Microsoft.eServices.EDocument.OrderMatch;
+using Microsoft.EServices.EDocument.Processing;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
-using Microsoft.eServices.EDocument.OrderMatch;
-using Microsoft.eServices.EDocument.Service.Participant;
-using Microsoft.eServices.EDocument.Processing.Import.Purchase;
-using Microsoft.Inventory.Transfer;
+using Microsoft.Purchases.Setup;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
-using System.Telemetry;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;
-using Microsoft.Utilities;
 using Microsoft.Sales.Reminder;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Posting;
-using Microsoft.EServices.EDocument.Processing;
-using Microsoft.eServices.EDocument.Processing.Import;
-using Microsoft.eServices.EDocument.IO.Peppol;
-using Microsoft.Purchases.Setup;
+using Microsoft.Utilities;
 using System.Automation;
-using System.Utilities;
 using System.Reflection;
+using System.Telemetry;
+using System.Utilities;
 
 codeunit 6103 "E-Document Subscribers"
 {
@@ -46,7 +46,6 @@ codeunit 6103 "E-Document Subscribers"
         EDocumentProcessing: Codeunit "E-Document Processing";
         EDocumentProcessingPhase: Enum "E-Document Processing Phase";
         DeleteDocumentQst: Label 'This document is linked to E-Document %1. Do you want to continue?', Comment = '%1 - E-Document Entry No.';
-        DocumentSendingProfileWithWorkflowErr: Label 'Workflow %1 defined for %2 in Document Sending Profile %3 is not found.', Comment = '%1 - The workflow code, %2 - Enum value set in Electronic Document, %3 - Document Sending Profile Code';
 
 
     #region Draft page user edits 
@@ -423,10 +422,16 @@ codeunit 6103 "E-Document Subscribers"
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Purchase Line History");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Line - Field");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"ED Purchase Line Field Setup");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. PO Matching Setup");
+#if not CLEAN28
+#pragma warning disable AL0432
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"EDoc Historical Matching Setup");
+#pragma warning restore AL0432
+#endif
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Vendor Assign. History");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Record Link");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Notification");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. PO Matching Setup");
 #if not CLEAN26
 #pragma warning disable AL0432
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"EDoc. Purch. Line Field Setup");
@@ -573,7 +578,6 @@ codeunit 6103 "E-Document Subscribers"
 
     procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type")
     var
-        WorkFlow: Record Workflow;
         TypeHelper: Codeunit "Type Helper";
         RecordRef: RecordRef;
         PostedSourceDocumentHeader: RecordRef;
@@ -593,12 +597,7 @@ codeunit 6103 "E-Document Subscribers"
         if (DocumentSendingProfile."Electronic Document" <> DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow") then
             exit;
 
-        if not WorkFlow.Get(DocumentSendingProfile."Electronic Service Flow") then
-            Error(DocumentSendingProfileWithWorkflowErr, DocumentSendingProfile."Electronic Service Flow", Format(DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow"), DocumentSendingProfile.Code);
-
-        WorkFlow.TestField(Enabled);
-        if DocumentSendingProfile."Electronic Document" = DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow" then
-            EDocExport.CreateEDocument(PostedSourceDocumentHeader, WorkFlow, DocumentType);
+        EDocExport.CreateEDocument(PostedSourceDocumentHeader, DocumentSendingProfile, DocumentType);
     end;
 
     local procedure PointEDocumentToPostedDocument(OpenRecord: Variant; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")

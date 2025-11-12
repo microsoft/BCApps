@@ -5,8 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using System.Telemetry;
 using System.DateTime;
+using System.Telemetry;
 
 /// <summary>
 /// Page Shpfy Shop Card (ID 30101).
@@ -1268,6 +1268,9 @@ page 30101 "Shpfy Shop Card"
                     Rec.Enabled := false;
                     Rec.Modify();
                 end;
+#if not CLEAN28
+            Rec.UpdateFulfillmentService();
+#endif
         end;
 
         ShopReview.MaybeShowReviewReminder(Rec.GetStoreName());

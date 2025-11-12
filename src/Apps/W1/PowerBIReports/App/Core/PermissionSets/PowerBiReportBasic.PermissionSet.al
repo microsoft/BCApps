@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.PowerBIReports;
 
-using Microsoft.Purchases.PowerBIReports;
-using Microsoft.Sales.PowerBIReports;
 using Microsoft.Finance.PowerBIReports;
+using Microsoft.Inventory.PowerBIReports;
 using Microsoft.Manufacturing.PowerBIReports;
 using Microsoft.Projects.PowerBIReports;
-using Microsoft.Inventory.PowerBIReports;
+using Microsoft.Purchases.PowerBIReports;
+using Microsoft.Sales.PowerBIReports;
 
 permissionset 36951 "PowerBi Report Basic"
 {

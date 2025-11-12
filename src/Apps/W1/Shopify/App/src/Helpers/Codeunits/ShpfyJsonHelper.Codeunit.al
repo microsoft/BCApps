@@ -5,11 +5,11 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using System.Text;
-using System.Utilities;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using System.DateTime;
+using System.Text;
+using System.Utilities;
 
 /// <summary>
 /// Codeunit Shpfy Json Helper (ID 30157).

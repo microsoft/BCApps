@@ -1,0 +1,267 @@
+table 'Production Order Lines'
+	lineageTag: afb87419-2fd4-4375-b8cc-e15d781cfb3a
+
+	/// This measure shows how many items are yet to be produced for production orders by summing up the remaining quantity of items on all planned, firm planned, and released production order lines.
+	measure 'Qty. on Prod. Order' =
+			
+			CALCULATE(
+			SUM('Production Order Lines'[remainingQtyBase]),
+			'Production Order Lines'[Status] IN {"Planned","Firm Planned","Released"}
+			)
+		formatString: 0.00
+		displayFolder: _Prod. Order Line Measures
+		lineageTag: b89c5e4f-ca57-4827-98d7-ca7c2cac63b8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure is abbreviated for Firmed Planned Order Receipt (Qty.) and hows how many items are expected to be received for firm planned production orders by summing up the remaining quantity of items on all firm planned production order lines.
+	measure 'FP Order Receipt (Qty.)' =
+			
+			CALCULATE(
+			    SUM('Production Order Lines'[remainingQtyBase]),
+			    'Production Order Lines'[Status] = "Firm Planned"
+			)
+		formatString: 0.00
+		displayFolder: _Prod. Order Line Measures
+		lineageTag: 9328dd1a-b11b-431c-9158-bf64585b6355
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure is abbreviated for Released Production Order Receipt (Qty.) and shows how many items are expected to be received for released production orders by summing up the remaining quantity of items on all released production order lines.
+	measure 'Rel. Order Receipt (Qty.)' =
+			
+			CALCULATE(
+			    SUM('Production Order Lines'[remainingQtyBase]),
+			    'Production Order Lines'[Status] = "Released"
+			)
+		formatString: 0.00
+		displayFolder: _Prod. Order Line Measures
+		lineageTag: aec8ea14-0439-4062-9b88-cc5783dab4a2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Planned Order Receipt (Qty.)' =
+			
+			CALCULATE(
+			    SUM('Production Order Lines'[remainingQtyBase]),
+			    'Production Order Lines'[Status] = "Planned"
+			)
+		formatString: 0.00
+		isHidden
+		displayFolder: _Prod. Order Line Measures
+		lineageTag: e58b831a-f56f-4106-9892-9f7837853c0e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Planned Order Release (Qty.)' =
+			
+			CALCULATE(
+			    SUM('Production Order Lines'[remainingQtyBase]),
+			    'Production Order Lines'[Status] = "Planned",
+			    USERELATIONSHIP('Production Order Lines'[Starting Date],'Date'[Date])
+			)
+		formatString: 0.00
+		isHidden
+		displayFolder: _Prod. Order Line Measures
+		lineageTag: 98cb6a62-e334-436a-8539-c2de0ddc476a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure calculates the total scheduled receipt quantity from production orders by summing the [remainingQtyBase] column in the Production Order Lines table. It includes only those orders where the [Status] is either "Firm Planned" or "Released," which represents production orders expected to be completed. This measure gives an overview of pending quantities that are scheduled for receipt in the near future.
+	measure 'Scheduled Receipt (Qty.)' =
+			
+			CALCULATE(
+			    SUM('Production Order Lines'[remainingQtyBase]),
+			    'Production Order Lines'[Status] IN {"Firm Planned","Released"}
+			)
+		formatString: 0.00
+		displayFolder: _Prod. Order Line Measures
+		lineageTag: f9fe93b3-f193-4c82-a08f-27acb359520f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Specifies the earliest date when the produced item must be available. The date is copied from the header of the firm planned production order.
+	measure 'FP Order - Earliest Due Date' =
+			
+			CALCULATE(
+			    MIN('Production Order Lines'[Due Date]),
+			    'Production Order Lines'[Status] = "Firm Planned"
+			)
+		formatString: Short Date
+		displayFolder: _Prod. Order Line Measures
+		lineageTag: 67fb01ec-8895-481a-82c2-194426b57c73
+
+	/// Specifies the earliest date when the produced item must be available. The date is copied from the header of the released planned production order.
+	measure 'Rel. Order - Earliest Due Date' =
+			
+			CALCULATE(
+			    MIN('Production Order Lines'[Due Date]),
+			    'Production Order Lines'[Status] = "Released"
+			)
+		formatString: Short Date
+		displayFolder: _Prod. Order Line Measures
+		lineageTag: 428731e7-843e-4e0f-ad60-a8edd416cc1b
+
+	measure 'Production Order Link' =
+			
+			VAR Endpoint = "&page=99000815&"
+			VAR BaseLink = [Base Link] & Endpoint
+			// Filter Context
+			VAR DocumentNo = CONCATENATEX(VALUES('Production Order Lines'[Document No.]),'Production Order Lines'[Document No.], "|")
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Production Order Lines'[dimensionSetID]), 'Production Order Lines'[dimensionSetID], "|")
+			
+			VAR DocumentNoFilter = "filter='Production Order'.'No.' IS '" & DocumentNo & "'"
+			VAR DateFilter = " AND 'Production Order'.'Due Date' IS '" & [Ranged] & "'"
+			VAR DimensionFilter = " AND 'Production Order'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			RETURN
+			BaseLink & DocumentNoFilter & DateFilter & DimensionFilter
+		displayFolder: _Back Link
+		lineageTag: 8dc26dce-99b5-4e87-a429-f9d531b4729e
+
+	column Status
+		dataType: string
+		lineageTag: 38c036ff-4b81-49a6-9926-9c564236a804
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: b7769d34-580f-4582-94de-dc5c4b40ecdb
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: 407fccd6-98bf-4171-8a51-a7469586e104
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: 75de8b6c-160d-4050-bf4a-e744ef1561da
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column remainingQtyBase
+		dataType: double
+		isHidden
+		lineageTag: 39f89fc1-7490-4a0e-bc47-413ddd97cc60
+		summarizeBy: sum
+		sourceColumn: remainingQtyBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Due Date'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 111d9cef-c6c7-4646-91c7-f428d55ad479
+		summarizeBy: none
+		sourceColumn: Due Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Starting Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 7ea712b7-22ef-4a34-a1ad-143cd0e8c9c0
+		summarizeBy: none
+		sourceColumn: Starting Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b2bcd0b8-d3aa-4677-9583-6a7a07e0540d
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Quantity Per Unit of Measure'
+		dataType: double
+		lineageTag: b8e67fc3-2e5f-47b6-93bc-f15a64168155
+		summarizeBy: sum
+		sourceColumn: Quantity Per Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Unit of Measure Code'
+		dataType: string
+		lineageTag: e525f468-a815-4f9e-8116-ee7298a8d07c
+		summarizeBy: none
+		sourceColumn: Unit of Measure Code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Production Order Lines' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="inventoryProdOrderLines",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"status", type text},
+				            {"documentNo", type text},
+				            {"itemNo", type text},
+				            {"locationCode", type text},
+				            {"remainingQtyBase", type number},
+				            {"dueDate", type date},
+				            {"startingDate", type date},
+				            {"dimensionSetID", Int64.Type},
+				            {"qtyPerUnitOfMeasure", type number},
+				            {"unitOfMeasureCode", type text}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {
+				            {"status", "Status"},
+				            {"documentNo", "Document No."},
+				            {"startingDate", "Starting Date"},
+				            {"dueDate", "Due Date"},
+				            {"qtyPerUnitOfMeasure", "Quantity Per Unit of Measure"},
+				            {"unitOfMeasureCode","Unit of Measure Code"}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns", {"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

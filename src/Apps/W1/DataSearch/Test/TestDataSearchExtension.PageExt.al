@@ -4,9 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Test.Foundation.DataSearch;
-using Microsoft.Sales.Document;
-using Microsoft.Sales.Archive;
+
 using Microsoft.Foundation.DataSearch;
+using Microsoft.Sales.Archive;
+using Microsoft.Sales.Document;
 
 pageextension 139507 "Test Data Search Extension" extends "Data Search"
 {

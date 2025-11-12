@@ -1,12 +1,12 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Currency;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Finance.Currency;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Purchases.Document;
-using Microsoft.Purchases.History;
 using System.Security.User;
 
 table 8064 "Billing Line Archive"
@@ -87,6 +87,7 @@ table 8064 "Billing Line Archive"
         {
             Caption = 'Quantity';
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(50; "Billing from"; Date)
         {

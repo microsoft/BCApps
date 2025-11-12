@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Sales.Customer;
 using Microsoft.CRM.Contact;
 using Microsoft.Inventory.Item;
+using Microsoft.Sales.Customer;
 using System.Security.User;
 
 table 8008 "Imported Subscription Header"
@@ -111,6 +111,7 @@ table 8008 "Imported Subscription Header"
             Caption = 'Quantity';
             InitValue = 1;
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(100; "Subscription Header created"; Boolean)
         {

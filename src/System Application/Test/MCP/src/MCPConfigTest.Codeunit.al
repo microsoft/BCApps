@@ -6,9 +6,9 @@
 namespace System.Test.MCP;
 
 using System.MCP;
+using System.Reflection;
 using System.TestLibraries.MCP;
 using System.TestLibraries.Utilities;
-using System.Reflection;
 
 codeunit 130130 "MCP Config Test"
 {
@@ -178,7 +178,7 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
-    procedure TestAllowProdChanges()
+    procedure TestAllowCreateUpdateDeleteTools()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
         ConfigId: Guid;
@@ -193,10 +193,10 @@ codeunit 130130 "MCP Config Test"
         asserterror MCPConfig.AllowCreate(ToolId, true);
 
         // [THEN] Error message is returned
-        Assert.ExpectedError('Production changes are not allowed for this MCP configuration.');
+        Assert.ExpectedError('Create, update and delete tools are not allowed for this MCP configuration.');
 
-        // [GIVEN] Production changes are allowed
-        MCPConfig.AllowProdChanges(ConfigId, true);
+        // [GIVEN] Create, update and delete tools are allowed
+        MCPConfig.AllowCreateUpdateDeleteTools(ConfigId, true);
 
         // [WHEN] Allow create is called
         MCPConfig.AllowCreate(ToolId, true);
@@ -514,7 +514,42 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfigCard.ToolList.Visible(), 'ToolList is visible');
     end;
 
-    local procedure CreateMCPConfig(Active: Boolean; DynamicToolMode: Boolean; AllowProdChanges: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
+    [Test]
+    [HandlerFunctions('LookupAPIPublisherOKHandler')]
+    procedure TestLookupAPIPublisher()
+    var
+        APIPublisher: Text;
+        APIGroup: Text;
+    begin
+        // [GIVEN] No preselected API publisher and group
+
+        // [WHEN] Lookup API publisher is called and a publisher group duo is selected
+        MCPConfigTestLibrary.LookupAPIPublisher(APIPublisher, APIGroup);
+
+        // [THEN] Correct API publisher and group are selected
+        Assert.AreEqual('mock', APIPublisher, 'APIPublisher mismatch');
+        Assert.AreEqual('mcp', APIGroup, 'APIGroup mismatch');
+    end;
+
+    [Test]
+    [HandlerFunctions('LookupAPIPublisherOKHandler')]
+    procedure TestLookupAPIGroup()
+    var
+        APIPublisher: Text;
+        APIGroup: Text;
+    begin
+        // [GIVEN] API publisher is preselected
+        APIPublisher := 'mock';
+
+        // [WHEN] Lookup API publisher is called and a publisher group duo is selected
+        MCPConfigTestLibrary.LookupAPIGroup(APIPublisher, APIGroup);
+
+        // [THEN] Correct API publisher and group are selected
+        Assert.AreEqual('mock', APIPublisher, 'APIPublisher mismatch');
+        Assert.AreEqual('mcp', APIGroup, 'APIGroup mismatch');
+    end;
+
+    local procedure CreateMCPConfig(Active: Boolean; DynamicToolMode: Boolean; AllowCreateUpdateDeleteTools: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
@@ -522,7 +557,7 @@ codeunit 130130 "MCP Config Test"
         MCPConfiguration.Description := CopyStr(Any.AlphabeticText(100), 1, 100);
         MCPConfiguration.Active := Active;
         MCPConfiguration.EnableDynamicToolMode := DynamicToolMode;
-        MCPConfiguration.AllowProdChanges := AllowProdChanges;
+        MCPConfiguration.AllowProdChanges := AllowCreateUpdateDeleteTools;
         MCPConfiguration.DiscoverReadOnlyObjects := DiscoverReadOnlyObjects;
         MCPConfiguration.Insert();
         exit(MCPConfiguration.SystemId);
@@ -549,6 +584,13 @@ codeunit 130130 "MCP Config Test"
     begin
         MCPAPIConfigToolLookup.GoToKey(Page::"Mock API");
         MCPAPIConfigToolLookup.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure LookupAPIPublisherOKHandler(var MCPAPIPublisherLookup: TestPage "MCP API Publisher Lookup")
+    begin
+        MCPAPIPublisherLookup.GoToKey('mock', 'mcp');
+        MCPAPIPublisherLookup.OK().Invoke();
     end;
 
     [ModalPageHandler]

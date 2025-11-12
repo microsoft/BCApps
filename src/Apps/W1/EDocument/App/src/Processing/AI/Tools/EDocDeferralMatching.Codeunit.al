@@ -177,7 +177,7 @@ codeunit 6129 "E-Doc. Deferral Matching" implements "AOAI Function", IEDocAISyst
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         PromptSecretText: SecretText;
-        PromptSecretNameTok: Label 'DeferralMatching-SystemPrompt270', Locked = true;
+        PromptSecretNameTok: Label 'DeferralMatching-SystemPrompt271', Locked = true;
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret(PromptSecretNameTok, PromptSecretText) then
             PromptSecretText := SecretStrSubstNo('');

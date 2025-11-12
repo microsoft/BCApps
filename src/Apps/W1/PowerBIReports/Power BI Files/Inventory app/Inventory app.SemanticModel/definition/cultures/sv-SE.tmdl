@@ -1,0 +1,912 @@
+cultureInfo sv-SE
+	translations
+		model Model
+			table Item
+				caption: Artikel
+				column 'Item No. & Description'
+					caption: Artikelnummer och -beskrivning
+				column 'Item No.'
+					caption: Artikelnummer
+				column 'Item Description'
+					caption: Artikelbeskrivning
+				column 'Item Base Unit of Measure'
+					caption: Basmåttenhet för artikel
+				column 'Item Unit Cost (LCY)'
+					caption: Styckkostnad för artikel (BVA)
+				column 'Item Inventory Posting Group'
+					caption: Lagerbokföringsmall för artikel
+				column 'Item Category Code'
+					caption: Artikelkategorikod
+				column 'Item Category Description'
+					caption: Beskrivning av artikelkategori
+				measure 'Scheduled Receipt'
+					caption: Planenlig inleverans
+				measure 'Planned Order Releases'
+					caption: Planerade orderutsläpp
+				measure 'Gross Requirement'
+					caption: Bruttobehov
+				measure 'Projected Available Balance'
+					caption: Lagerutveckling över tiden
+				measure 'Planned Order Receipt'
+					caption: Planerad orderinleverans
+			table Location
+				caption: Lagerställe
+				column 'Location Code'
+					caption: Lagerställets kod
+				column 'Location Name'
+					caption: Lagerställets namn
+				column 'Location Adjustment Bin Code'
+					caption: Lagerplatskod för lagerställejustering
+			table Customer
+				caption: Kund
+				column 'Customer No. & Name'
+					caption: Kundnummer och -namn
+				column 'Customer No.'
+					caption: Kundnummer
+				column 'Customer Name'
+					caption: Kundnamn
+				column 'Customer Address'
+					caption: Kundadress
+				column 'Customer Address 2'
+					caption: Kundadress 2
+				column 'Customer City'
+					caption: Kundens ort
+				column 'Customer Post Code'
+					caption: Kundens postnummer
+				column 'Customer State'
+					caption: Kundens delstat
+				column 'Customer Country/Region Code'
+					caption: Lands-/regionskod för kund
+				column 'Customer Posting Group'
+					caption: Kundbokföringsmall
+				column 'Customer Price Group'
+					caption: Kundprisgrupp
+				column 'Customer Discount Group'
+					caption: Kundrabattgrupp
+			table Date
+				caption: Datum
+				column DateKey
+					caption: DateKey
+				column 'Day of Month'
+					caption: Dag i månad
+				column WeekDayNumber
+					caption: WeekDayNumber
+				column 'Week Day'
+					caption: Vecka Dag
+				column Sequential365DayNumber
+					caption: Sequential365DayNumber
+				column 'Relative Day'
+					caption: Relativt Dag
+				column 'Calendar YearNumber'
+					caption: Kalender ÅrNummer
+				column 'Calendar Year'
+					caption: Kalender År
+				column 'Calendar QuarterNumber'
+					caption: Kalender KvartalNummer
+				column 'Calendar Quarter'
+					caption: Kalender Kvartal
+				column 'Calendar YearQuarterNumber'
+					caption: Kalender ÅrKvartalNummer
+				column 'Calendar Quarter Year'
+					caption: Kalender Kvartal År
+				column 'Calendar MonthNumber'
+					caption: Kalender MånadNummer
+				column 'Calendar Month'
+					caption: Kalender Månad
+				column 'Calendar YearMonthNumber'
+					caption: Kalender ÅrMånadNummer
+				column 'Calendar Month Year'
+					caption: Kalender Månad År
+				column 'Calendar WeekNumber'
+					caption: Kalender VeckaNummer
+				column 'Calendar Week'
+					caption: Kalender Vecka
+				column 'Calendar YearWeekNumber'
+					caption: Kalender ÅrVeckaNummer
+				column 'Calendar Week Year'
+					caption: Kalender Vecka År
+				column 'Calendar WeekYearOrder'
+					caption: Kalender VeckaÅrOrdning
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativtVeckaPos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativtMånadPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelativtKvartalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativtÅrPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender StartPåMånad
+				column 'Calendar EndOfMonth'
+					caption: Kalender SlutPåMånad
+				column 'Calendar StartOfQuarter'
+					caption: Kalender StartPåKvartal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender SlutPåKvartal
+				column 'Calendar StartOfYear'
+					caption: Kalender StartPåÅr
+				column 'Calendar EndOfYear'
+					caption: Kalender Årsslut
+				column 'Calendar MonthDays'
+					caption: Kalender MånadDagar
+				column 'Calendar QuarterDays'
+					caption: Kalender KvartalDagar
+				column 'Calendar YearDays'
+					caption: Kalender ÅrDagar
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagIMånadNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagIKvartalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagIÅrNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumFöregåendeVecka
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumFöregåendeMånad
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumFöregåendeKvartal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumFöregåendeÅr
+				column 'Fiscal Year'
+					caption: Räkenskapsår
+				column 'Fiscal YearNumber'
+					caption: Räkenskapskalender ÅrNummer
+				column 'Fiscal QuarterNumber'
+					caption: Räkenskapskalender KvartalNummer
+				column 'Fiscal Quarter'
+					caption: Räkenskapskalender Kvartal
+				column 'Fiscal YearQuarterNumber'
+					caption: Räkenskapskalender ÅrKvartalNummer
+				column 'Fiscal Quarter Year'
+					caption: Räkenskapskalender Kvartal År
+				column 'Fiscal MonthNumber'
+					caption: Räkenskapskalender MånadNummer
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Räkenskapskalender MånadIKvartalNummer
+				column 'Fiscal Month'
+					caption: Räkenskapskalender Månad
+				column 'Fiscal YearMonthNumber'
+					caption: Räkenskapskalender ÅrMÅnadNummer
+				column 'Fiscal Month Year'
+					caption: Räkenskapskalender Månad År
+				column 'Fiscal WeekNumber'
+					caption: Räkenskapskalender Veckonummer
+				column 'Fiscal Week'
+					caption: Räkenskapskalender Vecka
+				column 'Fiscal YearWeekNumber'
+					caption: RäkenskapsårVeckonummer
+				column 'Fiscal Week Year'
+					caption: Räkenskapskalender År Vecka
+				column 'Fiscal WeekYearOrder'
+					caption: Räkenskapskalender VeckaÅrOrdning
+				column 'Fiscal RelativeWeekPos'
+					caption: Räkenskapskalender RelativtVeckaPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Räkenskapskalender: RelativtMånadPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Räkenskapskalender RelativtKvartalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Räkenskapskalender RelativtÅrPos
+				column 'Fiscal StartOfMonth'
+					caption: Räkenskapskalender StartPåMånad
+				column 'Fiscal EndOfMonth'
+					caption: Räkenskapskalender SlutPåMånad
+				column 'Fiscal StartOfQuarter'
+					caption: Räkenskapskalender StartPåKvartal
+				column 'Fiscal EndOfQuarter'
+					caption: Räkenskapskalender SlutPåKvartal
+				column 'Fiscal StartOfYear'
+					caption: Räkenskapskalender StartPåÅr
+				column 'Fiscal EndOfYear'
+					caption: Räkenskapskalender Årsslut
+				column 'Fiscal MonthDays'
+					caption: Räkenskapskalender MånadDagar
+				column 'Fiscal QuarterDays'
+					caption: Räkenskapskalender KvartalDagar
+				column 'Fiscal YearDays'
+					caption: Räkenskapskalender ÅrDagar
+				column 'Fiscal DayOfMonthNumber'
+					caption: Räkenskapskalender DagIMÅnadNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Räkenskapskalender DagIKvartalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Räkenskapskalender DagIÅrNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Räkenskapskalender DatumFöregåendeVecka
+				column 'Fiscal DatePreviousMonth'
+					caption: Räkenskapskalender DatumFöregåendeMånad
+				column 'Fiscal DatePreviousQuarter'
+					caption: Räkenskapskalender DatumFöregåendeKvartal
+				column 'Fiscal DatePreviousYear'
+					caption: Räkenskapskalender DatumFöregåendeÅr
+				column 'FW YearNumber'
+					caption: RV ÅrNummer
+				column 'FW Year'
+					caption: RV År
+				column 'FW QuarterNumber'
+					caption: RV KvartalNummer
+				column 'FW Quarter'
+					caption: RV Kvartal
+				column 'FW YearQuarterNumber'
+					caption: RV ÅrKvartalNummer
+				column 'FW Quarter Year'
+					caption: RV Kvartal År
+				column 'FW MonthNumber'
+					caption: RV MånadNummer
+				column 'FW Month'
+					caption: RV Månad
+				column 'FW YearMonthNumber'
+					caption: RV ÅrMånadNummer
+				column 'FW Month Year'
+					caption: RV Månad År
+				column 'FW WeekNumber'
+					caption: RV VeckaNummer
+				column 'FW Week'
+					caption: RV Vecka
+				column 'FW PeriodNumber'
+					caption: RV PeriodNummer
+				column 'FW Period'
+					caption: RV Period
+				column 'FW YearWeekNumber'
+					caption: RV ÅrVeckaNummer
+				column 'FW Week Year'
+					caption: RV Vecka År
+				column 'FW StartOfWeek'
+					caption: RV StartPåVecka
+				column 'FW EndOfWeek'
+					caption: RV SlutPåVecka
+				column 'FW RelativeWeekPos'
+					caption: RV RelativtVeckaPos
+				column 'FW RelativeMonthPos'
+					caption: RV RelativtMånPos
+				column 'FW RelativeQuarterPos'
+					caption: RV RelativtKvartalPos
+				column 'FW RelativeYearPos'
+					caption: RV RelativtÅrPos
+				column 'FW StartOfMonth'
+					caption: RV StartPåMånad
+				column 'FW EndOfMonth'
+					caption: RV SlutPå Månad
+				column 'FW StartOfQuarter'
+					caption: RV StartPåKvartal
+				column 'FW EndOfQuarter'
+					caption: RV SlutPåKvartal
+				column 'FW StartOfYear'
+					caption: RV StartPåÅr
+				column 'FW EndOfYear'
+					caption: RV Årsslut
+				column 'FW MonthDays'
+					caption: RV MånadDagar
+				column 'FW QuarterDays'
+					caption: RV KvartalDagar
+				column 'FW YearDays'
+					caption: RV ÅrDagar
+				column 'FW DayOfMonthNumber'
+					caption: RV DagPåMånadNummer
+				column 'FW DayOfQuarterNumber'
+					caption: RV DagIKvartalNummer
+				column 'FW DayOfYearNumber'
+					caption: RV DagIÅrNummer
+				column 'FW DatePreviousWeek'
+					caption: RV DatumFöregåendeVecka
+				column 'FW DatePreviousMonth'
+					caption: RV DatumFöregåendeMånad
+				column 'FW DatePreviousQuarter'
+					caption: RV DatumFöregåendeKvartal
+				column 'FW DatePreviousYear'
+					caption: RV DatumFöregåendeÅr
+				column 'Holiday Name'
+					caption: Namn på helgdag
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Typ av dag
+				column DatesWithTransactions
+					caption: DatesWithTransactions
+				measure Ranged
+					caption: Intervall
+				hierarchy 'Fiscal Year-Month'
+					caption: Räkenskapskalender År-Månad
+					level 'Fiscal Year'
+						caption: Räkenskapsår
+					level 'Fiscal Month Year'
+						caption: Räkenskapskalender Månad År
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Räkenskapskalender År-Månad-Vecka
+					level 'Fiscal Year'
+						caption: Räkenskapsår
+					level 'Fiscal Month Year'
+						caption: Räkenskapskalender Månad År
+					level 'Fiscal Week Year'
+						caption: Räkenskapskalender År Vecka
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Räkenskapskalender År-Kvartal-Månad-Vecka
+					level 'Fiscal Year'
+						caption: Räkenskapsår
+					level 'Fiscal Quarter Year'
+						caption: Räkenskapskalender Kvartal År
+					level 'Fiscal Month Year'
+						caption: Räkenskapskalender Månad År
+					level 'Fiscal Week Year'
+						caption: Räkenskapskalender År Vecka
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender År-Månad
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Month Year'
+						caption: Kalender Månad År
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender År-Månad-Vecka
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Month Year'
+						caption: Kalender Månad År
+					level 'Calendar Week Year'
+						caption: Kalender Vecka År
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender År-Kvartal-Månad-Vecka
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Quarter Year'
+						caption: Kalender Kvartal År
+					level 'Calendar Month Year'
+						caption: Kalender Månad År
+					level 'Calendar Week Year'
+						caption: Kalender Vecka År
+				hierarchy 'FW Year-Week'
+					caption: RV År-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Week Year'
+						caption: RV Vecka År
+				hierarchy 'FW Year-Month-Week'
+					caption: RV År-Månad-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Month Year'
+						caption: RV Månad År
+					level 'FW Week Year'
+						caption: RV Vecka År
+				hierarchy 'FW Year-Quarter-Week'
+					caption: RV År-Kvartal-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Quarter Year'
+						caption: RV Kvartal År
+					level 'FW Week Year'
+						caption: RV Vecka År
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: RV År-Kvartal-Månad-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Quarter Year'
+						caption: RV Kvartal År
+					level 'FW Month Year'
+						caption: RV Månad År
+					level 'FW Week Year'
+						caption: RV Vecka År
+			table Vendor
+				caption: Leverantör
+				column 'Vendor No. & Name'
+					caption: Leverantörsnummer och -namn
+				column 'Vendor No.'
+					caption: Leverantörsnummer
+				column 'Vendor Name'
+					caption: Leverantörsnamn
+				column 'Vendor Address'
+					caption: Leverantörsadress
+				column 'Vendor Address 2'
+					caption: Leverantörsadress 2
+				column 'Vendor City'
+					caption: Leverantörens ort
+				column 'Vendor Post Code'
+					caption: Leverantörens postnummer
+				column 'Vendor State'
+					caption: Leverantörens delstat
+				column 'Vendor Country/Region Code'
+					caption: Kod för leverantörens land/region
+				column 'Vendor Posting Group'
+					caption: Leverantörsbokföringsmall
+			table 'Item Ledger Entries'
+				caption: Artikeltransaktioner
+				column 'Entry No.'
+					caption: Transaktionsnummer
+				column 'Entry Type'
+					caption: Transaktionstyp
+				column 'Expiration Date'
+					caption: Utgångsdatum
+				column Open
+					caption: Öppen
+				column 'Document No.'
+					caption: Dokumentnummer
+				column 'Quantity Per Unit of Measure'
+					caption: Kvantitet per måttenhet
+				column 'Unit of Measure Code'
+					caption: Måttenhetskod
+				column 'Document Type'
+					caption: Dokumenttyp
+				measure 'Inventory (Quantity)'
+					caption: Lager (antal)
+				measure 'Remaining Quantity'
+					caption: Återstående antal
+				measure Quantity
+					caption: Antal
+				measure 'Expired Inventory'
+					caption: Utgånget lager
+				measure 'Net Qty. Sold'
+					caption: Sålda nettoantal
+				measure 'Net Qty. Purchased'
+					caption: Inköpt nettoantal
+				measure 'Invoiced Quantity'
+					caption: Fakturerat antal
+				measure 'Base Link'
+					caption: Baslänk
+				measure 'Item Ledger Entries Link (Location Context)'
+					caption: Länk för artikeltransaktioner (lagerställekontext)
+				measure 'Item Ledger Entries Link'
+					caption: Länk för artikeltransaktioner
+				measure 'Item Ledger Entries Lot No Link'
+					caption: Länk för partinummer för artikeltransaktioner
+				measure 'Item Ledger Entries Serial No Link'
+					caption: Länk för serienummer för artikeltransaktioner
+			table 'Dimension Sets'
+				caption: Dimensionsuppsättningar
+				column 'Global Dimension 1'
+					caption: Global dimension 1
+				column 'Global Dimension 2'
+					caption: Global dimension 2
+				column 'Shortcut Dimension 3'
+					caption: Genväg dimension 3
+				column 'Shortcut Dimension 4'
+					caption: Genväg dimension 4
+				column 'Shortcut Dimension 5'
+					caption: Genväg dimension 5
+				column 'Shortcut Dimension 6'
+					caption: Genväg dimension 6
+				column 'Shortcut Dimension 7'
+					caption: Genväg dimension 7
+				column 'Shortcut Dimension 8'
+					caption: Genväg dimension 8
+				column id
+					caption: ID
+			table 'Purchase Lines'
+				caption: Inköpsrader
+				column 'Document No.'
+					caption: Dokumentnummer
+				column 'Expected Receipt Date'
+					caption: Förväntat inleveransdatum
+				column 'Document Type'
+					caption: Dokumenttyp
+				column 'Quantity Per Unit of Measure'
+					caption: Kvantitet per måttenhet
+				column 'Unit of Measure Code'
+					caption: Måttenhetskod
+				measure 'Qty. on Purch. Order'
+					caption: Antal på inköpsorder
+				measure 'Qty. on Purch. Return'
+					caption: Antal på inköpsretur
+				measure 'Purchase Return - Earliest Expected Receipt Date'
+					caption: Inköpsretur – tidigaste förväntade inleveransdatum
+				measure 'Purchase Order - Earliest Expected Receipt Date'
+					caption: Inköpsorder – tidigaste förväntade inleveransdatum
+				measure 'Purchase Order Quantity Link'
+					caption: Länk för antal på inköpsorder
+				measure 'Purchase Return Order Quantity Link'
+					caption: Länk för antal på inköpsreturorder
+			table Zone
+				caption: Zon
+				column 'Zone Description'
+					caption: Zonbeskrivning
+				column 'Zone Bin Type Code'
+					caption: Kod för lagerplatstypens zon
+				column 'Zone Code'
+					caption: Zonkod
+			table Bin
+				caption: Lagerplats
+				column 'Bin Description'
+					caption: Lagerplatsbeskrivning
+				column 'Bin Type Code'
+					caption: Lagerplatstyp kod
+				column 'Bin Code'
+					caption: Lagerplatskod
+				column 'Adjustment Bin'
+					caption: Justering lagerplats
+				column 'Bin Zone Code'
+					caption: Kod för lagerplatszon
+				measure 'Available Qty. to Take'
+					caption: Disponibelt ant. att ta
+				measure 'Quantity in Adjustment Bin'
+					caption: Antal på justeringslagerplats
+				measure 'Positive Adjmt. Qty. (Base)'
+					caption: Positiv just.antal (bas)
+				measure 'Negative Adjmt. Qty. (Base)'
+					caption: Negativ just.antal (bas)
+				measure 'Warehouse Quantity'
+					caption: Distributionslager antal
+				measure 'ATO Components Pick Qty.'
+					caption: MMO-komp. plockningsant.
+				measure 'Put-away Quantity (Base)'
+					caption: Artikelinförselant. (bas)
+				measure 'Pick Quantity (Base)'
+					caption: Plockningsantal (bas)
+				measure 'Warehouse Entries Link'
+					caption: Länk för dist.lagertransaktioner
+				measure 'Pick Quantity Link'
+					caption: Länk för plockningsantal
+				measure 'Warehouse Journal Link'
+					caption: Länk för dist.lager journal
+			table 'Sales Lines'
+				caption: Försäljningsrader
+				column 'Document No.'
+					caption: Dokumentnummer
+				column 'Shipment Date'
+					caption: Utleveransdatum
+				column 'Document Type'
+					caption: Dokumenttyp
+				column 'Quantity Per Unit of Measure'
+					caption: Kvantitet per måttenhet
+				column 'Unit of Measure Code'
+					caption: Måttenhetskod
+				measure 'Qty. on Sales Order'
+					caption: Antal på försäljningsorder
+				measure 'Qty. on Sales Return Order'
+					caption: Antal på försäljningsreturorder
+				measure 'Sales Order - Earliest Shipment Date'
+					caption: Försäljningsorder – tidigaste utleveransdatum
+				measure 'Sales Retrun Order - Earliest Shipment Date'
+					caption: Försäljningsreturorder – tidigaste utleveransdatum
+				measure 'Sales Order Line Link'
+					caption: Länk för försäljningsorderrad
+				measure 'Sales Return Order Line Link'
+					caption: Länk för rad på försäljningsreturorder
+			table 'Assembly Lines'
+				caption: Monteringsrader
+				column 'Due Date'
+					caption: Förfallodatum
+				column 'Document No.'
+					caption: Dokumentnummer
+				column 'Quantity Per Unit of Measure'
+					caption: Kvantitet per måttenhet
+				column 'Unit of Measure Code'
+					caption: Måttenhetskod
+				measure 'Qty. on Asm. Component'
+					caption: Ant. vid komponentmontering
+				measure 'Assembly Lines - Earliest Due Date'
+					caption: Monteringsrader – tidigaste förfallodatum
+				measure 'Assembly Line Quantity Link'
+					caption: Länk för monteringsradens kvantitet
+			table 'Assembly Headers'
+				caption: Monteringsrubriker
+				column 'Document No.'
+					caption: Dokumentnummer
+				column 'Due Date'
+					caption: Förfallodatum
+				column Status
+					caption: Status
+				column 'Quantity Per Unit of Measure'
+					caption: Kvantitet per måttenhet
+				column 'Unit of Measure Code'
+					caption: Måttenhetskod
+				measure 'Qty. on Assembly Order'
+					caption: Ant. på monteringsorder
+				measure 'Assembly Order - Earliest Due Date'
+					caption: Monteringsorder – tidigaste förfallodatum
+				measure 'Assembly Order Quantity Link'
+					caption: Länk för monteringsorderkvantitet
+			table 'Project Planning Lines'
+				caption: Projektplaneringsrader
+				column 'Document No.'
+					caption: Dokumentnummer
+				column 'Quantity Per Unit of Measure'
+					caption: Kvantitet per måttenhet
+				column 'Unit of Measure Code'
+					caption: Måttenhetskod
+				measure 'Qty. on Projects'
+					caption: Antal i projekt
+				measure 'Project Planning - Earliest Planning Date'
+					caption: Projektplanering – tidigaste planeringsdatum
+				measure 'Planning Line Link'
+					caption: Länk för planeringsrad
+			table 'Production Order Lines'
+				caption: Produktionsorderrader
+				column Status
+					caption: Status
+				column 'Document No.'
+					caption: Dokumentnummer
+				column 'Due Date'
+					caption: Förfallodatum
+				column 'Starting Date'
+					caption: Startdatum
+				column 'Quantity Per Unit of Measure'
+					caption: Kvantitet per måttenhet
+				column 'Unit of Measure Code'
+					caption: Måttenhetskod
+				measure 'Qty. on Prod. Order'
+					caption: Prod.orderantal
+				measure 'FP Order Receipt (Qty.)'
+					caption: Fast plan. orderinlevns (ant.)
+				measure 'Rel. Order Receipt (Qty.)'
+					caption: Släppt orderinlevns (ant.)
+				measure 'Scheduled Receipt (Qty.)'
+					caption: Planerad inleverans (antal)
+				measure 'FP Order - Earliest Due Date'
+					caption: Fast plan. order – tidigaste förfallodatum
+				measure 'Rel. Order - Earliest Due Date'
+					caption: Släppt order – tidigaste förfallodatum
+				measure 'Production Order Link'
+					caption: Länk för produktionsorder
+			table 'Prod Order Component Lines'
+				caption: Prod.orderkomponentrader
+				column Status
+					caption: Status
+				column 'Document No.'
+					caption: Dokumentnummer
+				column 'Due Date'
+					caption: Förfallodatum
+				column 'Quantity Per Unit of Measure'
+					caption: Kvantitet per måttenhet
+				column 'Unit of Measure Code'
+					caption: Måttenhetskod
+				measure 'Qty. on Prod. Order Comp. Lines'
+					caption: Antal på prod.orderkomp.rader
+				measure 'Prod. Order Comp. Lines - Earliest Due Date'
+					caption: Prod.orderkomp.rader – tidigaste förfallodatum
+				measure 'Prod. Order Components Link'
+					caption: Länk för produktionsorderkomponenter
+			table 'Service Lines'
+				caption: Servicerader
+				column 'Document No.'
+					caption: Dokumentnummer
+				column 'Needed By Date'
+					caption: Behövs den
+				column 'Quantity Per Unit of Measure'
+					caption: Kvantitet per måttenhet
+				column 'Unit of Measure Code'
+					caption: Måttenhetskod
+				measure 'Qty. on Service Order'
+					caption: Ant. på serviceorder
+				measure 'Service Lines - Earliest Needed by Date'
+					caption: Servicerader – tidigaste Behövs den
+				measure 'Service Order Link'
+					caption: Länk för serviceorder
+			table 'Transfer Lines'
+				caption: Överföringsrader
+				description: Anger hur många artiklar som återstår att inleverera men ännu inte har utlevererats som skillnaden mellan fälten Antal och Utlevererat antal.
+				column 'Document No.'
+					caption: Dokumentnummer
+				column 'Receipt Date'
+					caption: Inleveransdatum
+				column 'Transfer To Location Code'
+					caption: Kod för överföring till lagerställe
+				column 'Transfer From Location Code'
+					caption: Kod för överföring från lagerställe
+				column 'Shipment Date'
+					caption: Utleveransdatum
+				column 'In Transit Location Code'
+					caption: Kod för överföringslagerställe
+				column 'Quantity Per Unit of Measure'
+					caption: Kvantitet per måttenhet
+				column 'Unit of Measure Code'
+					caption: Måttenhetskod
+				measure 'Qty. in Transit'
+					caption: Ant. i transit
+				measure 'Trans. Order Shipment (Qty.)'
+					caption: Överföringsorder utleverans (ant.)
+				measure 'Trans. Order Receipt (Qty.)'
+					caption: Överföringsorder inleverans (ant.)
+				measure 'Trans. Order Outstanding Qty.'
+					caption: Utestående antal för överföringsorder
+				measure 'Trans. Order Shipment - Earliest Shipment Date'
+					caption: Överföringsorder utleverans – tidigaste utleveransdatum
+				measure 'Trans. Order Receipt - Earliest Receipt Date'
+					caption: Överföringsorderinleverans – tidigaste inleveransdatum
+				measure 'Transfer Lines Quantity Link'
+					caption: Länk för kvantitet på överföringsrader
+			table 'Planning Component Lines'
+				caption: Planeringskomponentrader
+				column 'Due Date'
+					caption: Förfallodatum
+				column 'Quantity Per Unit of Measure'
+					caption: Kvantitet per måttenhet
+				column 'Unit of Measure Code'
+					caption: Måttenhetskod
+				measure 'Planning Issues (Qty.)'
+					caption: Planerat lageruttag (ant.)
+				measure 'Planning Issues - Earliest Due Date'
+					caption: Planeringsproblem – tidigaste förfallodatum
+			table 'Item Availability Filter'
+				caption: Filter för artikeldisposition
+				column 'View As'
+					caption: Visa som
+				column Ordinal
+					caption: Ordningstal
+			table 'Lot No'
+				caption: Partinummer
+				column 'Lot No.'
+					caption: Partinummer
+			table 'Serial No'
+				caption: Serienummer
+				column 'Serial No.'
+					caption: Serienummer
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Min rapportrubrik
+				measure 'My Button Caption'
+					caption: Min knapprubrik
+				measure 'My Visual Title'
+					caption: Min visuella rubrik
+				measure 'Inventory Overview'
+					caption: Lageröversikt
+				measure 'Inventory and Projected Available Balance'
+					caption: Lager och lagerutveckling över tiden
+				measure 'Availability Outlook'
+					caption: Tillgänglighet Outlook
+				measure 'Inventory by Item'
+					caption: Lager per artikel
+				measure 'Inventory by Location'
+					caption: Lager utifrån lagerställe
+				measure 'Inventory on Hand by Location'
+					caption: Lagersaldo per lagerställe
+				measure 'Purchase and Sales Quantity'
+					caption: Inköps- och försäljningsantal
+				measure 'Item Availability'
+					caption: Artikeldisposition
+				measure 'Projected Available Balance vs. Quantity on Hand'
+					caption: Lagerutveckling över tiden jämfört med Lagersaldo
+				measure 'Gross Requirements vs. Projected Available Balance'
+					caption: Bruttobehov jämfört med Lagerutveckling över tiden
+				measure 'Gross Requirements Earliest Dates'
+					caption: Tidigaste datum för bruttobehov
+				measure 'Scheduled Receipt Earliest Dates'
+					caption: Tidigaste datum för planenlig inleverans
+				measure 'Purchase Order Drill Through'
+					caption: Detaljerad analys av inköpsorder
+				measure 'Purchase Return Order Drill Through'
+					caption: Detaljerad analys av inköpsreturorder
+				measure 'Item Ledger Entry Drill through'
+					caption: Detaljerad analys av artikeltransaktioner
+				measure 'Production Order Drill Through'
+					caption: Detaljerad analys av produktionsorder
+				measure 'Prod. Order Components Drill Through'
+					caption: Detaljerad analys av prod.orderkomponenter
+				measure 'Sales Order Drill Through'
+					caption: Detaljerad analys av försäljningsorder
+				measure 'Sales Return Order Drill Through'
+					caption: Detaljerad analys av försäljningsreturorder
+				measure 'Transfer Order Drill Through'
+					caption: Detaljerad analys av överföringsorder
+				measure 'Assembly Order Drill Through'
+					caption: Detaljerad analys av monteringsorder
+				measure 'Assembly Lines Drill Through'
+					caption: Detaljerad analys av monteringsrader
+				measure 'Service Lines Drill Through'
+					caption: Detaljerad analys av servicerader
+				measure 'Gross Requirement '
+					caption: "Bruttobehov "
+				measure 'Scheduled Receipt '
+					caption: "Planenlig inleverans "
+				measure 'Inventory by Lot '
+					caption: "Lager utifrån parti "
+				measure 'Inventory by Serial No.'
+					caption: Lager per serienummer
+				measure 'Bin Contents'
+					caption: Lagerplatsinnehåll
+				measure 'Bin Contents by Item Tracking'
+					caption: Lagerplatsinnehåll per artikelspårning
+				measure 'Expired Inventory '
+					caption: "Utgånget lager "
+				measure 'Gross Requirements'
+					caption: Bruttobehov
+				measure 'Scheduled Receipts'
+					caption: Planenliga inleveranser
+				measure 'for Business Central'
+					caption: för Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: ANSLUT DINA DATA
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Ladda ned lageranslutningsprogrammet för Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurera Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: ANVÄND, REDIGERA OCH SKAPA EGNA RAPPORTER
+				measure 'Inventory includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Lager innehåller en mängd fördefinierade rapporter som gör att du kan visa data omedelbart.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Du kan redigera dessa rapporter eller skapa en egen rapport från grunden.
+				measure 'HELP AND SUPPORT'
+					caption: HJÄLP OCH SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Hjälp och support med den nya rapporten finns i översiktsdokumentationen för Analys.
+				measure 'OTHER POWER BI REPORTS'
+					caption: ÖVRIGA POWER BI-RAPPORTER
+				measure PURCHASE
+					caption: INKÖP
+				measure FINANCE
+					caption: EKONOMI
+				measure REBATES
+					caption: RABATTER
+				measure SALES
+					caption: FÖRSÄLJNING
+				measure 'INVENTORY '
+					caption: "LAGER "
+				measure 'Inventory  '
+					caption: "Lager  "
+				measure 'The inventory by item shows item category code, inventory, and the quantity on various documents.'
+					caption: Lager per artikel visar artikelkategorikod, lager och kvantitet i olika dokument.
+				measure 'The inventory by location shows item number and description, and quantity on hand per location.'
+					caption: Lagret per lagerställe visar artikelnummer och beskrivning samt lagersaldo per lagerställe.
+				measure 'The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales.'
+					caption: Inköps- och försäljningskvantiteten visar artikelkategorikod, inköps- och försäljningskvantiteter samt kvantitetens nettoförändring genom att dra av inköp från försäljning.
+				measure 'The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases.'
+					caption: Artikeldisposition visar artikelnummer, lager, lagerutveckling över tiden, bruttobehov, schemalagd inleverans, planerad orderinleverans och planerade frisläppningar av order.
+				measure 'The gross requirement and projected available balance shows item number and description, and the quantity on various documents.'
+					caption: Bruttobehovet och lagerutveckling över tid visar artikelnummer och beskrivning samt kvantiteten i olika dokument.
+				measure 'The bin contents shows available quantity to take for each location and bin.'
+					caption: Lagerplatsinnehållet visar tillgängligt antal att ta för varje lagerställe och lagerplats.
+				measure 'The bin contents by item tracking shows item tracking details for each location and bin.'
+					caption: Lagerplatsinnehållet per artikelspårning visar artikelspårningsinformation för varje lagerställe och lagerplats.
+				measure 'The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents.'
+					caption: Schemalagd inleverans och lagerutveckling över tid visar artikelnummer och beskrivning samt kvantiteten i olika dokument.
+				measure 'Last Refreshed'
+					caption: Uppdaterades senast
+				measure 'Company Name'
+					caption: Företagsnamn
+				measure 'Inventory (Quantity) by Location Code'
+					caption: Lager (antal) per lagerställekod
+				measure 'Scheduled Receipt and Projected Available Balance by Fiscal Year and Month'
+					caption: Planerad inleverans och lagerutveckling över tiden per räkenskapsår och -månad
+				measure 'Inventory (Quantity) by Lot No.'
+					caption: Lager (antal) per partinummer
+				measure 'Inventory (Quantity) by Serial No.'
+					caption: Lager (antal) per serienummer
+				measure MANUFACTURING
+					caption: PRODUKTION
+				measure 'INVENTORY VALUATION'
+					caption: LAGERVÄRDERING
+				measure 'Available Quantity to Take by Bin Code'
+					caption: Disponibelt antal att hämta per lagerplatskod
+				measure 'Projected Available Balance vs. Current Inventory'
+					caption: Lagerutveckling över tiden jämfört med aktuellt lager
+				measure 'Purchase vs. Sales Quantity Across Time'
+					caption: Inköp jämfört med försäljningskvantitet över tid
+				measure 'Inventory by Item Details'
+					caption: Information om Lager per artikel
+				measure 'Inventory by Location Details'
+					caption: Information om Lager per lagerställe
+				measure 'Purchase and Sales Quantity Details'
+					caption: Information om Inköps- och försäljningsantal
+				measure 'Item Availability Details'
+					caption: Information om Artikeldisposition
+				measure 'Gross Requirement Details'
+					caption: Information om Bruttobehov
+				measure 'Scheduled Receipt Details'
+					caption: Information om Planenlig inleverans
+				measure 'Inventory by Lot Details'
+					caption: Information om Lager utifrån parti
+				measure 'Inventory by Serial No Details'
+					caption: Information om Lager per serienummer
+				measure 'Bin Contents Details'
+					caption: Information om Lagerplatsinnehåll
+				measure 'Bin Contents by Item Tracking Details'
+					caption: Information om Lagerplatsinnehåll per artikelspårning
+			table COMPANY
+				caption: FÖRETAG
+				measure 'Company Label'
+					caption: Företagsetikett
+			table ENVIRONMENT
+				caption: MILJÖ
+			table 'Item Category'
+				caption: Artikelkategori
+				column 'Item Category Code'
+					caption: Artikelkategorikod
+				column 'Item Category Description'
+					caption: Beskrivning av artikelkategori
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Hierarki för artikelkategorikod
+					level 'Item Category Code Level 1'
+						caption: Artikelkategorikod nivå 1
+					level 'Item Category Code Level 2'
+						caption: Artikelkategorikod nivå 2
+					level 'Item Category Code Level 3'
+						caption: Artikelkategorikod nivå 3
+

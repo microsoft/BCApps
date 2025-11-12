@@ -1,0 +1,3158 @@
+cultureInfo de-DE
+	translations
+		model Model
+			table Item
+				caption: Artikel
+				column 'Item No. & Description'
+					caption: Artikel-Nr. und -Beschreibung
+				column 'Item No.'
+					caption: Artikelnr.
+				column 'Item Description'
+					caption: Artikelbeschreibung
+				column 'Item Base Unit of Measure'
+					caption: Artikel Basiseinheit
+				column 'Item Unit Cost (LCY)'
+					caption: Artikeleinstandspreis (MW)
+				column 'Item Inventory Posting Group'
+					caption: Artikellager-Buchungsgruppe
+				column 'Item Category Code'
+					caption: Artikelkategoriencode
+				column 'Item Category Description'
+					caption: Beschreibung der Artikelkategorie
+				column 'Item Routing No.'
+					caption: routingNo
+				column 'Item Production BOM No.'
+					caption: productionBomNo
+				column 'Item Replenishment System'
+					caption: replenishmentSystem
+				column 'Item Single-Level Cap. Ovhd Cost'
+					caption: singleLevelCapOvhdCost
+				column 'Item Single-Level Capacity Cost'
+					caption: singleLevelCapacityCost
+				column 'Item Single-Level Material Cost'
+					caption: singleLevelMaterialCost
+				column 'Item Single-Level Mfg. Ovhd Cost'
+					caption: singleLevelMfgOvhdCost
+				column 'Item Single-Level Subcontrd. Cost'
+					caption: singleLevelSubcontrdCost
+				column 'Item Single-Lvl Mat. Non-Invt. Cost'
+					caption: singleLvlMatNonInvtCost
+				column 'Item Rolled-up Cap. Overhead Cost'
+					caption: rolledUpCapOverheadCost
+				column 'Item Rolled-up Capacity Cost'
+					caption: rolledUpCapacityCost
+				column 'Item Rolled-up Mat. Non-Invt. Cost'
+					caption: rolledUpMatNonInvtCost
+				column 'Item Rolled-up Material Cost'
+					caption: rolledUpMaterialCost
+				column 'Item Rolled-up Mfg. Ovhd Cost'
+					caption: rolledUpMfgOvhdCost
+				column 'Item Rolled-up Subcontracted Cost'
+					caption: rolledUpSubcontractedCost
+				column 'Item Scrap %'
+					caption: scrapPrc
+			table Location
+				caption: Ort
+				column 'Location Code'
+					caption: Lagerortcode
+				column 'Location Name'
+					caption: Lagerortname
+			table Customer
+				caption: Debitor
+				column 'Customer No. & Name'
+					caption: Debitorennr. und -name
+				column 'Customer No.'
+					caption: Debitorennummer
+				column 'Customer Name'
+					caption: Debitorname
+				column 'Customer Address'
+					caption: Debitorenadresse
+				column 'Customer Address 2'
+					caption: Debitorenadresse 2
+				column 'Customer City'
+					caption: Ort des Debitors
+				column 'Customer County'
+					caption: Bundesregion des Debitors
+				column 'Customer Country/Region Code'
+					caption: Länder-/Regionscode Debitor
+				column 'Customer Posting Group'
+					caption: Debitorenbuchungsgruppe
+				column 'Customer Price Group'
+					caption: Debitorenpreisgruppe
+				column 'Customer Discount Group'
+					caption: Debitorenrabattgruppe
+				column 'Customer Post Code'
+					caption: PLZ Code des Debitors
+				measure 'No. of New Customers'
+					caption: Anzahl der neuen Debitoren
+					displayFolder: _Customer Maßnahmen
+				measure 'No. of Lost Customers'
+					caption: Anzahl der verlorenen Debitoren
+					displayFolder: _Customer Maßnahmen
+				measure 'Sales New Customers'
+					caption: Verkäufe Neue Debitoren
+					displayFolder: _Customer Maßnahmen
+				measure 'No. of Returning Customers'
+					caption: Anzahl der zurückgekommenen Debitoren
+					displayFolder: _Customer Maßnahmen
+				measure 'Sales Returning Customers'
+					caption: Verkäufe Zurückgekommene Debitoren
+					displayFolder: _Customer Maßnahmen
+				measure 'No. of Recovered Customers'
+					caption: Anzahl der wiedergewonnenen Debitoren
+					displayFolder: _Customer Maßnahmen
+				measure 'No. of Temporarily Lost Customers'
+					caption: Nein. Von Vorübergehend Verlorenen Kunden
+					displayFolder: _Customer Maßnahmen
+				measure 'Sales Recovered Customers'
+					caption: Verkäufe Wiedergewonnene Debitoren
+					displayFolder: _Customer Maßnahmen
+				measure 'Sales Lost Customers (12M)'
+					caption: Verkäufe Verlorene Debitoren (12M)
+					displayFolder: _Customer Maßnahmen
+				measure 'No. of Customers'
+					caption: Anzahl der Debitoren
+					displayFolder: _Customer Maßnahmen
+			table Salesperson
+				caption: Verkäufer
+				column 'Salesperson Code'
+					caption: Verkäufercode
+				column 'Salesperson Name'
+					caption: Verkäufername
+			table 'Standard Calendar Time Intelligence'
+				caption: Standardkalender – Zeitinformationen
+				measure 'Sales Amount YTD'
+					caption: Verkaufsbetrag JBH
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Sales Amount PY'
+					caption: Verkaufsbetrag VJ
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount PYTD'
+					caption: Verkaufsbetrag VJBH
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount PQTD'
+					caption: Verkaufsbetrag VQBH
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount QTD'
+					caption: Verkaufsbetrag QBH
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Sales Amount MTD'
+					caption: Verkaufsbetrag MBH
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Sales Amount YOY %'
+					caption: Verkaufsbetrag JGJ %
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount YOY'
+					caption: Verkaufsbetrag JGJ
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount PQ'
+					caption: Verkaufsbetrag VQ
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount QOQ'
+					caption: Verkaufsbetrag QGQ
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount PM'
+					caption: Verkaufsbetrag VM
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount QOQ %'
+					caption: Verkaufsbetrag QGQ %
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount MOM'
+					caption: Verkaufsbetrag MGM
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount MOM %'
+					caption: Verkaufsbetrag MGM %
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount MAT'
+					caption: Verkaufsbetrag GJG
+					displayFolder: Umsatz\Verkaufsbetrag\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Amount PYMAT'
+					caption: Verkaufsbetrag VJGJG
+					displayFolder: Umsatz\Verkaufsbetrag\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Amount YOYTD'
+					caption: Verkaufsbetrag JGJBH
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount YOYTD %'
+					caption: Verkaufsbetrag JGJBH %
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount PYC'
+					caption: Verkaufsbetrag VJA
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount YTDOPY'
+					caption: Verkaufsbetrag JBHGVJ
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount YTDOPY %'
+					caption: Verkaufsbetrag JBHGVJ %
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount QOQTD'
+					caption: Verkaufsbetrag QGQBH
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount QOQTD %'
+					caption: Verkaufsbetrag QGQBH %
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount PQC'
+					caption: Verkaufsbetrag VQA
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount QTDOPQ'
+					caption: Verkaufsbetrag QBHGVQ
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount QTDOPQ %'
+					caption: Verkaufsbetrag QBHGVQ %
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount PMTD'
+					caption: Verkaufsbetrag VMBH
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount MOMTD'
+					caption: Verkaufsbetrag MGMBH
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount MOMTD %'
+					caption: Verkaufsbetrag MGMBH %
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount PMC'
+					caption: Verkaufsbetrag VMA
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount MTDOPM'
+					caption: Verkaufsbetrag MBHGVM
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount MTDOPM %'
+					caption: Verkaufsbetrag MBHGVM %
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount AVG 30D'
+					caption: Verkaufsbetrag DURCHSCHN 30T
+					displayFolder: Umsatz\Verkaufsbetrag\Gleitende Durchschnitte
+				measure 'Sales Amount AVG 3M'
+					caption: Verkaufsbetrag DURCHSCHN 3M
+					displayFolder: Umsatz\Verkaufsbetrag\Gleitende Durchschnitte
+				measure 'Sales Amount AVG 1Y'
+					caption: Verkaufsbetrag DURCHSCHN 1J
+					displayFolder: Umsatz\Verkaufsbetrag\Gleitende Durchschnitte
+				measure 'Sales Amount MATG'
+					caption: Verkaufsbetrag GJGW
+					displayFolder: Umsatz\Verkaufsbetrag\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Amount MATG %'
+					caption: Verkaufsbetrag GJGW %
+					displayFolder: Umsatz\Verkaufsbetrag\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Amount PP'
+					caption: Verkaufsbetrag VZ
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount POP'
+					caption: Verkaufsbetrag ZGZ
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount POP %'
+					caption: Verkaufsbetrag ZGZ %
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Quantity YTD'
+					caption: Verkaufsmenge JBH
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Dato-Date Gesamt
+				measure 'Sales Quantity PY'
+					caption: Verkaufsmenge VJ
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity PYTD'
+					caption: Verkaufsmenge VJBH
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity PQTD'
+					caption: Verkaufsmenge VQBH
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity QTD'
+					caption: Verkaufsmenge QBH
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Dato-Date Gesamt
+				measure 'Sales Quantity MTD'
+					caption: Verkaufsmenge MBH
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Dato-Date Gesamt
+				measure 'Sales Quantity YOY %'
+					caption: Verkaufsmenge JGJ %
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity YOY'
+					caption: Verkaufsmenge JGJ
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity PQ'
+					caption: Verkaufsmenge VQ
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity QOQ'
+					caption: Verkaufsmenge QGQ
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity PM'
+					caption: Verkaufsmenge VM
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity QOQ %'
+					caption: Verkaufsmenge QGQ %
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity MOM'
+					caption: Verkaufsmenge MGM
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity MOM %'
+					caption: Verkaufsmenge MGM %
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity MAT'
+					caption: Verkaufsmenge GJG
+					displayFolder: Umsatz\Verkaufsmenge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Quantity PYMAT'
+					caption: Verkaufsmenge VJGJG
+					displayFolder: Umsatz\Verkaufsmenge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Quantity YOYTD'
+					caption: Verkaufsmenge JGJBH
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity YOYTD %'
+					caption: Verkaufsmenge JGJBH %
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity PYC'
+					caption: Verkaufsmenge VJA
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity YTDOPY'
+					caption: Verkaufsmenge JBHGVJ
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity YTDOPY %'
+					caption: Verkaufsmenge JBHGVJ %
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity QOQTD'
+					caption: Verkaufsmenge QGQBH
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity QOQTD %'
+					caption: Verkaufsmenge QGQBH %
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity PQC'
+					caption: Verkaufsmenge VQA
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity QTDOPQ'
+					caption: Verkaufsmenge QBHGVQ
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity QTDOPQ %'
+					caption: Verkaufsmenge QBHGVQ %
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity PMTD'
+					caption: Verkaufsmenge VMBH
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity MOMTD'
+					caption: Verkaufsmenge MGMBH
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity MOMTD %'
+					caption: Verkaufsmenge MGMBH %
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity PMC'
+					caption: Verkaufsmenge VMA
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity MTDOPM'
+					caption: Verkaufsmenge MBHGVM
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity MTDOPM %'
+					caption: Verkaufsmenge MBHGVM %
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity AVG 30D'
+					caption: Verkaufsmenge DURCHSCHN 30T
+					displayFolder: Umsatz\Verkaufsmenge\Gleitende Durchschnitte
+				measure 'Sales Quantity AVG 3M'
+					caption: Verkaufsmenge DURCHSCHN 3M
+					displayFolder: Umsatz\Verkaufsmenge\Gleitende Durchschnitte
+				measure 'Sales Quantity AVG 1Y'
+					caption: Verkaufsmenge DURCHSCHN 1J
+					displayFolder: Umsatz\Verkaufsmenge\Gleitende Durchschnitte
+				measure 'Sales Quantity MATG'
+					caption: Verkaufsmenge GJGW
+					displayFolder: Umsatz\Verkaufsmenge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Quantity MATG %'
+					caption: Verkaufsmenge GJGW %
+					displayFolder: Umsatz\Verkaufsmenge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Quantity PP'
+					caption: Verkaufsmenge VZ
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity POP'
+					caption: Verkaufsmenge ZGZ
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity POP %'
+					caption: Verkaufsmenge ZGZ %
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Gross Profit YTD'
+					caption: Bruttogewinn JBH
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Gesamt
+				measure 'Gross Profit PY'
+					caption: Bruttogewinn VJ
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit PYTD'
+					caption: Bruttogewinn VJBH
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit PQTD'
+					caption: Bruttogewinn VQBH
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit QTD'
+					caption: Bruttogewinn QBH
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Gesamt
+				measure 'Gross Profit MTD'
+					caption: Bruttogewinn MBH
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Gesamt
+				measure 'Gross Profit YOY %'
+					caption: Bruttogewinn JGJ %
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit YOY'
+					caption: Bruttogewinn JGJ
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit PQ'
+					caption: Bruttogewinn VQ
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit QOQ'
+					caption: Bruttogewinn QGQ
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit PM'
+					caption: Bruttogewinn VM
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit QOQ %'
+					caption: Bruttogewinn QGQ %
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit MOM'
+					caption: Bruttogewinn MGM
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit MOM %'
+					caption: Bruttogewinn MGM %
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit MAT'
+					caption: Bruttogewinn GJG
+					displayFolder: Gewinn\Bruttogewinn\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit PYMAT'
+					caption: Bruttogewinn VJGJG
+					displayFolder: Gewinn\Bruttogewinn\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit YOYTD'
+					caption: Bruttogewinn JGJBH
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit YOYTD %'
+					caption: Bruttogewinn JGJBH %
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit PYC'
+					caption: Bruttogewinn VJA
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit YTDOPY'
+					caption: Bruttogewinn JBHGVJ
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit YTDOPY %'
+					caption: Bruttogewinn JBHGVJ %
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit QOQTD'
+					caption: Bruttogewinn QGQBH
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit QOQTD %'
+					caption: Bruttogewinn QGQBH %
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit PQC'
+					caption: Bruttogewinn VQA
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit QTDOPQ'
+					caption: Bruttogewinn QBHGVQ
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit QTDOPQ %'
+					caption: Bruttogewinn QBHGVQ %
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit PMTD'
+					caption: Bruttogewinn VMBH
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit MOMTD'
+					caption: Bruttogewinn MGMBH
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit MOMTD %'
+					caption: Bruttogewinn MGMBH %
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit PMC'
+					caption: Bruttogewinn VMA
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit MTDOPM'
+					caption: Bruttogewinn MBHGVM
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit MTDOPM %'
+					caption: Bruttogewinn MBHGVM %
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit AVG 30D'
+					caption: Bruttogewinn DURCHSCHN 30T
+					displayFolder: Gewinn\Bruttogewinn\Gleitende Durchschnitte
+				measure 'Gross Profit AVG 3M'
+					caption: Bruttogewinn DURCHSCHN 3M
+					displayFolder: Gewinn\Bruttogewinn\Gleitende Durchschnitte
+				measure 'Gross Profit AVG 1Y'
+					caption: Bruttogewinn DURCHSCHN 1J
+					displayFolder: Gewinn\Bruttogewinn\Gleitende Durchschnitte
+				measure 'Gross Profit MATG'
+					caption: Bruttogewinn GJGW
+					displayFolder: Gewinn\Bruttogewinn\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit MATG %'
+					caption: Bruttogewinn GJGW %
+					displayFolder: Gewinn\Bruttogewinn\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit PP'
+					caption: Bruttogewinn VZ
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit POP'
+					caption: Bruttogewinn ZGZ
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit POP %'
+					caption: Bruttogewinn ZGZ %
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin YTD'
+					caption: Bruttogewinnspanne JBH
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Gesamt
+				measure 'Gross Profit Margin PY'
+					caption: Bruttogewinnspanne VJ
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin PYTD'
+					caption: Bruttogewinnspanne VJBH
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin PQTD'
+					caption: Bruttogewinnspanne VQBH
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin QTD'
+					caption: Bruttogewinnspanne QBH
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Gesamt
+				measure 'Gross Profit Margin MTD'
+					caption: Bruttogewinnspanne MBH
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Gesamt
+				measure 'Gross Profit Margin YOY %'
+					caption: Bruttogewinnspanne JGJ %
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin YOY'
+					caption: Bruttogewinnspanne JGJ
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin PQ'
+					caption: Bruttogewinnspanne VQ
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin QOQ'
+					caption: Bruttogewinnspanne QGQ
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin PM'
+					caption: Bruttogewinnspanne VM
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin QOQ %'
+					caption: Bruttogewinnspanne QGQ %
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin MOM'
+					caption: Bruttogewinnspanne MGM
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin MOM %'
+					caption: Bruttogewinnspanne MGM %
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin MAT'
+					caption: Bruttogewinnspanne GJG
+					displayFolder: Gewinn\Bruttogewinnmarge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit Margin PYMAT'
+					caption: Bruttogewinnspanne VJGJG
+					displayFolder: Gewinn\Bruttogewinnmarge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit Margin YOYTD'
+					caption: Bruttogewinnspanne JGJBH
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin YOYTD %'
+					caption: Bruttogewinnspanne JGJBH %
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin PYC'
+					caption: Bruttogewinnspanne VJA
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin YTDOPY'
+					caption: Bruttogewinnspanne JBHGVJ
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin YTDOPY %'
+					caption: Bruttogewinnspanne JBHGVJ %
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin QOQTD'
+					caption: Bruttogewinnspanne QGQBH
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin QOQTD %'
+					caption: Bruttogewinnspanne QGQBH %
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin PQC'
+					caption: Bruttogewinnspanne VQA
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin QTDOPQ'
+					caption: Bruttogewinnspanne QBHGVQ
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin QTDOPQ %'
+					caption: Bruttogewinnspanne QBHGVQ %
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin PMTD'
+					caption: Bruttogewinnspanne VMBH
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin MOMTD'
+					caption: Bruttogewinnspanne MGMBH
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin MOMTD %'
+					caption: Bruttogewinnspanne MGMBH %
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin PMC'
+					caption: Bruttogewinnspanne VMA
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin MTDOPM'
+					caption: Bruttogewinnspanne MBHGVM
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin MTDOPM %'
+					caption: Bruttogewinnspanne MBHGVM %
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin AVG 30D'
+					caption: Bruttogewinnspanne DURCHSCHN 30T
+					displayFolder: Gewinn\Bruttogewinnmarge\Gleitende Durchschnitte
+				measure 'Gross Profit Margin AVG 3M'
+					caption: Bruttogewinnspanne DURCHSCHN 3M
+					displayFolder: Gewinn\Bruttogewinnmarge\Gleitende Durchschnitte
+				measure 'Gross Profit Margin AVG 1Y'
+					caption: Bruttogewinnspanne DURCHSCHN 1J
+					displayFolder: Gewinn\Bruttogewinnmarge\Gleitende Durchschnitte
+				measure 'Gross Profit Margin MATG'
+					caption: Bruttogewinnspanne GJGW
+					displayFolder: Gewinn\Bruttogewinnmarge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit Margin MATG %'
+					caption: Bruttogewinnspanne GJGW %
+					displayFolder: Gewinn\Bruttogewinnmarge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit Margin PP'
+					caption: Bruttogewinnspanne VZ
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin POP'
+					caption: Bruttogewinnspanne ZGZ
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin POP %'
+					caption: Bruttogewinnspanne ZGZ %
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Cost Amount YTD'
+					caption: Einstandsbetrag JBH
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount PY'
+					caption: Einstandsbetrag VJ
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount PYTD'
+					caption: Einstandsbetrag VJBH
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount PQTD'
+					caption: Einstandsbetrag VQBH
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount QTD'
+					caption: Einstandsbetrag QBH
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount MTD'
+					caption: Einstandsbetrag MBH
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount YOY %'
+					caption: Einstandsbetrag JGJ %
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount YOY'
+					caption: Einstandsbetrag JGJ
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount PQ'
+					caption: Einstandsbetrag VQ
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount QOQ'
+					caption: Einstandsbetrag QGQ
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount PM'
+					caption: Einstandsbetrag VM
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount QOQ %'
+					caption: Einstandsbetrag QGQ %
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount MOM'
+					caption: Einstandsbetrag MGM
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount MOM %'
+					caption: Einstandsbetrag MGM %
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount MAT'
+					caption: Einstandsbetrag GJG
+					displayFolder: Kosten\Kostenbetrag\Gleitendes Jährliches Gesamtwachstum
+				measure 'Cost Amount PYMAT'
+					caption: Einstandsbetrag VJGJG
+					displayFolder: Kosten\Kostenbetrag\Gleitendes Jährliches Gesamtwachstum
+				measure 'Cost Amount YOYTD'
+					caption: Einstandsbetrag JGJBH
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount YOYTD %'
+					caption: Einstandsbetrag JGJBH %
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount PYC'
+					caption: Einstandsbetrag VJA
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount YTDOPY'
+					caption: Einstandsbetrag JBHGVJ
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount YTDOPY %'
+					caption: Einstandsbetrag JBHGVJ %
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount QOQTD'
+					caption: Einstandsbetrag QGQBH
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount QOQTD %'
+					caption: Einstandsbetrag QGQBH %
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount PQC'
+					caption: Einstandsbetrag VQA
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount QTDOPQ'
+					caption: Einstandsbetrag QBHGVQ
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount QTDOPQ %'
+					caption: Einstandsbetrag QBHGVQ %
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount PMTD'
+					caption: Einstandsbetrag VMBH
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount MOMTD'
+					caption: Einstandsbetrag MGMBH
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount MOMTD %'
+					caption: Einstandsbetrag MGMBH %
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount PMC'
+					caption: Einstandsbetrag VMA
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount MTDOPM'
+					caption: Einstandsbetrag MBHGVM
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount MTDOPM %'
+					caption: Einstandsbetrag MBHGVM %
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount AVG 30D'
+					caption: Einstandsbetrag DURCHSCHN 30T
+					displayFolder: Kosten\Kostenbetrag\Gleitende Durchschnitte
+				measure 'Cost Amount AVG 3M'
+					caption: Einstandsbetrag DURCHSCHN 3M
+					displayFolder: Kosten\Kostenbetrag\Gleitende Durchschnitte
+				measure 'Cost Amount AVG 1Y'
+					caption: Einstandsbetrag DURCHSCHN 1J
+					displayFolder: Kosten\Kostenbetrag\Gleitende Durchschnitte
+				measure 'Cost Amount MATG'
+					caption: Einstandsbetrag GJGW
+					displayFolder: Kosten\Kostenbetrag\Gleitendes Jährliches Gesamtwachstum
+				measure 'Cost Amount MATG %'
+					caption: Einstandsbetrag GJGW %
+					displayFolder: Kosten\Kostenbetrag\Gleitendes Jährliches Gesamtwachstum
+				measure 'Cost Amount PP'
+					caption: Einstandsbetrag VZ
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount POP'
+					caption: Einstandsbetrag ZGZ
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount POP %'
+					caption: Einstandsbetrag ZGZ %
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount Non-Inv YTD'
+					caption: Einst.-B. lagerw.-unabh. JBH
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount Non-Inv PY'
+					caption: Einst.-Betr. lagerwertunabh.
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv PYTD'
+					caption: Einst.-B. lagerw.-unabh. VJBH
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv PQTD'
+					caption: Einst.-B. lagerw.-unabh. VQBH
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv QTD'
+					caption: Einst.-B. lagerw.-unabh. QBH
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount Non-Inv MTD'
+					caption: Einst.-B. lagerw.-unabh. MBH
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount Non-Inv YOY %'
+					caption: Einst.-B. lagerw.-unabh. JGJ %
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv YOY'
+					caption: Einst.-B. lagerw.-unabh. JGJ
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv PQ'
+					caption: Einst.-Betr. lagerwertunabh. VQ
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv QOQ'
+					caption: Einst.-B. lagerw.-unabh. QGQ
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv PM'
+					caption: Einst.-Betr. lagerwertunabh. VM
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv QOQ %'
+					caption: Einst.-B. lagerw.-unabh. QGQ %
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv MOM'
+					caption: Einst.-B. lagerw.-unabh. MGM
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv MOM %'
+					caption: Einst.-B. lagerw.-unabh. MGM %
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv MAT'
+					caption: Einst.-B. lagerw.-unabh. GJG
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Bewegtes Jährliches Gesamtwachstum
+				measure 'Cost Amount Non-Inv PYMAT'
+					caption: Einst.-B. lagerw.-unabh. VJGJG
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Bewegtes Jährliches Gesamtwachstum
+				measure 'Cost Amount Non-Inv YOYTD'
+					caption: Einst.-B. lagerw.-unabh. JGJBH
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv YOYTD %'
+					caption: Einst.-B. lagerw.-unabh. JGJBH %
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv PYC'
+					caption: Einst.-B. lagerw.-unabh. VJA
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv YTDOPY'
+					caption: Einst.-B. lagerw.-unabh. JBHGVJ
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv YTDOPY %'
+					caption: Einst.-B. lagerw.-unabh. JBHGVJ %
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv QOQTD'
+					caption: Einst.-B. lagerw.-unabh. QGQBH
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv QOQTD %'
+					caption: Einst.-B. lagerw.-unabh. QGQBH %
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv PQC'
+					caption: Einst.-B. lagerw.-unabh. VQA
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv QTDOPQ'
+					caption: Einst.-B. lagerw.-unabh. QBHGVQ
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv QTDOPQ %'
+					caption: Einst.-B. lagerw.-unabh. QBHGVQ %
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv PMTD'
+					caption: Einst.-B. lagerw.-unabh. VMBH
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv MOMTD'
+					caption: Einst.-B. lagerw.-unabh. MGMBH
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv MOMTD %'
+					caption: Einst.-B. lagerw.-unabh. MGMBH %
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv PMC'
+					caption: Einst.-B. lagerw.-unabh. VMA
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv MTDOPM'
+					caption: Einst.-B. lagerw.-unabh. MBHGVM
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv MTDOPM %'
+					caption: Einst.-B. lagerw.-unabh. MBHGVM %
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv AVG 30D'
+					caption: Einst.-B. lagerw.-unabh. DURCHSCHN 30T
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Gleitende Durchschnitte
+				measure 'Cost Amount Non-Inv AVG 3M'
+					caption: Einst.-B. lagerw.-unabh. DURCHSCHN 3M
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Gleitende Durchschnitte
+				measure 'Cost Amount Non-Inv AVG 1Y'
+					caption: Einst.-B. lagerw.-unabh. DURCHSCHN 1J
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Gleitende Durchschnitte
+				measure 'Cost Amount Non-Inv MATG'
+					caption: Einst.-B. lagerw.-unabh. GJGW
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Bewegtes Jährliches Gesamtwachstum
+				measure 'Cost Amount Non-Inv MATG %'
+					caption: Einst.-B. lagerw.-unabh. GJGW %
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Bewegtes Jährliches Gesamtwachstum
+				measure 'Cost Amount Non-Inv PP'
+					caption: Einst.-Betr. lagerwertunabh. VZ
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv POP'
+					caption: Einst.-B. lagerw.-unabh. ZGZ
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv POP %'
+					caption: Einst.-B. lagerw.-unabh. ZGZ %
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+			table 'Dimension Sets'
+				caption: Dimensionssätze
+				column 'Global Dimension 1'
+					caption: Globale Dimension 1
+				column 'Global Dimension 2'
+					caption: Globale Dimension 2
+				column 'Shortcut Dimension 3'
+					caption: Shortcutdimension 3
+				column 'Shortcut Dimension 4'
+					caption: Shortcutdimension 4
+				column 'Shortcut Dimension 5'
+					caption: Shortcutdimension 5
+				column 'Shortcut Dimension 6'
+					caption: Shortcutdimension 6
+				column 'Shortcut Dimension 7'
+					caption: Shortcutdimension 7
+				column 'Shortcut Dimension 8'
+					caption: Shortcutdimension 8
+				column id
+					caption: id
+			table 'Sales Budget'
+				caption: Verkaufsbudget
+				column 'Entry No.'
+					caption: Lfd. Nr.
+				column 'Budget Name'
+					caption: Budgetname
+				column 'Item No.'
+					caption: Artikelnr.
+				column 'Location Code'
+					caption: Lagerortcode
+				measure 'Budget Amount'
+					caption: Budgetbetrag
+					displayFolder: _Budget Maßnahmen
+				measure 'Budget Amount Variance'
+					caption: Budgetbetragabweichung
+					displayFolder: _Budget Maßnahmen
+				measure 'Budget Quantity'
+					caption: Budgetierte Menge
+					displayFolder: _Budget Maßnahmen
+				measure 'Budget Quantity Variance'
+					caption: Budgetierte Menge Abweichung
+					displayFolder: _Budget Maßnahmen
+				measure 'Budget Amount Variance %'
+					caption: Budgetbetragabweichung %
+					displayFolder: _Budget Maßnahmen
+				measure 'Budget Quantity Variance %'
+					caption: Budgetierte Menge Abweichung %
+					displayFolder: _Budget Maßnahmen
+				measure 'Budget Back Link'
+					caption: Budget – Zurück-Link
+					displayFolder: _Budget Maßnahmen
+			table Date
+				caption: Datum
+				column Date
+					caption: Datum
+				column 'Week Day'
+					caption: Woche Tag
+				column 'Calendar YearNumber'
+					displayFolder: _Standard Kalender
+				column 'Calendar Year'
+					caption: Kalender Jahr
+					displayFolder: _Standard Kalender
+				column 'Calendar QuarterNumber'
+					displayFolder: _Standard Kalender
+				column 'Calendar Quarter'
+					caption: Kalenderquartal
+					displayFolder: _Standard Kalender
+				column 'Calendar YearQuarterNumber'
+					displayFolder: _Standard Kalender
+				column 'Calendar Quarter Year'
+					caption: Kalender Quartal Jahr
+					displayFolder: _Standard Kalender
+				column 'Calendar MonthNumber'
+					displayFolder: _Standard Kalender
+				column 'Calendar Month'
+					caption: Kalendermonat
+					displayFolder: _Standard Kalender
+				column 'Calendar YearMonthNumber'
+					displayFolder: _Standard Kalender
+				column 'Calendar Month Year'
+					caption: Kalender Monat Jahr
+					displayFolder: _Standard Kalender
+				column 'Calendar WeekNumber'
+					displayFolder: _Standard Kalender
+				column 'Calendar Week'
+					caption: Kalender Woche
+					displayFolder: _Standard Kalender
+				column 'Calendar YearWeekNumber'
+					displayFolder: _Standard Kalender
+				column 'Calendar Week Year'
+					caption: Kalender Woche Jahr
+					displayFolder: _Standard Kalender
+				column 'Calendar WeekYearOrder'
+					displayFolder: _Standard Kalender
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativeWochenPos
+					displayFolder: _Standard Kalender
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativeMonatsPos
+					displayFolder: _Standard Kalender
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelativeQuartalsPos
+					displayFolder: _Standard Kalender
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativeJahresPos
+					displayFolder: _Standard Kalender
+				column 'Calendar StartOfMonth'
+					caption: Kalender BeginnDesMonats
+					displayFolder: _Standard Kalender
+				column 'Calendar EndOfMonth'
+					caption: Kalender EndeDesMonats
+					displayFolder: _Standard Kalender
+				column 'Calendar StartOfQuarter'
+					caption: Kalender BeginnDesQuartals
+					displayFolder: _Standard Kalender
+				column 'Calendar EndOfQuarter'
+					caption: Kalender EndeDesQuartals
+					displayFolder: _Standard Kalender
+				column 'Calendar StartOfYear'
+					caption: Kalender BeginnDesJahres
+					displayFolder: _Standard Kalender
+				column 'Calendar EndOfYear'
+					caption: Kalender EndeDesJahres
+					displayFolder: _Standard Kalender
+				column 'Calendar MonthDays'
+					caption: Kalender MonatTage
+					displayFolder: _Standard Kalender
+				column 'Calendar QuarterDays'
+					caption: Kalender QuartalTage
+					displayFolder: _Standard Kalender
+				column 'Calendar YearDays'
+					caption: Kalender JahrTage
+					displayFolder: _Standard Kalender
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender TagDesMonatsZahl
+					displayFolder: _Standard Kalender
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender TagDesQuartalsZahl
+					displayFolder: _Standard Kalender
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender TagDesJahresZahl
+					displayFolder: _Standard Kalender
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumVorigeWoche
+					displayFolder: _Standard Kalender
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumVorigerMonat
+					displayFolder: _Standard Kalender
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumVorigesQuartal
+					displayFolder: _Standard Kalender
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumVorigesJahr
+					displayFolder: _Standard Kalender
+				column 'Fiscal Year'
+					caption: Geschäftlich Jahr
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal YearNumber'
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal QuarterNumber'
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal Quarter'
+					caption: Geschäftsquartal
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal YearQuarterNumber'
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal Quarter Year'
+					caption: Geschäftlich Quartal Jahr
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal MonthNumber'
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal MonthInQuarterNumber'
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal Month'
+					caption: Geschäftlich Monat
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal YearMonthNumber'
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal Month Year'
+					caption: Geschäftlich Monat Jahr
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal WeekNumber'
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal Week'
+					caption: Geschäftswoche
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal YearWeekNumber'
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal Week Year'
+					caption: Geschäftlich Woche Jahr
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal WeekYearOrder'
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal RelativeWeekPos'
+					caption: Geschäftlich RelativeWochenPos
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal RelativeMonthPos'
+					caption: Geschäftlich RelativeMonatsPos
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal RelativeQuarterPos'
+					caption: Geschäftlich RelativeQuartalsPos
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal RelativeYearPos'
+					caption: Geschäftlich RelativeJahresPos
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal StartOfMonth'
+					caption: Geschäftlich BeginnDesMonats
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal EndOfMonth'
+					caption: Geschäftlich EndeDesMonats
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal StartOfQuarter'
+					caption: Geschäftlich BeginnDesQuartals
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal EndOfQuarter'
+					caption: Geschäftlich EndeDesQuartals
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal StartOfYear'
+					caption: Geschäftlich BeginnDesJahres
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal EndOfYear'
+					caption: Geschäftlich EndeDesJahres
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal MonthDays'
+					caption: Geschäftlich MonatTage
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal QuarterDays'
+					caption: Geschäftlich QuartalTage
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal YearDays'
+					caption: Geschäftlich JahrTage
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal DayOfMonthNumber'
+					caption: Geschäftlich TagDesMonatsZahl
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Geschäftlich TagDesQuartalsZahl
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal DayOfYearNumber'
+					caption: Geschäftlich TagDesJahresZahl
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal DatePreviousWeek'
+					caption: Geschäftlich DatumVorigeWoche
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal DatePreviousMonth'
+					caption: Geschäftlich DatumVorigerMonat
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal DatePreviousQuarter'
+					caption: Geschäftlich DatumVorigesQuartal
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal DatePreviousYear'
+					caption: Geschäftlich DatumVorigesJahr
+					displayFolder: _Fiscal Kalender
+				column 'FW YearNumber'
+					displayFolder: _Weekly Kalender
+				column 'FW Year'
+					caption: GW Jahr
+					displayFolder: _Weekly Kalender
+				column 'FW QuarterNumber'
+					displayFolder: _Weekly Kalender
+				column 'FW Quarter'
+					caption: GW Quartal
+					displayFolder: _Weekly Kalender
+				column 'FW YearQuarterNumber'
+					displayFolder: _Weekly Kalender
+				column 'FW Quarter Year'
+					caption: GW Quartal Jahr
+					displayFolder: _Weekly Kalender
+				column 'FW MonthNumber'
+					displayFolder: _Weekly Kalender
+				column 'FW Month'
+					caption: GW Monat
+					displayFolder: _Weekly Kalender
+				column 'FW YearMonthNumber'
+					displayFolder: _Weekly Kalender
+				column 'FW Month Year'
+					caption: GW Monat Jahr
+					displayFolder: _Weekly Kalender
+				column 'FW WeekNumber'
+					displayFolder: _Weekly Kalender
+				column 'FW Week'
+					caption: GW Woche
+					displayFolder: _Weekly Kalender
+				column 'FW PeriodNumber'
+					displayFolder: _Weekly Kalender
+				column 'FW Period'
+					caption: GW Periode
+					displayFolder: _Weekly Kalender
+				column 'FW YearWeekNumber'
+					displayFolder: _Weekly Kalender
+				column 'FW Week Year'
+					caption: GW Woche Jahr
+					displayFolder: _Weekly Kalender
+				column 'FW StartOfWeek'
+					caption: GW BeginnDerWoche
+					displayFolder: _Weekly Kalender
+				column 'FW EndOfWeek'
+					caption: GW EndeDerWoche
+					displayFolder: _Weekly Kalender
+				column 'FW RelativeWeekPos'
+					caption: GW RelativeWochenPos
+					displayFolder: _Weekly Kalender
+				column 'FW RelativeMonthPos'
+					caption: GW RelativeMonatsPos
+					displayFolder: _Weekly Kalender
+				column 'FW RelativeQuarterPos'
+					caption: GW RelativeQuartalsPos
+					displayFolder: _Weekly Kalender
+				column 'FW RelativeYearPos'
+					caption: GW RelativeJahresPos
+					displayFolder: _Weekly Kalender
+				column 'FW StartOfMonth'
+					caption: GW BeginnDesMonats
+					displayFolder: _Weekly Kalender
+				column 'FW EndOfMonth'
+					caption: GW EndeDesMonats
+					displayFolder: _Weekly Kalender
+				column 'FW StartOfQuarter'
+					caption: GW BeginnDesQuartals
+					displayFolder: _Weekly Kalender
+				column 'FW EndOfQuarter'
+					caption: GW EndeDesQuartals
+					displayFolder: _Weekly Kalender
+				column 'FW StartOfYear'
+					caption: GW BeginnDesJahres
+					displayFolder: _Weekly Kalender
+				column 'FW EndOfYear'
+					caption: GW EndeDesJahres
+					displayFolder: _Weekly Kalender
+				column 'FW MonthDays'
+					caption: GW MonatTage
+					displayFolder: _Weekly Kalender
+				column 'FW QuarterDays'
+					caption: GW QuartalTage
+					displayFolder: _Weekly Kalender
+				column 'FW YearDays'
+					caption: GW JahrTage
+					displayFolder: _Weekly Kalender
+				column 'FW DayOfMonthNumber'
+					displayFolder: _Weekly Kalender
+				column 'FW DayOfQuarterNumber'
+					displayFolder: _Weekly Kalender
+				column 'FW DayOfYearNumber'
+					displayFolder: _Weekly Kalender
+				column 'FW DatePreviousWeek'
+					caption: GW DatumVorigeWoche
+					displayFolder: _Weekly Kalender
+				column 'FW DatePreviousMonth'
+					caption: GW DatumVorigerMonat
+					displayFolder: _Weekly Kalender
+				column 'FW DatePreviousQuarter'
+					caption: GW DatumVorigesQuartal
+					displayFolder: _Weekly Kalender
+				column 'FW DatePreviousYear'
+					caption: GW DatumVorigesJahr
+					displayFolder: _Weekly Kalender
+				column 'Holiday Name'
+					caption: Name des Feiertags
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Tagestyp
+				column 'Relative Day'
+					caption: Relativ Tag
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Geschäftlich Jahr-Quartal-Monat-Woche
+					displayFolder: _Fiscal Kalender
+					level 'Fiscal Year'
+						caption: Geschäftlich Jahr
+					level 'Fiscal Quarter Year'
+						caption: Geschäftlich Quartal Jahr
+					level 'Fiscal Month Year'
+						caption: Geschäftlich Monat Jahr
+					level 'Fiscal Week Year'
+						caption: Geschäftlich Woche Jahr
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender Jahr-Quartal-Monat-Woche
+					displayFolder: _Standard Kalender
+					level 'Calendar Year'
+						caption: Kalender Jahr
+					level 'Calendar Quarter Year'
+						caption: Kalender Quartal Jahr
+					level 'Calendar Month Year'
+						caption: Kalender Monat Jahr
+					level 'Calendar Week Year'
+						caption: Kalender Woche Jahr
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: GW Jahr-Quartal-Monat-Woche
+					displayFolder: _Weekly Kalender
+					level 'FW Year'
+						caption: GW Jahr
+					level 'FW Quarter Year'
+						caption: GW Quartal Jahr
+					level 'FW Month Year'
+						caption: GW Monat Jahr
+					level 'FW Week Year'
+						caption: GW Woche Jahr
+				hierarchy 'FW Year-Week'
+					caption: GW Jahr-Woche
+					displayFolder: _Weekly Kalender
+					level 'FW Year'
+						caption: GW Jahr
+					level 'FW Week Year'
+						caption: GW Woche Jahr
+				hierarchy 'FW Year-Month-Week'
+					caption: GW Jahr-Monat-Woche
+					displayFolder: _Weekly Kalender
+					level 'FW Year'
+						caption: GW Jahr
+					level 'FW Month Year'
+						caption: GW Monat Jahr
+					level 'FW Week Year'
+						caption: GW Woche Jahr
+				hierarchy 'FW Year-Quarter-Week'
+					caption: GW Jahr-Quartal-Woche
+					displayFolder: _Weekly Kalender
+					level 'FW Year'
+						caption: GW Jahr
+					level 'FW Quarter Year'
+						caption: GW Quartal Jahr
+					level 'FW Week Year'
+						caption: GW Woche Jahr
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender Jahr-Monat-Woche
+					displayFolder: _Standard Kalender
+					level 'Calendar Year'
+						caption: Kalender Jahr
+					level 'Calendar Month Year'
+						caption: Kalender Monat Jahr
+					level 'Calendar Week Year'
+						caption: Kalender Woche Jahr
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender Jahr-Monat
+					displayFolder: _Standard Kalender
+					level 'Calendar Year'
+						caption: Kalender Jahr
+					level 'Calendar Month Year'
+						caption: Kalender Monat Jahr
+				hierarchy 'Fiscal Year-Month'
+					caption: Geschäftlich Jahr-Monat
+					displayFolder: _Fiscal Kalender
+					level 'Fiscal Year'
+						caption: Geschäftlich Jahr
+					level 'Fiscal Month Year'
+						caption: Geschäftlich Monat Jahr
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Geschäftlich Jahr-Monat-Woche
+					displayFolder: _Fiscal Kalender
+					level 'Fiscal Year'
+						caption: Geschäftlich Jahr
+					level 'Fiscal Month Year'
+						caption: Geschäftlich Monat Jahr
+					level 'Fiscal Week Year'
+						caption: Geschäftlich Woche Jahr
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Geschäftlich Kalender – Zeitinformationen
+				measure 'Sales Amount YTD (Fiscal)'
+					caption: Verkaufsbetrag JBH (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Sales Amount PY (Fiscal)'
+					caption: Verkaufsbetrag VJ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount PYTD (Fiscal)'
+					caption: Verkaufsbetrag VJBH (Geschäftlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount PQTD (Fiscal)'
+					caption: Verkaufsbetrag VQBH (Geschäftlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount QTD (Fiscal)'
+					caption: Verkaufsbetrag QBH (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Sales Amount MTD (Fiscal)'
+					caption: Verkaufsbetrag MBH (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Sales Amount YOY % (Fiscal)'
+					caption: Verkaufsbetrag JGJ % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount YOY (Fiscal)'
+					caption: Verkaufsbetrag JGJ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount PQ (Fiscal)'
+					caption: Verkaufsbetrag VQ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount QOQ (Fiscal)'
+					caption: Verkaufsbetrag QGQ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount QOQ % (Fiscal)'
+					caption: Verkaufsbetrag QGQ % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount PM (Fiscal)'
+					caption: Verkaufsbetrag VM (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount MOM (Fiscal)'
+					caption: Verkaufsbetrag MGM (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount MOM % (Fiscal)'
+					caption: Verkaufsbetrag MGM % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount MAT (Fiscal)'
+					caption: Verkaufsbetrag GJG (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Amount PYMAT (Fiscal)'
+					caption: Verkaufsbetrag VJGJG (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Amount YOYTD (Fiscal)'
+					caption: Verkaufsbetrag JGJBH (Geschäftlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount YOYTD % (Fiscal)'
+					caption: Verkaufsbetrag JGJBH % (Geschäftlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount PYC (Fiscal)'
+					caption: Verkaufsbetrag VJA (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount YTDOPY (Fiscal)'
+					caption: Verkaufsbetrag JBHGVJ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount YTDOPY % (Fiscal)'
+					caption: Verkaufsbetrag JBHGVJ % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount QOQTD (Fiscal)'
+					caption: Verkaufsbetrag QGQBH (Geschäftlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount QOQTD % (Fiscal)'
+					caption: Verkaufsbetrag QGQBH % (Geschäftlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount PQC (Fiscal)'
+					caption: Verkaufsbetrag VQA (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount QTDOPQ (Fiscal)'
+					caption: Verkaufsbetrag QBHGVQ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount QTDOPQ % (Fiscal)'
+					caption: Verkaufsbetrag QBHGVQ % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount PMTD (Fiscal)'
+					caption: Verkaufsbetrag VMBH (Geschäftlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount MOMTD % (Fiscal)'
+					caption: Verkaufsbetrag MGMBH % (Geschäftlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount MOMTD (Fiscal)'
+					caption: Verkaufsbetrag MGMBH (Geschäftlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount PMC (Fiscal)'
+					caption: Verkaufsbetrag VMA (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount MTDOPM (Fiscal)'
+					caption: Verkaufsbetrag MBHGVM (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount MTDOPM % (Fiscal)'
+					caption: Verkaufsbetrag MBHGVM % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount AVG 30D (Fiscal)'
+					caption: Verkaufsbetrag DURCHSCHN 30T (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Gleitende Durchschnitte
+				measure 'Sales Amount AVG 3M (Fiscal)'
+					caption: Verkaufsbetrag DURCHSCHN 3M (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Gleitende Durchschnitte
+				measure 'Sales Amount AVG 1Y (Fiscal)'
+					caption: Verkaufsbetrag DURCHSCHN 1J (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Gleitende Durchschnitte
+				measure 'Sales Amount MATG (Fiscal)'
+					caption: Verkaufsbetrag GJGW (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Amount MATG % (Fiscal)'
+					caption: Verkaufsbetrag GJGW % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Amount PP (Fiscal)'
+					caption: Verkaufsbetrag VZ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount POP (Fiscal)'
+					caption: Verkaufsbetrag ZGZ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount POP % (Fiscal)'
+					caption: Verkaufsbetrag ZGZ % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount MAT (364) (Fiscal)'
+					caption: Verkaufsbetrag GJG (364) (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales PYMAT (364) (Fiscal)'
+					caption: Verkäufe VJGJG (364) (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Quantity YTD (Fiscal)'
+					caption: Verkaufsmenge JBH (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Dato-Date Gesamt
+				measure 'Sales Quantity PY (Fiscal)'
+					caption: Verkaufsmenge VJ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity PYTD (Fiscal)'
+					caption: Verkaufsmenge VJBH (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity PQTD (Fiscal)'
+					caption: Verkaufsmenge VQBH (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity QTD (Fiscal)'
+					caption: Verkaufsmenge QBH (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Dato-Date Gesamt
+				measure 'Sales Quantity MTD (Fiscal)'
+					caption: Verkaufsmenge MBH (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Dato-Date Gesamt
+				measure 'Sales Quantity YOY % (Fiscal)'
+					caption: Verkaufsmenge JGJ % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity YOY (Fiscal)'
+					caption: Verkaufsmenge JGJ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity PQ (Fiscal)'
+					caption: Verkaufsmenge VQ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity QOQ (Fiscal)'
+					caption: Verkaufsmenge QGQ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity QOQ % (Fiscal)'
+					caption: Verkaufsmenge QGQ % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity PM (Fiscal)'
+					caption: Verkaufsmenge VM (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity MOM (Fiscal)'
+					caption: Verkaufsmenge MGM (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity MOM % (Fiscal)'
+					caption: Verkaufsmenge MGM % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity MAT (Fiscal)'
+					caption: Verkaufsmenge GJG (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Quantity PYMAT (Fiscal)'
+					caption: Verkaufsmenge VJGJG (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Quantity YOYTD (Fiscal)'
+					caption: Verkaufsmenge JGJBH (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity YOYTD % (Fiscal)'
+					caption: Verkaufsmenge JGJBH % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity PYC (Fiscal)'
+					caption: Verkaufsmenge VJA (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity YTDOPY (Fiscal)'
+					caption: Verkaufsmenge JBHGVJ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity YTDOPY % (Fiscal)'
+					caption: Verkaufsmenge JBHGVJ % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity QOQTD (Fiscal)'
+					caption: Verkaufsmenge QGQBH (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity QOQTD % (Fiscal)'
+					caption: Verkaufsmenge QGQBH % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity PQC (Fiscal)'
+					caption: Verkaufsmenge VQA (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity QTDOPQ (Fiscal)'
+					caption: Verkaufsmenge QBHGVQ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity QTDOPQ % (Fiscal)'
+					caption: Verkaufsmenge QBHGVQ % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity PMTD (Fiscal)'
+					caption: Verkaufsmenge VMBH (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity MOMTD % (Fiscal)'
+					caption: Verkaufsmenge MGMBH % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity MOMTD (Fiscal)'
+					caption: Verkaufsmenge MGMBH (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity PMC (Fiscal)'
+					caption: Verkaufsmenge VMA (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity MTDOPM (Fiscal)'
+					caption: Verkaufsmenge MBHGVM (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity MTDOPM % (Fiscal)'
+					caption: Verkaufsmenge MBHGVM % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity AVG 30D (Fiscal)'
+					caption: Verkaufsmenge DURCHSCHN 30T (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Gleitende Durchschnitte
+				measure 'Sales Quantity AVG 3M (Fiscal)'
+					caption: Verkaufsmenge DURCHSCHN 3M (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Gleitende Durchschnitte
+				measure 'Sales Quantity AVG 1Y (Fiscal)'
+					caption: Verkaufsmenge DURCHSCHN 1J (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Gleitende Durchschnitte
+				measure 'Sales Quantity MATG (Fiscal)'
+					caption: Verkaufsmenge GJGW (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Quantity MATG % (Fiscal)'
+					caption: Verkaufsmenge GJGW % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Quantity PP (Fiscal)'
+					caption: Verkaufsmenge VZ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity POP (Fiscal)'
+					caption: Verkaufsmenge ZGZ (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity POP % (Fiscal)'
+					caption: Verkaufsmenge ZGZ % (Geschäftlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Cost Amount YTD (Fiscal)'
+					caption: Einstandsbetrag JBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount PY (Fiscal)'
+					caption: Einstandsbetrag VJ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount QTD (Fiscal)'
+					caption: Einstandsbetrag QBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount MTD (Fiscal)'
+					caption: Einstandsbetrag MBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount YOY % (Fiscal)'
+					caption: Einstandsbetrag JGJ % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount YOY (Fiscal)'
+					caption: Einstandsbetrag JGJ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount PQ (Fiscal)'
+					caption: Einstandsbetrag VQ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount QOQ (Fiscal)'
+					caption: Einstandsbetrag QGQ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount QOQ % (Fiscal)'
+					caption: Einstandsbetrag QGQ % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount PM (Fiscal)'
+					caption: Einstandsbetrag VM (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount MOM (Fiscal)'
+					caption: Einstandsbetrag MGM (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount MOM % (Fiscal)'
+					caption: Einstandsbetrag MGM % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount PP (Fiscal)'
+					caption: Einstandsbetrag VZ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount POP (Fiscal)'
+					caption: Einstandsbetrag ZGZ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount POP % (Fiscal)'
+					caption: Einstandsbetrag ZGZ % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount PYTD (Fiscal)'
+					caption: Einstandsbetrag VJBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount PQTD (Fiscal)'
+					caption: Einstandsbetrag VQBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount YOYTD (Fiscal)'
+					caption: Einstandsbetrag JGJBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount YOYTD % (Fiscal)'
+					caption: Einstandsbetrag JGJBH % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount QOQTD (Fiscal)'
+					caption: Einstandsbetrag QGQBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount QOQTD % (Fiscal)'
+					caption: Einstandsbetrag QGQBH % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount PMTD (Fiscal)'
+					caption: Einstandsbetrag VMBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount MOMTD % (Fiscal)'
+					caption: Einstandsbetrag MGMBH % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount MOMTD (Fiscal)'
+					caption: Einstandsbetrag MGMBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount MAT (Fiscal)'
+					caption: Einstandsbetrag GJG (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitendes Jährliches Gesamtwachstum
+				measure 'Cost Amount PYMAT (Fiscal)'
+					caption: Einstandsbetrag VJGJG (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitendes Jährliches Gesamtwachstum
+				measure 'Cost Amount MATG (Fiscal)'
+					caption: Einstandsbetrag GJGW (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitendes Jährliches Gesamtwachstum
+				measure 'Cost Amount MATG % (Fiscal)'
+					caption: Einstandsbetrag GJGW % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitendes Jährliches Gesamtwachstum
+				measure 'Cost Amount MAT (364) (Fiscal)'
+					caption: Einstandsbetrag GJG (364) (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitendes Jährliches Gesamtwachstum
+				measure 'Cost PYMAT (364) (Fiscal)'
+					caption: Einstandspreis VJGJG (364) (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitendes Jährliches Gesamtwachstum
+				measure 'Cost Amount PYC (Fiscal)'
+					caption: Einstandsbetrag VJA (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount YTDOPY (Fiscal)'
+					caption: Einstandsbetrag JBHGVJ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount YTDOPY % (Fiscal)'
+					caption: Einstandsbetrag JBHGVJ % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount PQC (Fiscal)'
+					caption: Einstandsbetrag VQA (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount QTDOPQ (Fiscal)'
+					caption: Einstandsbetrag QBHGVQ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount QTDOPQ % (Fiscal)'
+					caption: Einstandsbetrag QBHGVQ % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount PMC (Fiscal)'
+					caption: Einstandsbetrag VMA (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount MTDOPM (Fiscal)'
+					caption: Einstandsbetrag MBHGVM (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount MTDOPM % (Fiscal)'
+					caption: Einstandsbetrag MBHGVM % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount AVG 30D (Fiscal)'
+					caption: Einstandsbetrag DURCHSCHN 30T (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitende Durchschnitte
+				measure 'Cost Amount AVG 3M (Fiscal)'
+					caption: Einstandsbetrag DURCHSCHN 3M (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitende Durchschnitte
+				measure 'Cost Amount AVG 1Y (Fiscal)'
+					caption: Einstandsbetrag DURCHSCHN 1J (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitende Durchschnitte
+				measure 'Cost Amount Non-Inv YTD (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. JBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount Non-Inv QTD (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. QBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount Non-Inv MTD (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. MBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount Non-Inv PY (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. VJ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv YOY % (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. JGJ % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv YOY (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. JGJ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv PQ (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. VQ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv QOQ (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. QGQ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv QOQ % (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. QGQ % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv PM (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. DURCHSCHN VM (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv MOM (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. MGM (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv MOM % (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. MGM % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv PP (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. VZ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv POP (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. ZGZ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv POP % (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. ZGZ % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv PYTD (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. VJBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv PQTD (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. VQBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv YOYTD (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. JGJBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv YOYTD % (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. JGJBH % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv QOQTD (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. QGQBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv QOQTD % (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. QGQBH % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv PMTD (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. VMBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv MOMTD % (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. MGMBH % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv MOMTD (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. MGMBH (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv MAT (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. GJG (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Bewegtes Jährliches Gesamtwachstum
+				measure 'Cost Amount Non-Inv PYMAT (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. VJGJG (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Bewegtes Jährliches Gesamtwachstum
+				measure 'Cost Amount Non-Inv MATG (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. GJGW (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Bewegtes Jährliches Gesamtwachstum
+				measure 'Cost Amount Non-Inv MATG % (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. GJGW % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Bewegtes Jährliches Gesamtwachstum
+				measure 'Cost Amount Non-Inv PYC (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. VJA (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv YTDOPY (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. JBHGVJ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv YTDOPY % (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. JBHGVJ % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv PQC (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. VQA (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv QTDOPQ (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. QBHGVQ (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv QTDOPQ % (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. QBHGVQ % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv PMC (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. VMA (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv MTDOPM (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. MBHGVM (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv MTDOPM % (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. MBHGVM % (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv AVG 30D (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. DURCHSCHN 30T (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Gleitende Durchschnitte
+				measure 'Cost Amount Non-Inv AVG 3M (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. DURCHSCHN 3M (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Gleitende Durchschnitte
+				measure 'Cost Amount Non-Inv AVG 1Y (Fiscal)'
+					caption: Einst.-B. lagerw.-unabh. DURCHSCHN 1J (Geschäftlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Gleitende Durchschnitte
+				measure 'Gross Profit YTD (Fiscal)'
+					caption: Bruttogewinn JBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Gesamt
+				measure 'Gross Profit QTD (Fiscal)'
+					caption: Bruttogewinn QBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Gesamt
+				measure 'Gross Profit MTD (Fiscal)'
+					caption: Bruttogewinn MBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Gesamt
+				measure 'Gross Profit PY (Fiscal)'
+					caption: Bruttogewinn VJ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit YOY % (Fiscal)'
+					caption: Bruttogewinn JGJ % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit YOY (Fiscal)'
+					caption: Bruttogewinn JGJ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit PQ (Fiscal)'
+					caption: Bruttogewinn VQ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit QOQ (Fiscal)'
+					caption: Bruttogewinn QGQ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit QOQ % (Fiscal)'
+					caption: Bruttogewinn QGQ % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit PM (Fiscal)'
+					caption: Bruttogewinn VM (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit MOM (Fiscal)'
+					caption: Bruttogewinn MGM (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit MOM % (Fiscal)'
+					caption: Bruttogewinn MGM % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit PP (Fiscal)'
+					caption: Bruttogewinn VZ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit POP (Fiscal)'
+					caption: Bruttogewinn ZGZ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit POP % (Fiscal)'
+					caption: Bruttogewinn ZGZ % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit PYTD (Fiscal)'
+					caption: Bruttogewinn VJBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit PQTD (Fiscal)'
+					caption: Bruttogewinn VQBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit YOYTD (Fiscal)'
+					caption: Bruttogewinn JGJBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit YOYTD % (Fiscal)'
+					caption: Bruttogewinn JGJBH % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit QOQTD (Fiscal)'
+					caption: Bruttogewinn QGQBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit  QOQTD % (Fiscal)'
+					caption: Bruttogewinn QGQBH % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit PMTD (Fiscal)'
+					caption: Bruttogewinn VMBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit MOMTD % (Fiscal)'
+					caption: Bruttogewinn MGMBH % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit MOMTD (Fiscal)'
+					caption: Bruttogewinn MGMBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit MAT (Fiscal)'
+					caption: Bruttogewinn GJG (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit PYMAT (Fiscal)'
+					caption: Bruttogewinn VJGJG (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit MATG (Fiscal)'
+					caption: Bruttogewinn GJGW (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit MATG % (Fiscal)'
+					caption: Bruttogewinn GJGW % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit MAT (364) (Fiscal)'
+					caption: Bruttogewinn GJG (364) (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit PYMAT (364) (Fiscal)'
+					caption: Bruttogewinn VJGJG (364) (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit PYC (Fiscal)'
+					caption: Bruttogewinn VJA (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit YTDOPY (Fiscal)'
+					caption: Bruttogewinn JBHGVJ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit YTDOPY % (Fiscal)'
+					caption: Bruttogewinn JBHGVJ % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit PQC (Fiscal)'
+					caption: Bruttogewinn VQA (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit QTDOPQ (Fiscal)'
+					caption: Bruttogewinn QBHGVQ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit QTDOPQ % (Fiscal)'
+					caption: Bruttogewinn QBHGVQ % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit PMC (Fiscal)'
+					caption: Bruttogewinn VMA (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit MTDOPM (Fiscal)'
+					caption: Bruttogewinn MBHGVM (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit MTDOPM % (Fiscal)'
+					caption: Bruttogewinn MBHGVM % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit AVG 30D (Fiscal)'
+					caption: Bruttogewinn DURCHSCHN 30T (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Gleitende Durchschnitte
+				measure 'Gross Profit AVG 3M (Fiscal)'
+					caption: Bruttogewinn DURCHSCHN 3M (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Gleitende Durchschnitte
+				measure 'Gross Profit AVG 1Y (Fiscal)'
+					caption: Bruttogewinn DURCHSCHN 1J (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinn\Gleitende Durchschnitte
+				measure 'Gross Profit Margin AVG 30D (Fiscal)'
+					caption: Bruttogewinnspanne DURCHSCHN 30T (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Gleitende Durchschnitte
+				measure 'Gross Profit Margin AVG 3M (Fiscal)'
+					caption: Bruttogewinnspanne DURCHSCHN 3M (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Gleitende Durchschnitte
+				measure 'Gross Profit Margin AVG 1Y (Fiscal)'
+					caption: Bruttogewinnspanne DURCHSCHN 1J (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Gleitende Durchschnitte
+				measure 'Gross Profit Margin PYC (Fiscal)'
+					caption: Bruttogewinnspanne VJA (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin YTDOPY (Fiscal)'
+					caption: Bruttogewinnspanne JBHGVJ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin YTDOPY % (Fiscal)'
+					caption: Bruttogewinnspanne JBHGVJ % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin PQC (Fiscal)'
+					caption: Bruttogewinnspanne VQA (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin QTDOPQ (Fiscal)'
+					caption: Bruttogewinnspanne QBHGVQ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin QTDOPQ % (Fiscal)'
+					caption: Bruttogewinnspanne QBHGVQ % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin PMC (Fiscal)'
+					caption: Bruttogewinnspanne VMA (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin MTDOPM (Fiscal)'
+					caption: Bruttogewinnspanne MBHGVM (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin MTDOPM % (Fiscal)'
+					caption: Bruttogewinnspanne MBHGVM % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin MAT (Fiscal)'
+					caption: Bruttogewinnspanne GJG (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit Margin PYMAT (Fiscal)'
+					caption: Bruttogewinnspanne VJGJG (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit Margin MATG (Fiscal)'
+					caption: Bruttogewinnspanne GJGW (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit Margin MATG % (Fiscal)'
+					caption: Bruttogewinnspanne GJGW % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit Margin MAT (364) (Fiscal)'
+					caption: Bruttogewinnspanne GJG (364) (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit Margin PYMAT (364) (Fiscal)'
+					caption: Bruttogewinnspanne VJGJG (364) (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit Margin PYTD (Fiscal)'
+					caption: Bruttogewinnspanne VJBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin PQTD (Fiscal)'
+					caption: Bruttogewinnspanne VQBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin YOYTD (Fiscal)'
+					caption: Bruttogewinnspanne JGJBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin YOYTD % (Fiscal)'
+					caption: Bruttogewinnspanne JGJBH % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin QOQTD (Fiscal)'
+					caption: Bruttogewinnspanne QGQBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin QOQTD % (Fiscal)'
+					caption: Bruttogewinnspanne QGQBH % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin PMTD (Fiscal)'
+					caption: Bruttogewinnspanne VMBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin MOMTD % (Fiscal)'
+					caption: Bruttogewinnspanne MGMBH % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin MOMTD (Fiscal)'
+					caption: Bruttogewinnspanne MGMBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin PY (Fiscal)'
+					caption: Bruttogewinnspanne VJ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin YOY % (Fiscal)'
+					caption: Bruttogewinnspanne JGJ % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin YOY (Fiscal)'
+					caption: Bruttogewinnspanne JGJ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin PQ (Fiscal)'
+					caption: Bruttogewinnspanne VQ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin QOQ (Fiscal)'
+					caption: Bruttogewinnspanne QGQ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin QOQ % (Fiscal)'
+					caption: Bruttogewinnspanne QGQ % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin PM (Fiscal)'
+					caption: Bruttogewinnspanne VM (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin MOM (Fiscal)'
+					caption: Bruttogewinnspanne MGM (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin MOM % (Fiscal)'
+					caption: Bruttogewinnspanne MGM % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin PP (Fiscal)'
+					caption: Bruttogewinnspanne VZ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin POP (Fiscal)'
+					caption: Bruttogewinnspanne ZGZ (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin POP % (Fiscal)'
+					caption: Bruttogewinnspanne ZGZ % (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin YTD (Fiscal)'
+					caption: Bruttogewinnspanne JBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Gesamt
+				measure 'Gross Profit Margin QTD (Fiscal)'
+					caption: Bruttogewinnspanne QBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Gesamt
+				measure 'Gross Profit Margin MTD (Fiscal)'
+					caption: Bruttogewinnspanne MBH (Geschäftlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Gesamt
+			table 'Weekly Calendar Time Intelligence'
+				caption: Wöchentlicher Kalender – Zeitinformationen
+				measure 'Sales Amount YTD (Weekly)'
+					caption: Verkaufsbetrag JBH (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Sales Amount PY (Weekly)'
+					caption: Verkaufsbetrag VJ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount PYTD (Weekly)'
+					caption: Verkaufsbetrag VJBH (Wöchentlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount PQTD (Weekly)'
+					caption: Verkaufsbetrag VQBH (Wöchentlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount QTD (Weekly)'
+					caption: Verkaufsbetrag QBH (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Sales Amount MTD (Weekly)'
+					caption: Verkaufsbetrag MBH (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Sales Amount YOY % (Weekly)'
+					caption: Verkaufsbetrag JGJ % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount YOY (Weekly)'
+					caption: Verkaufsbetrag JGJ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount PQ (Weekly)'
+					caption: Verkaufsbetrag VQ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount QOQ (Weekly)'
+					caption: Verkaufsbetrag QGQ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount QOQ % (Weekly)'
+					caption: Verkaufsbetrag QGQ % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount PW (Weekly)'
+					caption: Verkaufsbetrag VW (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount WOW (Weekly)'
+					caption: Verkaufsbetrag WGW (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount WOW % (Weekly)'
+					caption: Verkaufsbetrag WGW % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount MAT (364) (Weekly)'
+					caption: Verkaufsbetrag GJG (364) (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Amount PYMAT (364) (Weekly)'
+					caption: Verkaufsbetrag VJGJG (364) (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Amount YOYTD (Weekly)'
+					caption: Verkaufsbetrag JGJBH (Wöchentlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount YOYTD % (Weekly)'
+					caption: Verkaufsbetrag JGJBH % (Wöchentlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount PYC (Weekly)'
+					caption: Verkaufsbetrag VJA (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount YTDOPY (Weekly)'
+					caption: Verkaufsbetrag JBHGVJ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount YTDOPY % (Weekly)'
+					caption: Verkaufsbetrag JBHGVJ % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount QOQTD (Weekly)'
+					caption: Verkaufsbetrag QGQBH (Wöchentlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount QOQTD % (Weekly)'
+					caption: Verkaufsbetrag QGQBH % (Wöchentlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount PQC (Weekly)'
+					caption: Verkaufsbetrag VQA (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount QTDOPQ (Weekly)'
+					caption: Verkaufsbetrag QBHGVQ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount QTDOPQ % (Weekly)'
+					caption: Verkaufsbetrag QBHGVQ % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount PWTD (Weekly)'
+					caption: Verkaufsbetrag VWBH (Wöchentlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount WOWTD (Weekly)'
+					caption: Verkaufsbetrag WGWBH (Wöchentlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount WOWTD % (Weekly)'
+					caption: Verkaufsbetrag WGWBH % (Wöchentlich)
+					displayFolder: Umsatz\Umsatzbetrag\Wachstum Seit Periode
+				measure 'Sales Amount PWC (Weekly)'
+					caption: Verkaufsbetrag VWA (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount WTDOPW (Weekly)'
+					caption: Verkaufsbetrag WBHGVW (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount WTDOPW % (Weekly)'
+					caption: Verkaufsbetrag WBHGVW % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Amount AVG 4W (Weekly)'
+					caption: Verkaufsbetrag DURCHSCHN 4W (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Gleitende Durchschnitte
+				measure 'Sales Amount AVG 1Q (Weekly)'
+					caption: Verkaufsbetrag DURCHSCHN 1Q (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Gleitende Durchschnitte
+				measure 'Sales Amount AVG 1Y (Weekly)'
+					caption: Verkaufsbetrag DURCHSCHN 1J (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Gleitende Durchschnitte
+				measure 'Sales Amount MATG (Weekly)'
+					caption: Verkaufsbetrag GJGW (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Amount MATG % (Weekly)'
+					caption: Verkaufsbetrag GJGW % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Amount PP (Weekly)'
+					caption: Verkaufsbetrag VZ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount POP (Weekly)'
+					caption: Verkaufsbetrag ZGZ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount POP % (Weekly)'
+					caption: Verkaufsbetrag ZGZ % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Wachstum Im Vergleich Zum Perioden
+				measure 'Sales Amount WTD (Weekly)'
+					caption: Verkaufsbetrag WBH (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Sales Quantity YTD (Weekly)'
+					caption: Verkaufsmenge JBH (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Dato-Date Gesamt
+				measure 'Sales Quantity PY (Weekly)'
+					caption: Verkaufsmenge VJ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity PYTD (Weekly)'
+					caption: Verkaufsmenge VJBH (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity QTD (Weekly)'
+					caption: Verkaufsmenge QBH (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Dato-Date Gesamt
+				measure 'Sales Quantity PQTD (Weekly)'
+					caption: Verkaufsmenge VQBH (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity MTD (Weekly)'
+					caption: Verkaufsmenge MBH (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Dato-Date Gesamt
+				measure 'Sales Quantity YOY % (Weekly)'
+					caption: Verkaufsmenge JGJ % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity YOY (Weekly)'
+					caption: Verkaufsmenge JGJ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity PQ (Weekly)'
+					caption: Verkaufsmenge VQ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity QOQ (Weekly)'
+					caption: Verkaufsmenge QGQ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity QOQ % (Weekly)'
+					caption: Verkaufsmenge QGQ % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity PW (Weekly)'
+					caption: Verkaufsmenge VW (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity WOW (Weekly)'
+					caption: Verkaufsmenge WGW (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity WOW % (Weekly)'
+					caption: Verkaufsmenge WGW % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity MAT (364) (Weekly)'
+					caption: Verkaufsmenge GJG (364) (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Quantity PYMAT (364) (Weekly)'
+					caption: Verkaufsmenge VJGJG (364) (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Quantity YOYTD (Weekly)'
+					caption: Verkaufsmenge JGJBH (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity YOYTD % (Weekly)'
+					caption: Verkaufsmenge JGJBH % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity PYC (Weekly)'
+					caption: Verkaufsmenge VJA (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity YTDOPY (Weekly)'
+					caption: Verkaufsmenge JBHGVJ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity YTDOPY  % (Weekly)'
+					caption: Verkaufsmenge JBHGVJ % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity QOQTD (Weekly)'
+					caption: Verkaufsmenge QGQBH (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity QOQTD % (Weekly)'
+					caption: Verkaufsmenge QGQBH % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity PQC (Weekly)'
+					caption: Verkaufsmenge VQA (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity QTDOPQ (Weekly)'
+					caption: Verkaufsmenge QBHGVQ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity QTDOPQ % (Weekly)'
+					caption: Verkaufsmenge QBHGVQ % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity PWTD (Weekly)'
+					caption: Verkaufsmenge VWBH (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity WOWTD (Weekly)'
+					caption: Verkaufsmenge WGWBH (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity WOWTD % (Weekly)'
+					caption: Verkaufsmenge WGWBH % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Seit Jahresbeginn
+				measure 'Sales Quantity PWC (Weekly)'
+					caption: Verkaufsmenge VWA (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity WTDOPW (Weekly)'
+					caption: Verkaufsmenge WBHGVW (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity WTDOPW % (Weekly)'
+					caption: Verkaufsmenge WBHGVW % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Sales Quantity AVG 4W (Weekly)'
+					caption: Verkaufsmenge DURCHSCHN 4W (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Gleitende Durchschnitte
+				measure 'Sales Quantity AVG 1Q (Weekly)'
+					caption: Verkaufsmenge DURCHSCHN 1Q (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Gleitende Durchschnitte
+				measure 'Sales Quantity AVG 1Y (Weekly)'
+					caption: Verkaufsmenge DURCHSCHN 1J (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Gleitende Durchschnitte
+				measure 'Sales Quantity MATG (Weekly)'
+					caption: Verkaufsmenge GJGW (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Quantity MATG % (Weekly)'
+					caption: Verkaufsmenge GJGW % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Sales Quantity PP (Weekly)'
+					caption: Verkaufsmenge VZ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity POP (Weekly)'
+					caption: Verkaufsmenge ZGZ (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity POP % (Weekly)'
+					caption: Verkaufsmenge ZGZ % (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Wachstum Im Vergleich Zum Zeitraum
+				measure 'Sales Quantity WTD (Weekly)'
+					caption: Verkaufsmenge WBH (Wöchentlich)
+					displayFolder: Umsatz\Verkaufsmenge\Periode Bis Dato-Date Gesamt
+				measure 'Gross Profit YTD (Weekly)'
+					caption: Bruttogewinn JBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Gesamt
+				measure 'Gross Profit PY (Weekly)'
+					caption: Bruttogewinn VJ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit PYTD (Weekly)'
+					caption: Bruttogewinn VJBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit QTD (Weekly)'
+					caption: Bruttogewinn QBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Gesamt
+				measure 'Gross Profit PQTD (Weekly)'
+					caption: Bruttogewinn VQBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit MTD (Weekly)'
+					caption: Bruttogewinn MBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Gesamt
+				measure 'Gross Profit YOY % (Weekly)'
+					caption: Bruttogewinn JGJ % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit YOY (Weekly)'
+					caption: Bruttogewinn JGJ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit PQ (Weekly)'
+					caption: Bruttogewinn VQ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit QOQ (Weekly)'
+					caption: Bruttogewinn QGQ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit QOQ % (Weekly)'
+					caption: Bruttogewinn QGQ % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit PW (Weekly)'
+					caption: Bruttogewinn VW (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit WOW (Weekly)'
+					caption: Bruttogewinn WGW (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit WOW % (Weekly)'
+					caption: Bruttogewinn WGW % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit MAT (364) (Weekly)'
+					caption: Bruttogewinn GJG (364) (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit PYMAT (364) (Weekly)'
+					caption: Bruttogewinn VJGJG (364) (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit YOYTD (Weekly)'
+					caption: Bruttogewinn JGJBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit YOYTD % (Weekly)'
+					caption: Bruttogewinn JGJBH % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit PYC (Weekly)'
+					caption: Bruttogewinn VJA (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit YTDOPY (Weekly)'
+					caption: Bruttogewinn JBHGVJ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit YTDOPY % (Weekly)'
+					caption: Bruttogewinn JBHGVJ % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit QOQTD (Weekly)'
+					caption: Bruttogewinn QGQBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit QOQTD % (Weekly)'
+					caption: Bruttogewinn QGQBH % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit PQC (Weekly)'
+					caption: Bruttogewinn VQA (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit QTDOPQ (Weekly)'
+					caption: Bruttogewinn QBHGVQ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit QTDOPQ % (Weekly)'
+					caption: Bruttogewinn QBHGVQ % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit PWTD (Weekly)'
+					caption: Bruttogewinn VWBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit WOWTD (Weekly)'
+					caption: Bruttogewinn WGWBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit WOWTD % (Weekly)'
+					caption: Bruttogewinn WGWBH % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit PWC (Weekly)'
+					caption: Bruttogewinn VWA (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit WTDOPW (Weekly)'
+					caption: Bruttogewinn WBHGVW (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit WTDOPW % (Weekly)'
+					caption: Bruttogewinn WBHGVW % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit AVG 4W (Weekly)'
+					caption: Bruttogewinn DURCHSCHN 4W (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Gleitende Durchschnitte
+				measure 'Gross Profit AVG 1Q (Weekly)'
+					caption: Bruttogewinn DURCHSCHN 1Q (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Gleitende Durchschnitte
+				measure 'Gross Profit AVG 1Y (Weekly)'
+					caption: Bruttogewinn DURCHSCHN 1J (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Gleitende Durchschnitte
+				measure 'Gross Profit MATG (Weekly)'
+					caption: Bruttogewinn GJGW (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit MATG % (Weekly)'
+					caption: Bruttogewinn GJGW % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit PP (Weekly)'
+					caption: Bruttogewinn VZ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit POP (Weekly)'
+					caption: Bruttogewinn ZGZ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit POP % (Weekly)'
+					caption: Bruttogewinn ZGZ % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit WTD (Weekly)'
+					caption: Bruttogewinn WBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinn\Periode Bis Heute Gesamt
+				measure 'Gross Profit Margin YTD (Weekly)'
+					caption: Bruttogewinnspanne JBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Gesamt
+				measure 'Gross Profit Margin QTD (Weekly)'
+					caption: Bruttogewinnspanne QBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Gesamt
+				measure 'Gross Profit Margin MTD (Weekly)'
+					caption: Bruttogewinnspanne MBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Gesamt
+				measure 'Gross Profit Margin WTD (Weekly)'
+					caption: Bruttogewinnspanne WBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Gesamt
+				measure 'Gross Profit Margin PY (Weekly)'
+					caption: Bruttogewinnspanne VJ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin YOY % (Weekly)'
+					caption: Bruttogewinnspanne JGJ % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin YOY (Weekly)'
+					caption: Bruttogewinnspanne JGJ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin PQ (Weekly)'
+					caption: Bruttogewinnspanne VQ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin QOQ (Weekly)'
+					caption: Bruttogewinnspanne QGQ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin QOQ % (Weekly)'
+					caption: Bruttogewinnspanne QGQ % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin PW (Weekly)'
+					caption: Bruttogewinnspanne VW (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin WOW (Weekly)'
+					caption: Bruttogewinnspanne WGW (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin WOW % (Weekly)'
+					caption: Bruttogewinnspanne WGW % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin PP (Weekly)'
+					caption: Bruttogewinnspanne VZ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin POP (Weekly)'
+					caption: Bruttogewinnspanne ZGZ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin POP % (Weekly)'
+					caption: Bruttogewinnspanne ZGZ % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Im Vergleich Zum Perioden
+				measure 'Gross Profit Margin PYTD (Weekly)'
+					caption: Bruttogewinnspanne VJBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin PQTD (Weekly)'
+					caption: Bruttogewinnspanne VQBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin YOYTD (Weekly)'
+					caption: Bruttogewinnspanne JGJBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin YOYTD % (Weekly)'
+					caption: Bruttogewinnspanne JGJBH % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin QOQTD (Weekly)'
+					caption: Bruttogewinnspanne QGQBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin QOQTD % (Weekly)'
+					caption: Bruttogewinnspanne QGQBH % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin PWTD (Weekly)'
+					caption: Bruttogewinnspanne VWBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin WOWTD (Weekly)'
+					caption: Bruttogewinnspanne WGWBH (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin WOWTD % (Weekly)'
+					caption: Bruttogewinnspanne WGWBH % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Wachstum Seit Jahresbeginn
+				measure 'Gross Profit Margin MAT (364) (Weekly)'
+					caption: Bruttogewinnspanne GJG (364) (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit Margin PYMAT (364) (Weekly)'
+					caption: Bruttogewinnspanne VJGJG (364) (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit Margin MATG (Weekly)'
+					caption: Bruttogewinnspanne GJGW (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit Margin MATG % (Weekly)'
+					caption: Bruttogewinnspanne GJGW % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Bewegtes Jährliches Gesamtwachstum
+				measure 'Gross Profit Margin PYC (Weekly)'
+					caption: Bruttogewinnspanne VJA (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin YTDOPY (Weekly)'
+					caption: Bruttogewinnspanne JBHGVJ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin YTDOPY % (Weekly)'
+					caption: Bruttogewinnspanne JBHGVJ % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin PQC (Weekly)'
+					caption: Bruttogewinnspanne VQA (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin QTDOPQ (Weekly)'
+					caption: Bruttogewinnspanne QBHGVQ (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin QTDOPQ % (Weekly)'
+					caption: Bruttogewinnspanne QBHGVQ % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin PWC (Weekly)'
+					caption: Bruttogewinnspanne VWA (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin WTDOPW (Weekly)'
+					caption: Bruttogewinnspanne WBHGVW (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin WTDOPW % (Weekly)'
+					caption: Bruttogewinnspanne WBHGVW % (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Periode Bis Heute Über Die Gesamte Vorherige Periode
+				measure 'Gross Profit Margin AVG 4W (Weekly'
+					caption: Bruttogewinnspanne DURCHSCHN 4W (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Gleitende Durchschnitte
+				measure 'Gross Profit Margin AVG 1Q (Weekly)'
+					caption: Bruttogewinnspanne DURCHSCHN 1Q (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Gleitende Durchschnitte
+				measure 'Gross Profit Margin AVG 1Y (Weekly)'
+					caption: Bruttogewinnspanne DURCHSCHN 1J (Wöchentlich)
+					displayFolder: Gewinn\Bruttogewinnmarge\Gleitende Durchschnitte
+				measure 'Cost Amount YTD (Weekly)'
+					caption: Einstandsbetrag JBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount QTD (Weekly)'
+					caption: Einstandsbetrag QBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount MTD (Weekly)'
+					caption: Einstandsbetrag MBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount WTD (Weekly)'
+					caption: Einstandsbetrag WBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount PY (Weekly)'
+					caption: Einstandsbetrag VJ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount YOY % (Weekly)'
+					caption: Einstandsbetrag JGJ % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount YOY (Weekly)'
+					caption: Einstandsbetrag JGJ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount PQ (Weekly)'
+					caption: Einstandsbetrag VQ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount QOQ (Weekly)'
+					caption: Einstandsbetrag QGQ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount QOQ % (Weekly)'
+					caption: Einstandsbetrag QGQ % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount PW (Weekly)'
+					caption: Einstandsbetrag VW (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount WOW (Weekly)'
+					caption: Einstandsbetrag WGW (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount WOW % (Weekly)'
+					caption: Einstandsbetrag WGW % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount PP (Weekly)'
+					caption: Einstandsbetrag VZ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount POP (Weekly)'
+					caption: Einstandsbetrag ZGZ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount POP % (Weekly)'
+					caption: Einstandsbetrag ZGZ % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Im Periodenvergleich
+				measure 'Cost Amount PYTD (Weekly)'
+					caption: Einstandsbetrag VJBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount PQTD (Weekly)'
+					caption: Einstandsbetrag VQBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount YOYTD (Weekly)'
+					caption: Einstandsbetrag JGJBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount YOYTD % (Weekly)'
+					caption: Einstandsbetrag JGJBH % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount QOQTD (Weekly)'
+					caption: Einstandsbetrag QGQBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount QOQTD % (Weekly)'
+					caption: Einstandsbetrag QGQBH % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount PWTD (Weekly)'
+					caption: Einstandsbetrag VWBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount WOWTD (Weekly)'
+					caption: Einstandsbetrag WGWBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount WOWTD % (Weekly)'
+					caption: Einstandsbetrag WGWBH % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Wachstum Des Zeitraums Bis Heute
+				measure 'Cost Amount MAT (364) (Weekly)'
+					caption: Einstandsbetrag GJG (364) (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitendes Jährliches Gesamtwachstum
+				measure 'Cost Amount PYMAT (364) (Weekly)'
+					caption: Einstandsbetrag VJGJG (364) (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitendes Jährliches Gesamtwachstum
+				measure 'Cost Amount MATG (Weekly)'
+					caption: Einstandsbetrag GJGW (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitendes Jährliches Gesamtwachstum
+				measure 'Cost Amount MATG % (Weekly)'
+					caption: Einstandsbetrag GJGW % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitendes Jährliches Gesamtwachstum
+				measure 'Cost Amount PYC (Weekly)'
+					caption: Einstandsbetrag VJA (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount YTDOPY (Weekly)'
+					caption: Einstandsbetrag JBHGVJ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount YTDOPY % (Weekly)'
+					caption: Einstandsbetrag JBHGVJ % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount PQC (Weekly)'
+					caption: Einstandsbetrag VQA (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount QTDOPQ (Weekly)'
+					caption: Einstandsbetrag QBHGVQ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount QTDOPQ % (Weekly)'
+					caption: Einstandsbetrag QBHGVQ % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount PWC (Weekly)'
+					caption: Einstandsbetrag VWA (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount WTDOPW (Weekly)'
+					caption: Einstandsbetrag WBHGVW (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount WTDOPW % (Weekly)'
+					caption: Einstandsbetrag WBHGVW % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Periode Bis Dato Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount AVG 4W (Weekly)'
+					caption: Einstandsbetrag DURCHSCHN 4W (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitende Durchschnitte
+				measure 'Cost Amount AVG 1Q (Weekly)'
+					caption: Einstandsbetrag DURCHSCHN 1Q (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitende Durchschnitte
+				measure 'Cost Amount AVG 1Y (Weekly)'
+					caption: Einstandsbetrag DURCHSCHN 1J (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag\Gleitende Durchschnitte
+				measure 'Cost Amount Non-Inv PY (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. VJ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv YOY % (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. JGJ % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv YOY (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. JGJ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv PQ (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. VQ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv QOQ (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. QGQ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv QOQ % (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. QGQ % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv PW (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. VW (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv WOW (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. WGW (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv WOW % (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. WGW % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv PP (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. VZ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv POP (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. ZGZ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv POP % (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. ZGZ % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Perioden-Über-Perioden-Wachstum
+				measure 'Cost Amount Non-Inv PYTD (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. VJBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv PQTD (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. VQBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv YOYTD (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. JGJBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv YOYTD % (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. JGJBH % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv QOQTD (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. QGQBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv QOQTD % (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. QGQBH % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv PWTD (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. VWBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv WOWTD (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. WGWBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv WOWTD % (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. WGWBH % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date-Wachstum
+				measure 'Cost Amount Non-Inv MAT (364) (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. GJG (364) (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Bewegtes Jährliches Gesamtwachstum
+				measure 'Cost Amount Non-Inv PYMAT (364) (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. VJGJG (364) (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Bewegtes Jährliches Gesamtwachstum
+				measure 'Cost Amount Non-Inv MATG (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. GJGW (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Bewegtes Jährliches Gesamtwachstum
+				measure 'Cost Amount Non-Inv MATG % (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. GJGW % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Bewegtes Jährliches Gesamtwachstum
+				measure 'Cost Amount Non-Inv PYC (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. VJA (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv YTDOPY (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. JBHGVJ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv YTDOPY % (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. JBHGVJ % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv PQC (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. VQA (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv QTDOPQ (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. QBHGVQ (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv QTDOPQ % (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. QBHGVQ % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv PWC (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. VWA (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv WTDOPW (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. WBHGVW (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv WTDOPW % (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. WBHGVW % (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Non-Inv\Period-To-Date Über Die Gesamte Vorherige Periode
+				measure 'Cost Amount Non-Inv AVG 4W (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. DURCHSCHN 4W (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Gleitende Durchschnitte
+				measure 'Cost Amount Non-Inv AVG 1Q (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. DURCHSCHN 1Q (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Gleitende Durchschnitte
+				measure 'Cost Amount Non-Inv AVG 1Y (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. DURCHSCHN 1J (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Gleitende Durchschnitte
+				measure 'Cost Amount Non-Inv YTD (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. JBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount Non-Inv QTD (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. BW (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount Non-Inv MTD (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. MBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Periode Bis Dato-Date Gesamt
+				measure 'Cost Amount Non-Inv WTD (Weekly)'
+					caption: Einst.-B. lagerw.-unabh. WBH (Wöchentlich)
+					displayFolder: Kosten\Kostenbetrag Nicht-Inv\Periode Bis Dato-Date Gesamt
+			table 'Localized Labels'
+				caption: Lokalisierte Etiketten
+				measure 'My Report Title'
+					caption: Titel meines Berichts
+				measure 'My Button Caption'
+					caption: Beschriftung Meine Schaltfläche
+				measure 'My Visual Title'
+					caption: Titel meines Visuals
+				measure 'Top 5 Items Gross Profit'
+					caption: Top 5-Artikel Bruttogewinn
+				measure 'Top 5 Salesperson'
+					caption: Top 5-Verkäufer
+				measure 'Top 5 Customers'
+					caption: Top 5-Debitoren
+				measure 'Document Value'
+					caption: Belegwert
+				measure 'Document Count'
+					caption: Anzahl der Belege
+				measure 'Sales Amount and Sales Amount AVG 30D (Fiscal) by Fiscal Month Year'
+					caption: Verkaufsbetrag und Verkaufsbetragsdurchschnitt 30 Tage (Geschäftlich) nach Geschäftlich Monat Jahr
+				measure 'Sales Overview'
+					caption: Verkauf – Übersicht
+				measure 'Daily Sales'
+					caption: Tägliche Verkäufe
+				measure 'Moving Averages'
+					caption: Gleitender Durchschnitt
+				measure 'Moving Annual Total'
+					caption: Gleitend Jahr Gesamt
+				measure 'Previous Year MAT and MAT by Fiscal Month Year'
+					caption: Vorjahres-GJG und GJG nach Geschäftlich Monat Jahr
+				measure 'Period-Over-Period Growth'
+					caption: Wachstum im Periodenvergleich
+				measure Month-To-Date
+					caption: Monat-bis-heute
+				measure '% Share of Sales'
+					caption: % Anteil der Verkäufe
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Item Category Code'
+					caption: Verkaufsbetrag, Verkaufsmenge und Bruttogewinn nach Artikelkategoriencode
+				measure 'Sales by Item'
+					caption: Verkauf nach Artikel
+				measure 'Sales by Customer'
+					caption: Umsatz nach Debitor
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Customer Name'
+					caption: Verkaufsbetrag, Verkaufsmenge und Bruttogewinn nach Debitorname
+				measure 'Sales by Salesperson'
+					caption: Verkäufe nach Verkäufer
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Salesperson Code'
+					caption: Verkaufsbetrag, Verkaufsmenge und Bruttogewinn nach Verkäufercode
+				measure 'Actual vs Budget Quantity'
+					caption: Budgetvergleich
+				measure 'Actual vs Budget Amount'
+					caption: Tatsächlicher vs Budgetbetrag
+				measure Sales
+					caption: VERKAUF
+				measure 'for Business Central'
+					caption: für Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN
+				measure 'Sales includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Verkäufe enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können. Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.
+				measure 'CONNECT YOUR DATA'
+					caption: MIT EIGENEN DATEN VERBINDEN
+				measure '1. Download the Sales Connector for Power BI'
+					caption: 1. Sales Connector for Power BI herunterladen
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Dynamics 365 Business Central konfigurieren
+				measure 'HELP AND SUPPORT'
+					caption: HILFE UND SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.
+				measure 'OTHER POWER BI REPORTS'
+					caption: SONSTIGE POWER BI-BERICHTE
+				measure PURCHASE
+					caption: EINKAUF
+				measure FINANCE
+					caption: FINANZEN
+				measure REBATES
+					caption: RÜCKVERGÜTUNGEN
+				measure INVENTORY
+					caption: LAGERBESTAND
+				measure JOBS
+					caption: PROJEKTE
+				measure 'SALES '
+					caption: VERKAUF
+				measure 'Sales Amount '
+					caption: Verkaufsbetrag
+				measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Month Year'
+					caption: Verkaufsbetrag und Verkaufsbetragsdurchschnitt 30 Tage (Geschäftlich) nach Geschäftlich Monat Jahr
+				measure 'Previous Year and Current Moving Annual Total by Fiscal Month Year'
+					caption: Gleitend Jahr Gesamt des Vorjahres und aktuell nach Geschäftlich Monat Jahr
+				measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Month Year'
+					caption: Verkaufsbetrag Zeitraum-gegenüber-Zeitraum (Geschäftlich) und Verkaufsbetrag nach Geschäftlich Monat Jahr
+				measure 'Sales Amount Month-to-Date (Fiscal) by Date'
+					caption: Verkaufsbetrag seit Monatsbeginn (Geschäftlich) nach Datum
+				measure 'Last Refreshed'
+					caption: Zuletzt aktualisiert
+				measure 'Company Name'
+					caption: Mandantenname
+				measure 'Sales Amount by Salesperson'
+					caption: Verkaufsbetrag nach Verkäufer
+				measure 'Gross Profit by Item'
+					caption: Bruttogewinn nach Artikel
+				measure 'Sales Amount by Customer'
+					caption: Verkaufsbetrag nach Debitor
+				measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Year'
+					caption: Verkaufsbetrag und Verkaufsbetragsdurchschnitt 30 Tage (Geschäftlich) nach Geschäftsjahr
+				measure 'Monthly Comparison of Previous Year and Current Year Moving Annual Totals'
+					caption: Monatlicher Vergleich des Vorjahres und Moving Annual Total des aktuellen Jahres
+				measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Year'
+					caption: Verkaufsbetrag Zeitraum-gegenüber-Zeitraum (Geschäftlich) und Verkaufsbetrag nach Geschäftsjahr
+				measure 'Sales Amount by Item Category'
+					caption: Verkaufsbetrag nach Artikelkategorie
+				measure 'Sales Metrics by Salesperson'
+					caption: Verkaufskennzahlen nach Verkäufer
+				measure 'Sales by Location'
+					caption: Verkauf nach Lagerort
+				measure 'Sales Amount by Location'
+					caption: Verkaufsbetrag nach Lagerort
+				measure 'Actual vs Budget'
+					caption: Istwert vs. Budget
+				measure 'Actual vs Budget Purchase Analysis by Item Category'
+					caption: Istwert vs. Budget – Einkaufsanalyse nach Artikelkategorie
+				measure 'Sales Drillthrough'
+					caption: Verkaufs-Drillthrough
+				measure 'Detailed Sales Ledger'
+					caption: Detaillierter Verkaufsposten
+				measure 'Sales Amount by Month'
+					caption: Verkaufsbetrag nach Monat
+				measure PROJECTS
+					caption: PROJEKTE
+				measure MANUFACTURING
+					caption: PRODUKTION
+				measure 'Month-To-Date Sales Performance'
+					caption: Verkaufsleistung seit Monatsbeginn
+				measure 'Top Customer Sales Contributions'
+					caption: Top-Debitorenverkaufsbeiträge
+				measure 'Daily Sales by Date'
+					caption: Tägliche Verkäufe nach Datum
+				measure 'Daily Sales by Entry No'
+					caption: Tägliche Verkäufe nach Postennr.
+				measure 'Daily Sales Details'
+					caption: Tägliche Verkaufszahlen
+				measure 'Moving Annual Total Details'
+					caption: Gleitend Jahr Gesamt – Details
+				measure 'Period-Over-Period Growth Details'
+					caption: Wachstum im Periodenvergleich – Details
+				measure 'Month-To-Date Details'
+					caption: Monat-bis-heute – Details
+				measure 'Sales by Item Category Over Time'
+					caption: Verkauf nach Artikelkategorie im Zeitverlauf
+				measure 'Sales by Item Details'
+					caption: Verkauf nach Artikeldetails
+				measure 'Profitability by Item Category'
+					caption: Rentabilität nach Artikelkategorie
+				measure 'Gross Profit Pareto Analysis by Customer'
+					caption: Bruttogewinn-Pareto-Analyse nach Debitor
+				measure 'Sales by Customer Details'
+					caption: Verkauf nach Debitor – Details
+				measure 'Estimated Opportunity Value'
+					caption: Geschätzter Verkaufschancenwert
+				measure 'Sales by Salesperson Details'
+					caption: Verkauf nach Verkäufer – Details
+				measure 'Profitability by Salesperson'
+					caption: Rentabilität nach Verkäufer
+				measure 'Sales Amount by Customer Location'
+					caption: Verkaufsbetrag nach Debitorelagerort
+				measure 'Sales by Location Details'
+					caption: Verkauf nach Lagerort – Details
+				measure 'Sales Demographics'
+					caption: Verkaufsdemografie
+				measure 'Sales Metrics by Item Category'
+					caption: Verkaufskennzahlen nach Artikelkategorie
+				measure 'Sales by Customer Posting Group'
+					caption: Verkauf nach Debitorenbuchungsgruppe
+				measure 'Sales by Document Type'
+					caption: Verkauf nach Belegart
+				measure 'No. of Customers by Location'
+					caption: Anzahl der Debitoren nach Lagerort
+				measure 'Sales Decomposition'
+					caption: Verkaufsaufschlüsselung
+				measure 'Sales Amount by Item Category Description'
+					caption: Verkaufsbetrag nach Artikelkategorie – Beschreibung
+				measure 'Sales Quantity by Salesperson Name'
+					caption: Verkaufsmenge nach Verkäufername
+				measure 'Key Sales Influencers'
+					caption: Wichtige Verkaufseinflussfaktoren
+				measure 'Sales Amount by Item Category Code'
+					caption: Verkaufsbetrag nach Artikelkategoriencode
+				measure 'Opportunity Overview'
+					caption: Verkaufschancenübersicht
+				measure 'Opportunity Value by Status'
+					caption: Verkaufschancenwert nach Status
+				measure 'Open Opportunities by Sales Cycle'
+					caption: Offene Verkaufschancen nach Verkaufsprozess
+				measure 'Open Opportunities by Sales Cycle Stage'
+					caption: Offene Verkaufschancen nach Verkaufsprozess-Stufe
+				measure 'Estimated Value by Salesperson'
+					caption: Geschätzter Wert nach Verkäufer
+				measure 'Estimated Value by Contact Location'
+					caption: Geschätzter Wert nach Kontaktstandort
+				measure 'Sales Quote Overview'
+					caption: Verkaufsangebot – Übersicht
+				measure 'Sales Quotes by Customer Details'
+					caption: Verkaufsangebote nach Debitor – Details
+				measure 'Sales Quote Amount by Salesperson'
+					caption: Verkaufsangebotsbetrag nach Verkäufer
+				measure 'Sales Quote Amount Over Time'
+					caption: Verkaufsangebotsbetrag im Zeitverlauf
+				measure 'Sales Quote Amount by Item Category Code'
+					caption: Verkaufsangebotsbetrag nach Artikelkategoriencode
+				measure 'Sales Returns Overview'
+					caption: Retouren – Überblick
+				measure 'Sales Returns by Customer'
+					caption: Retouren nach Debitor
+				measure 'Sales Return Amount by Reason Code'
+					caption: Retourenbetrag nach Ursachencode
+				measure 'Sales Return Amount Over Time'
+					caption: Retourenbetrag im Zeitverlauf
+				measure 'Sales Return Amount by Item Category Code'
+					caption: Retourenbetrag nach Artikelkategoriencode
+				measure 'Sales Opportunity Analysis'
+					caption: Verkaufschancenanalyse
+				measure 'Estimated Value by Opportunity'
+					caption: Geschätzter Wert nach Verkaufschance
+				measure 'Opportunities by Closed Opportunity Code'
+					caption: Verkaufschancen nach abgeschlossenem Verkaufschancencode
+				measure 'Opportunities by Salesperson Details'
+					caption: Verkaufschancen nach Verkäufer – Details
+				measure 'Opportunities by Closed Status'
+					caption: Verkaufschancen nach abgschlossenem Status
+				measure 'Sales Drillthrough Details'
+					caption: Verkaufs-Drillthrough – Details
+			table COMPANY
+				caption: MANDANT
+				measure 'Company Label'
+					caption: Mandantenbeschriftung
+			table 'Sales Budget Name'
+				caption: Verkaufsbudget Name
+				column 'Sales Budget Description'
+					caption: Verkaufs-Budgetbeschreibung
+			table Opportunities
+				caption: Verkaufschancen
+				column 'Opportunity No.'
+					caption: Verkaufschancennr.
+				column 'Opportunity Description'
+					caption: Beschreibung
+				column 'Opportunity Creation Date'
+					caption: Erstellungsdatum der Verkaufschance
+				column 'Opportunity Status'
+					caption: Status
+				column 'Opportunity Closed'
+					caption: Abgeschlossen
+				column 'Opportunity Sales Document No.'
+					caption: Verkaufsbelegnr.
+				column 'Opportunity Sales Document Type'
+					caption: Verkaufsbelegart
+				measure 'Opportunity Sales Quote Amount'
+					caption: Verkaufschancen-Verkaufsangebotsbetrag
+			table 'Opportunity Entries'
+				caption: Verkaufschancenposten
+				column 'Opportunity No.'
+					caption: Verkaufschancennr.
+				column 'Opportunity Entry No.'
+					caption: Verkaufschancenposten Lfd. Nr.
+				column Active
+					caption: Aktiv
+				column 'Action Taken'
+					caption: Kriterienaktion
+				column 'Date of Change'
+					caption: Korrigiert am
+				column 'Estimated Close Date'
+					caption: Erwartetes Abschlussdatum
+				column 'Completed (%)'
+					caption: Abgeschlossen (%)
+				column 'Chances of Success (%)'
+					caption: Erfolgschancen %
+				column 'Probability (%)'
+					caption: Wahrscheinlichkeit (%)
+				column 'Contact No.'
+					caption: Kontaktnr.
+				measure 'Calculated Current Value'
+					caption: Berechneter aktueller Wert
+				measure 'Estimated Value'
+					caption: Erwarteter Wert
+				measure 'No. of Opportunities'
+					caption: Anzahl Verkaufschancen
+				measure 'Active Calculated Current Value'
+					caption: Aktiver aktueller Berechnungswert
+				measure 'Active Estimated Value'
+					caption: Aktiver geschätzter Wert
+				measure 'Average Chance of Success %'
+					caption: Durchschnittliche Erfolgschance in %
+				measure 'Average Completed %'
+					caption: Durchschnittlich abgeschlossen %
+				measure 'Average Probability %'
+					caption: Durchschnittliche Wahrscheinlichkeit in %
+				measure 'Opportunity Entries Back Link'
+					caption: Verkaufschancenposten – Zurück-Link
+				measure 'No. of Won Opportunities'
+					caption: Anzahl der gewonnen Verkaufschancen
+				measure 'No. of Lost Opportunities'
+					caption: Anzahl der verlorenen Verkaufschancen
+				measure 'Win/Loss %'
+					caption: Gewinn/Verlust in %
+				measure 'Active Chance of Success %'
+					caption: Aktive Erfolgschance in %
+			table Contacts
+				caption: Kontakte
+				column 'Contact No.'
+					caption: Kontaktnr.
+				column 'Contact Name'
+					caption: Kontaktname
+				column 'Contact Company No.'
+					caption: Mandantennr.
+				column 'Contact Company Name'
+					caption: Mandantenname
+				column 'Contact Address'
+					caption: Kontaktadresse
+				column 'Contact Address 2'
+					caption: Kontaktadresse 2
+				column 'Contact City'
+					caption: Kontakt Stadt
+				column 'Contact Post Code'
+					caption: Kontakt PLZ Code
+				column 'Contact County'
+					caption: Kontakt Bundesregion
+				column 'Contact Country/Region Code'
+					caption: Kontakt Länder-/Regionscode
+				column 'Contact No. & Name'
+					caption: Kontaktnr. und -name
+				column 'Contact Type'
+					caption: Kontaktart
+			table 'Reason Codes'
+				caption: Ursachencodes
+				column 'Return Reason Code'
+					caption: Reklamationsgrundcode
+				column 'Return Reason Description'
+					caption: Retouren-Ursachenbeschreibung
+			table 'Item Category'
+				caption: Artikelkategorie
+				column 'Item Category Code'
+					caption: Artikelkategoriencode
+				column 'Item Category Description'
+					caption: Beschreibung der Artikelkategorie
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Artikelkategoriencode-Hierarchie
+					level 'Item Category Code Level 1'
+						caption: Artikelkategoriencode – Ebene 1
+					level 'Item Category Code Level 2'
+						caption: Artikelkategoriencode – Ebene 2
+					level 'Item Category Code Level 3'
+						caption: Artikelkategoriencode – Ebene 3
+					level 'Item Category Code'
+						caption: Artikelkategoriencode
+			table 'Pareto Scale'
+				caption: Pareto-Skala
+				column Value
+					caption: Wert
+			table 'Sales Cycle Stages'
+				caption: Verkaufsprozess-Stufen
+				column 'Sales Cycle Code'
+					caption: Verkaufsprozesscode
+				column 'Sales Cycle Stage'
+					caption: Verkaufsprozess-Stufe
+				column 'Sales Cycle Stage Description'
+					caption: Beschreibung Verkaufsprozessstufen
+			table 'Close Opportunity Codes'
+				caption: Verkaufschancenabschlusscodes
+				column 'Close Opportunity Code'
+					caption: Verkaufschancenabschlusscode
+				column 'Close Opportunity Type'
+					caption: Verkaufschancenabschlusstyp
+				column 'Close Opportunity Description'
+					caption: Verkaufschancenabschlussbeschreibung
+

@@ -5,11 +5,11 @@
 
 namespace System.ExternalFileStorage;
 
-using System.Utilities;
-using System.Text;
 using System.Azure.Storage;
 using System.Azure.Storage.Files;
 using System.DataAdministration;
+using System.Text;
+using System.Utilities;
 
 codeunit 4570 "Ext. File Share Connector Impl" implements "External File Storage Connector"
 {

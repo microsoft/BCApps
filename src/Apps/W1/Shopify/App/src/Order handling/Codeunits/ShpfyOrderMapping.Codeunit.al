@@ -5,9 +5,9 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Inventory.Item;
-using Microsoft.CRM.Contact;
 using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Contact;
+using Microsoft.Inventory.Item;
 
 /// <summary>
 /// Codeunit Shpfy Order Mapping (ID 30163).

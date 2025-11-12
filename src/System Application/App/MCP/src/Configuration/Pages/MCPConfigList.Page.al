@@ -16,12 +16,15 @@ page 8350 "MCP Config List"
     UsageCategory = Lists;
     SourceTable = "MCP Configuration";
     CardPageId = "MCP Config Card";
-    Caption = 'MCP Configurations';
+    Caption = 'Model Context Protocol (MCP) Server Configurations';
     Editable = false;
     Extensible = false;
     InherentEntitlements = X;
     InherentPermissions = X;
+    AnalysisModeEnabled = false;
     SourceTableView = where(Name = filter(<> ''));
+    AboutTitle = 'About model context protocol (MCP) server configurations';
+    AboutText = 'Get an overview of MCP configurations. You can create multiple configurations to suit different use cases. Each configuration can have its own set of tools and permissions, allowing for flexible management.';
 
     layout
     {
@@ -42,6 +45,30 @@ page 8350 "MCP Config List"
                     ToolTip = 'Specifies whether the MCP configuration is active.';
                 }
             }
+        }
+    }
+
+    actions
+    {
+        area(Creation)
+        {
+            action(Copy)
+            {
+                Caption = 'Copy';
+                ToolTip = 'Creates a copy of the current MCP configuration, including its tools and permissions.';
+                Image = Copy;
+
+                trigger OnAction()
+                var
+                    MCPConfigImplementation: Codeunit "MCP Config Implementation";
+                begin
+                    MCPConfigImplementation.CopyConfiguration(Rec.SystemId);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            actionref(Promoted_Copy; Copy) { }
         }
     }
 

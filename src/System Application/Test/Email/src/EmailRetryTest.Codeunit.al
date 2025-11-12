@@ -6,11 +6,11 @@
 namespace System.Test.Email;
 
 using System.Email;
-using System.TestLibraries.Email;
 using System.Environment;
+using System.TestLibraries.Email;
 using System.TestLibraries.Reflection;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 134703 "Email Retry Test"
 {
@@ -31,6 +31,37 @@ codeunit 134703 "Email Retry Test"
         Assert: Codeunit "Library Assert";
         Email: Codeunit Email;
         PermissionsMock: Codeunit "Permissions Mock";
+
+    [Test]
+    procedure RescheduleProcessingEmailTest()
+    var
+        TempAccount: Record "Email Account" temporary;
+        EmailOutbox: Record "Email Outbox";
+        Any: Codeunit Any;
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        //[SCENARIO] When an email is in status processing and rescheduled, the status of email should be changed to queued 
+        PermissionsMock.Set('Email Edit');
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(TempAccount);
+
+        // [GIVEN] An email account exists and 10 email outbox entries have been created
+        CreateEmailMessageAndEmailOutboxRecord(10, TempAccount, false);
+
+        // [GIVEN] An 11th email is created and its outbox entry is set to Processing (foreground send)
+        EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+        SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Processing, 0, false);
+
+        // [WHEN] We fetch the 11th email outbox entry and run the Email Dispatcher
+        EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
+        EmailOutbox.FindFirst();
+        Assert.AreEqual(EmailOutbox.Status::Processing, EmailOutbox.Status, 'The status should be Processing');
+        Codeunit.Run(Codeunit::"Email Dispatcher", EmailOutbox);
+
+        // [THEN] The send task is rescheduled and the outbox status changes to Queued
+        Assert.AreEqual(EmailOutbox.Status::Queued, EmailOutbox.Status, 'The status should be Queued');
+    end;
 
     [Test]
     [Scope('OnPrem')]

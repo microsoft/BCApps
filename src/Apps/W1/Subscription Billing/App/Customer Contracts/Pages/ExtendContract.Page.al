@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Sales.Customer;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Sales.Customer;
 
 page 8002 "Extend Contract"
 {
@@ -208,6 +208,7 @@ page 8002 "Extend Contract"
                     Caption = 'Quantity';
                     ToolTip = 'Specifies the quantity for the Subscription Item to be created.';
                     AutoFormatType = 0;
+                    DecimalPlaces = 0 : 5;
 
                     trigger OnValidate()
                     begin

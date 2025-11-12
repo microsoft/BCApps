@@ -5,13 +5,13 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
+using Microsoft.Finance.RoleCenters;
 using Microsoft.Integration.Shopify;
+using System.Environment;
+using System.Environment.Configuration;
+using System.Reflection;
 using System.TestLibraries.Environment.Configuration;
 using System.TestLibraries.Reflection;
-using System.Environment.Configuration;
-using System.Environment;
-using Microsoft.Finance.RoleCenters;
-using System.Reflection;
 
 codeunit 139580 "Shpfy Checklist Init. Test"
 {

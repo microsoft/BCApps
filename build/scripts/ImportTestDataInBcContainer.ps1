@@ -3,12 +3,13 @@ Param(
 )
 
 Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
+Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
 function Invoke-ContosoDemoTool() {
     param(
         [string]$ContainerName,
         [string]$CompanyName = (Get-NavDefaultCompanyName -ContainerName $ContainerName),
-        [switch]$SetupData = $false
+        [switch]$SetupData
     )
     Write-Host "Initializing company in container $ContainerName"
     Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName
@@ -45,17 +46,46 @@ function Get-NavDefaultCompanyName
     throw "No Cronus company found in container $ContainerName.."
 }
 
+function Invoke-DemoDataGeneration
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [Parameter(Mandatory=$true)]
+        [ValidateSet("UnitTest","IntegrationTest","Uncategorized")]
+        [string]$TestType
+    )
+    if ($TestType -eq "UnitTest") {
+        Write-Host "UnitTest shouldn't have dependency on any Demo Data, skipping demo data generation"
+        return
+    } elseif( $TestType -eq "IntegrationTest" ) {
+        Write-Host "Proceeding with demo data generation (SetupData) as test type is set to IntegrationTest"
+        Invoke-ContosoDemoTool -ContainerName $ContainerName -SetupData
+    } elseif( $TestType -eq "Uncategorized" ) {
+        Write-Host "Proceeding with full demo data generation as test type is set to Uncategorized"
+        Invoke-ContosoDemoTool -ContainerName $ContainerName
+    } else {
+        throw "Unknown test type $TestType."
+    }
+
+}
+
 # Reinstall all the uninstalled apps in the container
 # This is needed to ensure that the various Demo Data apps are installed in the container when we generate demo data
 $allUninstalledApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesFirst | Where-Object { $_.IsInstalled -eq $false }
 # Exclude language apps from being reinstalled
 $allUninstalledApps = $allUninstalledApps | Where-Object { $_.Name -notmatch "^.+ language \(.+\)$" }
 
-Install-AppFromContainer -ContainerName $parameters.ContainerName -AppsToInstall $allUninstalledApps.Name
+$failedToInstallApps = @(Install-AppInContainer -ContainerName $parameters.ContainerName -AppsToInstall $allUninstalledApps.Name)
+
+if ($failedToInstallApps.Count -gt 0) {
+    Write-Host "The following apps failed to install in the container: $($failedToInstallApps -join ", ")"
+    throw "Failed to install apps: $($failedToInstallApps -join ", ")"
+}
+
 # Log all the installed apps
 foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesLast)) {
     Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - $($app.IsInstalled) / $($app.IsPublished)"
 }
 
-# Generate demo data in the container
-Invoke-ContosoDemoTool -ContainerName $parameters.ContainerName
+Invoke-DemoDataGeneration -ContainerName $parameters.ContainerName -TestType (Get-ALGoSetting -Key "testType")

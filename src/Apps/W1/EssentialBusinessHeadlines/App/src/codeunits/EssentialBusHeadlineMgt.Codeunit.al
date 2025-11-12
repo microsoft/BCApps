@@ -5,16 +5,16 @@
 
 namespace System.Visualization;
 
-using Microsoft.Sales.Document;
-using Microsoft.Sales.Receivables;
-using Microsoft.Sales.History;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Inventory.Item;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Customer;
-using Microsoft.Finance.Currency;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 using System.Reflection;
-using Microsoft.Finance.GeneralLedger.Setup;
 
 codeunit 1437 "Essential Bus. Headline Mgt."
 {

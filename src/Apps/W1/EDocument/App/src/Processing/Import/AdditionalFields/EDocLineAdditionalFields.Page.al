@@ -3,10 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing.Import;
-using Microsoft.Purchases.History;
+
 using Microsoft.eServices.EDocument;
-using System.Reflection;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Purchases.History;
+using System.Reflection;
 
 page 6104 "E-Doc. Line Additional Fields"
 {

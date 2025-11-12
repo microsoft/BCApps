@@ -5,9 +5,9 @@
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.eServices.EDocument;
-using System.Telemetry;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
+using System.Telemetry;
 
 table 6100 "E-Document Purchase Header"
 {
@@ -261,6 +261,11 @@ table 6100 "E-Document Purchase Header"
             Rec."E-Document Entry No." := EDocument."Entry No";
             Rec.Insert();
         end;
+    end;
+
+    procedure GetBCVendor() Vendor: Record Vendor
+    begin
+        if Vendor.Get(Rec."[BC] Vendor No.") then;
     end;
 
     internal procedure FeatureName(): Text
