@@ -7,5 +7,6 @@
     "../../../src/Business Foundation/Test",
     "../../../src/Tools/Performance Toolkit/Test"
   ],
+  "gitHubRunner": "self-hosted, 1ES.Pool=GitHub-BCApps",
   "testType": "UnitTest"
 }
