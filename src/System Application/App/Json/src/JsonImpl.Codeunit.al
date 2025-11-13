@@ -16,23 +16,35 @@ codeunit 5461 "Json Impl."
     InherentPermissions = X;
 
     var
+        IsInitialized: Boolean;
+        SourceWarningLength: Integer;
         JsonArrayDotNet: DotNet JArray;
         JsonObjectDotNet: DotNet JObject;
-        LogLimitWarningTxt: Label 'The JSON input length (%1) exceeds the maximum suggested length (%2) for JSON processing.';
-        SourceWarningLength: Integer
+        LogLimitWarningTxt: Label 'The JSON input length (%1) exceeds the maximum suggested length (%2) for JSON processing.', Locked = true;
 
-    trigger OnRun()
+
+    internal procedure Initialize()
     begin
-        SourceWarningLength := 10 * 1024 * 1024; // 10 MB
+        if not IsInitialized then begin
+            SourceWarningLength := 10 * 1024 * 1024; // 10 MB
+            IsInitialized := true;
+        end;
+    end;
+
+    internal procedure EmitLengthWarning(SourceLength: Integer; tag: Text; FormatString: Text)
+    begin
+        if not IsInitialized then
+            this.Initialize();
+
+        if SourceLength > SourceWarningLength then
+            Session.LogMessage(tag, StrSubstNo(FormatString, SourceLength, SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
     end;
 
     procedure InitializeCollectionFromString(JSONString: Text)
     begin
         Clear(JsonArrayDotNet);
         if JSONString <> '' then begin
-            if StrLen(JSONString) > SourceWarningLength then
-                Session.LogMessage('', StrSubstNo(LogLimitWarningTxt, StrLen(JSONString), SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
-
+            EmitLengthWarning(StrLen(JSONString), '0000QNC', TextLengthWarningTxt);
             JsonArrayDotNet := JsonArrayDotNet.Parse(JSONString)
         end else
             InitializeEmptyCollection();
@@ -42,9 +54,7 @@ codeunit 5461 "Json Impl."
     begin
         Clear(JsonObjectDotNet);
         if JSONString <> '' then begin
-            if StrLen(JSONString) > SourceWarningLength then
-                Session.LogMessage('', StrSubstNo(LogLimitWarningTxt, StrLen(JSONString), SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
-
+            EmitLengthWarning(StrLen(JSONString), '0000QND', TextLengthWarningTxt);
             JsonObjectDotNet := JsonObjectDotNet.Parse(JSONString)
         end else
             InitializeEmptyObject();
