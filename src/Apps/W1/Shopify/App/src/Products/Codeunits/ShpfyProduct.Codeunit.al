@@ -7,7 +7,7 @@ namespace Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
 
 /// <summary>
-/// Provides functionality for retrieving Shopify product information.
+/// Provides functionality for managing Shopify products.
 /// </summary>
 codeunit 30234 "Shpfy Product"
 {
