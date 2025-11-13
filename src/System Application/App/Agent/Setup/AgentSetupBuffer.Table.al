@@ -5,12 +5,14 @@
 
 namespace System.Agents;
 
+using System.Environment.Configuration;
+
 table 4310 "Agent Setup Buffer"
 {
     Caption = 'Agent Setup Buffer';
-    DataPerCompany = false;
+    TableType = Temporary;
+    ReplicateData = false;
     DataClassification = SystemMetadata;
-    Scope = OnPrem;
 
     fields
     {
@@ -119,6 +121,12 @@ table 4310 "Agent Setup Buffer"
             Editable = false;
             AllowInCustomizations = Never;
         }
+        field(5005; "Configured By"; Guid)
+        {
+            Caption = 'Configured By';
+            ToolTip = 'Specifies the user who configured the agent.';
+            Editable = false;
+        }
     }
     keys
     {
@@ -156,6 +164,22 @@ table 4310 "Agent Setup Buffer"
         until SourceTempAgentAccessControl.Next() = 0;
     end;
 
+    internal procedure GetUserSettings(): Record "User Settings"
+    var
+        Agent: Codeunit Agent;
+    begin
+        if not UserSettingsSet then
+            Agent.GetUserSettings(Rec."User Security ID", GlobalUserSettings);
+
+        exit(GlobalUserSettings);
+    end;
+
+    internal procedure SetUserSettings(var UserSettingsRec: Record "User Settings")
+    begin
+        GlobalUserSettings.Copy(UserSettingsRec);
+        UserSettingsSet := true;
+    end;
+
     local procedure SetValuesUpdated()
     begin
         Rec."Values Updated" := true;
@@ -163,4 +187,6 @@ table 4310 "Agent Setup Buffer"
 
     var
         TempAgentAccessControl: Record "Agent Access Control" temporary;
+        GlobalUserSettings: Record "User Settings";
+        UserSettingsSet: Boolean;
 }

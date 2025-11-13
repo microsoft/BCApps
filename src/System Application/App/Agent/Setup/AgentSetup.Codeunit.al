@@ -33,8 +33,15 @@ codeunit 4324 "Agent Setup"
 
     [Scope('OnPrem')]
     procedure SaveValues(var AgentSetupBuffer: Record "Agent Setup Buffer")
+    var
+        Agent: Record Agent;
     begin
+        if IsNullGuid(AgentSetupBuffer."User Security ID") then begin
+            Agent.Get(CreateAgent(AgentSetupBuffer));
+            exit;
+        end;
 
+        UpdateAgent(AgentSetupBuffer);
     end;
 
     [Scope('OnPrem')]
@@ -71,6 +78,7 @@ codeunit 4324 "Agent Setup"
                 AgentSetupBuffer.State := Agent.State;
                 // Question - do initials always win over AgentMetadataProvider?
                 AgentSetupBuffer.Initials := Agent.Initials;
+                AgentSetupBuffer."Configured By" := Agent.SystemModifiedBy;
                 exit;
             end;
 
@@ -82,12 +90,13 @@ codeunit 4324 "Agent Setup"
     end;
 
     [Scope('OnPrem')]
-    procedure SetupLanguageAndRegion(AgentSetupBuffer: Record "Agent Setup Buffer")
+    procedure SetupLanguageAndRegion(AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     var
         UserSettings: Record "User Settings";
         Language: Codeunit Language;
         AgentUserSettings: Page "Agent User Settings";
     begin
+        UserSettings := AgentSetupBuffer.GetUserSettings();
         AgentUserSettings.InitializeTemp(UserSettings);
         if AgentUserSettings.RunModal() in [Action::LookupOK, Action::OK] then begin
             AgentUserSettings.GetRecord(UserSettings);
@@ -95,8 +104,12 @@ codeunit 4324 "Agent Setup"
 #pragma warning disable AA0139
             AgentSetupBuffer."Language Used" := Language.GetWindowsLanguageName(UserSettings."Language ID");
 #pragma warning restore AA0139
+            AgentSetupBuffer.SetUserSettings(UserSettings);
             AgentSetupBuffer.Modify();
+            exit(true);
         end;
+
+        exit(false);
     end;
 
     /// <summary>
@@ -118,6 +131,45 @@ codeunit 4324 "Agent Setup"
         exit(SummaryText);
     end;
 
+    local procedure CreateAgent(var AgentSetupBuffer: Record "Agent Setup Buffer"): Guid
+    var
+        AgentRecord: Record Agent;
+        NewUserSettings: Record "User Settings";
+        TemporaryAgentAccessControl: Record "Agent Access Control" temporary;
+        Agent: Codeunit Agent;
+    begin
+        TemporaryAgentAccessControl := AgentSetupBuffer.GetTempAgentAccessControl();
+        AgentRecord.Get(Agent.Create(AgentSetupBuffer."Agent Metadata Provider", AgentSetupBuffer."User Name", AgentSetupBuffer."Display Name", TemporaryAgentAccessControl));
+        SetBufferFieldsToAgent(AgentSetupBuffer, AgentRecord);
+        NewUserSettings := AgentSetupBuffer.GetUserSettings();
+        Agent.UpdateLocalizationSettings(AgentRecord."User Security ID", NewUserSettings);
+
+        exit(AgentRecord."User Security ID");
+    end;
+
+    local procedure UpdateAgent(var AgentSetupBuffer: Record "Agent Setup Buffer")
+    var
+        AgentRecord: Record Agent;
+        NewUserSettings: Record "User Settings";
+        TemporaryAgentAccessControl: Record "Agent Access Control" temporary;
+        Agent: Codeunit Agent;
+    begin
+        AgentRecord.Get(AgentSetupBuffer."User Security ID");
+
+        if AgentSetupBuffer."Values Updated" then
+            SetBufferFieldsToAgent(AgentSetupBuffer, AgentRecord);
+
+        if AgentSetupBuffer."User Settings Updated" then begin
+            NewUserSettings := AgentSetupBuffer.GetUserSettings();
+            Agent.UpdateLocalizationSettings(AgentSetupBuffer."User Security ID", NewUserSettings);
+        end;
+
+        if AgentSetupBuffer."Access Updated" then begin
+            TemporaryAgentAccessControl := AgentSetupBuffer.GetTempAgentAccessControl();
+            Agent.UpdateAccess(AgentSetupBuffer."User Security ID", TemporaryAgentAccessControl);
+        end;
+    end;
+
     /// <summary>
     /// Sets the Agent Summary blob field with the provided text.
     /// </summary>
@@ -128,6 +180,22 @@ codeunit 4324 "Agent Setup"
     begin
         AgentSetupBuffer."Agent Summary".CreateOutStream(OutStream, GetDefaultEncoding());
         OutStream.WriteText(SummaryText);
+    end;
+
+    local procedure SetBufferFieldsToAgent(var AgentSetupBuffer: Record "Agent Setup Buffer"; var AgentRecord: Record Agent)
+    var
+        Agent: Codeunit Agent;
+    begin
+        AgentRecord."Display Name" := AgentSetupBuffer."Display Name";
+        AgentRecord."User Name" := AgentSetupBuffer."User Name";
+        AgentRecord.Initials := AgentSetupBuffer.Initials;
+        AgentRecord.Modify();
+
+        if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then
+            Agent.Activate(AgentRecord."User Security ID")
+        else
+            Agent.Deactivate(AgentRecord."User Security ID");
+        AgentRecord.Find();
     end;
 
     local procedure GetDefaultEncoding(): TextEncoding
