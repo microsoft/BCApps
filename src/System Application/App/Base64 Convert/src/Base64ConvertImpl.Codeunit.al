@@ -15,13 +15,26 @@ codeunit 4111 "Base64 Convert Impl."
     InherentPermissions = X;
 
     var
+        IsInitialized: Boolean;
         SourceWarningLength: Integer;
         TextLengtWarningTxt: Label 'The input string length (%1) exceeds the maximum suggested length (%2) for Base64 conversion.';
         StreamLengtWarningTxt: Label 'The input stream length (%1) exceeds the maximum suggested length (%2) for Base64 conversion.';
 
-    trigger OnRun()
+    internal procedure Initialize()
     begin
-        SourceWarningLength := 10 * 1024 * 1024; // 10 MB
+        if not IsInitialized then begin
+            SourceWarningLength := 10 * 1024 * 1024; // 10 MB
+            IsInitialized := true;
+        end;
+    end;
+
+    internal procedure EmitLengthWarning(SourceLength: Integer; tag: Text; FormatString: Text)
+    begin
+        if not IsInitialized then
+            this.Initialize();
+
+        if SourceLength > SourceWarningLength then
+            Session.LogMessage(tag, StrSubstNo(FormatString, SourceLength, SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
     end;
 
     procedure ToBase64(String: Text): Text
@@ -59,8 +72,7 @@ codeunit 4111 "Base64 Convert Impl."
         if String = '' then
             exit('');
 
-        if StrLen(String) > SourceWarningLength then
-            Session.LogMessage('0000QN3', StrSubstNo(TextLengtWarningTxt, StrLen(String), SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
+        this.EmitLengthWarning(StrLen(String), '0000QN3', TextLengtWarningTxt);
 
         if InsertLineBreaks then
             Base64FormattingOptions := Base64FormattingOptions.InsertLineBreaks
@@ -92,8 +104,7 @@ codeunit 4111 "Base64 Convert Impl."
         Base64FormattingOptions: DotNet Base64FormattingOptions;
         Base64String: Text;
     begin
-        if InStream.Length > SourceWarningLength then
-            Session.LogMessage('0000QN4', StrSubstNo(StreamLengtWarningTxt, InStream.Length, SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
+        this.EmitLengthWarning(InStream.Length, '0000QN4', StreamLengtWarningTxt);
 
         MemoryStream := MemoryStream.MemoryStream();
         CopyStream(MemoryStream, InStream);
@@ -195,9 +206,7 @@ codeunit 4111 "Base64 Convert Impl."
         if Base64String = '' then
             exit('');
 
-        if StrLen(Base64String) > SourceWarningLength then
-            Session.LogMessage('0000QN5', StrSubstNo(TextLengtWarningTxt, StrLen(Base64String), SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
-
+        this.EmitLengthWarning(StrLen(Base64String), '0000QN5', TextLengtWarningTxt);
 
         case TextEncoding of
             TextEncoding::UTF16:
@@ -223,8 +232,7 @@ codeunit 4111 "Base64 Convert Impl."
         ConvertedArray: DotNet Array;
     begin
         if Base64String <> '' then begin
-            if StrLen(Base64String) > SourceWarningLength then
-                Session.LogMessage('0000QN6', StrSubstNo(TextLengtWarningTxt, StrLen(Base64String), SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
+            this.EmitLengthWarning(StrLen(Base64String), '0000QN6', TextLengtWarningTxt);
 
             ConvertedArray := Convert.FromBase64String(Base64String);
             MemoryStream := MemoryStream.MemoryStream(ConvertedArray);
