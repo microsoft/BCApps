@@ -5,8 +5,6 @@
 namespace Microsoft.QualityManagement.Configuration.GenerationRule;
 
 using Microsoft.QualityManagement.Configuration.GenerationRule.JobQueue;
-// TODO: Decouple Manufacturing dependency - FIXED
-//using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
 using Microsoft.QualityManagement.Setup.Setup;
@@ -105,19 +103,13 @@ page 20405 "Qlty. In. Test Generat. Rules"
                 field("Activation Trigger"; Rec."Activation Trigger")
                 {
                 }
+                // TODO: Decouple Manufacturing dependency
                 field("Assembly Trigger"; Rec."Assembly Trigger")
                 {
                     Visible = ShowAssemblyTrigger;
                     Editable = EditAssemblyTrigger;
                     StyleExpr = AssemblyStyle;
                 }
-                // TODO: Decouple Manufacturing dependency - FIXED
-                /*                field("Production Trigger"; Rec."Production Trigger")
-                                {
-                                    Visible = ShowProductionTrigger;
-                                    Editable = EditProductionTrigger;
-                                    StyleExpr = ProductionStyle;
-                                }*/
                 field("Purchase Trigger"; Rec."Purchase Trigger")
                 {
                     Visible = ShowPurchaseTrigger;
