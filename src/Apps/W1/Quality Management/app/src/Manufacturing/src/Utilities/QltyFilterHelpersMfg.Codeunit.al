@@ -8,7 +8,8 @@ using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
-codeunit 20400 "Qlty. Filter Helpers Mfg."
+
+codeunit 20400 "Qlty. Filter Helpers - Mfg."
 {
     /// <summary>
     /// Starts the assist edit dialog for choosing a machine.

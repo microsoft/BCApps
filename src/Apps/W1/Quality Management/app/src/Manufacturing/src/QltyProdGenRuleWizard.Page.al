@@ -536,7 +536,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         TempItem: Record "Item" temporary;
         TempQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule" temporary;
         TempPostedAssemblyHeader: Record "Posted Assembly Header" temporary;
-        QltyFilterHelpersMfg: Codeunit "Qlty. Filter Helpers Mfg.";
+        QltyFilterHelpersMfg: Codeunit "Qlty. Filter Helpers - Mfg.";
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         CurrentStepCounter: Integer;
         LocationCodeFilter: Code[20];

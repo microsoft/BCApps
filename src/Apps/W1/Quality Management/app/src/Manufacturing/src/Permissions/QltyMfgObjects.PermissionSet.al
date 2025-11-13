@@ -11,6 +11,8 @@ namespace Microsoft.QualityManagement.Integration.Manufacturing;
 //using Microsoft.QualityManagement.Integration.Manufacturing.Document;
 //using Microsoft.QualityManagement.Integration.Manufacturing.Journal;
 using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
+using Microsoft.QualityManagement.Utilities;
+using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 //using Microsoft.QualityManagement.RoleCenters;
 
 permissionset 20470 "Qlty. Mfg. - Objects"
@@ -21,9 +23,9 @@ permissionset 20470 "Qlty. Mfg. - Objects"
 
     Permissions =
         codeunit "Qlty. Manufactur. Integration" = X,
-        //codeunit "Qlty. Mfg. Filter Helpers" = X,
-        //codeunit "Qlty. Mfg. Session Helper" = X,
-        //codeunit "Qlty. Mfg. Traversal" = X,
+        codeunit "Qlty. Filter Helpers - Mfg." = X,
+        codeunit "Qlty. Session Helper - Mfg." = X,
+        codeunit "Qlty. Traversal - Mfg." = X,
         page "Qlty. Prod. Gen. Rule Wizard" = X,
         page "Qlty. Routing Line Lookup" = X;
 }
