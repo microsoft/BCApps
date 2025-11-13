@@ -60,6 +60,7 @@ page 4333 "Agent Consumption Overview"
                 field(Credits; Rec."Copilot Credits")
                 {
                     AutoFormatType = 0;
+                    Caption = 'Quantity';
                 }
                 field(ConsumptionDateTime; Rec."Consumption DateTime")
                 {
