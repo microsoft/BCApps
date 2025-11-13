@@ -44,7 +44,7 @@ codeunit 5461 "Json Impl."
     begin
         Clear(JsonArrayDotNet);
         if JSONString <> '' then begin
-            EmitLengthWarning(StrLen(JSONString), '0000QNC', TextLengthWarningTxt);
+            EmitLengthWarning(StrLen(JSONString), '0000QNC', LogLimitWarningTxt);
             JsonArrayDotNet := JsonArrayDotNet.Parse(JSONString)
         end else
             InitializeEmptyCollection();
@@ -54,7 +54,7 @@ codeunit 5461 "Json Impl."
     begin
         Clear(JsonObjectDotNet);
         if JSONString <> '' then begin
-            EmitLengthWarning(StrLen(JSONString), '0000QND', TextLengthWarningTxt);
+            EmitLengthWarning(StrLen(JSONString), '0000QND', LogLimitWarningTxt);
             JsonObjectDotNet := JsonObjectDotNet.Parse(JSONString)
         end else
             InitializeEmptyObject();
