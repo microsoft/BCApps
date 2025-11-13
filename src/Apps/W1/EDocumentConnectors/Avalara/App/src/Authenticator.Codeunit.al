@@ -5,6 +5,7 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using System.Security.Authentication;
+using System.Utilities;
 codeunit 6374 "Authenticator"
 {
     Access = Internal;
@@ -129,7 +130,36 @@ codeunit 6374 "Authenticator"
         exit(IsolatedStorage.Contains(TokenKey, TokenDataScope));
     end;
 
+    internal procedure GetAuthURL(): Text
     var
+        URI: Codeunit Uri;
+    begin
+        exit(URI.ValidateIntegrationURLFromSetupTableField(Database::"Connection Setup", ConnectionSetup.FieldNo("Authentication URL"), AuthURLTxt));
+    end;
+
+    internal procedure GetSandboxAuthURL(): Text
+    var
+        URI: Codeunit Uri;
+    begin
+        exit(URI.ValidateIntegrationURLFromSetupTableField(Database::"Connection Setup", ConnectionSetup.FieldNo("Authentication URL"), SandboxAuthURLTxt));
+    end;
+
+    internal procedure GetAPIURL(): Text
+    var
+        URI: Codeunit Uri;
+    begin
+        exit(URI.ValidateIntegrationURLFromSetupTableField(Database::"Connection Setup", ConnectionSetup.FieldNo("API URL"), APIURLTxt));
+    end;
+
+    internal procedure GetSandboxAPIURL(): Text
+    var
+        URI: Codeunit Uri;
+    begin
+        exit(URI.ValidateIntegrationURLFromSetupTableField(Database::"Connection Setup", ConnectionSetup.FieldNo("API URL"), SandboxAPIURLTxt));
+    end;
+
+    var
+        ConnectionSetup: Record "Connection Setup";
         AuthURLTxt: Label 'https://identity.avalara.com', Locked = true;
         APIURLTxt: Label 'https://api.avalara.com', Locked = true;
         SandboxAuthURLTxt: Label 'https://ai-sbx.avlr.sh', Locked = true;
