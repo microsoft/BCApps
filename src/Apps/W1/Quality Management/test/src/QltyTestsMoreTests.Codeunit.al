@@ -2232,6 +2232,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ConfPersonalizationMgt: Codeunit "Conf./Personalization Mgt.";
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
         QltyApplicationAreaMgmt: Codeunit "Qlty. Application Area Mgmt.";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
 
     begin
         // [SCENARIO] Quality Management application area is enabled by default
@@ -2244,6 +2245,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
             ConfPersonalizationMgt.GetCurrentProfileNoError(AllProfile);
             ApplicationAreaSetup."Profile ID" := CopyStr(AllProfile."Profile ID", 1, MaxStrLen(ApplicationAreaSetup."Profile ID"));
             ApplicationAreaSetup.Insert();
+            LibraryApplicationArea.EnableEssentialSetup();
         end;
 
         // [WHEN] Checking if Quality Management application area is enabled

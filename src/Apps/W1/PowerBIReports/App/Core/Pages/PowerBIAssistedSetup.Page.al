@@ -211,14 +211,6 @@ page 36950 "PowerBI Assisted Setup"
             group(Step5)
             {
                 Visible = CurrentStep = Steps::Setting;
-#if not CLEAN25
-                group(Settings)
-                {
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'This group is no longer used.';
-                    ObsoleteTag = '25.0';
-                }
-#endif
                 group(FinanceReportSetup)
                 {
                     Caption = 'Finance';
