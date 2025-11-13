@@ -95,7 +95,7 @@ table 30128 "Shpfy Shop Collection Map"
         {
             Caption = 'Default for Export';
             DataClassification = CustomerContent;
-
+#if not CLEAN28
             trigger OnValidate()
             var
                 Collection: Record "Shpfy Shop Collection Map";
@@ -110,6 +110,7 @@ table 30128 "Shpfy Shop Collection Map"
                     if "Default for Export" then
                         Collection.ModifyAll("Default for Export", false, false);
             end;
+#endif
         }
         field(9; Version; BigInteger)
         {
