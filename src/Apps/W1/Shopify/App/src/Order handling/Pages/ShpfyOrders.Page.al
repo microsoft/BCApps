@@ -152,6 +152,12 @@ page 30115 "Shpfy Orders"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the sum of the line amounts on all lines in the document minus any discount amounts plus the shipping costs.';
                 }
+                field("Channel Liable Taxes"; Rec."Channel Liable Taxes")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies if any tax line on the order is liable to be charged by the channel.';
+                    Visible = false;
+                }
                 field(Processed; Rec.Processed)
                 {
                     ApplicationArea = All;
