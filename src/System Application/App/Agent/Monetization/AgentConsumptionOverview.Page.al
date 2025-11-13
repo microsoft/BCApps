@@ -91,5 +91,5 @@ page 4333 "Agent Consumption Overview"
 
     var
         DescriptionTxt: Text;
-        UserName: Text[100];
+        UserName: Text[80];
 }
