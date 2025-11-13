@@ -30,7 +30,7 @@ codeunit 2508 "Dataverse Table Builder Impl."
 
     internal procedure ClearGeneration()
     begin
-        NavDesignerALFunctions.ClearCRMDesigner();
+        // NavDesignerALFunctions.ClearCRMDesigner();
         NavDesignerALFunctions.SaveCRMDesigner();
     end;
 
@@ -46,7 +46,7 @@ codeunit 2508 "Dataverse Table Builder Impl."
         foreach Field in FieldsToAdd do
             FieldList.Add(Field);
 
-        exit(NavDesignerALFunctions.AddCRMTableFields(TableId, FieldList, DataverseSchema));
+        // exit(NavDesignerALFunctions.AddCRMTableFields(TableId, FieldList, DataverseSchema));
     end;
 
     internal procedure CommitGeneration(): Boolean
