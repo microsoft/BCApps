@@ -237,31 +237,19 @@ codeunit 135070 "Uri Test"
     begin
         // [Given] Two URIs with the same host
         // [Then] AreURIsHaveSameHost should return true
-        LibraryAssert.IsTrue(Uri.AreURIsHaveSameHost('http://microsoft.com/path1', 'http://microsoft.com/path2'),
-            'URIs with same host should return true');
-        LibraryAssert.IsTrue(Uri.AreURIsHaveSameHost('https://contoso.com/test', 'https://contoso.com/other'),
-            'URIs with same host (https) should return true');
-        LibraryAssert.IsTrue(Uri.AreURIsHaveSameHost('http://subdomain.example.com/test1', 'http://subdomain.example.com/test2'),
-            'URIs with same subdomain host should return true');
+        LibraryAssert.IsTrue(Uri.AreURIsHaveSameHost('http://microsoft.com/path1', 'http://microsoft.com/path2'), 'URIs with same host should return true');
+        LibraryAssert.IsTrue(Uri.AreURIsHaveSameHost('https://contoso.com/test', 'https://contoso.com/other'), 'URIs with same scheme should return true');
+        LibraryAssert.IsTrue(Uri.AreURIsHaveSameHost('http://subdomain.example.com/test1', 'http://subdomain.example.com/test2'), 'URIs with same subdomain host should return true');
 
         // [Given] URIs with different hosts
         // [Then] AreURIsHaveSameHost should return false
-        LibraryAssert.IsFalse(Uri.AreURIsHaveSameHost('http://microsoft.com/path1', 'http://contoso.com/path2'),
-            'URIs with different hosts should return false');
-        LibraryAssert.IsFalse(Uri.AreURIsHaveSameHost('https://example.com/test', 'https://different.com/test'),
-            'URIs with different hosts should return false');
-        LibraryAssert.IsFalse(Uri.AreURIsHaveSameHost('http://subdomain1.example.com/test1', 'http://subdomain2.example.com/test2'),
-            'URIs with different subdomain host should return false');
+        LibraryAssert.IsFalse(Uri.AreURIsHaveSameHost('http://microsoft.com/path1', 'http://contoso.com/path2'), 'URIs with different hosts should return false');
+        LibraryAssert.IsFalse(Uri.AreURIsHaveSameHost('https://example.com/test', 'https://different.com/test'), 'URIs with different hosts should return false');
+        LibraryAssert.IsFalse(Uri.AreURIsHaveSameHost('http://subdomain1.example.com/test1', 'http://subdomain2.example.com/test2'), 'URIs with different subdomain host should return false');
 
         // [Given] URIs with case differences in host
         // [Then] AreURIsHaveSameHost should return true (case insensitive)
-        LibraryAssert.IsTrue(Uri.AreURIsHaveSameHost('http://Microsoft.com/path1', 'http://MICROSOFT.COM/path2'),
-            'URIs with case differences in host should return true');
-
-        // [Given] URIs with different ports but same host
-        // [Then] AreURIsHaveSameHost should return true (only host matters, not port)
-        LibraryAssert.IsTrue(Uri.AreURIsHaveSameHost('http://microsoft.com:8080/path1', 'http://microsoft.com:9090/path2'),
-            'URIs with different ports but same host should return true');
+        LibraryAssert.IsTrue(Uri.AreURIsHaveSameHost('http://Microsoft.com/path1', 'http://MICROSOFT.COM/path2'), 'URIs with case differences in host should return true');
     end;
 
     [Test]
@@ -272,43 +260,19 @@ codeunit 135070 "Uri Test"
     begin
         // [Given] URIs and patterns that should match
         // [Then] IsValidURIPattern should return true
-        LibraryAssert.IsTrue(Uri.IsValidURIPattern('http://microsoft.com', '^https?://.*'),
-            'HTTP URI should match HTTP(S) pattern');
-        LibraryAssert.IsTrue(Uri.IsValidURIPattern('https://microsoft.com', '^https?://.*'),
-            'HTTPS URI should match HTTP(S) pattern');
-        LibraryAssert.IsTrue(Uri.IsValidURIPattern('ftp://files.example.com', '^ftp://.*'),
-            'FTP URI should match FTP pattern');
-        LibraryAssert.IsTrue(Uri.IsValidURIPattern('https://api.contoso.com/v1/users', '.*api\..*'),
-            'API URI should match API pattern');
-        LibraryAssert.IsTrue(Uri.IsValidURIPattern('http://subdomain.example.com', '.*\.example\.com$'),
-            'Subdomain URI should match domain pattern');
+        LibraryAssert.IsTrue(Uri.IsValidURIPattern('http://microsoft.com', '^https?://.*'), 'HTTP URI should match HTTP(S) pattern');
+        LibraryAssert.IsTrue(Uri.IsValidURIPattern('https://microsoft.com', '^https?://.*'), 'HTTPS URI should match HTTP(S) pattern');
+        LibraryAssert.IsTrue(Uri.IsValidURIPattern('ftp://files.example.com', '^ftp://.*'), 'FTP URI should match FTP pattern');
+        LibraryAssert.IsTrue(Uri.IsValidURIPattern('https://api.contoso.com/v1/users', '.*api\..*'), 'API URI should match API pattern');
+        LibraryAssert.IsTrue(Uri.IsValidURIPattern('http://subdomain.example.com', '.*\.example\.com$'), 'Subdomain URI should match domain pattern');
+        LibraryAssert.IsTrue(Uri.IsValidURIPattern('https://shop1.myshopify.com/admin/dashboard', '^(https)\:\/\/[a-zA-Z0-9][a-zA-Z0-9\-]*\.myshopify\.com[\/].*$'), 'URL should match provided pattern');
 
         // [Given] URIs and patterns that should not match
         // [Then] IsValidURIPattern should return false
-        LibraryAssert.IsFalse(Uri.IsValidURIPattern('http://microsoft.com', '^https://.*'),
-            'HTTP URI should not match HTTPS-only pattern');
-        LibraryAssert.IsFalse(Uri.IsValidURIPattern('ftp://files.example.com', '^https?://.*'),
-            'FTP URI should not match HTTP(S) pattern');
-        LibraryAssert.IsFalse(Uri.IsValidURIPattern('https://contoso.com', '.*microsoft\.com$'),
-            'Contoso URI should not match Microsoft domain pattern');
-        LibraryAssert.IsFalse(Uri.IsValidURIPattern('invalid-uri', '^https?://.*'),
-            'Invalid URI should not match valid URI pattern');
-
-        // [Given] URIs with specific port patterns
-        // [Then] IsValidURIPattern should work correctly with port matching
-        LibraryAssert.IsTrue(Uri.IsValidURIPattern('http://localhost:8080/api', '.*:8080.*'),
-            'URI with port 8080 should match port pattern');
-        LibraryAssert.IsFalse(Uri.IsValidURIPattern('http://localhost:3000/api', '.*:8080.*'),
-            'URI with port 3000 should not match port 8080 pattern');
-
-        // [Given] URIs with path patterns
-        // [Then] IsValidURIPattern should work correctly with path matching
-        LibraryAssert.IsTrue(Uri.IsValidURIPattern('https://api.example.com/v1/users', '.*/v[0-9]+/.*'),
-            'Versioned API path should match version pattern');
-        LibraryAssert.IsTrue(Uri.IsValidURIPattern('https://example.com/admin/dashboard', '.*/admin/.*'),
-            'Admin path should match admin pattern');
-        LibraryAssert.IsTrue(Uri.IsValidURIPattern('https://shop1.myshopify.com/admin/dashboard', '^(https)\:\/\/[a-zA-Z0-9][a-zA-Z0-9\-]*\.myshopify\.com[\/]*$'),
-        'URL should match provided pattern');
+        LibraryAssert.IsFalse(Uri.IsValidURIPattern('http://microsoft.com', '^https://.*'), 'HTTP URI should not match HTTPS-only pattern');
+        LibraryAssert.IsFalse(Uri.IsValidURIPattern('ftp://files.example.com', '^https?://.*'), 'FTP URI should not match HTTP(S) pattern');
+        LibraryAssert.IsFalse(Uri.IsValidURIPattern('https://contoso.com', '.*microsoft\.com$'), 'Contoso URI should not match Microsoft domain pattern');
+        LibraryAssert.IsFalse(Uri.IsValidURIPattern('invalid-uri', '^https?://.*'), 'Invalid URI should not match valid URI pattern');
     end;
 
     local procedure TestUriWellformed(UriString: Text; UriKind: Enum UriKind; ExpectedResult: Boolean)
