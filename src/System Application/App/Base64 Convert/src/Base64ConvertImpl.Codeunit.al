@@ -60,7 +60,7 @@ codeunit 4111 "Base64 Convert Impl."
             exit('');
 
         if StrLen(String) > SourceWarningLength then
-            Session.LogMessage('', StrSubstNo(TextLengtWarningTxt, StrLen(String), SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
+            Session.LogMessage('0000QN3', StrSubstNo(TextLengtWarningTxt, StrLen(String), SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
 
         if InsertLineBreaks then
             Base64FormattingOptions := Base64FormattingOptions.InsertLineBreaks
@@ -93,7 +93,7 @@ codeunit 4111 "Base64 Convert Impl."
         Base64String: Text;
     begin
         if InStream.Length > SourceWarningLength then
-            Session.LogMessage('', StrSubstNo(StreamLengtWarningTxt, InStream.Length, SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
+            Session.LogMessage('0000QN4', StrSubstNo(StreamLengtWarningTxt, InStream.Length, SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
 
         MemoryStream := MemoryStream.MemoryStream();
         CopyStream(MemoryStream, InStream);
@@ -196,7 +196,7 @@ codeunit 4111 "Base64 Convert Impl."
             exit('');
 
         if StrLen(Base64String) > SourceWarningLength then
-            Session.LogMessage('', StrSubstNo(TextLengtWarningTxt, StrLen(Base64String), SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
+            Session.LogMessage('0000QN5', StrSubstNo(TextLengtWarningTxt, StrLen(Base64String), SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
 
 
         case TextEncoding of
@@ -224,7 +224,7 @@ codeunit 4111 "Base64 Convert Impl."
     begin
         if Base64String <> '' then begin
             if StrLen(Base64String) > SourceWarningLength then
-                Session.LogMessage('', StrSubstNo(TextLengtWarningTxt, StrLen(Base64String), SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
+                Session.LogMessage('0000QN6', StrSubstNo(TextLengtWarningTxt, StrLen(Base64String), SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
 
             ConvertedArray := Convert.FromBase64String(Base64String);
             MemoryStream := MemoryStream.MemoryStream(ConvertedArray);
