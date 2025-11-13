@@ -18,7 +18,7 @@ codeunit 30138 "Shpfy GQL NextOrdersToImport" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Text.</returns>
     internal procedure GetGraphQL(): Text
     begin
-        exit('{"query": "{orders(first:25, after:\"{{After}}\", query: \"updated_at:>''{{Time}}''\"){ pageInfo { hasNextPage } edges { cursor node { legacyResourceId name createdAt updatedAt channel { name } test fullyPaid unpaid closed displayFinancialStatus displayFulfillmentStatus subtotalLineItemsQuantity totalPriceSet { shopMoney { amount currencyCode } } customAttributes { key value } tags risk { assessments { riskLevel }} displayAddress { countryCodeV2 } shippingAddress { countryCodeV2 } billingAddress { countryCodeV2 } totalTaxSet { presentmentMoney { amount } shopMoney { amount } } purchasingEntity { ... on PurchasingCompany { company { id }}}}}}}"}');
+        exit('{"query": "{orders(first:25, after:\"{{After}}\", query: \"updated_at:>''{{Time}}''\"){ pageInfo { hasNextPage } edges { cursor node { legacyResourceId name createdAt updatedAt channel { name } test fullyPaid unpaid closed displayFinancialStatus displayFulfillmentStatus subtotalLineItemsQuantity totalPriceSet { shopMoney { amount currencyCode } } customAttributes { key value } tags risk { assessments { riskLevel }} displayAddress { countryCodeV2 } shippingAddress { countryCodeV2 } billingAddress { countryCodeV2 } totalTaxSet { presentmentMoney { amount } shopMoney { amount } } taxLines { channelLiable } purchasingEntity { ... on PurchasingCompany { company { id }}}}}}}"}');
     end;
 
     /// <summary>
@@ -27,6 +27,6 @@ codeunit 30138 "Shpfy GQL NextOrdersToImport" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(153);
+        exit(159);
     end;
 }

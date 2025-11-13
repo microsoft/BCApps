@@ -147,6 +147,12 @@ page 30115 "Shpfy Orders"
                     ToolTip = 'Specifies the name of the app used by the channel where you sell your products. A channel can be a platform or a marketplace such as an online store or POS.';
                     Visible = false;
                 }
+                field("Channel Liable Taxes"; Rec."Channel Liable Taxes")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies if any tax line on the order is liable to be charged by the channel.';
+                    Visible = false;
+                }
                 field(CancelReason; Rec."Cancel Reason")
                 {
                     ApplicationArea = All;
