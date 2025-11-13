@@ -2235,9 +2235,10 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryApplicationArea: Codeunit "Library - Application Area";
 
     begin
-        // [SCENARIO] Quality Management application area is enabled by default
+        // [SCENARIO] Quality Management application area is enabled by default on Essential experience
 
         // [GIVEN] Application Area Setup exists or is created for current company and user
+        LibraryApplicationArea.EnableEssentialSetup();
         if not ApplicationAreaMgmtFacade.GetApplicationAreaSetupRecFromCompany(ApplicationAreaSetup, CompanyName()) then begin
             ApplicationAreaSetup.Init();
             ApplicationAreaSetup."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(ApplicationAreaSetup."Company Name"));
