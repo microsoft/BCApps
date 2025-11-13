@@ -120,27 +120,6 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
     end;
 
     /// <summary>
-    /// Takes a draft line EDocumentPurchaseLine and the corresponding historic record found for it EDocPurchaseLineHistory.
-    /// If the values on the draft line have already been set by other mechanisms we don't assign it to avoid overwriting it.
-    /// </summary>
-    /// <param name="EDocPurchaseLineHistory"></param>
-    /// <param name="EDocumentPurchaseLine"></param>
-    procedure UpdateMissingLineValuesFromHistory(EDocPurchaseLineHistory: Record "E-Doc. Purchase Line History"; var EDocumentPurchaseLine: Record "E-Document Purchase Line"; CustomExplanationTxt: Text[250])
-    var
-        PurchInvLine: Record "Purch. Inv. Line";
-    begin
-        // If there is no such Purchase Invoice Line we can't apply any values to the draft
-        if not PurchInvLine.GetBySystemId(EDocPurchaseLineHistory."Purch. Inv. Line SystemId") then
-            exit;
-
-        UpdateMissingLineValuesFromHistory(PurchInvLine, EDocumentPurchaseLine, CustomExplanationTxt);
-
-        // We mark this draft with the historic match for future application of the additional fields
-        EDocumentPurchaseLine."E-Doc. Purch. Line History Id" := EDocPurchaseLineHistory."Entry No.";
-        EDocImpSessionTelemetry.SetLineBool(EDocumentPurchaseLine.SystemId, 'Line History', true);
-    end;
-
-    /// <summary>
     /// Takes a draft line EDocumentPurchaseLine and the corresponding historic record found for it PurchInvLine.
     /// If the values on the draft line have already been set by other mechanisms we don't assign it to avoid overwriting it.
     /// </summary>
