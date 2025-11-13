@@ -6,8 +6,8 @@
 namespace System.Email;
 
 using System.DataAdministration;
-using System.Upgrade;
 using System.Reflection;
+using System.Upgrade;
 
 #pragma warning disable AA0235
 codeunit 1596 "Email Installer"

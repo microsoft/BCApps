@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Reflection;
 using Microsoft.Inventory.Item;
+using System.Reflection;
 
 codeunit 8018 TableAndFieldManagement
 {

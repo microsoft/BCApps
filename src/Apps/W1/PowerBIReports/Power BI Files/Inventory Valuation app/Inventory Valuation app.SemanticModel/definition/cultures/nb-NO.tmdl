@@ -1,0 +1,409 @@
+cultureInfo nb-NO
+	translations
+		model Model
+			table Item
+				caption: Vare
+				column 'Item No. & Description'
+					caption: Varenr. og -beskrivelse
+				column 'Item No.'
+					caption: Varenr.
+				column 'Item Description'
+					caption: Varebeskrivelse
+				column 'Item Base Unit of Measure'
+					caption: Varelagerenhet
+				column 'Item Unit Cost (LCY)'
+					caption: Enhetskost (lokal valuta)
+				column 'Item Inventory Posting Group'
+					caption: Bokføringsgruppe for varebeholdning
+				column 'Item Category Code'
+					caption: Varekategorikode
+				column 'Item Category Description'
+					caption: Beskrivelse av varekategori
+			table Location
+				caption: Lokasjon
+				column 'Location Code'
+					caption: Lokasjonskode
+				column 'Location Name'
+					caption: Lokasjonsnavn
+				column 'Location Adjustment Bin Code'
+					caption: Hyllekode for lokasjonsjustering
+			table 'Value Entries'
+				caption: Verdiposter
+				column 'Entry No.'
+					caption: Oppføringsnr.
+				column 'Valuation Date'
+					caption: Verdisettingsdato
+				column 'Item Ledger Entry Type'
+					caption: Vareposttype
+				column 'Document Type'
+					caption: Dokumenttype
+				column Type
+					caption: Type
+				measure 'As of Beg. Date Label'
+					caption: Etiketten Fra og med startdato
+				measure 'As of End Date Label'
+					caption: Etiketten Fra og med sluttdato
+				measure 'Beginning Balance Cost Posted to G/L'
+					caption: Startsaldokost bokført i finans
+				measure 'Beginning Balance Expected Cost Posted to G/L'
+					caption: Forventet kostnad for startsaldo bokført i finans
+				measure 'Beginning Balance Qty'
+					caption: Startsaldoantall
+				measure 'Beginning Balance Cost Amount (Actual)'
+					caption: Kostbeløp for startsaldo (faktisk)
+				measure 'Beginning Balance Cost Amount (Expected)'
+					caption: Kostbeløp for startsaldo (forventet)
+				measure 'Beginning Balance Cost Amount (Incl. Exp Cost)'
+					caption: Kostbeløp for startsaldo (inkl. forv. kostnad)
+				measure 'Cost Amount (Actual)'
+					caption: Kostbeløp (faktisk)
+				measure 'Cost Amount (Expected)'
+					caption: Kostbeløp (forventet)
+				measure 'Cost Posted to G/L'
+					caption: Kost bokført i finans
+				measure 'Expected Cost Posted to G/L'
+					caption: Forventet kostnad bokført i Finans
+				measure 'Decrease Qty.'
+					caption: Reduser antall
+				measure 'Decrease Value'
+					caption: Reduser verdi
+				measure 'Decrease Value (Expected)'
+					caption: Reduksjonsverdi (forventet)
+				measure 'Decrease Value Expected Cost Included'
+					caption: Forventet kost for reduser verdi inkludert
+				measure 'Ending Balance Cost Amount (Incl. Exp Cost)'
+					caption: Kostbeløp for sluttsaldo (inkl. forv. kostnad)
+				measure 'Ending Balance Cost Posted to G/L'
+					caption: Sluttsaldokost bokført i finans
+				measure 'Ending Balance Qty.'
+					caption: Sluttsaldoantall
+				measure 'Ending Balance Cost Amount (Actual)'
+					caption: Kostbeløp for sluttsaldo (faktisk)
+				measure 'Ending Balance Cost Amount (Expected)'
+					caption: Kostbeløp for sluttsaldo (forventet)
+				measure 'Ending Balance Expected Cost Posted to G/L'
+					caption: Forventet kostnad for sluttsaldo bokført i finans
+				measure 'Increase Value Expected Cost Included'
+					caption: Forventet kost for øk verdi inkludert
+				measure 'Increases Qty.'
+					caption: Antall økninger
+				measure 'Increases Value'
+					caption: Økningsverdi
+				measure 'Increases Value (Expected)'
+					caption: Økningsverdi (forventet)
+				measure 'Invoiced Quantity'
+					caption: Fakturert antall
+				measure 'Cost Amount (Incl. Exp Cost)'
+					caption: Kostbeløp (inkl. forv. kostnad)
+				measure 'Variance Cost Posted to G/L'
+					caption: Avvikskostnad bokført i finans
+				measure 'Base Link'
+					caption: Grunnkobling
+				measure 'Value Entry Back Link'
+					caption: Tilbakekobling for verdipost
+			table 'Dimension Sets'
+				caption: Dimensjonssett
+				column 'Global Dimension 1'
+					caption: Global dimensjon 1
+				column 'Global Dimension 2'
+					caption: Global dimensjon 2
+				column 'Shortcut Dimension 3'
+					caption: Snarveisdimensjon 3
+				column 'Shortcut Dimension 4'
+					caption: Snarveisdimensjon 4
+				column 'Shortcut Dimension 5'
+					caption: Snarveisdimensjon 5
+				column 'Shortcut Dimension 6'
+					caption: Snarveisdimensjon 6
+				column 'Shortcut Dimension 7'
+					caption: Snarveisdimensjon 7
+				column 'Shortcut Dimension 8'
+					caption: Snarveisdimensjon 8
+			table Date
+				caption: Dato
+				column 'Week Day'
+					caption: Ukedag
+				column 'Relative Day'
+					caption: Relativ dag
+				column 'Calendar Year'
+					caption: Kalenderår
+				column 'Calendar Quarter'
+					caption: Kalenderkvartal
+				column 'Calendar Quarter Year'
+					caption: Kalender Kvartal År
+				column 'Calendar Month'
+					caption: Kalendermåned
+				column 'Calendar Month Year'
+					caption: Kalender Måned År
+				column 'Calendar Week'
+					caption: Kalenderuke
+				column 'Calendar Week Year'
+					caption: Kalender Uke År
+				column 'Calendar WeekYearOrder'
+					caption: Kalender UkeÅrRekkefølge
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativUkePos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativMånedPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelativtKvartalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativtÅrPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender StartPåMåned
+				column 'Calendar EndOfMonth'
+					caption: Kalender SluttPåMåned
+				column 'Calendar StartOfQuarter'
+					caption: Kalender StartPåKvartal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender SluttPåKvartal
+				column 'Calendar StartOfYear'
+					caption: Kalender StartPåÅr
+				column 'Calendar EndOfYear'
+					caption: Kalender SluttPåÅr
+				column 'Calendar MonthDays'
+					caption: Kalender MånedDager
+				column 'Calendar QuarterDays'
+					caption: Kalender KvartalDager
+				column 'Calendar YearDays'
+					caption: Kalender ÅrDager
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagIMånedNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagIKvartalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagIÅretNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatoForrigeUke
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatoForrigeMåned
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatoForrigeKvartal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatoForrigeÅr
+				column 'Fiscal Year'
+					caption: Regnskapsår
+				column 'Fiscal QuarterNumber'
+					caption: Regnskap KvartalNummer
+				column 'Fiscal Quarter'
+					caption: Regnskapskvartal
+				column 'Fiscal Quarter Year'
+					caption: Regnskap Kvartal År
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Regnskap MånedIKvartalNummer
+				column 'Fiscal Month'
+					caption: Regnskapsmåned
+				column 'Fiscal Month Year'
+					caption: Regnskap Måned År
+				column 'Fiscal WeekNumber'
+					caption: Regnskap Ukenummer
+				column 'Fiscal Week'
+					caption: Regnskapsuke
+				column 'Fiscal Week Year'
+					caption: Regnskap Uke År
+				column 'Fiscal WeekYearOrder'
+					caption: Regnskap UkeÅrRekkefølge
+				column 'Fiscal RelativeWeekPos'
+					caption: Regnskap RelativUkePos
+				column 'Fiscal RelativeMonthPos'
+					caption: Regnskap RelativMånedPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Regnskap RelativtKvartalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Regnskap RelativtÅrPos
+				column 'Fiscal StartOfMonth'
+					caption: Regnskap StartPåMåned
+				column 'Fiscal EndOfMonth'
+					caption: Regnskap SluttPåMåned
+				column 'Fiscal StartOfQuarter'
+					caption: Regnskap StartPåKvartal
+				column 'Fiscal EndOfQuarter'
+					caption: Regnskap SluttPåKvartal
+				column 'Fiscal StartOfYear'
+					caption: Regnskap StartPåÅr
+				column 'Fiscal EndOfYear'
+					caption: Regnskap SluttPåÅr
+				column 'Fiscal MonthDays'
+					caption: Regnskap MånedDager
+				column 'Fiscal QuarterDays'
+					caption: Regnskap KvartalDager
+				column 'Fiscal YearDays'
+					caption: Regnskap ÅrDager
+				column 'Fiscal DayOfMonthNumber'
+					caption: Regnskap DagIMånedNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Regnskap DagIKvartalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Regnskap DagIÅretNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Regnskap DatoForrigeUke
+				column 'Fiscal DatePreviousMonth'
+					caption: Regnskap DatoForrigeMåned
+				column 'Fiscal DatePreviousQuarter'
+					caption: Regnskap DatoForrigeKvartal
+				column 'Fiscal DatePreviousYear'
+					caption: Regnskap DatoForrigeÅr
+				column 'FW Year'
+					caption: Regnskapsuke år
+				column 'FW Quarter'
+					caption: Regnskapsuke kvartal
+				column 'FW Quarter Year'
+					caption: Regnskapsuke Kvartal År
+				column 'FW Month'
+					caption: Regnskapsuke måned
+				column 'FW Month Year'
+					caption: Regnskapsuke Måned År
+				column 'FW Week'
+					caption: Regnskapsuke Uke
+				column 'FW Period'
+					caption: Regnskapsukeperiode
+				column 'FW Week Year'
+					caption: Regnskapsuke Uke År
+				column 'FW StartOfWeek'
+					caption: Regnskapsuke StartPåUke
+				column 'FW EndOfWeek'
+					caption: Regnskapsuke SluttPåUke
+				column 'FW RelativeWeekPos'
+					caption: Regnskapsuke RelativUkePos
+				column 'FW RelativeMonthPos'
+					caption: Regnskapsuke RelativMånedPos
+				column 'FW RelativeQuarterPos'
+					caption: Regnskapsuke RelativtKvartalPos
+				column 'FW RelativeYearPos'
+					caption: Regnskapsuke RelativtÅrPos
+				column 'FW StartOfMonth'
+					caption: Regnskapsuke StartPåMåned
+				column 'FW EndOfMonth'
+					caption: Regnskapsuke SluttPåMåned
+				column 'FW StartOfQuarter'
+					caption: Regnskapsuke StartPåKvartal
+				column 'FW EndOfQuarter'
+					caption: Regnskapsuke SluttPåKvartal
+				column 'FW StartOfYear'
+					caption: Regnskapsuke StartPåÅr
+				column 'FW EndOfYear'
+					caption: Regnskapsuke SluttPåÅr
+				column 'FW MonthDays'
+					caption: Regnskapsuke MånedDager
+				column 'FW QuarterDays'
+					caption: Regnskapsuke KvartalDager
+				column 'FW YearDays'
+					caption: Regnskapsuke ÅrDager
+				column 'FW DayOfMonthNumber'
+					caption: Regnskapsuke DagIMånedNummer
+				column 'FW DayOfQuarterNumber'
+					caption: Regnskapsuke DagIKvartalNummer
+				column 'FW DayOfYearNumber'
+					caption: Regnskapsuke DagIÅretNummer
+				column 'FW DatePreviousWeek'
+					caption: Regnskapsuke DatoForrigeUke
+				column 'FW DatePreviousMonth'
+					caption: Regnskapsuke DatoForrigeMåned
+				column 'FW DatePreviousQuarter'
+					caption: Regnskapsuke DatoForrigeKvartal
+				column 'FW DatePreviousYear'
+					caption: Regnskapsuke DatoForrigeÅr
+				column 'Holiday Name'
+					caption: Navn på ferie
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Type dag
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Min rapporttittel
+				measure 'My Button Caption'
+					caption: Min knappetittel
+				measure 'My Visual Title'
+					caption: Min visuelle tittel
+				measure 'Inventory Valuation'
+					caption: Beholdningsverdisetting
+				measure 'for Business Central'
+					caption: for Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: KOBLE TIL DATAENE
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Last ned beholdningskoblingen for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurer Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: BRUK, REDIGER OG BYGG DINE EGNE RAPPORTER
+				measure 'Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Beholdningsverdisetting inkluderer en rekke forhåndsbygde rapporter for å hjelpe deg med å se dataene umiddelbart.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Du kan redigere disse rapportene eller lage din egen rapport fra bunnen av.
+				measure 'HELP AND SUPPORT'
+					caption: HJELP OG KUNDESTØTTE
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Hvis du vil ha hjelp og støtte med den nye rapporten, kan du gå til dokumentasjonen for analyseoversikten.
+				measure 'OTHER POWER BI REPORTS'
+					caption: ANDRE POWER BI-RAPPORTER
+				measure PURCHASE
+					caption: KJØP
+				measure FINANCE
+					caption: FINANS
+				measure PROJECTS
+					caption: PROSJEKTER
+				measure INVENTORY
+					caption: BEHOLDNING
+				measure SALES
+					caption: SALG
+				measure 'Inventory Valuation Overview'
+					caption: Oversikt over beholdningsverdisetting
+				measure 'Inventory Value & Cost Posted to G/L by Month Year'
+					caption: Beholdningsverdi og -kostnad bokført i finans etter Måned År
+				measure 'Inventory Value by Location'
+					caption: Beholdningsverdi etter lokasjon
+				measure 'Inventory Quantity'
+					caption: Beholdningsantall
+				measure 'Inventory Valuation by Item'
+					caption: Beholdningsverdisetting etter vare
+				measure 'Inventory Valuation by Location'
+					caption: Beholdningsverdisetting etter lokasjon
+				measure 'Detailed Inventory Valuation'
+					caption: Detaljert beholdningsverdisetting
+				measure 'The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: Beholdningsverdisettingen etter vare viser varenummer, startsaldoverdi, økningsverdi, reduksjonsverdi og sluttsaldoverdi.
+				measure 'The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: Beholdningsverdisettingen etter lokasjon viser lokasjonskode, startsaldoverdi, økningsverdi, reduksjonsverdi og sluttsaldoverdi.
+				measure 'The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).'
+					caption: Den detaljerte beholdningsverdisettingen viser dato, varenummer og beskrivelse, lokasjonskode, dokumenttype, oppføringsnummer, fakturert antall, kostbeløp (faktisk), kostbeløp (forventet), bokført kost (faktisk) og kostnad bokført i finans (forventet).
+				measure 'The inventory valuation by location shows location and ending balance value.'
+					caption: Beholdningsverdisettingen etter lokasjon viser lokasjon og sluttsaldoverdi.
+				measure 'The inventory valuation by item shows item category and ending balance quantity.'
+					caption: Beholdningsverdisettingen etter vare viser varekategori og sluttsaldoantall.
+				measure 'Last Refreshed'
+					caption: Sist oppdatert
+				measure 'Company Name'
+					caption: Selskapsnavn
+				measure 'Inventory value as of '
+					caption: "Beholdningsverdi per "
+				measure 'Ending Balance Value and Invoiced Quantity by Location Code'
+					caption: Sluttsaldoverdi og fakturert antall etter lokasjonskode
+				measure 'Ending Balance Value, Ending Balance Posted to G/L and Variance by Month'
+					caption: Sluttsaldoverdi, sluttsaldo bokført i finans og avvik etter måned
+				measure 'Ending Balance Quantity by Item Category Code'
+					caption: Sluttsaldoandtapp etter varekategorikode
+				measure 'Ending Balance Value by Location Name'
+					caption: Sluttsaldoverdi etter lokasjonsnavn
+			table COMPANY
+				caption: SELSKAP
+				measure 'Company Label'
+					caption: Selskapsetikett
+			table 'Item Category'
+				caption: Varekategori
+				column 'Item Category Code'
+					caption: Varekategorikode
+				column 'Item Category Description'
+					caption: Beskrivelse av varekategori
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Hierarki for varekategorikode
+					level 'Item Category Code Level 1'
+						caption: Varekategorikode nivå 1
+					level 'Item Category Code Level 2'
+						caption: Varekategorikode nivå 2
+					level 'Item Category Code Level 3'
+						caption: Varekategorikode nivå 3
+					level 'Item Category Code'
+						caption: Varekategorikode
+

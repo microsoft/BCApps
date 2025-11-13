@@ -1,0 +1,110 @@
+table 'Vendor Billing Forecast'
+	isHidden
+	lineageTag: f1a216b4-3348-47b8-949b-1a18d6347840
+
+	column 'Billing Date'
+		isHidden
+		formatString: Short Date
+		isAvailableInMdx: false
+		lineageTag: 2be2c126-5442-44ad-854b-5232427fb296
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Billing Date]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Billing Amount LCY'
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 361e892f-be8c-4ef3-93f9-3d6a0d9ed6c0
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Billing Amount LCY]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Billing Amount UBB LCY'
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 87b998d2-b4c2-419c-90e1-af4b5bbe52e6
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Billing Amount UBB LCY]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Vendor Contract Line Key'
+		isHidden
+		lineageTag: f3b73673-c745-4287-aff8-ac1ab36d1c8a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Vendor Contract Line Key]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Customer Cash Flow Forecast' = calculated
+		mode: import
+		source = ```
+				
+				VAR currentAnalysisDate =
+				    LOOKUPVALUE (
+				        'Analysis Date'[Analysis Date],
+				        'Analysis Date'[is current Version], TRUE
+				    )
+				VAR baseContractLines =
+				    FILTER (
+				        'Vendor Contract Line',
+				        'Vendor Contract Line'[Analysis Date] = currentAnalysisDate // Dont use 'Vendor Contract Line'[Is Latest Version], this is also true for the latest version of inactive / deleted contract lines
+				    )
+				VAR contractLines =
+				    ADDCOLUMNS (
+				        baseContractLines,
+				        "No. Of Bilings",
+				            DIVIDE (
+				                DATEDIFF (
+				                    'Vendor Contract Line'[Next Billing Date],
+				                    'Vendor Contract Line'[Forecast Until],
+				                    MONTH
+				                ),
+				                'Vendor Contract Line'[Billing Rhythm Months]
+				            ) + 1
+				    )
+				VAR resultTab =
+				    GENERATE (
+				        contractLines,
+				        ADDCOLUMNS (
+				            GENERATESERIES ( 0, [No. Of Bilings] - 1 ),
+				            "Billing Date",
+				                EDATE (
+				                    'Vendor Contract Line'[Next Billing Date],
+				                    [Value] * 'Vendor Contract Line'[Billing Rhythm Months]
+				                ),
+				            "Billing Amount LCY",
+				                'Vendor Contract Line'[Monthly Recurring Cost LCY] * 'Vendor Contract Line'[Billing Rhythm Months],
+				            "Billing Amount UBB LCY",
+				                IF (
+				                    'Vendor Contract Line'[Is Usage Based Billing] 
+				                        && [Value] = 0,
+				                    'Vendor Contract Line'[Monthly Recurring Cost LCY],
+				                    BLANK ()
+				                )
+				        )
+				    )
+				RETURN
+				    SELECTCOLUMNS (
+				        resultTab,
+				        "Vendor Contract Line Key", [Vendor Contract Line Key],
+				        "Billing Date", [Billing Date],
+				        "Billing Amount LCY", [Billing Amount LCY],
+				        "Billing Amount UBB LCY", [Billing Amount UBB LCY]
+				    )
+				```
+
+	annotation PBI_Id = 73b699ecac224e13a63308498b914068
+

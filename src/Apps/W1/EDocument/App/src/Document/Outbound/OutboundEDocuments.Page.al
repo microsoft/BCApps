@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
-using Microsoft.Foundation.Attachment;
 using Microsoft.eServices.EDocument.Service;
+using Microsoft.Foundation.Attachment;
 
 page 6106 "Outbound E-Documents"
 {

@@ -5,8 +5,8 @@
 
 namespace System.Agents;
 
-using System.Integration;
 using System.Environment;
+using System.Integration;
 
 codeunit 4300 "Agent Task Impl."
 {
@@ -229,13 +229,6 @@ codeunit 4300 "Agent Task Impl."
 #pragma warning restore AA0139
         PageSummaryParameters."Include Binary Data" := false;
         Summary := PageSummaryProvider.GetPageSummary(PageSummaryParameters);
-    end;
-
-    procedure GetSessionAgentTaskId(): BigInteger
-    var
-        AgentALFunctions: DotNet AgentALFunctions;
-    begin
-        exit(AgentALFunctions.GetSessionAgentTaskId());
     end;
 
     var

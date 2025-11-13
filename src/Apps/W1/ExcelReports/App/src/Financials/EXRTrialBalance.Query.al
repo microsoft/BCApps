@@ -5,9 +5,9 @@
 
 namespace Microsoft.Finance.ExcelReports;
 
+using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Finance.Dimension;
 
 query 4405 "EXR Trial Balance"
 {

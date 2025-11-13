@@ -4,19 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing.Import;
 
-using Microsoft.Purchases.Document;
-using Microsoft.Finance.Deferral;
+using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
-using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Utilities;
+using Microsoft.Finance.AllocationAccount;
+using Microsoft.Finance.Deferral;
+using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.FixedAssets.FixedAsset;
-using Microsoft.Inventory.Item;
-using Microsoft.eServices.EDocument;
-using Microsoft.Finance.AllocationAccount;
-using Microsoft.Projects.Resources.Resource;
 using Microsoft.Foundation.UOM;
-using Microsoft.Finance.Dimension;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Document;
+using Microsoft.Utilities;
 
 table 6105 "E-Document Line Mapping"
 {

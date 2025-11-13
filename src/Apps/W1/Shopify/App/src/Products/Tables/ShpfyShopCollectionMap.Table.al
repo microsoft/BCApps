@@ -6,9 +6,9 @@
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Finance.SalesTax;
-using System.IO;
-using Microsoft.Inventory.Item;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Inventory.Item;
+using System.IO;
 
 /// <summary>
 /// Table Shpfy Shop Collection Map (ID 30128).

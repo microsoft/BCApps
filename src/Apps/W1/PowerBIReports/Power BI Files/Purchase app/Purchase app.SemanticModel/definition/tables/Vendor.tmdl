@@ -1,0 +1,207 @@
+table Vendor
+	lineageTag: 7c350b7c-ed71-499f-860b-bf6b769f6755
+
+	measure 'Item Reliance %' = ```
+			
+			
+			VAR UniqueItemsbyVendor =
+			    DISTINCTCOUNT ( 'Purchase Value Entries'[itemNo] )
+			VAR TotalUniqueItemsSold =
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Purchase Value Entries'[itemNo] ),
+			        ALLSELECTED (),
+			        REMOVEFILTERS ( Vendor )
+			    )
+			VAR SuppliersForItem =
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Purchase Value Entries'[Vendor No.] ),
+			        REMOVEFILTERS ( 'Vendor' ) -- count all vendors for THIS item in context
+			    )
+			VAR VendorSuppliesThisItem = ISEMPTY('Purchase Value Entries') -- In context, check if vendor has transacted with this item
+			
+			VAR IsItemRow =
+			    ISINSCOPE ( 'Item'[Item No. & Description] )
+			        || ISINSCOPE ( 'Item'[Item No.] ) 
+			RETURN
+			    IF (
+			        IsItemRow,
+			        IF (
+			            VendorSuppliesThisItem, 
+			            BLANK (),
+			            DIVIDE (
+			                1,
+			                SuppliersForItem
+			            )
+			        ),
+			        DIVIDE (
+			            UniqueItemsbyVendor,
+			            TotalUniqueItemsSold
+			        )
+			    )
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Vendor Measures
+		lineageTag: ffea491f-66ad-45f4-b022-da95ae7e35d4
+
+	measure 'Spend Reliance %' = ```
+			
+			VAR TotalSpend =
+			    CALCULATE (
+			        [Purchase (LCY)],
+			        REMOVEFILTERS ( Vendor )
+			    )
+			RETURN
+			    DIVIDE (
+			        [Purchase (LCY)],
+			        TotalSpend
+			    )
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Vendor Measures
+		lineageTag: aaaa90cd-d1f5-412f-8a43-39f96faca29e
+
+	column 'Vendor No. & Name'
+		dataType: string
+		lineageTag: b31e794b-cc0c-42c9-8b0e-10f595d0f4e5
+		summarizeBy: none
+		sourceColumn: Vendor No. & Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor No.'
+		dataType: string
+		isKey
+		lineageTag: bb9f895d-c108-45f4-a196-db0ba3dd4647
+		summarizeBy: none
+		sourceColumn: Vendor No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Name'
+		dataType: string
+		lineageTag: b349ede0-50fe-4028-bced-650539ef4da9
+		summarizeBy: none
+		sourceColumn: Vendor Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Address'
+		dataType: string
+		lineageTag: f89f1f95-af51-44a3-afd3-09dfa2822b1b
+		dataCategory: Address
+		summarizeBy: none
+		sourceColumn: Vendor Address
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Address 2'
+		dataType: string
+		lineageTag: 55455e9f-0c61-4b9e-a3f7-5060722154ca
+		dataCategory: Address
+		summarizeBy: none
+		sourceColumn: Vendor Address 2
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor City'
+		dataType: string
+		lineageTag: 4b15f8ff-cdf1-4247-9305-0c2cb18abb91
+		dataCategory: City
+		summarizeBy: none
+		sourceColumn: Vendor City
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Post Code'
+		dataType: string
+		lineageTag: dabc5562-d711-4dd4-ab35-d96dcae5d62a
+		dataCategory: PostalCode
+		summarizeBy: none
+		sourceColumn: Vendor Post Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor State'
+		dataType: string
+		lineageTag: 16a7b6ab-3ee1-43f9-9bf4-c26358fcd76a
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: Vendor State
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Country/Region Code'
+		dataType: string
+		lineageTag: a7f51d3c-21a1-42c6-bd98-f398c1b38fdb
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: Vendor Country/Region Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Posting Group'
+		dataType: string
+		lineageTag: 61bb9908-9c85-4753-b0c6-1ccd574cf760
+		summarizeBy: none
+		sourceColumn: Vendor Posting Group
+
+		annotation SummarizationSetBy = Automatic
+
+	column ETag
+		dataType: string
+		isHidden
+		lineageTag: fe9451b7-c1fb-4085-acf1-ef4d13301f34
+		summarizeBy: none
+		sourceColumn: ETag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Vendor-6b492668-52df-4b9d-b3b8-65a63247bc80 = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "vendors", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"vendorNo", type text},
+				            {"vendorName", type text},
+				            {"address", type text},
+				            {"address2", type text},
+				            {"city", type text},
+				            {"postCode", type text},
+				            {"county", type text},
+				            {"countryRegionCode", type text},
+				            {"vendorPostingGroup", type text}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {
+				            {"vendorNo", "Vendor No."},
+				            {"vendorName", "Vendor Name"},
+				            {"address", "Vendor Address"},
+				            {"address2", "Vendor Address 2"},
+				            {"postCode", "Vendor Post Code"},
+				            {"city", "Vendor City"},
+				            {"countryRegionCode", "Vendor Country/Region Code"},
+				            {"vendorPostingGroup", "Vendor Posting Group"},
+				            {"county", "Vendor State"}
+				        }
+				    ),
+				    #"Added Column" = Table.AddColumn(
+				        #"Renamed Columns", "Vendor No. & Name", each [#"Vendor No."] & " " & [Vendor Name], type text
+				    )
+				in
+				    #"Added Column"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

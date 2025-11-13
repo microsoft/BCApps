@@ -1,0 +1,514 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 5321.2163350746314,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 568,
+            "y": 0
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "1617752a-65ec-4d0c-b652-07eb46ba12e3",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 27
+        },
+        {
+          "location": {
+            "x": 1704,
+            "y": 86
+          },
+          "nodeIndex": "Working Days",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 25
+        },
+        {
+          "location": {
+            "x": 1988,
+            "y": 0
+          },
+          "nodeIndex": "Vendors",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 26
+        },
+        {
+          "location": {
+            "x": 2272,
+            "y": 0
+          },
+          "nodeIndex": "Customers",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 24
+        },
+        {
+          "location": {
+            "x": 2556,
+            "y": 0
+          },
+          "nodeIndex": "Date Ref",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 22
+        },
+        {
+          "location": {
+            "x": 2840,
+            "y": 0
+          },
+          "nodeIndex": "Date",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 23
+        },
+        {
+          "location": {
+            "x": 4828,
+            "y": 0
+          },
+          "nodeIndex": "Date Table Setup",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 20
+        },
+        {
+          "location": {
+            "x": 5112,
+            "y": 0
+          },
+          "nodeIndex": "Localized Labels",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 21
+        },
+        {
+          "location": {
+            "x": 5964,
+            "y": 62
+          },
+          "nodeIndex": "Customer Contract",
+          "nodeLineageTag": "b748c247-65fd-49d8-93a8-6221ddd88c2e",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 6248,
+            "y": 0
+          },
+          "nodeIndex": "Customer Contract Deferrals",
+          "nodeLineageTag": "fe6c8954-df24-4726-8ad2-a5866e1c40aa",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 6532,
+            "y": 0
+          },
+          "nodeIndex": "Customer Contract Line",
+          "nodeLineageTag": "540f4568-d4e5-47d8-8c9c-1c4a21f3b091",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 6816,
+            "y": 86
+          },
+          "nodeIndex": "Is Released",
+          "nodeLineageTag": "9728ed60-2d3f-45b2-bab6-f867ea81d7be",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 7100,
+            "y": 38
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "e8181695-0d8d-46a4-a884-1119686c45c5",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 7668,
+            "y": 98
+          },
+          "nodeIndex": "UBB handling",
+          "nodeLineageTag": "37de7ae7-1930-41cc-980c-6505b3f128d8",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 7952,
+            "y": 62
+          },
+          "nodeIndex": "Vendor Contract",
+          "nodeLineageTag": "b9c04fa3-148a-4302-9e95-8be447f97ba2",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 8
+        },
+        {
+          "location": {
+            "x": 8236,
+            "y": 0
+          },
+          "nodeIndex": "Vendor Contract Deferrals",
+          "nodeLineageTag": "8c73f9a0-1ebd-4482-9add-657beddf981d",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 8520,
+            "y": 0
+          },
+          "nodeIndex": "Vendor Contract Line",
+          "nodeLineageTag": "99943954-cca4-451c-9f37-de72dc3ba6fe",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 8236,
+            "y": 74
+          },
+          "nodeIndex": "Analysis Date",
+          "nodeLineageTag": "f142381c-cc7e-4ac9-bd00-1cdcb9e5fed4",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 11
+        },
+        {
+          "location": {
+            "x": 8520,
+            "y": 86
+          },
+          "nodeIndex": "Tec Dummy Values",
+          "nodeLineageTag": "a0ac206e-2d81-4a6a-83ab-3bb415a478cc",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 12
+        },
+        {
+          "location": {
+            "x": 5396,
+            "y": 86
+          },
+          "nodeIndex": "Meta Information",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 13
+        },
+        {
+          "location": {
+            "x": 9656,
+            "y": 0
+          },
+          "nodeIndex": "Subscription Billing KPIs",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 28
+        },
+        {
+          "location": {
+            "x": 9940,
+            "y": 86
+          },
+          "nodeIndex": "Calc. Group - Time Intelligence for Calendar (Fiscal)",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 14
+        },
+        {
+          "location": {
+            "x": 10224,
+            "y": 86
+          },
+          "nodeIndex": "Calc. Group - Tec. Transformations",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 15
+        },
+        {
+          "location": {
+            "x": 9940,
+            "y": 86
+          },
+          "nodeIndex": "Salesperson",
+          "nodeLineageTag": "f229e1ee-eb72-4253-af81-91c9b5a4a709",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 16
+        },
+        {
+          "location": {
+            "x": 9088,
+            "y": 62
+          },
+          "nodeIndex": "Customer Billing Forecast",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 17
+        },
+        {
+          "location": {
+            "x": 9372,
+            "y": 62
+          },
+          "nodeIndex": "Vendor Billing Forecast",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 18
+        },
+        {
+          "location": {
+            "x": 9940,
+            "y": 50
+          },
+          "nodeIndex": "Customer Contract Changes",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 7384,
+            "y": 38
+          },
+          "nodeIndex": "Subscription",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {},
+          "nodeIndex": "Translated Localized Labels",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 97.214615498759784,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 1,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 442.95036899408581,
+            "y": 268.23447355334349
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "1617752a-65ec-4d0c-b652-07eb46ba12e3",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 158.80624399909811,
+            "y": 542.07469934852588
+          },
+          "nodeIndex": "Customer Contract Deferrals",
+          "nodeLineageTag": "fe6c8954-df24-4726-8ad2-a5866e1c40aa",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 846.25152145072855,
+            "y": 340.14567339316477
+          },
+          "nodeIndex": "Vendor Contract Deferrals",
+          "nodeLineageTag": "8c73f9a0-1ebd-4482-9add-657beddf981d",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 10,
+            "y": 191.93222916809395
+          },
+          "nodeIndex": "Customer Contract Line",
+          "nodeLineageTag": "540f4568-d4e5-47d8-8c9c-1c4a21f3b091",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 727.1054129807942,
+            "y": -10
+          },
+          "nodeIndex": "Vendor Contract Line",
+          "nodeLineageTag": "99943954-cca4-451c-9f37-de72dc3ba6fe",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Layout 1",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 2,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 527.18475118062986,
+            "y": 2
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "e8181695-0d8d-46a4-a884-1119686c45c5",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 919.36163941535983,
+            "y": 0
+          },
+          "nodeIndex": "Customer Contract Line",
+          "nodeLineageTag": "540f4568-d4e5-47d8-8c9c-1c4a21f3b091",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 50.000000000000014,
+            "y": -50
+          },
+          "nodeIndex": "Vendor Contract Line",
+          "nodeLineageTag": "99943954-cca4-451c-9f37-de72dc3ba6fe",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Layout 2",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Layout 2",
+  "defaultDiagram": "All tables"
+}

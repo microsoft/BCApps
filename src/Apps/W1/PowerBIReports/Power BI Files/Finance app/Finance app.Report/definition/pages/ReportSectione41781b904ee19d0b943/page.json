@@ -1,0 +1,340 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "ReportSectione41781b904ee19d0b943",
+  "displayName": "Balance Sheet Drill Through",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filteraae563d9cd96a1003b26",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "G/L Account"
+                  }
+                },
+                "Hierarchy": "G/L Account Hierarchy"
+              }
+            },
+            "Level": "G/L Account (Level 1)"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "g",
+              "Entity": "G/L Account",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "g"
+                          }
+                        },
+                        "Property": "G/L Account (Level 1)"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'20000 Liabilities'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filter9d6062d0a51b41245d00",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "G/L Account"
+                  }
+                },
+                "Hierarchy": "G/L Account Hierarchy"
+              }
+            },
+            "Level": "G/L Account (Level 2)"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filter2504a94ab24b1639edd9",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "G/L Account"
+                  }
+                },
+                "Hierarchy": "G/L Account Hierarchy"
+              }
+            },
+            "Level": "G/L Account (Level 3)"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filter5a97136d2557cd572a61",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "G/L Account"
+                  }
+                },
+                "Hierarchy": "G/L Account Hierarchy"
+              }
+            },
+            "Level": "G/L Account (Level 4)"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filterf28a17e12a08819a6a20",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "G/L Account"
+                  }
+                },
+                "Hierarchy": "G/L Account Hierarchy"
+              }
+            },
+            "Level": "G/L Account (Level 5)"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filter54680f7100a84a44d988",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "G/L Account"
+              }
+            },
+            "Property": "G/L Account No."
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filter9681b69f98ce6b8cb967",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "G/L Account"
+              }
+            },
+            "Property": "G/L Account Name"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filter8e19ca2cd4a416edc6bd",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "G/L Account"
+              }
+            },
+            "Property": "G/L Account No./Name"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "Pod20",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "Param_Filteraae563d9cd96a1003b26",
+        "boundFilter": "Filteraae563d9cd96a1003b26",
+        "fieldExpr": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "G/L Account"
+                  }
+                },
+                "Hierarchy": "G/L Account Hierarchy"
+              }
+            },
+            "Level": "G/L Account (Level 1)"
+          }
+        }
+      },
+      {
+        "name": "Param_Filter9d6062d0a51b41245d00",
+        "boundFilter": "Filter9d6062d0a51b41245d00",
+        "fieldExpr": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "G/L Account"
+                  }
+                },
+                "Hierarchy": "G/L Account Hierarchy"
+              }
+            },
+            "Level": "G/L Account (Level 2)"
+          }
+        }
+      },
+      {
+        "name": "Param_Filter2504a94ab24b1639edd9",
+        "boundFilter": "Filter2504a94ab24b1639edd9",
+        "fieldExpr": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "G/L Account"
+                  }
+                },
+                "Hierarchy": "G/L Account Hierarchy"
+              }
+            },
+            "Level": "G/L Account (Level 3)"
+          }
+        }
+      },
+      {
+        "name": "Param_Filter5a97136d2557cd572a61",
+        "boundFilter": "Filter5a97136d2557cd572a61",
+        "fieldExpr": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "G/L Account"
+                  }
+                },
+                "Hierarchy": "G/L Account Hierarchy"
+              }
+            },
+            "Level": "G/L Account (Level 4)"
+          }
+        }
+      },
+      {
+        "name": "Param_Filterf28a17e12a08819a6a20",
+        "boundFilter": "Filterf28a17e12a08819a6a20",
+        "fieldExpr": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "G/L Account"
+                  }
+                },
+                "Hierarchy": "G/L Account Hierarchy"
+              }
+            },
+            "Level": "G/L Account (Level 5)"
+          }
+        }
+      },
+      {
+        "name": "Param_Filter54680f7100a84a44d988",
+        "boundFilter": "Filter54680f7100a84a44d988",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "G/L Account"
+              }
+            },
+            "Property": "G/L Account No."
+          }
+        }
+      },
+      {
+        "name": "Param_Filter9681b69f98ce6b8cb967",
+        "boundFilter": "Filter9681b69f98ce6b8cb967",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "G/L Account"
+              }
+            },
+            "Property": "G/L Account Name"
+          }
+        }
+      },
+      {
+        "name": "Param_Filter8e19ca2cd4a416edc6bd",
+        "boundFilter": "Filter8e19ca2cd4a416edc6bd",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "G/L Account"
+              }
+            },
+            "Property": "G/L Account No./Name"
+          }
+        }
+      }
+    ]
+  },
+  "visibility": "HiddenInViewMode"
+}

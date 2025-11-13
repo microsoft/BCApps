@@ -7,9 +7,9 @@ namespace System.Test.Email;
 
 using System.Email;
 using System.TestLibraries.Email;
-using System.Utilities;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 134853 "Email Default Attachment Tests"
 {

@@ -1,0 +1,230 @@
+table 'Localized Labels'
+	isHidden
+	lineageTag: bb491cc1-cc21-4024-930c-dd934ce72e6d
+
+	measure 'My Report Title' = 0
+		isHidden
+		lineageTag: 9e65416f-15d8-460c-b41b-c5268ae1171e
+
+	measure 'My Button Caption' = 0
+		isHidden
+		lineageTag: bb8cf56a-9b48-47e6-a637-878d9618701d
+
+	measure 'My Visual Title' = 0
+		isHidden
+		lineageTag: b62c0144-e6a1-4cd7-9ecc-e6a858099595
+
+	measure 'Inactive Employees' = 0
+		isHidden
+		lineageTag: 18896aa9-3a2f-40c6-b556-d0f1672d09b1
+
+	measure 'Terminated Employees' = 0
+		isHidden
+		lineageTag: 566f5710-7c55-4c83-9621-5381bedaf249
+
+	measure 'Employees in Unions' = 0
+		isHidden
+		lineageTag: 4a2ad2b9-3658-4588-930c-f3591d70cf27
+
+	measure 'Social Analysis' = 0
+		isHidden
+		lineageTag: 9204c6c8-e948-4812-a025-f8bb80f90e32
+
+	measure 'Gender Distribution' = 0
+		isHidden
+		lineageTag: 9ca8694a-da41-44a6-984c-73dcbfc39070
+
+	measure 'Age Distribution' = 0
+		isHidden
+		lineageTag: 73b30466-7200-4178-ab96-4a5bdb2e5e03
+
+	measure 'Employees Qualifications' = 0
+		isHidden
+		lineageTag: 5a2af44e-779a-480d-9adb-e26af766e21a
+
+	measure 'Realized Emissions vs Target' = 0
+		isHidden
+		lineageTag: 71f80cda-75ca-42a0-a179-43d59980f214
+
+	measure 'CO2e Emissions by Scope' = 0
+		isHidden
+		lineageTag: b0629446-28a2-4927-952b-53a97f67a2fe
+
+	measure 'Gas Emissions by Category' = 0
+		isHidden
+		lineageTag: d09a834c-cd31-41d4-86b1-35814e18af0e
+
+	measure 'Realized Emissions vs Baseline' = 0
+		isHidden
+		lineageTag: 631ba763-4ef0-4a71-ba09-7e53eb7a98ea
+
+	measure 'CO2e Emissions vs Baseline' = 0
+		isHidden
+		lineageTag: 46f3e69c-a92c-4270-916e-4d2c403bd0ab
+
+	measure 'CO2e Emissions by Account' = 0
+		isHidden
+		lineageTag: 7f398453-b234-4f7f-b6b0-f19c66c58006
+
+	measure 'Water and Waste Analysis' = 0
+		isHidden
+		lineageTag: a95d2b66-65ad-44ba-8346-3782184f3570
+
+	measure 'Water by Facility Location' = 0
+		isHidden
+		lineageTag: 3d7c4b40-5391-4d34-8113-c87b14a7d4a4
+
+	measure 'Water by Facility Capacity' = 0
+		isHidden
+		lineageTag: 0fd2dc50-304b-4baf-9bf6-ccce48bf0b6b
+
+	measure 'Water and Waste by Type' = 0
+		isHidden
+		lineageTag: 623403d9-6170-47d3-b510-625bf8337b04
+
+	measure 'Water and Waste Intensity by Type' = 0
+		isHidden
+		lineageTag: a8c017f3-1866-44c3-8142-0658acdaad13
+
+	measure 'Water and Waste Intensity by Facility' = 0
+		isHidden
+		lineageTag: 93e09b40-4080-4d45-9129-be7d18c5c785
+
+	measure 'Emissions by Category and Scope' = 0
+		isHidden
+		lineageTag: b1053c69-988d-4bc4-9d5a-b5fa6bd18530
+
+	measure 'Emissions by Category' = 0
+		isHidden
+		lineageTag: 6da08a4c-8f1a-4b7e-ac0a-51d1bdfcfddf
+
+	measure 'Emissions by Scope' = 0
+		isHidden
+		lineageTag: e4ddab31-7c0d-490f-bab7-af8c70da07e1
+
+	measure 'CO2e Analysis' = 0
+		isHidden
+		lineageTag: 10ff233f-69ad-4d2a-aff5-1e81e7327c62
+
+	measure 'CO2e Emissions by Category' = 0
+		isHidden
+		lineageTag: 66ac4f18-a5eb-42eb-8d1f-10cdf8f24142
+
+	measure 'Carbon Credit by Month' = 0
+		isHidden
+		lineageTag: 5c475b32-8fc3-437a-a2fc-7812e7ebbb26
+
+	measure 'CO2e Equivalent Emission by Month and Revenue' = 0
+		isHidden
+		lineageTag: 7cf80c7c-c1fc-4d32-a660-946e21b472ae
+
+	measure 'Employee Entries Drillthrough' = 0
+		isHidden
+		lineageTag: 59c31939-f665-4347-ad99-f62ebc1aa736
+
+	measure 'Employee Ledger Entries' = 0
+		isHidden
+		lineageTag: aeaf3868-4b59-48dc-831a-b759246225f1
+
+	measure 'Sustainability Ledger Entries' = 0
+		isHidden
+		lineageTag: 400de913-a611-4ff8-b928-283ef2321eeb
+
+	measure 'Sustainability Ledger Entries Drillthrough' = 0
+		isHidden
+		lineageTag: 2cf8f7f5-dfde-475c-9711-660fb6994931
+
+	measure 'Employee Ledger Entries Drillthrough' = 0
+		isHidden
+		lineageTag: ea61ae70-5a70-48ed-82f3-244293ec688a
+
+	measure 'Sustainability Overview' = 0
+		isHidden
+		lineageTag: ebdf6286-26e7-484a-a52b-7ce6062ddddb
+
+	measure 'Sustainability Analytics' = 0
+		isHidden
+		lineageTag: ff1ab351-e3fa-43f9-ac1b-ea85b7b94d2c
+
+	measure 'CO2e Emissions by Month' = 0
+		isHidden
+		lineageTag: 503f3e52-171a-4a1d-bef8-24de16c49186
+
+	measure 'Scopes 1 and 2 Analysis by Categories Per Year' = 0
+		isHidden
+		lineageTag: 44b017f0-9f5e-4157-b1d9-77505000a6d9
+
+	measure 'CO2e Emissions by Department' = 0
+		isHidden
+		lineageTag: 36086391-3b8d-4120-a408-f9e1884c7b03
+
+	measure 'Journey to Net-Zero Carbon' = 0
+		isHidden
+		lineageTag: 736f9a78-90e0-41ce-b915-9670871a5387
+
+	measure 'CO2e Emissions by Business Group' = 0
+		isHidden
+		lineageTag: b21ae342-6355-47ff-b0a6-6b98f5a20181
+
+	measure 'Renewable Energy Usage' = 0
+		isHidden
+		lineageTag: 8a5cb81e-f637-4bda-82a6-dc8aa7ae6af7
+
+	measure 'CO2e Emissions Over Time' = 0
+		isHidden
+		lineageTag: 57b3ef30-e5c0-4f3a-ae8a-c35be4072e29
+
+	measure 'CO2e Smart Review' = 0
+		isHidden
+		lineageTag: 70c2f156-2eb3-421a-9051-64838b54af5e
+
+	measure 'CO2e Emissions by Global Dimension One' = 0
+		isHidden
+		lineageTag: 7fca9521-f490-4a7d-a611-6c99f54e3ddf
+
+	measure 'CO2e Emissions by Global Dimension Two' = 0
+		isHidden
+		lineageTag: 0fff5903-bcad-408b-ac28-3e0679eae7d4
+
+	measure 'CO2e Equivalent Emissions by Month' = 0
+		isHidden
+		lineageTag: 46a0f17f-fa4a-49fc-9c86-28c58c3d0872
+
+	measure 'Company Name' = 0
+		isHidden
+		lineageTag: 52480de2-e6cb-4b1d-b31b-d52d1d88e185
+
+	measure 'Last Refreshed' = 0
+		isHidden
+		lineageTag: 46a670c1-4eb6-458b-bcda-35548cb10ea1
+
+	measure 'Released Employees' = 0
+		isHidden
+		lineageTag: d6394ad5-6fe4-47f9-979f-d0decf6426d6
+
+	measure 'CO2e Decomposition Tree' = 0
+		isHidden
+		lineageTag: c724871e-084f-4dc5-b8b7-a43dd3597ef0
+
+	measure 'CO2e Key Influences' = 0
+		isHidden
+		lineageTag: aac80eb3-dad2-43f0-9acd-6d68daee9953
+
+	measure 'Water and Waste Yearly and Daily Change' = 0
+		isHidden
+		lineageTag: 3a1c37f6-15d4-440f-8ca8-27f98f1e1e09
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: 199faaa3-4c88-43c8-9560-ca033e5f0ec4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [unused]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Partition = calculated
+		mode: import
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

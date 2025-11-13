@@ -1,10 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Foundation.Attachment;
+using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
-using Microsoft.Finance.Dimension;
 
 page 8052 "Customer Contract"
 {

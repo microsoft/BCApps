@@ -6,9 +6,9 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
-using Microsoft.Sales.Document;
 using Microsoft.Inventory.Location;
+using Microsoft.Sales.Document;
+using System.TestLibraries.Utilities;
 
 codeunit 139611 "Shpfy Order Refund Test"
 {

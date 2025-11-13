@@ -1,16 +1,16 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
-#if not CLEAN25
-using Microsoft.Sales.Pricing;
-#endif
-using Microsoft.Pricing.PriceList;
-#if not CLEAN25
-using Microsoft.Pricing.Calculation;
-#endif
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Tracking;
+#if not CLEAN25
+using Microsoft.Pricing.Calculation;
+#endif
+using Microsoft.Pricing.PriceList;
+#if not CLEAN25
+using Microsoft.Sales.Pricing;
+#endif
+using System.Utilities;
 
 tableextension 8052 Item extends Item
 {

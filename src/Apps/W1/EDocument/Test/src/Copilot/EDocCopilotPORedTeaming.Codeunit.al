@@ -3,8 +3,8 @@ namespace Microsoft.Sales.Document.Test;
 using Microsoft.eServices.EDocument;
 // using System.TestLibraries.AdversarialSimulation;
 using Microsoft.eServices.EDocument.OrderMatch;
-using Microsoft.Purchases.Document;
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
+using Microsoft.Purchases.Document;
 using System.TestLibraries.Environment;
 using System.TestTools.AITestToolkit;
 

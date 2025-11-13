@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Foundation.AuditCodes;
 using Microsoft.DemoTool.Helpers;
+using Microsoft.Foundation.AuditCodes;
 
 codeunit 8101 "Create Sub. Billing Setup"
 {

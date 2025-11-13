@@ -5,14 +5,14 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
-using Microsoft.Integration.Shopify;
-using Microsoft.Foundation.Shipping;
-using Microsoft.Sales.Document;
-using Microsoft.Inventory.Item;
-using System.TestLibraries.Utilities;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Enums;
+using Microsoft.Foundation.Shipping;
+using Microsoft.Integration.Shopify;
+using Microsoft.Inventory.Item;
+using Microsoft.Sales.Document;
+using System.TestLibraries.Utilities;
 
 codeunit 139546 "Shpfy Shipping Charges Test"
 {
