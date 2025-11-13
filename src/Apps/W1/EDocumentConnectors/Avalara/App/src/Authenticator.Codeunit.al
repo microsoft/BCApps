@@ -132,6 +132,7 @@ codeunit 6374 "Authenticator"
 
     internal procedure GetAuthURL(): Text
     var
+        ConnectionSetup: Record "Connection Setup";
         URI: Codeunit Uri;
     begin
         exit(URI.ValidateIntegrationURLFromSetupTableField(Database::"Connection Setup", ConnectionSetup.FieldNo("Authentication URL"), AuthURLTxt));
@@ -139,6 +140,7 @@ codeunit 6374 "Authenticator"
 
     internal procedure GetSandboxAuthURL(): Text
     var
+        ConnectionSetup: Record "Connection Setup";
         URI: Codeunit Uri;
     begin
         exit(URI.ValidateIntegrationURLFromSetupTableField(Database::"Connection Setup", ConnectionSetup.FieldNo("Authentication URL"), SandboxAuthURLTxt));
@@ -146,6 +148,7 @@ codeunit 6374 "Authenticator"
 
     internal procedure GetAPIURL(): Text
     var
+        ConnectionSetup: Record "Connection Setup";
         URI: Codeunit Uri;
     begin
         exit(URI.ValidateIntegrationURLFromSetupTableField(Database::"Connection Setup", ConnectionSetup.FieldNo("API URL"), APIURLTxt));
@@ -153,13 +156,13 @@ codeunit 6374 "Authenticator"
 
     internal procedure GetSandboxAPIURL(): Text
     var
+        ConnectionSetup: Record "Connection Setup";
         URI: Codeunit Uri;
     begin
         exit(URI.ValidateIntegrationURLFromSetupTableField(Database::"Connection Setup", ConnectionSetup.FieldNo("API URL"), SandboxAPIURLTxt));
     end;
 
     var
-        ConnectionSetup: Record "Connection Setup";
         AuthURLTxt: Label 'https://identity.avalara.com', Locked = true;
         APIURLTxt: Label 'https://api.avalara.com', Locked = true;
         SandboxAuthURLTxt: Label 'https://ai-sbx.avlr.sh', Locked = true;
