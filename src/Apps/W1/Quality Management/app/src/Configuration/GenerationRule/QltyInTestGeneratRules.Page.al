@@ -170,53 +170,9 @@ page 20405 "Qlty. In. Test Generat. Rules"
             actionref(CreateNewGenerationRuleForWhseWizard_Promoted; CreateNewGenerationRuleForWhseWizard)
             {
             }
-            // TODO: Decouple Manufacturing dependency - FIXED
-            /*            actionref(CreateNewGenerationRuleForProdWizard_Promoted; CreateNewGenerationRuleForProdWizard)
-                        {
-                        }*/
         }
         area(Processing)
         {
-            // TODO: Decouple Manufacturing dependency - FIXED
-            /*            action(CreateNewGenerationRuleForProdWizard)
-                        {
-                            Caption = 'Create Production Rule';
-                            ToolTip = 'Specifies to create a rule for production.';
-                            Image = Receipt;
-                            ApplicationArea = Manufacturing;
-
-                            trigger OnAction()
-                            var
-                                RecQltyProdGenRuleWizard: Page "Qlty. Prod. Gen. Rule Wizard";
-                            begin
-                                RecQltyProdGenRuleWizard.RunModalWithGenerationRule(Rec);
-                                CurrPage.Update(false);
-                            end;
-                        }
-                        action(EditGenerationRuleForProdWizard)
-                        {
-                            ApplicationArea = Manufacturing;
-                            Caption = 'Edit Production Rule';
-                            ToolTip = 'Edit a Rule for production.';
-                            Image = Receipt;
-                            Scope = Repeater;
-                            Visible = ShowEditWizardProductionRule;
-
-                            trigger OnAction()
-                            var
-                                QltyProdGenRuleWizard: Page "Qlty. Prod. Gen. Rule Wizard";
-                                PreviousEntryNo: Integer;
-                            begin
-                                PreviousEntryNo := Rec."Entry No.";
-                                QltyProdGenRuleWizard.RunModalWithGenerationRule(Rec);
-
-                                CurrPage.Update(false);
-                                Rec.Reset();
-                                Rec.SetRange("Entry No.", PreviousEntryNo);
-                                if Rec.FindSet() then;
-                                Rec.SetRange("Entry No.");
-                            end;
-                        }*/
             action(CreateNewGenerationRuleForRecWizard)
             {
                 Caption = 'Create Receiving Rule';
@@ -355,20 +311,14 @@ page 20405 "Qlty. In. Test Generat. Rules"
         ShowSortAndTemplate: Boolean;
         ShowEditWizardMovementRule: Boolean;
         ShowEditWizardReceivingRule: Boolean;
-        // TODO: Decouple Manufacturing dependency - FIXED
-        //ShowEditWizardProductionRule: Boolean;
         TemplateCode: Code[20];
         ShowAssemblyTrigger: Boolean;
-        // TODO: Decouple Manufacturing dependency - FIXED
-        //ShowProductionTrigger: Boolean;
         ShowPurchaseTrigger: Boolean;
         ShowSalesReturnTrigger: Boolean;
         ShowTransferTrigger: Boolean;
         ShowWarehouseReceiveTrigger: Boolean;
         ShowWarehouseMovementTrigger: Boolean;
         EditAssemblyTrigger: Boolean;
-        // TODO: Decouple Manufacturing dependency - FIXED
-        //EditProductionTrigger: Boolean;
         EditPurchaseTrigger: Boolean;
         EditSalesReturnTrigger: Boolean;
         EditTransferTrigger: Boolean;
@@ -376,15 +326,11 @@ page 20405 "Qlty. In. Test Generat. Rules"
         EditWarehouseMovementTrigger: Boolean;
         ShowJobQueueEntries: Boolean;
         AssemblyStyle: Text;
-        // TODO: Decouple Manufacturing dependency - FIXED
-        //ProductionStyle: Text;
         PurchaseStyle: Text;
         SalesReturnStyle: Text;
         WhseReceiveStyle: Text;
         WhseMovementStyle: Text;
         TransferStyle: Text;
-        // TODO: Decouple Manufacturing dependency - FIXED
-        //        RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
         GenerationRulesCaptionLbl: Label 'Quality Inspection Test Generation Rules';
         GenerationRulesCaptionForTemplateLbl: Label 'Quality Inspection Test Generation Rules for %1', Comment = '%1=the template';
 
@@ -455,13 +401,9 @@ page 20405 "Qlty. In. Test Generat. Rules"
             Rec.InferGenerationRuleIntent(KnownOrInferredIntent, Certainty);
 
             if Certainty = Certainty::Maybe then begin
-                // TODO: Decouple Manufacturing dependency - FIXED
-                //ShowEditWizardProductionRule := true;
                 ShowEditWizardReceivingRule := true;
                 ShowEditWizardMovementRule := true;
                 EditAssemblyTrigger := true;
-                // TODO: Decouple Manufacturing dependency - FIXED
-                //EditProductionTrigger := true;
                 EditPurchaseTrigger := true;
                 EditSalesReturnTrigger := true;
                 EditTransferTrigger := true;
@@ -469,8 +411,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
                 EditWarehouseReceiveTrigger := true;
 
                 AssemblyStyle := Format(RowStyle::Ambiguous);
-                // TODO: Decouple Manufacturing dependency - FIXED
-                //ProductionStyle := Format(RowStyle::Ambiguous);
                 PurchaseStyle := Format(RowStyle::Ambiguous);
                 SalesReturnStyle := Format(RowStyle::Ambiguous);
                 WhseReceiveStyle := Format(RowStyle::Ambiguous);
@@ -487,13 +427,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
                     EditAssemblyTrigger := true;
                     AssemblyStyle := Format(RowStyle::Standard);
                 end;
-            // TODO: Decouple Manufacturing dependency - FIXED
-            /*Rec.Intent::Production:
-                begin
-                    ShowEditWizardProductionRule := true;
-                    EditProductionTrigger := true;
-                    ProductionStyle := Format(RowStyle::Standard);
-                end;*/
             Rec.Intent::Purchase:
                 begin
                     ShowEditWizardReceivingRule := true;
@@ -530,11 +463,7 @@ page 20405 "Qlty. In. Test Generat. Rules"
     local procedure ClearRowSpecificVisibleAndEditFlags()
     begin
         ShowEditWizardReceivingRule := false;
-        // TODO: Decouple Manufacturing dependency - FIXED
-        //ShowEditWizardProductionRule := false;
         ShowEditWizardMovementRule := false;
-        // TODO: Decouple Manufacturing dependency - FIXED
-        //EditProductionTrigger := false;
         EditAssemblyTrigger := false;
         EditPurchaseTrigger := false;
         EditSalesReturnTrigger := false;
@@ -543,8 +472,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
         EditWarehouseMovementTrigger := false;
 
         AssemblyStyle := Format(RowStyle::Subordinate);
-        // TODO: Decouple Manufacturing dependency - FIXED
-        //ProductionStyle := Format(RowStyle::Subordinate);
         PurchaseStyle := Format(RowStyle::Subordinate);
         SalesReturnStyle := Format(RowStyle::Subordinate);
         WhseReceiveStyle := Format(RowStyle::Subordinate);
