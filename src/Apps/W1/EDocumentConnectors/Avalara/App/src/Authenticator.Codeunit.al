@@ -145,7 +145,7 @@ codeunit 6374 "Authenticator"
         URI: Codeunit Uri;
     begin
         if ConnectionSetup.Get() then
-            exit(URI.ValidateIntegrationURLFromSetupTableField(ConnectionSetup."Sandbox Authentication URL", SandboxAuthURLTxt));
+            exit(URI.ValidateIntegrationURL(ConnectionSetup."Sandbox Authentication URL", SandboxAuthURLTxt));
     end;
 
     internal procedure GetAPIURL(): Text
