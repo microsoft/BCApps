@@ -275,6 +275,20 @@ codeunit 135070 "Uri Test"
         LibraryAssert.IsFalse(Uri.IsValidURIPattern('invalid-uri', '^https?://.*'), 'Invalid URI should not match valid URI pattern');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ValidateIntegrationURLTest()
+    var
+        Uri: Codeunit Uri;
+    begin
+        // [Given] Integration URLs with the same host and scheme stored in the setup table
+        LibraryAssert.AreEqual(Uri.ValidateIntegrationURL('https://valid-integration.com/api', 'https://valid-integration.com/api2'), 'https://valid-integration.com/api', 'Integration URLs should have the same host and scheme');
+        LibraryAssert.AreEqual(Uri.ValidateIntegrationURL('https://valid-integration.com/API1', 'https://valid-integration.com/API2'), 'https://valid-integration.com/API1', 'Integration URLs should have the same host and scheme');
+
+        // [Given] Invalid Integration URLs with different hosts or schemes
+        LibraryAssert.AreNotEqual(Uri.ValidateIntegrationURL('https://subdomain1.example.com/api', 'https://subdomain2.example.com/api'), 'https://subdomain1.example.com/api', 'Invalid integration URL should return false');
+    end;
+
     local procedure TestUriWellformed(UriString: Text; UriKind: Enum UriKind; ExpectedResult: Boolean)
     var
         LocalUri: Codeunit Uri;

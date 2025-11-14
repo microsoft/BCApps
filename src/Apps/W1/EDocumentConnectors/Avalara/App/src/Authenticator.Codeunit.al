@@ -135,7 +135,8 @@ codeunit 6374 "Authenticator"
         ConnectionSetup: Record "Connection Setup";
         URI: Codeunit Uri;
     begin
-        exit(URI.ValidateIntegrationURLFromSetupTableField(Database::"Connection Setup", ConnectionSetup.FieldNo("Authentication URL"), AuthURLTxt));
+        if ConnectionSetup.Get() then
+            exit(URI.ValidateIntegrationURL(ConnectionSetup."Authentication URL", AuthURLTxt));
     end;
 
     internal procedure GetSandboxAuthURL(): Text
@@ -143,7 +144,8 @@ codeunit 6374 "Authenticator"
         ConnectionSetup: Record "Connection Setup";
         URI: Codeunit Uri;
     begin
-        exit(URI.ValidateIntegrationURLFromSetupTableField(Database::"Connection Setup", ConnectionSetup.FieldNo("Authentication URL"), SandboxAuthURLTxt));
+        if ConnectionSetup.Get() then
+            exit(URI.ValidateIntegrationURLFromSetupTableField(ConnectionSetup."Sandbox Authentication URL", SandboxAuthURLTxt));
     end;
 
     internal procedure GetAPIURL(): Text
@@ -151,7 +153,8 @@ codeunit 6374 "Authenticator"
         ConnectionSetup: Record "Connection Setup";
         URI: Codeunit Uri;
     begin
-        exit(URI.ValidateIntegrationURLFromSetupTableField(Database::"Connection Setup", ConnectionSetup.FieldNo("API URL"), APIURLTxt));
+        if ConnectionSetup.Get() then
+            exit(URI.ValidateIntegrationURL(ConnectionSetup."API URL", APIURLTxt));
     end;
 
     internal procedure GetSandboxAPIURL(): Text
@@ -159,7 +162,8 @@ codeunit 6374 "Authenticator"
         ConnectionSetup: Record "Connection Setup";
         URI: Codeunit Uri;
     begin
-        exit(URI.ValidateIntegrationURLFromSetupTableField(Database::"Connection Setup", ConnectionSetup.FieldNo("API URL"), SandboxAPIURLTxt));
+        if ConnectionSetup.Get() then
+            exit(URI.ValidateIntegrationURL(ConnectionSetup."Sandbox API URL", SandboxAPIURLTxt));
     end;
 
     var

@@ -193,24 +193,17 @@ codeunit 3060 Uri
     end;
 
     /// <summary>
-    /// Validates integration URI from setup table field, returns the hardcoded integration URI if validation fails.
+    /// Validates integration URI host from setup table field is the same as the hardcoded integration URI host, returns the hardcoded integration URI if validation fails.
     /// </summary>
-    /// <param name="SetupTableNo">The table number of the setup table.</param>
-    /// <param name="FieldNo">The field number of the integration URL field in the setup table.</param>
-    /// <param name="IntegrationURL">The hardcoded integration URL to validate.</param>   
+    /// <param name="FieldValueURL">The integration URL from the setup table field.</param>
+    /// <param name="HardcodedIntegrationURL">The hardcoded integration URL to validate.</param>
     /// <returns>The integration URL from the setup table if it has the same host; otherwise, the provided integration URL.</returns>
-    procedure ValidateIntegrationURLFromSetupTableField(SetupTableNo: Integer; FieldNo: Integer; IntegrationURL: Text): Text
-    var
-        RecRef: RecordRef;
+    procedure ValidateIntegrationURL(FieldValueURL: Text; HardcodedIntegrationURL: Text): Text
     begin
-        RecRef.Open(SetupTableNo);
-        if not RecRef.FindFirst() then
-            exit(IntegrationURL);
-
-        if AreURIsHaveSameHost(RecRef.Field(FieldNo).Value, IntegrationURL) then
-            exit(RecRef.Field(FieldNo).Value)
+        if AreURIsHaveSameHost(FieldValueURL, HardcodedIntegrationURL) then
+            exit(FieldValueURL)
         else
-            exit(IntegrationURL);
+            exit(HardcodedIntegrationURL);
     end;
 
     /// <summary>
