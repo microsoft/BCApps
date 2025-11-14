@@ -15,23 +15,14 @@ codeunit 4111 "Base64 Convert Impl."
     InherentPermissions = X;
 
     var
-        IsInitialized: Boolean;
         SourceWarningLength: Integer;
         TextLengtWarningTxt: Label 'The input string length (%1) exceeds the maximum suggested length (%2) for Base64 conversion.', Locked = true;
         StreamLengtWarningTxt: Label 'The input stream length (%1) exceeds the maximum suggested length (%2) for Base64 conversion.', Locked = true;
 
-    internal procedure Initialize()
-    begin
-        if not IsInitialized then begin
-            SourceWarningLength := 10 * 1024 * 1024; // 10 MB
-            IsInitialized := true;
-        end;
-    end;
-
     internal procedure EmitLengthWarning(SourceLength: Integer; tag: Text; FormatString: Text)
     begin
-        if not IsInitialized then
-            this.Initialize();
+        if SourceWarningLength <= 0 then
+            SourceWarningLength := 10485760; // 10 * 1024 * 1024 = 10 MB
 
         if SourceLength > SourceWarningLength then
             Session.LogMessage(tag, StrSubstNo(FormatString, SourceLength, SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
