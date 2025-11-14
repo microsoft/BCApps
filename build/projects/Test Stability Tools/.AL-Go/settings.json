@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/13868260bf008b56d26fd739c1f764b2bb2c8239/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/spetersenms/AL-Go/refactor/Actions/.Modules/settings.schema.json",
   "projectName": "Test Stability Tools",
   "appFolders": [
     "../../../src/Tools/Test Framework/Test Stability Tools/Prevent Metadata Updates"
