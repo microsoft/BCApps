@@ -14,9 +14,7 @@ codeunit 4324 "Agent Setup"
     InherentPermissions = X;
 
     [Scope('OnPrem')]
-    procedure GetSetupRecord(UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80]; AgentSummary: Text): Record "Agent Setup Buffer"
-    var
-        AgentSetupBuffer: Record "Agent Setup Buffer";
+    procedure GetSetupRecord(var AgentSetupBuffer: Record "Agent Setup Buffer"; UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80]; AgentSummary: Text)
     begin
         Clear(AgentSetupBuffer);
         AgentSetupBuffer.DeleteAll();
@@ -25,23 +23,18 @@ codeunit 4324 "Agent Setup"
         AgentSetupBuffer."Agent Metadata Provider" := AgentMetadataProvider;
 
         UpdateFields(AgentSetupBuffer, UserSecurityID, AgentMetadataProvider, DefaultUserName, DefaultDisplayName);
-
         AgentSetupBuffer.Insert();
         SetAgentSummary(AgentSummary, AgentSetupBuffer);
-        AgentSetupBuffer.Modify();
     end;
 
     [Scope('OnPrem')]
-    procedure SaveValues(var AgentSetupBuffer: Record "Agent Setup Buffer")
-    var
-        Agent: Record Agent;
+    procedure SaveValues(var AgentSetupBuffer: Record "Agent Setup Buffer") "Agent User ID": Guid
     begin
-        if IsNullGuid(AgentSetupBuffer."User Security ID") then begin
-            Agent.Get(CreateAgent(AgentSetupBuffer));
-            exit;
-        end;
+        if IsNullGuid(AgentSetupBuffer."User Security ID") then
+            exit(CreateAgent(AgentSetupBuffer));
 
         UpdateAgent(AgentSetupBuffer);
+        exit(AgentSetupBuffer."User Security ID");
     end;
 
     [Scope('OnPrem')]
@@ -65,12 +58,16 @@ codeunit 4324 "Agent Setup"
         exit(AgentSetupBuffer."Access Updated" or AgentSetupBuffer."Values Updated" or AgentSetupBuffer."User Settings Updated");
     end;
 
-    local procedure UpdateFields(var AgentSetupBuffer: Record "Agent Setup Buffer"; UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50];
-                                                                                                                                     DefaultDisplayName: Text[80])
+    local procedure UpdateFields(var AgentSetupBuffer: Record "Agent Setup Buffer"; UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80])
     var
         Agent: Record Agent;
+        UserSettings: Record "User Settings";
+        Language: Codeunit Language;
         AgentMetadata: Interface IAgentMetadata;
     begin
+        UserSettings := AgentSetupBuffer.GetUserSettings();
+        AgentSetupBuffer."Language Used" := CopyStr(Language.GetWindowsLanguageName(UserSettings."Language ID"), 1, MaxStrLen(AgentSetupBuffer."Language Used"));
+
         if not IsNullGuid(UserSecurityID) then
             if Agent.Get(UserSecurityID) then begin
                 AgentSetupBuffer."User Name" := Agent."User Name";
@@ -90,7 +87,7 @@ codeunit 4324 "Agent Setup"
     end;
 
     [Scope('OnPrem')]
-    procedure SetupLanguageAndRegion(AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
+    procedure SetupLanguageAndRegion(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     var
         UserSettings: Record "User Settings";
         Language: Codeunit Language;
@@ -100,7 +97,7 @@ codeunit 4324 "Agent Setup"
         AgentUserSettings.InitializeTemp(UserSettings);
         if AgentUserSettings.RunModal() in [Action::LookupOK, Action::OK] then begin
             AgentUserSettings.GetRecord(UserSettings);
-            AgentSetupBuffer."Access Updated" := true;
+            AgentSetupBuffer."User Settings Updated" := true;
 #pragma warning disable AA0139
             AgentSetupBuffer."Language Used" := Language.GetWindowsLanguageName(UserSettings."Language ID");
 #pragma warning restore AA0139
@@ -119,16 +116,22 @@ codeunit 4324 "Agent Setup"
     [Scope('OnPrem')]
     procedure GetAgentSummary(var AgentSetupBuffer: Record "Agent Setup Buffer"): Text
     var
-        InStream: InStream;
+        SummaryInStream: InStream;
         SummaryText: Text;
+        FullSummaryText: TextBuilder;
     begin
         AgentSetupBuffer.CalcFields("Agent Summary");
         if not AgentSetupBuffer."Agent Summary".HasValue() then
             exit('');
 
-        AgentSetupBuffer."Agent Summary".CreateInStream(InStream, GetDefaultEncoding());
-        InStream.ReadText(SummaryText);
-        exit(SummaryText);
+        AgentSetupBuffer."Agent Summary".CreateInStream(SummaryInStream, GetDefaultEncoding());
+
+        repeat
+            SummaryInStream.ReadText(SummaryText);
+            FullSummaryText.Append(SummaryText);
+        until SummaryInStream.EOS();
+
+        exit(FullSummaryText.ToText());
     end;
 
     local procedure CreateAgent(var AgentSetupBuffer: Record "Agent Setup Buffer"): Guid
@@ -143,6 +146,7 @@ codeunit 4324 "Agent Setup"
         SetBufferFieldsToAgent(AgentSetupBuffer, AgentRecord);
         NewUserSettings := AgentSetupBuffer.GetUserSettings();
         Agent.UpdateLocalizationSettings(AgentRecord."User Security ID", NewUserSettings);
+        UpdateAgentState(AgentSetupBuffer);
 
         exit(AgentRecord."User Security ID");
     end;
@@ -168,6 +172,19 @@ codeunit 4324 "Agent Setup"
             TemporaryAgentAccessControl := AgentSetupBuffer.GetTempAgentAccessControl();
             Agent.UpdateAccess(AgentSetupBuffer."User Security ID", TemporaryAgentAccessControl);
         end;
+
+        if AgentSetupBuffer."State Updated" then
+            UpdateAgentState(AgentSetupBuffer);
+    end;
+
+    local procedure UpdateAgentState(var AgentSetupBuffer: Record "Agent Setup Buffer")
+    var
+        Agent: Codeunit Agent;
+    begin
+        if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then
+            Agent.Activate(AgentSetupBuffer."User Security ID")
+        else
+            Agent.Deactivate(AgentSetupBuffer."User Security ID");
     end;
 
     /// <summary>
@@ -176,26 +193,20 @@ codeunit 4324 "Agent Setup"
     /// <param name="SummaryText">The text content to store in the agent summary.</param>
     local procedure SetAgentSummary(SummaryText: Text; var AgentSetupBuffer: Record "Agent Setup Buffer")
     var
-        OutStream: OutStream;
+        SummaryOutStream: OutStream;
     begin
-        AgentSetupBuffer."Agent Summary".CreateOutStream(OutStream, GetDefaultEncoding());
-        OutStream.WriteText(SummaryText);
+        Clear(AgentSetupBuffer."Agent Summary");
+        AgentSetupBuffer."Agent Summary".CreateOutStream(SummaryOutStream, GetDefaultEncoding());
+        SummaryOutStream.WriteText(SummaryText);
+        AgentSetupBuffer.Modify();
     end;
 
     local procedure SetBufferFieldsToAgent(var AgentSetupBuffer: Record "Agent Setup Buffer"; var AgentRecord: Record Agent)
-    var
-        Agent: Codeunit Agent;
     begin
         AgentRecord."Display Name" := AgentSetupBuffer."Display Name";
         AgentRecord."User Name" := AgentSetupBuffer."User Name";
         AgentRecord.Initials := AgentSetupBuffer.Initials;
         AgentRecord.Modify();
-
-        if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then
-            Agent.Activate(AgentRecord."User Security ID")
-        else
-            Agent.Deactivate(AgentRecord."User Security ID");
-        AgentRecord.Find();
     end;
 
     local procedure GetDefaultEncoding(): TextEncoding

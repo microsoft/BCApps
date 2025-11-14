@@ -66,7 +66,7 @@ table 4310 "Agent Setup Buffer"
 
             trigger OnValidate()
             begin
-                SetValuesUpdated();
+                SetStateUpdated();
             end;
         }
         /// <summary>
@@ -127,6 +127,13 @@ table 4310 "Agent Setup Buffer"
             ToolTip = 'Specifies the user who configured the agent.';
             Editable = false;
         }
+        field(5006; "State Updated"; Boolean)
+        {
+            Caption = 'State Updated';
+            ToolTip = 'Specifies whether the state has been updated. Value is changed through code.';
+            Editable = false;
+            AllowInCustomizations = Never;
+        }
     }
     keys
     {
@@ -183,6 +190,11 @@ table 4310 "Agent Setup Buffer"
     local procedure SetValuesUpdated()
     begin
         Rec."Values Updated" := true;
+    end;
+
+    local procedure SetStateUpdated()
+    begin
+        Rec."State Updated" := true;
     end;
 
     var

@@ -86,7 +86,7 @@ page 4310 "Agent Setup Part"
 
     procedure InitializePart(UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80]; NewAgentSummary: Text)
     begin
-        Rec := AgentSetup.GetSetupRecord(UserSecurityID, AgentMetadataProvider, DefaultUserName, DefaultDisplayName, NewAgentSummary);
+        AgentSetup.GetSetupRecord(Rec, UserSecurityID, AgentMetadataProvider, DefaultUserName, DefaultDisplayName, NewAgentSummary);
         AgentSummary := NewAgentSummary;
     end;
 
