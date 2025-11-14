@@ -944,7 +944,7 @@ codeunit 8060 "Create Billing Documents"
         DescriptionText := GetAdditionalLineText(ServiceContractSetupFieldNo, ParentSalesLine, ServiceObject, ServiceCommitment);
         if DescriptionText = '' then
             exit;
-        SalesLine.InsertDescriptionSalesLine(SalesHeader2, DescriptionText, ParentSalesLine."Line No.");
+        SalesLine.CreateAttachedSalesLine(SalesHeader2, DescriptionText, ParentSalesLine."Line No.");
         OnAfterCreateAdditionalInvoiceLine(SalesLine, ParentSalesLine);
     end;
 
