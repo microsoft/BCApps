@@ -5,6 +5,7 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using System.Security.Authentication;
+using System.Utilities;
 codeunit 6374 "Authenticator"
 {
     Access = Internal;
@@ -127,6 +128,42 @@ codeunit 6374 "Authenticator"
     local procedure HasToken(TokenKey: Text; TokenDataScope: DataScope): Boolean
     begin
         exit(IsolatedStorage.Contains(TokenKey, TokenDataScope));
+    end;
+
+    internal procedure GetAuthURL(): Text
+    var
+        ConnectionSetup: Record "Connection Setup";
+        URI: Codeunit Uri;
+    begin
+        if ConnectionSetup.Get() then
+            exit(URI.ValidateIntegrationURL(ConnectionSetup."Authentication URL", AuthURLTxt));
+    end;
+
+    internal procedure GetSandboxAuthURL(): Text
+    var
+        ConnectionSetup: Record "Connection Setup";
+        URI: Codeunit Uri;
+    begin
+        if ConnectionSetup.Get() then
+            exit(URI.ValidateIntegrationURL(ConnectionSetup."Sandbox Authentication URL", SandboxAuthURLTxt));
+    end;
+
+    internal procedure GetAPIURL(): Text
+    var
+        ConnectionSetup: Record "Connection Setup";
+        URI: Codeunit Uri;
+    begin
+        if ConnectionSetup.Get() then
+            exit(URI.ValidateIntegrationURL(ConnectionSetup."API URL", APIURLTxt));
+    end;
+
+    internal procedure GetSandboxAPIURL(): Text
+    var
+        ConnectionSetup: Record "Connection Setup";
+        URI: Codeunit Uri;
+    begin
+        if ConnectionSetup.Get() then
+            exit(URI.ValidateIntegrationURL(ConnectionSetup."Sandbox API URL", SandboxAPIURLTxt));
     end;
 
     var
