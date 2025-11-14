@@ -844,6 +844,19 @@ page 30101 "Shpfy Shop Card"
                 RunPageLink = "Shop Code" = field(Code);
                 ToolTip = 'View a list of Shopify Sales Channels for the shop and choose ones used for new product publishing.';
             }
+            action(ProductCollections)
+            {
+                ApplicationArea = All;
+                Caption = 'Custom Product Collections';
+                Image = ItemGroup;
+                Promoted = true;
+                PromotedCategory = Category4;
+                PromotedIsBig = true;
+                PromotedOnly = true;
+                RunObject = Page "Shpfy Product Collections";
+                RunPageLink = "Shop Code" = field(Code);
+                ToolTip = 'View a list of Shopify Custom Product Collections for the shop and choose ones used for new product publishing.';
+            }
             action(BulkOperations)
             {
                 ApplicationArea = All;

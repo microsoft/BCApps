@@ -59,6 +59,7 @@ permissionset 30100 "Shpfy - Read"
         tabledata "Shpfy Payment Transaction" = R,
         tabledata "Shpfy Payout" = R,
         tabledata "Shpfy Product" = R,
+        tabledata "Shpfy Product Collection" = R,
         tabledata "Shpfy Refund Header" = R,
         tabledata "Shpfy Refund Line" = R,
         tabledata "Shpfy Refund Shipping Line" = R,
@@ -68,7 +69,11 @@ permissionset 30100 "Shpfy - Read"
         tabledata "Shpfy Sales Channel" = R,
         tabledata "Shpfy Shipment Method Mapping" = R,
         tabledata "Shpfy Shop" = R,
+#if not CLEAN28
+#pragma warning disable AL0432
         tabledata "Shpfy Shop Collection Map" = R,
+#pragma warning restore AL0432
+#endif
         tabledata "Shpfy Shop Inventory" = R,
         tabledata "Shpfy Shop Location" = R,
         tabledata "Shpfy Skipped Record" = R,
