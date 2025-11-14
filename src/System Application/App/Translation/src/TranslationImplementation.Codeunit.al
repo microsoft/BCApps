@@ -183,6 +183,29 @@ codeunit 3712 "Translation Implementation"
             Error(MaxLenghtErr, Translation.Value, StrLen(Translation.Value), Field.Len);
     end;
 
+    procedure GetTranslations(RecVariant: Variant; FieldId: Integer; var TranslationBuffer: Record "Translation Buffer"): Boolean
+    var
+        Translation: Record Translation;
+        FromRecordRef: RecordRef;
+    begin
+        TranslationBuffer.Reset();
+        TranslationBuffer.DeleteAll();
+
+        GetRecordRefFromVariant(RecVariant, FromRecordRef);
+        Translation.SetRange("System ID", GetSystemIdFromRecordRef(FromRecordRef));
+        Translation.SetRange("Table ID", FromRecordRef.Number());
+        if FieldId <> 0 then
+            Translation.SetRange("Field ID", FieldId);
+        if Translation.FindSet() then
+            repeat
+                TranslationBuffer.Init();
+                TranslationBuffer.TransferFields(Translation);
+                TranslationBuffer.Insert();
+            until Translation.Next() = 0;
+
+        exit(TranslationBuffer.FindFirst());
+    end;
+
     local procedure GetRecordIdCaptionFromVariant(RecVariant: Variant): Text
     var
         RecordId: RecordId;
