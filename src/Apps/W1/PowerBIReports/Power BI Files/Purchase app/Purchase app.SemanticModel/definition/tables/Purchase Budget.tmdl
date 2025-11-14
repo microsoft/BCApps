@@ -1,0 +1,192 @@
+table 'Purchase Budget'
+	lineageTag: 8d492e62-d0b3-4313-97b4-03539d4ba97e
+
+	/// The Budget Amount measure calculates the sum of Purchase Amount column from the Purchase Budget table.
+	measure 'Budget Amount' = SUM('Purchase Budget'[Cost Amount])
+		formatString: #,0.00
+		displayFolder: _Budget Measures
+		lineageTag: 151a7689-5405-4043-aec8-0887dab0f7ec
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Budget Quantity measure sums the Quantity column from the Purchase Budget table.
+	measure 'Budget Quantity' = SUM('Purchase Budget'[Quantity])
+		formatString: #,0.00
+		displayFolder: _Budget Measures
+		lineageTag: c34735ce-8938-4c76-b6a9-171069271df7
+
+	/// Budget Quantity Variance = Purchase Quantity - Budget Quantity
+	measure 'Budget Quantity Variance' = [Purchase Quantity] - [Budget Quantity]
+		formatString: #,0.00
+		displayFolder: _Budget Measures
+		lineageTag: ac7cdd3f-745c-4600-acf0-61b4017cdde7
+
+	/// Budget Amount Variance = Purchase Amount - Budget Amount
+	measure 'Budget Amount Variance' = [Purchase (LCY)] - [Budget Amount]
+		formatString: #,0.00
+		displayFolder: _Budget Measures
+		lineageTag: 5e172065-aa6a-4fe3-affe-7dfa9271d75a
+
+	/// Budget Amount Variance % = Budget Amount Variance / Budget Amount
+	measure 'Budget Amount Variance %' = DIVIDE('Purchase Budget'[Budget Amount Variance],'Purchase Budget'[Budget Amount])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Budget Measures
+		lineageTag: 03c92b38-976d-4c92-aaf5-45e7dc62ea0b
+
+	/// Budget Quantity Variance % = Budget Quantity Variance / Budget Quantity
+	measure 'Budget Quantity Variance %' = DIVIDE('Purchase Budget'[Budget Quantity Variance],'Purchase Budget'[Budget Quantity])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Budget Measures
+		lineageTag: 1f8f6d96-d122-4e78-81f4-dd3f69a9156c
+
+	column 'Vendor No.'
+		dataType: string
+		isHidden
+		lineageTag: 58987975-2dd6-44fc-b087-294c0fcbcecb
+		summarizeBy: none
+		sourceColumn: Vendor No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entry No.'
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: 4a9b695b-e81f-40dd-b3f4-699e4fb1a33d
+		summarizeBy: none
+		sourceColumn: Entry No.
+
+		annotation SummarizationSetBy = User
+
+	column 'Budget Name'
+		dataType: string
+		isHidden
+		lineageTag: 5c9cca96-5d40-4122-a823-28654667ee95
+		summarizeBy: none
+		sourceColumn: Budget Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: fdf53213-853c-499b-948a-b3c8e1ccf61b
+		summarizeBy: none
+		sourceColumn: Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Item No.'
+		dataType: string
+		isHidden
+		lineageTag: d59e331f-c3a6-4a44-9fb6-5a3a602377c5
+		summarizeBy: none
+		sourceColumn: Item No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location Code'
+		dataType: string
+		isHidden
+		lineageTag: 50d2a4a0-829b-4dbb-af88-dc2aafea2b14
+		summarizeBy: none
+		sourceColumn: Location Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quantity
+		dataType: double
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: a3603f58-40fb-41a8-a16d-9e5c9027e757
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Cost Amount'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 31ee50be-b4d6-4caa-ba46-38f954b7000b
+		summarizeBy: sum
+		sourceColumn: Cost Amount
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Dimension Set ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5087fefb-9289-497b-afb6-95c3c950ce49
+		summarizeBy: none
+		sourceColumn: Dimension Set ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Purchase Budget-fcb6ce6a-081d-4557-9d09-03bd2cfe666e' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "purchaseItemBudgetEntries", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"budgetName", type text},
+				            {"itemNo", type text},
+				            {"locationCode", type text},
+				            {"dimensionSetID", Int64.Type},
+				            {"entryDate", type date},
+				            {"quantity", Decimal.Type},
+				            {"costAmount", Currency.Type}
+				        }
+				    ),
+				    #"Added Vendor No." = Table.AddColumn(
+				        #"Changed Type", "Vendor No.", each if [sourceType] = "Vendor" then [sourceNo] else "", type text
+				    ),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Added Vendor No.", {"sourceType", "sourceNo", "ETag"}),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Removed Columns1",
+				        {
+				            {"budgetName", "Budget Name"},
+				            {"itemNo", "Item No."},
+				            {"locationCode", "Location Code"},
+				            {"costAmount", "Cost Amount"},
+				            {"dimensionSetID", "Dimension Set ID"},
+				            {"entryNo", "Entry No."},
+				            {"entryDate", "Date"},
+				            {"quantity", "Quantity"}
+				        }
+				    )
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

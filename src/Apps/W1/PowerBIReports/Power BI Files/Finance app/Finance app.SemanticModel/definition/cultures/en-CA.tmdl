@@ -1,0 +1,1533 @@
+cultureInfo en-CA
+	translations
+		model Model
+			table 'G/L Account Category'
+				caption: G/L Account Category
+				column 'G/L Acc. Category Description'
+					caption: G/L Acc. Category Description
+				column siblingSequenceNo
+					caption: siblingSequenceNo
+				column indentation
+					caption: indentation
+				column accountCategory
+					caption: accountCategory
+				column incomeBalance
+					caption: incomeBalance
+				column additionalReportDefinition
+					caption: additionalReportDefinition
+				column systemGenerated
+					caption: systemGenerated
+				column hasChildren
+					caption: hasChildren
+				measure GLAccCategoryBrowseDepth
+					caption: GLAccCategoryBrowseDepth
+				measure GLAccCategoryMaxNodeDepth
+					caption: GLAccCategoryMaxNodeDepth
+				measure 'G/L Acc. Category Balance at Date'
+					caption: G/L Acc. Category Balance at Date
+				measure 'G/L Acc. Category Net Change'
+					caption: G/L Acc. Category Net Change
+				measure 'G/L Acc. Category Budget Balance at Date'
+					caption: G/L Acc. Category Budget Balance at Date
+				measure 'G/L Acc. Category Budget Amount'
+					caption: G/L Acc. Category Budget Amount
+				hierarchy 'G/L Account Category Hierarchy'
+					caption: G/L Account Category Hierarchy
+					level 'G/L Account Category (Level 1)'
+						caption: G/L Account Category (Level 1)
+					level 'G/L Account Category (Level 2)'
+						caption: G/L Account Category (Level 2)
+					level 'G/L Account Category (Level 3)'
+						caption: G/L Account Category (Level 3)
+			table 'Balance Sheet Measures'
+				caption: Balance Sheet Measures
+				measure 'Current Assets'
+					caption: Current Assets
+				measure 'Current Liabilities'
+					caption: Current Liabilities
+				measure Inventory
+					caption: Inventory
+				measure 'Working Capital'
+					caption: Working Capital
+				measure 'Shareholders'' Equity'
+					caption: Shareholders' Equity
+				measure Liabilities
+					caption: Liabilities
+				measure Assets
+					caption: Assets
+				measure Equity
+					caption: Equity
+				measure 'Liabilities & Equity'
+					caption: Liabilities & Equity
+				measure 'Accounts Payable'
+					caption: Accounts Payable
+				measure 'Accounts Receivable'
+					caption: Accounts Receivable
+				measure 'Accounts Receivable (Beginning Balance)'
+					caption: Accounts Receivable (Beginning Balance)
+				measure 'Accounts Receivable (Average)'
+					caption: Accounts Receivable (Average)
+				measure 'Inventory (Beginning Balance)'
+					caption: Inventory (Beginning Balance)
+				measure 'Inventory (Average)'
+					caption: Inventory (Average)
+				measure 'Purchase Prepayments'
+					caption: Purchase Prepayments
+				measure 'Liquid Assets'
+					caption: Liquid Assets
+				measure 'Fixed Assets'
+					caption: Fixed Assets
+				measure 'Capital Employed'
+					caption: Capital Employed
+				measure 'Liabilities (Neg)'
+					caption: Liabilities (Neg)
+				measure 'Accounts Payable (Neg)'
+					caption: Accounts Payable (Neg)
+				measure 'Payroll Liabilites'
+					caption: Payroll Liabilites
+				measure 'Longterm Liabilities'
+					caption: Longterm Liabilities
+			table 'Income Statement Measures'
+				caption: Income Statement Measures
+				measure Revenue
+					caption: Revenue
+				measure 'Cost of Goods Sold'
+					caption: Cost of Goods Sold
+				measure Expense
+					caption: Expense
+				measure 'Interest Expense'
+					caption: Interest Expense
+				measure 'Tax Expense'
+					caption: Tax Expense
+				measure 'Extraordinary Expense'
+					caption: Extraordinary Expense
+				measure 'Operating Expense - OPEX'
+					caption: Operating Expense - OPEX
+				measure Purchases
+					caption: Purchases
+				measure 'FX Losses Expense'
+					caption: FX Losses Expense
+				measure 'Depreciation and Amortization'
+					caption: Depreciation and Amortization
+				measure 'Revenue (Balance at Date)'
+					caption: Revenue (Balance at Date)
+				measure 'Revenue (Beginning Balance)'
+					caption: Revenue (Beginning Balance)
+				measure 'Interest Revenue'
+					caption: Interest Revenue
+				measure 'FX Gains Revenue'
+					caption: FX Gains Revenue
+				measure 'Extraordinary Revenue'
+					caption: Extraordinary Revenue
+				measure 'Operating Revenue'
+					caption: Operating Revenue
+				measure 'Expense (Balance at Date)'
+					caption: Expense (Balance at Date)
+				measure 'Expense (Beginning Balance)'
+					caption: Expense (Beginning Balance)
+				measure 'Interest Expense (Balance at Date)'
+					caption: Interest Expense (Balance at Date)
+				measure 'Interest Expense (Beginning Balance)'
+					caption: Interest Expense (Beginning Balance)
+				measure 'FX Losses Expense (Balance at Date)'
+					caption: FX Losses Expense (Balance at Date)
+				measure 'FX Losses Expense (Beginning Balance)'
+					caption: FX Losses Expense (Beginning Balance)
+				measure 'Tax Expense (Balance at Date)'
+					caption: Tax Expense (Balance at Date)
+				measure 'Tax Expense (Beginning Balance)'
+					caption: Tax Expense (Beginning Balance)
+				measure 'Extraordinary Expense (Balance at Date)'
+					caption: Extraordinary Expense (Balance at Date)
+				measure 'Extraordinary Expense (Beginning Balance)'
+					caption: Extraordinary Expense (Beginning Balance)
+				measure 'Interest Revenue (Balance at Date)'
+					caption: Interest Revenue (Balance at Date)
+				measure 'Interest Revenue (Beginning Balance)'
+					caption: Interest Revenue (Beginning Balance)
+				measure 'FX Gains Revenue (Balance at Date)'
+					caption: FX Gains Revenue (Balance at Date)
+				measure 'FX Gains Revenue (Beginning Balance)'
+					caption: FX Gains Revenue (Beginning Balance)
+				measure 'Extraordinary Revenue (Balance at Date)'
+					caption: Extraordinary Revenue (Balance at Date)
+				measure 'Extraordinary Revenue (Beginning Balance)'
+					caption: Extraordinary Revenue (Beginning Balance)
+				measure 'Operating Expense - OPEX (Balance at Date)'
+					caption: Operating Expense - OPEX (Balance at Date)
+				measure 'Operating Expense - OPEX (Beginning Balance)'
+					caption: Operating Expense - OPEX (Beginning Balance)
+				measure 'Operating Revenue (Balance at Date)'
+					caption: Operating Revenue (Balance at Date)
+				measure 'Operating Revenue (Beginning Balance)'
+					caption: Operating Revenue (Beginning Balance)
+			table 'G/L Account'
+				caption: G/L Account
+				column 'G/L Account No./Name'
+					caption: G/L Account No./Name
+				column 'G/L Account No./Name Indented'
+					caption: G/L Account No./Name Indented
+				column 'Parent G/L Account No.'
+					caption: Parent G/L Account No.
+				column 'G/L Account No.'
+					caption: G/L Account No.
+				column 'G/L Account Name'
+					caption: G/L Account Name
+				column 'Account Type'
+					caption: Account Type
+				column Income/Balance
+					caption: Income/Balance
+				column 'Account Subcategory Entry No.'
+					caption: Account Subcategory Entry No.
+				measure 'G/L Acc. Balance at Date'
+					caption: G/L Acc. Balance at Date
+				measure 'G/L Acc. Net Change'
+					caption: G/L Acc. Net Change
+				measure 'G/L Acc. Budget Balance at Date'
+					caption: G/L Acc. Budget Balance at Date
+				measure 'G/L Acc. Budget Amount'
+					caption: G/L Acc. Budget Amount
+				hierarchy 'G/L Account Hierarchy'
+					caption: G/L Account Hierarchy
+					level 'G/L Account (Level 1)'
+						caption: G/L Account (Level 1)
+					level 'G/L Account (Level 2)'
+						caption: G/L Account (Level 2)
+					level 'G/L Account (Level 3)'
+						caption: G/L Account (Level 3)
+					level 'G/L Account (Level 4)'
+						caption: G/L Account (Level 4)
+					level 'G/L Account (Level 5)'
+						caption: G/L Account (Level 5)
+			table 'Activity KPIs'
+				caption: Activity KPIs
+				measure 'Average Collection Period (Days)'
+					caption: Average Collection Period (Days)
+				measure '% Change in Revenue'
+					caption: % Change in Revenue
+				measure '% Change in Operating Profit - EBIT'
+					caption: % Change in Operating Profit - EBIT
+				measure 'Days Sales Outstanding - DSO'
+					caption: Days Sales Outstanding - DSO
+				measure 'Days Payable Outstanding - DPO'
+					caption: Days Payable Outstanding - DPO
+				measure 'Days Sales Of Inventory - DSI'
+					caption: Days Sales Of Inventory - DSI
+				measure 'Cash Conversion Cycle - CCC'
+					caption: Cash Conversion Cycle - CCC
+				measure 'Degree Of Operating Leverage - DOL'
+					caption: Degree Of Operating Leverage - DOL
+				measure 'Asset Turnover Ratio'
+					caption: Asset Turnover Ratio
+				measure 'Inventory Turnover'
+					caption: Inventory Turnover
+			table 'Liquidity KPIs'
+				caption: Liquidity KPIs
+				measure 'Current Ratio'
+					caption: Current Ratio
+				measure 'Quick Ratio'
+					caption: Quick Ratio
+				measure 'Cash Ratio'
+					caption: Cash Ratio
+			table 'Profitability KPIs'
+				caption: Profitability KPIs
+				measure 'Gross Profit Margin'
+					caption: Gross Profit Margin
+				measure 'Net Profit Margin'
+					caption: Net Profit Margin
+				measure 'Gross Profit'
+					caption: Gross Profit
+				measure 'Net Profit'
+					caption: Net Profit
+				measure 'Operating Profit - EBIT (Beginning Balance)'
+					caption: Operating Profit - EBIT (Beginning Balance)
+				measure 'Operating Profit - EBIT'
+					caption: Operating Profit - EBIT
+				measure 'Operating Profit - EBIT (Balance at Date)'
+					caption: Operating Profit - EBIT (Balance at Date)
+				measure 'Operating Profit Margin'
+					caption: Operating Profit Margin
+				measure EBITDA
+					caption: EBITDA
+				measure 'Return On Assets - ROA'
+					caption: Return On Assets - ROA
+				measure 'Return On Equity - ROE'
+					caption: Return On Equity - ROE
+				measure 'Return On Net Assets - RONA'
+					caption: Return On Net Assets - RONA
+				measure 'Return On Capital Employed - ROCE'
+					caption: Return On Capital Employed - ROCE
+				measure 'Debt/Equity Ratio'
+					caption: Debt/Equity Ratio
+				measure 'Shareholder Equity Ratio'
+					caption: Shareholder Equity Ratio
+				measure 'Debt Ratio'
+					caption: Debt Ratio
+			table 'G/L Budget Entries'
+				caption: G/L Budget Entries
+				column 'Budget Name'
+					caption: Budget Name
+				column 'Budget Date'
+					caption: Budget Date
+				column 'Entry No.'
+					caption: Entry No.
+				measure 'Budget Balance at Date'
+					caption: Budget Balance at Date
+				measure 'Budget Amount'
+					caption: Budget Amount
+				measure 'Budget Entry Back Link'
+					caption: Budget Entry Back Link
+			table 'Dimension Sets'
+				caption: Dimension Sets
+				column 'Global Dimension 1'
+					caption: Global Dimension 1
+				column 'Global Dimension 2'
+					caption: Global Dimension 2
+				column 'Shortcut Dimension 3'
+					caption: Shortcut Dimension 3
+				column 'Shortcut Dimension 4'
+					caption: Shortcut Dimension 4
+				column 'Shortcut Dimension 5'
+					caption: Shortcut Dimension 5
+				column 'Shortcut Dimension 6'
+					caption: Shortcut Dimension 6
+				column 'Shortcut Dimension 7'
+					caption: Shortcut Dimension 7
+				column 'Shortcut Dimension 8'
+					caption: Shortcut Dimension 8
+				column id
+					caption: id
+			table 'G/L Entries'
+				caption: G/L Entries
+				column 'Posting Date'
+					caption: Posting Date
+				column 'Closing Entry'
+					caption: Closing Entry
+				column 'Source Code'
+					caption: Source Code
+				column 'Source Type'
+					caption: Source Type
+				column 'Source No.'
+					caption: Source No.
+				column 'Entry No.'
+					caption: Entry No.
+				column Description
+					caption: Description
+				measure 'Net Change'
+					caption: Net Change
+				measure 'Net Change (Neg)'
+					caption: Net Change (Neg)
+				measure 'Balance at Date'
+					caption: Balance at Date
+				measure Amount
+					caption: Amount
+				measure Balance
+					caption: Balance
+				measure 'Variance to Budget'
+					caption: Variance to Budget
+				measure 'Variance to Budget %'
+					caption: Variance to Budget %
+				measure 'Balance at Date (Neg)'
+					caption: Balance at Date (Neg)
+				measure 'Net Change Back Link'
+					caption: Net Change Back Link
+				measure 'Balance At Date Back Link'
+					caption: Balance At Date Back Link
+				measure 'Base Link'
+					caption: Base Link
+			table 'Standard Calendar Time Intelligence'
+				caption: Standard Calendar Time Intelligence
+				measure 'Net Change AVG 1Y'
+					caption: Net Change AVG 1Y
+				measure 'Net Change AVG 3M'
+					caption: Net Change AVG 3M
+				measure 'Net Change AVG 30D'
+					caption: Net Change AVG 30D
+				measure 'Net Change MTDOPM %'
+					caption: Net Change MTDOPM %
+				measure 'Net Change MTDOPM'
+					caption: Net Change MTDOPM
+				measure 'Net Change PMC'
+					caption: Net Change PMC
+				measure 'Net Change QTDOPQ %'
+					caption: Net Change QTDOPQ %
+				measure 'Net Change QTDOPQ'
+					caption: Net Change QTDOPQ
+				measure 'Net Change PQC'
+					caption: Net Change PQC
+				measure 'Net Change YTDOPY %'
+					caption: Net Change YTDOPY %
+				measure 'Net Change YTDOPY'
+					caption: Net Change YTDOPY
+				measure 'Net Change PYC'
+					caption: Net Change PYC
+				measure 'Net Change MATG %'
+					caption: Net Change MATG %
+				measure 'Net Change MATG'
+					caption: Net Change MATG
+				measure 'Net Change PYMAT'
+					caption: Net Change PYMAT
+				measure 'Net Change MAT'
+					caption: Net Change MAT
+				measure 'Net Change MOMTD %'
+					caption: Net Change MOMTD %
+				measure 'Net Change MOMTD'
+					caption: Net Change MOMTD
+				measure 'Net Change PMTD'
+					caption: Net Change PMTD
+				measure 'Net Change QOQTD %'
+					caption: Net Change QOQTD %
+				measure 'Net Change QOQTD'
+					caption: Net Change QOQTD
+				measure 'Net Change YOYTD %'
+					caption: Net Change YOYTD %
+				measure 'Net Change YOYTD'
+					caption: Net Change YOYTD
+				measure 'Net Change PQTD'
+					caption: Net Change PQTD
+				measure 'Net Change PYTD'
+					caption: Net Change PYTD
+				measure 'Net Change POP %'
+					caption: Net Change POP %
+				measure 'Net Change POP'
+					caption: Net Change POP
+				measure 'Net Change PP'
+					caption: Net Change PP
+				measure 'Net Change MOM %'
+					caption: Net Change MOM %
+				measure 'Net Change MOM'
+					caption: Net Change MOM
+				measure 'Net Change QOQ %'
+					caption: Net Change QOQ %
+				measure 'Net Change PM'
+					caption: Net Change PM
+				measure 'Net Change QOQ'
+					caption: Net Change QOQ
+				measure 'Net Change PQ'
+					caption: Net Change PQ
+				measure 'Net Change YOY'
+					caption: Net Change YOY
+				measure 'Net Change YOY %'
+					caption: Net Change YOY %
+				measure 'Net Change PY'
+					caption: Net Change PY
+				measure 'Net Change MTD'
+					caption: Net Change MTD
+				measure 'Net Change QTD'
+					caption: Net Change QTD
+				measure 'Net Change YTD'
+					caption: Net Change YTD
+				measure 'Balance at Date AVG 1Y'
+					caption: Balance at Date AVG 1Y
+				measure 'Balance at Date AVG 3M'
+					caption: Balance at Date AVG 3M
+				measure 'Balance at Date AVG 30D'
+					caption: Balance at Date AVG 30D
+				measure 'Balance at Date MTDOPM %'
+					caption: Balance at Date MTDOPM %
+				measure 'Balance at Date MTDOPM'
+					caption: Balance at Date MTDOPM
+				measure 'Balance at Date PMC'
+					caption: Balance at Date PMC
+				measure 'Balance at Date QTDOPQ %'
+					caption: Balance at Date QTDOPQ %
+				measure 'Balance at Date QTDOPQ'
+					caption: Balance at Date QTDOPQ
+				measure 'Balance at Date PQC'
+					caption: Balance at Date PQC
+				measure 'Balance at Date YTDOPY %'
+					caption: Balance at Date YTDOPY %
+				measure 'Balance at Date YTDOPY'
+					caption: Balance at Date YTDOPY
+				measure 'Balance at Date PYC'
+					caption: Balance at Date PYC
+				measure 'Balance at Date MATG %'
+					caption: Balance at Date MATG %
+				measure 'Balance at Date MATG'
+					caption: Balance at Date MATG
+				measure 'Balance at Date PYMAT'
+					caption: Balance at Date PYMAT
+				measure 'Balance at Date MAT'
+					caption: Balance at Date MAT
+				measure 'Balance at Date MOMTD %'
+					caption: Balance at Date MOMTD %
+				measure 'Balance at Date MOMTD'
+					caption: Balance at Date MOMTD
+				measure 'Balance at Date PMTD'
+					caption: Balance at Date PMTD
+				measure 'Balance at Date QOQTD %'
+					caption: Balance at Date QOQTD %
+				measure 'Balance at Date QOQTD'
+					caption: Balance at Date QOQTD
+				measure 'Balance at Date YOYTD %'
+					caption: Balance at Date YOYTD %
+				measure 'Balance at Date YOYTD'
+					caption: Balance at Date YOYTD
+				measure 'Balance at Date PQTD'
+					caption: Balance at Date PQTD
+				measure 'Balance at Date PYTD'
+					caption: Balance at Date PYTD
+				measure 'Balance at Date POP %'
+					caption: Balance at Date POP %
+				measure 'Balance at Date POP'
+					caption: Balance at Date POP
+				measure 'Balance at Date PP'
+					caption: Balance at Date PP
+				measure 'Balance at Date MOM %'
+					caption: Balance at Date MOM %
+				measure 'Balance at Date MOM'
+					caption: Balance at Date MOM
+				measure 'Balance at Date QOQ %'
+					caption: Balance at Date QOQ %
+				measure 'Balance at Date PM'
+					caption: Balance at Date PM
+				measure 'Balance at Date QOQ'
+					caption: Balance at Date QOQ
+				measure 'Balance at Date PQ'
+					caption: Balance at Date PQ
+				measure 'Balance at Date YOY'
+					caption: Balance at Date YOY
+				measure 'Balance at Date YOY %'
+					caption: Balance at Date YOY %
+				measure 'Balance at Date PY'
+					caption: Balance at Date PY
+				measure 'Balance at Date MTD'
+					caption: Balance at Date MTD
+				measure 'Balance at Date QTD'
+					caption: Balance at Date QTD
+				measure 'Balance at Date YTD'
+					caption: Balance at Date YTD
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Fiscal Calendar Time Intelligence
+				measure 'Net Change YTD (Fiscal)'
+					caption: Net Change YTD (Fiscal)
+				measure 'Net Change QTD (Fiscal)'
+					caption: Net Change QTD (Fiscal)
+				measure 'Net Change MTD (Fiscal)'
+					caption: Net Change MTD (Fiscal)
+				measure 'Net Change PY (Fiscal)'
+					caption: Net Change PY (Fiscal)
+				measure 'Net Change YOY % (Fiscal)'
+					caption: Net Change YOY % (Fiscal)
+				measure 'Net Change YOY (Fiscal)'
+					caption: Net Change YOY (Fiscal)
+				measure 'Net Change PQ (Fiscal)'
+					caption: Net Change PQ (Fiscal)
+				measure 'Net Change QOQ (Fiscal)'
+					caption: Net Change QOQ (Fiscal)
+				measure 'Net Change QOQ % (Fiscal)'
+					caption: Net Change QOQ % (Fiscal)
+				measure 'Net Change PM (Fiscal)'
+					caption: Net Change PM (Fiscal)
+				measure 'Net Change MOM (Fiscal)'
+					caption: Net Change MOM (Fiscal)
+				measure 'Net Change MOM % (Fiscal)'
+					caption: Net Change MOM % (Fiscal)
+				measure 'Net Change PP (Fiscal)'
+					caption: Net Change PP (Fiscal)
+				measure 'Net Change POP (Fiscal)'
+					caption: Net Change POP (Fiscal)
+				measure 'Net Change POP % (Fiscal)'
+					caption: Net Change POP % (Fiscal)
+				measure 'Net Change PYTD (Fiscal)'
+					caption: Net Change PYTD (Fiscal)
+				measure 'Net Change PQTD (Fiscal)'
+					caption: Net Change PQTD (Fiscal)
+				measure 'Net Change YOYTD (Fiscal)'
+					caption: Net Change YOYTD (Fiscal)
+				measure 'Net Change YOYTD % (Fiscal)'
+					caption: Net Change YOYTD % (Fiscal)
+				measure 'Net Change QOQTD (Fiscal)'
+					caption: Net Change QOQTD (Fiscal)
+				measure 'Net Change QOQTD % (Fiscal)'
+					caption: Net Change QOQTD % (Fiscal)
+				measure 'Net Change PMTD (Fiscal)'
+					caption: Net Change PMTD (Fiscal)
+				measure 'Net Change MOMTD % (Fiscal)'
+					caption: Net Change MOMTD % (Fiscal)
+				measure 'Net Change MOMTD (Fiscal)'
+					caption: Net Change MOMTD (Fiscal)
+				measure 'Net Change MAT (Fiscal)'
+					caption: Net Change MAT (Fiscal)
+				measure 'Net Change PYMAT (Fiscal)'
+					caption: Net Change PYMAT (Fiscal)
+				measure 'Net Change MATG (Fiscal)'
+					caption: Net Change MATG (Fiscal)
+				measure 'Net Change MATG % (Fiscal)'
+					caption: Net Change MATG % (Fiscal)
+				measure 'Net Change MAT (364) (Fiscal)'
+					caption: Net Change MAT (364) (Fiscal)
+				measure 'Net Change PYMAT (364) (Fiscal)'
+					caption: Net Change PYMAT (364) (Fiscal)
+				measure 'Net Change PYC (Fiscal)'
+					caption: Net Change PYC (Fiscal)
+				measure 'Net Change YTDOPY (Fiscal)'
+					caption: Net Change YTDOPY (Fiscal)
+				measure 'Net Change YTDOPY % (Fiscal)'
+					caption: Net Change YTDOPY % (Fiscal)
+				measure 'Net Change PQC (Fiscal)'
+					caption: Net Change PQC (Fiscal)
+				measure 'Net Change QTDOPQ (Fiscal)'
+					caption: Net Change QTDOPQ (Fiscal)
+				measure 'Net Change QTDOPQ % (Fiscal)'
+					caption: Net Change QTDOPQ % (Fiscal)
+				measure 'Net Change PMC (Fiscal)'
+					caption: Net Change PMC (Fiscal)
+				measure 'Net Change MTDOPM (Fiscal)'
+					caption: Net Change MTDOPM (Fiscal)
+				measure 'Net Change MTDOPM % (Fiscal)'
+					caption: Net Change MTDOPM % (Fiscal)
+				measure 'Net Change AVG 30D (Fiscal)'
+					caption: Net Change AVG 30D (Fiscal)
+				measure 'Net Change AVG 3M (Fiscal)'
+					caption: Net Change AVG 3M (Fiscal)
+				measure 'Net Change AVG 1Y (Fiscal)'
+					caption: Net Change AVG 1Y (Fiscal)
+				measure 'Balance at Date YTD (Fiscal)'
+					caption: Balance at Date YTD (Fiscal)
+				measure 'Balance at Date QTD (Fiscal)'
+					caption: Balance at Date QTD (Fiscal)
+				measure 'Balance at Date MTD (Fiscal)'
+					caption: Balance at Date MTD (Fiscal)
+				measure 'Balance at Date PY (Fiscal)'
+					caption: Balance at Date PY (Fiscal)
+				measure 'Balance at Date YOY % (Fiscal)'
+					caption: Balance at Date YOY % (Fiscal)
+				measure 'Balance at Date YOY (Fiscal)'
+					caption: Balance at Date YOY (Fiscal)
+				measure 'Balance at Date PQ (Fiscal)'
+					caption: Balance at Date PQ (Fiscal)
+				measure 'Balance at Date QOQ (Fiscal)'
+					caption: Balance at Date QOQ (Fiscal)
+				measure 'Balance at Date QOQ % (Fiscal)'
+					caption: Balance at Date QOQ % (Fiscal)
+				measure 'Balance at Date PM (Fiscal)'
+					caption: Balance at Date PM (Fiscal)
+				measure 'Balance at Date MOM (Fiscal)'
+					caption: Balance at Date MOM (Fiscal)
+				measure 'Balance at Date MOM % (Fiscal)'
+					caption: Balance at Date MOM % (Fiscal)
+				measure 'Balance at Date PP (Fiscal)'
+					caption: Balance at Date PP (Fiscal)
+				measure 'Balance at Date POP (Fiscal)'
+					caption: Balance at Date POP (Fiscal)
+				measure 'Balance at Date POP % (Fiscal)'
+					caption: Balance at Date POP % (Fiscal)
+				measure 'Balance at Date PYTD (Fiscal)'
+					caption: Balance at Date PYTD (Fiscal)
+				measure 'Balance at Date PQTD (Fiscal)'
+					caption: Balance at Date PQTD (Fiscal)
+				measure 'Balance at Date YOYTD (Fiscal)'
+					caption: Balance at Date YOYTD (Fiscal)
+				measure 'Balance at Date YOYTD % (Fiscal)'
+					caption: Balance at Date YOYTD % (Fiscal)
+				measure 'Balance at Date QOQTD (Fiscal)'
+					caption: Balance at Date QOQTD (Fiscal)
+				measure 'Balance at Date QOQTD % (Fiscal)'
+					caption: Balance at Date QOQTD % (Fiscal)
+				measure 'Balance at Date PMTD (Fiscal)'
+					caption: Balance at Date PMTD (Fiscal)
+				measure 'Balance at Date MOMTD % (Fiscal)'
+					caption: Balance at Date MOMTD % (Fiscal)
+				measure 'Balance at Date MOMTD (Fiscal)'
+					caption: Balance at Date MOMTD (Fiscal)
+				measure 'Balance at Date MAT (Fiscal)'
+					caption: Balance at Date MAT (Fiscal)
+				measure 'Balance at Date PYMAT (Fiscal)'
+					caption: Balance at Date PYMAT (Fiscal)
+				measure 'Balance at Date MATG (Fiscal)'
+					caption: Balance at Date MATG (Fiscal)
+				measure 'Balance at Date MATG % (Fiscal)'
+					caption: Balance at Date MATG % (Fiscal)
+				measure 'Balance at Date MAT (364) (Fiscal)'
+					caption: Balance at Date MAT (364) (Fiscal)
+				measure 'Balance at Date PYMAT (364) (Fiscal)'
+					caption: Balance at Date PYMAT (364) (Fiscal)
+				measure 'Balance at Date PYC (Fiscal)'
+					caption: Balance at Date PYC (Fiscal)
+				measure 'Balance at Date YTDOPY (Fiscal)'
+					caption: Balance at Date YTDOPY (Fiscal)
+				measure 'Balance at Date YTDOPY % (Fiscal)'
+					caption: Balance at Date YTDOPY % (Fiscal)
+				measure 'Balance at Date PQC (Fiscal)'
+					caption: Balance at Date PQC (Fiscal)
+				measure 'Balance at Date QTDOPQ (Fiscal)'
+					caption: Balance at Date QTDOPQ (Fiscal)
+				measure 'Balance at Date QTDOPQ % (Fiscal)'
+					caption: Balance at Date QTDOPQ % (Fiscal)
+				measure 'Balance at Date PMC (Fiscal)'
+					caption: Balance at Date PMC (Fiscal)
+				measure 'Balance at Date MTDOPM (Fiscal)'
+					caption: Balance at Date MTDOPM (Fiscal)
+				measure 'Balance at Date MTDOPM % (Fiscal)'
+					caption: Balance at Date MTDOPM % (Fiscal)
+				measure 'Balance at Date AVG 30D (Fiscal)'
+					caption: Balance at Date AVG 30D (Fiscal)
+				measure 'Balance at Date AVG 3M (Fiscal)'
+					caption: Balance at Date AVG 3M (Fiscal)
+				measure 'Balance at Date AVG 1Y (Fiscal)'
+					caption: Balance at Date AVG 1Y (Fiscal)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Weekly Calendar Time Intelligence
+				measure 'Net Change YTD (Weekly)'
+					caption: Net Change YTD (Weekly)
+				measure 'Net Change QTD (Weekly)'
+					caption: Net Change QTD (Weekly)
+				measure 'Net Change MTD (Weekly)'
+					caption: Net Change MTD (Weekly)
+				measure 'Net Change WTD (Weekly)'
+					caption: Net Change WTD (Weekly)
+				measure 'Net Change PY (Weekly)'
+					caption: Net Change PY (Weekly)
+				measure 'Net Change YOY % (Weekly)'
+					caption: Net Change YOY % (Weekly)
+				measure 'Net Change YOY (Weekly)'
+					caption: Net Change YOY (Weekly)
+				measure 'Net Change PQ (Weekly)'
+					caption: Net Change PQ (Weekly)
+				measure 'Net Change QOQ (Weekly)'
+					caption: Net Change QOQ (Weekly)
+				measure 'Net Change QOQ % (Weekly)'
+					caption: Net Change QOQ % (Weekly)
+				measure 'Net Change PW (Weekly)'
+					caption: Net Change PW (Weekly)
+				measure 'Net Change WOW (Weekly)'
+					caption: Net Change WOW (Weekly)
+				measure 'Net Change WOW % (Weekly)'
+					caption: Net Change WOW % (Weekly)
+				measure 'Net Change PP (Weekly)'
+					caption: Net Change PP (Weekly)
+				measure 'Net Change POP (Weekly)'
+					caption: Net Change POP (Weekly)
+				measure 'Net Change POP % (Weekly)'
+					caption: Net Change POP % (Weekly)
+				measure 'Net Change PYTD (Weekly)'
+					caption: Net Change PYTD (Weekly)
+				measure 'Net Change PQTD (Weekly)'
+					caption: Net Change PQTD (Weekly)
+				measure 'Net Change YOYTD (Weekly)'
+					caption: Net Change YOYTD (Weekly)
+				measure 'Net Change YOYTD % (Weekly)'
+					caption: Net Change YOYTD % (Weekly)
+				measure 'Net Change QOQTD (Weekly)'
+					caption: Net Change QOQTD (Weekly)
+				measure 'Sales Amount QOQTD % (Weekly)'
+					caption: Sales Amount QOQTD % (Weekly)
+				measure 'Net Change PWTD (Weekly)'
+					caption: Net Change PWTD (Weekly)
+				measure 'Net Change WOWTD (Weekly)'
+					caption: Net Change WOWTD (Weekly)
+				measure 'Net Change WOWTD % (Weekly)'
+					caption: Net Change WOWTD % (Weekly)
+				measure 'Net Change MAT (364) (Weekly)'
+					caption: Net Change MAT (364) (Weekly)
+				measure 'Net Change PYMAT (364) (Weekly)'
+					caption: Net Change PYMAT (364) (Weekly)
+				measure 'Net Change MATG (Weekly)'
+					caption: Net Change MATG (Weekly)
+				measure 'Net Change MATG % (Weekly)'
+					caption: Net Change MATG % (Weekly)
+				measure 'Net Change PYC (Weekly)'
+					caption: Net Change PYC (Weekly)
+				measure 'Net Change YTDOPY (Weekly)'
+					caption: Net Change YTDOPY (Weekly)
+				measure 'Net Change YTDOPY % (Weekly)'
+					caption: Net Change YTDOPY % (Weekly)
+				measure 'Net Change PQC (Weekly)'
+					caption: Net Change PQC (Weekly)
+				measure 'Net Change QTDOPQ (Weekly)'
+					caption: Net Change QTDOPQ (Weekly)
+				measure 'Net Change QTDOPQ % (Weekly)'
+					caption: Net Change QTDOPQ % (Weekly)
+				measure 'Net Change PWC (Weekly)'
+					caption: Net Change PWC (Weekly)
+				measure 'Net Change WTDOPW (Weekly)'
+					caption: Net Change WTDOPW (Weekly)
+				measure 'Net Change WTDOPW % (Weekly)'
+					caption: Net Change WTDOPW % (Weekly)
+				measure 'Net Change AVG 4W (Weekly)'
+					caption: Net Change AVG 4W (Weekly)
+				measure 'Net Change AVG 1Q (Weekly)'
+					caption: Net Change AVG 1Q (Weekly)
+				measure 'Net Change AVG 1Y (Weekly)'
+					caption: Net Change AVG 1Y (Weekly)
+				measure 'Balance at Date YTD (Weekly)'
+					caption: Balance at Date YTD (Weekly)
+				measure 'Balance at Date QTD (Weekly)'
+					caption: Balance at Date QTD (Weekly)
+				measure 'Balance at Date MTD (Weekly)'
+					caption: Balance at Date MTD (Weekly)
+				measure 'Balance at Date WTD (Weekly)'
+					caption: Balance at Date WTD (Weekly)
+				measure 'Balance at Date PY (Weekly)'
+					caption: Balance at Date PY (Weekly)
+				measure 'Balance at Date YOY % (Weekly)'
+					caption: Balance at Date YOY % (Weekly)
+				measure 'Balance at Date YOY (Weekly)'
+					caption: Balance at Date YOY (Weekly)
+				measure 'Balance at Date PQ (Weekly)'
+					caption: Balance at Date PQ (Weekly)
+				measure 'Balance at Date QOQ (Weekly)'
+					caption: Balance at Date QOQ (Weekly)
+				measure 'Balance at Date QOQ % (Weekly)'
+					caption: Balance at Date QOQ % (Weekly)
+				measure 'Balance at Date PW (Weekly)'
+					caption: Balance at Date PW (Weekly)
+				measure 'Balance at Date WOW (Weekly)'
+					caption: Balance at Date WOW (Weekly)
+				measure 'Balance at Date WOW % (Weekly)'
+					caption: Balance at Date WOW % (Weekly)
+				measure 'Balance at Date PP (Weekly)'
+					caption: Balance at Date PP (Weekly)
+				measure 'Balance at Date POP (Weekly)'
+					caption: Balance at Date POP (Weekly)
+				measure 'Balance at Date POP % (Weekly)'
+					caption: Balance at Date POP % (Weekly)
+				measure 'Balance at Date PYTD (Weekly)'
+					caption: Balance at Date PYTD (Weekly)
+				measure 'Balance at Date PQTD (Weekly)'
+					caption: Balance at Date PQTD (Weekly)
+				measure 'Balance at Date YOYTD (Weekly)'
+					caption: Balance at Date YOYTD (Weekly)
+				measure 'Balance at Date YOYTD % (Weekly)'
+					caption: Balance at Date YOYTD % (Weekly)
+				measure 'Balance at Date QOQTD (Weekly)'
+					caption: Balance at Date QOQTD (Weekly)
+				measure 'Balance at Date QOQTD % (Weekly)'
+					caption: Balance at Date QOQTD % (Weekly)
+				measure 'Balance at Date PWTD (Weekly)'
+					caption: Balance at Date PWTD (Weekly)
+				measure 'Balance at Date WOWTD (Weekly)'
+					caption: Balance at Date WOWTD (Weekly)
+				measure 'Balance at Date WOWTD % (Weekly)'
+					caption: Balance at Date WOWTD % (Weekly)
+				measure 'Balance at Date MAT (364) (Weekly)'
+					caption: Balance at Date MAT (364) (Weekly)
+				measure 'Balance at Date PYMAT (364) (Weekly)'
+					caption: Balance at Date PYMAT (364) (Weekly)
+				measure 'Balance at Date MATG (Weekly)'
+					caption: Balance at Date MATG (Weekly)
+				measure 'Balance at Date MATG % (Weekly)'
+					caption: Balance at Date MATG % (Weekly)
+				measure 'Balance at Date PYC (Weekly)'
+					caption: Balance at Date PYC (Weekly)
+				measure 'Balance at Date YTDOPY (Weekly)'
+					caption: Balance at Date YTDOPY (Weekly)
+				measure 'Balance at Date YTDOPY % (Weekly)'
+					caption: Balance at Date YTDOPY % (Weekly)
+				measure 'Balance at Date PQC (Weekly)'
+					caption: Balance at Date PQC (Weekly)
+				measure 'Balance at Date QTDOPQ (Weekly)'
+					caption: Balance at Date QTDOPQ (Weekly)
+				measure 'Balance at Date QTDOPQ % (Weekly)'
+					caption: Balance at Date QTDOPQ % (Weekly)
+				measure 'Balance at Date PWC (Weekly)'
+					caption: Balance at Date PWC (Weekly)
+				measure 'Balance at Date WTDOPW (Weekly)'
+					caption: Balance at Date WTDOPW (Weekly)
+				measure 'Balance at Date WTDOPW % (Weekly)'
+					caption: Balance at Date WTDOPW % (Weekly)
+				measure 'Balance at Date AVG 4W (Weekly)'
+					caption: Balance at Date AVG 4W (Weekly)
+				measure 'Balance at Date AVG 1Q (Weekly)'
+					caption: Balance at Date AVG 1Q (Weekly)
+				measure 'Balance at Date AVG 1Y (Weekly)'
+					caption: Balance at Date AVG 1Y (Weekly)
+			table 'Customer Ledger Entries'
+				caption: Customer Ledger Entries
+				column 'CLE Entry No.'
+					caption: CLE Entry No.
+				column 'CLE Due Date'
+					caption: CLE Due Date
+				column 'CLE Open'
+					caption: CLE Open
+				column 'CLE Posting Date'
+					caption: CLE Posting Date
+				column 'CLE Document Date'
+					caption: CLE Document Date
+				column 'DCLE Entry No.'
+					caption: DCLE Entry No.
+				column 'DCLE Posting Date'
+					caption: DCLE Posting Date
+				column 'Ledger Entry Amount'
+					caption: Ledger Entry Amount
+				column 'Entry Type'
+					caption: Entry Type
+				column 'Document Type'
+					caption: Document Type
+				column 'Document No.'
+					caption: Document No.
+				column 'DCLE Initial Entry Due Date'
+					caption: DCLE Initial Entry Due Date
+				column 'Customer No.'
+					caption: Customer No.
+				column 'Application No.'
+					caption: Application No.
+				column 'Applied Customer Ledger Entry No.'
+					caption: Applied Customer Ledger Entry No.
+				column 'Sales Invoice Header Document No.'
+					caption: Sales Invoice Header Document No.
+				column 'Payment Terms Code'
+					caption: Payment Terms Code
+				column 'Payment Discount Date'
+					caption: Payment Discount Date
+				measure 'Original Amount (LCY)'
+					caption: Original Amount ($)
+				measure 'Amount Receivable (LCY)'
+					caption: Amount Receivable ($)
+				measure 'Balance (Accounts Receivable)'
+					caption: Balance (Accounts Receivable)
+				measure 'Bucket 1 (Receivables)'
+					caption: Bucket 1 (Receivables)
+				measure 'Bucket 2 (Receivables)'
+					caption: Bucket 2 (Receivables)
+				measure 'Bucket 3 (Receivables)'
+					caption: Bucket 3 (Receivables)
+				measure 'Bucket 4 (Receivables)'
+					caption: Bucket 4 (Receivables)
+				measure 'Current (Receivables)'
+					caption: Current (Receivables)
+				measure 'CLE Bucket 1 Back Link'
+					caption: CLE Bucket 1 Back Link
+				measure 'CLE Bucket 2 Back Link'
+					caption: CLE Bucket 2 Back Link
+				measure 'CLE Bucket 3 Back Link'
+					caption: CLE Bucket 3 Back Link
+				measure 'CLE Bucket 4 Back Link'
+					caption: CLE Bucket 4 Back Link
+				measure 'CLE Current Back Link'
+					caption: CLE Current Back Link
+				measure 'CLE Balance Back Link'
+					caption: CLE Balance Back Link
+			table 'Vendor Ledger Entries'
+				caption: Vendor Ledger Entries
+				column 'VLE Entry No.'
+					caption: VLE Entry No.
+				column 'VLE Due Date'
+					caption: VLE Due Date
+				column 'VLE Open'
+					caption: VLE Open
+				column 'VLE Posting Date'
+					caption: VLE Posting Date
+				column 'VLE Document Date'
+					caption: VLE Document Date
+				column 'DVLE Entry No.'
+					caption: DVLE Entry No.
+				column 'DVLE Posting Date'
+					caption: DVLE Posting Date
+				column 'DVLE Ledger Entry Amount'
+					caption: DVLE Ledger Entry Amount
+				column 'Entry Type'
+					caption: Entry Type
+				column 'Document Type'
+					caption: Document Type
+				column 'Document No.'
+					caption: Document No.
+				column 'DVLE Initial Entry Due Date'
+					caption: DVLE Initial Entry Due Date
+				column 'Vendor No.'
+					caption: Vendor No.
+				column 'Application No.'
+					caption: Application No.
+				column 'Applied Vendor Ledger Entry No.'
+					caption: Applied Vendor Ledger Entry No.
+				column 'PIH Document No.'
+					caption: PIH Document No.
+				column 'Payment Terms Code'
+					caption: Payment Terms Code
+				column 'Payment Discount Date'
+					caption: Payment Discount Date
+				measure 'Amount Payable (LCY)'
+					caption: Amount Payable ($)
+				measure 'Bucket 2 (Payables)'
+					caption: Bucket 2 (Payables)
+				measure 'Bucket 1 (Payables)'
+					caption: Bucket 1 (Payables)
+				measure 'Bucket 3 (Payables)'
+					caption: Bucket 3 (Payables)
+				measure 'Bucket 4 (Payables)'
+					caption: Bucket 4 (Payables)
+				measure 'Current (Payables)'
+					caption: Current (Payables)
+				measure 'Balance (Accounts Payable)'
+					caption: Balance (Accounts Payable)
+				measure 'Original Amount'
+					caption: Original Amount
+				measure 'VLE Bucket 1 Back Link'
+					caption: VLE Bucket 1 Back Link
+				measure 'VLE Bucket 2 Back Link'
+					caption: VLE Bucket 2 Back Link
+				measure 'VLE Bucket 3 Back Link'
+					caption: VLE Bucket 3 Back Link
+				measure 'VLE Bucket 4 Back Link'
+					caption: VLE Bucket 4 Back Link
+				measure 'VLE Current Back Link'
+					caption: VLE Current Back Link
+				measure 'VLE Balance Back Link'
+					caption: VLE Balance Back Link
+			table Vendors
+				caption: Vendors
+				column 'Vendor No.'
+					caption: Vendor No.
+				column 'Vendor Name'
+					caption: Vendor Name
+				column 'Vendor Address'
+					caption: Address
+				column 'Vendor Address 2'
+					caption: Address 2
+				column 'Vendor City'
+					caption: City
+				column 'Vendor Post Code'
+					caption: Postal/ZIP Code
+				column 'Vendor State'
+					caption: Province/State
+				column 'Vendor Country/Region Code'
+					caption: Country/Region Code
+				column 'Vendor Posting Group'
+					caption: Vendor Posting Group
+				column 'Vendor No. & Name'
+					caption: Vendor No. & Name
+			table 'Calc. Group - Time Intelligence for Calendar (Standard)'
+				caption: Calc. Group - Time Intelligence for Calendar (Standard)
+				column 'Selected Measure'
+					caption: Selected Measure
+				column Type
+					caption: Type
+				column 'Sub Type'
+					caption: Sub Type
+				hierarchy 'Calc. Group Hierarchy (Standard)'
+					caption: Calc. Group Hierarchy (Standard)
+					level Type
+						caption: Type
+					level 'Sub Type'
+						caption: Sub Type
+					level 'Selected Measure'
+						caption: Selected Measure
+			table 'Aging Date Parameter'
+				caption: Aging Date Parameter
+				column 'AGING PARAMETER'
+					caption: AGING PARAMETER
+			table 'Aging Bucket Period'
+				caption: Aging Bucket Period
+				measure 'Aging Bucket Period Value'
+					caption: Aging Bucket Period Value
+				measure 'Bucket 1 Range'
+					caption: Bucket 1 Range
+				measure 'Bucket 2 Range'
+					caption: Bucket 2 Range
+				measure 'Bucket 3 Range'
+					caption: Bucket 3 Range
+				measure 'Bucket 4 Range'
+					caption: Bucket 4 Range
+				measure 'Bucket 1 Date Range'
+					caption: Bucket 1 Date Range
+				measure 'Bucket 2 Date Range'
+					caption: Budget 2 Date Range
+				measure 'Bucket 3 Date Range'
+					caption: Bucket 3 Date Range
+				measure 'Bucket 4 Date Range'
+					caption: Bucket 4 Date Range
+			table Customers
+				caption: Customers
+				column 'Customer No.'
+					caption: Customer No.
+				column 'Customer Name'
+					caption: Customer Name
+				column 'Customer Address'
+					caption: Address
+				column 'Customer Address 2'
+					caption: Address 2
+				column 'Customer City'
+					caption: City
+				column 'CustomerPost Code'
+					caption: Postal/ZIP Code
+				column 'Customer State'
+					caption: Province/State
+				column 'Country/Region Code'
+					caption: Country/Region Code
+				column 'Customer Posting Group'
+					caption: Customer Posting Group
+				column 'Customer Price Group'
+					caption: Customer Price Group
+				column 'Customer Discount Group'
+					caption: Customer Discount Group
+				column 'Customer No. & Name'
+					caption: Customer No. & Name
+			table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+				caption: Calc. Group - Time Intelligence for Calendar (Fiscal)
+				column 'Selected Measure'
+					caption: Selected Measure
+				column Type
+					caption: Type
+				column 'Sub Type'
+					caption: Sub Type
+				hierarchy 'Calc. Group Hierarchy (Fiscal)'
+					caption: Calc. Group Hierarchy (Fiscal)
+					level Type
+						caption: Type
+					level 'Sub Type'
+						caption: Sub Type
+					level 'Selected Measure'
+						caption: Selected Measure
+			table 'Calc. Group - Time Intelligence for Calenday (Weekly)'
+				caption: Calc. Group - Time Intelligence for Calenday (Weekly)
+				column 'Selected Measure'
+					caption: Selected Measure
+				column Type
+					caption: Type
+				column 'Sub Type'
+					caption: Sub Type
+				hierarchy 'Calc. Group Hierarchy (Weekly)'
+					caption: Calc. Group Hierarchy (Weekly)
+					level Type
+						caption: Type
+					level 'Sub Type'
+						caption: Sub Type
+					level 'Selected Measure'
+						caption: Selected Measure
+			table Date
+				caption: Date
+				column 'Week Day'
+					caption: Week Day
+				column 'Day Type'
+					caption: Day Type
+				column 'Calendar Year'
+					caption: Calendar Year
+				column 'Calendar Quarter'
+					caption: Calendar Quarter
+				column 'Calendar Quarter Year'
+					caption: Calendar Quarter Year
+				column 'Calendar Month'
+					caption: Calendar Month
+				column 'Calendar Month Year'
+					caption: Calendar Month Year
+				column 'Calendar Week'
+					caption: Calendar Week
+				column 'Calendar Week Year'
+					caption: Calendar Week Year
+				column 'Calendar RelativeWeekPos'
+					caption: Calendar RelativeWeekPos
+				column 'Calendar RelativeMonthPos'
+					caption: Calendar RelativeMonthPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Calendar RelativeQuarterPos
+				column 'Calendar RelativeYearPos'
+					caption: Calendar RelativeYearPos
+				column 'Calendar StartOfMonth'
+					caption: Calendar StartOfMonth
+				column 'Calendar EndOfMonth'
+					caption: Calendar EndOfMonth
+				column 'Calendar StartOfQuarter'
+					caption: Calendar StartOfQuarter
+				column 'Calendar EndOfQuarter'
+					caption: Calendar EndOfQuarter
+				column 'Calendar StartOfYear'
+					caption: Calendar StartOfYear
+				column 'Calendar EndOfYear'
+					caption: Calendar EndOfYear
+				column 'Calendar MonthDays'
+					caption: Calendar MonthDays
+				column 'Calendar QuarterDays'
+					caption: Calendar QuarterDays
+				column 'Calendar YearDays'
+					caption: Calendar YearDays
+				column 'Calendar DayOfMonthNumber'
+					caption: Calendar DayOfMonthNumber
+				column 'Calendar DayOfQuarterNumber'
+					caption: Calendar DayOfQuarterNumber
+				column 'Calendar DayOfYearNumber'
+					caption: Calendar DayOfYearNumber
+				column 'Calendar DatePreviousWeek'
+					caption: Calendar DatePreviousWeek
+				column 'Calendar DatePreviousMonth'
+					caption: Calendar DatePreviousMonth
+				column 'Calendar DatePreviousQuarter'
+					caption: Calendar DatePreviousQuarter
+				column 'Calendar DatePreviousYear'
+					caption: Calendar DatePreviousYear
+				column 'Fiscal Year'
+					caption: Fiscal Year
+				column 'Fiscal Quarter'
+					caption: Fiscal Quarter
+				column 'Fiscal Quarter Year'
+					caption: Fiscal Quarter Year
+				column 'Fiscal Month'
+					caption: Fiscal Month
+				column 'Fiscal Month Year'
+					caption: Fiscal Month Year
+				column 'Fiscal Week'
+					caption: Fiscal Week
+				column 'Fiscal Week Year'
+					caption: Fiscal Week Year
+				column 'Fiscal RelativeWeekPos'
+					caption: Fiscal RelativeWeekPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Fiscal RelativeMonthPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fiscal RelativeQuarterPos
+				column 'Fiscal RelativeYearPos'
+					caption: Fiscal RelativeYearPos
+				column 'Fiscal StartOfMonth'
+					caption: Fiscal StartOfMonth
+				column 'Fiscal EndOfMonth'
+					caption: Fiscal EndOfMonth
+				column 'Fiscal StartOfQuarter'
+					caption: Fiscal StartOfQuarter
+				column 'Fiscal EndOfQuarter'
+					caption: Fiscal EndOfQuarter
+				column 'Fiscal StartOfYear'
+					caption: Fiscal StartOfYear
+				column 'Fiscal EndOfYear'
+					caption: Fiscal EndOfYear
+				column 'Fiscal MonthDays'
+					caption: Fiscal MonthDays
+				column 'Fiscal QuarterDays'
+					caption: Fiscal QuarterDays
+				column 'Fiscal YearDays'
+					caption: Fiscal YearDays
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fiscal DayOfMonthNumber
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fiscal DayOfQuarterNumber
+				column 'Fiscal DayOfYearNumber'
+					caption: Fiscal DayOfYearNumber
+				column 'Fiscal DatePreviousWeek'
+					caption: Fiscal DatePreviousWeek
+				column 'Fiscal DatePreviousMonth'
+					caption: Fiscal DatePreviousMonth
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fiscal DatePreviousQuarter
+				column 'Fiscal DatePreviousYear'
+					caption: Fiscal DatePreviousYear
+				column 'FW Year'
+					caption: FW Year
+				column 'FW Quarter'
+					caption: FW Quarter
+				column 'FW Quarter Year'
+					caption: FW Quarter Year
+				column 'FW Month'
+					caption: FW Month
+				column 'FW Month Year'
+					caption: FW Month Year
+				column 'FW Week'
+					caption: FW Week
+				column 'FW Period'
+					caption: FW Period
+				column 'FW Week Year'
+					caption: FW Week Year
+				column 'FW StartOfWeek'
+					caption: FW StartOfWeek
+				column 'FW EndOfWeek'
+					caption: FW EndOfWeek
+				column 'FW RelativeWeekPos'
+					caption: FW RelativeWeekPos
+				column 'FW RelativeMonthPos'
+					caption: FW RelativeMonthPos
+				column 'FW RelativeQuarterPos'
+					caption: FW RelativeQuarterPos
+				column 'FW RelativeYearPos'
+					caption: FW RelativeYearPos
+				column 'FW StartOfMonth'
+					caption: FW StartOfMonth
+				column 'FW EndOfMonth'
+					caption: FW EndOfMonth
+				column 'FW StartOfQuarter'
+					caption: FW StartOfQuarter
+				column 'FW EndOfQuarter'
+					caption: FW EndOfQuarter
+				column 'FW StartOfYear'
+					caption: FW StartOfYear
+				column 'FW EndOfYear'
+					caption: FW EndOfYear
+				column 'FW MonthDays'
+					caption: FW MonthDays
+				column 'FW QuarterDays'
+					caption: FW QuarterDays
+				column 'FW YearDays'
+					caption: FW YearDays
+				column 'FW DayOfMonthNumber'
+					caption: FW DayOfMonthNumber
+				column 'FW DayOfQuarterNumber'
+					caption: FW DayOfQuarterNumber
+				column 'FW DayOfYearNumber'
+					caption: FW DayOfYearNumber
+				column 'FW DatePreviousWeek'
+					caption: FW DatePreviousWeek
+				column 'FW DatePreviousMonth'
+					caption: FW DatePreviousMonth
+				column 'FW DatePreviousQuarter'
+					caption: FW DatePreviousQuarter
+				column 'FW DatePreviousYear'
+					caption: FW DatePreviousYear
+				column 'Relative Day'
+					caption: Relative Day
+				column Sequential365DayNumber
+					caption: Sequential 365 DayNumber
+				measure 'No. of Days'
+					caption: No. of Days
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fiscal Year-Quarter-Month-Week
+					level 'Fiscal Year'
+						caption: Fiscal Year
+					level 'Fiscal Quarter Year'
+						caption: Fiscal Quarter Year
+					level 'Fiscal Month Year'
+						caption: Fiscal Month Year
+					level 'Fiscal Week Year'
+						caption: Fiscal Week Year
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Calendar Year-Quarter-Month-Week
+					level 'Calendar Year'
+						caption: Calendar Year
+					level 'Calendar Quarter Year'
+						caption: Calendar Quarter Year
+					level 'Calendar Month Year'
+						caption: Calendar Month Year
+					level 'Calendar Week Year'
+						caption: Calendar Week Year
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: FW Year-Quarter-Month-Week
+					level 'FW Year'
+						caption: FW Year
+					level 'FW Quarter Year'
+						caption: FW Quarter Year
+					level 'FW Month Year'
+						caption: FW Month Year
+					level 'FW Week Year'
+						caption: FW Week Year
+				hierarchy 'Fiscal Year-Month'
+					caption: Fiscal Year-Month
+					level 'Fiscal Year'
+						caption: Fiscal Year
+					level 'Fiscal Month Year'
+						caption: Fiscal Month Year
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fiscal Year-Month-Week
+					level 'Fiscal Year'
+						caption: Fiscal Year
+					level 'Fiscal Month Year'
+						caption: Fiscal Month Year
+					level 'Fiscal Week Year'
+						caption: Fiscal Week Year
+				hierarchy 'Calendar Year-Month'
+					caption: Calendar Year-Month
+					level 'Calendar Year'
+						caption: Calendar Year
+					level 'Calendar Month Year'
+						caption: Calendar Month Year
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Calendar Year-Month-Week
+					level 'Calendar Year'
+						caption: Calendar Year
+					level 'Calendar Month Year'
+						caption: Calendar Month Year
+					level 'Calendar Week Year'
+						caption: Calendar Week Year
+				hierarchy 'FW Year-Month-Week'
+					caption: FW Year-Month-Week
+					level 'FW Year'
+						caption: FW Year
+					level 'FW Month Year'
+						caption: FW Month Year
+					level 'FW Week Year'
+						caption: FW Week Year
+				hierarchy 'FW Year-Quarter-Week'
+					caption: FW Year-Quarter-Week
+					level 'FW Year'
+						caption: FW Year
+					level 'FW Quarter Year'
+						caption: FW Quarter Year
+					level 'FW Week Year'
+						caption: FW Week Year
+				hierarchy 'FW Year-Week'
+					caption: FW Year-Week
+					level 'FW Year'
+						caption: FW Year
+					level 'FW Week Year'
+						caption: FW Week Year
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: My Report Title
+				measure 'My Button Caption'
+					caption: My Button Caption
+				measure 'My Visual Title'
+					caption: My Visual Title
+				measure 'Financial Overview'
+					caption: Financial Overview
+				measure 'Income Statement by Month'
+					caption: Income Statement by Month
+				measure 'Balance Sheet by Month'
+					caption: Balance Sheet by Month
+				measure 'Budget Comparison'
+					caption: Budget Comparison
+				measure 'Liquidity KPIs'
+					caption: Liquidity KPIs
+				measure Profitability
+					caption: Profitability
+				measure 'Liabilities '
+					caption: "Liabilities "
+				measure 'Average Collection Period '
+					caption: "Average Collection Period "
+				measure 'Aged Receivables (Back Dating)'
+					caption: Aged Receivables (Back Dating)
+				measure 'Aged Payables (Back Dating)'
+					caption: Aged Payables (Back Dating)
+				measure 'G/L Entries'
+					caption: G/L Entries
+				measure 'Detailed Vendor Ledger Entries'
+					caption: Detailed Vendor Ledger Entries
+				measure 'Detailed Customer Ledger Entries'
+					caption: Detailed Customer Ledger Entries
+				measure 'Income Statement Drill Through'
+					caption: Income Statement Drill Through
+				measure 'Balance Sheet Drill Through'
+					caption: Balance Sheet Drill Through
+				measure 'Vendor Ledger Entries Drill Through'
+					caption: Vendor Ledger Entries Drill Through
+				measure 'Customer Ledger Entries Drill Through'
+					caption: Customer Ledger Entries Drill Through
+				measure 'Liabilities Drill Through'
+					caption: Liabilities Drill Through
+				measure 'Finance App Change Log'
+					caption: Finance App Change Log
+				measure 'As At Date'
+					caption: As At Date
+				measure 'Aging Bucket Length'
+					caption: Aging Bucket Length
+				measure 'Use Aging Date'
+					caption: Use Aging Date
+				measure 'Cost of Goods Sold '
+					caption: "Cost of Goods Sold "
+				measure 'Net Profit '
+					caption: "Net Profit "
+				measure 'Current Assets / Current Liabilities'
+					caption: Current Assets / Current Liabilities
+				measure '(Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities'
+					caption: (Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities
+				measure 'Liquid Assets / Current Liabilities'
+					caption: Liquid Assets / Current Liabilities
+				measure 'Revenue - Cost of Goods Sold - Expenses'
+					caption: Revenue - Cost of Goods Sold - Expenses
+				measure 'Net Profit / Revenue'
+					caption: Net Profit / Revenue
+				measure 'Revenue - Cost of Goods Sold'
+					caption: Revenue - Cost of Goods Sold
+				measure 'Gross Profit / Revenue'
+					caption: Gross Profit / Revenue
+				measure 'Liabilities by Month'
+					caption: Liabilities by Month
+				measure 'Revenue & Accounts Receivable (Average) by Month'
+					caption: Revenue & Accounts Receivable (Average) by Month
+				measure 'Average Collection Period (Days) by Month'
+					caption: Average Collection Period (Days) by Month
+				measure 'Operating Revenue '
+					caption: "Operating Revenue "
+				measure 'Operating Expenses '
+					caption: "Operating Expenses "
+				measure 'AGED AR / AP'
+					caption: AGED AR / AP
+				measure 'Finance Analytics'
+					caption: Finance Analytics
+				measure for
+					caption: for
+				measure 'CONNECT YOUR DATA'
+					caption: CONNECT YOUR DATA
+				measure '1. Download the Finance Connector for Power BI'
+					caption: 1. Download the Finance Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Configure Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: USE, EDIT AND BUILD YOUR OWN REPORTS
+				measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.
+				measure 'HELP AND SUPPORT'
+					caption: HELP AND SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: For help and support with your new report please visit the Analytics overview documentation.
+				measure 'OTHER POWER BI REPORTS'
+					caption: OTHER POWER BI REPORTS
+				measure PURCHASE
+					caption: PURCHASE
+				measure SALES
+					caption: SALES
+				measure 'INVENTORY '
+					caption: "INVENTORY "
+				measure MANUFACTURING
+					caption: MANUFACTURING
+				measure JOBS
+					caption: JOBS
+				measure 'for Business Central'
+					caption: for Business Central
+				measure 'Aged Accounts Receivable (AR) & Accounts Payable (AP)'
+					caption: Aged Accounts Receivable (AR) & Accounts Payable (AP)
+				measure 'Aged Accounts Receivable & Accounts Payable'
+					caption: Aged Accounts Receivable & Accounts Payable
+				measure 'Aged Accounts'
+					caption: Aged Accounts
+				measure 'General Ledger (G/L) Entries'
+					caption: General Ledger (G/L) Entries
+				measure 'General Ledger Entries'
+					caption: General Ledger Entries
+				measure 'Return On Assets - ROA by Month'
+					caption: Return On Assets - ROA by Month
+				measure 'Top 5 Customers by Balance'
+					caption: Top 5 Customers by Balance
+				measure 'Top 5 Vendors by Balance'
+					caption: Top 5 Vendors by Balance
+				measure 'Net Profit Margin by Month'
+					caption: Net Profit Margin by Month
+				measure 'Asset Turnover Ratio by Month'
+					caption: Asset Turnover Ratio by Month
+				measure 'Last Refreshed'
+					caption: Last Refreshed
+				measure 'Company Name'
+					caption: Company Name
+				measure 'Liquidity Line Chart'
+					caption: Liquidity Line Chart
+				measure 'Net Profit by Month'
+					caption: Net Profit by Month
+				measure 'Gross Profit by Month'
+					caption: Gross Profit by Month
+				measure 'Operating Profit - EBIT and EBITDA by Month'
+					caption: Operating Profit - EBIT and EBITDA by Month
+				measure 'EBITDA '
+					caption: "EBITDA "
+				measure 'Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month'
+					caption: Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month
+				measure 'Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding.'
+					caption: Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding.
+				measure 'Current Ratio, Current Assets, Current Liabilities.'
+					caption: Current Ratio, Current Assets, Current Liabilities.
+				measure 'Quick Ratio, Current Assets, Inventory.'
+					caption: Quick Ratio, Current Assets, Inventory.
+				measure 'Cash Ratio, Liquid Assets, Current Liabilities.'
+					caption: Cash Ratio, Liquid Assets, Current Liabilities.
+				measure 'Net Profit, Revenue, Cost of Goods Sold.'
+					caption: Net Profit, Revenue, Cost of Goods Sold.
+				measure 'Net Profit Margin, Net Profit, Revenue.'
+					caption: Net Profit Margin, Net Profit, Revenue.
+				measure 'Gross Profit, Revenue, Cost of Goods Sold.'
+					caption: Gross Profit, Revenue, Cost of Goods Sold.
+				measure 'Gross Profit Marging, Gross Profit, Revenue.'
+					caption: Gross Profit Marging, Gross Profit, Revenue.
+				measure 'Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities.'
+					caption: Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities.
+				measure 'Gross Profit Margin, Gross Profit, Revenue.'
+					caption: Gross Profit Margin, Gross Profit, Revenue.
+				measure 'Net Profit Margin by Fiscal Year and Month'
+					caption: Net Profit Margin by Fiscal Year and Month
+				measure 'Asset Turnover Ratio by Fiscal Year and Month'
+					caption: Asset Turnover Ratio by Fiscal Year and Month
+				measure 'Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name'
+					caption: Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name
+			table COMPANY
+				caption: COMPANY
+				measure 'Company Label'
+					caption: Company Label
+			table 'Closing Entry Filter Table'
+				caption: Closing Entry Filter Table
+				column CloseIncomeSourceCodeFilter
+					caption: CloseIncomeSourceCodeFilter
+			table 'Back Links'
+				caption: Back Links
+

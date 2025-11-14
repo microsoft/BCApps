@@ -6,11 +6,11 @@
 namespace System.Test.Email;
 
 using System.Email;
-using System.TestLibraries.Email;
 using System.Environment;
+using System.TestLibraries.Email;
 using System.TestLibraries.Reflection;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 134703 "Email Retry Test"
 {

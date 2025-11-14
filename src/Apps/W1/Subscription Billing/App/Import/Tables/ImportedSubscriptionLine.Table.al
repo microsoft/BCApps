@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Inventory.Item;
 using Microsoft.Finance.Currency;
+using Microsoft.Inventory.Item;
 using System.Security.User;
 
 table 8009 "Imported Subscription Line"

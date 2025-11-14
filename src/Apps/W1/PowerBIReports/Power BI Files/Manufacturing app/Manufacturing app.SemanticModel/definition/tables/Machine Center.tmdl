@@ -1,0 +1,384 @@
+table 'Machine Center'
+	lineageTag: ec3e7df6-052e-4b94-94f7-665881f0d00f
+
+	measure 'Machine Center Capacity (Effective)' =
+			
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR TimeFactor =
+			    LOOKUPVALUE(
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], SelectedUOM
+			    )
+			VAR TimeFactoredCalendarEntries =
+			    ADDCOLUMNS(
+			        CALCULATETABLE(
+			            'Calendar Entries',
+			            'Calendar Entries'[Capacity Type] = "Machine Center"
+			        ),
+			        "@Factored",
+			            DIVIDE(
+			                VAR WCUOM = LOOKUPVALUE(
+			                    'Work Center'[Work Center Unit of Measure Code],
+			                    'Work Center'[Work Center No.], 'Calendar Entries'[Work Center No.]
+			                )
+			                VAR WCUOMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], WCUOM
+			                )
+			                RETURN WCUOMFactor * 'Calendar Entries'[Capacity Effective],
+			                TimeFactor
+			            )
+			    )
+			RETURN
+			    SUMX(
+			        TimeFactoredCalendarEntries,
+			        [@Factored]
+			    )
+		formatString: #,0.00
+		displayFolder: _Machine Center Statistics
+		lineageTag: ae64a8e3-eb89-499f-912c-6d6a8979acc1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Machine Center Capacity (Total)' = ```
+			
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR TimeFactor =
+			    LOOKUPVALUE(
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], SelectedUOM
+			    )
+			VAR TimeFactoredCalendarEntries =
+			    ADDCOLUMNS(
+			        CALCULATETABLE(
+			            'Calendar Entries',
+			            'Calendar Entries'[Capacity Type] = "Machine Center"
+			        ),
+			        "@Factored",
+			            DIVIDE(
+			                VAR WCUOM = LOOKUPVALUE(
+			                    'Work Center'[Work Center Unit of Measure Code],
+			                    'Work Center'[Work Center No.], 'Calendar Entries'[Work Center No.]
+			                )
+			                VAR WCUOMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], WCUOM
+			                )
+			                RETURN WCUOMFactor * 'Calendar Entries'[Capacity Total],
+			                TimeFactor
+			            )
+			    )
+			RETURN
+			    SUMX(
+			        TimeFactoredCalendarEntries,
+			        [@Factored]
+			    )
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Machine Center Statistics
+		lineageTag: 002ba130-fd73-4667-a75a-30e3e642914a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Machine Center Expected Efficiency %' = DIVIDE([Machine Center Capacity (Effective)],[Machine Center Capacity (Total)])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Machine Center Statistics
+		lineageTag: ad80cd23-64ca-470a-b573-455326d97e88
+
+	measure 'Machine Center Actual Total Cost' = CALCULATE([Direct Cost] + [Overhead Cost], 'Capacity Ledger Entries'[Type] = "Machine Center")
+		formatString: #,0.00
+		displayFolder: _Machine Center Statistics
+		lineageTag: 2e5c02d3-2cad-4dea-8b75-61d5adb22a21
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Machine Center Actual Efficiency %' = DIVIDE([Machine Center Actual Need], [Machine Center Capacity (Total)])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Machine Center Statistics
+		lineageTag: e03ecb70-54df-4c0b-9312-d5c56719369f
+
+	measure 'Machine Center Actual Need' = ```
+			
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR TimeFactor =
+			    LOOKUPVALUE(
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], SelectedUOM
+			    )
+			VAR TimeFactoredCapacityLedgerEntries =
+			    ADDCOLUMNS(
+			        CALCULATETABLE(
+			        'Capacity Ledger Entries','Capacity Ledger Entries'[Type] = "Machine Center"),
+			        "@FactoredStopTime",
+			            DIVIDE(
+			                VAR CapacityUoMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], 'Capacity Ledger Entries'[Capacity Unit of Measure]
+			                )
+			                RETURN CapacityUoMFactor * 'Capacity Ledger Entries'[stopTime],
+			                TimeFactor
+			            ),
+			        "@FactoredSetupTime",
+			            DIVIDE(
+			                VAR CapacityUoMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], 'Capacity Ledger Entries'[Capacity Unit of Measure]
+			                )
+			                RETURN CapacityUoMFactor * 'Capacity Ledger Entries'[setupTime],
+			                TimeFactor
+			            ),
+			        "@FactoredRunTime",
+			            DIVIDE(
+			                VAR CapacityUoMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], 'Capacity Ledger Entries'[Capacity Unit of Measure]
+			                )
+			                RETURN CapacityUoMFactor * 'Capacity Ledger Entries'[runTime],
+			                TimeFactor
+			            )
+			    )
+			RETURN
+			    SUMX(
+			        TimeFactoredCapacityLedgerEntries,
+			        [@FactoredStopTime] + [@FactoredSetupTime] + [@FactoredRunTime]
+			    )
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Machine Center Statistics
+		lineageTag: ea84d524-1ed1-4cb2-8956-055c3966a4c6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Specifies the calculated capacity requirements for production orders at the work center.
+	measure 'Machine Center Allocated Time' = ```
+			
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR TimeFactor =
+			    LOOKUPVALUE(
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], SelectedUOM
+			    )
+			VAR TimeFactoredProdOrderCapacityNeed =
+			    ADDCOLUMNS(
+			        CALCULATETABLE(
+			            'Prod Order Capacity Need',
+			            'Prod Order Capacity Need'[Type] = "Machine Center",
+			            'Prod Order Capacity Need'[Requested Only] = FALSE()
+			        ),
+			        "@Factored",
+			            DIVIDE(
+			                VAR WCUOM = LOOKUPVALUE(
+			                    'Work Center'[Work Center Unit of Measure Code],
+			                    'Work Center'[Work Center No.], 'Prod Order Capacity Need'[workCenterNo]
+			                )
+			                VAR WCUOMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], WCUOM
+			                )
+			                RETURN WCUOMFactor * 'Prod Order Capacity Need'[allocatedTime],
+			                TimeFactor
+			            )
+			    )
+			RETURN
+			    SUMX(
+			        TimeFactoredProdOrderCapacityNeed,
+			        [@Factored]
+			    )
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Machine Center Statistics
+		lineageTag: f1871994-a8c9-4ffd-86e6-1c5fbea7f678
+
+	measure 'Machine Center Output' = CALCULATE( SUM('Capacity Ledger Entries'[outputQuantity]), 'Capacity Ledger Entries'[Type] = "Machine Center")
+		formatString: #,0.00
+		displayFolder: _Machine Center Measures
+		lineageTag: 223c11f3-1703-4181-8878-c978b9051a70
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Machine Center Scrap' = CALCULATE( SUM('Capacity Ledger Entries'[scrapQuantity]), 'Capacity Ledger Entries'[Type] = "Machine Center" )
+		formatString: #,0.00
+		displayFolder: _Machine Center Measures
+		lineageTag: ab04072c-d643-4c39-a755-5be93263771e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Machine Center Scrap %' = DIVIDE([Machine Center Scrap], [Machine Center Output])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Machine Center Measures
+		lineageTag: e53e678b-5a74-4c0c-9360-2eaedee30572
+
+	measure 'Machine Center Run Time' =
+			
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR TimeFactor =
+			    LOOKUPVALUE(
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], SelectedUOM
+			    )
+			VAR TimeFactoredCapacityLedgerEntries =
+			    ADDCOLUMNS(
+			        CALCULATETABLE('Capacity Ledger Entries', 'Capacity Ledger Entries'[Type] = "Machine Center"),
+			        "@FactoredSetupTime",
+			            DIVIDE(
+			                VAR CapacityUoMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], 'Capacity Ledger Entries'[Capacity Unit of Measure]
+			                )
+			                RETURN CapacityUoMFactor * 'Capacity Ledger Entries'[setupTime],
+			                TimeFactor
+			            ),
+			        "@FactoredRunTime",
+			            DIVIDE(
+			                VAR CapacityUoMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], 'Capacity Ledger Entries'[Capacity Unit of Measure]
+			                )
+			                RETURN CapacityUoMFactor * 'Capacity Ledger Entries'[runTime],
+			                TimeFactor
+			            )
+			    )
+			RETURN
+			    SUMX(
+			        TimeFactoredCapacityLedgerEntries,
+			        [@FactoredSetupTime] + [@FactoredRunTime]
+			    )
+		formatString: #,0.00
+		displayFolder: _Machine Center Measures
+		lineageTag: 520d5abf-507c-42c9-bd75-6e5e4cb6b046
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Machine Center Stop Time' =
+			
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR TimeFactor =
+			    LOOKUPVALUE(
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], SelectedUOM
+			    )
+			VAR TimeFactoredCapacityLedgerEntries =
+			    ADDCOLUMNS(
+			        CALCULATETABLE('Capacity Ledger Entries', 'Capacity Ledger Entries'[Type] = "Machine Center"),
+			        "@FactoredStopTime",
+			            DIVIDE(
+			                VAR CapacityUoMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], 'Capacity Ledger Entries'[Capacity Unit of Measure]
+			                )
+			                RETURN CapacityUoMFactor * 'Capacity Ledger Entries'[stopTime],
+			                TimeFactor
+			            )
+			    )
+			RETURN
+			    SUMX(
+			        TimeFactoredCapacityLedgerEntries,
+			        [@FactoredStopTime]
+			    )
+		formatString: #,0.00
+		displayFolder: _Machine Center Measures
+		lineageTag: 62a43eb4-c798-4e0a-b86d-4114e564e1c4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Machine Center Stop %' = DIVIDE( [Machine Center Stop Time], [Machine Center Run Time] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Machine Center Measures
+		lineageTag: 901e2d2e-9853-4eaf-aed8-6a999088d9af
+
+	measure 'Machine Center Availability After Orders' = [Machine Center Capacity (Effective)] - [Machine Center Allocated Time]
+		displayFolder: _Machine Center Measures
+		lineageTag: 85568914-8390-4204-804f-c066538d656e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Machine Center Load' = DIVIDE([Machine Center Allocated Time], [Machine Center Capacity (Effective)])
+		formatString: #,0.0%;-#,0.0%;#,0.0%
+		displayFolder: _Machine Center Measures
+		lineageTag: aaec6385-f807-4917-8ee8-5ccd5101f39c
+
+	column 'Machine Center No.'
+		dataType: string
+		lineageTag: 192702cf-fdfd-4cb1-9b14-36e6cad33a2f
+		summarizeBy: none
+		sourceColumn: Machine Center No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Machine Center Name'
+		dataType: string
+		lineageTag: 373c3df7-5d7e-44fb-9aff-9b32cfa04751
+		summarizeBy: none
+		sourceColumn: Machine Center Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Center No.'
+		dataType: string
+		lineageTag: 742b4db2-7b3b-4151-8e14-b10f58a45cc7
+		summarizeBy: none
+		sourceColumn: Work Center No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Machine Center Key'
+		dataType: string
+		isHidden
+		isKey
+		lineageTag: 6de20e11-501f-4bde-a8a0-c72fde28e825
+		summarizeBy: none
+		sourceColumn: Machine Center Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Center Unit of Measure' = LOOKUPVALUE('Work Center'[Work Center Unit of Measure Code], 'Work Center'[Work Center No.], 'Machine Center'[Work Center No.])
+		lineageTag: 2a0fa767-cfb9-488c-bdac-8282ca3265e5
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Center Name' = LOOKUPVALUE('Work Center'[Work Center Name], 'Work Center'[Work Center No.], 'Machine Center'[Work Center No.])
+		lineageTag: b1694a05-da8e-4cb6-afd0-415bf77250d4
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Machine Center' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="machineCenters",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"no", type text},
+				            {"name", type text},
+				            {"workCenterNo", type text}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {
+				            {"no", "Machine Center No."},
+				            {"name", "Machine Center Name"},
+				            {"workCenterNo", "Work Center No."}
+				        }
+				    ),
+				     #"Added Column" = Table.AddColumn(
+				        #"Renamed Columns", "Machine Center Key", each "Machine Center" & " " & [#"Machine Center No."], type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Column",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

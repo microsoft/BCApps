@@ -1,16 +1,16 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Foundation.Navigate;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.Sales.Document;
-using Microsoft.Sales.Posting;
-using Microsoft.Sales.History;
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.GeneralLedger.Preview;
-using Microsoft.Finance.GeneralLedger.Posting;
-using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.Finance.GeneralLedger.Preview;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Navigate;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Posting;
 
 codeunit 8067 "Customer Deferrals Mngmt."
 {

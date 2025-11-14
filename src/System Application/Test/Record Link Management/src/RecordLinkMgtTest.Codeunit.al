@@ -5,11 +5,11 @@
 
 namespace System.Test.Utilities;
 
-using System.Environment.Configuration;
-using System.Utilities;
-using System.TestLibraries.Utilities;
 using System.Environment;
+using System.Environment.Configuration;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 132508 "Record Link Mgt. Test"
 {

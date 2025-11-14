@@ -1,0 +1,334 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "79a2546797a24dc02010",
+  "position": {
+    "x": 26,
+    "y": 64,
+    "z": 2000,
+    "height": 301.66666666666669,
+    "width": 1228.3333333333335,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "decompositionTreeVisual",
+    "query": {
+      "queryState": {
+        "Analyze": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Ledger Entries"
+                    }
+                  },
+                  "Property": "Quantity"
+                }
+              },
+              "queryRef": "Item Ledger Entries.Quantity",
+              "nativeQueryRef": "Quantity"
+            }
+          ]
+        },
+        "ExplainBy": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Location"
+                    }
+                  },
+                  "Property": "Location Code"
+                }
+              },
+              "queryRef": "Location.Location Code",
+              "nativeQueryRef": "Location Code",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lot No"
+                    }
+                  },
+                  "Property": "Lot No."
+                }
+              },
+              "queryRef": "Lot No.Lot No.",
+              "nativeQueryRef": "Lot No.",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor"
+                    }
+                  },
+                  "Property": "Vendor No. & Name"
+                }
+              },
+              "queryRef": "Vendor.Vendor No. & Name",
+              "nativeQueryRef": "Vendor No. & Name",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item No."
+                }
+              },
+              "queryRef": "Item.Item No.",
+              "nativeQueryRef": "Item No.",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Ledger Entries"
+                    }
+                  },
+                  "Property": "Entry Type"
+                }
+              },
+              "queryRef": "Item Ledger Entries.Entry Type",
+              "nativeQueryRef": "Entry Type",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer"
+                    }
+                  },
+                  "Property": "Customer No. & Name"
+                }
+              },
+              "queryRef": "Customer.Customer No. & Name",
+              "nativeQueryRef": "Customer No. & Name",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Ledger Entries"
+                    }
+                  },
+                  "Property": "Document No."
+                }
+              },
+              "queryRef": "Item Ledger Entries.Document No.",
+              "nativeQueryRef": "Document No.",
+              "active": false
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Item Ledger Entries"
+                  }
+                },
+                "Property": "Quantity"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "ExplainBy"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "Location.Location Code"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Location"
+                    }
+                  },
+                  "Property": "Location Code"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Lot No.Lot No."
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lot No"
+                    }
+                  },
+                  "Property": "Lot No."
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Vendor.Vendor No. & Name"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor"
+                    }
+                  },
+                  "Property": "Vendor No. & Name"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Item.Item No."
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Item Ledger Entries.Entry Type"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Ledger Entries"
+                    }
+                  },
+                  "Property": "Entry Type"
+                }
+              }
+            ]
+          },
+          {
+            "queryRefs": [
+              "Customer.Customer No. & Name"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Item Ledger Entries.Document No."
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Ledger Entries"
+                    }
+                  },
+                  "Property": "Document No."
+                }
+              }
+            ]
+          }
+        ],
+        "root": {
+          "children": [
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "null"
+                  }
+                }
+              ],
+              "isToggled": true,
+              "children": [
+                {
+                  "identityValues": [
+                    {
+                      "Literal": {
+                        "Value": "'LOT0001'"
+                      }
+                    }
+                  ],
+                  "isToggled": true
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "objects": {
+      "tree": [
+        {
+          "properties": {
+            "effectiveBarsPerLevel": {
+              "expr": {
+                "Literal": {
+                  "Value": "3L"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "stylePreset": [
+        {
+          "properties": {
+            "name": {
+              "expr": {
+                "Literal": {
+                  "Value": "'None'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

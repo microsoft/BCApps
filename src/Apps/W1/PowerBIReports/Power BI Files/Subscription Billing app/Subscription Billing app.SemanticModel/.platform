@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Subscription Billing app"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "42a7ef24-861f-4c51-9403-9bcd521d03e3"
+  }
+}

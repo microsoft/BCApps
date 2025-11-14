@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Integration.Receive;
 
-using System.Utilities;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration.Interfaces;
+using System.Utilities;
 
 /// <summary>
 /// Codeunit to run DownloadDocument from IDocumentReceiver Interface

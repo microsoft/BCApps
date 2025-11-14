@@ -5,9 +5,9 @@
 
 namespace System.Agents;
 
+using System.Environment;
 using System.Environment.Configuration;
 using System.Reflection;
-using System.Environment;
 using System.Security.AccessControl;
 
 codeunit 4301 "Agent Impl."
@@ -56,31 +56,7 @@ internal procedure Deactivate(AgentUserSecurityID: Guid)
         ChangeAgentState(AgentUserSecurityID, false);
     end;
 
-    [NonDebuggable]
-    [Scope('OnPrem')]
-internal procedure SetInstructions(AgentUserSecurityID: Guid; Instructions: SecretText)
-    var
-        AgentALFunctions: DotNet AgentALFunctions;
-    begin
-        AgentALFunctions.SetInstructions(AgentUserSecurityID, Instructions.Unwrap());
-    end;
-
-    [NonDebuggable]
-    [Scope('OnPrem')]
-internal procedure GetInstructions(AgentUserSecurityID: Guid): SecretText
-    var
-        AgentALFunctions: DotNet AgentALFunctions;
-        InstructionsAsSecretText: SecretText;
-    begin
-        if IsNullGuid(AgentUserSecurityID) then
-            exit;
-
-        InstructionsAsSecretText := AgentALFunctions.GetInstructions(AgentUserSecurityID);
-        exit(InstructionsAsSecretText);
-    end;
-
-    [Scope('OnPrem')]
-internal procedure InsertCurrentOwnerIfNoOwnersDefined(var Agent: Record Agent; var AgentAccessControl: Record "Agent Access Control")
+    internal procedure InsertCurrentOwnerIfNoOwnersDefined(var Agent: Record Agent; var AgentAccessControl: Record "Agent Access Control")
     begin
         SetOwnerFilters(AgentAccessControl);
         AgentAccessControl.SetRange("Agent User Security ID", Agent."User Security ID");

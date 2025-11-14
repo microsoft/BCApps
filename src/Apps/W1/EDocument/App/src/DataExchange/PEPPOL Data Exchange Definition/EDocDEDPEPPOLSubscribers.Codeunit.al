@@ -8,12 +8,12 @@ using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Peppol;
 using Microsoft.Service.History;
-using Microsoft.Foundation.Attachment;
 using System.IO;
 using System.Utilities;
 

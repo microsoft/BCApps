@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.TestLibraries.Apps.AppSource;
 
+using System.Apps.AppSource;
 using System.Environment.Configuration;
 using System.RestClient;
-using System.Apps.AppSource;
 
 /// <summary>
 /// Library for providing mock dependencies for the AppSource product manager.

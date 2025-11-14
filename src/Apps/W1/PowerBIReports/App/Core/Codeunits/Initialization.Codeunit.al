@@ -4,14 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.PowerBIReports;
 
+using Microsoft.Finance.PowerBIReports;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Period;
 using System.Diagnostics;
-using System.Threading;
-using Microsoft.Foundation.AuditCodes;
 using System.Environment.Configuration;
 using System.Media;
-using Microsoft.Finance.PowerBIReports;
 using System.Telemetry;
+using System.Threading;
 
 /// <summary>
 /// Creates the setup required to have the basic scenarios of the Power BI Reports working.

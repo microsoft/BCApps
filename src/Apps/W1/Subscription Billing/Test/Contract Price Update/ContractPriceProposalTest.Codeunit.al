@@ -1,13 +1,13 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Purchases.Document;
-using Microsoft.Purchases.History;
-using Microsoft.Finance.Currency;
 using System.TestLibraries.Utilities;
 
 #pragma warning disable AA0210

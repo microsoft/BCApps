@@ -6,12 +6,12 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
 using Microsoft.Inventory.Item;
-using Microsoft.Sales.Pricing;
+using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
-using Microsoft.Pricing.Asset;
+using Microsoft.Sales.Pricing;
+using System.TestLibraries.Utilities;
 
 /// <summary>
 /// Codeunit Shpfy Product Price Calc. Test (ID 139605).
@@ -28,13 +28,11 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         LibraryPriceCalculation: Codeunit "Library - Price Calculation";
 
     [Test]
-    [HandlerFunctions('ActivateConfirmHandler')]
-    procedure UnitTestCalcPriceTestNewPricing()
+    procedure UnitTestCalcPriceTest()
     var
         Shop: Record "Shpfy Shop";
         Item: Record Item;
         CustomerDiscountGroup: Record "Customer Discount Group";
-        PriceCalculationSetup: Record "Price Calculation Setup";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         ProductInitTest: Codeunit "Shpfy Product Init Test";
         ProductPriceCalculation: Codeunit "Shpfy Product Price Calc.";
@@ -46,8 +44,7 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         ComparePrice: Decimal;
     begin
         // [INIT] Initialization startup data.
-        LibraryPriceCalculation.EnableExtendedPriceCalculation();
-        LibraryPriceCalculation.AddSetup(PriceCalculationSetup, "Price Calculation Method"::"Lowest Price", "Price Type"::Sale, "Price Asset Type"::Item, "Price Calculation Handler"::"Business Central (Version 16.0)", true);
+        LibraryPriceCalculation.DisableExtendedPriceCalculation();
         Shop := InitializeTest.CreateShop();
         Shop."Allow Line Disc." := false;
         Shop.Modify();
@@ -55,7 +52,8 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         InitPrice := Any.DecimalInRange(2 * InitUnitCost, 4 * InitUnitCost, 1);
         InitDiscountPerc := Any.DecimalInRange(5, 20, 1);
         Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", InitUnitCost, InitPrice);
-        CustomerDiscountGroup := ProductInitTest.CreatePriceList(CopyStr(Shop.Code, 1, 10), Item."No.", InitPrice, InitDiscountPerc);
+        ProductInitTest.CreateSalesPrice(CopyStr(Shop.Code, 1, 10), Item."No.", InitPrice);
+        CustomerDiscountGroup := ProductInitTest.CreateSalesLineDiscount(CopyStr(Shop.Code, 1, 10), Item."No.", InitDiscountPerc);
 
         // [SCENARIO] Doing the price calculation of an product for a shop where the fields "Customer Price Group" and Customer Discount Group" are not filled in.
         // [SCENARIO] After modify de "Customer Discount Group" for the same shop, we must get a discounted price.
@@ -89,11 +87,13 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
     end;
 
     [Test]
-    procedure UnitTestCalcPriceTest()
+    [HandlerFunctions('ActivateConfirmHandler')]
+    procedure UnitTestCalcPriceTestNewPricing()
     var
         Shop: Record "Shpfy Shop";
         Item: Record Item;
         CustomerDiscountGroup: Record "Customer Discount Group";
+        PriceCalculationSetup: Record "Price Calculation Setup";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         ProductInitTest: Codeunit "Shpfy Product Init Test";
         ProductPriceCalculation: Codeunit "Shpfy Product Price Calc.";
@@ -105,7 +105,8 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         ComparePrice: Decimal;
     begin
         // [INIT] Initialization startup data.
-        LibraryPriceCalculation.DisableExtendedPriceCalculation();
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        LibraryPriceCalculation.AddSetup(PriceCalculationSetup, "Price Calculation Method"::"Lowest Price", "Price Type"::Sale, "Price Asset Type"::Item, "Price Calculation Handler"::"Business Central (Version 16.0)", true);
         Shop := InitializeTest.CreateShop();
         Shop."Allow Line Disc." := false;
         Shop.Modify();
@@ -113,8 +114,7 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         InitPrice := Any.DecimalInRange(2 * InitUnitCost, 4 * InitUnitCost, 1);
         InitDiscountPerc := Any.DecimalInRange(5, 20, 1);
         Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", InitUnitCost, InitPrice);
-        ProductInitTest.CreateSalesPrice(CopyStr(Shop.Code, 1, 10), Item."No.", InitPrice);
-        CustomerDiscountGroup := ProductInitTest.CreateSalesLineDiscount(CopyStr(Shop.Code, 1, 10), Item."No.", InitDiscountPerc);
+        CustomerDiscountGroup := ProductInitTest.CreatePriceList(CopyStr(Shop.Code, 1, 10), Item."No.", InitPrice, InitDiscountPerc);
 
         // [SCENARIO] Doing the price calculation of an product for a shop where the fields "Customer Price Group" and Customer Discount Group" are not filled in.
         // [SCENARIO] After modify de "Customer Discount Group" for the same shop, we must get a discounted price.

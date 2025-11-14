@@ -1,0 +1,975 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "3d50611b6006ec620366",
+  "position": {
+    "x": 26,
+    "y": 64,
+    "z": 1000,
+    "height": 630,
+    "width": 1226.6666666666667,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item Category"
+                        }
+                      },
+                      "Hierarchy": "Item Category Code Hierarchy"
+                    }
+                  },
+                  "Level": "Item Category Code Level 1"
+                }
+              },
+              "queryRef": "Item Category.Item Category Code Hierarchy.Item Category Code Level 1",
+              "nativeQueryRef": "Item Category Code Hierarchy Item Category Code Level 1",
+              "active": true
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item Category"
+                        }
+                      },
+                      "Hierarchy": "Item Category Code Hierarchy"
+                    }
+                  },
+                  "Level": "Item Category Code Level 2"
+                }
+              },
+              "queryRef": "Item Category.Item Category Code Hierarchy.Item Category Code Level 2",
+              "nativeQueryRef": "Item Category Code Hierarchy Item Category Code Level 2",
+              "active": false
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item Category"
+                        }
+                      },
+                      "Hierarchy": "Item Category Code Hierarchy"
+                    }
+                  },
+                  "Level": "Item Category Code Level 3"
+                }
+              },
+              "queryRef": "Item Category.Item Category Code Hierarchy.Item Category Code Level 3",
+              "nativeQueryRef": "Item Category Code Hierarchy Item Category Code Level 3",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item No. & Description"
+                }
+              },
+              "queryRef": "Item.Item No. & Description",
+              "nativeQueryRef": "Item No. & Description",
+              "active": false
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Ledger Entries"
+                    }
+                  },
+                  "Property": "Inventory (Quantity)"
+                }
+              },
+              "queryRef": "Item Ledger Entries.Quantity on Hand",
+              "nativeQueryRef": "Inventory (Quantity)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchase Lines"
+                    }
+                  },
+                  "Property": "Qty. on Purch. Order"
+                }
+              },
+              "queryRef": "Purchase Lines.Qty. on Purch. Order",
+              "nativeQueryRef": "Qty. on Purch. Order"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Order Lines"
+                    }
+                  },
+                  "Property": "Qty. on Prod. Order"
+                }
+              },
+              "queryRef": "Production Order Lines.Qty. on Prod. Order",
+              "nativeQueryRef": "Qty. on Prod. Order"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Prod Order Component Lines"
+                    }
+                  },
+                  "Property": "Qty. on Prod. Order Comp. Lines"
+                }
+              },
+              "queryRef": "Component Lines.Qty. on Component Lines",
+              "nativeQueryRef": "Qty. on Component Lines"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sales Lines"
+                    }
+                  },
+                  "Property": "Qty. on Sales Order"
+                }
+              },
+              "queryRef": "Sales Lines.Qty. on Sales Order",
+              "nativeQueryRef": "Qty. on Sales Order"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sales Lines"
+                    }
+                  },
+                  "Property": "Qty. on Sales Return Order"
+                }
+              },
+              "queryRef": "Sales Lines.Qty. on Sales Return Order",
+              "nativeQueryRef": "Qty. on Sales Return Order"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Service Lines"
+                    }
+                  },
+                  "Property": "Qty. on Service Order"
+                }
+              },
+              "queryRef": "Service Lines.Qty. on Service Order",
+              "nativeQueryRef": "Qty. on Service Order"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Lines"
+                    }
+                  },
+                  "Property": "Qty. on Projects"
+                }
+              },
+              "queryRef": "Job Planning Lines.Qty. on Job Order",
+              "nativeQueryRef": "Qty. on Projects"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Assembly Headers"
+                    }
+                  },
+                  "Property": "Qty. on Assembly Order"
+                }
+              },
+              "queryRef": "Assembly Headers.Qty. on Assembly Order",
+              "nativeQueryRef": "Qty. on Assembly Order"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Assembly Lines"
+                    }
+                  },
+                  "Property": "Qty. on Asm. Component"
+                }
+              },
+              "queryRef": "Assembly Lines.Qty. on Asm. Component",
+              "nativeQueryRef": "Qty. on Asm. Component"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Transfer Lines"
+                    }
+                  },
+                  "Property": "Qty. in Transit"
+                }
+              },
+              "queryRef": "Transfer Lines.Qty. in Transit",
+              "nativeQueryRef": "Qty. in Transit"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Item Ledger Entries"
+                  }
+                },
+                "Property": "Inventory (Quantity)"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "Rows"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "Item Category.Item Category Code Hierarchy.Item Category Code Level 1"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Category"
+                    }
+                  },
+                  "Property": "Item Category Code Level 1"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Item Category.Item Category Code Hierarchy.Item Category Code Level 2"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Category"
+                    }
+                  },
+                  "Property": "Item Category Code Level 2"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Item Category.Item Category Code Hierarchy.Item Category Code Level 3"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Category"
+                    }
+                  },
+                  "Property": "Item Category Code Level 3"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Item.Item No. & Description"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item No. & Description"
+                }
+              }
+            ],
+            "isPinned": true
+          }
+        ],
+        "root": {
+          "children": [
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "'CM'"
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "identityValues": [
+                    {
+                      "Literal": {
+                        "Value": "'CM_COMMER'"
+                      }
+                    }
+                  ],
+                  "isToggled": true
+                },
+                {
+                  "identityValues": [
+                    {
+                      "Literal": {
+                        "Value": "'CM_CONSUM'"
+                      }
+                    }
+                  ],
+                  "isToggled": true,
+                  "children": [
+                    {
+                      "identityValues": [
+                        {
+                          "Literal": {
+                            "Value": "null"
+                          }
+                        }
+                      ],
+                      "isToggled": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "'FURNITURE'"
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "identityValues": [
+                    {
+                      "Literal": {
+                        "Value": "'DESK'"
+                      }
+                    }
+                  ],
+                  "isToggled": true,
+                  "children": [
+                    {
+                      "identityValues": [
+                        {
+                          "Literal": {
+                            "Value": "null"
+                          }
+                        }
+                      ],
+                      "isToggled": true
+                    },
+                    {
+                      "identityValues": [
+                        {
+                          "Literal": {
+                            "Value": "'BENCH'"
+                          }
+                        }
+                      ],
+                      "isToggled": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "113D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Month"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "95D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Day"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "103.49997643864512D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "scopeId": {
+                  "Comparison": {
+                    "ComparisonKind": 0,
+                    "Left": {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Entity": "Location"
+                          }
+                        },
+                        "Property": "Location Name"
+                      }
+                    },
+                    "Right": {
+                      "Literal": {
+                        "Value": "null"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Item Ledger Entries.Quantity on Hand"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Purchase Lines.Qty. on Purch. Order"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Production Order Lines.Qty. on Prod. Order"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Component Lines.Qty. on Component Lines"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Sales Lines.Qty. on Sales Order"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Sales Lines.Qty. on Sales Return Order"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Service Lines.Qty. on Service Order"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Job Planning Lines.Qty. on Job Order"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Assembly Headers.Qty. on Assembly Order"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Assembly Lines.Qty. on Asm. Component"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Transfer Lines.Qty. in Transit"
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "autoSizeColumnWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {},
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Purchase Lines.Qty. on Purch. Order"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Production Order Lines.Qty. on Prod. Order"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Sales Lines.Qty. on Sales Order"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchase Lines"
+                    }
+                  },
+                  "Property": "Purchase Order Quantity Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Purchase Lines.Qty. on Purch. Order"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Order Lines"
+                    }
+                  },
+                  "Property": "Production Order Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Production Order Lines.Qty. on Prod. Order"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sales Lines"
+                    }
+                  },
+                  "Property": "Sales Order Line Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Sales Lines.Qty. on Sales Order"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sales Lines"
+                    }
+                  },
+                  "Property": "Sales Return Order Line Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Sales Lines.Qty. on Sales Return Order"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Service Lines"
+                    }
+                  },
+                  "Property": "Service Order Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Service Lines.Qty. on Service Order"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Job Planning Lines.Qty. on Job Order"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Assembly Headers.Qty. on Assembly Order"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Lines"
+                    }
+                  },
+                  "Property": "Planning Line Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Job Planning Lines.Qty. on Job Order"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Assembly Lines"
+                    }
+                  },
+                  "Property": "Assembly Line Quantity Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Assembly Headers.Qty. on Assembly Order"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Assembly Lines"
+                    }
+                  },
+                  "Property": "Assembly Line Quantity Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Assembly Lines.Qty. on Asm. Component"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Transfer Lines"
+                    }
+                  },
+                  "Property": "Transfer Lines Quantity Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Transfer Lines.Qty. in Transit"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "lockAspect": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Inventory by Item Label"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualTooltip": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "type": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Canvas'"
+                }
+              }
+            },
+            "section": {
+              "expr": {
+                "Literal": {
+                  "Value": "'ReportSectionb3a412070059b10a5bb4'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Inventory by Item Details Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -7,8 +7,8 @@ namespace System.Test.Globalization;
 
 using System.Globalization;
 using System.TestLibraries.Globalization;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 137121 "Translation Tests"
 {

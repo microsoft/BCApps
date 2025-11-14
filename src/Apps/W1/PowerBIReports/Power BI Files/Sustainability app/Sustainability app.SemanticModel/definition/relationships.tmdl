@@ -1,0 +1,48 @@
+relationship 83ff032f-f54d-cc36-307e-c2abc6d8d815
+	fromColumn: 'Sustainability Ledger Entries'.'Sustainability Account No.'
+	toColumn: 'Sustainability Accounts'.'Sustainability Account No.'
+
+relationship 732cfe87-eead-7b95-6393-fcc0eb423016
+	fromColumn: 'Sustainability Ledger Entries'.Date
+	toColumn: Date.Date
+
+relationship ea4ab240-216b-a867-8de0-b48d3772d341
+	fromColumn: 'Sustainability Ledger Entries'.'Dimension Set ID'
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship a4dedf9c-4f56-67b5-f7c1-66847d73c73d
+	fromColumn: 'Sustainability Accounts'.'Sustainability Account Category'
+	toColumn: 'Sustainability Account Category'.'Sustainability Account Category Code'
+
+relationship 99183fb1-8ffc-91cd-3423-1160bb3f94c5
+	fromColumn: 'Sustainability Ledger Entries'.'Responsibility Centre'
+	toColumn: 'Responsibility Centre'.'Responsibility Centre Code'
+
+relationship 37cf36f5-5b3f-c84b-3a8a-8f1ac0524728
+	fromColumn: 'Sustainability Ledger Entries'.'Country/Region Code'
+	toColumn: Country/Region.'Country Region Code'
+
+relationship b3aaa795-f726-8ee4-5dfe-8b16f799b20c
+	fromColumn: 'Employee Ledger Entries'.Date
+	toColumn: Date.Date
+
+relationship 4fb12652-0732-2679-a15b-ab0e8414036e
+	fromColumn: 'Employee Ledger Entries'.'Dimension Set ID'
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 21f7dc8f-8fae-720c-6387-35662e6ace7f
+	fromColumn: 'Employee Ledger Entries'.'Employee No.'
+	toColumn: Employees.'Employee No.'
+
+relationship 9969c7f2-6266-e85a-43f1-7900877a6720
+	fromColumn: 'Employee Qualifications'.'Employee No.'
+	toColumn: Employees.'Employee No.'
+
+relationship 600534ae-170e-481c-2fc4-f96626c3beea
+	fromColumn: 'Employee Absences'.'Employee No'
+	toColumn: Employees.'Employee No.'
+
+relationship b8bfae20-1df1-2c17-ee79-e251fbbfc1b3
+	fromColumn: 'Sustainability Accounts'.'Sustainability Account Subcategory Key'
+	toColumn: 'Sustainability Sub-Account Categories'.'Sustainability Account Subcategory Key'
+

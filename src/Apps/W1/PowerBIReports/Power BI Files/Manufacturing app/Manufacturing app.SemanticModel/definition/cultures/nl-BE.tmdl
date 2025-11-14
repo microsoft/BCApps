@@ -1,0 +1,1207 @@
+cultureInfo nl-BE
+	translations
+		model Model
+			table Item
+				caption: Artikel
+				column 'Item No. & Description'
+					caption: Artikelnr. en -beschrijving
+				column 'Item No.'
+					caption: Artikelnr.
+				column 'Item Description'
+					caption: Artikelbeschrijving
+				column 'Item Unit Cost (LCY)'
+					caption: Kostprijs per eenheid artikel (LV)
+				column 'Item Inventory Posting Group'
+					caption: Voorraadboekingsgroep artikel
+				column 'Item Category Code'
+					caption: Artikelcategoriecode
+				column 'Item Category Description'
+					caption: Beschrijving van artikelcategorie
+				column 'Item Routing No.'
+					caption: Bewerkingsplannr. artikel
+				column 'Item Production BOM No.'
+					caption: Prod.-stuklijstnr. artikel
+				column 'Item Replenishment System'
+					caption: Aanvullingsmethode artikel
+				column 'Item Single-Level Cap. Ovhd Cost'
+					caption: Capaciteitsoverheadkosten artikel (één niv.)
+				column 'Item Single-Level Capacity Cost'
+					caption: Capaciteitskosten artikel (één niv.)
+				column 'Item Single-Level Material Cost'
+					caption: Materiaalkosten artikel (één niv.)
+				column 'Item Single-Level Mfg. Ovhd Cost'
+					caption: Prod.-overheadkosten artikel (één niv.)
+				column 'Item Single-Level Subcontrd. Cost'
+					caption: Uitbestedingskosten artikel (één niv.)
+				column 'Item Base Unit of Measure'
+					caption: Basiseenheid artikel
+				column 'Item Rolled-up Cap. Overhead Cost'
+					caption: Cap.-overheadkosten artikel (alle niv.)
+				column 'Item Rolled-up Capacity Cost'
+					caption: Capaciteitskosten artikel (alle niv.)
+				column 'Item Rolled-up Material Cost'
+					caption: Materiaalkosten artikel (alle niv.)
+				column 'Item Rolled-up Mfg. Ovhd Cost'
+					caption: Prod.-overheadkosten artikel (alle niv.)
+				column 'Item Rolled-up Subcontracted Cost'
+					caption: Uitbestedingskosten artikel (alle niv.)
+				column 'Item Scrap %'
+					caption: % artikeluitval
+				column 'Item Single-Lvl Mat. Non-Invt. Cost'
+					caption: Niet-voorraadkosten materiaal artikel (één niv.)
+				column 'Item Rolled-up Mat. Non-Invt. Cost'
+					caption: Niet-voorraadkosten materiaal artikel (alle niv.)
+			table Date
+				caption: Datum
+				column DateKey
+					caption: DateKey
+				column 'Day of Month'
+					caption: Dag van maand
+				column WeekDayNumber
+					caption: WeekDayNumber
+				column 'Week Day'
+					caption: Week Dag
+				column 'Holiday Name'
+					caption: Vakantienaam
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Dagsoort
+				column DatesWithTransactions
+					caption: DatesWithTransactions
+				column 'Calendar YearNumber'
+					caption: Kalender JaarNummer
+				column 'Calendar Year'
+					caption: Kalender Jaar
+				column 'Calendar QuarterNumber'
+					caption: Kalender KwartaalNummer
+				column 'Calendar Quarter'
+					caption: Kalender Kwartaal
+				column 'Calendar YearQuarterNumber'
+					caption: Kalender JaarKwartaalNummer
+				column 'Calendar Quarter Year'
+					caption: Kalender Kwartaal Jaar
+				column 'Calendar MonthNumber'
+					caption: Kalender MaandNummer
+				column 'Calendar Month'
+					caption: Kalender Maand
+				column 'Calendar YearMonthNumber'
+					caption: Kalender JaarMaandNummer
+				column 'Calendar Month Year'
+					caption: Kalender Maand Jaar
+				column 'Calendar WeekNumber'
+					caption: Kalender WeekNummer
+				column 'Calendar Week'
+					caption: Kalender Week
+				column 'Calendar YearWeekNumber'
+					caption: Kalender JaarWeekNummer
+				column 'Calendar Week Year'
+					caption: Kalender Week Jaar
+				column 'Calendar WeekYearOrder'
+					caption: Kalender WeekJaarVolgorde
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelatieveWeekPos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelatieveMaandPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelatieveKwartaalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelatieveJaarPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender BeginVanMaand
+				column 'Calendar EndOfMonth'
+					caption: Kalender EindVanMaand
+				column 'Calendar StartOfQuarter'
+					caption: Kalender BeginVanKwartaal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender EindVanKwartaal
+				column 'Calendar StartOfYear'
+					caption: Kalender BeginVanJaar
+				column 'Calendar EndOfYear'
+					caption: Kalender EindVanJaar
+				column 'Calendar MonthDays'
+					caption: Kalender MaandDagen
+				column 'Calendar QuarterDays'
+					caption: Kalender KwartaalDagen
+				column 'Calendar YearDays'
+					caption: Kalender JaarDagen
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagVanMaandNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagVanKwartaalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagVanJaarNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumVorigeWeek
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumVorigeMaand
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumVorigKwartaal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumVorigJaar
+				column 'Fiscal Year'
+					caption: Fiscaal Jaar
+				column 'Fiscal YearNumber'
+					caption: Fiscaal JaarNummer
+				column 'Fiscal QuarterNumber'
+					caption: Fiscaal KwartaalNummer
+				column 'Fiscal Quarter'
+					caption: Fiscaal Kwartaal
+				column 'Fiscal YearQuarterNumber'
+					caption: Fiscaal JaarKwartaalNummer
+				column 'Fiscal Quarter Year'
+					caption: Fiscaal Kwartaal Jaar
+				column 'Fiscal MonthNumber'
+					caption: Fiscaal MaandNummer
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Fiscaal MaandInKwartaalNummer
+				column 'Fiscal Month'
+					caption: Fiscaal Maand
+				column 'Fiscal YearMonthNumber'
+					caption: Fiscaal JaarMaandNummer
+				column 'Fiscal Month Year'
+					caption: Fiscaal Maand Jaar
+				column 'Fiscal WeekNumber'
+					caption: Fiscaal WeekNummer
+				column 'Fiscal Week'
+					caption: Fiscaal Week
+				column 'Fiscal YearWeekNumber'
+					caption: Fiscaal JaarWeekNummer
+				column 'Fiscal Week Year'
+					caption: Fiscaal Week Jaar
+				column 'Fiscal WeekYearOrder'
+					caption: Fiscaal WeekJaarVolgorde
+				column 'Fiscal RelativeWeekPos'
+					caption: Fiscaal RelatieveWeekPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Fiscaal RelatieveMaandPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fiscaal RelatieveKwartaalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Fiscaal RelatieveJaarPos
+				column 'Fiscal StartOfMonth'
+					caption: Fiscaal BeginVanMaand
+				column 'Fiscal EndOfMonth'
+					caption: Fiscaal EindVanMaand
+				column 'Fiscal StartOfQuarter'
+					caption: Fiscaal BeginVanKwartaal
+				column 'Fiscal EndOfQuarter'
+					caption: Fiscaal EindVanKwartaal
+				column 'Fiscal StartOfYear'
+					caption: Fiscaal BeginVanJaar
+				column 'Fiscal EndOfYear'
+					caption: Fiscaal EindVanJaar
+				column 'Fiscal MonthDays'
+					caption: Fiscaal MaandDagen
+				column 'Fiscal QuarterDays'
+					caption: Fiscaal KwartaalDagen
+				column 'Fiscal YearDays'
+					caption: Fiscaal JaarDagen
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fiscaal DagVanMaandNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fiscaal DagVanKwartaalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Fiscaal DagVanJaarNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Fiscaal DatumVorigeWeek
+				column 'Fiscal DatePreviousMonth'
+					caption: Fiscaal DatumVorigeMaand
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fiscaal DatumVorigKwartaal
+				column 'Fiscal DatePreviousYear'
+					caption: Fiscaal DatumVorigJaar
+				column 'FW YearNumber'
+					caption: FW JaarNummer
+				column 'FW Year'
+					caption: FW Jaar
+				column 'FW QuarterNumber'
+					caption: FW KwartaalNummer
+				column 'FW Quarter'
+					caption: FW Kwartaal
+				column 'FW YearQuarterNumber'
+					caption: FW JaarKwartaalNummer
+				column 'FW Quarter Year'
+					caption: FW Kwartaal Jaar
+				column 'FW MonthNumber'
+					caption: FW MaandNummer
+				column 'FW Month'
+					caption: FW Maand
+				column 'FW YearMonthNumber'
+					caption: FW JaarMaandNummer
+				column 'FW Month Year'
+					caption: FW Maand Jaar
+				column 'FW WeekNumber'
+					caption: FW WeekNummer
+				column 'FW Week'
+					caption: FW Week
+				column 'FW PeriodNumber'
+					caption: FW PeriodeNummer
+				column 'FW Period'
+					caption: FW Periode
+				column 'FW YearWeekNumber'
+					caption: FW JaarWeekNummer
+				column 'FW Week Year'
+					caption: FW Week Jaar
+				column 'FW StartOfWeek'
+					caption: FW BeginVanWeek
+				column 'FW EndOfWeek'
+					caption: FW EindVanWeek
+				column 'FW RelativeWeekPos'
+					caption: FW RelatieveWeekPos
+				column 'FW RelativeMonthPos'
+					caption: FW RelatieveMaandPos
+				column 'FW RelativeQuarterPos'
+					caption: FW RelatieveKwartaalPos
+				column 'FW RelativeYearPos'
+					caption: FW RelatieveJaarPos
+				column 'FW StartOfMonth'
+					caption: FW BeginVanMaand
+				column 'FW EndOfMonth'
+					caption: FW EindVanMaand
+				column 'FW StartOfQuarter'
+					caption: FW BeginVanKwartaal
+				column 'FW EndOfQuarter'
+					caption: FW EindVanKwartaal
+				column 'FW StartOfYear'
+					caption: FW BeginVanJaar
+				column 'FW EndOfYear'
+					caption: FW EindVanJaar
+				column 'FW MonthDays'
+					caption: FW MaandDagen
+				column 'FW QuarterDays'
+					caption: FW KwartaalDagen
+				column 'FW YearDays'
+					caption: FW JaarDagen
+				column 'FW DayOfMonthNumber'
+					caption: FW DagVanMaandNummer
+				column 'FW DayOfQuarterNumber'
+					caption: FW DagVanKwartaalNummer
+				column 'FW DayOfYearNumber'
+					caption: FW DagVanJaarNummer
+				column 'FW DatePreviousWeek'
+					caption: FW DatumVorigeWeek
+				column 'FW DatePreviousMonth'
+					caption: FW DatumVorigeMaand
+				column 'FW DatePreviousQuarter'
+					caption: FW DatumVorigKwartaal
+				column 'FW DatePreviousYear'
+					caption: FW DatumVorigJaar
+				column 'Relative Day'
+					caption: Relatieve Dag
+				column Sequential365DayNumber
+					caption: Sequential365DayNumber
+				hierarchy 'Fiscal Year-Month'
+					caption: Fiscaal Jaar-Maand
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fiscaal Jaar-Maand-Week
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+					level 'Fiscal Week Year'
+						caption: Fiscaal Week Jaar
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fiscaal Jaar-Kwartaal-Maand-Week
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Quarter Year'
+						caption: Fiscaal Kwartaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+					level 'Fiscal Week Year'
+						caption: Fiscaal Week Jaar
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender Jaar-Maand
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender Jaar-Maand-Week
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+					level 'Calendar Week Year'
+						caption: Kalender Week Jaar
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender Jaar-Kwartaal-Maand-Week
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Quarter Year'
+						caption: Kalender Kwartaal Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+					level 'Calendar Week Year'
+						caption: Kalender Week Jaar
+				hierarchy 'FW Year-Month-Week'
+					caption: FW Jaar-Maand-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Month Year'
+						caption: FW Maand Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: FW Jaar-Kwartaal-Maand-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Quarter Year'
+						caption: FW Kwartaal Jaar
+					level 'FW Month Year'
+						caption: FW Maand Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'FW Year-Quarter-Week'
+					caption: FW Jaar-Kwartaal-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Quarter Year'
+						caption: FW Kwartaal Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'FW Year-Week'
+					caption: FW Jaar-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+			table 'Work Center'
+				caption: Afdeling
+				column 'Work Center Name'
+					caption: Afdelingsnaam
+				column 'Work Center Group Code'
+					caption: Afdelingsgroepcode
+				column 'Work Center Group Name'
+					caption: Afdelingsgroepnaam
+				column 'Work Center No.'
+					caption: Afdelingsnr.
+				column 'Work Center Subcontractor No.'
+					caption: Toeleveranciersnr. afdeling
+				column 'Work Center Unit of Measure Code'
+					caption: Code van eenheid afdeling
+				measure 'Work Center Availability After Orders'
+					caption: Beschikbaar na orders afdeling
+				measure 'Work Center Capacity (Effective)'
+					caption: Afdelingscapaciteit (effectief)
+				measure 'Work Center Load'
+					caption: Werklast afdeling
+				measure 'Work Center Allocated Time'
+					caption: Toegewezen tijd afdeling
+				measure 'Work Center Capacity (Total)'
+					caption: Afdelingscapaciteit (totaal)
+				measure 'Work Center Expected Efficiency %'
+					caption: Verwacht % efficiëntie afdeling
+				measure 'Work Center Actual Total Cost'
+					caption: Werkelijke totale kostprijs afdeling
+				measure 'Work Center Actual Efficiency %'
+					caption: Werkelijk % efficiëntie afdeling
+				measure 'Work Center Actual Need'
+					caption: Werkelijke behoefte afdeling
+				measure 'Work Center Scrap %'
+					caption: % uitval afdeling
+				measure 'Work Center Scrap'
+					caption: Uitval afdeling
+				measure 'Work Center Output'
+					caption: Afdelingsoutput
+			table 'Working Days'
+				caption: Werkdagen
+				column FSG_PBI_Day_Number
+					caption: FSG_PBI_Day_Number
+				column id
+					caption: id
+			table COMPANY
+				caption: BEDRIJF
+				measure 'Company Label'
+					caption: Bedrijfslabel
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Mijn rapporttitel
+				measure 'My Button Caption'
+					caption: Bijschrift van mijn knop
+				measure 'My Visual Title'
+					caption: Mijn visuele titel
+				measure 'Current Utilization'
+					caption: Huidig gebruik
+				measure 'Utilization %, Capacity Used (Hours) and Capacity Available (Hours) by Day'
+					caption: Gebruik %, Gebruikte capaciteit (uren) en Beschikbare capaciteit (uren) per dag
+				measure 'Utilization % and Expected Capacity Need % (Today)'
+					caption: Gebruik % en Capaciteitsbehoefte (Verw.) % (vandaag)
+				measure 'Utilization % and Expected Capacity Need % (Current Week)'
+					caption: Gebruik % en Capaciteitsbehoefte (Verw.) % (huidige week)
+				measure 'Utilization % and Expected Capacity Need % (Current Year)'
+					caption: Gebruik % en Capaciteitsbehoefte (Verw.) % (huidig jaar)
+				measure 'Historical Utilization'
+					caption: Historisch gebruik
+				measure 'Load %, Allocated Time (Hours) and Capacity Available (Hours) by Work Center Group Name'
+					caption: Werklast %, Toegewezen tijd (uren) en Beschikbare capaciteit (uren) per afdelingsgroepsnaam
+				measure 'Load % (Today)'
+					caption: Werklast % (vandaag)
+				measure 'Load % (Current Week)'
+					caption: Werklast % (huidige week)
+				measure 'Load % (Current Year)'
+					caption: Werklast % (huidig jaar)
+				measure 'Allocated Hours'
+					caption: Toegewezen uren
+				measure 'Allocated Time (Hours) and Load % by Work Center Group Name and Name'
+					caption: Toegewezen tijd (uren) en Werklast % per groepsnaam van afdeling en naam
+				measure 'Allocated Time in Hours (Today)'
+					caption: Toegewezen tijd in uren (vandaag)
+				measure 'Allocated Time in Hours (Current Week)'
+					caption: Toegewezen tijd in uren (huidige week)
+				measure 'Allocated Time in Hours (Current Year)'
+					caption: Toegewezen tijd in uren (huidig jaar)
+				measure 'Expected Capacity Need'
+					caption: Capaciteitsbehoefte (Verw.)
+				measure 'Expected Capacity Need (Hours) by Work Centre Group Code and Production Order Status'
+					caption: Capaciteitsbehoefte (Verw.) (uren) per afdelingsgroepcode en productieorderstatus
+				measure 'Finished Production Order Breakdown'
+					caption: Opsplitsing van voltooide productieorders
+				measure 'Expected Quantity (Base) and Finished Quantity (Base) by Month'
+					caption: Verwacht aantal (basis) en Gereed aantal (basis) per maand
+				measure 'Consumption Variance'
+					caption: Verbruiksverschil
+				measure 'Expected Consumption Cost Amount and Consumed Cost Amount (Actual) by Month'
+					caption: Verwacht verbruikskostenbedrag en Verbruikt kostenbedrag (werkelijk) per maand
+				measure 'Capacity Variance'
+					caption: Capaciteitsverschil
+				measure 'Expected Capacity Cost Amount and Capacity Cost Amount (Actual) by Month'
+					caption: Verwacht capaciteitskostenbedrag en Capaciteitskostenbedrag (werkelijk) per maand
+				measure 'Average Production Times'
+					caption: Gemiddelde productietijden
+				measure 'Released Production Orders'
+					caption: Vrijgegeven productieorders
+				measure 'Production Scrap'
+					caption: Productie-uitval
+				measure 'Capacity Scrap Quantity by Month'
+					caption: Aanval capaciteitsuitval per maand
+				measure 'Capacity Scrap Quantity by Scrap Code'
+					caption: Aantal capaciteitsuitval per uitvalcode
+				measure 'Capacity Scrap Quantity by Location Code'
+					caption: Aantal capaciteitsuitval per locatiecode
+				measure Manufacturing
+					caption: Productie
+				measure 'for Business Central'
+					caption: voor Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: UW GEGEVENS VERBINDEN
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Dynamics 365 Business Central configureren
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN
+				measure 'HELP AND SUPPORT'
+					caption: HELP EN ONDERSTEUNING
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.
+				measure 'OTHER POWER BI REPORTS'
+					caption: OVERIGE POWER BI-RAPPORTEN
+				measure PURCHASE
+					caption: INKOOP
+				measure FINANCE
+					caption: FINANCIËN
+				measure INVENTORY
+					caption: VOORRAAD
+				measure SALES
+					caption: VERKOPEN
+				measure 'Last Refreshed'
+					caption: Laatst vernieuwd
+				measure 'Company Name'
+					caption: Bedrijfsnaam
+				measure 'Capacity Scrap Quantity by Item Category Code'
+					caption: Aantal capaciteitsuitval per artikelcategoriecode
+				measure '1. Download the Manufacturing Connector for Power BI'
+					caption: 1. Download de Productieconnector voor Power BI
+				measure 'Manufacturing includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Productie omvat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.
+				measure PROJECTS
+					caption: PROJECTEN
+				measure 'Capacity Used (Hours), Capacity Available (Hours) and Utilization % by Date'
+					caption: Gebruikte capaciteit (uren), Beschikbare capaciteit (uren) en Gebruik % per datum
+				measure 'Actual Cost by Source No.'
+					caption: Werkelijke kosten per bronnr.
+				measure 'Production Order Overview'
+					caption: Overzicht van productieorders
+				measure 'No. of Production Orders by Status'
+					caption: Aantal productieorders per status
+				measure 'Completion Ratios by Source No.'
+					caption: Voltooiingsverhoudingen per bronnr.
+				measure 'Total Actual Cost Breakdown'
+					caption: Opsplitsing van totale werkelijke kosten
+				measure 'Current Production Orders'
+					caption: Huidige productieorders
+				measure 'Current Work Center Utilization by Year, Month, Week and Day'
+					caption: Huidig afdelingsgebruik per jaar, maand, week en dag
+				measure 'Work Center Load Over Time'
+					caption: Werklast afdeling in de loop van de tijd
+				measure 'Work Center Load Details'
+					caption: Details van werklast afdeling
+				measure 'Work Center Load '
+					caption: "Werklast afdeling "
+				measure 'Allocated Time '
+					caption: "Toegewezen tijd "
+				measure 'Allocated Time by Work Center Name'
+					caption: Toegewezen tijd per afdelingsnaam
+				measure 'Allocated Time by Source No.'
+					caption: Toegewezen tijd op bronnr.
+				measure 'Allocated Time by Type'
+					caption: Toegewezen tijd per soort
+				measure 'Allocated Time Details'
+					caption: Details van toegewezen tijd
+				measure 'Allocated Time by Production Order Status'
+					caption: Toegewezen tijd per productieorderstatus
+				measure 'Expected Capacity Need by Work Center'
+					caption: Capaciteitsbehoefte (Verw.) per afdeling
+				measure 'Expected Capacity Need by Machine Center'
+					caption: Capaciteitsbehoefte (Verw.) per bewerkingsplaats
+				measure 'Expected Capacity Need Details'
+					caption: Details van capaciteitsbehoefte (Verw.)
+				measure 'Expected Capacity Need by Source No.'
+					caption: Capaciteitsbehoefte (Verw.) per bronnr.
+				measure 'Expected Material Dev % by Source No.'
+					caption: Verwacht % afwijking materiaal per bronnr.
+				measure 'Expected Material Dev % by Production Order'
+					caption: Verwacht % afwijking materiaal per productieorder
+				measure 'Consumption Variance Details'
+					caption: Details van verbruiksverschil
+				measure 'Expected Capacity Dev % by Source No.'
+					caption: Verwacht % afwijking capaciteit per bronnr.
+				measure 'Expected Capacity Dev % by Production Order|'
+					caption: Verwacht % afwijking capaciteit per productieorder|
+				measure 'Capacity Variance Details'
+					caption: Details van capaciteitsverschil
+				measure 'Average Time Per Finished Quantity by Work Center'
+					caption: Gemiddelde tijd per voltooide hoeveelheid per afdeling
+				measure 'Average Time Per Finished Quantity by Source No.'
+					caption: Gemiddelde tijd per voltooide hoeveelheid per bronnr.
+				measure 'Average Production Time Details'
+					caption: Details van gemiddelde productietijd
+				measure 'No. of Production Orders by Source No.'
+					caption: Aantal productieorders per bronnr.
+				measure 'Released Production Order Details'
+					caption: Details van vrijgegeven productieorder
+				measure 'Scrap Quantity by Work Center'
+					caption: Hoeveelheid uitval per afdeling
+				measure 'Work Center Statistics'
+					caption: Afdelingsstatistiek
+				measure 'Statistic Details'
+					caption: Statistische details
+				measure 'Machine Center Statistics'
+					caption: Bewerkingsplaatsstatistiek
+				measure 'Machine Center Load '
+					caption: "Werklast bewerkingsplaats "
+				measure 'Machine Center Load Details'
+					caption: Details van werklast bewerkingsplaats
+				measure 'Prod. Order List'
+					caption: Lijst met productieorders
+				measure 'Prod. Order List Details'
+					caption: Details van lijst met productieorders
+				measure 'Production Order Routing Lines Gantt'
+					caption: Gantt van bewerkingsplanregels productieorder
+				measure 'Routing Line Operation Duration'
+					caption: Duur van bewerkingsplan bewerkingsplanregel
+				measure 'Routing Line Details'
+					caption: Details van bewerkingsplanregel
+				measure 'Production Order WIP'
+					caption: OHW productieorder
+				measure 'Inventory Valuation - WIP'
+					caption: Voorraadwaardering - OHW
+				measure 'Task List Drill Through'
+					caption: Detailanalyse taakoverzicht
+				measure 'Task List Details'
+					caption: Details van taakoverzicht
+				measure 'Expected Capacity Need Variance'
+					caption: Verschil capaciteitsbehoefte (Verw.)
+				measure 'Expected Capacity Cost Dev % by Source No.'
+					caption: % afwijking verwachte capaciteitskosten per bronnr.
+				measure 'Average Production Time Per Unit by Work Center'
+					caption: Gemiddelde productietijd per eenheid per afdeling
+				measure 'Average Production Time Per Unit by Source No.'
+					caption: Gemiddelde productietijd per eenheid per bronnr.
+				measure 'Scrap Quantity Over Time'
+					caption: Uitvalhoeveelheid in de loop van de tijd
+				measure 'Scrap % by Production Order'
+					caption: % uitval per productieorder
+				measure 'Scrap Quantity by Scrap Code'
+					caption: Uitvalhoeveelheid per uitvalcode
+				measure 'Scrap Quantity vs. Expected Scrap Quantity'
+					caption: Uitvalhoeveelheid versus verwachte uitvalhoeveelheid
+				measure 'Production Order Time Line'
+					caption: Tijdlijn productieorder
+				measure 'Production Time Line'
+					caption: Tijdlijn productie
+			table 'Machine Center'
+				caption: Bewerkingsplaats
+				column 'Machine Center No.'
+					caption: Bewerkingsplaatsnr.
+				column 'Machine Center Name'
+					caption: Naam bewerkingsplaats
+				column 'Work Center No.'
+					caption: Afdelingsnr.
+				column 'Work Center Unit of Measure'
+					caption: Afdelingseenheid
+				measure 'Machine Center Capacity (Effective)'
+					caption: Capaciteit bewerkingsplaats (effectief)
+				measure 'Machine Center Capacity (Total)'
+					caption: Capaciteit bewerkingsplaats (totaal)
+				measure 'Machine Center Expected Efficiency %'
+					caption: Verwacht % efficiëntie bewerkingsplaats
+				measure 'Machine Center Actual Total Cost'
+					caption: Werkelijke totale kostprijs bewerkingsplaats
+				measure 'Machine Center Actual Efficiency %'
+					caption: Werkelijk % efficiëntie bewerkingsplaats
+				measure 'Machine Center Actual Need'
+					caption: Werkelijke behoefte bewerkingsplaats
+				measure 'Machine Center Allocated Time'
+					caption: Toegewezen tijd bewerkingsplaats
+				measure 'Machine Center Output'
+					caption: Output bewerkingsplaats
+				measure 'Machine Center Scrap'
+					caption: Uitval bewerkingsplaats
+				measure 'Machine Center Scrap %'
+					caption: % uitval bewerkingsplaats
+				measure 'Machine Center Run Time'
+					caption: Bewerkingstijd bewerkingsplaats
+				measure 'Machine Center Stop Time'
+					caption: Stoptijd bewerkingsplaats
+				measure 'Machine Center Stop %'
+					caption: % stop bewerkingsplaats
+				measure 'Machine Center Availability After Orders'
+					caption: Beschikbaar bewerkingsplaats na orders
+				measure 'Machine Center Load'
+					caption: Werklast bewerkingsplaats
+			table 'Production Order Lines'
+				caption: Productieorderregels
+				column quantityBase
+					caption: Aantal (basis)
+				column remainingQtyBase
+					caption: Resterend aantal (basis)
+				column dimensionSetID
+					caption: Dimensiecombinatie-id
+				column 'Prod. Order Line No.'
+					caption: Prod.-orderregelnr.
+				column 'Routing No.'
+					caption: Bewerkingsplannr.
+				column 'Routing Reference No.'
+					caption: Referentienr. van bewerkingsplan
+				column finishedQtyBase
+					caption: finishedQtyBase
+				column ShareOfTotalCapCost
+					caption: ShareOfTotalCapCost
+				column 'Routing Type'
+					caption: Bewerkingsplansoort
+				column indirectCostPercent
+					caption: indirectCostPercent
+				column overheadRate
+					caption: overheadRate
+				column 'Scrap Percent'
+					caption: Uitvalpercentage
+				column 'Planning Level Code'
+					caption: Code planningsniveau
+			table 'Prod Order Components'
+				caption: Productieordermaterialen
+				column expectedQtyBase
+					caption: Verwacht aantal (basis)
+				column remainingQtyBase
+					caption: Resterend aantal (basis)
+				column 'Routing Link Code'
+					caption: Code van bewerkingsplankoppeling
+				column costAmount
+					caption: costAmount
+				column 'Prod Order Components Line No.'
+					caption: Regelnr. materialen prod.order
+			table 'Prod Order Capacity Need'
+				caption: Prod.-ordercapaciteitsbehoefte
+				column 'Routing No.'
+					caption: Bewerkingsplannr.
+				column 'Routing Reference No.'
+					caption: Referentienr. van bewerkingsplan
+				column 'Operation No.'
+					caption: Bewerkingsnr.
+				column 'Requested Only'
+					caption: Alleen op opvraag
+				column workCenterNo
+					caption: workCenterNo
+				column workCenterGroupCode
+					caption: workCenterGroupCode
+				column no
+					caption: nr.
+				column Type
+					caption: Type
+				column neededTimeMs
+					caption: neededTimeMs
+				column neededTime
+					caption: neededTime
+				column 'Prod Order Capacity Need Line No.'
+					caption: Regelnr. capaciteitsbehoefte productieorder
+				measure 'Needed Time'
+					caption: Benodigde tijd
+				measure 'Needed Time (MS)'
+					caption: Benodigde tijd (ms)
+				measure 'Allocated Time'
+					caption: Toegewezen tijd
+			table 'Prod Order Routing Lines'
+				caption: Bewerkingsplanregels van productieorder
+				column 'No.'
+					caption: Nr.
+				column 'Expected Capacity Need'
+					caption: Capaciteitsbehoefte (Verw.)
+				column 'Expected Capacity Ovhd. Cost'
+					caption: Verwachte overheadkosten capaciteit
+				column 'Routing Link Code'
+					caption: Code van bewerkingsplankoppeling
+				column Description
+					caption: Omschrijving
+				column 'Expected Operation Cost Amt.'
+					caption: Verwacht bedrag bewerkingskosten
+				column 'Routing No.'
+					caption: Bewerkingsplannr.
+				column 'Routing Reference No.'
+					caption: Referentienr. van bewerkingsplan
+				column 'Operation No.'
+					caption: Bewerkingsnr.
+				column locationName
+					caption: locationName
+				column 'Setup Time'
+					caption: Insteltijd
+				column 'Run Time'
+					caption: Bewerkingstijd
+				column 'Wait Time'
+					caption: Wachttijd na bew.
+				column 'Move Time'
+					caption: Transporttijd
+				column 'Routing Status'
+					caption: Bewerkingsplanstatus
+				column 'Duration Total Hours'
+					caption: Totale duur (uren)
+				column 'Duration Total Days'
+					caption: Totale duur (dagen)
+				column 'Work/Machine Center Name'
+					caption: Naam afdeling/bewerkingsplaats
+				column workCenterNo
+					caption: workCenterNo
+				column 'Ending Date Time'
+					caption: Einddatum/-tijd
+				column 'Starting Date Time'
+					caption: Begindatum/-tijd
+				measure 'Operation Run Time'
+					caption: Bewerkingstijd van bewerking
+				measure 'Operation Setup Time'
+					caption: Insteltijd van bewerking
+				measure 'Operation Wait Time'
+					caption: Wachttijd na bew. van bewerking
+				measure 'Operation Move Time'
+					caption: Transporttijd van bewerking
+				measure 'Total Duration Hours'
+					caption: Totale duur (uren)
+			table 'Item Ledger Entries'
+				caption: Artikelposten
+				column 'Serial No.'
+					caption: Serienr.
+				column 'Lot No.'
+					caption: Lotnr.
+				column qty
+					caption: Hoeveelheid
+				column costAmountActual
+					caption: Werkelijk kostenbedrag
+				column 'Entry Type'
+					caption: Boekingssoort
+				column 'Order Type'
+					caption: Ordersoort
+				column 'Order Line No.'
+					caption: Orderregelnr.
+				column Positive
+					caption: Positief
+				measure 'Output Quantity'
+					caption: Outputhoeveelheid
+				measure 'Consumption Quantity'
+					caption: Verbruikshoeveelheid
+			table 'Capacity Ledger Entries'
+				caption: Capaciteitsposten
+				column 'Order Type'
+					caption: Ordersoort
+				column 'Order Line No.'
+					caption: Orderregelnr.
+				column Type
+					caption: Type
+				column 'No.'
+					caption: Nr.
+				column Description
+					caption: Omschrijving
+				column scrapQuantity
+					caption: scrapQuantity
+				column 'Routing No.'
+					caption: Bewerkingsplannr.
+				column 'Routing Reference No.'
+					caption: Referentienr. van bewerkingsplan
+				column 'Operation No.'
+					caption: Bewerkingsnr.
+				column 'Scrap Code'
+					caption: Uitvalcode
+				column directCost
+					caption: directCost
+				column overheadCost
+					caption: overheadCost
+				column 'Entry No.'
+					caption: Postnr.
+				column workCenterNo
+					caption: workCenterNo
+				column 'Work Shift Code'
+					caption: Ploegcode
+				column Subcontracting
+					caption: Uitbesteding
+				column 'Capacity Unit of Measure'
+					caption: Capaciteitseenheid
+				column 'Qty. Per Unit of Measure'
+					caption: Aantal per eenheid
+				column 'Qty. Per Capacity Unit of Measure'
+					caption: Hoeveelheid per capaciteitseenheid
+				measure 'Direct Cost'
+					caption: Directe kosten
+				measure 'Overhead Cost'
+					caption: Overheadkosten
+				measure 'Run Time'
+					caption: Bewerkingstijd
+				measure 'Setup Time'
+					caption: Insteltijd
+				measure 'Stop Time'
+					caption: Stoptijd
+				measure 'Scrap Quantity'
+					caption: Uitvalhoeveelheid
+				measure 'Scrap %'
+					caption: % uitval
+				measure 'Capacity Ledger Output Quantity'
+					caption: Outputhoeveelheid capaciteitsposten
+				measure 'Capacity Ledger Quantity'
+					caption: Hoeveelheid capaciteitsposten
+			table 'Calendar Entries'
+				caption: Kalenderposten
+				column 'Capacity Type'
+					caption: Capaciteitssoort
+				measure 'Capacity (Effective)'
+					caption: Capaciteit (effectief)
+				measure 'Capacity (Total)'
+					caption: Capaciteit (totaal)
+			table Location
+				caption: Locatie
+				column 'Location Code'
+					caption: Locatiecode
+				column 'Location Name'
+					caption: Locatienaam
+			table 'Routing Link'
+				caption: Bewerkingsplankoppeling
+				column 'Routing Link Code'
+					caption: Code bewerkingsplankoppeling
+				column 'Routing Link Description'
+					caption: Beschrijving bewerkingsplankoppeling
+			table Routing
+				caption: Bewerkingsplan
+				column 'Routing No.'
+					caption: Bewerkingsplannr.
+				column 'Routing Type'
+					caption: Bewerkingsplansoort
+				column 'Routing Status'
+					caption: Bewerkingsplanstatus
+				column 'Routing Description'
+					caption: Bew.-planomschrijving
+			table 'Work Center Group'
+				caption: Afdelingsgroep
+				column 'Work Center Group Code'
+					caption: Afdelingsgroepscode
+				column 'Work Center Group Name'
+					caption: Afdelingsgroepsnaam
+			table 'Value Entries'
+				caption: Waardeposten
+				column 'Entry No.'
+					caption: Postnr.
+				column 'Valuation Date'
+					caption: Waarderingsdatum
+				column costAmountActual
+					caption: costAmountActual
+				column 'Cost Per Unit'
+					caption: costPerUnit
+				column itemLedgerEntryQuantity
+					caption: itemLedgerEntryQuantity
+				column valuedQuantity
+					caption: valuedQuantity
+				column 'Item Ledger Entry Type'
+					caption: Artikelboekingssoort
+				column Type
+					caption: Type
+				column 'No.'
+					caption: Nr.
+				column 'Capacity Ledger Entry No.'
+					caption: capacityLedgerEntryNo
+				column 'Entry Type'
+					caption: entryType
+				column costPostedtoGL
+					caption: costPostedtoGL
+				column costAmountExpected
+					caption: costAmountExpected
+				column 'Order Type'
+					caption: orderType
+				column 'Order No.'
+					caption: orderNo
+				column expectedCostPostedtoGL
+					caption: expectedCostPostedtoGL
+				column 'Is Expected Cost'
+					caption: expectedCost
+				measure 'Beginning Balance Value'
+					caption: Waarde van beginsaldo
+				measure 'Consumption Value'
+					caption: Verbruikswaarde
+				measure 'Capacity Value'
+					caption: Capaciteitswaarde
+				measure 'Output Value'
+					caption: Uitvoerwaarde
+				measure 'Ending Balance Value'
+					caption: Waarde van eindsaldo
+				measure 'Cost Posted to G/L'
+					caption: Kosten geboekt naar grootboek
+			table 'Production Orders'
+				caption: Productieorders
+				column 'Prod Order Status'
+					caption: Prod.-orderstatus
+				column 'Prod Order No.'
+					caption: Productieordernr.
+				column 'Prod Order Source No.'
+					caption: Bronnr. prod.order
+				column 'Prod Order Routing No.'
+					caption: Bewerkingsplannr. prod.order
+				column 'Prod Order Starting Date'
+					caption: Begindatum prod.order
+				column 'Prod Order Ending Date'
+					caption: Einddatum prod.order
+				column 'Prod Order Due Date'
+					caption: Vervaldatum prod.order
+				column quantity
+					caption: hoeveelheid
+				column 'Prod Order Description'
+					caption: Beschrijving prod.order
+				column 'Prod Order Source Type'
+					caption: Bronsoort prod.order
+				column 'Production Order'
+					caption: Productieorder
+				measure 'Planned Quantity'
+					caption: Geplande hoeveelheid
+				measure 'Expected Material Cost'
+					caption: Verwachte materiaalkosten
+				measure 'Expected Capacity Cost'
+					caption: Verwachte capaciteitskosten
+				measure 'Expected Subcontracted Cost'
+					caption: Verwachte uitbestedingskosten
+				measure 'Expected Capacity Overhead Cost'
+					caption: Verwachte overheadkosten capaciteit
+				measure 'Total Standard Cost'
+					caption: Totale vaste verrekenprijs
+				measure 'Expected Manufacturing Overhead Cost'
+					caption: Verwachte overheadkosten productie
+				measure 'Total Expected Cost'
+					caption: Totale verwachte kosten
+				measure 'Standard Capacity Cost'
+					caption: Vaste verrekenprijs capaciteit
+				measure 'Standard Material Cost'
+					caption: Vaste verrekenprijs materiaal
+				measure 'Standard Subcontracted Cost'
+					caption: Standaarduitbestedingskosten
+				measure 'Standard Capacity Overhead Cost'
+					caption: Overheadkosten standaardcapaciteit
+				measure 'Standard Manufacturing Overhead Cost'
+					caption: Overheadkosten standaardproductie
+				measure 'Actual Material Cost'
+					caption: Werkelijke materiaalkosten
+				measure 'Actual Capacity Cost'
+					caption: Werkelijke capaciteitskosten
+				measure 'Actual Subcontracted Cost'
+					caption: Werkelijke uitbestedingskosten
+				measure 'Actual Capacity Overhead Cost'
+					caption: Overheadkosten werkelijke capaciteit
+				measure 'Actual Manufacturing Overhead Cost'
+					caption: Werkelijke overheadkosten productie
+				measure 'Total Actual Cost'
+					caption: Totale werkelijke kosten
+				measure 'Standard Material Cost Variance'
+					caption: Verschil vaste verrekenprijs materiaal
+				measure 'Standard Capacity Cost Variance'
+					caption: Verschil vaste verrekenprijs capaciteit
+				measure 'Standard Subcontracted Cost Variance'
+					caption: Verschil standaarduitbestedingskosten
+				measure 'Standard Capacity Overhead Cost Variance'
+					caption: Verschil overheadkosten standaardcapaciteit
+				measure 'Standard Manufacturing Overhead Cost Variance'
+					caption: Verschil overheadkosten standaardproductie
+				measure 'Total Standard Cost Variance'
+					caption: Verschil totale vaste verrekenprijs
+				measure 'Standard Material Cost Dev %'
+					caption: % verschil standaardmateriaalkosten
+				measure 'Standard Capacity Cost Dev %'
+					caption: % afwijking standaardkosten capaciteit
+				measure 'Standard Subcontracted Cost Dev %'
+					caption: % afwijking standaarduitbestedingskosten
+				measure 'Standard Capacity Overhead Cost Dev %'
+					caption: % verschil overheadkosten standaardcapaciteit
+				measure 'Standard Manufacturing Overhead Cost Dev %'
+					caption: % verschil overheadkosten standaardproductie
+				measure 'Total Standard Cost Dev %'
+					caption: % afwijking totale vaste verrekenprijs
+				measure 'Prod Order Expected Capacity Need (Finished)'
+					caption: Capaciteitsbehoefte (Verw.) productieorder (voltooid)
+				measure 'Prod Order Actual Capacity Need'
+					caption: Werkelijke capaciteitsbehoefte productieorder
+				measure 'Prod Order Expected Capacity Need (Non Finished)'
+					caption: Capaciteitsbehoefte (Verw.) productieorder (niet-voltooid)
+				measure 'Prod Order Expected Capacity Need'
+					caption: Capaciteitsbehoefte (Verw.) productieorder
+				measure 'Finished Quantity'
+					caption: Voltooide hoeveelheid
+				measure 'Actual Time Used'
+					caption: Werkelijke gebruikte tijd
+				measure 'Finished %'
+					caption: % voltooid
+				measure 'Remaining %'
+					caption: % resterend
+				measure 'Variance Quantity'
+					caption: Verschilhoeveelheid
+				measure 'Expected Capacity Cost Dev %'
+					caption: % verschil verwachte capaciteitskosten
+				measure 'Expected Capacity Overhead Cost Dev %'
+					caption: % afwijking overheadkosten capaciteit
+				measure 'Expected Manufacturing Overhead Cost Dev %'
+					caption: Verwacht % verschil overheadkosten productie
+				measure 'Expected Material Cost Dev %'
+					caption: % afwijking verwachte materiaalkosten
+				measure 'Expected Subcontracted Cost Dev %'
+					caption: % verschil verwachte uitbestedingskosten
+				measure 'Total Expected Cost Dev %'
+					caption: % afwijking totale verwachte kosten
+				measure 'Expected Capacity Cost Variance'
+					caption: Verwacht verschil capaciteitskosten
+				measure 'Expected Capacity Overhead Cost Variance'
+					caption: Verwacht verschil overheadkosten capaciteit
+				measure 'Expected Manufacturing Overhead Cost Variance'
+					caption: Verwacht verschil overheadkosten productie
+				measure 'Expected Material Cost Variance'
+					caption: Verwacht verschil materiaalkosten
+				measure 'Expected Subcontracted Cost Variance'
+					caption: Verwacht verschil uitbestedingskosten
+				measure 'Total Expected Cost Variance'
+					caption: Verschil totale verwachte kosten
+				measure 'No. of Production Orders'
+					caption: Aantal productieorders
+				measure 'Average Production Time Per Finished Quantity'
+					caption: Gemiddelde productietijd per voltooide hoeveelheid
+				measure 'Prod Order Capacity Need Variance'
+					caption: Verschil capaciteitsbehoefte productieorder
+				measure 'Prod Order Capacity Need Dev %'
+					caption: % verschil capaciteitsbehoefte productieorder
+				measure 'Production Order Scrap %'
+					caption: % uitval productieorder
+				measure 'Expected Production Order Scrap Quantity'
+					caption: Verwachte uitvalhoeveelheid productieorder
+			table 'Dimension Sets'
+				caption: Dimensiecombinaties
+				column id
+					caption: id
+				column dimensionSetID
+					caption: dimensionSetID
+				column valueCount
+					caption: valueCount
+				column 'Global Dimension 1'
+					caption: Globale dimensie 1
+				column dimension1ValueName
+					caption: dimension1ValueName
+				column 'Global Dimension 2'
+					caption: Globale dimensie 2
+				column dimension2ValueName
+					caption: dimension2ValueName
+				column 'Shortcut Dimension 3'
+					caption: Shortcutdimensie 3
+				column dimension3ValueName
+					caption: dimension3ValueName
+				column 'Shortcut Dimension 4'
+					caption: Shortcutdimensie 4
+				column dimension4ValueName
+					caption: dimension4ValueName
+				column 'Shortcut Dimension 5'
+					caption: Shortcutdimensie 5
+				column dimension5ValueName
+					caption: dimension5ValueName
+				column 'Shortcut Dimension 6'
+					caption: Shortcutdimensie 6
+				column dimension6ValueName
+					caption: dimension6ValueName
+				column 'Shortcut Dimension 7'
+					caption: Shortcutdimensie 7
+				column dimension7ValueName
+					caption: dimension7ValueName
+				column 'Shortcut Dimension 8'
+					caption: Shortcutdimensie 8
+				column dimension8ValueName
+					caption: dimension8ValueName
+			table 'Inventory Adjustment Entry Order Line'
+				caption: Regel van order voorraadherwaarderingspost
+				column itemNo
+					caption: itemNo
+				column orderLineNo
+					caption: orderLineNo
+				column orderNo
+					caption: orderNo
+				column singleLevelMaterialCost
+					caption: singleLevelMaterialCost
+				column iSFinished
+					caption: iSFinished
+				column auxiliaryIndex1
+					caption: auxiliaryIndex1
+				column ETag
+					caption: ETag
+				column 'Adjustment Order Key'
+					caption: Sleutel herwaarderingsorder
+				column singleLevelCapacityCost
+					caption: singleLevelCapacityCost
+				column singleLevelSubcontrdCost
+					caption: singleLevelSubcontrdCost
+				column singleLevelCapOvhdCost
+					caption: singleLevelCapOvhdCost
+				column singleLevelMfgOvhdCost
+					caption: singleLevelMfgOvhdCost
+				column completelyInvoiced
+					caption: completelyInvoiced
+				column indirectCostPercent
+					caption: indirectCostPercent
+				column overheadRate
+					caption: overheadRate
+			table ENVIRONMENT
+				caption: OMGEVING
+			table 'Back Links'
+				caption: Terugkoppelingen
+				measure 'Base Link'
+					caption: Basiskoppeling
+				measure 'Calendar Entries Back Link'
+					caption: Terugkoppeling Kalenderposten
+				measure Ranged
+					caption: Bereik
+				measure 'Prod. Order Capacity Need Back Link'
+					caption: Terugkoppeling Prod.-ordercapaciteitsbehoefte
+				measure 'Work Center Need Qty Back Link'
+					caption: Terugkoppeling Behoefte afdeling (aantal)
+			table 'Item Category'
+				caption: Artikelcategorie
+				column 'Item Category Code'
+					caption: Artikelcategoriecode
+				column 'Item Category Description'
+					caption: Omschrijving van artikelcategorie
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Hiërarchie van artikelcategoriecodes
+					level 'Item Category Code Level 1'
+						caption: Artikelcategoriecode niveau 1
+					level 'Item Category Code Level 2'
+						caption: Artikelcategoriecode niveau 2
+					level 'Item Category Code Level 3'
+						caption: Artikelcategoriecode niveau 3
+

@@ -4,19 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing.Import;
 
-using Microsoft.Purchases.Document;
-using Microsoft.Finance.Deferral;
+using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
-using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Utilities;
+using Microsoft.Finance.AllocationAccount;
+using Microsoft.Finance.Deferral;
+using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.FixedAssets.FixedAsset;
-using Microsoft.Inventory.Item;
-using Microsoft.eServices.EDocument;
-using Microsoft.Finance.AllocationAccount;
-using Microsoft.Projects.Resources.Resource;
 using Microsoft.Foundation.UOM;
-using Microsoft.Finance.Dimension;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Document;
+using Microsoft.Utilities;
 
 table 6105 "E-Document Line Mapping"
 {
@@ -95,7 +95,13 @@ table 6105 "E-Document Line Mapping"
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
         }
-        field(10; "Item Reference No."; Code[20])
+#if not CLEAN27
+#pragma warning disable AS0086
+#endif
+        field(10; "Item Reference No."; Code[50])
+#if not CLEAN27
+#pragma warning restore AS0086
+#endif
         {
             Caption = 'Item Reference No.';
             ToolTip = 'Specifies the item reference number.';

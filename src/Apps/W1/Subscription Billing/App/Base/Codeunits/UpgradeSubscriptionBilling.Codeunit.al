@@ -1,10 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Upgrade;
 #if not CLEANSCHEMA29
 using Microsoft.Finance.GeneralLedger.Setup;
 #endif
 using Microsoft.Sales.Document;
+using System.Upgrade;
 
 codeunit 8032 "Upgrade Subscription Billing"
 {

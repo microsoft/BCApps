@@ -5,9 +5,9 @@
 namespace Microsoft.EServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Purchases.Vendor;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 
 table 6102 "E-Document Header Mapping"
 {

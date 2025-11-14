@@ -5,8 +5,8 @@
 
 namespace System.Test.Utilities;
 
-using System.Utilities;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 135071 "Uri Builder Test"
 {

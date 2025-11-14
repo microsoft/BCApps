@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Sales.ExcelReports;
+
 using Microsoft.CRM.RoleCenters;
 
 pageextension 4417 "EXR Sales & Rel. Mgr. RC" extends "Sales & Relationship Mgr. RC"

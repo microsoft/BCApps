@@ -1,0 +1,417 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "cfcc1e6683d14087bd29",
+  "position": {
+    "x": 26.066452304394428,
+    "y": 382.76527331189709,
+    "z": 0,
+    "height": 311.4255091103966,
+    "width": 1227.181136120043,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Month"
+                    }
+                  },
+                  "Level": "Fiscal Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year-Month.Fiscal Year",
+              "nativeQueryRef": "Fiscal Year-Month Fiscal Year",
+              "active": true
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Month"
+                    }
+                  },
+                  "Level": "Fiscal Month Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year-Month.Fiscal Month Year",
+              "nativeQueryRef": "Fiscal Year-Month Fiscal Month Year",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Purchase (LCY)"
+                }
+              },
+              "queryRef": "Purchases.Purchase Amount",
+              "nativeQueryRef": "Purchase Amount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fiscal Calendar Time Intelligence"
+                    }
+                  },
+                  "Property": "Purchase Amount MAT (Fiscal)"
+                }
+              },
+              "queryRef": "Fiscal Calendar Time Intelligence.Purchase Amount MAT (Fiscal)",
+              "nativeQueryRef": "MAT",
+              "displayName": "MAT"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fiscal Calendar Time Intelligence"
+                    }
+                  },
+                  "Property": "Purchase Amount PYMAT (Fiscal)"
+                }
+              },
+              "queryRef": "Fiscal Calendar Time Intelligence.Purchase Amount PYMAT (Fiscal)",
+              "nativeQueryRef": "PY MAT",
+              "displayName": "PY MAT"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fiscal Calendar Time Intelligence"
+                    }
+                  },
+                  "Property": "Purchase Amount MATG (Fiscal)"
+                }
+              },
+              "queryRef": "Fiscal Calendar Time Intelligence.Purchase Amount MATG (Fiscal)",
+              "nativeQueryRef": "MAT Growth",
+              "displayName": "MAT Growth"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fiscal Calendar Time Intelligence"
+                    }
+                  },
+                  "Property": "Purchase Amount MATG % (Fiscal)"
+                }
+              },
+              "queryRef": "Fiscal Calendar Time Intelligence.Purchase Amount MATG % (Fiscal)",
+              "nativeQueryRef": "MAT Growth %",
+              "displayName": "MAT Growth %"
+            }
+          ]
+        }
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "Rows"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "Date.Fiscal Year-Month.Fiscal Year"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Year"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Date.Fiscal Year-Month.Fiscal Month Year"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Month Year"
+                }
+              }
+            ],
+            "isPinned": true
+          }
+        ],
+        "root": {
+          "children": [
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "'F 2022'"
+                  }
+                }
+              ],
+              "isToggled": true
+            },
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "'F 2020'"
+                  }
+                }
+              ],
+              "isToggled": true
+            },
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "'F 2021'"
+                  }
+                }
+              ],
+              "isToggled": true
+            }
+          ]
+        }
+      }
+    ],
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "113D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Month"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "95D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Day"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Fiscal Calendar Time Intelligence.Purchase Amount MAT (Fiscal)"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Fiscal Calendar Time Intelligence.Purchase Amount PYMAT (Fiscal)"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Fiscal Calendar Time Intelligence.Purchase Amount MATG (Fiscal)"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Fiscal Calendar Time Intelligence.Purchase Amount MATG % (Fiscal)"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Purchases.Purchase Amount"
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "autoSizeColumnWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {},
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Purchases.Purchase Amount"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Fiscal Calendar Time Intelligence.Purchase Amount MAT (Fiscal)"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Fiscal Calendar Time Intelligence.Purchase Amount PYMAT (Fiscal)"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Fiscal Calendar Time Intelligence.Purchase Amount MATG (Fiscal)"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Purchase Amount Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Purchases.Purchase Amount"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Moving Annual Total (MAT) Details Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

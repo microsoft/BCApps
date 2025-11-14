@@ -1,7 +1,7 @@
 namespace Microsoft.eServices.EDocument.OrderMatch;
 
-using Microsoft.Purchases.Document;
 using Microsoft.eServices.EDocument;
+using Microsoft.Purchases.Document;
 
 page 6168 "E-Doc. Purchase Order Sub"
 {

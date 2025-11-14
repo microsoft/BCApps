@@ -5,8 +5,8 @@
 
 namespace Microsoft.Shared.Error;
 
-using System.Utilities;
 using System.Telemetry;
+using System.Utilities;
 pageextension 7900 ErrorMessagesRecommendationExt extends "Error Messages"
 {
     layout
