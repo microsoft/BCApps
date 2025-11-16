@@ -1,9 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Sales.Document;
+using Microsoft.Utilities;
 using System.Text;
 using System.Utilities;
-using Microsoft.Utilities;
-using Microsoft.Sales.Document;
 
 reportextension 8011 "Contract Standard Sales Quote" extends "Standard Sales - Quote"
 {

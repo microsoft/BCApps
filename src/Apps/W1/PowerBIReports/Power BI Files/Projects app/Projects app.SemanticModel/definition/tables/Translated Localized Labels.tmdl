@@ -1,0 +1,1872 @@
+table 'Translated Localized Labels'
+	isHidden
+	lineageTag: 6759634c-1a92-47e3-84c3-f672d2d83ad6
+
+	measure 'My Report Title Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Můj nadpis sestavy",
+			   "da-DK", "Min rapporttitel",
+			   "de-AT", "Titel meines Berichts",
+			   "de-CH", "Titel meines Berichts",
+			   "de-DE", "Titel meines Berichts",
+			   "en-AU", "My Report Title",
+			   "en-CA", "My Report Title",
+			   "en-GB", "My Report Title",
+			   "en-NZ", "My Report Title",
+			   "es-ES", "Título del informe",
+			   "es-MX", "Título del informe",
+			   "fi-FI", "Oman raportin otsikko",
+			   "fr-BE", "Titre de l’état",
+			   "fr-CA", "Titre de mon rapport",
+			   "fr-CH", "Titre de l’état",
+			   "fr-FR", "Titre de l’état",
+			   "is-IS", "Skýrslutitill notanda",
+			   "it-CH", "Titolo report personale",
+			   "it-IT", "Titolo report personale",
+			   "nb-NO", "Min rapporttittel",
+			   "nl-BE", "Mijn rapporttitel",
+			   "nl-NL", "Mijn rapporttitel",
+			   "sv-SE", "Min rapportrubrik",
+			   "My Report Title"
+			)
+		isHidden
+		lineageTag: 7e96d763-47a7-4eb1-87a6-e7c4596b18b3
+
+	measure 'My Button Caption Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Popisek mého tlačítka",
+			   "da-DK", "Min knaptitel",
+			   "de-AT", "Beschriftung Meine Schaltfläche",
+			   "de-CH", "Beschriftung Meine Schaltfläche",
+			   "de-DE", "Beschriftung Meine Schaltfläche",
+			   "en-AU", "My Button Caption",
+			   "en-CA", "My Button Caption",
+			   "en-GB", "My Button Caption",
+			   "en-NZ", "My Button Caption",
+			   "es-ES", "Título de botón",
+			   "es-MX", "Título de botón",
+			   "fi-FI", "Oma painikkeen otsikko",
+			   "fr-BE", "Légende de mon bouton",
+			   "fr-CA", "Légende de mon bouton",
+			   "fr-CH", "Légende de mon bouton",
+			   "fr-FR", "Légende de mon bouton",
+			   "is-IS", "Texti hnapps notanda",
+			   "it-CH", "Didascalia pulsante personale",
+			   "it-IT", "Didascalia pulsante personale",
+			   "nb-NO", "Min knappetittel",
+			   "nl-BE", "Bijschrift van mijn knop",
+			   "nl-NL", "Bijschrift van mijn knop",
+			   "sv-SE", "Min knapprubrik",
+			   "My Button Caption"
+			)
+		isHidden
+		lineageTag: 5c631758-84d7-4008-ae7f-27b635d7898e
+
+	measure 'My Visual Title Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Název mého vizuálu",
+			   "da-DK", "Min visuelle titel",
+			   "de-AT", "Titel meines Visuals",
+			   "de-CH", "Titel meines Visuals",
+			   "de-DE", "Titel meines Visuals",
+			   "en-AU", "My Visual Title",
+			   "en-CA", "My Visual Title",
+			   "en-GB", "My Visual Title",
+			   "en-NZ", "My Visual Title",
+			   "es-ES", "Título visual",
+			   "es-MX", "Título visual",
+			   "fi-FI", "Oma visuaalinen otsikko",
+			   "fr-BE", "Mon titre visuel",
+			   "fr-CA", "Mon titre visuel",
+			   "fr-CH", "Mon titre visuel",
+			   "fr-FR", "Mon titre visuel",
+			   "is-IS", "Sjónrænn titill notanda",
+			   "it-CH", "Titolo visivo personale",
+			   "it-IT", "Titolo visivo personale",
+			   "nb-NO", "Min visuelle tittel",
+			   "nl-BE", "Mijn visuele titel",
+			   "nl-NL", "Mijn visuele titel",
+			   "sv-SE", "Min visuella rubrik",
+			   "My Visual Title"
+			)
+		isHidden
+		lineageTag: 183898df-9f97-427b-8a2b-f573c9e10494
+
+	measure 'Projects Overview Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Přehled projektů",
+			   "da-DK", "Projektoversigt",
+			   "de-AT", "Projektübersicht",
+			   "de-CH", "Projektübersicht",
+			   "de-DE", "Projektübersicht",
+			   "en-AU", "Projects Overview",
+			   "en-CA", "Projects Overview",
+			   "en-GB", "Projects Overview",
+			   "en-NZ", "Projects Overview",
+			   "es-ES", "Resumen de proyectos",
+			   "es-MX", "Resumen de proyectos",
+			   "fi-FI", "Projektin yleiskuvaus",
+			   "fr-BE", "Vue d’ensemble de Projets",
+			   "fr-CA", "Vue d’ensemble de Projets",
+			   "fr-CH", "Vue d’ensemble de Projets",
+			   "fr-FR", "Vue d’ensemble de Projets",
+			   "is-IS", "Verkyfirlit",
+			   "it-CH", "Panoramica progetti",
+			   "it-IT", "Panoramica progetti",
+			   "nb-NO", "Oversikt over prosjekter",
+			   "nl-BE", "Projectoverzicht",
+			   "nl-NL", "Projectoverzicht",
+			   "sv-SE", "Projektöversikt",
+			   "Projects Overview"
+			)
+		isHidden
+		lineageTag: 49ae8928-c26c-463d-b1d5-0c7ac5564f75
+
+	measure 'Project Tasks Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Úlohy projektu",
+			   "da-DK", "Projektopgaver",
+			   "de-AT", "Projektaufgaben",
+			   "de-CH", "Projektaufgaben",
+			   "de-DE", "Projektaufgaben",
+			   "en-AU", "Project Tasks",
+			   "en-CA", "Project Tasks",
+			   "en-GB", "Project Tasks",
+			   "en-NZ", "Project Tasks",
+			   "es-ES", "Tareas de proyecto",
+			   "es-MX", "Tareas de proyecto",
+			   "fi-FI", "Projektitehtävät",
+			   "fr-BE", "Tâches projet",
+			   "fr-CA", "Tâches projet",
+			   "fr-CH", "Tâches projet",
+			   "fr-FR", "Tâches projet",
+			   "is-IS", "Verkhlutar verks",
+			   "it-CH", "Attività di progetto",
+			   "it-IT", "Attività di progetto",
+			   "nb-NO", "Prosjektoppgaver",
+			   "nl-BE", "Projecttaken",
+			   "nl-NL", "Projecttaken",
+			   "sv-SE", "Projektuppgifter",
+			   "Project Tasks"
+			)
+		isHidden
+		lineageTag: fdf58a67-2877-4745-9c6b-795d28098889
+
+	measure 'Project Profitability Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Ziskovost projektu",
+			   "da-DK", "Projektrentabilitet",
+			   "de-AT", "Projektrentabilität",
+			   "de-CH", "Projektrentabilität",
+			   "de-DE", "Projektrentabilität",
+			   "en-AU", "Project Profitability",
+			   "en-CA", "Project Profitability",
+			   "en-GB", "Project Profitability",
+			   "en-NZ", "Project Profitability",
+			   "es-ES", "Rentabilidad del proyecto",
+			   "es-MX", "Rentabilidad del proyecto",
+			   "fi-FI", "Projektin kannattavuus",
+			   "fr-BE", "Rentabilité du projet",
+			   "fr-CA", "Rentabilité du projet",
+			   "fr-CH", "Rentabilité du projet",
+			   "fr-FR", "Rentabilité du projet",
+			   "is-IS", "Arðsemi verks",
+			   "it-CH", "Redditività progetto",
+			   "it-IT", "Redditività progetto",
+			   "nb-NO", "Prosjektlønnsomhet",
+			   "nl-BE", "Winstgevendheid van project",
+			   "nl-NL", "Winstgevendheid van project",
+			   "sv-SE", "Projektlönsamhet",
+			   "Project Profitability"
+			)
+		isHidden
+		lineageTag: d9c05890-a146-4317-8a25-ce5b6e7f72d1
+
+	measure 'Project Realization Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Realizace projektu",
+			   "da-DK", "Projektrealisering",
+			   "de-AT", "Projektrealisierung",
+			   "de-CH", "Projektrealisierung",
+			   "de-DE", "Projektrealisierung",
+			   "en-AU", "Project Realisation",
+			   "en-CA", "Project Realization",
+			   "en-GB", "Project Realisation",
+			   "en-NZ", "Project Realisation",
+			   "es-ES", "Realización de proyectos",
+			   "es-MX", "Realización de proyectos",
+			   "fi-FI", "Projektin realisointi",
+			   "fr-BE", "Réalisation du projet",
+			   "fr-CA", "Réalisation du projet",
+			   "fr-CH", "Réalisation du projet",
+			   "fr-FR", "Réalisation du projet",
+			   "is-IS", "Framkvæmd verks",
+			   "it-CH", "Realizzo progetto",
+			   "it-IT", "Realizzo progetto",
+			   "nb-NO", "Prosjektrealisering",
+			   "nl-BE", "Projectrealisatie",
+			   "nl-NL", "Projectrealisatie",
+			   "sv-SE", "Genomförande av projekt",
+			   "Project Realization"
+			)
+		isHidden
+		lineageTag: dfdb8518-3e1c-4757-b940-88e97f5ec8bd
+
+	measure 'Project Performance to Budget Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Výkon projektu k rozpočtu",
+			   "da-DK", "Projektydeevne i forhold til budget",
+			   "de-AT", "Vergleich Projektleistung und Budget",
+			   "de-CH", "Vergleich Projektleistung und Budget",
+			   "de-DE", "Vergleich Projektleistung und Budget",
+			   "en-AU", "Project Performance to Budget",
+			   "en-CA", "Project Performance to Budget",
+			   "en-GB", "Project Performance to Budget",
+			   "en-NZ", "Project Performance to Budget",
+			   "es-ES", "Rendimiento del proyecto frente a presupuesto",
+			   "es-MX", "Rendimiento del proyecto frente a presupuesto",
+			   "fi-FI", "Projektin tulos vrt. budjetti",
+			   "fr-BE", "Niveau de performance du projet par rapport au budget",
+			   "fr-CA", "Niveau de performance du projet par rapport au budget",
+			   "fr-CH", "Niveau de performance du projet par rapport au budget",
+			   "fr-FR", "Niveau de performance du projet par rapport au budget",
+			   "is-IS", "Afköst verks miðað við fjárhagsáætlun",
+			   "it-CH", "Progetto - Confronto prestazioni/budget",
+			   "it-IT", "Progetto - Confronto prestazioni/budget",
+			   "nb-NO", "Prosjektresultater til budsjett",
+			   "nl-BE", "Projectprestaties versus budget",
+			   "nl-NL", "Projectprestaties versus budget",
+			   "sv-SE", "Projektresultat mot budget",
+			   "Project Performance to Budget"
+			)
+		isHidden
+		lineageTag: a874ec69-5841-4cf6-aba6-e340ce2c8deb
+
+	measure 'Project Invoiced Sales by Type Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Fakturovaný prodej projektu podle typu",
+			   "da-DK", "Projektfaktureret salg efter type",
+			   "de-AT", "Fakturierte Projektumsätze nach Typ",
+			   "de-CH", "Fakturierte Projektumsätze nach Typ",
+			   "de-DE", "Fakturierte Projektumsätze nach Typ",
+			   "en-AU", "Project Invoiced Sales by Type",
+			   "en-CA", "Project Invoiced Sales by Type",
+			   "en-GB", "Project Invoiced Sales by Type",
+			   "en-NZ", "Project Invoiced Sales by Type",
+			   "es-ES", "Ventas facturadas proyecto por tipo",
+			   "es-MX", "Ventas facturadas proyecto por tipo",
+			   "fi-FI", "Projektin laskutettu myynti tyypin mukaan",
+			   "fr-BE", "Ventes du projet facturées par type",
+			   "fr-CA", "Ventes du projet facturées par type",
+			   "fr-CH", "Ventes du projet facturées par type",
+			   "fr-FR", "Ventes du projet facturées par type",
+			   "is-IS", "Reikningsfærð sala verks eftir gerð",
+			   "it-CH", "Vendite di progetti fatturate per tipo",
+			   "it-IT", "Vendite di progetti fatturate per tipo",
+			   "nb-NO", "Fakturert prosjektsalg etter type",
+			   "nl-BE", "Gefactureerde verkopen van project per type",
+			   "nl-NL", "Gefactureerde verkopen van project per type",
+			   "sv-SE", "Fakturerad försäljning för projekt per typ",
+			   "Project Invoiced Sales by Type"
+			)
+		isHidden
+		lineageTag: a09cbdae-d5e1-4ddc-994c-f74c866a2143
+
+	measure 'Project Invoiced Sales by Customer Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Fakturovaný prodej projektu podle zákazníka",
+			   "da-DK", "Projektfaktureret salg efter debitor",
+			   "de-AT", "Fakturierte Projektumsätze nach Debitor",
+			   "de-CH", "Fakturierte Projektumsätze nach Debitor",
+			   "de-DE", "Fakturierte Projektumsätze nach Debitor",
+			   "en-AU", "Project Invoiced Sales by Customer",
+			   "en-CA", "Project Invoiced Sales by Customer",
+			   "en-GB", "Project Invoiced Sales by Customer",
+			   "en-NZ", "Project Invoiced Sales by Customer",
+			   "es-ES", "Ventas facturadas proyecto por cliente",
+			   "es-MX", "Ventas facturadas proyecto por cliente",
+			   "fi-FI", "Projektin laskutettu myynti asiakkaan mukaan",
+			   "fr-BE", "Ventes du projet facturées par client",
+			   "fr-CA", "Ventes du projet facturées par client",
+			   "fr-CH", "Ventes du projet facturées par client",
+			   "fr-FR", "Ventes du projet facturées par client",
+			   "is-IS", "Reikningsfærð sala verks eftir viðskiptamanni",
+			   "it-CH", "Vendite di progetti fatturate per cliente",
+			   "it-IT", "Vendite di progetti fatturate per cliente",
+			   "nb-NO", "Fakturert prosjektsalg etter kunde",
+			   "nl-BE", "Gefactureerde verkopen van project per klant",
+			   "nl-NL", "Gefactureerde verkopen van project per klant",
+			   "sv-SE", "Fakturerad försäljning för projekt per kund",
+			   "Project Invoiced Sales by Customer"
+			)
+		isHidden
+		lineageTag: e5f8c925-ea33-4b26-b531-f8a9cb6d015a
+
+	measure 'Project Ledger Entry Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení položek projektu",
+			   "da-DK", "Detaljeadgang for projektfinanspost",
+			   "de-AT", "Projektposten-Drillthrough",
+			   "de-CH", "Projektposten-Drillthrough",
+			   "de-DE", "Projektposten-Drillthrough",
+			   "en-AU", "Project Ledger Entry Drill Through",
+			   "en-CA", "Project Ledger Entry Drill Through",
+			   "en-GB", "Project Ledger Entry Drill Through",
+			   "en-NZ", "Project Ledger Entry Drill Through",
+			   "es-ES", "Análisis detallado de los movimientos de proyecto",
+			   "es-MX", "Análisis detallado de los movimientos de proyecto",
+			   "fi-FI", "Projektitapahtumaan porautuminen",
+			   "fr-BE", "Extraction écriture Compta. projet",
+			   "fr-CA", "Extraction écriture Compta. projet",
+			   "fr-CH", "Extraction écriture Compta. projet",
+			   "fr-FR", "Extraction écriture Compta. projet",
+			   "is-IS", "Köfun í fjárhagsfærslu verks",
+			   "it-CH", "Drill-through movimenti contabili progetti",
+			   "it-IT", "Drill-through movimenti contabili progetti",
+			   "nb-NO", "Gjennomgang av prosjektpost",
+			   "nl-BE", "Detailanalyse projectpost",
+			   "nl-NL", "Detailanalyse projectpost",
+			   "sv-SE", "Detaljerad analys av projekttransaktioner",
+			   "Project Ledger Entry Drill Through"
+			)
+		isHidden
+		lineageTag: fe062788-d1ee-4242-bbd2-7b5f2d0c5d46
+
+	measure 'Purchase Order Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení nákupních objednávek",
+			   "da-DK", "Detaljeadgang for købsordre",
+			   "de-AT", "Bestellungs-Drillthrough",
+			   "de-CH", "Bestellungs-Drillthrough",
+			   "de-DE", "Bestellungs-Drillthrough",
+			   "en-AU", "Purchase Order Drill Through",
+			   "en-CA", "Purchase Order Drill Through",
+			   "en-GB", "Purchase Order Drill Through",
+			   "en-NZ", "Purchase Order Drill Through",
+			   "es-ES", "Análisis detallado de pedidos de compra",
+			   "es-MX", "Análisis detallado de pedidos de compra",
+			   "fi-FI", "Ostotilaukseen porautuminen",
+			   "fr-BE", "Extraction commande achat",
+			   "fr-CA", "Extraction bon de commande",
+			   "fr-CH", "Extraction commande achat",
+			   "fr-FR", "Extraction commande achat",
+			   "is-IS", "Köfun í innkaupapöntun",
+			   "it-CH", "Drill-through ordini di acquisto",
+			   "it-IT", "Drill-through ordini di acquisto",
+			   "nb-NO", "Gjennomgang av bestilling",
+			   "nl-BE", "Detailanalyse inkooporder",
+			   "nl-NL", "Detailanalyse inkooporder",
+			   "sv-SE", "Detaljerad analys av inköpsorder",
+			   "Purchase Order Drill Through"
+			)
+		isHidden
+		lineageTag: 80096807-415d-4c2b-ab52-53b7bd71b8a6
+
+	measure 'Project Planning Line Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení řádku plánování projektu",
+			   "da-DK", "Detaljeadgang for projektplanlægningslinje",
+			   "de-AT", "Projektplanungszeile-Drillthrough",
+			   "de-CH", "Projektplanungszeile-Drillthrough",
+			   "de-DE", "Projektplanungszeile-Drillthrough",
+			   "en-AU", "Project Planning Line Drill Through",
+			   "en-CA", "Project Planning Line Drill Through",
+			   "en-GB", "Project Planning Line Drill Through",
+			   "en-NZ", "Project Planning Line Drill Through",
+			   "es-ES", "Análisis detallado de la línea de planificación de proyecto",
+			   "es-MX", "Análisis detallado de la línea de planificación de proyecto",
+			   "fi-FI", "Projektin suunnitteluriviin porautuminen",
+			   "fr-BE", "Extraction ligne de planification de projet",
+			   "fr-CA", "Extraction ligne planification projet",
+			   "fr-CH", "Extraction ligne de planification de projet",
+			   "fr-FR", "Extraction ligne de planification de projet",
+			   "is-IS", "Köfun í verkáætlunarlínu",
+			   "it-CH", "Drill-through riga di pianificazione progetto",
+			   "it-IT", "Drill-through riga di pianificazione progetto",
+			   "nb-NO", "Gjennomgang av prosjektplanleggingslinje",
+			   "nl-BE", "Detailanalyse projectplanningsregel",
+			   "nl-NL", "Detailanalyse projectplanningsregel",
+			   "sv-SE", "Detaljerad analys av projektplaneringsrad",
+			   "Project Planning Line Drill Through"
+			)
+		isHidden
+		lineageTag: 8edf8b0d-0380-4aff-a2df-893f54f0c74d
+
+	measure 'Project KPIs Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "KPI projektu",
+			   "da-DK", "Projektnøgletal",
+			   "de-AT", "Projekt-KPIs",
+			   "de-CH", "Projekt-KPIs",
+			   "de-DE", "Projekt-KPIs",
+			   "en-AU", "Project KPIs",
+			   "en-CA", "Project KPIs",
+			   "en-GB", "Project KPIs",
+			   "en-NZ", "Project KPIs",
+			   "es-ES", "KPI de proyecto",
+			   "es-MX", "KPI de proyecto",
+			   "fi-FI", "Projektin KPI:t",
+			   "fr-BE", "Indicateurs de performance clés du projet",
+			   "fr-CA", "Indicateurs de performance clés du projet",
+			   "fr-CH", "Indicateurs de performance clés du projet",
+			   "fr-FR", "Indicateurs de performance clés du projet",
+			   "is-IS", "Afkastavísar verks",
+			   "it-CH", "KPI progetto",
+			   "it-IT", "KPI progetto",
+			   "nb-NO", "Ytelsesindikatorer for prosjekt",
+			   "nl-BE", "Project-KPI's",
+			   "nl-NL", "Project-KPI's",
+			   "sv-SE", "KPI:er för projekt",
+			   "Project KPIs"
+			)
+		isHidden
+		lineageTag: 92d40d27-6785-409e-87e8-96c0ce037c6c
+
+	measure 'Actual Costs (Total Cost) vs. Budget (Total Cost) Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Skutečné náklady (celkové náklady) vs. rozpočet (celkové náklady)",
+			   "da-DK", "Faktisk kostpris (samlede omkostninger) vs. budget (samlede omkostninger)",
+			   "de-AT", "Ist-Kosten (Einstandsbetrag) im Vergleich zum Budget (Einstandsbetrag)",
+			   "de-CH", "Ist-Kosten (Einstandsbetrag) im Vergleich zum Budget (Einstandsbetrag)",
+			   "de-DE", "Ist-Kosten (Einstandsbetrag) im Vergleich zum Budget (Einstandsbetrag)",
+			   "en-AU", "Actual Costs (Total Cost) vs. Budget (Total Cost)",
+			   "en-CA", "Actual Costs (Total Cost) vs. Budget (Total Cost)",
+			   "en-GB", "Actual Costs (Total Cost) vs. Budget (Total Cost)",
+			   "en-NZ", "Actual Costs (Total Cost) vs. Budget (Total Cost)",
+			   "es-ES", "Costes reales (coste total) frente a presupuesto (coste total)",
+			   "es-MX", "Costos reales (costo total) frente a presupuesto (costo total)",
+			   "fi-FI", "Todelliset kustannukset (kokonaiskustannus) vrt. budjetti (kokonaiskustannus)",
+			   "fr-BE", "Coûts réels (coût total) par rapport au budget (coût total)",
+			   "fr-CA", "Coûts réels (coût total) par rapport au budget (coût total)",
+			   "fr-CH", "Coûts réels (coût total) par rapport au budget (coût total)",
+			   "fr-FR", "Coûts réels (coût total) par rapport au budget (coût total)",
+			   "is-IS", "Raunkostnaður (heildarkostnaður) samanborinn við fjárhagsáætlun (heildarkostnaður)",
+			   "it-CH", "Costi effettivi (costo totale) rispetto al budget (costo totale)",
+			   "it-IT", "Costi effettivi (costo totale) rispetto al budget (costo totale)",
+			   "nb-NO", "Faktiske kostnader (totalkostnad) kontra budsjett (totalkostnad)",
+			   "nl-BE", "Werkelijke kosten (totale kosten) versus budget (totale kosten)",
+			   "nl-NL", "Werkelijke kosten (totale kosten) versus budget (totale kosten)",
+			   "sv-SE", "Faktiska kostnader (total kostnad) kontra budget (total kostnad)",
+			   "Actual Costs (Total Cost) vs. Budget (Total Cost)"
+			)
+		isHidden
+		lineageTag: ae7edce7-4a82-4c60-9006-71f6e12c94a1
+
+	measure 'Actual Profit by Project Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Skutečný zisk podle projektu",
+			   "da-DK", "Faktisk overskud efter projekt",
+			   "de-AT", "Tatsächlicher Gewinn nach Projekt",
+			   "de-CH", "Tatsächlicher Gewinn nach Projekt",
+			   "de-DE", "Tatsächlicher Gewinn nach Projekt",
+			   "en-AU", "Actual Profit by Project",
+			   "en-CA", "Actual Profit by Project",
+			   "en-GB", "Actual Profit by Project",
+			   "en-NZ", "Actual Profit by Project",
+			   "es-ES", "Ganancias reales por proyecto",
+			   "es-MX", "Ganancias reales por proyecto",
+			   "fi-FI", "Todellinen tuotto projekteittain",
+			   "fr-BE", "Bénéfice réel par projet",
+			   "fr-CA", "Profit réel par projet",
+			   "fr-CH", "Bénéfice réel par projet",
+			   "fr-FR", "Bénéfice réel par projet",
+			   "is-IS", "Raunhagnaður eftir verki",
+			   "it-CH", "Profitto effettivo per progetto",
+			   "it-IT", "Profitto effettivo per progetto",
+			   "nb-NO", "Faktisk fortjeneste etter prosjekt",
+			   "nl-BE", "Werkelijke winst per project",
+			   "nl-NL", "Werkelijke winst per project",
+			   "sv-SE", "Faktisk vinst per projekt",
+			   "Actual Profit by Project"
+			)
+		isHidden
+		lineageTag: fa28aa2a-1484-436c-bbd4-50ba0dc37cc4
+
+	measure 'Projects by Project Manager Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Projekty podle projektového manažera",
+			   "da-DK", "Projekter efter projektleder",
+			   "de-AT", "Projekte nach Projekt-Manager",
+			   "de-CH", "Projekte nach Projekt-Manager",
+			   "de-DE", "Projekte nach Projekt-Manager",
+			   "en-AU", "Projects by Project Manager",
+			   "en-CA", "Projects by Project Manager",
+			   "en-GB", "Projects by Project Manager",
+			   "en-NZ", "Projects by Project Manager",
+			   "es-ES", "Proyectos por jefe de proyecto",
+			   "es-MX", "Proyectos por jefe de proyecto",
+			   "fi-FI", "Projektit projektipäällikön mukaan",
+			   "fr-BE", "Projets par chef de projet",
+			   "fr-CA", "Projets par chef de projet",
+			   "fr-CH", "Projets par chef de projet",
+			   "fr-FR", "Projets par chef de projet",
+			   "is-IS", "Verk eftir verkefnastjóra",
+			   "it-CH", "Progetti per manager progetto",
+			   "it-IT", "Progetti per manager progetto",
+			   "nb-NO", "Prosjekter etter prosjektleder",
+			   "nl-BE", "Projecten per projectmanager",
+			   "nl-NL", "Projecten per projectmanager",
+			   "sv-SE", "Projekt per projektchef",
+			   "Projects by Project Manager"
+			)
+		isHidden
+		lineageTag: 23935ffa-8d2b-4047-8065-6582c037c0c0
+
+	measure 'Realization by Projects Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Realizace podle projektů",
+			   "da-DK", "Realisering efter projekter",
+			   "de-AT", "Realisierung nach Projekte",
+			   "de-CH", "Realisierung nach Projekte",
+			   "de-DE", "Realisierung nach Projekte",
+			   "en-AU", "Realisation by Projects",
+			   "en-CA", "Realization by Projects",
+			   "en-GB", "Realisation by Projects",
+			   "en-NZ", "Realisation by Projects",
+			   "es-ES", "Realización por proyectos",
+			   "es-MX", "Realización por proyectos",
+			   "fi-FI", "Realisointi projekteittain",
+			   "fr-BE", "Réalisation par projets",
+			   "fr-CA", "Réalisation par projets",
+			   "fr-CH", "Réalisation par projets",
+			   "fr-FR", "Réalisation par projets",
+			   "is-IS", "Uppfylling eftir verkefni",
+			   "it-CH", "Realizzi per progetti",
+			   "it-IT", "Realizzi per progetti",
+			   "nb-NO", "Realisering etter prosjekter",
+			   "nl-BE", "Realisatie per project",
+			   "nl-NL", "Realisatie per project",
+			   "sv-SE", "Genomförande per projekt",
+			   "Realization by Projects"
+			)
+		isHidden
+		lineageTag: b20bcd55-39b2-4e09-9e06-7a7621309e3f
+
+	measure 'Actual Profit vs. Initial Profit Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Skutečný zisk vs. počáteční zisk",
+			   "da-DK", "Faktisk fortjeneste vs. oprindelig fortjeneste",
+			   "de-AT", "Tatsächlicher Gewinn vs. anfänglicher Gewinn",
+			   "de-CH", "Tatsächlicher Gewinn vs. anfänglicher Gewinn",
+			   "de-DE", "Tatsächlicher Gewinn vs. anfänglicher Gewinn",
+			   "en-AU", "Actual Profit vs. Initial Profit",
+			   "en-CA", "Actual Profit vs. Initial Profit",
+			   "en-GB", "Actual Profit vs. Initial Profit",
+			   "en-NZ", "Actual Profit vs. Initial Profit",
+			   "es-ES", "Ganancias reales frente a ganancias iniciales",
+			   "es-MX", "Ganancias reales frente a ganancias iniciales",
+			   "fi-FI", "Todellinen tuotto vrt. alkutuotto",
+			   "fr-BE", "Comparaison entre bénéfice réel et bénéfice initial",
+			   "fr-CA", "Comparaison entre profit réel et profit initial",
+			   "fr-CH", "Comparaison entre bénéfice réel et bénéfice initial",
+			   "fr-FR", "Comparaison entre bénéfice réel et bénéfice initial",
+			   "is-IS", "Raunhagnaður samanborinn við upphaflegan hagnað",
+			   "it-CH", "Profitto effettivo rispetto al profitto iniziale",
+			   "it-IT", "Profitto effettivo rispetto al profitto iniziale",
+			   "nb-NO", "Faktisk fortjeneste kontra opprinnelig fortjeneste",
+			   "nl-BE", "Werkelijke winst versus initiële winst",
+			   "nl-NL", "Werkelijke winst versus initiële winst",
+			   "sv-SE", "Faktisk vinst kontra initial vinst",
+			   "Actual Profit vs. Initial Profit"
+			)
+		isHidden
+		lineageTag: 2b435d03-7301-4c8f-b7aa-e0712eccd301
+
+	measure 'Actuals Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Skutečnost",
+			   "da-DK", "Faktiske",
+			   "de-AT", "Ist-Werte",
+			   "de-CH", "Ist-Werte",
+			   "de-DE", "Ist-Werte",
+			   "en-AU", "Actuals",
+			   "en-CA", "Actuals",
+			   "en-GB", "Actuals",
+			   "en-NZ", "Actuals",
+			   "es-ES", "Datos reales",
+			   "es-MX", "Datos reales",
+			   "fi-FI", "Toteutuneet",
+			   "fr-BE", "Chiffres réels",
+			   "fr-CA", "Chiffres réels",
+			   "fr-CH", "Chiffres réels",
+			   "fr-FR", "Chiffres réels",
+			   "is-IS", "Rauntölur",
+			   "it-CH", "Valori effettivi",
+			   "it-IT", "Valori effettivi",
+			   "nb-NO", "Faktiske verdier",
+			   "nl-BE", "Werkelijke waarden",
+			   "nl-NL", "Werkelijke waarden",
+			   "sv-SE", "Faktiska värden",
+			   "Actuals"
+			)
+		isHidden
+		lineageTag: 7d1ea51b-f1a8-4a7d-ad3e-a0170ed8c04b
+
+	measure 'Budgeted Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Rozpočtováno",
+			   "da-DK", "Budgetteret",
+			   "de-AT", "Budgetiert",
+			   "de-CH", "Budgetiert",
+			   "de-DE", "Budgetiert",
+			   "en-AU", "Budgeted",
+			   "en-CA", "Budgeted",
+			   "en-GB", "Budgeted",
+			   "en-NZ", "Budgeted",
+			   "es-ES", "Presupuestado",
+			   "es-MX", "Presupuestado",
+			   "fi-FI", "Budjetoitu",
+			   "fr-BE", "Budgété",
+			   "fr-CA", "Budgété",
+			   "fr-CH", "Budgété",
+			   "fr-FR", "Budgété",
+			   "is-IS", "Áætlanir",
+			   "it-CH", "In budget",
+			   "it-IT", "In budget",
+			   "nb-NO", "Budsjettert",
+			   "nl-BE", "Gebudgetteerd",
+			   "nl-NL", "Gebudgetteerd",
+			   "sv-SE", "Budgeterat",
+			   "Budgeted"
+			)
+		isHidden
+		lineageTag: 4431958b-00b2-4c2e-bbb5-2ac2c0780d8b
+
+	measure 'Realization KPIs Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Realizační KPI",
+			   "da-DK", "Nøgletal for realisering",
+			   "de-AT", "Realisierungs-KPIs",
+			   "de-CH", "Realisierungs-KPIs",
+			   "de-DE", "Realisierungs-KPIs",
+			   "en-AU", "Realisation KPIs",
+			   "en-CA", "Realization KPIs",
+			   "en-GB", "Realisation KPIs",
+			   "en-NZ", "Realisation KPIs",
+			   "es-ES", "KPI de realización",
+			   "es-MX", "KPI de realización",
+			   "fi-FI", "Realisoinnin KPI:t",
+			   "fr-BE", "Indicateurs de performance clés de réalisation",
+			   "fr-CA", "Indicateurs de performance clés de réalisation",
+			   "fr-CH", "Indicateurs de performance clés de réalisation",
+			   "fr-FR", "Indicateurs de performance clés de réalisation",
+			   "is-IS", "Afkastavísar uppfyllingar",
+			   "it-CH", "KPI realizzo",
+			   "it-IT", "KPI realizzo",
+			   "nb-NO", "Ytelsesindikatorer for realisering",
+			   "nl-BE", "Realisatie-KPI's",
+			   "nl-NL", "Realisatie-KPI's",
+			   "sv-SE", "KPI:er för genomförande",
+			   "Realization KPIs"
+			)
+		isHidden
+		lineageTag: de2f7c19-929f-4d2e-b080-0543c0d8dadc
+
+	measure 'Realization by Project Manager Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Realizace podle projektového manažera",
+			   "da-DK", "Realisering efter projektleder",
+			   "de-AT", "Realisierung nach Projekt-Manager",
+			   "de-CH", "Realisierung nach Projekt-Manager",
+			   "de-DE", "Realisierung nach Projekt-Manager",
+			   "en-AU", "Realisation by Project Manager",
+			   "en-CA", "Realization by Project Manager",
+			   "en-GB", "Realisation by Project Manager",
+			   "en-NZ", "Realisation by Project Manager",
+			   "es-ES", "Realización por jefe de proyecto",
+			   "es-MX", "Realización por jefe de proyecto",
+			   "fi-FI", "Realisointi projektipäällikön mukaan",
+			   "fr-BE", "Réalisation par chef de projet",
+			   "fr-CA", "Réalisation par chef de projet",
+			   "fr-CH", "Réalisation par chef de projet",
+			   "fr-FR", "Réalisation par chef de projet",
+			   "is-IS", "Uppfylling eftir verkefnastjóra",
+			   "it-CH", "Realizzo per manager progetto",
+			   "it-IT", "Realizzo per manager progetto",
+			   "nb-NO", "Realisering etter prosjektleder",
+			   "nl-BE", "Realisatie per projectmanager",
+			   "nl-NL", "Realisatie per projectmanager",
+			   "sv-SE", "Genomförande per projektchef",
+			   "Realization by Project Manager"
+			)
+		isHidden
+		lineageTag: 97424337-6be5-4cd9-8fa5-385da7836957
+
+	measure 'Actual Total Cost to Budget Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Skutečné celkové náklady na rozpočet",
+			   "da-DK", "Faktisk kostbeløb til budget",
+			   "de-AT", "Vergleich Ist-Einstandsbetrag und Budget",
+			   "de-CH", "Vergleich Ist-Einstandsbetrag und Budget",
+			   "de-DE", "Vergleich Ist-Einstandsbetrag und Budget",
+			   "en-AU", "Actual Total Cost to Budget",
+			   "en-CA", "Actual Total Cost to Budget",
+			   "en-GB", "Actual Total Cost to Budget",
+			   "en-NZ", "Actual Total Cost to Budget",
+			   "es-ES", "Coste total real frente a presupuesto",
+			   "es-MX", "Costo total real frente a presupuesto",
+			   "fi-FI", "Todellinen kokonaiskustannus vrt. budjetti",
+			   "fr-BE", "Réel : coût total par rapport au budget",
+			   "fr-CA", "Réel : coût total par rapport au budget",
+			   "fr-CH", "Réel : coût total par rapport au budget",
+			   "fr-FR", "Réel : coût total par rapport au budget",
+			   "is-IS", "Raunverulegur heildarkostnaður miðað við fjárhagsáætlun",
+			   "it-CH", "Costo totale effettivo/budget",
+			   "it-IT", "Costo totale effettivo/budget",
+			   "nb-NO", "Faktisk totalkostnad til budsjett",
+			   "nl-BE", "Werkelijke totale kostprijs versus budget",
+			   "nl-NL", "Werkelijke totale kostprijs versus budget",
+			   "sv-SE", "Faktisk total kostnad mot budget",
+			   "Actual Total Cost to Budget"
+			)
+		isHidden
+		lineageTag: 72e6bdf0-f57e-40c2-946c-74929fd04b2d
+
+	measure 'Performance KPIs Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Výkonnostní KPI",
+			   "da-DK", "Ydeevnenøgletal",
+			   "de-AT", "Leistungs-KPIs",
+			   "de-CH", "Leistungs-KPIs",
+			   "de-DE", "Leistungs-KPIs",
+			   "en-AU", "Performance KPIs",
+			   "en-CA", "Performance KPIs",
+			   "en-GB", "Performance KPIs",
+			   "en-NZ", "Performance KPIs",
+			   "es-ES", "KPI de rendimiento",
+			   "es-MX", "KPI de rendimiento",
+			   "fi-FI", "Suorituskyvyn KPI:t",
+			   "fr-BE", "Indicateurs de performance clés de niveau de performance",
+			   "fr-CA", "Indicateurs de performance clés de niveau de performance",
+			   "fr-CH", "Indicateurs de performance clés de niveau de performance",
+			   "fr-FR", "Indicateurs de performance clés de niveau de performance",
+			   "is-IS", "Afkastavísar",
+			   "it-CH", "KPI prestazioni",
+			   "it-IT", "KPI prestazioni",
+			   "nb-NO", "Ytelsesindikatorer for ytelse",
+			   "nl-BE", "Prestatie-KPI's",
+			   "nl-NL", "Prestatie-KPI's",
+			   "sv-SE", "KPI:er för resultat",
+			   "Performance KPIs"
+			)
+		isHidden
+		lineageTag: b8c83477-51b3-40f0-b747-6db76cef7a62
+
+	measure 'Invoiced Sales KPIs Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "KPI fakturovaného prodeje",
+			   "da-DK", "Nøgletal for faktureret salg",
+			   "de-AT", "KPIs fakturierte Verkäufe",
+			   "de-CH", "KPIs fakturierte Verkäufe",
+			   "de-DE", "KPIs fakturierte Verkäufe",
+			   "en-AU", "Invoiced Sales KPIs",
+			   "en-CA", "Invoiced Sales KPIs",
+			   "en-GB", "Invoiced Sales KPIs",
+			   "en-NZ", "Invoiced Sales KPIs",
+			   "es-ES", "KPI de ventas facturadas",
+			   "es-MX", "KPI de ventas facturadas",
+			   "fi-FI", "Laskutettu myynti KPI:iden mukaan",
+			   "fr-BE", "Indicateurs de performance clés de ventes facturées",
+			   "fr-CA", "Indicateurs de performance clés de ventes facturées",
+			   "fr-CH", "Indicateurs de performance clés de ventes facturées",
+			   "fr-FR", "Indicateurs de performance clés de ventes facturées",
+			   "is-IS", "Afkastavísar reikningsfærðrar sölu",
+			   "it-CH", "KPI vendite fatturate",
+			   "it-IT", "KPI vendite fatturate",
+			   "nb-NO", "Ytelsesindikatorer for fakturert salg",
+			   "nl-BE", "KPI's van gefactureerde verkopen",
+			   "nl-NL", "KPI's van gefactureerde verkopen",
+			   "sv-SE", "KPI:er för fakturerad försäljning",
+			   "Invoiced Sales KPIs"
+			)
+		isHidden
+		lineageTag: 17957457-c766-47dc-b12b-0bbf640403ab
+
+	measure 'Projects Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Projekty",
+			   "da-DK", "Projekter",
+			   "de-AT", "Projekte",
+			   "de-CH", "Projekte",
+			   "de-DE", "Projekte",
+			   "en-AU", "Projects",
+			   "en-CA", "Projects",
+			   "en-GB", "Projects",
+			   "en-NZ", "Projects",
+			   "es-ES", "Proyectos",
+			   "es-MX", "Proyectos",
+			   "fi-FI", "Projektit",
+			   "fr-BE", "Projets",
+			   "fr-CA", "Projets",
+			   "fr-CH", "Projets",
+			   "fr-FR", "Projets",
+			   "is-IS", "Verkefni",
+			   "it-CH", "Progetti",
+			   "it-IT", "Progetti",
+			   "nb-NO", "Prosjekter",
+			   "nl-BE", "Projecten",
+			   "nl-NL", "Projecten",
+			   "sv-SE", "Projekt",
+			   "Projects"
+			)
+		isHidden
+		lineageTag: 37836694-54b6-46d3-8ff0-29fc405ac7bb
+
+	measure 'for Business Central Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "pro Business Central",
+			   "da-DK", "til Business Central",
+			   "de-AT", "für Business Central",
+			   "de-CH", "für Business Central",
+			   "de-DE", "für Business Central",
+			   "en-AU", "for Business Central",
+			   "en-CA", "for Business Central",
+			   "en-GB", "for Business Central",
+			   "en-NZ", "for Business Central",
+			   "es-ES", "para Business Central",
+			   "es-MX", "para Business Central",
+			   "fi-FI", "Business Centralille",
+			   "fr-BE", "pour Business Central",
+			   "fr-CA", "pour Business Central",
+			   "fr-CH", "pour Business Central",
+			   "fr-FR", "pour Business Central",
+			   "is-IS", "fyrir Business Central",
+			   "it-CH", "per Business Central",
+			   "it-IT", "per Business Central",
+			   "nb-NO", "for Business Central",
+			   "nl-BE", "voor Business Central",
+			   "nl-NL", "voor Business Central",
+			   "sv-SE", "för Business Central",
+			   "for Business Central"
+			)
+		isHidden
+		lineageTag: b9412e08-ed39-48c7-b2c6-c52510776adc
+
+	measure 'CONNECT YOUR DATA Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "PŘIPOJENÍ DAT",
+			   "da-DK", "FORBIND DINE DATA",
+			   "de-AT", "MIT EIGENEN DATEN VERBINDEN",
+			   "de-CH", "MIT EIGENEN DATEN VERBINDEN",
+			   "de-DE", "MIT EIGENEN DATEN VERBINDEN",
+			   "en-AU", "CONNECT YOUR DATA",
+			   "en-CA", "CONNECT YOUR DATA",
+			   "en-GB", "CONNECT YOUR DATA",
+			   "en-NZ", "CONNECT YOUR DATA",
+			   "es-ES", "CONECTAR LOS DATOS",
+			   "es-MX", "CONECTAR LOS DATOS",
+			   "fi-FI", "YHDISTÄ TIETOSI",
+			   "fr-BE", "CONNECTER VOS DONNÉES",
+			   "fr-CA", "CONNECTER VOS DONNÉES",
+			   "fr-CH", "CONNECTER VOS DONNÉES",
+			   "fr-FR", "CONNECTER VOS DONNÉES",
+			   "is-IS", "TENGIÐ GÖGN",
+			   "it-CH", "CONNETTI I DATI",
+			   "it-IT", "CONNETTI I DATI",
+			   "nb-NO", "KOBLE TIL DATAENE",
+			   "nl-BE", "UW GEGEVENS VERBINDEN",
+			   "nl-NL", "UW GEGEVENS VERBINDEN",
+			   "sv-SE", "ANSLUT DINA DATA",
+			   "CONNECT YOUR DATA"
+			)
+		isHidden
+		lineageTag: c3c366cc-e5ec-44ba-94f3-8dd7127bdecf
+
+	measure '1. Download the Projects Connector for Power BI Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "1. Stažení řešení Projects Connector for Power BI",
+			   "da-DK", "1. Download Projects Connector for Power BI",
+			   "de-AT", "1. Projects Connector for Power BI herunterladen",
+			   "de-CH", "1. Projects Connector for Power BI herunterladen",
+			   "de-DE", "1. Projects Connector for Power BI herunterladen",
+			   "en-AU", "1. Download the Projects Connector for Power BI",
+			   "en-CA", "1. Download the Projects Connector for Power BI",
+			   "en-GB", "1. Download the Projects Connector for Power BI",
+			   "en-NZ", "1. Download the Projects Connector for Power BI",
+			   "es-ES", "1. Descargar Projects Connector for Power BI",
+			   "es-MX", "1. Descargar Projects Connector for Power BI",
+			   "fi-FI", "1. Lataa projektien Power BI -liitin",
+			   "fr-BE", "1. Téléchargez le connecteur de projets pour Power BI",
+			   "fr-CA", "1. Téléchargez le connecteur de projets pour Power BI",
+			   "fr-CH", "1. Téléchargez le connecteur de projets pour Power BI",
+			   "fr-FR", "1. Téléchargez le connecteur de projets pour Power BI",
+			   "is-IS", "1. Sæktu verkefnatengilinn fyrir Power BI",
+			   "it-CH", "1. Scaricare Projects Connector for Power BI",
+			   "it-IT", "1. Scaricare Projects Connector for Power BI",
+			   "nb-NO", "1. Last ned prosjektkoblingen for Power BI",
+			   "nl-BE", "1. Download de Projects Connector for Power BI",
+			   "nl-NL", "1. Download de Projects Connector for Power BI",
+			   "sv-SE", "1. Ladda ned anslutningsprogrammet för projekt för Power BI",
+			   "1. Download the Projects Connector for Power BI"
+			)
+		isHidden
+		lineageTag: 8c846fbc-5013-44ba-8790-818a28970b28
+
+	measure '2. Configure Dynamics 365 Business Central Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "2. Konfigurace Dynamics 365 Business Central",
+			   "da-DK", "2. Konfigurer Dynamics 365 Business Central",
+			   "de-AT", "2. Dynamics 365 Business Central konfigurieren",
+			   "de-CH", "2. Dynamics 365 Business Central konfigurieren",
+			   "de-DE", "2. Dynamics 365 Business Central konfigurieren",
+			   "en-AU", "2. Configure Dynamics 365 Business Central",
+			   "en-CA", "2. Configure Dynamics 365 Business Central",
+			   "en-GB", "2. Configure Dynamics 365 Business Central",
+			   "en-NZ", "2. Configure Dynamics 365 Business Central",
+			   "es-ES", "2. Configurar Dynamics 365 Business Central",
+			   "es-MX", "2. Configurar Dynamics 365 Business Central",
+			   "fi-FI", "2. Määritä Dynamics 365 Business Central",
+			   "fr-BE", "2. Configurez Dynamics 365 Business Central",
+			   "fr-CA", "2. Configurez Dynamics 365 Business Central",
+			   "fr-CH", "2. Configurez Dynamics 365 Business Central",
+			   "fr-FR", "2. Configurez Dynamics 365 Business Central",
+			   "is-IS", "2. Grunnstillið Dynamics 365 Business Central",
+			   "it-CH", "2. Configurare Dynamics 365 Business Central",
+			   "it-IT", "2. Configurare Dynamics 365 Business Central",
+			   "nb-NO", "2. Konfigurer Dynamics 365 Business Central",
+			   "nl-BE", "2. Dynamics 365 Business Central configureren",
+			   "nl-NL", "2. Dynamics 365 Business Central configureren",
+			   "sv-SE", "2. Konfigurera Dynamics 365 Business Central",
+			   "2. Configure Dynamics 365 Business Central"
+			)
+		isHidden
+		lineageTag: b624cb9e-0ed6-470a-bc55-3d2e9ff0b55e
+
+	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "POUŽÍVÁNÍ, ÚPRAVA A TVORBA VLASTNÍCH SESTAV",
+			   "da-DK", "BRUG, REDIGER OG OPRET DINE EGNE RAPPORTER",
+			   "de-AT", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "de-CH", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "de-DE", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "en-AU", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-CA", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-GB", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-NZ", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "es-ES", "USAR, EDITAR Y CREAR SUS PROPIOS INFORMES",
+			   "es-MX", "USAR, EDITAR Y CREAR SUS PROPIOS INFORMES",
+			   "fi-FI", "KÄYTÄ, MUOKKAA JA LUO OMIA RAPORTTEJA",
+			   "fr-BE", "UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS",
+			   "fr-CA", "UTILISER, MODIFIER ET CRÉER VOS PROPRES RAPPORTS",
+			   "fr-CH", "UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS",
+			   "fr-FR", "UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS",
+			   "is-IS", "NOTIÐ, BREYTIÐ OG BÚIÐ TIL EIGIN SKÝRSLUR",
+			   "it-CH", "USA, MODIFICA E CREA I TUOI REPORT",
+			   "it-IT", "USA, MODIFICA E CREA I TUOI REPORT",
+			   "nb-NO", "BRUK, REDIGER OG BYGG DINE EGNE RAPPORTER",
+			   "nl-BE", "UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN",
+			   "nl-NL", "UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN",
+			   "sv-SE", "ANVÄND, REDIGERA OCH SKAPA EGNA RAPPORTER",
+			   "USE, EDIT AND BUILD YOUR OWN REPORTS"
+			)
+		isHidden
+		lineageTag: 99798f27-e119-4354-90bb-ac3bcb495153
+
+	measure 'Projects includes a variety of pre-built reports to help you see your data immediately. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Projekty obsahují řadu předpřipravených sestav, které vám pomohou okamžitě zobrazit vaše data.",
+			   "da-DK", "Projekter omfatter en række forudbyggede rapporter, der hjælper dig med at få vist dine data med det samme.",
+			   "de-AT", "Projekte enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.",
+			   "de-CH", "Projekte enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.",
+			   "de-DE", "Projekte enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.",
+			   "en-AU", "Projects includes a variety of pre-built reports to help you see your data immediately.",
+			   "en-CA", "Projects includes a variety of pre-built reports to help you see your data immediately.",
+			   "en-GB", "Projects includes a variety of pre-built reports to help you see your data immediately.",
+			   "en-NZ", "Projects includes a variety of pre-built reports to help you see your data immediately.",
+			   "es-ES", "Los proyectos incluyen una variedad de informes prediseñados para ayudarle a ver sus datos de inmediato.",
+			   "es-MX", "Los proyectos incluyen una variedad de informes prediseñados para ayudarle a ver sus datos de inmediato.",
+			   "fi-FI", "Projektit sisältävät erilaisia etukäteen luotuja raportteja, joiden avulla voit tarkastella tietoja heti.",
+			   "fr-BE", "Projets comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "fr-CA", "Projets comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "fr-CH", "Projets comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "fr-FR", "Projets comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "is-IS", "Verkefni bjóða upp á innbyggðar skýrslur af ólíkum toga til að skoða gögn samstundis.",
+			   "it-CH", "I progetti includono una serie di report predefiniti che consentono di visualizzare immediatamente i dati.",
+			   "it-IT", "I progetti includono una serie di report predefiniti che consentono di visualizzare immediatamente i dati.",
+			   "nb-NO", "Prosjekter inkluderer en rekke forhåndsbygde rapporter for å hjelpe deg med å se dataene umiddelbart.",
+			   "nl-BE", "Projecten bevat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.",
+			   "nl-NL", "Projecten bevat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.",
+			   "sv-SE", "Projekt innehåller en mängd fördefinierade rapporter som gör att du kan visa data omedelbart.",
+			   "Projects includes a variety of pre-built reports to help you see your data immediately."
+			)
+		isHidden
+		lineageTag: 00ca87ca-6132-4128-af2e-676899d97222
+
+	measure 'You are able to edit these reports or build your own report from scratch Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Tyto sestavy můžete upravovat nebo si vytvořit vlastní sestavu od základu.",
+			   "da-DK", "Du kan redigere disse rapporter eller oprette din egen rapport fra bunden",
+			   "de-AT", "Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "de-CH", "Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "de-DE", "Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "en-AU", "You are able to edit these reports or build your own report from scratch",
+			   "en-CA", "You are able to edit these reports or build your own report from scratch",
+			   "en-GB", "You are able to edit these reports or build your own report from scratch",
+			   "en-NZ", "You are able to edit these reports or build your own report from scratch",
+			   "es-ES", "Puede editar estos informes o crear el suyo propio desde cero",
+			   "es-MX", "Puede editar estos informes o crear el suyo propio desde cero",
+			   "fi-FI", "Voit muokata näitä raportteja tai luoda oman raportin alusta alkaen.",
+			   "fr-BE", "Vous pouvez modifier ces états ou créer votre propre état à partir de zéro",
+			   "fr-CA", "Vous pouvez modifier ces rapports ou créer votre propre rapport à partir de zéro",
+			   "fr-CH", "Vous pouvez modifier ces états ou créer votre propre état à partir de zéro",
+			   "fr-FR", "Vous pouvez modifier ces états ou créer votre propre état à partir de zéro",
+			   "is-IS", "Hægt er að breyta þessum skýrslum eða búa til nýja skýrslu frá grunni.",
+			   "it-CH", "È possibile modificare questi report o creare il proprio report da zero",
+			   "it-IT", "È possibile modificare questi report o creare il proprio report da zero",
+			   "nb-NO", "Du kan redigere disse rapportene eller lage din egen rapport fra bunnen av",
+			   "nl-BE", "U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken",
+			   "nl-NL", "U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken",
+			   "sv-SE", "Du kan redigera dessa rapporter eller skapa en egen rapport från grunden",
+			   "You are able to edit these reports or build your own report from scratch"
+			)
+		isHidden
+		lineageTag: d0287193-23b7-4836-b439-cf63473bb57e
+
+	measure 'HELP AND SUPPORT Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "POMOC A PODPORA",
+			   "da-DK", "HJÆLP OG SUPPORT",
+			   "de-AT", "HILFE UND SUPPORT",
+			   "de-CH", "HILFE UND SUPPORT",
+			   "de-DE", "HILFE UND SUPPORT",
+			   "en-AU", "HELP AND SUPPORT",
+			   "en-CA", "HELP AND SUPPORT",
+			   "en-GB", "HELP AND SUPPORT",
+			   "en-NZ", "HELP AND SUPPORT",
+			   "es-ES", "AYUDA Y SOPORTE",
+			   "es-MX", "AYUDA Y SOPORTE",
+			   "fi-FI", "OHJE JA TUKI",
+			   "fr-BE", "AIDE ET SUPPORT",
+			   "fr-CA", "AIDE ET SUPPORT",
+			   "fr-CH", "AIDE ET SUPPORT",
+			   "fr-FR", "AIDE ET SUPPORT",
+			   "is-IS", "HJÁLP OG STUÐNINGUR",
+			   "it-CH", "GUIDA E SUPPORTO",
+			   "it-IT", "GUIDA E SUPPORTO",
+			   "nb-NO", "HJELP OG KUNDESTØTTE",
+			   "nl-BE", "HELP EN ONDERSTEUNING",
+			   "nl-NL", "HELP EN ONDERSTEUNING",
+			   "sv-SE", "HJÄLP OCH SUPPORT",
+			   "HELP AND SUPPORT"
+			)
+		isHidden
+		lineageTag: 7b4d8209-2277-4d6a-998b-3f627228783f
+
+	measure 'For help and support with your new report please visit the Analytics overview documentation. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Nápovědu a podporu k nové sestavě naleznete v dokumentaci k přehledu Analytics.",
+			   "da-DK", "Du kan få hjælp og support til din nye rapport i dokumentationen til analyseoversigten.",
+			   "de-AT", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "de-CH", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "de-DE", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "en-AU", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-CA", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-GB", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-NZ", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "es-ES", "Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.",
+			   "es-MX", "Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.",
+			   "fi-FI", "Lisätietoja ja tukea uudelle raportillesi löydät analytiikan yleiskuvauksesta.",
+			   "fr-BE", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-CA", "Pour obtenir de l’aide et de l’assistance concernant votre nouveau rapport, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-CH", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-FR", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "is-IS", "Lesið fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð við nýju skýrsluna.",
+			   "it-CH", "Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.",
+			   "it-IT", "Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.",
+			   "nb-NO", "Hvis du vil ha hjelp og støtte med den nye rapporten, kan du gå til dokumentasjonen for analyseoversikten.",
+			   "nl-BE", "Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.",
+			   "nl-NL", "Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.",
+			   "sv-SE", "Hjälp och support med den nya rapporten finns i översiktsdokumentationen för Analys.",
+			   "For help and support with your new report please visit the Analytics overview documentation."
+			)
+		isHidden
+		lineageTag: 22540317-5b48-4be2-9d82-82aa5165cdd0
+
+	measure 'OTHER POWER BI REPORTS Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "DALŠÍ SESTAVY POWER BI",
+			   "da-DK", "ANDRE POWER BI-RAPPORTER",
+			   "de-AT", "SONSTIGE POWER BI-BERICHTE",
+			   "de-CH", "SONSTIGE POWER BI-BERICHTE",
+			   "de-DE", "SONSTIGE POWER BI-BERICHTE",
+			   "en-AU", "OTHER POWER BI REPORTS",
+			   "en-CA", "OTHER POWER BI REPORTS",
+			   "en-GB", "OTHER POWER BI REPORTS",
+			   "en-NZ", "OTHER POWER BI REPORTS",
+			   "es-ES", "OTROS INFORMES DE POWER BI",
+			   "es-MX", "OTROS INFORMES DE POWER BI",
+			   "fi-FI", "MUUT POWER BI -RAPORTIT",
+			   "fr-BE", "AUTRES ÉTATS POWER BI",
+			   "fr-CA", "AUTRES RAPPORTS POWER BI",
+			   "fr-CH", "AUTRES ÉTATS POWER BI",
+			   "fr-FR", "AUTRES ÉTATS POWER BI",
+			   "is-IS", "AÐRAR POWER BI-SKÝRSLUR",
+			   "it-CH", "ALTRI REPORT DI POWER BI",
+			   "it-IT", "ALTRI REPORT DI POWER BI",
+			   "nb-NO", "ANDRE POWER BI-RAPPORTER",
+			   "nl-BE", "OVERIGE POWER BI-RAPPORTEN",
+			   "nl-NL", "OVERIGE POWER BI-RAPPORTEN",
+			   "sv-SE", "ÖVRIGA POWER BI-RAPPORTER",
+			   "OTHER POWER BI REPORTS"
+			)
+		isHidden
+		lineageTag: 37c2489b-53da-4ede-a65e-a5bf7639c0dd
+
+	measure 'PURCHASE Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "NÁKUP",
+			   "da-DK", "INDKØB",
+			   "de-AT", "EINKAUF",
+			   "de-CH", "EINKAUF",
+			   "de-DE", "EINKAUF",
+			   "en-AU", "PURCHASE",
+			   "en-CA", "PURCHASE",
+			   "en-GB", "PURCHASE",
+			   "en-NZ", "PURCHASE",
+			   "es-ES", "COMPRA",
+			   "es-MX", "COMPRA",
+			   "fi-FI", "OSTO",
+			   "fr-BE", "ACHAT",
+			   "fr-CA", "ACHAT",
+			   "fr-CH", "ACHAT",
+			   "fr-FR", "ACHAT",
+			   "is-IS", "KAUP",
+			   "it-CH", "ACQUISTI",
+			   "it-IT", "ACQUISTI",
+			   "nb-NO", "KJØP",
+			   "nl-BE", "INKOOP",
+			   "nl-NL", "INKOOP",
+			   "sv-SE", "INKÖP",
+			   "PURCHASE"
+			)
+		isHidden
+		lineageTag: dcb35a8b-7773-4204-901e-bc691a6fa98d
+
+	measure 'FINANCE Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "FINANCE",
+			   "da-DK", "FINANS",
+			   "de-AT", "FINANZEN",
+			   "de-CH", "FINANZEN",
+			   "de-DE", "FINANZEN",
+			   "en-AU", "FINANCE",
+			   "en-CA", "FINANCE",
+			   "en-GB", "FINANCE",
+			   "en-NZ", "FINANCE",
+			   "es-ES", "FINANZAS",
+			   "es-MX", "FINANZAS",
+			   "fi-FI", "TALOUSHALLINTO",
+			   "fr-BE", "FINANCIER",
+			   "fr-CA", "FINANCIER",
+			   "fr-CH", "FINANCIER",
+			   "fr-FR", "FINANCIER",
+			   "is-IS", "FJÁRMÁL",
+			   "it-CH", "DATI FINANZIARI",
+			   "it-IT", "DATI FINANZIARI",
+			   "nb-NO", "FINANS",
+			   "nl-BE", "FINANCIËN",
+			   "nl-NL", "FINANCIËN",
+			   "sv-SE", "EKONOMI",
+			   "FINANCE"
+			)
+		isHidden
+		lineageTag: 7b15189c-f103-43b0-be6d-a201b68f51ed
+
+	measure 'INVENTORY Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "ZÁSOBY",
+			   "da-DK", "LAGER",
+			   "de-AT", "LAGERBESTAND",
+			   "de-CH", "LAGERBESTAND",
+			   "de-DE", "LAGERBESTAND",
+			   "en-AU", "INVENTORY",
+			   "en-CA", "INVENTORY",
+			   "en-GB", "INVENTORY",
+			   "en-NZ", "INVENTORY",
+			   "es-ES", "INVENTARIO",
+			   "es-MX", "INVENTARIO",
+			   "fi-FI", "VARASTO",
+			   "fr-BE", "STOCK",
+			   "fr-CA", "INVENTAIRE",
+			   "fr-CH", "STOCK",
+			   "fr-FR", "STOCK",
+			   "is-IS", "BIRGÐIR",
+			   "it-CH", "INVENTARIO",
+			   "it-IT", "INVENTARIO",
+			   "nb-NO", "BEHOLDNING",
+			   "nl-BE", "VOORRAAD",
+			   "nl-NL", "VOORRAAD",
+			   "sv-SE", "LAGER",
+			   "INVENTORY"
+			)
+		isHidden
+		lineageTag: 784f9ff6-3b33-4c7c-8fcd-0bb80f3f7529
+
+	measure 'SALES Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "PRODEJ",
+			   "da-DK", "SALG",
+			   "de-AT", "VERKAUF",
+			   "de-CH", "VERKAUF",
+			   "de-DE", "VERKAUF",
+			   "en-AU", "SALES",
+			   "en-CA", "SALES",
+			   "en-GB", "SALES",
+			   "en-NZ", "SALES",
+			   "es-ES", "VENTAS",
+			   "es-MX", "VENTAS",
+			   "fi-FI", "MYYNTI",
+			   "fr-BE", "VENTES",
+			   "fr-CA", "VENTES",
+			   "fr-CH", "VENTES",
+			   "fr-FR", "VENTES",
+			   "is-IS", "SALA",
+			   "it-CH", "VENDITE",
+			   "it-IT", "VENDITE",
+			   "nb-NO", "SALG",
+			   "nl-BE", "VERKOPEN",
+			   "nl-NL", "VERKOPEN",
+			   "sv-SE", "FÖRSÄLJNING",
+			   "SALES"
+			)
+		isHidden
+		lineageTag: 0a9bcbc8-01ba-47fc-9986-6b15fb278222
+
+	measure 'MANUFACTURING Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "VÝROBA",
+			   "da-DK", "PRODUKTION",
+			   "de-AT", "PRODUKTION",
+			   "de-CH", "PRODUKTION",
+			   "de-DE", "PRODUKTION",
+			   "en-AU", "MANUFACTURING",
+			   "en-CA", "MANUFACTURING",
+			   "en-GB", "MANUFACTURING",
+			   "en-NZ", "MANUFACTURING",
+			   "es-ES", "FABRICACIÓN",
+			   "es-MX", "FABRICACIÓN",
+			   "fi-FI", "TUOTANTO",
+			   "fr-BE", "FABRICATION",
+			   "fr-CA", "FABRICATION",
+			   "fr-CH", "FABRICATION",
+			   "fr-FR", "FABRICATION",
+			   "is-IS", "FRAMLEIÐSLA",
+			   "it-CH", "PRODUZIONE",
+			   "it-IT", "PRODUZIONE",
+			   "nb-NO", "PRODUKSJON",
+			   "nl-BE", "PRODUCTIE",
+			   "nl-NL", "PRODUCTIE",
+			   "sv-SE", "PRODUKTION",
+			   "MANUFACTURING"
+			)
+		isHidden
+		lineageTag: 15a36923-b00a-495c-8bd9-4e09bc3492a7
+
+	measure 'The project tasks shows project number and description, budget (total cost), actual cost (total cost), billable (total price), billable (invoiced price), actual (total price), realization percentage, actual profit, and actual profit margin percentage. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Úlohy projektu zobrazují číslo a popis projektu, rozpočet (celkové náklady), skutečné náklady (celkové náklady), fakturovatelné náklady (celková cena), fakturovatelné náklady (fakturovaná cena), skutečné náklady (celková cena), procento realizace, skutečný zisk a skutečné procento ziskové marže.",
+			   "da-DK", "Projektopgaverne viser projektnummer og beskrivelse, budget (samlede omkostninger), faktisk kostbeløb (samlede omkostninger), fakturerbar (samlet pris), fakturerbar (faktureret pris), faktisk (samlet pris), realiseringsprocent, faktisk avance og faktisk avanceprocent.",
+			   "de-AT", "Die Projektaufgaben zeigen die Projektnummer und -beschreibung, das Budget (Einstandsbetrag), die Ist-Kosten (Einstandsbetrag), die fakturierbaren (Verkaufsbetrag), die fakturierbaren (fakturierter Preis), die tatsächlichen (Verkaufsbetrag), den Realisierungsprozentsatz, den tatsächlichen Gewinn und den Prozentsatz der tatsächlichen Gewinnspanne.",
+			   "de-CH", "Die Projektaufgaben zeigen die Projektnummer und -beschreibung, das Budget (Einstandsbetrag), die Ist-Kosten (Einstandsbetrag), die fakturierbaren (Verkaufsbetrag), die fakturierbaren (fakturierter Preis), die tatsächlichen (Verkaufsbetrag), den Realisierungsprozentsatz, den tatsächlichen Gewinn und den Prozentsatz der tatsächlichen Gewinnspanne.",
+			   "de-DE", "Die Projektaufgaben zeigen die Projektnummer und -beschreibung, das Budget (Einstandsbetrag), die Ist-Kosten (Einstandsbetrag), die fakturierbaren (Verkaufsbetrag), die fakturierbaren (fakturierter Preis), die tatsächlichen (Verkaufsbetrag), den Realisierungsprozentsatz, den tatsächlichen Gewinn und den Prozentsatz der tatsächlichen Gewinnspanne.",
+			   "en-AU", "The project tasks shows project number and description, budget (total cost), actual cost (total cost), billable (total price), billable (invoiced price), actual (total price), realisation percentage, actual profit, and actual profit margin percentage.",
+			   "en-CA", "The project tasks shows project number and description, budget (total cost), actual cost (total cost), billable (total price), billable (invoiced price), actual (total price), realization percentage, actual profit, and actual profit margin percentage.",
+			   "en-GB", "The project tasks shows project number and description, budget (total cost), actual cost (total cost), billable (total price), billable (invoiced price), actual (total price), realisation percentage, actual profit, and actual profit margin percentage.",
+			   "en-NZ", "The project tasks shows project number and description, budget (total cost), actual cost (total cost), billable (total price), billable (invoiced price), actual (total price), realisation percentage, actual profit, and actual profit margin percentage.",
+			   "es-ES", "Las tareas del proyecto muestran el número y la descripción del proyecto, el presupuesto (coste total), el coste real (coste total), el facturable (precio total), el facturable (precio facturado), el real (precio total), el porcentaje de realización, el beneficio real y el porcentaje de margen de beneficio real.",
+			   "es-MX", "Las tareas del proyecto muestran el número y la descripción del proyecto, el presupuesto (costo total), el costo real (costo total), el importe facturable (precio total), el importe facturable (precio facturado), el importe real (precio total), el porcentaje de realización, el beneficio real y el porcentaje de margen de beneficio real.",
+			   "fi-FI", "Projektitehtävät näyttävät projektinumeron ja kuvauksen, budjetin (kokonaiskustannus), todelliset kustannukset (kokonaiskustannukset), laskutettavan (kokonaishinta), laskutettavan (laskutettu hinta), toteuman (kokonaishinta), realisointiprosentin, todellisen tuoton ja todellisen voittomarginaaliprosentin.",
+			   "fr-BE", "Les tâches projet indiquent le numéro et la description du projet, le budget (coût total), le coût réel (coût total), facturable (prix total), facturable (prix facturé), réel (prix total), le pourcentage de réalisation, le bénéfice réel et le pourcentage de marge bénéficiaire réelle.",
+			   "fr-CA", "Les tâches projet indiquent les éléments suivants : numéro et description du projet, budget (coût total), coût réel (coût total), facturable (prix total), facturable (prix facturé), réel (prix total), pourcentage de réalisation, profit réel et pourcentage marge profit réelle.",
+			   "fr-CH", "Les tâches projet indiquent le numéro et la description du projet, le budget (coût total), le coût réel (coût total), facturable (prix total), facturable (prix facturé), réel (prix total), le pourcentage de réalisation, le bénéfice réel et le pourcentage de marge bénéficiaire réelle.",
+			   "fr-FR", "Les tâches projet indiquent le numéro et la description du projet, le budget (coût total), le coût réel (coût total), facturable (prix total), facturable (prix facturé), réel (prix total), le pourcentage de réalisation, le bénéfice réel et le pourcentage de marge bénéficiaire réelle.",
+			   "is-IS", "„Verkhlutar verkefnis“ sýna númer og lýsingu verks, fjárhagsáætlun (heildarkostnaður), raunkostnað (heildarkostnaður), reikningshæfa upphæð (reikningsfært verð), raunverð (heildarverð), prósentu uppfyllingar, raunhagnað og prósentu raunverulegs hagnaðarhlutfalls.",
+			   "it-CH", "Le attività del progetto mostrano il numero, la descrizione, il budget (costo totale), il costo effettivo (totale), il fatturabile (prezzo totale e fatturato), l'effettivo (prezzo totale), la percentuale di realizzo, il profitto effettivo e la percentuale di margine di profitto effettivo relativi al progetto.",
+			   "it-IT", "Le attività del progetto mostrano il numero, la descrizione, il budget (costo totale), il costo effettivo (totale), il fatturabile (prezzo totale e fatturato), l'effettivo (prezzo totale), la percentuale di realizzo, il profitto effettivo e la percentuale di margine di profitto effettivo relativi al progetto.",
+			   "nb-NO", "Prosjektoppgavene viser prosjektnummer og -beskrivelse, budsjett (kostbeløp), faktiske kostnader (kostbeløp), fakturerbar (salgsbeløp), fakturerbar (fakturert pris), faktisk (salgsbeløp), realiseringsprosent, faktisk fortjeneste og faktisk fortjenestemarginprosent.",
+			   "nl-BE", "De projecttaken tonen projectnummer en -beschrijving, budget (totale kosten), werkelijke kosten (totale kosten), factureerbaar (totale prijs), factureerbaar (gefactureerde prijs), werkelijk (totale prijs), realisatiepercentage, werkelijke winst en werkelijk winstmargepercentage.",
+			   "nl-NL", "De projecttaken tonen projectnummer en -beschrijving, budget (totale kosten), werkelijke kosten (totale kosten), factureerbaar (totale prijs), factureerbaar (gefactureerde prijs), werkelijk (totale prijs), realisatiepercentage, werkelijke winst en werkelijk winstmargepercentage.",
+			   "sv-SE", "Projektaktiviteter visar projektnummer och beskrivning, budget (total kostnad), faktisk kostnad (total kostnad), fakturerbart (totalt pris), fakturerbart (fakturerat pris), faktiskt (totalt pris), genomförandeprocent, faktisk vinst och faktisk vinstmarginal i procent.",
+			   "The project tasks shows project number and description, budget (total cost), actual cost (total cost), billable (total price), billable (invoiced price), actual (total price), realization percentage, actual profit, and actual profit margin percentage."
+			)
+		isHidden
+		lineageTag: 36f4b901-4337-443f-a826-6db2cfc28041
+
+	measure 'The project profitability shows project number, type, number and description, actual (total cost), billable (invoiced price), actual profit margin percentage, and actual profit. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Ziskovost projektu zobrazuje číslo projektu, typ, číslo a popis, skutečné náklady (celkové náklady), fakturovatelná cena (fakturovaná cena), skutečné procento ziskové marže a skutečný zisk.",
+			   "da-DK", "Projektets rentabilitet viser projektnummer, type, nummer og beskrivelse, faktisk (samlede omkostninger), fakturerbar (faktureret pris), faktisk avanceprocent og faktisk avance.",
+			   "de-AT", "Die Projektrentabilität zeigt die Projektnummer, den Projekttyp, die Anzahl und Beschreibung, den tatsächlichen (Einstandsbetrag), den abrechenbaren (Rechnungspreis), den tatsächlichen Gewinnmargenprozentsatz und den tatsächlichen Gewinn an.",
+			   "de-CH", "Die Projektrentabilität zeigt die Projektnummer, den Projekttyp, die Anzahl und Beschreibung, den tatsächlichen (Einstandsbetrag), den abrechenbaren (Rechnungspreis), den tatsächlichen Gewinnmargenprozentsatz und den tatsächlichen Gewinn an.",
+			   "de-DE", "Die Projektrentabilität zeigt die Projektnummer, den Projekttyp, die Anzahl und Beschreibung, den tatsächlichen (Einstandsbetrag), den abrechenbaren (Rechnungspreis), den tatsächlichen Gewinnmargenprozentsatz und den tatsächlichen Gewinn an.",
+			   "en-AU", "The project profitability shows project number, type, number and description, actual (total cost), billable (invoiced price), actual profit margin percentage, and actual profit.",
+			   "en-CA", "The project profitability shows project number, type, number and description, actual (total cost), billable (invoiced price), actual profit margin percentage, and actual profit.",
+			   "en-GB", "The project profitability shows project number, type, number and description, actual (total cost), billable (invoiced price), actual profit margin percentage, and actual profit.",
+			   "en-NZ", "The project profitability shows project number, type, number and description, actual (total cost), billable (invoiced price), actual profit margin percentage, and actual profit.",
+			   "es-ES", "La rentabilidad del proyecto muestra el número, el tipo, el número y la descripción del proyecto, el real (coste total), el facturable (precio facturado), el porcentaje de margen de beneficio real y el beneficio real.",
+			   "es-MX", "La rentabilidad del proyecto muestra el número, el tipo, el número y la descripción del proyecto, el importe real (costo total), el importe facturable (precio facturado), el porcentaje de margen de beneficio real y el beneficio real.",
+			   "fi-FI", "Projektin kannattavuus näyttää projektinumeron, tyypin, numeron ja kuvauksen, toteutuman (kokonaiskustannus), laskutettavan (laskutettu hinta), todellisen voittomarginaaliprosentin ja todellisen tuoton.",
+			   "fr-BE", "La rentabilité du projet indique le numéro, le type, le nombre et la description du projet, le réel (coût total), le facturable (prix facturé), le pourcentage de marge bénéficiaire réelle et bénéfice réel.",
+			   "fr-CA", "La rentabilité du projet indique les éléments suivants : numéro, type, nombre et description du projet, réel (coût total), facturable (prix facturé), pourcentage marge profit réelle et bénéfice réel.",
+			   "fr-CH", "La rentabilité du projet indique le numéro, le type, le nombre et la description du projet, le réel (coût total), le facturable (prix facturé), le pourcentage de marge bénéficiaire réelle et bénéfice réel.",
+			   "fr-FR", "La rentabilité du projet indique le numéro, le type, le nombre et la description du projet, le réel (coût total), le facturable (prix facturé), le pourcentage de marge bénéficiaire réelle et bénéfice réel.",
+			   "is-IS", "„Arðsemi verks“ sýnir númer, tegund og lýsingu verks, raunkostnað (heildarkostnaður), reikningshæfa upphæð (reikningsfært verð), prósentu raunverulegs hagnaðarhlutfalls og raunverulegan hagnað.",
+			   "it-CH", "La redditività del progetto mostra il numero, il tipo, la descrizione, l'effettivo (prezzo totale), il fatturabile (prezzo fatturato), la percentuale di margine di profitto effettivo e il profitto effettivo relativi al progetto.",
+			   "it-IT", "La redditività del progetto mostra il numero, il tipo, la descrizione, l'effettivo (prezzo totale), il fatturabile (prezzo fatturato), la percentuale di margine di profitto effettivo e il profitto effettivo relativi al progetto.",
+			   "nb-NO", "Prosjektets lønnsomhet viser prosjektnummer, type, nummer og beskrivelse, faktisk (kostbeløp), fakturerbar (fakturert pris), faktisk fortjenestemarginprosent og faktisk fortjeneste.",
+			   "nl-BE", "Winstgevendheid van project bevat projectnummer, -type, -nummer en -beschrijving, werkelijk (totale kosten), factureerbaar (gefactureerde prijs), werkelijke winstmarge % en werkelijke winst.",
+			   "nl-NL", "Winstgevendheid van project bevat projectnummer, -type, -nummer en -beschrijving, werkelijk (totale kosten), factureerbaar (gefactureerde prijs), werkelijke winstmarge % en werkelijke winst.",
+			   "sv-SE", "Projektlönsamhet visar projektnummer, typ, antal och beskrivning, faktiskt värde (total kostnad), fakturerbart (fakturerat pris), faktisk vinstmarginal i procent och faktisk vinst.",
+			   "The project profitability shows project number, type, number and description, actual (total cost), billable (invoiced price), actual profit margin percentage, and actual profit."
+			)
+		isHidden
+		lineageTag: b5e65b3f-4dbb-4eff-90d8-150b3f562cbe
+
+	measure 'The project realization shows project number, type, number and description, billable (invoiced price), actual (total price), and realization percentage. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Realizace projektu zobrazuje číslo projektu, typ, číslo a popis, fakturovatelnou cenu (fakturovanou cenu), skutečnou cenu (celkovou cenu) a procento realizace.",
+			   "da-DK", "Projektets realisering viser projektnummer, type, nummer og beskrivelse, fakturerbar (faktureret pris), faktisk (totalpris) og realiseringsprocentdel.",
+			   "de-AT", "Die Projektrealisierung zeigt Projektnummer, -typ, -anzahl und -beschreibung, den fakturierbaren (fakturierbarer Preis), den tatsächlichen (Verkaufsbetrag) und den Realisierungsprozentsatz an.",
+			   "de-CH", "Die Projektrealisierung zeigt Projektnummer, -typ, -anzahl und -beschreibung, den fakturierbaren (fakturierbarer Preis), den tatsächlichen (Verkaufsbetrag) und den Realisierungsprozentsatz an.",
+			   "de-DE", "Die Projektrealisierung zeigt Projektnummer, -typ, -anzahl und -beschreibung, den fakturierbaren (fakturierbarer Preis), den tatsächlichen (Verkaufsbetrag) und den Realisierungsprozentsatz an.",
+			   "en-AU", "The project realisation shows project number, type, number and description, billable (invoiced price), actual (total price), and realisation percentage.",
+			   "en-CA", "The project realization shows project number, type, number and description, billable (invoiced price), actual (total price), and realization percentage.",
+			   "en-GB", "The project realisation shows project number, type, number and description, billable (invoiced price), actual (total price), and realisation percentage.",
+			   "en-NZ", "The project realisation shows project number, type, number and description, billable (invoiced price), actual (total price), and realisation percentage.",
+			   "es-ES", "La realización del proyecto muestra el número, el tipo, el número y la descripción del proyecto, el facturable (precio facturado), el precio real (precio total) y el porcentaje de realización.",
+			   "es-MX", "La realización del proyecto muestra el número, el tipo, el número y la descripción del proyecto, el facturable (precio facturado), el precio real (precio total) y el porcentaje de realización.",
+			   "fi-FI", "Projektin realisointi näyttää projektinumeron, tyypin, numeron ja kuvauksen, laskutettavan (laskutettu hinta), toteutuman (kokonaishinta) ja realisointiprosentin.",
+			   "fr-BE", "La réalisation du projet indique le numéro, le type, le nombre et la description du projet, réel (coût total), facturable (prix facturé), réel (prix total), et le pourcentage de réalisation.",
+			   "fr-CA", "La réalisation du projet indique le numéro, le type, le nombre et la description du projet, réel (coût total), facturable (prix facturé), réel (prix total), et le pourcentage de réalisation.",
+			   "fr-CH", "La réalisation du projet indique le numéro, le type, le nombre et la description du projet, réel (coût total), facturable (prix facturé), réel (prix total), et le pourcentage de réalisation.",
+			   "fr-FR", "La réalisation du projet indique le numéro, le type, le nombre et la description du projet, réel (coût total), facturable (prix facturé), réel (prix total), et le pourcentage de réalisation.",
+			   "is-IS", "„Uppfylling verks“ sýnir númer, tegund og lýsingu verks, reikningshæfa upphæð (reikningsfært verð), raunverð (heildarverð) og prósentu uppfyllingar.",
+			   "it-CH", "Il realizzo del progetto mostra il numero, il tipo, la descrizione, il fatturabile (prezzo fatturato), l'effettivo (prezzo totale) e la percentuale di realizzo relativi al progetto.",
+			   "it-IT", "Il realizzo del progetto mostra il numero, il tipo, la descrizione, il fatturabile (prezzo fatturato), l'effettivo (prezzo totale) e la percentuale di realizzo relativi al progetto.",
+			   "nb-NO", "Prosjektrealiseringen viser prosjektnummer, type, nummer og beskrivelse, faktisk (kostbeløp), fakturerbar (fakturert pris), faktisk (totalpris) og realiseringsprosent.",
+			   "nl-BE", "Projectrealisatie bevat projectnummer, -type, -nummer en -beschrijving, factureerbaar (gefactureerde prijs), werkelijk (totale prijs) en realisatiepercentage.",
+			   "nl-NL", "Projectrealisatie bevat projectnummer, -type, -nummer en -beschrijving, factureerbaar (gefactureerde prijs), werkelijk (totale prijs) en realisatiepercentage.",
+			   "sv-SE", "Projektgenomförande visar projektnummer, typ, antal och beskrivning, fakturerbart (fakturerat pris), faktiskt (totalt pris) och genomförande i procent.",
+			   "The project realization shows project number, type, number and description, billable (invoiced price), actual (total price), and realization percentage."
+			)
+		isHidden
+		lineageTag: de7f08d4-015a-4056-bd74-2e3304358d5d
+
+	measure 'The project performance to budget shows project number and description, status, budget (total cost), actual (total cost), total cost variance to budget, and total cost variance to budget percentage. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Výkon projektu k rozpočtu zobrazuje číslo a popis projektu, stav, rozpočet (celkové náklady), skutečné náklady (celkové náklady), odchylku celkových nákladů od rozpočtu a odchylku celkových nákladů od rozpočtu v procentech.",
+			   "da-DK", "Projektets ydeevne i forhold til budgettet viser projektnummer og beskrivelse, status, budget (samlede omkostninger), faktiske (samlede omkostninger), afvigelser for samlede omkostninger i forhold til budget og samlet omkostningsafvigelse i forhold til budget i procent.",
+			   "de-AT", "Die Projektleistung im Vergleich zum Budget zeigt die Projektnummer und -beschreibung, den Status, das Budget (Einstandsbetrag), den Ist-Betrag (Einstandsbetrag), die Einstandsbetragsabweichung im Vergleich zum Budget und die Einstandsbetragsabweichung im Vergleich zum Budget in Prozent an.",
+			   "de-CH", "Die Projektleistung im Vergleich zum Budget zeigt die Projektnummer und -beschreibung, den Status, das Budget (Einstandsbetrag), den Ist-Betrag (Einstandsbetrag), die Einstandsbetragsabweichung im Vergleich zum Budget und die Einstandsbetragsabweichung im Vergleich zum Budget in Prozent an.",
+			   "de-DE", "Die Projektleistung im Vergleich zum Budget zeigt die Projektnummer und -beschreibung, den Status, das Budget (Einstandsbetrag), den Ist-Betrag (Einstandsbetrag), die Einstandsbetragsabweichung im Vergleich zum Budget und die Einstandsbetragsabweichung im Vergleich zum Budget in Prozent an.",
+			   "en-AU", "The project performance to budget shows project number and description, status, budget (total cost), actual (total cost), total cost variance to budget, and total cost variance to budget percentage.",
+			   "en-CA", "The project performance to budget shows project number and description, status, budget (total cost), actual (total cost), total cost variance to budget, and total cost variance to budget percentage.",
+			   "en-GB", "The project performance to budget shows project number and description, status, budget (total cost), actual (total cost), total cost variance to budget, and total cost variance to budget percentage.",
+			   "en-NZ", "The project performance to budget shows project number and description, status, budget (total cost), actual (total cost), total cost variance to budget, and total cost variance to budget percentage.",
+			   "es-ES", "El rendimiento del proyecto con respecto al presupuesto muestra el número y la descripción del proyecto, el estado, el presupuesto (coste total), el real (coste total), la desviación total del coste con respecto al presupuesto y la desviación total del coste con respecto al porcentaje de presupuesto.",
+			   "es-MX", "El rendimiento del proyecto con respecto al presupuesto muestra el número y la descripción del proyecto, el estado, el presupuesto (costo total), el valor real (costo total), la variación total del costo con respecto al presupuesto y la variación total del costo con respecto al porcentaje de presupuesto.",
+			   "fi-FI", "Projektin tulos vrt. budjetti näyttää projektinumeron ja kuvauksen, tilan, budjetin (kokonaiskustannukset), toteuman (kokonaiskustannus), todellisen kustannusvaihtelun budjettiin verrattuna ja todellisen kustannusvaihtelun budjetin prosenttiosuuteen verrattuna.",
+			   "fr-BE", "Le niveau de performance du projet par rapport au budget indique le numéro et la description du projet, le statut, le budget (coût total), le réel (coût total), l’écart du coût total par rapport au budget et l’écart du coût total par rapport au pourcentage de budget.",
+			   "fr-CA", "Le niveau de performance du projet par rapport au budget indique les éléments suivants : numéro et description du projet, état, budget (coût total), réel (coût total), écart du coût total par rapport au budget et écart du coût total par rapport au pourcentage de budget.",
+			   "fr-CH", "Le niveau de performance du projet par rapport au budget indique le numéro et la description du projet, le statut, le budget (coût total), le réel (coût total), l’écart du coût total par rapport au budget et l’écart du coût total par rapport au pourcentage de budget.",
+			   "fr-FR", "Le niveau de performance du projet par rapport au budget indique le numéro et la description du projet, le statut, le budget (coût total), le réel (coût total), l’écart du coût total par rapport au budget et l’écart du coût total par rapport au pourcentage de budget.",
+			   "is-IS", "„Afköst verkefnis miðað við fjárhagsáætlun“ sýnir númer og lýsingu verks, stöðu, fjárhagsáætlun (heildarkostnaður), raunkostnað (heildarkostnaður), heildarkostnaðarfrávik í fjárhagsáætlun og prósentu heildarkostnaðarfrávika í fjárhagsáætlun.",
+			   "it-CH", "Le prestazioni del progetto rispetto al budget mostrano il numero, la descrizione, lo stato, il costo totale a budget ed effettivo, lo scostamento del costo totale rispetto al budget e la percentuale di scostamento del costo totale rispetto al budget relativi al progetto.",
+			   "it-IT", "Le prestazioni del progetto rispetto al budget mostrano il numero, la descrizione, lo stato, il costo totale a budget ed effettivo, lo scostamento del costo totale rispetto al budget e la percentuale di scostamento del costo totale rispetto al budget relativi al progetto.",
+			   "nb-NO", "Prosjektresultater til budsjett viser prosjektnummer og -beskrivelse, status, budsjett (kostbeløp), faktisk (kostbeløp), totale kostnadsavvik fra budsjett og totale kostnadsavvik i budsjettprosent.",
+			   "nl-BE", "Projectprestaties versus budget bevat projectnummer en -beschrijving, de status, budget (totale kosten), werkelijk (totale) kosten, verschil totale kosten met budget en verschil totale kosten met budget %.",
+			   "nl-NL", "Projectprestaties versus budget bevat projectnummer en -beschrijving, de status, budget (totale kosten), werkelijk (totale) kosten, verschil totale kosten met budget en verschil totale kosten met budget %.",
+			   "sv-SE", "Projektresultat mot budget visar projektnummer och beskrivning, status, budget (total kostnad), faktiskt (total kostnad), total kostnadsavvikelse mot budget och total kostnadsavvikelse mot budget i procent.",
+			   "The project performance to budget shows project number and description, status, budget (total cost), actual (total cost), total cost variance to budget, and total cost variance to budget percentage."
+			)
+		isHidden
+		lineageTag: 575b7bda-1ec3-48de-9e69-b3c916a43bd9
+
+	measure 'The project invoiced sales by type shows type, number and description, project number, unit of measure, quantity, unit price (local currency), and billable (invoiced price). Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Fakturovaný prodej projektu podle typu zobrazuje typ, číslo a popis, číslo projektu, měrnou jednotku, množství, jednotkovou cenu (v místní měně) a fakturovatelnou cenu (fakturovanou cenu).",
+			   "da-DK", "Faktureret salg i projekt efter type viser type, nummer og beskrivelse, projektnummer, enhed, antal, enhedspris (lokal valuta) og fakturerbar (faktureret pris).",
+			   "de-AT", "Das Projekt stellt die Verkäufe nach Art, Anzahl und Beschreibung, Projektnummer, Einheit, Menge, VK-Preis (in Mandantenwährung) und Rechnungsbetrag (in Rechnung gestellter Preis) in Rechnung.",
+			   "de-CH", "Das Projekt stellt die Verkäufe nach Art, Anzahl und Beschreibung, Projektnummer, Einheit, Menge, VK-Preis (in Mandantenwährung) und Rechnungsbetrag (in Rechnung gestellter Preis) in Rechnung.",
+			   "de-DE", "Das Projekt stellt die Verkäufe nach Art, Anzahl und Beschreibung, Projektnummer, Einheit, Menge, VK-Preis (in Mandantenwährung) und Rechnungsbetrag (in Rechnung gestellter Preis) in Rechnung.",
+			   "en-AU", "The project invoiced sales by type shows type, number and description, project number, unit of measure, quantity, unit price (local currency), and billable (invoiced price).",
+			   "en-CA", "The project invoiced sales by type shows type, number and description, project number, unit of measure, quantity, unit price (local currency), and billable (invoiced price).",
+			   "en-GB", "The project invoiced sales by type shows type, number and description, project number, unit of measure, quantity, unit price (local currency), and billable (invoiced price).",
+			   "en-NZ", "The project invoiced sales by type shows type, number and description, project number, unit of measure, quantity, unit price (local currency), and billable (invoiced price).",
+			   "es-ES", "Las ventas facturadas del proyecto por tipo muestran el tipo, el número y la descripción, el número de proyecto, la unidad de medida, la cantidad, el precio unitario (divisa local) y el precio facturable (precio facturado).",
+			   "es-MX", "Las ventas facturadas del proyecto por tipo muestran el tipo, el número y la descripción, el número de proyecto, la unidad de medida, la cantidad, el precio unitario (divisa local) y el precio facturable (precio facturado).",
+			   "fi-FI", "Projektin laskutettu myynti tyypin mukaan näyttää tyypin, numeron ja kuvauksen, projektinumeron, mittayksikön, määrän, yksikköhinnan (paikallisena valuuttana) ja laskutettavan (laskutettu hinta).",
+			   "fr-BE", "Les ventes du projet facturées par type indiquent le type, le numéro et la description, le numéro de projet, l’unité, la quantité, le prix unitaire (devise société) et facturable (prix facturé).",
+			   "fr-CA", "Les ventes facturées du projet par type indiquent les éléments suivants : type, numéro et description, numéro de projet, unité de mesure, quantité, prix unitaire (devise locale) et facturable (prix facturé).",
+			   "fr-CH", "Les ventes du projet facturées par type indiquent le type, le numéro et la description, le numéro de projet, l’unité, la quantité, le prix unitaire (devise société) et facturable (prix facturé).",
+			   "fr-FR", "Les ventes du projet facturées par type indiquent le type, le numéro et la description, le numéro de projet, l’unité, la quantité, le prix unitaire (devise société) et facturable (prix facturé).",
+			   "is-IS", "„Reikningsfærð sala verks eftir tegund“ sýnir tegund, númer, lýsingu, verknúmer, mælieiningu, magn, einingarverð (staðbundinn gjaldmiðill) og reikningshæfa upphæð (reikningsfært verð).",
+			   "it-CH", "Le vendite di progetti fatturate per tipo mostrano il tipo, il numero, la descrizione, il numero di progetto, l'unità di misura, la quantità, il prezzo unitario (valuta locale) e il fatturabile (prezzo fatturato).",
+			   "it-IT", "Le vendite di progetti fatturate per tipo mostrano il tipo, il numero, la descrizione, il numero di progetto, l'unità di misura, la quantità, il prezzo unitario (valuta locale) e il fatturabile (prezzo fatturato).",
+			   "nb-NO", "Prosjekt fakturert salg etter type viser type, nummer og beskrivelse, prosjektnummer, enhet, antall, enhetspris (lokal valuta) og fakturerbar (fakturert pris).",
+			   "nl-BE", "Gefactureerde verkopen van project per type bevat type, nummer en beschrijving, projectnummer, eenheid, aantal, eenheidsprijs (lokale valuta) en factureerbaar (gefactureerde prijs).",
+			   "nl-NL", "Gefactureerde verkopen van project per type bevat type, nummer en beschrijving, projectnummer, eenheid, aantal, eenheidsprijs (lokale valuta) en factureerbaar (gefactureerde prijs).",
+			   "sv-SE", "Fakturerad försäljning för projekt per typ visar antal och beskrivning, projektnummer, måttenhet, kvantitet, enhetspris (lokal valuta) och fakturerbart (fakturerat pris).",
+			   "The project invoiced sales by type shows type, number and description, project number, unit of measure, quantity, unit price (local currency), and billable (invoiced price)."
+			)
+		isHidden
+		lineageTag: 58a0a19b-ca5e-4a9d-9b00-cc358b649d0f
+
+	measure 'The project invoiced sales by customer shows customer number and name, project number, type, number and description, quantity, unit price (local currency), and billable (invoiced price). Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Fakturovaný prodej projektu podle zákazníka zobrazuje číslo a název zákazníka, číslo projektu, typ, číslo a popis, množství, jednotkovou cenu (v místní měně) a fakturovatelnou cenu (fakturovanou cenu).",
+			   "da-DK", "Faktureret salg i projekt efter debitor viser debitornummer og -navn, projektnummer, type, nummer og beskrivelse, antal, enhedspris (lokal valuta) og fakturerbar (faktureret pris).",
+			   "de-AT", "Das Projekt fakturiert Verkäufe nach Debitor und zeigt Debitorennummer und -name, Projektnummer, -art, -nummer und -beschreibung, Menge, VK-Preis (Mandantenwährung) und fakturierbaren Preis (Rechnungspreis).",
+			   "de-CH", "Das Projekt fakturiert Verkäufe nach Debitor und zeigt Debitorennummer und -name, Projektnummer, -art, -nummer und -beschreibung, Menge, VK-Preis (Mandantenwährung) und fakturierbaren Preis (Rechnungspreis).",
+			   "de-DE", "Das Projekt fakturiert Verkäufe nach Debitor und zeigt Debitorennummer und -name, Projektnummer, -art, -nummer und -beschreibung, Menge, VK-Preis (Mandantenwährung) und fakturierbaren Preis (Rechnungspreis).",
+			   "en-AU", "The project invoiced sales by customer shows customer number and name, project number, type, number and description, quantity, unit price (local currency), and billable (invoiced price).",
+			   "en-CA", "The project invoiced sales by customer shows customer number and name, project number, type, number and description, quantity, unit price (local currency), and billable (invoiced price).",
+			   "en-GB", "The project invoiced sales by customer shows customer number and name, project number, type, number and description, quantity, unit price (local currency), and billable (invoiced price).",
+			   "en-NZ", "The project invoiced sales by customer shows customer number and name, project number, type, number and description, quantity, unit price (local currency), and billable (invoiced price).",
+			   "es-ES", "Las ventas facturadas del proyecto por cliente muestran el número y el nombre del cliente, el número de proyecto, el tipo, el número y la descripción, la cantidad, el precio unitario (divisa local) y el precio facturable (precio facturado).",
+			   "es-MX", "Las ventas facturadas del proyecto por cliente muestran el número y el nombre del cliente, el número, el tipo, el número y la descripción del proyecto, la cantidad, el precio unitario (divisa local) y el valor facturable (precio facturado).",
+			   "fi-FI", "Projektin laskutettu myynti asiakkaan mukaan näyttää asiakasnumeron ja asiakkaan nimen, projektinumeron, tyypin, numeron ja kuvauksen, määrän, yksikköhinnan (paikallisena valuuttana) ja laskutettavan (laskutettu hinta).",
+			   "fr-BE", "Les ventes du projet facturées par client indiquent le numéro et le nom du client, le numéro de projet, le type, le numéro et la description, la quantité, le prix unitaire (devise société) et facturable (prix facturé).",
+			   "fr-CA", "Les ventes facturées du projet par client indiquent les éléments suivants : numéro et nom du client, numéro de projet, type, numéro et description, quantité, prix unitaire (devise locale) et facturable (prix facturé).",
+			   "fr-CH", "Les ventes du projet facturées par client indiquent le numéro et le nom du client, le numéro de projet, le type, le numéro et la description, la quantité, le prix unitaire (devise société) et facturable (prix facturé).",
+			   "fr-FR", "Les ventes du projet facturées par client indiquent le numéro et le nom du client, le numéro de projet, le type, le numéro et la description, la quantité, le prix unitaire (devise société) et facturable (prix facturé).",
+			   "is-IS", "„Reikningsfærð sala verks eftir viðskiptamanni“ sýnir númer og nafn viðskiptavinar, númer, tegund og lýsingu verks, magn, einingarverð (staðbundinn gjaldmiðill) og reikningshæfa upphæð (reikningsfært verð).",
+			   "it-CH", "Le vendite di progetti fatturate per cliente mostrano il numero e il nome del cliente, il numero, il tipo, la descrizione, la quantità, il prezzo unitario (valuta locale) e il fatturabile (prezzo fatturato) relativi al progetto.",
+			   "it-IT", "Le vendite di progetti fatturate per cliente mostrano il numero e il nome del cliente, il numero, il tipo, la descrizione, la quantità, il prezzo unitario (valuta locale) e il fatturabile (prezzo fatturato) relativi al progetto.",
+			   "nb-NO", "Prosjektet fakturert salg etter kunde viser kundenummer og navn, prosjektnummer, type, nummer og beskrivelse, antall, enhetspris (lokal valuta) og fakturerbar (fakturert pris).",
+			   "nl-BE", "Gefactureerde verkopen van project per klant bevat klantnummer en -naam, projectnummer, -type, -nummer en -beschrijving, aantal, eenheidsprijs (lokale valuta) en factureerbaar (gefactureerde prijs).",
+			   "nl-NL", "Gefactureerde verkopen van project per klant bevat klantnummer en -naam, projectnummer, -type, -nummer en -beschrijving, aantal, eenheidsprijs (lokale valuta) en factureerbaar (gefactureerde prijs).",
+			   "sv-SE", "Fakturerad försäljning för projekt per kund visar kundnummer och -namn, projektnummer, typ, antal och beskrivning, kvantitet, enhetspris (lokal valuta) och fakturerbart (fakturerat pris).",
+			   "The project invoiced sales by customer shows customer number and name, project number, type, number and description, quantity, unit price (local currency), and billable (invoiced price)."
+			)
+		isHidden
+		lineageTag: a1856e72-3006-448c-96eb-4f8246e15e68
+
+	measure 'The project ledger entry drill through shows posting date, project number, task number, task entry type, type, number, description, unit of measure, quantity, unit cost, unit price, total cost, and total price. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení položek projektu zobrazuje zúčtovací datum, číslo projektu, číslo úlohy, typ položky úkolu, typ, číslo, popis, měrnou jednotku, množství, pořizovací cenu, jednotkovou cenu, celkové náklady a celkovou cenu.",
+			   "da-DK", "Detailudledning af projektposten viser bogføringsdato, projektnummer, opgavenummer, opgaveposttype, type, nummer, beskrivelse, enhed, antal, kostpris, enhedspris, samlede omkostninger og samlet pris.",
+			   "de-AT", "Der Projektposten-Drillthrough zeigt Buchungsdatum, Projektnummer, Vorgangsnummer, Vorgangspostentyp, Art, Nummer, Beschreibung, Einheit, Menge, Einstandspreis, Stückpreis, Einstandsbetrag und Verkaufsbetrag an.",
+			   "de-CH", "Der Projektposten-Drillthrough zeigt Buchungsdatum, Projektnummer, Vorgangsnummer, Vorgangspostentyp, Art, Nummer, Beschreibung, Einheit, Menge, Einstandspreis, Stückpreis, Einstandsbetrag und Verkaufsbetrag an.",
+			   "de-DE", "Der Projektposten-Drillthrough zeigt Buchungsdatum, Projektnummer, Vorgangsnummer, Vorgangspostentyp, Art, Nummer, Beschreibung, Einheit, Menge, Einstandspreis, Stückpreis, Einstandsbetrag und Verkaufsbetrag an.",
+			   "en-AU", "The project ledger entry drill through shows posting date, project number, task number, task entry type, type, number, description, unit of measure, quantity, unit cost, unit price, total cost, and total price.",
+			   "en-CA", "The project ledger entry drill through shows posting date, project number, task number, task entry type, type, number, description, unit of measure, quantity, unit cost, unit price, total cost, and total price.",
+			   "en-GB", "The project ledger entry drill through shows posting date, project number, task number, task entry type, type, number, description, unit of measure, quantity, unit cost, unit price, total cost, and total price.",
+			   "en-NZ", "The project ledger entry drill through shows posting date, project number, task number, task entry type, type, number, description, unit of measure, quantity, unit cost, unit price, total cost, and total price.",
+			   "es-ES", "El análisis detallado del movimiento del proyecto muestra la fecha de registro, el número de proyecto, el número de tarea, el tipo de movimiento de tarea, el tipo, el número, la descripción, la unidad de medida, la cantidad, el coste unitario, el precio unitario, el coste total y el precio total.",
+			   "es-MX", "El análisis detallado del movimiento del proyecto muestra la fecha de registro, el número de proyecto, el número de tarea, el tipo de movimiento de tarea, el tipo, el número, la descripción, la unidad de medida, la cantidad, el costo unitario, el precio unitario, el costo total y el precio total.",
+			   "fi-FI", "Projektitapahtumaan porautuminen näyttää kirjauspäivämäärän, projektinumeron, tehtävänumeron, tehtävätapahtuman tyypin, tyypin, numeron, kuvauksen, mittayksikön, määrän, yksikkökustannuksen, yksikköhinnan, kokonaiskustannuksen ja kokonaishinnan.",
+			   "fr-BE", "L’extraction écriture Compta. projet indique la date de comptabilisation, le numéro de projet, le numéro de tâche, le type d’écriture de tâche, le type, le nombre, la description, l’unité, la quantité, le coût unitaire, le prix unitaire, le coût total et le prix total.",
+			   "fr-CA", "L’extraction écriture projet indique les éléments suivants : date de report, numéro de projet, numéro de tâche, type d’écriture tâche, type, nombre, description, unité de mesure, quantité, coût unitaire, prix unitaire, coût total et prix total.",
+			   "fr-CH", "L’extraction écriture Compta. projet indique la date de comptabilisation, le numéro de projet, le numéro de tâche, le type d’écriture de tâche, le type, le nombre, la description, l’unité, la quantité, le coût unitaire, le prix unitaire, le coût total et le prix total.",
+			   "fr-FR", "L’extraction écriture Compta. projet indique la date de comptabilisation, le numéro de projet, le numéro de tâche, le type d’écriture de tâche, le type, le nombre, la description, l’unité, la quantité, le coût unitaire, le prix unitaire, le coût total et le prix total.",
+			   "is-IS", "„Köfun í fjárhagsfærslu verks“ sýnir bókunardagsetningu, verknúmer, verkhlutanúmer, tegund færslu verks, tegund, númer, lýsingu, mælieiningu, magn, einingarkostnað, einingarverð, heildarkostnað og heildarverð.",
+			   "it-CH", "Il drill-through dei movimenti contabili progetti mostra la data di registrazione, il numero, il numero di attività, il tipo di movimento attività, il tipo, il numero, la descrizione, l'unità di misura, la quantità, il prezzo e il costo unitari e il costo e il prezzo totali relativi al progetto.",
+			   "it-IT", "Il drill-through dei movimenti contabili progetti mostra la data di registrazione, il numero, il numero di attività, il tipo di movimento attività, il tipo, il numero, la descrizione, l'unità di misura, la quantità, il prezzo e il costo unitari e il costo e il prezzo totali relativi al progetto.",
+			   "nb-NO", "Gjennomgang av prosjektposten viser bokføringsdato, prosjektnummer, oppgavenummer, oppgaveoppføringstype, type, nummer, beskrivelse, enhet, antall, enhetskost, enhetspris, totalkostnad og totalpris.",
+			   "nl-BE", "Detailanalyse projectpost bevat boekingsdatum, projectnummer, taaknummer, taakboekingssoort, type, nummer, beschrijving, maateenheid, aantal, kostprijs per eenheid, eenheidsprijs, totale kosten en totale prijs.",
+			   "nl-NL", "Detailanalyse projectpost bevat boekingsdatum, projectnummer, taaknummer, taakboekingssoort, type, nummer, beschrijving, maateenheid, aantal, kostprijs per eenheid, eenheidsprijs, totale kosten en totale prijs.",
+			   "sv-SE", "Detaljerad analys av projekttransaktioner visar bokföringsdatum, projektnummer, uppgiftsnummer, uppgiftstransaktionstyp, typ, antal, beskrivning, måttenhet, kvantitet, styckkostnad, enhetspris, totalkostnad och totalpris.",
+			   "The project ledger entry drill through shows posting date, project number, task number, task entry type, type, number, description, unit of measure, quantity, unit cost, unit price, total cost, and total price."
+			)
+		isHidden
+		lineageTag: d7c622a6-71aa-4bb1-be22-0a801e1017fd
+
+	measure 'The project order drill through shows project number, task number, source type,entry type, type, number, description, document number, quantity (base), amount (local currency), expected receipt date, outstanding amount on purchase order, amount received not invoiced, and document type. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení objednávky projektu zobrazuje číslo projektu, číslo úlohy, typ původu, typ položky, typ, číslo, popis, číslo dokladu, množství (základ), částku (v místní měně), očekávané datum příjmu, zůstatek na nákupní objednávce, přijatou nevyfakturovanou částku a typ dokladu.",
+			   "da-DK", "Detailudledning af projektordre viser projektnummer, opgavenummer, kildetype, posttype, type, nummer, beskrivelse, dokumentnummer, antal (basis), beløb (lokal valuta), forventet modtagelsesdato, udestående beløb på købsordre, beløb modtaget, der ikke er faktureret, og dokumenttype.",
+			   "de-AT", "Der Projektauftrags-Drillthrough zeigt die Projektnummer, die Aufgabennummer, die Art der Quelle, die Art des Postens, den Typ, die Nummer, die Beschreibung, die Belegnummer, die Menge (Basis), den Betrag (in Mandantenwährung), das erwartete Eingangsdatum, den ausstehenden Betrag auf der Bestellung, den erhaltenen, aber nicht in Rechnung gestellten Betrag und den Typ des Belegs.",
+			   "de-CH", "Der Projektauftrags-Drillthrough zeigt die Projektnummer, die Aufgabennummer, die Art der Quelle, die Art des Postens, den Typ, die Nummer, die Beschreibung, die Belegnummer, die Menge (Basis), den Betrag (in Mandantenwährung), das erwartete Eingangsdatum, den ausstehenden Betrag auf der Bestellung, den erhaltenen, aber nicht in Rechnung gestellten Betrag und den Typ des Belegs.",
+			   "de-DE", "Der Projektauftrags-Drillthrough zeigt die Projektnummer, die Aufgabennummer, die Art der Quelle, die Art des Postens, den Typ, die Nummer, die Beschreibung, die Belegnummer, die Menge (Basis), den Betrag (in Mandantenwährung), das erwartete Eingangsdatum, den ausstehenden Betrag auf der Bestellung, den erhaltenen, aber nicht in Rechnung gestellten Betrag und den Typ des Belegs.",
+			   "en-AU", "The project order drill through shows project number, task number, source type,entry type, type, number, description, document number, quantity (base), amount (local currency), expected receipt date, outstanding amount on purchase order, amount received not invoiced, and document type.",
+			   "en-CA", "The project order drill through shows project number, task number, source type,entry type, type, number, description, document number, quantity (base), amount (local currency), expected receipt date, outstanding amount on purchase order, amount received not invoiced, and document type.",
+			   "en-GB", "The project order drill through shows project number, task number, source type,entry type, type, number, description, document number, quantity (base), amount (local currency), expected receipt date, outstanding amount on purchase order, amount received not invoiced, and document type.",
+			   "en-NZ", "The project order drill through shows project number, task number, source type,entry type, type, number, description, document number, quantity (base), amount (local currency), expected receipt date, outstanding amount on purchase order, amount received not invoiced, and document type.",
+			   "es-ES", "El análisis detallado del pedido de proyecto muestra el número de proyecto, el número de tarea, el tipo de procedencia, el tipo de movimiento, el tipo, el número, la descripción, el número de documento, la cantidad (base), el importe (divisa local), la fecha de recepción esperada, el importe pendiente en el pedido de compra, el importe recibido no facturado y el tipo de documento.",
+			   "es-MX", "El análisis detallado del pedido de proyecto muestra el número de proyecto, el número de tarea, el tipo de procedencia, el tipo de movimiento, el tipo, el número, la descripción, el número de documento, la cantidad (base), el importe (divisa local), la fecha de recepción esperada, el importe pendiente en el pedido de compra, el importe recibido no facturado y el tipo de documento.",
+			   "fi-FI", "Projektitilaukseen porautuminen näyttää projektinumeron, tehtävänumeron, lähteen tyypin, tapahtuman tyypin, tyypin, numeron, kuvauksen, asiakirjanumeron, määrän (perus), summan (paikallisena valuuttana), oletetun vastaanottopäivämäärän, ostotilauksen avoimen summan, vastaanotetun, ei laskutetun summan ja asiakirjatyypin.",
+			   "fr-BE", "L’extraction O.F.projet indique le numéro de projet, le numéro de tâche, le type origine, le type d’écriture, le type, le numéro, la description, le numéro de document, la quantité (base), le montant (devise société), la date réception prévue, le montant dû sur la commande achat, le montant reçu non facturé et le type de document.",
+			   "fr-CA", "L’extraction de l’ordre de projet indique les éléments suivants : numéro de projet, numéro de tâche, type source, type écriture, type, numéro, description, numéro de document, quantité (base), montant (devise locale), date réception prévue, montant dû sur le bon de commande, montant reçu non facturé et type de document.",
+			   "fr-CH", "L’extraction O.F.projet indique le numéro de projet, le numéro de tâche, le type origine, le type d’écriture, le type, le numéro, la description, le numéro de document, la quantité (base), le montant (devise société), la date réception prévue, le montant dû sur la commande achat, le montant reçu non facturé et le type de document.",
+			   "fr-FR", "L’extraction O.F.projet indique le numéro de projet, le numéro de tâche, le type origine, le type d’écriture, le type, le numéro, la description, le numéro de document, la quantité (base), le montant (devise société), la date réception prévue, le montant dû sur la commande achat, le montant reçu non facturé et le type de document.",
+			   "is-IS", "„Köfun í verkpöntun“ sýnir verknúmer, verkhlutanúmer, tegund uppruna, tegund færslu, tegund, númer, lýsingu, fylgiskjalsnúmer, magn (grunnur), upphæð (staðbundinn gjaldmiðill), áætlaða dagsetningu innhreyfingar, útistandandi upphæð innkaupapöntunar, óreikningsfærða upphæð innhreyfingar og tegund fylgiskjals.",
+			   "it-CH", "Il drill-through dell'ordine di progetto mostra il numero, il numero di attività, il tipo di origine e di movimento, il tipo, il numero, la descrizione, il numero di documento, la quantità (base), l'importo (valuta locale), la data di carico prevista, l'importo inevaso sull'ordine di acquisto, l'importo ricevuto non fatturato e il tipo di documento relativi al progetto.",
+			   "it-IT", "Il drill-through dell'ordine di progetto mostra il numero, il numero di attività, il tipo di origine e di movimento, il tipo, il numero, la descrizione, il numero di documento, la quantità (base), l'importo (valuta locale), la data di carico prevista, l'importo inevaso sull'ordine di acquisto, l'importo ricevuto non fatturato e il tipo di documento relativi al progetto.",
+			   "nb-NO", "Gjennomgangen av prosjektordren viser prosjektnummer, oppgavenummer, kildetype, posttype, type, nummer, beskrivelse, dokumentnummer, antall (lagerenhet), beløp (lokal valuta), forventet mottaksdato, utestående beløp på bestilling, mottatt, ikke fakturert beløp og dokumenttype.",
+			   "nl-BE", "Detailanalyse projectorder bevat projectnummer, taaknummer, bronsoort, boekingssoort, type, nummer, beschrijving, documentnummer, aantal (basis), bedrag (lokale valuta), verwachte ontvangstdatum, openstaand bedrag op inkooporder, ontvangen niet gefactureerd bedrag en documenttype.",
+			   "nl-NL", "Detailanalyse projectorder bevat projectnummer, taaknummer, bronsoort, boekingssoort, type, nummer, beschrijving, documentnummer, aantal (basis), bedrag (lokale valuta), verwachte ontvangstdatum, openstaand bedrag op inkooporder, ontvangen niet gefactureerd bedrag en documenttype.",
+			   "sv-SE", "Detaljerad analys av produktionsorder visar projektnummer, uppgiftsnummer, källtyp, transaktionstyp, typ, antal, beskrivning, dokumentnummer, kvantitet (bas), belopp (lokal valuta), förväntat inleveransdatum, utestående belopp på inköpsorder, mottaget belopp, ej fakturerat samt dokumenttyp.",
+			   "The project order drill through shows project number, task number, source type,entry type, type, number, description, document number, quantity (base), amount (local currency), expected receipt date, outstanding amount on purchase order, amount received not invoiced, and document type."
+			)
+		isHidden
+		lineageTag: 32e90e6e-9773-41cc-b2d7-b4b09f2c45ba
+
+	measure 'The project planning drill through shows project number, task number, line number, type, number, description, line type, planning line quantity, unit cost, unit price, planning line total cost, and planning line total price. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení řádku plánování projektu zobrazuje číslo projektu, číslo úlohy, číslo řádku, typ, číslo, popis, typ řádku, množství plánovacího řádku, pořizovací cenu, jednotkovou cenu, celkové náklady plánovacího řádku a celkovou cenu plánovacího řádku.",
+			   "da-DK", "Projektplanlægningens detailudledning viser projektnummer, opgavenummer, linjenummer, type, nummer, beskrivelse, linjetype, planlægningslinjeantal, kostpris, enhedspris, samlede omkostninger for planlægningslinje og samlet pris for planlægningslinje.",
+			   "de-AT", "Die Projektplanungsübersicht zeigt die Projektnummer, die Aufgabennummer, die Zeilennummer, den Typ, die Nummer, die Beschreibung, den Zeilentyp, den Einstandsbetrag der Planungszeile, den Einstandspreis, den VK-Preis, den Einstandsbetrag der Planungszeile insgesamt und den Verkaufsbetrag der Planungszeile.",
+			   "de-CH", "Die Projektplanungsübersicht zeigt die Projektnummer, die Aufgabennummer, die Zeilennummer, den Typ, die Nummer, die Beschreibung, den Zeilentyp, den Einstandsbetrag der Planungszeile, den Einstandspreis, den VK-Preis, den Einstandsbetrag der Planungszeile insgesamt und den Verkaufsbetrag der Planungszeile.",
+			   "de-DE", "Die Projektplanungsübersicht zeigt die Projektnummer, die Aufgabennummer, die Zeilennummer, den Typ, die Nummer, die Beschreibung, den Zeilentyp, den Einstandsbetrag der Planungszeile, den Einstandspreis, den VK-Preis, den Einstandsbetrag der Planungszeile insgesamt und den Verkaufsbetrag der Planungszeile.",
+			   "en-AU", "The project planning drill through shows project number, task number, line number, type, number, description, line type, planning line quantity, unit cost, unit price, planning line total cost, and planning line total price.",
+			   "en-CA", "The project planning drill through shows project number, task number, line number, type, number, description, line type, planning line quantity, unit cost, unit price, planning line total cost, and planning line total price.",
+			   "en-GB", "The project planning drill through shows project number, task number, line number, type, number, description, line type, planning line quantity, unit cost, unit price, planning line total cost, and planning line total price.",
+			   "en-NZ", "The project planning drill through shows project number, task number, line number, type, number, description, line type, planning line quantity, unit cost, unit price, planning line total cost, and planning line total price.",
+			   "es-ES", "El análisis detallado de la planificación del proyecto muestra el número de proyecto, el número de tarea, el número de línea, el tipo, el número, la descripción, el tipo de línea, la cantidad de líneas de planificación, el coste unitario, el precio unitario, el coste total de línea de planificación y el precio total de línea de planificación.",
+			   "es-MX", "El análisis detallado de la planificación del proyecto muestra el número de proyecto, el número de tarea, el número de línea, el tipo, el número, la descripción, el tipo de línea, la cantidad de líneas de planificación, el costo unitario, el precio unitario, el costo total de línea de planificación y el precio total de línea de planificación.",
+			   "fi-FI", "Projektin suunnitteluun porautuminen näyttää projektinumeron, tehtävänumeron, rivinumeron, tyypin, numeron, kuvauksen, rivityypin, suunnittelurivin määrän, yksikkökustannuksen, yksikköhinnan, suunnittelurivin kokonaiskustannukset ja suunnittelurivin kokonaishinnan.",
+			   "fr-BE", "L’extraction ligne de planification de projet indique le numéro de projet, le numéro de tâche, le numéro de ligne, le type, le numéro, la description, le type de ligne, la quantité de la ligne de planification de projet, le coût unitaire, le prix unitaire, le coût total ligne de planification, et le prix total ligne de planification.",
+			   "fr-CA", "L’extraction ligne de planification de projet indique le numéro de projet, le numéro de tâche, le numéro de ligne, le type, le numéro, la description, le type de ligne, la quantité de la ligne de planification de projet, le coût unitaire, le prix unitaire, le coût total ligne de planification, et le prix total ligne de planification.",
+			   "fr-CH", "L’extraction ligne de planification de projet indique le numéro de projet, le numéro de tâche, le numéro de ligne, le type, le numéro, la description, le type de ligne, la quantité de la ligne de planification de projet, le coût unitaire, le prix unitaire, le coût total ligne de planification, et le prix total ligne de planification.",
+			   "fr-FR", "L’extraction ligne de planification de projet indique le numéro de projet, le numéro de tâche, le numéro de ligne, le type, le numéro, la description, le type de ligne, la quantité de la ligne de planification de projet, le coût unitaire, le prix unitaire, le coût total ligne de planification, et le prix total ligne de planification.",
+			   "is-IS", "„Köfun í verkáætlun“ sýnir verknúmer, verkhlutanúmer, númer, línunúmer, tegund, númer, lýsingu, tegund línu, magn áætlunarlínu, einingarkostnað, einingarverð, heildarkostnað áætlunarlínu og heildarverð áætlunarlínu.",
+			   "it-CH", "Il drill-through di pianificazione del progetto mostra il numero, il numero di attività e di riga, il tipo, la descrizione, il tipo di riga, la quantità della riga pianificazione, il prezzo e il costo unitario e il costo e il prezzo totali della riga pianificazione relativi al progetto.",
+			   "it-IT", "Il drill-through di pianificazione del progetto mostra il numero, il numero di attività e di riga, il tipo, la descrizione, il tipo di riga, la quantità della riga pianificazione, il prezzo e il costo unitario e il costo e il prezzo totali della riga pianificazione relativi al progetto.",
+			   "nb-NO", "Gjennomgang av prosjektplanlegging viser prosjektnummer, oppgavenummer, linjenummer, type, nummer, beskrivelse, linjetype, planleggingslinjeantall, enhetskost, enhetspris, totalkostnad for planleggingslinje og totalpris for planleggingslinje.",
+			   "nl-BE", "Detailanalyse projectplanning bevat projectnummer, taaknummer, regelnummer, type, nummer, beschrijving, regeltype, planningsregelaantal, kostprijs per eenheid, eenheidsprijs, totale kosten planningsregel en totale prijs planningsregel.",
+			   "nl-NL", "Detailanalyse projectplanning bevat projectnummer, taaknummer, regelnummer, type, nummer, beschrijving, regeltype, planningsregelaantal, kostprijs per eenheid, eenheidsprijs, totale kosten planningsregel en totale prijs planningsregel.",
+			   "sv-SE", "Detaljerad analys av projektplanering visar bokföringsdatum, projektnummer, uppgiftsnummer, radnummer, typ, antal, beskrivning, radtyp, kvantitet på planeringsrad, styckkostnad, enhetspris, totalkostnad för planeringsrad och totalpris för planeringsrad.",
+			   "The project planning drill through shows project number, task number, line number, type, number, description, line type, planning line quantity, unit cost, unit price, planning line total cost, and planning line total price."
+			)
+		isHidden
+		lineageTag: 2babcc65-40dd-4f0e-b331-4903389b86e1
+
+	measure 'Company Name Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Název společnosti",
+			   "da-DK", "Virksomhedsnavn",
+			   "de-AT", "Mandantenname",
+			   "de-CH", "Mandantenname",
+			   "de-DE", "Mandantenname",
+			   "en-AU", "Company Name",
+			   "en-CA", "Company Name",
+			   "en-GB", "Company Name",
+			   "en-NZ", "Company Name",
+			   "es-ES", "Nombre empresa",
+			   "es-MX", "Nombre empresa",
+			   "fi-FI", "Yrityksen nimi",
+			   "fr-BE", "Nom de la société",
+			   "fr-CA", "Nom de la compagnie",
+			   "fr-CH", "Nom de la société",
+			   "fr-FR", "Nom de la société",
+			   "is-IS", "Heiti fyrirtækis",
+			   "it-CH", "Nome società",
+			   "it-IT", "Nome società",
+			   "nb-NO", "Selskapsnavn",
+			   "nl-BE", "Bedrijfsnaam",
+			   "nl-NL", "Bedrijfsnaam",
+			   "sv-SE", "Företagsnamn",
+			   "Company Name"
+			)
+		isHidden
+		lineageTag: 414806e9-0ac5-42c5-84b9-feaf6368c800
+
+	measure 'Last Refreshed Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Naposledy aktualizováno",
+			   "da-DK", "Sidst opdateret",
+			   "de-AT", "Zuletzt aktualisiert",
+			   "de-CH", "Zuletzt aktualisiert",
+			   "de-DE", "Zuletzt aktualisiert",
+			   "en-AU", "Last Refreshed",
+			   "en-CA", "Last Refreshed",
+			   "en-GB", "Last Refreshed",
+			   "en-NZ", "Last Refreshed",
+			   "es-ES", "Última actualización",
+			   "es-MX", "Última actualización",
+			   "fi-FI", "Päivitetty viimeksi",
+			   "fr-BE", "Dernière actualisation",
+			   "fr-CA", "Dernière actualisation",
+			   "fr-CH", "Dernière actualisation",
+			   "fr-FR", "Dernière actualisation",
+			   "is-IS", "Síðast uppfært",
+			   "it-CH", "Ultimo aggiornamento",
+			   "it-IT", "Ultimo aggiornamento",
+			   "nb-NO", "Sist oppdatert",
+			   "nl-BE", "Laatst vernieuwd",
+			   "nl-NL", "Laatst vernieuwd",
+			   "sv-SE", "Uppdaterades senast",
+			   "Last Refreshed"
+			)
+		isHidden
+		lineageTag: 23ecd669-2133-499a-b799-3abc57815e83
+
+	measure 'Actual Profit Margin % vs Budget Profit Margin % Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Skutečná zisková marže (%) vs. zisková marže rozpočtu (%)",
+			   "da-DK", "Faktisk fortjenstmargen % i forhold til budgetavancemargen %",
+			   "de-AT", "Tatsächliche Gewinnspanne % im Vergleich zu Budgetgewinnspanne %",
+			   "de-CH", "Tatsächliche Gewinnspanne % im Vergleich zu Budgetgewinnspanne %",
+			   "de-DE", "Tatsächliche Gewinnspanne % im Vergleich zu Budgetgewinnspanne %",
+			   "en-AU", "Actual Profit Margin % vs Budget Profit Margin %",
+			   "en-CA", "Actual Profit Margin % vs Budget Profit Margin %",
+			   "en-GB", "Actual Profit Margin % vs Budget Profit Margin %",
+			   "en-NZ", "Actual Profit Margin % vs Budget Profit Margin %",
+			   "es-ES", "Porcentaje de margen de beneficio real frente a Porcentaje de margen de beneficio presupuestado",
+			   "es-MX", "Porcentaje de margen de beneficio real frente a Porcentaje de margen de beneficio presupuestado",
+			   "fi-FI", "Todellinen voittomarginaali-% vrt. budjetoitu voittomarginaali-%",
+			   "fr-BE", "% marge bénéficiaire réelle par rapport au % marge bénéficiaire budget",
+			   "fr-CA", "% marge profit réelle par rapport au % marge profit budget",
+			   "fr-CH", "% marge bénéficiaire réelle par rapport au % marge bénéficiaire budget",
+			   "fr-FR", "% marge bénéficiaire réelle par rapport au % marge bénéficiaire budget",
+			   "is-IS", "% raunverulegs hagnaðarhlutfalls samanborin við % hagnaðarhlutfalls fjárhagsáætlunar",
+			   "it-CH", "% margine di profitto effettivo e % margine di profitto a budget",
+			   "it-IT", "% margine di profitto effettivo e % margine di profitto a budget",
+			   "nb-NO", "Faktisk fortjenestemarginsprosent kontra prosent for budsjettfortjenestemargin",
+			   "nl-BE", "Werkelijke winstmarge % versus budgetwinstmarge %",
+			   "nl-NL", "Werkelijke winstmarge % versus budgetwinstmarge %",
+			   "sv-SE", "Faktisk vinstmarginal i procent jämfört med budgeterad vinstmarginal i procent",
+			   "Actual Profit Margin % vs Budget Profit Margin %"
+			)
+		isHidden
+		lineageTag: a702ed21-55be-4422-97cf-96460ade7310
+
+	measure 'Billable (Invoiced Price) and Actual (Total Price) by Project No. & Description Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Fakturovatelná cena (fakturovaná cena) a skutečná cena (celková cena) podle čísla a popisu projektu",
+			   "da-DK", "Fakturerbar (faktureret pris) og faktisk (samlet pris) efter Projektnr. og Beskrivelse",
+			   "de-AT", "Fakturierbar (fakturierter Preis) und Ist-Verkaufsbetrag nach Projektnr. und Beschreibung",
+			   "de-CH", "Fakturierbar (fakturierter Preis) und Ist-Verkaufsbetrag nach Projektnr. und Beschreibung",
+			   "de-DE", "Fakturierbar (fakturierter Preis) und Ist-Verkaufsbetrag nach Projektnr. und Beschreibung",
+			   "en-AU", "Billable (Invoiced Price) and Actual (Total Price) by Project No. & Description",
+			   "en-CA", "Billable (Invoiced Price) and Actual (Total Price) by Project No. & Description",
+			   "en-GB", "Billable (Invoiced Price) and Actual (Total Price) by Project No. & Description",
+			   "en-NZ", "Billable (Invoiced Price) and Actual (Total Price) by Project No. & Description",
+			   "es-ES", "Facturable (precio facturado) y real (precio total) por N.º proyecto y Descripción",
+			   "es-MX", "Facturable (precio facturado) y real (precio total) por N.º proyecto y Descripción",
+			   "fi-FI", "Laskutettava (laskutettu hinta) ja toteuma (kokonaishinta) projektinumeron ja kuvauksen mukaan",
+			   "fr-BE", "Facturable (prix facturé) et réel (prix total) par n° de projet et description",
+			   "fr-CA", "Facturable (prix facturé) et réel (prix total) par n° de projet et description",
+			   "fr-CH", "Facturable (prix facturé) et réel (prix total) par n° de projet et description",
+			   "fr-FR", "Facturable (prix facturé) et réel (prix total) par n° de projet et description",
+			   "is-IS", "Reikningshæf upphæð (reikningsfært verð) og raunverð (heildarverð) eftir númeri og lýsingu verks",
+			   "it-CH", "Fatturabile (prezzo fatturato) ed effettivo (prezzo totale) per nr. e descrizione progetto",
+			   "it-IT", "Fatturabile (prezzo fatturato) ed effettivo (prezzo totale) per nr. e descrizione progetto",
+			   "nb-NO", "Fakturerbar (fakturert pris) og faktisk (salgsbeløp) etter prosjektnr. og beskrivelse",
+			   "nl-BE", "Factureerbaar (gefactureerde prijs) en werkelijk (totale prijs) op projectnummer en beschrijving",
+			   "nl-NL", "Factureerbaar (gefactureerde prijs) en werkelijk (totale prijs) op projectnummer en beschrijving",
+			   "sv-SE", "Fakturerbart (fakturerat pris) och faktiskt (totalt pris) per projektnummer och beskrivning",
+			   "Billable (Invoiced Price) and Actual (Total Price) by Project No. & Description"
+			)
+		isHidden
+		lineageTag: 15b15a33-8d5a-4af2-9b85-f64d83b44b00
+
+	measure 'Billable (Invoiced Price) by Type Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Fakturovatelné (fakturovaná cena) podle typu",
+			   "da-DK", "Fakturerbar (faktureret pris) efter type",
+			   "de-AT", "Fakturierbar (Fakturierter VK-Preis) nach Typ",
+			   "de-CH", "Fakturierbar (Fakturierter VK-Preis) nach Typ",
+			   "de-DE", "Fakturierbar (Fakturierter VK-Preis) nach Typ",
+			   "en-AU", "Billable (Invoiced Price) by Type",
+			   "en-CA", "Billable (Invoiced Price) by Type",
+			   "en-GB", "Billable (Invoiced Price) by Type",
+			   "en-NZ", "Billable (Invoiced Price) by Type",
+			   "es-ES", "Facturable (precio facturado) por tipo",
+			   "es-MX", "Facturable (precio facturado) por tipo",
+			   "fi-FI", "Laskutettava (laskutettu hinta) tyypin mukaan",
+			   "fr-BE", "Facturable (prix facturé) par type",
+			   "fr-CA", "Facturable (prix facturé) par type",
+			   "fr-CH", "Facturable (prix facturé) par type",
+			   "fr-FR", "Facturable (prix facturé) par type",
+			   "is-IS", "Reikningshæf upphæð (reikningsfært verð) eftir tegund",
+			   "it-CH", "Fatturabile (prezzo fatturato) per tipo",
+			   "it-IT", "Fatturabile (prezzo fatturato) per tipo",
+			   "nb-NO", "Fakturerbar (fakturert pris) etter type",
+			   "nl-BE", "Factureerbaar (gefactureerde prijs) per type",
+			   "nl-NL", "Factureerbaar (gefactureerde prijs) per type",
+			   "sv-SE", "Fakturerbart (fakturerat pris) per typ",
+			   "Billable (Invoiced Price) by Type"
+			)
+		isHidden
+		lineageTag: ed99dd40-501c-4c81-9837-ad6050b3dccc
+
+	measure 'Profit Margin vs Budget Profit Margin Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zisková marže vs. zisková marže rozpočtu",
+			   "da-DK", "Fortjenstmargen i forhold til budgetavancemargen",
+			   "de-AT", "Gewinnspanne gegenüber Budgetgewinnspanne",
+			   "de-CH", "Gewinnspanne gegenüber Budgetgewinnspanne",
+			   "de-DE", "Gewinnspanne gegenüber Budgetgewinnspanne",
+			   "en-AU", "Profit Margin vs Budget Profit Margin",
+			   "en-CA", "Profit Margin vs Budget Profit Margin",
+			   "en-GB", "Profit Margin vs Budget Profit Margin",
+			   "en-NZ", "Profit Margin vs Budget Profit Margin",
+			   "es-ES", "Margen de beneficio frente a margen de beneficio presupuestado",
+			   "es-MX", "Margen de beneficio frente a margen de beneficio presupuestado",
+			   "fi-FI", "Voittomarginaali vrt. budjetoitu voittomarginaali",
+			   "fr-BE", "Marge bénéficiaire réelle par rapport à marge bénéficiaire budget",
+			   "fr-CA", "Marge bénéficiaire par rapport à la marge bénéficiaire budgétée",
+			   "fr-CH", "Marge bénéficiaire réelle par rapport à marge bénéficiaire budget",
+			   "fr-FR", "Marge bénéficiaire réelle par rapport à marge bénéficiaire budget",
+			   "is-IS", "Hagnaðarhlutfall samanborið við hagnaðarhlutfalls fjárhagsáætlunar",
+			   "it-CH", "Margine di profitto e margine di profitto a budget",
+			   "it-IT", "Margine di profitto e margine di profitto a budget",
+			   "nb-NO", "Fortjenestemargin kontra budsjettfortjenestemargin",
+			   "nl-BE", "Winstmarge versus budgetwinstmarge",
+			   "nl-NL", "Winstmarge versus budgetwinstmarge",
+			   "sv-SE", "Vinstmarginal jämfört med budgeterad vinstmarginal",
+			   "Profit Margin vs Budget Profit Margin"
+			)
+		isHidden
+		lineageTag: dce6828a-242c-4a52-ac1a-6625e250f4b4
+
+	measure 'Project Tasks by Project Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Projektové úkoly podle projektu",
+			   "da-DK", "Projektopgaver efter projekt",
+			   "de-AT", "Projektaufgaben nach Projekt",
+			   "de-CH", "Projektaufgaben nach Projekt",
+			   "de-DE", "Projektaufgaben nach Projekt",
+			   "en-AU", "Project Tasks by Project",
+			   "en-CA", "Project Tasks by Project",
+			   "en-GB", "Project Tasks by Project",
+			   "en-NZ", "Project Tasks by Project",
+			   "es-ES", "Tareas de proyecto por proyecto",
+			   "es-MX", "Tareas de proyecto por proyecto",
+			   "fi-FI", "Projektitehtävät projekteittain",
+			   "fr-BE", "Tâches du projet par projet",
+			   "fr-CA", "Tâches du projet par projet",
+			   "fr-CH", "Tâches du projet par projet",
+			   "fr-FR", "Tâches du projet par projet",
+			   "is-IS", "Verkhluti verkefnis eftir verkefni",
+			   "it-CH", "Attività di progetto per progetto",
+			   "it-IT", "Attività di progetto per progetto",
+			   "nb-NO", "Prosjektoppgaver etter prosjekt",
+			   "nl-BE", "Projecttaken per project",
+			   "nl-NL", "Projecttaken per project",
+			   "sv-SE", "Projektuppgifter per projekt",
+			   "Project Tasks by Project"
+			)
+		isHidden
+		lineageTag: b4309ccc-e9ea-466c-aa4b-1d49436d22ba
+
+	measure 'Project Timeline Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Časová osa projektu",
+			   "da-DK", "Projekttidslinje",
+			   "de-AT", "Projektzeitachse",
+			   "de-CH", "Projektzeitachse",
+			   "de-DE", "Projektzeitachse",
+			   "en-AU", "Project Timeline",
+			   "en-CA", "Project Timeline",
+			   "en-GB", "Project Timeline",
+			   "en-NZ", "Project Timeline",
+			   "es-ES", "Escala de tiempo del proyecto",
+			   "es-MX", "Escala de tiempo del proyecto",
+			   "fi-FI", "Projektin aikajana",
+			   "fr-BE", "Chronologie du projet",
+			   "fr-CA", "Chronologie du projet",
+			   "fr-CH", "Chronologie du projet",
+			   "fr-FR", "Chronologie du projet",
+			   "is-IS", "Tímalína verkefnis",
+			   "it-CH", "Sequenza temporale progetto",
+			   "it-IT", "Sequenza temporale progetto",
+			   "nb-NO", "Prosjekttidslinje",
+			   "nl-BE", "Projecttijdlijn",
+			   "nl-NL", "Projecttijdlijn",
+			   "sv-SE", "Projektets tidslinje",
+			   "Project Timeline"
+			)
+		isHidden
+		lineageTag: e14bbea1-4737-4d6c-a3b5-37b92c6dbbb4
+
+	measure 'Project Tasks Duration Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Doba trvání úlohy projektu",
+			   "da-DK", "Varighed af projektopgaver",
+			   "de-AT", "Projektaufgabendauer",
+			   "de-CH", "Projektaufgabendauer",
+			   "de-DE", "Projektaufgabendauer",
+			   "en-AU", "Project Tasks Duration",
+			   "en-CA", "Project Tasks Duration",
+			   "en-GB", "Project Tasks Duration",
+			   "en-NZ", "Project Tasks Duration",
+			   "es-ES", "Duración de tareas de proyecto",
+			   "es-MX", "Duración de tareas de proyecto",
+			   "fi-FI", "Projektitehtävän kesto",
+			   "fr-BE", "Durée tâches projet",
+			   "fr-CA", "Durée tâches projet",
+			   "fr-CH", "Durée tâches projet",
+			   "fr-FR", "Durée tâches projet",
+			   "is-IS", "Lengd verkhluta verkefnis",
+			   "it-CH", "Durata attività di progetto",
+			   "it-IT", "Durata attività di progetto",
+			   "nb-NO", "Varighet på prosjektoppgaver",
+			   "nl-BE", "Duur van projecttaken",
+			   "nl-NL", "Duur van projecttaken",
+			   "sv-SE", "Varaktighet för projektuppgift",
+			   "Project Tasks Duration"
+			)
+		isHidden
+		lineageTag: dc6923db-a7cd-44d6-aa3c-07897c19a8d3
+
+	measure 'Project Task Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobnosti úlohy projektu",
+			   "da-DK", "Detaljer om projektopgave",
+			   "de-AT", "Projektaufgabendetails",
+			   "de-CH", "Projektaufgabendetails",
+			   "de-DE", "Projektaufgabendetails",
+			   "en-AU", "Project Task Details",
+			   "en-CA", "Project Task Details",
+			   "en-GB", "Project Task Details",
+			   "en-NZ", "Project Task Details",
+			   "es-ES", "Detalles de tarea de proyecto",
+			   "es-MX", "Detalles de tarea de proyecto",
+			   "fi-FI", "Projektitehtävän tiedot",
+			   "fr-BE", "Détails tâche projet",
+			   "fr-CA", "Détails tâche projet",
+			   "fr-CH", "Détails tâche projet",
+			   "fr-FR", "Détails tâche projet",
+			   "is-IS", "Upplýsingar um verkhluta verkefnis",
+			   "it-CH", "Dettagli attività di progetto",
+			   "it-IT", "Dettagli attività di progetto",
+			   "nb-NO", "Prosjektoppgavedetaljer",
+			   "nl-BE", "Projecttaakdetails",
+			   "nl-NL", "Projecttaakdetails",
+			   "sv-SE", "Information om projektuppgift",
+			   "Project Task Details"
+			)
+		isHidden
+		lineageTag: 538d97f3-5e05-4dc8-a591-8e7fb4150b2b
+
+	measure 'Total Usage Cost to Total Budget Cost Label' = "Total Usage Cost to Total Budget Cost"
+		isHidden
+		lineageTag: 22f70832-c292-456e-b8c5-4b86372c00e0
+
+	measure 'Total Usage Price by Type Label' = "Total Usage Price by Type"
+		isHidden
+		lineageTag: b5fd789e-af3e-4be5-b86c-f1f94a686e4e
+
+	measure 'Total Usage Cost to Budget Label' = "Total Usage Cost to Budget"
+		isHidden
+		lineageTag: fdc6b4f7-b300-45be-8dbe-eb73a8bd3b8c
+
+	measure 'Total Budget Cost and Total Usage Cost by Type Label' = "Total Budget Cost and Total Usage Cost by Type"
+		isHidden
+		lineageTag: 72a27ea9-3226-4481-8459-0673c252e723
+
+	measure 'Total Invoiced Price by Type Label' = "Total Invoiced Price by Type"
+		isHidden
+		lineageTag: c85ea036-e09f-4b78-9527-bee8ee391dc1
+
+	measure 'Billable to Invoiced % Label' = "Billable to Invoiced %"
+		isHidden
+		lineageTag: c30e879b-039c-4f92-8185-7fcfa6cbdcc7
+
+	measure 'Total Invoiced Price by Customer Label' = "Total Invoiced Price by Customer"
+		isHidden
+		lineageTag: b237e139-64a9-41d9-b761-8aa920e05a05
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: 481b3b0d-be39-4ebf-a242-1f63cc5f0a67
+		isNameInferred
+		sourceColumn: [unused]
+
+	partition Partition = calculated
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

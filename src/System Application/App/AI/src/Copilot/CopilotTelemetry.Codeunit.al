@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
-using System.Telemetry;
 using System.Globalization;
+using System.Telemetry;
 
 /// <summary>
 /// This codeunit is called from Platform.

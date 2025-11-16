@@ -1,0 +1,707 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 387.9245999926477,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 3026.2283516046195,
+            "y": 533.00894753553371
+          },
+          "nodeIndex": "COMPANY",
+          "nodeLineageTag": "8393b496-4c4d-4006-b681-5f1e5ccf11d2",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 1470.161440466517,
+            "y": 166.10920320965056
+          },
+          "nodeIndex": "Customer",
+          "nodeLineageTag": "b63a6db7-aba5-4033-a46b-e78a7da3d1ab",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 3310.2283516046195,
+            "y": 447.00894753553371
+          },
+          "nodeIndex": "Date Ref",
+          "nodeLineageTag": "a448829e-81fc-4742-9d00-2851f6d56728",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 3594.2283516046195,
+            "y": 447.00894753553371
+          },
+          "nodeIndex": "Date Table Setup",
+          "nodeLineageTag": "ba935e90-6b8b-4f48-b294-7a30e6205f4d",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 759.63639004427409,
+            "y": 772.90116713076191
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "5888ef19-abd1-49e9-9fdd-a4d0a65fa415",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 17
+        },
+        {
+          "location": {
+            "x": 3878.2283516046195,
+            "y": 447.00894753553371
+          },
+          "nodeIndex": "Localized Labels",
+          "nodeLineageTag": "495aebb8-7fbf-4e34-a928-49dcb48e3f12",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 1317.9465981295386,
+            "y": 519.84437926423948
+          },
+          "nodeIndex": "Project",
+          "nodeLineageTag": "b1e0cbab-2188-4883-90a6-f1ef885bff73",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 8
+        },
+        {
+          "location": {
+            "x": 676.44349815504006,
+            "y": 339.21426347649913
+          },
+          "nodeIndex": "Project Ledger Entry",
+          "nodeLineageTag": "760c1d99-b2f8-4635-a67c-349b496ce1e2",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 14
+        },
+        {
+          "location": {
+            "x": 973.5473370964088,
+            "y": -10
+          },
+          "nodeIndex": "Project Planning Line",
+          "nodeLineageTag": "ef9640e1-5bee-4de1-8ce2-a74068833660",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 1197.0755655968969,
+            "y": 884.01789507106741
+          },
+          "nodeIndex": "Purchases",
+          "nodeLineageTag": "0bf8bd97-3b45-4a32-84f6-0c174e5e0654",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 1031.7441817778847,
+            "y": 343.71397205834148
+          },
+          "nodeIndex": "Tasks",
+          "nodeLineageTag": "e064a10d-7469-46b5-b5f6-90916d8c34c6",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 13
+        },
+        {
+          "location": {
+            "x": 4162.2283516046191,
+            "y": 533.00894753553371
+          },
+          "nodeIndex": "Working Days",
+          "nodeLineageTag": "a3e98199-f988-4d5b-b6ca-06ffae7d0bc4",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 11
+        },
+        {
+          "location": {
+            "x": 4057.0068325978909,
+            "y": 545.00894753553371
+          },
+          "nodeIndex": "ENVIRONMENT",
+          "nodeLineageTag": "e8215461-ad1a-4c2f-bd84-c6c9bb62b8e4",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 389.22151900672839,
+            "y": 380.23944950164207
+          },
+          "nodeIndex": "Date",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 4057.0068325978909,
+            "y": 447.00894753553371
+          },
+          "nodeIndex": "Translated Localized Labels",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 4057.0068325978909,
+            "y": 485.00894753553371
+          },
+          "nodeIndex": "G/L Accounts",
+          "nodeLineageTag": "a24cab94-511c-465d-9331-9f3244319ec9",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 4341.0068325978909,
+            "y": 447.00894753553371
+          },
+          "nodeIndex": "Items",
+          "nodeLineageTag": "cf3c7b76-12cc-42e5-95b9-91b471b42ef1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 4625.0068325978909,
+            "y": 473.00894753553371
+          },
+          "nodeIndex": "Resources",
+          "nodeLineageTag": "1f9fda4d-3b1e-4bf6-a30a-c96fc3b40a2d",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 4909.0068325978909,
+            "y": 521.00894753553371
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "815e152d-5e55-4200-bdb7-c10e6a2b8da1",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 89.192590520569652,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 1,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 415.56930642973327,
+            "y": 217.02697925009531
+          },
+          "nodeIndex": "Project Ledger Entry",
+          "nodeLineageTag": "760c1d99-b2f8-4635-a67c-349b496ce1e2",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 66.364248239188427,
+            "y": 518.671833617657
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "5888ef19-abd1-49e9-9fdd-a4d0a65fa415",
+          "size": {
+            "height": 145.15008744189367,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 726.35478874400565,
+            "y": 74.070822895075338
+          },
+          "nodeIndex": "Tasks",
+          "nodeLineageTag": "e064a10d-7469-46b5-b5f6-90916d8c34c6",
+          "size": {
+            "height": 153.05059318465413,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 66.36424823918847,
+            "y": 60.043843644980015
+          },
+          "nodeIndex": "Date",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 763.96119487402416,
+            "y": 440.6542893591639
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "815e152d-5e55-4200-bdb7-c10e6a2b8da1",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 291.5109514569445,
+            "y": 870.44180176533689
+          },
+          "nodeIndex": "Items",
+          "nodeLineageTag": "cf3c7b76-12cc-42e5-95b9-91b471b42ef1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 585.40976508763617,
+            "y": 873.602004062441
+          },
+          "nodeIndex": "Resources",
+          "nodeLineageTag": "1f9fda4d-3b1e-4bf6-a30a-c96fc3b40a2d",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 876.1483764212237,
+            "y": 878.34230750809741
+          },
+          "nodeIndex": "G/L Accounts",
+          "nodeLineageTag": "a24cab94-511c-465d-9331-9f3244319ec9",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Project Ledger Entries",
+      "zoomValue": 63.287087723234038,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 2,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 373.20000076293945,
+            "y": 132
+          },
+          "nodeIndex": "Purchases",
+          "nodeLineageTag": "0bf8bd97-3b45-4a32-84f6-0c174e5e0654",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 4,
+            "y": 150
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "5888ef19-abd1-49e9-9fdd-a4d0a65fa415",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 761.20000076293945,
+            "y": 135
+          },
+          "nodeIndex": "Tasks",
+          "nodeLineageTag": "e064a10d-7469-46b5-b5f6-90916d8c34c6",
+          "size": {
+            "height": 214,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 773,
+            "y": 442
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "815e152d-5e55-4200-bdb7-c10e6a2b8da1",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 52,
+            "y": 675
+          },
+          "nodeIndex": "Items",
+          "nodeLineageTag": "cf3c7b76-12cc-42e5-95b9-91b471b42ef1",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 373,
+            "y": 673
+          },
+          "nodeIndex": "Resources",
+          "nodeLineageTag": "1f9fda4d-3b1e-4bf6-a30a-c96fc3b40a2d",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 248
+        },
+        {
+          "location": {
+            "x": 723,
+            "y": 676
+          },
+          "nodeIndex": "G/L Accounts",
+          "nodeLineageTag": "a24cab94-511c-465d-9331-9f3244319ec9",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 224
+        }
+      ],
+      "name": "Purchases",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 3,
+      "scrollPosition": {
+        "x": 0,
+        "y": 64
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 355.20000076293945,
+            "y": 165
+          },
+          "nodeIndex": "Project",
+          "nodeLineageTag": "b1e0cbab-2188-4883-90a6-f1ef885bff73",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 656.20000076293945,
+            "y": 104
+          },
+          "nodeIndex": "Tasks",
+          "nodeLineageTag": "e064a10d-7469-46b5-b5f6-90916d8c34c6",
+          "size": {
+            "height": 169,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 639.20000076293945,
+            "y": 410
+          },
+          "nodeIndex": "Customer",
+          "nodeLineageTag": "b63a6db7-aba5-4033-a46b-e78a7da3d1ab",
+          "size": {
+            "height": 179,
+            "width": 234
+          },
+          "zIndex": 2
+        }
+      ],
+      "name": "Projects",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 4,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 380.30378466845946,
+            "y": 214.16422384215912
+          },
+          "nodeIndex": "Project Planning Line",
+          "nodeLineageTag": "ef9640e1-5bee-4de1-8ce2-a74068833660",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 652.30378466845946,
+            "y": 43.224663778798167
+          },
+          "nodeIndex": "Tasks",
+          "nodeLineageTag": "e064a10d-7469-46b5-b5f6-90916d8c34c6",
+          "size": {
+            "height": 159,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 82.239924775329314
+          },
+          "nodeIndex": "Date",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 766,
+            "y": 484
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "815e152d-5e55-4200-bdb7-c10e6a2b8da1",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 599,
+            "y": 701
+          },
+          "nodeIndex": "Resources",
+          "nodeLineageTag": "1f9fda4d-3b1e-4bf6-a30a-c96fc3b40a2d",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 315,
+            "y": 699
+          },
+          "nodeIndex": "G/L Accounts",
+          "nodeLineageTag": "a24cab94-511c-465d-9331-9f3244319ec9",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": -60,
+            "y": 736
+          },
+          "nodeIndex": "Items",
+          "nodeLineageTag": "cf3c7b76-12cc-42e5-95b9-91b471b42ef1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        }
+      ],
+      "name": "Project Planning Lines",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 5,
+      "scrollPosition": {
+        "x": 0,
+        "y": 169
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 348.1847511806298,
+            "y": 323
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "3f87aa8d-3a0c-4e4f-b28d-af733a87629b",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 618.36163941535983,
+            "y": -17.740116544907949
+          },
+          "nodeIndex": "Project Ledger Entry",
+          "nodeLineageTag": "760c1d99-b2f8-4635-a67c-349b496ce1e2",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": -50
+          },
+          "nodeIndex": "Project Planning Line",
+          "nodeLineageTag": "ef9640e1-5bee-4de1-8ce2-a74068833660",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Layout 1",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Projects",
+  "defaultDiagram": "All tables"
+}

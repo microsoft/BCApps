@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Integration.Receive;
 
-using Microsoft.eServices.EDocument.Integration.Action;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Integration.Action;
 
 /// <summary>
 /// Represents the context for an action.

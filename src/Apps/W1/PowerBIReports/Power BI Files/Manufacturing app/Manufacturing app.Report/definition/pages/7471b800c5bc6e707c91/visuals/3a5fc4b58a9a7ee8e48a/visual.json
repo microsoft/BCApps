@@ -1,0 +1,329 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "3a5fc4b58a9a7ee8e48a",
+  "position": {
+    "x": 26.107226107226108,
+    "y": 145.45454545454547,
+    "z": 0,
+    "height": 548.25174825174827,
+    "width": 1227.7855477855478,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Prod Order Routing Lines"
+                    }
+                  },
+                  "Property": "No."
+                }
+              },
+              "queryRef": "Prod Order Routing Lines.No.",
+              "nativeQueryRef": "No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Work Center"
+                    }
+                  },
+                  "Property": "Work Center Name"
+                }
+              },
+              "queryRef": "Work Center.Work Center Name",
+              "nativeQueryRef": "Work Center Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Name"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Name",
+              "nativeQueryRef": "Machine Center Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Production Order"
+                }
+              },
+              "queryRef": "Production Orders.Production Order",
+              "nativeQueryRef": "Production Order"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Prod Order Routing Lines"
+                    }
+                  },
+                  "Property": "Routing Status"
+                }
+              },
+              "queryRef": "Prod Order Routing Lines.Routing Status",
+              "nativeQueryRef": "Routing Status"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Prod Order Routing Lines"
+                    }
+                  },
+                  "Property": "Operation No."
+                }
+              },
+              "queryRef": "Prod Order Routing Lines.Operation No.",
+              "nativeQueryRef": "Operation No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Prod Order Routing Lines"
+                    }
+                  },
+                  "Property": "Starting Date Time"
+                }
+              },
+              "queryRef": "Prod Order Routing Lines.startingDateTime",
+              "nativeQueryRef": "Starting Date Time"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Prod Order Routing Lines"
+                    }
+                  },
+                  "Property": "Ending Date Time"
+                }
+              },
+              "queryRef": "Prod Order Routing Lines.endingDateTime",
+              "nativeQueryRef": "endingDateTime"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Prod Order Routing Lines"
+                    }
+                  },
+                  "Property": "Total Duration Hours"
+                }
+              },
+              "queryRef": "Prod Order Routing Lines.Duration Hours Measure",
+              "nativeQueryRef": "Duration Hours Measure"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Prod Order Routing Lines"
+                    }
+                  },
+                  "Property": "Setup Time"
+                }
+              },
+              "queryRef": "Prod Order Routing Lines.Setup Time",
+              "nativeQueryRef": "Setup Time"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Prod Order Routing Lines"
+                    }
+                  },
+                  "Property": "Run Time"
+                }
+              },
+              "queryRef": "Prod Order Routing Lines.Run Time",
+              "nativeQueryRef": "Run Time"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Prod Order Routing Lines"
+                    }
+                  },
+                  "Property": "Wait Time"
+                }
+              },
+              "queryRef": "Prod Order Routing Lines.Wait Time",
+              "nativeQueryRef": "Wait Time"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Prod Order Routing Lines"
+                    }
+                  },
+                  "Property": "Move Time"
+                }
+              },
+              "queryRef": "Prod Order Routing Lines.Move Time",
+              "nativeQueryRef": "Move Time"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Production Orders"
+                  }
+                },
+                "Property": "Production Order"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnFormatting": [
+        {
+          "properties": {
+            "dataBars": {
+              "positiveColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#b3d8dd'"
+                      }
+                    }
+                  }
+                }
+              },
+              "negativeColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#f1c8bf'"
+                      }
+                    }
+                  }
+                }
+              },
+              "axisColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#FFFFFF'"
+                      }
+                    }
+                  }
+                }
+              },
+              "reverseDirection": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "hideText": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "totalMatchingOption": {
+                "expr": {
+                  "Literal": {
+                    "Value": "1L"
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Prod Order Routing Lines.Duration Hours Measure"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Task List Details Label"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

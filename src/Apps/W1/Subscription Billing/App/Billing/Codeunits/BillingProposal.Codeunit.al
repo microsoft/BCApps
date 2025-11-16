@@ -1,10 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
-using Microsoft.Sales.Document;
-using Microsoft.Purchases.Document;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
+using System.Utilities;
 
 codeunit 8062 "Billing Proposal"
 {

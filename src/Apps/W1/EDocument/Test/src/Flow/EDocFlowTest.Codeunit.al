@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Test;
 
-using System.TestLibraries.Utilities;
-using System.IO;
 using Microsoft.eServices.EDocument;
-using System.Utilities;
-using System.Automation;
 using Microsoft.eServices.EDocument.Integration;
+using System.Automation;
+using System.IO;
+using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 139631 "E-Doc. Flow Test"
 {

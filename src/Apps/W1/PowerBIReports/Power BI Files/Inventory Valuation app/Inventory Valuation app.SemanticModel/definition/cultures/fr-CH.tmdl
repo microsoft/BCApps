@@ -1,0 +1,409 @@
+cultureInfo fr-CH
+	translations
+		model Model
+			table Item
+				caption: Article
+				column 'Item No. & Description'
+					caption: N° et description d’article
+				column 'Item No.'
+					caption: N° d’article
+				column 'Item Description'
+					caption: Description de l’article
+				column 'Item Base Unit of Measure'
+					caption: Code unité de base article
+				column 'Item Unit Cost (LCY)'
+					caption: Coût unitaire (DL)
+				column 'Item Inventory Posting Group'
+					caption: Groupe de report des stocks article
+				column 'Item Category Code'
+					caption: Code catégorie article
+				column 'Item Category Description'
+					caption: Description catégorie article
+			table Location
+				caption: Magasin
+				column 'Location Code'
+					caption: Code magasin
+				column 'Location Name'
+					caption: Nom du magasin
+				column 'Location Adjustment Bin Code'
+					caption: Code emplacement ajustement magasin
+			table 'Value Entries'
+				caption: Écritures valeur
+				column 'Entry No.'
+					caption: N° d’écriture
+				column 'Valuation Date'
+					caption: Date évaluation
+				column 'Item Ledger Entry Type'
+					caption: Type écriture Compta. article
+				column 'Document Type'
+					caption: Type du document
+				column Type
+					caption: Type
+				measure 'As of Beg. Date Label'
+					caption: Étiquette de date au début
+				measure 'As of End Date Label'
+					caption: Étiquette de date à la fin
+				measure 'Beginning Balance Cost Posted to G/L'
+					caption: Coût solde d’ouverture validé en comptabilité
+				measure 'Beginning Balance Expected Cost Posted to G/L'
+					caption: Coût prévu solde d’ouverture validé en comptabilité
+				measure 'Beginning Balance Qty'
+					caption: Quantité de solde d’ouverture
+				measure 'Beginning Balance Cost Amount (Actual)'
+					caption: Montant coût solde d’ouverture (réel)
+				measure 'Beginning Balance Cost Amount (Expected)'
+					caption: Montant coût solde d’ouverture (prévu)
+				measure 'Beginning Balance Cost Amount (Incl. Exp Cost)'
+					caption: Montant coût solde d’ouverture (coût prévu inclus)
+				measure 'Cost Amount (Actual)'
+					caption: Montant coût (réel)
+				measure 'Cost Amount (Expected)'
+					caption: Montant coût (prévu)
+				measure 'Cost Posted to G/L'
+					caption: Coût validé en comptabilité
+				measure 'Expected Cost Posted to G/L'
+					caption: Coût prévu validé en comptabilité
+				measure 'Decrease Qty.'
+					caption: Quantité de sortie
+				measure 'Decrease Value'
+					caption: Valeur de sortie
+				measure 'Decrease Value (Expected)'
+					caption: Valeur de sortie (prévue)
+				measure 'Decrease Value Expected Cost Included'
+					caption: Valeur de sortie Coût prévu inclus
+				measure 'Ending Balance Cost Amount (Incl. Exp Cost)'
+					caption: Montant coût solde de clôture (coût prévu inclus)
+				measure 'Ending Balance Cost Posted to G/L'
+					caption: Coût solde de clôture validé en comptabilité
+				measure 'Ending Balance Qty.'
+					caption: Quantité de solde de clôture
+				measure 'Ending Balance Cost Amount (Actual)'
+					caption: Montant coût solde de clôture (réel)
+				measure 'Ending Balance Cost Amount (Expected)'
+					caption: Montant coût solde de clôture (prévu)
+				measure 'Ending Balance Expected Cost Posted to G/L'
+					caption: Solde de clôture coût prévu validé en comptabilité
+				measure 'Increase Value Expected Cost Included'
+					caption: Valeur d’entrée Coût prévu inclus
+				measure 'Increases Qty.'
+					caption: Quantités d’entrées
+				measure 'Increases Value'
+					caption: Valeur d’entrées
+				measure 'Increases Value (Expected)'
+					caption: Valeur d’entrées (prévue)
+				measure 'Invoiced Quantity'
+					caption: Quantité facturée
+				measure 'Cost Amount (Incl. Exp Cost)'
+					caption: Montant coût (coût prévu inclus)
+				measure 'Variance Cost Posted to G/L'
+					caption: Écart coût validé en comptabilité
+				measure 'Base Link'
+					caption: Lien de base
+				measure 'Value Entry Back Link'
+					caption: Lien secondaire Écriture valeur
+			table 'Dimension Sets'
+				caption: Ensembles de dimensions
+				column 'Global Dimension 1'
+					caption: Axe analytique principal 1
+				column 'Global Dimension 2'
+					caption: Axe analytique principal 2
+				column 'Shortcut Dimension 3'
+					caption: Raccourci axe 3
+				column 'Shortcut Dimension 4'
+					caption: Raccourci axe 4
+				column 'Shortcut Dimension 5'
+					caption: Raccourci axe 5
+				column 'Shortcut Dimension 6'
+					caption: Raccourci axe 6
+				column 'Shortcut Dimension 7'
+					caption: Raccourci axe 7
+				column 'Shortcut Dimension 8'
+					caption: Raccourci axe 8
+			table Date
+				caption: Date
+				column 'Week Day'
+					caption: Jour semaine
+				column 'Relative Day'
+					caption: Jour relatif
+				column 'Calendar Year'
+					caption: Année civile
+				column 'Calendar Quarter'
+					caption: Trimestre civil
+				column 'Calendar Quarter Year'
+					caption: Trimestre civil
+				column 'Calendar Month'
+					caption: Mois civil
+				column 'Calendar Month Year'
+					caption: Mois et année civils
+				column 'Calendar Week'
+					caption: Semaine civile
+				column 'Calendar Week Year'
+					caption: Semaine d’année civile
+				column 'Calendar WeekYearOrder'
+					caption: OrdreSemaineAnnée civile
+				column 'Calendar RelativeWeekPos'
+					caption: PosSemaineRelative civile
+				column 'Calendar RelativeMonthPos'
+					caption: PosMoisRelatif civil
+				column 'Calendar RelativeQuarterPos'
+					caption: PosTrimestreRelatif civil
+				column 'Calendar RelativeYearPos'
+					caption: PosAnnéeRelative civil
+				column 'Calendar StartOfMonth'
+					caption: DébutDuMois civil
+				column 'Calendar EndOfMonth'
+					caption: FinDuMois civil
+				column 'Calendar StartOfQuarter'
+					caption: DébutDuTrimestre civil
+				column 'Calendar EndOfQuarter'
+					caption: FinDeTrimestre civil
+				column 'Calendar StartOfYear'
+					caption: DébutAnnée civile
+				column 'Calendar EndOfYear'
+					caption: FinAnnée civile
+				column 'Calendar MonthDays'
+					caption: JoursMois civil
+				column 'Calendar QuarterDays'
+					caption: JoursTrimestre civil
+				column 'Calendar YearDays'
+					caption: JoursAnnée civile
+				column 'Calendar DayOfMonthNumber'
+					caption: NuméroJourDuMois civil
+				column 'Calendar DayOfQuarterNumber'
+					caption: NuméroJourDuTrimestre civil
+				column 'Calendar DayOfYearNumber'
+					caption: NuméroJourAnnée civile
+				column 'Calendar DatePreviousWeek'
+					caption: DateSemainePrécédente civile
+				column 'Calendar DatePreviousMonth'
+					caption: DateMoisPrécédent civil
+				column 'Calendar DatePreviousQuarter'
+					caption: DateTrimestrePrécédent civil
+				column 'Calendar DatePreviousYear'
+					caption: DateAnnéePrécédente civile
+				column 'Fiscal Year'
+					caption: Exercice
+				column 'Fiscal QuarterNumber'
+					caption: NuméroTrimestre d’exercice
+				column 'Fiscal Quarter'
+					caption: Trimestre d’exercice
+				column 'Fiscal Quarter Year'
+					caption: Trimestre d’exercice
+				column 'Fiscal MonthInQuarterNumber'
+					caption: NuméroMoisTrimestre d’exercice
+				column 'Fiscal Month'
+					caption: Mois d’exercice
+				column 'Fiscal Month Year'
+					caption: Mois et année d’exercice
+				column 'Fiscal WeekNumber'
+					caption: NuméroSemaine fiscale
+				column 'Fiscal Week'
+					caption: Semaine d’exercice
+				column 'Fiscal Week Year'
+					caption: Semaine et année d’exercice
+				column 'Fiscal WeekYearOrder'
+					caption: OrdreSemaineAnnée d’exercice
+				column 'Fiscal RelativeWeekPos'
+					caption: PosSemaineRelative d’exercice
+				column 'Fiscal RelativeMonthPos'
+					caption: PosMoisRelatif d’exercice
+				column 'Fiscal RelativeQuarterPos'
+					caption: PosTrimestreRelatif d’exercice
+				column 'Fiscal RelativeYearPos'
+					caption: PosAnnéeRelative d’exercice
+				column 'Fiscal StartOfMonth'
+					caption: DébutDuMois d’exercice
+				column 'Fiscal EndOfMonth'
+					caption: FinDuMois d’exercice
+				column 'Fiscal StartOfQuarter'
+					caption: DébutDuTrimestre d’exercice
+				column 'Fiscal EndOfQuarter'
+					caption: FinDuTrimestre d’exercice
+				column 'Fiscal StartOfYear'
+					caption: DébutExercice fiscal
+				column 'Fiscal EndOfYear'
+					caption: FinExercice fiscal
+				column 'Fiscal MonthDays'
+					caption: JoursMois d’exercice
+				column 'Fiscal QuarterDays'
+					caption: JoursTrimestre d’exercice
+				column 'Fiscal YearDays'
+					caption: JoursAnnée d’exercice
+				column 'Fiscal DayOfMonthNumber'
+					caption: NuméroJourDuMois d’exercice
+				column 'Fiscal DayOfQuarterNumber'
+					caption: NuméroJourDuTrimestre d’exercice
+				column 'Fiscal DayOfYearNumber'
+					caption: NuméroJourAnnée d’exercice
+				column 'Fiscal DatePreviousWeek'
+					caption: DateSemainePrécédente d’exercice
+				column 'Fiscal DatePreviousMonth'
+					caption: DateMoisPrécédent d’exercice
+				column 'Fiscal DatePreviousQuarter'
+					caption: DateTrimestrePrécédent d’exercice
+				column 'Fiscal DatePreviousYear'
+					caption: DateAnnéePrécédente d’exercice
+				column 'FW Year'
+					caption: Année SE
+				column 'FW Quarter'
+					caption: Trimestre SE
+				column 'FW Quarter Year'
+					caption: Trimestre année SE
+				column 'FW Month'
+					caption: Mois SE
+				column 'FW Month Year'
+					caption: Mois année SE
+				column 'FW Week'
+					caption: Semaine SE
+				column 'FW Period'
+					caption: Période SE
+				column 'FW Week Year'
+					caption: Semaine Année SE
+				column 'FW StartOfWeek'
+					caption: DébutDeSemaine SE
+				column 'FW EndOfWeek'
+					caption: FinDeSemaine SE
+				column 'FW RelativeWeekPos'
+					caption: PosSemaineRelative SE
+				column 'FW RelativeMonthPos'
+					caption: PosMoisRelatif SE
+				column 'FW RelativeQuarterPos'
+					caption: PosTrimestreRelatif SE
+				column 'FW RelativeYearPos'
+					caption: PosAnnéeRelative SE
+				column 'FW StartOfMonth'
+					caption: DébutDuMois SE
+				column 'FW EndOfMonth'
+					caption: FinDuMois SE
+				column 'FW StartOfQuarter'
+					caption: DébutDuTrimestre SE
+				column 'FW EndOfQuarter'
+					caption: FinDuTrimestre SE
+				column 'FW StartOfYear'
+					caption: DébutExercice SE
+				column 'FW EndOfYear'
+					caption: FinAnnée SE
+				column 'FW MonthDays'
+					caption: JoursMois SE
+				column 'FW QuarterDays'
+					caption: JoursTrimestre SE
+				column 'FW YearDays'
+					caption: JoursAnnée SE
+				column 'FW DayOfMonthNumber'
+					caption: NuméroJourDuMois SE
+				column 'FW DayOfQuarterNumber'
+					caption: NuméroJourDuTrimestre SE
+				column 'FW DayOfYearNumber'
+					caption: NuméroJourAnnée SE
+				column 'FW DatePreviousWeek'
+					caption: DateSemainePrécédente SE
+				column 'FW DatePreviousMonth'
+					caption: DateMoisPrécédent SE
+				column 'FW DatePreviousQuarter'
+					caption: DateTrimestrePrécédent SE
+				column 'FW DatePreviousYear'
+					caption: DateAnnéePrécédente SE
+				column 'Holiday Name'
+					caption: Nom du jour férié
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Type de jour
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Titre de l’état
+				measure 'My Button Caption'
+					caption: Légende de mon bouton
+				measure 'My Visual Title'
+					caption: Mon titre visuel
+				measure 'Inventory Valuation'
+					caption: Évaluation du stock
+				measure 'for Business Central'
+					caption: pour Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: CONNECTER VOS DONNÉES
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Téléchargez le connecteur de stock pour Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Configurez Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS
+				measure 'Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Évaluation du stock comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.
+				measure 'HELP AND SUPPORT'
+					caption: AIDE ET SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.
+				measure 'OTHER POWER BI REPORTS'
+					caption: AUTRES ÉTATS POWER BI
+				measure PURCHASE
+					caption: ACHAT
+				measure FINANCE
+					caption: FINANCIER
+				measure PROJECTS
+					caption: PROJETS
+				measure INVENTORY
+					caption: STOCK
+				measure SALES
+					caption: VENTES
+				measure 'Inventory Valuation Overview'
+					caption: Vue d’ensemble d’Évaluation du stock
+				measure 'Inventory Value & Cost Posted to G/L by Month Year'
+					caption: Valeur et coût du stock validés en comptabilité par mois et par année
+				measure 'Inventory Value by Location'
+					caption: Valeur du stock par magasin
+				measure 'Inventory Quantity'
+					caption: Quantité en stock
+				measure 'Inventory Valuation by Item'
+					caption: Évaluation du stock par article
+				measure 'Inventory Valuation by Location'
+					caption: Évaluation du stock par magasin
+				measure 'Detailed Inventory Valuation'
+					caption: Évaluation du stock détaillée
+				measure 'The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: L’évaluation du stock par article indique le numéro d’article, la valeur du solde d’ouverture, la valeur d’entrée, la valeur de sortie et la valeur du solde de clôture.
+				measure 'The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: L’évaluation du stock par magasin indique le code magasin, la valeur du solde d’ouverture, la valeur d’entrée, la valeur de sortie et la valeur du solde de clôture.
+				measure 'The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).'
+					caption: L’évaluation du stock détaillée indique la date, le numéro et la description de l’article, le code magasin, le type de document, le numéro d’écriture, la quantité facturée, le montant du coût (réel), le montant du coût (prévu), le coût validé en comptabilité (réel) et le coût validé en comptabilité (prévu).
+				measure 'The inventory valuation by location shows location and ending balance value.'
+					caption: L’évaluation du stock par magasin indique le magasin et la valeur du solde de clôture.
+				measure 'The inventory valuation by item shows item category and ending balance quantity.'
+					caption: L’évaluation du stock par article indique la catégorie d’article et la quantité du solde final.
+				measure 'Last Refreshed'
+					caption: Dernière actualisation
+				measure 'Company Name'
+					caption: Nom de la société
+				measure 'Inventory value as of '
+					caption: "Valeur stock au "
+				measure 'Ending Balance Value and Invoiced Quantity by Location Code'
+					caption: Valeur du solde de clôture et quantité facturée par code magasin
+				measure 'Ending Balance Value, Ending Balance Posted to G/L and Variance by Month'
+					caption: Valeur du solde de clôture, Solde de clôture validé en comptabilité et Écart par mois
+				measure 'Ending Balance Quantity by Item Category Code'
+					caption: Quantité par code catégorie article solde de clôture
+				measure 'Ending Balance Value by Location Name'
+					caption: Valeur du solde de clôture par nom de magasin
+			table COMPANY
+				caption: SOCIÉTÉ
+				measure 'Company Label'
+					caption: Étiquette société
+			table 'Item Category'
+				caption: Catégorie article
+				column 'Item Category Code'
+					caption: Code catégorie article
+				column 'Item Category Description'
+					caption: Désignation catégorie article
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Hiérarchie code catégorie article
+					level 'Item Category Code Level 1'
+						caption: Code catégorie article niveau 1
+					level 'Item Category Code Level 2'
+						caption: Code catégorie article niveau 2
+					level 'Item Category Code Level 3'
+						caption: Code catégorie article niveau 3
+					level 'Item Category Code'
+						caption: Code catégorie article
+

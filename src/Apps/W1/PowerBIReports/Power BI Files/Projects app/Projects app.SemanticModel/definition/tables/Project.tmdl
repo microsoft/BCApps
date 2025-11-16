@@ -1,0 +1,347 @@
+table Project
+	lineageTag: b1e0cbab-2188-4883-90a6-f1ef885bff73
+
+	/// The Project Count measure counts the total number of projects in the Project table.
+	measure 'Project Count' = COUNTROWS(Project)
+		formatString: #,0
+		displayFolder: _Project Measures\Count
+		lineageTag: e8e825de-ddd3-41da-a737-ab85c7596bc7
+
+		changedProperty = IsHidden
+
+	/// Actual Profit = Billable (Invoiced Price) - Actual (Total Cost)
+	measure 'Actual Profit' = [Total Invoiced Price] - [Total Usage Cost]
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Project Measures\Obsolete
+		lineageTag: bdf0b0cd-9a69-4e79-949d-da3dd2065322
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// Actual Profit Margin % = Actual Profit Margin % / Billable (Invoiced Price)
+	measure 'Actual Profit Margin (%)' =
+			
+			DIVIDE ( [Actual Profit], [Total Invoiced Price] )
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		displayFolder: _Project Measures\Obsolete
+		lineageTag: 7475b569-ee49-4a5b-8ba8-b279321a6951
+
+		changedProperty = IsHidden
+
+	/// The Duration (Days) measure calculates the number of days between the earliest starting date and latest ending date for a given project in the Project table.
+	measure 'Project Duration (Days)' =
+			
+			DATEDIFF (
+			    MIN ( 'Project'[Project Starting Date] ),
+			    MAX ( Project[Project Ending Date] ),
+			    DAY
+			)
+		formatString: 0
+		isHidden
+		displayFolder: _Project Measures\Obsolete
+		lineageTag: 35e85eb8-07c8-4533-aeae-e86c84dfb36b
+
+		changedProperty = IsHidden
+
+	/// Budget Profit = - Budget (Total Price) - Budget (Total Cost)
+	measure 'Budget Profit' = [Total Budget Price] - [Total Budget Cost]
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Project Measures\Obsolete
+		lineageTag: 5a732f7f-6b55-4be6-99db-821e90f40de0
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// Budget Profit Margin % = Budget Profit / Budget (Total Price)
+	measure 'Budget Profit Margin (%)' =
+			
+			DIVIDE ( [Total Budget Profit], [Total Budget Price] )
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		displayFolder: _Project Measures\Obsolete
+		lineageTag: d55cd0e6-277a-48d3-aead-39acd1077eeb
+
+		changedProperty = IsHidden
+
+	measure 'Completed (%)' =
+			
+			DIVIDE ( [Total Usage Cost], [Total Budget Cost] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Project Measures\Percentage
+		lineageTag: 90338e06-52d1-4ab1-a742-97c325f98dc0
+
+		changedProperty = IsHidden
+
+	measure 'Invoiced (%)' =
+			
+			DIVIDE ( [Total Invoiced Price], [Total Billable Price] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Project Measures\Percentage
+		lineageTag: 4eb53e63-d2e3-40cc-a2eb-f94b645b420b
+
+		changedProperty = IsHidden
+
+	/// The Tasks Count measure counts the number of rows in the Tasks table that where the Project Task Type has a value of "Posting".
+	measure 'Tasks Count' =
+			
+			CALCULATE ( COUNTROWS ( 'Tasks' ), 'Tasks'[Task Type] = "Posting" )
+		formatString: #,0
+		displayFolder: _Project Measures\Count
+		lineageTag: a7c3e7fd-99ef-4701-9664-6e844cf81c92
+
+		changedProperty = IsHidden
+
+	/// Realization % = Billable (Invoiced Price) / Actual (Total Price)
+	measure 'Realization (%)' = DIVIDE ( [Total Billable Price], [Total Usage Price] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Project Measures\Realization
+		lineageTag: 3e17b8e5-3510-4349-83d7-131c97c5afdd
+
+		changedProperty = IsHidden
+
+	/// Realization Variance = Billable (Invoiced Price) - Actual (Total Price)
+	measure 'Realization Variance' = [Total Billable Price] - [Total Usage Price]
+		formatString: #,0.00
+		displayFolder: _Project Measures\Realization
+		lineageTag: 41de63a4-c444-417d-8e63-db534014c25d
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Base Link' =
+			
+			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
+			VAR TenantID = VALUES('Date Table Setup'[tenantID])
+			VAR Environment = VALUES(ENVIRONMENT[ENVIRONMENT])
+			VAR Company = "?company=" & VALUES(COMPANY[COMPANY])
+			RETURN BusinessCentral & TenantID & "/" & Environment & "/" & Company
+		isHidden
+		displayFolder: _Project Measures\Back Links
+		lineageTag: 99d7744e-1dcb-4c9a-8941-4ca5d75c6c93
+
+		changedProperty = IsHidden
+
+	measure 'Project Planning Lines Back Link' = ```
+			
+			VAR ProjectNos = CONCATENATEX(VALUES('Project Planning Line'[Project No.]), 'Project Planning Line'[Project No.], "|")
+			VAR ProjectTaskNos = CONCATENATEX(VALUES('Project Planning Line'[Task No.]), 'Project Planning Line'[Task No.], "|")
+			VAR LineNos = CONCATENATEX(VALUES('Project Planning Line'[Line No.]), 'Project Planning Line'[Line No.], "|")
+			
+			RETURN 
+			    [Base Link] 
+			    & "&page=1007&filter='Job Planning Line'.'Job No.' IS '" & ProjectNos & "'"
+			    & " AND 'Job Planning Line'.'Job Task No.' IS '" & ProjectTaskNos & "'"
+			    & " AND 'Job Planning Line'.'Line No.' IS '" & LineNos & "'"
+			```
+		isHidden
+		displayFolder: _Project Measures\Back Links
+		lineageTag: dd4d91a3-df1d-49ea-b97d-1c0571071c27
+		dataCategory: WebUrl
+
+		changedProperty = IsHidden
+
+	measure 'No. of Completed Projects' = ```
+			COUNTROWS(CALCULATETABLE( Project,  Project[Project Complete] = TRUE() ))
+			    
+			
+			```
+		formatString: #,0
+		displayFolder: _Project Measures\Count
+		lineageTag: 7464e713-79de-4fb7-9d4b-fc94280946da
+
+	measure 'Project Ledger Entries Back Link' = ```
+			
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Project Ledger Entry'[Dimension Set ID.]), 'Project Ledger Entry'[Dimension Set ID.], "|")
+			VAR ProjectNos = CONCATENATEX(VALUES('Project Ledger Entry'[Project No.]), 'Project Ledger Entry'[Project No.], "|")
+			VAR ProjectTaskNos = CONCATENATEX(VALUES('Project Ledger Entry'[Task No.]), 'Project Ledger Entry'[Task No.], "|")
+			VAR EntryTypes = CONCATENATEX(VALUES('Project Ledger Entry'[Entry Type]), 'Project Ledger Entry'[Entry Type], "|")
+			VAR Types = CONCATENATEX(VALUES('Project Ledger Entry'[Type]), 'Project Ledger Entry'[Type], "|")
+			
+			RETURN 
+			    [Base Link] 
+			    & "&page=92&filter='Job Ledger Entry'.'Job No.' IS '" & ProjectNos & "'"
+			    & " AND 'Job Ledger Entry'.'Job Task No.' IS '" & ProjectTaskNos & "'"
+			    & " AND 'Job Ledger Entry'.'Entry Type' IS '" & EntryTypes & "'"
+			    & " AND 'Job Ledger Entry'.'Type' IS '" & Types & "'"
+			    & " AND 'Job Ledger Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			```
+		isHidden
+		displayFolder: _Project Measures\Back Links
+		lineageTag: 3d302b7c-99dc-4108-bbd7-d7d99d1f4388
+
+		changedProperty = IsHidden
+
+	column 'Project No.'
+		dataType: string
+		isKey
+		lineageTag: a1964158-8637-4558-bd12-28561b0dc7e8
+		summarizeBy: none
+		sourceColumn: Project No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project Description'
+		dataType: string
+		lineageTag: 6350968d-dfc1-4f91-8299-dcda25c06134
+		summarizeBy: none
+		sourceColumn: Project Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project Bill to Customer No.'
+		dataType: string
+		isHidden
+		lineageTag: a5deb63b-761f-4b84-adcd-05e38add9f1f
+		summarizeBy: none
+		sourceColumn: Project Bill to Customer No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project Creation Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 5e0e87ba-7435-4188-9687-49eb63b00d20
+		summarizeBy: none
+		sourceColumn: Project Creation Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Project Starting Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 9221649a-ba40-4032-bb41-7f44124af8f4
+		summarizeBy: none
+		sourceColumn: Project Starting Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Project Ending Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 0b20425a-cd0f-4250-a1b5-b4d126bc87fc
+		summarizeBy: none
+		sourceColumn: Project Ending Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Project Status'
+		dataType: string
+		lineageTag: 97105c37-8d2e-4270-a094-8beaaf11525d
+		summarizeBy: none
+		sourceColumn: Project Status
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project Posting Group'
+		dataType: string
+		lineageTag: 5b49c593-64df-4581-955f-e2248dbad55e
+		summarizeBy: none
+		sourceColumn: Project Posting Group
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project Blocked'
+		dataType: string
+		lineageTag: 0814f949-e8b0-4e88-94b8-6a8451160509
+		summarizeBy: none
+		sourceColumn: Project Blocked
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project Project Manager'
+		dataType: string
+		lineageTag: 56870561-5447-4ac3-a825-d9c0b33be2e9
+		summarizeBy: none
+		sourceColumn: Project Project Manager
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project Complete'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 04a18bf7-0cad-4344-ad02-8dca7d101f0c
+		summarizeBy: none
+		sourceColumn: Project Complete
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project No. & Description'
+		dataType: string
+		lineageTag: e24b861e-c443-4e40-a8e6-755be6d6ca9c
+		summarizeBy: none
+		sourceColumn: Project No. & Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Project-4ab446f3-f110-4f1b-a36f-ab505693da29 = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "jobs", Signature = "table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(
+				        TableData,
+				        {
+				            {"creationDate", "Project Creation Date"},
+				            {"startingDate", "Project Starting Date"},
+				            {"endingDate", "Project Ending Date"},
+				            {"jobPostingGroup", "Project Posting Group"},
+				            {"projectManager", "Project Project Manager"},
+				            {"no", "Project No."},
+				            {"billToCustomerNo", "Project Bill to Customer No."},
+				            {"status", "Project Status"},
+				            {"description", "Project Description"},
+				            {"complete", "Project Complete"},
+				            {"blocked", "Project Blocked"}
+				        }
+				    ),
+				    #"Added Custom" = Table.AddColumn(
+				        #"Renamed Columns", "Project No. & Description", each [#"Project No."] & " " & [Project Description], type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Custom", {"ETag"})
+				in
+				    #"Removed Columns"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Dimension;
-using Microsoft.eServices.EDocument;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 
@@ -304,9 +304,6 @@ page 6183 "E-Doc. Purchase Draft Subform"
     trigger OnOpenPage()
     begin
         SetDimensionsVisibility();
-        // EDocumentPurchaseHeader of the lines shown in the subform is determined as the first line's header.
-        if Rec.FindFirst() then;
-        if EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then;
         UpdatePOMatching();
     end;
 
@@ -350,6 +347,11 @@ page 6183 "E-Doc. Purchase Draft Subform"
         end
         else
             MatchWarningsCaption := NoWarningsLbl;
+    end;
+
+    internal procedure SetEDocumentPurchaseHeader(EDocPurchHeader: Record "E-Document Purchase Header")
+    begin
+        EDocumentPurchaseHeader := EDocPurchHeader;
     end;
 
     local procedure SetDimensionsVisibility()

@@ -1,20 +1,20 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.CRM.Contact;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Calendar;
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.Currency;
-using System.TestLibraries.Utilities;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
+using Microsoft.Pricing.Asset;
+using Microsoft.Pricing.Calculation;
+using Microsoft.Pricing.PriceList;
+using Microsoft.Pricing.Source;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
-using Microsoft.CRM.Contact;
-using Microsoft.Pricing.Calculation;
-using Microsoft.Pricing.Source;
-using Microsoft.Pricing.Asset;
-using Microsoft.Pricing.PriceList;
+using System.TestLibraries.Utilities;
 
 #pragma warning disable AA0210
 codeunit 148157 "Service Object Test"

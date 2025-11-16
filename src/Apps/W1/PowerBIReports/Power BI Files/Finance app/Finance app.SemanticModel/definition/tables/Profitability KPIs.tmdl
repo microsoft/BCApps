@@ -1,0 +1,130 @@
+table 'Profitability KPIs'
+	lineageTag: a6bf6c3b-6f8a-4436-80aa-58ecd86bd64a
+
+	measure 'Gross Profit Margin' = DIVIDE([Gross Profit],[Revenue])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: de13f6d2-5bec-40bc-b469-380fa483d8a0
+
+	measure 'Net Profit Margin' = DIVIDE([Net Profit],[Revenue])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: d1e1eece-6fea-429f-aa20-68c632684344
+
+	measure 'Gross Profit' = [Revenue] - [Cost of Goods Sold]
+		formatString: #,0.00
+		lineageTag: e35233d1-1365-4c8c-89b3-9c913691480f
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Net Profit' = [Revenue] - [Cost of Goods Sold] - [Expense]
+		formatString: #,0.00
+		lineageTag: 12da6c25-edcd-40df-ae16-232fa64a697f
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Operating Profit - EBIT (Beginning Balance)' = ```
+			
+			[Operating Revenue (Beginning Balance)] - 
+			[Operating Expense - OPEX (Beginning Balance)]
+			```
+		formatString: #,0.00
+		lineageTag: 5a8da567-4469-45de-a774-9339c3c0b122
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Operating Profit - EBIT' = ```
+			
+			[Operating Revenue] -  
+			[Operating Expense - OPEX]
+			```
+		formatString: #,0.00
+		lineageTag: b8ef9f4f-abfa-47c7-ba7c-1c2727de9711
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Operating Profit - EBIT (Balance at Date)' = ```
+			
+			[Operating Revenue (Balance at Date)] - 
+			[Operating Expense - OPEX (Balance at Date)]
+			```
+		formatString: #,0.00
+		lineageTag: 78075c6d-980f-47b9-b891-4be41a619b57
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Operating Profit Margin' = DIVIDE([Operating Profit - EBIT],[Operating Revenue])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 5bcc78b3-e859-424f-a049-6cbc1e087359
+
+	measure EBITDA = [Operating Profit - EBIT] + [Depreciation and Amortization]
+		formatString: #,0.00
+		lineageTag: d9aefe9f-be9d-4828-b7a7-c2256d89d0bf
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Return On Assets - ROA' = DIVIDE([Net Profit],[Assets])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: e1717869-663b-4dcf-851a-fd28b262d0d2
+
+	measure 'Return On Equity - ROE' = DIVIDE([Net Profit],[Shareholders' Equity])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: f9af3737-a1ef-4897-b855-774809fa927e
+
+	measure 'Return On Net Assets - RONA' = DIVIDE([Net Profit],[Fixed Assets]+[Working Capital])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 000eaa9e-4094-4877-a4a3-6b213b0a57cd
+
+	measure 'Return On Capital Employed - ROCE' = DIVIDE([Operating Profit - EBIT],[Capital Employed])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 67f17d87-3e40-4914-90c9-0f5c93c58d30
+
+	measure 'Debt/Equity Ratio' = DIVIDE([Liabilities],[Shareholders' Equity])
+		formatString: 0.00
+		lineageTag: 0059efbf-64e9-46c4-b85a-ad136925f2e1
+
+	measure 'Shareholder Equity Ratio' = DIVIDE([Shareholders' Equity],[Assets])
+		formatString: 0.00
+		lineageTag: fac104aa-74de-47dc-a49f-fdfa7dfd15db
+
+	measure 'Debt Ratio' = DIVIDE([Liabilities],[Assets])
+		formatString: 0.00
+		lineageTag: 4e78c898-677e-4291-911b-aefabb463a15
+
+		changedProperty = FormatString
+
+	column Column1
+		dataType: string
+		isHidden
+		lineageTag: 25992465-8e6a-4986-a048-709514d1e689
+		summarizeBy: none
+		sourceColumn: Column1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Profitability KPIs-88b601d6-0ab1-4264-b08a-2ea3542aa926' = m
+		mode: import
+		queryGroup: 'Parameters and Functions'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

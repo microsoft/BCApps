@@ -81,6 +81,7 @@ codeunit 30194 "Shpfy Transactions"
         OrderTransaction.Status := ConvertToTransactionStatus(JsonHelper.GetValueAsText(JOrderTransaction, 'status'));
         OrderTransaction.Type := ConvertToTransactionType(JsonHelper.GetValueAsText(JOrderTransaction, 'kind'));
         OrderTransaction."Shopify Order Id" := OrderHeader."Shopify Order Id";
+        OrderTransaction."Shop" := OrderHeader."Shop Code";
         RecordRef.GetTable(OrderTransaction);
         JsonHelper.GetValueIntoField(JOrderTransaction, 'gateway', RecordRef, OrderTransaction.FieldNo(Gateway));
         JsonHelper.GetValueIntoField(JOrderTransaction, 'formattedGateway', RecordRef, OrderTransaction.FieldNo(Message));

@@ -36,7 +36,7 @@ codeunit 139570 "Shpfy Gift Cards Test"
         LastChars := Format(Any.IntegerInRange(1000, 9999));
         Amount := Any.IntegerInRange(100000, 999999) / 100.0;
         JArray.ReadFrom(StrSubstNo(GiftCardsJsonTxt, GiftCardId, LineItemId, LastChars));
-        OrderLine.Init();
+        OrderLine.DeleteAll();
         OrderLine."Shopify Order Id" := Any.IntegerInRange(100000, 999999);
         OrderLine."Line Id" := LineItemId;
         OrderLine."Unit Price" := Amount;

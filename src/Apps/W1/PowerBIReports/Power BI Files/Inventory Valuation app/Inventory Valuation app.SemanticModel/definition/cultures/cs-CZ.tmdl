@@ -1,0 +1,409 @@
+cultureInfo cs-CZ
+	translations
+		model Model
+			table Item
+				caption: Zboží
+				column 'Item No. & Description'
+					caption: Číslo a popis zboží
+				column 'Item No.'
+					caption: Číslo zboží
+				column 'Item Description'
+					caption: Popis zboží
+				column 'Item Base Unit of Measure'
+					caption: Základní měrná jednotka zboží
+				column 'Item Unit Cost (LCY)'
+					caption: Pořizovací cena (LM)
+				column 'Item Inventory Posting Group'
+					caption: Účto skupiny zásob zboží
+				column 'Item Category Code'
+					caption: Kód kategorie zboží
+				column 'Item Category Description'
+					caption: Popis kategorie zboží
+			table Location
+				caption: Lokace
+				column 'Location Code'
+					caption: Kód lokace
+				column 'Location Name'
+					caption: Název lokace
+				column 'Location Adjustment Bin Code'
+					caption: Kód korekční přihrádky umístění
+			table 'Value Entries'
+				caption: Položky ocenění
+				column 'Entry No.'
+					caption: Číslo položky
+				column 'Valuation Date'
+					caption: Datum ocenění
+				column 'Item Ledger Entry Type'
+					caption: Typ položky zboží
+				column 'Document Type'
+					caption: Typ dokladu
+				column Type
+					caption: Typ
+				measure 'As of Beg. Date Label'
+					caption: Od popisku počátečního data
+				measure 'As of End Date Label'
+					caption: Od popisku konečného data
+				measure 'Beginning Balance Cost Posted to G/L'
+					caption: Zaúčtované náklady počátečního salda
+				measure 'Beginning Balance Expected Cost Posted to G/L'
+					caption: Zaúčtované očekávané náklady počátečního salda
+				measure 'Beginning Balance Qty'
+					caption: Množství počátečního salda
+				measure 'Beginning Balance Cost Amount (Actual)'
+					caption: Částka nákladů počátečního salda (skutečná)
+				measure 'Beginning Balance Cost Amount (Expected)'
+					caption: Částka nákladů počátečního salda (očekávaná)
+				measure 'Beginning Balance Cost Amount (Incl. Exp Cost)'
+					caption: Částka nákladů počátečního salda (včetně očekávaných nákladů)
+				measure 'Cost Amount (Actual)'
+					caption: Částka nákladů (skutečná)
+				measure 'Cost Amount (Expected)'
+					caption: Částka nákladů (očekávaná)
+				measure 'Cost Posted to G/L'
+					caption: Zaúčtované náklady
+				measure 'Expected Cost Posted to G/L'
+					caption: Zaúčtované očekávané náklady
+				measure 'Decrease Qty.'
+					caption: Snížení množství
+				measure 'Decrease Value'
+					caption: Snížení hodnoty
+				measure 'Decrease Value (Expected)'
+					caption: Snížení hodnoty (očekávané)
+				measure 'Decrease Value Expected Cost Included'
+					caption: Zahrnuté očekávané náklady snížené hodnoty
+				measure 'Ending Balance Cost Amount (Incl. Exp Cost)'
+					caption: Částka nákladů konečného salda (včetně očekávaných nákladů)
+				measure 'Ending Balance Cost Posted to G/L'
+					caption: Zaúčtované náklady konečného salda
+				measure 'Ending Balance Qty.'
+					caption: Množství koncového salda
+				measure 'Ending Balance Cost Amount (Actual)'
+					caption: Částka nákladů konečného salda (skutečná)
+				measure 'Ending Balance Cost Amount (Expected)'
+					caption: Částka nákladů konečného salda (očekávaná)
+				measure 'Ending Balance Expected Cost Posted to G/L'
+					caption: Konečné zaúčtované očekávané náklady
+				measure 'Increase Value Expected Cost Included'
+					caption: Zahrnuté očekávané náklady zvýšené hodnoty
+				measure 'Increases Qty.'
+					caption: Zvyšuje množství
+				measure 'Increases Value'
+					caption: Zvyšuje hodnotu
+				measure 'Increases Value (Expected)'
+					caption: Zvýšení hodnoty (očekávané)
+				measure 'Invoiced Quantity'
+					caption: Fakturované množství
+				measure 'Cost Amount (Incl. Exp Cost)'
+					caption: Částka nákladů (včetně očekávaných nákladů)
+				measure 'Variance Cost Posted to G/L'
+					caption: Odchylka zaúčtovaných nákladů
+				measure 'Base Link'
+					caption: Základní odkaz
+				measure 'Value Entry Back Link'
+					caption: Položka ocenění – zpětný odkaz
+			table 'Dimension Sets'
+				caption: Sady dimenzí
+				column 'Global Dimension 1'
+					caption: Globální dimenze 1
+				column 'Global Dimension 2'
+					caption: Globální dimenze 2
+				column 'Shortcut Dimension 3'
+					caption: Zkratka dimenze 3
+				column 'Shortcut Dimension 4'
+					caption: Zkratka dimenze 4
+				column 'Shortcut Dimension 5'
+					caption: Zkratka dimenze 5
+				column 'Shortcut Dimension 6'
+					caption: Zkratka dimenze 6
+				column 'Shortcut Dimension 7'
+					caption: Zkratka dimenze 7
+				column 'Shortcut Dimension 8'
+					caption: Zkratka dimenze 8
+			table Date
+				caption: Datum
+				column 'Week Day'
+					caption: Den v týdnu
+				column 'Relative Day'
+					caption: Relativní den
+				column 'Calendar Year'
+					caption: Kalendářní rok
+				column 'Calendar Quarter'
+					caption: Kalendářní kvartál
+				column 'Calendar Quarter Year'
+					caption: Rok kalendářního kvartálu
+				column 'Calendar Month'
+					caption: Kalendářní měsíc
+				column 'Calendar Month Year'
+					caption: Kalendářní měsíc v roce
+				column 'Calendar Week'
+					caption: Kalendářní týden
+				column 'Calendar Week Year'
+					caption: Kalendářní týden a rok
+				column 'Calendar WeekYearOrder'
+					caption: Pořadí kalendářního týdne a roku
+				column 'Calendar RelativeWeekPos'
+					caption: Relativní pozice kalendářního týdne
+				column 'Calendar RelativeMonthPos'
+					caption: Relativní pozice kalendářního měsíce
+				column 'Calendar RelativeQuarterPos'
+					caption: Relativní pozice kalendářního kvartálu
+				column 'Calendar RelativeYearPos'
+					caption: Relativní pozice kalendářního roku
+				column 'Calendar StartOfMonth'
+					caption: Začátek kalendářního měsíce
+				column 'Calendar EndOfMonth'
+					caption: Konec kalendářního měsíce
+				column 'Calendar StartOfQuarter'
+					caption: Začátek kalendářního kvartálu
+				column 'Calendar EndOfQuarter'
+					caption: Konec kalendářního kvartálu
+				column 'Calendar StartOfYear'
+					caption: Začátek kalendářního roku
+				column 'Calendar EndOfYear'
+					caption: Konec kalendářního roku
+				column 'Calendar MonthDays'
+					caption: Kalendářní dny v měsíci
+				column 'Calendar QuarterDays'
+					caption: Dny kalendářního kvartálu
+				column 'Calendar YearDays'
+					caption: Dny kalendářního roku
+				column 'Calendar DayOfMonthNumber'
+					caption: Počet dní ve fiskálním měsíci
+				column 'Calendar DayOfQuarterNumber'
+					caption: Počet dní v kalendářním kvartálu
+				column 'Calendar DayOfYearNumber'
+					caption: Počet dní ve fiskálním roce
+				column 'Calendar DatePreviousWeek'
+					caption: Datum v předchozím kalendářním týdnu
+				column 'Calendar DatePreviousMonth'
+					caption: Datum v předchozím kalendářním měsíci
+				column 'Calendar DatePreviousQuarter'
+					caption: Datum v předchozím kalendářním kvartálu
+				column 'Calendar DatePreviousYear'
+					caption: Datum v předchozím kalendářním roce
+				column 'Fiscal Year'
+					caption: Fiskální rok
+				column 'Fiscal QuarterNumber'
+					caption: Číslo fiskálního kvartálu
+				column 'Fiscal Quarter'
+					caption: Fiskální kvartál
+				column 'Fiscal Quarter Year'
+					caption: FIskální rok kvartálu
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Číslo fiskálního měsíce v kvartálu
+				column 'Fiscal Month'
+					caption: Fiskální měsíc
+				column 'Fiscal Month Year'
+					caption: FIskální rok měsíce
+				column 'Fiscal WeekNumber'
+					caption: Číslo fiskálního týdne
+				column 'Fiscal Week'
+					caption: Fiskální týden
+				column 'Fiscal Week Year'
+					caption: Fiskální týden a rok
+				column 'Fiscal WeekYearOrder'
+					caption: Pořadí fiskálního týdne a roku
+				column 'Fiscal RelativeWeekPos'
+					caption: Relativní pozice fiskálního týdne
+				column 'Fiscal RelativeMonthPos'
+					caption: Relativní pozice fiskálního měsíce
+				column 'Fiscal RelativeQuarterPos'
+					caption: Relativní pozice fiskálního kvartálu
+				column 'Fiscal RelativeYearPos'
+					caption: Relativní pozice fiskálního roku
+				column 'Fiscal StartOfMonth'
+					caption: Začátek fiskálního měsíce
+				column 'Fiscal EndOfMonth'
+					caption: Konec fiskálního měsíce
+				column 'Fiscal StartOfQuarter'
+					caption: Začátek fiskálního kvartálu
+				column 'Fiscal EndOfQuarter'
+					caption: Konec fiskálního kvartálu
+				column 'Fiscal StartOfYear'
+					caption: Začátek fiskálního roku
+				column 'Fiscal EndOfYear'
+					caption: Konec fiskálního roku
+				column 'Fiscal MonthDays'
+					caption: Dny fiskálního měsíce
+				column 'Fiscal QuarterDays'
+					caption: Dny fiskálního kvartálu
+				column 'Fiscal YearDays'
+					caption: Dny fiskálního roku
+				column 'Fiscal DayOfMonthNumber'
+					caption: Počet dní ve fiskálním měsíci
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Počet dnů ve fiskálním kvartálu
+				column 'Fiscal DayOfYearNumber'
+					caption: Počet dní ve fiskálním roce
+				column 'Fiscal DatePreviousWeek'
+					caption: Datum v předchozím fiskálním týdnu
+				column 'Fiscal DatePreviousMonth'
+					caption: Datum v předchozím fiskálním měsíci
+				column 'Fiscal DatePreviousQuarter'
+					caption: Datum v předchozím fiskálním kvartálu
+				column 'Fiscal DatePreviousYear'
+					caption: Datum v předchozím fiskálním roce
+				column 'FW Year'
+					caption: Rok FT
+				column 'FW Quarter'
+					caption: Kvartál FT
+				column 'FW Quarter Year'
+					caption: Rok kvartálu FT
+				column 'FW Month'
+					caption: Měsíc FT
+				column 'FW Month Year'
+					caption: Rok měsíce FT
+				column 'FW Week'
+					caption: Týden FT
+				column 'FW Period'
+					caption: Období FT
+				column 'FW Week Year'
+					caption: Týden a rok FT
+				column 'FW StartOfWeek'
+					caption: Začátek týdne FT
+				column 'FW EndOfWeek'
+					caption: Konec týdne FT
+				column 'FW RelativeWeekPos'
+					caption: Relativní pozice týdne FT
+				column 'FW RelativeMonthPos'
+					caption: Relativní pozice měsíce FT
+				column 'FW RelativeQuarterPos'
+					caption: Relativní pozice kvartálu FT
+				column 'FW RelativeYearPos'
+					caption: Relativní pozice roku FT
+				column 'FW StartOfMonth'
+					caption: Začátek měsíce FT
+				column 'FW EndOfMonth'
+					caption: Konec měsíce FT
+				column 'FW StartOfQuarter'
+					caption: Začátek kvartálu FT
+				column 'FW EndOfQuarter'
+					caption: Konec kvartálu FT
+				column 'FW StartOfYear'
+					caption: Začátek roku FT
+				column 'FW EndOfYear'
+					caption: Konec roku FT
+				column 'FW MonthDays'
+					caption: Dny v měsíci FT
+				column 'FW QuarterDays'
+					caption: Dny kvartálu FT
+				column 'FW YearDays'
+					caption: Dny roku FT
+				column 'FW DayOfMonthNumber'
+					caption: Počet dní v měsíci FT
+				column 'FW DayOfQuarterNumber'
+					caption: Počet dnů v kvartálu FT
+				column 'FW DayOfYearNumber'
+					caption: Počet dní v roce FT
+				column 'FW DatePreviousWeek'
+					caption: Datum v předchozím týdnu FT
+				column 'FW DatePreviousMonth'
+					caption: Datum v předchozím měsíci FT
+				column 'FW DatePreviousQuarter'
+					caption: Datum v předchozím kvartálu FT
+				column 'FW DatePreviousYear'
+					caption: Datum v předchozím roce FT
+				column 'Holiday Name'
+					caption: Název svátku
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Typ dne
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Můj nadpis sestavy
+				measure 'My Button Caption'
+					caption: Popisek mého tlačítka
+				measure 'My Visual Title'
+					caption: Název mého vizuálu
+				measure 'Inventory Valuation'
+					caption: Hodnota zásob
+				measure 'for Business Central'
+					caption: pro Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: PŘIPOJENÍ DAT
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Stažení řešení Inventory Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurace Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: POUŽÍVÁNÍ, ÚPRAVA A TVORBA VLASTNÍCH SESTAV
+				measure 'Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Hodnota zásob obsahuje řadu předpřipravených sestav, které vám pomohou okamžitě zobrazit vaše data.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Tyto sestavy můžete upravovat nebo si vytvořit vlastní sestavu od základu.
+				measure 'HELP AND SUPPORT'
+					caption: POMOC A PODPORA
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Nápovědu a podporu k nové sestavě naleznete v dokumentaci k přehledu Analytics.
+				measure 'OTHER POWER BI REPORTS'
+					caption: DALŠÍ SESTAVY POWER BI
+				measure PURCHASE
+					caption: NÁKUP
+				measure FINANCE
+					caption: FINANCE
+				measure PROJECTS
+					caption: PROJEKTY
+				measure INVENTORY
+					caption: ZÁSOBY
+				measure SALES
+					caption: PRODEJ
+				measure 'Inventory Valuation Overview'
+					caption: Přehled hodnoty zásob
+				measure 'Inventory Value & Cost Posted to G/L by Month Year'
+					caption: Hodnota zásob a zaúčtované náklady podle měsíce a roku
+				measure 'Inventory Value by Location'
+					caption: Hodnota zásob podle lokace
+				measure 'Inventory Quantity'
+					caption: Množství zásob
+				measure 'Inventory Valuation by Item'
+					caption: Hodnota zásob podle zboží
+				measure 'Inventory Valuation by Location'
+					caption: Hodnota zásob podle lokace
+				measure 'Detailed Inventory Valuation'
+					caption: Podrobná hodnoty zásob
+				measure 'The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: Hodnota zásob podle zboží zobrazuje číslo zboží, počáteční hodnotu salda, zvýšenou hodnotu, sníženou hodnotu a hodnotu koncového salda.
+				measure 'The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: Hodnota zásob podle lokace zobrazuje kód lokace, počáteční hodnotu salda, zvýšenou hodnotu, sníženou hodnotu a hodnotu koncového salda.
+				measure 'The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).'
+					caption: Podrobná hodnota zásob zobrazuje datum, číslo zboží a popis, kód lokace, typ dokladu, číslo zboží, fakturované množství, částku nákladů (skutečná), částku nákladů (očekávaná), zaúčtované náklady (skutečné) a zaúčtované náklady (očekávané).
+				measure 'The inventory valuation by location shows location and ending balance value.'
+					caption: Hodnota zásob podle lokace ukazuje lokaci a hodnotu koncového salda.
+				measure 'The inventory valuation by item shows item category and ending balance quantity.'
+					caption: Hodnota zásob podle zboží zobrazuje kategorii zboží a konečné zůstatkové množství.
+				measure 'Last Refreshed'
+					caption: Naposledy aktualizováno
+				measure 'Company Name'
+					caption: Název společnosti
+				measure 'Inventory value as of '
+					caption: "Hodnota zásob k datu "
+				measure 'Ending Balance Value and Invoiced Quantity by Location Code'
+					caption: Hodnota koncového salda a fakturované množství podle kódu lokace
+				measure 'Ending Balance Value, Ending Balance Posted to G/L and Variance by Month'
+					caption: Hodnota koncového salda, konečné zaúčtované saldo a odchylka podle měsíce
+				measure 'Ending Balance Quantity by Item Category Code'
+					caption: Množství koncového salda podle kódu kategorie zboží
+				measure 'Ending Balance Value by Location Name'
+					caption: Hodnota koncového salda podle názvu lokace
+			table COMPANY
+				caption: SPOLEČNOST
+				measure 'Company Label'
+					caption: Popisek společnosti
+			table 'Item Category'
+				caption: Kategorie zboží
+				column 'Item Category Code'
+					caption: Kód kategorie zboží
+				column 'Item Category Description'
+					caption: Popis kategorie zboží
+				hierarchy 'Item Category Code Hierarchy'
+					caption: HIerarchie kódu kategorie zboží
+					level 'Item Category Code Level 1'
+						caption: Kód kategorie zboží – úroveň 1
+					level 'Item Category Code Level 2'
+						caption: Kód kategorie zboží – úroveň 2
+					level 'Item Category Code Level 3'
+						caption: Kód kategorie zboží – úroveň 3
+					level 'Item Category Code'
+						caption: Kód kategorie zboží
+

@@ -1,7 +1,7 @@
 namespace Microsoft.FixedAssets.Repair;
 
-using Microsoft.FixedAssets.Ledger;
 using Microsoft.Finance.Currency;
+using Microsoft.FixedAssets.Ledger;
 
 page 6090 "FA Ledger Entries Issues"
 {

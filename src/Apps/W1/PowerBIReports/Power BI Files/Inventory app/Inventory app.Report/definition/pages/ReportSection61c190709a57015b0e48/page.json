@@ -1,0 +1,585 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "ReportSection61c190709a57015b0e48",
+  "displayName": "Item Availability",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filter30af69eee39beff82f1e",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Location"
+              }
+            },
+            "Property": "Location Code"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filterd6a875ea1b884e65c1db",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Location"
+              }
+            },
+            "Property": "Location Name"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filter604e95157701b6050dd1",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item No."
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filter62ea2f91238265b50741",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item No. & Description"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filter49f60358d40b6008676d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item Availability Filter"
+              }
+            },
+            "Property": "View As"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "i",
+              "Entity": "Item Availability Filter",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "i"
+                          }
+                        },
+                        "Property": "View As"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Net Change'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User",
+        "objects": {
+          "general": [
+            {
+              "properties": {
+                "requireSingleSelect": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "true"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "Filter758e5cde033a306ae3db",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item No. & Description"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filterb857461922cacdd399eb",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+              }
+            },
+            "Level": "Fiscal Year"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter0fe27988d0d1ce55d720",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+              }
+            },
+            "Level": "Fiscal Quarter Year"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter55e2b80cdede6481865a",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+              }
+            },
+            "Level": "Fiscal Month Year"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filterc4bc39efee07cc6a3591",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+              }
+            },
+            "Level": "Fiscal Week Year"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter099b663fe9e93c26a099",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Date"
+              }
+            },
+            "Property": "Date"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "f8af128b1a8ba4ba6d76",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Customer Posting Group"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "b70f6faf175c451329d8",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Customer No. & Name"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "895ca5ca87312ba017de",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Global Dimension 1"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "e4a5d8f9d658f188536a",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Global Dimension 2"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "5c2dfe5240756857a373",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 3"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "2f43371cfe0a8106d149",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 4"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "7bc2ae2ed89020d7a1d4",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 5"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "b0de79a0d7a3efbe0adf",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 6"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "5806bdccdfcfc7c55586",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 7"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "0ab91315a25dd815611d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 8"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "97039b8387e8dc036c27",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item Inventory Posting Group"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "7c762be62f0e32abb099",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item Category Code"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "84c3f9e99e85fc680cc8",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Location"
+              }
+            },
+            "Property": "Location Code"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "699a30c635dfae0799eb",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Location"
+              }
+            },
+            "Property": "Location Name"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "1466fbafc2916694d89e",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Vendor"
+              }
+            },
+            "Property": "Vendor No. & Name"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "91623d7241fc765035fc",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Vendor"
+              }
+            },
+            "Property": "Vendor Posting Group"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "bfdd6334d4c5dfe20e0e",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item Category Description"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "Pod26",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "Param_Filter30af69eee39beff82f1e",
+        "boundFilter": "Filter30af69eee39beff82f1e",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Location"
+              }
+            },
+            "Property": "Location Code"
+          }
+        }
+      },
+      {
+        "name": "Param_Filterd6a875ea1b884e65c1db",
+        "boundFilter": "Filterd6a875ea1b884e65c1db",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Location"
+              }
+            },
+            "Property": "Location Name"
+          }
+        }
+      },
+      {
+        "name": "Param_Filter604e95157701b6050dd1",
+        "boundFilter": "Filter604e95157701b6050dd1",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item No."
+          }
+        }
+      },
+      {
+        "name": "Param_Filter62ea2f91238265b50741",
+        "boundFilter": "Filter62ea2f91238265b50741",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item No. & Description"
+          }
+        }
+      },
+      {
+        "name": "8e7bac62079130e59900",
+        "boundFilter": "Filter49f60358d40b6008676d",
+        "qnaSingleSelectRequired": true,
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item Availability Filter"
+              }
+            },
+            "Property": "View As"
+          }
+        }
+      }
+    ],
+    "referenceScope": "CrossReport",
+    "acceptsFilterContext": "None"
+  }
+}

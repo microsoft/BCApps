@@ -5,9 +5,9 @@
 namespace Microsoft.eServices.EDocument.Processing.Interfaces;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Vendor;
 
 /// <summary>
 /// Interface for retrieving an item based on an E-Document line, vendor, and unit of measure.

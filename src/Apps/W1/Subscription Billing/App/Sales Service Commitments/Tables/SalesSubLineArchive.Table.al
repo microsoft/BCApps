@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Sales.Document;
 using Microsoft.Sales.Archive;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
 
 table 8069 "Sales Sub. Line Archive"

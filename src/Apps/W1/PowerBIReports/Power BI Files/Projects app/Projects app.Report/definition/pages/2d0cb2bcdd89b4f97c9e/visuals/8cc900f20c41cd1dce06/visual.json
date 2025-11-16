@@ -1,0 +1,298 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "8cc900f20c41cd1dce06",
+  "position": {
+    "x": 26.271379703534777,
+    "y": 64,
+    "z": 0,
+    "height": 630,
+    "width": 1228.1870011402509,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Project No."
+                }
+              },
+              "queryRef": "Project Planning Line.Project No.",
+              "nativeQueryRef": "Project No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Task No."
+                }
+              },
+              "queryRef": "Project Planning Line.Task No.",
+              "nativeQueryRef": "Task No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Line No."
+                }
+              },
+              "queryRef": "Project Planning Line.Line No.",
+              "nativeQueryRef": "Line No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Type"
+                }
+              },
+              "queryRef": "Project Planning Line.Type",
+              "nativeQueryRef": "Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "No."
+                }
+              },
+              "queryRef": "Project Planning Line.No.",
+              "nativeQueryRef": "No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Description"
+                }
+              },
+              "queryRef": "Project Planning Line.Description",
+              "nativeQueryRef": "Description"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Line Type"
+                }
+              },
+              "queryRef": "Project Planning Line.Line Type",
+              "nativeQueryRef": "Line Type"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Planning Line Quantity"
+                }
+              },
+              "queryRef": "Project Planning Line.Planning Line Quantity",
+              "nativeQueryRef": "Planning Line Quantity"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Unit Cost (LCY)"
+                }
+              },
+              "queryRef": "Project Planning Line.Unit Cost (LCY)",
+              "nativeQueryRef": "Unit Cost (LCY)"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Unit Price (LCY)"
+                }
+              },
+              "queryRef": "Project Planning Line.Unit Price (LCY)",
+              "nativeQueryRef": "Unit Price (LCY)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Planning Line Total Cost (LCY)"
+                }
+              },
+              "queryRef": "Project Planning Line.Planning Line Total Cost (LCY)",
+              "nativeQueryRef": "Planning Line Total Cost (LCY)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Planning Line Total Price (LCY)"
+                }
+              },
+              "queryRef": "Project Planning Line.Planning Line Total Price (LCY)",
+              "nativeQueryRef": "Planning Line Total Price (LCY)"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "urlIcon": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project"
+                    }
+                  },
+                  "Property": "Project Planning Line Details Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Project Planning Line.Planning Line Total Price (LCY)"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project"
+                    }
+                  },
+                  "Property": "Project Planning Line Details Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Project Planning Line.Planning Line Total Cost (LCY)"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Project Planning Line Drill Through Label"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "showTooltipButton": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

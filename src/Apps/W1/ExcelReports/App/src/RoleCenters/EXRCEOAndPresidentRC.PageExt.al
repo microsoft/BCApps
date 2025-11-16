@@ -4,8 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Sales.ExcelReports;
-using Microsoft.RoleCenters;
+
 using Microsoft.Finance.ExcelReports;
+using Microsoft.RoleCenters;
 
 pageextension 4439 "EXR CEO and President RC" extends "CEO and President Role Center"
 {

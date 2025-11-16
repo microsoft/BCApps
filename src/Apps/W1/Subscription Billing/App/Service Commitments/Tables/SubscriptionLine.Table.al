@@ -1,13 +1,13 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
-using Microsoft.Finance.Dimension;
-using Microsoft.Finance.Currency;
-using Microsoft.Finance.GeneralLedger.Account;
+using System.Utilities;
 
 table 8059 "Subscription Line"
 {

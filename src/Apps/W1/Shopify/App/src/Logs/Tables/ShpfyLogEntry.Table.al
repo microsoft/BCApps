@@ -5,9 +5,9 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
-using System.Reflection;
 
 /// <summary>
 /// Table Shpfy Log Entry (ID 30115).
@@ -95,13 +95,8 @@ table 30115 "Shpfy Log Entry"
             Caption = 'Request Id';
             DataClassification = SystemMetadata;
             ObsoleteReason = 'Replaced with "Shpfy Request Id" field';
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#endif
         }
 #endif
         field(14; "Request Preview"; Text[50])
@@ -227,4 +222,3 @@ table 30115 "Shpfy Log Entry"
         if Modify() then;
     end;
 }
-

@@ -1,0 +1,124 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "f54e3f8dd8549d10d2e2",
+  "position": {
+    "x": 651,
+    "y": 60,
+    "z": 5000,
+    "height": 305,
+    "width": 602,
+    "tabOrder": 5000
+  },
+  "visual": {
+    "visualType": "ribbonChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year",
+              "nativeQueryRef": "Fiscal Year",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Month"
+                }
+              },
+              "queryRef": "Date.Fiscal Month",
+              "nativeQueryRef": "Fiscal Month",
+              "active": false
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item Category Description"
+                }
+              },
+              "queryRef": "Item.Item Category Description",
+              "nativeQueryRef": "Item Category Description"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Purchase (LCY)"
+                }
+              },
+              "queryRef": "Documents.Purchase (LCY)",
+              "nativeQueryRef": "Purchase (LCY)"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "valueAxis": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Purchase Value by Fiscal Year and Item Category Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

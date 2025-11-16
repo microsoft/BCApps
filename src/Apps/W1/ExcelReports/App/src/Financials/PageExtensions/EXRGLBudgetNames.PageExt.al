@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Finance.ExcelReports;
+
 using Microsoft.Finance.GeneralLedger.Budget;
 
 pageextension 4434 "EXR G/L Budget Names" extends "G/L Budget Names"

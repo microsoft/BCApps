@@ -5,8 +5,8 @@
 
 namespace Microsoft.Purchases.ExcelReports;
 
-using Microsoft.Purchases.Vendor;
 using Microsoft.ExcelReports;
+using Microsoft.Purchases.Vendor;
 
 report 4404 "EXR Vendor Top List"
 {

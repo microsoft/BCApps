@@ -5,10 +5,10 @@
 
 namespace Microsoft.Test.Foundation.NoSeries;
 
-using System.TestLibraries.Utilities;
-using System.TestLibraries.Security.AccessControl;
-using Microsoft.TestLibraries.Foundation.NoSeries;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.TestLibraries.Foundation.NoSeries;
+using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 134530 "No. Series Tests"
 {

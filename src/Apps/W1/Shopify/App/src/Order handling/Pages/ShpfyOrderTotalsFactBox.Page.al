@@ -5,8 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Sales.Document;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 
 page 30172 "Shpfy Order Totals FactBox"

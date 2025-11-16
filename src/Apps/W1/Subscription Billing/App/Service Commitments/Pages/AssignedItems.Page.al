@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
 using Microsoft.Inventory.Item;
+using System.Utilities;
 
 page 8063 "Assigned Items"
 {

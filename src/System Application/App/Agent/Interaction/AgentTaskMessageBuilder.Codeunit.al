@@ -71,6 +71,21 @@ codeunit 4316 "Agent Task Message Builder"
     end;
 
     /// <summary>
+    /// Set whether to sanitize the message text.
+    /// When set to false, message sanitization will be bypassed.
+    /// The default value is true.
+    /// </summary>
+    /// <param name="SkipSanitizeMessage">Specifies if the message sanitization should be skipped.</param>
+    /// <returns>This instance of the Agent Task Message Builder.</returns>
+    [Scope('OnPrem')]
+    procedure SetSkipMessageSanitization(SkipSanitizeMessage: Boolean): codeunit "Agent Task Message Builder"
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        AgentTaskMsgBuilderImpl.SetSkipMessageSanitization(SkipSanitizeMessage);
+        exit(this);
+    end;
+
+    /// <summary>
     /// Set the external ID of the task.
     /// </summary>
     /// <param name="ExternalId">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>

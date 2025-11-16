@@ -6,11 +6,11 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.AI;
-using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Foundation.UOM;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 using System.Log;
 
 codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
@@ -76,7 +76,7 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
                 until EDocumentPurchaseLine.Next() = 0;
 
             // Apply all Copilot-powered matching techniques to the lines
-            CopilotLineMatching(EDocument."Entry No", EDocumentPurchaseHeader."[BC] Vendor No.");
+            CopilotLineMatching(EDocument."Entry No");
         end;
 
         // Log telemetry and activity sessions
@@ -114,39 +114,22 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
             ActivityLog.Log();
     end;
 
-    local procedure CopilotLineMatching(EDocumentEntryNo: Integer; VendorNo: Code[20])
+    local procedure CopilotLineMatching(EDocumentEntryNo: Integer)
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        EDocPurchaseLineHistory: Record "E-Doc. Purchase Line History";
-        EDocHistoricalMatchingSetup: Record "EDoc Historical Matching Setup";
-        EDocSetup : Record "E-Documents Setup";
-        EDocPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
     begin
-        EDocHistoricalMatchingSetup.GetSetup();
         EDocumentPurchaseLine.SetLoadFields("E-Document Entry No.", "[BC] Purchase Type No.", "[BC] Deferral Code");
         EDocumentPurchaseLine.ReadIsolation(IsolationLevel::ReadCommitted);
 
-        // Step 1: Apply historical pattern matching (both basic AL and advanced LLM)
+        // Step 1: Apply historical pattern matching
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
         EDocumentPurchaseLine.SetRange("[BC] Purchase Type No.", '');
         EDocumentPurchaseLine.SetRange("[BC] Item Reference No.", '');
 
-
-        if EDocSetup.IsEDocHistoricalMatchingWithLLMActive() then begin
-            // Use new advanced LLM-based historical matching
-            if not EDocumentPurchaseLine.IsEmpty() then begin
-                Commit();
-                Codeunit.Run(Codeunit::"E-Doc. Historical Matching", EDocumentPurchaseLine);
-            end;
-        end else
-            // Fall back to basic AL historical matching for each line
-            if EDocumentPurchaseLine.FindSet() then
-                repeat
-                    if EDocPurchaseHistMapping.FindRelatedPurchaseLineInHistory(VendorNo, EDocumentPurchaseLine, EDocPurchaseLineHistory) then begin
-                        EDocPurchaseHistMapping.UpdateMissingLineValuesFromHistory(EDocPurchaseLineHistory, EDocumentPurchaseLine, '');
-                        EDocumentPurchaseLine.Modify();
-                    end;
-                until EDocumentPurchaseLine.Next() = 0;
+        if not EDocumentPurchaseLine.IsEmpty() then begin
+            Commit();
+            Codeunit.Run(Codeunit::"E-Doc. Historical Matching", EDocumentPurchaseLine);
+        end;
 
         // Step 2: Apply line-to-account matching for remaining lines with no purchase type
         Clear(EDocumentPurchaseLine);
