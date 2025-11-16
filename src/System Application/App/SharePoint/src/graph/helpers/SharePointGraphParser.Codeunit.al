@@ -41,7 +41,6 @@ codeunit 9122 "SharePoint Graph Parser"
     var
         JsonArray: JsonArray;
         JsonToken: JsonToken;
-        JsonListObject: JsonObject;
     begin
         if not JsonResponse.Get('value', JsonToken) then
             exit(false);
@@ -50,7 +49,20 @@ codeunit 9122 "SharePoint Graph Parser"
             exit(false);
 
         JsonArray := JsonToken.AsArray();
+        exit(ParseListCollection(JsonArray, GraphLists));
+    end;
 
+    /// <summary>
+    /// Parses a JSON array into a collection of SharePoint Graph List records.
+    /// </summary>
+    /// <param name="JsonArray">The JSON array to parse.</param>
+    /// <param name="GraphLists">The temporary record to populate.</param>
+    /// <returns>True if successfully parsed; otherwise false.</returns>
+    procedure ParseListCollection(JsonArray: JsonArray; var GraphLists: Record "SharePoint Graph List" temporary): Boolean
+    var
+        JsonToken: JsonToken;
+        JsonListObject: JsonObject;
+    begin
         foreach JsonToken in JsonArray do begin
             JsonListObject := JsonToken.AsObject();
 
@@ -120,7 +132,6 @@ codeunit 9122 "SharePoint Graph Parser"
     var
         JsonArray: JsonArray;
         JsonToken: JsonToken;
-        JsonItemObject: JsonObject;
     begin
         if not JsonResponse.Get('value', JsonToken) then
             exit(false);
@@ -129,7 +140,21 @@ codeunit 9122 "SharePoint Graph Parser"
             exit(false);
 
         JsonArray := JsonToken.AsArray();
+        exit(ParseListItemCollection(JsonArray, ListId, GraphListItems));
+    end;
 
+    /// <summary>
+    /// Parses a JSON array into a collection of SharePoint Graph List Item records.
+    /// </summary>
+    /// <param name="JsonArray">The JSON array to parse.</param>
+    /// <param name="ListId">The ID of the list the items belong to.</param>
+    /// <param name="GraphListItems">The temporary record to populate.</param>
+    /// <returns>True if successfully parsed; otherwise false.</returns>
+    procedure ParseListItemCollection(JsonArray: JsonArray; ListId: Text; var GraphListItems: Record "SharePoint Graph List Item" temporary): Boolean
+    var
+        JsonToken: JsonToken;
+        JsonItemObject: JsonObject;
+    begin
         foreach JsonToken in JsonArray do begin
             JsonItemObject := JsonToken.AsObject();
 
@@ -198,7 +223,6 @@ codeunit 9122 "SharePoint Graph Parser"
     var
         JsonArray: JsonArray;
         JsonToken: JsonToken;
-        JsonItemObject: JsonObject;
     begin
         if not JsonResponse.Get('value', JsonToken) then
             exit(false);
@@ -207,7 +231,21 @@ codeunit 9122 "SharePoint Graph Parser"
             exit(false);
 
         JsonArray := JsonToken.AsArray();
+        exit(ParseDriveItemCollection(JsonArray, DriveId, GraphDriveItems));
+    end;
 
+    /// <summary>
+    /// Parses a JSON array into a collection of SharePoint Graph Drive Item records.
+    /// </summary>
+    /// <param name="JsonArray">The JSON array to parse.</param>
+    /// <param name="DriveId">The ID of the drive the items belong to.</param>
+    /// <param name="GraphDriveItems">The temporary record to populate.</param>
+    /// <returns>True if successfully parsed; otherwise false.</returns>
+    procedure ParseDriveItemCollection(JsonArray: JsonArray; DriveId: Text; var GraphDriveItems: Record "SharePoint Graph Drive Item" temporary): Boolean
+    var
+        JsonToken: JsonToken;
+        JsonItemObject: JsonObject;
+    begin
         foreach JsonToken in JsonArray do begin
             JsonItemObject := JsonToken.AsObject();
 
@@ -288,7 +326,6 @@ codeunit 9122 "SharePoint Graph Parser"
     var
         JsonArray: JsonArray;
         JsonToken: JsonToken;
-        JsonDriveObject: JsonObject;
     begin
         if not JsonResponse.Get('value', JsonToken) then
             exit(false);
@@ -297,7 +334,20 @@ codeunit 9122 "SharePoint Graph Parser"
             exit(false);
 
         JsonArray := JsonToken.AsArray();
+        exit(ParseDriveCollection(JsonArray, GraphDrives));
+    end;
 
+    /// <summary>
+    /// Parses a JSON array into a collection of SharePoint Graph Drive records.
+    /// </summary>
+    /// <param name="JsonArray">The JSON array to parse.</param>
+    /// <param name="GraphDrives">The temporary record to populate.</param>
+    /// <returns>True if successfully parsed; otherwise false.</returns>
+    procedure ParseDriveCollection(JsonArray: JsonArray; var GraphDrives: Record "SharePoint Graph Drive" temporary): Boolean
+    var
+        JsonToken: JsonToken;
+        JsonDriveObject: JsonObject;
+    begin
         foreach JsonToken in JsonArray do begin
             JsonDriveObject := JsonToken.AsObject();
 

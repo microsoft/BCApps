@@ -430,7 +430,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FileInStream">Content of the file.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    procedure UploadFile(FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    procedure UploadFile(FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadFile('', FolderPath, FileName, FileInStream, GraphDriveItem));
     end;
@@ -444,7 +444,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="ConflictBehavior">How to handle conflicts if a file with the same name exists</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    procedure UploadFile(FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
+    procedure UploadFile(FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadFile('', FolderPath, FileName, FileInStream, GraphDriveItem, ConflictBehavior));
     end;
@@ -458,7 +458,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FileInStream">Content of the file.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    procedure UploadFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    procedure UploadFile(DriveId: Text; FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadFile(DriveId, FolderPath, FileName, FileInStream, GraphDriveItem));
     end;
@@ -473,7 +473,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="ConflictBehavior">How to handle conflicts if a file with the same name exists</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    procedure UploadFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
+    procedure UploadFile(DriveId: Text; FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadFile(DriveId, FolderPath, FileName, FileInStream, GraphDriveItem, ConflictBehavior));
     end;
@@ -508,7 +508,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FileInStream">Content of the file.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    procedure UploadLargeFile(FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    procedure UploadLargeFile(FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadLargeFile('', FolderPath, FileName, FileInStream, GraphDriveItem));
     end;
@@ -522,7 +522,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="ConflictBehavior">How to handle conflicts if a file with the same name exists</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    procedure UploadLargeFile(FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
+    procedure UploadLargeFile(FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadLargeFile('', FolderPath, FileName, FileInStream, GraphDriveItem, ConflictBehavior));
     end;
@@ -536,7 +536,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FileInStream">Content of the file.</param>
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    procedure UploadLargeFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    procedure UploadLargeFile(DriveId: Text; FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadLargeFile(DriveId, FolderPath, FileName, FileInStream, GraphDriveItem));
     end;
@@ -551,7 +551,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="GraphDriveItem">Record to store the result.</param>
     /// <param name="ConflictBehavior">How to handle conflicts if a file with the same name exists</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    procedure UploadLargeFile(DriveId: Text; FolderPath: Text; FileName: Text; var FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
+    procedure UploadLargeFile(DriveId: Text; FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadLargeFile(DriveId, FolderPath, FileName, FileInStream, GraphDriveItem, ConflictBehavior));
     end;

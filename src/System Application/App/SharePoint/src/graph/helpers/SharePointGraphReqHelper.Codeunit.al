@@ -489,6 +489,34 @@ codeunit 9123 "SharePoint Graph Req. Helper"
         exit(ProcessJsonResponse(HttpResponseMessage, ResponseJson));
     end;
 
+    /// <summary>
+    /// Makes a GET request to the Microsoft Graph API with pagination support and returns all pages automatically.
+    /// </summary>
+    /// <param name="Endpoint">The endpoint to request.</param>
+    /// <param name="GraphOptionalParameters">Optional parameters for the request.</param>
+    /// <param name="JsonArray">The JSON array containing all results from all pages.</param>
+    /// <returns>True if the request was successful; otherwise false.</returns>
+    procedure GetAllPages(Endpoint: Text; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; var JsonArray: JsonArray): Boolean
+    var
+        HttpResponseMessage: Codeunit "Http Response Message";
+        FinalEndpoint: Text;
+    begin
+        FinalEndpoint := PrepareEndpoint(Endpoint, GraphOptionalParameters);
+
+        if not GraphClient.GetAllPages(FinalEndpoint, GraphOptionalParameters, HttpResponseMessage, JsonArray) then begin
+            SharePointDiagnostics.SetParameters(HttpResponseMessage.GetIsSuccessStatusCode(),
+                HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetReasonPhrase(),
+                0, HttpResponseMessage.GetErrorMessage());
+            exit(false);
+        end;
+
+        SharePointDiagnostics.SetParameters(HttpResponseMessage.GetIsSuccessStatusCode(),
+            HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetReasonPhrase(),
+            0, HttpResponseMessage.GetErrorMessage());
+
+        exit(true);
+    end;
+
     #endregion
 
     #region Helpers
