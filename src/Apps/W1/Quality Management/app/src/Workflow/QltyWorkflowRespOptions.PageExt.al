@@ -10,7 +10,6 @@ using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
 using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Utilities;
@@ -571,78 +570,6 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                     }
                 }
             }
-            group(Qlty_SetTestValue_Group)
-            {
-                ShowCaption = false;
-                Visible = QltyShouldShowSetTestValue;
-                InstructionalText = 'Set the Quality Inspection test field and value.';
-
-                field(Qlty_SetTestField; TestFieldToSet)
-                {
-                    ApplicationArea = QualityManagement;
-                    Caption = 'Test Field';
-                    Tooltip = 'Specifies which field on the test to set?';
-
-                    trigger OnValidate()
-                    var
-                        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
-                    begin
-                        QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyField(), TestFieldToSet);
-                        CurrPage.Update(true);
-                    end;
-
-                    trigger OnAssistEdit()
-                    var
-                        QltyField: Record "Qlty. Field";
-                        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
-                        QltyFields: Page "Qlty. Fields";
-                    begin
-                        if TestFieldToSet <> '' then
-                            if QltyField.Get(TestFieldToSet) then;
-                        QltyField.SetRecFilter();
-                        if QltyField.FindFirst() then;
-                        QltyFields.SetSelectionFilter(QltyField);
-                        QltyField.SetRange(Code);
-                        QltyFields.LookupMode(true);
-                        QltyFields.SetRecord(QltyField);
-                        if QltyFields.RunModal() in [Action::LookupOK, Action::OK] then begin
-                            QltyFields.GetRecord(QltyField);
-                            TestFieldToSet := QltyField.Code;
-                            QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyField(), TestFieldToSet);
-                            CurrPage.Update(true);
-                        end;
-                    end;
-                }
-                field(Qlty_SetTestValue; TestValueExpressionToSet)
-                {
-                    ApplicationArea = QualityManagement;
-                    Caption = 'Value to Set';
-                    Tooltip = 'Specifies the value that you want to set.';
-
-                    trigger OnValidate()
-                    var
-                        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
-                    begin
-                        QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyValueExpression(), TestValueExpressionToSet);
-                        CurrPage.Update(true);
-                    end;
-
-                    trigger OnAssistEdit()
-                    var
-                        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
-                        QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit";
-                        Expression: Text;
-                    begin
-                        Expression := TestValueExpressionToSet;
-                        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Test Header", '', Expression) in [Action::LookupOK, Action::OK, Action::Yes] then begin
-                            TestValueExpressionToSet := Expression;
-                            QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyValueExpression(), TestValueExpressionToSet);
-                        end;
-
-                        CurrPage.Update(true);
-                    end;
-                }
-            }
             group(Qlty_SetDatabaseValue_Group)
             {
                 ShowCaption = false;
@@ -837,7 +764,6 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
     }
 
     var
-        QltyShouldShowSetTestValue: Boolean;
         QltyShouldShowSetDatabaseValue: Boolean;
         QltyLocationCode: Code[10];
         QltyBinCode: Code[20];
@@ -937,7 +863,6 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
         QltyShouldShowGrpDestination := false;
         QltyShouldShowGrpPosting := false;
         QltyShouldShowCreatePutaway := false;
-        QltyShouldShowSetTestValue := false;
         QltyShouldShowSetDatabaseValue := false;
         QltyShouldShowGrpRegWhseJrnl := false;
         QltyShouldShowGrpItemTrackingChange := false;
@@ -963,8 +888,6 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                     QltyShouldShowGrpPosting := true;
                     QltyShouldShowCreatePutaway := true;
                 end;
-            QltyWorkflowSetup.GetWorkflowResponseSetTestValue():
-                QltyShouldShowSetTestValue := true;
             QltyWorkflowSetup.GetWorkflowResponseSetDatabaseValue():
                 QltyShouldShowSetDatabaseValue := true;
             QltyWorkflowSetup.GetWorkflowResponseInventoryAdjustment():
@@ -1037,7 +960,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
             end;
         end;
 
-        if QltyShouldShowSetTestValue or QltyShouldShowSetDatabaseValue then begin
+        if QltyShouldShowSetDatabaseValue then begin
             TestFieldToSet := QltyWorkflowResponse.GetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyField());
             TestValueExpressionToSet := QltyWorkflowResponse.GetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyValueExpression());
         end;

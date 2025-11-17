@@ -18,8 +18,8 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 {
     Caption = 'Quality Management - Receipt Quality Test Generation Rule Wizard';
     PageType = NavigatePage;
-    UsageCategory = Administration;
-    ApplicationArea = All;
+    UsageCategory = None;
+    ApplicationArea = QualityManagement;
     SourceTable = "Qlty. Management Setup";
 
     layout
@@ -127,7 +127,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
             {
                 Caption = ' ';
                 ShowCaption = false;
-                InstructionalText = 'A test should be created for receiving lines when these filters match.  You can choose other fields on the last step.';
+                InstructionalText = 'A test should be created for receiving lines when these filters match. You can choose other fields on the last step.';
                 Visible = (StepWhichLineCounter = CurrentStepCounter);
 
                 group(SettingsFor_LocationWrapper)

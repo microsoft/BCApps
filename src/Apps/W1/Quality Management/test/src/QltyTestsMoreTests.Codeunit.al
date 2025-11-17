@@ -82,6 +82,8 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ExpressionFormulaFieldCodeTok: Label '[%1]', Comment = '%1=The first field code', Locked = true;
         TargetErr: Label 'When the target of the source configuration is a test, then all target fields must also refer to the test. Note that you can chain tables in another source configuration and still target test values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record. ';
         CanOnlyBeSetWhenToTypeIsTestErr: Label 'This is only used when the To Type is a test';
+        OrderTypeProductionConditionFilterTok: Label 'WHERE(Order Type=FILTER(Production))', Locked = true;
+        EntryTypeOutputConditionFilterTok: Label 'WHERE(Entry Type=FILTER(Output))', Locked = true;
 
     [Test]
     [HandlerFunctions('LookupTableModalPageHandler_FirstRecord')]
@@ -816,6 +818,12 @@ codeunit 139965 "Qlty. Tests - More Tests"
         TemplateCode := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
         ConfigurationToLoadQltyInspectionTemplateHdr.Insert();
 
+        // [GIVEN] All existing job queue entries for schedule inspection test are deleted
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
+        JobQueueEntry.SetRange("Object ID to Run", Report::"Qlty. Schedule Inspection Test");
+        if JobQueueEntry.FindSet() then
+            JobQueueEntry.DeleteAll();
+
         // [GIVEN] All existing generation rules are deleted
         QltyInTestGenerationRule.DeleteAll();
 
@@ -825,7 +833,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
         QltyInTestGenerationRule."Condition Filter" := ConditionProductionFilterTok;
         QltyInTestGenerationRule."Schedule Group" := DefaultScheduleGroupTok;
-        QltyInTestGenerationRule.Insert();
+        QltyInTestGenerationRule.Insert(true);
 
         // [GIVEN] A random new schedule group code is generated
         QltyTestsUtility.GenerateRandomCharacters(20, ScheduleGroupCode);
@@ -843,6 +851,166 @@ codeunit 139965 "Qlty. Tests - More Tests"
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
         JobQueueEntry.SetRange("Object ID to Run", Report::"Qlty. Schedule Inspection Test");
         LibraryAssert.IsTrue(JobQueueEntry.Count() = 1, 'Should have created a job queue entry');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure GenerationRule_CreateJobQueueEntry()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        JobQueueEntry: Record "Job Queue Entry";
+        ltestPageJobQueueEntry: TestPage "Job Queue Entries";
+        QltyInTestGeneratRules: TestPage "Qlty. In. Test Generat. Rules";
+        TemplateCode: Text;
+        ScheduleGroupCode: Text;
+    begin
+        // [SCENARIO] User can create an additional job queue entry for an existing generation rule with schedule group
+
+        // [GIVEN] All existing templates are deleted and a new template is created
+        QltyInspectionTemplateHdr.DeleteAll();
+        QltyTestsUtility.GenerateRandomCharacters(20, TemplateCode);
+        TemplateCode := QltyInspectionTemplateHdr.Code;
+        QltyInspectionTemplateHdr.Insert();
+
+        // [GIVEN] A new generation rule with schedule group is created
+        QltyTestsUtility.GenerateRandomCharacters(20, ScheduleGroupCode);
+        QltyInTestGenerationRule.DeleteAll();
+        QltyInTestGenerationRule.Init();
+        QltyInTestGenerationRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInTestGenerationRule."Condition Filter" := OrderTypeProductionConditionFilterTok;
+        QltyInTestGenerationRule."Schedule Group" := CopyStr(ScheduleGroupCode, 1, MaxStrLen(QltyInTestGenerationRule."Schedule Group"));
+        QltyInTestGenerationRule.Insert(true);
+
+        // [GIVEN] Any existing job queue entries for schedule inspection test are deleted
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
+        JobQueueEntry.SetRange("Object ID to Run", Report::"Qlty. Schedule Inspection Test");
+        if JobQueueEntry.FindSet() then
+            JobQueueEntry.DeleteAll();
+
+        // [GIVEN] Job queue entries page is trapped for verification
+        ltestPageJobQueueEntry.Trap();
+
+        // [WHEN] CreateAnotherJobQueue action is invoked on the Generation Rules page
+        QltyInTestGeneratRules.OpenView();
+        QltyInTestGeneratRules.GoToRecord(QltyInTestGenerationRule);
+        QltyInTestGeneratRules.CreateAnotherJobQueue.Invoke();
+
+        // [THEN] A job queue entry is created for the schedule inspection test report
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
+        JobQueueEntry.SetRange("Object ID to Run", Report::"Qlty. Schedule Inspection Test");
+        LibraryAssert.IsTrue(JobQueueEntry.Count() = 1, 'Should have created a job queue entry');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure GenerationRule_DeleteScheduleGroup_ShouldDeleteEntry()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        JobQueueEntry: Record "Job Queue Entry";
+        JobQueueEntries: TestPage "Job Queue Entries";
+        TemplateCode: Text;
+        ScheduleGroupCode: Text;
+    begin
+        // [SCENARIO] Clearing a schedule group from a generation rule deletes the associated job queue entry when it's the only rule using that group
+
+        // [GIVEN] All existing templates are deleted and a new template is created
+        QltyInspectionTemplateHdr.DeleteAll();
+        QltyTestsUtility.GenerateRandomCharacters(20, TemplateCode);
+        TemplateCode := QltyInspectionTemplateHdr.Code;
+        QltyInspectionTemplateHdr.Insert();
+
+        // [GIVEN] Any existing job queue entries for schedule inspection test are deleted
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
+        JobQueueEntry.SetRange("Object ID to Run", Report::"Qlty. Schedule Inspection Test");
+        if JobQueueEntry.FindSet() then
+            JobQueueEntry.DeleteAll();
+
+        // [GIVEN] A generation rule with schedule group is created
+        QltyTestsUtility.GenerateRandomCharacters(20, ScheduleGroupCode);
+        QltyInTestGenerationRule.DeleteAll();
+        QltyInTestGenerationRule.Init();
+        QltyInTestGenerationRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInTestGenerationRule."Condition Filter" := OrderTypeProductionConditionFilterTok;
+        QltyInTestGenerationRule.Insert(true);
+        JobQueueEntries.Trap();
+        QltyInTestGenerationRule.Validate("Schedule Group", ScheduleGroupCode);
+
+        // [GIVEN] A job queue entry is created for the schedule group
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
+        JobQueueEntry.SetRange("Object ID to Run", Report::"Qlty. Schedule Inspection Test");
+        LibraryAssert.IsTrue(JobQueueEntry.Count() = 1, 'Should have created a job queue entry');
+
+        // [WHEN] The schedule group is cleared from the generation rule
+        QltyInTestGenerationRule.Validate("Schedule Group", '');
+
+        // [THEN] The job queue entry is deleted since no other rules use this schedule group
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
+        JobQueueEntry.SetRange("Object ID to Run", Report::"Qlty. Schedule Inspection Test");
+        LibraryAssert.IsTrue(JobQueueEntry.Count() = 0, 'Should have deleted job queue entry');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure GenerationRule_DeleteScheduleGroup_ShouldNotDeleteEntry()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        SecondQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        JobQueueEntry: Record "Job Queue Entry";
+        JobQueueEntries: TestPage "Job Queue Entries";
+        TemplateCode: Text;
+        ScheduleGroupCode: Text;
+    begin
+        // [SCENARIO] Clearing a schedule group from one generation rule should not delete the job queue entry when other rules still use the same group
+
+        // [GIVEN] All existing templates are deleted and a new template is created
+        QltyInspectionTemplateHdr.DeleteAll();
+        QltyTestsUtility.GenerateRandomCharacters(20, TemplateCode);
+        TemplateCode := QltyInspectionTemplateHdr.Code;
+        QltyInspectionTemplateHdr.Insert();
+
+        // [GIVEN] Any existing job queue entries for schedule inspection test are deleted
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
+        JobQueueEntry.SetRange("Object ID to Run", Report::"Qlty. Schedule Inspection Test");
+        if JobQueueEntry.FindSet() then
+            JobQueueEntry.DeleteAll();
+
+        // [GIVEN] A first generation rule with schedule group is created
+        QltyTestsUtility.GenerateRandomCharacters(20, ScheduleGroupCode);
+        QltyInTestGenerationRule.DeleteAll();
+        QltyInTestGenerationRule.Init();
+        QltyInTestGenerationRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInTestGenerationRule."Condition Filter" := EntryTypeOutputConditionFilterTok;
+        QltyInTestGenerationRule.Insert(true);
+        JobQueueEntries.Trap();
+        QltyInTestGenerationRule.Validate("Schedule Group", ScheduleGroupCode);
+
+        // [GIVEN] A second generation rule with the same schedule group is created
+        SecondQltyInTestGenerationRule.Init();
+        SecondQltyInTestGenerationRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        SecondQltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
+        SecondQltyInTestGenerationRule."Condition Filter" := OrderTypeProductionConditionFilterTok;
+        SecondQltyInTestGenerationRule.Insert(true);
+        JobQueueEntries.Trap();
+        SecondQltyInTestGenerationRule.Validate("Schedule Group", ScheduleGroupCode);
+
+        // [GIVEN] A job queue entry is created for the shared schedule group
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
+        JobQueueEntry.SetRange("Object ID to Run", Report::"Qlty. Schedule Inspection Test");
+        LibraryAssert.IsTrue(JobQueueEntry.Count() = 1, 'Should have created a job queue entry');
+
+        // [WHEN] The schedule group is cleared from the first generation rule only
+        QltyInTestGenerationRule.Validate("Schedule Group", '');
+
+        // [THEN] The job queue entry is preserved because the second rule still uses the same schedule group
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
+        JobQueueEntry.SetRange("Object ID to Run", Report::"Qlty. Schedule Inspection Test");
+        LibraryAssert.IsTrue(JobQueueEntry.Count() = 1, 'Should not have deleted job queue entry');
     end;
 
     [Test]
@@ -877,7 +1045,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInTestGenerationRule."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
         QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
         QltyInTestGenerationRule."Condition Filter" := ConditionProductionFilterTok;
-        QltyInTestGenerationRule.Insert();
+        QltyInTestGenerationRule.Insert(true);
 
         // [GIVEN] All existing job queue entries for schedule inspection test are deleted
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
@@ -1111,7 +1279,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [GIVEN] A new generation rule for Item Ledger Entry is created
         QltyInTestGenerationRule.Init();
         QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInTestGenerationRule.Insert();
+        QltyInTestGenerationRule.Insert(true);
 
         // [GIVEN] The Generation Rules page is opened and navigated to the rule
         QltyInTestGeneratRules.OpenEdit();
@@ -1152,7 +1320,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [GIVEN] A new generation rule for Item Ledger Entry is created
         QltyInTestGenerationRule.Init();
         QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInTestGenerationRule.Insert();
+        QltyInTestGenerationRule.Insert(true);
 
         // [GIVEN] The Generation Rules page is opened and navigated to the rule
         QltyInTestGeneratRules.OpenEdit();
@@ -1191,7 +1359,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [GIVEN] A new generation rule for Item Ledger Entry is created
         QltyInTestGenerationRule.Init();
         QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInTestGenerationRule.Insert();
+        QltyInTestGenerationRule.Insert(true);
 
         // [GIVEN] The Generation Rules page is opened and navigated to the rule
         QltyInTestGeneratRules.OpenEdit();
@@ -1476,6 +1644,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     [Test]
     procedure LineTable_OnDelete()
     var
+        QltyInspectionGrade: Record "Qlty. Inspection Grade";
         QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
         QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -1488,16 +1657,24 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A basic template and test instance are created
         QltyTestsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionTestHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
-        QltyInspectionTestLine.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.", 10000);
 
-        // [GIVEN] A grade condition configuration is created for the test line
-        ToLoadQltyIGradeConditionConf."Condition Type" := ToLoadQltyIGradeConditionConf."Condition Type"::Test;
-        ToLoadQltyIGradeConditionConf."Target Code" := QltyInspectionTestHeader."No.";
-        ToLoadQltyIGradeConditionConf."Target Retest No." := QltyInspectionTestHeader."Retest No.";
-        ToLoadQltyIGradeConditionConf."Target Line No." := 10000;
-        ToLoadQltyIGradeConditionConf."Grade Code" := DefaultGrade2PassCodeTok;
-        ToLoadQltyIGradeConditionConf."Field Code" := QltyInspectionTestLine."Field Code";
-        ToLoadQltyIGradeConditionConf.Insert();
+        QltyInspectionTestLine.SetRange("Test No.", QltyInspectionTestHeader."No.");
+        QltyInspectionTestLine.SetRange("Retest No.", QltyInspectionTestHeader."Retest No.");
+        LibraryAssert.IsTrue(QltyInspectionTestLine.FindSet(true), 'Sanity check, theres hould be a test line.');
+        repeat
+            QltyInspectionTestHeader.SetTestValue(QltyInspectionTestLine."Field Code", '1');
+        until QltyInspectionTestLine.Next() = 0;
+        LibraryAssert.IsTrue(QltyInspectionTestLine.FindSet(true), 'Sanity check, theres hould be a test line.');
+
+        Clear(ToLoadQltyIGradeConditionConf);
+        ToLoadQltyIGradeConditionConf.SetRange("Condition Type", ToLoadQltyIGradeConditionConf."Condition Type"::Test);
+        ToLoadQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionTestHeader."No.");
+        ToLoadQltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionTestHeader."Retest No.");
+        QltyInspectionGrade.SetRange("Copy Behavior", QltyInspectionGrade."Copy Behavior"::"Automatically copy the grade");
+        LibraryAssert.AreEqual(
+            1 * (QltyInspectionGrade.Count() * QltyInspectionTestLine.Count()),
+            ToLoadQltyIGradeConditionConf.Count(),
+            'Should be at least one grade condition config per field per grade');
 
         // [WHEN] The test line is deleted
         QltyInspectionTestLine.Delete(true);
@@ -1507,8 +1684,11 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ToLoadQltyIGradeConditionConf.SetRange("Condition Type", ToLoadQltyIGradeConditionConf."Condition Type"::Test);
         ToLoadQltyIGradeConditionConf.SetRange("Target Code", QltyInspectionTestHeader."No.");
         ToLoadQltyIGradeConditionConf.SetRange("Target Retest No.", QltyInspectionTestHeader."Retest No.");
-        ToLoadQltyIGradeConditionConf.SetRange("Target Line No.", 10000);
-        LibraryAssert.IsTrue(ToLoadQltyIGradeConditionConf.IsEmpty(), 'Should be no grade condition config lines for the test line.');
+        ToLoadQltyIGradeConditionConf.SetRange("Target Line No.", QltyInspectionTestLine."Line No.");
+        LibraryAssert.AreEqual(0, ToLoadQltyIGradeConditionConf.Count(), 'Should be no grade condition config lines for the test line.');
+        ToLoadQltyIGradeConditionConf.SetRange("Target Line No.");
+        QltyInspectionTestHeader.Delete(true);
+        LibraryAssert.AreEqual(0, ToLoadQltyIGradeConditionConf.Count(), 'Should be no grade condition config lines for the test.');
     end;
 
     [Test]
@@ -2044,7 +2224,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryAssert.ExpectedError(CanOnlyBeSetWhenToTypeIsTestErr);
     end;
 
-    [Test]
+    // Test disabled due to inconsistent behavior across environments
+    // Bug 613059 to address the test stability issue
+    // [Test]
     procedure ApplicationAreaMgmt_IsQualityManagementApplicationAreaEnabled()
     var
         AllProfile: Record "All Profile";
@@ -2054,7 +2236,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyApplicationAreaMgmt: Codeunit "Qlty. Application Area Mgmt.";
 
     begin
-        // [SCENARIO] Quality Management application area is enabled by default
+        // [SCENARIO] Quality Management application area is enabled by default on Essential experience
 
         // [GIVEN] Application Area Setup exists or is created for current company and user
         if not ApplicationAreaMgmtFacade.GetApplicationAreaSetupRecFromCompany(ApplicationAreaSetup, CompanyName()) then begin

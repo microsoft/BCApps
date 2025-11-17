@@ -107,4 +107,12 @@ report 30121 "Shpfy Add Cust. As Locations"
         this.ShopifyShop.Get(ShopifyCompany."Shop Code");
         this.CompanyName := ShopifyCompany.Name;
     end;
+
+    /// <summary> 
+    /// Returns the Shop value selected on request page.
+    /// </summary>
+    procedure GetShop(): Code[20]
+    begin
+        exit(ShopifyShop.Code);
+    end;
 }

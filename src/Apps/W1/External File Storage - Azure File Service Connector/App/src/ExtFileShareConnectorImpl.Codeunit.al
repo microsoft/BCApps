@@ -416,12 +416,16 @@ codeunit 4570 "Ext. File Share Connector Impl" implements "External File Storage
         AFSOptionalParameters.Marker(FilePaginationData.GetMarker());
     end;
 
-    local procedure ValidateListingResponse(var FilePaginationData: Codeunit "File Pagination Data"; var AFSOperationResponse: Codeunit "AFS Operation Response")
+    local procedure ValidateListingResponse(var FilePaginationData: Codeunit "File Pagination Data"; var AFSDirectoryContent: Record "AFS Directory Content"; var AFSOperationResponse: Codeunit "AFS Operation Response")
     begin
         if not AFSOperationResponse.IsSuccessful() then
             Error(AFSOperationResponse.GetError());
 
-        FilePaginationData.SetEndOfListing(true);
+        if not AFSDirectoryContent.FindLast() then
+            FilePaginationData.SetEndOfListing(true);
+
+        FilePaginationData.SetMarker(AFSDirectoryContent."Next Marker");
+        FilePaginationData.SetEndOfListing(AFSDirectoryContent."Next Marker" = '');
     end;
 
     local procedure GetDirectoryContent(var AccountId: Guid; var PassedPath: Text; var FilePaginationData: Codeunit "File Pagination Data"; var AFSDirectoryContent: Record "AFS Directory Content")
@@ -437,7 +441,7 @@ codeunit 4570 "Ext. File Share Connector Impl" implements "External File Storage
         Path := CopyStr(PassedPath, 1, MaxStrLen(Path));
         AFSOperationResponse := AFSFileClient.ListDirectory(Path, AFSDirectoryContent, AFSOptionalParameters);
         PassedPath := Path;
-        ValidateListingResponse(FilePaginationData, AFSOperationResponse);
+        ValidateListingResponse(FilePaginationData, AFSDirectoryContent, AFSOperationResponse);
     end;
 
     local procedure SetReadySAS(var StorageServiceAuthorization: Codeunit "Storage Service Authorization"; Secret: SecretText): Interface System.Azure.Storage."Storage Service Authorization"

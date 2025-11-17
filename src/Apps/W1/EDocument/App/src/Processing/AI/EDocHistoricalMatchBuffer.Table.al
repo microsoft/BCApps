@@ -54,6 +54,10 @@ table 6129 "EDoc Historical Match Buffer"
         {
             Caption = 'Match Reason';
         }
+        field(31; "Match Type"; Text[100])
+        {
+            Caption = 'Match Type';
+        }
         field(40; "Confidence Score"; Decimal)
         {
             Caption = 'Confidence Score';

@@ -11,6 +11,8 @@ using System.Integration;
 
 codeunit 20418 "Qlty. Utilities Integration"
 {
+    InherentPermissions = X;
+
     var
         CaptionTok: Label 'caption', Locked = true;
 

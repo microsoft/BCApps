@@ -19,7 +19,7 @@ page 20409 "Qlty. Lookup Code List"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(GroupLookupCodes)
             {

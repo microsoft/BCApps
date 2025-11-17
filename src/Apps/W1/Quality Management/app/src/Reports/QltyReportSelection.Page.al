@@ -109,7 +109,7 @@ page 20442 "Qlty. Report Selection"
     /// <summary>
     /// OnSetUsageFilterOnAfterSetFiltersByReportUsage gives an opportunity to extend the report usage filtering.
     /// </summary>
-    /// <param name="pRecReportSelections">VAR Record "Report Selections".</param>
+    /// <param name="pRecReportSelections">var Record "Report Selections".</param>
     /// <param name="ReportSelectionUsage">Enum "Qlty. Report Selection Usage".</param>
 
     [IntegrationEvent(false, false)]

@@ -91,9 +91,6 @@ codeunit 20410 "Qlty. Grade Evaluation"
                     if Condition.Contains('[') then
                         Condition := QltyExpressionMgmt.EvaluateTextExpression(Condition, OptionalQltyInspectionTestHeader, OptionalQltyInspectionTestLine);
 
-                    if Condition.Contains('{') then
-                        Condition := QltyExpressionMgmt.EvaluateEmbeddedNumericalExpressions(Condition, OptionalQltyInspectionTestHeader);
-
                     case QltyFieldType of
                         QltyFieldType::"Field Type Decimal":
                             LoopConditionMet := TestValueDecimal(TestValue, Condition);
@@ -282,9 +279,6 @@ codeunit 20410 "Qlty. Grade Evaluation"
         AllowableValues := QltyInspectionTestLine."Allowable Values";
         if AllowableValues.Contains('[') then
             AllowableValues := QltyExpressionMgmt.EvaluateTextExpression(AllowableValues, OptionalQltyInspectionTestHeader, QltyInspectionTestLine);
-
-        if AllowableValues.Contains('{') then
-            AllowableValues := QltyExpressionMgmt.EvaluateEmbeddedNumericalExpressions(AllowableValues, OptionalQltyInspectionTestHeader);
 
         ValidateAllowableValuesOnText(
             FieldNameForError,
@@ -603,9 +597,9 @@ codeunit 20410 "Qlty. Grade Evaluation"
     /// <summary>
     /// OnBeforeEvaluateGrade gives an opportunity to change how a grade is evaluated.
     /// </summary>
-    /// <param name="TestQltyIGradeConditionConf">VAR record "Qlty. Grade Condition Config".</param>
-    /// <param name="FieldType">VAR enum "Qlty. Field Type".</param>
-    /// <param name="TestValue">VAR Text.</param>
+    /// <param name="TestQltyIGradeConditionConf">var Record "Qlty. Grade Condition Config".</param>
+    /// <param name="FieldType">var Rnum "Qlty. Field Type".</param>
+    /// <param name="TestValue">var Text.</param>
     /// <param name="OutCode">The grade.</param>
     /// <param name="Handled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
@@ -616,11 +610,11 @@ codeunit 20410 "Qlty. Grade Evaluation"
     /// <summary>
     /// OnAfterEvaluateGrade gives an opportunity to run additional logic after a grade has been determined by the system.
     /// </summary>
-    /// <param name="TestQltyIGradeConditionConf">VAR record "Qlty. Grade Condition Config".</param>
-    /// <param name="FieldType">VAR enum "Qlty. Field Type".</param>
-    /// <param name="TestValue">VAR Text.</param>
-    /// <param name="Result">VAR Code[20].</param>
-    /// <param name="TempHighestQltyIGradeConditionConf">VAR record "Qlty. Grade Condition Config" temporary.</param>
+    /// <param name="TestQltyIGradeConditionConf">var Record "Qlty. Grade Condition Config".</param>
+    /// <param name="FieldType">var Enum "Qlty. Field Type".</param>
+    /// <param name="TestValue">var Text.</param>
+    /// <param name="Result">var Code[20].</param>
+    /// <param name="TempHighestQltyIGradeConditionConf">var Record "Qlty. I. Grade Condition Conf." temporary.</param>
     /// <param name="Handled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterEvaluateGrade(var TestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf."; var QltyFieldType: Enum "Qlty. Field Type"; var TestValue: Text; var Result: Code[20]; var TempHighestQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf." temporary; var Handled: Boolean)

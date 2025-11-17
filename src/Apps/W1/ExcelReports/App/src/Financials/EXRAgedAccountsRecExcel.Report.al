@@ -292,12 +292,6 @@ report 4402 "EXR Aged Accounts Rec Excel"
         PeriodEnds: List of [Date];
         PeriodStarts: List of [Date];
         CurrencyCodeDisplayCode: Code[20];
-#if not CLEAN25
-#pragma warning disable AA0137
-        [Obsolete('Will be deleted', '25.0')]
-        AgingBy: Option "Due Date","Posting Date","Document Date";
-#pragma warning restore AA0137
-#endif
 
     trigger OnPreReport()
     begin
@@ -377,4 +371,3 @@ report 4402 "EXR Aged Accounts Rec Excel"
         AgingData.Insert();
     end;
 }
-
