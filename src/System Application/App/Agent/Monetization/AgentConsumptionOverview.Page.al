@@ -69,14 +69,6 @@ page 4333 "Agent Consumption Overview"
         }
     }
 
-    trigger OnOpenPage()
-    var
-        CurrentModule: ModuleInfo;
-    begin
-        NavApp.GetCurrentModuleInfo(CurrentModule);
-        Rec.SetRange("App Id", CurrentModule.Id);
-    end;
-
     trigger OnAfterGetRecord()
     var
         User: Record User;
@@ -86,7 +78,7 @@ page 4333 "Agent Consumption Overview"
         Rec.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
         DescriptionInStream.ReadText(DescriptionTxt);
         if User.Get(Rec."User Id") then
-            UserName := User."Full Name";
+            UserName := User."User Name";
     end;
 
     var

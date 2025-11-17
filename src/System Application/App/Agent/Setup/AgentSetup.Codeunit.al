@@ -15,6 +15,9 @@ codeunit 4324 "Agent Setup"
 
     [Scope('OnPrem')]
     procedure GetSetupRecord(var AgentSetupBuffer: Record "Agent Setup Buffer"; UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80]; AgentSummary: Text)
+    var
+        TemporaryAgentAccessControl: Record "Agent Access Control" temporary;
+        Agent: Codeunit Agent;
     begin
         Clear(AgentSetupBuffer);
         AgentSetupBuffer.DeleteAll();
@@ -25,6 +28,10 @@ codeunit 4324 "Agent Setup"
         UpdateFields(AgentSetupBuffer, UserSecurityID, AgentMetadataProvider, DefaultUserName, DefaultDisplayName);
         AgentSetupBuffer.Insert();
         SetAgentSummary(AgentSummary, AgentSetupBuffer);
+        if not IsNullGuid(UserSecurityID) then begin
+            Agent.GetUserAccess(AgentSetupBuffer."User Security ID", TemporaryAgentAccessControl);
+            AgentSetupBuffer.SetTempAgentAccessControl(TemporaryAgentAccessControl);
+        end;
     end;
 
     [Scope('OnPrem')]
@@ -42,7 +49,7 @@ codeunit 4324 "Agent Setup"
     var
         TempAgentAccessControl: Record "Agent Access Control" temporary;
     begin
-        TempAgentAccessControl := AgentSetupBuffer.GetTempAgentAccessControl();
+        AgentSetupBuffer.GetTempAgentAccessControl(TempAgentAccessControl);
         if (Page.RunModal(Page::"Select Agent Access Control", TempAgentAccessControl) in [Action::LookupOK, Action::OK]) then begin
             AgentSetupBuffer."Access Updated" := true;
             AgentSetupBuffer."Values Updated" := true;
@@ -141,8 +148,9 @@ codeunit 4324 "Agent Setup"
         TemporaryAgentAccessControl: Record "Agent Access Control" temporary;
         Agent: Codeunit Agent;
     begin
-        TemporaryAgentAccessControl := AgentSetupBuffer.GetTempAgentAccessControl();
+        AgentSetupBuffer.GetTempAgentAccessControl(TemporaryAgentAccessControl);
         AgentRecord.Get(Agent.Create(AgentSetupBuffer."Agent Metadata Provider", AgentSetupBuffer."User Name", AgentSetupBuffer."Display Name", TemporaryAgentAccessControl));
+        AgentSetupBuffer.Rename(AgentRecord."User Security ID");
         SetBufferFieldsToAgent(AgentSetupBuffer, AgentRecord);
         NewUserSettings := AgentSetupBuffer.GetUserSettings();
         Agent.UpdateLocalizationSettings(AgentRecord."User Security ID", NewUserSettings);
@@ -169,7 +177,7 @@ codeunit 4324 "Agent Setup"
         end;
 
         if AgentSetupBuffer."Access Updated" then begin
-            TemporaryAgentAccessControl := AgentSetupBuffer.GetTempAgentAccessControl();
+            AgentSetupBuffer.GetTempAgentAccessControl(TemporaryAgentAccessControl);
             Agent.UpdateAccess(AgentSetupBuffer."User Security ID", TemporaryAgentAccessControl);
         end;
 

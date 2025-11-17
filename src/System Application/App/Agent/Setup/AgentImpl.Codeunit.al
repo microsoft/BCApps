@@ -527,7 +527,7 @@ codeunit 4301 "Agent Impl."
         if (PageMetadata.SourceTable = 0) then
             Error(SetupPageMissingSourceTableErr, SetupPageId);
 
-        SetupPageRecordRef.Open(PageMetadata.SourceTable);
+        SetupPageRecordRef.Open(PageMetadata.SourceTable, PageMetadata.SourceTableTemporary);
 
         FieldMetadata.SetRange(TableNo, PageMetadata.SourceTable);
         FieldMetadata.SetRange(FieldName, UserSecurityIdTok);
