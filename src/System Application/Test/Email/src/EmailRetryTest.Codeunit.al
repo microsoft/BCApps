@@ -613,6 +613,57 @@ codeunit 134703 "Email Retry Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure CleanEmailOutboxTest()
+    var
+        TempAccount: Record "Email Account" temporary;
+        EmailOutbox: Record "Email Outbox";
+        EmailRateLimit: Record "Email Rate Limit";
+        Any: Codeunit Any;
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+        OriginalScheduledDateTime: DateTime;
+        OriginalTaskId: Guid;
+    begin
+        // [Scenario] The account has a concurrency limit of 10. There are 12 outbox entries:
+        //  - 12 pre-existing entries will be present after setup (we then adjust the first to be 2 hours ago).
+        //  - The 11th email (created from the foreground) is attempted while 10 "recent" sends still occupy slots.
+        // Expectation: Even with one older (2 hours ago) entry, concurrency is still exceeded when the foreground send happens,
+        // so the 11th email should be rescheduled: scheduling fields change and status remains/returns to Queued.
+        PermissionsMock.Set('Email Edit');
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(TempAccount);
+
+        // [Given] Concurrency limit for this account is set to 10
+        EmailRateLimit.SetRange("Account Id", TempAccount."Account Id");
+        Assert.IsTrue(EmailRateLimit.FindFirst(), 'The Email Rate Limit entry should exist');
+        EmailRateLimit.Validate("Concurrency Limit", 10);
+        EmailRateLimit.Modify();
+
+        // [Given] Create 12 outbox entries for the account
+        CreateEmailMessageAndEmailOutboxRecord(12, TempAccount, false);
+
+        // [Given] Make the first existing entry appear sent 1 hour earlier (still leaving 10 "recent" concurrent sends)
+        EmailOutbox.FindFirst();
+        EmailOutbox."Date Sending" := EmailOutbox."Date Sending" - 3600001; // 1 hours + 1 milliseconds
+        EmailOutbox.Modify();
+
+        // [Given] Create the 11th email from the foreground
+        // EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+        // SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Queued, 0, false);
+
+        EmailOutbox.SetRange("Status", EmailOutbox.Status::Processing);
+        EmailOutbox.FindSet();
+        Assert.AreEqual(12, EmailOutbox.Count(), 'There should be no Processing email outbox entries');
+
+        Codeunit.Run(Codeunit::"Clean Email Outbox Task");
+
+        EmailOutbox.SetRange("Status", EmailOutbox.Status::Processing);
+        EmailOutbox.FindSet();
+        Assert.AreEqual(11, EmailOutbox.Count(), 'There should be no Processing email outbox entries');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure SendEmailMessageFailedFirstTryThenRetryTest()
     var
         TempAccount: Record "Email Account" temporary;
