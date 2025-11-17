@@ -1,15 +1,13 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Visualization;
 #if not CLEAN26
 using Microsoft.Foundation.Task;
-#endif
-using Microsoft.Sales.Document;
-using Microsoft.Purchases.Document;
-#if not CLEAN26
 using Microsoft.Projects.Project.Job;
 #endif
+using Microsoft.Purchases.Document;
 using Microsoft.RoleCenters;
+using Microsoft.Sales.Document;
+using System.Visualization;
 
 page 8085 "Sub. Billing Activities"
 {

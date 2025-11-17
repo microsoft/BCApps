@@ -5,9 +5,9 @@
 
 namespace Microsoft.Purchases.ExcelReports;
 
-using Microsoft.Purchases.Vendor;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
+using Microsoft.Purchases.Vendor;
 
 table 4404 "EXR Top Vendor Report Buffer"
 {

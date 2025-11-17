@@ -9,9 +9,9 @@ using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
-using System.TestLibraries.Utilities;
 using Microsoft.Sales.History;
 using Microsoft.Utilities;
+using System.TestLibraries.Utilities;
 
 codeunit 139695 "Shpfy Invoices Test"
 {

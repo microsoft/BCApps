@@ -6,7 +6,7 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "bcinsider/Sandbox/28.0.41256.0//latest",
+  "artifact": "bcinsider/Sandbox/28.0.42187.0//latest",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "28.0",
@@ -17,8 +17,6 @@
       ],
       "settings": {
         "preprocessorSymbols": [
-          "CLEAN23",
-          "CLEAN24",
           "CLEAN25",
           "CLEAN26",
           "CLEAN27",

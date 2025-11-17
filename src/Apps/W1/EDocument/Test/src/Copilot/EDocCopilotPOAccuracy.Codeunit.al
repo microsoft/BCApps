@@ -2,11 +2,11 @@ namespace Microsoft.Sales.Document.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.OrderMatch;
-using Microsoft.Purchases.Document;
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
+using Microsoft.Purchases.Document;
 using System.Reflection;
-using System.TestTools.AITestToolkit;
 using System.TestLibraries.Environment;
+using System.TestTools.AITestToolkit;
 
 
 codeunit 133502 EDocCopilotPOAccuracy

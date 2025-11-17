@@ -1,0 +1,85 @@
+table 'Power BI Account Categories'
+	isHidden
+	lineageTag: 7d031976-21a1-4704-8d41-6b3264faaf52
+
+	column powerBIAccCategory
+		dataType: string
+		isHidden
+		lineageTag: a98338cd-f68e-493b-ba30-9e12206d6e7e
+		summarizeBy: none
+		sourceColumn: powerBIAccCategory
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column glAccCategoryEntryNo
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: fd6a9b9b-61f2-40bb-9436-3fd68acb25a0
+		summarizeBy: none
+		sourceColumn: glAccCategoryEntryNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column parentAccCategoryEntryNo
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 46339ec9-c13f-4200-9fd5-54563e0402ea
+		summarizeBy: sum
+		sourceColumn: parentAccCategoryEntryNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ETag
+		dataType: string
+		isHidden
+		lineageTag: cd04dc61-fc82-4f1e-bfe2-80be11cc1e45
+		summarizeBy: none
+		sourceColumn: ETag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Path = ```
+			
+			
+			LOOKUPVALUE(
+			    'G/L Account Category'[GLAccCategoryPath],
+			    'G/L Account Category'[Entry No.],'Power BI Account Categories'[glAccCategoryEntryNo], 
+			    'G/L Account Category'[Parent Entry No.], 'Power BI Account Categories'[parentAccCategoryEntryNo]
+			)
+			```
+		isHidden
+		lineageTag: bcbbc0d5-5f7a-4e68-ab02-4f156b9e4766
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Power BI Account Categories' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    pbiAccountCategories_table = Source{[Name="accountCategories",Signature="table"]}[Data],
+				    #"Replaced Value" = Table.ReplaceValue(pbiAccountCategories_table,0,null,Replacer.ReplaceValue,{"glAccCategoryEntryNo"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value",0,null,Replacer.ReplaceValue,{"parentAccCategoryEntryNo"})
+				in
+				    #"Replaced Value1"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

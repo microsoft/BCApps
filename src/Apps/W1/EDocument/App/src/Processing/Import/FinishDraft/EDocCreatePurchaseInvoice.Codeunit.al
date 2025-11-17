@@ -5,15 +5,16 @@
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Finance.Dimension;
-using Microsoft.Purchases.Document;
-using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Attachment;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Posting;
 using System.Telemetry;
-using Microsoft.Foundation.Attachment;
+using System.Utilities;
 
 /// <summary>
 /// Dealing with the creation of the purchase invoice after the draft has been populated.
@@ -34,10 +35,25 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         PurchaseHeader: Record "Purchase Header";
+        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
+        EDocPOMatching: Codeunit "E-Doc. PO Matching";
         DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
+        ConfirmManagement: Codeunit "Confirm Management";
         IEDocumentFinishPurchaseDraft: Interface IEDocumentCreatePurchaseInvoice;
+        YourMatchedLinesAreNotValidErr: Label 'The purchase invoice cannot be created because one or more of its matched lines are not valid matches. Review if your configuration allows for receiving at invoice.';
+        SomeLinesNotYetReceivedMsg: Label 'Some of the matched purchase order lines have not yet been received, when posting the invoice, receipts will be created if needed. Do you want to proceed with creating the purchase invoice?';
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
+
+        if not EDocPOMatching.VerifyEDocumentMatchedLinesAreValidMatches(EDocumentPurchaseHeader) then
+            Error(YourMatchedLinesAreNotValidErr);
+
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
+        TempPOMatchWarnings.SetRange("Warning Type", "E-Doc PO Match Warning"::NotYetReceived);
+        if not TempPOMatchWarnings.IsEmpty() then
+            if not ConfirmManagement.GetResponse(SomeLinesNotYetReceivedMsg) then
+                Error(''); // User cancelled the operation
+
         IEDocumentFinishPurchaseDraft := EDocImportParameters."Processing Customizations";
         PurchaseHeader := IEDocumentFinishPurchaseDraft.CreatePurchaseInvoice(EDocument);
         PurchaseHeader.SetRecFilter();

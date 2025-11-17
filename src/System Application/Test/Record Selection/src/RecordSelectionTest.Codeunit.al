@@ -7,8 +7,8 @@ namespace System.Test.Reflection;
 
 using System.Reflection;
 using System.TestLibraries.Reflection;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 135136 "Record Selection Test"
 {

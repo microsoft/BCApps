@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Finance.ExcelReports;
+
 using Microsoft.Finance.GeneralLedger.Ledger;
 
 pageextension 4432 "EXR G/L Registers" extends "G/L Registers"

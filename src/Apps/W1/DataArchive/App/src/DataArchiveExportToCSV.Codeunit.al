@@ -9,8 +9,8 @@
 
 namespace System.DataAdministration;
 
-using System.Utilities;
 using System.IO;
+using System.Utilities;
 
 codeunit 609 "Data Archive Export to CSV"
 {

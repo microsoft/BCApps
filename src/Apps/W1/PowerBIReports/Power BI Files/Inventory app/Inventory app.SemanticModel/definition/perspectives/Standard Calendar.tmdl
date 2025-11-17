@@ -1,0 +1,598 @@
+perspective 'Standard Calendar'
+
+	perspectiveTable Item
+
+		perspectiveMeasure 'Scheduled Receipt'
+
+		perspectiveMeasure 'Planned Order Releases'
+
+		perspectiveMeasure 'Gross Requirement'
+
+		perspectiveMeasure 'Projected Available Balance'
+
+		perspectiveMeasure 'Planned Order Receipt'
+
+		perspectiveColumn 'Item No. & Description'
+
+	perspectiveTable Location
+
+		perspectiveColumn 'Location Code'
+
+		perspectiveColumn 'Location Name'
+
+	perspectiveTable Customer
+
+		perspectiveColumn 'Customer No. & Name'
+
+		perspectiveColumn 'Customer No.'
+
+		perspectiveColumn 'Customer Name'
+
+		perspectiveColumn 'Customer Address'
+
+		perspectiveColumn 'Customer Address 2'
+
+		perspectiveColumn 'Customer City'
+
+		perspectiveColumn 'Customer Post Code'
+
+		perspectiveColumn 'Customer State'
+
+		perspectiveColumn 'Customer Country/Region Code'
+
+		perspectiveColumn 'Customer Posting Group'
+
+		perspectiveColumn 'Customer Price Group'
+
+		perspectiveColumn 'Customer Discount Group'
+
+	perspectiveTable Vendor
+
+		perspectiveColumn 'Vendor No. & Name'
+
+		perspectiveColumn 'Vendor No.'
+
+		perspectiveColumn 'Vendor Name'
+
+		perspectiveColumn 'Vendor Address'
+
+		perspectiveColumn 'Vendor Address 2'
+
+		perspectiveColumn 'Vendor City'
+
+		perspectiveColumn 'Vendor Post Code'
+
+		perspectiveColumn 'Vendor State'
+
+		perspectiveColumn 'Vendor Country/Region Code'
+
+		perspectiveColumn 'Vendor Posting Group'
+
+	perspectiveTable 'Item Ledger Entries'
+
+		perspectiveMeasure 'Inventory (Quantity)'
+
+		perspectiveMeasure 'Remaining Quantity'
+
+		perspectiveMeasure Quantity
+
+		perspectiveMeasure 'Expired Inventory'
+
+		perspectiveMeasure 'Net Qty. Sold'
+
+		perspectiveMeasure 'Net Qty. Purchased'
+
+		perspectiveColumn 'Source No. (Customer)'
+
+		perspectiveColumn 'Source No. (Vendor)'
+
+		perspectiveColumn 'Consumption & Sales Quantity'
+
+		perspectiveColumn 'Entry No.'
+
+		perspectiveColumn 'Entry Type'
+
+		perspectiveColumn 'Posting Date'
+
+		perspectiveColumn 'Item No.'
+
+		perspectiveColumn 'Location Code'
+
+		perspectiveColumn 'Serial No.'
+
+		perspectiveColumn 'Expiration Date'
+
+		perspectiveColumn 'Lot No.'
+
+		perspectiveColumn Open
+
+		perspectiveColumn 'Qty.'
+
+		perspectiveColumn 'Remaining Qty.'
+
+		perspectiveColumn 'Cost Amt. (Actual)'
+
+		perspectiveColumn 'Sales Amt. (Actual)'
+
+		perspectiveColumn dimensionSetID
+
+		perspectiveColumn 'Document No.'
+
+		perspectiveColumn Positive
+
+		perspectiveColumn 'Lot Key'
+
+		perspectiveColumn 'Serial Key'
+
+		perspectiveColumn 'Quantity Per Unit of Measure'
+
+		perspectiveColumn 'Unit of Measure Code'
+
+		perspectiveColumn 'Document Type'
+
+	perspectiveTable 'Dimension Sets'
+
+	perspectiveTable 'Purchase Lines'
+
+		perspectiveMeasure 'Qty. on Purch. Order'
+
+		perspectiveMeasure 'Qty. on Purch. Return'
+
+		perspectiveMeasure 'Purchase Return - Earliest Expected Receipt Date'
+
+		perspectiveMeasure 'Purchase Order - Earliest Expected Receipt Date'
+
+		perspectiveColumn 'Document No.'
+
+		perspectiveColumn 'Vendor No.'
+
+		perspectiveColumn 'Item No.'
+
+		perspectiveColumn 'Expected Receipt Date'
+
+		perspectiveColumn 'Location Code'
+
+		perspectiveColumn outstandingQtyBase
+
+		perspectiveColumn 'Document Type'
+
+		perspectiveColumn dimensionSetID
+
+	perspectiveTable 'Warehouse Entries'
+
+		perspectiveColumn 'Item No.'
+
+		perspectiveColumn 'Location Code'
+
+		perspectiveColumn 'Qty. (Base)'
+
+		perspectiveColumn 'Zone Key'
+
+		perspectiveColumn 'Bin Key'
+
+		perspectiveColumn 'Lot Key'
+
+		perspectiveColumn 'Serial Key'
+
+	perspectiveTable Zone
+
+		perspectiveColumn 'Zone Description'
+
+		perspectiveColumn 'Zone Bin Type Code'
+
+		perspectiveColumn 'Zone Code'
+
+		perspectiveColumn 'Zone Location Code'
+
+		perspectiveColumn 'Zone Key'
+
+	perspectiveTable Bin
+
+		perspectiveMeasure 'Available Qty. to Take'
+
+		perspectiveMeasure 'Quantity in Adjustment Bin'
+
+		perspectiveMeasure 'Positive Adjmt. Qty. (Base)'
+
+		perspectiveMeasure 'Negative Adjmt. Qty. (Base)'
+
+		perspectiveMeasure 'Warehouse Quantity'
+
+		perspectiveMeasure 'ATO Components Pick Qty.'
+
+		perspectiveMeasure 'Put-away Quantity (Base)'
+
+		perspectiveMeasure 'Pick Quantity (Base)'
+
+		perspectiveColumn 'Bin Description'
+
+		perspectiveColumn 'Bin Type Code'
+
+		perspectiveColumn 'Bin Code'
+
+		perspectiveColumn 'Bin Location Code'
+
+		perspectiveColumn 'Adjustment Bin'
+
+		perspectiveColumn 'Bin Zone Code'
+
+		perspectiveColumn 'Bin Key'
+
+	perspectiveTable 'Sales Lines'
+
+		perspectiveMeasure 'Qty. on Sales Order'
+
+		perspectiveMeasure 'Qty. on Sales Return Order'
+
+		perspectiveMeasure 'Sales Order - Earliest Shipment Date'
+
+		perspectiveColumn 'Document No.'
+
+		perspectiveColumn sellToCustomerNo
+
+		perspectiveColumn 'Item No.'
+
+		perspectiveColumn 'Shipment Date'
+
+		perspectiveColumn 'Location Code'
+
+		perspectiveColumn 'Document Type'
+
+		perspectiveColumn outstandingQtyBase
+
+		perspectiveColumn dimensionSetID
+
+	perspectiveTable 'Assembly Lines'
+
+		perspectiveMeasure 'Qty. on Asm. Component'
+
+		perspectiveMeasure 'Assembly Lines - Earliest Due Date'
+
+		perspectiveColumn itemNo
+
+		perspectiveColumn locationCode
+
+		perspectiveColumn dimensionSetID
+
+		perspectiveColumn 'Due Date'
+
+		perspectiveColumn 'Document No.'
+
+	perspectiveTable 'Assembly Headers'
+
+		perspectiveMeasure 'Qty. on Assembly Order'
+
+		perspectiveColumn itemNo
+
+		perspectiveColumn quantity
+
+		perspectiveColumn locationCode
+
+		perspectiveColumn 'Document No.'
+
+		perspectiveColumn remainingQtyBase
+
+		perspectiveColumn 'Due Date'
+
+		perspectiveColumn dimensionSetID
+
+		perspectiveColumn Status
+
+	perspectiveTable 'Project Planning Lines'
+
+		perspectiveMeasure 'Qty. on Projects'
+
+		perspectiveMeasure 'Project Planning - Earliest Planning Date'
+
+		perspectiveColumn itemNo
+
+		perspectiveColumn planningDate
+
+		perspectiveColumn locationCode
+
+		perspectiveColumn remainingQtyBase
+
+		perspectiveColumn 'Document No.'
+
+	perspectiveTable 'Warehouse Activity Lines'
+
+		perspectiveColumn actionType
+
+		perspectiveColumn assembleToOrder
+
+		perspectiveColumn atoComponent
+
+		perspectiveColumn itemNo
+
+		perspectiveColumn locationCode
+
+		perspectiveColumn qtyBase
+
+		perspectiveColumn 'Bin Key'
+
+		perspectiveColumn qtyPerUnitOfMeasure
+
+		perspectiveColumn unitOfMeasureCode
+
+		perspectiveColumn 'Lot Key'
+
+		perspectiveColumn 'Serial Key'
+
+	perspectiveTable 'Warehouse Journal Lines (To Bin)'
+
+		perspectiveColumn itemNo
+
+		perspectiveColumn locationCode
+
+		perspectiveColumn qtyBase
+
+		perspectiveColumn 'To Bin Key'
+
+		perspectiveColumn 'Zone Key'
+
+		perspectiveColumn 'Lot Key'
+
+		perspectiveColumn 'Serial Key'
+
+	perspectiveTable 'Warehouse Journal Lines (From Bin)'
+
+		perspectiveColumn itemNo
+
+		perspectiveColumn locationCode
+
+		perspectiveColumn qtyBase
+
+		perspectiveColumn 'From Bin Key'
+
+		perspectiveColumn 'Zone Key'
+
+		perspectiveColumn 'Lot Key'
+
+		perspectiveColumn 'Serial Key'
+
+	perspectiveTable 'Production Order Lines'
+
+		perspectiveMeasure 'Qty. on Prod. Order'
+
+		perspectiveMeasure 'FP Order Receipt (Qty.)'
+
+		perspectiveMeasure 'Rel. Order Receipt (Qty.)'
+
+		perspectiveMeasure 'Planned Order Receipt (Qty.)'
+
+		perspectiveMeasure 'Planned Order Release (Qty.)'
+
+		perspectiveMeasure 'Scheduled Receipt (Qty.)'
+
+		perspectiveColumn Status
+
+		perspectiveColumn 'Document No.'
+
+		perspectiveColumn itemNo
+
+		perspectiveColumn locationCode
+
+		perspectiveColumn remainingQtyBase
+
+		perspectiveColumn 'Due Date'
+
+		perspectiveColumn 'Starting Date'
+
+		perspectiveColumn dimensionSetID
+
+	perspectiveTable 'Prod Order Component Lines'
+
+		perspectiveMeasure 'Qty. on Prod. Order Comp. Lines'
+
+		perspectiveMeasure 'Prod. Order Comp. Lines - Earliest Due Date'
+
+		perspectiveColumn Status
+
+		perspectiveColumn 'Document No.'
+
+		perspectiveColumn itemNo
+
+		perspectiveColumn locationCode
+
+		perspectiveColumn remainingQtyBase
+
+		perspectiveColumn 'Due Date'
+
+		perspectiveColumn dimensionSetID
+
+	perspectiveTable 'Service Lines'
+
+		perspectiveMeasure 'Qty. on Service Order'
+
+		perspectiveMeasure 'Service Lines - Earliest Needed by Date'
+
+		perspectiveColumn 'Document No.'
+
+		perspectiveColumn itemNo
+
+		perspectiveColumn locationCode
+
+		perspectiveColumn outstandingQtyBase
+
+		perspectiveColumn 'Needed By Date'
+
+		perspectiveColumn dimensionSetID
+
+	perspectiveTable 'Transfer Lines'
+
+		perspectiveMeasure 'Qty. in Transit'
+
+		perspectiveMeasure 'Trans. Order Shipment (Qty.)'
+
+		perspectiveMeasure 'Trans. Order Receipt (Qty.)'
+
+		perspectiveMeasure 'Trans. Order Outstanding Qty.'
+
+		perspectiveMeasure 'Trans. Order Shipment - Earliest Shipment Date'
+
+		perspectiveMeasure 'Trans. Order Receipt - Earliest Receipt Date'
+
+		perspectiveColumn 'Document No.'
+
+		perspectiveColumn itemNo
+
+		perspectiveColumn qtyInTransitBase
+
+		perspectiveColumn 'Receipt Date'
+
+		perspectiveColumn 'Transfer To Location Code'
+
+		perspectiveColumn 'Transfer From Location Code'
+
+		perspectiveColumn 'Shipment Date'
+
+		perspectiveColumn 'In Transit Location Code'
+
+		perspectiveColumn outstandingQtyBase
+
+		perspectiveColumn dimensionSetID
+
+	perspectiveTable 'Requisition Line'
+
+		perspectiveMeasure 'Planning Transfer Ship. (Qty).'
+
+		perspectiveMeasure 'Planning Worksheet (Qty.)'
+
+		perspectiveMeasure 'Planning Receipt (Qty.)'
+
+		perspectiveMeasure 'Planning Release (Qty.)'
+
+		perspectiveMeasure 'Purch. Req. Receipt (Qty.)'
+
+		perspectiveMeasure 'Purch. Req. Release (Qty.)'
+
+		perspectiveColumn journalBatchName
+
+		perspectiveColumn planningLineOrigin
+
+		perspectiveColumn replenishmentSystem
+
+		perspectiveColumn itemNo
+
+		perspectiveColumn transferFromCode
+
+		perspectiveColumn locationCode
+
+		perspectiveColumn dueDate
+
+		perspectiveColumn startingDate
+
+		perspectiveColumn transferShipmentDate
+
+		perspectiveColumn quantityBase
+
+		perspectiveColumn worksheetTemplateName
+
+		perspectiveColumn orderDate
+
+		perspectiveColumn dimensionSetID
+
+	perspectiveTable 'Planning Component Lines'
+
+		perspectiveMeasure 'Planning Issues (Qty.)'
+
+		perspectiveMeasure 'Planning Issues - Earliest Due Date'
+
+		perspectiveColumn itemNo
+
+		perspectiveColumn 'Due Date'
+
+		perspectiveColumn locationCode
+
+		perspectiveColumn expectedQuantityBase
+
+		perspectiveColumn dimensionSetID
+
+	perspectiveTable 'Item Availability Filter'
+
+		perspectiveColumn 'View As'
+
+		perspectiveColumn Ordinal
+
+	perspectiveTable 'Lot No'
+
+		perspectiveColumn 'Lot No.'
+
+		perspectiveColumn 'Lot Key'
+
+	perspectiveTable 'Serial No'
+
+		perspectiveColumn 'Serial No.'
+
+		perspectiveColumn 'Serial Key'
+
+	perspectiveTable Date
+
+		perspectiveColumn Date
+
+		perspectiveColumn 'Week Day'
+
+		perspectiveColumn 'Relative Day'
+
+		perspectiveColumn 'Calendar Year'
+
+		perspectiveColumn 'Calendar Quarter'
+
+		perspectiveColumn 'Calendar Quarter Year'
+
+		perspectiveColumn 'Calendar Month'
+
+		perspectiveColumn 'Calendar Month Year'
+
+		perspectiveColumn 'Calendar Week'
+
+		perspectiveColumn 'Calendar Week Year'
+
+		perspectiveColumn 'Calendar RelativeWeekPos'
+
+		perspectiveColumn 'Calendar RelativeMonthPos'
+
+		perspectiveColumn 'Calendar RelativeQuarterPos'
+
+		perspectiveColumn 'Calendar RelativeYearPos'
+
+		perspectiveColumn 'Calendar StartOfMonth'
+
+		perspectiveColumn 'Calendar EndOfMonth'
+
+		perspectiveColumn 'Calendar StartOfQuarter'
+
+		perspectiveColumn 'Calendar EndOfQuarter'
+
+		perspectiveColumn 'Calendar StartOfYear'
+
+		perspectiveColumn 'Calendar EndOfYear'
+
+		perspectiveColumn 'Calendar MonthDays'
+
+		perspectiveColumn 'Calendar QuarterDays'
+
+		perspectiveColumn 'Calendar YearDays'
+
+		perspectiveColumn 'Calendar DayOfMonthNumber'
+
+		perspectiveColumn 'Calendar DayOfQuarterNumber'
+
+		perspectiveColumn 'Calendar DayOfYearNumber'
+
+		perspectiveColumn 'Calendar DatePreviousWeek'
+
+		perspectiveColumn 'Calendar DatePreviousMonth'
+
+		perspectiveColumn 'Calendar DatePreviousQuarter'
+
+		perspectiveColumn 'Calendar DatePreviousYear'
+
+		perspectiveColumn 'Day Type'
+
+		perspectiveHierarchy 'Calendar Year-Month'
+
+		perspectiveHierarchy 'Calendar Year-Month-Week'
+
+		perspectiveHierarchy 'Calendar Year-Quarter-Month-Week'
+

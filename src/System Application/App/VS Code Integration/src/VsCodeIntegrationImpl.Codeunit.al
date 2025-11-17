@@ -2,8 +2,8 @@
 
 using System.Apps;
 using System.Reflection;
-using System.Utilities;
 using System.Text.Json;
+using System.Utilities;
 
 codeunit 8333 "VS Code Integration Impl."
 {

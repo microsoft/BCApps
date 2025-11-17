@@ -1,9 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Reflection;
-using Microsoft.Sales.Document;
-using Microsoft.Purchases.Document;
 using Microsoft.Projects.Project.Job;
+using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
+using System.Reflection;
 
 table 8070 "Subscription Billing Cue"
 {

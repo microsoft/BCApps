@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Sales.History;
-using Microsoft.Projects.Project.Ledger;
 using Microsoft.Finance.Currency;
+using Microsoft.Projects.Project.Ledger;
+using Microsoft.Sales.History;
 
 codeunit 8064 "Sub. Contract Billing Printout"
 {

@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.DemoData;
 
-using System.Automation;
 using Microsoft.eServices.EDocument;
-using System.Environment;
 using Microsoft.Foundation.Reporting;
+using System.Automation;
+using System.Environment;
 
 #pragma warning disable AA0247
 codeunit 5374 "Create E-Document Setup"

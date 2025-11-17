@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Sales.ExcelReports;
+
 using Microsoft.Sales.RoleCenters;
 
 pageextension 4415 "EXR Sales Manager RC" extends "Sales Manager Role Center"

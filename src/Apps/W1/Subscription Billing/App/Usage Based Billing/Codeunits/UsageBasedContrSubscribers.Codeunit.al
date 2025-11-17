@@ -1,12 +1,12 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Sales.Document;
-using Microsoft.Sales.History;
-using Microsoft.Sales.Posting;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Posting;
 
 codeunit 8028 "Usage Based Contr. Subscribers"
 {

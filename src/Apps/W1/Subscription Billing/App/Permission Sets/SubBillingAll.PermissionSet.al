@@ -1,3 +1,4 @@
+#if not CLEAN26
 namespace Microsoft.SubscriptionBilling;
 
 permissionset 8052 "Sub. Billing All"
@@ -55,3 +56,4 @@ permissionset 8052 "Sub. Billing All"
         tabledata "Vend. Sub. Contract Line" = R,
         tabledata "Vendor Subscription Contract" = R;
 }
+#endif

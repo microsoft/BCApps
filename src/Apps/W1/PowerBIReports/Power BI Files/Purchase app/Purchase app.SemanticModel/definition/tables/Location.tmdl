@@ -1,0 +1,53 @@
+table Location
+	lineageTag: 597c0630-13e6-42ad-a184-61e439cebab6
+
+	column 'Location Code'
+		dataType: string
+		isKey
+		lineageTag: eb86f5b1-26bf-4164-9e5d-7c641e71768a
+		summarizeBy: none
+		sourceColumn: Location Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location Name'
+		dataType: string
+		lineageTag: c56ebf05-b823-4f2a-81cf-33757fff9e5a
+		summarizeBy: none
+		sourceColumn: Location Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location Adjustment Bin Code'
+		dataType: string
+		lineageTag: 99a07b09-a97d-4160-b94c-ec0c4eb248d4
+		summarizeBy: none
+		sourceColumn: Location Adjustment Bin Code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Location-17930426-8630-4841-b629-598abe06707b = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "locations", Signature = "table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(
+				        TableData, {{"locationCode", "Location Code"}, {"locationName", "Location Name"}}
+				    ),
+				    #"Added Custom" = Table.AddColumn(
+				        #"Renamed Columns",
+				        "Location Adjustment Bin Code",
+				        each if [adjustmentBinCode] = "" then "" else [adjustmentBinCode] & "(" & [Location Code] & ")"
+				    ),
+				    #"Removed Columns2" = Table.RemoveColumns(#"Added Custom", {"adjustmentBinCode"}),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Removed Columns2", {{"Location Adjustment Bin Code", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type1", {"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

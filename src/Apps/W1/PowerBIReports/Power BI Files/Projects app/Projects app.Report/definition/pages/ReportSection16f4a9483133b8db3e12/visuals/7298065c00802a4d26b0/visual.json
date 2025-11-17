@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "7298065c00802a4d26b0",
+  "position": {
+    "x": 440.655737704918,
+    "y": 60.852459016393439,
+    "z": 4000,
+    "height": 229.99999999999991,
+    "width": 397.21881390593052,
+    "tabOrder": 1000
+  },
+  "visualGroup": {
+    "displayName": "Actual Profit Group",
+    "groupMode": "ScaleMode",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Actual Profit, Billable (Invoiced Price), Actual (Total Cost), Actual Profit Margin Percentage.'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

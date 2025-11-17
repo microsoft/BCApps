@@ -45,7 +45,7 @@ page 37116 "Purchase Return Overview"
     var
         SetupHelper: Codeunit "Power BI Report Setup";
         ReportId: Guid;
-        ReportPageLbl: Label '15386889aed0b65c35cc', Locked = true;
+        ReportPageLbl: Label '63a53744a60debfbb8ac', Locked = true;
 
     trigger OnOpenPage()
     var

@@ -5,9 +5,9 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Inventory.Item;
-using Microsoft.CRM.Contact;
 using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Contact;
+using Microsoft.Inventory.Item;
 
 /// <summary>
 /// Codeunit Shpfy Order Mapping (ID 30163).
@@ -293,7 +293,7 @@ codeunit 30163 "Shpfy Order Mapping"
                 OrderTransaction.SetAutoCalcFields("Payment Method");
                 OrderTransaction.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
                 OrderTransaction.SetRange(Status, "Shpfy Transaction Status"::Success);
-                OrderTransaction.SetFilter(Type, '%1|%2', "Shpfy Transaction Type"::Sale, "Shpfy Transaction Type"::Capture);
+                OrderTransaction.SetFilter(Type, '%1|%2|%3', "Shpfy Transaction Type"::Sale, "Shpfy Transaction Type"::Capture, "Shpfy Transaction Type"::Authorization);
                 if OrderTransaction.FindSet() then begin
                     repeat
                         if not PaymentMethods.Contains(OrderTransaction."Payment Method") then

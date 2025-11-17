@@ -5,11 +5,11 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using System.Apps;
 using System.Azure.KeyVault;
 using System.Environment;
 using System.Security.Authentication;
 using System.Utilities;
-using System.Apps;
 
 /// <summary>
 /// Codeunit Shpfy Authentication Mgt. (ID 30199).

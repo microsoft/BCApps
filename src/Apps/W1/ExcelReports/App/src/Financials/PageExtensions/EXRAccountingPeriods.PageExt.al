@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Finance.ExcelReports;
+
 using Microsoft.Foundation.Period;
 
 pageextension 4425 "EXR Accounting Periods" extends "Accounting Periods"

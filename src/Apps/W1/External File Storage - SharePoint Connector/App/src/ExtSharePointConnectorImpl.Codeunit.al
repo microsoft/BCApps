@@ -5,10 +5,10 @@
 
 namespace System.ExternalFileStorage;
 
-using System.Text;
-using System.Integration.Sharepoint;
-using System.Utilities;
 using System.DataAdministration;
+using System.Integration.Sharepoint;
+using System.Text;
+using System.Utilities;
 
 codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage Connector"
 {

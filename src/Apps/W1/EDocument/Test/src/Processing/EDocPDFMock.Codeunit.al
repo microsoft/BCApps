@@ -5,10 +5,10 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
-using System.Utilities;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using System.Utilities;
 
 codeunit 139782 "E-Doc PDF Mock" implements IStructureReceivedEDocument, IStructuredDataType, IStructuredFormatReader
 {

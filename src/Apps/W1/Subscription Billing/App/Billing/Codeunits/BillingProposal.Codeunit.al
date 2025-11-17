@@ -1,9 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Sales.Document;
-using Microsoft.Purchases.Document;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
 using System.Security.User;
 using System.Utilities;
 

@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.DemoData;
 
-using Microsoft.Purchases.Vendor;
-using Microsoft.DemoTool.Helpers;
 using Microsoft.DemoData.Common;
+using Microsoft.DemoTool.Helpers;
 using Microsoft.eServices.EDocument;
 using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Vendor;
 
 
 #pragma warning disable AA0247

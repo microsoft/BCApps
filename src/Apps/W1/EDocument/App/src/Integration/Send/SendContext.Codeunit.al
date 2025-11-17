@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Integration.Send;
 
-using System.Utilities;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Integration.Action;
+using System.Utilities;
 
 codeunit 6189 SendContext
 {

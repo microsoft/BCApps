@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Foundation.NoSeries;
-using System.Telemetry;
 using System.AI;
+using System.Telemetry;
 
 codeunit 389 "No. Series Copilot Telemetry"
 {
