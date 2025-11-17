@@ -16,7 +16,7 @@ page 4333 "Agent Consumption Overview"
     InherentEntitlements = X;
     InherentPermissions = X;
     SourceTableView = sorting("Consumption DateTime") order(descending);
-    Permissions = tabledata User = r;
+    Permissions = tabledata User = r, tabledata "User AI Consumption Data" = r;
 
     layout
     {
