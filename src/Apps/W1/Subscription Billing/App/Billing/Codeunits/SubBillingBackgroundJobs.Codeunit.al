@@ -58,7 +58,7 @@ codeunit 8034 "Sub. Billing Background Jobs"
 
     local procedure CreateJobQueueEntryForAutomatedBilling(var BillingTemplate: Record "Billing Template"; var JobQueueEntry: Record "Job Queue Entry")
     begin
-        JobQueueEntry.ScheduleRecurrentJobQueueEntryWithFrequency(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"Auto Contract Billing", BillingTemplate.RecordId, BillingTemplate."Minutes between runs", BillingTemplate."Automation Start Time");
+        JobQueueEntry.ScheduleRecurrentJobQueueEntryWithFrequency(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"Auto Contract Billing", BillingTemplate.RecordId, BillingTemplate."Minutes between runs");
         BillingTemplate."Batch Recurrent Job Id" := JobQueueEntry.ID;
         BillingTemplate.Modify();
 
@@ -71,7 +71,6 @@ codeunit 8034 "Sub. Billing Background Jobs"
     local procedure UpdateJobQueueEntryForAutomatedBilling(var BillingTemplate: Record "Billing Template"; var JobQueueEntry: Record "Job Queue Entry")
     begin
         JobQueueEntry.Get(BillingTemplate."Batch Recurrent Job Id");
-        JobQueueEntry."Starting Time" := BillingTemplate."Automation Start Time";
         JobQueueEntry."No. of Minutes between Runs" := BillingTemplate."Minutes between runs";
         JobQueueEntry."No. of Attempts to Run" := 0;
         JobQueueEntry.Modify();

@@ -261,10 +261,12 @@ page 8067 "Recurring Billing"
                     ErrorMessageMgt.Activate(ErrorMessageHandler);
                     ErrorMessageMgt.PushContext(ErrorContextElement, 0, 0, '');
                     Commit(); //commit to database before processing
-                    BillingTemplate.CalculateDocumentDates(PostingDate, DocumentDate, false);
-                    if BillingTemplate.Partner = BillingTemplate.Partner::Customer then
-                        CreateBillingDocuments.SetCustomerRecurringBillingGrouping(BillingTemplate."Customer Document per");
-                    CreateBillingDocuments.SetDocumentDataFromRequestPage(DocumentDate, PostingDate, false, false);
+                    if BillingTemplate.Get(BillingTemplate.Code) then begin
+                        BillingTemplate.CalculateDocumentDates(PostingDate, DocumentDate, false);
+                        if BillingTemplate.Partner = BillingTemplate.Partner::Customer then
+                            CreateBillingDocuments.SetCustomerRecurringBillingGrouping(BillingTemplate."Customer Document per");
+                        CreateBillingDocuments.SetDocumentDataFromRequestPage(DocumentDate, PostingDate, false, false);
+                    end;
                     IsSuccess := CreateBillingDocuments.Run(Rec);
                     if not IsSuccess then
                         ErrorMessageHandler.ShowErrors();
