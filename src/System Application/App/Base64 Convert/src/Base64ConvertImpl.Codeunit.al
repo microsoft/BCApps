@@ -14,6 +14,20 @@ codeunit 4111 "Base64 Convert Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    var
+        SourceWarningLength: Integer;
+        TextLengtWarningTxt: Label 'The input string length (%1) exceeds the maximum suggested length (%2) for Base64 conversion.', Locked = true;
+        StreamLengtWarningTxt: Label 'The input stream length (%1) exceeds the maximum suggested length (%2) for Base64 conversion.', Locked = true;
+
+    internal procedure EmitLengthWarning(SourceLength: Integer; tag: Text; FormatString: Text)
+    begin
+        if SourceWarningLength <= 0 then
+            SourceWarningLength := 10485760; // 10 * 1024 * 1024 = 10 MB
+
+        if SourceLength > SourceWarningLength then
+            Session.LogMessage(tag, StrSubstNo(FormatString, SourceLength, SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
+    end;
+
     procedure ToBase64(String: Text): Text
     begin
         exit(ToBase64(String, false));
@@ -49,6 +63,8 @@ codeunit 4111 "Base64 Convert Impl."
         if String = '' then
             exit('');
 
+        this.EmitLengthWarning(StrLen(String), '0000QN3', TextLengtWarningTxt);
+
         if InsertLineBreaks then
             Base64FormattingOptions := Base64FormattingOptions.InsertLineBreaks
         else
@@ -79,6 +95,8 @@ codeunit 4111 "Base64 Convert Impl."
         Base64FormattingOptions: DotNet Base64FormattingOptions;
         Base64String: Text;
     begin
+        this.EmitLengthWarning(InStream.Length, '0000QN4', StreamLengtWarningTxt);
+
         MemoryStream := MemoryStream.MemoryStream();
         CopyStream(MemoryStream, InStream);
         InputArray := MemoryStream.ToArray();
@@ -179,6 +197,8 @@ codeunit 4111 "Base64 Convert Impl."
         if Base64String = '' then
             exit('');
 
+        this.EmitLengthWarning(StrLen(Base64String), '0000QN5', TextLengtWarningTxt);
+
         case TextEncoding of
             TextEncoding::UTF16:
                 OutputString := Encoding.Unicode().GetString(Convert.FromBase64String(Base64String));
@@ -203,6 +223,8 @@ codeunit 4111 "Base64 Convert Impl."
         ConvertedArray: DotNet Array;
     begin
         if Base64String <> '' then begin
+            this.EmitLengthWarning(StrLen(Base64String), '0000QN6', TextLengtWarningTxt);
+
             ConvertedArray := Convert.FromBase64String(Base64String);
             MemoryStream := MemoryStream.MemoryStream(ConvertedArray);
             MemoryStream.WriteTo(OutStream);

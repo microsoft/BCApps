@@ -71,6 +71,7 @@ codeunit 6126 "E-Doc. GL Account Matching" implements "AOAI Function", IEDocAISy
                 EDocActivityLogBuilder
                     .Init(Database::"E-Document Purchase Line", Rec.FieldNo("[BC] Purchase Type No."), Rec.SystemId)
                     .SetExplanation(TempEDocLineMatchBuffer."GL Account Reason")
+                    .SetConfidence(GetConfidenceForNumberOfProposedAccounts(TempEDocLineMatchBuffer."GL Account Candidate Count"))
                     .SetType(Enum::"Activity Log Type"::"AI")
                     .SetReferenceSource(Page::"G/L Account Card", RecordRef)
                     .SetReferenceTitle(StrSubstNo(ActivityLogTitleTxt, Rec."[BC] Purchase Type No."))
@@ -92,6 +93,18 @@ codeunit 6126 "E-Doc. GL Account Matching" implements "AOAI Function", IEDocAISy
     begin
         EDocumentPurchaseLine."[BC] Purchase Line Type" := EDocumentPurchaseLine."[BC] Purchase Line Type"::"G/L Account";
         EDocumentPurchaseLine.Validate("[BC] Purchase Type No.", ValueSuggested);
+    end;
+
+    /// <summary>
+    /// Gets confidence score based on number of proposed accounts.
+    /// If only one account is proposed, confidence is set to 2 (medium).
+    /// If more than one account is proposed, confidence is set to 3 (low).
+    /// </summary>
+    /// <param name="NumberOfProposedAccounts"></param>
+    /// <returns></returns>
+    local procedure GetConfidenceForNumberOfProposedAccounts(NumberOfProposedAccounts: Integer): Text
+    begin
+        exit(NumberOfProposedAccounts <= 1 ? 'Medium' : 'Low');
     end;
 
     local procedure CreateUserMessage(var EDocumentPurchaseLine: Record "E-Document Purchase Line"): Text
