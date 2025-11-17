@@ -84,8 +84,6 @@ codeunit 8999 "Email Rate Limit Impl."
         EmailOutbox.SetRange(Status, EmailOutbox.Status::Processing);
         EmailOutbox.SetRange("Account Id", AccountId);
         EmailOutbox.SetFilter("Date Sending", '>=%1', FromDateTime);
-        if EmailOutbox.IsEmpty() then
-            exit(0);
 
         exit(EmailOutbox.Count());
     end;
