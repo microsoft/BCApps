@@ -4,16 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Integration.Manufacturing;
 
-//using Microsoft.Manufacturing.Capacity;
-//using Microsoft.Manufacturing.Document;
-//using Microsoft.Manufacturing.Routing;
-//using Microsoft.QualityManagement.Configuration.SourceConfiguration;
-//using Microsoft.QualityManagement.Integration.Manufacturing.Document;
-//using Microsoft.QualityManagement.Integration.Manufacturing.Journal;
+using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
 using Microsoft.QualityManagement.Utilities;
-using Microsoft.QualityManagement.Configuration.SourceConfiguration;
-//using Microsoft.QualityManagement.RoleCenters;
 
 permissionset 20470 "Qlty. Mfg. - Objects"
 {

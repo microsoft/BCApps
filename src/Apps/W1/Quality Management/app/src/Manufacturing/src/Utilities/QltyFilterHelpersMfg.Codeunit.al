@@ -11,6 +11,8 @@ using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
 
 codeunit 20400 "Qlty. Filter Helpers - Mfg."
 {
+    EventSubscriberInstance = Manual;
+
     /// <summary>
     /// Starts the assist edit dialog for choosing a machine.
     /// </summary>

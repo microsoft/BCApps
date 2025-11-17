@@ -538,8 +538,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
         QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Unknown);
         if not QltyInTestGenerationRule.IsEmpty() then begin
             ShowAssemblyTrigger := true;
-            // TODO: Decouple Manufacturing dependency - FIXED
-            //ShowProductionTrigger := true;
             ShowPurchaseTrigger := true;
             ShowSalesReturnTrigger := true;
             ShowTransferTrigger := true;
