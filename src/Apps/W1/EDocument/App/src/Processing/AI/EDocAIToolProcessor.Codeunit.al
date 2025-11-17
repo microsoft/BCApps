@@ -6,6 +6,8 @@ namespace Microsoft.eServices.EDocument.Processing.AI;
 
 using System.AI;
 using System.Telemetry;
+using System.Environment.Configuration;
+using System.Globalization;
 
 /// <summary>
 /// Codeunit for processing E-Document AI tasks.
@@ -117,6 +119,25 @@ codeunit 6195 "E-Doc. AI Tool Processor"
             AOAIChatMessages.AddTool(Tool);
 
         AOAIChatMessages.SetToolChoice('auto');
+    end;
+
+    [NonDebuggable]
+    internal procedure SetLanguageInPrompt(Prompt: SecretText): SecretText
+    var
+        TempUserSettings: Record "User Settings" temporary;
+        UserSettingsCU: Codeunit "User Settings";
+        LanguageCU: Codeunit Language;
+        LanguageName: Text;
+    begin
+        UserSettingsCU.GetUserSettings(UserSecurityId(), TempUserSettings);
+        if Prompt.IsEmpty() then
+            exit(Prompt);
+
+        LanguageName := LanguageCU.GetWindowsLanguageName(TempUserSettings."Language ID");
+        if LanguageName = '' then
+            LanguageName := 'English';
+
+        exit(SecretStrSubstNo(Prompt.Unwrap(), LanguageName));
     end;
 
     local procedure HandleResponse(var AOAIResponse: Codeunit "AOAI Operation Response"): Boolean

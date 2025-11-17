@@ -261,11 +261,14 @@ codeunit 6126 "E-Doc. GL Account Matching" implements "AOAI Function", IEDocAISy
     procedure GetSystemPrompt(): SecretText
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
+        EDocumentAIProcessor: Codeunit "E-Doc. AI Tool Processor";
         PromptSecretText: SecretText;
         PromptSecretNameTok: Label 'EDocMatchLineToGLAccountV271', Locked = true;
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret(PromptSecretNameTok, PromptSecretText) then
             PromptSecretText := SecretStrSubstNo('');
+
+        PromptSecretText := EDocumentAIProcessor.SetLanguageInPrompt(PromptSecretText);
         exit(PromptSecretText);
     end;
 
