@@ -60,10 +60,6 @@ page 8066 "Billing Templates"
                 field(Automation; Rec.Automation)
                 {
                 }
-                field("Automation Start Time"; Rec."Automation Start Time")
-                {
-                    Enabled = Rec.Automation = Rec.Automation::"Create Billing Proposal and Documents";
-                }
                 field("Minutes between runs"; Rec."Minutes between runs")
                 {
                     Enabled = Rec.Automation = Rec.Automation::"Create Billing Proposal and Documents";
@@ -71,7 +67,10 @@ page 8066 "Billing Templates"
                 field("Batch Recurrent Job Id"; Rec."Batch Recurrent Job Id")
                 {
                     Enabled = Rec.Automation = Rec.Automation::"Create Billing Proposal and Documents";
-                    Visible = false;
+                    trigger OnAssistEdit()
+                    begin
+                        Rec.LookupJobEntryQueue();
+                    end;
                 }
             }
         }

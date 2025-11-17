@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
 using System.Security.User;
-using System.Utilities;
+using System.Threading;
 
 table 8060 "Billing Template"
 {
@@ -58,21 +58,11 @@ table 8060 "Billing Template"
         {
             Caption = 'Posting Date Formula';
             ToolTip = 'Specifies the date formula used to calculate the Posting Date. If the field is left empty, the Posting Date is prefilled with workdate, or with today when the process runs automatically.';
-            trigger OnValidate()
-            begin
-                if Format("Posting Date Formula") <> '' then
-                    ThrowErrorIfAutomationIsNotSet(FieldCaption("Posting Date Formula"));
-            end;
         }
         field(12; "Document Date Formula"; DateFormula)
         {
             Caption = 'Document Date Formula';
             ToolTip = 'Specifies the date formula used to calculate the Document Date. If the field is left empty, the Document Date is prefilled with workdate, or with today when the process runs automatically.';
-            trigger OnValidate()
-            begin
-                if Format("Document Date Formula") <> '' then
-                    ThrowErrorIfAutomationIsNotSet(FieldCaption("Document Date Formula"));
-            end;
         }
         field(13; "Customer Document per"; Enum "Customer Rec. Billing Grouping")
         {
@@ -80,8 +70,7 @@ table 8060 "Billing Template"
             ToolTip = 'Specifies how the Billing lines for customers are grouped in sales documents.';
             trigger OnValidate()
             begin
-                if "Customer Document per" <> "Customer Document per"::Contract then
-                    ThrowErrorIfAutomationIsNotSet(FieldCaption("Customer Document per"));
+                TestField(Partner, Partner::Customer);
             end;
         }
         field(15; Automation; Enum "Sub. Billing Automation")
@@ -95,29 +84,15 @@ table 8060 "Billing Template"
                 case Automation of
                     Automation::None:
                         begin
-                            "Automation Start Time" := 0T;
                             "Minutes between runs" := 0;
                         end;
                     Automation::"Create Billing Proposal and Documents":
                         begin
                             TestField(Partner, Partner::Customer);
                             "My Suggestions Only" := false;
-                            "Automation Start Time" := 0T;
                             "Minutes between runs" := 60;
                         end;
                 end;
-                SubBillingBackgroundJobs.HandleAutomatedBillingJob(Rec);
-            end;
-        }
-        field(16; "Automation Start Time"; Time)
-        {
-            Caption = 'Automation Start Time';
-            ToolTip = 'Specifies the time of day when the billing process should start.';
-            DataClassification = SystemMetadata;
-            NotBlank = true;
-
-            trigger OnValidate()
-            begin
                 SubBillingBackgroundJobs.HandleAutomatedBillingJob(Rec);
             end;
         }
@@ -168,7 +143,6 @@ table 8060 "Billing Template"
         UserSetup: Record "User Setup";
         SubBillingBackgroundJobs: Codeunit "Sub. Billing Background Jobs";
         AutoContractBillingNotAllowedErr: Label 'You cannot change the auto billing templates because you are not set up as an Auto Contract Billing user in the User Setup.';
-        CanOnlyBeSetWhenAutomatedErr: Label 'You can only set the field %1 if %2 is set to %3', Comment = '%1 - Customer Document per Field Caption, %2 - Automation Field Caption, %3 - Automation Field Value';
 
     internal procedure EditFilter(FieldNumber: Integer): Boolean
     var
@@ -342,9 +316,12 @@ table 8060 "Billing Template"
             DocumentDate := ReferenceDate;
     end;
 
-    local procedure ThrowErrorIfAutomationIsNotSet(FieldCaption: Text)
+    internal procedure LookupJobEntryQueue()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
     begin
-        if Automation = Automation::None then
-            Error(CanOnlyBeSetWhenAutomatedErr, FieldCaption, FieldCaption(Automation), Automation::"Create Billing Proposal and Documents");
+        JobQueueEntry.Get("Batch Recurrent Job Id");
+        JobQueueEntry.SetRecFilter();
+        Page.Run(0, JobQueueEntry);
     end;
 }
