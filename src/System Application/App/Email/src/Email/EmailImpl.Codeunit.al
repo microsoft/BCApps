@@ -1012,6 +1012,7 @@ codeunit 8900 "Email Impl"
         Page.Run(Page::"Email View Policy List");
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Email Outbox", 'rm')]
     internal procedure UpdateFailedEmailOutboxStatusToError()
     var
         EmailOutbox: Record "Email Outbox";
