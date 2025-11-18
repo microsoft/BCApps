@@ -5,6 +5,11 @@
 
 namespace System.Agents;
 
+using System.Environment.Configuration;
+
+/// <summary>
+/// Setup part that is representing the first page of the configuration dialog
+/// </summary>
 page 4310 "Agent Setup Part"
 {
     PageType = CardPart;
@@ -43,6 +48,12 @@ page 4310 "Agent Setup Part"
                 {
                     Caption = 'Active';
                     ToolTip = 'Specifies the state of the sales order agent, such as active or inactive.';
+                    trigger OnValidate()
+                    begin
+                        Rec."State Updated" := true;
+                        Rec.Modify();
+                        CurrPage.Update(false);
+                    end;
                 }
                 field(LanguageAndRegion; LanguageAndRegionLbl)
                 {
@@ -52,10 +63,11 @@ page 4310 "Agent Setup Part"
 
                     trigger OnDrillDown()
                     begin
-                        AgentSetup.SetupLanguageAndRegion(Rec);
+                        if AgentSetup.SetupLanguageAndRegion(Rec) then
+                            CurrPage.Update(false);
                     end;
                 }
-                field(UserSettingsLink; ManageUserAccessLbl)
+                field(UserAccessLink; ManageUserAccessLbl)
                 {
                     Caption = 'Coworkers can use this agent.';
                     Editable = false;
@@ -63,7 +75,8 @@ page 4310 "Agent Setup Part"
 
                     trigger OnDrillDown()
                     begin
-                        AgentSetup.UpdateUserAccessControl(Rec)
+                        if AgentSetup.UpdateUserAccessControl(Rec) then
+                            CurrPage.Update(false);
                     end;
                 }
             }
@@ -84,10 +97,34 @@ page 4310 "Agent Setup Part"
         }
     }
 
-    procedure InitializePart(UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80]; NewAgentSummary: Text)
+    /// <summary>
+    /// Initializes the setup page.
+    /// </summary>
+    /// <param name="UserSecurityID">Represents the User Security ID of the agent being configured. It should be a null guid if it is a new agent</param>
+    /// <param name="AgentMetadataProvider">The metadata provider for the agent being configured.</param>
+    /// <param name="DefaultUserName">Default user name to use if creating a new agent.</param>
+    /// <param name="DefaultDisplayName">Default display name to use if creating a new agent.</param>
+    /// <param name="NewAgentSummary">Summary information about the agent showing the agent capabilities.</param>
+    procedure Initialize(UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80]; NewAgentSummary: Text)
     begin
         AgentSetup.GetSetupRecord(Rec, UserSecurityID, AgentMetadataProvider, DefaultUserName, DefaultDisplayName, NewAgentSummary);
         AgentSummary := NewAgentSummary;
+    end;
+
+    /// <summary>
+    /// Returns the setup buffer from this page that can be used to save the agent configuration. See <see cref="SaveChanges"/> method in <see cref="Agent Setup"/> codeunit.
+    /// </summary>
+    /// <param name="AgentSetupBuffer">The setup buffer that is used for configuring the agent.</param>
+    procedure GetAgentSetupBuffer(var AgentSetupBuffer: Record "Agent Setup Buffer")
+    var
+        TempUserSettings: Record "User Settings" temporary;
+        TempAccessControl: Record "Agent Access Control" temporary;
+    begin
+        AgentSetupBuffer.Copy(Rec, true);
+        TempUserSettings := Rec.GetUserSettings();
+        AgentSetupBuffer.SetUserSettings(TempUserSettings);
+        Rec.GetTempAgentAccessControl(TempAccessControl);
+        AgentSetupBuffer.SetTempAgentAccessControl(TempAccessControl);
     end;
 
     var

@@ -7,6 +7,9 @@ namespace System.Agents;
 
 using System.Environment.Configuration;
 
+/// <summary>
+/// Setup record used to configure the agents. It should be used together with <see cref="Agent Setup"/> codeunit and <see cref="Agent Setup Part"/> page.
+/// </summary>
 table 4310 "Agent Setup Buffer"
 {
     Caption = 'Agent Setup Buffer';
@@ -50,7 +53,7 @@ table 4310 "Agent Setup Buffer"
 
             trigger OnValidate()
             begin
-                SetValuesUpdated();
+                Rec."Values Updated" := true;
             end;
         }
         /// <summary>
@@ -79,7 +82,7 @@ table 4310 "Agent Setup Buffer"
 
             trigger OnValidate()
             begin
-                SetValuesUpdated();
+                Rec."Values Updated" := true;
             end;
         }
         /// <summary>
@@ -100,6 +103,9 @@ table 4310 "Agent Setup Buffer"
             Editable = false;
             AllowInCustomizations = Never;
         }
+        /// <summary>
+        /// Specifies whether the values are updated. Example of the fields that are tracked are - user name, user display name, initials. Value is changed through code.
+        /// </summary>
         field(5002; "Values Updated"; Boolean)
         {
             Caption = 'Config Updated';
@@ -107,6 +113,9 @@ table 4310 "Agent Setup Buffer"
             Editable = false;
             AllowInCustomizations = Never;
         }
+        /// <summary>
+        /// Specifies wheather the access control to the agent is updated. This means that the settings on who can access the agent were changed. 
+        /// </summary>
         field(5003; "Access Updated"; Boolean)
         {
             Caption = 'Access Updated';
@@ -114,25 +123,34 @@ table 4310 "Agent Setup Buffer"
             Editable = false;
             AllowInCustomizations = Never;
         }
+        /// <summary>
+        /// Specifies whether the user settings (language, regional settings, time zone) have been updated. 
+        /// </summary>
         field(5004; "User Settings Updated"; Boolean)
         {
             Caption = 'User Settings Updated';
-            ToolTip = 'Specifies whether the user settings have been updated. Value is changed through code.';
+            ToolTip = 'Specifies whether the user settings (language, regional settings, time zone) have been updated. Value is changed through code.';
             Editable = false;
             AllowInCustomizations = Never;
         }
-        field(5005; "Configured By"; Guid)
-        {
-            Caption = 'Configured By';
-            ToolTip = 'Specifies the user who configured the agent.';
-            Editable = false;
-        }
-        field(5006; "State Updated"; Boolean)
+        /// <summary>
+        /// Specifies whether the state (Active or Inactive) was updated.
+        /// </summary>
+        field(5005; "State Updated"; Boolean)
         {
             Caption = 'State Updated';
             ToolTip = 'Specifies whether the state has been updated. Value is changed through code.';
             Editable = false;
             AllowInCustomizations = Never;
+        }
+        /// <summary>
+        /// Specifies the last user who configured the agent.
+        /// </summary>
+        field(5020; "Configured By"; Guid)
+        {
+            Caption = 'Configured By';
+            ToolTip = 'Specifies the last user who configured the agent.';
+            Editable = false;
         }
     }
     keys
@@ -186,11 +204,6 @@ table 4310 "Agent Setup Buffer"
     begin
         TempUserSettings.Copy(UserSettingsRec);
         UserSettingsSet := true;
-    end;
-
-    local procedure SetValuesUpdated()
-    begin
-        Rec."Values Updated" := true;
     end;
 
     local procedure SetStateUpdated()
