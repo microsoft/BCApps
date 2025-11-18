@@ -69,6 +69,11 @@ if ($DisableTestIsolation)
     $parameters["testRunnerCodeunitId"] = "130451" # Test Runner with disabled test isolation
 
     return Invoke-TestsWithReruns -parameters $parameters -maxReruns 1 # do not retry for Isolation Disabled tests, as they leave traces in the DB
+} else
+{   # this is neded to reset the parameters, in case of previous run with -DisableTestIsolation
+    Write-Host "Using RequiredTestIsolation: None"
+    $parameters["requiredTestIsolation"] = "None"  # filtering on tests that don't require Test Isolation
+    $parameters["testRunnerCodeunitId"] = "130450" # Test Runner with Codeunit test isolation
 }
 
 return Invoke-TestsWithReruns -parameters $parameters
