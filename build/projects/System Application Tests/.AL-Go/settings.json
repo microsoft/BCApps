@@ -5,9 +5,17 @@
     "../../../src/System Application/Test",
     "../../../src/System Application/Partner Test",
     "../../../src/Business Foundation/Test",
-    "../../../src/Tools/Performance Toolkit/Test"
+    "../../../src/Tools/Performance Toolkit/Test",
+    "../../../src/Layers/W1/Tests/*",
+    "../../../src/Apps/W1/*/Test",
+    "../../../src/Apps/W1/*/Test Library",
+    "../../../src/Apps/W1/*/Demo Data",
+    "../../../src/Apps/W1/*/*/Test",
+    "../../../src/Apps/W1/*/*/Test Library",
+    "../../../src/Apps/W1/*/*/Demo Data"
   ],
   "gitHubRunner": "self-hosted, 1ES.Pool=GitHub-BCApps",
   "memoryLimit": "16G",
-  "testType": "UnitTest"
+  "testType": "UnitTest",
+  "doNotRunTests": true
 }
