@@ -65,6 +65,7 @@ codeunit 8034 "Sub. Billing Background Jobs"
         JobQueueEntry."Rerun Delay (sec.)" := 600;
         JobQueueEntry."No. of Attempts to Run" := 0;
         JobQueueEntry."Job Queue Category Code" := JobQueueCategoryTok;
+        JobQueueEntry.Description := BillingTemplate.Description;
         JobQueueEntry.Modify();
     end;
 
@@ -73,6 +74,7 @@ codeunit 8034 "Sub. Billing Background Jobs"
         JobQueueEntry.Get(BillingTemplate."Batch Recurrent Job Id");
         JobQueueEntry."No. of Minutes between Runs" := BillingTemplate."Minutes between runs";
         JobQueueEntry."No. of Attempts to Run" := 0;
+        JobQueueEntry.Description := BillingTemplate.Description;
         JobQueueEntry.Modify();
         if not JobQueueEntry.IsReadyToStart() then
             JobQueueEntry.Restart();

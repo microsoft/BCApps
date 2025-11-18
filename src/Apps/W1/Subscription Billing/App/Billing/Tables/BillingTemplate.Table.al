@@ -20,6 +20,10 @@ table 8060 "Billing Template"
         field(2; Description; Text[80])
         {
             Caption = 'Description';
+            trigger OnValidate()
+            begin
+                SubBillingBackgroundJobs.HandleAutomatedBillingJob(Rec);
+            end;
         }
         field(3; Partner; Enum "Service Partner")
         {
@@ -104,6 +108,7 @@ table 8060 "Billing Template"
 
             trigger OnValidate()
             begin
+                TestField(Automation, Automation::"Create Billing Proposal and Documents");
                 SubBillingBackgroundJobs.HandleAutomatedBillingJob(Rec);
             end;
         }
@@ -113,6 +118,14 @@ table 8060 "Billing Template"
             ToolTip = 'Specifies the ID of the job queue entry that runs the billing process in the background.';
             Editable = false;
             DataClassification = SystemMetadata;
+        }
+        field(19; "Batch Rec. Job Description"; Text[250])
+        {
+            Caption = 'Batch Recurrent Job Description';
+            ToolTip = 'Specifies the description of the job queue entry that runs the billing process in the background.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = Lookup("Job Queue Entry".Description where("ID" = field("Batch Recurrent Job Id")));
         }
     }
 
@@ -323,5 +336,12 @@ table 8060 "Billing Template"
         JobQueueEntry.Get("Batch Recurrent Job Id");
         JobQueueEntry.SetRecFilter();
         Page.Run(0, JobQueueEntry);
+    end;
+
+    internal procedure ClearAutomationFields()
+    begin
+        "Automation" := "Automation"::None;
+        Clear("Batch Recurrent Job Id");
+        "Minutes between runs" := 0;
     end;
 }
