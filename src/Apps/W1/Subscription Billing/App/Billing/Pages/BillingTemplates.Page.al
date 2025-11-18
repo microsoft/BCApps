@@ -62,15 +62,17 @@ page 8066 "Billing Templates"
                 }
                 field("Minutes between runs"; Rec."Minutes between runs")
                 {
-                    Enabled = Rec.Automation = Rec.Automation::"Create Billing Proposal and Documents";
                 }
                 field("Batch Recurrent Job Id"; Rec."Batch Recurrent Job Id")
                 {
-                    Enabled = Rec.Automation = Rec.Automation::"Create Billing Proposal and Documents";
+                    Visible = false;
                     trigger OnAssistEdit()
                     begin
                         Rec.LookupJobEntryQueue();
                     end;
+                }
+                field("Batch Rec. Job Description"; Rec."Batch Rec. Job Description")
+                {
                 }
             }
         }
@@ -103,6 +105,7 @@ page 8066 "Billing Templates"
                     BillingTemplate := Rec;
                     BillingTemplate.Code := NewCode;
                     BillingTemplate.Description := CopyStr(Rec.Description, 1, MaxStrLen(Rec.Description) - StrLen(CopyTxt)) + CopyTxt;
+                    BillingTemplate.ClearAutomationFields();
                     BillingTemplate.Insert(false);
                     Rec := BillingTemplate;
                 end;
