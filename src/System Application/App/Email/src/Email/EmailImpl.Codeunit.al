@@ -1013,19 +1013,22 @@ codeunit 8900 "Email Impl"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Email Outbox", 'rm')]
-    internal procedure UpdateFailedEmailOutboxStatusToError()
+    internal procedure UpdateFailedEmailOutboxStatusToError() UpdatedEmailCount: Integer
     var
         EmailOutbox: Record "Email Outbox";
     begin
         EmailOutbox.SetRange("Is Background Task", true);
         EmailOutbox.SetRange(Status, Enum::"Email Status"::Processing);
         EmailOutbox.SetRange("Date Sending", 0DT, CurrentDateTime() - 1000 * 60 * 60); // Emails stuck in processing for more than an hour
-        if EmailOutbox.FindSet() then
+        if EmailOutbox.FindSet() then begin
+            UpdatedEmailCount := EmailOutbox.Count();
             repeat
                 EmailOutbox.Status := Enum::"Email Status"::Failed;
                 EmailOutbox."Error Message" := StuckInProcessingErrorMsg;
                 EmailOutbox.Modify();
             until EmailOutbox.Next() = 0;
+        end;
+        exit(UpdatedEmailCount);
     end;
 
     #region Telemetry
