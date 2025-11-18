@@ -613,12 +613,14 @@ codeunit 134703 "Email Retry Test"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('StuckEmailUpdatedMessageHandler')]
     procedure CleanEmailOutboxTest()
     var
         TempAccount: Record "Email Account" temporary;
         EmailOutbox: Record "Email Outbox";
         EmailRateLimit: Record "Email Rate Limit";
         ConnectorMock: Codeunit "Connector Mock";
+        EmailOutboxTestPage: TestPage "Email Outbox";
     begin
         // [Scenario] There are 12 emails in Processing status, but 2 of them have been in that status for over an hour.
         // When the Clean Email Outbox Task is run, those 2 should be marked as Failed, leaving 10 in Processing.
@@ -654,8 +656,9 @@ codeunit 134703 "Email Retry Test"
         EmailOutbox.SetRange("Status", EmailOutbox.Status::Failed);
         Assert.IsFalse(EmailOutbox.FindSet(), 'There should be no Failed email outbox entries');
 
-        // [When] Clean Email Outbox Task is run
-        Codeunit.Run(Codeunit::"Clean Email Outbox Task");
+        // [When] Trigger the action RecoverStuckEmails from Email Outbox Test Page
+        EmailOutboxTestPage.OpenView();
+        EmailOutboxTestPage.RecoverStuckEmails.Invoke();
 
         //[Then] There should be 10 emails remaining in Processing status and 2 marked as Failed
         EmailOutbox.SetRange("Status", EmailOutbox.Status::Processing);
@@ -664,6 +667,8 @@ codeunit 134703 "Email Retry Test"
         EmailOutbox.SetRange("Status", EmailOutbox.Status::Failed);
         EmailOutbox.FindSet();
         Assert.AreEqual(2, EmailOutbox.Count(), 'There should be no Processing email outbox entries');
+
+        EmailOutboxTestPage.Close();
     end;
 
     [Test]
@@ -995,6 +1000,12 @@ codeunit 134703 "Email Retry Test"
         Any: Codeunit Any;
     begin
         EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
+    end;
+
+    [MessageHandler]
+    procedure StuckEmailUpdatedMessageHandler(Message: Text[1024])
+    begin
+        Assert.AreEqual('2 stuck email(s) have been updated.', Message, 'The stuck email updated message is incorrect');
     end;
 
     [ModalPageHandler]
