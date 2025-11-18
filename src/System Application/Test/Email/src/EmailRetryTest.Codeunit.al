@@ -618,22 +618,16 @@ codeunit 134703 "Email Retry Test"
         TempAccount: Record "Email Account" temporary;
         EmailOutbox: Record "Email Outbox";
         EmailRateLimit: Record "Email Rate Limit";
-        Any: Codeunit Any;
-        EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
-        OriginalScheduledDateTime: DateTime;
-        OriginalTaskId: Guid;
     begin
-        // [Scenario] The account has a concurrency limit of 10. There are 12 outbox entries:
-        //  - 12 pre-existing entries will be present after setup (we then adjust the first to be 2 hours ago).
-        //  - The 11th email (created from the foreground) is attempted while 10 "recent" sends still occupy slots.
-        // Expectation: Even with one older (2 hours ago) entry, concurrency is still exceeded when the foreground send happens,
-        // so the 11th email should be rescheduled: scheduling fields change and status remains/returns to Queued.
+        // [Scenario] There are 12 emails in Processing status, but 2 of them have been in that status for over an hour.
+        // When the Clean Email Outbox Task is run, those 2 should be marked as Failed, leaving 10 in Processing.
         PermissionsMock.Set('Email Edit');
         ConnectorMock.Initialize();
         ConnectorMock.AddAccount(TempAccount);
 
-        // [Given] Concurrency limit for this account is set to 10
+        // [Given] Init the Email Rate Limit with concurrency limit of 10 for the account
+        EmailOutbox.DeleteAll();
         EmailRateLimit.SetRange("Account Id", TempAccount."Account Id");
         Assert.IsTrue(EmailRateLimit.FindFirst(), 'The Email Rate Limit entry should exist');
         EmailRateLimit.Validate("Concurrency Limit", 10);
@@ -642,24 +636,34 @@ codeunit 134703 "Email Retry Test"
         // [Given] Create 12 outbox entries for the account
         CreateEmailMessageAndEmailOutboxRecord(12, TempAccount, false);
 
-        // [Given] Make the first existing entry appear sent 1 hour earlier (still leaving 10 "recent" concurrent sends)
+        // [Given] Make 2 of the existing entries appear as Processing for over an hour
+        EmailOutbox.SetRange("Status", EmailOutbox.Status::Processing);
         EmailOutbox.FindFirst();
-        EmailOutbox."Date Sending" := EmailOutbox."Date Sending" - 3600001; // 1 hours + 1 milliseconds
+        EmailOutbox."Is Background Task" := true;
+        EmailOutbox."Date Sending" := EmailOutbox."Date Sending" - 1000 * 60 * 62; // 1 hours + 1 seconds
+        EmailOutbox.Modify();
+        EmailOutbox.Next();
+        EmailOutbox."Is Background Task" := true;
+        EmailOutbox."Date Sending" := EmailOutbox."Date Sending" - 1000 * 60 * 62; // 1 hours + 1 seconds
         EmailOutbox.Modify();
 
-        // [Given] Create the 11th email from the foreground
-        // EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
-        // SetupEmailOutbox(EmailMessage.GetId(), Enum::"Email Connector"::"Test Email Connector", TempAccount."Account Id", 'Test Subject', TempAccount."Email Address", UserSecurityId(), Enum::"Email Status"::Queued, 0, false);
-
+        // [Then] Verify the setup
         EmailOutbox.SetRange("Status", EmailOutbox.Status::Processing);
         EmailOutbox.FindSet();
-        Assert.AreEqual(12, EmailOutbox.Count(), 'There should be no Processing email outbox entries');
+        Assert.AreEqual(12, EmailOutbox.Count(), 'There should be 12 Processing email outbox entries');
+        EmailOutbox.SetRange("Status", EmailOutbox.Status::Failed);
+        Assert.IsFalse(EmailOutbox.FindSet(), 'There should be no Failed email outbox entries');
 
+        // [When] Clean Email Outbox Task is run
         Codeunit.Run(Codeunit::"Clean Email Outbox Task");
 
+        //[Then] There should be 10 emails remaining in Processing status and 2 marked as Failed
         EmailOutbox.SetRange("Status", EmailOutbox.Status::Processing);
         EmailOutbox.FindSet();
-        Assert.AreEqual(11, EmailOutbox.Count(), 'There should be no Processing email outbox entries');
+        Assert.AreEqual(10, EmailOutbox.Count(), 'There should be no Processing email outbox entries');
+        EmailOutbox.SetRange("Status", EmailOutbox.Status::Failed);
+        EmailOutbox.FindSet();
+        Assert.AreEqual(2, EmailOutbox.Count(), 'There should be no Processing email outbox entries');
     end;
 
     [Test]

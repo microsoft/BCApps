@@ -48,6 +48,7 @@ codeunit 8900 "Email Impl"
         TelemetryRetrieveEmailsUsedTxt: Label 'Retrieving emails is used', Locked = true;
         ErrorCallStackNotFoundErr: Label 'Error call stack not found for the email message with ID %1.', Locked = true;
         EmailOutboxDoesNotExistErr: Label 'The email outbox does not exist for the email message with ID %1.', Locked = true;
+        StuckInProcessingErrorMsg: Label 'The email with subject "%1" is stuck in processing state. Please try resending the email or contact your administrator.', Comment = '%1=the email subject.';
 
     #region API
 
