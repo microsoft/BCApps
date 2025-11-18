@@ -135,7 +135,7 @@ jobs:
           Add-Content -Encoding UTF8 -Path $env:GITHUB_ENV -Value "downloadLatest=$downloadLatest"
 
       - name: Update AL-Go system files
-        uses: microsoft/AL-Go/Actions/CheckForUpdates@13868260bf008b56d26fd739c1f764b2bb2c8239
+        uses: microsoft/AL-Go/Actions/CheckForUpdates@043c3a212d0131d917eb87c9f9d9e8f55bc67179
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
