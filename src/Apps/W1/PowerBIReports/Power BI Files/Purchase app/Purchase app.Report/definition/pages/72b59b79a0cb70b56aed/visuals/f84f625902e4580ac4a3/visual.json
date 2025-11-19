@@ -1,0 +1,179 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "f84f625902e4580ac4a3",
+  "position": {
+    "x": 650.97725776458492,
+    "y": 406.86078610286563,
+    "z": 2000,
+    "height": 286.69492602132158,
+    "width": 288.58730177063723,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "treemap",
+    "query": {
+      "queryState": {
+        "Group": {
+          "projections": [
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item Category"
+                        }
+                      },
+                      "Hierarchy": "Item Category Hierarchy"
+                    }
+                  },
+                  "Level": "Item Category Code Level 1"
+                }
+              },
+              "queryRef": "Item Category.Item Category Hierarchy.Item Category Code Level 1",
+              "nativeQueryRef": "Item Category Hierarchy Item Category Code Level 1",
+              "active": true
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item Category"
+                        }
+                      },
+                      "Hierarchy": "Item Category Hierarchy"
+                    }
+                  },
+                  "Level": "Item Category Code Level 2"
+                }
+              },
+              "queryRef": "Item Category.Item Category Hierarchy.Item Category Code Level 2",
+              "nativeQueryRef": "Item Category Hierarchy Item Category Code Level 2",
+              "active": false
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item Category"
+                        }
+                      },
+                      "Hierarchy": "Item Category Hierarchy"
+                    }
+                  },
+                  "Level": "Item Category Code Level 3"
+                }
+              },
+              "queryRef": "Item Category.Item Category Hierarchy.Item Category Code Level 3",
+              "nativeQueryRef": "Item Category Hierarchy Item Category Code Level 3",
+              "active": false
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item Category"
+                        }
+                      },
+                      "Hierarchy": "Item Category Hierarchy"
+                    }
+                  },
+                  "Level": "Item Category Code"
+                }
+              },
+              "queryRef": "Item Category.Item Category Hierarchy.Item Category Code",
+              "nativeQueryRef": "Item Category Hierarchy Item Category Code",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item No. & Description"
+                }
+              },
+              "queryRef": "Item.Item No. & Description",
+              "nativeQueryRef": "Item No. & Description",
+              "active": false
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Purchase (LCY)"
+                }
+              },
+              "queryRef": "Documents.Purchase (LCY)",
+              "nativeQueryRef": "Purchase (LCY)"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "isDefaultSort": true
+      }
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Purchase (LCY) by Item Category Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

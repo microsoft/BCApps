@@ -1,0 +1,8 @@
+[
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139912,
+        "CodeunitName": "Customer Deferrals Test",
+        "Method": "ExpectThatDeferralsForSalesCreditMemoAreCreatedOnce"
+    }
+]

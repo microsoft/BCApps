@@ -298,15 +298,55 @@ function Get-LatestBCArtifactUrl
         throw "No artifact found for version $minimumVersion"
     }
 
-    if ($asPattern) {
-        if ($artifactUrl -match $storageAccountOrder[0]) {
-            $artifactUrl = "$($storageAccountOrder[0])/Sandbox/$minimumVersion/base/latest"
-        } else {
-            $artifactUrl = "$($storageAccountOrder[1])/Sandbox/$minimumVersion/base/latest"
-        }
+    if (-not $asPattern) {
+        return $artifactUrl
     }
 
-    return $artifactUrl
+    # Extract the version number from the URL
+    if ($artifactUrl -notmatch "\d+\.\d+\.\d+\.\d+") {
+        throw "Could not find version number in artifact url: $artifactUrl"
+    }
+    [System.Version] $newBcartifactVersion = $Matches[0]
+
+    # Determine which version to use in the pattern
+    if ((Get-ConfigValue -Key "artifact" -ConfigType AL-Go) -match "\d+\.\d+\.\d+\.\d+") {
+        # If the current artifact setting has a full version, use that
+        $artifactVersion = "$($newBcartifactVersion.Major).$($newBcartifactVersion.Minor).$($newBcartifactVersion.Build).$($newBcartifactVersion.Revision)"
+    } else {
+        # Else, use only major.minor as pattern
+        $artifactVersion = "$($newBcartifactVersion.Major).$($newBcartifactVersion.Minor)"
+    }
+
+    # Determine which storage account was used
+    if ($artifactUrl -match $storageAccountOrder[0]) {
+        $storageAccount = $storageAccountOrder[0]
+    } else {
+        $storageAccount = $storageAccountOrder[1]
+    }
+
+    return "$storageAccount/Sandbox/$artifactVersion//latest"
+}
+
+<#
+.Synopsis
+    Gets the current BCArtifact version from the AL-Go settings file (artifact property).
+#>
+function Get-CurrentBCArtifactUrl() {
+    $artifactSetting = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
+
+    # If the artifact setting is a URL then return it directly
+    if ($artifactSetting -match "https?://") {
+        return $artifactSetting
+    }
+
+    # Else, extract the version from the pattern
+    if ($artifactSetting -notmatch "\d+\.\d+\.\d+\.\d+") {
+        $currentRepoVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
+        Write-Host "Could not find version number in artifact pattern: $artifactSetting. Using repoVersion $currentRepoVersion as minimum version."
+        return Get-LatestBCArtifactUrl -minimumVersion $currentRepoVersion
+    }
+
+    return Get-LatestBCArtifactUrl -minimumVersion $Matches[0]
 }
 
 <#
@@ -319,14 +359,9 @@ function Update-BCArtifactVersion {
     $currentArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
     $currentVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
     Write-Host "Current BCArtifact URL: $currentArtifactUrl"
+    Write-Host "Getting latest BCArtifact version as pattern with minimum version $currentVersion"
 
-    if ($currentArtifactUrl -notlike "https*") {
-        Write-Host "Getting latest BCArtifact version as pattern with minimum version $currentVersion"
-        $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $currentVersion -asPattern
-    } else {
-        Write-Host "Getting latest BCArtifact version as URL with minimum version $currentVersion"
-        $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $currentVersion
-    }
+    $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $currentVersion -asPattern
     Write-Host "Latest BCArtifact URL: $latestArtifactUrl"
 
     $result = $null
@@ -574,6 +609,31 @@ function Get-AppsInFolder() {
         $apps += $app.name
     }
     return $apps
+}
+
+<#
+    .SYNOPSIS
+        Gets a setting from the AL-Go settings environment variable set during GitHub Actions runs.
+    .DESCRIPTION
+        This function retrieves a setting from the AL-Go settings stored in the environment variable 'settings'.
+        It returns the value of the specified key, or $null if the key does not exist.
+    .PARAMETER Key
+        The key of the setting to retrieve.
+    .OUTPUTS
+        The value of the specified setting key, or $null if the key does not exist.
+#>
+function Get-ALGoSetting() {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $Key
+    )
+    if ($null -ne $env:settings) {
+        $alGoSettings = $env:settings | ConvertFrom-Json
+        if ($alGoSettings.PSObject.Properties.Name -contains $Key) {
+            return $alGoSettings.$Key
+        }
+    }
+    return $null
 }
 
 Export-ModuleMember -Function *-*

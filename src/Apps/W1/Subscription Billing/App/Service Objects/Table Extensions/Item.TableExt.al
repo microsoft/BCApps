@@ -1,16 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
-#if not CLEAN25
-using Microsoft.Sales.Pricing;
-#endif
-using Microsoft.Pricing.PriceList;
-#if not CLEAN25
-using Microsoft.Pricing.Calculation;
-#endif
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Pricing.PriceList;
+using System.Utilities;
 
 tableextension 8052 Item extends Item
 {
@@ -119,49 +113,23 @@ tableextension 8052 Item extends Item
 
     local procedure UpdateItemPriceList()
     var
-#if not CLEAN25
-#pragma warning disable AL0432
-        SalesPrice: Record "Sales Price";
-#pragma warning restore AL0432
-#endif
         PriceListLine: Record "Price List Line";
-#if not CLEAN25
-        PriceCalculationMgt: Codeunit "Price Calculation Mgt.";
-#endif
     begin
         if Rec."Subscription Option" = xRec."Subscription Option" then
             exit;
 
         if IsServiceCommitmentItem() then begin
             Rec.Validate("Allow Invoice Disc.", false);
-#if not CLEAN25
-            if PriceCalculationMgt.IsExtendedPriceCalculationEnabled() then begin
-#endif
                 PriceListLine.SetRange("Price Type", PriceListLine."Price Type"::Sale);
                 PriceListLine.SetRange("Asset Type", PriceListLine."Asset Type"::Item);
                 PriceListLine.SetRange("Asset No.", Rec."No.");
                 PriceListLine.ModifyAll("Allow Invoice Disc.", false, false);
-#if not CLEAN25
-            end else begin
-                SalesPrice.SetRange("Item No.", Rec."No.");
-                SalesPrice.ModifyAll("Allow Invoice Disc.", false, false);
-            end;
-#endif
         end else begin
             Rec.Validate("Allow Invoice Disc.", true);
-#if not CLEAN25
-            if PriceCalculationMgt.IsExtendedPriceCalculationEnabled() then begin
-#endif
                 PriceListLine.SetRange("Price Type", PriceListLine."Price Type"::Sale);
                 PriceListLine.SetRange("Asset Type", PriceListLine."Asset Type"::Item);
                 PriceListLine.SetRange("Asset No.", Rec."No.");
                 PriceListLine.ModifyAll("Allow Invoice Disc.", true, false);
-#if not CLEAN25
-            end else begin
-                SalesPrice.SetRange("Item No.", Rec."No.");
-                SalesPrice.ModifyAll("Allow Invoice Disc.", true, false);
-            end;
-#endif
         end;
     end;
 

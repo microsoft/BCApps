@@ -1,0 +1,152 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "001c67a91ec30c35099b",
+  "position": {
+    "x": 26,
+    "y": 64.130879345603276,
+    "z": 2000,
+    "height": 380.85889570552149,
+    "width": 1228.9570552147241,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "areaChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year",
+              "nativeQueryRef": "Fiscal Year",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Month Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Month Year",
+              "nativeQueryRef": "Fiscal Month Year",
+              "active": true
+            }
+          ]
+        },
+        "Tooltips": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Ledger Entries"
+                    }
+                  },
+                  "Property": "Inventory (Quantity)"
+                }
+              },
+              "queryRef": "Item Ledger Entries.Inventory (Quantity)",
+              "nativeQueryRef": "Quantity on Hand"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Ledger Entries"
+                    }
+                  },
+                  "Property": "Net Qty. Purchased"
+                }
+              },
+              "queryRef": "Item Ledger Entries.Net Qty. Purchased",
+              "nativeQueryRef": "Net Qty. Purchased"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Ledger Entries"
+                    }
+                  },
+                  "Property": "Net Qty. Sold"
+                }
+              },
+              "queryRef": "Item Ledger Entries.Net Qty. Sold",
+              "nativeQueryRef": "Net Qty. Sold"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "categoryAxis": [
+        {
+          "properties": {
+            "concatenateLabels": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "maxMarginFactor": {
+              "expr": {
+                "Literal": {
+                  "Value": "15L"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Purchase vs. Sales Quantity Across Time Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -65,6 +65,10 @@ page 8073 "Archived Billing Lines"
                 {
                     ToolTip = 'Specifies the date to which the Subscription Line is billed.';
                 }
+                field("Billing Reference Date Changed"; Rec."Billing Reference Date Changed")
+                {
+                    Visible = false;
+                }
                 field("Service Amount"; Rec.Amount)
                 {
                     ToolTip = 'Specifies the amount for the Subscription Line including discount.';

@@ -169,6 +169,7 @@ page 8035 "Usage Data Billings"
         {
             group(Category_Report)
             {
+                Caption = 'Report';
                 actionref(UsageDataBillingMetadata_Promoted; UsageDataBillingMetadata)
                 {
                 }

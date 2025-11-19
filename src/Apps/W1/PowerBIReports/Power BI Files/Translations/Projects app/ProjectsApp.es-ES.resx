@@ -1,0 +1,1530 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.caption" xml:space="preserve">
+    <value>Mov. proyecto</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.column.37e86fab-ea3e-4ff1-a54e-52770a106762.caption" xml:space="preserve">
+    <value>N.º y descripción</value>
+    <comment>table [Project Ledger Entry] column [No. &amp; Description]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.column.65e6a7ed-6c8b-4c85-adc8-fe5d6567a99a.caption" xml:space="preserve">
+    <value>N.º tarea</value>
+    <comment>table [Project Ledger Entry] column [Task No.]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.column.b9123abd-bbb2-4bfb-b5e3-ec5e325b7f4d.caption" xml:space="preserve">
+    <value>Fecha reg.</value>
+    <comment>table [Project Ledger Entry] column [Posting Date]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.column.ffb98949-b433-457c-94c6-f1ab760c2696.caption" xml:space="preserve">
+    <value>Tipo mov.</value>
+    <comment>table [Project Ledger Entry] column [Entry Type]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.column.8c202531-044e-47b9-af45-db2f346a1fcb.caption" xml:space="preserve">
+    <value>Tipo</value>
+    <comment>table [Project Ledger Entry] column [Type]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.column.e6143d38-c386-4721-a003-c72533de7824.caption" xml:space="preserve">
+    <value>N.º</value>
+    <comment>table [Project Ledger Entry] column [No.]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.column.3184755a-8bef-4c5b-930f-f4b9dfb4012d.caption" xml:space="preserve">
+    <value>Descripción</value>
+    <comment>table [Project Ledger Entry] column [Description]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.column.2598879c-f680-4e7f-849e-d698a5a1f798.caption" xml:space="preserve">
+    <value>Almacén</value>
+    <comment>table [Project Ledger Entry] column [Location]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.column.c48fd67f-ccac-4c3a-8fd2-8e6dcb47f33c.caption" xml:space="preserve">
+    <value>Cód. unidad medida</value>
+    <comment>table [Project Ledger Entry] column [Unit of Measure Code]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.column.96ea187e-afe9-4be1-8783-6b27d944d6eb.caption" xml:space="preserve">
+    <value>Coste unitario (ML)</value>
+    <comment>table [Project Ledger Entry] column [Unit Cost (LCY)]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.column.f372e7a3-81e7-45e7-a67c-62cf7f5dcc91.caption" xml:space="preserve">
+    <value>Precio unitario (ML)</value>
+    <comment>table [Project Ledger Entry] column [Unit Price (LCY)]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.543c0e22-d676-4a18-b370-15507e518fe9.caption" xml:space="preserve">
+    <value>Cantidad de mov. proyecto</value>
+    <comment>table [Project Ledger Entry] measure [Project Ledger Entry Quantity]</comment>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.9ac9b15f-02a7-43c3-a851-d60ffd394f2e.caption" xml:space="preserve">
+    <value>Importe línea presupuesto proyecto</value>
+    <comment>table [Project Ledger Entry] measure [Project Ledger Line Amount]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.7eb3c811-dd5d-4c66-8239-8bfbe5ff8fa4.caption" xml:space="preserve">
+    <value>Precio uso total</value>
+    <comment>table [Project Ledger Entry] measure [Total Usage Price]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.9c4a38a5-45cc-4fed-8122-5c8c3630cb60.caption" xml:space="preserve">
+    <value>Precio uso cuenta contable</value>
+    <comment>table [Project Ledger Entry] measure [G/L Account Usage Price]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.86b08759-3d72-4e9e-8470-6ff2ccf11c27.caption" xml:space="preserve">
+    <value>Precio uso producto</value>
+    <comment>table [Project Ledger Entry] measure [Item Usage Price]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.63030f5d-9ce4-42e6-8c76-0b71bdaf9304.caption" xml:space="preserve">
+    <value>Precio de uso de recursos</value>
+    <comment>table [Project Ledger Entry] measure [Resource Usage Price]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.1839d640-4c79-4806-a5f9-3e1a3b825450.caption" xml:space="preserve">
+    <value>Precio facturado de recurso</value>
+    <comment>table [Project Ledger Entry] measure [Resource Invoiced Price]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.f1529bef-4768-4301-826d-8a6784f032e2.caption" xml:space="preserve">
+    <value>Precio facturado producto</value>
+    <comment>table [Project Ledger Entry] measure [Item Invoiced Price]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.d3166ce9-922e-4168-82f8-ceda36225d02.caption" xml:space="preserve">
+    <value>Precio facturado cuenta contable</value>
+    <comment>table [Project Ledger Entry] measure [G/L Account Invoiced Price]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.ac348787-e70b-4ca5-91b7-760fcd915286.caption" xml:space="preserve">
+    <value>Precio facturado total</value>
+    <comment>table [Project Ledger Entry] measure [Total Invoiced Price]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.655e67e8-641a-4e40-92b0-3e061eb6936a.caption" xml:space="preserve">
+    <value>Coste uso producto</value>
+    <comment>table [Project Ledger Entry] measure [Item Usage Cost]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.5c76f0f4-07a6-4d48-bd02-b372efef4b26.caption" xml:space="preserve">
+    <value>Coste uso recursos</value>
+    <comment>table [Project Ledger Entry] measure [Resource Usage Cost]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.b114ee3b-96a4-41d2-9a8c-dcf909561262.caption" xml:space="preserve">
+    <value>Coste uso ctas. cont.</value>
+    <comment>table [Project Ledger Entry] measure [G/L Account Usage Cost]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.ef51a0bf-edef-4614-bb4c-fd6fcae50b39.caption" xml:space="preserve">
+    <value>Coste facturado cuenta contable</value>
+    <comment>table [Project Ledger Entry] measure [G/L Account Invoiced Cost]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.fd090860-9200-4db2-8d3f-c3e1b9840706.caption" xml:space="preserve">
+    <value>Coste facturado producto</value>
+    <comment>table [Project Ledger Entry] measure [Item Invoiced Cost]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.b0c42de9-d7fd-4132-81bc-1c6657617add.caption" xml:space="preserve">
+    <value>Coste facturado recurso</value>
+    <comment>table [Project Ledger Entry] measure [Resource Invoiced Cost]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.32491772-b0fe-468c-890c-1879dfa10842.caption" xml:space="preserve">
+    <value>Coste de uso total</value>
+    <comment>table [Project Ledger Entry] measure [Total Usage Cost]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.5732f777-4cbd-49ff-a67b-76144f79c65b.caption" xml:space="preserve">
+    <value>Costes facturados totales</value>
+    <comment>table [Project Ledger Entry] measure [Total Invoiced Costs]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.a3344c03-5672-476c-b293-043dcbe732a3.caption" xml:space="preserve">
+    <value>Beneficio uso cuenta contable</value>
+    <comment>table [Project Ledger Entry] measure [G/L Account Usage Profit]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.ce3d4a66-43bc-42b2-8a41-5b07e1e9a002.caption" xml:space="preserve">
+    <value>Beneficio facturado cuenta contable</value>
+    <comment>table [Project Ledger Entry] measure [G/L Account Invoiced Profit]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.d240b2bd-20dd-40e5-910e-e5d70803853f.caption" xml:space="preserve">
+    <value>Beneficio facturado producto</value>
+    <comment>table [Project Ledger Entry] measure [Item Invoiced Profit]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.417e8cf4-c4ca-47cd-a950-bbe720045a24.caption" xml:space="preserve">
+    <value>Beneficio uso producto</value>
+    <comment>table [Project Ledger Entry] measure [Item Usage Profit]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.376ee5d9-5be7-4d12-be42-8e0f4d744131.caption" xml:space="preserve">
+    <value>Beneficio facturado de recurso</value>
+    <comment>table [Project Ledger Entry] measure [Resource Invoiced Profit]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.42d5c2a0-83ed-43d8-bae4-0a850f9efe7c.caption" xml:space="preserve">
+    <value>Beneficio de uso de recursos</value>
+    <comment>table [Project Ledger Entry] measure [Resource Usage Profit]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.fda28f21-7888-4757-888d-86af522f8053.caption" xml:space="preserve">
+    <value>Beneficio facturado total</value>
+    <comment>table [Project Ledger Entry] measure [Total Invoiced Profit]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.92077529-2925-4148-8dde-9ba91d9f1159.caption" xml:space="preserve">
+    <value>Beneficio uso total</value>
+    <comment>table [Project Ledger Entry] measure [Total Usage Profit]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.07b5d206-8186-45b3-a919-48edaf61ddeb.caption" xml:space="preserve">
+    <value>% de margen de beneficios de uso total</value>
+    <comment>table [Project Ledger Entry] measure [Total Usage Profit Margin %]</comment>
+  </data>
+  <data name="760c1d99-b2f8-4635-a67c-349b496ce1e2.measure.9cff215b-5a76-492d-95cf-d34b34239cc4.caption" xml:space="preserve">
+    <value>% margen beneficio facturado total</value>
+    <comment>table [Project Ledger Entry] measure [Total Invoiced Profit Margin %]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.caption" xml:space="preserve">
+    <value>Proyecto</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.column.a1964158-8637-4558-bd12-28561b0dc7e8.caption" xml:space="preserve">
+    <value>N.º proyecto</value>
+    <comment>table [Project] column [Project No.]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.column.6350968d-dfc1-4f91-8299-dcda25c06134.caption" xml:space="preserve">
+    <value>Descripción del proyecto</value>
+    <comment>table [Project] column [Project Description]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.column.5e0e87ba-7435-4188-9687-49eb63b00d20.caption" xml:space="preserve">
+    <value>Fecha de creación del proyecto</value>
+    <comment>table [Project] column [Project Creation Date]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.column.9221649a-ba40-4032-bb41-7f44124af8f4.caption" xml:space="preserve">
+    <value>Fecha de inicio del proyecto</value>
+    <comment>table [Project] column [Project Starting Date]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.column.0b20425a-cd0f-4250-a1b5-b4d126bc87fc.caption" xml:space="preserve">
+    <value>Fecha de finalización de proyecto</value>
+    <comment>table [Project] column [Project Ending Date]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.column.97105c37-8d2e-4270-a094-8beaaf11525d.caption" xml:space="preserve">
+    <value>Estado del proyecto</value>
+    <comment>table [Project] column [Project Status]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.column.5b49c593-64df-4581-955f-e2248dbad55e.caption" xml:space="preserve">
+    <value>Grupo contable proyecto</value>
+    <comment>table [Project] column [Project Posting Group]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.column.0814f949-e8b0-4e88-94b8-6a8451160509.caption" xml:space="preserve">
+    <value>Proyecto bloqueado</value>
+    <comment>table [Project] column [Project Blocked]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.column.56870561-5447-4ac3-a825-d9c0b33be2e9.caption" xml:space="preserve">
+    <value>Jefe de proyecto del proyecto</value>
+    <comment>table [Project] column [Project Project Manager]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.column.04a18bf7-0cad-4344-ad02-8dca7d101f0c.caption" xml:space="preserve">
+    <value>Proyecto completado</value>
+    <comment>table [Project] column [Project Complete]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.column.e24b861e-c443-4e40-a8e6-755be6d6ca9c.caption" xml:space="preserve">
+    <value>N.º de proyecto y descripción</value>
+    <comment>table [Project] column [Project No. &amp; Description]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.measure.e8e825de-ddd3-41da-a737-ab85c7596bc7.caption" xml:space="preserve">
+    <value>Recuento de proyectos</value>
+    <comment>table [Project] measure [Project Count]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.measure.90338e06-52d1-4ab1-a742-97c325f98dc0.caption" xml:space="preserve">
+    <value>Completado (%)</value>
+    <comment>table [Project] measure [Completed (%)]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.measure.4eb53e63-d2e3-40cc-a2eb-f94b645b420b.caption" xml:space="preserve">
+    <value>Facturado (%)</value>
+    <comment>table [Project] measure [Invoiced (%)]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.measure.a7c3e7fd-99ef-4701-9664-6e844cf81c92.caption" xml:space="preserve">
+    <value>Recuento de tareas</value>
+    <comment>table [Project] measure [Tasks Count]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.measure.3e17b8e5-3510-4349-83d7-131c97c5afdd.caption" xml:space="preserve">
+    <value>Obtención (%)</value>
+    <comment>table [Project] measure [Realization (%)]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.measure.41de63a4-c444-417d-8e63-db534014c25d.caption" xml:space="preserve">
+    <value>Desviación de realización</value>
+    <comment>table [Project] measure [Realization Variance]</comment>
+  </data>
+  <data name="b1e0cbab-2188-4883-90a6-f1ef885bff73.measure.7464e713-79de-4fb7-9d4b-fc94280946da.caption" xml:space="preserve">
+    <value>N.º de proyectos completados</value>
+    <comment>table [Project] measure [No. of Completed Projects]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.caption" xml:space="preserve">
+    <value>Línea de planificación de proyecto</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.column.287c79ae-07ce-4968-8910-09cce23b6056.caption" xml:space="preserve">
+    <value>N.º tarea</value>
+    <comment>table [Project Planning Line] column [Task No.]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.column.0b9271e6-b12b-4fb5-b83a-6d0cea6a6396.caption" xml:space="preserve">
+    <value>N.º de línea</value>
+    <comment>table [Project Planning Line] column [Line No.]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.column.23429c70-9229-41f4-8907-9abd1f361993.caption" xml:space="preserve">
+    <value>Tipo</value>
+    <comment>table [Project Planning Line] column [Type]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.column.83aeaeda-18ff-4a63-971c-ebd391424260.caption" xml:space="preserve">
+    <value>Tipo línea</value>
+    <comment>table [Project Planning Line] column [Line Type]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.column.d59e47bb-6e33-4cca-87f8-5954aa944c9f.caption" xml:space="preserve">
+    <value>N.º</value>
+    <comment>table [Project Planning Line] column [No.]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.column.14acafcf-63d7-4f2a-801c-b7befc225ebf.caption" xml:space="preserve">
+    <value>Descripción</value>
+    <comment>table [Project Planning Line] column [Description]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.column.4627b590-bf15-4f94-8cbf-abcbc9122389.caption" xml:space="preserve">
+    <value>Coste unitario (ML)</value>
+    <comment>table [Project Planning Line] column [Unit Cost (LCY)]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.column.3e34047b-2644-48b6-9c8b-a974663e72a3.caption" xml:space="preserve">
+    <value>Precio unitario (ML)</value>
+    <comment>table [Project Planning Line] column [Unit Price (LCY)]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.column.d01c1172-1824-4b7c-8d58-2a7b78eecd52.caption" xml:space="preserve">
+    <value>Fecha planif.</value>
+    <comment>table [Project Planning Line] column [Planning Date]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.88a94ac6-5dfd-452d-8bd5-b04622e77ca0.caption" xml:space="preserve">
+    <value>Cant. línea plan.</value>
+    <comment>table [Project Planning Line] measure [Planning Line Quantity]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.4c183cd8-7575-4c89-bb69-08494e233cef.caption" xml:space="preserve">
+    <value>Coste total línea planificación (ML)</value>
+    <comment>table [Project Planning Line] measure [Planning Line Total Cost (LCY)]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.b9d41182-8a4d-4f8f-8cde-8acc7a92410f.caption" xml:space="preserve">
+    <value>Precio total línea planificación (ML)</value>
+    <comment>table [Project Planning Line] measure [Planning Line Total Price (LCY)]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.b5f08e35-c12b-487e-a9c3-c29b4076ddc3.caption" xml:space="preserve">
+    <value>Desviación de coste total frente a presupuesto</value>
+    <comment>table [Project Planning Line] measure [Total Cost Variance to Budget]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.769ac9bd-2c72-4496-ac35-b7d0e647743d.caption" xml:space="preserve">
+    <value>Desviación de coste total frente a % presupuesto</value>
+    <comment>table [Project Planning Line] measure [Total Cost Variance to Budget %]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.fa911a38-36e1-4552-bddd-ac3670c9e631.caption" xml:space="preserve">
+    <value>Precio facturable recurso</value>
+    <comment>table [Project Planning Line] measure [Resource Billable Price]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.453df2b6-b473-4815-9f37-7da80dcd700a.caption" xml:space="preserve">
+    <value>Precio facturable producto</value>
+    <comment>table [Project Planning Line] measure [Item Billable Price]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.79976d36-c501-4d32-868f-5e25a3597f12.caption" xml:space="preserve">
+    <value>Precio facturable cuenta C/G</value>
+    <comment>table [Project Planning Line] measure [G/L Account Billable Price]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.65994956-97d7-4881-b92e-85f0b4aa77e8.caption" xml:space="preserve">
+    <value>Precio presupuesto recurso</value>
+    <comment>table [Project Planning Line] measure [Resource Budget Price]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.8281de9c-760e-4d50-949f-0236ed454f75.caption" xml:space="preserve">
+    <value>Precio presupuesto producto</value>
+    <comment>table [Project Planning Line] measure [Item Budget Price]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.02b69c45-6405-4916-a7d1-3d9a884dc07a.caption" xml:space="preserve">
+    <value>Precio presupuesto cuenta C/G</value>
+    <comment>table [Project Planning Line] measure [G/L Account Budget Price]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.608d06ee-fe40-46c1-9b34-ffb2918dd244.caption" xml:space="preserve">
+    <value>Costes presupuesto recurso</value>
+    <comment>table [Project Planning Line] measure [Resource Budget Costs]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.84cfd2d6-5040-4e8a-9948-a4e6db38b47a.caption" xml:space="preserve">
+    <value>Costes presupuesto producto</value>
+    <comment>table [Project Planning Line] measure [Item Budget Costs]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.3767faef-8dd7-4877-83d5-d4a6add9283d.caption" xml:space="preserve">
+    <value>Costes presupuesto cuenta C/G</value>
+    <comment>table [Project Planning Line] measure [G/L Account Budget Costs]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.ed638054-551e-4da7-be70-41c58dae07a0.caption" xml:space="preserve">
+    <value>Costes facturables recurso</value>
+    <comment>table [Project Planning Line] measure [Resource Billable Costs]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.f291c654-47d6-4f2f-be47-d48d7682c5ab.caption" xml:space="preserve">
+    <value>Costes facturables producto</value>
+    <comment>table [Project Planning Line] measure [Item Billable Costs]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.eea78d3c-3d25-42e3-91da-31568bab8085.caption" xml:space="preserve">
+    <value>Costes fascturables cuenta C/G</value>
+    <comment>table [Project Planning Line] measure [G/L Account Billable Costs]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.8ff21fc1-48e2-4ab9-ac7c-634e369fc24a.caption" xml:space="preserve">
+    <value>Beneficio facturable recurso</value>
+    <comment>table [Project Planning Line] measure [Resource Billable Profit]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.fda74cb0-f717-4e14-8cde-c01044f8b64b.caption" xml:space="preserve">
+    <value>Beneficio facturable producto</value>
+    <comment>table [Project Planning Line] measure [Item Billable Profit]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.754194ab-f180-41e1-a6b5-a31fd76a7212.caption" xml:space="preserve">
+    <value>Beneficio facturable cuenta C/G</value>
+    <comment>table [Project Planning Line] measure [G/L Account Billable Profit]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.23cac8aa-06ab-463f-a2bd-6f1248e13483.caption" xml:space="preserve">
+    <value>Beneficio recurso</value>
+    <comment>table [Project Planning Line] measure [Resource Profit]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.0b341c64-c16a-4ef3-afee-1bcbbfb8f48c.caption" xml:space="preserve">
+    <value>Beneficio producto</value>
+    <comment>table [Project Planning Line] measure [Item Profit]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.db0b9418-46b1-43ca-9b40-3314a9218aca.caption" xml:space="preserve">
+    <value>Beneficio cuenta C/G</value>
+    <comment>table [Project Planning Line] measure [G/L Account Profit]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.99819909-776f-42b8-a8ca-ead0de7ca54b.caption" xml:space="preserve">
+    <value>Beneficio facturable total</value>
+    <comment>table [Project Planning Line] measure [Total Billable Profit]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.94516209-aa72-441b-a14a-321e2655c908.caption" xml:space="preserve">
+    <value>Precio facturable total</value>
+    <comment>table [Project Planning Line] measure [Total Billable Price]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.e4ae479c-fcbc-4148-9b84-1fda26934571.caption" xml:space="preserve">
+    <value>Coste presupuesto total</value>
+    <comment>table [Project Planning Line] measure [Total Budget Cost]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.1f2fcbfc-b841-41ca-855e-3835aac8c4c0.caption" xml:space="preserve">
+    <value>Precio presupuesto total</value>
+    <comment>table [Project Planning Line] measure [Total Budget Price]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.cdd91184-e84a-46eb-a8ed-bc2f07d64f11.caption" xml:space="preserve">
+    <value>Beneficio de presupuesto total</value>
+    <comment>table [Project Planning Line] measure [Total Budget Profit]</comment>
+  </data>
+  <data name="ef9640e1-5bee-4de1-8ce2-a74068833660.measure.40394fd1-9599-4d0e-ba29-371155e6ca8a.caption" xml:space="preserve">
+    <value>Coste facturable total</value>
+    <comment>table [Project Planning Line] measure [Total Billable Cost]</comment>
+  </data>
+  <data name="b63a6db7-aba5-4033-a46b-e78a7da3d1ab.caption" xml:space="preserve">
+    <value>Cliente</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="b63a6db7-aba5-4033-a46b-e78a7da3d1ab.column.d0164ab0-c3a8-4066-bd17-3addf0b0ddc7.caption" xml:space="preserve">
+    <value>Nombre y n.º de cliente</value>
+    <comment>table [Customer] column [Customer No. &amp; Name]</comment>
+  </data>
+  <data name="b63a6db7-aba5-4033-a46b-e78a7da3d1ab.column.12d06ba4-9e75-408b-bfd5-c98d66e8bb94.caption" xml:space="preserve">
+    <value>N.º de cliente</value>
+    <comment>table [Customer] column [Customer No.]</comment>
+  </data>
+  <data name="b63a6db7-aba5-4033-a46b-e78a7da3d1ab.column.b83d2b48-13a3-4b93-924d-082cd7e4bd34.caption" xml:space="preserve">
+    <value>Nombre del cliente</value>
+    <comment>table [Customer] column [Customer Name]</comment>
+  </data>
+  <data name="b63a6db7-aba5-4033-a46b-e78a7da3d1ab.column.e819224c-68b4-4ee7-a0f3-86f89dafdda6.caption" xml:space="preserve">
+    <value>Dirección de cliente</value>
+    <comment>table [Customer] column [Customer Address]</comment>
+  </data>
+  <data name="b63a6db7-aba5-4033-a46b-e78a7da3d1ab.column.a9bac05c-7ce3-4916-9064-e0bac2556b97.caption" xml:space="preserve">
+    <value>Dirección de cliente 2</value>
+    <comment>table [Customer] column [Customer Address 2]</comment>
+  </data>
+  <data name="b63a6db7-aba5-4033-a46b-e78a7da3d1ab.column.658f4aa3-a8ba-4f94-9065-e7dd300dd4ca.caption" xml:space="preserve">
+    <value>Ciudad de cliente</value>
+    <comment>table [Customer] column [Customer City]</comment>
+  </data>
+  <data name="b63a6db7-aba5-4033-a46b-e78a7da3d1ab.column.2e2140e5-60f5-4971-aa77-6ee3eb039886.caption" xml:space="preserve">
+    <value>Código postal de cliente</value>
+    <comment>table [Customer] column [Customer Post Code]</comment>
+  </data>
+  <data name="b63a6db7-aba5-4033-a46b-e78a7da3d1ab.column.40611263-7330-423b-aa2e-8727499c42d1.caption" xml:space="preserve">
+    <value>Estado cliente</value>
+    <comment>table [Customer] column [Customer State]</comment>
+  </data>
+  <data name="b63a6db7-aba5-4033-a46b-e78a7da3d1ab.column.3b3125f8-7cf3-4e8f-a582-92a6a5f3af5d.caption" xml:space="preserve">
+    <value>Cód. país/región clientes</value>
+    <comment>table [Customer] column [Customer Country/Region Code]</comment>
+  </data>
+  <data name="b63a6db7-aba5-4033-a46b-e78a7da3d1ab.column.d28670fa-33bd-415c-8410-bad1d628d893.caption" xml:space="preserve">
+    <value>Grupo contable cliente</value>
+    <comment>table [Customer] column [Customer Posting Group]</comment>
+  </data>
+  <data name="b63a6db7-aba5-4033-a46b-e78a7da3d1ab.column.a939d46b-e553-4fb3-b4e2-38387252def4.caption" xml:space="preserve">
+    <value>Grupo de precio de cliente</value>
+    <comment>table [Customer] column [Customer Price Group]</comment>
+  </data>
+  <data name="b63a6db7-aba5-4033-a46b-e78a7da3d1ab.column.7323bcb2-defc-4d70-9902-28a7b9a402ff.caption" xml:space="preserve">
+    <value>Grupo de descuento de cliente</value>
+    <comment>table [Customer] column [Customer Discount Group]</comment>
+  </data>
+  <data name="e064a10d-7469-46b5-b5f6-90916d8c34c6.caption" xml:space="preserve">
+    <value>Tareas</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="e064a10d-7469-46b5-b5f6-90916d8c34c6.column.fb4a38a8-6363-4d7e-8867-de95d5b03b29.caption" xml:space="preserve">
+    <value>N.º proyecto tarea</value>
+    <comment>table [Tasks] column [Task Project No.]</comment>
+  </data>
+  <data name="e064a10d-7469-46b5-b5f6-90916d8c34c6.column.875f4a8c-aa1b-4690-923b-00205e032da6.caption" xml:space="preserve">
+    <value>N.º tarea</value>
+    <comment>table [Tasks] column [Task No.]</comment>
+  </data>
+  <data name="e064a10d-7469-46b5-b5f6-90916d8c34c6.column.ca518889-41ab-447d-bb11-486e9653265d.caption" xml:space="preserve">
+    <value>Descripción de la tarea</value>
+    <comment>table [Tasks] column [Task Description]</comment>
+  </data>
+  <data name="e064a10d-7469-46b5-b5f6-90916d8c34c6.column.9ce7ff8e-c3e9-4e84-8e2a-e4ae784957a2.caption" xml:space="preserve">
+    <value>N.º tarea y n.º proyecto tarea</value>
+    <comment>table [Tasks] column [Task Project No. &amp; Task No.]</comment>
+  </data>
+  <data name="e064a10d-7469-46b5-b5f6-90916d8c34c6.column.d01fc197-3929-4c9b-8e14-a21d75cb2dd2.caption" xml:space="preserve">
+    <value>Descripción y tarea de proyecto de tarea</value>
+    <comment>table [Tasks] column [Task Project Task &amp; Description]</comment>
+  </data>
+  <data name="e064a10d-7469-46b5-b5f6-90916d8c34c6.column.bda650bb-2b5a-42fc-9fd7-c0999237f490.caption" xml:space="preserve">
+    <value>Fecha de inicio de tarea de proyecto</value>
+    <comment>table [Tasks] column [Project Task Starting Date]</comment>
+  </data>
+  <data name="e064a10d-7469-46b5-b5f6-90916d8c34c6.column.46740dd3-fb4e-44a7-a033-cc5496f45027.caption" xml:space="preserve">
+    <value>Fecha de finalización de tarea de proyecto</value>
+    <comment>table [Tasks] column [Project Task Ending Date]</comment>
+  </data>
+  <data name="e064a10d-7469-46b5-b5f6-90916d8c34c6.measure.b8047783-025d-4db9-bdd8-1e7fde73df61.caption" xml:space="preserve">
+    <value>Días de duración de tarea de proyecto</value>
+    <comment>table [Tasks] measure [Project Task Duration Days]</comment>
+  </data>
+  <data name="e064a10d-7469-46b5-b5f6-90916d8c34c6.measure.40dd6353-de09-452e-88b0-83f0560a40ff.caption" xml:space="preserve">
+    <value>Semanas de duración de tarea de proyecto</value>
+    <comment>table [Tasks] measure [Project Task Duration Weeks]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.caption" xml:space="preserve">
+    <value>Grupos de dimensiones</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.84126917-b668-490c-a8fb-c06d5c010d11.caption" xml:space="preserve">
+    <value>Dimensión global 1</value>
+    <comment>table [Dimension Sets] column [Global Dimension 1]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.721a3357-42db-4a08-a03a-e24b24d50b55.caption" xml:space="preserve">
+    <value>Dimensión global 2</value>
+    <comment>table [Dimension Sets] column [Global Dimension 2]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.14bcf003-9f79-4673-8c42-0740477f1e1b.caption" xml:space="preserve">
+    <value>Dim. acceso dir. 3</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 3]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.470e094f-9eb7-4316-9307-a85c2219a19c.caption" xml:space="preserve">
+    <value>Dim. acceso dir. 4</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 4]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.f29d6dc8-7e28-4b29-ac2e-42e33d7cb916.caption" xml:space="preserve">
+    <value>Dim. acceso dir. 5</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 5]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.5da0620c-78ae-4a48-8338-4a3363ed2112.caption" xml:space="preserve">
+    <value>Dim. acceso dir. 6</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 6]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.40b1f35d-27f3-46d1-8aa9-8ee790c3f34c.caption" xml:space="preserve">
+    <value>Dim. acceso dir. 7</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 7]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.3e43a05c-44d2-4c34-868c-d8768a835d0d.caption" xml:space="preserve">
+    <value>Dim. acceso dir. 8</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 8]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.ba1a5263-d664-4f3e-87fa-64124e81437b.caption" xml:space="preserve">
+    <value>DPTO</value>
+    <comment>table [Dimension Sets] column [DEPARTMENT]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.b6b5a66c-9a39-453b-aa0f-a39ba1bdb495.caption" xml:space="preserve">
+    <value>Nombre del departamento</value>
+    <comment>table [Dimension Sets] column [Department Name]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.ecd0c690-d365-4745-b2e6-62e8bb0dd715.caption" xml:space="preserve">
+    <value>GRUPOCLIENTE</value>
+    <comment>table [Dimension Sets] column [CUSTOMERGROUP]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.19a08447-6a81-4a3d-b327-0ce8cacce86d.caption" xml:space="preserve">
+    <value>Nombre del grupo de clientes</value>
+    <comment>table [Dimension Sets] column [Customer Group Name]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.c7f324b0-eb25-4b51-ae50-a81368ecc9c0.caption" xml:space="preserve">
+    <value>ÁREA</value>
+    <comment>table [Dimension Sets] column [AREA]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.15bb7f46-5989-48cf-bbb9-9bb34070f3af.caption" xml:space="preserve">
+    <value>Nombre de área</value>
+    <comment>table [Dimension Sets] column [Area Name]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.f838d5ad-9383-4eaa-b802-17bb78e376eb.caption" xml:space="preserve">
+    <value>GRUPONEGOCIO</value>
+    <comment>table [Dimension Sets] column [BUSINESSGROUP]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.b28e7e14-03b4-43af-a0a4-f0bb6c807e05.caption" xml:space="preserve">
+    <value>Nombre de grupo de negocio</value>
+    <comment>table [Dimension Sets] column [Business Group Name]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.559a2d62-2904-4161-ab85-1f908b7ede28.caption" xml:space="preserve">
+    <value>COMERCIAL</value>
+    <comment>table [Dimension Sets] column [SALESPERSON]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.15a46281-8d2f-4c05-8360-5239ab0cde12.caption" xml:space="preserve">
+    <value>Nombre vendedor</value>
+    <comment>table [Dimension Sets] column [Salesperson Name]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.1c4964e2-62f8-4967-9661-5ddbb5543222.caption" xml:space="preserve">
+    <value>CAMPAÑAVENTA</value>
+    <comment>table [Dimension Sets] column [SALESCAMPAIGN]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.e62a3341-bdb5-4681-9ab4-53162ba8afda.caption" xml:space="preserve">
+    <value>Nombre campaña venta</value>
+    <comment>table [Dimension Sets] column [Sales campaign Name]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.6b41b4b2-714b-4e7c-b970-7729d9f7cfaf.caption" xml:space="preserve">
+    <value>COMPRADOR</value>
+    <comment>table [Dimension Sets] column [PURCHASER]</comment>
+  </data>
+  <data name="5888ef19-abd1-49e9-9fdd-a4d0a65fa415.column.572238d2-79f8-4071-a7d1-158f8713a006.caption" xml:space="preserve">
+    <value>Nombre de comprador</value>
+    <comment>table [Dimension Sets] column [Purchaser Name]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.caption" xml:space="preserve">
+    <value>Fecha</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.5b93f60c-b7e3-4dca-8e98-33e266beca52.caption" xml:space="preserve">
+    <value>Día de la semana</value>
+    <comment>table [Date] column [Week Day]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.7e7581f6-bd34-4d55-90ef-26db30926d25.caption" xml:space="preserve">
+    <value>Día relativo</value>
+    <comment>table [Date] column [Relative Day]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.c5fe76bc-9585-4f0c-b174-199d9b87d886.caption" xml:space="preserve">
+    <value>NúmeroAño natural</value>
+    <comment>table [Date] column [Calendar YearNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.77f96347-a421-4dec-bee0-2cdee300f944.caption" xml:space="preserve">
+    <value>Año natural</value>
+    <comment>table [Date] column [Calendar Year]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.2ee371e4-6b35-4dd8-8b8a-966c6addb002.caption" xml:space="preserve">
+    <value>NúmeroTrimestre natural</value>
+    <comment>table [Date] column [Calendar QuarterNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.02ffca8f-f51d-4ba4-8138-6da29ca85db3.caption" xml:space="preserve">
+    <value>Trimestre natural</value>
+    <comment>table [Date] column [Calendar Quarter]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.e0620814-8cfa-4de2-9076-f557045eb75d.caption" xml:space="preserve">
+    <value>NúmeroTrimestre Año natural</value>
+    <comment>table [Date] column [Calendar YearQuarterNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.a9f77390-e679-4751-8fed-3ebd68723df0.caption" xml:space="preserve">
+    <value>Trimestre año natural</value>
+    <comment>table [Date] column [Calendar Quarter Year]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.902aeda9-787e-43c6-96e0-2adf79e9ab94.caption" xml:space="preserve">
+    <value>NúmeroMes natural</value>
+    <comment>table [Date] column [Calendar MonthNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.7343958f-a50a-4c52-8b0b-d5cc6c145088.caption" xml:space="preserve">
+    <value>Mes natural</value>
+    <comment>table [Date] column [Calendar Month]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.1acf241a-ada2-41cb-88fc-d4407c48ba21.caption" xml:space="preserve">
+    <value>NúmeroMesAño natural</value>
+    <comment>table [Date] column [Calendar YearMonthNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.ecdfd7a2-45b2-4f3a-996a-6a66c803c1ad.caption" xml:space="preserve">
+    <value>Mes año natural</value>
+    <comment>table [Date] column [Calendar Month Year]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.7a7b0c77-5c1b-404b-867e-d29e98ae2dcb.caption" xml:space="preserve">
+    <value>NúmeroSemana natural</value>
+    <comment>table [Date] column [Calendar WeekNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.2e68a6fd-ed26-442e-805a-344ef30d0e2d.caption" xml:space="preserve">
+    <value>Semana natural</value>
+    <comment>table [Date] column [Calendar Week]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.907f2126-0b73-4548-9351-84cca1d1589b.caption" xml:space="preserve">
+    <value>NúmeroSemanaAño natural</value>
+    <comment>table [Date] column [Calendar YearWeekNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.54edbf38-3c40-462f-8f1f-5b61db40a218.caption" xml:space="preserve">
+    <value>Semana año natural</value>
+    <comment>table [Date] column [Calendar Week Year]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.53874788-b9f5-4294-9a69-c0ba2677ceb1.caption" xml:space="preserve">
+    <value>SemanaAñoPedido natural</value>
+    <comment>table [Date] column [Calendar WeekYearOrder]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.a5e9e294-4f96-4eaa-b28b-5e9932ea2e4b.caption" xml:space="preserve">
+    <value>PosSemanaRelativa natural</value>
+    <comment>table [Date] column [Calendar RelativeWeekPos]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.a2911b58-003a-4b51-841f-7b5e459d7373.caption" xml:space="preserve">
+    <value>PosMesRelativa natural</value>
+    <comment>table [Date] column [Calendar RelativeMonthPos]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.799272c8-2435-4f15-9f4c-364e13004c85.caption" xml:space="preserve">
+    <value>PosTrimestreRelativa natural</value>
+    <comment>table [Date] column [Calendar RelativeQuarterPos]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.7be4340b-c6b9-41d8-bdb5-11f0889eeb02.caption" xml:space="preserve">
+    <value>PosAñoRelativa natural</value>
+    <comment>table [Date] column [Calendar RelativeYearPos]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.2f43dde3-9a75-4404-9739-d6760d038889.caption" xml:space="preserve">
+    <value>InicioDeMes natural</value>
+    <comment>table [Date] column [Calendar StartOfMonth]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.c5f123cd-f04f-4d0c-8b05-ce6d437220b7.caption" xml:space="preserve">
+    <value>FinDeMes natural</value>
+    <comment>table [Date] column [Calendar EndOfMonth]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.20b4c4eb-94e5-4ed3-be0e-5821eeb18f66.caption" xml:space="preserve">
+    <value>InicioDeTrimestre natural</value>
+    <comment>table [Date] column [Calendar StartOfQuarter]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.5166491a-5a5b-4042-8052-ba8fd390f80c.caption" xml:space="preserve">
+    <value>FinDeTrimestre natural</value>
+    <comment>table [Date] column [Calendar EndOfQuarter]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.2983ab87-6488-4cd8-b691-0bac446613ed.caption" xml:space="preserve">
+    <value>InicioDeAño natural</value>
+    <comment>table [Date] column [Calendar StartOfYear]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.61bdb036-99c1-4def-aa88-2695793d26d0.caption" xml:space="preserve">
+    <value>FinDeAño natural</value>
+    <comment>table [Date] column [Calendar EndOfYear]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.a3fc01da-2e78-4f30-b5f6-cf7c999a11a9.caption" xml:space="preserve">
+    <value>DíasMes natural</value>
+    <comment>table [Date] column [Calendar MonthDays]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.6bb84ca2-3b1c-4fa8-ad15-5b8feea4853c.caption" xml:space="preserve">
+    <value>TrimestreDías natural</value>
+    <comment>table [Date] column [Calendar QuarterDays]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.af8216de-d2e2-4925-8f37-9eab1edfe7ef.caption" xml:space="preserve">
+    <value>AñoDías natural</value>
+    <comment>table [Date] column [Calendar YearDays]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.4e0fc4f0-4ea5-48af-9979-4babc6ba06f0.caption" xml:space="preserve">
+    <value>NúmeroDeDíaDeMes natural</value>
+    <comment>table [Date] column [Calendar DayOfMonthNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.67cc7078-2ec0-4808-b950-e67c28968b4c.caption" xml:space="preserve">
+    <value>NúmeroDeDíaDeTrimestre natural</value>
+    <comment>table [Date] column [Calendar DayOfQuarterNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.f4bce53a-a870-4a30-b43f-ecd335699362.caption" xml:space="preserve">
+    <value>NúmeroDeDíaDeAño natural</value>
+    <comment>table [Date] column [Calendar DayOfYearNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.dc59c97e-e663-4a2b-af49-0692ac7502df.caption" xml:space="preserve">
+    <value>FechaSemanaAnterior natural</value>
+    <comment>table [Date] column [Calendar DatePreviousWeek]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.3557e61d-8e98-41c9-9be2-66011d95bfcc.caption" xml:space="preserve">
+    <value>FechaMesAnterior natural</value>
+    <comment>table [Date] column [Calendar DatePreviousMonth]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.81f97c59-0048-4d81-915f-d2a43d7323ea.caption" xml:space="preserve">
+    <value>FechaTrimestreAnterior natural</value>
+    <comment>table [Date] column [Calendar DatePreviousQuarter]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.5c175c75-2e98-41c7-8f8f-a4dd8d55a50f.caption" xml:space="preserve">
+    <value>FechaAñoAnterior natural</value>
+    <comment>table [Date] column [Calendar DatePreviousYear]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.be04c4f9-2dab-4fcf-8104-1090e3b921b3.caption" xml:space="preserve">
+    <value>Ejercicio</value>
+    <comment>table [Date] column [Fiscal Year]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.8e48fc9d-fe73-4dec-ba1c-c23ca64bf10b.caption" xml:space="preserve">
+    <value>NúmeroAño fiscal</value>
+    <comment>table [Date] column [Fiscal YearNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.9ae839c4-a0a2-4a03-9d5c-a7f606719d4c.caption" xml:space="preserve">
+    <value>NúmeroTrimestre fiscal</value>
+    <comment>table [Date] column [Fiscal QuarterNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.40f5a8e9-53f5-4f39-b1ee-f2c0bc7463a7.caption" xml:space="preserve">
+    <value>Trimestre fiscal</value>
+    <comment>table [Date] column [Fiscal Quarter]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.eec58d0e-e8dc-4a3c-a5fd-8c96053a7821.caption" xml:space="preserve">
+    <value>NúmeroTrimestreAño fiscal</value>
+    <comment>table [Date] column [Fiscal YearQuarterNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.981364cf-9cef-464f-81a7-f0c48157eb99.caption" xml:space="preserve">
+    <value>Año trimestre fiscal</value>
+    <comment>table [Date] column [Fiscal Quarter Year]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.d3e50d97-bfb3-4d77-8117-e7e749f13a25.caption" xml:space="preserve">
+    <value>NúmeroMes fiscal</value>
+    <comment>table [Date] column [Fiscal MonthNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.a6a6f2a3-ce8c-411d-a61b-140fde1948b7.caption" xml:space="preserve">
+    <value>NúmeroMesEnTrimestre fiscal</value>
+    <comment>table [Date] column [Fiscal MonthInQuarterNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.972b40da-d3ac-4748-be17-34643ffef4b1.caption" xml:space="preserve">
+    <value>Mes fiscal</value>
+    <comment>table [Date] column [Fiscal Month]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.cf2bcd1a-f73c-442d-81cf-1014c5bfdb28.caption" xml:space="preserve">
+    <value>NúmeroMesAño fiscal</value>
+    <comment>table [Date] column [Fiscal YearMonthNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.124932c0-1dbb-44ea-a627-412725b941e2.caption" xml:space="preserve">
+    <value>Mes Año fiscal</value>
+    <comment>table [Date] column [Fiscal Month Year]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.562f2483-79c6-448a-ac27-7bead2c537a6.caption" xml:space="preserve">
+    <value>NúmeroSemana fiscal</value>
+    <comment>table [Date] column [Fiscal WeekNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.9fa6465f-6073-4396-95c1-765ee3e1f580.caption" xml:space="preserve">
+    <value>Semana fiscal</value>
+    <comment>table [Date] column [Fiscal Week]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.cc277fc0-b50e-4661-9e6a-85e7818f6cee.caption" xml:space="preserve">
+    <value>NúmeroSemanaAño fiscal</value>
+    <comment>table [Date] column [Fiscal YearWeekNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.9d6e3cda-9b82-415a-bb8e-d71760b25380.caption" xml:space="preserve">
+    <value>Semana año fiscal</value>
+    <comment>table [Date] column [Fiscal Week Year]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.bb3df353-de3a-4114-ade2-964205cf85dc.caption" xml:space="preserve">
+    <value>SemanaAñoPedido fiscal</value>
+    <comment>table [Date] column [Fiscal WeekYearOrder]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.015ae103-54cb-45ea-91fe-6daf32312f3f.caption" xml:space="preserve">
+    <value>PosSemanaRelativa fiscal</value>
+    <comment>table [Date] column [Fiscal RelativeWeekPos]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.c6359d3b-df9c-448c-97e0-e8158079258b.caption" xml:space="preserve">
+    <value>PosMesRelativa fiscal</value>
+    <comment>table [Date] column [Fiscal RelativeMonthPos]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.a9a8459b-a797-46cc-82f0-2dc74fb5db89.caption" xml:space="preserve">
+    <value>PosTrimestreRelativa fiscal</value>
+    <comment>table [Date] column [Fiscal RelativeQuarterPos]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.ad228d0e-893b-4e7e-b026-a56299cd994b.caption" xml:space="preserve">
+    <value>PosAñoRelativa fiscal</value>
+    <comment>table [Date] column [Fiscal RelativeYearPos]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.f9dd954e-d75b-4eb3-bbb3-0c518fcaa16d.caption" xml:space="preserve">
+    <value>InicioDeMes fiscal</value>
+    <comment>table [Date] column [Fiscal StartOfMonth]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.42bed134-4c4a-45f8-a2a1-49ba0044f329.caption" xml:space="preserve">
+    <value>FinDeMes fiscal</value>
+    <comment>table [Date] column [Fiscal EndOfMonth]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.eb2b0df9-80b7-4ed5-96d1-5a27ff8ec2d4.caption" xml:space="preserve">
+    <value>InicioDeTrimestre fiscal</value>
+    <comment>table [Date] column [Fiscal StartOfQuarter]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.75cff9f2-bea3-4ac4-91d1-38e9fd5eecd6.caption" xml:space="preserve">
+    <value>FinDeTrimestre fiscal</value>
+    <comment>table [Date] column [Fiscal EndOfQuarter]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.52428183-b12f-4e10-8804-e922a3656228.caption" xml:space="preserve">
+    <value>InicioDeAño fiscal</value>
+    <comment>table [Date] column [Fiscal StartOfYear]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.a3bec521-47e1-45a5-9916-60108d81fcd2.caption" xml:space="preserve">
+    <value>FinDeAño fiscal</value>
+    <comment>table [Date] column [Fiscal EndOfYear]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.5334315d-8c3c-4ac4-9daf-3714be1c439a.caption" xml:space="preserve">
+    <value>MesDías fiscal</value>
+    <comment>table [Date] column [Fiscal MonthDays]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.1b2bd292-fcd9-499c-8f9f-15360cf01b06.caption" xml:space="preserve">
+    <value>DíasTrimestre fiscal</value>
+    <comment>table [Date] column [Fiscal QuarterDays]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.c75cddfc-b937-4c82-b1b3-10d1c314ec45.caption" xml:space="preserve">
+    <value>AñoDías fiscal</value>
+    <comment>table [Date] column [Fiscal YearDays]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.357d7b8d-6e6f-44f0-9881-8358402ed47b.caption" xml:space="preserve">
+    <value>NúmeroDeDíaDeMes fiscal</value>
+    <comment>table [Date] column [Fiscal DayOfMonthNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.8ae5df78-974a-4915-b741-524b9449fde0.caption" xml:space="preserve">
+    <value>NúmeroDeDíaDeTrimestre fiscal</value>
+    <comment>table [Date] column [Fiscal DayOfQuarterNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.a553f3fc-9f9b-4661-8c89-910b7afea9f1.caption" xml:space="preserve">
+    <value>NúmeroDíaAño fiscal</value>
+    <comment>table [Date] column [Fiscal DayOfYearNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.6ef2fa63-f2a7-47cb-abaf-b36ad1b8ab8a.caption" xml:space="preserve">
+    <value>FechaSemanaAnterior fiscal</value>
+    <comment>table [Date] column [Fiscal DatePreviousWeek]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.26af196c-ef0f-4a10-9c2f-1a248e968cc0.caption" xml:space="preserve">
+    <value>FechaMesAnterior fiscal</value>
+    <comment>table [Date] column [Fiscal DatePreviousMonth]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.17a4269c-ff15-48f0-bfc2-5fbc429e8043.caption" xml:space="preserve">
+    <value>FechaTrimestreAnterior fiscal</value>
+    <comment>table [Date] column [Fiscal DatePreviousQuarter]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.745e6883-c060-4a0a-89b3-266b0f435b64.caption" xml:space="preserve">
+    <value>FechaAñoAnterior fiscal</value>
+    <comment>table [Date] column [Fiscal DatePreviousYear]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.022d075e-95f7-465f-ae59-ac576caac4ab.caption" xml:space="preserve">
+    <value>NúmeroAño SF</value>
+    <comment>table [Date] column [FW YearNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.7807ee5b-f310-4605-9157-1c3177a6e3a7.caption" xml:space="preserve">
+    <value>Año SF</value>
+    <comment>table [Date] column [FW Year]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.591e6d4b-da6a-4a42-a01d-1b5aa560dbd8.caption" xml:space="preserve">
+    <value>NúmeroTrimestre SF</value>
+    <comment>table [Date] column [FW QuarterNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.1f22761a-9da6-4aa7-a53f-7da1bf0b4e38.caption" xml:space="preserve">
+    <value>Trimestre SF</value>
+    <comment>table [Date] column [FW Quarter]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.fc90b883-40c4-4f78-87b4-b6c2b9fb96d9.caption" xml:space="preserve">
+    <value>NúmeroTrimestreAño SF</value>
+    <comment>table [Date] column [FW YearQuarterNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.4da6ccb4-e2f4-4f78-9f96-67c16cf3141f.caption" xml:space="preserve">
+    <value>Trimestre Año SF</value>
+    <comment>table [Date] column [FW Quarter Year]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.10bbd758-f02e-4ce0-90c4-680310cfbc51.caption" xml:space="preserve">
+    <value>NúmeroMes SF</value>
+    <comment>table [Date] column [FW MonthNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.21e0d24e-3c20-4a9b-9c76-7aaae5afbf7b.caption" xml:space="preserve">
+    <value>Mes SF</value>
+    <comment>table [Date] column [FW Month]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.f56759e8-99a5-4e85-b205-97c7a8bb313e.caption" xml:space="preserve">
+    <value>NúmeroMesAño SF</value>
+    <comment>table [Date] column [FW YearMonthNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.c5551523-32b9-4677-8696-4e9d6d73b66d.caption" xml:space="preserve">
+    <value>Mes año SF</value>
+    <comment>table [Date] column [FW Month Year]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.8843c89b-1373-4fb0-a377-8d50e97c1e3e.caption" xml:space="preserve">
+    <value>NúmeroSemana SF</value>
+    <comment>table [Date] column [FW WeekNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.fb215255-42a9-4684-9746-18ec384f0cfd.caption" xml:space="preserve">
+    <value>Semana SF</value>
+    <comment>table [Date] column [FW Week]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.250d7108-2d5a-43a0-a7e1-eafe2fca6b48.caption" xml:space="preserve">
+    <value>NúmeroPeriodo SF</value>
+    <comment>table [Date] column [FW PeriodNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.2fbb2adf-66d7-4915-ad42-81b074183910.caption" xml:space="preserve">
+    <value>Periodo SF</value>
+    <comment>table [Date] column [FW Period]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.e2e72175-a18e-443e-965c-5d97834d7db3.caption" xml:space="preserve">
+    <value>NúmeroSemanaAño SF</value>
+    <comment>table [Date] column [FW YearWeekNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.421a66cc-310c-48e9-b925-d571eb369a85.caption" xml:space="preserve">
+    <value>Semana año SF</value>
+    <comment>table [Date] column [FW Week Year]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.1aea98ba-67ac-453b-adda-e1cac369649a.caption" xml:space="preserve">
+    <value>InicioDeSemana SF</value>
+    <comment>table [Date] column [FW StartOfWeek]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.f686a713-ca3f-40a1-a4f4-08ef0013b55a.caption" xml:space="preserve">
+    <value>FinDeSemana SF</value>
+    <comment>table [Date] column [FW EndOfWeek]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.6c8fae8a-a908-4b72-9746-b50ec95dbe99.caption" xml:space="preserve">
+    <value>PosSemanaRelativa SF</value>
+    <comment>table [Date] column [FW RelativeWeekPos]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.7b1f6185-f008-417f-a300-8a68f2d941a4.caption" xml:space="preserve">
+    <value>PosMesRelativa SF</value>
+    <comment>table [Date] column [FW RelativeMonthPos]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.a13c41b5-78f6-40ae-b998-a5884db4a0eb.caption" xml:space="preserve">
+    <value>PosTrimestreRelativa SF</value>
+    <comment>table [Date] column [FW RelativeQuarterPos]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.c342c0ce-d767-47df-99e0-000ae05cb4e1.caption" xml:space="preserve">
+    <value>PosAñoRelativa SF</value>
+    <comment>table [Date] column [FW RelativeYearPos]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.81456657-4f1b-4850-8aee-f59a538287bc.caption" xml:space="preserve">
+    <value>InicioDeMes SF</value>
+    <comment>table [Date] column [FW StartOfMonth]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.1c4aaf54-0391-4757-803f-fabd50ac68bd.caption" xml:space="preserve">
+    <value>FinDeMes SF</value>
+    <comment>table [Date] column [FW EndOfMonth]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.7e332cde-d823-462e-8037-ec1042872648.caption" xml:space="preserve">
+    <value>InicioDeTrimestre SF</value>
+    <comment>table [Date] column [FW StartOfQuarter]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.13f27e38-1a43-4bdd-a8e1-827611e6fcba.caption" xml:space="preserve">
+    <value>FinDeTrimestre SF</value>
+    <comment>table [Date] column [FW EndOfQuarter]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.84be53f2-b804-4095-b63b-7073238c2e2b.caption" xml:space="preserve">
+    <value>InicioDeAño SF</value>
+    <comment>table [Date] column [FW StartOfYear]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.d610a595-c9c9-4dc2-872c-5a3ec7349c3f.caption" xml:space="preserve">
+    <value>FinDeAño SF</value>
+    <comment>table [Date] column [FW EndOfYear]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.cfd6a524-c580-42a3-bda0-827e1e80d94c.caption" xml:space="preserve">
+    <value>MesDías FS</value>
+    <comment>table [Date] column [FW MonthDays]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.780a98bf-6484-4dc0-b39b-773cf7f8d3df.caption" xml:space="preserve">
+    <value>DíasTrimestre SF</value>
+    <comment>table [Date] column [FW QuarterDays]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.3a966c41-3efd-4a40-a146-5dcb4ccd410d.caption" xml:space="preserve">
+    <value>DíasAño SF</value>
+    <comment>table [Date] column [FW YearDays]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.043a636d-3b5d-4cb2-9258-9e565b811378.caption" xml:space="preserve">
+    <value>NúmeroDeDíaDeMes SF</value>
+    <comment>table [Date] column [FW DayOfMonthNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.51055f94-b2f0-4a7b-8fc7-8dd7f58a6804.caption" xml:space="preserve">
+    <value>NúmeroDeDíaDeTrimestre SF</value>
+    <comment>table [Date] column [FW DayOfQuarterNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.9c447b2a-8c18-4f61-9a98-6e790167f05f.caption" xml:space="preserve">
+    <value>NúmerDeDíaDeAño SF</value>
+    <comment>table [Date] column [FW DayOfYearNumber]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.2cb0429a-1aa2-467b-ae98-a57fb412155b.caption" xml:space="preserve">
+    <value>FechaSemanaAnterior SF</value>
+    <comment>table [Date] column [FW DatePreviousWeek]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.01dd20d1-3588-45b4-918b-26d708fdd713.caption" xml:space="preserve">
+    <value>FechaMesAnterior SF</value>
+    <comment>table [Date] column [FW DatePreviousMonth]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.fe02a52a-8a13-4ab8-8e43-bee35dce2652.caption" xml:space="preserve">
+    <value>FechaTrimestreAnterior SF</value>
+    <comment>table [Date] column [FW DatePreviousQuarter]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.3d0f2e10-a9ee-4731-a819-04876d7324ef.caption" xml:space="preserve">
+    <value>Fecha AñoAnterior SF</value>
+    <comment>table [Date] column [FW DatePreviousYear]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.5b028939-b841-4684-bc9c-9ad37544b3fa.caption" xml:space="preserve">
+    <value>Es día laboral</value>
+    <comment>table [Date] column [Is Working Day]</comment>
+  </data>
+  <data name="3f87aa8d-3a0c-4e4f-b28d-af733a87629b.column.d119ad30-f43b-4842-b16a-c7b3a86fd2a2.caption" xml:space="preserve">
+    <value>Tipo de pago</value>
+    <comment>table [Date] column [Day Type]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.caption" xml:space="preserve">
+    <value>Compras</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.column.3d58c12c-fb9a-4007-a6ad-f5bfa7681107.caption" xml:space="preserve">
+    <value>Tipo procedencia mov.</value>
+    <comment>table [Purchases] column [Source Type]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.column.1b1f16ef-4b4a-417c-b75e-5057a623b8f2.caption" xml:space="preserve">
+    <value>Tipo de documento</value>
+    <comment>table [Purchases] column [Document Type]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.column.0070f6f5-74c5-4d6f-b83a-81a786463b59.caption" xml:space="preserve">
+    <value>N.º de línea</value>
+    <comment>table [Purchases] column [Line No.]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.column.8a38a873-afd8-4991-ab48-21cc36c3fe75.caption" xml:space="preserve">
+    <value>N.º de documento</value>
+    <comment>table [Purchases] column [Document No.]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.column.2508cc3c-2686-4501-9fe7-20b9729462bc.caption" xml:space="preserve">
+    <value>N.º</value>
+    <comment>table [Purchases] column [No.]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.column.fa81b955-dd96-4193-b45f-a17e3217f216.caption" xml:space="preserve">
+    <value>Tipo</value>
+    <comment>table [Purchases] column [Type]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.column.1b9d7d6f-5526-4a0a-a301-f1c857513a97.caption" xml:space="preserve">
+    <value>Descripción</value>
+    <comment>table [Purchases] column [Description]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.column.c1609cef-a682-469c-bdcf-086ef0273847.caption" xml:space="preserve">
+    <value>N.º proyecto</value>
+    <comment>table [Purchases] column [Project No]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.column.7a414e44-2f79-42db-8051-45c5ca9f8d26.caption" xml:space="preserve">
+    <value>N.º tarea</value>
+    <comment>table [Purchases] column [Task No]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.column.aaca3fcc-f0b4-4117-a31d-171e180bb726.caption" xml:space="preserve">
+    <value>N.º tarea n.º proyecto</value>
+    <comment>table [Purchases] column [Project No Task No]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.measure.2e71020d-559b-4b71-ad80-a3ad8fd2717e.caption" xml:space="preserve">
+    <value>Cantidad en PC</value>
+    <comment>table [Purchases] measure [Quantity on PO]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.measure.a89a35c0-3267-40fc-844e-17cd3a0d1851.caption" xml:space="preserve">
+    <value>Importe en PC</value>
+    <comment>table [Purchases] measure [Amount on PO]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.measure.524bc0fe-7717-42da-b682-24c924188010.caption" xml:space="preserve">
+    <value>Importe recibido no facturado</value>
+    <comment>table [Purchases] measure [Amount Rcvd. Not Invoiced]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.measure.e551bac2-d918-466e-94e5-38cd24306ac1.caption" xml:space="preserve">
+    <value>Importe pendiente en PC</value>
+    <comment>table [Purchases] measure [Outstanding Amt. on PO]</comment>
+  </data>
+  <data name="0bf8bd97-3b45-4a32-84f6-0c174e5e0654.measure.d2c99b59-5d77-4d48-a976-6ecaa1096637.caption" xml:space="preserve">
+    <value>Recuento de pedidos de compra</value>
+    <comment>table [Purchases] measure [Purchase Order Count]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.24177705-cdf5-4a68-afb1-4537dc7e8cd5.caption" xml:space="preserve">
+    <value>Título del informe</value>
+    <comment>table [Localized Labels] measure [My Report Title]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.28ebdd57-9ea3-494d-bfb4-f90796aa6400.caption" xml:space="preserve">
+    <value>Título de botón</value>
+    <comment>table [Localized Labels] measure [My Button Caption]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.904b53bd-3b19-4bc1-8c43-52a21b894d6e.caption" xml:space="preserve">
+    <value>Título visual</value>
+    <comment>table [Localized Labels] measure [My Visual Title]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.f3a2057e-7f96-4721-a0cb-ab10de71a523.caption" xml:space="preserve">
+    <value>Resumen de proyectos</value>
+    <comment>table [Localized Labels] measure [Projects Overview]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.358262bc-f032-4150-ae14-ee2da428fe53.caption" xml:space="preserve">
+    <value>Tareas de proyecto</value>
+    <comment>table [Localized Labels] measure [Project Tasks]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.1fe6251b-b535-4b02-a03d-27308765057b.caption" xml:space="preserve">
+    <value>Rentabilidad del proyecto</value>
+    <comment>table [Localized Labels] measure [Project Profitability]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.eef80772-4dab-4dde-9cc7-09d0c027c38c.caption" xml:space="preserve">
+    <value>Realización de proyectos</value>
+    <comment>table [Localized Labels] measure [Project Realization]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.aae9de8d-3892-4d6d-a166-c5879c300bb6.caption" xml:space="preserve">
+    <value>Rendimiento del proyecto frente a presupuesto</value>
+    <comment>table [Localized Labels] measure [Project Performance to Budget]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.01da1cd6-c886-4a92-a2f8-1339cdb043e0.caption" xml:space="preserve">
+    <value>Ventas facturadas proyecto por tipo</value>
+    <comment>table [Localized Labels] measure [Project Invoiced Sales by Type]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.124e8971-6e59-4134-810a-db0923d07e33.caption" xml:space="preserve">
+    <value>Ventas facturadas proyecto por cliente</value>
+    <comment>table [Localized Labels] measure [Project Invoiced Sales by Customer]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.1f740acb-61cb-4e3d-b16a-bd5191baaf8a.caption" xml:space="preserve">
+    <value>Análisis detallado de los movimientos de proyecto</value>
+    <comment>table [Localized Labels] measure [Project Ledger Entry Drill Through]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.06ac96f5-b7b3-4d07-a525-dde839993ec2.caption" xml:space="preserve">
+    <value>Análisis detallado de pedidos de compra</value>
+    <comment>table [Localized Labels] measure [Purchase Order Drill Through]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.af86cf04-9307-46f4-b3a3-cb3a3046f3eb.caption" xml:space="preserve">
+    <value>Análisis detallado de la línea de planificación de proyecto</value>
+    <comment>table [Localized Labels] measure [Project Planning Line Drill Through]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.e434318a-3ee4-4f51-9fc5-89d665d2e440.caption" xml:space="preserve">
+    <value>KPI de proyecto</value>
+    <comment>table [Localized Labels] measure [Project KPIs]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.36297923-7d17-488b-883b-97bb87140019.caption" xml:space="preserve">
+    <value>Costes reales (coste total) frente a presupuesto (coste total)</value>
+    <comment>table [Localized Labels] measure [Actual Costs (Total Cost) vs. Budget (Total Cost)]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.b4bf9db7-7960-4c43-ae68-cc03ef733f51.caption" xml:space="preserve">
+    <value>Ganancias reales por proyecto</value>
+    <comment>table [Localized Labels] measure [Actual Profit by Project]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.55fca865-f0e0-42ee-9a80-84691b77211b.caption" xml:space="preserve">
+    <value>Proyectos por jefe de proyecto</value>
+    <comment>table [Localized Labels] measure [Projects by Project Manager]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.48a180fc-39d0-4b1e-b28a-a43209732671.caption" xml:space="preserve">
+    <value>Realización por proyectos</value>
+    <comment>table [Localized Labels] measure [Realization by Projects]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.7c4e7be8-1ffa-47fe-81f2-15641bed7f02.caption" xml:space="preserve">
+    <value>Ganancias reales frente a ganancias iniciales</value>
+    <comment>table [Localized Labels] measure [Actual Profit vs. Initial Profit]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.1a2dcbd5-a84e-4cfb-91cf-e211bc463a4e.caption" xml:space="preserve">
+    <value>Datos reales</value>
+    <comment>table [Localized Labels] measure [Actuals]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.189d4d74-7013-4482-bba7-3aedb3e233f9.caption" xml:space="preserve">
+    <value>Presupuestado</value>
+    <comment>table [Localized Labels] measure [Budgeted]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.6999b0bb-d216-40f7-89c9-3b129ce16d8e.caption" xml:space="preserve">
+    <value>KPI de realización</value>
+    <comment>table [Localized Labels] measure [Realization KPIs]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.ea109694-c2d3-4458-b1af-b5da054fa459.caption" xml:space="preserve">
+    <value>Realización por jefe de proyecto</value>
+    <comment>table [Localized Labels] measure [Realization by Project Manager]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.66de4d4c-676a-4bd5-a67f-01040f2aaec1.caption" xml:space="preserve">
+    <value>Coste total real frente a presupuesto</value>
+    <comment>table [Localized Labels] measure [Actual Total Cost to Budget]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.8d103f56-c086-4132-a05a-14e5052ac041.caption" xml:space="preserve">
+    <value>KPI de rendimiento</value>
+    <comment>table [Localized Labels] measure [Performance KPIs]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.230421fc-c153-4933-bae2-06cc1b2712c1.caption" xml:space="preserve">
+    <value>KPI de ventas facturadas</value>
+    <comment>table [Localized Labels] measure [Invoiced Sales KPIs]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.81cfd30a-a6c7-46a0-910d-a263b8665865.caption" xml:space="preserve">
+    <value>Proyectos</value>
+    <comment>table [Localized Labels] measure [Projects]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.8c3e5843-4a44-49d1-b538-28fec4d26175.caption" xml:space="preserve">
+    <value>para Business Central</value>
+    <comment>table [Localized Labels] measure [for Business Central]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.2b503918-a28a-42d1-b8d5-9cb9875e9d59.caption" xml:space="preserve">
+    <value>CONECTAR LOS DATOS</value>
+    <comment>table [Localized Labels] measure [CONNECT YOUR DATA]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.f7bb92e9-9245-40f5-9741-9aecbf66a229.caption" xml:space="preserve">
+    <value>1. Descargar Projects Connector for Power BI</value>
+    <comment>table [Localized Labels] measure [1. Download the Projects Connector for Power BI]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.207ca512-a404-44dd-bd8e-1fdae2c99356.caption" xml:space="preserve">
+    <value>2. Configurar Dynamics 365 Business Central</value>
+    <comment>table [Localized Labels] measure [2. Configure Dynamics 365 Business Central]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.5b47d3e4-8ddd-4848-8a93-4ced68e714e5.caption" xml:space="preserve">
+    <value>USAR, EDITAR Y CREAR SUS PROPIOS INFORMES</value>
+    <comment>table [Localized Labels] measure [USE, EDIT AND BUILD YOUR OWN REPORTS]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.aa839c9b-90b3-47ef-ba96-a6e373f4a730.caption" xml:space="preserve">
+    <value>Los proyectos incluyen una variedad de informes prediseñados para ayudarle a ver sus datos de inmediato.</value>
+    <comment>table [Localized Labels] measure [Projects includes a variety of pre-built reports to help you see your data immediately.]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.b75b98ee-a713-46cc-a5bb-782e7fb7ba66.caption" xml:space="preserve">
+    <value>Puede editar estos informes o crear el suyo propio desde cero</value>
+    <comment>table [Localized Labels] measure [You are able to edit these reports or build your own report from scratch]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.1bd9121c-0f52-4da8-b3cc-103b668252ab.caption" xml:space="preserve">
+    <value>AYUDA Y SOPORTE</value>
+    <comment>table [Localized Labels] measure [HELP AND SUPPORT]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.e9c0902a-6c8f-4554-b388-edeaef95f8b0.caption" xml:space="preserve">
+    <value>Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.</value>
+    <comment>table [Localized Labels] measure [For help and support with your new report please visit the Analytics overview documentation.]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.b68d75ae-655b-4d10-a6a1-cf2952e93324.caption" xml:space="preserve">
+    <value>OTROS INFORMES DE POWER BI</value>
+    <comment>table [Localized Labels] measure [OTHER POWER BI REPORTS]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.ff5fb1bf-292e-497c-9082-fe43c6430831.caption" xml:space="preserve">
+    <value>COMPRA</value>
+    <comment>table [Localized Labels] measure [PURCHASE]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.f3eab0f3-ec57-441c-a9e7-70598d08f3e5.caption" xml:space="preserve">
+    <value>FINANZAS</value>
+    <comment>table [Localized Labels] measure [FINANCE]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.2119c22e-1d03-417f-806c-3b00dfc83ac0.caption" xml:space="preserve">
+    <value>INVENTARIO</value>
+    <comment>table [Localized Labels] measure [INVENTORY]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.f0d235d2-6657-4741-bd16-b3d2474084bb.caption" xml:space="preserve">
+    <value>VENTAS</value>
+    <comment>table [Localized Labels] measure [SALES]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.a39fd7eb-6b3c-4db2-b388-6191fd244467.caption" xml:space="preserve">
+    <value>FABRICACIÓN</value>
+    <comment>table [Localized Labels] measure [MANUFACTURING]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.7d0594fa-6f90-4e7a-9299-fc21f43ac68d.caption" xml:space="preserve">
+    <value>Las tareas del proyecto muestran el número y la descripción del proyecto, el presupuesto (coste total), el coste real (coste total), el facturable (precio total), el facturable (precio facturado), el real (precio total), el porcentaje de realización, el beneficio real y el porcentaje de margen de beneficio real.</value>
+    <comment>table [Localized Labels] measure [The project tasks shows project number and description, budget (total cost), actual cost (total cost), billable (total price), billable (invoiced price), actual (total price), realization percentage, actual profit, and actual profit margin percentage.]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.166f9358-5462-4b0f-9cfc-85364b7f450d.caption" xml:space="preserve">
+    <value>La rentabilidad del proyecto muestra el número, el tipo, el número y la descripción del proyecto, el real (coste total), el facturable (precio facturado), el porcentaje de margen de beneficio real y el beneficio real.</value>
+    <comment>table [Localized Labels] measure [The project profitability shows project number, type, number and description, actual (total cost), billable (invoiced price), actual profit margin percentage, and actual profit.]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.9a741c46-9e18-4eb5-9c72-2ef55971032e.caption" xml:space="preserve">
+    <value>La realización del proyecto muestra el número, el tipo, el número y la descripción del proyecto, el facturable (precio facturado), el precio real (precio total) y el porcentaje de realización.</value>
+    <comment>table [Localized Labels] measure [The project realization shows project number, type, number and description, billable (invoiced price), actual (total price), and realization percentage.]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.449f02f2-edb7-42ab-90c5-9d4fba7cb48b.caption" xml:space="preserve">
+    <value>El rendimiento del proyecto con respecto al presupuesto muestra el número y la descripción del proyecto, el estado, el presupuesto (coste total), el real (coste total), la desviación total del coste con respecto al presupuesto y la desviación total del coste con respecto al porcentaje de presupuesto.</value>
+    <comment>table [Localized Labels] measure [The project performance to budget shows project number and description, status, budget (total cost), actual (total cost), total cost variance to budget, and total cost variance to budget percentage.]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.d53d8ba1-ed4d-4254-9fa4-8a3d9e06738f.caption" xml:space="preserve">
+    <value>Las ventas facturadas del proyecto por tipo muestran el tipo, el número y la descripción, el número de proyecto, la unidad de medida, la cantidad, el precio unitario (divisa local) y el precio facturable (precio facturado).</value>
+    <comment>table [Localized Labels] measure [The project invoiced sales by type shows type, number and description, project number, unit of measure, quantity, unit price (local currency), and billable (invoiced price).]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.0b7b1806-d908-4e11-b8e3-8e443e494bf5.caption" xml:space="preserve">
+    <value>Las ventas facturadas del proyecto por cliente muestran el número y el nombre del cliente, el número de proyecto, el tipo, el número y la descripción, la cantidad, el precio unitario (divisa local) y el precio facturable (precio facturado).</value>
+    <comment>table [Localized Labels] measure [The project invoiced sales by customer shows customer number and name, project number, type, number and description, quantity, unit price (local currency), and billable (invoiced price).]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.22014cc8-8213-450a-8a9a-104b234cd250.caption" xml:space="preserve">
+    <value>El análisis detallado del movimiento del proyecto muestra la fecha de registro, el número de proyecto, el número de tarea, el tipo de movimiento de tarea, el tipo, el número, la descripción, la unidad de medida, la cantidad, el coste unitario, el precio unitario, el coste total y el precio total.</value>
+    <comment>table [Localized Labels] measure [The project ledger entry drill through shows posting date, project number, task number, task entry type, type, number, description, unit of measure, quantity, unit cost, unit price, total cost, and total price.]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.1d00b679-d9b9-48c9-b7b5-1dbf8ca589a6.caption" xml:space="preserve">
+    <value>El análisis detallado del pedido de proyecto muestra el número de proyecto, el número de tarea, el tipo de procedencia, el tipo de movimiento, el tipo, el número, la descripción, el número de documento, la cantidad (base), el importe (divisa local), la fecha de recepción esperada, el importe pendiente en el pedido de compra, el importe recibido no facturado y el tipo de documento.</value>
+    <comment>table [Localized Labels] measure [The project order drill through shows project number, task number, source type,entry type, type, number, description, document number, quantity (base), amount (local currency), expected receipt date, outstanding amount on purchase order, amount received not invoiced, and document type.]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.c82443c3-8bc0-4209-8b12-2c0296ba06a9.caption" xml:space="preserve">
+    <value>El análisis detallado de la planificación del proyecto muestra el número de proyecto, el número de tarea, el número de línea, el tipo, el número, la descripción, el tipo de línea, la cantidad de líneas de planificación, el coste unitario, el precio unitario, el coste total de línea de planificación y el precio total de línea de planificación.</value>
+    <comment>table [Localized Labels] measure [The project planning drill through shows project number, task number, line number, type, number, description, line type, planning line quantity, unit cost, unit price, planning line total cost, and planning line total price.]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.c3fc9aef-f9bb-4072-9d40-6b5a0bf0f050.caption" xml:space="preserve">
+    <value>Nombre empresa</value>
+    <comment>table [Localized Labels] measure [Company Name]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.99a86e1b-d71c-4b7b-b208-abcce1db3451.caption" xml:space="preserve">
+    <value>Última actualización</value>
+    <comment>table [Localized Labels] measure [Last Refreshed]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.fdf5dec6-d2f3-4e7d-bedb-cab2ac6d7147.caption" xml:space="preserve">
+    <value>Porcentaje de margen de beneficio real frente a Porcentaje de margen de beneficio presupuestado</value>
+    <comment>table [Localized Labels] measure [Actual Profit Margin % vs Budget Profit Margin %]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.fb897b74-8d18-4d11-83d6-82df41d3705e.caption" xml:space="preserve">
+    <value>Facturable (precio facturado) y real (precio total) por N.º proyecto y Descripción</value>
+    <comment>table [Localized Labels] measure [Billable (Invoiced Price) and Actual (Total Price) by Project No. &amp; Description]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.55d5f225-d2f5-40b5-819f-419f12243e65.caption" xml:space="preserve">
+    <value>Facturable (precio facturado) por tipo</value>
+    <comment>table [Localized Labels] measure [Billable (Invoiced Price) by Type]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.5dc335e3-f902-41e3-ac78-bd10d4beec26.caption" xml:space="preserve">
+    <value>Margen de beneficio frente a margen de beneficio presupuestado</value>
+    <comment>table [Localized Labels] measure [Profit Margin vs Budget Profit Margin]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.85c6562f-9b12-414b-b171-c40b5fdae6e0.caption" xml:space="preserve">
+    <value>Tareas de proyecto por proyecto</value>
+    <comment>table [Localized Labels] measure [Project Tasks by Project]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.37fd79f3-aa7c-4235-aec1-3685be67032d.caption" xml:space="preserve">
+    <value>Escala de tiempo del proyecto</value>
+    <comment>table [Localized Labels] measure [Project Timeline]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.d3907e82-cfbe-4d29-a7e7-3eb1a8b82912.caption" xml:space="preserve">
+    <value>Duración de tareas de proyecto</value>
+    <comment>table [Localized Labels] measure [Project Tasks Duration]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.b56f19f5-9686-45df-8615-3469bb30fffd.caption" xml:space="preserve">
+    <value>Detalles de tarea de proyecto</value>
+    <comment>table [Localized Labels] measure [Project Task Details]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.7a33e673-fa01-4510-8dd8-9b34338e4fd6.caption" xml:space="preserve">
+    <value>Coste de uso total frente a coste de presupuesto total</value>
+    <comment>table [Localized Labels] measure [Total Usage Cost to Total Budget Cost]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.712eff8a-62bf-4c8d-9779-a3b68fb791b7.caption" xml:space="preserve">
+    <value>Precio de uso total por tipo</value>
+    <comment>table [Localized Labels] measure [Total Usage Price by Type]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.b9133587-c678-46b8-93b8-df1440bdf452.caption" xml:space="preserve">
+    <value>Coste total de uso frente a presupuesto</value>
+    <comment>table [Localized Labels] measure [Total Usage Cost to Budget]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.de2f9e46-3c57-47d2-9a55-67bcfd2cf0cb.caption" xml:space="preserve">
+    <value>Coste de presupuesto total y coste de uso total por tipo</value>
+    <comment>table [Localized Labels] measure [Total Budget Cost and Total Usage Cost by Type]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.e1259c1d-5d01-40e4-ac62-76b4ff334fee.caption" xml:space="preserve">
+    <value>Precio facturado total por tipo</value>
+    <comment>table [Localized Labels] measure [Total Invoiced Price by Type]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.ab9259a0-4a74-4b27-a2c7-f963a7bc42c1.caption" xml:space="preserve">
+    <value>% facturable a facturado</value>
+    <comment>table [Localized Labels] measure [Billable to Invoiced %]</comment>
+  </data>
+  <data name="495aebb8-7fbf-4e34-a928-49dcb48e3f12.measure.7116304e-eb44-4334-8ed8-078cf41b16a5.caption" xml:space="preserve">
+    <value>Precio total facturado por cliente</value>
+    <comment>table [Localized Labels] measure [Total Invoiced Price by Customer]</comment>
+  </data>
+  <data name="cf3c7b76-12cc-42e5-95b9-91b471b42ef1.caption" xml:space="preserve">
+    <value>Artículos</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="cf3c7b76-12cc-42e5-95b9-91b471b42ef1.column.5923f93a-32dd-412d-9c20-f905e1b654ff.caption" xml:space="preserve">
+    <value>N.º producto</value>
+    <comment>table [Items] column [Item No.]</comment>
+  </data>
+  <data name="cf3c7b76-12cc-42e5-95b9-91b471b42ef1.column.ef6ff404-792b-4346-aba5-e61ad681336e.caption" xml:space="preserve">
+    <value>Descripción del producto</value>
+    <comment>table [Items] column [Item Description]</comment>
+  </data>
+  <data name="cf3c7b76-12cc-42e5-95b9-91b471b42ef1.column.f218117c-ec1b-414f-b883-e7ddf7929661.caption" xml:space="preserve">
+    <value>Unidad medida base producto</value>
+    <comment>table [Items] column [Item Base Unit of Measure]</comment>
+  </data>
+  <data name="cf3c7b76-12cc-42e5-95b9-91b471b42ef1.column.b0fefbe3-c1db-4b6b-a0ea-95eeec492032.caption" xml:space="preserve">
+    <value>Coste unitario producto (DL)</value>
+    <comment>table [Items] column [Item Unit Cost (LCY)]</comment>
+  </data>
+  <data name="cf3c7b76-12cc-42e5-95b9-91b471b42ef1.column.a41be338-13df-4168-b859-4d3a12681519.caption" xml:space="preserve">
+    <value>Grupo contable inventario de producto</value>
+    <comment>table [Items] column [Item Inventory Posting Group]</comment>
+  </data>
+  <data name="cf3c7b76-12cc-42e5-95b9-91b471b42ef1.column.22ebda4e-b3a3-4fd6-a6aa-cc56cb470d41.caption" xml:space="preserve">
+    <value>Código de categoría de producto</value>
+    <comment>table [Items] column [Item Category Code]</comment>
+  </data>
+  <data name="cf3c7b76-12cc-42e5-95b9-91b471b42ef1.column.16a0b937-74ae-4d39-b244-a3c022a36fa9.caption" xml:space="preserve">
+    <value>Descripción de la categoría de producto</value>
+    <comment>table [Items] column [Item Category Description]</comment>
+  </data>
+  <data name="cf3c7b76-12cc-42e5-95b9-91b471b42ef1.column.582f9e71-4550-4788-844f-1032004ac612.caption" xml:space="preserve">
+    <value>N.º y descripción del artículo</value>
+    <comment>table [Items] column [Item No. &amp; Description]</comment>
+  </data>
+  <data name="a24cab94-511c-465d-9331-9f3244319ec9.caption" xml:space="preserve">
+    <value>Cuentas</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="a24cab94-511c-465d-9331-9f3244319ec9.column.3b0a2da9-92da-4c16-bb33-1a3faf2fefc1.caption" xml:space="preserve">
+    <value>N.º cuenta C/G</value>
+    <comment>table [G/L Accounts] column [G/L Account No.]</comment>
+  </data>
+  <data name="a24cab94-511c-465d-9331-9f3244319ec9.column.21b685b2-3509-45d3-be2f-93676b45d8cf.caption" xml:space="preserve">
+    <value>Nombre cuenta C/G</value>
+    <comment>table [G/L Accounts] column [G/L Account Name]</comment>
+  </data>
+  <data name="a24cab94-511c-465d-9331-9f3244319ec9.column.a5611ad9-8002-401d-8152-9ee167982aeb.caption" xml:space="preserve">
+    <value>Tipo cuenta C/G</value>
+    <comment>table [G/L Accounts] column [G/L Account Type]</comment>
+  </data>
+  <data name="a24cab94-511c-465d-9331-9f3244319ec9.column.b4085001-9a17-4d49-8cd1-f0c733e1d29d.caption" xml:space="preserve">
+    <value>Balance de ingresos/Balance de situación cuenta contable</value>
+    <comment>table [G/L Accounts] column [G/L Account Income/Balance]</comment>
+  </data>
+  <data name="a24cab94-511c-465d-9331-9f3244319ec9.column.2dddae8c-7722-4dc7-b89f-5aed31d720f6.caption" xml:space="preserve">
+    <value>Nombre y n.º cuenta C/G</value>
+    <comment>table [G/L Accounts] column [G/L Account No. and Name]</comment>
+  </data>
+  <data name="1f9fda4d-3b1e-4bf6-a30a-c96fc3b40a2d.caption" xml:space="preserve">
+    <value>Recursos</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="1f9fda4d-3b1e-4bf6-a30a-c96fc3b40a2d.column.6558f9d5-cc35-4ec0-97e1-60b56fc7b4d4.caption" xml:space="preserve">
+    <value>N.º recurso</value>
+    <comment>table [Resources] column [Resource No.]</comment>
+  </data>
+  <data name="1f9fda4d-3b1e-4bf6-a30a-c96fc3b40a2d.column.a969f9e5-db0f-470f-afa5-28c91fed29db.caption" xml:space="preserve">
+    <value>Nombre de recurso</value>
+    <comment>table [Resources] column [Resource Name]</comment>
+  </data>
+  <data name="1f9fda4d-3b1e-4bf6-a30a-c96fc3b40a2d.column.c57b2c32-3bf0-4369-8b22-a07605ebec61.caption" xml:space="preserve">
+    <value>Unidad medida base de recurso</value>
+    <comment>table [Resources] column [Resource Base Unit of Measure]</comment>
+  </data>
+  <data name="1f9fda4d-3b1e-4bf6-a30a-c96fc3b40a2d.column.b6e795d9-8e6a-41b0-86a9-5cf50405e284.caption" xml:space="preserve">
+    <value>Coste unitario de recurso</value>
+    <comment>table [Resources] column [Resource Unit Cost]</comment>
+  </data>
+  <data name="1f9fda4d-3b1e-4bf6-a30a-c96fc3b40a2d.column.03002838-f223-42be-80b6-912d80d8539b.caption" xml:space="preserve">
+    <value>Precio unitario de recursos</value>
+    <comment>table [Resources] column [Resource Unit Price]</comment>
+  </data>
+  <data name="1f9fda4d-3b1e-4bf6-a30a-c96fc3b40a2d.column.389d964f-2674-476f-8f86-e663518db27e.caption" xml:space="preserve">
+    <value>N.º y nombre de recurso</value>
+    <comment>table [Resources] column [Resource No. and Name]</comment>
+  </data>
+  <data name="815e152d-5e55-4200-bdb7-c10e6a2b8da1.caption" xml:space="preserve">
+    <value>Tipo</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="815e152d-5e55-4200-bdb7-c10e6a2b8da1.column.5a889da2-77c4-494a-9b71-bcf2cf9c0d95.caption" xml:space="preserve">
+    <value>Clave de tipo</value>
+    <comment>table [Type] column [Type Key]</comment>
+  </data>
+  <data name="815e152d-5e55-4200-bdb7-c10e6a2b8da1.column.9d3735e7-35d6-41aa-829f-50b25414ada4.caption" xml:space="preserve">
+    <value>N.º</value>
+    <comment>table [Type] column [No.]</comment>
+  </data>
+</root>

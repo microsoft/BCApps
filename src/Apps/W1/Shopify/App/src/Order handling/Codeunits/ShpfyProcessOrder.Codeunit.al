@@ -5,10 +5,10 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Inventory.Item;
 using Microsoft.Finance.Currency;
-using Microsoft.Sales.Document;
 using Microsoft.Foundation.Address;
+using Microsoft.Inventory.Item;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 
@@ -75,7 +75,7 @@ codeunit 30166 "Shpfy Process Order"
             ShopifyOrderHeader.TestField("Sell-to Customer No.");
             SalesHeader.Init();
             SalesHeader.SetHideValidationDialog(true);
-            if ShopifyOrderHeader."Fulfillment Status" = ShopifyOrderHeader."Fulfillment Status"::Fulfilled then
+            if (ShopifyOrderHeader."Fulfillment Status" = ShopifyOrderHeader."Fulfillment Status"::Fulfilled) and ShopifyShop."Create Invoices From Orders" then
                 SalesHeader.Validate("Document Type", SalesHeader."Document Type"::Invoice)
             else
                 SalesHeader.Validate("Document Type", SalesHeader."Document Type"::Order);

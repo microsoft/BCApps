@@ -1,12 +1,12 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Inventory.Item;
 using Microsoft.Inventory.BOM;
-using Microsoft.Sales.Document;
-using Microsoft.Purchases.Document;
+using Microsoft.Inventory.Item;
+using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
-using Microsoft.Pricing.Asset;
+using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
 
 codeunit 139885 "Item Service Comm. Type Test"
 {

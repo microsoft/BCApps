@@ -1,10 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Purchases.Vendor;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
-using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Finance.Dimension;
+using Microsoft.Purchases.Vendor;
 using System.Security.User;
 
 table 8072 "Vend. Sub. Contract Deferral"

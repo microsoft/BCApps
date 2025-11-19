@@ -5,9 +5,9 @@
 
 namespace System.Agents;
 
-using System.Security.User;
 using System.Environment.Configuration;
 using System.Globalization;
+using System.Security.User;
 
 page 4315 "Agent Card"
 {
@@ -192,10 +192,9 @@ page 4315 "Agent Card"
 
     trigger OnOpenPage()
     var
-        AgentSessionImpl: Codeunit "Agent Session Impl.";
+        AgentUtilities: Codeunit "Agent Utilities";
     begin
-        AgentSessionImpl.BlockPageFromBeingOpenedByAgent();
-
+        AgentUtilities.BlockPageFromBeingOpenedByAgent();
         if not Rec.WritePermission() then
             Error(YouDoNotHavePermissionToModifyThisAgentErr);
     end;

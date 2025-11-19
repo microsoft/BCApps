@@ -1,0 +1,426 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "5f39bd163cf0bb18ae0e",
+  "position": {
+    "x": 26.830265848670756,
+    "y": 310.18404907975463,
+    "z": 0,
+    "height": 384.13087934560326,
+    "width": 1227.6482617586912,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project"
+                    }
+                  },
+                  "Property": "Project No. & Description"
+                }
+              },
+              "queryRef": "Project.Project No. & Description",
+              "nativeQueryRef": "Project No. & Description",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tasks"
+                    }
+                  },
+                  "Property": "Task Description"
+                }
+              },
+              "queryRef": "Tasks.Task Description",
+              "nativeQueryRef": "Task Description",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Type"
+                    }
+                  },
+                  "Property": "Type Key"
+                }
+              },
+              "queryRef": "Type.Type Key",
+              "nativeQueryRef": "Type Key",
+              "active": false
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Planning Line Quantity"
+                }
+              },
+              "queryRef": "Project Planning Line.Planning Line Quantity",
+              "nativeQueryRef": "Budget Qty.",
+              "displayName": "Budget Qty."
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Project Ledger Entry Quantity"
+                }
+              },
+              "queryRef": "Project Ledger Entry.Quantity",
+              "nativeQueryRef": "Usage Qty.",
+              "displayName": "Usage Qty."
+            },
+            {
+              "field": {
+                "NativeVisualCalculation": {
+                  "Language": "dax",
+                  "Expression": "[Budget Qty.] + [Usage Qty.]",
+                  "Name": "Difference"
+                }
+              },
+              "queryRef": "select",
+              "nativeQueryRef": "Difference"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Total Budget Cost"
+                }
+              },
+              "queryRef": "Project Planning Line.Total Budget Cost",
+              "nativeQueryRef": "Total Budget Cost",
+              "format": "#,0.00"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Total Usage Cost"
+                }
+              },
+              "queryRef": "Project Ledger Entry.Total Usage Cost",
+              "nativeQueryRef": "Total Usage Cost",
+              "format": "#,0.00"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Total Cost Variance to Budget"
+                }
+              },
+              "queryRef": "Project Planning Line.Total Cost Variance to Budget",
+              "nativeQueryRef": "Variance to Budget",
+              "displayName": "Variance to Budget",
+              "format": "#,0.00"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Total Cost Variance to Budget %"
+                }
+              },
+              "queryRef": "Project Planning Line.Total Cost Variance to Budget (%)",
+              "nativeQueryRef": "Variance to Budget (%)",
+              "displayName": "Variance to Budget (%)"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Project Planning Line"
+                  }
+                },
+                "Property": "Total Cost Variance to Budget"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "Rows"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "Project.Project No. & Description"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project"
+                    }
+                  },
+                  "Property": "Project No. & Description"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Tasks.Task Description"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tasks"
+                    }
+                  },
+                  "Property": "Task Description"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Type.Type Key"
+            ],
+            "isCollapsed": true,
+            "isPinned": true
+          }
+        ],
+        "root": {}
+      }
+    ],
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "113D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Month"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "95D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Day"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "103.49997643864512D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "scopeId": {
+                  "Comparison": {
+                    "ComparisonKind": 0,
+                    "Left": {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Entity": "Location"
+                          }
+                        },
+                        "Property": "Location Name"
+                      }
+                    },
+                    "Right": {
+                      "Literal": {
+                        "Value": "null"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Project.Project No. & Description"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Job.Status"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Project Planning Line.Total Cost Variance to Budget"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Project Planning Line.Total Cost Variance to Budget %"
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "autoSizeColumnWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project"
+                    }
+                  },
+                  "Property": "Project Planning Lines Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Project Planning Line.Total Budget Cost"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project"
+                    }
+                  },
+                  "Property": "Project Ledger Entries Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Project Ledger Entry.Total Usage Cost"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Project Performance to Budget Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

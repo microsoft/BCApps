@@ -6,9 +6,9 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
-using Microsoft.Sales.Document;
 using Microsoft.Inventory.Location;
+using Microsoft.Sales.Document;
+using System.TestLibraries.Utilities;
 
 codeunit 139611 "Shpfy Order Refund Test"
 {
@@ -145,6 +145,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         RefundId1: BigInteger;
         RefundId2: BigInteger;
         RefundId3: BigInteger;
+        RefundId4: BigInteger;
     begin
         // [SCENARIO] Can create credit memo check returns
         // Non-zero refund = true
@@ -158,14 +159,17 @@ codeunit 139611 "Shpfy Order Refund Test"
         RefundId2 := ShopifyIds.Get('Refund').Get(4);
         // [GIVEN] Zero and not linked refund
         RefundId3 := ShopifyIds.Get('Refund').Get(6);
+        // [GIVEN] Zero refund with restock type return
+        RefundId4 := ShopifyIds.Get('Refund').Get(7);
 
         // [WHEN] Execute VerifyRefundCanCreateCreditMemo
         RefundsAPI.VerifyRefundCanCreateCreditMemo(RefundId1);
         RefundsAPI.VerifyRefundCanCreateCreditMemo(RefundId2);
-        asserterror RefundsAPI.VerifyRefundCanCreateCreditMemo(RefundId3);
+        RefundsAPI.VerifyRefundCanCreateCreditMemo(RefundId3);
+        asserterror RefundsAPI.VerifyRefundCanCreateCreditMemo(RefundId4);
 
         // [THEN] Only RefundId3 throws an error
-        LibraryAssert.ExpectedError('The refund imported from Shopify can''t be used to create a credit memo. Only refunds for paid items can be used to create credit memos.');
+        LibraryAssert.ExpectedError('This refund cannot be used to create a credit memo because it has already been considered during order import and reduced the quantity and amounts of the order. Only refunds with a non-zero refunded amount and related to real item returns can be used to create credit memos.');
     end;
 
     [Test]
@@ -262,7 +266,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         // [GIVEN] Refund Header
         RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, 156.38, Shop.Code);
         // [GIVEN] Refund line without location
-        OrderRefundsHelper.CreateRefundLine(RefundId, OrderLineId, 0);
+        OrderRefundsHelper.CreateRefundLine(RefundId, OrderLineId, 0, "Shpfy Restock Type"::Return);
 
         // [WHEN] Execute create credit memo
         IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
@@ -308,7 +312,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         // [GIVEN] Refund Header
         RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, 156.38, Shop.Code);
         // [GIVEN] Refund line without location
-        OrderRefundsHelper.CreateRefundLine(RefundId, OrderLineId, LocationId);
+        OrderRefundsHelper.CreateRefundLine(RefundId, OrderLineId, LocationId, "Shpfy Restock Type"::Return);
 
         // [WHEN] Execute create credit memo
         IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
@@ -452,6 +456,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         OrderRefundsHelper.SetDefaultSeed();
         ReturnId := OrderRefundsHelper.CreateReturn(OrderId);
         OrderRefundsHelper.CreateReturnLine(ReturnId, OrderId, '');
+        OrderRefundsHelper.CreateUnverifiedReturnLine(ReturnId, '');
     end;
 
     local procedure CreateLocation(var Location: Record Location)

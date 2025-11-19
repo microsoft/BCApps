@@ -114,6 +114,12 @@ page 8074 "Billing Lines"
                     Style = StrongAccent;
                     StyleExpr = UpdateRequiredStyleExpr;
                 }
+                field("Billing Reference Date Changed"; Rec."Billing Reference Date Changed")
+                {
+                    Style = StrongAccent;
+                    StyleExpr = UpdateRequiredStyleExpr;
+                    Visible = false;
+                }
                 field("Service Object Quantity"; Rec."Service Object Quantity")
                 {
                     ToolTip = 'Specifies the quantity from the Subscription.';

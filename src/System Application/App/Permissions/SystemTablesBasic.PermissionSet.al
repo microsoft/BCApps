@@ -5,15 +5,17 @@
 
 namespace System.Security.AccessControl;
 
-using System.Feedback;
-using System.Security.User;
-using System.Reflection;
-using System.Tooling;
+using System.Environment;
 using System.Environment.Configuration;
+#if not CLEAN28
+using System.Feedback;
+#endif
 using System.Integration;
 using System.IO;
-using System.Environment;
+using System.Reflection;
 using System.Security.Authentication;
+using System.Security.User;
+using System.Tooling;
 
 permissionset 66 "System Tables - Basic"
 {
@@ -27,13 +29,16 @@ permissionset 66 "System Tables - Basic"
                              "Permissions & Licenses - Read",
                              "Power BI - Read",
                              "Reporting - Edit",
+#if not CLEAN28
                              "Satisfaction Survey - View",
+#endif
                              "Session - Read",
                              "System Execute - Basic",
                              "User Personalization - Edit",
                              "User Selection - Read",
                              "Webhook - Edit",
                              "Data Analysis - Exec",
+                             "Add Related Fields",
                              "Perf. Profiler Tables - Edit";
 
     Permissions = tabledata "Add-in" = R,

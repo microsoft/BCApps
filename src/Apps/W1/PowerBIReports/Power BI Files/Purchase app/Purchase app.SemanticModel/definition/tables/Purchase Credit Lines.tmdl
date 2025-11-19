@@ -1,0 +1,267 @@
+table 'Purchase Credit Lines'
+	lineageTag: b05ab150-3ef3-4c53-b559-c4d393f3dd6f
+
+	measure 'Purchase Credit Line Amount' = -SUM('Purchase Credit Lines'[amount])
+		formatString: #,0.00
+		displayFolder: _Purchase Credit Line Measures
+		lineageTag: d8c5acc3-c0a6-499e-9373-2c83f9f0912d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Purchase Credit Line Quantity Base' = SUM('Purchase Credit Lines'[quantityBase])
+		formatString: #,0.00
+		displayFolder: _Purchase Credit Line Measures
+		lineageTag: e1776157-f04d-4b2c-a443-c9dd3c176f38
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column postingDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 6cf36c1b-d933-45a3-9f75-6b7ad9ea334f
+		summarizeBy: none
+		sourceColumn: postingDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column type
+		dataType: string
+		isHidden
+		lineageTag: 62372276-5298-4cef-b628-c2b80ff44819
+		summarizeBy: none
+		sourceColumn: type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: fbbb2637-7166-4266-8140-7c70c805aa1f
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		isHidden
+		lineageTag: 6dc72eac-45ea-4e90-88eb-da40e21f4c0b
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Purchase Credit Line No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: a11e3e14-f84c-4e61-96a6-a97cd60c111c
+		summarizeBy: none
+		sourceColumn: Purchase Credit Line No.
+
+		annotation SummarizationSetBy = User
+
+	column no
+		dataType: string
+		isHidden
+		lineageTag: 7144d2d8-ab96-429a-9c33-eec49fc73675
+		summarizeBy: none
+		sourceColumn: no
+
+		annotation SummarizationSetBy = Automatic
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: 1f04b429-9199-435f-a75f-4d1771a3cb3f
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column quantityBase
+		dataType: double
+		isHidden
+		lineageTag: 9cc5f9fb-75eb-4630-9cfc-4b2fab3bba3d
+		summarizeBy: sum
+		sourceColumn: quantityBase
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column amount
+		dataType: double
+		isHidden
+		lineageTag: 53685eb1-a16c-4632-915d-b4d2f48438fc
+		summarizeBy: sum
+		sourceColumn: amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column unitCostLCY
+		dataType: double
+		isHidden
+		lineageTag: 375123e6-cff1-4ffe-8565-c403739a4eb8
+		summarizeBy: sum
+		sourceColumn: unitCostLCY
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column returnReasonCode
+		dataType: string
+		isHidden
+		lineageTag: ffcefa29-607a-4dc5-80ef-830fc44b3b6f
+		summarizeBy: none
+		sourceColumn: returnReasonCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Exprected Receipt Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 91143c92-9347-4a17-a5fc-456ae299ce8d
+		summarizeBy: none
+		sourceColumn: Exprected Receipt Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a29fd76d-fa29-464b-a337-daa4eeeac3ed
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		annotation SummarizationSetBy = Automatic
+
+	column projectNo
+		dataType: string
+		isHidden
+		lineageTag: f5003574-01cb-4337-b4db-81d0b32273f3
+		summarizeBy: none
+		sourceColumn: projectNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column payToVendorNo
+		dataType: string
+		isHidden
+		lineageTag: 8e994276-7e3e-4f43-8885-5684401a57a0
+		summarizeBy: none
+		sourceColumn: payToVendorNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column buyFromVendorNo
+		dataType: string
+		isHidden
+		lineageTag: 4194c066-d265-457b-8ba8-dd57665b39b3
+		summarizeBy: none
+		sourceColumn: buyFromVendorNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column purchaseCreditMemoDocumentNo
+		dataType: string
+		isHidden
+		lineageTag: f883f438-2f6e-4282-8e09-b16642db489e
+		summarizeBy: none
+		sourceColumn: purchaseCreditMemoDocumentNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column campaignNo
+		dataType: string
+		isHidden
+		lineageTag: de4eb89b-1c72-4875-97f0-595baa9a0782
+		summarizeBy: none
+		sourceColumn: campaignNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column purchaserCode
+		dataType: string
+		isHidden
+		lineageTag: 07194fc9-9154-4645-8677-af03492c2f35
+		summarizeBy: none
+		sourceColumn: purchaserCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column ETag
+		dataType: string
+		isHidden
+		lineageTag: 61c5c824-9d0d-495d-a164-d84dcfe47a15
+		summarizeBy: none
+		sourceColumn: ETag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source Table'
+		dataType: string
+		isHidden
+		lineageTag: a0f5a011-6997-4ab5-80c7-d741eacc8414
+		summarizeBy: none
+		sourceColumn: Source Table
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document Type'
+		dataType: string
+		isHidden
+		lineageTag: e31410a3-9ee0-465d-a8d5-ae178ece2dc9
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Purchase Key'
+		dataType: string
+		isHidden
+		lineageTag: a62b7594-df80-45a4-b9f9-a5069289eaea
+		summarizeBy: none
+		sourceColumn: Purchase Key
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Type Key'
+		dataType: string
+		isHidden
+		lineageTag: 08065067-6536-4ad6-b9d6-da28e7954447
+		summarizeBy: none
+		sourceColumn: Type Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Purchase Credit Lines' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    purchaseInvoiceLines_table = Source{[Name="purchaseCreditMemoLines",Signature="table"]}[Data],
+				    #"Added Custom" = Table.AddColumn(purchaseInvoiceLines_table, "Source Table", each "Purchase Credit Line", type text),
+				    #"Added Custom1" = Table.AddColumn(#"Added Custom", "Document Type", each "Posted Purchase CR/Adj Note", type text),
+				    #"Added Custom2" = Table.AddColumn(#"Added Custom1", "Purchase Key", each [Document Type] & " " & [documentNo] & " " & [#"Source Table"], type text),
+				    #"Renamed Columns" = Table.RenameColumns(#"Added Custom2",{{"documentNo", "Document No."}, {"description", "Description"}, {"lineNo", "Purchase Credit Line No."}, {"expectedReceiptDate", "Exprected Receipt Date"}}),
+				    #"Added Custom3" = Table.AddColumn(#"Renamed Columns", "Type Key", each [type]& " " & [no], type text)
+				in
+				    #"Added Custom3"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

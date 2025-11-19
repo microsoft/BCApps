@@ -1,0 +1,113 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "5bf083e1caae01482403",
+  "position": {
+    "x": 26.454150183952851,
+    "y": 463.89241929717321,
+    "z": 8000,
+    "height": 230.52902303158913,
+    "width": 604.6662899189223,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Salesperson"
+                    }
+                  },
+                  "Property": "Salesperson Name"
+                }
+              },
+              "queryRef": "Salesperson.Salesperson Name",
+              "nativeQueryRef": "Salesperson Name",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Opportunity Entries"
+                    }
+                  },
+                  "Property": "Estimated Value"
+                }
+              },
+              "queryRef": "Opportunity Entries.Estimated Value",
+              "nativeQueryRef": "Estimated Value"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Opportunity Entries"
+                  }
+                },
+                "Property": "Estimated Value"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Estimated Value by Salesperson Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

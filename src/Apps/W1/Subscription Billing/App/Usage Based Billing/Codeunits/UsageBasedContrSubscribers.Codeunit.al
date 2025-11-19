@@ -1,12 +1,12 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Sales.Document;
-using Microsoft.Sales.History;
-using Microsoft.Sales.Posting;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Posting;
 
 codeunit 8028 "Usage Based Contr. Subscribers"
 {
@@ -16,25 +16,25 @@ codeunit 8028 "Usage Based Contr. Subscribers"
         UsageBasedDocTypeConv: Codeunit "Usage Based Doc. Type Conv.";
         NotReferenceTypeVendorErr: Label 'The field Usage Data Vendor Reference Entry No. can only be filled for lines with the Reference Type "Vendor".';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Reference Management", 'OnCreateItemReferenceOnBeforeInsert', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Reference Management", OnCreateItemReferenceOnBeforeInsert, '', false, false)]
     local procedure SynchronizeUsageDataSupplierReferenceEntryNoOnCreateItemReferenceOnBeforeInsert(var ItemReference: Record "Item Reference"; ItemVendor: Record "Item Vendor")
     begin
         ItemReference."Supplier Ref. Entry No." := ItemVendor."Supplier Ref. Entry No.";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Vendor", 'OnAfterValidateEvent', 'Supplier Ref. Entry No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Vendor", OnAfterValidateEvent, 'Supplier Ref. Entry No.', false, false)]
     local procedure SynchronizeItemReferenceUsageDataSupplierReferenceEntryNoOnAfterValidateEvent(var Rec: Record "Item Vendor")
     begin
         SynchronizeItemReferenceUsageDataSupplierReferenceEntryNo(Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Reference", 'OnAfterValidateEvent', 'Supplier Ref. Entry No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Reference", OnAfterValidateEvent, 'Supplier Ref. Entry No.', false, false)]
     local procedure SynchronizeItemVendorUsageDataSupplierReferenceEntryNoOnAfterValidateEvent(var Rec: Record "Item Reference")
     begin
         SynchronizeItemVendorUsageDataSupplierReferenceEntryNo(Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Reference", 'OnBeforeCreateItemVendor', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Reference", OnBeforeCreateItemVendor, '', false, false)]
     local procedure SynchronizeItemVendorUsageDataSupplierReferenceEntryNoOnBeforeCreateItemVendor(var ItemReference: Record "Item Reference"; var ItemVendor: Record "Item Vendor")
     begin
         ItemVendor."Supplier Ref. Entry No." := ItemReference."Supplier Ref. Entry No.";
@@ -72,11 +72,7 @@ codeunit 8028 "Usage Based Contr. Subscribers"
         UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(ServicePartner, UsageBasedBillingDocType, DocumentNo);
         if UsageDataBilling.IsEmpty() then
             exit;
-
-        if UsageDataBilling.FindSet() then
-            repeat
-                UsageDataBilling.SaveDocumentValues(Enum::"Usage Based Billing Doc. Type"::None, '', 0, 0);
-            until UsageDataBilling.Next() = 0;
+        ClearUsageDataBillingDocumentValues(UsageDataBilling);
     end;
 
     local procedure UsageDataBillingWithDocumentExist(var UsageDataBilling: Record "Usage Data Billing"; ServicePartner: Enum "Service Partner"; GetBillingDocumentTypeFromSalesDocumentType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]): Boolean
@@ -125,7 +121,7 @@ codeunit 8028 "Usage Based Contr. Subscribers"
         NewUsageDataBilling.InsertMetadata();
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Sales Invoice Header", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Sales Invoice Header", OnAfterDeleteEvent, '', false, false)]
     local procedure RemoveDocumentNoFromUsageDataBillingOnAfterDeleteSalesInvHeader(var Rec: Record "Sales Invoice Header")
     begin
         if not Rec."Recurring Billing" then
@@ -133,7 +129,7 @@ codeunit 8028 "Usage Based Contr. Subscribers"
         RemoveDocumentValuesFromUsageDataBilling(Enum::"Service Partner"::Customer, Enum::"Usage Based Billing Doc. Type"::"Posted Invoice", Rec."No.");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Purch. Inv. Header", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Purch. Inv. Header", OnAfterDeleteEvent, '', false, false)]
     local procedure RemovePurchDocumentNoFromUsageDataBillingOnAfterDeleteEvent(var Rec: Record "Purch. Inv. Header")
     begin
         if not Rec."Recurring Billing" then
@@ -141,10 +137,11 @@ codeunit 8028 "Usage Based Contr. Subscribers"
         RemoveDocumentValuesFromUsageDataBilling(Enum::"Service Partner"::Vendor, Enum::"Usage Based Billing Doc. Type"::"Posted Invoice", Rec."No.");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", OnAfterDeleteEvent, '', false, false)]
     local procedure RemoveDocumentNoFromUsageDataBillingOnAfterDeleteEventSalesHeader(var Rec: Record "Sales Header"; RunTrigger: Boolean)
     var
         UsageDataBilling: Record "Usage Data Billing";
+        UsageBasedBillingDocType: Enum "Usage Based Billing Doc. Type";
     begin
         if Rec.IsTemporary then
             exit;
@@ -153,18 +150,26 @@ codeunit 8028 "Usage Based Contr. Subscribers"
         if not Rec."Recurring Billing" then
             exit;
 
-        UsageDataBilling.SetRange("Document Type", UsageBasedDocTypeConv.ConvertSalesDocTypeToUsageBasedBillingDocType(Rec."Document Type"));
+        UsageBasedBillingDocType := UsageBasedDocTypeConv.ConvertSalesDocTypeToUsageBasedBillingDocType(Rec."Document Type");
+        UsageDataBilling.SetRange("Document Type", UsageBasedBillingDocType);
         UsageDataBilling.SetRange("Document No.", Rec."No.");
         if UsageDataBilling.IsEmpty() then
             exit;
 
-        RemoveDocumentValuesFromUsageDataBilling(Enum::"Service Partner"::Customer, Enum::"Usage Based Billing Doc. Type"::Invoice, Rec."No.");
+        if UsageBasedBillingDocType = UsageBasedBillingDocType::Invoice then
+            RemoveDocumentValuesFromUsageDataBilling(Enum::"Service Partner"::Customer, UsageBasedBillingDocType, Rec."No.")
+        else
+            if UsageBasedBillingDocType = UsageBasedBillingDocType::"Credit Memo" then begin
+                UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(Enum::"Service Partner"::Customer, UsageBasedBillingDocType, Rec."No.");
+                UsageDataBilling.DeleteAll();
+            end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnAfterDeleteEvent, '', false, false)]
     local procedure RemoveDocumentNoFromUsageDataBillingOnAfterDeleteEventPurchaseHeader(var Rec: Record "Purchase Header"; RunTrigger: Boolean)
     var
         UsageDataBilling: Record "Usage Data Billing";
+        UsageBasedBillingDocType: Enum "Usage Based Billing Doc. Type";
     begin
         if Rec.IsTemporary then
             exit;
@@ -173,15 +178,22 @@ codeunit 8028 "Usage Based Contr. Subscribers"
         if not Rec."Recurring Billing" then
             exit;
 
-        UsageDataBilling.SetRange("Document Type", UsageBasedDocTypeConv.ConvertPurchaseDocTypeToUsageBasedBillingDocType(Rec."Document Type"));
+        UsageBasedBillingDocType := UsageBasedDocTypeConv.ConvertPurchaseDocTypeToUsageBasedBillingDocType(Rec."Document Type");
+        UsageDataBilling.SetRange("Document Type", UsageBasedBillingDocType);
         UsageDataBilling.SetRange("Document No.", Rec."No.");
         if UsageDataBilling.IsEmpty() then
             exit;
 
-        RemoveDocumentValuesFromUsageDataBilling(Enum::"Service Partner"::Vendor, Enum::"Usage Based Billing Doc. Type"::Invoice, Rec."No.");
+        if UsageBasedBillingDocType = UsageBasedBillingDocType::Invoice then
+            RemoveDocumentValuesFromUsageDataBilling(Enum::"Service Partner"::Vendor, UsageBasedBillingDocType, Rec."No.")
+        else
+            if UsageBasedBillingDocType = UsageBasedBillingDocType::"Credit Memo" then begin
+                UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(Enum::"Service Partner"::Vendor, UsageBasedBillingDocType, Rec."No.");
+                UsageDataBilling.DeleteAll();
+            end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterPostSalesDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnAfterPostSalesDoc, '', false, false)]
     local procedure UpdateDocumentNoOnAfterPostSalesDoc(var SalesHeader: Record "Sales Header"; SalesInvHdrNo: Code[20]; SalesCrMemoHdrNo: Code[20])
     var
         UsageDataBilling: Record "Usage Data Billing";
@@ -204,7 +216,7 @@ codeunit 8028 "Usage Based Contr. Subscribers"
             until UsageDataBilling.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterPostPurchaseDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnAfterPostPurchaseDoc, '', false, false)]
     local procedure UpdateDocumentNoOnAfterPostPurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PurchInvHdrNo: Code[20]; PurchCrMemoHdrNo: Code[20])
     var
         UsageDataBilling: Record "Usage Data Billing";
@@ -226,7 +238,7 @@ codeunit 8028 "Usage Based Contr. Subscribers"
             until UsageDataBilling.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Documents", 'OnAfterInsertBillingLineArchiveOnMoveBillingLineToBillingLineArchive', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Documents", OnAfterInsertBillingLineArchiveOnMoveBillingLineToBillingLineArchive, '', false, false)]
     local procedure UpdateUsageDataBillingWithBillingArchiveLineSalesDocuments(var BillingLineArchive: Record "Billing Line Archive"; BillingLine: Record "Billing Line")
     var
         UsageDataBilling: Record "Usage Data Billing";
@@ -240,7 +252,7 @@ codeunit 8028 "Usage Based Contr. Subscribers"
         UsageDataBilling.ModifyAll("Billing Line Entry No.", BillingLineArchive."Entry No.", false);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purchase Documents", 'OnAfterInsertBillingLineArchiveOnMoveBillingLineToBillingLineArchive', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purchase Documents", OnAfterInsertBillingLineArchiveOnMoveBillingLineToBillingLineArchive, '', false, false)]
     local procedure UpdateUsageDataBillingWithBillingArchiveLinePurchaseDocuments(var BillingLineArchive: Record "Billing Line Archive"; BillingLine: Record "Billing Line")
     var
         UsageDataBilling: Record "Usage Data Billing";
@@ -253,4 +265,81 @@ codeunit 8028 "Usage Based Contr. Subscribers"
         UsageDataBilling.SetRange("Billing Line Entry No.", BillingLine."Entry No.");
         UsageDataBilling.ModifyAll("Billing Line Entry No.", BillingLineArchive."Entry No.", false);
     end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterDeleteEvent, '', false, false)]
+    local procedure DeleteOrResetRelatedUsageBillingLinesOnAfterDeletePurchaseLineEvent(Rec: Record "Purchase Line"; RunTrigger: Boolean)
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+        PurchaseHeader: Record "Purchase Header";
+    begin
+        if not RunTrigger then
+            exit;
+        if Rec.IsTemporary then
+            exit;
+        if not PurchaseHeader.Get(Rec."Document Type", Rec."Document No.") then
+            exit;
+        if not PurchaseHeader."Recurring Billing" then
+            exit;
+
+        UsageDataBilling.FilterDocumentWithLine("Service Partner"::Vendor, UsageBasedDocTypeConv.ConvertPurchaseDocTypeToUsageBasedBillingDocType(Rec."Document Type"), Rec."Document No.", Rec."Line No.");
+        if UsageDataBilling.IsEmpty() then
+            exit;
+
+        case Rec."Document Type" of
+            "Purchase Document Type"::"Credit Memo":
+                UsageDataBilling.DeleteAll(false);
+            "Purchase Document Type"::Invoice:
+                ClearUsageDataBillingDocumentValues(UsageDataBilling);
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", OnAfterDeleteEvent, '', false, false)]
+    local procedure DeleteOrResetRelatedUsageBillingLinesOnAfterDeleteSalesLineEvent(Rec: Record "Sales Line"; RunTrigger: Boolean)
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+        SalesHeader: Record "Sales Header";
+    begin
+        if not RunTrigger then
+            exit;
+        if Rec.IsTemporary then
+            exit;
+        if not SalesHeader.Get(Rec."Document Type", Rec."Document No.") then
+            exit;
+        if not SalesHeader."Recurring Billing" then
+            exit;
+
+        UsageDataBilling.FilterDocumentWithLine("Service Partner"::Customer, UsageBasedDocTypeConv.ConvertSalesDocTypeToUsageBasedBillingDocType(Rec."Document Type"), Rec."Document No.", Rec."Line No.");
+        if UsageDataBilling.IsEmpty() then
+            exit;
+
+        case Rec."Document Type" of
+            "Sales Document Type"::"Credit Memo":
+                UsageDataBilling.DeleteAll(false);
+            "Sales Document Type"::Invoice:
+                ClearUsageDataBillingDocumentValues(UsageDataBilling);
+        end;
+    end;
+
+    local procedure ClearUsageDataBillingDocumentValues(var UsageDataBilling: Record "Usage Data Billing")
+    begin
+        if UsageDataBilling.FindSet() then
+            repeat
+                UsageDataBilling.SaveDocumentValues(UsageDataBilling."Document Type"::None, '', 0, 0);
+            until UsageDataBilling.Next() = 0;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Billing Line", OnAfterDeleteEvent, '', false, false)]
+    local procedure RemoveBillingLineNoFromRelatedUsageData(Rec: Record "Billing Line"; RunTrigger: Boolean)
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+    begin
+        if not RunTrigger then
+            exit;
+        if Rec.IsTemporary then
+            exit;
+
+        UsageDataBilling.SetRange("Billing Line Entry No.", Rec."Entry No.");
+        UsageDataBilling.ModifyAll("Billing Line Entry No.", 0, false);
+    end;
+
 }

@@ -1,10 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.SalesTax;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
-using Microsoft.Finance.Currency;
-using Microsoft.Finance.SalesTax;
 
 table 8068 "Sales Subscription Line"
 {
@@ -83,7 +83,7 @@ table 8068 "Sales Subscription Line"
             MinValue = 0;
             BlankZero = true;
             AutoFormatType = 1;
-            AutoFormatExpression = GetCurrency();
+            AutoFormatExpression = Rec."Currency Code";
 
             trigger OnValidate()
             begin
@@ -111,7 +111,7 @@ table 8068 "Sales Subscription Line"
             Editable = false;
             BlankZero = true;
             AutoFormatType = 2;
-            AutoFormatExpression = GetCurrency();
+            AutoFormatExpression = Rec."Currency Code";
 
             trigger OnValidate()
             var
@@ -144,7 +144,7 @@ table 8068 "Sales Subscription Line"
             MinValue = 0;
             BlankZero = true;
             AutoFormatType = 1;
-            AutoFormatExpression = GetCurrency();
+            AutoFormatExpression = Rec."Currency Code";
 
             trigger OnValidate()
             begin
@@ -156,7 +156,7 @@ table 8068 "Sales Subscription Line"
             Caption = 'Amount';
             BlankZero = true;
             AutoFormatType = 1;
-            AutoFormatExpression = GetCurrency();
+            AutoFormatExpression = Rec."Currency Code";
 
             trigger OnValidate()
             begin
@@ -319,7 +319,7 @@ table 8068 "Sales Subscription Line"
             Caption = 'Unit Cost';
             Editable = false;
             AutoFormatType = 2;
-            AutoFormatExpression = GetCurrency();
+            AutoFormatExpression = Rec."Currency Code";
         }
         field(101; "Unit Cost (LCY)"; Decimal)
         {
@@ -337,6 +337,13 @@ table 8068 "Sales Subscription Line"
                 else
                     "Unit Cost" := "Unit Cost (LCY)";
             end;
+        }
+        field(102; "Currency Code"; Code[10])
+        {
+            Caption = 'Currency Code';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup("Sales Header"."Currency Code" where("Document Type" = field("Document Type"), "No." = field("Document No.")));
         }
         field(8000; "Usage Based Billing"; Boolean)
         {
@@ -378,6 +385,7 @@ table 8068 "Sales Subscription Line"
             Caption = 'Pricing Unit Cost Surcharge %';
             DataClassification = CustomerContent;
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
     }
 
@@ -813,14 +821,6 @@ table 8068 "Sales Subscription Line"
     local procedure GetSalesLine(var SalesLine2: Record "Sales Line")
     begin
         GetSalesLine(Rec, SalesLine2);
-    end;
-
-    local procedure GetCurrency(): Code[10]
-    var
-        SalesHeader: Record "Sales Header";
-    begin
-        GetSalesHeader(SalesHeader);
-        exit(SalesHeader."Currency Code");
     end;
 
     local procedure GetSalesLine(SalesSubscriptionLine: Record "Sales Subscription Line"; var SalesLine2: Record "Sales Line")

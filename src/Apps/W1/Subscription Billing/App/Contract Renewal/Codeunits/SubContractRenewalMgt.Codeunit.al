@@ -1,9 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
-using System.Environment.Configuration;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
+using System.Utilities;
 
 codeunit 8003 "Sub. Contract Renewal Mgt."
 {

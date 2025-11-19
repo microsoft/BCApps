@@ -6,10 +6,10 @@
 namespace System.Test.Integration;
 
 using System.Integration;
-using System.TestLibraries.Integration;
 using System.TestLibraries.Environment;
-using System.TestLibraries.Utilities;
+using System.TestLibraries.Integration;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 132618 "Page Summary Setup Test"
 {

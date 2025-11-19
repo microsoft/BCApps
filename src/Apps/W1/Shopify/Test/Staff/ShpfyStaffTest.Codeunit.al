@@ -5,10 +5,10 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
-using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
 using Microsoft.CRM.Team;
+using Microsoft.Integration.Shopify;
 using Microsoft.Sales.Document;
+using System.TestLibraries.Utilities;
 
 codeunit 139551 "Shpfy Staff Test"
 {

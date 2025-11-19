@@ -34,4 +34,20 @@ pageextension 30110 "Shpfy Post. Sales Shipments" extends "Posted Sales Shipment
             }
         }
     }
+    views
+    {
+        addlast
+        {
+            view(UnprocessedShipments)
+            {
+                Caption = 'Unprocessed Shipments to Shopify';
+                Filters = where("Shpfy Order Id" = filter(<> 0), "Shpfy Fulfillment Id" = filter(= 0));
+            }
+            view(SkippedShipments)
+            {
+                Caption = 'Skipped Shipments to Shopify';
+                Filters = where("Shpfy Order Id" = filter(<> 0), "Shpfy Fulfillment Id" = filter(= -1 | -2));
+            }
+        }
+    }
 }

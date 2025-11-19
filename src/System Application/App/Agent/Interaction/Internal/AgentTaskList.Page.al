@@ -19,6 +19,7 @@ page 4300 "Agent Task List"
     SourceTableView = sorting("Last Log Entry Timestamp") order(descending);
     InherentEntitlements = X;
     InherentPermissions = X;
+    Editable = false;
 
     layout
     {
@@ -121,6 +122,7 @@ page 4300 "Agent Task List"
                 ToolTip = 'Show log entries for the selected task.';
                 Enabled = TaskSelected;
                 Image = TaskList;
+                Scope = Repeater;
 
                 trigger OnAction()
                 var
@@ -136,6 +138,7 @@ page 4300 "Agent Task List"
                 ToolTip = 'Stop the selected task.';
                 Enabled = TaskSelected;
                 Image = Stop;
+                Scope = Repeater;
 
                 trigger OnAction()
                 var

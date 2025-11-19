@@ -1,0 +1,142 @@
+table 'Project Planning Lines'
+	lineageTag: 782ba269-8b95-4360-9a25-53f557b2d1b3
+
+	/// This measure shows how many items or hours are yet to be completed on a project by summing up the total outstanding quantity of items or hours on all project lines.
+	measure 'Qty. on Projects' = SUM('Project Planning Lines'[remainingQtyBase])
+		displayFolder: _Project Planning Line Measures
+		lineageTag: 49a33d4b-0153-4221-9d06-649199b718c7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Specifies the earliest date of the planning line.
+	measure 'Project Planning - Earliest Planning Date' = MIN('Project Planning Lines'[planningDate])
+		displayFolder: _Project Planning Line Measures
+		lineageTag: 4d1ead4c-da01-4e4b-86b0-fd5a1dc3cc99
+
+	measure 'Planning Line Link' =
+			
+			VAR Endpoint = "&page=1007&"
+			VAR BaseLink = [Base Link] & Endpoint
+			VAR PlanningLineBaseLink = BaseLink & "filter='Job Planning Line'.'Type' IS 'Item' "
+			// Filter Context
+			VAR ItemNo = CONCATENATEX(VALUES('Project Planning Lines'[itemNo]),'Project Planning Lines'[itemNo], "|")
+			
+			VAR ItemNoFilter = " AND 'Job Planning Line'.'No.' IS '" & ItemNo & "'"
+			VAR DateFilter = " AND 'Job Planning Line'.'Planning Date' IS '" & [Ranged] & "'"
+			RETURN
+			PlanningLineBaseLink & ItemNoFilter & DateFilter
+		displayFolder: _Back Link
+		lineageTag: 9469fbd0-0d17-444b-af4c-9772a71e60d0
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: 5469fc4d-32ec-4870-8773-4b0e8489b74c
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column planningDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 03eb5fab-e803-4ed6-8f7e-d177945f9d4a
+		summarizeBy: none
+		sourceColumn: planningDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: 6e1e9b2a-fcfa-4f51-b7b0-00b486890c59
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column remainingQtyBase
+		dataType: double
+		isHidden
+		lineageTag: 48bf3dc2-f3f3-4227-b578-b5820a42b326
+		summarizeBy: sum
+		sourceColumn: remainingQtyBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: f984793e-52b1-4701-81f4-e73d9b90e1be
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Quantity Per Unit of Measure'
+		dataType: double
+		lineageTag: e5b136c3-d6f2-4859-b698-2985a6c7ba20
+		summarizeBy: sum
+		sourceColumn: Quantity Per Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Unit of Measure Code'
+		dataType: string
+		lineageTag: 7b871f16-cf68-4678-b5a7-3ecde3372c46
+		summarizeBy: none
+		sourceColumn: Unit of Measure Code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Project Planning Lines' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+				        ENVIRONMENT, COMPANY,API_ENDPOINT, []
+				    ),
+				    TableData = Source{[Name = "itemJobPlanningLines", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"itemNo", type text},
+				            {"remainingQtyBase", type number},
+				            {"planningDate", type date},
+				            {"locationCode", type text},
+				            {"documentNo", type text},
+				            {"qtyPerUnitOfMeasure", type number},
+				            {"unitOfMeasureCode", type text}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type", {"ETag"}),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Removed Columns",
+				        {
+				            {"documentNo", "Document No."},
+				            {"qtyPerUnitOfMeasure", "Quantity Per Unit of Measure"},
+				            {"unitOfMeasureCode", "Unit of Measure Code"}
+				        }
+				    )
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

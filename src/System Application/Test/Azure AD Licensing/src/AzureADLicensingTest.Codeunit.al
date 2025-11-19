@@ -5,13 +5,13 @@
 
 namespace System.Test.Azure.ActiveDirectory;
 
-using System.Azure.Identity;
-using System.TestLibraries.Environment;
-using System.TestLibraries.Azure.ActiveDirectory;
-using System.TestLibraries.Mocking;
 using System;
-using System.TestLibraries.Utilities;
+using System.Azure.Identity;
+using System.TestLibraries.Azure.ActiveDirectory;
+using System.TestLibraries.Environment;
+using System.TestLibraries.Mocking;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 138458 "Azure AD Licensing Test"
 {

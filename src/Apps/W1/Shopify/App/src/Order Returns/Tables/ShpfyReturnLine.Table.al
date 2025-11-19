@@ -104,6 +104,26 @@ table 30141 "Shpfy Return Line"
             Caption = 'Customer Note';
             DataClassification = SystemMetadata;
         }
+        field(15; Type; Enum "Shpfy Return Line Type")
+        {
+            Caption = 'Type';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(16; "Unit Price"; Decimal)
+        {
+            Caption = 'Unit Price';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            AutoFormatType = 1;
+            AutoFormatExpression = "Unit Price Currency";
+        }
+        field(17; "Unit Price Currency"; Code[10])
+        {
+            Caption = 'Unit Price Currency';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
         field(101; "Item No."; Code[20])
         {
             Caption = 'Item No.';

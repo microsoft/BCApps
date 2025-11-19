@@ -1,0 +1,162 @@
+table 'Prod Order Component Lines'
+	lineageTag: ebf006cc-52f0-41f1-9fec-c3dc7fb39597
+
+	/// This measure shows how many items are yet to be completed on a production order by summing up the total remaining quantity of items on all production order component lines.
+	measure 'Qty. on Prod. Order Comp. Lines' = sum('Prod Order Component Lines'[remainingQtyBase])
+		formatString: 0.00
+		displayFolder: _Prod. Order Comp. Line Measures
+		lineageTag: 8774369e-8d7e-4203-8f5b-333410f29844
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Specifies the earliest date when the produced item must be available. The date is copied from the header of the production order.
+	measure 'Prod. Order Comp. Lines - Earliest Due Date' = MIN('Prod Order Component Lines'[Due Date])
+		formatString: Short Date
+		displayFolder: _Prod. Order Comp. Line Measures
+		lineageTag: 9e5e0eda-d609-471c-a142-6d8a1eae7c2b
+
+	measure 'Prod. Order Components Link' =
+			
+			VAR Endpoint = "&page=99000818&"
+			VAR BaseLink = [Base Link] & Endpoint
+			// Filter Context
+			VAR Items = CONCATENATEX(VALUES('Prod Order Component Lines'[itemNo]),'Prod Order Component Lines'[itemNo], "|")
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Prod Order Component Lines'[dimensionSetID]), 'Prod Order Component Lines'[dimensionSetID], "|")
+			
+			
+			VAR ItemFilter = "filter='Prod. Order Component'.'Item No.' IS '" & Items & "'"
+			VAR DateFilter = " AND 'Prod. Order Component'.'Due Date' IS '" & [Ranged] & "'"
+			VAR DimensionFilter = " AND 'Prod. Order Component'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			RETURN
+			BaseLink & ItemFilter & DimensionFilter & DateFilter
+		displayFolder: _Back Link
+		lineageTag: 82762de4-408f-4bff-a747-373f8f8a9616
+
+	column Status
+		dataType: string
+		lineageTag: f318eeca-bc42-432c-9172-cc194e5bfce0
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: 2a64e6a2-5e34-470f-afcc-60659e394aad
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: 59b523e7-38d5-41dd-a4cf-a078e650f4e4
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: 70de4f6d-556b-441b-aa61-4804af7e4b07
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column remainingQtyBase
+		dataType: double
+		isHidden
+		lineageTag: 46ab6214-a80b-4283-9659-d1dfacc69d59
+		summarizeBy: sum
+		sourceColumn: remainingQtyBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Specifies the date when the produced item must be available. The date is copied from the header of the production order.
+	column 'Due Date'
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: d69bd1a6-443c-4d43-a94e-fe444c852e48
+		summarizeBy: none
+		sourceColumn: Due Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 9acef46e-9432-42b2-aa26-9d9c9535d641
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Quantity Per Unit of Measure'
+		dataType: double
+		lineageTag: f86291cf-557e-4ed7-89fb-ec579618c12b
+		summarizeBy: sum
+		sourceColumn: Quantity Per Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Unit of Measure Code'
+		dataType: string
+		lineageTag: 47b928ee-117a-41b5-a951-353717d0f8f8
+		summarizeBy: none
+		sourceColumn: Unit of Measure Code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Prod Order Component Lines' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="inventoryProdOrderComponentLines",Signature="table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(
+				        TableData, {{"status", "Status"}, {"documentNo", "Document No."}, {"dueDate", "Due Date"},{"qtyPerUnitOfMeasure","Quantity Per Unit of Measure"},{"unitOfMeasureCode","Unit of Measure Code"}}
+				    ),
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        #"Renamed Columns",
+				        {
+				            {"Status", type text},
+				            {"Document No.", type text},
+				            {"itemNo", type text},
+				            {"locationCode", type text},
+				            {"remainingQtyBase", type number},
+				            {"Due Date", type date},
+				            {"dimensionSetID", Int64.Type},
+				            {"Quantity Per Unit of Measure", type number},
+				            {"Unit of Measure Code", type text}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type", {"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

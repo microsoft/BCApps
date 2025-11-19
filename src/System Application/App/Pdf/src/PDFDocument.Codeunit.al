@@ -44,11 +44,27 @@ codeunit 3110 "PDF Document"
     /// <param name="ImageStream">Stream of the image file.</param>
     /// <param name="ImageFormat">Image format to convert the PDF to.</param>
     /// <param name="PageNumber">Page number to convert.</param>
+    /// <returns>Whether or not the conversion was successful.</returns>
+    procedure ConvertPdfToImage(var ImageStream: InStream; ImageFormat: Enum "Image Format"; PageNumber: Integer): Boolean
+    begin
+        exit(PDFDocumentImpl.ConvertToImage(ImageStream, ImageFormat, PageNumber));
+    end;
+
+#if not CLEAN27
+#pragma warning disable AS0072 // this will be backported: #610559
+    /// <summary>
+    /// This procedure is used to convert a PDF file to an image.
+    /// </summary>
+    /// <param name="ImageStream">Stream of the image file.</param>
+    /// <param name="ImageFormat">Image format to convert the PDF to.</param>
+    /// <param name="PageNumber">Page number to convert.</param>
+    [Obsolete('Use the ConvertPdfToImage procedure instead.', '27.2')]
     procedure ConvertToImage(var ImageStream: InStream; ImageFormat: Enum "Image Format"; PageNumber: Integer)
     begin
         PDFDocumentImpl.ConvertToImage(ImageStream, ImageFormat, PageNumber);
     end;
-
+#pragma warning restore AS0072
+#endif
     /// <summary>
     /// This procedure is used to get the invoice attachment stream from a PDF file.
     /// </summary>

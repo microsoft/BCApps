@@ -5,10 +5,10 @@
 
 namespace System.Azure.Identity;
 
-using System.Telemetry;
-using System.Security.User;
-using System.Security.AccessControl;
 using System.Environment;
+using System.Security.AccessControl;
+using System.Security.User;
+using System.Telemetry;
 
 codeunit 9822 "Plan Configuration Impl."
 {

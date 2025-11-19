@@ -1,0 +1,237 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "5404e7fe63a03d58349b",
+  "position": {
+    "x": 25.787545787545788,
+    "y": 383.2967032967033,
+    "z": 2000,
+    "height": 310.6227106227106,
+    "width": 1227.2527472527472,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Work Center No."
+                }
+              },
+              "queryRef": "Machine Center.Work Center No.",
+              "nativeQueryRef": "Work Center No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center No."
+                }
+              },
+              "queryRef": "Machine Center.Machine Center No.",
+              "nativeQueryRef": "Machine Center No."
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Capacity (Effective)"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Capacity (Effective )",
+              "nativeQueryRef": "Machine Center Capacity (Effective )"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Allocated Time"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Need (Qty.)",
+              "nativeQueryRef": "Machine Center Need (Qty.)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Availability After Orders"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Availability After Orders",
+              "nativeQueryRef": "Machine Center Availability After Orders"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Load"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Load",
+              "nativeQueryRef": "Machine Center Load"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Machine Center"
+                    }
+                  },
+                  "Property": "Machine Center Expected Efficiency %"
+                }
+              },
+              "queryRef": "Machine Center.Machine Center Expected Efficiency %",
+              "nativeQueryRef": "Machine Center Expected Efficiency %"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Machine Center"
+                  }
+                },
+                "Property": "Machine Center Load"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Machine Center.Machine Center No."
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Machine Center Load Details Label"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Manufacturing Setup"
+                    }
+                  },
+                  "Property": "Show Capacity In UOM"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#525c6d'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "divider": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

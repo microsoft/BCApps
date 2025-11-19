@@ -42,18 +42,6 @@ page 30113 "Shpfy Order"
                     Editable = false;
                     ToolTip = 'Specifies the order number from Shopify.';
                 }
-#if not CLEAN25
-                field(RiskLevel; Rec."Risk Level")
-                {
-                    ApplicationArea = All;
-                    Editable = false;
-                    ToolTip = 'Specifies the risk level from the Shopify order.';
-                    Visible = false;
-                    ObsoleteReason = 'This field is not imported.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-#endif
                 field("High Risk"; Rec."High Risk")
                 {
                     ApplicationArea = All;
@@ -160,6 +148,7 @@ page 30113 "Shpfy Order"
                 {
                     ApplicationArea = All;
                     Editable = false;
+                    Importance = Additional;
                     ToolTip = 'Specifies whether this is a test order.';
                 }
                 field(CreatedAt; Rec."Created At")
@@ -204,7 +193,6 @@ page 30113 "Shpfy Order"
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    Importance = Additional;
                     ToolTip = 'Specifies the name of the app used by the channel where you sell your products. A channel can be a platform or a marketplace such as an online store or POS.';
                 }
                 field(ChannelName; Rec."Channel Name")
@@ -353,6 +341,13 @@ page 30113 "Shpfy Order"
                     ApplicationArea = All;
                     ToolTip = 'Specifies if tax is included in the unit price.';
                 }
+                field("Channel Liable Taxes"; Rec."Channel Liable Taxes")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies if any tax line on the order is liable to be charged by the sales channel.';
+                }
+
                 field(CurrencyCode; Rec."Currency Code")
                 {
                     ApplicationArea = All;
@@ -653,10 +648,10 @@ page 30113 "Shpfy Order"
 
                     trigger OnAction()
                     var
-                        OrdersApi: Codeunit "Shpfy Orders API";
+                        Orders: Codeunit "Shpfy Orders";
                         ErrorInfo: ErrorInfo;
                     begin
-                        if OrdersApi.MarkAsPaid(Rec."Shopify Order Id", Rec."Shop Code") then
+                        if Orders.MarkAsPaid(Rec."Shopify Order Id", Rec."Shop Code") then
                             Message(MarkAsPaidMsg)
                         else begin
                             ErrorInfo.Message := MarkAsPaidFailedErr;
@@ -790,7 +785,7 @@ page 30113 "Shpfy Order"
             action(Fulfillments)
             {
                 ApplicationArea = All;
-                Caption = 'Fulfillments';
+                Caption = 'Completed Fulfillments';
                 Image = ShipmentLines;
                 Promoted = true;
                 PromotedCategory = Category4;
@@ -1008,4 +1003,3 @@ page 30113 "Shpfy Order"
     begin
     end;
 }
-

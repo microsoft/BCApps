@@ -1,0 +1,313 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "f3e0fe08092781c05516",
+  "position": {
+    "x": 26,
+    "y": 64,
+    "z": 1000,
+    "height": 630,
+    "width": 1228,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "Customer No. & Name"
+                }
+              },
+              "queryRef": "Customers.Customer No. & Name",
+              "nativeQueryRef": "Customer No. & Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract"
+                    }
+                  },
+                  "Property": "Customer Contract Type"
+                }
+              },
+              "queryRef": "Customer Contract.Customer Contract Type",
+              "nativeQueryRef": "Customer Contract Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract"
+                    }
+                  },
+                  "Property": "Customer Contract No."
+                }
+              },
+              "queryRef": "Customer Contract.Customer Contract No.",
+              "nativeQueryRef": "Customer Contract No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Customer Contract Line No."
+                }
+              },
+              "queryRef": "Customer Contract Line.Customer Contract Line No.",
+              "nativeQueryRef": "Customer Contract Line No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription"
+                    }
+                  },
+                  "Property": "Subscription Desc."
+                }
+              },
+              "queryRef": "Service Object.Service Object Desc.",
+              "nativeQueryRef": "Service Object Desc."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Customer Contract Line Desc."
+                }
+              },
+              "queryRef": "Customer Contract Line.Customer Contract Line Desc.",
+              "nativeQueryRef": "Customer Contract Line Desc."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Subscription Start Date"
+                }
+              },
+              "queryRef": "Customer Contract Line.Service Start Date",
+              "nativeQueryRef": "Service Start Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Subscription End Date"
+                }
+              },
+              "queryRef": "Customer Contract Line.Service End Date",
+              "nativeQueryRef": "Service End Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Next Billing Date"
+                }
+              },
+              "queryRef": "Customer Contract Line.Next Billing Date",
+              "nativeQueryRef": "Next Billing Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Billing Rhythm"
+                }
+              },
+              "queryRef": "Customer Contract Line.Billing Rhythm",
+              "nativeQueryRef": "Billing Rhythm"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Mon. Recurring Revenue"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.MRR",
+              "nativeQueryRef": "Mon. Recurring Revenue1"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Change in Mon. Recurring Revenue"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.MRR overall change",
+              "nativeQueryRef": "Change in Mon. Recurring Revenue1"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Total Contract Value"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.TCV",
+              "nativeQueryRef": "Total Contract Value1"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Initial Term"
+                }
+              },
+              "queryRef": "Customer Contract Line.Initial Term",
+              "nativeQueryRef": "Initial Term"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Extension Term"
+                }
+              },
+              "queryRef": "Customer Contract Line.Extension Term",
+              "nativeQueryRef": "Extension Term"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Remaining Term"
+                }
+              },
+              "queryRef": "Customer Contract Line.Remaining Term",
+              "nativeQueryRef": "Remaining Term"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "93.48027394480864D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Customer Contract.Customer Contract No."
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "108.59430141457938D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Customer Contract Line.Customer Contract Line No."
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "277.58662222903513D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Service Object.Service Object Desc."
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Customer Contract Lines Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

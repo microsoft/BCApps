@@ -1,8 +1,9 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v7.3/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/043c3a212d0131d917eb87c9f9d9e8f55bc67179/Actions/.Modules/settings.schema.json",
   "projectName": "System Application Tests",
   "testFolders": [
     "../../../src/System Application/Test",
     "../../../src/System Application/Partner Test"
-  ]
+  ],
+  "testType": "UnitTest"
 }

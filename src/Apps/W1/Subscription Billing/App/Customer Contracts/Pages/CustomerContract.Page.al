@@ -1,10 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Foundation.Attachment;
+using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
-using Microsoft.Finance.Dimension;
 
 page 8052 "Customer Contract"
 {
@@ -169,7 +169,7 @@ page 8052 "Customer Contract"
                 field("Dimension from Job No."; Rec."Dimension from Job No.")
                 {
                     Importance = Additional;
-                    ToolTip = 'Specifies the Project number from which the dimensions for the contract are transfered.';
+                    ToolTip = 'Specifies the Project number from which the dimensions for the contract are transferred.';
                 }
                 group(Description)
                 {

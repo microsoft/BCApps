@@ -5,13 +5,13 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using System.IO;
-using System.Reflection;
-using Microsoft.Sales.Customer;
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
-using System.Upgrade;
+using Microsoft.Sales.Customer;
 using System.Integration;
+using System.IO;
+using System.Reflection;
+using System.Upgrade;
 
 /// <summary>
 /// Codeunit Shpfy Upgrade Mgt. (ID 30106).
@@ -40,6 +40,8 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         CreditMemoCanBeCreatedUpgrade();
         ArchiveProcessedOrdersUpgrade();
         SetShopifyCatalogsType();
+        CreateInvoicesFromOrdersUpgrade();
+        OrderTransactionShopCodeUpgrade();
     end;
 
     internal procedure UpgradeTemplatesData()
@@ -461,6 +463,39 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         UpgradeTag.SetUpgradeTag(GetShopifyCatalogsTypeUpgradeTag());
     end;
 
+    local procedure CreateInvoicesFromOrdersUpgrade()
+    var
+        Shop: Record "Shpfy Shop";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetCreateInvoicesFromOrdersUpgradeTag()) then
+            exit;
+
+        if not Shop.IsEmpty() then
+            Shop.ModifyAll("Create Invoices From Orders", true);
+
+        UpgradeTag.SetUpgradeTag(GetCreateInvoicesFromOrdersUpgradeTag());
+    end;
+
+    local procedure OrderTransactionShopCodeUpgrade()
+    var
+        OrderTransaction: Record "Shpfy Order Transaction";
+        OrderHeader: Record "Shpfy Order Header";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        OrderTransactionDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(GetOrderTransactionShopCodeUpgradeTag()) then
+            exit;
+
+        OrderTransactionDataTransfer.SetTables(Database::"Shpfy Order Header", Database::"Shpfy Order Transaction");
+        OrderTransactionDataTransfer.AddFieldValue(OrderHeader.FieldNo("Shop Code"), OrderTransaction.FieldNo("Shop"));
+        OrderTransactionDataTransfer.AddJoin(OrderHeader.FieldNo("Shopify Order Id"), OrderTransaction.FieldNo("Shopify Order Id"));
+        OrderTransactionDataTransfer.UpdateAuditFields := false;
+        OrderTransactionDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(GetOrderTransactionShopCodeUpgradeTag());
+    end;
+
     internal procedure GetAllowOutgoingRequestseUpgradeTag(): Code[250]
     begin
         exit('MS-445989-AllowOutgoingRequestseUpgradeTag-20220816');
@@ -526,6 +561,16 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         exit('MS-581129-ShopifyCatalogsTypeUpgradeTag-20250807');
     end;
 
+    local procedure GetCreateInvoicesFromOrdersUpgradeTag(): Code[250]
+    begin
+        exit('MS-604148-CreateInvoicesFromOrdersUpgradeTag-20250922');
+    end;
+
+    local procedure GetOrderTransactionShopCodeUpgradeTag(): Code[250]
+    begin
+        exit('MS-610671-OrderTransactionShopCodeUpgrade-20251022');
+    end;
+
     local procedure GetDateBeforeFeature(): DateTime
     begin
         exit(CreateDateTime(DMY2Date(1, 8, 2022), 0T));
@@ -543,5 +588,7 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         PerCompanyUpgradeTags.Add(GetSyncPricesWithProductsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetArchiveProcessedOrdersUpgradeTag());
         PerCompanyUpgradeTags.Add(GetShopifyCatalogsTypeUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetCreateInvoicesFromOrdersUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetOrderTransactionShopCodeUpgradeTag());
     end;
 }

@@ -1,0 +1,731 @@
+cultureInfo nl-BE
+	translations
+		model Model
+			table 'Dimension Sets'
+				caption: Dimensiecombinaties
+				column 'Global Dimension 1'
+					caption: Globale dimensie 1
+				column 'Global Dimension 2'
+					caption: Globale dimensie 2
+				column 'Shortcut Dimension 3'
+					caption: Shortcutdimensie 3
+				column 'Shortcut Dimension 4'
+					caption: Shortcutdimensie 4
+				column 'Shortcut Dimension 5'
+					caption: Shortcutdimensie 5
+				column 'Shortcut Dimension 6'
+					caption: Shortcutdimensie 6
+				column 'Shortcut Dimension 7'
+					caption: Shortcutdimensie 7
+				column 'Shortcut Dimension 8'
+					caption: Shortcutdimensie 8
+				column id
+					caption: id
+			table Vendors
+				caption: Leveranciers
+				column 'Vendor No.'
+					caption: Leveranciersnr.
+				column 'Vendor Name'
+					caption: Leveranciersnaam
+				column Address
+					caption: Adres
+				column 'Address 2'
+					caption: Adres 2
+				column City
+					caption: Plaats
+				column 'Post Code'
+					caption: Postcode
+				column State
+					caption: Staat
+				column 'Country/Region Code'
+					caption: Land/regio-code
+				column 'Vendor Posting Group'
+					caption: Leveranciersboekingsgroep
+				column 'Vendor No. & Name'
+					caption: Nr. en naam van leverancier
+			table Customers
+				caption: Klanten
+				column 'Customer No.'
+					caption: Klantnr.
+				column 'Customer Name'
+					caption: Klantnaam
+				column Address
+					caption: Adres
+				column 'Address 2'
+					caption: Adres 2
+				column City
+					caption: Plaats
+				column 'Post Code'
+					caption: Postcode
+				column State
+					caption: Staat
+				column 'Country/Region Code'
+					caption: Land/regio-code
+				column 'Customer Posting Group'
+					caption: Klantboekingsgroep
+				column 'Customer Price Group'
+					caption: Klantenprijsgroep
+				column 'Customer Discount Group'
+					caption: Klantenkortingsgroep
+				column 'Customer No. & Name'
+					caption: Klantnr. en -naam
+			table Date
+				caption: Datum
+				column 'Week Day'
+					caption: Week Dag
+				column 'Day Type'
+					caption: Dagsoort
+				column 'Calendar Year'
+					caption: Kalender Jaar
+				column 'Calendar Quarter'
+					caption: Kalender Kwartaal
+				column 'Calendar Quarter Year'
+					caption: Kalender Kwartaal Jaar
+				column 'Calendar Month'
+					caption: Kalender Maand
+				column 'Calendar Month Year'
+					caption: Kalender Maand Jaar
+				column 'Calendar Week'
+					caption: Kalender Week
+				column 'Calendar Week Year'
+					caption: Kalender Week Jaar
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelatieveWeekPos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelatieveMaandPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelatieveKwartaalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelatieveJaarPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender BeginVanMaand
+				column 'Calendar EndOfMonth'
+					caption: Kalender EindVanMaand
+				column 'Calendar StartOfQuarter'
+					caption: Kalender BeginVanKwartaal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender EindVanKwartaal
+				column 'Calendar StartOfYear'
+					caption: Kalender BeginVanJaar
+				column 'Calendar EndOfYear'
+					caption: Kalender EindVanJaar
+				column 'Calendar MonthDays'
+					caption: Kalender MaandDagen
+				column 'Calendar QuarterDays'
+					caption: Kalender KwartaalDagen
+				column 'Calendar YearDays'
+					caption: Kalender JaarDagen
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagVanMaandNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagVanKwartaalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagVanJaarNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumVorigeWeek
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumVorigeMaand
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumVorigKwartaal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumVorigJaar
+				column 'Fiscal Year'
+					caption: Fiscaal Jaar
+				column 'Fiscal Quarter'
+					caption: Fiscaal Kwartaal
+				column 'Fiscal Quarter Year'
+					caption: Fiscaal Kwartaal Jaar
+				column 'Fiscal Month'
+					caption: Fiscaal Maand
+				column 'Fiscal Month Year'
+					caption: Fiscaal Maand Jaar
+				column 'Fiscal Week'
+					caption: Fiscaal Week
+				column 'Fiscal Week Year'
+					caption: Fiscaal Week Jaar
+				column 'Fiscal RelativeWeekPos'
+					caption: Fiscaal RelatieveWeekPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Fiscaal RelatieveMaandPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fiscaal RelatieveKwartaalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Fiscaal RelatieveJaarPos
+				column 'Fiscal StartOfMonth'
+					caption: Fiscaal BeginVanMaand
+				column 'Fiscal EndOfMonth'
+					caption: Fiscaal EindVanMaand
+				column 'Fiscal StartOfQuarter'
+					caption: Fiscaal BeginVanKwartaal
+				column 'Fiscal EndOfQuarter'
+					caption: Fiscaal EindVanKwartaal
+				column 'Fiscal StartOfYear'
+					caption: Fiscaal BeginVanJaar
+				column 'Fiscal EndOfYear'
+					caption: Fiscaal EindVanJaar
+				column 'Fiscal MonthDays'
+					caption: Fiscaal MaandDagen
+				column 'Fiscal QuarterDays'
+					caption: Fiscaal KwartaalDagen
+				column 'Fiscal YearDays'
+					caption: Fiscaal JaarDagen
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fiscaal DagVanMaandNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fiscaal DagVanKwartaalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Fiscaal DagVanJaarNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Fiscaal DatumVorigeWeek
+				column 'Fiscal DatePreviousMonth'
+					caption: Fiscaal DatumVorigeMaand
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fiscaal DatumVorigKwartaal
+				column 'Fiscal DatePreviousYear'
+					caption: Fiscaal DatumVorigJaar
+				column 'FW Year'
+					caption: FW Jaar
+				column 'FW Quarter'
+					caption: FW Kwartaal
+				column 'FW Quarter Year'
+					caption: FW Kwartaal Jaar
+				column 'FW Month'
+					caption: FW Maand
+				column 'FW Month Year'
+					caption: FW Maand Jaar
+				column 'FW Week'
+					caption: FW Week
+				column 'FW Period'
+					caption: FW Periode
+				column 'FW Week Year'
+					caption: FW Week Jaar
+				column 'FW StartOfWeek'
+					caption: FW BeginVanWeek
+				column 'FW EndOfWeek'
+					caption: FW EindVanWeek
+				column 'FW RelativeWeekPos'
+					caption: FW RelatieveWeekPos
+				column 'FW RelativeMonthPos'
+					caption: FW RelatieveMaandPos
+				column 'FW RelativeQuarterPos'
+					caption: FW RelatieveKwartaalPos
+				column 'FW RelativeYearPos'
+					caption: FW RelatieveJaarPos
+				column 'FW StartOfMonth'
+					caption: FW BeginVanMaand
+				column 'FW EndOfMonth'
+					caption: FW EindVanMaand
+				column 'FW StartOfQuarter'
+					caption: FW BeginVanKwartaal
+				column 'FW EndOfQuarter'
+					caption: FW EindVanKwartaal
+				column 'FW StartOfYear'
+					caption: FW BeginVanJaar
+				column 'FW EndOfYear'
+					caption: FW EindVanJaar
+				column 'FW MonthDays'
+					caption: FW MaandDagen
+				column 'FW QuarterDays'
+					caption: FW KwartaalDagen
+				column 'FW YearDays'
+					caption: FW JaarDagen
+				column 'FW DayOfMonthNumber'
+					caption: FW DagVanMaandNummer
+				column 'FW DayOfQuarterNumber'
+					caption: FW DagVanKwartaalNummer
+				column 'FW DayOfYearNumber'
+					caption: FW DagVanJaarNummer
+				column 'FW DatePreviousWeek'
+					caption: FW DatumVorigeWeek
+				column 'FW DatePreviousMonth'
+					caption: FW DatumVorigeMaand
+				column 'FW DatePreviousQuarter'
+					caption: FW DatumVorigKwartaal
+				column 'FW DatePreviousYear'
+					caption: FW DatumVorigJaar
+				column 'Relative Day'
+					caption: Relatieve Dag
+				column Sequential365DayNumber
+					caption: Sequentieel 365 DagNummer
+				column 'Data Range Deferrals'
+					caption: Uitstel van gegevensbereik
+				measure 'No. of Days'
+					caption: Aantal dagen
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fiscaal Jaar-Kwartaal-Maand-Week
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Quarter Year'
+						caption: Fiscaal Kwartaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+					level 'Fiscal Week Year'
+						caption: Fiscaal Week Jaar
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender Jaar-Kwartaal-Maand-Week
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Quarter Year'
+						caption: Kalender Kwartaal Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+					level 'Calendar Week Year'
+						caption: Kalender Week Jaar
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: FW Jaar-Kwartaal-Maand-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Quarter Year'
+						caption: FW Kwartaal Jaar
+					level 'FW Month Year'
+						caption: FW Maand Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'Fiscal Year-Month'
+					caption: Fiscaal Jaar-Maand
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fiscaal Jaar-Maand-Week
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+					level 'Fiscal Week Year'
+						caption: Fiscaal Week Jaar
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender Jaar-Maand
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender Jaar-Maand-Week
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+					level 'Calendar Week Year'
+						caption: Kalender Week Jaar
+				hierarchy 'FW Year-Month-Week'
+					caption: FW Jaar-Maand-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Month Year'
+						caption: FW Maand Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'FW Year-Quarter-Week'
+					caption: FW Jaar-Kwartaal-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Quarter Year'
+						caption: FW Kwartaal Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'FW Year-Week'
+					caption: FW Jaar-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+			table 'Localized Labels'
+				measure 'CONNECT YOUR DATA'
+					caption: UW GEGEVENS VERBINDEN
+				measure '1. Download the Finance Connector for Power BI'
+					caption: 1. De Finance Connector for Power BI downloaden
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Dynamics 365 Business Central configureren
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN
+				measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Financiën omvatten een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken. U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.
+				measure 'HELP AND SUPPORT'
+					caption: HELP EN ONDERSTEUNING
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.
+				measure 'for Business Central'
+					caption: voor Business Central
+				measure 'Last Refreshed'
+					caption: Laatst vernieuwd
+				measure 'Company Name'
+					caption: Bedrijfsnaam
+				measure 'Analysis Entries as of'
+					caption: Analyseposten vanaf
+				measure 'Billing Forecast by Billing Period, Customer and Contract No.'
+					caption: Factureringsprognose per factureringsperiode, klant en contractnr.
+				measure 'Billing Forecast by Year and Month'
+					caption: Factureringsprognose per kalenderjaar en -maand
+				measure 'Billing Schedule'
+					caption: Factureringsplanning
+				measure 'Change of Mon. Recurring Revenue by Year and Month'
+					caption: Wijziging van maand. periodieke opbrengst per jaar en maand
+				measure 'Current Date Range:'
+					caption: Huidig datumbereik:
+				measure 'Customer Contract Deferrals'
+					caption: Uitstel van klantcontracten
+				measure 'Customer Contract Lines'
+					caption: Klantcontractregels
+				measure 'Customer Deferrals (Caption)'
+					caption: Klantuitstel
+				measure 'Mon. Recurring Revenue Analysis'
+					caption: Maand. periodieke analyse van opbrengst
+				measure 'Mon. Recurring Revenue and Mon. Recurring Revenue PY by Month'
+					caption: Maand. periodieke opbrengst en maand. periodieke opbrengst VJ per kalendermaand
+				measure 'Mon. Recurring Revenue and Year-Over-Year Growth by Year and Month'
+					caption: Maand. periodieke opbrengst en jaar-tot-jaar groei per kalenderjaar en -maand
+				measure 'Mon. Recurring Revenue by Customer'
+					caption: Maand. periodieke opbrengst per klant
+				measure 'Mon. Recurring Revenue by Salesperson'
+					caption: Maand. periodieke opbrengst per verkoper
+				measure 'Mon. Recurring Revenue by Year and Month'
+					caption: Maand. periodieke opbrengst per kalenderjaar en -maand
+				measure 'Mon. Recurring Revenue by Item'
+					caption: Maand. periodieke opbrengst per artikel
+				measure 'Mon. Recurring Revenue by Item Category'
+					caption: Maand. periodieke opbrengst per artikelcategorie
+				measure 'Mon. Recurring Revenue Churn and Downgrade by Customer Contract'
+					caption: Maand. periodiek opbrengstverloop en downgrade per klantcontract
+				measure 'Mon. Recurring Revenue New and Upgrade by Customer Contract'
+					caption: Maand. periodieke opbrengst nieuw en upgrade per klantcontract
+				measure 'Monthly Sales and Cost Forecast by Year and Month'
+					caption: Maandelijkse opbrengst- en kostenprognose per kalenderjaar en -maand
+				measure 'Monthly Sales and Cost Forecast by Salesperson, Customer and Contract No.'
+					caption: Maandelijkse opbrengst en kostenprognose per verkoper, klant en contractnr.
+				measure 'Released and Deferred Amount by Year and Month'
+					caption: Vrijgegeven en uitgesteld bedrag per kalenderjaar en -maand
+				measure 'Revenue Analysis'
+					caption: Opbrengstanalyse
+				measure 'Revenue by Customer'
+					caption: Opbrengst per klant
+				measure 'Revenue by Item'
+					caption: Opbrengst per artikel
+				measure 'Revenue by Salesperson'
+					caption: Opbrengst per verkoper
+				measure 'Revenue Development'
+					caption: Opbrengstontwikkeling
+				measure 'Sales and Cost Forecast'
+					caption: Opbrengstprognose
+				measure 'Revenue Year-Over-Year Growth'
+					caption: Opbrengstgroei jaar-tot-jaar
+				measure 'Subscription Billing Analysis'
+					caption: Analyse van Subscription Billing
+				measure 'Subscription Billing Overview'
+					caption: Overzicht van Subscription Billing
+				measure 'Top 5 Customers by Mon. Recurring Revenue'
+					caption: Top 5 klanten per maand. periodieke opbrengst
+				measure 'Top 5 Vendors by Mon. Recurring Cost'
+					caption: Top 5 leveranciers op maand. periodieke kosten
+				measure 'Total Contract Value Analysis'
+					caption: Analyse van totale contractwaarde
+				measure 'Total Contract Value and Total Contract Value PY by Month'
+					caption: Totale contractwaarde en totale contractwaarde VJ per kalendermaand
+				measure 'Total Contract Value and Year-Over-Year Growth by Year and Month'
+					caption: Totale contractwaarde en jaar-tot-jaar groei per kalenderjaar en -maand
+				measure 'Total Contract Value by Year and Month'
+					caption: Totale contractwaarde per kalenderjaar en -maand
+				measure 'Total Contract Value Year-Over-Year Growth'
+					caption: Groei totale contractwaarde jaar-tot-jaar
+				measure 'Vendor Contract Deferrals'
+					caption: Uitstel van leverancierscontracten
+				measure 'Vendor Deferrals (Caption)'
+					caption: Leveranciersuitstel
+				measure 'Back button'
+					caption: Knop Terug
+				measure 'Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue'
+					caption: Maandelijkse periodieke opbrengst, Maandelijkse periodieke kosten, Maandelijkse nettowinst, Actieve klanten, Totale contractwaarde, Wijziging in maandelijks periodieke opbrengst
+				measure 'Churn Analysis'
+					caption: Verloopanalyse
+				measure 'Avg. Mon. Churn Rate % by Year and Month'
+					caption: Gem. maand. % verloop per jaar en maand
+			table 'Meta Information'
+				caption: BEDRIJF
+			table Subscription
+				caption: Serviceobject
+				column 'Subscription No.'
+					caption: Serviceobjectnr.
+				column 'Package Code'
+					caption: Pakketcode
+				column 'Subscription Desc.'
+					caption: Omschrijving van serviceobject
+				column 'Analysis Date'
+					caption: Analysedatum
+				column 'Subscription No. Desc.'
+					caption: Omschrijving van Subscription-nr.
+			table 'Vendor Contract Deferrals'
+				caption: Uitstel van leverancierscontracten
+				column 'Document Type'
+					caption: Documenttype
+				column 'Document No.'
+					caption: Documentnr.
+				column 'Posting Date'
+					caption: Boekingsdatum
+				column 'Document Posting Date'
+					caption: Documentboekingsdatum
+				column 'Release Posting Date'
+					caption: Boekingsdatum van vrijgave
+				column 'G LEntry No.'
+					caption: Grootboekpostnr.
+				column Discount
+					caption: Korting
+				column 'Document Line No.'
+					caption: Documentregelnr.
+			table 'Customer Contract Line'
+				caption: Klantcontractregel
+				column 'Subscription Line No.'
+					caption: Nr. van toezeggingsregel
+				column Template
+					caption: Sjabloon
+				column 'Customer Contract Line Desc.'
+					caption: Omschrijving van klantcontractregel
+				column 'Subscription Start Date'
+					caption: Begindatum van service
+				column 'Subscription End Date'
+					caption: Einddatum van service
+				column 'Next Billing Date'
+					caption: Volgende factureringsdatum
+				column 'Billing Base Period'
+					caption: Basisperiode van facturering
+				column 'Invoicing Item No.'
+					caption: Nr. van factureringsartikel
+				column 'Customer Contract Line No.'
+					caption: Nr. van klantcontractregel
+				column 'Notice Period'
+					caption: Opzegperiode
+				column 'Initial Term'
+					caption: Initiële termijn
+				column 'Extension Term'
+					caption: Uitbreidingstermijn
+				column 'Billing Rhythm'
+					caption: Factureringsritme
+				column 'Cancellation Possible Until'
+					caption: Annulering mogelijk tot
+				column 'Term Until'
+					caption: Termijn tot
+				column 'Renewal Term'
+					caption: Verlengingstermijn
+				column 'Line Active'
+					caption: Regel actief
+				column 'Remaining Term'
+					caption: Resterende termijn
+				column 'Billing Rhythm Months'
+					caption: Maanden factureringsritme
+				column 'Customer Contract No.'
+					caption: Nr. van klantcontract
+				column 'Is Usage Based Billing'
+					caption: Is op gebruik gebaseerde facturering
+				column 'Source Type'
+					caption: Bronsoort
+				column 'Source No.'
+					caption: Bronnr.
+			table 'Vendor Contract Line'
+				caption: Leverancierscontractregel
+				column 'Subscription Line No.'
+					caption: Nr. van toezeggingsregel
+				column Template
+					caption: Sjabloon
+				column 'Vendor Contract Line Desc.'
+					caption: Omschrijving van leverancierscontractregel
+				column 'Subscription Start Date'
+					caption: Begindatum van service
+				column 'Subscription End Date'
+					caption: Einddatum van service
+				column 'Next Billing Date'
+					caption: Volgende factureringsdatum
+				column 'Vendor Contract Line No.'
+					caption: Nr. van leverancierscontractregel
+				column 'Notice Period'
+					caption: Opzegperiode
+				column 'Initial Term'
+					caption: Initiële termijn
+				column 'Extension Term'
+					caption: Uitbreidingstermijn
+				column 'Billing Rhythm'
+					caption: Factureringsritme
+				column 'Cancellation Possible Until'
+					caption: Annulering mogelijk tot
+				column 'Term Until'
+					caption: Termijn tot
+				column 'Renewal Term'
+					caption: Verlengingstermijn
+				column 'Line Active'
+					caption: Regel actief
+				column 'Remaining Term'
+					caption: Resterende termijn
+				column 'Billing Rhythm Months'
+					caption: Maanden factureringsritme
+				column 'Vendor Contract No.'
+					caption: Nr. van leverancierscontract
+				column 'Is Latest Version'
+					caption: Is nieuwste versie
+				column 'Is Usage Based Billing'
+					caption: Is op gebruik gebaseerde facturering
+				column 'Source Type'
+					caption: Bronsoort
+				column 'Source No.'
+					caption: Bronnr.
+			table 'Customer Contract Deferrals'
+				caption: Uitstel van klantcontracten
+				column 'Document Type'
+					caption: Documenttype
+				column 'Document No.'
+					caption: Documentnr.
+				column 'Posting Date'
+					caption: Boekingsdatum
+				column 'Document Line No.'
+					caption: Documentregelnr.
+				column 'Document Posting Date'
+					caption: Documentboekingsdatum
+				column 'Release Posting Date'
+					caption: Boekingsdatum van vrijgave
+				column 'G LEntry No.'
+					caption: Grootboekpostnr.
+			table 'Customer Contract'
+				caption: Klantcontract
+				column 'Customer Contract No.'
+					caption: Nr. van klantcontract
+				column 'Customer Contract Type'
+					caption: Type klantcontract
+				column 'Customer Contract Description'
+					caption: Omschrijving van klantcontract
+				column 'Customer Contract No. Desc.'
+					caption: Omschrijving van klantcontractnr.
+			table 'Vendor Contract'
+				caption: Leverancierscontract
+				column 'Vendor Contract No.'
+					caption: Nr. van leverancierscontract
+				column 'Vendor Contract Type'
+					caption: Type leverancierscontract
+				column 'Vendor Contract Description'
+					caption: Omschrijving van leverancierscontract
+				column 'Vendor Contract No. Desc.'
+					caption: Omschrijving van leverancierscontractnr.
+			table 'UBB handling'
+				caption: GGF-verwerking
+				column 'Treat Usage Based Billing as constant'
+					caption: GGF behandelen als constante
+			table 'Is Released'
+				caption: Is vrijgegeven
+			table Item
+				caption: Artikel
+				column 'Item No.'
+					caption: Artikelnr.
+				column 'Item Name'
+					caption: Artikelnaam
+				column 'Item Category Code'
+					caption: Artikelcategoriecode
+				column 'Item Category Description'
+					caption: Omschrijving van artikelcategorie
+				column 'Inventory Posting Group'
+					caption: Voorraadboekingsgroep
+				column 'Base Unit of Measure'
+					caption: Basiseenheid
+				column 'Item No. & Description'
+					caption: Artikelnr. en -omschrijving
+			table 'Analysis Date'
+				caption: Analysedatum
+				column 'Is Initial Version'
+					caption: Is initiële versie
+				column 'Is Current Version'
+					caption: Is huidige versie
+			table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+				caption: Berekeningsgroep - Tijdinformatie voor kalender (fiscaal)
+				column Perspective
+					caption: Perspectief
+			table 'Subscription Billing KPIs'
+				caption: KPI's van Subscription Billing
+				measure 'Mon. Recurring Revenue'
+					caption: MPO
+				measure 'Mon. Recurring Cost'
+					caption: MPK
+				measure 'Customer Deferrals'
+					caption: Klantuitstel
+				measure 'Vendor Deferrals'
+					caption: Leveranciersuitstel
+				measure 'Annual Recurring Revenue'
+					caption: VORDERING
+				measure 'Total Contract Value'
+					caption: TCW
+				measure 'Forecast Sales'
+					caption: Verkoop voorspellen
+				measure 'Mon. Recurring Cost PY'
+					caption: MPK VJ
+				measure 'Mon. Recurring Cost Δ vs. PY'
+					caption: MPK Δ versus VJ
+				measure 'Mon. Recurring Revenue Churn'
+					caption: Maand. periodiek opbrengstverloop
+				measure 'Mon. Recurring Revenue PY'
+					caption: MPO VJ
+				measure 'Mon. Recurring Revenue New'
+					caption: Maand. periodieke opbrengst nieuw
+				measure 'Mon. Recurring Revenue Δ vs. PY'
+					caption: Maand. periodieke opbrengst Δ versus VJ
+				measure 'Mon. Net Profit Amount'
+					caption: NMPO
+				measure 'Mon. Net Profit %'
+					caption: NMPO % van MPO
+				measure 'Mon. Net Profit PY'
+					caption: NMPO VJ
+				measure 'Mon. Net Profit Δ vs. PY'
+					caption: NMPO Δ versus VJ
+				measure 'Change in Mon. Recurring Revenue'
+					caption: Algehele wijziging MPO
+				measure 'Total Contract Value PY'
+					caption: TCW VJ
+				measure 'Total Contract Value Δ vs. PY'
+					caption: TCW Δ versus VJ
+				measure 'Last Update Analysis Entries'
+					caption: Analyseposten laatste update
+				measure 'Last Update Semantic Model'
+					caption: Laatste update semantisch model
+				measure 'Param Environment'
+					caption: Param.omgeving
+				measure 'Param Company'
+					caption: Param.bedrijf
+				measure 'Mon. Recurring Revenue Upgrade'
+					caption: Maand. periodieke opbrengstupgrade
+				measure 'Mon. Recurring Revenue Change UBB'
+					caption: Wijziging GGF maand. periodieke opbrengst
+				measure 'Reporting Currency'
+					caption: Aangiftevaluta
+				measure 'Active Customers'
+					caption: Actieve klanten
+				measure 'Active Customers PY'
+					caption: Actieve klanten VJ
+				measure 'Active Customers Δ vs. PY'
+					caption: Actieve klanten Δ versus VJ
+				measure 'Customer Billing Forecast'
+					caption: Prognose van klantfacturering
+				measure 'Vendor Billing Forecast'
+					caption: Prognose van leveranciersfacturering
+				measure 'Forecast Costs'
+					caption: Prognosekosten
+				measure 'Mon. Recurring Revenue Downgrade'
+					caption: Maand. periodieke opbrengstdowngrade
+				measure 'Selected Date Range'
+					caption: Geselecteerd datumbereik
+				measure 'Avg. Mon. Churn Rate %'
+					caption: Gem. maand. % verloop
+				measure 'Mon. Avg. Downgrade Rate %'
+					caption: Maand. gem. % downgrade
+				measure 'Mon. Recurring Revenue Downgrade & Churn'
+					caption: Maand. periodieke opbrengstdowngrade en -verloop
+			table Salesperson
+				caption: Verkoper
+				column 'Salesperson Code'
+					caption: Verkoperscode
+				column 'Salesperson Name'
+					caption: Verkopersnaam
+			table 'Customer Contract Changes'
+				caption: Wijzigingen in klantcontract
+				column 'Customer Contract Line Key'
+					caption: Sleutel van klantcontractregel
+				column Date
+					caption: Datum
+				column 'Change Type'
+					caption: Type wijzigen
+				column 'MRR Delta'
+					caption: MPO Delta
+

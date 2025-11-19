@@ -5,14 +5,14 @@
 
 namespace System.Security.AccessControl;
 
+using System.Apps;
 using System.DataAdministration;
 using System.Email;
 using System.Environment.Configuration;
 using System.ExternalFileStorage;
+using System.Integration;
 using System.Integration.Excel;
 using System.Privacy;
-using System.Integration;
-using System.Apps;
 
 permissionset 154 "System Application - Admin"
 {
@@ -36,6 +36,5 @@ permissionset 154 "System Application - Admin"
                              "PageScripting - Play",
                              "Page Summary - Admin",
                              "TROUBLESHOOT TOOLS",
-                             "VSC Intgr. - Admin",
-                             "Add Related Fields";
+                             "VSC Intgr. - Admin";
 }

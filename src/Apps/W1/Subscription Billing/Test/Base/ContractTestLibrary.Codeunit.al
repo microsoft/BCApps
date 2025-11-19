@@ -2,28 +2,28 @@ namespace Microsoft.SubscriptionBilling;
 
 #region Using
 
-using System.Reflection;
-using System.Environment.Configuration;
-using System.Globalization;
+using Microsoft.CRM.Contact;
+using Microsoft.CRM.Team;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
-using Microsoft.Inventory.BOM;
-using Microsoft.CRM.Team;
-using Microsoft.CRM.Contact;
-using Microsoft.Sales.Setup;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
-using Microsoft.Purchases.Document;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.Dimension;
-using Microsoft.Finance.Currency;
-using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Foundation.AuditCodes;
+using Microsoft.Sales.Setup;
 using Microsoft.TestLibraries.Foundation.NoSeries;
+using System.Environment.Configuration;
+using System.Globalization;
+using System.Reflection;
 using System.TestLibraries.Utilities;
 
 #endregion Using
@@ -209,7 +209,7 @@ codeunit 139685 "Contract Test Library"
         CreateItemForServiceObject(NewItem, false, ItemServiceCommitmentType, Enum::"Item Type"::"Non-Inventory");
     end;
 
-    procedure CreateItemTranslation(var ItemTranslation: Record "Item Translation"; ItemNo: Code[20]; LanguageCode: Code[10])
+    procedure CreateItemTranslation(var ItemTranslation: Record "Item Translation"; ItemNo: Code[20]; VariantCode: Code[10]; LanguageCode: Code[10])
     var
         Language: Record Language;
     begin
@@ -221,6 +221,7 @@ codeunit 139685 "Contract Test Library"
 
         ItemTranslation.Init();
         ItemTranslation."Item No." := ItemNo;
+        ItemTranslation."Variant Code" := VariantCode;
         ItemTranslation."Language Code" := LanguageCode;
         ItemTranslation.Description := 'Translated Description';
         ItemTranslation.Insert(true);
@@ -493,6 +494,40 @@ codeunit 139685 "Contract Test Library"
         VendorContract.Modify(false);
     end;
 
+    procedure DisableDeferralsForCustomerContract(var CustomerSubscriptionContract: Record "Customer Subscription Contract"; NewCreateContractDeferrals: Boolean)
+    var
+        CustomerContractLine: Record "Cust. Sub. Contract Line";
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        CustomerSubscriptionContract.Validate("Create Contract Deferrals", NewCreateContractDeferrals);
+        CustomerSubscriptionContract.Modify(false);
+        CustomerContractLine.SetRange("Subscription Contract No.", CustomerSubscriptionContract."No.");
+        if CustomerContractLine.FindSet() then
+            repeat
+                if CustomerContractLine.GetServiceCommitment(SubscriptionLine) then begin
+                    SubscriptionLine."Create Contract Deferrals" := SubscriptionLine."Create Contract Deferrals"::"Contract-dependent";
+                    SubscriptionLine.Modify(false);
+                end;
+            until CustomerContractLine.Next() = 0;
+    end;
+
+    procedure DisableDeferralsForVendorContract(var VendorSubscriptionContract: Record "Vendor Subscription Contract"; NewCreateContractDeferrals: Boolean)
+    var
+        VendorContractLine: Record "Vend. Sub. Contract Line";
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        VendorSubscriptionContract.Validate("Create Contract Deferrals", NewCreateContractDeferrals);
+        VendorSubscriptionContract.Modify(false);
+        VendorContractLine.SetRange("Subscription Contract No.", VendorSubscriptionContract."No.");
+        if VendorContractLine.FindSet() then
+            repeat
+                if VendorContractLine.GetServiceCommitment(SubscriptionLine) then begin
+                    SubscriptionLine."Create Contract Deferrals" := SubscriptionLine."Create Contract Deferrals"::"Contract-dependent";
+                    SubscriptionLine.Modify(false);
+                end;
+            until VendorContractLine.Next() = 0;
+    end;
+
     #endregion Contracts
 
     #region Service Commitment Template & Package
@@ -672,7 +707,7 @@ codeunit 139685 "Contract Test Library"
         ServiceObject."Provision Start Date" := WorkDate();
         if ServiceObject.IsItem() then
             if not SNSpecificTracking then
-                ServiceObject.Quantity := LibraryRandom.RandDec(10, 2)
+                ServiceObject.Quantity := LibraryRandom.RandDec(10, 5)
             else
                 ServiceObject."Serial No." := CopyStr(LibraryRandom.RandText(MaxStrLen(ServiceObject."Serial No.")), 1, MaxStrLen(ServiceObject."Serial No."));
 
@@ -1095,6 +1130,26 @@ codeunit 139685 "Contract Test Library"
         VendorContractLine.Insert(false);
     end;
 
+    procedure MockCustomerContractDeferralLine(CustomerContractNo: Code[20]; CustomerContractLineNo: Integer)
+    var
+        CustSubContractDeferral: Record "Cust. Sub. Contract Deferral";
+    begin
+        CustSubContractDeferral.Init();
+        CustSubContractDeferral."Subscription Contract No." := CustomerContractNo;
+        CustSubContractDeferral."Subscription Contract Line No." := CustomerContractLineNo;
+        CustSubContractDeferral.Insert(false);
+    end;
+
+    procedure MockVendorContractDeferralLine(VendorContractNo: Code[20]; VendorContractLineNo: Integer)
+    var
+        VendSubContractDeferral: Record "Vend. Sub. Contract Deferral";
+    begin
+        VendSubContractDeferral.Init();
+        VendSubContractDeferral."Subscription Contract No." := VendorContractNo;
+        VendSubContractDeferral."Subscription Contract Line No." := VendorContractLineNo;
+        VendSubContractDeferral.Insert(false);
+    end;
+
     procedure SetAutomaticDimensions(NewValue: Boolean)
     var
         ServiceContractSetup: Record "Subscription Contract Setup";
@@ -1319,7 +1374,7 @@ codeunit 139685 "Contract Test Library"
             CreateServiceObjectForItem(ServiceObject, Item, false);
             ServiceObject.SetHideValidationDialog(true);
             ServiceObject.Validate("End-User Customer Name", Customer.Name);
-            ServiceObject.Quantity := LibraryRandom.RandDec(10, 2);
+            ServiceObject.Quantity := LibraryRandom.RandDec(10, 5);
             ServiceObject.Modify(false);
         end;
         UpdateItemUnitCostAndPrice(Item, LibraryRandom.RandDec(1000, 2), LibraryRandom.RandDec(1000, 2), false);

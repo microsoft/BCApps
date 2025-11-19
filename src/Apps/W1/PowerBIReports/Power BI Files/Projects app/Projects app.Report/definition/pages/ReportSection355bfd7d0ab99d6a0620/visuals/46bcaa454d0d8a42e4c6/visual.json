@@ -1,0 +1,164 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "46bcaa454d0d8a42e4c6",
+  "position": {
+    "x": 865.42222222222222,
+    "y": 60.444444444444443,
+    "z": 6000,
+    "height": 230.4,
+    "width": 390.4,
+    "tabOrder": 6000
+  },
+  "visual": {
+    "visualType": "gauge",
+    "query": {
+      "queryState": {
+        "MaxValue": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Total Billable Price"
+                }
+              },
+              "queryRef": "Project Planning Line.Total Billable Price",
+              "nativeQueryRef": "Total Billable Price"
+            }
+          ]
+        },
+        "Tooltips": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Planning Line"
+                    }
+                  },
+                  "Property": "Total Billable Price"
+                }
+              },
+              "queryRef": "Project Planning Line.Total Billable Price",
+              "nativeQueryRef": "Total Billable Price"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Total Invoiced Price"
+                }
+              },
+              "queryRef": "Project Ledger Entry.Total Invoiced Price",
+              "nativeQueryRef": "Total Invoiced Price"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Project Ledger Entry"
+                  }
+                },
+                "Property": "Total Invoiced Price"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "labels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "calloutValue": [
+        {
+          "properties": {
+            "showDynamicLabels": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "dynamicLabelValue": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project"
+                    }
+                  },
+                  "Property": "Invoiced (%)"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Billable to Invoiced % Label"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualTooltip": [
+        {
+          "properties": {
+            "type": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Default'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

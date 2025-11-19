@@ -4,4 +4,4 @@ Param(
 Import-Module (Join-Path $PSScriptRoot "../../../scripts/EnlistmentHelperFunctions.psm1" -Resolve)
 
 $script = Join-Path $PSScriptRoot "../../../scripts/NewBcContainer.ps1" -Resolve
-. $script -parameters $parameters -AppsToUnpublish (Get-AppsInFolder "src/Apps/W1")
+. $script -parameters $parameters -AppsToUnpublish @("None")

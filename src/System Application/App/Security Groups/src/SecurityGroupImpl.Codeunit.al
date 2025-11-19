@@ -6,8 +6,8 @@
 namespace System.Security.AccessControl;
 
 using System;
-using System.Telemetry;
 using System.Azure.Identity;
+using System.Telemetry;
 
 codeunit 9871 "Security Group Impl."
 {
