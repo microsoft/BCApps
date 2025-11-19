@@ -2,7 +2,7 @@
     "id": "016a19f8-20b7-4c7a-8259-658d67e40129",
     "name": "SFTP Client",
     "publisher": "Microsoft",
-    "version": "27.0.0.0",
+    "version": "28.0.0.0",
     "brief": "Connects to SFTP servers.",
     "description": "The purpose of this module is to provide ability to connect to SFTP servers.",
     "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
@@ -12,8 +12,8 @@
     "logo": "",
     "dependencies": [],
     "screenshots": [],
-    "platform": "27.0.0.0",
-    "application": "27.0.0.0",
+    "platform": "28.0.0.0",
+    "application": "28.0.0.0",
     "idRanges": [
         {
             "from": 9760,
