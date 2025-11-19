@@ -19,6 +19,8 @@ page 4310 "Agent Setup Part"
     InstructionalText = 'Choose how the agent helps with inquiries, quotes, and orders.';
     SourceTable = "Agent Setup Buffer";
     RefreshOnActivate = true;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {
@@ -125,6 +127,15 @@ page 4310 "Agent Setup Part"
         AgentSetupBuffer.SetUserSettings(TempUserSettings);
         Rec.GetTempAgentAccessControl(TempAccessControl);
         AgentSetupBuffer.SetTempAgentAccessControl(TempAccessControl);
+    end;
+
+    /// <summary>
+    /// Returns if the changes were made to the setup.
+    /// </summary>
+    /// <returns>>True if there are changes made, false otherwise.</returns>
+    procedure GetChangesMade(): Boolean
+    begin
+        exit(AgentSetup.GetChangesMade(Rec));
     end;
 
     var

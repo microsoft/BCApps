@@ -42,6 +42,10 @@ table 4310 "Agent Setup Buffer"
         {
             Caption = 'User Name';
             Tooltip = 'Specifies the name of the user that is associated with the agent.';
+            trigger OnValidate()
+            begin
+                Rec."Values Updated" := true;
+            end;
         }
         /// <summary>
         /// The display name shown for this agent in the user interface.
