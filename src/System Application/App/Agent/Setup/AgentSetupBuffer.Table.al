@@ -120,7 +120,7 @@ table 4310 "Agent Setup Buffer"
             AllowInCustomizations = Never;
         }
         /// <summary>
-        /// Specifies wheather the access control to the agent is updated. This means that the settings on who can access the agent were changed. 
+        /// Specifies whether the access control to the agent is updated. This means that the settings on who can access the agent were changed. 
         /// </summary>
         field(5003; "Access Updated"; Boolean)
         {
