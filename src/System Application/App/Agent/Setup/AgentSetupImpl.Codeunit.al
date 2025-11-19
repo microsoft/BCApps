@@ -12,6 +12,7 @@ codeunit 4325 "Agent Setup Impl."
 {
     InherentEntitlements = X;
     InherentPermissions = X;
+    Access = Internal;
 
     [Scope('OnPrem')]
     procedure GetSetupRecord(var AgentSetupBuffer: Record "Agent Setup Buffer"; UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80]; AgentSummary: Text)
