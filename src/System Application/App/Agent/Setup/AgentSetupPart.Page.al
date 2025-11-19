@@ -82,7 +82,6 @@ page 4310 "Agent Setup Part"
                     end;
                 }
             }
-
             field(Summary; AgentSummary)
             {
                 Caption = 'Summary';

@@ -118,10 +118,6 @@ codeunit 4325 "Agent Setup Impl."
         exit(false);
     end;
 
-    /// <summary>
-    /// Gets the Agent Summary as text from the blob field.
-    /// </summary>
-    /// <returns>The agent summary text content.</returns>
     [Scope('OnPrem')]
     procedure GetAgentSummary(var AgentSetupBuffer: Record "Agent Setup Buffer"): Text
     var
@@ -197,10 +193,6 @@ codeunit 4325 "Agent Setup Impl."
             Agent.Deactivate(AgentSetupBuffer."User Security ID");
     end;
 
-    /// <summary>
-    /// Sets the Agent Summary blob field with the provided text.
-    /// </summary>
-    /// <param name="SummaryText">The text content to store in the agent summary.</param>
     local procedure SetAgentSummary(SummaryText: Text; var AgentSetupBuffer: Record "Agent Setup Buffer")
     var
         SummaryOutStream: OutStream;
