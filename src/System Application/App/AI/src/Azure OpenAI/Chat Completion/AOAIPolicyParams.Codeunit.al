@@ -68,7 +68,7 @@ codeunit 7787 "AOAI Policy Params"
         AOAIPolicyParamsImpl.SetCustomAOAIPolicy(CustomAOAIPolicyParams);
     end;
 
-    procedure InitializeDefaults():
+    procedure InitializeDefaults()
     begin
         AOAIPolicyParamsImpl.InitializeDefaults();
     end;
