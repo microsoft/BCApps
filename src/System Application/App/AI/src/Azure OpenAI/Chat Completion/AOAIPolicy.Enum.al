@@ -19,7 +19,7 @@ enum 7787 "AOAI Policy"
     /// <summary>
     /// Requests containing harms with a low severity are blocked.
     /// </summary>
-    value(2; "Conservative")
+    value(2; "ConservativeWithoutXPIA")
     {
     }
 
@@ -32,7 +32,7 @@ enum 7787 "AOAI Policy"
 
     /// <summary>
     /// Requests containing harms with a medium severity are blocked.
-    /// This is not the default policy that we recommend but rather this is the Default policy (Policy Id 0 ) in CAPI
+    /// This is not the default policy that we recommend but rather this is the Default AOAI policy (Policy ID : 0 ) in CAPI
     /// </summary>
     value(4; "Default")
     {
