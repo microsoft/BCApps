@@ -16,7 +16,6 @@
   ],
   "gitHubRunner": "self-hosted, 1ES.Pool=GitHub-BCApps",
   "memoryLimit": "16G",
-  "testType": "UnitTest",
   "doNotRunTests": true,
   "useCompilerFolder": true,
   "doNotPublishApps": true
