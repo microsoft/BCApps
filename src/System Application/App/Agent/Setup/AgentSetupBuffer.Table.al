@@ -16,6 +16,8 @@ table 4310 "Agent Setup Buffer"
     TableType = Temporary;
     ReplicateData = false;
     DataClassification = SystemMetadata;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     fields
     {
