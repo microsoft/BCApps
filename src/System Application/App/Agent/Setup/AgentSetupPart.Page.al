@@ -32,24 +32,24 @@ page 4310 "Agent Setup Part"
                 {
                     ShowCaption = false;
                     Editable = false;
-                    ToolTip = 'The badge of the sales order agent.';
+                    ToolTip = 'The badge of the agent.';
                 }
                 field(Type; Rec."Agent Metadata Provider")
                 {
                     ShowCaption = false;
                     Editable = false;
-                    ToolTip = 'Specifies the type of the sales order agent.';
+                    ToolTip = 'Specifies the type of the agent.';
                 }
                 field(Name; Rec."Display Name")
                 {
                     ShowCaption = false;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the sales order agent.';
+                    ToolTip = 'Specifies the name of the agent.';
                 }
                 field(State; Rec.State)
                 {
                     Caption = 'Active';
-                    ToolTip = 'Specifies the state of the sales order agent, such as active or inactive.';
+                    ToolTip = 'Specifies the state of the agent, such as active or inactive.';
                     trigger OnValidate()
                     begin
                         Rec."State Updated" := true;
@@ -61,7 +61,7 @@ page 4310 "Agent Setup Part"
                 {
                     ShowCaption = false;
                     Editable = false;
-                    ToolTip = 'Specifies the language and region settings for the sales order agent.';
+                    ToolTip = 'Specifies the language and region settings for the agent.';
 
                     trigger OnDrillDown()
                     begin
@@ -73,7 +73,7 @@ page 4310 "Agent Setup Part"
                 {
                     Caption = 'Coworkers can use this agent.';
                     Editable = false;
-                    ToolTip = 'Specifies the user access control settings for the sales order agent.';
+                    ToolTip = 'Specifies the user access control settings for the agent.';
 
                     trigger OnDrillDown()
                     begin
@@ -87,13 +87,13 @@ page 4310 "Agent Setup Part"
                 Caption = 'Summary';
                 MultiLine = true;
                 Editable = false;
-                ToolTip = 'Specifies a brief description of the sales order agent.';
+                ToolTip = 'Specifies a brief description of the agent.';
             }
             field(LanguageUsed; Rec."Language Used")
             {
                 Caption = 'Language used';
                 Editable = false;
-                ToolTip = 'Specifies the language that the sales order agent uses to communicate.';
+                ToolTip = 'Specifies the language that the agent uses to communicate.';
             }
         }
     }

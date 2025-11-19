@@ -51,8 +51,8 @@ codeunit 4324 "Agent Setup"
     /// Updates the language and region settings for the agent.
     /// This action is automatically done by the <see cref="SaveChanges"/> method. You may call this method to update the settings separately.
     /// </summary>
-    /// <param name="AgentSetupBuffer"></param>
-    /// <returns></returns>
+    /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
+    /// <returns>True if the language and region settings were updated, false otherwise.</returns>
     [Scope('OnPrem')]
     procedure SetupLanguageAndRegion(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     begin

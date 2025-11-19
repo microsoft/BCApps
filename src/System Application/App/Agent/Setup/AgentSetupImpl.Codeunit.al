@@ -82,7 +82,6 @@ codeunit 4325 "Agent Setup Impl."
                 AgentSetupBuffer."User Name" := Agent."User Name";
                 AgentSetupBuffer."Display Name" := Agent."Display Name";
                 AgentSetupBuffer.State := Agent.State;
-                // Question - do initials always win over AgentMetadataProvider?
                 AgentSetupBuffer.Initials := Agent.Initials;
                 AgentSetupBuffer."Configured By" := Agent.SystemModifiedBy;
                 exit;
