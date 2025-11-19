@@ -5,10 +5,10 @@
 
 namespace Microsoft.Finance.ExcelReports;
 
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.Dimension;
-using Microsoft.Foundation.Company;
 using Microsoft.ExcelReports;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Foundation.Company;
 
 report 4408 "EXR Trial Bal by Period Excel"
 {

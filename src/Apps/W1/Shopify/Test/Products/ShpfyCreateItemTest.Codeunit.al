@@ -5,11 +5,11 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
-using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
-using Microsoft.Inventory.Item;
 using Microsoft.Foundation.UOM;
+using Microsoft.Integration.Shopify;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
+using System.TestLibraries.Utilities;
 
 /// <summary>
 /// Codeunit Shpfy Create Item Test (ID 139567).

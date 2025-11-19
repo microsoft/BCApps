@@ -1,7 +1,7 @@
 namespace System.DataAdministration;
 
-using System.Telemetry;
 using System.IO;
+using System.Telemetry;
 
 codeunit 6204 "Trans. Storage Error Handler"
 {

@@ -1,0 +1,390 @@
+table 'Localized Labels'
+	isHidden
+	lineageTag: bb491cc1-cc21-4024-930c-dd934ce72e6d
+
+	measure 'My Report Title' = 0
+		isHidden
+		lineageTag: 9e65416f-15d8-460c-b41b-c5268ae1171e
+
+	measure 'My Button Caption' = 0
+		isHidden
+		lineageTag: bb8cf56a-9b48-47e6-a637-878d9618701d
+
+	measure 'My Visual Title' = 0
+		isHidden
+		lineageTag: b62c0144-e6a1-4cd7-9ecc-e6a858099595
+
+	measure 'Financial Overview' = 0
+		isHidden
+		lineageTag: 8000bdf6-72c3-42cd-97c6-3aebfaec8465
+
+	measure 'Income Statement by Month' = 0
+		isHidden
+		lineageTag: c1ec492b-4ae1-45be-b731-3db428123a31
+
+	measure 'Balance Sheet by Month' = 0
+		isHidden
+		lineageTag: c38831d9-4403-4632-aea7-fd05ed3f9b7e
+
+	measure 'Budget Comparison' = 0
+		isHidden
+		lineageTag: 9ada4062-238f-4d9a-8829-116a7c3dec03
+
+	measure 'Liquidity KPIs' = 0
+		isHidden
+		lineageTag: 6312265a-9df2-4417-bcb5-d6ed32bdad6d
+
+	measure Profitability = 0
+		isHidden
+		lineageTag: b771295a-1538-4b45-9d7e-2740833e3753
+
+	measure 'Liabilities ' = 0
+		isHidden
+		lineageTag: 224f3e68-3c3a-49dc-8768-884df8848ffd
+
+	measure 'Average Collection Period ' = 0
+		isHidden
+		lineageTag: 3aacfadb-e49b-4642-b324-541f61e9265b
+
+	measure 'Aged Receivables (Back Dating)' = 0
+		isHidden
+		lineageTag: afb98f02-465a-4267-84c2-410317ff26ad
+
+	measure 'Aged Payables (Back Dating)' = 0
+		isHidden
+		lineageTag: a2991c31-abc1-4b64-a183-f6ed60cb5d41
+
+	measure 'G/L Entries' = 0
+		isHidden
+		lineageTag: 016afb90-24aa-4e29-a017-f858eb5aa27d
+
+	measure 'Detailed Vendor Ledger Entries' = 0
+		isHidden
+		lineageTag: b6138d92-e5c8-43e2-b59d-6c559833e886
+
+	measure 'Detailed Customer Ledger Entries' = 0
+		isHidden
+		lineageTag: 8cbea3ac-6743-409f-b580-fdd50cbd1f65
+
+	measure 'Income Statement Drill Through' = 0
+		isHidden
+		lineageTag: ad949856-e191-41b7-8451-2a09d1eb2fa7
+
+	measure 'Balance Sheet Drill Through' = 0
+		isHidden
+		lineageTag: 120e515c-604e-40ae-bfca-d8e74973359e
+
+	measure 'Vendor Ledger Entries Drill Through' = 0
+		isHidden
+		lineageTag: 12bc14fa-3041-42b9-b78e-bf58547b1f8b
+
+	measure 'Customer Ledger Entries Drill Through' = 0
+		isHidden
+		lineageTag: f0fdb802-3b2b-4c5b-b8fe-8acd8b416ef2
+
+	measure 'Liabilities Drill Through' = 0
+		isHidden
+		lineageTag: 9b5aab08-2647-4ec6-a3ad-9b5fe6b1bbec
+
+	measure 'Finance App Change Log' = 0
+		isHidden
+		lineageTag: acfbba34-e881-4ead-b924-206401623f05
+
+	measure 'As At Date' = 0
+		isHidden
+		lineageTag: f9f0ef49-20b6-4322-98e8-855a26f195b1
+
+	measure 'Aging Bucket Length' = 0
+		isHidden
+		lineageTag: 6b7228b8-b3c2-4cff-a3bc-7d4cbbc3ebf1
+
+	measure 'Use Aging Date' = 0
+		isHidden
+		lineageTag: 4e8fb43a-39b8-417b-9bbd-4265e91e6a51
+
+	measure 'Cost of Goods Sold ' = 0
+		isHidden
+		lineageTag: 58fde422-d29c-4094-a2d4-7bb01b2c1d82
+
+	measure 'Net Profit ' = 0
+		isHidden
+		lineageTag: fc2758df-015b-4a2f-9625-3226ae703844
+
+	measure 'Current Assets / Current Liabilities' = 0
+		isHidden
+		lineageTag: 5d24c8a7-b311-4699-9047-fe389980775a
+
+	measure '(Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities' = 0
+		isHidden
+		lineageTag: 01b6e593-fb01-4cbc-b6f0-422fcc7d4057
+
+	measure 'Liquid Assets / Current Liabilities' = 0
+		isHidden
+		lineageTag: 9d248cd9-faf3-4e92-8087-d618a3b020f1
+
+	measure 'Revenue - Cost of Goods Sold - Expenses' = 0
+		isHidden
+		lineageTag: 3bf6b039-20ab-4d26-9f52-ea9471f8b67b
+
+	measure 'Net Profit / Revenue' = 0
+		isHidden
+		lineageTag: 75a120e9-a7e7-4c9d-84a5-834dcf348e0f
+
+	measure 'Revenue - Cost of Goods Sold' = 0
+		isHidden
+		lineageTag: 3081d59d-3dac-464a-a7b9-e43ace0e89cb
+
+	measure 'Gross Profit / Revenue' = 0
+		isHidden
+		lineageTag: b6e65dc1-3839-4c8f-abf0-4608b594c7df
+
+	measure 'Liabilities by Month' = 0
+		isHidden
+		lineageTag: f3467ed3-d71d-4eb6-97b3-21fbff130f0e
+
+	measure 'Revenue & Accounts Receivable (Average) by Month' = 0
+		isHidden
+		lineageTag: cf0af75f-1c29-47ac-8502-ba2fbd70e6a0
+
+	measure 'Average Collection Period (Days) by Month' = 0
+		isHidden
+		lineageTag: cb228245-6d55-4e0c-b4cf-4008e0ac3ede
+
+	measure 'Operating Revenue ' = 0
+		isHidden
+		lineageTag: 375f75fb-fa09-4129-b021-132ef205b142
+
+	measure 'Operating Expenses ' = 0
+		isHidden
+		lineageTag: 107e8bc2-c6b9-4d48-91e5-d789664399a8
+
+	measure 'AGED AR / AP' = 0
+		isHidden
+		lineageTag: 2ed69f86-b434-4ed6-b547-6bddd6685dc8
+
+	measure 'Finance Analytics' = 0
+		isHidden
+		lineageTag: 81be7c87-5407-4920-a306-7a193d19ce97
+
+	measure for = 0
+		isHidden
+		lineageTag: 7fbb5c61-8d33-4490-865d-2000f111e938
+
+	measure 'CONNECT YOUR DATA' = 0
+		isHidden
+		lineageTag: 2e0d925d-a450-462e-b5aa-768960cbdb6f
+
+	measure '1. Download the Finance Connector for Power BI' = 0
+		isHidden
+		lineageTag: 8aaa5c35-6d66-4f75-9ce0-4b7747ad09b0
+
+	measure '2. Configure Dynamics 365 Business Central' = 0
+		isHidden
+		lineageTag: fca6e0ca-f179-4be6-83ba-13954a9c6fb8
+
+	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS' = 0
+		isHidden
+		lineageTag: 30ccb8a8-14ea-40b0-b57e-7662a5d0351d
+
+	measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.' = 0
+		isHidden
+		lineageTag: 49af546a-c7f8-4d21-b054-1b9196a3e634
+
+	measure 'HELP AND SUPPORT' = 0
+		isHidden
+		lineageTag: a5955ac3-4cb2-47cd-ad4c-08c768bbc55c
+
+	measure 'For help and support with your new report please visit the Analytics overview documentation.' = 0
+		isHidden
+		lineageTag: 06dfcd33-477b-4ed5-b9bf-2428c57f4a33
+
+	measure 'OTHER POWER BI REPORTS' = 0
+		isHidden
+		lineageTag: a6a3566b-9dff-46e1-9262-a7d1858b81d5
+
+	measure PURCHASE = 0
+		isHidden
+		lineageTag: 1badf6ab-1d10-4cdb-b0da-8bf2c0a4e25a
+
+	measure SALES = 0
+		isHidden
+		lineageTag: 5745f2f3-9d33-4b61-8cde-d621773038bd
+
+	measure 'INVENTORY ' = 0
+		isHidden
+		lineageTag: edb00914-6261-460a-ab3b-2467ad00c889
+
+	measure MANUFACTURING = 0
+		isHidden
+		lineageTag: 148a9d24-e50b-4717-9dcd-e766641324d9
+
+	measure JOBS = 0
+		isHidden
+		lineageTag: fbf5929d-02c7-4067-a696-6ae247ac554d
+
+	measure 'for Business Central' = 0
+		isHidden
+		lineageTag: eca50d64-01d0-4c4c-9290-eccae33a5e97
+
+	measure 'Aged Accounts Receivable (AR) & Accounts Payable (AP)' = 0
+		isHidden
+		lineageTag: 0dcc61cf-88b9-4968-87db-1b3cf178c326
+
+	measure 'Aged Accounts Receivable & Accounts Payable' = 0
+		isHidden
+		lineageTag: dd7a4dea-da66-4feb-96e1-6609c7ac0304
+
+	measure 'Aged Accounts' = 0
+		isHidden
+		lineageTag: 5d65edad-a603-486d-b672-b9e4b583864f
+
+	measure 'General Ledger (G/L) Entries' = 0
+		isHidden
+		lineageTag: b0464ad7-f7b4-4645-8014-18f037e0b5fb
+
+	measure 'General Ledger Entries' = 0
+		isHidden
+		lineageTag: 1d239cc2-a08c-4def-ab06-43bd8146251b
+
+	measure 'Return On Assets - ROA by Month' = 0
+		isHidden
+		lineageTag: 0b3d3a4c-fa94-45a6-a27c-6df5a48f6978
+
+	measure 'Top 5 Customers by Balance' = 0
+		isHidden
+		lineageTag: db739866-a03a-4afb-b2fe-cd9e0220e131
+
+	measure 'Top 5 Vendors by Balance' = 0
+		isHidden
+		lineageTag: f4cc9597-f6c2-4013-a2d7-0f3bc8b668ef
+
+	measure 'Net Profit Margin by Month' = 0
+		isHidden
+		lineageTag: d9b356a8-16e4-4d9d-a8e6-40273923f37c
+
+	measure 'Asset Turnover Ratio by Month' = 0
+		isHidden
+		lineageTag: 88c587a3-28f2-4f76-81f4-1a3375a1ee64
+
+	measure 'Last Refreshed' = 0
+		isHidden
+		lineageTag: 3878a9f3-ddab-46db-99ad-12f24e36bbfa
+
+	measure 'Company Name' = 0
+		isHidden
+		lineageTag: 92097977-f391-4f47-996c-775a3d895704
+
+	measure 'Liquidity Line Chart' = 0
+		isHidden
+		lineageTag: 3bac63da-3698-4483-8dfe-26337f550985
+
+	measure 'Net Profit by Month' = 0
+		isHidden
+		lineageTag: f286d9bb-5c86-48af-b247-3b8b3074f0f7
+
+	measure 'Gross Profit by Month' = 0
+		isHidden
+		lineageTag: c778f30f-b4c0-451d-ab25-a7f796cabe8b
+
+	measure 'Operating Profit - EBIT and EBITDA by Month' = 0
+		isHidden
+		lineageTag: 885062bc-578c-47cd-8497-aea8b2354667
+
+	measure 'EBITDA ' = 0
+		isHidden
+		lineageTag: 8f6bb26a-f797-4da2-be8f-4b593f934f16
+
+	measure 'Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month' = 0
+		isHidden
+		lineageTag: 0a3a837a-734e-4b49-b7fd-162f336c40ef
+
+	measure 'Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding.' = 0
+		isHidden
+		lineageTag: 2168b34e-4890-40d3-a2ad-562009db3c33
+
+	measure 'Current Ratio, Current Assets, Current Liabilities.' = 0
+		isHidden
+		lineageTag: 3b8e1dfe-6776-4760-8cb1-9230f63fe4dc
+
+	measure 'Quick Ratio, Current Assets, Inventory.' = 0
+		isHidden
+		lineageTag: fe0efe4d-c7bf-4e15-8362-875da4fae03f
+
+	measure 'Cash Ratio, Liquid Assets, Current Liabilities.' = 0
+		isHidden
+		lineageTag: be1ac07b-cff7-418f-a39c-e59721f5c175
+
+	measure 'Net Profit, Revenue, Cost of Goods Sold.' = 0
+		isHidden
+		lineageTag: f88cfe68-96e8-4d14-a1df-55545afba009
+
+	measure 'Net Profit Margin, Net Profit, Revenue.' = 0
+		isHidden
+		lineageTag: 04efe49d-d23e-403b-9f57-4588631d50e7
+
+	measure 'Gross Profit, Revenue, Cost of Goods Sold.' = 0
+		isHidden
+		lineageTag: edc9f2bf-f29d-4e58-bf6e-3e61b89cbf9c
+
+	measure 'Gross Profit Marging, Gross Profit, Revenue.' = 0
+		isHidden
+		lineageTag: 07f765dd-9e8c-4f32-bada-ed94f42dabd9
+
+	measure 'Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities.' = 0
+		isHidden
+		lineageTag: caeda053-9205-4333-893b-63707d79fb2c
+
+	measure 'Gross Profit Margin, Gross Profit, Revenue.' = 0
+		isHidden
+		lineageTag: 098f491e-08b8-4b98-87e1-16ba9e3394e1
+
+	measure 'Net Profit Margin by Fiscal Year and Month' = 0
+		isHidden
+		lineageTag: 8240db28-21b9-4ab3-b6be-d35e1204fb6f
+
+	measure 'Asset Turnover Ratio by Fiscal Year and Month' = 0
+		isHidden
+		lineageTag: faa8a0b1-f64e-4570-8f46-7507dd5f7c94
+
+	measure 'Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name' = 0
+		isHidden
+		lineageTag: 2b8d3a0b-894c-4de5-9070-cf82ac158c4b
+
+	measure 'Accounts Receivable (Net Change) and Revenue by Month' = 0
+		isHidden
+		lineageTag: 47f11082-e0bb-4745-9200-3e3abbb58b78
+
+	measure 'Late Payment Amount by Customer' = 0
+		isHidden
+		lineageTag: 781b3f4a-7aa5-4d74-8f15-e378f604e3e8
+
+	measure 'Late Payments Over Time' = 0
+		isHidden
+		lineageTag: 63bc27d3-85f8-45ab-a9d4-29796ef67a40
+
+	measure 'Late Payments Analysis by Customer' = 0
+		isHidden
+		lineageTag: 9ec50da4-80b1-438c-b1e5-cd0898cdbdbf
+
+	measure 'Late Payment Details' = 0
+		isHidden
+		lineageTag: 14817afc-e6cb-4c3f-804c-f4f3d3c888cd
+
+	measure 'Late Payments (Receivables)' = 0
+		isHidden
+		lineageTag: 9e131d23-6835-4954-906c-4b3561bf2f6a
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: 199faaa3-4c88-43c8-9560-ca033e5f0ec4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [unused]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Partition = calculated
+		mode: import
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

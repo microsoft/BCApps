@@ -116,6 +116,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
     [TryFunction]
     local procedure TryGetNextSequenceNo(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean; var NewNo: BigInteger)
     begin
+        NoSeriesLine.TestField("Sequence Name");
         if ModifySeries then begin
             NewNo := NumberSequence.Next(NoSeriesLine."Sequence Name");
             if NewNo < NoSeriesLine."Starting Sequence No." then

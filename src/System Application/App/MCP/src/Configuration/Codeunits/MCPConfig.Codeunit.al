@@ -106,7 +106,19 @@ codeunit 8350 "MCP Config"
     /// <returns>The SystemId (GUID) of the created tool.</returns>
     procedure CreateAPITool(ConfigId: Guid; APIPageId: Integer): Guid
     begin
-        exit(MCPConfigImplementation.CreateAPITool(ConfigId, APIPageId));
+        exit(MCPConfigImplementation.CreateAPITool(ConfigId, APIPageId, true));
+    end;
+
+    /// <summary>
+    /// Creates a new API tool for the specified configuration and API page.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="APIPageId">The ID of the API page.</param>
+    /// <param name="ValidateAPIPublisher">True to validate the API publisher, false to skip validation.</param>
+    /// <returns>The SystemId (GUID) of the created tool.</returns>
+    procedure CreateAPITool(ConfigId: Guid; APIPageId: Integer; ValidateAPIPublisher: Boolean): Guid
+    begin
+        exit(MCPConfigImplementation.CreateAPITool(ConfigId, APIPageId, ValidateAPIPublisher));
     end;
 
     /// <summary>

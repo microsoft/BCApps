@@ -1,0 +1,511 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "a08a3a476b3144dc50a8",
+  "position": {
+    "x": 26.107226107226108,
+    "y": 383.4032634032634,
+    "z": 3000,
+    "height": 310.30303030303031,
+    "width": 600.46620046620046,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Prod Order Source No."
+                }
+              },
+              "queryRef": "Production Orders.Source No.",
+              "nativeQueryRef": "Source No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Production Order"
+                }
+              },
+              "queryRef": "Production Orders.Production Order",
+              "nativeQueryRef": "Production Order"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Prod Order Expected Capacity Need"
+                }
+              },
+              "queryRef": "Production Orders.Prod Order Expected Capacity Need",
+              "nativeQueryRef": "Prod Order Expected Capacity Need"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Prod Order Capacity Need"
+                    }
+                  },
+                  "Property": "Allocated Time"
+                }
+              },
+              "queryRef": "Prod Order Capacity Need.Allocated Time",
+              "nativeQueryRef": "Allocated Time"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Production Orders"
+                  }
+                },
+                "Property": "Production Order"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "113D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Month"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "95D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Day"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "125.9090909090909D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Purchases.Purchase Amount"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "297.06389113964417D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Work/Machine Centre.Name"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "155.42310827461085D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Capacity KPIs.Utilisation %"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "168.04289889803852D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Capacity Measures.Capacity Used (Hr.)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "183.97182452743667D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Capacity Measures.Capacity Avaliable (Hr.)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "188.33249187308036D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Capacity Measures.Exp. Capacity Need (Hr.)"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Production Orders.Prod Order Expected Capacity Need"
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {}
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Back Links"
+                    }
+                  },
+                  "Property": "Prod. Order Capacity Need Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Production Orders.Prod Order Expected Capacity Need"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "titleWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'''Segoe UI Semibold'', wf_segoe-ui_semibold, helvetica, arial, sans-serif'"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Allocated Time Details Label"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "lockAspect": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'sALES'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualTooltip": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
+        {
+          "properties": {
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeaderTooltip": [
+        {
+          "properties": {
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Manufacturing Setup"
+                    }
+                  },
+                  "Property": "Show Capacity In UOM"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#525c6d'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "f585de7103d107829863",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Production Orders"
+              }
+            },
+            "Property": "Production Order"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "p",
+              "Entity": "Production Orders",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "Not": {
+                  "Expression": {
+                    "In": {
+                      "Expressions": [
+                        {
+                          "Column": {
+                            "Expression": {
+                              "SourceRef": {
+                                "Source": "p"
+                              }
+                            },
+                            "Property": "Production Order"
+                          }
+                        }
+                      ],
+                      "Values": [
+                        [
+                          {
+                            "Literal": {
+                              "Value": "null"
+                            }
+                          }
+                        ]
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "isLockedInViewMode": true,
+        "objects": {
+          "general": [
+            {
+              "properties": {
+                "isInvertedSelectionMode": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "true"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

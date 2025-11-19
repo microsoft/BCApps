@@ -7,9 +7,9 @@ namespace System.Test.Email;
 
 using System.Email;
 using System.TestLibraries.Email;
-using System.Text;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
+using System.Text;
 
 codeunit 134692 "Email E2E Tests"
 {
@@ -528,11 +528,6 @@ codeunit 134692 "Email E2E Tests"
         Assert.AreEqual(Body, EmailViewer.BodyField.Value(), 'Body field value is incorrect');
 
         Assert.IsFalse(EmailViewer.Attachments.Delete.Visible(), 'Delete attachment is visible');
-#if not CLEAN25
-#pragma warning disable AL0432
-        Assert.IsFalse(EmailViewer.Attachments.Upload.Visible(), 'Visible attachment is visible');
-#pragma warning restore
-#endif
         Assert.IsTrue(EmailViewer.Resend.Visible(), 'Resend action should be visible');
         Assert.IsTrue(EmailViewer.Resend.Enabled(), 'Resend action should be enabled');
 

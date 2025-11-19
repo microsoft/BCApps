@@ -1,0 +1,184 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "ReportSectionf9d212728e1d71a00044",
+  "displayName": "Historical Utilization",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filterdbab8270e080a6848a4b",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Date"
+              }
+            },
+            "Property": "Date"
+          }
+        },
+        "type": "RelativeDate",
+        "howCreated": "User"
+      },
+      {
+        "name": "a138a38b764e07023090",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Global Dimension 1"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "984a2bcce139553463b0",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Global Dimension 2"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "ec94473e353207b7a136",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 3"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "c011a1806a26ad868035",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 4"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "b0481a117008824d3050",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 5"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "cb00904611133953cb03",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 6"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "d202af65292657771643",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 7"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "6a5b6ed78e59456b7b66",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 8"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "486fd71490b77841b65d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Work Center"
+              }
+            },
+            "Property": "Work Center Name"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "553397f72b4c7bbac099",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Work Center"
+              }
+            },
+            "Property": "Work Center Group Name"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      }
+    ],
+    "filterSortOrder": "Ascending"
+  },
+  "pageBinding": {
+    "name": "Pod7",
+    "type": "Default",
+    "parameters": [],
+    "acceptsFilterContext": "None"
+  }
+}

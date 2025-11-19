@@ -1,0 +1,421 @@
+table 'Sales Value Entries'
+	lineageTag: 6f438992-683b-4784-bfed-ee7ca8de8e29
+
+	measure 'No. of Distinct Items' = DISTINCTCOUNT('Sales Value Entries'[itemNo])
+		formatString: #,0
+		displayFolder: _Sales Value Entry Measures\_Counters
+		lineageTag: 1ed0ccba-7b75-49cf-8ef2-9753d65439aa
+
+	/// The count of the Document No. column from the Sales table where the Document Type is Sales Invoice and the Source Type is Value Entries Invoiced.
+	measure 'No. of Posted Sales Invoices' =
+			
+			CALCULATE
+			    (
+			        DISTINCTCOUNT('Sales Value Entries'[Document No.]),
+			        'Sales Value Entries'[Document Type] = "Sales Invoice"
+			        )
+		formatString: #,0
+		displayFolder: _Sales Value Entry Measures\_Counters
+		lineageTag: eaeba10b-b8cc-48e3-a8bf-9c5d68901e3f
+
+		changedProperty = IsHidden
+
+	/// The sum of the Sales Amount column from the Sales table where the Source Type is Value Entries Invoiced.
+	measure 'Sales Amount Actual' = SUM('Sales Value Entries'[salesAmountActual])
+		formatString: #,0.00
+		displayFolder: _Sales Value Entry Measures
+		lineageTag: 4f49980f-a7fb-4802-903b-9db456ceb14e
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Cost Amount Actual' = Sum('Sales Value Entries'[costAmountActual])
+		formatString: #,0.00
+		displayFolder: _Sales Value Entry Measures
+		lineageTag: c90d086f-ba46-4511-b8d7-be8e03ba9023
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Cost Posted to G/L' = SUM('Sales Value Entries'[costPostedToGL])
+		formatString: #,0.00
+		displayFolder: _Sales Value Entry Measures
+		lineageTag: 8dfad512-c453-4023-9de3-2861be2ac785
+
+	/// The sum of the Cost Amt. Non-Invtbl. (LCY) column from the Sales table.
+	measure 'Cost Amount Non-Inv' = SUM('Sales Value Entries'[costAmountNonInvtbl])
+		formatString: #,0.00
+		displayFolder: _Sales Value Entry Measures
+		lineageTag: a634bdac-6de7-4b4b-9224-ad4db135c416
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Invoiced Quantity' = -SUM('Sales Value Entries'[invoicedQuantity])
+		displayFolder: _Sales Value Entry Measures
+		lineageTag: 80a302d0-ce4f-404f-af93-f493c7ab45bb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Posted Sales CR/Adj Note Quantity' =
+			
+			CALCULATE(
+			  SUM('Sales Value Entries'[invoicedQuantity]),
+			    'Sales Value Entries'[Document Type] = "Posted Sales CR/Adj Note"
+			)
+		displayFolder: _Sales Value Entry Measures\_Cr/Adj Notes
+		lineageTag: 17457193-24e4-4fbb-abcd-b88f00593956
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Posted Sales CR/Adj Note Amount' =
+			
+			CALCULATE(
+			    [Sales Amount Actual],
+			    REMOVEFILTERS('Sales Value Entries'[Document Type]),
+			    'Sales Value Entries'[Document Type] = "Posted Sales CR/Adj Note"
+			)
+		displayFolder: _Sales Value Entry Measures\_Cr/Adj Notes
+		lineageTag: 59c7b138-1b2f-4a81-b9ac-0585ca02ba98
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Posted Sales Invoice Quantity' =
+			
+			CALCULATE(
+			    [Invoiced Quantity],
+			    REMOVEFILTERS('Sales Value Entries'[Document Type]),
+			    'Sales Value Entries'[Document Type] = "Posted Sales Invoice"
+			    )
+		displayFolder: _Sales Value Entry Measures\_Sales Invoices
+		lineageTag: d18c8606-1c9a-4049-8fcc-5f4390d842b4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Posted Sales Invoice Amount' =
+			
+			CALCULATE(
+			    [Sales Amount Actual],
+			    REMOVEFILTERS('Sales Value Entries'[Document Type]),
+			    'Sales Value Entries'[Document Type] = "Posted Sales Invoice"
+			    )
+		displayFolder: _Sales Value Entry Measures\_Sales Invoices
+		lineageTag: fb236e01-8aa0-4ecf-b33a-c4f2e6ea6ad1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Posted Sales CR/Adj Note Cost Amount' =
+			
+			CALCULATE(
+			    [Cost Amount Actual],
+			    REMOVEFILTERS('Sales Value Entries'[Document Type]),
+			    'Sales Value Entries'[Document Type] = "Posted Sales CR/Adj Note"
+			)
+		displayFolder: _Sales Value Entry Measures\_Cr/Adj Notes
+		lineageTag: 58183b67-b550-4d9e-9cb4-9956d4b06825
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Posted Sales CR/Adj Note Cost Amount Non-Inv' =
+			
+			CALCULATE(
+			    [Cost Amount Non-Inv],
+			    REMOVEFILTERS('Sales Value Entries'[Document Type]),
+			    'Sales Value Entries'[Document Type] = "Posted Sales CR/Adj Note"
+			)
+		displayFolder: _Sales Value Entry Measures\_Cr/Adj Notes
+		lineageTag: c55d7732-bff0-4b0f-bdf9-795d28a486af
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Item Ledger Entry No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 702f8e31-52dc-4e09-8764-273cf71fe12d
+		summarizeBy: sum
+		sourceColumn: Item Ledger Entry No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Value Entry No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: ca0f4de2-1da1-4638-be35-bd3bf4ca302f
+		summarizeBy: sum
+		sourceColumn: Value Entry No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entry Type'
+		dataType: string
+		lineageTag: b827c913-174a-4861-8aac-ceb71b11e927
+		summarizeBy: none
+		sourceColumn: Entry Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		isHidden
+		lineageTag: 2b5766f0-55cf-412c-8c5c-91fd5e0a2cc9
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column salesAmountActual
+		dataType: double
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 26732763-5a35-4e16-a05a-b4c99ae837bb
+		summarizeBy: sum
+		sourceColumn: salesAmountActual
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column customerNo
+		dataType: string
+		isHidden
+		lineageTag: ac0db7e1-879f-4ff7-a18a-5ba2bd82c055
+		summarizeBy: none
+		sourceColumn: customerNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column postingDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: cd9f0b94-88df-4a2a-b3e5-69aaa00a3831
+		summarizeBy: none
+		sourceColumn: postingDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: cb80668b-68ac-4cb3-8066-202f715c61ec
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: 1daff0dd-0a34-4316-bd9b-d687189c4736
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: aba16cd9-508e-4b3d-89be-6922b35873f7
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		annotation SummarizationSetBy = Automatic
+
+	column salespersonPurchaserCode
+		dataType: string
+		isHidden
+		lineageTag: ae7d47af-17cd-4873-aea0-ae6fdafb2c84
+		summarizeBy: none
+		sourceColumn: salespersonPurchaserCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source Table'
+		dataType: string
+		isHidden
+		lineageTag: a11367bc-83c5-45e8-b882-673977f09ce8
+		summarizeBy: none
+		sourceColumn: Source Table
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Key'
+		dataType: string
+		isHidden
+		lineageTag: 9886f4c5-fba4-418f-8f93-defe252f06d0
+		summarizeBy: none
+		sourceColumn: Sales Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoicedQuantity
+		dataType: double
+		isHidden
+		lineageTag: 991b6eb1-2152-49fc-939d-584b38f08384
+		summarizeBy: sum
+		sourceColumn: invoicedQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column costAmountActual
+		dataType: double
+		isHidden
+		lineageTag: 0d98f459-0db2-4a77-aea2-94691c5f462c
+		summarizeBy: sum
+		sourceColumn: costAmountActual
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column costAmountNonInvtbl
+		dataType: double
+		isHidden
+		lineageTag: d3970465-10d6-4ee3-994e-7dbd017105c8
+		summarizeBy: sum
+		sourceColumn: costAmountNonInvtbl
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column costPostedToGL
+		dataType: double
+		isHidden
+		lineageTag: 236c3d83-ceab-49dd-88ec-8f142049f26a
+		summarizeBy: sum
+		sourceColumn: costPostedToGL
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column documentDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 65d87bcd-b9c9-4fbc-beb7-15e08e83dae9
+		summarizeBy: none
+		sourceColumn: documentDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column returnReasonCode
+		dataType: string
+		isHidden
+		lineageTag: 995545be-21a3-4fd2-be9c-09f69857b97e
+		summarizeBy: none
+		sourceColumn: returnReasonCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column type
+		dataType: string
+		isHidden
+		lineageTag: 48a7c54d-ae09-4be1-a289-e031ca9242c1
+		summarizeBy: none
+		sourceColumn: type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Ledger Entry Type'
+		dataType: string
+		lineageTag: 01340f10-5051-406a-931e-591cd088f18a
+		summarizeBy: none
+		sourceColumn: Item Ledger Entry Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document Type'
+		dataType: string
+		isHidden
+		lineageTag: ca50a601-5e79-45fd-9b15-9620ff9b90b1
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column projectNo
+		dataType: string
+		isHidden
+		lineageTag: 883d7a35-4073-48fa-b44e-8fc8adcb9e00
+		summarizeBy: none
+		sourceColumn: projectNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Type Key'
+		dataType: string
+		isHidden
+		lineageTag: 6b4af4f3-0562-49c7-91d1-b2783e5bbb5d
+		summarizeBy: none
+		sourceColumn: Type Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Sales Value Entries' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source = ```
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "salesValueEntries", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"customerNo", type text},
+				            {"itemNo", type text},
+				            {"locationCode", type text},
+				            {"postingDate", type date},
+				            {"salespersonPurchaserCode", type text},
+				            {"dimensionSetID", Int64.Type}
+				        }
+				    ),
+				    #"Added Table Name" = Table.AddColumn(#"Changed Type", "Source Table", each "Sales Value Entries", type text),
+				    #"Replaced Credit Memo Document Name" = Table.ReplaceValue(#"Added Table Name","Credit Memo","CR/Adj Note",Replacer.ReplaceText,{"documentType"}),
+				    #"Appended Posted to Document Type" = Table.AddColumn(#"Replaced Credit Memo Document Name", "documentType2", each if [documentType] <> null and Text.Trim([documentType]) <> "" then "Posted " & [documentType] else [itemLedgerEntryType], type text),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Appended Posted to Document Type",
+				        {
+				            {"entryNo", "Value Entry No."},
+				            {"entryType", "Entry Type"},
+				            {"documentNo", "Document No."},
+				            {"documentType2", "Document Type"},
+				            {"itemLedgerEntryNo", "Item Ledger Entry No."},
+				            {"itemLedgerEntryType", "Item Ledger Entry Type"}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"documentType", "ETag"}),
+				    #"Added Sales Key" = Table.AddColumn(
+				        #"Removed Columns", "Sales Key", each [Document Type] & " " & [#"Document No."] & " " & [#"Source Table"], type text 
+				    ),
+				    // Type will be used to relate to the Type dimension.
+				    // Sales Value Entries will only ever have Type = Item.
+				    #"Added Type column" = Table.AddColumn(#"Added Sales Key", "type", each if [itemNo] = null then null else "Item", type text),
+				    #"Added Type Key" = Table.AddColumn(#"Added Type column", "Type Key", each [type] & " " & [itemNo], type text)
+				in
+				    #"Added Type Key"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

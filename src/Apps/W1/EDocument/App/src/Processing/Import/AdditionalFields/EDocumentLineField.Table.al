@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Purchases.History;
 using System.Reflection;
-using Microsoft.eServices.EDocument.Processing.Import.Purchase;
-using Microsoft.eServices.EDocument;
 
 table 6110 "E-Document Line - Field"
 {

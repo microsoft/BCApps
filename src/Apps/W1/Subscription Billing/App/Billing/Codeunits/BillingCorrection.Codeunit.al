@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Utilities;
-using Microsoft.Sales.Document;
 using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
+using Microsoft.Utilities;
 
 codeunit 8061 "Billing Correction"
 {

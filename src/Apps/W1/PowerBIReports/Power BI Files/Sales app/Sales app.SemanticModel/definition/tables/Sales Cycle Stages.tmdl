@@ -1,0 +1,59 @@
+table 'Sales Cycle Stages'
+	lineageTag: c0b00219-a2df-4d52-956d-0b29772faeee
+
+	column 'Sales Cycle Code'
+		dataType: string
+		lineageTag: cade61fc-8ed0-4f56-9da3-f76045fe8c6d
+		summarizeBy: none
+		sourceColumn: Sales Cycle Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Cycle Stage'
+		dataType: string
+		lineageTag: aa6f5b27-ce16-48cb-9f66-ce7991d0f9bc
+		summarizeBy: none
+		sourceColumn: Sales Cycle Stage
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Cycle Key'
+		dataType: string
+		isHidden
+		lineageTag: 21a4bd70-9ce6-46a9-99dc-94249b3b7dd2
+		summarizeBy: none
+		sourceColumn: Sales Cycle Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Cycle Stage Description'
+		dataType: string
+		lineageTag: eeae9fb1-c2ad-4efb-84ae-78a225d673e3
+		summarizeBy: none
+		sourceColumn: Sales Cycle Stage Description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Sales Cycle Stages' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(#"ENVIRONMENT", #"COMPANY",#"API_ENDPOINT", []),
+				    TableData = Source{[Name="salesCycleStages",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(TableData,{{"salesCycleStage", type text}}),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {{"salesCycleCode", "Sales Cycle Code"}, {"salesCycleStage", "Sales Cycle Stage"}, {"salesCycleStageDescription", "Sales Cycle Stage Description"}}
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"}),
+				    #"Added Sales Cycle Key" = Table.AddColumn(#"Removed Columns", "Sales Cycle Key", each [Sales Cycle Code]&[Sales Cycle Stage], type text)
+				in
+				    #"Added Sales Cycle Key"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

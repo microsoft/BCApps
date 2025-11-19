@@ -5,8 +5,8 @@
 
 namespace System.Reflection;
 
-using System.Environment.Configuration;
 using System.Apps;
+using System.Environment.Configuration;
 
 permissionset 358 "Object Selection - Read"
 {

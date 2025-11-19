@@ -1,12 +1,12 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Environment.Configuration;
-using Microsoft.Utilities;
-using Microsoft.Sales.Document;
-using Microsoft.Sales.Archive;
-using Microsoft.Sales.Posting;
-using Microsoft.Sales.History;
 using Microsoft.Inventory.Item;
+using Microsoft.Sales.Archive;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Posting;
+using Microsoft.Utilities;
+using System.Environment.Configuration;
 
 codeunit 8069 "Sales Subscription Line Mgmt."
 {

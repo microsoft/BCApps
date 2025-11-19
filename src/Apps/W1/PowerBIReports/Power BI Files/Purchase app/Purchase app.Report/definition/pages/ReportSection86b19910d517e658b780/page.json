@@ -1,0 +1,384 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "ReportSection86b19910d517e658b780",
+  "displayName": "Purchases by Location",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filter14433462170e68e7100a",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+              }
+            },
+            "Level": "Fiscal Year"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter4241b0d284addc536051",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+              }
+            },
+            "Level": "Fiscal Quarter Year"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filtercb43ec3fbc6ca769c852",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+              }
+            },
+            "Level": "Fiscal Month Year"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filterce8791817650722c5d70",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+              }
+            },
+            "Level": "Fiscal Week Year"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filterf468a101e207aa6d5420",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Date"
+              }
+            },
+            "Property": "Date"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "0b4ef8b318c911e2cbd6",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item Category Code"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "d262cc57c15526bb5304",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item Category Description"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "e9577304e44a955f5388",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item No. & Description"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "9e5fed498c6d0535c370",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item Inventory Posting Group"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "748b868d6684eb0e02e7",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Location"
+              }
+            },
+            "Property": "Location Code"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "e28fd0564a0d9be9e34b",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Location"
+              }
+            },
+            "Property": "Location Name"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "50f68b3ce8ae042e77bd",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Vendor"
+              }
+            },
+            "Property": "Vendor No. & Name"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "3eb012691f13890f4297",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Vendor"
+              }
+            },
+            "Property": "Vendor Posting Group"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "477b1fc4f9d28e8d9085",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Purchaser"
+              }
+            },
+            "Property": "Purchaser Code"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "633ea988d8911e253f0b",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Purchaser"
+              }
+            },
+            "Property": "Purchaser Name"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "6f3356bf27723b3a2a1d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Global Dimension 1"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "8e5308c8bdda64e94b7a",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Global Dimension 2"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "c76ccba98fc34c07f140",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 3"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "df155eeffba60a5d4883",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 4"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "334d6c8a5e458ca3cdd6",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 5"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "e9e668477e92928e873e",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 6"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "3551a98ec41158b84f3f",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 7"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "5db787253a4dec91f042",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 8"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      }
+    ],
+    "filterSortOrder": "Ascending"
+  },
+  "pageBinding": {
+    "name": "Pod4",
+    "type": "Default",
+    "parameters": [],
+    "acceptsFilterContext": "None"
+  }
+}

@@ -1,0 +1,369 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "3e89c8a099a2e5ed95b7",
+  "position": {
+    "x": 25.405720957384702,
+    "y": 313.0881494454174,
+    "z": 0,
+    "height": 379.59136018680675,
+    "width": 1229.1885580852304,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Production Order"
+                }
+              },
+              "queryRef": "Production Orders.Production Order",
+              "nativeQueryRef": "Production Order"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Prod Order Description"
+                }
+              },
+              "queryRef": "Production Orders.description",
+              "nativeQueryRef": "description"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Prod Order Source No."
+                }
+              },
+              "queryRef": "Production Orders.sourceNo",
+              "nativeQueryRef": "sourceNo"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Prod Order Routing No."
+                }
+              },
+              "queryRef": "Production Orders.routingNo",
+              "nativeQueryRef": "Routing No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Prod Order Starting Date"
+                }
+              },
+              "queryRef": "Production Orders.Starting Date",
+              "nativeQueryRef": "Starting Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Prod Order Ending Date"
+                }
+              },
+              "queryRef": "Production Orders.endingDate",
+              "nativeQueryRef": "endingDate"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Prod Order Due Date"
+                }
+              },
+              "queryRef": "Production Orders.dueDate",
+              "nativeQueryRef": "dueDate"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Planned Quantity"
+                }
+              },
+              "queryRef": "Production Orders.Production Quantity",
+              "nativeQueryRef": "Production Quantity"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Finished Quantity"
+                }
+              },
+              "queryRef": "Production Orders.Finished Quantity",
+              "nativeQueryRef": "Finished Quantity"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Variance Quantity"
+                }
+              },
+              "queryRef": "Production Orders.Qty. Variance",
+              "nativeQueryRef": "Variance Quantity"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Remaining %"
+                }
+              },
+              "queryRef": "Production Orders.% Remaining",
+              "nativeQueryRef": "Remaining %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Finished %"
+                }
+              },
+              "queryRef": "Production Orders.% Finished",
+              "nativeQueryRef": "Finished %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Orders"
+                    }
+                  },
+                  "Property": "Total Actual Cost"
+                }
+              },
+              "queryRef": "Production Orders.Total Actual Cost",
+              "nativeQueryRef": "Total Actual Cost"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Production Orders"
+                  }
+                },
+                "Property": "Finished Quantity"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnFormatting": [
+        {
+          "properties": {
+            "dataBars": {
+              "positiveColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#b3d8dd'"
+                      }
+                    }
+                  }
+                }
+              },
+              "negativeColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#f1c8bf'"
+                      }
+                    }
+                  }
+                }
+              },
+              "axisColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#FFFFFF'"
+                      }
+                    }
+                  }
+                }
+              },
+              "reverseDirection": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "hideText": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "totalMatchingOption": {
+                "expr": {
+                  "Literal": {
+                    "Value": "1L"
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "ProductionOrder_DataSource.Production Quantity"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Production Orders.Production Quantity"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Production Orders.% Remaining"
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {},
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Production Orders.% Finished"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Production Orders.Qty. Variance"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Released Production Order Details Label"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

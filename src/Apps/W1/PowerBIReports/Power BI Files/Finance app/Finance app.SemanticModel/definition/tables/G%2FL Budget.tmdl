@@ -1,0 +1,48 @@
+table 'G/L Budget'
+	lineageTag: e7ad9651-a2e3-4277-9568-76b53e96de6b
+
+	column 'G/L Budget Name'
+		dataType: string
+		lineageTag: 5b88483e-32a7-4b8a-8050-535651af415e
+		summarizeBy: none
+		sourceColumn: G/L Budget Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Budget Description'
+		dataType: string
+		lineageTag: 71237671-5be9-4cae-aef5-6acc6e844d95
+		summarizeBy: none
+		sourceColumn: G/L Budget Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'G/L Budget-a98acf6c-0789-46f9-b04f-29d199a4cdce' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="generalLedgerBudgets",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"budgetName", type text},
+				            {"budgetDescription", type text}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"budgetName", "G/L Budget Name"}, {"budgetDescription", "G/L Budget Description"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -9,6 +9,7 @@ permissionset 8350 "MCP - Objects"
 {
     Access = Internal;
     Assignable = false;
+    Caption = 'MCP - Objects';
 
     Permissions = codeunit "MCP Config" = X,
                   codeunit "MCP Config Implementation" = X,

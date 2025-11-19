@@ -1,0 +1,311 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "9cab786c479b8d40e0d3",
+  "position": {
+    "x": 651.29411764705878,
+    "y": 61.490196078431374,
+    "z": 0,
+    "height": 631.21568627450984,
+    "width": 601.0980392156863,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item No. & Description"
+                }
+              },
+              "queryRef": "Item.Item No. & Description",
+              "nativeQueryRef": "Item No. & Description",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Value Entries"
+                    }
+                  },
+                  "Property": "Beginning Balance Cost Amount (Actual)"
+                }
+              },
+              "queryRef": "Value Entries.Beginning Balance Value",
+              "nativeQueryRef": "Beginning Balance Cost Amount (Actual)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Value Entries"
+                    }
+                  },
+                  "Property": "Cost Amount (Actual)"
+                }
+              },
+              "queryRef": "Value Entries.Cost Amount (Actual)",
+              "nativeQueryRef": "Cost Amount (Actual)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Value Entries"
+                    }
+                  },
+                  "Property": "Ending Balance Cost Amount (Actual)"
+                }
+              },
+              "queryRef": "Value Entries.Ending Balance Value",
+              "nativeQueryRef": "Ending Balance Cost Amount (Actual)"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Value Entries"
+                  }
+                },
+                "Property": "Ending Balance Cost Amount (Actual)"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "Rows"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "Item.Item No. & Description"
+            ],
+            "isCollapsed": true,
+            "isPinned": true
+          }
+        ],
+        "root": {}
+      }
+    ],
+    "objects": {
+      "columnFormatting": [
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Item Ledger Entries.Quantity on Hand"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Value Entries.Ending Balance Value"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Value Entries.Beginning Balance Value"
+          }
+        }
+      ],
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "113D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Month"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "95D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Day"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "103.49997643864512D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "scopeId": {
+                  "Comparison": {
+                    "ComparisonKind": 0,
+                    "Left": {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Entity": "Location"
+                          }
+                        },
+                        "Property": "Location Name"
+                      }
+                    },
+                    "Right": {
+                      "Literal": {
+                        "Value": "null"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "133D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Item Ledger Entries.Quantity on Hand"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "214D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "SparklineData(Inventory Measures.Net Balance Value_[Item.Item No.])"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "116.40150617350318D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Value Entries.Ending Balance Value"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "120.31598513011151D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Value Entries.Beginning Balance Value"
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "autoSizeColumnWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {},
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Value Entries.Beginning Balance Value"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Inventory Valuation by Item Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

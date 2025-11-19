@@ -5,12 +5,12 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Integration.Shopify;
+using Microsoft.Inventory.Item;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using System.TestLibraries.Utilities;
-using Microsoft.Sales.Customer;
-using Microsoft.Inventory.Item;
-using Microsoft.Foundation.PaymentTerms;
 
 codeunit 139581 "Shpfy Skipped Record Log Test"
 {
@@ -696,6 +696,7 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
         SkippedRecord: Record "Shpfy Skipped Record";
         ExportShipments: Codeunit "Shpfy Export Shipments";
         ShippingHelper: Codeunit "Shpfy Shipping Helper";
+        AssignedFulfillmentOrderIds: Dictionary of [BigInteger, Code[20]];
         ShopifyOrderId: BigInteger;
     begin
         // [SCENARIO] Log skipped record when sales shipment is export is skip because theres no fulfillment lines shopify.
@@ -707,7 +708,7 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
         ShippingHelper.CreateRandomSalesShipment(SalesShipmentHeader, ShopifyOrderId);
 
         // [WHEN] Invoke Shopify Sync Shipment to Shopify
-        ExportShipments.CreateShopifyFulfillment(SalesShipmentHeader);
+        ExportShipments.CreateShopifyFulfillment(SalesShipmentHeader, AssignedFulfillmentOrderIds);
 
         // [THEN] Related record is created in shopify skipped record table.
         SkippedRecord.SetRange("Record ID", SalesShipmentHeader.RecordId);
@@ -723,6 +724,7 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
         ExportShipments: Codeunit "Shpfy Export Shipments";
         ShippingHelper: Codeunit "Shpfy Shipping Helper";
         SkippedRecordLogSub: Codeunit "Shpfy Skipped Record Log Sub.";
+        AssignedFulfillmentOrderIds: Dictionary of [BigInteger, Code[20]];
         ShopifyOrderId: BigInteger;
         DeliveryMethodType: Enum "Shpfy Delivery Method Type";
     begin
@@ -741,7 +743,7 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
 
         // [WHEN] Invoke Shopify Sync Shipment to Shopify
         BindSubscription(SkippedRecordLogSub);
-        ExportShipments.CreateShopifyFulfillment(SalesShipmentHeader);
+        ExportShipments.CreateShopifyFulfillment(SalesShipmentHeader, AssignedFulfillmentOrderIds);
         UnbindSubscription(SkippedRecordLogSub);
 
         // [THEN] Related record is created in shopify skipped record table.

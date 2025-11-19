@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/0be3b94b5da6f31f5ac402d6983846b80d387e42/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/13868260bf008b56d26fd739c1f764b2bb2c8239/Actions/.Modules/settings.schema.json",
   "projectName": "Performance Toolkit Tests",
   "testFolders": [
     "../../../src/Tools/Performance Toolkit/Test"

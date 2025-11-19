@@ -5,11 +5,11 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using System.IO;
-using Microsoft.Sales.Customer;
-using Microsoft.Sales.Document;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Foundation.Shipping;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using System.IO;
 using System.Reflection;
 
 /// <summary>
@@ -143,13 +143,8 @@ table 30118 "Shpfy Order Header"
             DataClassification = SystemMetadata;
             Editable = false;
             ObsoleteReason = 'This field is not imported. Use field "High Risk" field.';
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#endif
         }
 #endif
         field(22; "Fully Paid"; Boolean)
@@ -493,13 +488,8 @@ table 30118 "Shpfy Order Header"
             DataClassification = CustomerContent;
             Editable = false;
             ObsoleteReason = 'Location Id on Order Header is not used. Instead use Location Id on Order Lines.';
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#endif
         }
 #endif
         field(102; "Channel Name"; Text[100])
@@ -685,6 +675,13 @@ table 30118 "Shpfy Order Header"
             DataClassification = SystemMetadata;
             AutoFormatType = 1;
             AutoFormatExpression = "Currency Code";
+        }
+        field(134; "Channel Liable Taxes"; Boolean)
+        {
+            Caption = 'Channel Liable Taxes';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = exist("Shpfy Order Tax Line" where("Parent Id" = field("Shopify Order Id"), "Channel Liable" = const(true)));
         }
         field(500; "Shop Code"; Code[20])
         {

@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -5,9 +6,9 @@
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.Sales.History;
+using System.IO;
 using System.Text;
 using System.Utilities;
-using System.IO;
 
 page 6169 "E-Document QR Code Viewer"
 {
@@ -16,18 +17,20 @@ page 6169 "E-Document QR Code Viewer"
     UsageCategory = None;
     Caption = 'QR Code Viewer';
     SourceTable = "Sales Invoice Header";
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This page is replaced by a new page "E-Document QR Viewer" that supports different types of documents.';
+    ObsoleteTag = '28.0';
 
     layout
     {
         area(Content)
         {
-#pragma warning disable AA0218
             field(QRCodeBase64Preview; QRCodePreviewTxt)
-#pragma warning restore AA0218
             {
                 ApplicationArea = All;
                 Caption = 'QR Code (preview)';
                 Editable = false;
+                ToolTip = 'Specifies the Base64 representation of the QR code. Drill down to export the QR code image to a file.';
 
                 trigger OnDrillDown()
                 begin
@@ -38,7 +41,7 @@ page 6169 "E-Document QR Code Viewer"
             {
                 ApplicationArea = All;
                 Caption = 'QR Code Image';
-                ToolTip = 'Specifies the image QR code';
+                ToolTip = 'Specifies the image about the QR code';
                 Editable = false;
             }
         }
@@ -82,13 +85,12 @@ page 6169 "E-Document QR Code Viewer"
     begin
         Clear(QRCodePreviewTxt);
         Rec.CalcFields("QR Code Base64");
-        if not Rec."QR Code Base64".HasValue then
-            exit;
-
-        Rec."QR Code Base64".CreateInStream(InStr, TextEncoding::UTF8);
-#pragma warning disable AA0139
-        InStr.ReadText(QRCodePreviewTxt);
-#pragma warning restore AA0139
+        if Rec."QR Code Base64".HasValue then begin
+            Rec."QR Code Base64".CreateInStream(InStr, TextEncoding::UTF8);
+            InStr.ReadText(QRCodePreviewTxt, 1024);
+            if StrLen(QRCodePreviewTxt) > MaxStrLen(QRCodePreviewTxt) then
+                QRCodePreviewTxt := CopyStr(QRCodePreviewTxt, 1, MaxStrLen(QRCodePreviewTxt) - StrLen('...')) + '...';
+        end;
 
         SetQRCodeImageFromBase64();
     end;
@@ -146,5 +148,6 @@ page 6169 "E-Document QR Code Viewer"
     end;
 
     var
-        QRCodePreviewTxt: Text[250];
+        QRCodePreviewTxt: Text;
 }
+#endif
