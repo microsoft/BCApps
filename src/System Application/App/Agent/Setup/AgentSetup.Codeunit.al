@@ -28,7 +28,7 @@ codeunit 4324 "Agent Setup"
     end;
 
     /// <summary>
-    /// Saves changes done. IF the agent does not exist we will create a new agent. If the agent exists we will update the agent.
+    /// Saves changes done. If the agent does not exist we will create a new agent otherwise we will update the agent.
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
     /// <returns>Agent User ID of the created or updated agent.</returns>
