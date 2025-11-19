@@ -61,10 +61,9 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
     begin
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Create Internal Put-away";
         QltyManagementSetup.Get();
-        if (not QltyInspectionTestHeader.IsLotTracked()) and (not QltyInspectionTestHeader.IsSerialTracked()) and (not QltyInspectionTestHeader.IsPackageTracked()) and
-            (TempInstructionQltyDispositionBuffer."Quantity Behavior" = TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity")
-        then
-            Error(PutAwayEntireLotErr, QltyInspectionTestHeader.GetFriendlyIdentifier());
+        if TempInstructionQltyDispositionBuffer."Quantity Behavior" = TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity" then
+            if not QltyInspectionTestHeader.IsItemTrackingUsed() then
+                Error(PutAwayEntireLotErr, QltyInspectionTestHeader.GetFriendlyIdentifier());
 
         QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionTestHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
 

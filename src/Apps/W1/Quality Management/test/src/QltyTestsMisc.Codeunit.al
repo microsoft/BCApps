@@ -46,13 +46,21 @@ codeunit 139964 "Qlty. Tests - Misc"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
+    EventSubscriberInstance = Manual;
 
     var
         LibraryAssert: Codeunit "Library Assert";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         Any: Codeunit Any;
+        TestNotification: Notification;
+        NotificationMsg: Text;
+        NotificationOptions: Dictionary of [Text, Text];
         DocumentNo: Text;
         FlagTestNavigateToSourceDocument: Text;
+        NotificationDataTestRecordIdTok: Label 'TestRecordId', Locked = true;
+        AssignToSelfExpectedMessageLbl: Label 'You have altered test %1, would you like to assign it to yourself?', Comment = '%1=the test number';
+        AssignToSelfLbl: Label 'Assign to myself';
+        IgnoreLbl: Label 'Ignore';
         Bin1Tok: Label 'Bin1';
         Bin2Tok: Label 'Bin2';
         EntryTypeBlockedErr: Label 'This warehouse transaction was blocked because the quality inspection %1 has the grade of %2 for item %4 with tracking %5 %6, which is configured to disallow the transaction "%3". You can change whether this transaction is allowed by navigating to Quality Inspection Grades.', Comment = '%1=quality test, %2=grade, %3=entry type being blocked, %4=item, %5=lot, %6=serial';
@@ -1614,7 +1622,6 @@ codeunit 139964 "Qlty. Tests - Misc"
         ItemJournalLine: Record "Item Journal Line";
         ItemLedgerEntry: Record "Item Ledger Entry";
         ReservationEntry: Record "Reservation Entry";
-        ToUseNoSeries: Record "No. Series";
         NoSeries: Codeunit "No. Series";
         ItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";
         QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
@@ -1635,7 +1642,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
 
         // [GIVEN] Lot-tracked item with number series created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] Item journal template and batch configured
         if ItemJournalTemplate.Count() > 1 then
@@ -1648,7 +1655,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [GIVEN] First journal line with lot tracking created
         LibraryInventory.CreateItemJournalLine(ItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 1);
 
-        LotNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
+        LotNo := NoSeries.GetNextNo(Item."Lot Nos.");
         ItemJournalLine.Validate("Location Code", Location.Code);
         ItemJournalLine.Modify();
 
@@ -1674,7 +1681,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [GIVEN] Second journal line with new lot tracking created
         LibraryInventory.CreateItemJournalLine(ItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 1);
 
-        LotNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
+        LotNo := NoSeries.GetNextNo(Item."Lot Nos.");
         ItemJournalLine.Validate("Location Code", Location.Code);
         ItemJournalLine.Modify();
 
@@ -1700,7 +1707,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [GIVEN] Third journal line with new lot tracking created
         LibraryInventory.CreateItemJournalLine(ItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 1);
 
-        LotNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
+        LotNo := NoSeries.GetNextNo(Item."Lot Nos.");
         ItemJournalLine.Validate("Location Code", Location.Code);
         ItemJournalLine.Modify();
 
@@ -1726,7 +1733,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [GIVEN] Fourth journal line with new lot tracking created
         LibraryInventory.CreateItemJournalLine(ItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 1);
 
-        LotNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
+        LotNo := NoSeries.GetNextNo(Item."Lot Nos.");
         ItemJournalLine.Validate("Location Code", Location.Code);
         ItemJournalLine.Modify();
 
@@ -1752,7 +1759,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [GIVEN] Fifth journal line with new lot tracking created
         LibraryInventory.CreateItemJournalLine(ItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 1);
 
-        LotNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
+        LotNo := NoSeries.GetNextNo(Item."Lot Nos.");
         ItemJournalLine.Validate("Location Code", Location.Code);
         ItemJournalLine.Modify();
 
@@ -1778,7 +1785,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         // [GIVEN] Sixth journal line with new lot tracking created
         LibraryInventory.CreateItemJournalLine(ItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", 1);
 
-        LotNo := NoSeries.GetNextNo(ToUseNoSeries.Code);
+        LotNo := NoSeries.GetNextNo(Item."Lot Nos.");
         ItemJournalLine.Validate("Location Code", Location.Code);
         ItemJournalLine.Modify();
 
@@ -2220,7 +2227,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
 
         // [GIVEN] Lot-tracked item with no series created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Purchase order with lot tracking created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -2306,7 +2313,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
 
         // [GIVEN] Lot-tracked item with no series created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Purchase order with lot tracking created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -2392,7 +2399,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryWarehouse.CreateBin(Bin, Location.Code, 'Bin', '', '');
 
         // [GIVEN] Lot-tracked item with no series created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Purchase order with lot tracking created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -2502,7 +2509,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryWarehouse.CreateBin(Bin, Location.Code, Bin2Tok, '', '');
 
         // [GIVEN] Lot-tracked item with no series created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Purchase order with lot tracking created and assigned to Bin1
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -2645,7 +2652,7 @@ codeunit 139964 "Qlty. Tests - Misc"
         QltyTestsUtility.SetCurrLocationWhseEmployee(Location.Code);
 
         // [GIVEN] Lot-tracked item with no series created
-        QltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Purchase order with lot tracking created, released and received
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -2843,6 +2850,144 @@ codeunit 139964 "Qlty. Tests - Misc"
         LibraryAssert.AreEqual(WhseMovementWarehouseActivityHeader."No.", DocumentNo, 'Should navigate to the movement document');
     end;
 
+    [Test]
+    procedure NotifyDoYouWantToAssignToYourself()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        Location: Record Location;
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+    begin
+        // [SCENARIO] Notification system prompts user to assign quality inspection test to themselves with correct message and action options
+
+        // [GIVEN] Quality management setup with location, item, and inspection template are configured
+        Initialize();
+
+        QltyTestsUtility.EnsureSetup();
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryInventory.CreateItem(Item);
+        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+
+        // [GIVEN] A quality inspection test is created from a purchase line for an untracked item
+        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        QltyInTestGenerationRule.Delete();
+
+        // [GIVEN] Notification capture variables are cleared and subscription is set up
+        NotificationMsg := '';
+        Clear(NotificationOptions);
+        Clear(TestNotification);
+
+        BindSubscription(this);
+
+        // [WHEN] The notification to assign test to yourself is triggered
+        QltyNotificationMgmt.NotifyDoYouWantToAssignToYourself(QltyInspectionTestHeader);
+        UnbindSubscription(this);
+
+        // [THEN] The notification contains the correct message with test number, action options, and test record ID data
+        LibraryAssert.AreEqual(StrSubstNo(AssignToSelfExpectedMessageLbl, QltyInspectionTestHeader."No."), NotificationMsg, 'Notification message should match expected pattern with test number');
+
+        LibraryAssert.IsTrue(NotificationOptions.ContainsKey(AssignToSelfLbl), 'Notification should contain "Assign to myself" action');
+        LibraryAssert.IsTrue(NotificationOptions.ContainsKey(IgnoreLbl), 'Notification should contain "Ignore" action');
+
+        LibraryAssert.AreEqual(Format(QltyInspectionTestHeader.RecordId), TestNotification.GetData(NotificationDataTestRecordIdTok), 'Notification should contain the correct test record ID in data');
+
+        LibraryAssert.IsTrue(StrPos(NotificationMsg, QltyInspectionTestHeader."No.") > 0, 'Notification message should contain the test number');
+    end;
+
+    [Test]
+    procedure HandleNotificationActionAssignToSelf()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        Location: Record Location;
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        IWXQltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryInventory: Codeunit "Library - Inventory";
+        MockNotification: Notification;
+    begin
+        // [SCENARIO] Notification action handler successfully assigns quality inspection test to the current user
+
+        // [GIVEN] Quality management setup with location, item, and inspection template are configured
+        Initialize();
+
+        QltyTestsUtility.EnsureSetup();
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryInventory.CreateItem(Item);
+        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+
+        // [GIVEN] A quality inspection test is created from a purchase line for an untracked item
+        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        QltyInTestGenerationRule.Delete();
+
+        // [GIVEN] A mock notification with the test record ID is prepared
+        MockNotification.SetData(NotificationDataTestRecordIdTok, Format(QltyInspectionTestHeader.RecordId));
+
+        // [WHEN] The assign to self notification action is handled
+        IWXQltyNotificationMgmt.HandleNotificationActionAssignToSelf(MockNotification);
+
+        // [THEN] The quality inspection test is assigned to the current user
+        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
+        LibraryAssert.AreEqual(QltyInspectionTestHeader."Assigned User Id", UserId(), 'Test should be assigned to the current user');
+    end;
+
+    [Test]
+    procedure HandleNotificationActionIgnore()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        Location: Record Location;
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryInventory: Codeunit "Library - Inventory";
+        MockNotification: Notification;
+    begin
+        // [SCENARIO] Notification action handler successfully sets quality inspection test to prevent auto assignment when ignored
+
+        // [GIVEN] Quality management setup with location, item, and inspection template are configured
+        Initialize();
+
+        QltyTestsUtility.EnsureSetup();
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryInventory.CreateItem(Item);
+        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+
+        // [GIVEN] A quality inspection test is created from a purchase line for an untracked item
+        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        QltyInTestGenerationRule.Delete();
+
+        // [GIVEN] A mock notification with the test record ID is prepared
+        MockNotification.SetData(NotificationDataTestRecordIdTok, Format(QltyInspectionTestHeader.RecordId()));
+
+        // [WHEN] The ignore notification action is handled
+        QltyNotificationMgmt.HandleNotificationActionIgnore(MockNotification);
+
+        // [THEN] The quality inspection test is marked to prevent auto assignment
+        LibraryAssert.IsTrue(QltyInspectionTestHeader.GetPreventAutoAssignment(), 'Test should be ignored');
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
@@ -2885,5 +3030,14 @@ codeunit 139964 "Qlty. Tests - Misc"
     procedure HandleModalPage_NavigateToMovementDocument(var WarehouseMovement: TestPage "Warehouse Movement")
     begin
         DocumentNo := WarehouseMovement."No.".Value();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Qlty. Notification Mgmt.", 'OnBeforeCreateActionNotification', '', true, true)]
+    local procedure OnBeforeCreateActionNotification(var NotificationToShow: Notification; var CurrentMessage: Text; var AvailableOptions: Dictionary of [Text, Text]; var Handled: Boolean)
+    begin
+        NotificationMsg := CurrentMessage;
+        NotificationOptions := AvailableOptions;
+        TestNotification := NotificationToShow;
+        Handled := true;
     end;
 }

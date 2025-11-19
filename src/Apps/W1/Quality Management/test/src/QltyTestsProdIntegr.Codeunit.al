@@ -15,6 +15,7 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
+using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup.Setup;
@@ -2035,6 +2036,233 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         LibraryAssert.AreEqual(QltyInspectionTemplateHdr.Code, QltyInspectionTestHeader."Template Code", 'Should be same template.');
         LibraryAssert.AreEqual(Location.Code, QltyInspectionTestHeader."Location Code", 'Should be same location.');
         LibraryAssert.AreEqual(AssemblyHeader."Quantity (Base)", QltyInspectionTestHeader."Source Quantity (Base)", 'Should be same quantity.');
+    end;
+
+    [Test]
+    procedure CreateTestOnAfterRefreshProdOrder()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        Item: Record Item;
+        ProdProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        BeforeCount: Integer;
+        CountOfRoutingLines: Integer;
+    begin
+        // [SCENARIO] Quality inspection tests are created for all routing lines when production order is refreshed with OnReleasedProductionOrderRefresh trigger
+
+        // [GIVEN] Quality management setup exists
+        QltyTestsUtility.EnsureSetup();
+
+        // [GIVEN] A quality inspection template is created with 3 lines
+        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInTestGenerationRule.DeleteAll();
+
+        // [GIVEN] A test generation rule is created for Prod. Order Routing Line with OnReleasedProductionOrderRefresh trigger
+        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInTestGenerationRule);
+        QltyInTestGenerationRule.Validate("Production Trigger", QltyInTestGenerationRule."Production Trigger"::OnReleasedProductionOrderRefresh);
+        QltyInTestGenerationRule.Modify(true);
+
+        // [GIVEN] An item and production order are created with routing lines
+        GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
+        ProdOrderRoutingLine.Reset();
+        ProdOrderRoutingLine.SetRange(Status, ProdProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdProductionOrder."No.");
+        CountOfRoutingLines := ProdOrderRoutingLine.Count();
+
+        // [GIVEN] The current count of inspection test headers is recorded
+        BeforeCount := QltyInspectionTestHeader.Count();
+
+        // [WHEN] The production order is refreshed
+        ProdProductionOrder.SetRecFilter();
+        Report.Run(Report::"Refresh Production Order", false, false, ProdProductionOrder);
+
+        QltyInTestGenerationRule.Delete();
+        QltyInspectionTemplateHdr.Delete();
+
+        // [THEN] Tests are created for each routing line
+        LibraryAssert.AreEqual(BeforeCount + CountOfRoutingLines, QltyInspectionTestHeader.Count(), 'Test(s) was not created.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ProdOrderStatusFinishedFormModalPageHandler,ConfirmHandlerTrue,MessageHandler')]
+    procedure UpdateReferences_ProdOrder_NoSourceConfig()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        TestQualityOrder: Record "Qlty. Inspection Test Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        Item: Record Item;
+        ProdProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        RecordRef: RecordRef;
+        RecordId: Text;
+    begin
+        // [SCENARIO] Test source record ID is updated when production order status changes with no source configuration and "Update when source changes" setting
+
+        // [GIVEN] Quality management setup exists
+        QltyTestsUtility.EnsureSetup();
+
+        // [GIVEN] A quality inspection template is created with 3 lines
+        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Production Order", QltyInTestGenerationRule);
+
+        // [GIVEN] An item and production order are created with routing line
+        GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
+        ProdOrderLine.Get(ProdOrderLine.Status::Released, ProdProductionOrder."No.", 10000);
+        ProdOrderLine.Validate(Quantity, 10);
+        ProdOrderLine.Modify();
+
+        // [GIVEN] A quality test is created for the production order with Released status
+        RecordRef.GetTable(ProdProductionOrder);
+        QltyInspectionTestCreate.CreateTest(RecordRef, false);
+        QltyInspectionTestCreate.GetCreatedTest(TestQualityOrder);
+        RecordId := Format(TestQualityOrder."Source RecordId");
+
+        LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
+
+        // [GIVEN] Production Update Control is set to "Update when source changes"
+        QltyManagementSetup.Get();
+        QltyManagementSetup.Validate("Production Update Control", QltyManagementSetup."Production Update Control"::"Update when source changes");
+        QltyManagementSetup.Modify();
+
+        // [GIVEN] All source configurations are deleted
+        QltyInspectSourceConfig.DeleteAll();
+
+        // [WHEN] The production order status is changed to Finished
+        Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
+
+        // [THEN] The test source record ID is updated to have "Finished" status
+        TestQualityOrder.Get(TestQualityOrder."No.", TestQualityOrder."Retest No.");
+        RecordId := Format(TestQualityOrder."Source RecordId");
+
+        LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
+
+        QltyInTestGenerationRule.Delete();
+        QltyInspectionTemplateHdr.Delete();
+    end;
+
+    [Test]
+    [HandlerFunctions('ProdOrderStatusFinishedFormModalPageHandler,ConfirmHandlerTrue,MessageHandler')]
+    procedure UpdateReferences_ProdOrderLine_NoSourceConfig()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        TestQualityOrder: Record "Qlty. Inspection Test Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        Item: Record Item;
+        ProdProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        RecordRef: RecordRef;
+        RecordId: Text;
+    begin
+        // [SCENARIO] Test source record ID is updated when production order status changes with no source configuration and "Update when source changes" setting for Prod. Order Line
+
+        // [GIVEN] Quality management setup exists
+        QltyTestsUtility.EnsureSetup();
+
+        // [GIVEN] A quality inspection template is created with 3 lines
+        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Line", QltyInTestGenerationRule);
+
+        // [GIVEN] An item and production order are created with routing line
+        GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
+        ProdOrderLine.Get(ProdOrderLine.Status::Released, ProdProductionOrder."No.", 10000);
+        ProdOrderLine.Validate(Quantity, 10);
+        ProdOrderLine.Modify();
+
+        // [GIVEN] A quality test is created for the production order line with Released status
+        RecordRef.GetTable(ProdOrderLine);
+        QltyInspectionTestCreate.CreateTest(RecordRef, false);
+        QltyInspectionTestCreate.GetCreatedTest(TestQualityOrder);
+        RecordId := Format(TestQualityOrder."Source RecordId");
+
+        LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
+
+        // [GIVEN] Production Update Control is set to "Update when source changes"
+        QltyManagementSetup.Get();
+        QltyManagementSetup.Validate("Production Update Control", QltyManagementSetup."Production Update Control"::"Update when source changes");
+        QltyManagementSetup.Modify();
+
+        // [GIVEN] All source configurations are deleted
+        QltyInspectSourceConfig.DeleteAll();
+
+        // [WHEN] The production order status is changed to Finished
+        Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
+
+        // [THEN] The test source record ID is updated to have "Finished" status
+        TestQualityOrder.Get(TestQualityOrder."No.", TestQualityOrder."Retest No.");
+        RecordId := Format(TestQualityOrder."Source RecordId");
+
+        LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
+
+        QltyInTestGenerationRule.Delete();
+        QltyInspectionTemplateHdr.Delete();
+    end;
+
+    [Test]
+    [HandlerFunctions('ProdOrderStatusFinishedFormModalPageHandler,ConfirmHandlerTrue,MessageHandler')]
+    procedure UpdateReferences_ProdOrderRoutingLine_NoSourceConfig()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        TestQualityOrder: Record "Qlty. Inspection Test Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        Item: Record Item;
+        ProdProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        RecordRef: RecordRef;
+        RecordId: Text;
+    begin
+        // [SCENARIO] Test source record ID is updated when production order status changes with no source configuration and "UpdateOnChange" setting for Prod. Order Routing Line
+
+        // [GIVEN] Quality management setup exists
+        QltyTestsUtility.EnsureSetup();
+
+        // [GIVEN] A quality inspection template is created with 3 lines
+        QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyTestsUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInTestGenerationRule);
+
+        // [GIVEN] An item and production order are created with routing line
+        GenQltyProdOrderGenerator.CreateItemAndProductionOrder(Item, ProdProductionOrder, ProdOrderRoutingLine);
+        ProdOrderLine.Get(ProdOrderLine.Status::Released, ProdProductionOrder."No.", 10000);
+        ProdOrderLine.Validate(Quantity, 10);
+        ProdOrderLine.Modify();
+
+        // [GIVEN] A quality test is created for the production order routing line with Released status
+        RecordRef.GetTable(ProdOrderRoutingLine);
+        QltyInspectionTestCreate.CreateTest(RecordRef, false);
+        QltyInspectionTestCreate.GetCreatedTest(TestQualityOrder);
+        RecordId := Format(TestQualityOrder."Source RecordId");
+
+        LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
+
+        // [GIVEN] Production Update Control is set to "Update when source changes"
+        QltyManagementSetup.Get();
+        QltyManagementSetup.Validate("Production Update Control", QltyManagementSetup."Production Update Control"::"Update when source changes");
+        QltyManagementSetup.Modify();
+
+        // [GIVEN] All source configurations are deleted
+        QltyInspectSourceConfig.DeleteAll();
+
+        // [WHEN] The production order status is changed to Finished
+        Codeunit.Run(Codeunit::"Prod. Order Status Management", ProdProductionOrder);
+
+        // [THEN] The test source record ID is updated to have "Finished" status
+        TestQualityOrder.Get(TestQualityOrder."No.", TestQualityOrder."Retest No.");
+        RecordId := Format(TestQualityOrder."Source RecordId");
+
+        LibraryAssert.IsTrue(RecordId.IndexOf('Finished') > 0, 'The source record ID should have the "finished" status.');
+
+        QltyInTestGenerationRule.Delete();
+        QltyInspectionTemplateHdr.Delete();
     end;
 
     local procedure CreateOutputPrioritizedRule(QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule")

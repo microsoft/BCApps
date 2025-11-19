@@ -35,8 +35,9 @@ table 20406 "Qlty. Inspection Test Line"
         field(2; "Retest No."; Integer)
         {
             Caption = 'Retest No.';
-            Editable = false;
             ToolTip = 'Specifies which retest this is for.';
+            Editable = false;
+            BlankZero = true;
         }
         field(3; "Line No."; Integer)
         {
@@ -53,8 +54,9 @@ table 20406 "Qlty. Inspection Test Line"
         field(5; "Template Line No."; Integer)
         {
             Caption = 'Quality Inspection Template Line No.';
+            TableRelation = "Qlty. Inspection Template Line"."Line No." where("Template Code" = field("Template Code"));
             Editable = false;
-            TableRelation = "Qlty. Inspection Test Header"."Template Code";
+            BlankZero = true;
         }
         field(12; "Field Code"; Code[20])
         {
@@ -399,7 +401,7 @@ table 20406 "Qlty. Inspection Test Line"
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         QltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         QltyGradeEvaluation: Codeunit "Qlty. Grade Evaluation";
-        OfConsideredFields: List of [Text];
+        OfConsideredFieldCodes: List of [Text];
     begin
         if not GetTest() then
             exit;
@@ -420,7 +422,7 @@ table 20406 "Qlty. Inspection Test Line"
                 OthersInSameQltyInspectionTestLine.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
                 if OthersInSameQltyInspectionTestLine.FindSet() then
                     repeat
-                        OfConsideredFields.Add(OthersInSameQltyInspectionTestLine."Field Code");
+                        OfConsideredFieldCodes.Add(OthersInSameQltyInspectionTestLine."Field Code");
                         case OthersInSameQltyInspectionTestLine."Field Type" of
                             OthersInSameQltyInspectionTestLine."Field Type"::"Field Type Text Expression":
                                 OthersInSameQltyInspectionTestLine.EvaluateTextExpression(QltyInspectionTestHeader);
@@ -441,7 +443,7 @@ table 20406 "Qlty. Inspection Test Line"
                 OthersInSameQltyInspectionTestLine.SetRange("Line No.", QltyIGradeConditionConf."Target Line No.");
                 OthersInSameQltyInspectionTestLine.SetRange("Field Code", QltyIGradeConditionConf."Field Code");
                 if OthersInSameQltyInspectionTestLine.FindFirst() then begin
-                    OfConsideredFields.Add(OthersInSameQltyInspectionTestLine."Field Code");
+                    OfConsideredFieldCodes.Add(OthersInSameQltyInspectionTestLine."Field Code");
                     OthersInSameQltyInspectionTestLine.ValidateTestValue();
                 end;
             until QltyIGradeConditionConf.Next() = 0;
@@ -453,7 +455,7 @@ table 20406 "Qlty. Inspection Test Line"
         OthersInSameQltyInspectionTestLine.SetFilter("Allowable Values", StrSubstNo('@*[%1]*', Rec."Field Code"));
         if OthersInSameQltyInspectionTestLine.FindSet(true) then
             repeat
-                if not OfConsideredFields.Contains(OthersInSameQltyInspectionTestLine."Field Code") then
+                if not OfConsideredFieldCodes.Contains(OthersInSameQltyInspectionTestLine."Field Code") then
                     OthersInSameQltyInspectionTestLine.ValidateTestValue();
 
             until OthersInSameQltyInspectionTestLine.Next() = 0;

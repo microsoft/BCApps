@@ -101,14 +101,12 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
         CopyFromQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
         CopyToQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
     begin
-        if not QltyInspectionTemplateLine.Get(Template, LineNo) then
-            exit;
-
-        if not QltyField.Get(QltyInspectionTemplateLine."Field Code") then
-            exit;
-
-        if QltyField."Field Type" in [QltyField."Field Type"::"Field Type Label"] then
-            exit;
+        case true of
+            not QltyInspectionTemplateLine.Get(Template, LineNo),
+            not QltyField.Get(QltyInspectionTemplateLine."Field Code"),
+            QltyField."Field Type" in [QltyField."Field Type"::"Field Type Label"]:
+                exit;
+        end;
 
         CopyFromQltyIGradeConditionConf.SetRange("Condition Type", CopyFromQltyIGradeConditionConf."Condition Type"::Field);
         CopyFromQltyIGradeConditionConf.SetRange("Field Code", QltyInspectionTemplateLine."Field Code");
@@ -256,8 +254,10 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
     begin
         if FieldCode = '' then
             exit;
+
         if not QltyField.Get(FieldCode) then
             exit;
+
         CopyGradeConditionsFromDefaultToField(FieldCode, QltyField."Field Type");
     end;
 
@@ -265,6 +265,7 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
     begin
         if FieldCode = '' then
             exit;
+
         InternalCopyGradeConditionsFromDefaultToFieldSpecificType(FieldCode, '', false, true, SpecificQltyFieldType);
     end;
 
@@ -286,6 +287,7 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
     begin
         if not QltyField.Get(FieldCode) then
             exit;
+
         InternalCopyGradeConditionsFromDefaultToFieldSpecificType(FieldCode, OptionalSpecificGradeCode, AlwaysUpdateExistingCondition, OnlyOverwriteIfADefaultCondition, QltyField."Field Type");
     end;
 
@@ -523,7 +525,6 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
         QltyInspectionGrade: Record "Qlty. Inspection Grade";
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         Iterator: Integer;
-        EvaluatedExpression: Text;
     begin
         Clear(MatrixArrayToSetConditionCellData);
         Clear(MatrixArrayToSetConditionDescriptionCellData);
@@ -547,16 +548,10 @@ codeunit 20409 "Qlty. Grade Condition Mgmt."
                         if MatrixArrayToSetConditionDescriptionCellData[Iterator] = '' then
                             MatrixArrayToSetConditionDescriptionCellData[Iterator] := MatrixArrayToSetConditionCellData[Iterator];
 
-                        if (not OptionalQltyInspectionTestHeader.IsTemporary()) and (OptionalQltyInspectionTestHeader."No." <> '') then begin
+                        if (not OptionalQltyInspectionTestHeader.IsTemporary()) and (OptionalQltyInspectionTestHeader."No." <> '') then
                             if MatrixArrayToSetConditionDescriptionCellData[Iterator].Contains('[') then
                                 MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyExpressionMgmt.EvaluateTextExpression(MatrixArrayToSetConditionDescriptionCellData[Iterator], OptionalQltyInspectionTestHeader, OptionalQltyInspectionTestLine);
 
-                            if MatrixArrayToSetConditionDescriptionCellData[Iterator].Contains('{') then begin
-                                Clear(EvaluatedExpression);
-                                if QltyExpressionMgmt.TryEvaluateEmbeddedNumericalExpressions(MatrixArrayToSetConditionDescriptionCellData[Iterator], OptionalQltyInspectionTestHeader, EvaluatedExpression) then
-                                    MatrixArrayToSetConditionDescriptionCellData[Iterator] := EvaluatedExpression;
-                            end;
-                        end;
                         MatrixSourceRecordId[Iterator] := QltyIGradeConditionConf.RecordId();
                     end else
                         break;

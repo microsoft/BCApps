@@ -20,7 +20,6 @@ using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Dispositions;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Setup.Setup;
 using Microsoft.QualityManagement.Workflow;
 using Microsoft.Test.QualityManagement.TestLibraries;
@@ -46,7 +45,7 @@ codeunit 139969 "Qlty. Test Workflows"
     var
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
-        ReUsableQltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
         ReUsableQltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWorkflow: Codeunit "Library - Workflow";
         LibraryAssert: Codeunit "Library Assert";
@@ -76,7 +75,6 @@ codeunit 139969 "Qlty. Test Workflows"
         ReturnPurchaseLine: Record "Purchase Line";
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
         QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
-        QltyItemTracking: Codeunit "Qlty. Item Tracking";
         MoveBehavior: Enum "Qlty. Quantity Behavior";
         CreditMemo: Text;
         Reason: Text;
@@ -86,19 +84,18 @@ codeunit 139969 "Qlty. Test Workflows"
 
         // [GIVEN] A warehouse location and quality management setup with inspection template and generation rule
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
 
         // [GIVEN] A purchase order with inspection test created and received
-        QltyItemTracking.ClearTrackingCache();
         ReUsableQltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
         PurchaseLine.Get(PurchaseLine."Document Type"::Order, QltyInspectionTestHeader."Source Document No.", QltyInspectionTestHeader."Source Document Line No.");
         ReUsableQltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
         // [GIVEN] A return reason code and credit memo number are defined
-        ReUsableQltyTestsUtility.GenerateRandomCharacters(35, CreditMemo);
-        ReUsableQltyTestsUtility.GenerateRandomCharacters(10, Reason);
+        QltyTestsUtility.GenerateRandomCharacters(35, CreditMemo);
+        QltyTestsUtility.GenerateRandomCharacters(10, Reason);
         ReturnReason.Init();
         ReturnReason.Code := CopyStr(Reason, 1, MaxStrLen(ReturnReason.Code));
         ReturnReason.Insert();
@@ -159,20 +156,20 @@ codeunit 139969 "Qlty. Test Workflows"
         BeforeCount: Integer;
     begin
         // [SCENARIO] Test-to-test source configuration is applied from a create test workflow when source test was filtered by status
-        
+
         Initialize();
 
         // [GIVEN] A warehouse location and quality management setup with inspection template
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
 
         // [GIVEN] A purchase order with lot tracked item and inspection test created
         ReUsableQltyPurOrderGenerator.CreateTestFromPurchaseWithLotTrackedItem(Location, 100, PurchaseHeader, PurchaseLine, OriginalQltyInspectionTestHeader, ReservationEntry);
 
         // [GIVEN] A test-to-test source configuration with field mappings
-        ReUsableQltyTestsUtility.GenerateRandomCharacters(20, SourceConfig);
+        QltyTestsUtility.GenerateRandomCharacters(20, SourceConfig);
         SpecificQltyInspectSourceConfig.Init();
         SpecificQltyInspectSourceConfig.Code := CopyStr(SourceConfig, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(SourceConfig, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
@@ -204,7 +201,7 @@ codeunit 139969 "Qlty. Test Workflows"
         end;
 
         // [GIVEN] A workflow configured to create new test from existing test
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Qlty. Inspection Test Header");
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Qlty. Inspection Test Header");
 
         QltyManagementSetup.Get();
         QltyManagementSetup."Create Test Behavior" := QltyManagementSetup."Create Test Behavior"::"Always create new test";
@@ -263,19 +260,19 @@ codeunit 139969 "Qlty. Test Workflows"
         PutawayCount: Integer;
     begin
         // [SCENARIO] Create an internal warehouse put-away when a quality inspection test is reopened
-        
+
         Initialize();
 
         // [GIVEN] A full warehouse management location with quality setup
         LibraryWarehouse.CreateFullWMSLocation(Location, 2);
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
 
         // [GIVEN] An item, warehouse employee, and number series for internal put-aways
         LibraryInventory.CreateItem(Item);
 
-        ReUsableQltyTestsUtility.SetCurrLocationWhseEmployee(Location.Code);
+        QltyTestsUtility.SetCurrLocationWhseEmployee(Location.Code);
 
         WarehouseSetup.Get();
         if WarehouseSetup."Whse. Internal Put-away Nos." = '' then begin
@@ -295,7 +292,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        ReUsableQltyTestsUtility.CreateTestWithWarehouseEntry(WarehouseEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithWarehouseEntry(WarehouseEntry, QltyInspectionTestHeader);
 
         // [GIVEN] A workflow configured to create internal put-away on test reopened event
         QltyManagementSetup.Get();
@@ -358,19 +355,19 @@ codeunit 139969 "Qlty. Test Workflows"
         ReasonCodeToTest: Text;
     begin
         // [SCENARIO] Create and post a negative inventory adjustment when a quality inspection test is finished
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with inspection template and generation rule
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
 
         // [GIVEN] A warehouse location with bins and a lot tracked item
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
 
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
 
-        ReUsableQltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order received with quality inspection test created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -381,10 +378,10 @@ codeunit 139969 "Qlty. Test Workflows"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
-        ReUsableQltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionTestHeader);
 
         // [GIVEN] A reason code and item journal batch for adjustments
-        ReUsableQltyTestsUtility.GenerateRandomCharacters(20, ReasonCodeToTest);
+        QltyTestsUtility.GenerateRandomCharacters(20, ReasonCodeToTest);
         ReasonCode.Init();
         ReasonCode.Validate(Code, CopyStr(ReasonCodeToTest, 1, MaxStrLen(ReasonCode.Code)));
         ReasonCode.Description := CopyStr(ReasonCodeToTest, 1, MaxStrLen(ReasonCode.Description));
@@ -451,13 +448,13 @@ codeunit 139969 "Qlty. Test Workflows"
         MoveBehavior: Enum "Qlty. Quantity Behavior";
     begin
         // [SCENARIO] Create a transfer order for failed quantity when a quality inspection test grade changes
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with inspection template and locations
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
 
         // [GIVEN] A source location with bins and a destination location
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -477,7 +474,7 @@ codeunit 139969 "Qlty. Test Workflows"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
-        ReUsableQltyTestsUtility.CreateTestWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionTestHeader);
 
         // [GIVEN] A workflow configured to create transfer for failed quantity on test change
         QltyManagementSetup.Get();
@@ -537,17 +534,16 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
         QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
     begin
         // [SCENARIO] Update a database field value when a quality inspection test is finished
-        
+
         Initialize();
 
         // [GIVEN] A full warehouse management location with quality setup
         LibraryWarehouse.CreateFullWMSLocation(Location, 2);
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
 
         // [GIVEN] A purchase order received with inspection test created from warehouse entry
         LibraryInventory.CreateItem(Item);
@@ -616,12 +612,12 @@ codeunit 139969 "Qlty. Test Workflows"
         WhseWorksheetTemplateToUseToUse: Text;
     begin
         // [SCENARIO] Move passed quantity using warehouse worksheet for directed put-away and pick location when test is finished
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with warehouse entry generation rule
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
 
         // [GIVEN] A full warehouse management location and warehouse worksheet setup
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -634,7 +630,7 @@ codeunit 139969 "Qlty. Test Workflows"
             WhseWorksheetTemplate.DeleteAll();
 
         WhseWorksheetTemplate.Init();
-        ReUsableQltyTestsUtility.GenerateRandomCharacters(10, WhseWorksheetTemplateToUseToUse);
+        QltyTestsUtility.GenerateRandomCharacters(10, WhseWorksheetTemplateToUseToUse);
         WhseWorksheetTemplate.Name := CopyStr(WhseWorksheetTemplateToUseToUse, 1, MaxStrLen(WhseWorksheetTemplate.Name));
         WhseWorksheetTemplate.Type := WhseWorksheetTemplate.Type::Movement;
         WhseWorksheetTemplate."Page ID" := Page::"Movement Worksheet";
@@ -656,7 +652,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        ReUsableQltyTestsUtility.CreateTestWithWarehouseEntry(WarehouseEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithWarehouseEntry(WarehouseEntry, QltyInspectionTestHeader);
 
         QltyInspectionTestHeader."Pass Quantity" := 10;
         QltyInspectionTestHeader.Modify();
@@ -728,12 +724,12 @@ codeunit 139969 "Qlty. Test Workflows"
         QuantityBehavior: Enum "Qlty. Quantity Behavior";
     begin
         // [SCENARIO] Move sample quantity using warehouse reclassification journal for directed put-away and pick location when test is finished
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with warehouse reclassification batch configured
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
 
         // [GIVEN] A full warehouse management location
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -756,7 +752,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        ReUsableQltyTestsUtility.CreateTestWithWarehouseEntry(WarehouseEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithWarehouseEntry(WarehouseEntry, QltyInspectionTestHeader);
 
         QltyInspectionTestHeader."Sample Size" := 10;
         QltyInspectionTestHeader.Modify();
@@ -828,20 +824,20 @@ codeunit 139969 "Qlty. Test Workflows"
         QuantityBehavior: Enum "Qlty. Quantity Behavior";
     begin
         // [SCENARIO] Move failed quantity using internal movement worksheet for non-directed put-away location when test is finished
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with purchase line generation rule
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
 
         // [GIVEN] A location with bins and internal movement number series
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
 
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
 
-        ReUsableQltyTestsUtility.SetCurrLocationWhseEmployee(Location.Code);
+        QltyTestsUtility.SetCurrLocationWhseEmployee(Location.Code);
 
         LibraryUtility.CreateNoSeries(ToUseNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(ToUseNoSeriesLine, ToUseNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
@@ -860,7 +856,7 @@ codeunit 139969 "Qlty. Test Workflows"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
-        ReUsableQltyTestsUtility.CreateTestWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionTestHeader);
 
         Bin.SetRange("Location Code", Location.Code);
         Bin.SetFilter(Code, '<>%1', PurchaseLine."Bin Code");
@@ -928,12 +924,12 @@ codeunit 139969 "Qlty. Test Workflows"
         QuantityBehavior: Enum "Qlty. Quantity Behavior";
     begin
         // [SCENARIO] Move item tracked quantity using reclassification journal with bin filters for non-directed put-away location when test is finished
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with item journal batch configured for bin moves
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
@@ -943,7 +939,7 @@ codeunit 139969 "Qlty. Test Workflows"
         // [GIVEN] A location with bins and a lot tracked item
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
-        ReUsableQltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order received with lot tracking and inspection test created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -953,10 +949,10 @@ codeunit 139969 "Qlty. Test Workflows"
         PurchaseLine.Modify();
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
-        ReUsableQltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionTestHeader);
 
         // [GIVEN] A reclassification journal is posted to move 50 units to an intermediate bin
-        ReUsableQltyTestsUtility.SetCurrLocationWhseEmployee(Location.Code);
+        QltyTestsUtility.SetCurrLocationWhseEmployee(Location.Code);
         LibraryInventory.CreateItemJournalLine(ReclassItemJournalLine, ReclassItemJournalTemplate.Name, ReclassItemJournalBatch.Name, ReclassItemJournalLine."Entry Type"::Transfer, Item."No.", 50);
         Bin.SetRange("Location Code", Location.Code);
         Bin.SetFilter(Code, '<>%1', PurchaseLine."Bin Code");
@@ -1050,12 +1046,12 @@ codeunit 139969 "Qlty. Test Workflows"
         QuantityBehavior: Enum "Qlty. Quantity Behavior";
     begin
         // [SCENARIO] Change item tracking lot number and expiration date using warehouse reclassification journal when test is finished
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with lot tracked item using expiration dates
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
         LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
         LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code, PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'), PadStr(Format(CurrentDateTime(), 0, 'A<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
         LibraryItemTracking.CreateItemTrackingCode(LotItemTrackingCode, false, true, false);
@@ -1065,7 +1061,7 @@ codeunit 139969 "Qlty. Test Workflows"
 
         // [GIVEN] A full warehouse management location with warehouse reclassification batch
         LibraryWarehouse.CreateFullWMSLocation(Location, 2);
-        ReUsableQltyTestsUtility.SetCurrLocationWhseEmployee(Location.Code);
+        QltyTestsUtility.SetCurrLocationWhseEmployee(Location.Code);
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
@@ -1081,7 +1077,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        ReUsableQltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionTestHeader);
 
         // [GIVEN] A workflow configured to change item tracking (lot and expiration date) on test finished
         CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetTestFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseChangeItemTracking(), false);
@@ -1152,12 +1148,12 @@ codeunit 139969 "Qlty. Test Workflows"
         CreatedTests: Integer;
     begin
         // [SCENARIO] Automatically create a retest when a quality inspection test is finished
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with warehouse entry generation rule
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
 
         // [GIVEN] A full warehouse management location and purchase order received with inspection test
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -1170,7 +1166,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        ReUsableQltyTestsUtility.CreateTestWithWarehouseEntry(WarehouseEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithWarehouseEntry(WarehouseEntry, QltyInspectionTestHeader);
 
         // [GIVEN] A workflow configured to create retest on test finished event
         QltyManagementSetup.Get();
@@ -1216,13 +1212,13 @@ codeunit 139969 "Qlty. Test Workflows"
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Automatically finish a quality inspection test when a purchase approval workflow is completed
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with purchase header source configuration and generation rule
-        ReUsableQltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.EnsureSetup();
         CreatePurHeaderToTestConfig();
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Header", QltyInTestGenerationRule);
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Header", QltyInTestGenerationRule);
 
         // [GIVEN] A purchase order with inspection test created
         LibraryWarehouse.CreateLocation(Location);
@@ -1275,13 +1271,13 @@ codeunit 139969 "Qlty. Test Workflows"
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Automatically reopen a finished quality inspection test when a purchase approval workflow is completed
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with purchase header source configuration and generation rule
-        ReUsableQltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.EnsureSetup();
         CreatePurHeaderToTestConfig();
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Header", QltyInTestGenerationRule);
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Header", QltyInTestGenerationRule);
 
         // [GIVEN] A purchase order with inspection test created and finished
         LibraryWarehouse.CreateLocation(Location);
@@ -1333,14 +1329,14 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [SCENARIO] Block a lot number when a quality inspection test with failing grade is finished
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with lot tracked item and warehouse entry generation rule
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
-        ReUsableQltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order received with lot tracking and inspection test created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -1351,7 +1347,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        ReUsableQltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionTestHeader);
 
         // [GIVEN] A workflow configured to block lot on test finished with failing grade condition
         ToLoadQltyInspectionGrade.Get(DefaultGrade1FailCodeTok);
@@ -1394,14 +1390,14 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [SCENARIO] Unblock a lot number when a quality inspection test with passing grade is finished
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with lot tracked item and blocked lot number
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
-        ReUsableQltyTestsUtility.CreateLotTrackedItemWithNoSeries(Item);
+        QltyTestsUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order received with lot tracking and inspection test created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -1412,7 +1408,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        ReUsableQltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionTestHeader);
         ToLoadQltyInspectionGrade.Get(DefaultGrade2PassCodeTok);
         LibraryItemTracking.CreateLotNoInformation(LotNoInformation, Item."No.", '', ReservationEntry."Lot No.");
         LotNoInformation.Blocked := true;
@@ -1459,14 +1455,14 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [SCENARIO] Block a serial number when a quality inspection test with failing grade is finished
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with serial tracked item and warehouse entry generation rule
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
-        ReUsableQltyTestsUtility.CreateSerialTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] A purchase order received with serial tracking and inspection test created
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -1477,7 +1473,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        ReUsableQltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionTestHeader);
         ToLoadQltyInspectionGrade.Get(DefaultGrade1FailCodeTok);
 
         // [GIVEN] A workflow configured to block serial on test finished with failing grade condition
@@ -1521,14 +1517,14 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [SCENARIO] Unblock a serial number when a quality inspection test with passing grade is finished
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with serial tracked item and blocked serial number
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
-        ReUsableQltyTestsUtility.CreateSerialTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] A purchase order received with serial tracking and inspection test created
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -1539,7 +1535,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        ReUsableQltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionTestHeader);
         ToLoadQltyInspectionGrade.Get(DefaultGrade2PassCodeTok);
         LibraryItemTracking.CreateSerialNoInformation(SerialNoInformation, Item."No.", '', ReservationEntry."Serial No.");
         SerialNoInformation.Blocked := true;
@@ -1586,14 +1582,14 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [SCENARIO] Block a package number when a quality inspection test with failing grade is finished
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with package tracked item and warehouse entry generation rule
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
-        ReUsableQltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [GIVEN] A purchase order received with package tracking and inspection test created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -1604,7 +1600,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        ReUsableQltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionTestHeader);
         ToLoadQltyInspectionGrade.Get(DefaultGrade1FailCodeTok);
 
         // [GIVEN] A workflow configured to block package on test finished with failing grade condition
@@ -1648,14 +1644,14 @@ codeunit 139969 "Qlty. Test Workflows"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [SCENARIO] Unblock a package number when a quality inspection test with passing grade is finished
-        
+
         Initialize();
 
         // [GIVEN] Quality management setup with package tracked item and blocked package number
-        ReUsableQltyTestsUtility.EnsureSetup();
-        ReUsableQltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
+        QltyTestsUtility.EnsureSetup();
+        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInTestGenerationRule);
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
-        ReUsableQltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [GIVEN] A purchase order received with package tracking and inspection test created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -1666,7 +1662,7 @@ codeunit 139969 "Qlty. Test Workflows"
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
         WarehouseEntry.FindFirst();
-        ReUsableQltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionTestHeader);
+        QltyTestsUtility.CreateTestWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionTestHeader);
         ToLoadQltyInspectionGrade.Get(DefaultGrade2PassCodeTok);
         if not PackageNoInformation.Get(Item."No.", '', ReservationEntry."Package No.") then
             LibraryItemTracking.CreatePackageNoInformation(PackageNoInformation, Item."No.", ReservationEntry."Package No.");
@@ -1700,7 +1696,7 @@ codeunit 139969 "Qlty. Test Workflows"
         QuantityBehavior: Enum "Qlty. Quantity Behavior";
     begin
         // [SCENARIO] Retrieve quantity behavior enum value from workflow step configuration when value is 'true'
-        
+
         Initialize();
 
         // [GIVEN] A workflow step argument with quantity configuration value set to 'true'
@@ -1720,7 +1716,7 @@ codeunit 139969 "Qlty. Test Workflows"
         QuantityBehavior: Enum "Qlty. Quantity Behavior";
     begin
         // [SCENARIO] Retrieve quantity behavior enum value from workflow step configuration when value is 'false'
-        
+
         Initialize();
 
         // [GIVEN] A workflow step argument with quantity configuration value set to 'false'
@@ -1740,7 +1736,7 @@ codeunit 139969 "Qlty. Test Workflows"
         AdjPostBehavior: Enum "Qlty. Item Adj. Post Behavior";
     begin
         // [SCENARIO] Set and retrieve adjustment posting behavior enum value as Prepare only
-        
+
         Initialize();
 
         // [GIVEN] A workflow step argument is prepared
@@ -1760,7 +1756,7 @@ codeunit 139969 "Qlty. Test Workflows"
         AdjPostBehavior: Enum "Qlty. Item Adj. Post Behavior";
     begin
         // [SCENARIO] Set and retrieve adjustment posting behavior enum value as Post
-        
+
         Initialize();
 
         // [GIVEN] A workflow step argument is prepared
@@ -1878,7 +1874,7 @@ codeunit 139969 "Qlty. Test Workflows"
         ConfigCode: Text;
     begin
         SpecificQltyInspectSourceConfig.Init();
-        ReUsableQltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
         SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
         SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
         SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Purchase Header");

@@ -76,6 +76,8 @@ page 8351 "MCP Config Card"
 
                     trigger OnValidate()
                     begin
+                        if not Rec.AllowProdChanges then
+                            MCPConfigImplementation.DisableCreateUpdateDeleteToolsInConfig(Rec.SystemId);
                         CurrPage.Update();
                         Session.LogMessage('0000QE8', StrSubstNo(SettingConfigurationAllowProdChangesLbl, Rec.SystemId, Rec.AllowProdChanges), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
                     end;

@@ -26,6 +26,7 @@ tableextension 20412 "Qlty. Transfer Receipt Header" extends "Transfer Receipt H
             DataClassification = CustomerContent;
             TableRelation = "Qlty. Inspection Test Header"."Retest No." where("No." = field("Qlty. Inspection Test No."));
             Description = 'Only used to link to the test that created the original Transfer document that generated this.';
+            BlankZero = true;
         }
     }
 

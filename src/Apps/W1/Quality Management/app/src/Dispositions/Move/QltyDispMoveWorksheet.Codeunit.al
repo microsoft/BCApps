@@ -20,7 +20,7 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
     EventSubscriberInstance = Manual;
 
     var
-        TempCreatedsWhseWorksheetLine: Record "Whse. Worksheet Line" temporary;
+        TempCreatedWhseWorksheetLine: Record "Whse. Worksheet Line" temporary;
         CreatedWarehouseActivityHeaderDocumentNo: Code[20];
         WorksheetLineDescriptionTemplateLbl: Label 'Test [%3] changed bin from [%1] to [%2]', Comment = '%1 = From Bin code; %2 = To Bin code; %3 = the test';
         UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr: Label 'Unable to change location of the inventory from test %1 from location %2 to %3 because %2 is directed pick and put-away, you can only change bins with the same location.', Comment = '%1=the test, %2=from location, %3=to location';
@@ -41,8 +41,8 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         MovementLineCreated: Boolean;
         CreatedDocumentNo: Text;
     begin
-        Clear(TempCreatedsWhseWorksheetLine);
-        TempCreatedsWhseWorksheetLine.DeleteAll(false);
+        Clear(TempCreatedWhseWorksheetLine);
+        TempCreatedWhseWorksheetLine.DeleteAll(false);
         Clear(CreatedWarehouseActivityHeaderDocumentNo);
 
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Move with Movement Worksheet";
@@ -102,14 +102,14 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         MovementWhseSourceCreateDocument: Report "Whse.-Source - Create Document";
         LineFilter: Text;
     begin
-        TempCreatedsWhseWorksheetLine.Reset();
+        TempCreatedWhseWorksheetLine.Reset();
         LineFilter := '';
-        if TempCreatedsWhseWorksheetLine.FindSet() then
+        if TempCreatedWhseWorksheetLine.FindSet() then
             repeat
                 if StrLen(LineFilter) > 0 then
                     LineFilter += '|';
-                LineFilter += Format(TempCreatedsWhseWorksheetLine."Line No.", 0, 9);
-            until TempCreatedsWhseWorksheetLine.Next() = 0;
+                LineFilter += Format(TempCreatedWhseWorksheetLine."Line No.", 0, 9);
+            until TempCreatedWhseWorksheetLine.Next() = 0;
 
         WhseWorksheetLine.SetRange("Worksheet Template Name", WhseWkshTemplateName);
         WhseWorksheetLine.SetRange(Name, WhseWkshName);
@@ -159,8 +159,8 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
             ToBinCode,
             QltyInspectionTestHeader.GetFriendlyIdentifier()), 1, MaxStrLen(WkshWhseWorksheetLine.Description));
         WkshWhseWorksheetLine.Insert();
-        TempCreatedsWhseWorksheetLine := WkshWhseWorksheetLine;
-        if TempCreatedsWhseWorksheetLine.Insert() then;
+        TempCreatedWhseWorksheetLine := WkshWhseWorksheetLine;
+        if TempCreatedWhseWorksheetLine.Insert() then;
 
         if QltyInspectionTestHeader.IsItemTrackingUsed() then begin
             TempWarehouseEntry."Item No." := QltyInspectionTestHeader."Source Item No.";

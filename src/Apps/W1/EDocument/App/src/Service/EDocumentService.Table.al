@@ -289,7 +289,12 @@ table 6103 "E-Document Service"
             ToolTip = 'Specifies whether you want to automatically create a PDF based on Report Selection, as a background process, and embed it into the E-Document export file when posting the document.';
             DataClassification = SystemMetadata;
         }
-
+        field(41; "Export Eligibility Evaluator"; Enum "Export Eligibility Evaluator")
+        {
+            Caption = 'Export Eligibility Evaluator';
+            ToolTip = 'Specifies the evaluator that determines if a document is eligible for export via this service.';
+            DataClassification = SystemMetadata;
+        }
         #region [60-80] are reserved for purchase draft document settings.
         field(60; "Verify Purch. Total Amounts"; Boolean)
         {

@@ -29,9 +29,9 @@ using Microsoft.Warehouse.InternalDocument;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Worksheet;
 
-page 20426 "Qlty. Mgmt. Main Role Center"
+page 20426 "Qlty. Manager Role Center"
 {
-    Caption = 'Quality Management';
+    Caption = 'Quality Manager';
     PageType = RoleCenter;
     ApplicationArea = QualityManagement;
 
@@ -45,7 +45,7 @@ page 20426 "Qlty. Mgmt. Main Role Center"
 
                 part("Qlty. Inspection Activities"; "Qlty. Inspection Activities")
                 {
-                    Caption = 'Inspection Tests';
+                    Caption = 'Quality Inspection Tests';
                 }
             }
         }
