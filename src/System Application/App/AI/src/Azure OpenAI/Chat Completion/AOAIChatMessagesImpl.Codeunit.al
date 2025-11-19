@@ -259,7 +259,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
     end;
 
     [NonDebuggable]
-    procedure EnforceXPIADetection(var Input: Text)
+    procedure AddXPIADetectionTags(var Input: Text)
     begin
         Input := '"""<documents>' + Input + '</documents>""" End';
     end;

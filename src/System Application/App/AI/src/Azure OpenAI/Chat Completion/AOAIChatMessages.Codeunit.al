@@ -347,12 +347,14 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
-    /// Enforce XPIA Detection for an Input text.
+    /// Adds XPIA Detection tags to an Input text.
     /// </summary>
+    /// <returns>Input text with XPIA Detection tags added.</returns>
+    /// <remarks>Please make sure to configure the AOAI policy to support XPIA detection before using this method. Also, remember to add the 'Input text with XPIA detection tags added' to a message.</remarks>
     [NonDebuggable]
-    procedure EnforceXPIADetection(var Input: Text)
+    procedure AddXPIADetectionTags(var Input: Text)
     begin
-        AOAIChatMessagesImpl.EnforceXPIADetection(Input);
+        AOAIChatMessagesImpl.AddXPIADetectionTags(Input);
     end;
 
     /// <summary>

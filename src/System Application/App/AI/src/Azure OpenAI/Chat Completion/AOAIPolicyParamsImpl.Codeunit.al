@@ -96,7 +96,7 @@ codeunit 7788 "AOAI Policy Params Impl"
         end;
     end;
 
-    local procedure InitializeDefaults()
+    procedure InitializeDefaults()
     begin
         Initialized := true;
         HarmsSeverity := "AOAI Policy Harms Severity"::Low;

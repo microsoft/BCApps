@@ -10,30 +10,32 @@ enum 7787 "AOAI Policy"
     Access = Internal;
 
     /// <summary>
-    /// Low harms severity with XPIA detection enabled
+    /// Requests containing harms with a low severity are blocked and XPIA detection is enabled.
     /// </summary>
     value(1; "ConservativeWithXPIA")
     {
     }
 
     /// <summary>
-    /// Low harms severity with XPIA detection disabled
+    /// Requests containing harms with a low severity are blocked.
     /// </summary>
     value(2; "Conservative")
     {
     }
 
     /// <summary>
-    /// Medium harms severity with XPIA detection enabled
+    /// Requests containing harms with a medium severity are blocked and XPIA detection is enabled.
     /// </summary>
     value(3; "MediumWithXPIA")
     {
     }
 
     /// <summary>
-    /// Medium harms severity with XPIA detection disabled
+    /// Requests containing harms with a medium severity are blocked.
+    /// This is not the default policy that we recommend but rather this is the Default policy (Policy Id 0 ) in CAPI
     /// </summary>
     value(4; "Default")
     {
     }
+
 }

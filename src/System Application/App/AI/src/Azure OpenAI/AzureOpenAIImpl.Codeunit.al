@@ -283,8 +283,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
 
         AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
 
-        AzureOpenAIPolicy := Payload.GetText('azureOpenAIPolicy');
-        Payload.Remove('azureOpenAIPolicy');
+        AzureOpenAIPolicy := AOAIChatCompletionParams.GetAOAIPolicyParams().GetAOAIPolicy();
 
         Payload.Add('messages', ChatMessages.AssembleHistory(MetapromptTokenCount, PromptTokenCount));
 

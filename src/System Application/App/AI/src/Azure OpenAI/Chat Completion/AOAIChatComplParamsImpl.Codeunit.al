@@ -156,7 +156,6 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         Payload.Add('temperature', GetTemperature());
         Payload.Add('presence_penalty', GetPresencePenalty());
         Payload.Add('frequency_penalty', GetFrequencyPenalty());
-        Payload.Add('azureOpenAIPolicy', Format(AOAIPolicyParams.GetAOAIPolicy()));
 
         if IsJsonMode() then
             Payload.Add('response_format', GetJsonResponseFormat());
@@ -180,9 +179,7 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         SetMaxHistory(10);
         SetJsonMode(false);
 
-        DefaultPolicyParams.SetHarmsSeverity("AOAI Policy Harms Severity"::Low);
-        DefaultPolicyParams.SetXPIADetection(true);
-        DefaultPolicyParams.SetCustomAOAIPolicy('');
+        DefaultPolicyParams.InitializeDefaults();
         SetAOAIPolicyParams(DefaultPolicyParams);
     end;
 }

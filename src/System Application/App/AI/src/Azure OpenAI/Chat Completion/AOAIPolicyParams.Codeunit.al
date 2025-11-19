@@ -53,7 +53,7 @@ codeunit 7787 "AOAI Policy Params"
     end;
 
     /// <summary>
-    /// Gets a Custom AOAI policy.
+    /// Gets the value for the custom AOAI policy, if set using SetCustomAOAIPolicy
     /// </summary>
     procedure GetCustomAOAIPolicy(): Text
     begin
@@ -66,6 +66,11 @@ codeunit 7787 "AOAI Policy Params"
     procedure SetCustomAOAIPolicy(CustomAOAIPolicyParams: Text)
     begin
         AOAIPolicyParamsImpl.SetCustomAOAIPolicy(CustomAOAIPolicyParams);
+    end;
+
+    procedure InitializeDefaults():
+    begin
+        AOAIPolicyParamsImpl.InitializeDefaults();
     end;
 
     /// <summary>
