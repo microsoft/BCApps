@@ -10,12 +10,10 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Transfer;
-using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule.JobQueue;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Integration.Assembly;
-using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
 using Microsoft.QualityManagement.Setup.Setup;
@@ -211,20 +209,6 @@ table 20404 "Qlty. In. Test Generation Rule"
                 ConfirmUpdateManualTriggerStatus();
                 if (Rec."Activation Trigger" = Rec."Activation Trigger"::Disabled) and (Rec."Template Code" <> '') and (Rec."Transfer Trigger" <> Rec."Transfer Trigger"::NoTrigger) and GuiAllowed() then
                     QltyNotificationMgmt.Notify(StrSubstNo(RuleCurrentlyDisabledLbl, Rec."Sort Order", Rec."Template Code", Rec."Transfer Trigger"));
-            end;
-        }
-        field(26; "Production Trigger"; Enum "Qlty. Production Trigger")
-        {
-            Caption = 'Production Trigger';
-            ToolTip = 'Specifies whether the generation rule should be used to automatically create tests based on a production trigger.';
-
-            trigger OnValidate()
-            var
-                QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
-            begin
-                ConfirmUpdateManualTriggerStatus();
-                if (Rec."Activation Trigger" = Rec."Activation Trigger"::Disabled) and (Rec."Template Code" <> '') and (Rec."Production Trigger" <> Rec."Production Trigger"::NoTrigger) and GuiAllowed() then
-                    QltyNotificationMgmt.Notify(StrSubstNo(RuleCurrentlyDisabledLbl, Rec."Sort Order", Rec."Template Code", Rec."Production Trigger"));
             end;
         }
         field(27; "Assembly Trigger"; Enum "Qlty. Assembly Trigger")
@@ -440,8 +424,6 @@ table 20404 "Qlty. In. Test Generation Rule"
                 case InferredIntent of
                     InferredIntent::Assembly:
                         Rec."Assembly Trigger" := QltyManagementSetup."Assembly Trigger";
-                    InferredIntent::Production:
-                        Rec."Production Trigger" := QltyManagementSetup."Production Trigger";
                     InferredIntent::Purchase:
                         Rec."Purchase Trigger" := QltyManagementSetup."Purchase Trigger";
                     InferredIntent::"Sales Return":
@@ -452,20 +434,31 @@ table 20404 "Qlty. In. Test Generation Rule"
                         Rec."Warehouse Movement Trigger" := QltyManagementSetup."Warehouse Trigger";
                     InferredIntent::"Warehouse Receipt":
                         Rec."Warehouse Receive Trigger" := QltyManagementSetup."Warehouse Receive Trigger";
+                    else
+                        OnSetIntentAndDefaultTriggerValuesFromSetupElseCase(Rec, QltyManagementSetup, InferredIntent);
                 end;
         end;
     end;
 
-    local procedure ConfirmUpdateManualTriggerStatus()
+    /// <summary>
+    /// Confirms and updates the activation trigger if needed when an automatic trigger is set
+    /// </summary>
+    internal procedure ConfirmUpdateManualTriggerStatus()
+    var
+        IsNoTrigger: Boolean;
     begin
-        if (Rec."Activation Trigger" = Rec."Activation Trigger"::"Manual only") and GuiAllowed() then
+        if (Rec."Activation Trigger" = Rec."Activation Trigger"::"Manual only") and GuiAllowed() then begin
+            OnConfirmUpdateManualTriggerStatusOnBeforeOnCheckTriggerIsNoTrigger(Rec, IsNoTrigger);
+
             if not ((Rec."Assembly Trigger" = Rec."Assembly Trigger"::NoTrigger) and (Rec."Transfer Trigger" = Rec."Transfer Trigger"::NoTrigger) and
-               (Rec."Production Trigger" = Rec."Production Trigger"::NoTrigger) and (Rec."Purchase Trigger" = Rec."Purchase Trigger"::NoTrigger) and
+               IsNoTrigger and
+               (Rec."Purchase Trigger" = Rec."Purchase Trigger"::NoTrigger) and
                (Rec."Sales Return Trigger" = Rec."Sales Return Trigger"::NoTrigger) and (Rec."Warehouse Receive Trigger" = Rec."Warehouse Receive Trigger"::NoTrigger) and
                (Rec."Warehouse Movement Trigger" = Rec."Warehouse Movement Trigger"::NoTrigger))
             then
                 if Confirm(StrSubstNo(TriggerNotActiveConfirmQst, Rec."Activation Trigger", Rec."Activation Trigger"::"Manual or Automatic")) then
                     Rec."Activation Trigger" := Rec."Activation Trigger"::"Manual or Automatic";
+        end;
     end;
 
     local procedure SetDefaultTriggerValuesToNoTrigger()
@@ -474,9 +467,9 @@ table 20404 "Qlty. In. Test Generation Rule"
         Rec."Purchase Trigger" := Rec."Purchase Trigger"::NoTrigger;
         Rec."Sales Return Trigger" := Rec."Sales Return Trigger"::NoTrigger;
         Rec."Transfer Trigger" := Rec."Transfer Trigger"::NoTrigger;
-        Rec."Production Trigger" := Rec."Production Trigger"::NoTrigger;
         Rec."Assembly Trigger" := Rec."Assembly Trigger"::NoTrigger;
         Rec."Warehouse Movement Trigger" := Rec."Warehouse Movement Trigger"::NoTrigger;
+        OnAfterSetDefaultTriggerValuesToNoTrigger(Rec);
     end;
 
     [TryFunction]
@@ -516,11 +509,6 @@ table 20404 "Qlty. In. Test Generation Rule"
             Database::"Transfer Line", Database::"Transfer Receipt Line":
                 begin
                     QltyGenRuleIntent := QltyGenRuleIntent::Transfer;
-                    QltyCertainty := QltyCertainty::Yes;
-                end;
-            Database::"Prod. Order Routing Line", Database::"Prod. Order Line", Database::"Production Order":
-                begin
-                    QltyGenRuleIntent := QltyGenRuleIntent::Production;
                     QltyCertainty := QltyCertainty::Yes;
                 end;
             Database::"Posted Assembly Header", Database::"Assembly Line":
@@ -578,6 +566,8 @@ table 20404 "Qlty. In. Test Generation Rule"
                             QltyCertainty := QltyCertainty::Maybe;
                         end;
                 end;
+            else
+                OnInferGenerationRuleIntentElseCase(Rec, QltyGenRuleIntent, QltyCertainty);
         end;
     end;
 
@@ -591,6 +581,7 @@ table 20404 "Qlty. In. Test Generation Rule"
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
         TempItemJournalLine: Record "Item Journal Line" temporary;
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+        Result: Boolean;
     begin
         if Rec."Source Table No." = 0 then
             exit(false);
@@ -599,10 +590,6 @@ table 20404 "Qlty. In. Test Generation Rule"
             exit(false);
 
         case Rec."Source Table No." of
-            Database::"Prod. Order Routing Line",
-            Database::"Prod. Order Line",
-            Database::"Production Order":
-                exit(true);
             Database::"Item Ledger Entry":
                 if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemLedgerEntry.FieldNo("Entry Type"), TempItemLedgerEntry."Entry Type"::Output) then
                     exit(true)
@@ -615,6 +602,10 @@ table 20404 "Qlty. In. Test Generation Rule"
                 else
                     if QltyFilterHelpers.GetIsFilterSetToValue(Rec."Source Table No.", Rec."Condition Filter", TempItemJournalLine.FieldNo("Order Type"), TempItemJournalLine."Order Type"::Production) then
                         exit(true);
+            else begin
+                OnGetIsProductionIntentElseCase(Rec."Source Table No.", Rec."Condition Filter", Result);
+                exit(Result);
+            end;
         end;
     end;
 
@@ -742,17 +733,45 @@ table 20404 "Qlty. In. Test Generation Rule"
             if IntentToCheck = IntentToCheck::Transfer then
                 IntentSet := true;
         end;
-        if QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger then begin
-            TriggerCount += 1;
-            if IntentToCheck = IntentToCheck::Production then
-                IntentSet := true;
-        end;
         if QltyManagementSetup."Assembly Trigger" <> QltyManagementSetup."Assembly Trigger"::NoTrigger then begin
             TriggerCount += 1;
             if IntentToCheck = IntentToCheck::Assembly then
                 IntentSet := true;
         end;
 
+        OnAfterGetIsOnlyAutoTriggerInSetup(QltyManagementSetup, IntentToCheck, IntentSet, TriggerCount);
+
         exit((TriggerCount = 1) and IntentSet);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetIsProductionIntentElseCase(SourceTableNo: Integer; ConditionFilter: Text[400]; var Result: Boolean)
+    begin
+        // Your logic to determine if the intent is Production
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnConfirmUpdateManualTriggerStatusOnBeforeOnCheckTriggerIsNoTrigger(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; var NoTrigger: Boolean)
+    begin
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnSetIntentAndDefaultTriggerValuesFromSetupElseCase(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; var QltyManagementSetup: Record "Qlty. Management Setup"; InferredIntent: Enum "Qlty. Gen. Rule Intent")
+    begin
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnAfterSetDefaultTriggerValuesToNoTrigger(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule")
+    begin
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnInferGenerationRuleIntentElseCase(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"; var QltyCertainty: Enum "Qlty. Certainty")
+    begin
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnAfterGetIsOnlyAutoTriggerInSetup(var QltyManagementSetup: Record "Qlty. Management Setup"; IntentToCheck: Enum "Qlty. Gen. Rule Intent"; IntentSet: Boolean; TriggerCount: Integer)
+    begin
     end;
 }

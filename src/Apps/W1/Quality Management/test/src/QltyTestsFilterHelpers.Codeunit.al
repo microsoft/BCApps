@@ -34,6 +34,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     var
         LibraryAssert: Codeunit "Library Assert";
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
+        QltyFilterHelpersMfg: Codeunit "Qlty. Filter Helpers Mfg.";
         Code20: Code[20];
         ZoneTok: Label 'PICK';
         FilterTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1=item no.';
@@ -1553,7 +1554,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         end;
 
         // [WHEN] AssistEditMachine is called with no filter
-        FoundMachine := QltyFilterHelpers.AssistEditMachine(Machine);
+        FoundMachine := QltyFilterHelpersMfg.AssistEditMachine(Machine);
 
         // [THEN] A machine is found and the machine number matches
         LibraryAssert.IsTrue(FoundMachine, 'Should claim found machine.');
@@ -1581,7 +1582,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
 
         Machine := MachineCenter."No.";
         // [WHEN] AssistEditMachine is called with machine filter
-        FoundMachine := QltyFilterHelpers.AssistEditMachine(Machine);
+        FoundMachine := QltyFilterHelpersMfg.AssistEditMachine(Machine);
 
         // [THEN] A machine is found and the machine number matches
         LibraryAssert.IsTrue(FoundMachine, 'Should claim found machine.');
@@ -1604,7 +1605,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
             LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
 
         // [WHEN] AssistEditRouting is called with no filter
-        FoundRouting := QltyFilterHelpers.AssistEditRouting(Routing);
+        FoundRouting := QltyFilterHelpersMfg.AssistEditRouting(Routing);
 
         // [THEN] A routing is found and the routing number matches
         LibraryAssert.IsTrue(FoundRouting, 'Should claim found routing.');
@@ -1628,7 +1629,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
 
         Routing := RoutingHeader."No.";
         // [WHEN] AssistEditRouting is called with routing filter
-        FoundRouting := QltyFilterHelpers.AssistEditRouting(Routing);
+        FoundRouting := QltyFilterHelpersMfg.AssistEditRouting(Routing);
 
         // [THEN] A routing is found and the routing number matches
         LibraryAssert.IsTrue(FoundRouting, 'Should claim found routing.');
@@ -1665,7 +1666,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         end;
         OperationNo2 := RoutingLine."Operation No.";
         // [WHEN] AssistEditRoutingOperation is called with routing and operation number filters
-        FoundRoutingOperation := QltyFilterHelpers.AssistEditRoutingOperation(RoutingHeader."No.", OperationNo2);
+        FoundRoutingOperation := QltyFilterHelpersMfg.AssistEditRoutingOperation(RoutingHeader."No.", OperationNo2);
 
         // [THEN] A routing operation is found and the operation number matches
         LibraryAssert.IsTrue(FoundRoutingOperation, 'Should claim found routing operation.');
@@ -1701,7 +1702,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
             LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, Version, OperationNo, Enum::"Capacity Type Routing"::" ", No);
         end;
         // [WHEN] AssistEditRoutingOperation is called with routing filter
-        FoundRoutingOperation := QltyFilterHelpers.AssistEditRoutingOperation(RoutingHeader."No.", OperationNo2);
+        FoundRoutingOperation := QltyFilterHelpersMfg.AssistEditRoutingOperation(RoutingHeader."No.", OperationNo2);
 
         // [THEN] A routing operation is found and the operation number matches
         LibraryAssert.IsTrue(FoundRoutingOperation, 'Should claim found routing operation.');
@@ -1738,7 +1739,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
         end;
         OperationNo2 := OperationNo;
         // [WHEN] AssistEditRoutingOperation is called with operation filter
-        FoundRoutingOperation := QltyFilterHelpers.AssistEditRoutingOperation('', OperationNo2);
+        FoundRoutingOperation := QltyFilterHelpersMfg.AssistEditRoutingOperation('', OperationNo2);
 
         // [THEN] A routing operation is found and the operation number matches
         LibraryAssert.IsTrue(FoundRoutingOperation, 'Should claim found routing operation.');
@@ -1774,7 +1775,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
             LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, Version, OperationNo, Enum::"Capacity Type Routing"::" ", No);
         end;
         // [WHEN] AssistEditRoutingOperation is called with no filter
-        FoundRoutingOperation := QltyFilterHelpers.AssistEditRoutingOperation('', OperationNo2);
+        FoundRoutingOperation := QltyFilterHelpersMfg.AssistEditRoutingOperation('', OperationNo2);
 
         // [THEN] A routing operation is found and the operation number matches the first routing line
         RoutingLine.Reset();
@@ -1799,7 +1800,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
             LibraryManufacturing.CreateWorkCenter(WorkCenter);
 
         // [WHEN] AssistEditWorkCenter is called with no filter
-        FoundWorkCenter := QltyFilterHelpers.AssistEditWorkCenter(WorkCenterToUse);
+        FoundWorkCenter := QltyFilterHelpersMfg.AssistEditWorkCenter(WorkCenterToUse);
 
         // [THEN] A work center is found and the work center number matches
         LibraryAssert.IsTrue(FoundWorkCenter, 'Should claim found work center.');
@@ -1823,7 +1824,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
 
         WorkCenterToUse := WorkCenter."No.";
         // [WHEN] AssistEditWorkCenter is called with work center filter
-        FoundWorkCenter := QltyFilterHelpers.AssistEditWorkCenter(WorkCenterToUse);
+        FoundWorkCenter := QltyFilterHelpersMfg.AssistEditWorkCenter(WorkCenterToUse);
 
         // [THEN] A work center is found and the work center number matches
         LibraryAssert.IsTrue(FoundWorkCenter, 'Should claim found work center.');
