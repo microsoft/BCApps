@@ -78,9 +78,26 @@ codeunit 8351 "MCP Config Implementation"
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             exit;
 
+        if not Allow then
+            DisableCreateUpdateDeleteToolsInConfig(ConfigId);
+
         MCPConfiguration.AllowProdChanges := Allow;
         MCPConfiguration.Modify();
         Session.LogMessage('0000QEA', StrSubstNo(SettingConfigurationAllowProdChangesLbl, ConfigId, Allow), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
+    end;
+
+    internal procedure DisableCreateUpdateDeleteToolsInConfig(ConfigId: Guid)
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+    begin
+        MCPConfigurationTool.SetRange(ID, ConfigId);
+        if MCPConfigurationTool.IsEmpty() then
+            exit;
+
+        MCPConfigurationTool.ModifyAll("Allow Create", false);
+        MCPConfigurationTool.ModifyAll("Allow Modify", false);
+        MCPConfigurationTool.ModifyAll("Allow Delete", false);
+        MCPConfigurationTool.ModifyAll("Allow Bound Actions", false);
     end;
 
     internal procedure DeleteConfiguration(ConfigId: Guid)
@@ -426,6 +443,8 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         repeat
+            if CheckAPIToolExists(ConfigId, PageMetadata.ID) then
+                continue;
             CreateAPITool(ConfigId, PageMetadata.ID, false);
         until PageMetadata.Next() = 0;
     end;
@@ -442,8 +461,20 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         repeat
+            if CheckAPIToolExists(ConfigId, PageMetadata.ID) then
+                continue;
             CreateAPITool(ConfigId, PageMetadata.ID, false);
         until PageMetadata.Next() = 0;
+    end;
+
+    local procedure CheckAPIToolExists(ConfigId: Guid; PageId: Integer): Boolean
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+    begin
+        MCPConfigurationTool.SetRange(ID, ConfigId);
+        MCPConfigurationTool.SetRange("Object Type", MCPConfigurationTool."Object Type"::Page);
+        MCPConfigurationTool.SetRange("Object ID", PageId);
+        exit(not MCPConfigurationTool.IsEmpty());
     end;
 
     internal procedure GetObjectCaption(ToolId: Guid): Text[100]

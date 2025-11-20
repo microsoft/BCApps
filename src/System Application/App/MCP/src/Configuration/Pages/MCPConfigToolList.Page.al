@@ -27,14 +27,9 @@ page 8352 "MCP Config Tool List"
             repeater(Control1)
             {
                 ShowCaption = false;
-                field("Object Type"; Rec."Object Type")
-                {
-                    ToolTip = 'Specifies the type of the object.';
-                }
+                field("Object Type"; Rec."Object Type") { }
                 field("Object Id"; Rec."Object Id")
                 {
-                    ToolTip = 'Specifies the ID of the object.';
-
                     trigger OnLookup(var Text: Text): Boolean
                     var
                         PageMetadata: Record "Page Metadata";
@@ -66,29 +61,22 @@ page 8352 "MCP Config Tool List"
                     Editable = false;
                     ToolTip = 'Specifies the name of the object.';
                 }
-                field("Allow Read"; Rec."Allow Read")
-                {
-                    ToolTip = 'Specifies whether read operations are allowed for this tool.';
-                }
+                field("Allow Read"; Rec."Allow Read") { }
                 field("Allow Create"; Rec."Allow Create")
                 {
                     Editable = AllowCreateEditable and (IsSandbox or AllowCreateUpdateDeleteTools);
-                    ToolTip = 'Specifies whether create operations are allowed for this tool.';
                 }
                 field("Allow Modify"; Rec."Allow Modify")
                 {
                     Editable = AllowModifyEditable and (IsSandbox or AllowCreateUpdateDeleteTools);
-                    ToolTip = 'Specifies whether modify operations are allowed for this tool.';
                 }
                 field("Allow Delete"; Rec."Allow Delete")
                 {
                     Editable = AllowDeleteEditable and (IsSandbox or AllowCreateUpdateDeleteTools);
-                    ToolTip = 'Specifies whether delete operations are allowed for this tool.';
                 }
                 field("Allow Bound Actions"; Rec."Allow Bound Actions")
                 {
                     Editable = IsSandbox or AllowCreateUpdateDeleteTools;
-                    ToolTip = 'Specifies whether bound actions are allowed for this tool.';
                 }
             }
         }
