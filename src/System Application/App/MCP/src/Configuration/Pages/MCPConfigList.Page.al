@@ -70,7 +70,7 @@ page 8350 "MCP Config List"
         view(ActiveConfigurations)
         {
             Caption = 'Active configurations';
-            Filters = where(Active = filter(true));
+            Filters = where(Active = const(true));
         }
     }
 
