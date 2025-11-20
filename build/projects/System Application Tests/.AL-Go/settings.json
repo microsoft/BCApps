@@ -1,9 +1,22 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/043c3a212d0131d917eb87c9f9d9e8f55bc67179/Actions/.Modules/settings.schema.json",
-  "projectName": "System Application Tests",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/13868260bf008b56d26fd739c1f764b2bb2c8239/Actions/.Modules/settings.schema.json",
+  "projectName": "Test Apps",
   "testFolders": [
     "../../../src/System Application/Test",
-    "../../../src/System Application/Partner Test"
+    "../../../src/System Application/Partner Test",
+    "../../../src/Business Foundation/Test",
+    "../../../src/Tools/Performance Toolkit/Test",
+    "../../../src/Layers/W1/Tests/*",
+    "../../../src/Apps/W1/*/Test",
+    "../../../src/Apps/W1/*/Test Library",
+    "../../../src/Apps/W1/*/Demo Data",
+    "../../../src/Apps/W1/*/*/Test",
+    "../../../src/Apps/W1/*/*/Test Library",
+    "../../../src/Apps/W1/*/*/Demo Data"
   ],
-  "testType": "UnitTest"
+  "gitHubRunner": "self-hosted, 1ES.Pool=GitHub-BCApps",
+  "memoryLimit": "16G",
+  "doNotRunTests": true,
+  "useCompilerFolder": true,
+  "doNotPublishApps": true
 }
