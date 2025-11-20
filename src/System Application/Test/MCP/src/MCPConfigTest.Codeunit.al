@@ -549,6 +549,35 @@ codeunit 130130 "MCP Config Test"
         Assert.AreEqual('mcp', APIGroup, 'APIGroup mismatch');
     end;
 
+    [Test]
+    procedure TestDisableCreateUpdateDeleteToolsDisablesAllowCreate()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and tool is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPConfigTool(ConfigId);
+        Commit();
+
+        // [GIVEN] Create, update and delete tools are enabled
+        MCPConfig.AllowCreate(ToolId, true);
+        MCPConfig.AllowModify(ToolId, true);
+        MCPConfig.AllowDelete(ToolId, true);
+        MCPConfig.AllowBoundActions(ToolId, true);
+
+        // [WHEN] Disable create, update and delete tools is called
+        MCPConfig.AllowCreateUpdateDeleteTools(ConfigId, false);
+
+        // [THEN] Allow create, modify, delete and bound actions are set to false
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsFalse(MCPConfigurationTool."Allow Create", 'Allow Create is not false');
+        Assert.IsFalse(MCPConfigurationTool."Allow Modify", 'Allow Modify is not false');
+        Assert.IsFalse(MCPConfigurationTool."Allow Delete", 'Allow Delete is not false');
+        Assert.IsFalse(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions is not false');
+    end;
+
     local procedure CreateMCPConfig(Active: Boolean; DynamicToolMode: Boolean; AllowCreateUpdateDeleteTools: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
