@@ -32,18 +32,11 @@ page 8350 "MCP Config List"
         {
             repeater(Control1)
             {
-                field(Name; Rec.Name)
-                {
-                    ToolTip = 'Specifies the name of the MCP configuration.';
-                }
-                field(Description; Rec.Description)
-                {
-                    ToolTip = 'Specifies the description of the MCP configuration.';
-                }
-                field(Active; Rec.Active)
-                {
-                    ToolTip = 'Specifies whether the MCP configuration is active.';
-                }
+                field(Name; Rec.Name) { }
+                field(Description; Rec.Description) { }
+                field(Active; Rec.Active) { }
+                field(EnableDynamicToolMode; Rec.EnableDynamicToolMode) { }
+                field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects) { }
             }
         }
     }
@@ -69,6 +62,15 @@ page 8350 "MCP Config List"
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
+        }
+    }
+
+    views
+    {
+        view(ActiveConfigurations)
+        {
+            Caption = 'Active configurations';
+            Filters = where(Active = filter(true));
         }
     }
 
