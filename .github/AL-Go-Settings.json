@@ -27,7 +27,6 @@
     },
     {
       "branches": [
-        "main",
         "releases/*.x"
       ],
       "settings": {
