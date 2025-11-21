@@ -98,10 +98,10 @@ page 4316 "Agent List"
     trigger OnOpenPage()
     var
         AgentImpl: Codeunit "Agent Impl.";
-        AgentSessionImpl: Codeunit "Agent Session Impl.";
+        AgentUtilities: Codeunit "Agent Utilities";
         AgentMetadataProvider: Enum "Agent Metadata Provider";
     begin
-        AgentSessionImpl.BlockPageFromBeingOpenedByAgent();
+        AgentUtilities.BlockPageFromBeingOpenedByAgent();
         // Check if there are any agents available
         if AgentMetadataProvider.Names().Count() = 0 then
             AgentImpl.ShowNoAgentsAvailableNotification();

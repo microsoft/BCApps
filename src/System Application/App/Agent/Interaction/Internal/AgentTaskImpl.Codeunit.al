@@ -216,13 +216,6 @@ codeunit 4300 "Agent Task Impl."
         Summary := PageSummaryProvider.GetPageSummary(PageSummaryParameters);
     end;
 
-    procedure GetSessionAgentTaskId(): BigInteger
-    var
-        AgentALFunctions: DotNet AgentALFunctions;
-    begin
-        exit(AgentALFunctions.GetSessionAgentTaskId());
-    end;
-
     var
         MessageTextMustBeProvidedErr: Label 'You must provide a message text.';
         AreYouSureThatYouWantToRestartTheTaskQst: Label 'Are you sure that you want to restart the task?';

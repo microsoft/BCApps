@@ -331,6 +331,22 @@ codeunit 9175 "User Settings Impl."
             end;
     end;
 
+    [Scope('OnPrem')]
+    procedure GetAllowedCompaniesForUser(UserSecurityId: Guid; var TempCompany: Record Company temporary)
+    var
+        Company: Record Company;
+        UserAccountHelper: DotNet NavUserAccountHelper;
+        CompanyName: Text[30];
+    begin
+        TempCompany.DeleteAll();
+        foreach CompanyName in UserAccountHelper.GetAllowedCompanies(UserSecurityId) do
+            if Company.Get(CompanyName) then begin
+                TempCompany := Company;
+                TempCompany."Display Name" := GetCompanyDisplayName(TempCompany);
+                TempCompany.Insert();
+            end;
+    end;
+
     procedure InitializePlatformSettings(UserSecurityID: Guid; var UserPersonalization: Record "User Personalization")
     var
         SessionSetting: SessionSettings;

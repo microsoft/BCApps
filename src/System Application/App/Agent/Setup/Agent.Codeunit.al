@@ -103,9 +103,9 @@ codeunit 4321 Agent
     [Scope('OnPrem')]
     procedure SetInstructions(AgentUserSecurityID: Guid; Instructions: SecretText)
     var
-        AgentImpl: Codeunit "Agent Impl.";
+        AgentUtilities: Codeunit "Agent Utilities";
     begin
-        AgentImpl.SetInstructions(AgentUserSecurityID, Instructions);
+        AgentUtilities.SetInstructions(AgentUserSecurityID, Instructions);
     end;
 
     /// <summary>
