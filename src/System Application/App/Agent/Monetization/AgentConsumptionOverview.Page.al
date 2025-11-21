@@ -128,6 +128,7 @@ page 4333 "Agent Consumption Overview"
                         group(DescriptionGroup)
                         {
                             ShowCaption = false;
+
                             field(ConsumptionCaption; ConsumptionCaption)
                             {
                                 Caption = 'Consumption overview for';
@@ -135,44 +136,50 @@ page 4333 "Agent Consumption Overview"
                                 Style = Strong;
                                 ToolTip = 'Specifies for what the consumption data is displayed.';
                             }
-                            field(DateRange; DateRangeTxt)
+                            group(DateRangeGroup)
                             {
-                                Caption = 'Date range';
-                                Visible = FilteredToTask;
-                                Editable = false;
-                                ToolTip = 'Specifies the date range for the consumption data.';
-                            }
-                            field(TotalEntriesTask; TotalEntriesCount)
-                            {
+                                ShowCaption = false;
                                 Visible = not FilteredToTask;
-                                AutoFormatType = 0;
-                                Caption = 'Number of entries';
-                                Editable = false;
-                                ToolTip = 'Specifies the total number of entries.';
+
+                                field(DateRange; DateRangeTxt)
+                                {
+                                    Caption = 'Date range';
+                                    Editable = false;
+                                    ToolTip = 'Specifies the date range for the consumption data.';
+                                }
+                            }
+                            group(TotalEntriesTaskGroup)
+                            {
+                                ShowCaption = false;
+                                Visible = FilteredToTask;
+
+                                field(TotalEntriesTask; TotalEntriesCount)
+                                {
+                                    Caption = 'Number of entries';
+                                    Editable = false;
+                                    ToolTip = 'Specifies the total number of entries.';
+                                }
                             }
                         }
                         group(TotalCopilotCreditsGroup)
                         {
                             ShowCaption = false;
+                            Visible = not FilteredToTask;
+
                             field(TotalEntries; TotalEntriesCount)
                             {
                                 Caption = 'Number of entries';
-                                Visible = FilteredToTask;
                                 Editable = false;
                                 ToolTip = 'Specifies the total number of entries.';
                             }
-                            group(TotalCopilotCreditsFieldGroup)
+
+                            field(TotalCopilotCredits; TotalEntriesCopilotCredits)
                             {
-                                Visible = FilteredToTask;
-                                ShowCaption = false;
-                                field(TotalCopilotCredits; TotalEntriesCopilotCredits)
-                                {
-                                    Caption = 'Total Copilot credits';
-                                    AutoFormatType = 0;
-                                    DecimalPlaces = 0 : 2;
-                                    Editable = false;
-                                    ToolTip = 'Specifies the total number of Copilot credits consumed.';
-                                }
+                                Caption = 'Total Copilot credits';
+                                AutoFormatType = 0;
+                                DecimalPlaces = 0 : 2;
+                                Editable = false;
+                                ToolTip = 'Specifies the total number of Copilot credits consumed.';
                             }
                         }
                         group(TotalTaskConsumedCreditsGroup)
@@ -229,6 +236,8 @@ page 4333 "Agent Consumption Overview"
                     EndDate := CalcDate(PeriodBackTok, EndDate);
                     StartDate := CalcDate(PeriodBackTok, EndDate);
                     UpdateDateRange(StartDate, EndDate);
+                    Clear(TaskNameTxt);
+                    Clear(TotalTaskConsumedCredits);
                     CurrPage.Update(true);
                 end;
             }
@@ -246,12 +255,26 @@ page 4333 "Agent Consumption Overview"
                         exit;
                     end;
 
-                    EndDate := CalcDate(PeriodForwardTok, StartDate);
+                    EndDate := CalcDate(PeriodForwardTok, EndDate);
                     if EndDate > Today() then
                         EndDate := Today();
 
                     StartDate := CalcDate(PeriodBackTok, EndDate);
                     UpdateDateRange(StartDate, EndDate);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(CurrentMonth)
+            {
+                Visible = ShowFilters;
+                ApplicationArea = All;
+                Caption = 'Current month';
+                ToolTip = 'Move the date range filter to the current month.';
+                Image = Calendar;
+
+                trigger OnAction()
+                begin
+                    SetDateRangeFilters();
                     CurrPage.Update(false);
                 end;
             }
@@ -264,6 +287,9 @@ page 4333 "Agent Consumption Overview"
                 {
                 }
                 actionref(NextMonth_Promoted; NextMonth)
+                {
+                }
+                actionref(CurrentMonth_Promoted; CurrentMonth)
                 {
                 }
             }
@@ -282,6 +308,18 @@ page 4333 "Agent Consumption Overview"
     end;
 
     trigger OnAfterGetRecord()
+    begin
+        UpdateRowValues();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateAgentTaskName();
+        UpdateTheDescriptionAndTotalsVisibility();
+        UpdateTotals();
+    end;
+
+    local procedure UpdateRowValues()
     var
         User: Record User;
         DescriptionInStream: InStream;
@@ -289,28 +327,44 @@ page 4333 "Agent Consumption Overview"
         Rec.CalcFields(Description);
         Rec.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
         DescriptionInStream.ReadText(DescriptionTxt);
-        if User.Get(Rec."User Id") then
-            UserName := User."User Name";
+        if not UserNameDictionary.ContainsKey(Rec."User Id") then begin
+            if User.Get(Rec."User Id") then begin
+                UserName := User."User Name";
+                UserNameDictionary.Add(Rec."User Id", UserName);
+            end else
+                UserName := '';
+
+            exit;
+        end;
+
+        UserName := UserNameDictionary.Get(Rec."User Id");
     end;
 
-    trigger OnAfterGetCurrRecord()
+    local procedure UpdateAgentTaskName()
+    var
+        AgentTask: Record "Agent Task";
     begin
-        UpdateTheDescriptionAndTotalsVisibility();
-        UpdateTotals();
+        if not AgentTaskDictionary.ContainsKey(Rec."Agent Task ID") then begin
+            if AgentTask.Get(Rec."Agent Task ID") then begin
+                TaskNameTxt := StrSubstNo(AgentTaskNameTxt, AgentTask.ID, AgentTask.Title);
+                AgentTaskDictionary.Add(Rec."Agent Task ID", TaskNameTxt);
+            end else
+                TaskNameTxt := '';
+
+            exit;
+        end;
+
+        TaskNameTxt := AgentTaskDictionary.Get(Rec."Agent Task ID");
     end;
 
     local procedure UpdateTotals()
     var
-        AgentTask: Record "Agent Task";
         UserAIConsumptionData: Record "User AI Consumption Data";
     begin
         if not TotalsVisible then
             exit;
 
         TotalEntriesCount := Rec.Count();
-        if AgentTask.Get(Rec."Agent Task ID") then
-            TaskNameTxt := StrSubstNo(AgentTaskNameTxt, AgentTask.ID, AgentTask.Title);
-
         UserAIConsumptionData.Copy(Rec);
         UserAIConsumptionData.CalcSums("Copilot Credits");
         TotalEntriesCopilotCredits := UserAIConsumptionData."Copilot Credits";
@@ -344,7 +398,7 @@ page 4333 "Agent Consumption Overview"
         end;
 
         if Rec.GetFilter("User Id") <> '' then begin
-            ConsumptionCaption := StrSubstNo(AgentNameTok, UserName);
+            ConsumptionCaption := StrSubstNo(UserName);
             FilteredToTask := false;
             exit;
         end;
@@ -400,6 +454,8 @@ page 4333 "Agent Consumption Overview"
     end;
 
     var
+        AgentTaskDictionary: Dictionary of [BigInteger, Text];
+        UserNameDictionary: Dictionary of [Guid, Text[80]];
         ChangedDateRangeFilters: Boolean;
         StartDate: Date;
         EndDate: Date;
@@ -417,7 +473,6 @@ page 4333 "Agent Consumption Overview"
         EverythingTok: Label 'Everything';
         AgentTaskNameTxt: Label 'Task #%1 - %2', Comment = '%1 - ID of the agent task, %2 - Title of the agent task';
         YourNotAuthorizedToViewMonetizationDataErr: Label 'You are missing the required permissions to view monetization data.';
-        AgentNameTok: Label 'Agent: %1', Comment = '%1 - Name of the agent user';
         TheEndDateIsTodayMsg: Label 'The end date is already set to today. You cannot move the date range filter further.';
         PeriodBackTok: Label '<-1M>', Locked = true;
         PeriodForwardTok: Label '<+1M>', Locked = true;
