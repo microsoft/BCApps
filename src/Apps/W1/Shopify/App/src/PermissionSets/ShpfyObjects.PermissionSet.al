@@ -63,7 +63,11 @@ permissionset 30104 "Shpfy - Objects"
         table "Shpfy Return Line" = X,
         table "Shpfy Shipment Method Mapping" = X,
         table "Shpfy Shop" = X,
+#if not CLEAN28
+#pragma warning disable AL0432
         table "Shpfy Shop Collection Map" = X,
+#pragma warning restore AL0432
+#endif
         table "Shpfy Shop Inventory" = X,
         table "Shpfy Shop Location" = X,
         table "Shpfy Skipped Record" = X,
@@ -180,6 +184,7 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy GQL Customer" = X,
         codeunit "Shpfy GQL CustomerIds" = X,
         codeunit "Shpfy GQL CustomerMetafieldIds" = X,
+        codeunit "Shpfy GQL CustProdCollections" = X,
         codeunit "Shpfy GQL DeleteWebhookSub" = X,
         codeunit "Shpfy GQL DeliveryMethods" = X,
         codeunit "Shpfy GQL DeliveryProfiles" = X,
@@ -219,6 +224,7 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy GQL NextCompanyIds" = X,
         codeunit "Shpfy GQL NextCompLocations" = X,
         codeunit "Shpfy GQL NextCustomerIds" = X,
+        codeunit "Shpfy GQL NextCustProdColls" = X,
         codeunit "Shpfy GQL NextDeliveryMethods" = X,
         codeunit "Shpfy GQL NextDeliveryProfiles" = X,
         codeunit "Shpfy GQL NextDisputes" = X,
@@ -353,6 +359,7 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy Process Order" = X,
         codeunit "Shpfy Process Orders" = X,
         codeunit "Shpfy Product API" = X,
+        codeunit "Shpfy Product Collection API" = X,
         codeunit "Shpfy Product Events" = X,
         codeunit "Shpfy Product Export" = X,
         codeunit "Shpfy Product Image Export" = X,
@@ -373,6 +380,7 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy Shipping Events" = X,
         codeunit "Shpfy Shipping Methods" = X,
         codeunit "Shpfy Shop Mgt." = X,
+        codeunit "Shpfy Shop Review" = X,
         codeunit "Shpfy Skipped Record" = X,
         codeunit "Shpfy Staff Member API" = X,
         codeunit "Shpfy Suggest Payments" = X,
@@ -453,6 +461,7 @@ permissionset 30104 "Shpfy - Objects"
         page "Shpfy Payment Transactions" = X,
         page "Shpfy Payouts" = X,
         page "Shpfy Products" = X,
+        page "Shpfy Product Collections" = X,
         page "Shpfy Products Overview" = X,
         page "Shpfy Refund" = X,
         page "Shpfy Refund Lines" = X,
