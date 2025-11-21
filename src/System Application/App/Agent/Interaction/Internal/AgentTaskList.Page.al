@@ -95,6 +95,7 @@ page 4300 "Agent Task List"
                     Caption = 'Copilot credits';
                     ToolTip = 'Specifies the number of Copilot credits consumed by the agent task.';
                     AutoFormatType = 0;
+                    DecimalPlaces = 0 : 2;
 
                     trigger OnDrillDown()
                     var
