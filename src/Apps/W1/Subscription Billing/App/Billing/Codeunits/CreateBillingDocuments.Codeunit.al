@@ -930,7 +930,7 @@ codeunit 8060 "Create Billing Documents"
 
     procedure GetBillingPeriodDescriptionTxt() DescriptionText: Text
     begin
-        DescriptionText := ServicePeriodDescriptionTxt;
+        DescriptionText := BillingPeriodDescriptionTxt;
     end;
 
     procedure GetBillingPeriodDescriptionTxt(LanguageCode: Code[10]) DescriptionText: Text
@@ -1220,7 +1220,7 @@ codeunit 8060 "Create Billing Documents"
         ProgressTxt: Label 'Creating documents...\Partner No. #1#################################\Contract No. #2#################################', Comment = '%1=Partner No., %2=Contract No.';
         OnlyOneServicePartnerErr: Label 'You can create documents only for one type of partner at a time (Customer or Vendor). Please check your filters.';
         UpdateRequiredErr: Label 'At least one Subscription Line was changed after billing proposal was created. Please check the lines marked with "Update Required" field and update the billing proposal before the billing documents can be created.';
-        ServicePeriodDescriptionTxt: Label 'Subscription period: %1 to %2', Comment = '%1=Recurring Billing from, %2=Recurring Billing to';
+        BillingPeriodDescriptionTxt: Label 'Billing period: %1 to %2', Comment = '%1=Recurring Billing from, %2=Recurring Billing to';
         NoDocumentsCreatedMsg: Label 'No documents have been created.';
         DocumentsCreatedMsg: Label 'Creation of documents completed.\\%1 document(s) for %2 contract(s) were created.', Comment = '%1=Number of documents, %2=Number of contracts';
         DocumentsCreatedAndPostedMsg: Label 'Creation of documents completed.\\%1 document(s) for %2 contract(s) were created and posted.', Comment = '%1=Number of documents, %2=Number of contracts';
