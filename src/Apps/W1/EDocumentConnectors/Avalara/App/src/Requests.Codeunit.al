@@ -235,14 +235,15 @@ codeunit 6376 Requests
     procedure GetBaseUrl(): Text
     var
         ConnectionSetup: Record "Connection Setup";
+        Authenticator: Codeunit "Authenticator";
     begin
         ConnectionSetup.Get();
 
         case ConnectionSetup."Avalara Send Mode" of
             "Avalara Send Mode"::Production:
-                exit(ConnectionSetup."API URL");
+                exit(Authenticator.GetAPIURL());
             "Avalara Send Mode"::Test:
-                exit(ConnectionSetup."Sandbox API URL");
+                exit(Authenticator.GetSandboxAPIURL());
             else
                 Error('Unsupported %1 in %2', ConnectionSetup.FieldCaption("Avalara Send Mode"), ConnectionSetup.TableCaption);
         end;
@@ -251,14 +252,15 @@ codeunit 6376 Requests
     local procedure GetAuthUrl(): Text
     var
         ConnectionSetup: Record "Connection Setup";
+        Authenticator: Codeunit "Authenticator";
     begin
         ConnectionSetup.Get();
 
         case ConnectionSetup."Avalara Send Mode" of
             "Avalara Send Mode"::Production:
-                exit(ConnectionSetup."Authentication URL");
+                exit(Authenticator.GetAuthURL());
             "Avalara Send Mode"::Test:
-                exit(ConnectionSetup."Sandbox Authentication URL");
+                exit(Authenticator.GetSandboxAuthURL());
             else
                 Error('Unsupported %1 in %2', ConnectionSetup.FieldCaption("Avalara Send Mode"), ConnectionSetup.TableCaption);
         end;
