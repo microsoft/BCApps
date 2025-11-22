@@ -15,6 +15,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Posting;
 using System.Telemetry;
 using System.Utilities;
+using Microsoft.eServices.EDocument.Processing;
 
 /// <summary>
 /// Dealing with the creation of the purchase invoice after the draft has been populated.
@@ -48,6 +49,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         if not EDocPOMatching.VerifyEDocumentMatchedLinesAreValidMatches(EDocumentPurchaseHeader) then
             Error(YourMatchedLinesAreNotValidErr);
 
+        EDocPOMatching.SuggestReceiptsForMatchedOrderLines(EDocumentPurchaseHeader);
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
         TempPOMatchWarnings.SetRange("Warning Type", "E-Doc PO Match Warning"::NotYetReceived);
         if not TempPOMatchWarnings.IsEmpty() then
@@ -56,6 +58,8 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
 
         IEDocumentFinishPurchaseDraft := EDocImportParameters."Processing Customizations";
         PurchaseHeader := IEDocumentFinishPurchaseDraft.CreatePurchaseInvoice(EDocument);
+
+        EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument, PurchaseHeader);
         PurchaseHeader.SetRecFilter();
         PurchaseHeader.FindFirst();
         PurchaseHeader."Doc. Amount Incl. VAT" := EDocumentPurchaseHeader.Total;
@@ -78,11 +82,13 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
     procedure RevertDraftActions(EDocument: Record "E-Document")
     var
         PurchaseHeader: Record "Purchase Header";
+        EDocPOMatching: Codeunit "E-Doc. PO Matching";
         DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
     begin
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         if not PurchaseHeader.FindFirst() then
             exit;
+        EDocPOMatching.TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader, EDocument);
         DocumentAttachmentMgt.CopyAttachments(PurchaseHeader, EDocument);
         DocumentAttachmentMgt.DeleteAttachedDocuments(PurchaseHeader);
         PurchaseHeader.TestField("Document Type", "Purchase Document Type"::Invoice);
@@ -102,6 +108,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         DimensionManagement: Codeunit DimensionManagement;
         PurchCalcDiscByType: Codeunit "Purch - Calc Disc. By Type";
         PurchaseLineCombinedDimensions: array[10] of Integer;
+        PurchaseLineNo: Integer;
         StopCreatingPurchaseInvoice: Boolean;
         VendorInvoiceNo: Code[35];
         GlobalDim1, GlobalDim2 : Code[20];
@@ -142,16 +149,17 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
             PurchaseHeader.Modify();
         end;
 
-        // Track changes for history
-        EDocumentPurchaseHistMapping.TrackRecord(EDocument, EDocumentPurchaseHeader, PurchaseHeader);
+        LinkEDocumentRecords(EDocument, EDocumentPurchaseHeader, PurchaseHeader);
 
-        PurchaseLine."Line No." := GetLastLineNumberOnPurchaseInvoice(PurchaseHeader."No."); // We get the last line number, even if this is a new document since recurrent lines get inserted on the header's creation
+        PurchaseLineNo := GetLastLineNumberOnPurchaseInvoice(PurchaseHeader."No."); // We get the last line number, even if this is a new document since recurrent lines get inserted on the header's creation
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
         if EDocumentPurchaseLine.FindSet() then
             repeat
+                Clear(PurchaseLine);
                 PurchaseLine."Document Type" := PurchaseHeader."Document Type";
                 PurchaseLine."Document No." := PurchaseHeader."No.";
-                PurchaseLine."Line No." += 10000;
+                PurchaseLineNo += 10000;
+                PurchaseLine."Line No." := PurchaseLineNo;
                 PurchaseLine."Unit of Measure Code" := CopyStr(EDocumentPurchaseLine."[BC] Unit of Measure", 1, MaxStrLen(PurchaseLine."Unit of Measure Code"));
                 PurchaseLine."Variant Code" := EDocumentPurchaseLine."[BC] Variant Code";
                 PurchaseLine.Type := EDocumentPurchaseLine."[BC] Purchase Line Type";
@@ -177,10 +185,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
                 PurchaseLine.Validate("Shortcut Dimension 2 Code", EDocumentPurchaseLine."[BC] Shortcut Dimension 2 Code");
                 EDocumentPurchaseHistMapping.ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocumentPurchaseLine, PurchaseLine);
                 PurchaseLine.Insert();
-
-                // Track changes for history
-                EDocumentPurchaseHistMapping.TrackRecord(EDocument, EDocumentPurchaseLine, PurchaseLine);
-
+                LinkEDocumentRecords(EDocument, EDocumentPurchaseLine, PurchaseLine);
             until EDocumentPurchaseLine.Next() = 0;
         PurchaseHeader.Modify();
         PurchCalcDiscByType.ApplyInvDiscBasedOnAmt(EDocumentPurchaseHeader."Total Discount", PurchaseHeader);
@@ -224,6 +229,29 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseLine.SetRange("Document No.", DocumentNo);
         if PurchaseLine.FindLast() then
             exit(PurchaseLine."Line No.");
+    end;
+
+    /// <summary>
+    /// Track header and line mapping between source and target records.
+    /// </summary>
+    local procedure LinkEDocumentRecords(EDocument: Record "E-Document"; SourceRecord: Variant; TargetRecord: Variant)
+    var
+        EDocRecordLink: Record "E-Doc. Record Link";
+        SourceRecordRef, TargetRecordRef : RecordRef;
+        WrongVariantTypeErr: Label 'Only record types are allowed.';
+    begin
+        if (not SourceRecord.IsRecord()) or (not TargetRecord.IsRecord()) then
+            Error(WrongVariantTypeErr);
+
+        SourceRecordRef.GetTable(SourceRecord);
+        TargetRecordRef.GetTable(TargetRecord);
+
+        EDocRecordLink."Source Table No." := SourceRecordRef.Number();
+        EDocRecordLink."Source SystemId" := SourceRecordRef.Field(SourceRecordRef.SystemIdNo).Value();
+        EDocRecordLink."Target Table No." := TargetRecordRef.Number();
+        EDocRecordLink."Target SystemId" := TargetRecordRef.Field(TargetRecordRef.SystemIdNo).Value();
+        EDocRecordLink."E-Document Entry No." := EDocument."Entry No";
+        if EDocRecordLink.Insert() then;
     end;
 
 }
