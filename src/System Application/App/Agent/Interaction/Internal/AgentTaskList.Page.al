@@ -23,7 +23,9 @@ page 4300 "Agent Task List"
     InherentEntitlements = X;
     InherentPermissions = X;
     Editable = false;
+#pragma warning disable AS0050
     Extensible = false;
+#pragma warning restore AS0050
 
     layout
     {
