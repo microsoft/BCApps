@@ -7,6 +7,7 @@ namespace System.Agents;
 
 using System.Environment.Consumption;
 
+#pragma warning disable AS0032 
 page 4300 "Agent Task List"
 {
     PageType = List;
@@ -22,6 +23,7 @@ page 4300 "Agent Task List"
     InherentEntitlements = X;
     InherentPermissions = X;
     Editable = false;
+    Extensible = false;
 
     layout
     {
@@ -243,3 +245,4 @@ page 4300 "Agent Task List"
         ConsumedCredits: Decimal;
         ConsumedCreditsVisible: Boolean;
 }
+#pragma warning restore AS0032
