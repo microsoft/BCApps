@@ -519,9 +519,9 @@ codeunit 6196 "E-Doc. PO Matching"
         DefaultConfiguration: Enum "E-Doc. PO M. Configuration";
         VendorNos: List of [Code[20]];
     begin
-        DefaultSetup."PO Matching Config. Receipt" := Enum::"E-Doc. PO M. Config. Receipt"::"Never receive at posting";
+        DefaultSetup."PO Matching Config. Receipt" := Enum::"E-Doc. PO M. Config. Receipt"::"Always ask";
         DefaultSetup."Receive G/L Account Lines" := false;
-        DefaultConfiguration := Enum::"E-Doc. PO M. Configuration"::"Never receive at posting";
+        DefaultConfiguration := Enum::"E-Doc. PO M. Configuration"::"Always ask";
         ConfigurePOMatchingSettings(DefaultSetup, DefaultConfiguration, VendorNos);
     end;
 
