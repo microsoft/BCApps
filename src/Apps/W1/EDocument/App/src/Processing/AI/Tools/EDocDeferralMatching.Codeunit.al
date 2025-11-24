@@ -173,14 +173,17 @@ codeunit 6129 "E-Doc. Deferral Matching" implements "AOAI Function", IEDocAISyst
     #endregion "AOAI Function" interface implementation
 
     #region "E-Document AI System" interface implementation
-    procedure GetSystemPrompt(): SecretText
+    procedure GetSystemPrompt(UserLanguage: Text): SecretText
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
+        EDocumentAIProcessor: Codeunit "E-Doc. AI Tool Processor";
         PromptSecretText: SecretText;
-        PromptSecretNameTok: Label 'DeferralMatching-SystemPrompt271', Locked = true;
+        PromptSecretNameTok: Label 'DeferralMatching-SystemPrompt272', Locked = true;
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret(PromptSecretNameTok, PromptSecretText) then
             PromptSecretText := SecretStrSubstNo('');
+
+        PromptSecretText := EDocumentAIProcessor.SetLanguageInPrompt(PromptSecretText, UserLanguage);
         exit(PromptSecretText);
     end;
 
