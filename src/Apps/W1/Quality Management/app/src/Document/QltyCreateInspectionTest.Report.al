@@ -53,7 +53,7 @@ report 20400 "Qlty. Create Inspection Test"
                         ApplicationArea = All;
                         Caption = 'Template Code';
                         Tooltip = 'Specifies which Quality Inspection Template to create.';
-
+                        ShowMandatory = true;
                         trigger OnLookup(var Text: Text): Boolean
                         var
                             QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -67,7 +67,7 @@ report 20400 "Qlty. Create Inspection Test"
                         ApplicationArea = All;
                         Caption = 'Source';
                         ToolTip = 'Specifies a reference to which source should be used.';
-
+                        ShowMandatory = true;
                         trigger OnLookup(var Text: Text): Boolean
                         var
                             QltyInspectSourceConfigList: Page "Qlty. Ins. Source Config. List";
@@ -110,6 +110,8 @@ report 20400 "Qlty. Create Inspection Test"
                         Caption = 'Choose Record';
                         Tooltip = 'Specifies which record you want to create a Quality Inspection Test for.';
                         Visible = VisibleGetRecord;
+                        ShowMandatory = true;
+                        AssistEdit = true;
 
                         trigger OnAssistEdit()
                         begin
@@ -184,6 +186,20 @@ report 20400 "Qlty. Create Inspection Test"
         trigger OnInit()
         begin
             SetRequestPageControlVisibility();
+        end;
+
+        trigger OnQueryClosePage(CloseAction: Action): Boolean
+        var
+            QltInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+            NullCheckRecordId: RecordId;
+        begin
+            if CloseAction = CloseAction::OK then begin
+                if not QltInspectionTemplateHdr.Get(QltInspectionTemplateToCreate) then
+                    Error(NotAValidQltyInspectionTemplateErr, QltInspectionTemplateToCreate);
+
+                if ((NullCheckRecordId = Target) or (Target.TableNo = 0)) then
+                    Error(PleaseChooseARecordFirstErr);
+            end;
         end;
     }
 
