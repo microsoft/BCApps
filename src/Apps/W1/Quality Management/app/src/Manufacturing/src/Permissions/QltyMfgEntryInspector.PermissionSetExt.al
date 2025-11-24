@@ -13,7 +13,7 @@ using Microsoft.QualityManagement.Utilities;
 /// <summary>
 /// Adds permissions for manufacturing objects
 /// </summary>
-permissionsetextension 20472 "Qlty. Mfg Entry Inspector" extends QltyEntryInspector
+permissionsetextension 20472 "Qlty. Mfg. Entry Inspector" extends QltyEntryInspector
 {
     Permissions =
         codeunit "Qlty. Manufactur. Integration" = X,

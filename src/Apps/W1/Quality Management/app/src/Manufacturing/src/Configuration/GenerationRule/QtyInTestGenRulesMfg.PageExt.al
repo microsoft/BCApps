@@ -6,11 +6,10 @@ namespace Microsoft.QualityManagement.Configuration.GenerationRule;
 
 using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Setup.Setup;
-pageextension 20421 "Qty. In Test Gen. Rules - Mfg" extends "Qlty. In. Test Generat. Rules"
+pageextension 20421 "Qty. In Test Gen. Rules - Mfg." extends "Qlty. In. Test Generat. Rules"
 {
     layout
     {
-        // Add changes to page layout here
         addafter("Activation Trigger")
         {
             field("Assembly Trigger"; Rec."Assembly Trigger")
@@ -32,7 +31,6 @@ pageextension 20421 "Qty. In Test Gen. Rules - Mfg" extends "Qlty. In. Test Gene
 
     actions
     {
-        // Add changes to page actions here
         addafter(CreateNewGenerationRuleForWhseWizard_Promoted)
         {
             actionref(CreateNewGenerationRuleForProdWizard_Promoted; CreateNewGenerationRuleForProdWizard)
@@ -96,8 +94,6 @@ pageextension 20421 "Qty. In Test Gen. Rules - Mfg" extends "Qlty. In. Test Gene
     end;
 
     trigger OnOpenPage()
-    var
-    //QltyGenerationRuleMgmt: Codeunit "Qlty. Generation Rule Mgmt.";
     begin
         SetTriggerColumnVisibleState();
         CurrPage.Update(false);

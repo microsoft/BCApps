@@ -13,7 +13,7 @@ using Microsoft.QualityManagement.Utilities;
 /// <summary>
 /// Adds permissions for manufacturing objects
 /// </summary>
-permissionsetextension 20470 "Qlty. Mfg Mngmnt - Objects" extends "QltyMngmnt - Objects"
+permissionsetextension 20470 "Qlty. Mfg. Mngmnt. - Objects" extends "QltyMngmnt - Objects"
 {
     Permissions =
         codeunit "Qlty. Manufactur. Integration" = X,

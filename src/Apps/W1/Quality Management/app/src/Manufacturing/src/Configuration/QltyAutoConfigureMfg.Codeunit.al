@@ -15,7 +15,7 @@ using Microsoft.QualityManagement.Document;
 /// <summary>
 /// Contains helper functions to use for automatic configuration.
 /// </summary>
-codeunit 20422 "Qlty. Auto Configure - Mfg"
+codeunit 20422 "Qlty. Auto Configure - Mfg."
 {
     var
         ProdLineToTrackingTok: Label 'TRACKINGTOPROD', Locked = true;

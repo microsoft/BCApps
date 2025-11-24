@@ -7,7 +7,7 @@ namespace Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Integration.Assembly;
-tableextension 20401 "Qlty. In. Test Gen. Rule - Mfg" extends "Qlty. In. Test Generation Rule"
+tableextension 20401 "Qlty. In Test Gen. Rule - Mfg." extends "Qlty. In. Test Generation Rule"
 {
     fields
     {
