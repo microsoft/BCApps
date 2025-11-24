@@ -1018,7 +1018,7 @@ codeunit 148153 "Usage Based Billing Test"
         FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer);
         UsageDataBilling.CalcSums(Amount);
         CalculatedAmount := UsageDataBilling.Amount;
-        UsageDataBilling.FindFirst();
+        Assert.RecordIsNotEmpty(UsageDataBilling);
 
         ProcessUsageDataBilling.SetRoundingPrecision(RoundingPrecision, CalculatedAmount, Currency);
         Assert.AreEqual(Round(ExpectedResult, RoundingPrecision), CalculatedAmount, 'Amount was not calculated properly in Usage data.');
@@ -1211,7 +1211,7 @@ codeunit 148153 "Usage Based Billing Test"
 
         //[GIVEN] Usage Data Billing for sales credit memo
         UsageDataBilling.FilterOnDocumentTypeAndDocumentNo("Service Partner"::Vendor, Enum::"Usage Based Billing Doc. Type"::"Credit Memo", PurchaseHeader."No.");
-        UsageDataBilling.FindSet();
+        Assert.RecordIsNotEmpty(UsageDataBilling);
 
         //[WHEN] Delete Purchase Credit Memo
         PurchaseHeader.Delete(true);
@@ -1362,7 +1362,7 @@ codeunit 148153 "Usage Based Billing Test"
         Assert.RecordCount(UsageDataBilling, 2); // Expect additional usage data billing for credit memo
 
         UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(Enum::"Service Partner"::Customer, Enum::"Usage Based Billing Doc. Type"::"Credit Memo", SalesCrMemoHeader."No.");
-        UsageDataBilling.FindSet();
+        Assert.RecordIsNotEmpty(UsageDataBilling);
     end;
 
     [Test]
@@ -1387,7 +1387,7 @@ codeunit 148153 "Usage Based Billing Test"
         Assert.RecordCount(UsageDataBilling, 2); // Expect additional usage data billing for credit memo and one without document type and document no
 
         UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(Enum::"Service Partner"::Vendor, Enum::"Usage Based Billing Doc. Type"::"Credit Memo", PurchaseHeader."No.");
-        UsageDataBilling.FindSet();
+        Assert.RecordIsNotEmpty(UsageDataBilling);
     end;
 
     [Test]
@@ -1412,7 +1412,7 @@ codeunit 148153 "Usage Based Billing Test"
         Assert.RecordCount(UsageDataBilling, 2); // Expect additional usage data billing for credit memo and one without document type and document no
 
         UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(Enum::"Service Partner"::Customer, Enum::"Usage Based Billing Doc. Type"::"Credit Memo", SalesCrMemoHeader."No.");
-        UsageDataBilling.FindSet();
+        Assert.RecordIsNotEmpty(UsageDataBilling);
     end;
 
     [Test]
@@ -1438,10 +1438,10 @@ codeunit 148153 "Usage Based Billing Test"
         Assert.RecordCount(UsageDataBilling, 3); // Expect additional usage data billing for credit memo and one without document type and document no
 
         UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(Enum::"Service Partner"::Customer, Enum::"Usage Based Billing Doc. Type"::"Posted Credit Memo", CorrectedDocumentNo);
-        UsageDataBilling.FindSet();
+        Assert.RecordIsNotEmpty(UsageDataBilling);
 
         UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(Enum::"Service Partner"::Customer, Enum::"Usage Based Billing Doc. Type"::None, '');
-        UsageDataBilling.FindSet();
+        Assert.RecordIsNotEmpty(UsageDataBilling);
     end;
 
     [Test]
@@ -1469,10 +1469,10 @@ codeunit 148153 "Usage Based Billing Test"
         Assert.RecordCount(UsageDataBilling, 3); // Expect additional usage data billing for credit memo and one without document type and document no
 
         UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(Enum::"Service Partner"::Vendor, Enum::"Usage Based Billing Doc. Type"::"Posted Credit Memo", CorrectedDocumentNo);
-        UsageDataBilling.FindSet();
+        Assert.RecordIsNotEmpty(UsageDataBilling);
 
         UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(Enum::"Service Partner"::Vendor, Enum::"Usage Based Billing Doc. Type"::None, '');
-        UsageDataBilling.FindSet();
+        Assert.RecordIsNotEmpty(UsageDataBilling);
     end;
 
     [Test]
@@ -1516,10 +1516,10 @@ codeunit 148153 "Usage Based Billing Test"
         Assert.RecordCount(UsageDataBilling, 3); // Expect additional usage data billing for credit memo and one without document type and document no
 
         UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(Enum::"Service Partner"::Customer, Enum::"Usage Based Billing Doc. Type"::"Posted Credit Memo", CorrectedDocumentNo);
-        UsageDataBilling.FindSet();
+        Assert.RecordIsNotEmpty(UsageDataBilling);
 
         UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(Enum::"Service Partner"::Customer, Enum::"Usage Based Billing Doc. Type"::None, '');
-        UsageDataBilling.FindSet();
+        Assert.RecordIsNotEmpty(UsageDataBilling);
     end;
 
     [Test]
