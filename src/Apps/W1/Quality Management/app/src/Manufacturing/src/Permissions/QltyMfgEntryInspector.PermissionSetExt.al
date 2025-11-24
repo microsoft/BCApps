@@ -4,9 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Integration.Manufacturing.Permissions;
 
-using Microsoft.QualityManagement.Permissions;
+using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
+using Microsoft.QualityManagement.Permissions;
 using Microsoft.QualityManagement.Utilities;
 
 /// <summary>
@@ -16,6 +17,7 @@ permissionsetextension 20472 "Qlty. Mfg Entry Inspector" extends QltyEntryInspec
 {
     Permissions =
         codeunit "Qlty. Manufactur. Integration" = X,
+        codeunit "Qlty. Assembly Integration" = X,
         codeunit "Qlty. Filter Helpers - Mfg." = X,
         codeunit "Qlty. Session Helper - Mfg." = X,
         page "Qlty. Prod. Gen. Rule Wizard" = X,

@@ -12,19 +12,24 @@ codeunit 20419 "Qlty. In Test Gen. Rule - Mfg."
     local procedure OnConfirmUpdateManualTriggerStatusOnBeforeOnCheckTriggerIsNoTrigger(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; var NoTrigger: Boolean)
     begin
         if NoTrigger then
-            NoTrigger := NoTrigger and (QltyInTestGenerationRule."Production Trigger" = QltyInTestGenerationRule."Production Trigger"::NoTrigger);
+            NoTrigger := NoTrigger and (QltyInTestGenerationRule."Production Trigger" = QltyInTestGenerationRule."Production Trigger"::NoTrigger) and (QltyInTestGenerationRule."Assembly Trigger" = QltyInTestGenerationRule."Assembly Trigger"::NoTrigger);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Qlty. In. Test Generation Rule", 'OnSetIntentAndDefaultTriggerValuesFromSetupElseCase', '', false, false)]
     local procedure OnSetIntentAndDefaultTriggerValuesFromSetupElseCase(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; var QltyManagementSetup: Record "Qlty. Management Setup"; InferredIntent: Enum "Qlty. Gen. Rule Intent")
     begin
-        if InferredIntent = InferredIntent::Production then
-            QltyInTestGenerationRule."Production Trigger" := QltyManagementSetup."Production Trigger";
+        case InferredIntent of
+            InferredIntent::Assembly:
+                QltyInTestGenerationRule."Assembly Trigger" := QltyManagementSetup."Assembly Trigger";
+            InferredIntent::Production:
+                QltyInTestGenerationRule."Production Trigger" := QltyManagementSetup."Production Trigger";
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Qlty. In. Test Generation Rule", 'OnAfterSetDefaultTriggerValuesToNoTrigger', '', false, false)]
     local procedure OnAfterSetDefaultTriggerValuesToNoTrigger(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule")
     begin
+        QltyInTestGenerationRule."Assembly Trigger" := QltyInTestGenerationRule."Assembly Trigger"::NoTrigger;
         QltyInTestGenerationRule."Production Trigger" := QltyInTestGenerationRule."Production Trigger"::NoTrigger;
     end;
 
@@ -50,6 +55,12 @@ codeunit 20419 "Qlty. In Test Gen. Rule - Mfg."
         if QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger then begin
             TriggerCount += 1;
             if IntentToCheck = IntentToCheck::Production then
+                IntentSet := true;
+        end;
+
+        if QltyManagementSetup."Assembly Trigger" <> QltyManagementSetup."Assembly Trigger"::NoTrigger then begin
+            TriggerCount += 1;
+            if IntentToCheck = IntentToCheck::Assembly then
                 IntentSet := true;
         end;
     end;

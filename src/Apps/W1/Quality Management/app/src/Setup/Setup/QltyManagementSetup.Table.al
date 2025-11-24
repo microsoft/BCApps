@@ -13,7 +13,6 @@ using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Grade;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
@@ -453,25 +452,6 @@ table 20400 "Qlty. Management Setup"
                     if (not QltyInTestGenerationRule.IsEmpty()) and GuiAllowed() then
                         if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInTestGenerationRule.Count(), xRec."Transfer Trigger", Rec."Transfer Trigger")) then
                             QltyInTestGenerationRule.ModifyAll("Transfer Trigger", Rec."Transfer Trigger", false);
-                end;
-            end;
-        }
-        field(101; "Assembly Trigger"; Enum "Qlty. Assembly Trigger")
-        {
-            Caption = 'Create Test On Assembly Trigger';
-            Description = 'Provides automation to create a test when an assembly order creates output.';
-            ToolTip = 'Specifies a default assembly-related trigger value for Test Generation Rules to try and create a test.';
-
-            trigger OnValidate()
-            var
-                QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-            begin
-                if (Rec."Assembly Trigger" <> xRec."Assembly Trigger") and (xRec."Assembly Trigger" <> xRec."Assembly Trigger"::NoTrigger) then begin
-                    QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Assembly);
-                    QltyInTestGenerationRule.SetRange("Assembly Trigger", xRec."Assembly Trigger");
-                    if (not QltyInTestGenerationRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInTestGenerationRule.Count(), xRec."Assembly Trigger", Rec."Assembly Trigger")) then
-                            QltyInTestGenerationRule.ModifyAll("Assembly Trigger", Rec."Assembly Trigger", false);
                 end;
             end;
         }

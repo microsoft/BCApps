@@ -103,13 +103,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
                 field("Activation Trigger"; Rec."Activation Trigger")
                 {
                 }
-                // TODO: Decouple Manufacturing dependency
-                field("Assembly Trigger"; Rec."Assembly Trigger")
-                {
-                    Visible = ShowAssemblyTrigger;
-                    Editable = EditAssemblyTrigger;
-                    StyleExpr = AssemblyStyle;
-                }
                 field("Purchase Trigger"; Rec."Purchase Trigger")
                 {
                     Visible = ShowPurchaseTrigger;
@@ -312,13 +305,11 @@ page 20405 "Qlty. In. Test Generat. Rules"
         ShowEditWizardMovementRule: Boolean;
         ShowEditWizardReceivingRule: Boolean;
         TemplateCode: Code[20];
-        ShowAssemblyTrigger: Boolean;
         ShowPurchaseTrigger: Boolean;
         ShowSalesReturnTrigger: Boolean;
         ShowTransferTrigger: Boolean;
         ShowWarehouseReceiveTrigger: Boolean;
         ShowWarehouseMovementTrigger: Boolean;
-        EditAssemblyTrigger: Boolean;
         EditPurchaseTrigger: Boolean;
         EditSalesReturnTrigger: Boolean;
         EditTransferTrigger: Boolean;
@@ -403,7 +394,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
             if Certainty = Certainty::Maybe then begin
                 ShowEditWizardReceivingRule := true;
                 ShowEditWizardMovementRule := true;
-                EditAssemblyTrigger := true;
                 EditPurchaseTrigger := true;
                 EditSalesReturnTrigger := true;
                 EditTransferTrigger := true;
@@ -420,13 +410,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
         end;
 
         case KnownOrInferredIntent of
-            Rec.Intent::Assembly:
-                begin
-                    // TODO: Decouple Manufacturing dependency
-                    //ShowEditWizardProductionRule := true;
-                    EditAssemblyTrigger := true;
-                    AssemblyStyle := Format(RowStyle::Standard);
-                end;
             Rec.Intent::Purchase:
                 begin
                     ShowEditWizardReceivingRule := true;
@@ -464,14 +447,12 @@ page 20405 "Qlty. In. Test Generat. Rules"
     begin
         ShowEditWizardReceivingRule := false;
         ShowEditWizardMovementRule := false;
-        EditAssemblyTrigger := false;
         EditPurchaseTrigger := false;
         EditSalesReturnTrigger := false;
         EditTransferTrigger := false;
         EditWarehouseReceiveTrigger := false;
         EditWarehouseMovementTrigger := false;
 
-        AssemblyStyle := Format(RowStyle::Subordinate);
         PurchaseStyle := Format(RowStyle::Subordinate);
         SalesReturnStyle := Format(RowStyle::Subordinate);
         WhseReceiveStyle := Format(RowStyle::Subordinate);
@@ -495,25 +476,11 @@ page 20405 "Qlty. In. Test Generat. Rules"
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
     begin
-        ShowAssemblyTrigger := false;
-        // TODO: Decouple Manufacturing dependency - FIXED in OnOpenPage but not in OnFindRecord as page ext does not support that trigger
-        //ShowProductionTrigger := false;
         ShowPurchaseTrigger := false;
         ShowSalesReturnTrigger := false;
         ShowTransferTrigger := false;
         ShowWarehouseReceiveTrigger := false;
         ShowWarehouseMovementTrigger := false;
-
-        QltyInTestGenerationRule.CopyFilters(Rec);
-        QltyInTestGenerationRule.SetLoadFields(Intent);
-        QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Assembly);
-        if not QltyInTestGenerationRule.IsEmpty() then
-            ShowAssemblyTrigger := true;
-
-        // TODO: Decouple Manufacturing dependency - FIXED in OnOpenPage but not in OnFindRecord as page ext does not support that trigger
-        /*QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Production);
-        if not QltyInTestGenerationRule.IsEmpty() then
-            ShowProductionTrigger := true;*/
 
         QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Purchase);
         if not QltyInTestGenerationRule.IsEmpty() then
@@ -537,7 +504,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
 
         QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Unknown);
         if not QltyInTestGenerationRule.IsEmpty() then begin
-            ShowAssemblyTrigger := true;
             ShowPurchaseTrigger := true;
             ShowSalesReturnTrigger := true;
             ShowTransferTrigger := true;
@@ -547,11 +513,6 @@ page 20405 "Qlty. In. Test Generat. Rules"
 
         if not QltyManagementSetup.Get() then
             exit;
-        if QltyManagementSetup."Assembly Trigger" <> QltyManagementSetup."Assembly Trigger"::NoTrigger then
-            ShowAssemblyTrigger := true;
-        // TODO: Decouple Manufacturing dependency - FIXED in OnOpenPage but not in OnFindRecord as page ext does not support that trigger
-        /*        if QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger then
-                    ShowProductionTrigger := true;*/
         if QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger then
             ShowPurchaseTrigger := true;
         if QltyManagementSetup."Sales Return Trigger" <> QltyManagementSetup."Sales Return Trigger"::NoTrigger then

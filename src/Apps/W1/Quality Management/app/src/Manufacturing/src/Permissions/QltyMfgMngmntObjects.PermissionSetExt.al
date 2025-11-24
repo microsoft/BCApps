@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Integration.Manufacturing.Permissions;
 
-using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Assembly;
+using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
 using Microsoft.QualityManagement.Permissions;
 using Microsoft.QualityManagement.Utilities;
@@ -13,7 +13,7 @@ using Microsoft.QualityManagement.Utilities;
 /// <summary>
 /// Adds permissions for manufacturing objects
 /// </summary>
-permissionsetextension 20471 "Qlty. Mfg General" extends QltyGeneral
+permissionsetextension 20470 "Qlty. Mfg Mngmnt - Objects" extends "QltyMngmnt - Objects"
 {
     Permissions =
         codeunit "Qlty. Manufactur. Integration" = X,

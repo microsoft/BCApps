@@ -11,8 +11,15 @@ pageextension 20421 "Qty. In Test Gen. Rules - Mfg" extends "Qlty. In. Test Gene
     layout
     {
         // Add changes to page layout here
-        addafter("Assembly Trigger")
+        addafter("Activation Trigger")
         {
+            field("Assembly Trigger"; Rec."Assembly Trigger")
+            {
+                Visible = ShowAssemblyTrigger;
+                Editable = EditAssemblyTrigger;
+                StyleExpr = AssemblyStyle;
+                ApplicationArea = Assembly;
+            }
             field("Production Trigger"; Rec."Production Trigger")
             {
                 Visible = ShowProductionTrigger;
@@ -109,22 +116,35 @@ pageextension 20421 "Qty. In Test Gen. Rules - Mfg" extends "Qlty. In. Test Gene
 
             if Certainty = Certainty::Maybe then begin
                 ShowEditWizardProductionRule := true;
+                EditAssemblyTrigger := true;
                 EditProductionTrigger := true;
+                AssemblyStyle := Format(RowStyle::Ambiguous);
                 ProductionStyle := Format(RowStyle::Ambiguous);
             end;
         end;
 
-        if KnownOrInferredIntent = Rec.Intent::Production then begin
-            ShowEditWizardProductionRule := true;
-            EditProductionTrigger := true;
-            ProductionStyle := Format(RowStyle::Standard);
+        case KnownOrInferredIntent of
+            Rec.Intent::Assembly:
+                begin
+                    ShowEditWizardProductionRule := true;
+                    EditAssemblyTrigger := true;
+                    AssemblyStyle := Format(RowStyle::Standard);
+                end;
+            Rec.Intent::Production:
+                begin
+                    ShowEditWizardProductionRule := true;
+                    EditProductionTrigger := true;
+                    ProductionStyle := Format(RowStyle::Standard);
+                end;
         end;
     end;
 
     local procedure ClearRowSpecificVisibleAndEditFlags()
     begin
         ShowEditWizardProductionRule := false;
+        EditAssemblyTrigger := false;
         EditProductionTrigger := false;
+        AssemblyStyle := Format(RowStyle::Subordinate);
         ProductionStyle := Format(RowStyle::Subordinate);
     end;
 
@@ -133,18 +153,31 @@ pageextension 20421 "Qty. In Test Gen. Rules - Mfg" extends "Qlty. In. Test Gene
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
     begin
+        ShowAssemblyTrigger := false;
         ShowProductionTrigger := false;
+
+        QltyInTestGenerationRule.CopyFilters(Rec);
+        QltyInTestGenerationRule.SetLoadFields(Intent);
+        QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Assembly);
+        if not QltyInTestGenerationRule.IsEmpty() then
+            ShowAssemblyTrigger := true;
 
         QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Production);
         if not QltyInTestGenerationRule.IsEmpty() then
             ShowProductionTrigger := true;
 
         QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Unknown);
-        if not QltyInTestGenerationRule.IsEmpty() then
+        if not QltyInTestGenerationRule.IsEmpty() then begin
             ShowProductionTrigger := true;
+            ShowAssemblyTrigger := true;
+        end;
 
         if not QltyManagementSetup.Get() then
             exit;
+
+        if QltyManagementSetup."Assembly Trigger" <> QltyManagementSetup."Assembly Trigger"::NoTrigger then
+            ShowAssemblyTrigger := true;
+
         if QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger then
             ShowProductionTrigger := true;
     end;
@@ -152,5 +185,8 @@ pageextension 20421 "Qty. In Test Gen. Rules - Mfg" extends "Qlty. In. Test Gene
     protected var
         ShowProductionTrigger, EditProductionTrigger : Boolean;
         ProductionStyle: Text;
+        AssemblyStyle: Text;
         ShowEditWizardProductionRule: Boolean;
+        EditAssemblyTrigger: Boolean;
+        ShowAssemblyTrigger: Boolean;
 }

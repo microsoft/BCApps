@@ -20,7 +20,6 @@ using Microsoft.QualityManagement.Dispositions.Purchase;
 using Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions.Transfer;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Integration.Foundation.Attachment;
 using Microsoft.QualityManagement.Integration.Foundation.Navigate;
 using Microsoft.QualityManagement.Integration.Inventory;
@@ -73,7 +72,6 @@ permissionset 20403 QltyGeneral
         codeunit "Qlty. Misc Helpers" = X,
         codeunit "Qlty. Notification Mgmt." = X,
         codeunit "Qlty. Permission Mgmt." = X,
-        codeunit "Qlty. Assembly Integration" = X,
         codeunit "Qlty. Receiving Integration" = X,
         codeunit "Qlty. Report Mgmt." = X,
         codeunit "Qlty. Session Helper" = X,

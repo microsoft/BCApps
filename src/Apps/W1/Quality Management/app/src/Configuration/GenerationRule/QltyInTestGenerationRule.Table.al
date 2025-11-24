@@ -13,7 +13,6 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.QualityManagement.Configuration.GenerationRule.JobQueue;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
 using Microsoft.QualityManagement.Setup.Setup;
@@ -209,20 +208,6 @@ table 20404 "Qlty. In. Test Generation Rule"
                 ConfirmUpdateManualTriggerStatus();
                 if (Rec."Activation Trigger" = Rec."Activation Trigger"::Disabled) and (Rec."Template Code" <> '') and (Rec."Transfer Trigger" <> Rec."Transfer Trigger"::NoTrigger) and GuiAllowed() then
                     QltyNotificationMgmt.Notify(StrSubstNo(RuleCurrentlyDisabledLbl, Rec."Sort Order", Rec."Template Code", Rec."Transfer Trigger"));
-            end;
-        }
-        field(27; "Assembly Trigger"; Enum "Qlty. Assembly Trigger")
-        {
-            Caption = 'Assembly Trigger';
-            ToolTip = 'Specifies whether the generation rule should be used to automatically create tests based on an assembly trigger.';
-
-            trigger OnValidate()
-            var
-                QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
-            begin
-                ConfirmUpdateManualTriggerStatus();
-                if (Rec."Activation Trigger" = Rec."Activation Trigger"::Disabled) and (Rec."Template Code" <> '') and (Rec."Assembly Trigger" <> Rec."Assembly Trigger"::NoTrigger) and GuiAllowed() then
-                    QltyNotificationMgmt.Notify(StrSubstNo(RuleCurrentlyDisabledLbl, Rec."Sort Order", Rec."Template Code", Rec."Assembly Trigger"));
             end;
         }
         field(28; "Warehouse Movement Trigger"; Enum "Qlty. Warehouse Trigger")
@@ -422,8 +407,6 @@ table 20404 "Qlty. In. Test Generation Rule"
             SetDefaultTriggerValuesToNoTrigger();
             if Rec."Activation Trigger" in [Rec."Activation Trigger"::"Manual or Automatic", Rec."Activation Trigger"::"Automatic only"] then
                 case InferredIntent of
-                    InferredIntent::Assembly:
-                        Rec."Assembly Trigger" := QltyManagementSetup."Assembly Trigger";
                     InferredIntent::Purchase:
                         Rec."Purchase Trigger" := QltyManagementSetup."Purchase Trigger";
                     InferredIntent::"Sales Return":
@@ -450,7 +433,7 @@ table 20404 "Qlty. In. Test Generation Rule"
         if (Rec."Activation Trigger" = Rec."Activation Trigger"::"Manual only") and GuiAllowed() then begin
             OnConfirmUpdateManualTriggerStatusOnBeforeOnCheckTriggerIsNoTrigger(Rec, IsNoTrigger);
 
-            if not ((Rec."Assembly Trigger" = Rec."Assembly Trigger"::NoTrigger) and (Rec."Transfer Trigger" = Rec."Transfer Trigger"::NoTrigger) and
+            if not ((Rec."Transfer Trigger" = Rec."Transfer Trigger"::NoTrigger) and
                IsNoTrigger and
                (Rec."Purchase Trigger" = Rec."Purchase Trigger"::NoTrigger) and
                (Rec."Sales Return Trigger" = Rec."Sales Return Trigger"::NoTrigger) and (Rec."Warehouse Receive Trigger" = Rec."Warehouse Receive Trigger"::NoTrigger) and
@@ -467,7 +450,6 @@ table 20404 "Qlty. In. Test Generation Rule"
         Rec."Purchase Trigger" := Rec."Purchase Trigger"::NoTrigger;
         Rec."Sales Return Trigger" := Rec."Sales Return Trigger"::NoTrigger;
         Rec."Transfer Trigger" := Rec."Transfer Trigger"::NoTrigger;
-        Rec."Assembly Trigger" := Rec."Assembly Trigger"::NoTrigger;
         Rec."Warehouse Movement Trigger" := Rec."Warehouse Movement Trigger"::NoTrigger;
         OnAfterSetDefaultTriggerValuesToNoTrigger(Rec);
     end;
@@ -733,12 +715,6 @@ table 20404 "Qlty. In. Test Generation Rule"
             if IntentToCheck = IntentToCheck::Transfer then
                 IntentSet := true;
         end;
-        if QltyManagementSetup."Assembly Trigger" <> QltyManagementSetup."Assembly Trigger"::NoTrigger then begin
-            TriggerCount += 1;
-            if IntentToCheck = IntentToCheck::Assembly then
-                IntentSet := true;
-        end;
-
         OnAfterGetIsOnlyAutoTriggerInSetup(QltyManagementSetup, IntentToCheck, IntentSet, TriggerCount);
 
         exit((TriggerCount = 1) and IntentSet);

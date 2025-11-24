@@ -20,7 +20,6 @@ using Microsoft.QualityManagement.Dispositions.Purchase;
 using Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions.Transfer;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Integration.Foundation.Attachment;
 using Microsoft.QualityManagement.Integration.Foundation.Navigate;
 using Microsoft.QualityManagement.Integration.Inventory;
@@ -33,7 +32,7 @@ using Microsoft.QualityManagement.RoleCenters;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.QualityManagement.Setup.Setup;
-using Microsoft.QualityManagement.Setup.SetupWizard;
+//using Microsoft.QualityManagement.Setup.SetupWizard;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
 
@@ -75,7 +74,6 @@ permissionset 20404 QltyEntryInspector
         codeunit "Qlty. Misc Helpers" = X,
         codeunit "Qlty. Notification Mgmt." = X,
         codeunit "Qlty. Permission Mgmt." = X,
-        codeunit "Qlty. Assembly Integration" = X,
         codeunit "Qlty. Receiving Integration" = X,
         codeunit "Qlty. Report Mgmt." = X,
         codeunit "Qlty. Session Helper" = X,
@@ -103,7 +101,7 @@ permissionset 20404 QltyEntryInspector
         page "Qlty. Lookup Code List" = X,
         page "Qlty. Lookup Code Part" = X,
         page "Qlty. Manager Role Center" = X,
-        page "Qlty. Management Setup Wizard" = X,
+        //page "Qlty. Management Setup Wizard" = X,
         page "Qlty. Management Setup" = X,
         page "Qlty. Most Recent Picture" = X,
         page "Qlty. Rec. Gen. Rule Wizard" = X,

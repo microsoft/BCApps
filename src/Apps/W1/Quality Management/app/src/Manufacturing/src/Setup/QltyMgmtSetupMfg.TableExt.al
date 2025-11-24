@@ -6,6 +6,7 @@ namespace Microsoft.QualityManagement.Setup.Setup;
 
 using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
+using Microsoft.QualityManagement.Integration.Assembly;
 
 tableextension 20400 "Qlty. Mgmt. Setup - Mfg" extends "Qlty. Management Setup"
 {
@@ -45,6 +46,27 @@ tableextension 20400 "Qlty. Mgmt. Setup - Mfg" extends "Qlty. Management Setup"
             ToolTip = 'Specifies granular options for when a test should be created automatically during the production process.';
             DataClassification = CustomerContent;
         }
+        field(101; "Assembly Trigger"; Enum "Qlty. Assembly Trigger")
+        {
+            Caption = 'Create Test On Assembly Trigger';
+            Description = 'Provides automation to create a test when an assembly order creates output.';
+            ToolTip = 'Specifies a default assembly-related trigger value for Test Generation Rules to try and create a test.';
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            var
+                QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+            begin
+                if (Rec."Assembly Trigger" <> xRec."Assembly Trigger") and (xRec."Assembly Trigger" <> xRec."Assembly Trigger"::NoTrigger) then begin
+                    QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Assembly);
+                    QltyInTestGenerationRule.SetRange("Assembly Trigger", xRec."Assembly Trigger");
+                    if (not QltyInTestGenerationRule.IsEmpty()) and GuiAllowed() then
+                        if Confirm(StrSubstNo(ConfirmExistingRulesMfgQst, QltyInTestGenerationRule.Count(), xRec."Assembly Trigger", Rec."Assembly Trigger")) then
+                            QltyInTestGenerationRule.ModifyAll("Assembly Trigger", Rec."Assembly Trigger", false);
+                end;
+            end;
+        }
+
     }
 
     var

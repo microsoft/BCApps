@@ -183,28 +183,6 @@ page 20400 "Qlty. Management Setup"
                     }
                 }
             }
-            group(SettingsForProduction)
-            {
-                Caption = 'Production';
-                InstructionalText = 'Production related settings are configured in this group. For example, you can choose to automatically create tests when output is created.';
-
-                group(SettingsForProductionAutomation)
-                {
-                    Caption = 'Automation';
-                    InstructionalText = 'Define the default automation settings for test generation rules related to production output. Different triggers can be changed on the test generation rules.';
-                    AboutTitle = 'Production Related Automation Settings';
-                    AboutText = 'Production related settings are configured in this group. You can choose to automatically create tests when output is created, whether or not to update the source, and other automatic features.';
-
-                    field("Assembly Trigger"; Rec."Assembly Trigger")
-                    {
-                        Caption = 'Assembly - Create Test';
-                        ApplicationArea = Assembly;
-                        ShowCaption = true;
-                        AboutTitle = 'Assembly related trigger';
-                        AboutText = 'Optionally choose an assembly-related trigger to try and create a test.';
-                    }
-                }
-            }
             group(SettingsForInventory)
             {
                 Caption = 'Inventory and Warehousing';
