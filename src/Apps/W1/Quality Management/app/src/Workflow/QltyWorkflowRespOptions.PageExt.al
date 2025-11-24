@@ -382,29 +382,59 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         trigger OnValidate()
                         var
                             DestinationLocation: Record Location;
+                            DestinationBin: Record Bin;
                             QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
                         begin
                             QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyLocation(), QltyLocationCode);
                             if not QltyShouldShowGrpTransfer then begin
                                 QltyShowBinCode := true;
-                                if DestinationLocation.Get(QltyLocationCode) then
+                                if DestinationLocation.Get(QltyLocationCode) then begin
                                     QltyShowBinCode := DestinationLocation."Bin Mandatory";
+                                    if QltyBinCode <> '' then
+                                        if not DestinationBin.Get(QltyLocationCode, QltyBinCode) then
+                                            QltyBinCode := '';
+                                end;
                             end;
                         end;
                     }
                     field(Qlty_BinCode; QltyBinCode)
                     {
                         ApplicationArea = QualityManagement;
-                        TableRelation = Bin.Code;
                         Caption = 'Bin';
                         ToolTip = 'Specifies the destination bin to use.';
                         ShowMandatory = true;
                         Enabled = QltyShowBinCode;
+                        AssistEdit = true;
+                        trigger OnAssistEdit()
+                        var
+                            Bin: Record Bin;
+                            QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+                            BinList: Page "Bin List";
+                        begin
+                            if QltyLocationCode <> '' then
+                                Bin.SetRange("Location Code", QltyLocationCode);
+                            BinList.SetTableView(Bin);
+                            BinList.LookupMode(true);
+                            if BinList.RunModal() in [Action::LookupOK] then begin
+                                BinList.GetRecord(Bin);
+                                QltyBinCode := Bin.Code;
+                                QltyWorkflowResponse.SetStepConfigurationValue(
+                                    Rec,
+                                    QltyWorkflowResponse.GetWellKnownKeyBin(),
+                                    QltyBinCode);
+                            end;
+                        end;
 
                         trigger OnValidate()
                         var
+                            Bin: Record Bin;
                             QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
                         begin
+                            // After the table relation is removed to change from a drop-down to an assist-edit
+                            // to allow the bins to be filtered by the location code, there needs to be an ability
+                            // to validate the bin is still valid.  We do this by fetching the record and 
+                            // letting it fail if it doesn't exist.
+                            Bin.Get(QltyLocationCode, QltyBinCode);
                             QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyBin(), QltyBinCode);
                         end;
                     }
