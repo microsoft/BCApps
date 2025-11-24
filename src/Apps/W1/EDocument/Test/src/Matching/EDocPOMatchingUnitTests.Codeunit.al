@@ -6,15 +6,15 @@ namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Purchases.Setup;
 
 codeunit 133508 "E-Doc. PO Matching Unit Tests"
 {
@@ -252,51 +252,6 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
     end;
 
     [Test]
-    procedure LoadPOLinesMatchedToEDocLineReturnsAllMatchedPOLines()
-    var
-        EDocument: Record "E-Document";
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine1, PurchaseLine2, PurchaseLine3 : Record "Purchase Line";
-        TempPurchaseLine: Record "Purchase Line" temporary;
-        Item: Record Item;
-    begin
-        Initialize();
-        // [SCENARIO] Loading PO lines matched to an E-Document line returns all matched PO lines
-        // [GIVEN] An E-Document line with multiple matched purchase order lines
-        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
-
-        // Create E-Document Purchase Header and Line
-        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
-        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
-        EDocumentPurchaseHeader.Modify();
-        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
-
-        // Create Purchase Order with multiple lines for the same vendor
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
-        LibraryEDocument.GetGenericItem(Item);
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine3, PurchaseHeader, PurchaseLine3.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
-
-        // Match first two PO lines to the E-Document line
-        MatchEDocumentLineToTwoPOLines(EDocumentPurchaseLine, PurchaseLine1, PurchaseLine2);
-
-        // [WHEN] LoadPOLinesMatchedToEDocumentLine is called
-        EDocPOMatching.LoadPOLinesMatchedToEDocumentLine(EDocumentPurchaseLine, TempPurchaseLine);
-
-        // [THEN] All matched purchase order lines should be loaded into the temporary record
-        Assert.AreEqual(2, TempPurchaseLine.Count(), 'Expected 2 matched purchase lines to be loaded');
-        TempPurchaseLine.SetRange(SystemId, PurchaseLine1.SystemId);
-        Assert.IsFalse(TempPurchaseLine.IsEmpty(), 'First matched purchase line should be included');
-        TempPurchaseLine.SetRange(SystemId, PurchaseLine2.SystemId);
-        Assert.IsFalse(TempPurchaseLine.IsEmpty(), 'Second matched purchase line should be included');
-        TempPurchaseLine.SetRange(SystemId, PurchaseLine3.SystemId);
-        Assert.IsTrue(TempPurchaseLine.IsEmpty(), 'Unmatched purchase line should not be included');
-    end;
-
-    [Test]
     procedure LoadPOsMatchedToEDocLineWithNoMatchedPOLines()
     var
         EDocument: Record "E-Document";
@@ -320,50 +275,6 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
 
         // [THEN] The temporary purchase header record should be empty
         Assert.IsTrue(TempPurchaseHeader.IsEmpty(), 'Expected no purchase headers when E-Document line has no matched PO lines');
-    end;
-
-    [Test]
-    procedure LoadPOsMatchedToEDocLineReturnsUniquePurchaseHeaders()
-    var
-        EDocument: Record "E-Document";
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        PurchaseHeader1, PurchaseHeader2 : Record "Purchase Header";
-        PurchaseLine1, PurchaseLine2, PurchaseLine3 : Record "Purchase Line";
-        TempPurchaseHeader: Record "Purchase Header" temporary;
-        Item: Record Item;
-    begin
-        Initialize();
-        // [SCENARIO] Loading POs matched to an E-Document line returns unique purchase headers
-        // [GIVEN] An E-Document line matched to multiple PO lines from different purchase orders
-        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
-
-        // Create E-Document Purchase Header and Line
-        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
-        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
-        EDocumentPurchaseHeader.Modify();
-        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
-
-        // Create two Purchase Orders with lines for the same vendor
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader1, PurchaseHeader1."Document Type"::Order, Vendor."No.");
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader2, PurchaseHeader2."Document Type"::Order, Vendor."No.");
-        LibraryEDocument.GetGenericItem(Item);
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader1, PurchaseLine1.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader1, PurchaseLine2.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine3, PurchaseHeader2, PurchaseLine3.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
-
-        // Match lines from both purchase orders to the E-Document line
-        MatchEDocumentLineToThreePOLines(EDocumentPurchaseLine, PurchaseLine1, PurchaseLine2, PurchaseLine3);
-
-        // [WHEN] LoadPOsMatchedToEDocumentLine is called
-        EDocPOMatching.LoadPOsMatchedToEDocumentLine(EDocumentPurchaseLine, TempPurchaseHeader);
-
-        // [THEN] All unique purchase headers should be loaded into the temporary record
-        Assert.AreEqual(2, TempPurchaseHeader.Count(), 'Expected 2 unique purchase headers to be loaded');
-        TempPurchaseHeader.SetRange("No.", PurchaseHeader1."No.");
-        Assert.IsFalse(TempPurchaseHeader.IsEmpty(), 'First purchase header should be included');
-        TempPurchaseHeader.SetRange("No.", PurchaseHeader2."No.");
-        Assert.IsFalse(TempPurchaseHeader.IsEmpty(), 'Second purchase header should be included');
     end;
 
     [Test]
@@ -394,106 +305,6 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
     end;
 
     [Test]
-    procedure LoadAvailableReceiptLinesReturnsReceiptLinesForMatchedPOLines()
-    var
-        EDocument: Record "E-Document";
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine1, PurchaseLine2 : Record "Purchase Line";
-        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
-        PurchaseReceiptLine1, PurchaseReceiptLine2 : Record "Purch. Rcpt. Line";
-        TempPurchaseReceiptLine: Record "Purch. Rcpt. Line" temporary;
-        Item: Record Item;
-    begin
-        Initialize();
-        ClearPurchaseDocumentsForVendor();
-        // [SCENARIO] Loading available receipt lines returns receipt lines for matched PO lines
-        // [GIVEN] An E-Document line matched to PO lines that have associated receipt lines
-        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
-
-        // Create E-Document Purchase Header and Line
-        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
-        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
-        EDocumentPurchaseHeader.Modify();
-        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
-
-        // Create Purchase Order with lines
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
-        LibraryEDocument.GetGenericItem(Item);
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
-
-        // Match PO lines to E-Document line
-        MatchEDocumentLineToTwoPOLines(EDocumentPurchaseLine, PurchaseLine1, PurchaseLine2);
-
-        // Create receipt header and receipt lines for the purchase order
-        CreateMockReceiptHeader(PurchaseReceiptHeader, Vendor."No.");
-        CreateMockReceiptLine(PurchaseReceiptLine1, PurchaseReceiptHeader, Item."No.", LibraryRandom.RandDec(5, 2), PurchaseLine1);
-        CreateMockReceiptLine(PurchaseReceiptLine2, PurchaseReceiptHeader, Item."No.", LibraryRandom.RandDec(5, 2), PurchaseLine2);
-
-        // [WHEN] LoadAvailableReceiptLinesForEDocumentLine is called
-        EDocPOMatching.LoadAvailableReceiptLinesForEDocumentLine(EDocumentPurchaseLine, TempPurchaseReceiptLine);
-
-        // [THEN] All receipt lines for the matched PO lines should be loaded
-        Assert.AreEqual(2, TempPurchaseReceiptLine.Count(), 'Expected 2 receipt lines for matched PO lines');
-        TempPurchaseReceiptLine.SetRange("Document No.", PurchaseReceiptLine1."Document No.");
-        TempPurchaseReceiptLine.SetRange("Line No.", PurchaseReceiptLine1."Line No.");
-        Assert.IsFalse(TempPurchaseReceiptLine.IsEmpty(), 'First receipt line should be included');
-        TempPurchaseReceiptLine.SetRange("Line No.", PurchaseReceiptLine2."Line No.");
-        Assert.IsFalse(TempPurchaseReceiptLine.IsEmpty(), 'Second receipt line should be included');
-    end;
-
-    [Test]
-    procedure LoadAvailableReceiptLinesExcludesZeroQuantityLines()
-    var
-        EDocument: Record "E-Document";
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine1, PurchaseLine2 : Record "Purchase Line";
-        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
-        PurchaseReceiptLine1, PurchaseReceiptLine2 : Record "Purch. Rcpt. Line";
-        TempPurchaseReceiptLine: Record "Purch. Rcpt. Line" temporary;
-        Item: Record Item;
-    begin
-        Initialize();
-        ClearPurchaseDocumentsForVendor();
-        // [SCENARIO] Loading available receipt lines excludes receipt lines with zero quantity
-        // [GIVEN] An E-Document line matched to PO lines with receipt lines having zero and non-zero quantities
-        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
-
-        // Create E-Document Purchase Header and Line
-        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
-        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
-        EDocumentPurchaseHeader.Modify();
-        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
-
-        // Create Purchase Order with lines
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
-        LibraryEDocument.GetGenericItem(Item);
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
-
-        // Match PO lines to E-Document line
-        MatchEDocumentLineToTwoPOLines(EDocumentPurchaseLine, PurchaseLine1, PurchaseLine2);
-
-        // Create receipt header and receipt lines - one with zero quantity, one with non-zero quantity
-        CreateMockReceiptHeader(PurchaseReceiptHeader, Vendor."No.");
-        CreateMockReceiptLine(PurchaseReceiptLine1, PurchaseReceiptHeader, Item."No.", 0, PurchaseLine1); // Zero quantity
-        CreateMockReceiptLine(PurchaseReceiptLine2, PurchaseReceiptHeader, Item."No.", LibraryRandom.RandDec(5, 2), PurchaseLine2); // Non-zero quantity
-
-        // [WHEN] LoadAvailableReceiptLinesForEDocumentLine is called
-        EDocPOMatching.LoadAvailableReceiptLinesForEDocumentLine(EDocumentPurchaseLine, TempPurchaseReceiptLine);
-
-        // [THEN] Only receipt lines with non-zero quantities should be loaded
-        Assert.AreEqual(1, TempPurchaseReceiptLine.Count(), 'Expected 1 receipt line (excluding zero quantity line)');
-        TempPurchaseReceiptLine.FindFirst();
-        Assert.AreEqual(PurchaseReceiptLine2.SystemId, TempPurchaseReceiptLine.SystemId, 'Only non-zero quantity receipt line should be included');
-        Assert.IsTrue(TempPurchaseReceiptLine.Quantity > 0, 'Loaded receipt line should have non-zero quantity');
-    end;
-
-    [Test]
     procedure LoadReceiptsMatchedToEDocLineWithNoReceiptMatches()
     var
         EDocument: Record "E-Document";
@@ -517,60 +328,6 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
 
         // [THEN] The temporary receipt header record should be empty
         Assert.IsTrue(TempPurchaseReceiptHeader.IsEmpty(), 'Expected no receipt headers when E-Document line has no receipt line matches');
-    end;
-
-    [Test]
-    procedure LoadReceiptsMatchedToEDocLineReturnsUniqueReceiptHeaders()
-    var
-        EDocument: Record "E-Document";
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine1, PurchaseLine2 : Record "Purchase Line";
-        PurchaseReceiptHeader1, PurchaseReceiptHeader2 : Record "Purch. Rcpt. Header";
-        PurchaseReceiptLine1, PurchaseReceiptLine2, PurchaseReceiptLine3 : Record "Purch. Rcpt. Line";
-        TempPurchaseReceiptHeader: Record "Purch. Rcpt. Header" temporary;
-        Item: Record Item;
-    begin
-        Initialize();
-        // [SCENARIO] Loading receipts matched to an E-Document line returns unique receipt headers
-        // [GIVEN] An E-Document line with receipt line matches from different receipt documents
-        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
-
-        // Create E-Document Purchase Header and Line
-        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
-        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
-        EDocumentPurchaseHeader.Modify();
-        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
-
-        // Create Purchase Order with lines
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
-        LibraryEDocument.GetGenericItem(Item);
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
-
-        // Match E-Document line to PO lines
-        MatchEDocumentLineToTwoPOLines(EDocumentPurchaseLine, PurchaseLine1, PurchaseLine2);
-
-        // Create receipt headers and lines
-        CreateMockReceiptHeader(PurchaseReceiptHeader1, Vendor."No.");
-        CreateMockReceiptHeader(PurchaseReceiptHeader2, Vendor."No.");
-        CreateMockReceiptLine(PurchaseReceiptLine1, PurchaseReceiptHeader1, Item."No.", LibraryRandom.RandDec(5, 2), PurchaseLine1);
-        CreateMockReceiptLine(PurchaseReceiptLine2, PurchaseReceiptHeader1, Item."No.", LibraryRandom.RandDec(5, 2), PurchaseLine1);
-        CreateMockReceiptLine(PurchaseReceiptLine3, PurchaseReceiptHeader2, Item."No.", LibraryRandom.RandDec(5, 2), PurchaseLine2);
-
-        // Match receipt lines to E-Document line
-        MatchEDocumentLineToThreeReceiptLines(EDocumentPurchaseLine, PurchaseReceiptLine1, PurchaseReceiptLine2, PurchaseReceiptLine3);
-
-        // [WHEN] LoadReceiptsMatchedToEDocumentLine is called
-        EDocPOMatching.LoadReceiptsMatchedToEDocumentLine(EDocumentPurchaseLine, TempPurchaseReceiptHeader);
-
-        // [THEN] All unique receipt headers should be loaded into the temporary record
-        Assert.AreEqual(2, TempPurchaseReceiptHeader.Count(), 'Expected 2 unique receipt headers to be loaded');
-        TempPurchaseReceiptHeader.SetRange("No.", PurchaseReceiptHeader1."No.");
-        Assert.IsFalse(TempPurchaseReceiptHeader.IsEmpty(), 'First receipt header should be included');
-        TempPurchaseReceiptHeader.SetRange("No.", PurchaseReceiptHeader2."No.");
-        Assert.IsFalse(TempPurchaseReceiptHeader.IsEmpty(), 'Second receipt header should be included');
     end;
 
     [Test]
@@ -1669,49 +1426,6 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
     end;
 
     [Test]
-    procedure MatchPOLinesWithDifferentTypesToEDocumentLineRaisesError()
-    var
-        EDocument: Record "E-Document";
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine1, PurchaseLine2 : Record "Purchase Line";
-        VATPostingSetup: Record "VAT Posting Setup";
-        VATProductPostingGroup: Record "VAT Product Posting Group";
-        TempPurchaseLine: Record "Purchase Line" temporary;
-        Item: Record Item;
-        GLAccountNo: Code[20];
-    begin
-        Initialize();
-        // [SCENARIO] Matching PO lines with different types or numbers to E-Document line raises error
-        // [GIVEN] PO lines with different types or item numbers
-        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
-        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
-        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
-        EDocumentPurchaseHeader.Modify();
-        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
-
-        // Create Purchase Order with lines of different types
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
-        LibraryEDocument.GetGenericItem(Item);
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item."No.", LibraryRandom.RandDec(10, 2));
-
-        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
-        LibraryERM.CreateVATPostingSetup(VATPostingSetup, PurchaseHeader."VAT Bus. Posting Group", VATProductPostingGroup.Code);
-        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, Enum::"General Posting Type"::" ");
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::"G/L Account", GLAccountNo, LibraryRandom.RandDec(10, 2));
-
-        TempPurchaseLine := PurchaseLine1;
-        TempPurchaseLine.Insert();
-        TempPurchaseLine := PurchaseLine2;
-        TempPurchaseLine.Insert();
-
-        // [WHEN] MatchPOLinesToEDocumentLine is called
-        // [THEN] An error should be raised
-        asserterror EDocPOMatching.MatchPOLinesToEDocumentLine(TempPurchaseLine, EDocumentPurchaseLine);
-    end;
-
-    [Test]
     procedure MatchPOLinesAlreadyMatchedToOtherEDocumentLinesRaisesError()
     var
         EDocument1, EDocument2 : Record "E-Document";
@@ -2309,6 +2023,499 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Expected no NotYetReceived warning for non-specified vendor');
     end;
 
+    [Test]
+    procedure SuggestReceiptsForMatchedOrderLinesDoesNotSuggestWhenEDocLineAlreadyHasReceiptMatch()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        Item: Record Item;
+    begin
+        Initialize();
+        ClearPurchaseDocumentsForVendor();
+        // [SCENARIO] SuggestReceiptsForMatchedOrderLines suggests no receipts when E-Document line already has a receipt match
+        // [GIVEN] An E-Document line matched to a receipt line and an additional receipt line that could be suggested
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine.Quantity := 10;
+        EDocumentPurchaseLine.Modify();
+
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
+
+        // Match E-Document line to PO line
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
+
+        // Create receipt with 2 lines that could be suggested, match the last one to an E-Document line
+        CreateMockReceiptHeader(PurchaseReceiptHeader, Vendor."No.");
+        CreateMockReceiptLine(PurchaseReceiptLine, PurchaseReceiptHeader, Item."No.", 10, PurchaseLine);
+        CreateMockReceiptLine(PurchaseReceiptLine, PurchaseReceiptHeader, Item."No.", 10, PurchaseLine);
+        MatchEDocumentLineToReceiptLine(EDocumentPurchaseLine, PurchaseReceiptLine);
+
+        // [WHEN] SuggestReceiptsForMatchedOrderLines is called
+        EDocPOMatching.SuggestReceiptsForMatchedOrderLines(EDocumentPurchaseHeader);
+
+        // [THEN] No additional receipt lines are matched (still just the one)
+        Assert.IsTrue(EDocPOMatching.IsReceiptLineMatchedToEDocumentLine(PurchaseReceiptLine, EDocumentPurchaseLine), 'Expected the original receipt match to remain');
+        Assert.AreEqual(1, CountReceiptMatchesForEDocumentLine(EDocumentPurchaseLine), 'Expected exactly one receipt match');
+    end;
+
+    [Test]
+    procedure SuggestReceiptsForMatchedOrderLinesSuggestsReceiptWhenPOLineHasSingleReceiptCoveringFullQuantity()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        Item: Record Item;
+    begin
+        Initialize();
+        ClearPurchaseDocumentsForVendor();
+        // [SCENARIO] SuggestReceiptsForMatchedOrderLines suggests receipt when PO line has a single receipt that covers full quantity
+        // [GIVEN] An E-Document line matched to a purchase order line with quantity 10
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine.Quantity := 10;
+        EDocumentPurchaseLine.Modify();
+
+        // [GIVEN] The purchase order line has one receipt line with quantity 10
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
+        EDocumentPurchaseLine."[BC] Unit of Measure" := PurchaseLine."Unit of Measure Code";
+        EDocumentPurchaseLine.Modify();
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
+
+        CreateMockReceiptHeader(PurchaseReceiptHeader, Vendor."No.");
+        CreateMockReceiptLine(PurchaseReceiptLine, PurchaseReceiptHeader, Item."No.", 10, PurchaseLine);
+
+        // [WHEN] SuggestReceiptsForMatchedOrderLines is called
+        EDocPOMatching.SuggestReceiptsForMatchedOrderLines(EDocumentPurchaseHeader);
+
+        // [THEN] The receipt line is matched to the E-Document line
+        Assert.IsTrue(EDocPOMatching.IsReceiptLineMatchedToEDocumentLine(PurchaseReceiptLine, EDocumentPurchaseLine), 'Expected receipt line to be matched to E-Document line');
+    end;
+
+    [Test]
+    procedure SuggestReceiptsForMatchedOrderLinesSuggestsNoReceiptWhenAllReceiptsHaveInsufficientQuantity()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+        PurchaseReceiptLine1, PurchaseReceiptLine2 : Record "Purch. Rcpt. Line";
+        Item: Record Item;
+    begin
+        Initialize();
+        ClearPurchaseDocumentsForVendor();
+        // [SCENARIO] SuggestReceiptsForMatchedOrderLines suggests no receipt when all receipts have insufficient quantity
+        // [GIVEN] An E-Document line matched to a purchase order line with quantity 10
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine.Quantity := 10;
+        EDocumentPurchaseLine.Modify();
+
+        // [GIVEN] The purchase order line has two receipt lines with quantities 5 and 7
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
+
+        CreateMockReceiptHeader(PurchaseReceiptHeader, Vendor."No.");
+        CreateMockReceiptLine(PurchaseReceiptLine1, PurchaseReceiptHeader, Item."No.", 5, PurchaseLine);
+        CreateMockReceiptLine(PurchaseReceiptLine2, PurchaseReceiptHeader, Item."No.", 7, PurchaseLine);
+
+        // [WHEN] SuggestReceiptsForMatchedOrderLines is called
+        EDocPOMatching.SuggestReceiptsForMatchedOrderLines(EDocumentPurchaseHeader);
+
+        // [THEN] No receipt lines are matched to the E-Document line
+        Assert.IsFalse(EDocPOMatching.IsEDocumentLineMatchedToAnyReceiptLine(EDocumentPurchaseLine), 'Expected no receipt lines to be matched');
+    end;
+
+    [Test]
+    procedure SuggestReceiptsForMatchedOrderLinesProcessesMultipleEDocumentLinesIndependently()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine1, EDocumentPurchaseLine2 : Record "E-Document Purchase Line";
+        PurchaseHeader1, PurchaseHeader2 : Record "Purchase Header";
+        PurchaseLine1, PurchaseLine2 : Record "Purchase Line";
+        PurchaseReceiptHeader1, PurchaseReceiptHeader2 : Record "Purch. Rcpt. Header";
+        PurchaseReceiptLine1, PurchaseReceiptLine2 : Record "Purch. Rcpt. Line";
+        Item1, Item2 : Record Item;
+    begin
+        Initialize();
+        ClearPurchaseDocumentsForVendor();
+        // [SCENARIO] SuggestReceiptsForMatchedOrderLines processes multiple E-Document lines independently
+        // [GIVEN] An E-Document with two lines matched to different purchase order lines
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+
+        EDocumentPurchaseLine1 := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine1.Quantity := 10;
+        EDocumentPurchaseLine1.Modify();
+
+        EDocumentPurchaseLine2 := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine2.Quantity := 15;
+        EDocumentPurchaseLine2.Modify();
+
+        // [GIVEN] Each purchase order line has its own receipt that covers the full quantity
+        LibraryInventory.CreateItem(Item1);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader1, PurchaseHeader1."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader1, PurchaseLine1.Type::Item, Item1."No.", 10);
+        EDocumentPurchaseLine1."[BC] Unit of Measure" := PurchaseLine1."Unit of Measure Code";
+        EDocumentPurchaseLine1.Modify();
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine1, PurchaseLine1);
+        CreateMockReceiptHeader(PurchaseReceiptHeader1, Vendor."No.");
+        CreateMockReceiptLine(PurchaseReceiptLine1, PurchaseReceiptHeader1, Item1."No.", 10, PurchaseLine1);
+
+        LibraryInventory.CreateItem(Item2);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader2, PurchaseHeader2."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader2, PurchaseLine2.Type::Item, Item2."No.", 15);
+        EDocumentPurchaseLine2."[BC] Unit of Measure" := PurchaseLine2."Unit of Measure Code";
+        EDocumentPurchaseLine2.Modify();
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine2, PurchaseLine2);
+        CreateMockReceiptHeader(PurchaseReceiptHeader2, Vendor."No.");
+        CreateMockReceiptLine(PurchaseReceiptLine2, PurchaseReceiptHeader2, Item2."No.", 15, PurchaseLine2);
+
+        // [WHEN] SuggestReceiptsForMatchedOrderLines is called
+        EDocPOMatching.SuggestReceiptsForMatchedOrderLines(EDocumentPurchaseHeader);
+
+        // [THEN] Each E-Document line is matched to its corresponding receipt line
+        Assert.IsTrue(EDocPOMatching.IsReceiptLineMatchedToEDocumentLine(PurchaseReceiptLine1, EDocumentPurchaseLine1), 'Expected first receipt line to be matched to first E-Document line');
+        Assert.IsTrue(EDocPOMatching.IsReceiptLineMatchedToEDocumentLine(PurchaseReceiptLine2, EDocumentPurchaseLine2), 'Expected second receipt line to be matched to second E-Document line');
+    end;
+
+    [Test]
+    procedure TransferPOMatchesFromEDocumentToInvoiceTransfersReceiptMatchAndRemovesEDocumentMatches()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseOrderHeader: Record "Purchase Header";
+        PurchaseOrderLine: Record "Purchase Line";
+        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        Item: Record Item;
+    begin
+        Initialize();
+        LibraryPurchase.SetOrderNoSeriesInSetup();
+        LibraryPurchase.SetPostedNoSeriesInSetup();
+        SetInvoiceNoSeriesInSetup();
+        ClearPurchaseDocumentsForVendor();
+        // [SCENARIO] TransferPOMatchesFromEDocumentToInvoice transfers receipt match to linked invoice line and removes E-Document matches
+        // [GIVEN] An E-Document line matched to a receipt line
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine.Quantity := 10;
+        EDocumentPurchaseLine.Modify();
+
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine, PurchaseOrderHeader, PurchaseOrderLine.Type::Item, Item."No.", 10);
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseOrderLine);
+
+        CreateMockReceiptHeader(PurchaseReceiptHeader, Vendor."No.");
+        CreateMockReceiptLine(PurchaseReceiptLine, PurchaseReceiptHeader, Item."No.", 10, PurchaseOrderLine);
+        MatchEDocumentLineToReceiptLine(EDocumentPurchaseLine, PurchaseReceiptLine);
+
+        // [AND] The E-Document line is linked to a purchase invoice line
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
+        LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] TransferPOMatchesFromEDocumentToInvoice is called
+        EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument, PurchaseHeader);
+
+        // [THEN] The invoice line's Receipt No. and Receipt Line No. are set
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        Assert.AreEqual(PurchaseReceiptLine."Document No.", PurchaseLine."Receipt No.", 'Expected invoice line Receipt No. to match receipt');
+        Assert.AreEqual(PurchaseReceiptLine."Line No.", PurchaseLine."Receipt Line No.", 'Expected invoice line Receipt Line No. to match receipt line');
+
+        // [THEN] The E-Document line no longer has any PO or receipt matches
+        Assert.IsFalse(EDocPOMatching.IsEDocumentLineMatchedToAnyPOLine(EDocumentPurchaseLine), 'Expected E-Document line to have no PO matches');
+        Assert.IsFalse(EDocPOMatching.IsEDocumentLineMatchedToAnyReceiptLine(EDocumentPurchaseLine), 'Expected E-Document line to have no receipt matches');
+    end;
+
+    [Test]
+    procedure TransferPOMatchesFromEDocumentToInvoiceProcessesMultipleLinesIndependently()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine1, EDocumentPurchaseLine2, EDocumentPurchaseLine3 : Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine1, PurchaseLine2, PurchaseLine3 : Record "Purchase Line";
+        PurchaseOrderHeader: Record "Purchase Header";
+        PurchaseOrderLine1, PurchaseOrderLine2, PurchaseOrderLine3 : Record "Purchase Line";
+        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+        PurchaseReceiptLine1, PurchaseReceiptLine2, PurchaseReceiptLine3 : Record "Purch. Rcpt. Line";
+        Item1, Item2, Item3 : Record Item;
+    begin
+        Initialize();
+        LibraryPurchase.SetOrderNoSeriesInSetup();
+        LibraryPurchase.SetPostedNoSeriesInSetup();
+        SetInvoiceNoSeriesInSetup();
+        ClearPurchaseDocumentsForVendor();
+        // [SCENARIO] TransferPOMatchesFromEDocumentToInvoice processes multiple lines independently
+        // [GIVEN] An E-Document with three lines matched to different receipt lines
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+
+        // Create purchase order with three lines
+        LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
+        LibraryInventory.CreateItem(Item1);
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine1, PurchaseOrderHeader, PurchaseOrderLine1.Type::Item, Item1."No.", 10);
+        LibraryInventory.CreateItem(Item2);
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine2, PurchaseOrderHeader, PurchaseOrderLine2.Type::Item, Item2."No.", 15);
+        LibraryInventory.CreateItem(Item3);
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine3, PurchaseOrderHeader, PurchaseOrderLine3.Type::Item, Item3."No.", 20);
+
+        // Create receipt lines
+        CreateMockReceiptHeader(PurchaseReceiptHeader, Vendor."No.");
+        CreateMockReceiptLine(PurchaseReceiptLine1, PurchaseReceiptHeader, Item1."No.", 10, PurchaseOrderLine1);
+        CreateMockReceiptLine(PurchaseReceiptLine2, PurchaseReceiptHeader, Item2."No.", 15, PurchaseOrderLine2);
+        CreateMockReceiptLine(PurchaseReceiptLine3, PurchaseReceiptHeader, Item3."No.", 20, PurchaseOrderLine3);
+
+        // Create E-Document lines and match them
+        EDocumentPurchaseLine1 := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine1.Quantity := 10;
+        EDocumentPurchaseLine1.Modify();
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine1, PurchaseOrderLine1);
+        MatchEDocumentLineToReceiptLine(EDocumentPurchaseLine1, PurchaseReceiptLine1);
+
+        EDocumentPurchaseLine2 := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine2.Quantity := 15;
+        EDocumentPurchaseLine2.Modify();
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine2, PurchaseOrderLine2);
+        MatchEDocumentLineToReceiptLine(EDocumentPurchaseLine2, PurchaseReceiptLine2);
+
+        EDocumentPurchaseLine3 := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine3.Quantity := 20;
+        EDocumentPurchaseLine3.Modify();
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine3, PurchaseOrderLine3);
+        MatchEDocumentLineToReceiptLine(EDocumentPurchaseLine3, PurchaseReceiptLine3);
+
+        // [AND] A purchase invoice with three corresponding lines
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item1."No.", 10);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::Item, Item2."No.", 15);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine3, PurchaseHeader, PurchaseLine3.Type::Item, Item3."No.", 20);
+
+        LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine1, PurchaseLine1);
+        LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine2, PurchaseLine2);
+        LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine3, PurchaseLine3);
+
+        // [WHEN] TransferPOMatchesFromEDocumentToInvoice is called
+        EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument, PurchaseHeader);
+
+        // [THEN] Each invoice line has the correct Receipt No. and Receipt Line No.
+        PurchaseLine1.Get(PurchaseLine1."Document Type", PurchaseLine1."Document No.", PurchaseLine1."Line No.");
+        Assert.AreEqual(PurchaseReceiptLine1."Document No.", PurchaseLine1."Receipt No.", 'Expected first invoice line Receipt No. to match receipt');
+        Assert.AreEqual(PurchaseReceiptLine1."Line No.", PurchaseLine1."Receipt Line No.", 'Expected first invoice line Receipt Line No. to match receipt line');
+
+        PurchaseLine2.Get(PurchaseLine2."Document Type", PurchaseLine2."Document No.", PurchaseLine2."Line No.");
+        Assert.AreEqual(PurchaseReceiptLine2."Document No.", PurchaseLine2."Receipt No.", 'Expected second invoice line Receipt No. to match receipt');
+        Assert.AreEqual(PurchaseReceiptLine2."Line No.", PurchaseLine2."Receipt Line No.", 'Expected second invoice line Receipt Line No. to match receipt line');
+
+        PurchaseLine3.Get(PurchaseLine3."Document Type", PurchaseLine3."Document No.", PurchaseLine3."Line No.");
+        Assert.AreEqual(PurchaseReceiptLine3."Document No.", PurchaseLine3."Receipt No.", 'Expected third invoice line Receipt No. to match receipt');
+        Assert.AreEqual(PurchaseReceiptLine3."Line No.", PurchaseLine3."Receipt Line No.", 'Expected third invoice line Receipt Line No. to match receipt line');
+    end;
+
+    [Test]
+    procedure TransferPOMatchesFromInvoiceToEDocumentCreatesMatchesAndClearsInvoiceReceiptInfo()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseOrderHeader: Record "Purchase Header";
+        PurchaseOrderLine: Record "Purchase Line";
+        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        Item: Record Item;
+    begin
+        Initialize();
+        LibraryPurchase.SetOrderNoSeriesInSetup();
+        LibraryPurchase.SetPostedNoSeriesInSetup();
+        SetInvoiceNoSeriesInSetup();
+        ClearPurchaseDocumentsForVendor();
+        // [SCENARIO] TransferPOMatchesFromInvoiceToEDocument creates matches from invoice line receipt info and clears invoice receipt info
+        // [GIVEN] A purchase invoice line with Receipt No. and Receipt Line No.
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine, PurchaseOrderHeader, PurchaseOrderLine.Type::Item, Item."No.", 10);
+
+        CreateMockReceiptHeader(PurchaseReceiptHeader, Vendor."No.");
+        CreateMockReceiptLine(PurchaseReceiptLine, PurchaseReceiptHeader, Item."No.", 10, PurchaseOrderLine);
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
+        PurchaseLine."Receipt No." := PurchaseReceiptLine."Document No.";
+        PurchaseLine."Receipt Line No." := PurchaseReceiptLine."Line No.";
+        PurchaseLine.Modify();
+
+        // [GIVEN] The invoice line is linked to an E-Document line
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine.Quantity := 10;
+        EDocumentPurchaseLine.Modify();
+        LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] TransferPOMatchesFromInvoiceToEDocument is called
+        EDocPOMatching.TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader, EDocument);
+
+        // [THEN] The E-Document line is matched to the purchase order line
+        Assert.IsTrue(EDocPOMatching.IsPOLineMatchedToEDocumentLine(PurchaseOrderLine, EDocumentPurchaseLine), 'Expected E-Document line to be matched to PO line');
+
+        // [THEN] The E-Document line is matched to the receipt line
+        Assert.IsTrue(EDocPOMatching.IsReceiptLineMatchedToEDocumentLine(PurchaseReceiptLine, EDocumentPurchaseLine), 'Expected E-Document line to be matched to receipt line');
+
+        // [THEN] The invoice line's Receipt No. is empty and Receipt Line No. is 0
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        Assert.AreEqual('', PurchaseLine."Receipt No.", 'Expected invoice line Receipt No. to be cleared');
+        Assert.AreEqual(0, PurchaseLine."Receipt Line No.", 'Expected invoice line Receipt Line No. to be cleared');
+    end;
+
+    [Test]
+    procedure TransferPOMatchesFromInvoiceToEDocumentProcessesMultipleLinesIndependently()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine1, EDocumentPurchaseLine2, EDocumentPurchaseLine3 : Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine1, PurchaseLine2, PurchaseLine3 : Record "Purchase Line";
+        PurchaseOrderHeader: Record "Purchase Header";
+        PurchaseOrderLine1, PurchaseOrderLine2, PurchaseOrderLine3 : Record "Purchase Line";
+        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+        PurchaseReceiptLine1, PurchaseReceiptLine2, PurchaseReceiptLine3 : Record "Purch. Rcpt. Line";
+        Item1, Item2, Item3 : Record Item;
+    begin
+        Initialize();
+        LibraryPurchase.SetOrderNoSeriesInSetup();
+        LibraryPurchase.SetPostedNoSeriesInSetup();
+        SetInvoiceNoSeriesInSetup();
+        ClearPurchaseDocumentsForVendor();
+        // [SCENARIO] TransferPOMatchesFromInvoiceToEDocument processes multiple lines independently
+        // [GIVEN] A purchase invoice with three lines, each with different receipt information
+        LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
+        LibraryInventory.CreateItem(Item1);
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine1, PurchaseOrderHeader, PurchaseOrderLine1.Type::Item, Item1."No.", 10);
+        LibraryInventory.CreateItem(Item2);
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine2, PurchaseOrderHeader, PurchaseOrderLine2.Type::Item, Item2."No.", 15);
+        LibraryInventory.CreateItem(Item3);
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine3, PurchaseOrderHeader, PurchaseOrderLine3.Type::Item, Item3."No.", 20);
+
+        CreateMockReceiptHeader(PurchaseReceiptHeader, Vendor."No.");
+        CreateMockReceiptLine(PurchaseReceiptLine1, PurchaseReceiptHeader, Item1."No.", 10, PurchaseOrderLine1);
+        CreateMockReceiptLine(PurchaseReceiptLine2, PurchaseReceiptHeader, Item2."No.", 15, PurchaseOrderLine2);
+        CreateMockReceiptLine(PurchaseReceiptLine3, PurchaseReceiptHeader, Item3."No.", 20, PurchaseOrderLine3);
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item1."No.", 10);
+        PurchaseLine1."Receipt No." := PurchaseReceiptLine1."Document No.";
+        PurchaseLine1."Receipt Line No." := PurchaseReceiptLine1."Line No.";
+        PurchaseLine1.Modify();
+
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::Item, Item2."No.", 15);
+        PurchaseLine2."Receipt No." := PurchaseReceiptLine2."Document No.";
+        PurchaseLine2."Receipt Line No." := PurchaseReceiptLine2."Line No.";
+        PurchaseLine2.Modify();
+
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine3, PurchaseHeader, PurchaseLine3.Type::Item, Item3."No.", 20);
+        PurchaseLine3."Receipt No." := PurchaseReceiptLine3."Document No.";
+        PurchaseLine3."Receipt Line No." := PurchaseReceiptLine3."Line No.";
+        PurchaseLine3.Modify();
+
+        // [GIVEN] An E-Document with three corresponding lines
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+
+        EDocumentPurchaseLine1 := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine1.Quantity := 10;
+        EDocumentPurchaseLine1.Modify();
+        LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine1, PurchaseLine1);
+
+        EDocumentPurchaseLine2 := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine2.Quantity := 15;
+        EDocumentPurchaseLine2.Modify();
+        LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine2, PurchaseLine2);
+
+        EDocumentPurchaseLine3 := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine3.Quantity := 20;
+        EDocumentPurchaseLine3.Modify();
+        LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine3, PurchaseLine3);
+
+        // [WHEN] TransferPOMatchesFromInvoiceToEDocument is called
+        EDocPOMatching.TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader, EDocument);
+
+        // [THEN] Each E-Document line is matched to its corresponding PO line and receipt line
+        Assert.IsTrue(EDocPOMatching.IsPOLineMatchedToEDocumentLine(PurchaseOrderLine1, EDocumentPurchaseLine1), 'Expected first E-Document line to be matched to first PO line');
+        Assert.IsTrue(EDocPOMatching.IsReceiptLineMatchedToEDocumentLine(PurchaseReceiptLine1, EDocumentPurchaseLine1), 'Expected first E-Document line to be matched to first receipt line');
+
+        Assert.IsTrue(EDocPOMatching.IsPOLineMatchedToEDocumentLine(PurchaseOrderLine2, EDocumentPurchaseLine2), 'Expected second E-Document line to be matched to second PO line');
+        Assert.IsTrue(EDocPOMatching.IsReceiptLineMatchedToEDocumentLine(PurchaseReceiptLine2, EDocumentPurchaseLine2), 'Expected second E-Document line to be matched to second receipt line');
+
+        Assert.IsTrue(EDocPOMatching.IsPOLineMatchedToEDocumentLine(PurchaseOrderLine3, EDocumentPurchaseLine3), 'Expected third E-Document line to be matched to third PO line');
+        Assert.IsTrue(EDocPOMatching.IsReceiptLineMatchedToEDocumentLine(PurchaseReceiptLine3, EDocumentPurchaseLine3), 'Expected third E-Document line to be matched to third receipt line');
+
+        // [THEN] All invoice lines have their receipt information cleared
+        PurchaseLine1.Get(PurchaseLine1."Document Type", PurchaseLine1."Document No.", PurchaseLine1."Line No.");
+        Assert.AreEqual('', PurchaseLine1."Receipt No.", 'Expected first invoice line Receipt No. to be cleared');
+        Assert.AreEqual(0, PurchaseLine1."Receipt Line No.", 'Expected first invoice line Receipt Line No. to be cleared');
+
+        PurchaseLine2.Get(PurchaseLine2."Document Type", PurchaseLine2."Document No.", PurchaseLine2."Line No.");
+        Assert.AreEqual('', PurchaseLine2."Receipt No.", 'Expected second invoice line Receipt No. to be cleared');
+        Assert.AreEqual(0, PurchaseLine2."Receipt Line No.", 'Expected second invoice line Receipt Line No. to be cleared');
+
+        PurchaseLine3.Get(PurchaseLine3."Document Type", PurchaseLine3."Document No.", PurchaseLine3."Line No.");
+        Assert.AreEqual('', PurchaseLine3."Receipt No.", 'Expected third invoice line Receipt No. to be cleared');
+        Assert.AreEqual(0, PurchaseLine3."Receipt Line No.", 'Expected third invoice line Receipt Line No. to be cleared');
+    end;
+
+    local procedure SetInvoiceNoSeriesInSetup()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Invoice Nos.", LibraryERM.CreateNoSeriesCode());
+        PurchasesPayablesSetup.Modify();
+    end;
+
     local procedure SetupPOMatchingConfiguration(Configuration: Enum "E-Doc. PO M. Configuration"; VendorNo: Code[20]; IncludeVendorInList: Boolean)
     var
         EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup";
@@ -2362,48 +2569,11 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         EDocPOMatching.MatchPOLinesToEDocumentLine(TempPurchaseLine, EDocumentLine);
     end;
 
-    local procedure MatchEDocumentLineToTwoPOLines(EDocumentLine: Record "E-Document Purchase Line"; PurchaseLine1: Record "Purchase Line"; PurchaseLine2: Record "Purchase Line")
-    var
-        TempPurchaseLine: Record "Purchase Line" temporary;
-    begin
-        TempPurchaseLine := PurchaseLine1;
-        TempPurchaseLine.Insert();
-        TempPurchaseLine := PurchaseLine2;
-        TempPurchaseLine.Insert();
-        EDocPOMatching.MatchPOLinesToEDocumentLine(TempPurchaseLine, EDocumentLine);
-    end;
-
-    local procedure MatchEDocumentLineToThreePOLines(EDocumentLine: Record "E-Document Purchase Line"; PurchaseLine1: Record "Purchase Line"; PurchaseLine2: Record "Purchase Line"; PurchaseLine3: Record "Purchase Line")
-    var
-        TempPurchaseLine: Record "Purchase Line" temporary;
-    begin
-        TempPurchaseLine := PurchaseLine1;
-        TempPurchaseLine.Insert();
-        TempPurchaseLine := PurchaseLine2;
-        TempPurchaseLine.Insert();
-        TempPurchaseLine := PurchaseLine3;
-        TempPurchaseLine.Insert();
-        EDocPOMatching.MatchPOLinesToEDocumentLine(TempPurchaseLine, EDocumentLine);
-    end;
-
     local procedure MatchEDocumentLineToReceiptLine(EDocumentLine: Record "E-Document Purchase Line"; ReceiptLine: Record "Purch. Rcpt. Line")
     var
         TempReceiptLine: Record "Purch. Rcpt. Line" temporary;
     begin
         TempReceiptLine := ReceiptLine;
-        TempReceiptLine.Insert();
-        EDocPOMatching.MatchReceiptLinesToEDocumentLine(TempReceiptLine, EDocumentLine);
-    end;
-
-    local procedure MatchEDocumentLineToThreeReceiptLines(EDocumentLine: Record "E-Document Purchase Line"; ReceiptLine1: Record "Purch. Rcpt. Line"; ReceiptLine2: Record "Purch. Rcpt. Line"; ReceiptLine3: Record "Purch. Rcpt. Line")
-    var
-        TempReceiptLine: Record "Purch. Rcpt. Line" temporary;
-    begin
-        TempReceiptLine := ReceiptLine1;
-        TempReceiptLine.Insert();
-        TempReceiptLine := ReceiptLine2;
-        TempReceiptLine.Insert();
-        TempReceiptLine := ReceiptLine3;
         TempReceiptLine.Insert();
         EDocPOMatching.MatchReceiptLinesToEDocumentLine(TempReceiptLine, EDocumentLine);
     end;
@@ -2442,4 +2612,27 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         PurchaseReceiptLine.Insert();
     end;
 
+    local procedure LinkEDocumentLineToPurchaseLine(EDocument: Record "E-Document"; EDocumentPurchaseLine: Record "E-Document Purchase Line"; PurchaseLine: Record "Purchase Line")
+    var
+        EDocRecordLink: Record "E-Doc. Record Link";
+    begin
+        EDocRecordLink."Source Table No." := Database::"E-Document Purchase Line";
+        EDocRecordLink."Source SystemId" := EDocumentPurchaseLine.SystemId;
+        EDocRecordLink."Target Table No." := Database::"Purchase Line";
+        EDocRecordLink."Target SystemId" := PurchaseLine.SystemId;
+        EDocRecordLink."E-Document Entry No." := EDocument."Entry No";
+        EDocRecordLink.Insert();
+    end;
+
+    local procedure CountReceiptMatchesForEDocumentLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"): Integer
+    var
+        EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
+        NullGuid: Guid;
+    begin
+        EDocPurchaseLinePOMatch.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        EDocPurchaseLinePOMatch.SetFilter("Receipt Line SystemId", '<>%1', NullGuid);
+        exit(EDocPurchaseLinePOMatch.Count());
+    end;
+
 }
+
