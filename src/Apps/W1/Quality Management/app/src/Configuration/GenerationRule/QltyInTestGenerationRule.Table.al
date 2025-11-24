@@ -747,7 +747,7 @@ table 20404 "Qlty. In. Test Generation Rule"
     end;
 
     [InternalEvent(false, false)]
-    local procedure OnAfterGetIsOnlyAutoTriggerInSetup(var QltyManagementSetup: Record "Qlty. Management Setup"; IntentToCheck: Enum "Qlty. Gen. Rule Intent"; IntentSet: Boolean; TriggerCount: Integer)
+    local procedure OnAfterGetIsOnlyAutoTriggerInSetup(var QltyManagementSetup: Record "Qlty. Management Setup"; var IntentToCheck: Enum "Qlty. Gen. Rule Intent"; var IntentSet: Boolean; var TriggerCount: Integer)
     begin
     end;
 }
