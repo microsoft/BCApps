@@ -281,12 +281,8 @@ codeunit 20406 "Qlty. Permission Mgmt."
         TempExpandedPermission: Record "Expanded Permission" temporary;
         UserPermissions: Codeunit "User Permissions";
     begin
-        TempExpandedPermission := UserPermissions.GetEffectivePermission(
-            TempExpandedPermission."Object Type"::"Table Data",
-            TableId);
-        exit(TempExpandedPermission."Delete Permission" in [
-            TempExpandedPermission."Delete Permission"::Yes,
-            TempExpandedPermission."Delete Permission"::Indirect]);
+        TempExpandedPermission := UserPermissions.GetEffectivePermission(TempExpandedPermission."Object Type"::"Table Data", TableId);
+        exit(TempExpandedPermission."Delete Permission" in [TempExpandedPermission."Delete Permission"::Yes, TempExpandedPermission."Delete Permission"::Indirect]);
     end;
 
     local procedure GetCanInsertTableData(TableId: Integer): Boolean
@@ -294,12 +290,8 @@ codeunit 20406 "Qlty. Permission Mgmt."
         TempExpandedPermission: Record "Expanded Permission" temporary;
         UserPermissions: Codeunit "User Permissions";
     begin
-        TempExpandedPermission := UserPermissions.GetEffectivePermission(
-            TempExpandedPermission."Object Type"::"Table Data",
-            TableId);
-        exit(TempExpandedPermission."Insert Permission" in [
-            TempExpandedPermission."Insert Permission"::Yes,
-            TempExpandedPermission."Insert Permission"::Indirect]);
+        TempExpandedPermission := UserPermissions.GetEffectivePermission(TempExpandedPermission."Object Type"::"Table Data", TableId);
+        exit(TempExpandedPermission."Insert Permission" in [TempExpandedPermission."Insert Permission"::Yes, TempExpandedPermission."Insert Permission"::Indirect]);
     end;
 
     local procedure GetCanModifyTableData(TableId: Integer): Boolean
@@ -307,12 +299,8 @@ codeunit 20406 "Qlty. Permission Mgmt."
         TempExpandedPermission: Record "Expanded Permission" temporary;
         UserPermissions: Codeunit "User Permissions";
     begin
-        TempExpandedPermission := UserPermissions.GetEffectivePermission(
-            TempExpandedPermission."Object Type"::"Table Data",
-            TableId);
-        exit(TempExpandedPermission."Modify Permission" in [
-            TempExpandedPermission."Modify Permission"::Yes,
-            TempExpandedPermission."Modify Permission"::Indirect]);
+        TempExpandedPermission := UserPermissions.GetEffectivePermission(TempExpandedPermission."Object Type"::"Table Data", TableId);
+        exit(TempExpandedPermission."Modify Permission" in [TempExpandedPermission."Modify Permission"::Yes, TempExpandedPermission."Modify Permission"::Indirect]);
     end;
 
     local procedure GetIsSuperVisorRoleAssigned() IsAssigned: Boolean

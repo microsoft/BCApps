@@ -5,12 +5,12 @@
 
 namespace System.Test.Environment.Configuration;
 
+using System.Environment;
 using System.Environment.Configuration;
 using System.Globalization;
 using System.TestLibraries.Environment.Configuration;
-using System.Environment;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 codeunit 132905 "User Settings Tests"
 {
     Subtype = Test;

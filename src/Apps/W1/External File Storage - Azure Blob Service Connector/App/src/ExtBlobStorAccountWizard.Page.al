@@ -5,7 +5,7 @@
 
 namespace System.ExternalFileStorage;
 
-Using System.Environment;
+using System.Environment;
 
 /// <summary>
 /// Displays an account that is being registered via the Blob Storage connector.

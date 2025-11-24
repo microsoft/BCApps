@@ -3,17 +3,18 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Test;
-using System.TestLibraries.Email;
-using System.Email;
+
+using Microsoft.CRM.Contact;
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.eServices.EDocument.Integration;
-using Microsoft.Foundation.Reporting;
-using Microsoft.eServices.EDocument;
-using Microsoft.Purchases.Vendor;
+using System.Email;
 using System.IO;
-using Microsoft.CRM.Contact;
+using System.TestLibraries.Email;
 
 
 codeunit 139746 "E-Doc. Email Tests"

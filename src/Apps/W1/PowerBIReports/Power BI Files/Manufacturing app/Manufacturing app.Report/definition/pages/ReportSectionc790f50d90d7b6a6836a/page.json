@@ -1,0 +1,79 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "ReportSectionc790f50d90d7b6a6836a",
+  "displayName": "Production Scrap",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filter1b2837ce605ea075ebb5",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Date"
+              }
+            },
+            "Property": "Date"
+          }
+        },
+        "type": "RelativeDate",
+        "howCreated": "User"
+      },
+      {
+        "name": "e8db6210b854b9eba7c4",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Production Orders"
+              }
+            },
+            "Property": "Production Order"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "bd823b8c9c3d775ec803",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Production Orders"
+              }
+            },
+            "Property": "Prod Order Source No."
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "aa66bdf59875d2a770c8",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Capacity Ledger Entries"
+              }
+            },
+            "Property": "Scrap Code"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      }
+    ],
+    "filterSortOrder": "Ascending"
+  },
+  "pageBinding": {
+    "name": "Pod4",
+    "type": "Default",
+    "parameters": [],
+    "acceptsFilterContext": "None"
+  }
+}

@@ -5,10 +5,10 @@
 
 namespace System.Test.Utilities;
 
-using System.Utilities;
 using System.Environment;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 135030 "Temp Blob Test"
 {
@@ -215,7 +215,7 @@ codeunit 135030 "Temp Blob Test"
 
         // [THEN] Cannot get a value for a non-BLOB field.
         asserterror TempBlob.ToRecordRef(MediaRecordRef, IntegerFieldNo);
-        Assert.ExpectedError('Unable to convert from');
+        Assert.ExpectedError('can''t be evaluated into type');
 
         TempBlob.ToRecordRef(MediaRecordRef, BlobFieldNo);
 
@@ -304,7 +304,7 @@ codeunit 135030 "Temp Blob Test"
 
         // [THEN] Cannot get a value for a non-BLOB field.
         asserterror TempBlob.ToFieldRef(MediaFieldRef);
-        Assert.ExpectedError('Unable to convert');
+        Assert.ExpectedError('can''t be evaluated into type');
 
         MediaFieldRef := MediaRecordRef.Field(BlobFieldNo);
         TempBlob.ToFieldRef(MediaFieldRef);

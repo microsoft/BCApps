@@ -5,13 +5,13 @@
 
 namespace Microsoft.Test.Shared.Error;
 
-using System.Utilities;
-using Microsoft.Purchases.Document;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
-using Microsoft.Finance.Currency;
-using Microsoft.Finance.GeneralLedger.Journal;
+using System.Utilities;
 
 codeunit 139620 ErrMsgScenarioTestHelper
 {

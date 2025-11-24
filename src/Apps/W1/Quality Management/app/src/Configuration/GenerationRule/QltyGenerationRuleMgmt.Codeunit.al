@@ -261,7 +261,7 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
     /// If there is an item attribute filter, then it must match.
     /// </summary>
     /// <returns></returns>
-    local procedure DoesMatchItemAttributeFiltersOrNoFilter(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; var Item: Record Item): Boolean
+    internal procedure DoesMatchItemAttributeFiltersOrNoFilter(var QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule"; var Item: Record Item): Boolean
     var
         TempFilterItemAttributesBuffer: Record "Filter Item Attributes Buffer" temporary;
         TempsItem: Record Item temporary;
@@ -270,6 +270,7 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
     begin
         if Item."No." = '' then
             exit(false);
+
         if QltyInTestGenerationRule."Item Attribute Filter" = '' then
             exit(true);
 

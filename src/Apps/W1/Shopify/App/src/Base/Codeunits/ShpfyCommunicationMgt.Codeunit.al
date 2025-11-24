@@ -5,9 +5,9 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using System.Telemetry;
 using System.Azure.KeyVault;
 using System.Environment;
+using System.Telemetry;
 
 /// <summary>
 /// Codeunit Shpfy Communication Mgt. (ID 30103).

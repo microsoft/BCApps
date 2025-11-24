@@ -38,6 +38,7 @@ table 20412 "Qlty. I. Grade Condition Conf."
         {
             Caption = 'Retest No. (tests)';
             Description = 'Only applicable for Retests. Does not apply to field configurations or template configurations.';
+            BlankZero = true;
         }
         field(4; "Target Line No."; Integer)
         {

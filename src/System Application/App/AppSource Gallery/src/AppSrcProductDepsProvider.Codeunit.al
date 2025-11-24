@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Apps.AppSource;
 
-using System.Environment.Configuration;
-using System.Globalization;
 using System.Azure.Identity;
 using System.Environment;
+using System.Environment.Configuration;
+using System.Globalization;
 using System.RestClient;
 
 /// <summary>

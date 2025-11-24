@@ -5,22 +5,22 @@
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Finance.Dimension;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Deferral;
-using Microsoft.Foundation.UOM;
-using Microsoft.Utilities;
-using Microsoft.Purchases.Document;
-using System.Utilities;
+using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
-using Microsoft.Finance.AllocationAccount;
-using Microsoft.Projects.Resources.Resource;
-using Microsoft.eServices.EDocument.Processing.Import;
-using System.Reflection;
-using Microsoft.Purchases.History;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Utilities;
+using System.Reflection;
+using System.Utilities;
 
 table 6101 "E-Document Purchase Line"
 {

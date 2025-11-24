@@ -47,13 +47,8 @@ table 30123 "Shpfy Order Risk"
             DataClassification = SystemMetadata;
             Editable = false;
             ObsoleteReason = 'This field is not imported.';
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#endif
         }
 #endif
         field(6; Provider; Text[512])

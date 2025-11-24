@@ -1,0 +1,320 @@
+table 'G/L Entries'
+	lineageTag: 135cf14f-b9fb-4a27-b7e9-7e652be296c4
+
+	measure 'Net Change' = CALCULATE([Amount],'G/L Entries'[Closing Entry] = FALSE)
+		formatString: #,0.00
+		displayFolder: _G/L Entry Measures
+		lineageTag: 656091b6-7845-4da2-b45e-333b6a7fd0df
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Net Change (Neg)' = [Net Change] * -1
+		formatString: #,0.00
+		displayFolder: _G/L Entry Measures
+		lineageTag: a51ee6fd-42b6-4c71-a47d-ab1989f8a77b
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Balance at Date' =
+			
+			CALCULATE (
+			    [Amount],
+			    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] <= MAX ( 'Date'[Date] ) )
+			)
+		formatString: #,0.00
+		displayFolder: _G/L Entry Measures
+		lineageTag: 8295b18c-3938-41e4-8825-e558d0bb9ec7
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure Amount = SUM ('G/L Entries'[Amt.] )
+		formatString: #,0.00
+		displayFolder: _G/L Entry Measures
+		lineageTag: c2966b6f-09db-4be7-85b4-9a0038990b35
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure Balance =
+			
+			CALCULATE(
+			    [Amount],
+			    ALL('Date')
+			)
+		formatString: #,0.00
+		displayFolder: _G/L Entry Measures
+		lineageTag: 9f19be81-41cd-4dab-b388-fd993a5fa13a
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Variance to Budget' = [Net Change] - [Budget Amount]
+		formatString: #,0.00
+		displayFolder: _G/L Entry Measures
+		lineageTag: 50600533-8826-4df7-beff-bef860152365
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Variance to Budget %' = DIVIDE([Variance to Budget],[Net Change])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _G/L Entry Measures
+		lineageTag: a26f75b9-2a72-4024-9116-2d495f0a5603
+
+		changedProperty = FormatString
+
+	measure 'Balance at Date (Neg)' = [Balance at Date] * -1
+		formatString: #,0.00
+		displayFolder: _G/L Entry Measures
+		lineageTag: 0d0adef3-2898-4669-a4f4-3e6bb288ecc1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Net Change Back Link' = ```
+			
+			VAR Endpoint = "&page=20&"
+			VAR baseLink = [Base Link] & Endpoint 
+			
+			// Build filter context
+			VAR ClosingEntries =
+			    VALUES ( 'Closing Entry Filter Table'[CloseIncomeSourceCodeFilter] )
+			VAR GLAccounts =
+			    VALUES ( 'G/L Account'[G/L Account No.] )
+			VAR MinGLAcc =
+			    MIN ( 'G/L Account'[G/L Account No.] )
+			VAR MaxGLAcc =
+			    MAX ( 'G/L Account'[G/L Account No.] )
+			VAR DimensionSets =
+			    CONCATENATEX ( VALUES ( 'G/L Entries'[dimensionSetID] ), [dimensionSetID], "|" ) 
+			
+			// Build URL string components
+			VAR GLAccountRange = MinGLAcc & ".." & MaxGLAcc
+			VAR GLAccountFilter = "filter='G/L Entry'.'G/L Account No.' IS " & "'" & GLAccountRange & "'"
+			VAR GLPostingDateFilter = " AND 'G/L Entry'.'Posting Date' IS " & "'" & [Ranged]  & "'"
+			VAR SourceCodeFilter = " AND 'G/L Entry'.'Source Code' IS " & "'" & ClosingEntries & "'"
+			VAR DimensionSetFilter = " AND 'G/L Entry'.'Dimension Set ID' IS " & "'" & DimensionSets & "'"
+			
+			RETURN
+			    baseLink & GLAccountFilter & GLPostingDateFilter & DimensionSetFilter & SourceCodeFilter
+			
+			```
+		displayFolder: _G/L Entry Measures\_G/L Entry Back Links
+		lineageTag: b53e8977-8baa-4426-99f2-f35671a52ca2
+		dataCategory: WebUrl
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Balance At Date Back Link' = ```
+			
+			VAR Endpoint = "&page=20&"
+			VAR baseLink = [Base Link] & Endpoint 
+			
+			// Build filter context
+			VAR maxdate =
+			    MAX ( 'Date'[Date] )
+			VAR GLAccounts =
+			    VALUES ( 'G/L Account'[G/L Account No.] )
+			VAR dateRange =
+			    ".." & FORMAT ( maxdate, "yyyy-mm-dd" )
+			VAR MinGLAcc =
+			    MIN ( 'G/L Account'[G/L Account No.] )
+			VAR MaxGLAcc =
+			    MAX ( 'G/L Account'[G/L Account No.] )
+			VAR DimensionSets = 
+			    CONCATENATEX (
+			        CALCULATETABLE (
+			            VALUES ( 'G/L Entries'[dimensionSetID] ),
+			            ALL ( 'Date'[Date] ),
+			            'Date'[Date] <= MAX ( 'Date'[Date] )
+			        ),
+			        [dimensionSetID], "|"
+			    )
+			
+			// Build URL string components
+			VAR GLAccountRange = MinGLAcc & ".." & MaxGLAcc
+			VAR GLAccountFilter = "filter='G/L Entry'.'G/L Account No.' IS " & "'" & GLAccountRange & "'"
+			VAR GLPostingDateFilter = " AND 'G/L Entry'.'Posting Date' IS " & "'" & dateRange  & "'"
+			VAR DimensionSetFilter = " AND 'G/L Entry'.'Dimension Set ID' IS " & "'" & DimensionSets & "'"
+			RETURN 
+			    baseLink & GLAccountFilter & DimensionSetFilter & GLPostingDateFilter
+			    
+			
+			```
+		displayFolder: _G/L Entry Measures\_G/L Entry Back Links
+		lineageTag: 6cba88f8-cad2-4468-a3ef-d7f811b81049
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Base Link' =
+			
+			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
+			VAR TenantID = VALUES('Date Table Setup'[tenantID])
+			VAR Environment = VALUES(ENVIRONMENT[ENVIRONMENT])
+			VAR Company = "?company=" & VALUES(COMPANY[COMPANY])
+			RETURN BusinessCentral & TenantID & "/" & Environment & "/" & Company
+		displayFolder: _G/L Entry Measures\_G/L Entry Back Links
+		lineageTag: b08bfde7-4752-45b9-b9ce-53d9c0ce7665
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'G/L Account No.'
+		dataType: string
+		isHidden
+		lineageTag: f4441082-9a46-4c40-9786-23c77f690371
+		summarizeBy: none
+		sourceColumn: G/L Account No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Posting Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: f7c65158-a256-495b-98b0-b13aa96b7718
+		summarizeBy: none
+		sourceColumn: Posting Date
+
+		changedProperty = IsHidden
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Amt.'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 8cfa1ee3-42f1-494e-8da6-64bf15de73fc
+		summarizeBy: sum
+		sourceColumn: Amt.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Closing Entry'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 201c54d9-6514-4fae-b710-b740001c702e
+		summarizeBy: none
+		sourceColumn: Closing Entry
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source Code'
+		dataType: string
+		lineageTag: 4f5c7cc6-e2f4-46d7-ad87-17fcaa9bf05c
+		summarizeBy: none
+		sourceColumn: Source Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source Type'
+		dataType: string
+		lineageTag: 67b90c0d-c1ba-41d0-aed5-e8b1dfc6ee35
+		summarizeBy: none
+		sourceColumn: Source Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source No.'
+		dataType: string
+		lineageTag: 7794a606-5a53-4225-8e80-64e098294c5e
+		summarizeBy: none
+		sourceColumn: Source No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entry No.'
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: 75a094cd-2a8e-44ac-a6a9-41fc68acd5d7
+		summarizeBy: none
+		sourceColumn: Entry No.
+
+		annotation SummarizationSetBy = User
+
+	column incomeBalance
+		dataType: string
+		isHidden
+		lineageTag: 15a4e990-fb9a-482d-bf00-edf36b090f3d
+		summarizeBy: none
+		sourceColumn: incomeBalance
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column systemModifiedAt
+		dataType: dateTime
+		isHidden
+		formatString: General Date
+		lineageTag: dc8507f5-d333-4691-8093-65d11db9a529
+		summarizeBy: none
+		sourceColumn: systemModifiedAt
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 97592542-406c-44d0-acd8-8d71d5e5cf75
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 39f8c141-0793-4bb3-8306-84225fac3180
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'G/L Entries-ce1c0b90-2b65-4125-b016-f2ba843a67f9' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    #"Combine Queries" =
+				        if CheckUpgradeQuery("closeIncomeStmtSourceCodes") then
+				            Table.Combine(
+				                {
+				                    #"Balance Sheet G/L Entries",
+				                    #"Income Statement G/L Entries"
+				                }
+				            )
+				        else
+				            Table.Combine(
+				                {
+				                    #"Balance Sheet G/L Entries",
+				                    #"Income Statement G/L Entries",
+				                    #"Close Income Statement G/L Entries"
+				                }
+				            )
+				in
+				    #"Combine Queries"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

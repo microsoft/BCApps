@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.DemoData;
 
-using Microsoft.Purchases.Vendor;
 using Microsoft.DemoData.Purchases;
+using Microsoft.Purchases.Vendor;
 
 table 5375 "E-Document Module Setup"
 {

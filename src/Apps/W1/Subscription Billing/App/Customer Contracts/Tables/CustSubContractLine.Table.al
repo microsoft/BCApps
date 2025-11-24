@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Inventory.Item;
+using System.Utilities;
 
 table 8062 "Cust. Sub. Contract Line"
 {

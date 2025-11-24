@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Finance.ExcelReports;
+
 using Microsoft.Finance.GeneralLedger.Account;
 
 pageextension 4431 "EXR G/L Account List" extends "G/L Account List"

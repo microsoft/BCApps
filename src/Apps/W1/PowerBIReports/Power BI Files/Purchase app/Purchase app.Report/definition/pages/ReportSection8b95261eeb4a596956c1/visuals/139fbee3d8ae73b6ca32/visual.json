@@ -1,0 +1,269 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "139fbee3d8ae73b6ca32",
+  "position": {
+    "x": 26.980392156862745,
+    "y": 397.1764705882353,
+    "z": 2000,
+    "height": 66,
+    "width": 1228.5490196078431,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchase Lines"
+                    }
+                  },
+                  "Property": "No. of Outstanding Purchase Orders"
+                }
+              },
+              "queryRef": "Purchase Lines.No. of Outstanding Purchase Orders",
+              "nativeQueryRef": "No. of Outstanding Purchase Orders"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchase Value Entries"
+                    }
+                  },
+                  "Property": "No. of Posted Purchase Invoices"
+                }
+              },
+              "queryRef": "Purchase Value Entries.No. of Purchase Invoices",
+              "nativeQueryRef": "No. of Purchase Invoices1"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchase Lines"
+                    }
+                  },
+                  "Property": "No. of Received Not Invoiced Purchase Orders"
+                }
+              },
+              "queryRef": "Purchase Lines.No. of Received Not Invoiced Purchase Orders",
+              "nativeQueryRef": "No. of Received Not Invoiced Purchase Orders"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchase Value Entries"
+                    }
+                  },
+                  "Property": "Purchase Value Entries Amount"
+                }
+              },
+              "queryRef": "Purchase Value Entries.Purchase Value Entries Amount",
+              "nativeQueryRef": "Purchase Value Entries Amount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchase Lines"
+                    }
+                  },
+                  "Property": "Outstanding Invoices (LCY)"
+                }
+              },
+              "queryRef": "Purchase Lines.Outstanding Invoices (LCY)",
+              "nativeQueryRef": "Outstanding Invoices (LCY)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchase Lines"
+                    }
+                  },
+                  "Property": "Amt. Rcd. Not Invoiced (LCY)"
+                }
+              },
+              "queryRef": "Purchase Lines.Amt. Rcd. Not Invoiced (LCY)",
+              "nativeQueryRef": "Amt. Rcd. Not Invoiced (LCY)"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Purchase Lines"
+                  }
+                },
+                "Property": "No. of Outstanding Purchase Orders"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "layout": [
+        {
+          "properties": {
+            "cellPadding": {
+              "expr": {
+                "Literal": {
+                  "Value": "0L"
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'middle'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "spacing": [
+        {
+          "properties": {
+            "verticalSpacing": {
+              "expr": {
+                "Literal": {
+                  "Value": "0L"
+                }
+              }
+            }
+          },
+          "selector": {
+            "id": "default"
+          }
+        }
+      ],
+      "padding": [
+        {
+          "properties": {
+            "paddingSelection": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Custom'"
+                }
+              }
+            },
+            "topMargin": {
+              "expr": {
+                "Literal": {
+                  "Value": "0L"
+                }
+              }
+            },
+            "rightMargin": {
+              "expr": {
+                "Literal": {
+                  "Value": "0L"
+                }
+              }
+            },
+            "bottomMargin": {
+              "expr": {
+                "Literal": {
+                  "Value": "0L"
+                }
+              }
+            },
+            "leftMargin": {
+              "expr": {
+                "Literal": {
+                  "Value": "0L"
+                }
+              }
+            }
+          },
+          "selector": {
+            "id": "default"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "padding": [
+        {
+          "properties": {
+            "top": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "bottom": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Purchase KPIs card'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

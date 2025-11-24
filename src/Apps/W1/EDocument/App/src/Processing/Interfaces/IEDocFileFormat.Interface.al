@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Interfaces;
 
-using System.Utilities;
 using Microsoft.eServices.EDocument.Processing.Import;
+using System.Utilities;
 
 /// <summary>
 /// An interface representing the file format of a blob associated with an E-Document.

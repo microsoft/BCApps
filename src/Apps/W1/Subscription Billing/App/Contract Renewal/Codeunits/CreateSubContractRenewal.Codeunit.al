@@ -1,9 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Currency;
+using Microsoft.Sales.Document;
 using System.IO;
 using System.Utilities;
-using Microsoft.Sales.Document;
-using Microsoft.Finance.Currency;
 
 codeunit 8002 "Create Sub. Contract Renewal"
 {

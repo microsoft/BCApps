@@ -5,9 +5,9 @@
 
 namespace System.Test.Text;
 
+using System.TestLibraries.Utilities;
 using System.Text;
 using System.Utilities;
-using System.TestLibraries.Utilities;
 
 codeunit 135041 "Base64 Convert Test"
 {

@@ -5,10 +5,10 @@
 
 namespace Microsoft.ExcelReports;
 
-using Microsoft.Finance.RoleCenters;
-using Microsoft.Sales.ExcelReports;
-using Microsoft.Purchases.ExcelReports;
 using Microsoft.Finance.ExcelReports;
+using Microsoft.Finance.RoleCenters;
+using Microsoft.Purchases.ExcelReports;
+using Microsoft.Sales.ExcelReports;
 
 pageextension 4402 "EXT Bus. Manager Role Center" extends "Business Manager Role Center"
 {

@@ -5,12 +5,12 @@
 
 namespace System.Test.Environment.Configuration;
 
-using System.Reflection;
-using System.Environment.Configuration;
 using System.Environment;
+using System.Environment.Configuration;
 using System.Media;
-using System.TestLibraries.Utilities;
+using System.Reflection;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 132605 "Checklist Banner Test"
 {

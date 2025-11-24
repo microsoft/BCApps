@@ -1,0 +1,1207 @@
+cultureInfo da-DK
+	translations
+		model Model
+			table Item
+				caption: Vare
+				column 'Item No. & Description'
+					caption: Varenummer og -beskrivelse
+				column 'Item No.'
+					caption: Varenr.
+				column 'Item Description'
+					caption: Varebeskrivelse
+				column 'Item Unit Cost (LCY)'
+					caption: Vares kostpris (LV)
+				column 'Item Inventory Posting Group'
+					caption: Bogføringsgruppe for varelager
+				column 'Item Category Code'
+					caption: Varekategorikode
+				column 'Item Category Description'
+					caption: Beskrivelse af varekategori
+				column 'Item Routing No.'
+					caption: Varerutenr.
+				column 'Item Production BOM No.'
+					caption: Varens produktionsstyklistenr.
+				column 'Item Replenishment System'
+					caption: Varens genbestillingssystem
+				column 'Item Single-Level Cap. Ovhd Cost'
+					caption: Enkeltniveau til varens indirekte kap.kostpris
+				column 'Item Single-Level Capacity Cost'
+					caption: Enkeltniveau af varens kapacitetskostpris
+				column 'Item Single-Level Material Cost'
+					caption: Varens enkeltniveau til materialekostpris
+				column 'Item Single-Level Mfg. Ovhd Cost'
+					caption: Enkeltniveau til varens faste produktionsomkostninger
+				column 'Item Single-Level Subcontrd. Cost'
+					caption: Varens enkeltniveau til underleverandørkostpris
+				column 'Item Base Unit of Measure'
+					caption: Grundlæggende enhed for vare
+				column 'Item Rolled-up Cap. Overhead Cost'
+					caption: Varens akkumulerede faste omkostninger
+				column 'Item Rolled-up Capacity Cost'
+					caption: Varens akkumulerede kapacitetskostpris
+				column 'Item Rolled-up Material Cost'
+					caption: Varens akkumulerede materialekostpris
+				column 'Item Rolled-up Mfg. Ovhd Cost'
+					caption: Varens akkumulerede faste produktionsomkostning
+				column 'Item Rolled-up Subcontracted Cost'
+					caption: Varens akkumuleret underleverandørs kostpris
+				column 'Item Scrap %'
+					caption: Spildprocent for vare
+				column 'Item Single-Lvl Mat. Non-Invt. Cost'
+					caption: Varens enkeltniveau mat. kostbeløb ikke-lager
+				column 'Item Rolled-up Mat. Non-Invt. Cost'
+					caption: Varens akkumulerede mat. kostbeløb ikke-lager
+			table Date
+				caption: Dato
+				column DateKey
+					caption: DateKey
+				column 'Day of Month'
+					caption: Dag i måneden
+				column WeekDayNumber
+					caption: WeekDayNumber
+				column 'Week Day'
+					caption: Ugedag
+				column 'Holiday Name'
+					caption: Ferienavn
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Dagtype
+				column DatesWithTransactions
+					caption: DatesWithTransactions
+				column 'Calendar YearNumber'
+					caption: Kalender ÅrNummer
+				column 'Calendar Year'
+					caption: Kalender År
+				column 'Calendar QuarterNumber'
+					caption: Kalender KvartalNummer
+				column 'Calendar Quarter'
+					caption: Kalenderkvartal
+				column 'Calendar YearQuarterNumber'
+					caption: Kalender ÅrKvartalNummer
+				column 'Calendar Quarter Year'
+					caption: KalenderKvartalÅr
+				column 'Calendar MonthNumber'
+					caption: Kalender MånedNummer
+				column 'Calendar Month'
+					caption: Kalendermåned
+				column 'Calendar YearMonthNumber'
+					caption: Kalender ÅrMånedNummer
+				column 'Calendar Month Year'
+					caption: Kalender Måned År
+				column 'Calendar WeekNumber'
+					caption: Kalender UgeNummer
+				column 'Calendar Week'
+					caption: Kalenderuge
+				column 'Calendar YearWeekNumber'
+					caption: Kalender ÅrUgeNummer
+				column 'Calendar Week Year'
+					caption: Kalender Uge År
+				column 'Calendar WeekYearOrder'
+					caption: Kalender RækkefølgeAfUgeÅr
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativUgePosition
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativMånedsPosition
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelativKvartalsPosition
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativÅrsPosition
+				column 'Calendar StartOfMonth'
+					caption: Kalender StartPåMåned
+				column 'Calendar EndOfMonth'
+					caption: Kalender SlutPåMåned
+				column 'Calendar StartOfQuarter'
+					caption: Kalender StartPåKvartal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender SlutPåKvartal
+				column 'Calendar StartOfYear'
+					caption: Kalender StartPåÅr
+				column 'Calendar EndOfYear'
+					caption: Kalender SlutPåÅr
+				column 'Calendar MonthDays'
+					caption: Kalender MånedDage
+				column 'Calendar QuarterDays'
+					caption: Kalender KvartalsDage
+				column 'Calendar YearDays'
+					caption: Kalender ÅrDage
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender NummerPåDagIMåned
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender NummerPåDagIKvartal
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender NummerPåDagIÅr
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatoForrigeUge
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatoForrigeMåned
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatoForrigeKvartal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatoForrigeÅr
+				column 'Fiscal Year'
+					caption: Regnskabsår
+				column 'Fiscal YearNumber'
+					caption: Regnskab ÅrNummer
+				column 'Fiscal QuarterNumber'
+					caption: Regnskab KvartalNummer
+				column 'Fiscal Quarter'
+					caption: Regnskabskvartal
+				column 'Fiscal YearQuarterNumber'
+					caption: Regnskab ÅrKvartalNummer
+				column 'Fiscal Quarter Year'
+					caption: Regnskab Kvartal År
+				column 'Fiscal MonthNumber'
+					caption: Regnskab MånedNummer
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Regnskab NummerPåMånedIKvartal
+				column 'Fiscal Month'
+					caption: Regnskabsmåned
+				column 'Fiscal YearMonthNumber'
+					caption: Regnskab ÅrMånedNummer
+				column 'Fiscal Month Year'
+					caption: Regnskab Måned År
+				column 'Fiscal WeekNumber'
+					caption: Regnskab UgeNummer
+				column 'Fiscal Week'
+					caption: Regnskabsuge
+				column 'Fiscal YearWeekNumber'
+					caption: Regnskab ÅrUgeNummer
+				column 'Fiscal Week Year'
+					caption: Regnskab Uge År
+				column 'Fiscal WeekYearOrder'
+					caption: Regnskab UgeÅrRækkefølge
+				column 'Fiscal RelativeWeekPos'
+					caption: Regnskab RelativUgePosition
+				column 'Fiscal RelativeMonthPos'
+					caption: Regnskab RelativMånedsPosition
+				column 'Fiscal RelativeQuarterPos'
+					caption: Regnskab RelativKvartalsPosition
+				column 'Fiscal RelativeYearPos'
+					caption: Regnskab RelativÅrsPosition
+				column 'Fiscal StartOfMonth'
+					caption: Regnskab StartPåMåned
+				column 'Fiscal EndOfMonth'
+					caption: Regnskab SlutPåMåned
+				column 'Fiscal StartOfQuarter'
+					caption: Regnskab StartPåKvartal
+				column 'Fiscal EndOfQuarter'
+					caption: Regnskab SlutPåKvartal
+				column 'Fiscal StartOfYear'
+					caption: Regnskab StartPåÅr
+				column 'Fiscal EndOfYear'
+					caption: Regnskab SlutPåÅr
+				column 'Fiscal MonthDays'
+					caption: Regnskab MånedsDage
+				column 'Fiscal QuarterDays'
+					caption: Regnskab KvartalsDage
+				column 'Fiscal YearDays'
+					caption: Regnskabsår Dage
+				column 'Fiscal DayOfMonthNumber'
+					caption: Regnskab NummerPåDagIMåned
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Regnskab NummerPåDagIKvartal
+				column 'Fiscal DayOfYearNumber'
+					caption: Regnskab NummerPåDagiÅr
+				column 'Fiscal DatePreviousWeek'
+					caption: Regnskab DatoForrigeUge
+				column 'Fiscal DatePreviousMonth'
+					caption: Regnskab DatoForrigeMåned
+				column 'Fiscal DatePreviousQuarter'
+					caption: Regnskab DatoForrigeKvartal
+				column 'Fiscal DatePreviousYear'
+					caption: Regnskab DatoForrigeÅr
+				column 'FW YearNumber'
+					caption: RU ÅrNummer
+				column 'FW Year'
+					caption: RU År
+				column 'FW QuarterNumber'
+					caption: RU KvartalNummer
+				column 'FW Quarter'
+					caption: RU Kvartal
+				column 'FW YearQuarterNumber'
+					caption: RU ÅrKvartalNummer
+				column 'FW Quarter Year'
+					caption: RU Kvartal År
+				column 'FW MonthNumber'
+					caption: RU MånedNummer
+				column 'FW Month'
+					caption: RU Måned
+				column 'FW YearMonthNumber'
+					caption: RU ÅrMånedNummer
+				column 'FW Month Year'
+					caption: RU Måned år
+				column 'FW WeekNumber'
+					caption: RU UgeNummer
+				column 'FW Week'
+					caption: RU Uge
+				column 'FW PeriodNumber'
+					caption: RU PeriodeNummer
+				column 'FW Period'
+					caption: RU Periode
+				column 'FW YearWeekNumber'
+					caption: RU ÅrUgeNummer
+				column 'FW Week Year'
+					caption: RU Uge År
+				column 'FW StartOfWeek'
+					caption: RU StartPåUge
+				column 'FW EndOfWeek'
+					caption: RU SlutPåUge
+				column 'FW RelativeWeekPos'
+					caption: RU RelativUgesPosition
+				column 'FW RelativeMonthPos'
+					caption: RU RelativMånedsPosition
+				column 'FW RelativeQuarterPos'
+					caption: RU RelativKvartalsPosition
+				column 'FW RelativeYearPos'
+					caption: RU RelativÅrsPosition
+				column 'FW StartOfMonth'
+					caption: RU StartPåMåned
+				column 'FW EndOfMonth'
+					caption: RU SlutPåMåned
+				column 'FW StartOfQuarter'
+					caption: RU StartPåKvartal
+				column 'FW EndOfQuarter'
+					caption: RU SlutPåKvartal
+				column 'FW StartOfYear'
+					caption: RU StartPåÅr
+				column 'FW EndOfYear'
+					caption: RU SlutPåÅr
+				column 'FW MonthDays'
+					caption: RU MånedDage
+				column 'FW QuarterDays'
+					caption: RU KvartalDage
+				column 'FW YearDays'
+					caption: RU ÅrDage
+				column 'FW DayOfMonthNumber'
+					caption: RU NummerPåDagIMåned
+				column 'FW DayOfQuarterNumber'
+					caption: RU NummerPåDagIKvartal
+				column 'FW DayOfYearNumber'
+					caption: RU NummerPåDagiÅr
+				column 'FW DatePreviousWeek'
+					caption: RU DatoForrigeUge
+				column 'FW DatePreviousMonth'
+					caption: RU DatoForrigeMåned
+				column 'FW DatePreviousQuarter'
+					caption: RU DatoForrigeKvartal
+				column 'FW DatePreviousYear'
+					caption: RU DatoForrigeÅr
+				column 'Relative Day'
+					caption: Relativ dag
+				column Sequential365DayNumber
+					caption: Sequential365DayNumber
+				hierarchy 'Fiscal Year-Month'
+					caption: Regnskab År-Måned
+					level 'Fiscal Year'
+						caption: Regnskabsår
+					level 'Fiscal Month Year'
+						caption: Regnskab Måned År
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Regnskabsår-Måned-Uge
+					level 'Fiscal Year'
+						caption: Regnskabsår
+					level 'Fiscal Month Year'
+						caption: Regnskab Måned År
+					level 'Fiscal Week Year'
+						caption: Regnskab Uge År
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Regnskab År-Kvartal-Måned-Uge
+					level 'Fiscal Year'
+						caption: Regnskabsår
+					level 'Fiscal Quarter Year'
+						caption: Regnskab Kvartal År
+					level 'Fiscal Month Year'
+						caption: Regnskab Måned År
+					level 'Fiscal Week Year'
+						caption: Regnskab Uge År
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender År-måned
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender År-måned-uge
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+					level 'Calendar Week Year'
+						caption: Kalender Uge år
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender År-Kvartal-Måned-Uge
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Quarter Year'
+						caption: Kalender Kvartal År
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+					level 'Calendar Week Year'
+						caption: Kalender Uge år
+				hierarchy 'FW Year-Month-Week'
+					caption: RU År-Måned-Uge
+					level 'FW Year'
+						caption: RU År
+					level 'FW Month Year'
+						caption: RU Måned år
+					level 'FW Week Year'
+						caption: RU Uge År
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: RU År-Kvartal-Måned-Uge
+					level 'FW Year'
+						caption: RU År
+					level 'FW Quarter Year'
+						caption: RU Kvartal År
+					level 'FW Month Year'
+						caption: RU Måned År
+					level 'FW Week Year'
+						caption: RU Uge År
+				hierarchy 'FW Year-Quarter-Week'
+					caption: RU År-Kvartal-Uge
+					level 'FW Year'
+						caption: RU År
+					level 'FW Quarter Year'
+						caption: RU Kvartal År
+					level 'FW Week Year'
+						caption: RU Uge År
+				hierarchy 'FW Year-Week'
+					caption: RU År-Uge
+					level 'FW Year'
+						caption: RU År
+					level 'FW Week Year'
+						caption: RU Uge År
+			table 'Work Center'
+				caption: Arbejdscenter
+				column 'Work Center Name'
+					caption: Arbejdscenternavn
+				column 'Work Center Group Code'
+					caption: Arbejdscentergruppekode
+				column 'Work Center Group Name'
+					caption: Arbejdscentergruppenavn
+				column 'Work Center No.'
+					caption: Arbejdscenternr.
+				column 'Work Center Subcontractor No.'
+					caption: Underleverandørnr. for arbejdscenter
+				column 'Work Center Unit of Measure Code'
+					caption: Enhedskode for arbejdscenter
+				measure 'Work Center Availability After Orders'
+					caption: Rest efter ordrer for arbejdscenter
+				measure 'Work Center Capacity (Effective)'
+					caption: Arbejdscenterkapacitet (effektiv)
+				measure 'Work Center Load'
+					caption: Arbejdscenterbelastning
+				measure 'Work Center Allocated Time'
+					caption: Allokeret tid for arbejdscenter
+				measure 'Work Center Capacity (Total)'
+					caption: Arbejdscenterkapacitet (i alt)
+				measure 'Work Center Expected Efficiency %'
+					caption: Forventet effektivitetsprocent for arbejdscenter
+				measure 'Work Center Actual Total Cost'
+					caption: Faktisk kostbeløb for arbejdscenter
+				measure 'Work Center Actual Efficiency %'
+					caption: Faktisk effektivitetsprocent for arbejdscenter
+				measure 'Work Center Actual Need'
+					caption: Faktisk behov i arbejdscenter
+				measure 'Work Center Scrap %'
+					caption: Spildprocent for arbejdscenter
+				measure 'Work Center Scrap'
+					caption: Arbejdscenterspild
+				measure 'Work Center Output'
+					caption: Arbejdscenteroutput
+			table 'Working Days'
+				caption: Arbejdsdage
+				column FSG_PBI_Day_Number
+					caption: FSG_PBI_Day_Number
+				column id
+					caption: id
+			table COMPANY
+				caption: VIRKSOMHED
+				measure 'Company Label'
+					caption: Virksomhedens etiket
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Min rapporttitel
+				measure 'My Button Caption'
+					caption: Min knaptitel
+				measure 'My Visual Title'
+					caption: Min visuelle titel
+				measure 'Current Utilization'
+					caption: Aktuel udnyttelse
+				measure 'Utilization %, Capacity Used (Hours) and Capacity Available (Hours) by Day'
+					caption: Udnyttelse i %, Udnyttet kapacitet (timer) og Disponibel kapacitet (timer) efter dag
+				measure 'Utilization % and Expected Capacity Need % (Today)'
+					caption: Udnyttelsesgrad i % og forventet kapacitetsbehov i % (i dag)
+				measure 'Utilization % and Expected Capacity Need % (Current Week)'
+					caption: Udnyttelsesgrad i % og forventet kapacitetsbehov i % (Indeværende uge)
+				measure 'Utilization % and Expected Capacity Need % (Current Year)'
+					caption: Udnyttelsesgrad i % og forventet kapacitetsbehov i % (Indeværende år)
+				measure 'Historical Utilization'
+					caption: Historisk udnyttelse
+				measure 'Load %, Allocated Time (Hours) and Capacity Available (Hours) by Work Center Group Name'
+					caption: Belastning i %, Allokeret tid (timer) og Disponibel kapacitet (timer) efter arbejdscentergruppenavn
+				measure 'Load % (Today)'
+					caption: Belastning i % (i dag)
+				measure 'Load % (Current Week)'
+					caption: Belastning i % (løbende uge)
+				measure 'Load % (Current Year)'
+					caption: Belastning i % (aktuelt år)
+				measure 'Allocated Hours'
+					caption: Allokerede timer
+				measure 'Allocated Time (Hours) and Load % by Work Center Group Name and Name'
+					caption: Allokeret tid (timer) og Belastning i % efter arbejdscentergruppenavn og navn
+				measure 'Allocated Time in Hours (Today)'
+					caption: Allokeret tid i timer (i dag)
+				measure 'Allocated Time in Hours (Current Week)'
+					caption: Allokeret tid i timer (indeværende uge)
+				measure 'Allocated Time in Hours (Current Year)'
+					caption: Allokeret tid i timer (indeværende år)
+				measure 'Expected Capacity Need'
+					caption: Forventet kapacitetsbehov
+				measure 'Expected Capacity Need (Hours) by Work Centre Group Code and Production Order Status'
+					caption: Forventet kapacitetsbehov (timer) efter arbejdscentergruppekode og produktionsordrestatus
+				measure 'Finished Production Order Breakdown'
+					caption: Detaljeret visning af afsluttet produktionsordre
+				measure 'Expected Quantity (Base) and Finished Quantity (Base) by Month'
+					caption: Forventet antal (basis) og færdigt antal (basis) pr. måned
+				measure 'Consumption Variance'
+					caption: Forbrugsafvigelse
+				measure 'Expected Consumption Cost Amount and Consumed Cost Amount (Actual) by Month'
+					caption: Forventet forbrugskostbeløb og forbrugt kostbeløb (faktisk) pr. måned
+				measure 'Capacity Variance'
+					caption: Kapacitetsafvigelse
+				measure 'Expected Capacity Cost Amount and Capacity Cost Amount (Actual) by Month'
+					caption: Forventet kapacitetskostbeløb og kapacitetskostbeløb (faktisk) pr. måned
+				measure 'Average Production Times'
+					caption: Gennemsnitlige produktionstider
+				measure 'Released Production Orders'
+					caption: Frigivne produktionsordrer
+				measure 'Production Scrap'
+					caption: Produktionsspild
+				measure 'Capacity Scrap Quantity by Month'
+					caption: Kapacitetsspildantal pr. måned
+				measure 'Capacity Scrap Quantity by Scrap Code'
+					caption: Kapacitetsspildantal pr. spildkode
+				measure 'Capacity Scrap Quantity by Location Code'
+					caption: Kapacitetsspildantal pr. lokationskode
+				measure Manufacturing
+					caption: Produktion
+				measure 'for Business Central'
+					caption: til Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: FORBIND DINE DATA
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurer Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: BRUG, REDIGER OG OPRET DINE EGNE RAPPORTER
+				measure 'HELP AND SUPPORT'
+					caption: HJÆLP OG SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Du kan få hjælp og support til din nye rapport i dokumentationen til analyseoversigten.
+				measure 'OTHER POWER BI REPORTS'
+					caption: ANDRE POWER BI-RAPPORTER
+				measure PURCHASE
+					caption: INDKØB
+				measure FINANCE
+					caption: FINANS
+				measure INVENTORY
+					caption: LAGER
+				measure SALES
+					caption: SALG
+				measure 'Last Refreshed'
+					caption: Sidst opdateret
+				measure 'Company Name'
+					caption: Virksomhedsnavn
+				measure 'Capacity Scrap Quantity by Item Category Code'
+					caption: Kapacitetsspildantal efter varekategorikode
+				measure '1. Download the Manufacturing Connector for Power BI'
+					caption: 1. Download Manufacturing Connector til Power BI
+				measure 'Manufacturing includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Produktion omfatter en række forudbyggede rapporter, der hjælper dig med at få vist dine data med det samme.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Du kan redigere disse rapporter eller oprette din egen rapport fra bunden.
+				measure PROJECTS
+					caption: PROJEKTER
+				measure 'Capacity Used (Hours), Capacity Available (Hours) and Utilization % by Date'
+					caption: Udnyttet kapacitet (timer), Disponibel kapacitet (timer) og Udnyttelse i % efter dato
+				measure 'Actual Cost by Source No.'
+					caption: Faktisk kostpris efter kildenr.
+				measure 'Production Order Overview'
+					caption: Oversigt over produktionsordre
+				measure 'No. of Production Orders by Status'
+					caption: Antal produktionsordrer efter status
+				measure 'Completion Ratios by Source No.'
+					caption: Fuldførelsesforhold efter kildenr.
+				measure 'Total Actual Cost Breakdown'
+					caption: Grundlag for faktisk kostbeløb
+				measure 'Current Production Orders'
+					caption: Aktuelle produktionsordrer
+				measure 'Current Work Center Utilization by Year, Month, Week and Day'
+					caption: Aktuel udnyttelse af arbejdscenter efter år, måned, uge og dag
+				measure 'Work Center Load Over Time'
+					caption: Arbejdscenterbelastning over tid
+				measure 'Work Center Load Details'
+					caption: Detaljer om arbejdscenterbelastning
+				measure 'Work Center Load '
+					caption: "Arbejdscenterbelastning "
+				measure 'Allocated Time '
+					caption: "Allokeret tid "
+				measure 'Allocated Time by Work Center Name'
+					caption: Allokeret tid efter arbejdscenternavn
+				measure 'Allocated Time by Source No.'
+					caption: Allokeret tid efter kildenr.
+				measure 'Allocated Time by Type'
+					caption: Allokeret tid er type
+				measure 'Allocated Time Details'
+					caption: Detaljer om allokeret tid
+				measure 'Allocated Time by Production Order Status'
+					caption: Allokeret tid efter produktionsordrestatus
+				measure 'Expected Capacity Need by Work Center'
+					caption: Forventet kapacitetsbehov efter arbejdscenter
+				measure 'Expected Capacity Need by Machine Center'
+					caption: Forventet kapacitetsbehov efter produktionsressource
+				measure 'Expected Capacity Need Details'
+					caption: Detaljer om forventet kapacitetsbehov
+				measure 'Expected Capacity Need by Source No.'
+					caption: Forventet kapacitetsbehov efter kildenr.
+				measure 'Expected Material Dev % by Source No.'
+					caption: Forventet afvigelsesprocent i materiale efter kildenr.
+				measure 'Expected Material Dev % by Production Order'
+					caption: Forventet afvigelsesprocent i materiale efter produktionsordre
+				measure 'Consumption Variance Details'
+					caption: Detaljer om forbrugsafvigelse
+				measure 'Expected Capacity Dev % by Source No.'
+					caption: Forventet afvigelsesprocent i kapacitet efter kildenr.
+				measure 'Expected Capacity Dev % by Production Order|'
+					caption: Forventet afvigelsesprocent i kapacitet efter produktionsordre|
+				measure 'Capacity Variance Details'
+					caption: Detaljer om kapacitetsafvigelse
+				measure 'Average Time Per Finished Quantity by Work Center'
+					caption: Gennemsnitlig tid pr. færdigantal efter arbejdscenter
+				measure 'Average Time Per Finished Quantity by Source No.'
+					caption: Gennemsnitlig tid pr. færdigantal efter kildenr.
+				measure 'Average Production Time Details'
+					caption: Detaljer om gennemsnitlig produktionstid
+				measure 'No. of Production Orders by Source No.'
+					caption: Antal produktionsordrer efter kildenr.
+				measure 'Released Production Order Details'
+					caption: Detaljer om frigivet produktionsordre
+				measure 'Scrap Quantity by Work Center'
+					caption: Spildantal efter arbejdscenter
+				measure 'Work Center Statistics'
+					caption: Arbejdscenterstatistik
+				measure 'Statistic Details'
+					caption: Statistiske detaljer
+				measure 'Machine Center Statistics'
+					caption: Produktionsressourcestatistik
+				measure 'Machine Center Load '
+					caption: "Produktionsressourcebelastning "
+				measure 'Machine Center Load Details'
+					caption: Detaljer om produktionsressourcebelastning
+				measure 'Prod. Order List'
+					caption: Produktionsordreliste
+				measure 'Prod. Order List Details'
+					caption: Detaljer om produktionsordreliste
+				measure 'Production Order Routing Lines Gantt'
+					caption: Gantt-diagram for rutelinjer i produktionsordre
+				measure 'Routing Line Operation Duration'
+					caption: Varighed af rutelinjeoperation
+				measure 'Routing Line Details'
+					caption: Detaljer om rutelinje
+				measure 'Production Order WIP'
+					caption: Igangværende arbejde for produktionsordre
+				measure 'Inventory Valuation - WIP'
+					caption: Lagerværdi - igangværende arbejde
+				measure 'Task List Drill Through'
+					caption: Opgaveliste med detailudledning
+				measure 'Task List Details'
+					caption: Detaljer om opgaveliste
+				measure 'Expected Capacity Need Variance'
+					caption: Afvigelse i forventet kapacitetsbehov
+				measure 'Expected Capacity Cost Dev % by Source No.'
+					caption: Forventet afvigelsesprocent i kapacitetskost efter kildenr.
+				measure 'Average Production Time Per Unit by Work Center'
+					caption: Gennemsnitlig produktionstid pr. enhed efter arbejdscenter
+				measure 'Average Production Time Per Unit by Source No.'
+					caption: Gennemsnitlig produktionstid pr. enhed efter kildenr.
+				measure 'Scrap Quantity Over Time'
+					caption: Spildantal over tid
+				measure 'Scrap % by Production Order'
+					caption: Spildprocent efter produktionsordre
+				measure 'Scrap Quantity by Scrap Code'
+					caption: Spildkvalitet efter spildkode
+				measure 'Scrap Quantity vs. Expected Scrap Quantity'
+					caption: Spildantal vs. forventet spildantal
+				measure 'Production Order Time Line'
+					caption: Tidslinje for produktionsordre
+				measure 'Production Time Line'
+					caption: Tidslinje for produktion
+			table 'Machine Center'
+				caption: Produktionsressource
+				column 'Machine Center No.'
+					caption: Produktionsressourcenr.
+				column 'Machine Center Name'
+					caption: Navn på produktionsressource
+				column 'Work Center No.'
+					caption: Arbejdscenternr.
+				column 'Work Center Unit of Measure'
+					caption: Arbejdscenterenhed
+				measure 'Machine Center Capacity (Effective)'
+					caption: Produktionsressourcekapacitet (effektiv)
+				measure 'Machine Center Capacity (Total)'
+					caption: Produktionsressourcekapacitet (i alt)
+				measure 'Machine Center Expected Efficiency %'
+					caption: Forventet effektivitetsprocent for produktionsressource
+				measure 'Machine Center Actual Total Cost'
+					caption: Faktisk kostbeløb for produktionsressource
+				measure 'Machine Center Actual Efficiency %'
+					caption: Faktisk effektivitetsprocent for produktionsressource
+				measure 'Machine Center Actual Need'
+					caption: Faktisk behov i produktionsressource
+				measure 'Machine Center Allocated Time'
+					caption: Allokeret tid for produktionsressource
+				measure 'Machine Center Output'
+					caption: Produktionsressourceoutput
+				measure 'Machine Center Scrap'
+					caption: Spild ved produktionsressource
+				measure 'Machine Center Scrap %'
+					caption: Spildprocent ved produktionsressource
+				measure 'Machine Center Run Time'
+					caption: Operationstid for produktionsressource
+				measure 'Machine Center Stop Time'
+					caption: Stoptid for produktionsressource
+				measure 'Machine Center Stop %'
+					caption: Stopprocent for produktionsressource
+				measure 'Machine Center Availability After Orders'
+					caption: Rest efter ordrer for produktionsressource
+				measure 'Machine Center Load'
+					caption: Produktionsressourcebelastning
+			table 'Production Order Lines'
+				caption: Produktionsordrelinjer
+				column quantityBase
+					caption: Antal (basis)
+				column remainingQtyBase
+					caption: Restantal (basis)
+				column dimensionSetID
+					caption: Dimensionsgruppe-id
+				column 'Prod. Order Line No.'
+					caption: Produktionsordrelinjenr.
+				column 'Routing No.'
+					caption: Rutenr.
+				column 'Routing Reference No.'
+					caption: Rutereferencenr.
+				column finishedQtyBase
+					caption: finishedQtyBase
+				column ShareOfTotalCapCost
+					caption: ShareOfTotalCapCost
+				column 'Routing Type'
+					caption: Rutetype
+				column indirectCostPercent
+					caption: indirectCostPercent
+				column overheadRate
+					caption: overheadRate
+				column 'Scrap Percent'
+					caption: Spildprocent
+				column 'Planning Level Code'
+					caption: Planlægningsniveaukode
+			table 'Prod Order Components'
+				caption: Produktionsordrekomponenter
+				column expectedQtyBase
+					caption: Forventet antal (basis)
+				column remainingQtyBase
+					caption: Restantal (basis)
+				column 'Routing Link Code'
+					caption: Rutebindingskode
+				column costAmount
+					caption: costAmount
+				column 'Prod Order Components Line No.'
+					caption: Linjenr. til produktionsordrekomponenter
+			table 'Prod Order Capacity Need'
+				caption: Produktionsordres kapacitetsbehov
+				column 'Routing No.'
+					caption: Rutenr.
+				column 'Routing Reference No.'
+					caption: Rutereferencenr.
+				column 'Operation No.'
+					caption: Operationsnr.
+				column 'Requested Only'
+					caption: Kun anmodet
+				column workCenterNo
+					caption: workCenterNo
+				column workCenterGroupCode
+					caption: workCenterGroupCode
+				column no
+					caption: nr.
+				column Type
+					caption: Type
+				column neededTimeMs
+					caption: neededTimeMs
+				column neededTime
+					caption: neededTime
+				column 'Prod Order Capacity Need Line No.'
+					caption: Linjenr. i produktionsordres kapacitetsbehov
+				measure 'Needed Time'
+					caption: Nødvendig tid
+				measure 'Needed Time (MS)'
+					caption: Krævet tid (ms)
+				measure 'Allocated Time'
+					caption: Allokeret tid
+			table 'Prod Order Routing Lines'
+				caption: Rutelinjer på produktionsordre
+				column 'No.'
+					caption: Nr.
+				column 'Expected Capacity Need'
+					caption: Forventet kapacitetsbehov
+				column 'Expected Capacity Ovhd. Cost'
+					caption: Forventet indirekte kapacitetsomkostning
+				column 'Routing Link Code'
+					caption: Rutebindingskode
+				column Description
+					caption: Beskrivelse
+				column 'Expected Operation Cost Amt.'
+					caption: Forventede driftsomkostningsbeløb
+				column 'Routing No.'
+					caption: Rutenr.
+				column 'Routing Reference No.'
+					caption: Rutereferencenr.
+				column 'Operation No.'
+					caption: Operationsnr.
+				column locationName
+					caption: locationName
+				column 'Setup Time'
+					caption: Opstillingstid
+				column 'Run Time'
+					caption: Operationstid
+				column 'Wait Time'
+					caption: Ventetid
+				column 'Move Time'
+					caption: Transporttid
+				column 'Routing Status'
+					caption: Rutestatus
+				column 'Duration Total Hours'
+					caption: Samlet antal timer i varighed
+				column 'Duration Total Days'
+					caption: Samlet antal dage af varighed
+				column 'Work/Machine Center Name'
+					caption: Navn på arbejdscenter/produktionsressource
+				column workCenterNo
+					caption: workCenterNo
+				column 'Ending Date Time'
+					caption: Slutdato/tidspunkt
+				column 'Starting Date Time'
+					caption: Startdato/tidspunkt
+				measure 'Operation Run Time'
+					caption: Operationstid for drift
+				measure 'Operation Setup Time'
+					caption: Opstillingstid for drift
+				measure 'Operation Wait Time'
+					caption: Ventetid for drift
+				measure 'Operation Move Time'
+					caption: Transporttid for drift
+				measure 'Total Duration Hours'
+					caption: Samlet antal timer i varighed
+			table 'Item Ledger Entries'
+				caption: Varefinansposter
+				column 'Serial No.'
+					caption: Serienr.
+				column 'Lot No.'
+					caption: Partinr.
+				column qty
+					caption: Antal
+				column costAmountActual
+					caption: Faktisk kostbeløb
+				column 'Entry Type'
+					caption: Posttype
+				column 'Order Type'
+					caption: Ordretype
+				column 'Order Line No.'
+					caption: Ordrelinjenr.
+				column Positive
+					caption: Positiv
+				measure 'Output Quantity'
+					caption: Afgangsantal
+				measure 'Consumption Quantity'
+					caption: Forbrugsantal
+			table 'Capacity Ledger Entries'
+				caption: Kapacitetsposter
+				column 'Order Type'
+					caption: Ordretype
+				column 'Order Line No.'
+					caption: Ordrelinjenr.
+				column Type
+					caption: Type
+				column 'No.'
+					caption: Nr.
+				column Description
+					caption: Beskrivelse
+				column scrapQuantity
+					caption: scrapQuantity
+				column 'Routing No.'
+					caption: Rutenr.
+				column 'Routing Reference No.'
+					caption: Rutereferencenr.
+				column 'Operation No.'
+					caption: Operationsnr.
+				column 'Scrap Code'
+					caption: Spildkode
+				column directCost
+					caption: directCost
+				column overheadCost
+					caption: overheadCost
+				column 'Entry No.'
+					caption: Løbenr.
+				column workCenterNo
+					caption: workCenterNo
+				column 'Work Shift Code'
+					caption: Arbejdsvagtkode
+				column Subcontracting
+					caption: Underleverance
+				column 'Capacity Unit of Measure'
+					caption: Kapacitetsenhed
+				column 'Qty. Per Unit of Measure'
+					caption: Antal pr. enhed
+				column 'Qty. Per Capacity Unit of Measure'
+					caption: Enhed for antal pr. kapacitet
+				measure 'Direct Cost'
+					caption: Direkte omkostning
+				measure 'Overhead Cost'
+					caption: Faste omkostninger
+				measure 'Run Time'
+					caption: Operationstid
+				measure 'Setup Time'
+					caption: Opstillingstid
+				measure 'Stop Time'
+					caption: Stoptid
+				measure 'Scrap Quantity'
+					caption: Spildantal
+				measure 'Scrap %'
+					caption: Spild i %
+				measure 'Capacity Ledger Output Quantity'
+					caption: Afgangsantal for kapacitetsfinans
+				measure 'Capacity Ledger Quantity'
+					caption: Antal af kapacitetsfinans
+			table 'Calendar Entries'
+				caption: Kalenderposter
+				column 'Capacity Type'
+					caption: Kapacitetstype
+				measure 'Capacity (Effective)'
+					caption: Kapacitet (effektiv)
+				measure 'Capacity (Total)'
+					caption: Kapacitet (total)
+			table Location
+				caption: Placering
+				column 'Location Code'
+					caption: Lokationskode
+				column 'Location Name'
+					caption: Placeringsnavn
+			table 'Routing Link'
+				caption: Rutebinding
+				column 'Routing Link Code'
+					caption: Rutebindingskode
+				column 'Routing Link Description'
+					caption: Beskrivelse af rutelink
+			table Routing
+				caption: Rute
+				column 'Routing No.'
+					caption: Rutenr.
+				column 'Routing Type'
+					caption: Rutetype
+				column 'Routing Status'
+					caption: Rutestatus
+				column 'Routing Description'
+					caption: Rutebeskrivelse
+			table 'Work Center Group'
+				caption: Arbejdscentergruppe
+				column 'Work Center Group Code'
+					caption: Arbejdscentergruppekode
+				column 'Work Center Group Name'
+					caption: Arbejdscentergruppenavn
+			table 'Value Entries'
+				caption: Værdiposter
+				column 'Entry No.'
+					caption: Løbenr.
+				column 'Valuation Date'
+					caption: Værdiansættelsesdato
+				column costAmountActual
+					caption: costAmountActual
+				column 'Cost Per Unit'
+					caption: costPerUnit
+				column itemLedgerEntryQuantity
+					caption: itemLedgerEntryQuantity
+				column valuedQuantity
+					caption: valuedQuantity
+				column 'Item Ledger Entry Type'
+					caption: Vareposttype
+				column Type
+					caption: Type
+				column 'No.'
+					caption: Nr.
+				column 'Capacity Ledger Entry No.'
+					caption: capacityLedgerEntryNo
+				column 'Entry Type'
+					caption: entryType
+				column costPostedtoGL
+					caption: costPostedtoGL
+				column costAmountExpected
+					caption: costAmountExpected
+				column 'Order Type'
+					caption: orderType
+				column 'Order No.'
+					caption: orderNo
+				column expectedCostPostedtoGL
+					caption: expectedCostPostedtoGL
+				column 'Is Expected Cost'
+					caption: expectedCost
+				measure 'Beginning Balance Value'
+					caption: Værdi af startsaldo
+				measure 'Consumption Value'
+					caption: Forbrugsværdi
+				measure 'Capacity Value'
+					caption: Kapacitetsværdi
+				measure 'Output Value'
+					caption: Outputværdi
+				measure 'Ending Balance Value'
+					caption: Slutsaldoværdi
+				measure 'Cost Posted to G/L'
+					caption: Bogført kostværdi
+			table 'Production Orders'
+				caption: Produktionsordrer
+				column 'Prod Order Status'
+					caption: Status af produktionsordre
+				column 'Prod Order No.'
+					caption: Produktionsordrenr.
+				column 'Prod Order Source No.'
+					caption: Kildenr. for produktionsordre
+				column 'Prod Order Routing No.'
+					caption: Rutenr. for produktionsordre
+				column 'Prod Order Starting Date'
+					caption: Startdato for produktionsordre
+				column 'Prod Order Ending Date'
+					caption: Slutdato for produktionsordre
+				column 'Prod Order Due Date'
+					caption: Forfaldsdato for produktionsordre
+				column quantity
+					caption: antal
+				column 'Prod Order Description'
+					caption: Beskrivelse af produktionsordre
+				column 'Prod Order Source Type'
+					caption: Kildetype af produktionsordre
+				column 'Production Order'
+					caption: Produktionsordre
+				measure 'Planned Quantity'
+					caption: Planlagt antal
+				measure 'Expected Material Cost'
+					caption: Forventede materialeomkostninger
+				measure 'Expected Capacity Cost'
+					caption: Forventet kostpris for kapacitet
+				measure 'Expected Subcontracted Cost'
+					caption: Forventet underleverandørs kostpris
+				measure 'Expected Capacity Overhead Cost'
+					caption: Forventede faste omkostninger i kapacitet
+				measure 'Total Standard Cost'
+					caption: Samlet kostpris
+				measure 'Expected Manufacturing Overhead Cost'
+					caption: Forventede faste omkostninger i produktion
+				measure 'Total Expected Cost'
+					caption: Samlet forventet kostpris
+				measure 'Standard Capacity Cost'
+					caption: Kostpris for standardkapacitet
+				measure 'Standard Material Cost'
+					caption: Kostpris af standardmaterialer
+				measure 'Standard Subcontracted Cost'
+					caption: Standardunderleverandørkostpris
+				measure 'Standard Capacity Overhead Cost'
+					caption: Standard i faste omkostninger i kapacitet
+				measure 'Standard Manufacturing Overhead Cost'
+					caption: Faste omkostninger i standardproduktion
+				measure 'Actual Material Cost'
+					caption: Faktiske materialeomkostninger
+				measure 'Actual Capacity Cost'
+					caption: Faktisk kapacitetskostpris
+				measure 'Actual Subcontracted Cost'
+					caption: Faktisk underleverandørkostpris
+				measure 'Actual Capacity Overhead Cost'
+					caption: Faktisk kostpris i faste omkostninger
+				measure 'Actual Manufacturing Overhead Cost'
+					caption: Faste omkostninger i faktisk produktion
+				measure 'Total Actual Cost'
+					caption: Samlet faktisk kostpris
+				measure 'Standard Material Cost Variance'
+					caption: Afvigelse af standardmaterialekostpris
+				measure 'Standard Capacity Cost Variance'
+					caption: Afvigelse af standardkapacitetskostpris
+				measure 'Standard Subcontracted Cost Variance'
+					caption: Afvigelse af standardunderleverandørkostpris
+				measure 'Standard Capacity Overhead Cost Variance'
+					caption: Afvigelse i standard i faste omkostninger for kapacitet
+				measure 'Standard Manufacturing Overhead Cost Variance'
+					caption: Afvigelse i forventede faste omkostninger i standardproduktion
+				measure 'Total Standard Cost Variance'
+					caption: Afvigelse i samlet kostpris
+				measure 'Standard Material Cost Dev %'
+					caption: Afvigelsesprocent i kostpris af standardmaterialer
+				measure 'Standard Capacity Cost Dev %'
+					caption: Afvigelsesprocent af kostpris for standardkapacitet
+				measure 'Standard Subcontracted Cost Dev %'
+					caption: Afvigelsesprocent i standardunderleverandørkostpris
+				measure 'Standard Capacity Overhead Cost Dev %'
+					caption: Afvigelsesprocent i standard i faste omkostninger for kapacitet
+				measure 'Standard Manufacturing Overhead Cost Dev %'
+					caption: Afvigelsesprocent i faste omkostninger i standardproduktion
+				measure 'Total Standard Cost Dev %'
+					caption: Afvigelsesprocent i samlet kostpris
+				measure 'Prod Order Expected Capacity Need (Finished)'
+					caption: Forventet kapacitetsbehov for produktionsordre (afsluttet)
+				measure 'Prod Order Actual Capacity Need'
+					caption: Faktisk kapacitetsbehov i produktionsordre
+				measure 'Prod Order Expected Capacity Need (Non Finished)'
+					caption: Forventet kapacitetsbehov for produktionsordre (ikke afsluttet)
+				measure 'Prod Order Expected Capacity Need'
+					caption: Forventet kapacitetsbehov for produktionsordre
+				measure 'Finished Quantity'
+					caption: Færdigt antal
+				measure 'Actual Time Used'
+					caption: Faktisk tidsforbrug
+				measure 'Finished %'
+					caption: Afsluttet procent
+				measure 'Remaining %'
+					caption: Resterende procent
+				measure 'Variance Quantity'
+					caption: Afvigelse i antal
+				measure 'Expected Capacity Cost Dev %'
+					caption: Afvigelsesprocent i forventet kostpris for kapacitet
+				measure 'Expected Capacity Overhead Cost Dev %'
+					caption: Afvigelsesprocent for forventede faste omkostninger for kapacitet
+				measure 'Expected Manufacturing Overhead Cost Dev %'
+					caption: Afvigelsesprocent i forventede faste omkostninger i produktion
+				measure 'Expected Material Cost Dev %'
+					caption: Afvigelsesprocent i forventet materialekostpris
+				measure 'Expected Subcontracted Cost Dev %'
+					caption: Afvigelsesprocent i forventet underleverandørs kostpris
+				measure 'Total Expected Cost Dev %'
+					caption: Afvigelsesprocent i samlet forventet kostpris
+				measure 'Expected Capacity Cost Variance'
+					caption: Afvigelse i forventet kapacitetskostbeløb
+				measure 'Expected Capacity Overhead Cost Variance'
+					caption: Afvigelse i forventede faste omkostninger i kapacitet
+				measure 'Expected Manufacturing Overhead Cost Variance'
+					caption: Afvigelse i forventede faste omkostninger i produktion
+				measure 'Expected Material Cost Variance'
+					caption: Afvigelse i forventet materialekostpris
+				measure 'Expected Subcontracted Cost Variance'
+					caption: Afvigelse af forventet underleverandørkostpris
+				measure 'Total Expected Cost Variance'
+					caption: Afvigelse i samlet forventet kostpris
+				measure 'No. of Production Orders'
+					caption: Antal produktionsordrer
+				measure 'Average Production Time Per Finished Quantity'
+					caption: Gennemsnitlig produktionstid pr. afsluttet antal
+				measure 'Prod Order Capacity Need Variance'
+					caption: Afvigelse i produktionsordres kapacitetsbehov
+				measure 'Prod Order Capacity Need Dev %'
+					caption: Afvigelsesprocent i produktionsordres kapacitetsbehov
+				measure 'Production Order Scrap %'
+					caption: Spildprocent i produktionsordre
+				measure 'Expected Production Order Scrap Quantity'
+					caption: Forventet spildantal for produktionsordre
+			table 'Dimension Sets'
+				caption: Dimensionsgrupper
+				column id
+					caption: id
+				column dimensionSetID
+					caption: dimensionSetID
+				column valueCount
+					caption: valueCount
+				column 'Global Dimension 1'
+					caption: Global dimension 1
+				column dimension1ValueName
+					caption: dimension1ValueName
+				column 'Global Dimension 2'
+					caption: Global dimension 2
+				column dimension2ValueName
+					caption: dimension2ValueName
+				column 'Shortcut Dimension 3'
+					caption: Genvejsdimension 3
+				column dimension3ValueName
+					caption: dimension3ValueName
+				column 'Shortcut Dimension 4'
+					caption: Genvejsdimension 4
+				column dimension4ValueName
+					caption: dimension4ValueName
+				column 'Shortcut Dimension 5'
+					caption: Genvejsdimension 5
+				column dimension5ValueName
+					caption: dimension5ValueName
+				column 'Shortcut Dimension 6'
+					caption: Genvejsdimension 6
+				column dimension6ValueName
+					caption: dimension6ValueName
+				column 'Shortcut Dimension 7'
+					caption: Genvejsdimension 7
+				column dimension7ValueName
+					caption: dimension7ValueName
+				column 'Shortcut Dimension 8'
+					caption: Genvejsdimension 8
+				column dimension8ValueName
+					caption: dimension8ValueName
+			table 'Inventory Adjustment Entry Order Line'
+				caption: Ordre for lagerreguleringspostlinje
+				column itemNo
+					caption: itemNo
+				column orderLineNo
+					caption: orderLineNo
+				column orderNo
+					caption: orderNo
+				column singleLevelMaterialCost
+					caption: singleLevelMaterialCost
+				column iSFinished
+					caption: iSFinished
+				column auxiliaryIndex1
+					caption: auxiliaryIndex1
+				column ETag
+					caption: ETag
+				column 'Adjustment Order Key'
+					caption: Reguleringsordrenøgle
+				column singleLevelCapacityCost
+					caption: singleLevelCapacityCost
+				column singleLevelSubcontrdCost
+					caption: singleLevelSubcontrdCost
+				column singleLevelCapOvhdCost
+					caption: singleLevelCapOvhdCost
+				column singleLevelMfgOvhdCost
+					caption: singleLevelMfgOvhdCost
+				column completelyInvoiced
+					caption: completelyInvoiced
+				column indirectCostPercent
+					caption: indirectCostPercent
+				column overheadRate
+					caption: overheadRate
+			table ENVIRONMENT
+				caption: MILJØ
+			table 'Back Links'
+				caption: Tilbagelinks
+				measure 'Base Link'
+					caption: Basislink
+				measure 'Calendar Entries Back Link'
+					caption: Tilbagelink for kalenderposter
+				measure Ranged
+					caption: Rangeret
+				measure 'Prod. Order Capacity Need Back Link'
+					caption: Tilbagelink for produktionsordres kapacitetsbehov
+				measure 'Work Center Need Qty Back Link'
+					caption: Tilbagelink for Arbejdscenter har brug for
+			table 'Item Category'
+				caption: Varekategori
+				column 'Item Category Code'
+					caption: Varekategorikode
+				column 'Item Category Description'
+					caption: Beskrivelse af varekategori
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Hierarki af varekategorikode
+					level 'Item Category Code Level 1'
+						caption: Niveau 1 af varekategorikode
+					level 'Item Category Code Level 2'
+						caption: Niveau 2 af varekategorikode
+					level 'Item Category Code Level 3'
+						caption: Niveau 3 af varekategorikode
+

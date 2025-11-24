@@ -69,5 +69,8 @@ table 6108 "E-Doc. Vendor Assign. History"
         {
             Clustered = true;
         }
+        key(Key2; "Vendor VAT Id", "Vendor GLN", "Vendor Address", "Vendor Company Name")
+        {
+        }
     }
 }

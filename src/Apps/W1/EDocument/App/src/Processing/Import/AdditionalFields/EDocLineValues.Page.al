@@ -3,9 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing.Import;
-using Microsoft.Purchases.History;
-using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Purchases.History;
 
 page 6102 "E-Doc Line Values."
 {

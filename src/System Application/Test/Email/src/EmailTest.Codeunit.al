@@ -6,12 +6,12 @@
 namespace System.Test.Email;
 
 using System.Email;
-using System.Text;
-using System.TestLibraries.Email;
 using System.Environment;
+using System.TestLibraries.Email;
 using System.TestLibraries.Reflection;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
+using System.Text;
 
 codeunit 134685 "Email Test"
 {
@@ -301,11 +301,6 @@ codeunit 134685 "Email Test"
         Assert.IsFalse(EmailEditor.BccField.Editable(), 'Bcc field was editable');
         Assert.IsFalse(EmailEditor.SubjectField.Editable(), 'Subject field was editable');
         Assert.IsFalse(EmailEditor.BodyField.Editable(), 'Body field was editable');
-#if not CLEAN25
-#pragma warning disable AL0432
-        Assert.IsFalse(EmailEditor.Attachments.Upload.Visible(), 'Upload Action is visible.');
-#pragma warning restore
-#endif
         Assert.IsFalse(EmailEditor.Send.Enabled(), 'Send Action was not disabled.');
 
         EmailOutBox.Status := Enum::"Email Status"::Processing;
@@ -322,11 +317,6 @@ codeunit 134685 "Email Test"
         Assert.IsFalse(EmailEditor.BccField.Editable(), 'Bcc field was editable');
         Assert.IsFalse(EmailEditor.SubjectField.Editable(), 'Subject field was editable');
         Assert.IsFalse(EmailEditor.BodyField.Editable(), 'Body field was editable');
-#if not CLEAN25
-#pragma warning disable AL0432
-        Assert.IsFalse(EmailEditor.Attachments.Upload.Visible(), 'Upload Action is visible.');
-#pragma warning restore
-#endif
         Assert.IsFalse(EmailEditor.Send.Enabled(), 'Send Action was not disabled.');
         EmailMessageAttachment.SetRange("Email Message Id", EmailMessage.GetId());
         EmailMessageAttachment.FindFirst();
@@ -2109,11 +2099,6 @@ codeunit 134685 "Email Test"
         Assert.IsTrue(EmailEditor.BccField.Editable(), 'Bcc field was not editable');
         Assert.IsTrue(EmailEditor.SubjectField.Editable(), 'Subject field was not editable');
         Assert.IsTrue(EmailEditor.BodyField.Editable(), 'Body field was not editable');
-#if not CLEAN25
-#pragma warning disable AL0432
-        Assert.IsFalse(EmailEditor.Attachments.Upload.Visible(), 'Upload Action is visible.');
-#pragma warning restore
-#endif
         Assert.IsTrue(EmailEditor.Send.Enabled(), 'Send Action was not enabled.');
     end;
 

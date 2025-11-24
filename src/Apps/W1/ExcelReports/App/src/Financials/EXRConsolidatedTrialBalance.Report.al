@@ -1,9 +1,9 @@
 namespace Microsoft.Finance.ExcelReports;
 
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.Dimension;
-using Microsoft.Finance.Consolidation;
 using Microsoft.ExcelReports;
+using Microsoft.Finance.Consolidation;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
 
 report 4410 "EXR Consolidated Trial Balance"
 {

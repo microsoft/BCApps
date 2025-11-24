@@ -1,0 +1,54 @@
+table 'Vendor Contract'
+	lineageTag: b9c04fa3-148a-4302-9e95-8be447f97ba2
+
+	column 'Vendor Contract No.'
+		dataType: string
+		isKey
+		lineageTag: c87b6b44-da26-4339-b91e-7d4611ea8ff5
+		summarizeBy: none
+		sourceColumn: Vendor Contract No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Contract Type'
+		dataType: string
+		lineageTag: 7efc4d43-57f2-43cd-873b-4baa99465f8b
+		summarizeBy: none
+		sourceColumn: Vendor Contract Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Contract Description'
+		dataType: string
+		lineageTag: ee9a559f-6eac-4349-9384-e3d8339f56b9
+		summarizeBy: none
+		sourceColumn: Vendor Contract Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Contract No. Desc.'
+		dataType: string
+		lineageTag: 6f067e4a-7bf6-4fb8-bb6a-9695cb186bf8
+		summarizeBy: none
+		sourceColumn: Vendor Contract No. Desc.
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Vendor Contract' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = BCConnectionSubscriptionBilling,
+				    TableData = Source{[Name="vendorContracts",Signature="table"]}[Data],
+				    #"Removed Other Columns" = Table.SelectColumns(TableData,{"no", "contractType", "descriptionPreview"}),
+				    #"Added No.Name" = Table.AddColumn( #"Removed Other Columns", "Vendor Contract No. Desc.", each [no] & ": " & [descriptionPreview], type text),
+				    #"Renamed Columns" = Table.RenameColumns(#"Added No.Name",{{"contractType", "Vendor Contract Type"}, {"descriptionPreview", "Vendor Contract Description"}, {"no", "Vendor Contract No."}}),
+				    ConvertColumnNames = Table.TransformColumnNames(#"Renamed Columns",fctImproveColumnNames)
+				in
+				    ConvertColumnNames
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

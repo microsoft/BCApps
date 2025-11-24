@@ -1,0 +1,114 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "cdf44faa4608b9a974ea",
+  "position": {
+    "x": 651.934731934732,
+    "y": 145.45454545454547,
+    "z": 4000,
+    "height": 264.80186480186484,
+    "width": 601.958041958042,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "funnel",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Employee Qualifications"
+                    }
+                  },
+                  "Property": "Employee Qualification Codes"
+                }
+              },
+              "queryRef": "Employee Qualifications.qualificationCode",
+              "nativeQueryRef": "qualificationCode",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Employee Qualifications"
+                    }
+                  },
+                  "Property": "Employee Qualifications"
+                }
+              },
+              "queryRef": "Employee Qualifications.Employee Qualifications",
+              "nativeQueryRef": "Employee Qualifications1"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Employee Qualifications"
+                  }
+                },
+                "Property": "Employee Qualifications"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "labels": [
+        {
+          "properties": {}
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "padding": [
+        {
+          "properties": {
+            "bottom": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Employees Qualifications Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

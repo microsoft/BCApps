@@ -4,21 +4,21 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.DemoData;
 
-using Microsoft.Purchases.Document;
-using System.Utilities;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.History;
-using Microsoft.Purchases.Posting;
-using Microsoft.Foundation.Company;
-using Microsoft.Sales.Document;
-using Microsoft.Sales.Setup;
-using Microsoft.Sales.Peppol;
-using System.IO;
+using Microsoft.DemoData.Common;
+using Microsoft.DemoData.Warehousing;
+using Microsoft.DemoTool.Helpers;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
-using Microsoft.DemoTool.Helpers;
-using Microsoft.DemoData.Warehousing;
-using Microsoft.DemoData.Common;
+using Microsoft.Foundation.Company;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Posting;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Peppol;
+using Microsoft.Sales.Setup;
+using System.IO;
+using System.Utilities;
 
 
 #pragma warning disable AA0247

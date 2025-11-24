@@ -1,0 +1,912 @@
+cultureInfo it-IT
+	translations
+		model Model
+			table Item
+				caption: Articolo
+				column 'Item No. & Description'
+					caption: Nr. e descrizione articolo
+				column 'Item No.'
+					caption: Nr. articolo
+				column 'Item Description'
+					caption: Descrizione articolo
+				column 'Item Base Unit of Measure'
+					caption: Unità di misura base articoli
+				column 'Item Unit Cost (LCY)'
+					caption: Costo unitario articolo (VL)
+				column 'Item Inventory Posting Group'
+					caption: Categoria registrazione magazzino articoli
+				column 'Item Category Code'
+					caption: Codice categoria articolo
+				column 'Item Category Description'
+					caption: Descrizione categoria articolo
+				measure 'Scheduled Receipt'
+					caption: Carico programmato
+				measure 'Planned Order Releases'
+					caption: Rilascio ordini pianificati
+				measure 'Gross Requirement'
+					caption: Fabbisogno lordo
+				measure 'Projected Available Balance'
+					caption: Disponibilità calcolata
+				measure 'Planned Order Receipt'
+					caption: Ricevuta ordini pianificati
+			table Location
+				caption: Ubicazione
+				column 'Location Code'
+					caption: Codice ubicazione
+				column 'Location Name'
+					caption: Nome ubicazione
+				column 'Location Adjustment Bin Code'
+					caption: Codice collocazione rettifica ubicazione
+			table Customer
+				caption: Cliente
+				column 'Customer No. & Name'
+					caption: Nr. e nome cliente
+				column 'Customer No.'
+					caption: Nr. cliente
+				column 'Customer Name'
+					caption: Nome cliente
+				column 'Customer Address'
+					caption: Indirizzo cliente
+				column 'Customer Address 2'
+					caption: Indirizzo cliente 2
+				column 'Customer City'
+					caption: Città cliente
+				column 'Customer Post Code'
+					caption: Codice postale cliente
+				column 'Customer State'
+					caption: Stato cliente
+				column 'Customer Country/Region Code'
+					caption: Codice paese/area geografica cliente
+				column 'Customer Posting Group'
+					caption: Categoria registrazione cliente
+				column 'Customer Price Group'
+					caption: Gruppo prezzi cliente
+				column 'Customer Discount Group'
+					caption: Categoria sconto cliente
+			table Date
+				caption: Data
+				column DateKey
+					caption: DateKey
+				column 'Day of Month'
+					caption: Giorno del mese
+				column WeekDayNumber
+					caption: WeekDayNumber
+				column 'Week Day'
+					caption: Giorno della settimana
+				column Sequential365DayNumber
+					caption: Sequential365DayNumber
+				column 'Relative Day'
+					caption: Giorno relativo
+				column 'Calendar YearNumber'
+					caption: NumeroAnno di calendario
+				column 'Calendar Year'
+					caption: Anno di calendario
+				column 'Calendar QuarterNumber'
+					caption: NumeroTrimestre di calendario
+				column 'Calendar Quarter'
+					caption: Trimestre di calendario
+				column 'Calendar YearQuarterNumber'
+					caption: NumeroTrimestreAnno di calendario
+				column 'Calendar Quarter Year'
+					caption: Trimestre anno di calendario
+				column 'Calendar MonthNumber'
+					caption: NumeroMese di calendario
+				column 'Calendar Month'
+					caption: Mese di calendario
+				column 'Calendar YearMonthNumber'
+					caption: NumeroMeseAnno di calendario
+				column 'Calendar Month Year'
+					caption: Mese anno di calendario
+				column 'Calendar WeekNumber'
+					caption: NumeroSettimana di calendario
+				column 'Calendar Week'
+					caption: Settimana di calendario
+				column 'Calendar YearWeekNumber'
+					caption: NumeroSettimanaAnno di calendario
+				column 'Calendar Week Year'
+					caption: Settimana anno di calendario
+				column 'Calendar WeekYearOrder'
+					caption: OrdineSettimanaAnno di calendario
+				column 'Calendar RelativeWeekPos'
+					caption: PosSettimanaRelativa di calendario
+				column 'Calendar RelativeMonthPos'
+					caption: PosMeseRelativo di calendario
+				column 'Calendar RelativeQuarterPos'
+					caption: TrimestreRelativoPos di calendario
+				column 'Calendar RelativeYearPos'
+					caption: PosAnnoRelativo di calendario
+				column 'Calendar StartOfMonth'
+					caption: InizioMese di calendario
+				column 'Calendar EndOfMonth'
+					caption: UltimoGiornoMese di calendario
+				column 'Calendar StartOfQuarter'
+					caption: InizioTrimestre di calendario
+				column 'Calendar EndOfQuarter'
+					caption: FineTrimestre di calendario
+				column 'Calendar StartOfYear'
+					caption: InizioAnno di calendario
+				column 'Calendar EndOfYear'
+					caption: FineAnno di calendario
+				column 'Calendar MonthDays'
+					caption: GiorniMese di calendario
+				column 'Calendar QuarterDays'
+					caption: GiorniTrimestre di calendario
+				column 'Calendar YearDays'
+					caption: GiorniAnno di calendario
+				column 'Calendar DayOfMonthNumber'
+					caption: NumeroGiornoMese di calendario
+				column 'Calendar DayOfQuarterNumber'
+					caption: NumeroGiornoTrimestre di calendario
+				column 'Calendar DayOfYearNumber'
+					caption: NumeroGiornoAnno di calendario
+				column 'Calendar DatePreviousWeek'
+					caption: DataSettimanaPrecedente di calendario
+				column 'Calendar DatePreviousMonth'
+					caption: DataMesePrecedente di calendario
+				column 'Calendar DatePreviousQuarter'
+					caption: DataTrimestrePrecedente di calendario
+				column 'Calendar DatePreviousYear'
+					caption: DataAnnoPrecedente di calendario
+				column 'Fiscal Year'
+					caption: Anno fiscale
+				column 'Fiscal YearNumber'
+					caption: NumeroAnno fiscale
+				column 'Fiscal QuarterNumber'
+					caption: NumeroTrimestre fiscale
+				column 'Fiscal Quarter'
+					caption: Trimestre fiscale
+				column 'Fiscal YearQuarterNumber'
+					caption: NumeroTrimestreAnno fiscale
+				column 'Fiscal Quarter Year'
+					caption: Trimestre anno fiscale
+				column 'Fiscal MonthNumber'
+					caption: NumeroMese fiscale
+				column 'Fiscal MonthInQuarterNumber'
+					caption: NumeroMeseInTrimestre fiscale
+				column 'Fiscal Month'
+					caption: Mese fiscale
+				column 'Fiscal YearMonthNumber'
+					caption: NumeroMeseAnno fiscale
+				column 'Fiscal Month Year'
+					caption: Mese anno fiscale
+				column 'Fiscal WeekNumber'
+					caption: NumeroSettimana fiscale
+				column 'Fiscal Week'
+					caption: Settimana fiscale
+				column 'Fiscal YearWeekNumber'
+					caption: NumeroSettimanaAnno fiscale
+				column 'Fiscal Week Year'
+					caption: Settimana anno fiscale
+				column 'Fiscal WeekYearOrder'
+					caption: OrdineSettimanaAnno fiscale
+				column 'Fiscal RelativeWeekPos'
+					caption: PosSettimanaRelativa fiscale
+				column 'Fiscal RelativeMonthPos'
+					caption: PosMeseRelativo fiscale
+				column 'Fiscal RelativeQuarterPos'
+					caption: PosTrimestreRelativo fiscale
+				column 'Fiscal RelativeYearPos'
+					caption: PosAnnoRelativo fiscale
+				column 'Fiscal StartOfMonth'
+					caption: InizioMese fiscale
+				column 'Fiscal EndOfMonth'
+					caption: UltimoGiornoMese fiscale
+				column 'Fiscal StartOfQuarter'
+					caption: InizioTrimestre fiscale
+				column 'Fiscal EndOfQuarter'
+					caption: FineTrimestre fiscale
+				column 'Fiscal StartOfYear'
+					caption: InizioAnno fiscale
+				column 'Fiscal EndOfYear'
+					caption: FineAnno fiscale
+				column 'Fiscal MonthDays'
+					caption: GiorniMese fiscale
+				column 'Fiscal QuarterDays'
+					caption: GiorniTrimestre fiscale
+				column 'Fiscal YearDays'
+					caption: GiorniAnno fiscale
+				column 'Fiscal DayOfMonthNumber'
+					caption: NumeroGiornoMese fiscale
+				column 'Fiscal DayOfQuarterNumber'
+					caption: NumeroGiornoTrimestre fiscale
+				column 'Fiscal DayOfYearNumber'
+					caption: NumeroGiornoAnno fiscale
+				column 'Fiscal DatePreviousWeek'
+					caption: DataSettimanaPrecedente fiscale
+				column 'Fiscal DatePreviousMonth'
+					caption: DataMesePrecedente fiscale
+				column 'Fiscal DatePreviousQuarter'
+					caption: DataTrimestrePrecedente fiscale
+				column 'Fiscal DatePreviousYear'
+					caption: DataAnnoPrecedente fiscale
+				column 'FW YearNumber'
+					caption: NumeroAnno SF
+				column 'FW Year'
+					caption: Anno SF
+				column 'FW QuarterNumber'
+					caption: NumeroTrimestre SF
+				column 'FW Quarter'
+					caption: SF trimestre
+				column 'FW YearQuarterNumber'
+					caption: NumeroTrimestreAnno SF
+				column 'FW Quarter Year'
+					caption: Trimestre anno SF
+				column 'FW MonthNumber'
+					caption: NumeroMese SF
+				column 'FW Month'
+					caption: Mese SF
+				column 'FW YearMonthNumber'
+					caption: NumeroMeseAnno SF
+				column 'FW Month Year'
+					caption: Mese anno SF
+				column 'FW WeekNumber'
+					caption: NumeroSettimana SF
+				column 'FW Week'
+					caption: Settimana SF
+				column 'FW PeriodNumber'
+					caption: NumeroPeriodo SF
+				column 'FW Period'
+					caption: Periodo SF
+				column 'FW YearWeekNumber'
+					caption: NumeroSettimanaAnno SF
+				column 'FW Week Year'
+					caption: Settimana anno SF
+				column 'FW StartOfWeek'
+					caption: InizioSettimana SF
+				column 'FW EndOfWeek'
+					caption: UltimoGiornoSettimana SF
+				column 'FW RelativeWeekPos'
+					caption: PosSettimanaRelativa SF
+				column 'FW RelativeMonthPos'
+					caption: PosMeseRelativo SF
+				column 'FW RelativeQuarterPos'
+					caption: PosTrimestreRelativo SF
+				column 'FW RelativeYearPos'
+					caption: PosAnnoRelativo SF
+				column 'FW StartOfMonth'
+					caption: PrimoGiornoMese SF
+				column 'FW EndOfMonth'
+					caption: UltimoGiornoMese SF
+				column 'FW StartOfQuarter'
+					caption: InizioTrimestre SF
+				column 'FW EndOfQuarter'
+					caption: FineTrimestre SF
+				column 'FW StartOfYear'
+					caption: InizioAnno SF
+				column 'FW EndOfYear'
+					caption: UltimoGiornoAnno SF
+				column 'FW MonthDays'
+					caption: GiorniMese SF
+				column 'FW QuarterDays'
+					caption: GiorniTrimestre SF
+				column 'FW YearDays'
+					caption: GiorniAnno SF
+				column 'FW DayOfMonthNumber'
+					caption: NumeroGiornoMese SF
+				column 'FW DayOfQuarterNumber'
+					caption: NumeroGiornoTrimestre SF
+				column 'FW DayOfYearNumber'
+					caption: NumeroGiornoAnno SF
+				column 'FW DatePreviousWeek'
+					caption: DataSettimanaPrecedente SF
+				column 'FW DatePreviousMonth'
+					caption: DataMesePrecedente SF
+				column 'FW DatePreviousQuarter'
+					caption: DataTrimestrePrecedente SF
+				column 'FW DatePreviousYear'
+					caption: DataAnnoPrecedente SF
+				column 'Holiday Name'
+					caption: Nome festività
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Tipo di giorno
+				column DatesWithTransactions
+					caption: DatesWithTransactions
+				measure Ranged
+					caption: Con intervalli
+				hierarchy 'Fiscal Year-Month'
+					caption: Anno-Mese fiscale
+					level 'Fiscal Year'
+						caption: Anno fiscale
+					level 'Fiscal Month Year'
+						caption: Mese anno fiscale
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Anno-Mese-Settimana fiscale
+					level 'Fiscal Year'
+						caption: Anno fiscale
+					level 'Fiscal Month Year'
+						caption: Mese anno fiscale
+					level 'Fiscal Week Year'
+						caption: Settimana anno fiscale
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Anno-Trimestre-Mese-Settimana fiscale
+					level 'Fiscal Year'
+						caption: Anno fiscale
+					level 'Fiscal Quarter Year'
+						caption: Trimestre anno fiscale
+					level 'Fiscal Month Year'
+						caption: Mese anno fiscale
+					level 'Fiscal Week Year'
+						caption: Settimana anno fiscale
+				hierarchy 'Calendar Year-Month'
+					caption: Anno-Mese di calendario
+					level 'Calendar Year'
+						caption: Anno di calendario
+					level 'Calendar Month Year'
+						caption: Mese anno di calendario
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Anno-Mese-Settimana di calendario
+					level 'Calendar Year'
+						caption: Anno di calendario
+					level 'Calendar Month Year'
+						caption: Mese anno di calendario
+					level 'Calendar Week Year'
+						caption: Settimana anno di calendario
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Anno-Trimestre-Mese-Settimana di calendario
+					level 'Calendar Year'
+						caption: Anno di calendario
+					level 'Calendar Quarter Year'
+						caption: Trimestre anno di calendario
+					level 'Calendar Month Year'
+						caption: Mese anno di calendario
+					level 'Calendar Week Year'
+						caption: Settimana anno di calendario
+				hierarchy 'FW Year-Week'
+					caption: Anno-Settimana SF
+					level 'FW Year'
+						caption: Anno SF
+					level 'FW Week Year'
+						caption: Settimana anno SF
+				hierarchy 'FW Year-Month-Week'
+					caption: Anno-Mese-Settimana SF
+					level 'FW Year'
+						caption: Anno SF
+					level 'FW Month Year'
+						caption: Mese anno SF
+					level 'FW Week Year'
+						caption: Settimana anno SF
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Anno-Trimestre-Settimana SF
+					level 'FW Year'
+						caption: Anno SF
+					level 'FW Quarter Year'
+						caption: Trimestre anno SF
+					level 'FW Week Year'
+						caption: Settimana anno SF
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Anno-Trimestre-Mese-Settimana SF
+					level 'FW Year'
+						caption: Anno SF
+					level 'FW Quarter Year'
+						caption: Trimestre anno SF
+					level 'FW Month Year'
+						caption: Mese anno SF
+					level 'FW Week Year'
+						caption: Settimana anno SF
+			table Vendor
+				caption: Fornitore
+				column 'Vendor No. & Name'
+					caption: Nome e nr. fornitore
+				column 'Vendor No.'
+					caption: Nr. fornitore
+				column 'Vendor Name'
+					caption: Nome fornitore
+				column 'Vendor Address'
+					caption: Indirizzo fornitore
+				column 'Vendor Address 2'
+					caption: Indirizzo fornitore 2
+				column 'Vendor City'
+					caption: Città fornitore
+				column 'Vendor Post Code'
+					caption: Codice postale fornitore
+				column 'Vendor State'
+					caption: Stato fornitore
+				column 'Vendor Country/Region Code'
+					caption: Codice paese/area geografica fornitore
+				column 'Vendor Posting Group'
+					caption: Categoria registrazione fornitore
+			table 'Item Ledger Entries'
+				caption: Mov. contabili articoli
+				column 'Entry No.'
+					caption: Nr. movimento
+				column 'Entry Type'
+					caption: Tipo movimento
+				column 'Expiration Date'
+					caption: Data di scadenza
+				column Open
+					caption: Aperta
+				column 'Document No.'
+					caption: Nr. documento
+				column 'Quantity Per Unit of Measure'
+					caption: Quantità per unità di misura
+				column 'Unit of Measure Code'
+					caption: Codice unità di misura
+				column 'Document Type'
+					caption: Tipo di documento
+				measure 'Inventory (Quantity)'
+					caption: Inventario (quantità)
+				measure 'Remaining Quantity'
+					caption: Quantità residua
+				measure Quantity
+					caption: Quantità
+				measure 'Expired Inventory'
+					caption: Giacenze scadute
+				measure 'Net Qty. Sold'
+					caption: Qtà netta venduta
+				measure 'Net Qty. Purchased'
+					caption: Qtà netta acquistata
+				measure 'Invoiced Quantity'
+					caption: Quantità fatturata
+				measure 'Base Link'
+					caption: Collegamento base
+				measure 'Item Ledger Entries Link (Location Context)'
+					caption: Collegamento movimenti contabili articoli (contesto ubicazione)
+				measure 'Item Ledger Entries Link'
+					caption: Collegamento movimenti contabili articoli
+				measure 'Item Ledger Entries Lot No Link'
+					caption: Collegamento nr. lotto movimenti contabili articoli
+				measure 'Item Ledger Entries Serial No Link'
+					caption: Collegamento nr. seriale movimenti contabili articoli
+			table 'Dimension Sets'
+				caption: Set di dimensioni
+				column 'Global Dimension 1'
+					caption: Dimensione globale 1
+				column 'Global Dimension 2'
+					caption: Dimensione globale 2
+				column 'Shortcut Dimension 3'
+					caption: Collegamento dimensione 3
+				column 'Shortcut Dimension 4'
+					caption: Collegamento dimensione 4
+				column 'Shortcut Dimension 5'
+					caption: Collegamento dimensione 5
+				column 'Shortcut Dimension 6'
+					caption: Collegamento dimensione 6
+				column 'Shortcut Dimension 7'
+					caption: Collegamento dimensione 7
+				column 'Shortcut Dimension 8'
+					caption: Collegamento dimensione 8
+				column id
+					caption: ID
+			table 'Purchase Lines'
+				caption: Righe acquisto
+				column 'Document No.'
+					caption: Nr. documento
+				column 'Expected Receipt Date'
+					caption: Data carico prevista
+				column 'Document Type'
+					caption: Tipo di documento
+				column 'Quantity Per Unit of Measure'
+					caption: Quantità per unità di misura
+				column 'Unit of Measure Code'
+					caption: Codice unità di misura
+				measure 'Qty. on Purch. Order'
+					caption: Qtà nell'ordine acquisto
+				measure 'Qty. on Purch. Return'
+					caption: Qtà nel reso acquisto
+				measure 'Purchase Return - Earliest Expected Receipt Date'
+					caption: Reso acquisto - Prima data carico prevista
+				measure 'Purchase Order - Earliest Expected Receipt Date'
+					caption: Ordine di acquisto - Prima data carico prevista
+				measure 'Purchase Order Quantity Link'
+					caption: Collegamento quantità ordine di acquisto
+				measure 'Purchase Return Order Quantity Link'
+					caption: Collegamento quantità ordine di reso acquisto
+			table Zone
+				caption: Area
+				column 'Zone Description'
+					caption: Descrizione zona
+				column 'Zone Bin Type Code'
+					caption: Codice tipo collocazione zona
+				column 'Zone Code'
+					caption: Codice zona
+			table Bin
+				caption: Collocazione
+				column 'Bin Description'
+					caption: Descrizione Collocazione
+				column 'Bin Type Code'
+					caption: Codice tipo collocazione
+				column 'Bin Code'
+					caption: Codice collocazione
+				column 'Adjustment Bin'
+					caption: Collocazione rettifica
+				column 'Bin Zone Code'
+					caption: Codice zona collocazione
+				measure 'Available Qty. to Take'
+					caption: Qtà disponibile da prendere
+				measure 'Quantity in Adjustment Bin'
+					caption: Quantità in collocazione di rettifica
+				measure 'Positive Adjmt. Qty. (Base)'
+					caption: Qtà rettifica positiva (base)
+				measure 'Negative Adjmt. Qty. (Base)'
+					caption: Qtà rettifica negativa (base)
+				measure 'Warehouse Quantity'
+					caption: Quantità warehouse
+				measure 'ATO Components Pick Qty.'
+					caption: Qtà prelievo comp. assembl. su ordine
+				measure 'Put-away Quantity (Base)'
+					caption: Quantità stoccaggio (base)
+				measure 'Pick Quantity (Base)'
+					caption: Quantità prelievo (base)
+				measure 'Warehouse Entries Link'
+					caption: Collegamento movimenti warehouse
+				measure 'Pick Quantity Link'
+					caption: Collegamento quantità prelievo
+				measure 'Warehouse Journal Link'
+					caption: Collegamento registrazioni warehouse
+			table 'Sales Lines'
+				caption: Righe vendita
+				column 'Document No.'
+					caption: Nr. documento
+				column 'Shipment Date'
+					caption: Data spedizione
+				column 'Document Type'
+					caption: Tipo di documento
+				column 'Quantity Per Unit of Measure'
+					caption: Quantità per unità di misura
+				column 'Unit of Measure Code'
+					caption: Codice unità di misura
+				measure 'Qty. on Sales Order'
+					caption: Qtà nell'ordine vendita
+				measure 'Qty. on Sales Return Order'
+					caption: Qtà nell'ordine di reso vendita
+				measure 'Sales Order - Earliest Shipment Date'
+					caption: Ordine vendita - Prima data spedizione
+				measure 'Sales Retrun Order - Earliest Shipment Date'
+					caption: Ordine di reso di vendita - Prima data spedizione
+				measure 'Sales Order Line Link'
+					caption: Collegamento riga ordine di vendita
+				measure 'Sales Return Order Line Link'
+					caption: Collegamento riga ordine di reso vendita
+			table 'Assembly Lines'
+				caption: Righe di assemblaggio
+				column 'Due Date'
+					caption: Data di scadenza
+				column 'Document No.'
+					caption: Nr. documento
+				column 'Quantity Per Unit of Measure'
+					caption: Quantità per unità di misura
+				column 'Unit of Measure Code'
+					caption: Codice unità di misura
+				measure 'Qty. on Asm. Component'
+					caption: Qtà nel componente di assemblaggio
+				measure 'Assembly Lines - Earliest Due Date'
+					caption: Righe di assemblaggio - Prima data di scadenza
+				measure 'Assembly Line Quantity Link'
+					caption: Collegamento quantità riga assemblaggio
+			table 'Assembly Headers'
+				caption: Testate assemblaggio
+				column 'Document No.'
+					caption: Nr. documento
+				column 'Due Date'
+					caption: Data di scadenza
+				column Status
+					caption: Stato
+				column 'Quantity Per Unit of Measure'
+					caption: Quantità per unità di misura
+				column 'Unit of Measure Code'
+					caption: Codice unità di misura
+				measure 'Qty. on Assembly Order'
+					caption: Qtà nell'ordine di assemblaggio
+				measure 'Assembly Order - Earliest Due Date'
+					caption: Ordine di assemblaggio - Prima data di scadenza
+				measure 'Assembly Order Quantity Link'
+					caption: Collegamento quantità ordine di assemblaggio
+			table 'Project Planning Lines'
+				caption: Righe di pianificazione progetto
+				column 'Document No.'
+					caption: Nr. documento
+				column 'Quantity Per Unit of Measure'
+					caption: Quantità per unità di misura
+				column 'Unit of Measure Code'
+					caption: Codice unità di misura
+				measure 'Qty. on Projects'
+					caption: Qtà in progetti
+				measure 'Project Planning - Earliest Planning Date'
+					caption: Pianificazione progetto - Prima data di pianificazione
+				measure 'Planning Line Link'
+					caption: Collegamento riga pianificazione
+			table 'Production Order Lines'
+				caption: Righe degli ordini di produzione
+				column Status
+					caption: Stato
+				column 'Document No.'
+					caption: Nr. documento
+				column 'Due Date'
+					caption: Data di scadenza
+				column 'Starting Date'
+					caption: Data di inizio
+				column 'Quantity Per Unit of Measure'
+					caption: Quantità per unità di misura
+				column 'Unit of Measure Code'
+					caption: Codice unità di misura
+				measure 'Qty. on Prod. Order'
+					caption: Qtà in ordine produzione
+				measure 'FP Order Receipt (Qty.)'
+					caption: Carico ordine confermato (qtà)
+				measure 'Rel. Order Receipt (Qty.)'
+					caption: Carico ordine rilasc. (qtà)
+				measure 'Scheduled Receipt (Qty.)'
+					caption: Carico programmato (qtà)
+				measure 'FP Order - Earliest Due Date'
+					caption: Ordine confermato - Prima data di scadenza
+				measure 'Rel. Order - Earliest Due Date'
+					caption: Ordine rilascio - Prima data di scadenza
+				measure 'Production Order Link'
+					caption: Collegamento ordine di produzione
+			table 'Prod Order Component Lines'
+				caption: Righe componenti ordini produzione
+				column Status
+					caption: Stato
+				column 'Document No.'
+					caption: Nr. documento
+				column 'Due Date'
+					caption: Data di scadenza
+				column 'Quantity Per Unit of Measure'
+					caption: Quantità per unità di misura
+				column 'Unit of Measure Code'
+					caption: Codice unità di misura
+				measure 'Qty. on Prod. Order Comp. Lines'
+					caption: Quantità in righe componente ordine di produzione
+				measure 'Prod. Order Comp. Lines - Earliest Due Date'
+					caption: Righe comp. ordine prod. - Prima data di scadenza
+				measure 'Prod. Order Components Link'
+					caption: Collegamento componenti ordine di produzione
+			table 'Service Lines'
+				caption: Righe assistenza
+				column 'Document No.'
+					caption: Nr. documento
+				column 'Needed By Date'
+					caption: Disponibile entro
+				column 'Quantity Per Unit of Measure'
+					caption: Quantità per unità di misura
+				column 'Unit of Measure Code'
+					caption: Codice unità di misura
+				measure 'Qty. on Service Order'
+					caption: Qtà nell'ordine assistenza
+				measure 'Service Lines - Earliest Needed by Date'
+					caption: Righe assistenza - Prima disponibilità
+				measure 'Service Order Link'
+					caption: Collegamento ordine assistenza
+			table 'Transfer Lines'
+				caption: Righe trasferimento
+				description: Specifica la quantità di articoli da ricevere ma che devono ancora essere spediti come differenza tra i campi Quantità e Quantità spedita.
+				column 'Document No.'
+					caption: Nr. documento
+				column 'Receipt Date'
+					caption: Data carico
+				column 'Transfer To Location Code'
+					caption: Codice ubicazione destinazione del trasferimento
+				column 'Transfer From Location Code'
+					caption: Codice ubicazione origine del trasferimento
+				column 'Shipment Date'
+					caption: Data spedizione
+				column 'In Transit Location Code'
+					caption: Codice ubicazione in transito
+				column 'Quantity Per Unit of Measure'
+					caption: Quantità per unità di misura
+				column 'Unit of Measure Code'
+					caption: Codice unità di misura
+				measure 'Qty. in Transit'
+					caption: Qtà in transito
+				measure 'Trans. Order Shipment (Qty.)'
+					caption: Spedizione ordine trasf. (qtà)
+				measure 'Trans. Order Receipt (Qty.)'
+					caption: Carico ordine trasf. (qtà)
+				measure 'Trans. Order Outstanding Qty.'
+					caption: Qtà insoluta ordine trasf.
+				measure 'Trans. Order Shipment - Earliest Shipment Date'
+					caption: Spedizione ordine trasf. - Prima data spedizione
+				measure 'Trans. Order Receipt - Earliest Receipt Date'
+					caption: Ricezione ordine trasf. - Prima data di ricezione
+				measure 'Transfer Lines Quantity Link'
+					caption: Collegamento quantità righe di trasferimento
+			table 'Planning Component Lines'
+				caption: Righe componente pianificazione
+				column 'Due Date'
+					caption: Data di scadenza
+				column 'Quantity Per Unit of Measure'
+					caption: Quantità per unità di misura
+				column 'Unit of Measure Code'
+					caption: Codice unità di misura
+				measure 'Planning Issues (Qty.)'
+					caption: Consumi in pianificazione (qtà)
+				measure 'Planning Issues - Earliest Due Date'
+					caption: Consumi in pianificazione - Prima data di scadenza
+			table 'Item Availability Filter'
+				caption: Filtro disponibilità articolo
+				column 'View As'
+					caption: Visualizza come
+				column Ordinal
+					caption: Ordinale
+			table 'Lot No'
+				caption: Nr. lotto
+				column 'Lot No.'
+					caption: Nr. lotto
+			table 'Serial No'
+				caption: Nr. seriale
+				column 'Serial No.'
+					caption: Nr. seriale
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Titolo report personale
+				measure 'My Button Caption'
+					caption: Didascalia pulsante personale
+				measure 'My Visual Title'
+					caption: Titolo visivo personale
+				measure 'Inventory Overview'
+					caption: Panoramica dell'inventario
+				measure 'Inventory and Projected Available Balance'
+					caption: Inventario e disponibilità calcolata
+				measure 'Availability Outlook'
+					caption: Disponibilità Outlook
+				measure 'Inventory by Item'
+					caption: Inventario per articolo
+				measure 'Inventory by Location'
+					caption: Inventario per ubicazione
+				measure 'Inventory on Hand by Location'
+					caption: Inventario disponibile per ubicazione
+				measure 'Purchase and Sales Quantity'
+					caption: Quantità acquisti e vendite
+				measure 'Item Availability'
+					caption: Disponibilità articolo
+				measure 'Projected Available Balance vs. Quantity on Hand'
+					caption: Disponibilità calcolata e giacenza
+				measure 'Gross Requirements vs. Projected Available Balance'
+					caption: Fabbisogni lordi e disponibilità calcolata
+				measure 'Gross Requirements Earliest Dates'
+					caption: Prime date per fabbisogni lordi
+				measure 'Scheduled Receipt Earliest Dates'
+					caption: Prime date per carico programmato
+				measure 'Purchase Order Drill Through'
+					caption: Drill-through ordini di acquisto
+				measure 'Purchase Return Order Drill Through'
+					caption: Drill-through ordini di reso acquisti
+				measure 'Item Ledger Entry Drill through'
+					caption: Drill-through movimenti contabili articoli
+				measure 'Production Order Drill Through'
+					caption: Drill-through ordini di produzione
+				measure 'Prod. Order Components Drill Through'
+					caption: Drill-through componenti ordine di produzione
+				measure 'Sales Order Drill Through'
+					caption: Drill-through ordini vendita
+				measure 'Sales Return Order Drill Through'
+					caption: Drill-through ordini di reso vendita
+				measure 'Transfer Order Drill Through'
+					caption: Drill-through ordini di trasferimento
+				measure 'Assembly Order Drill Through'
+					caption: Drill-through ordini di assemblaggio
+				measure 'Assembly Lines Drill Through'
+					caption: Drill-through righe di assemblaggio
+				measure 'Service Lines Drill Through'
+					caption: Drill-through righe di assistenza
+				measure 'Gross Requirement '
+					caption: "Fabbisogno lordo "
+				measure 'Scheduled Receipt '
+					caption: "Carico programmato "
+				measure 'Inventory by Lot '
+					caption: "Inventario per lotto "
+				measure 'Inventory by Serial No.'
+					caption: Inventario per numero di serie
+				measure 'Bin Contents'
+					caption: Contenuto collocazioni
+				measure 'Bin Contents by Item Tracking'
+					caption: Contenuto collocazioni per tracciabilità articolo
+				measure 'Expired Inventory '
+					caption: "Giacenze scadute "
+				measure 'Gross Requirements'
+					caption: Fabbisogni lordi
+				measure 'Scheduled Receipts'
+					caption: Carichi programmati
+				measure 'for Business Central'
+					caption: per Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: CONNETTI I DATI
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Scaricare Inventory Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Configurare Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: USA, MODIFICA E CREA I TUOI REPORT
+				measure 'Inventory includes a variety of pre-built reports to help you see your data immediately.'
+					caption: L'inventario include una serie di report predefiniti che aiutano a visualizzare immediatamente i dati.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: È possibile modificare questi report o creare il proprio report da zero.
+				measure 'HELP AND SUPPORT'
+					caption: GUIDA E SUPPORTO
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.
+				measure 'OTHER POWER BI REPORTS'
+					caption: ALTRI REPORT DI POWER BI
+				measure PURCHASE
+					caption: ACQUISTI
+				measure FINANCE
+					caption: DATI FINANZIARI
+				measure REBATES
+					caption: SCONTI
+				measure SALES
+					caption: VENDITE
+				measure 'INVENTORY '
+					caption: "INVENTARIO "
+				measure 'Inventory  '
+					caption: "Inventario  "
+				measure 'The inventory by item shows item category code, inventory, and the quantity on various documents.'
+					caption: L'inventario per articolo mostra il codice della categoria, la disponibilità e la quantità degli articoli su vari documenti.
+				measure 'The inventory by location shows item number and description, and quantity on hand per location.'
+					caption: L'inventario per ubicazione mostra il numero, la descrizione e la giacenza degli articoli per ubicazione.
+				measure 'The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales.'
+					caption: La quantità di acquisti e vendite mostra il codice della categoria articolo, le quantità di acquisti e vendite e il saldo periodo della quantità detraendo gli acquisti nelle vendite.
+				measure 'The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases.'
+					caption: La disponibilità dell'articolo mostra il numero, l'inventario, la disponibilità calcolata, il fabbisogno lordo, il carico programmato nonché il carico e il rilascio degli ordini pianificati relativi all'articolo.
+				measure 'The gross requirement and projected available balance shows item number and description, and the quantity on various documents.'
+					caption: Il fabbisogno lordo e la disponibilità calcolata mostrano il numero, la descrizione e la quantità degli articoli su vari documenti.
+				measure 'The bin contents shows available quantity to take for each location and bin.'
+					caption: Il contenuto della collocazione mostra la quantità disponibile da prelevare per ogni ubicazione e collocazione.
+				measure 'The bin contents by item tracking shows item tracking details for each location and bin.'
+					caption: Il contenuto della collocazione per tracciabilità dell'articolo mostra i dettagli della tracciabilità articolo per ogni ubicazione e collocazione.
+				measure 'The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents.'
+					caption: Il carico programmato e la disponibilità calcolata mostrano il numero, la descrizione e la quantità degli articoli su vari documenti.
+				measure 'Last Refreshed'
+					caption: Ultimo aggiornamento
+				measure 'Company Name'
+					caption: Nome società
+				measure 'Inventory (Quantity) by Location Code'
+					caption: Inventario (quantità) per codice ubicazione
+				measure 'Scheduled Receipt and Projected Available Balance by Fiscal Year and Month'
+					caption: Carico programmato e disponibilità calcolata per mese e anno fiscale
+				measure 'Inventory (Quantity) by Lot No.'
+					caption: Inventario (quantità) per nr. lotto
+				measure 'Inventory (Quantity) by Serial No.'
+					caption: Inventario (quantità) per numero di serie
+				measure MANUFACTURING
+					caption: PRODUZIONE
+				measure 'INVENTORY VALUATION'
+					caption: VALUTAZIONE MAGAZZINO
+				measure 'Available Quantity to Take by Bin Code'
+					caption: Quantità disponibile da prelevare per codice collocazione
+				measure 'Projected Available Balance vs. Current Inventory'
+					caption: Disponibilità calcolata e inventario corrente
+				measure 'Purchase vs. Sales Quantity Across Time'
+					caption: Quantità di acquisti e vendite nel tempo
+				measure 'Inventory by Item Details'
+					caption: Dettagli inventario per articolo
+				measure 'Inventory by Location Details'
+					caption: Dettagli inventario per ubicazione
+				measure 'Purchase and Sales Quantity Details'
+					caption: Dettagli quantità acquisti e vendite
+				measure 'Item Availability Details'
+					caption: Dettagli disponibilità articolo
+				measure 'Gross Requirement Details'
+					caption: Dettagli fabbisogno lordo
+				measure 'Scheduled Receipt Details'
+					caption: Dettagli carico programmato
+				measure 'Inventory by Lot Details'
+					caption: Dettagli inventario per lotto
+				measure 'Inventory by Serial No Details'
+					caption: Dettagli inventario per numero di serie
+				measure 'Bin Contents Details'
+					caption: Dettagli contenuto collocazioni
+				measure 'Bin Contents by Item Tracking Details'
+					caption: Dettagli contenuto collocazioni per tracciabilità articolo
+			table COMPANY
+				caption: SOCIETÀ
+				measure 'Company Label'
+					caption: Etichetta società
+			table ENVIRONMENT
+				caption: AMBIENTE
+			table 'Item Category'
+				caption: Categoria articolo
+				column 'Item Category Code'
+					caption: Codice categoria articolo
+				column 'Item Category Description'
+					caption: Descrizione categoria articolo
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Gerarchia codici categoria articolo
+					level 'Item Category Code Level 1'
+						caption: Codice categoria articolo livello 1
+					level 'Item Category Code Level 2'
+						caption: Codice categoria articolo livello 2
+					level 'Item Category Code Level 3'
+						caption: Codice categoria articolo livello 3
+

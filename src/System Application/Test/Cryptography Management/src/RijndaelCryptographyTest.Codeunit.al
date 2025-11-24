@@ -113,6 +113,65 @@ codeunit 132575 "Rijndael Cryptography Test"
         LibraryAssert.AreEqual(PlainText, RijndaelCryptography2.Decrypt(CryptedText), 'Set Encryption Datay and Decrypt failed');
     end;
 
+    [Test]
+    procedure VerifyEncryptBinaryDataProducesExpectedResult()
+    var
+        RijndaelCryptography: Codeunit "Rijndael Cryptography";
+        BinaryDataAsBase64: Text;
+        EncryptedBinaryDataAsBase64: Text;
+        ExpectedEncryptedBinaryDataAsBase64: Text;
+    begin
+        // [GIVEN] With Encryption Key and binary data as Base64
+        InitializeCBCEncryption(RijndaelCryptography);
+        BinaryDataAsBase64 := GetBinaryDataAsBase64();
+        // [WHEN] Encrypt Binary Data
+        EncryptedBinaryDataAsBase64 := RijndaelCryptography.EncryptBinaryData(BinaryDataAsBase64);
+        ExpectedEncryptedBinaryDataAsBase64 := GetEncryptedBinaryDataAsBase64();
+        // [THEN] Verify Result is equal expected value
+        LibraryAssert.AreEqual(ExpectedEncryptedBinaryDataAsBase64, EncryptedBinaryDataAsBase64, 'Failed to encrypt binary data.');
+    end;
+
+    [Test]
+    procedure VerifyDecryptBinaryDataProducesExpectedResult()
+    var
+        RijndaelCryptography: Codeunit "Rijndael Cryptography";
+        EncryptedBinaryDataAsBase64: Text;
+        DecryptedBinaryDataAsBase64: Text;
+        ExpectedDecryptedBinaryDataAsBase64: Text;
+    begin
+        // [GIVEN] With Encryption Key and binary data as Base64
+        InitializeCBCEncryption(RijndaelCryptography);
+        EncryptedBinaryDataAsBase64 := GetEncryptedBinaryDataAsBase64();
+        // [WHEN] Decrypt Binary Data
+        DecryptedBinaryDataAsBase64 := RijndaelCryptography.DecryptBinaryData(EncryptedBinaryDataAsBase64);
+        ExpectedDecryptedBinaryDataAsBase64 := GetBinaryDataAsBase64();
+        // [THEN] Verify Result is equal expected value
+        LibraryAssert.AreEqual(ExpectedDecryptedBinaryDataAsBase64, DecryptedBinaryDataAsBase64, 'Failed to decrypt binary data.');
+    end;
+
+    [Test]
+    procedure VerifyEncryptThenDecryptRestoresOriginalData()
+    var
+        RijndaelCryptography: Codeunit "Rijndael Cryptography";
+        BinaryDataAsBase64: Text;
+        ResultAsBase64: Text;
+    begin
+        // [GIVEN] Default Encryption
+        BinaryDataAsBase64 := GetBinaryDataAsBase64();
+        // [WHEN] Encrypt And Decrypt 
+        ResultAsBase64 := RijndaelCryptography.DecryptBinaryData(RijndaelCryptography.EncryptBinaryData(BinaryDataAsBase64));
+        // [THEN] Verify Result 
+        LibraryAssert.AreEqual(BinaryDataAsBase64, ResultAsBase64, 'Decrypting an encrypted binary data failed.');
+    end;
+
+    local procedure InitializeCBCEncryption(var RijndaelCryptography: Codeunit "Rijndael Cryptography")
+    begin
+        RijndaelCryptography.SetEncryptionData(GetCBCEncryptionKeyAsBase64(), GetCBCInitializationVectorAsBase64());
+        RijndaelCryptography.SetBlockSize(128);
+        RijndaelCryptography.SetCipherMode('CBC');
+        RijndaelCryptography.SetPaddingMode('PKCS7');
+    end;
+
     local procedure GetECP128BitCryptedText(): Text
     begin
         exit('7ah/ajzDcgtEQ/KM54R3udodzz0wHAJrZrK/mFJ+XBA=');
@@ -131,4 +190,29 @@ codeunit 132575 "Rijndael Cryptography Test"
         exit(KeyValue);
     end;
 
+    local procedure GetBinaryDataAsBase64(): Text
+    begin
+        exit('UEsDBBQAAAAIAD1yZVs+1MwDIgAAACAAAAAMAAAARmlsZU5hbWUudHh0S0xLNExKTUw2TLZMMzI2S04zM7dINrY0sjQzTjYxNzQDAFBLAQIUABQAAAAIAD1yZVs+1MwDIgAAACAAAAAMAAAAAAAAAAAAAAAAAAAAAABGaWxlTmFtZS50eHRQSwUGAAAAAAEAAQA6AAAATAAAAAAA');
+    end;
+
+    local procedure GetEncryptedBinaryDataAsBase64(): Text
+    begin
+        exit('Nhl/hypzm6+rQBmAv8piOD9flIp3Wb7ZO+a0m02mdM3Y+2UVKAJHvD6cV6NVSagdEas09MqJ9465aUp/7KSeqM5/0KqcygSsac2IuSsjCry9jveBo5mWGr5De3ylTEOJGW/G6cpk5u6T4g1DTAh9xH9Mu9nihYPrHewqnXKOIhtVw0Ji63rnYiQJSqVn8yYiA6VDnBqawBe0l5rvOSjEqA==');
+    end;
+
+    local procedure GetCBCEncryptionKeyAsBase64(): SecretText
+    var
+        KeyValue: Text;
+    begin
+        KeyValue := 'cHNGdVR4RUQyY3VSQVRBR2I3b00zTlJzMVBHQzd6UGo=';
+        exit(KeyValue);
+    end;
+
+    local procedure GetCBCInitializationVectorAsBase64(): Text
+    var
+        IVValue: Text;
+    begin
+        IVValue := 'cE80ZUljaFM0N1BzYUhCYw==';
+        exit(IVValue);
+    end;
 }

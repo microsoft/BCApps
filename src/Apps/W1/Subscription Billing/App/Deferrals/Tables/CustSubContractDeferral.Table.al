@@ -1,10 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Finance.Dimension;
 using System.Security.User;
 
 table 8066 "Cust. Sub. Contract Deferral"

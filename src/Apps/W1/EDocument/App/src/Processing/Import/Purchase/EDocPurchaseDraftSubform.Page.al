@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Dimension;
-using Microsoft.eServices.EDocument;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 

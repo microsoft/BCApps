@@ -6,8 +6,8 @@
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Sales.Document;
-using Microsoft.Sales.Receivables;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 
 /// <summary>
 /// Table Shpfy Order Transaction (ID 30133).
@@ -102,13 +102,8 @@ table 30133 "Shpfy Order Transaction"
             Editable = false;
             Access = Internal;
             ObsoleteReason = 'Source name is no longer used.';
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#endif
         }
 #endif
         field(16; "Credit Card Bin"; Code[10])
@@ -197,32 +192,37 @@ table 30133 "Shpfy Order Transaction"
             FieldClass = FlowField;
             CalcFormula = lookup("Sales Invoice Header"."No." where("Shpfy Order Id" = field("Shopify Order Id")));
         }
-        field(103; "Shop Code"; code[20])
+#if not CLEANSCHEMA31
+        field(103; "Shop Code"; Code[20])
         {
             Caption = 'Shop Code';
             FieldClass = FlowField;
             CalcFormula = lookup("Shpfy Order Header"."Shop Code" where("Shopify Order Id" = field("Shopify Order Id")));
+            ObsoleteReason = 'Use field Shop instead.';
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#endif
         }
+#endif
         field(104; "Payment Method"; Code[10])
         {
             Caption = 'Payment Method';
             FieldClass = FlowField;
-            CalcFormula = lookup("Shpfy Payment Method Mapping"."Payment Method Code" where("Shop Code" = field("Shop Code"), Gateway = field(Gateway), "Credit Card Company" = field("Credit Card Company")));
+            CalcFormula = lookup("Shpfy Payment Method Mapping"."Payment Method Code" where("Shop Code" = field("Shop"), Gateway = field(Gateway), "Credit Card Company" = field("Credit Card Company")));
         }
 #if not CLEANSCHEMA28
         field(105; "Payment Priority"; Integer)
         {
             Caption = 'Payment Priority';
             FieldClass = FlowField;
-            CalcFormula = lookup("Shpfy Payment Method Mapping".Priority where("Shop Code" = field("Shop Code"), Gateway = field(Gateway), "Credit Card Company" = field("Credit Card Company")));
+            CalcFormula = lookup("Shpfy Payment Method Mapping".Priority where("Shop Code" = field("Shop"), Gateway = field(Gateway), "Credit Card Company" = field("Credit Card Company")));
             ObsoleteReason = 'Priority is no longer used.';
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#endif
         }
 #endif
         field(106; Used; Boolean)
@@ -235,6 +235,11 @@ table 30133 "Shpfy Order Transaction"
         {
             Caption = 'Manual Payment Gateway';
             Editable = false;
+        }
+        field(108; Shop; Code[20])
+        {
+            Caption = 'Shop Code';
+            TableRelation = "Shpfy Shop";
         }
     }
 
@@ -271,4 +276,3 @@ table 30133 "Shpfy Order Transaction"
             DataCapture.DeleteAll(false);
     end;
 }
-

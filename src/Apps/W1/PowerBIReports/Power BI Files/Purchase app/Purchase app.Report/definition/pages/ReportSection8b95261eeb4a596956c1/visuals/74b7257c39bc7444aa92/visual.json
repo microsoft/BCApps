@@ -1,0 +1,129 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "74b7257c39bc7444aa92",
+  "position": {
+    "x": 27.205806117159149,
+    "y": 481.07827890098497,
+    "z": 1000,
+    "height": 213.00155520995332,
+    "width": 1228.2426127527215,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "lineChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year",
+              "nativeQueryRef": "Fiscal Year",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Month Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Month Year",
+              "nativeQueryRef": "Fiscal Month Year",
+              "active": false
+            }
+          ]
+        },
+        "Tooltips": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fiscal Calendar Time Intelligence"
+                    }
+                  },
+                  "Property": "Purchase Amount PY (Fiscal)"
+                }
+              },
+              "queryRef": "Fiscal Calendar Time Intelligence.Purchase Amount PY (Fiscal)",
+              "nativeQueryRef": "Purchase Amount PY (Fiscal)"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Purchase (LCY)"
+                }
+              },
+              "queryRef": "Purchases.Purchase Amount",
+              "nativeQueryRef": "Purchase Amount"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Total Purchase Amount by Fiscal Year Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -7,8 +7,8 @@ namespace Microsoft.Foundation.NoSeries.Test;
 
 using Microsoft.Foundation.NoSeries;
 using System.TestLibraries.Utilities;
-using System.TestTools.TestRunner;
 using System.TestTools.AITestToolkit;
+using System.TestTools.TestRunner;
 
 codeunit 133689 "No. Series Copilot Accu. Tests"
 {
