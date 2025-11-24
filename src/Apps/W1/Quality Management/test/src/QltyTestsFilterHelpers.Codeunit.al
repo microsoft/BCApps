@@ -34,7 +34,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     var
         LibraryAssert: Codeunit "Library Assert";
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
-        QltyFilterHelpersMfg: Codeunit "Qlty. Filter Helpers Mfg.";
+        QltyFilterHelpersMfg: Codeunit "Qlty. Filter Helpers - Mfg.";
         Code20: Code[20];
         ZoneTok: Label 'PICK';
         FilterTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1=item no.';
