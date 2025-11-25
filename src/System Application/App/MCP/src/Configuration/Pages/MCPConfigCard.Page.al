@@ -26,17 +26,15 @@ page 8351 "MCP Config Card"
                 Caption = 'General';
                 field(Name; Rec.Name)
                 {
-                    ToolTip = 'Specifies the name of the MCP configuration.';
                     Editable = not IsDefault;
                 }
                 field(Description; Rec.Description)
                 {
-                    ToolTip = 'Specifies the description of the MCP configuration.';
                     Editable = not IsDefault;
+                    MultiLine = true;
                 }
                 field(Active; Rec.Active)
                 {
-                    ToolTip = 'Specifies whether the MCP configuration is active.';
                     Editable = not IsDefault;
 
                     trigger OnValidate()
@@ -46,8 +44,6 @@ page 8351 "MCP Config Card"
                 }
                 field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
                 {
-                    Caption = 'Dynamic Tool Mode';
-                    ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools within the configuration dynamically.';
                     Editable = not IsDefault;
 
                     trigger OnValidate()
@@ -60,8 +56,6 @@ page 8351 "MCP Config Card"
                 }
                 field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects)
                 {
-                    Caption = 'Discover Additional Objects';
-                    ToolTip = 'Specifies whether to allow discovery of read-only objects not defined in the configuration. Only supported with dynamic tool mode.';
                     Editable = not IsDefault and Rec.EnableDynamicToolMode;
 
                     trigger OnValidate()
@@ -71,9 +65,6 @@ page 8351 "MCP Config Card"
                 }
                 field(AllowProdChanges; Rec.AllowProdChanges)
                 {
-                    Caption = 'Allow Create/Update/Delete Tools';
-                    ToolTip = 'Specifies whether to allow create, update and delete tools for this MCP configuration.';
-
                     trigger OnValidate()
                     begin
                         if not Rec.AllowProdChanges then
