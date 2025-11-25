@@ -944,7 +944,7 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
 
         FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.");
-        UsageDataBilling.FindSet();
+        UsageDataBilling.FindFirst();
         ProcessUsageDataBilling.SetRoundingPrecision(RoundingPrecision, UsageDataBilling."Unit Price", Currency);
         Assert.AreEqual(Round(ServiceCommitment.Price, RoundingPrecision), UsageDataBilling."Unit Price", 'Amount was not calculated properly in Usage data.');
     end;
@@ -1283,7 +1283,7 @@ codeunit 148153 "Usage Based Billing Test"
         //[GIVEN] Create sales invoice from Usage Data Import
         UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
         FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer, UsageDataBilling."Document Type"::"Posted Invoice");
-        UsageDataBilling.FindSet();
+        UsageDataBilling.FindFirst();
         SalesInvoiceHeader.Get(UsageDataBilling."Document No.");
 
         //[GIVEN] Create sales credit memo from sales invoice
@@ -1291,7 +1291,7 @@ codeunit 148153 "Usage Based Billing Test"
 
         //[GIVEN] Usage Data Billing for sales credit memo
         UsageDataBilling.FilterOnDocumentTypeAndDocumentNo("Service Partner"::Customer, Enum::"Usage Based Billing Doc. Type"::"Credit Memo", SalesCrMemoHeader."No.");
-        UsageDataBilling.FindSet();
+        UsageDataBilling.FindFirst();
 
         //[WHEN] Delete sales credit memo
         SalesCrMemoHeader.Delete(true);
@@ -1354,7 +1354,7 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
         UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
         FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer, UsageDataBilling."Document Type"::"Posted Invoice");
-        UsageDataBilling.FindSet();
+        UsageDataBilling.FindFirst();
         SalesInvoiceHeader.Get(UsageDataBilling."Document No.");
         CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesCrMemoHeader);
 
@@ -1404,7 +1404,7 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
 
         FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer, UsageDataBilling."Document Type"::"Posted Invoice");
-        UsageDataBilling.FindSet();
+        UsageDataBilling.FindFirst();
         SalesInvoiceHeader.Get(UsageDataBilling."Document No.");
         CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesCrMemoHeader);
 
@@ -1428,7 +1428,7 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
         UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
         FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer, UsageDataBilling."Document Type"::"Posted Invoice");
-        UsageDataBilling.FindSet();
+        UsageDataBilling.FindFirst();
 
         SalesInvoiceHeader.Get(UsageDataBilling."Document No.");
         CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesCrMemoHeader);
@@ -1506,7 +1506,7 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
         UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
         FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer, UsageDataBilling."Document Type"::"Posted Invoice");
-        UsageDataBilling.FindSet();
+        UsageDataBilling.FindFirst();
 
         SalesInvoiceHeader.Get(UsageDataBilling."Document No.");
         CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesCrMemoHeader);
@@ -1828,7 +1828,7 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
         UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
         FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer, UsageDataBilling."Document Type"::"Posted Invoice");
-        UsageDataBilling.FindSet();
+        UsageDataBilling.FindFirst();
 
         SalesInvoiceHeader.Get(UsageDataBilling."Document No.");
         CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesCrMemoHeader);
@@ -1866,7 +1866,7 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
         UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
         FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer, UsageDataBilling."Document Type"::"Invoice");
-        UsageDataBilling.FindSet();
+        UsageDataBilling.FindFirst();
 
         SalesLine.Reset();
         SalesLine.SetRange("Document Type", "Sales Document Type"::Invoice);
@@ -1900,7 +1900,7 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
         UsageDataImport.CollectVendorContractsAndCreateInvoices(UsageDataImport);
         FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Vendor, UsageDataBilling."Document Type"::Invoice);
-        UsageDataBilling.FindSet();
+        UsageDataBilling.FindFirst();
 
         PurchaseHeader.Get(PurchaseHeader."Document Type"::Invoice, UsageDataBilling."Document No.");
 
@@ -1964,8 +1964,8 @@ codeunit 148153 "Usage Based Billing Test"
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,StrMenuHandlerClearBillingProposal')]
     procedure TestBillingLineInUsageDataNoWhenBillingProposalIsCreated()
     var
-        BillingProposal: Codeunit "Billing Proposal";
         UsageDataBilling: Record "Usage Data Billing";
+        BillingProposal: Codeunit "Billing Proposal";
     begin
         //[SCENARIO] Create recurring billing for simple customer contract; Check if Usage Data Billing Line No. has billing line no
 
