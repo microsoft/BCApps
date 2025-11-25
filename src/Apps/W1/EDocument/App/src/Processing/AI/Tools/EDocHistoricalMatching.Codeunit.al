@@ -8,11 +8,11 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
-using System.AI;
 using Microsoft.Purchases.Vendor;
+using System.AI;
 using System.Azure.KeyVault;
-using System.Telemetry;
 using System.Config;
+using System.Telemetry;
 
 codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISystem
 {
