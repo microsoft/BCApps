@@ -87,9 +87,7 @@ table 8060 "Billing Template"
                     Error(AutoContractBillingNotAllowedErr);
                 case Automation of
                     Automation::None:
-                        begin
-                            "Minutes between runs" := 0;
-                        end;
+                        "Minutes between runs" := 0;
                     Automation::"Create Billing Proposal and Documents":
                         begin
                             TestField(Partner, Partner::Customer);
@@ -125,7 +123,7 @@ table 8060 "Billing Template"
             ToolTip = 'Specifies the description of the job queue entry that runs the billing process in the background.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = Lookup("Job Queue Entry".Description where("ID" = field("Batch Recurrent Job Id")));
+            CalcFormula = lookup("Job Queue Entry".Description where("ID" = field("Batch Recurrent Job Id")));
         }
     }
 
@@ -275,7 +273,6 @@ table 8060 "Billing Template"
         DocumentDate: Date;
         BillingDate: Date;
         BillingToDate: Date;
-        GroupBy: Enum "Contract Billing Grouping";
     begin
         CalculateBillingDates(BillingDate, BillingToDate, true);
         BillingProposal.CreateBillingProposal(Code, BillingDate, BillingToDate, true);

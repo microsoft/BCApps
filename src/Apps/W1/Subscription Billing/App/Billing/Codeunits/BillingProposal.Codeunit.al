@@ -913,7 +913,7 @@ codeunit 8062 "Billing Proposal"
                         BillingLine.SetRange("User ID", UserId());
                     if BillingLine.FindSet() then
                         repeat
-                            DeleteSalesBillingDocuments(BillingLine);
+                            DeleteBillingDocuments(BillingLine);
                         until BillingLine.Next() = 0;
                 end;
             2:
@@ -921,13 +921,13 @@ codeunit 8062 "Billing Proposal"
                     BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
                     if BillingLine.FindSet() then
                         repeat
-                            DeleteSalesBillingDocuments(BillingLine);
+                            DeleteBillingDocuments(BillingLine);
                         until BillingLine.Next() = 0;
                 end;
         end;
     end;
 
-    local procedure DeleteSalesBillingDocuments(BillingLine: Record "Billing Line")
+    local procedure DeleteBillingDocuments(BillingLine: Record "Billing Line")
     var
         SalesHeader: Record "Sales Header";
         PurchaseHeader: Record "Purchase Header";
@@ -943,22 +943,6 @@ codeunit 8062 "Billing Proposal"
                     if PurchaseHeader.Get(BillingLine.GetPurchaseDocumentTypeFromBillingDocumentType(), BillingLine."Document No.") then
                         PurchaseHeader.Delete(true);
                 end;
-        end;
-    end;
-
-    local procedure DeletePurchaseBillingDocuments(DeletePurchaseInvoices: Boolean; DeletePurchaseCreditMemos: Boolean)
-    begin
-        PurchaseHeaderGlobal.Reset();
-        PurchaseHeaderGlobal.SetRange("Recurring Billing", true);
-        if DeletePurchaseCreditMemos then begin
-            PurchaseHeaderGlobal.SetRange("Document Type", PurchaseHeaderGlobal."Document Type"::"Credit Memo");
-            if not PurchaseHeaderGlobal.IsEmpty() then
-                PurchaseHeaderGlobal.DeleteAll(true);
-        end;
-        if DeletePurchaseInvoices then begin
-            PurchaseHeaderGlobal.SetRange("Document Type", PurchaseHeaderGlobal."Document Type"::Invoice);
-            if not PurchaseHeaderGlobal.IsEmpty() then
-                PurchaseHeaderGlobal.DeleteAll(true);
         end;
     end;
 
