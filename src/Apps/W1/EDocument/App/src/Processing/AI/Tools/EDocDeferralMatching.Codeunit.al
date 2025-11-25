@@ -185,7 +185,7 @@ codeunit 6129 "E-Doc. Deferral Matching" implements "AOAI Function", IEDocAISyst
         if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then
             CompletePromptSecretText := SecretText.SecretStrSubstNo(DeferralMatchingPromptText, SecurityPromptSecretText, UserLanguage)
         else begin
-            Session.LogMessage('', 'Failed to retrieve security prompt', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetFeatureName());
+            Session.LogMessage('0000QPY', 'Failed to retrieve security prompt', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetFeatureName());
             CompletePromptSecretText := SecretStrSubstNo('');
         end;
         exit(CompletePromptSecretText);
