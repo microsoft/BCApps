@@ -82,7 +82,8 @@ codeunit 4325 "Agent Setup Impl."
                 AgentSetupBuffer."User Name" := Agent."User Name";
                 AgentSetupBuffer."Display Name" := Agent."Display Name";
                 AgentSetupBuffer.State := Agent.State;
-                AgentSetupBuffer.Initials := Agent.Initials;
+                AgentMetadata := Agent."Agent Metadata Provider";
+                AgentSetupBuffer.Initials := AgentMetadata.GetInitials(UserSecurityID);
                 AgentSetupBuffer."Configured By" := Agent.SystemModifiedBy;
                 exit;
             end;
@@ -146,7 +147,7 @@ codeunit 4325 "Agent Setup Impl."
         Agent: Codeunit Agent;
     begin
         AgentSetupBuffer.GetTempAgentAccessControl(TemporaryAgentAccessControl);
-        AgentSetupBuffer."User Security ID" := Agent.Create(AgentSetupBuffer."Agent Metadata Provider", AgentSetupBuffer."User Name", AgentSetupBuffer."Display Name", TemporaryAgentAccessControl, AgentSetupBuffer.Initials);
+        AgentSetupBuffer."User Security ID" := Agent.Create(AgentSetupBuffer."Agent Metadata Provider", AgentSetupBuffer."User Name", AgentSetupBuffer."Display Name", TemporaryAgentAccessControl);
         AgentRecord.Get(AgentSetupBuffer."User Security ID");
         SetBufferFieldsToAgent(AgentSetupBuffer, AgentRecord);
         NewUserSettings := AgentSetupBuffer.GetUserSettings();
@@ -206,8 +207,6 @@ codeunit 4325 "Agent Setup Impl."
     begin
         AgentRecord."Display Name" := AgentSetupBuffer."Display Name";
         AgentRecord."User Name" := AgentSetupBuffer."User Name";
-        // TODO: Return after bug 613431 is fixed
-        // AgentRecord.Initials := AgentSetupBuffer.Initials;
         AgentRecord.Modify();
     end;
 
