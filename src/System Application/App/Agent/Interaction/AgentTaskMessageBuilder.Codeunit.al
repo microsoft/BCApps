@@ -68,6 +68,20 @@ codeunit 4316 "Agent Task Message Builder"
     end;
 
     /// <summary>
+    /// Set whether to sanitize the message text.
+    /// When set to false, message sanitization will be bypassed.
+    /// The default value is true.
+    /// </summary>
+    /// <param name="SkipSanitizeMessage">Specifies if the message sanitization should be skipped.</param>
+    /// <returns>This instance of the Agent Task Message Builder.</returns>
+    [Scope('OnPrem')]
+    procedure SetSkipMessageSanitization(SkipSanitizeMessage: Boolean): codeunit "Agent Task Message Builder"
+    begin
+        AgentTaskMsgBuilderImpl.SetSkipMessageSanitization(SkipSanitizeMessage);
+        exit(this);
+    end;
+
+    /// <summary>
     /// Set the external ID of the task.
     /// </summary>
     /// <param name="ExternalId">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
@@ -218,5 +232,17 @@ codeunit 4316 "Agent Task Message Builder"
     procedure GetLastAttachment(): Record "Agent Task File"
     begin
         exit(AgentTaskMsgBuilderImpl.GetLastAttachment());
+    end;
+
+    /// <summary>
+    /// Get the last attachment that was added to the task message.
+    /// </summary>
+    /// <returns>
+    /// The last attachment that was added to the task message.
+    /// </returns>
+    [Scope('OnPrem')]    
+    procedure GetAttachments(var TempAttachments: Record "Agent Task File" temporary)
+    begin
+        AgentTaskMsgBuilderImpl.GetAttachments(TempAttachments);
     end;
 }

@@ -5,8 +5,8 @@
 
 namespace System.Agents;
 
-using System.Integration;
 using System.Environment;
+using System.Integration;
 
 codeunit 4300 "Agent Task Impl."
 {
@@ -189,6 +189,21 @@ codeunit 4300 "Agent Task Impl."
     procedure CanAgentTaskBeSetToReady(var AgentTask: Record "Agent Task"): Boolean
     begin
         exit((AgentTask.Status = AgentTask.Status::Paused) or (AgentTask.Status = AgentTask.Status::Completed));
+    end;
+
+    procedure IsTaskRunning(var AgentTask: Record "Agent Task"): Boolean
+    begin
+        exit(AgentTask.Status = AgentTask.Status::Running);
+    end;
+
+    procedure IsTaskCompleted(var AgentTask: Record "Agent Task"): Boolean
+    begin
+        exit(AgentTask.Status = AgentTask.Status::Completed);
+    end;
+
+    procedure IsTaskStopped(var AgentTask: Record "Agent Task"): Boolean
+    begin
+        exit((AgentTask.Status = AgentTask.Status::"Stopped by User") or (AgentTask.Status = AgentTask.Status::"Stopped by System"));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetAgentTaskMessagePageId, '', true, true)]
