@@ -227,7 +227,7 @@ codeunit 6105 "E-Doc. Similar Descriptions" implements "AOAI Function", IEDocAIS
     #endregion "AOAI Function" interface implementation
 
     #region "E-Document AI System" interface implementation
-    procedure GetSystemPrompt(): SecretText
+    procedure GetSystemPrompt(UserLanguage: Text): SecretText
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         PromptSecretText: SecretText;

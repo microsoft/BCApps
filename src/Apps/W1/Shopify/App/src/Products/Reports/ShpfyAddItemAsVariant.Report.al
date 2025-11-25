@@ -115,4 +115,12 @@ report 30117 "Shpfy Add Item As Variant"
         ShopifyProduct.Get(ParentProductNo);
         ShopCode := ShopifyProduct."Shop Code";
     end;
+
+    /// <summary> 
+    /// Returns the Shop value selected on request page.
+    /// </summary>
+    procedure GetShop(): Code[20]
+    begin
+        exit(ShopCode);
+    end;
 }

@@ -676,6 +676,13 @@ table 30118 "Shpfy Order Header"
             AutoFormatType = 1;
             AutoFormatExpression = "Currency Code";
         }
+        field(134; "Channel Liable Taxes"; Boolean)
+        {
+            Caption = 'Channel Liable Taxes';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = exist("Shpfy Order Tax Line" where("Parent Id" = field("Shopify Order Id"), "Channel Liable" = const(true)));
+        }
         field(500; "Shop Code"; Code[20])
         {
             Caption = 'Shop Code';
