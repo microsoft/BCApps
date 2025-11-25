@@ -22,6 +22,7 @@ codeunit 4324 "Agent Setup"
     /// <param name="DefaultUserName">Default user name for new agents</param>
     /// <param name="DefaultDisplayName">Default display name for new agents</param>
     /// <param name="AgentSummary">Summary information about the agent</param>
+    [Scope('OnPrem')]
     procedure GetSetupRecord(var AgentSetupBuffer: Record "Agent Setup Buffer"; UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80]; AgentSummary: Text)
     begin
         AgentSetupImpl.GetSetupRecord(AgentSetupBuffer, UserSecurityID, AgentMetadataProvider, DefaultUserName, DefaultDisplayName, AgentSummary);
@@ -32,6 +33,7 @@ codeunit 4324 "Agent Setup"
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
     /// <returns>Agent User ID of the created or updated agent.</returns>
+    [Scope('OnPrem')]
     procedure SaveChanges(var AgentSetupBuffer: Record "Agent Setup Buffer") "Agent User ID": Guid
     begin
         exit(AgentSetupImpl.SaveChanges(AgentSetupBuffer));
@@ -42,6 +44,7 @@ codeunit 4324 "Agent Setup"
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
     /// <returns>True if there are changes made, false otherwise.</returns>
+    [Scope('OnPrem')]
     procedure GetChangesMade(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     begin
         exit(AgentSetupBuffer."Values Updated" or AgentSetupBuffer."State Updated" or AgentSetupBuffer."Access Updated");
