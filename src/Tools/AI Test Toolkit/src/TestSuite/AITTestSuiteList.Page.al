@@ -31,6 +31,9 @@ page 149040 "AIT Test Suite List"
                 field(Description; Rec.Description)
                 {
                 }
+                field("Copilot Capability"; Rec."Copilot Capability")
+                {
+                }
                 field(Started; Rec."Started at")
                 {
                 }

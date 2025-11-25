@@ -6,6 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.TestTools.TestRunner;
+using System.AI;
 
 #pragma warning disable AS0002
 table 149030 "AIT Test Suite"
@@ -113,6 +114,16 @@ table 149030 "AIT Test Suite"
             Editable = false;
             ToolTip = 'Specifies the version of the current test run. It is used for comparing the results of the current test run with the results of the previous test run. The version will be stored in the Log entries.';
         }
+        field(14; "Copilot Capability"; Enum "Copilot Capability")
+        {
+            Caption = 'Copilot Capability';
+            ToolTip = 'Specifies the Copilot Capability that the test suite tests.';
+        }
+        field(15; "Run Frequency"; Enum "AIT Run Frequency")
+        {
+            Caption = 'Run Frequency';
+            ToolTip = 'Specifies how frequently the test suite should be run.';
+        }
         field(16; "Base Version"; Integer)
         {
             Caption = 'Base Version';
@@ -185,6 +196,34 @@ table 149030 "AIT Test Suite"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Column Mapping" where("Test Suite Code" = field("Code")));
+        }
+        field(40; "Language ID"; Integer)
+        {
+            Caption = 'Language ID';
+            TableRelation = "AIT Test Suite Language"."Language ID";
+            ValidateTableRelation = true;
+            ToolTip = 'Specifies the Windows Language ID for this test suite language.';
+
+            trigger OnValidate()
+            var
+                AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
+            begin
+                AITTestSuiteLanguage.UpdateLanguagesForTestSuite(Rec);
+            end;
+        }
+        field(41; "Language Tag"; Text[80])
+        {
+            Caption = 'Language Tag';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup("AIT Test Suite Language"."Language Tag" where("Test Suite Code" = field("Code"), "Language ID" = field("Language ID")));
+        }
+        field(42; "Language Name"; Text[80])
+        {
+            Caption = 'Language Name';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup("AIT Test Suite Language"."Language Name" where("Test Suite Code" = field("Code"), "Language ID" = field("Language ID")));
         }
         field(50; "Test Runner Id"; Integer)
         {

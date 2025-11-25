@@ -57,6 +57,30 @@ page 149031 "AIT Test Suite"
                         AITTestMethodLine.ModifyAll("Input Dataset", Rec."Input Dataset", true);
                     end;
                 }
+                field("Copilot Capability"; Rec."Copilot Capability")
+                {
+                    ApplicationArea = All;
+                }
+                field("Run Frequency"; Rec."Run Frequency")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies how frequently the test suite should be run.';
+                }
+                field("Language Tag"; Language)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Language';
+                    ToolTip = 'Specifies the language to use when running the test suite. Available languages are listed in the Languages factbox.';
+                    Editable = false;
+
+                    trigger OnAssistEdit()
+                    var
+                        AITTestSuiteLanguages: Codeunit "AIT Test Suite Language";
+                    begin
+                        AITTestSuiteLanguages.AssistEditTestSuiteLanguage(Rec);
+                        CurrPage.Update(true);
+                    end;
+                }
                 field("Test Runner Id"; TestRunnerDisplayName)
                 {
                     Caption = 'Test Runner';
@@ -199,6 +223,16 @@ page 149031 "AIT Test Suite"
                 }
             }
 
+        }
+        area(FactBoxes)
+        {
+            part(Languages; "AIT Test Suite Languages Part")
+            {
+                ApplicationArea = All;
+                SubPageLink = "Test Suite Code" = field("Code");
+                Caption = 'Languages';
+                UpdatePropagation = Both;
+            }
         }
     }
     actions
@@ -371,14 +405,19 @@ page 149031 "AIT Test Suite"
         TotalDuration: Duration;
         PageCaptionLbl: Label 'AI Test';
         TestRunnerDisplayName: Text;
+        Language: Text;
         InputDatasetChangedQst: Label 'You have modified the input dataset.\\Do you want to update the lines?';
         EvaluationSetupTxt: Text;
 
     trigger OnOpenPage()
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        AITTestSuiteLanguages: Codeunit "AIT Test Suite Language";
     begin
         FeatureTelemetry.LogUptake('0000NEV', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
+
+        if AITTestSuiteLanguages.AddLanguagesFromTestSuite(Rec) then
+            CurrPage.Update(false);
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -389,10 +428,12 @@ page 149031 "AIT Test Suite"
     trigger OnAfterGetCurrRecord()
     var
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
+        AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
     begin
         UpdateTotalDuration();
         UpdateAverages();
         TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner Id");
+        Language := AITTestSuiteLanguage.GetLanguageDisplayName(Rec."Language ID");
         EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(Rec.Code, 0);
     end;
 

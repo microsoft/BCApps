@@ -36,7 +36,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         TestMethodLineNotFoundErr: Label 'The test suite %1 does not contain the test line %2. Run the suite again.', Comment = '%1 = test suite code, %2 = line number';
         TestSuiteChangedErr: Label 'The test suite %1 has been changed since test line %2 was run. Run the suite again.', Comment = '%1 = test suite code, %2 = line number';
         NoEvaluatorsLbl: Label 'Configure...';
-
+        LanguageMismatchErr: Label 'The language of dataset %1 specified for AI Test line %2 does not match the language ID %3 of the test suite.', Comment = '%1 = Dataset name, %2 = AI Test Line No., %3 = Language ID';
 
     procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
     var
@@ -194,9 +194,11 @@ codeunit 149034 "AIT Test Suite Mgt."
 
             // Validate test line dataset
             if (AITTestMethodLine."Input Dataset" <> '') and (not ValidDatasets.Contains(AITTestMethodLine."Input Dataset")) then begin
-                ValidateTestLineDataset(AITTestMethodLine, AITTestMethodLine."Input Dataset");
+                ValidateTestLineDataset(AITTestMethodLine, AITTestMethodLine."Input Dataset", AITTestSuite."Language ID");
                 ValidDatasets.Add(AITTestMethodLine."Input Dataset");
             end;
+
+
         until AITTestMethodLine.Next() = 0;
     end;
 
@@ -213,12 +215,14 @@ codeunit 149034 "AIT Test Suite Mgt."
             Error(NoInputsInSuiteErr, AITTestSuite."Input Dataset", AITTestSuite."Code");
     end;
 
-    local procedure ValidateTestLineDataset(AITTestMethodLine: Record "AIT Test Method Line"; DatasetName: Code[100])
+    local procedure ValidateTestLineDataset(AITTestMethodLine: Record "AIT Test Method Line"; DatasetName: Code[100]; LanguageID: Integer)
     begin
         if not DatasetExists(DatasetName) then
             Error(NoDatasetInLineErr, DatasetName, AITTestMethodLine."Line No.");
         if not InputDataLinesExists(DatasetName) then
             Error(NoInputsInLineErr, DatasetName, AITTestMethodLine."Line No.");
+        if not DatasetLanguageMatchesTestSuiteLanguage(DatasetName, LanguageID) then
+            Error(LanguageMismatchErr, AITTestMethodLine."Line No.", DatasetName, LanguageID);
     end;
 
     local procedure DatasetExists(DatasetName: Code[100]): Boolean
@@ -235,6 +239,17 @@ codeunit 149034 "AIT Test Suite Mgt."
         TestInput.Reset();
         TestInput.SetRange("Test Input Group Code", DatasetName);
         exit(not TestInput.IsEmpty());
+    end;
+
+    local procedure DatasetLanguageMatchesTestSuiteLanguage(DatasetName: Code[100]; LanguageID: Integer): Boolean
+    var
+        TestInputGroup: Record "Test Input Group";
+    begin
+        if LanguageID = 0 then
+            exit(true); // No language specified, so always match
+
+        TestInputGroup.Get(DatasetName);
+        exit(TestInputGroup."Language ID" = LanguageID);
     end;
 
     internal procedure DecreaseNoOfTestsRunningNow(var AITTestSuite: Record "AIT Test Suite")
@@ -541,6 +556,7 @@ codeunit 149034 "AIT Test Suite Mgt."
     local procedure DeleteLinesOnDeleteAITTestSuite(var Rec: Record "AIT Test Suite"; RunTrigger: Boolean)
     var
         AITTestMethodLine: Record "AIT Test Method Line";
+        AITTestSuiteLanguage: Record "AIT Test Suite Language";
         AITEvaluator: Record "AIT Evaluator";
         AITColumnMapping: Record "AIT Column Mapping";
         AITLogEntry: Record "AIT Log Entry";
@@ -563,6 +579,9 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITRunHistory.SetRange("Test Suite Code", Rec."Code");
         AITRunHistory.DeleteAll(true);
+
+        AITTestSuiteLanguage.SetRange("Test Suite Code", Rec."Code");
+        AITTestSuiteLanguage.DeleteAll(true);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"AIT Test Method Line", OnBeforeInsertEvent, '', false, false)]
