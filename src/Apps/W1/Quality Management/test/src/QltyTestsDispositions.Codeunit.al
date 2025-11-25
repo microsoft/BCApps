@@ -45,7 +45,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = IntegrationTest;
+    TestType = Uncategorized;
 
     var
         LibraryAssert: Codeunit "Library Assert";

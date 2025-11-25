@@ -39,7 +39,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = IntegrationTest;
+    TestType = Uncategorized;
 
     var
         LibraryAssert: Codeunit "Library Assert";

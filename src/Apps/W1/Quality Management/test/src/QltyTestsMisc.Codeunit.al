@@ -45,7 +45,7 @@ codeunit 139964 "Qlty. Tests - Misc"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = IntegrationTest;
+    TestType = Uncategorized;
     EventSubscriberInstance = Manual;
 
     var

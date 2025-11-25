@@ -40,7 +40,7 @@ codeunit 139969 "Qlty. Test Workflows"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = IntegrationTest;
+    TestType = Uncategorized;
 
     var
         LibraryWarehouse: Codeunit "Library - Warehouse";
