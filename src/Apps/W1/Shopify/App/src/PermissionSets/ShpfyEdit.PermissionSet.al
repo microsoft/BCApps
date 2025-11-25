@@ -59,6 +59,7 @@ permissionset 30102 "Shpfy - Edit"
         tabledata "Shpfy Payment Transaction" = IMD,
         tabledata "Shpfy Payout" = IMD,
         tabledata "Shpfy Product" = IMD,
+        tabledata "Shpfy Product Collection" = IMD,
         tabledata "Shpfy Refund Header" = IMD,
         tabledata "Shpfy Refund Line" = IMD,
         tabledata "Shpfy Refund Shipping Line" = IMD,
@@ -68,7 +69,11 @@ permissionset 30102 "Shpfy - Edit"
         tabledata "Shpfy Sales Channel" = IMD,
         tabledata "Shpfy Shipment Method Mapping" = IMD,
         tabledata "Shpfy Shop" = IMD,
+#if not CLEAN28
+#pragma warning disable AL0432
         tabledata "Shpfy Shop Collection Map" = IMD,
+#pragma warning restore AL0432
+#endif
         tabledata "Shpfy Shop Inventory" = IMD,
         tabledata "Shpfy Shop Location" = IMD,
         tabledata "Shpfy Skipped Record" = IMD,

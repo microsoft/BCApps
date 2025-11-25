@@ -1,8 +1,0 @@
-[
-    {
-        "bug": "Not Provided",
-        "codeunitId": 139648,
-        "CodeunitName": "Shpfy Suggest Payment Test",
-        "Method": "UnitTestSuggestShopifyPaymentsRefunds"
-    }
-]

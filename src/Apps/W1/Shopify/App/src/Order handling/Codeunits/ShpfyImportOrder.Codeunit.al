@@ -802,6 +802,7 @@ codeunit 30161 "Shpfy Import Order"
             JsonHelper.GetValueIntoField(JToken, 'ratePercentage', RecordRef, OrderTaxLine.FieldNo("Rate %"));
             JsonHelper.GetValueIntoField(JToken, 'priceSet.shopMoney.amount', RecordRef, OrderTaxLine.FieldNo(Amount));
             JsonHelper.GetValueIntoField(JToken, 'priceSet.presentmentMoney.amount', RecordRef, OrderTaxLine.FieldNo("Presentment Amount"));
+            JsonHelper.GetValueIntoField(JToken, 'channelLiable', RecordRef, OrderTaxLine.FieldNo("Channel Liable"));
             RecordRef.Insert(true);
             RecordRef.Close();
         end;
