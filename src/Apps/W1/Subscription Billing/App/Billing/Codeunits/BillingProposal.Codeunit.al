@@ -154,7 +154,6 @@ codeunit 8062 "Billing Proposal"
         BillingTemplate: Record "Billing Template";
         CustomerContract: Record "Customer Subscription Contract";
         VendorContract: Record "Vendor Subscription Contract";
-        ContractBillingErrLog: Record "Contract Billing Err. Log";
         FilterText: Text;
         BillingRhythmFilterText: Text;
     begin
@@ -890,7 +889,7 @@ codeunit 8062 "Billing Proposal"
         BillingTemplate: Record "Billing Template";
         DeleteBillingDocumentQst: Label 'Which contract billing documents should be deleted?';
         DeleteBillingDocumentOptionsTxt: Label 'All Documents,Documents from current billing template only';
-        DeleteBillingDocumentOptionsMySuggestionsOnlyTxt: Label 'All Documents (user %1 only),Documents from current billing template only';
+        DeleteBillingDocumentOptionsMySuggestionsOnlyTxt: Label 'All Documents (user %1 only),Documents from current billing template only', Comment = '%1: User ID';
         StrMenuResponse: Integer;
     begin
         DisplayErrorIfNotAuthorizedToClearProposalOrDeleteDocuments();
@@ -934,15 +933,11 @@ codeunit 8062 "Billing Proposal"
     begin
         case BillingLine.Partner of
             BillingLine.Partner::Customer:
-                begin
-                    if SalesHeader.Get(BillingLine.GetSalesDocumentTypeFromBillingDocumentType(), BillingLine."Document No.") then
-                        SalesHeader.Delete(true);
-                end;
+                if SalesHeader.Get(BillingLine.GetSalesDocumentTypeFromBillingDocumentType(), BillingLine."Document No.") then
+                    SalesHeader.Delete(true);
             BillingLine.Partner::Vendor:
-                begin
-                    if PurchaseHeader.Get(BillingLine.GetPurchaseDocumentTypeFromBillingDocumentType(), BillingLine."Document No.") then
-                        PurchaseHeader.Delete(true);
-                end;
+                if PurchaseHeader.Get(BillingLine.GetPurchaseDocumentTypeFromBillingDocumentType(), BillingLine."Document No.") then
+                    PurchaseHeader.Delete(true);
         end;
     end;
 
