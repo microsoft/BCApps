@@ -1703,7 +1703,7 @@ table 20405 "Qlty. Inspection Test Header"
     var
         DifferenceInPassFailQuantity: Decimal;
     begin
-        if ((Rec."Pass Quantity" + Rec."Fail Quantity") > Rec."Source Quantity (Base)") then begin
+        if (Rec."Pass Quantity" + Rec."Fail Quantity") > Rec."Source Quantity (Base)" then begin
             DifferenceInPassFailQuantity := Rec."Pass Quantity" + Rec."Fail Quantity" - Rec."Source Quantity (Base)";
             Error(PassFailQuantityInvalidErr, DifferenceInPassFailQuantity);
         end;
