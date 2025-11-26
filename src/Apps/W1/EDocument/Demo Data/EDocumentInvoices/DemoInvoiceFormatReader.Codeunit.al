@@ -14,7 +14,7 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 /// Custom implementation of IStructuredFormatReader interface for demo data
 /// This codeunit demonstrates how to read structured e-document data and populate draft records
 /// </summary>
-codeunit 5391 "Demo Invoice Format Reader" implements IStructuredFormatReader
+codeunit 5392 "Demo Invoice Format Reader" implements IStructuredFormatReader
 {
     Access = Internal;
     InherentEntitlements = X;
