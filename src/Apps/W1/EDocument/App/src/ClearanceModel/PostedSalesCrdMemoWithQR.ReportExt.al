@@ -26,7 +26,7 @@ reportextension 6168 PostedSalesCrdMemoWithQR extends "Standard Sales - Credit M
         layout("StandardSalesInvoice.docx")
         {
             Type = Word;
-            LayoutFile = './src/ClearanceModel/StandardSalesCreditMemowithQR.docx';
+            LayoutFile = './.resources/Template/StandardSalesCreditMemowithQR.docx';
             Caption = 'Standard Sales - Credit Memo - E-Document (Word)';
             Summary = 'The Standard Sales - Credit Memo - E-Document (Word) provides the layout including E-Document QR code support.';
         }

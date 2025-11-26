@@ -685,4 +685,14 @@ enum 30111 "Shpfy GraphQL Type" implements "Shpfy IGraphQL"
         Caption = 'Accept Fulfillment Request';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL AcceptFFRequest";
     }
+    value(139; GetCustomProductCollections)
+    {
+        Caption = 'Get Custom Product Collections';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CustProdCollections";
+    }
+    value(140; GetNextCustomProductCollections)
+    {
+        Caption = 'Get Next Custom Product Collections';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextCustProdColls";
+    }
 }

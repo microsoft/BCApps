@@ -109,7 +109,7 @@ page 4317 "Agent User Settings"
     begin
         AgentUtilities.BlockPageFromBeingOpenedByAgent();
 
-        if not Rec.Initialized then
+        if (not Rec.Initialized) and (not TemporaryRecord) then
             UserSettings.GetUserSettings(Rec."User Security ID", Rec);
 
         SetGlobalsFromRec(Rec);

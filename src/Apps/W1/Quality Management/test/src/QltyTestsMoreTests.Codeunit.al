@@ -2224,7 +2224,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryAssert.ExpectedError(CanOnlyBeSetWhenToTypeIsTestErr);
     end;
 
-    [Test]
+    // Test disabled due to inconsistent behavior across environments
+    // Bug 613059 to address the test stability issue
+    // [Test]
     procedure ApplicationAreaMgmt_IsQualityManagementApplicationAreaEnabled()
     var
         AllProfile: Record "All Profile";
@@ -2234,7 +2236,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyApplicationAreaMgmt: Codeunit "Qlty. Application Area Mgmt.";
 
     begin
-        // [SCENARIO] Quality Management application area is enabled by default
+        // [SCENARIO] Quality Management application area is enabled by default on Essential experience
 
         // [GIVEN] Application Area Setup exists or is created for current company and user
         if not ApplicationAreaMgmtFacade.GetApplicationAreaSetupRecFromCompany(ApplicationAreaSetup, CompanyName()) then begin

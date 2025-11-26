@@ -98,13 +98,8 @@ table 30121 "Shpfy Orders to Import"
             DataClassification = CustomerContent;
             Editable = false;
             ObsoleteReason = 'This field is not imported. Use field ';
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#else
                                 ObsoleteState = Removed;
                                 ObsoleteTag = '28.0';
-#endif
         }
 #endif
         field(13; "Financial Status"; enum "Shpfy Financial Status")
@@ -216,6 +211,12 @@ table 30121 "Shpfy Orders to Import"
             DataClassification = SystemMetadata;
             AutoFormatType = 1;
             AutoFormatExpression = "Currency Code";
+        }
+        field(30; "Channel Liable Taxes"; Boolean)
+        {
+            Caption = 'Channel Liable Taxes';
+            DataClassification = SystemMetadata;
+            Editable = false;
         }
         field(100; "Import Action"; Enum "Shpfy Import Action")
         {
