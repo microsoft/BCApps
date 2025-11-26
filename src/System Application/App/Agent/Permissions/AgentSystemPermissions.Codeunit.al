@@ -7,6 +7,9 @@ namespace System.Agents;
 
 codeunit 4317 "Agent System Permissions"
 {
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
     /// <summary>
     /// Gets whether the current user has permissions to manage all agents.
     /// </summary>
