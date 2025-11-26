@@ -122,10 +122,10 @@ table 8070 "Subscription Billing Cue"
             ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
 #if not CLEAN27
             ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
+            ObsoleteTag = '28.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
         }
 #endif
