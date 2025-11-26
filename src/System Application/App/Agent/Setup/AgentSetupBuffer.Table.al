@@ -85,11 +85,6 @@ table 4310 "Agent Setup Buffer"
         {
             Caption = 'Initials';
             ToolTip = 'Specifies the initials to be displayed on the icon opening the agent''s timeline.';
-
-            trigger OnValidate()
-            begin
-                Rec."Values Updated" := true;
-            end;
         }
         /// <summary>
         /// Short summary of the agents capabilities and role.
