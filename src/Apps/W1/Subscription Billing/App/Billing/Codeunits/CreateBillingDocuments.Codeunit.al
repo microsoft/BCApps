@@ -802,7 +802,7 @@ codeunit 8060 "Create Billing Documents"
             end;
     end;
 
-    local procedure CheckBillingLines(var BillingLine: Record "Billing Line") Success: Boolean
+    local procedure CheckBillingLines(var BillingLine: Record "Billing Line"): Boolean
     begin
         if not CheckOnlyOneServicePartnerType(BillingLine) then
             exit(false);
@@ -813,7 +813,7 @@ codeunit 8060 "Create Billing Documents"
         exit(true);
     end;
 
-    local procedure CheckOnlyOneServicePartnerType(var BillingLine: Record "Billing Line") Success: Boolean
+    local procedure CheckOnlyOneServicePartnerType(var BillingLine: Record "Billing Line"): Boolean
     begin
         if BillingLine.FindSet() then
             repeat
@@ -833,7 +833,7 @@ codeunit 8060 "Create Billing Documents"
         exit(true);
     end;
 
-    local procedure CheckNoUpdateRequired(var BillingLine: Record "Billing Line") Success: Boolean
+    local procedure CheckNoUpdateRequired(var BillingLine: Record "Billing Line"): Boolean
     begin
         BillingLine.SetRange("Update Required", true);
         if BillingLine.FindFirst() then begin
