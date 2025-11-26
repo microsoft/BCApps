@@ -71,10 +71,15 @@ function CleanUpPublishedApps {
     $appsToUninstall = Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties | Where-Object { $_.Publisher -eq "Designer" -and $_.Name -eq "CRM Sync Designer" }
     
     foreach($app in $appsToUninstall) {
-        Write-Host "Uninstalling $($app.Name)"
-        UnInstall-BcContainerApp -containerName $ContainerName -name $app.Name -doNotSaveData -doNotSaveSchema -force
-        Write-Host "Unpublishing $($app.Name)"
-        Unpublish-BcContainerApp -containerName $ContainerName -name $app.Name -unInstall -doNotSaveData -doNotSaveSchema -force
+        if ($app.IsInstalled) {
+            Write-Host "Uninstalling $($app.Name) (version $($app.Version))"
+            UnInstall-BcContainerApp -containerName $ContainerName -name $app.Name -version $app.Version -publisher $app.Publisher -doNotSaveData -doNotSaveSchema -force
+        }
+
+        if ($app.IsPublished) {
+            Write-Host "Unpublishing $($app.Name) (version $($app.Version))"
+            Unpublish-BcContainerApp -containerName $ContainerName -name $app.Name -version $app.Version  -publisher $app.Publisher -doNotSaveData -doNotSaveSchema -force
+        }
     }
 }
 
