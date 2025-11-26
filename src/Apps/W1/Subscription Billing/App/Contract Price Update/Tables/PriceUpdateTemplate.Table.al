@@ -48,7 +48,6 @@ table 8003 "Price Update Template"
             Caption = 'Update Value %';
             BlankZero = true;
             AutoFormatType = 0;
-            DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
             begin

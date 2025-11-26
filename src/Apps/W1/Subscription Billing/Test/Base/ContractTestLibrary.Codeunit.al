@@ -706,7 +706,7 @@ codeunit 139685 "Contract Test Library"
         ServiceObject."Provision Start Date" := WorkDate();
         if ServiceObject.IsItem() then
             if not SNSpecificTracking then
-                ServiceObject.Quantity := LibraryRandom.RandDec(10, 5)
+                ServiceObject.Quantity := LibraryRandom.RandDec(10, 2)
             else
                 ServiceObject."Serial No." := CopyStr(LibraryRandom.RandText(MaxStrLen(ServiceObject."Serial No.")), 1, MaxStrLen(ServiceObject."Serial No."));
 
@@ -1373,7 +1373,7 @@ codeunit 139685 "Contract Test Library"
             CreateServiceObjectForItem(ServiceObject, Item, false);
             ServiceObject.SetHideValidationDialog(true);
             ServiceObject.Validate("End-User Customer Name", Customer.Name);
-            ServiceObject.Quantity := LibraryRandom.RandDec(10, 5);
+            ServiceObject.Quantity := LibraryRandom.RandDec(10, 2);
             ServiceObject.Modify(false);
         end;
         UpdateItemUnitCostAndPrice(Item, LibraryRandom.RandDec(1000, 2), LibraryRandom.RandDec(1000, 2), false);

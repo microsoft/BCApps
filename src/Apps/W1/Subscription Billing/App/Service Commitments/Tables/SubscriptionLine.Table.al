@@ -397,7 +397,6 @@ table 8059 "Subscription Line"
             FieldClass = FlowField;
             CalcFormula = lookup("Subscription Header".Quantity where("No." = field("Subscription Header No.")));
             AutoFormatType = 0;
-            DecimalPlaces = 0 : 5;
         }
         field(40; "Create Contract Deferrals"; Enum "Create Contract Deferrals")
         {
@@ -532,7 +531,6 @@ table 8059 "Subscription Line"
             DataClassification = CustomerContent;
             Editable = false;
             AutoFormatType = 0;
-            DecimalPlaces = 0 : 5;
         }
         field(8003; "Supplier Reference Entry No."; Integer)
         {
@@ -1672,6 +1670,7 @@ table 8059 "Subscription Line"
         Rec.Modify(true);
         Rec.SetSkipArchiving(false);
         Rec.CreateServiceCommitmentArchive(ServiceCommitmentArchive, xServiceCommitment, CalcDate('<-1D>', ContractPriceUpdateLine."Perform Update On"), Enum::"Type Of Price Update"::"Price Update");
+        OnAfterUpdateServiceCommitmentFromContractPriceUpdateLine(Rec, ContractPriceUpdateLine);
     end;
 
     internal procedure ServiceCommitmentArchiveExistsForPeriodExists(var ServiceCommitmentArchive: Record "Subscription Line Archive"; RecurringBillingFrom: Date; RecurringBillingTo: Date): Boolean
@@ -2066,6 +2065,11 @@ table 8059 "Subscription Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckServiceDates(ServiceStartDate: Date; ServiceEndDate: Date; NextBillingDate: Date; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdateServiceCommitmentFromContractPriceUpdateLine(var SubscriptionLine: Record "Subscription Line"; SubContractPriceUpdateLine: Record "Sub. Contr. Price Update Line")
     begin
     end;
 }

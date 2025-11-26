@@ -114,7 +114,6 @@ table 8065 "Vend. Sub. Contract Line"
             CalcFormula = lookup("Subscription Header".Quantity where("No." = field("Subscription Header No.")));
             Editable = false;
             AutoFormatType = 0;
-            DecimalPlaces = 0 : 5;
         }
         field(200; "Planned Sub. Line exists"; Boolean)
         {

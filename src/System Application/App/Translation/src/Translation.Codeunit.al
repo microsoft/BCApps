@@ -195,4 +195,17 @@ codeunit 3711 Translation
     begin
         TranslationImplementation.ShowForAllRecords(TableId, FieldId);
     end;
+
+    /// <summary>
+    /// Gets all available translations for a record into a temporary buffer.
+    /// If FieldId is 0, it retrieves translations for all fields.
+    /// </summary>
+    /// <param name="RecVariant">Source record variant</param>
+    /// <param name="FieldId">Field ID to get translations for. Use 0 to retrieve translations for all fields.</param>
+    /// <param name="TranslationBuffer">Output: Temporary buffer with translations</param>
+    /// <returns>True if translations were found</returns>
+    procedure GetTranslations(RecVariant: Variant; FieldId: Integer; var TranslationBuffer: Record "Translation Buffer"): Boolean
+    begin
+        exit(TranslationImplementation.GetTranslations(RecVariant, FieldId, TranslationBuffer));
+    end;
 }

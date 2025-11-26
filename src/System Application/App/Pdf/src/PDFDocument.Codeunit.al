@@ -49,17 +49,19 @@ codeunit 3110 "PDF Document"
     begin
         exit(PDFDocumentImpl.ConvertToImage(ImageStream, ImageFormat, PageNumber));
     end;
-
+#if not CLEAN27
     /// <summary>
-    /// This procedure is used to convert a PDF file to an image. Use ConvertPdfToImage to get a success flag.
+    /// This procedure is used to convert a PDF file to an image.
     /// </summary>
     /// <param name="ImageStream">Stream of the image file.</param>
     /// <param name="ImageFormat">Image format to convert the PDF to.</param>
     /// <param name="PageNumber">Page number to convert.</param>
+    [Obsolete('Use the ConvertPdfToImage procedure instead.', '27.2')]
     procedure ConvertToImage(var ImageStream: InStream; ImageFormat: Enum "Image Format"; PageNumber: Integer)
     begin
         PDFDocumentImpl.ConvertToImage(ImageStream, ImageFormat, PageNumber);
     end;
+#endif
 
     /// <summary>
     /// This procedure is used to get the invoice attachment stream from a PDF file.

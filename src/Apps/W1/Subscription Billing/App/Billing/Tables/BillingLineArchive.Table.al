@@ -87,7 +87,6 @@ table 8064 "Billing Line Archive"
         {
             Caption = 'Quantity';
             AutoFormatType = 0;
-            DecimalPlaces = 0 : 5;
         }
         field(50; "Billing from"; Date)
         {
