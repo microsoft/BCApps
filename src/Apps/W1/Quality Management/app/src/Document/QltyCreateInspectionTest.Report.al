@@ -198,7 +198,7 @@ report 20400 "Qlty. Create Inspection Test"
                 if not QltInspectionTemplateHdr.Get(QltInspectionTemplateToCreate) then
                     Error(NotAValidQltyInspectionTemplateErr, QltInspectionTemplateToCreate);
 
-                if ((NullCheckRecordId = Target) or (Target.TableNo = 0)) then
+                if (NullCheckRecordId = Target) or (Target.TableNo = 0) then
                     Error(PleaseChooseARecordFirstErr);
             end;
         end;
