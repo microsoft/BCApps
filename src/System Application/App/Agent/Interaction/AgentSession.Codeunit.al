@@ -36,4 +36,44 @@ codeunit 4312 "Agent Session"
     begin
         exit(AgentUtilities.GetCurrentSessionAgentTaskId());
     end;
+
+    /// <summary>
+    /// Returns true if the current session is an agent session for the specified agent type.
+    /// </summary>
+    /// <param name="AgentMetadataProvider">The agent type</param>
+    /// <returns>True if the current session is an agent session for the specified agent type, false otherwise.</returns>
+    procedure IsAgentSessionOfType(AgentMetadataProvider: Enum "Agent Metadata Provider"): Boolean
+    var
+        ActiveAgentMetadataProvider: Enum "Agent Metadata Provider";
+    begin
+        if not IsAgentSession(ActiveAgentMetadataProvider) then
+            exit(false);
+
+        if ActiveAgentMetadataProvider <> AgentMetadataProvider then
+            exit(false);
+
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Returns true if the current session is an agent session for the specified agent type and user ID.
+    /// </summary>
+    /// <param name="AgentMetadataProvider">The agent type</param>
+    /// <param name="AgentUserId">The agent user ID</param>
+    /// <returns>True if both match, false otherwise.</returns>
+    procedure IsAgentSession(AgentMetadataProvider: Enum "Agent Metadata Provider"; AgentUserId: Guid): Boolean
+    var
+        ActiveAgentMetadataProvider: Enum "Agent Metadata Provider";
+    begin
+        if not IsAgentSession(ActiveAgentMetadataProvider) then
+            exit(false);
+
+        if ActiveAgentMetadataProvider <> AgentMetadataProvider then
+            exit(false);
+
+        if AgentUserId <> UserId() then
+            exit(false);
+
+        exit(true);
+    end;
 }
