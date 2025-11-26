@@ -61,7 +61,7 @@ codeunit 133103 "Dataverse Table Builder Test"
         asserterror DataverseTableBuilder.CommitGeneration();
 
         // [THEN] An error is raised.
-        Assert.ExpectedError('Generation has not been started. Start generation first.');
+        Assert.ExpectedError('Something something.');
     end;
 
     [Test]
