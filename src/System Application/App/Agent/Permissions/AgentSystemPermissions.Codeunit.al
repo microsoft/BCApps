@@ -14,7 +14,7 @@ codeunit 4317 "Agent System Permissions"
     [Scope('OnPrem')]
     procedure CurrentUserHasCanManageAllAgentsPermission(): Boolean
     begin
-        exit("Agent System Permissions Impl".CurrentUserHasCanManageAllAgentsPermission());
+        exit("Agent System Permissions Impl.".CurrentUserHasCanManageAllAgentsPermission());
     end;
 
     /// <summary>
@@ -24,7 +24,7 @@ codeunit 4317 "Agent System Permissions"
     [Scope('OnPrem')]
     procedure CurrentUserHasTroubleshootAllAgents(): Boolean
     begin
-        exit("Agent System Permissions Impl".CurrentUserHasTroubleshootAllAgents());
+        exit("Agent System Permissions Impl.".CurrentUserHasTroubleshootAllAgents());
     end;
 
     /// <summary>
@@ -34,9 +34,9 @@ codeunit 4317 "Agent System Permissions"
     [Scope('OnPrem')]
     procedure CurrentUserHasCanCreateCustomAgent(): Boolean
     begin
-        exit("Agent System Permissions Impl".CurrentUserHasCanCreateCustomAgent());
+        exit("Agent System Permissions Impl.".CurrentUserHasCanCreateCustomAgent());
     end;
 
     var
-        "Agent System Permissions Impl": Codeunit "Agent System Permissions Impl";
+        "Agent System Permissions Impl.": Codeunit "Agent System Permissions Impl.";
 }

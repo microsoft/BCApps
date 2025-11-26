@@ -8,7 +8,7 @@ namespace System.Agents;
 using System.Security.AccessControl;
 using System.Security.User;
 
-codeunit 4318 "Agent System Permissions Impl"
+codeunit 4318 "Agent System Permissions Impl."
 {
     Access = Internal;
     InherentEntitlements = X;
