@@ -5,33 +5,38 @@
 
 namespace System.Agents;
 
-using System.Security.AccessControl;
-using System.Security.User;
-
 codeunit 4317 "Agent System Permissions"
 {
+    /// <summary>
+    /// Gets whether the current user has permissions to manage all agents.
+    /// </summary>
+    /// <returns>True if the user has permissions to manage all agents, false otherwise.</returns>
+    [Scope('OnPrem')]
     procedure CurrentUserHasCanManageAllAgentsPermission(): Boolean
     begin
-        exit(CurrentUserHasExecuteSystemPermission(9665)); // "Configure All Agents"
+        exit("Agent System Permissions Impl".CurrentUserHasCanManageAllAgentsPermission());
     end;
 
+    /// <summary>
+    /// Gets whether the current user has permissions to troubleshoot the execution of agent tasks.
+    /// </summary>
+    /// <returns>True if the user has troubleshoot permissions, false otherwise.</returns>
+    [Scope('OnPrem')]
     procedure CurrentUserHasTroubleshootAllAgents(): Boolean
     begin
-        exit(CurrentUserHasExecuteSystemPermission(9666)); // "Troubleshoot All Agents"
+        exit("Agent System Permissions Impl".CurrentUserHasTroubleshootAllAgents());
     end;
 
+    /// <summary>
+    /// Gets whether the current user has permissions to create custom agents.
+    /// </summary>
+    /// <returns>True if the user has create permissions, false otherwise.</returns>
+    [Scope('OnPrem')]
     procedure CurrentUserHasCanCreateCustomAgent(): Boolean
     begin
-        // exit(CurrentUserHasExecuteSystemPermission(9667)); // "Create Custom Agent", not supported yet.
-        exit(false);
+        exit("Agent System Permissions Impl".CurrentUserHasCanCreateCustomAgent());
     end;
 
-    local procedure CurrentUserHasExecuteSystemPermission(PermissionId: Integer): Boolean
     var
-        TempPermission: Record "Expanded Permission" temporary;
-        UserPermissions: Codeunit "User Permissions";
-    begin
-        TempPermission := UserPermissions.GetEffectivePermission(TempPermission."Object Type"::System, PermissionId);
-        exit(TempPermission."Execute Permission" = TempPermission."Execute Permission"::Yes);
-    end;
+        "Agent System Permissions Impl": Codeunit "Agent System Permissions Impl";
 }
