@@ -54,6 +54,7 @@ report 20400 "Qlty. Create Inspection Test"
                         Caption = 'Template Code';
                         Tooltip = 'Specifies which Quality Inspection Template to create.';
                         ShowMandatory = true;
+
                         trigger OnLookup(var Text: Text): Boolean
                         var
                             QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
