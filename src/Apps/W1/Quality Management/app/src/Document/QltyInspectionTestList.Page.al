@@ -686,7 +686,7 @@ page 20408 "Qlty. Inspection Test List"
 
     trigger OnOpenPage()
     begin
-        RowActionsAreEnabled := not Rec.IsEmpty();
+        RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
         CanCreateTest := QltyPermissionMgmt.CanCreateManualTest();
         CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentRetest();
         CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishTest() and not (Rec.Status = Rec.Status::Finished);
@@ -697,7 +697,7 @@ page 20408 "Qlty. Inspection Test List"
     begin
         CanAssignToSelf := false;
         CanUnassign := false;
-        RowActionsAreEnabled := not Rec.IsEmpty();
+        RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
         CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentRetest();
         CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishTest() and not (Rec.Status = Rec.Status::Finished);
 
