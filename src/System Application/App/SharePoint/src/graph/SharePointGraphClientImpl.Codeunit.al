@@ -7,8 +7,8 @@ namespace System.Integration.Sharepoint;
 
 using System.Integration.Graph;
 using System.Integration.Graph.Authorization;
-using System.Utilities;
 using System.RestClient;
+using System.Utilities;
 
 /// <summary>
 /// Provides functionality for interacting with SharePoint through Microsoft Graph API.
@@ -78,6 +78,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
         FailedToDownloadFileErr: Label 'Failed to download file: %1', Comment = '%1 = Error message';
         InvalidFilePathErr: Label 'File path cannot be empty';
         FailedToDownloadFileByPathErr: Label 'Failed to download file by path: %1', Comment = '%1 = Error message';
+        FailedToDownloadChunkErr: Label 'Failed to download file chunk %1-%2: %3', Comment = '%1 = Start byte, %2 = End byte, %3 = Error message';
+        FailedToGetFileSizeErr: Label 'Failed to get file size for chunked download: %1', Comment = '%1 = Error message';
+        FailedToDeleteItemErr: Label 'Failed to delete item: %1', Comment = '%1 = Error message';
+        FailedToDeleteItemByPathErr: Label 'Failed to delete item by path: %1', Comment = '%1 = Error message';
+        InvalidTargetPathErr: Label 'Target path cannot be empty';
+        FailedToCopyItemErr: Label 'Failed to copy item: %1', Comment = '%1 = Error message';
+        FailedToMoveItemErr: Label 'Failed to move item: %1', Comment = '%1 = Error message';
 
     #region Initialization
 
@@ -819,8 +826,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
             exit(GetRootItems(GraphDriveItems, GraphOptionalParameters));
 
         // Remove leading slash if present
-        if FolderPath.StartsWith('/') then
-            FolderPath := CopyStr(FolderPath, 2);
+        FolderPath := FolderPath.TrimStart('/');
 
         // Use Graph pagination to get all pages automatically
         if not SharePointGraphRequestHelper.GetAllPages(SharePointGraphUriBuilder.GetDriveItemChildrenByPathEndpoint(FolderPath), GraphOptionalParameters, JsonArray) then begin
@@ -875,8 +881,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
             EffectiveDriveId := DriveId;
 
         // Remove leading slash if present
-        if FolderPath.StartsWith('/') then
-            FolderPath := CopyStr(FolderPath, 2);
+        FolderPath := FolderPath.TrimStart('/');
 
         // Configure conflict behavior
         SharePointGraphRequestHelper.ConfigureConflictBehavior(GraphOptionalParameters, ConflictBehavior);
@@ -983,8 +988,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
             EffectiveDriveId := DriveId;
 
         // Remove leading slash if present
-        if FolderPath.StartsWith('/') then
-            FolderPath := CopyStr(FolderPath, 2);
+        FolderPath := FolderPath.TrimStart('/');
 
         // Configure conflict behavior
         SharePointGraphRequestHelper.ConfigureConflictBehavior(GraphOptionalParameters, ConflictBehavior);
@@ -1123,8 +1127,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
             EffectiveDriveId := DriveId;
 
         // Remove leading slash if present
-        if FolderPath.StartsWith('/') then
-            FolderPath := CopyStr(FolderPath, 2);
+        FolderPath := FolderPath.TrimStart('/');
 
         // Create the request body with folder properties
         RequestJsonObj.Add('name', FolderName);
@@ -1175,9 +1178,9 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// Downloads a file.
     /// </summary>
     /// <param name="ItemId">ID of the file to download.</param>
-    /// <param name="FileInStream">InStream to receive the file content.</param>
+    /// <param name="TempBlob">TempBlob to receive the file content.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    procedure DownloadFile(ItemId: Text; var FileInStream: InStream): Codeunit "SharePoint Graph Response"
+    procedure DownloadFile(ItemId: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
     begin
@@ -1193,7 +1196,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         end;
 
         // Make the API request
-        if not SharePointGraphRequestHelper.DownloadFile(SharePointGraphUriBuilder.GetDriveItemContentByIdEndpoint(ItemId), FileInStream) then begin
+        if not SharePointGraphRequestHelper.DownloadFile(SharePointGraphUriBuilder.GetDriveItemContentByIdEndpoint(ItemId), TempBlob) then begin
             SharePointGraphResponse.SetError(StrSubstNo(FailedToDownloadFileErr,
                 SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
             exit(SharePointGraphResponse);
@@ -1207,9 +1210,9 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// Downloads a file by path.
     /// </summary>
     /// <param name="FilePath">Path to the file (e.g., 'Documents/file.docx').</param>
-    /// <param name="FileInStream">InStream to receive the file content.</param>
+    /// <param name="TempBlob">TempBlob to receive the file content.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    procedure DownloadFileByPath(FilePath: Text; var FileInStream: InStream): Codeunit "SharePoint Graph Response"
+    procedure DownloadFileByPath(FilePath: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
     begin
@@ -1225,14 +1228,171 @@ codeunit 9120 "SharePoint Graph Client Impl."
         end;
 
         // Remove leading slash if present
-        if FilePath.StartsWith('/') then
-            FilePath := CopyStr(FilePath, 2);
+        FilePath := FilePath.TrimStart('/');
 
         // Make the API request
-        if not SharePointGraphRequestHelper.DownloadFile(SharePointGraphUriBuilder.GetDriveItemContentByPathEndpoint(FilePath), FileInStream) then begin
+        if not SharePointGraphRequestHelper.DownloadFile(SharePointGraphUriBuilder.GetDriveItemContentByPathEndpoint(FilePath), TempBlob) then begin
             SharePointGraphResponse.SetError(StrSubstNo(FailedToDownloadFileByPathErr,
                 SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
             exit(SharePointGraphResponse);
+        end;
+
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
+    end;
+
+    /// <summary>
+    /// Downloads a large file using chunked download to overcome Business Central's 150MB HTTP response limit.
+    /// </summary>
+    /// <param name="ItemId">ID of the file to download.</param>
+    /// <param name="FileOutStream">OutStream to receive the file content.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure DownloadLargeFile(ItemId: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
+    var
+        GraphDriveItem: Record "SharePoint Graph Drive Item";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        ChunkTempBlob: Codeunit "Temp Blob";
+        ChunkInStream: InStream;
+        FileOutStream: OutStream;
+        FileSize: BigInteger;
+        ChunkSize: BigInteger;
+        RangeStart: BigInteger;
+        RangeEnd: BigInteger;
+        Endpoint: Text;
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if ItemId = '' then begin
+            SharePointGraphResponse.SetError(InvalidItemIdErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // First, get the file size
+        if not GetDriveItem(ItemId, GraphDriveItem).IsSuccessful() then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToGetFileSizeErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
+
+        FileSize := GraphDriveItem.Size;
+        if FileSize <= 0 then begin
+            SharePointGraphResponse.SetError(InvalidFileSizeErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // 100MB chunk size (104,857,600 bytes) - safely under 150MB Business Central limit
+        ChunkSize := 100 * 1024 * 1024;
+        RangeStart := 0;
+        Endpoint := SharePointGraphUriBuilder.GetDriveItemContentByIdEndpoint(ItemId);
+
+        TempBlob.CreateOutStream(FileOutStream);
+
+        // Download file in chunks
+        while RangeStart < FileSize do begin
+            Clear(ChunkTempBlob);
+            Clear(ChunkInStream);
+
+            RangeEnd := RangeStart + ChunkSize - 1;
+            if RangeEnd >= FileSize then
+                RangeEnd := FileSize - 1;
+
+            if not SharePointGraphRequestHelper.DownloadChunk(Endpoint, RangeStart, RangeEnd, ChunkTempBlob) then begin
+                SharePointGraphResponse.SetError(StrSubstNo(FailedToDownloadChunkErr,
+                    RangeStart, RangeEnd,
+                    SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+                exit(SharePointGraphResponse);
+            end;
+
+            // Write chunk to output Blob
+            ChunkTempBlob.CreateInStream(ChunkInStream);
+            FileOutStream.Write(ChunkInStream);
+
+            RangeStart := RangeEnd + 1;
+        end;
+
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
+    end;
+
+    /// <summary>
+    /// Downloads a large file by path using chunked download to overcome Business Central's 150MB HTTP response limit.
+    /// </summary>
+    /// <param name="FilePath">Path to the file (e.g., 'Documents/file.docx').</param>
+    /// <param name="FileOutStream">OutStream to receive the file content.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure DownloadLargeFileByPath(FilePath: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
+    var
+        GraphDriveItem: Record "SharePoint Graph Drive Item";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        ChunkTempBlob: Codeunit "Temp Blob";
+        ChunkInStream: InStream;
+        FileOutStream: OutStream;
+        FileSize: BigInteger;
+        ChunkSize: BigInteger;
+        RangeStart: BigInteger;
+        RangeEnd: BigInteger;
+        Endpoint: Text;
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if FilePath = '' then begin
+            SharePointGraphResponse.SetError(InvalidFilePathErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // Remove leading slash if present
+        FilePath := FilePath.TrimStart('/');
+
+        // First, get the file size
+        if not GetDriveItemByPath(FilePath, GraphDriveItem).IsSuccessful() then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToGetFileSizeErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
+
+        FileSize := GraphDriveItem.Size;
+        if FileSize <= 0 then begin
+            SharePointGraphResponse.SetError(InvalidFileSizeErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // 100MB chunk size (104,857,600 bytes) - safely under 150MB Business Central limit
+        ChunkSize := 100 * 1024 * 1024;
+        RangeStart := 0;
+        Endpoint := SharePointGraphUriBuilder.GetDriveItemContentByPathEndpoint(FilePath);
+
+        TempBlob.CreateOutStream(FileOutStream);
+
+        // Download file in chunks
+        while RangeStart < FileSize do begin
+            Clear(ChunkTempBlob);
+
+            RangeEnd := RangeStart + ChunkSize - 1;
+            if RangeEnd >= FileSize then
+                RangeEnd := FileSize - 1;
+
+            if not SharePointGraphRequestHelper.DownloadChunk(Endpoint, RangeStart, RangeEnd, ChunkTempBlob) then begin
+                SharePointGraphResponse.SetError(StrSubstNo(FailedToDownloadChunkErr,
+                    RangeStart, RangeEnd,
+                    SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+                exit(SharePointGraphResponse);
+            end;
+
+            // Write chunk to output Blob
+            ChunkTempBlob.CreateInStream(ChunkInStream);
+            FileOutStream.Write(ChunkInStream);
+
+            RangeStart := RangeEnd + 1;
         end;
 
         SharePointGraphResponse.SetSuccess();
@@ -1290,8 +1450,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         end;
 
         // Remove leading slash if present
-        if ItemPath.StartsWith('/') then
-            ItemPath := CopyStr(ItemPath, 2);
+        ItemPath := ItemPath.TrimStart('/');
 
         // Make the API request
         if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveItemByPathEndpoint(ItemPath), JsonResponse, GraphOptionalParameters) then begin
@@ -1353,6 +1512,385 @@ codeunit 9120 "SharePoint Graph Client Impl."
 
         SharePointGraphResponse.SetSuccess();
         exit(SharePointGraphResponse);
+    end;
+
+    /// <summary>
+    /// Deletes a drive item (file or folder) by ID.
+    /// </summary>
+    /// <param name="ItemId">ID of the item to delete.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure DeleteItem(ItemId: Text): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if ItemId = '' then begin
+            SharePointGraphResponse.SetError(InvalidItemIdErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // Make the DELETE request
+        if not SharePointGraphRequestHelper.Delete(SharePointGraphUriBuilder.GetDriveItemByIdEndpoint(ItemId)) then begin
+            // 404 is success - item already doesn't exist
+            if SharePointGraphRequestHelper.GetDiagnostics().GetHttpStatusCode() = 404 then begin
+                SharePointGraphResponse.SetSuccess();
+                exit(SharePointGraphResponse);
+            end;
+
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToDeleteItemErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
+
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
+    end;
+
+    /// <summary>
+    /// Deletes a drive item (file or folder) by path.
+    /// </summary>
+    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure DeleteItemByPath(ItemPath: Text): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if ItemPath = '' then begin
+            SharePointGraphResponse.SetError(InvalidFilePathErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // Remove leading slash if present
+        ItemPath := ItemPath.TrimStart('/');
+
+        // Make the DELETE request
+        if not SharePointGraphRequestHelper.Delete(SharePointGraphUriBuilder.GetDriveItemByPathEndpoint(ItemPath)) then begin
+            // 404 is success - item already doesn't exist
+            if SharePointGraphRequestHelper.GetDiagnostics().GetHttpStatusCode() = 404 then begin
+                SharePointGraphResponse.SetSuccess();
+                exit(SharePointGraphResponse);
+            end;
+
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToDeleteItemByPathErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
+
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
+    end;
+
+    /// <summary>
+    /// Checks if a drive item (file or folder) exists by ID.
+    /// </summary>
+    /// <param name="ItemId">ID of the item to check.</param>
+    /// <param name="Exists">True if the item exists, false if it doesn't exist (404).</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure ItemExists(ItemId: Text; var Exists: Boolean): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        JsonResponse: JsonObject;
+        HttpStatusCode: Integer;
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if ItemId = '' then begin
+            SharePointGraphResponse.SetError(InvalidItemIdErr);
+            Exists := false;
+            exit(SharePointGraphResponse);
+        end;
+
+        // Try to get the item
+        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveItemByIdEndpoint(ItemId), JsonResponse) then begin
+            HttpStatusCode := SharePointGraphRequestHelper.GetDiagnostics().GetHttpStatusCode();
+
+            // 404 means item doesn't exist - this is a successful check, just with a negative result
+            if HttpStatusCode = 404 then begin
+                Exists := false;
+                SharePointGraphResponse.SetSuccess();
+                exit(SharePointGraphResponse);
+            end;
+
+            // For other errors (401, 403, 429, 500, etc.), return error response
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveDriveItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetErrorMessage()));
+            Exists := false;
+            exit(SharePointGraphResponse);
+        end;
+
+        // Item exists
+        Exists := true;
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
+    end;
+
+    /// <summary>
+    /// Checks if a drive item (file or folder) exists by path.
+    /// </summary>
+    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
+    /// <param name="Exists">True if the item exists, false if it doesn't exist (404).</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure ItemExistsByPath(ItemPath: Text; var Exists: Boolean): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        JsonResponse: JsonObject;
+        HttpStatusCode: Integer;
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if ItemPath = '' then begin
+            SharePointGraphResponse.SetError(InvalidItemPathErr);
+            Exists := false;
+            exit(SharePointGraphResponse);
+        end;
+
+        // Remove leading slash if present
+        ItemPath := ItemPath.TrimStart('/');
+
+        // Try to get the item
+        if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetDriveItemByPathEndpoint(ItemPath), JsonResponse) then begin
+            HttpStatusCode := SharePointGraphRequestHelper.GetDiagnostics().GetHttpStatusCode();
+
+            // 404 means item doesn't exist - this is a successful check, just with a negative result
+            if HttpStatusCode = 404 then begin
+                Exists := false;
+                SharePointGraphResponse.SetSuccess();
+                exit(SharePointGraphResponse);
+            end;
+
+            // For other errors (401, 403, 429, 500, etc.), return error response
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToRetrieveDriveItemByPathErr, SharePointGraphRequestHelper.GetDiagnostics().GetErrorMessage()));
+            Exists := false;
+            exit(SharePointGraphResponse);
+        end;
+
+        // Item exists
+        Exists := true;
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
+    end;
+
+    /// <summary>
+    /// Copies a drive item (file or folder) to a new location by ID.
+    /// </summary>
+    /// <param name="ItemId">ID of the item to copy.</param>
+    /// <param name="TargetFolderId">ID of the target folder.</param>
+    /// <param name="NewName">New name for the copied item (optional).</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure CopyItem(ItemId: Text; TargetFolderId: Text; NewName: Text): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        RequestBody: JsonObject;
+        ParentReference: JsonObject;
+        ResponseJson: JsonObject;
+        CopyEndpoint: Text;
+        CopyItemEndpointLbl: Label '/sites/%1/drive/items/%2/copy', Locked = true;
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if ItemId = '' then begin
+            SharePointGraphResponse.SetError(InvalidItemIdErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        if TargetFolderId = '' then begin
+            SharePointGraphResponse.SetError(InvalidTargetPathErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // Build the copy endpoint
+        CopyEndpoint := StrSubstNo(CopyItemEndpointLbl, SiteId, ItemId);
+
+        // Build request body
+        ParentReference.Add('driveId', DefaultDriveId);
+        ParentReference.Add('id', TargetFolderId);
+        RequestBody.Add('parentReference', ParentReference);
+
+        if NewName <> '' then
+            RequestBody.Add('name', NewName);
+
+        // Make the POST request (copy is asynchronous - returns 202 Accepted)
+        if not SharePointGraphRequestHelper.Post(CopyEndpoint, RequestBody, ResponseJson) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToCopyItemErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
+
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
+    end;
+
+    /// <summary>
+    /// Copies a drive item (file or folder) to a new location by path.
+    /// </summary>
+    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
+    /// <param name="TargetFolderPath">Path to the target folder (e.g., 'Documents/Archive').</param>
+    /// <param name="NewName">New name for the copied item (optional).</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure CopyItemByPath(ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
+    var
+        GraphDriveItem: Record "SharePoint Graph Drive Item";
+        TargetFolderItem: Record "SharePoint Graph Drive Item";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if ItemPath = '' then begin
+            SharePointGraphResponse.SetError(InvalidFilePathErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        if TargetFolderPath = '' then begin
+            SharePointGraphResponse.SetError(InvalidTargetPathErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // Get the target folder ID first
+        SharePointGraphResponse := GetDriveItemByPath(TargetFolderPath, TargetFolderItem);
+        if not SharePointGraphResponse.IsSuccessful() then
+            exit(SharePointGraphResponse);
+
+        // Get the source item ID
+        SharePointGraphResponse := GetDriveItemByPath(ItemPath, GraphDriveItem);
+        if not SharePointGraphResponse.IsSuccessful() then
+            exit(SharePointGraphResponse);
+
+        // Now call CopyItem with IDs
+        exit(CopyItem(GraphDriveItem.Id, TargetFolderItem.Id, NewName));
+    end;
+
+    /// <summary>
+    /// Moves a drive item (file or folder) to a new location by ID.
+    /// </summary>
+    /// <param name="ItemId">ID of the item to move.</param>
+    /// <param name="TargetFolderId">ID of the target folder (optional).</param>
+    /// <param name="NewName">New name for the moved item (optional).</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure MoveItem(ItemId: Text; TargetFolderId: Text; NewName: Text): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        RequestBody: JsonObject;
+        ParentReference: JsonObject;
+        ResponseJson: JsonObject;
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if ItemId = '' then begin
+            SharePointGraphResponse.SetError(InvalidItemIdErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // At least one of target folder or new name must be provided
+        if (TargetFolderId = '') and (NewName = '') then begin
+            SharePointGraphResponse.SetError(InvalidTargetPathErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // Build request body for PATCH
+        // Move is done by updating the parentReference and/or name
+        if TargetFolderId <> '' then begin
+            ParentReference.Add('id', TargetFolderId);
+            RequestBody.Add('parentReference', ParentReference);
+        end;
+
+        if NewName <> '' then
+            RequestBody.Add('name', NewName);
+
+        // Make the PATCH request
+        if not SharePointGraphRequestHelper.Patch(SharePointGraphUriBuilder.GetDriveItemByIdEndpoint(ItemId), RequestBody, ResponseJson) then begin
+            SharePointGraphResponse.SetError(StrSubstNo(FailedToMoveItemErr,
+                SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase()));
+            exit(SharePointGraphResponse);
+        end;
+
+        SharePointGraphResponse.SetSuccess();
+        exit(SharePointGraphResponse);
+    end;
+
+    /// <summary>
+    /// Moves a drive item (file or folder) to a new location by path.
+    /// </summary>
+    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
+    /// <param name="TargetFolderPath">Path to the target folder (optional).</param>
+    /// <param name="NewName">New name for the moved item (optional).</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure MoveItemByPath(ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
+    var
+        GraphDriveItem: Record "SharePoint Graph Drive Item";
+        TargetFolderItem: Record "SharePoint Graph Drive Item";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        TargetFolderId: Text;
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        // Validate input
+        if ItemPath = '' then begin
+            SharePointGraphResponse.SetError(InvalidFilePathErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // At least one of target folder or new name must be provided
+        if (TargetFolderPath = '') and (NewName = '') then begin
+            SharePointGraphResponse.SetError(InvalidTargetPathErr);
+            exit(SharePointGraphResponse);
+        end;
+
+        // Get the source item ID
+        SharePointGraphResponse := GetDriveItemByPath(ItemPath, GraphDriveItem);
+        if not SharePointGraphResponse.IsSuccessful() then
+            exit(SharePointGraphResponse);
+
+        // Get the target folder ID if provided
+        if TargetFolderPath <> '' then begin
+            SharePointGraphResponse := GetDriveItemByPath(TargetFolderPath, TargetFolderItem);
+            if not SharePointGraphResponse.IsSuccessful() then
+                exit(SharePointGraphResponse);
+            TargetFolderId := TargetFolderItem.Id;
+        end;
+
+        // Now call MoveItem with IDs
+        exit(MoveItem(GraphDriveItem.Id, TargetFolderId, NewName));
     end;
 
     #endregion

@@ -6,6 +6,7 @@
 namespace System.Integration.Sharepoint;
 
 using System.Integration.Graph;
+using System.Utilities;
 using System.Integration.Graph.Authorization;
 using System.RestClient;
 
@@ -482,22 +483,46 @@ codeunit 9119 "SharePoint Graph Client"
     /// Downloads a file.
     /// </summary>
     /// <param name="ItemId">ID of the file to download.</param>
-    /// <param name="FileInStream">InStream to receive the file content.</param>
+    /// <param name="TempBlob">TempBlob to receive the file content.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    procedure DownloadFile(ItemId: Text; var FileInStream: InStream): Codeunit "SharePoint Graph Response"
+    procedure DownloadFile(ItemId: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     begin
-        exit(SharePointGraphClientImpl.DownloadFile(ItemId, FileInStream));
+        exit(SharePointGraphClientImpl.DownloadFile(ItemId, TempBlob));
     end;
 
     /// <summary>
     /// Downloads a file by path.
     /// </summary>
     /// <param name="FilePath">Path to the file (e.g., 'Documents/file.docx').</param>
-    /// <param name="FileInStream">InStream to receive the file content.</param>
+    /// <param name="TempBlob">TempBlob to receive the file content.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    procedure DownloadFileByPath(FilePath: Text; var FileInStream: InStream): Codeunit "SharePoint Graph Response"
+    procedure DownloadFileByPath(FilePath: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     begin
-        exit(SharePointGraphClientImpl.DownloadFileByPath(FilePath, FileInStream));
+        exit(SharePointGraphClientImpl.DownloadFileByPath(FilePath, TempBlob));
+    end;
+
+    /// <summary>
+    /// Downloads a large file using chunked download for files larger than Business Central's 150MB HTTP response limit.
+    /// </summary>
+    /// <param name="ItemId">ID of the file to download.</param>
+    /// <param name="TempBlob">TempBlob to receive the file content.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Uses 100MB chunks to stay under the 150MB limit. Any chunk failure will fail the entire download.</remarks>
+    procedure DownloadLargeFile(ItemId: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.DownloadLargeFile(ItemId, TempBlob));
+    end;
+
+    /// <summary>
+    /// Downloads a large file by path using chunked download for files larger than Business Central's 150MB HTTP response limit.
+    /// </summary>
+    /// <param name="FilePath">Path to the file (e.g., 'Documents/file.docx').</param>
+    /// <param name="TempBlob">Blob to receive the file content.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Uses 100MB chunks to stay under the 150MB limit. Any chunk failure will fail the entire download.</remarks>
+    procedure DownloadLargeFileByPath(FilePath: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.DownloadLargeFileByPath(FilePath, TempBlob));
     end;
 
     /// <summary>
@@ -554,6 +579,102 @@ codeunit 9119 "SharePoint Graph Client"
     procedure UploadLargeFile(DriveId: Text; FolderPath: Text; FileName: Text; FileInStream: InStream; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary; ConflictBehavior: Enum "Graph ConflictBehavior"): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UploadLargeFile(DriveId, FolderPath, FileName, FileInStream, GraphDriveItem, ConflictBehavior));
+    end;
+
+    /// <summary>
+    /// Deletes a drive item (file or folder) by ID.
+    /// </summary>
+    /// <param name="ItemId">ID of the item to delete.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Returns success even if the item doesn't exist (404 is treated as success).</remarks>
+    procedure DeleteItem(ItemId: Text): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.DeleteItem(ItemId));
+    end;
+
+    /// <summary>
+    /// Deletes a drive item (file or folder) by path.
+    /// </summary>
+    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx' or 'Documents/folder').</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Returns success even if the item doesn't exist (404 is treated as success).</remarks>
+    procedure DeleteItemByPath(ItemPath: Text): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.DeleteItemByPath(ItemPath));
+    end;
+
+    /// <summary>
+    /// Checks if a drive item (file or folder) exists by ID.
+    /// </summary>
+    /// <param name="ItemId">ID of the item to check.</param>
+    /// <param name="Exists">True if the item exists, false if it doesn't exist (404).</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure ItemExists(ItemId: Text; var Exists: Boolean): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.ItemExists(ItemId, Exists));
+    end;
+
+    /// <summary>
+    /// Checks if a drive item (file or folder) exists by path.
+    /// </summary>
+    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx' or 'Documents/folder').</param>
+    /// <param name="Exists">True if the item exists, false if it doesn't exist (404).</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure ItemExistsByPath(ItemPath: Text; var Exists: Boolean): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.ItemExistsByPath(ItemPath, Exists));
+    end;
+
+    /// <summary>
+    /// Copies a drive item (file or folder) to a new location by ID.
+    /// </summary>
+    /// <param name="ItemId">ID of the item to copy.</param>
+    /// <param name="TargetFolderId">ID of the target folder.</param>
+    /// <param name="NewName">New name for the copied item (optional - leave empty to keep original name).</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>This is an asynchronous operation. The copy happens in the background.</remarks>
+    procedure CopyItem(ItemId: Text; TargetFolderId: Text; NewName: Text): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.CopyItem(ItemId, TargetFolderId, NewName));
+    end;
+
+    /// <summary>
+    /// Copies a drive item (file or folder) to a new location by path.
+    /// </summary>
+    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
+    /// <param name="TargetFolderPath">Path to the target folder (e.g., 'Documents/Archive').</param>
+    /// <param name="NewName">New name for the copied item (optional - leave empty to keep original name).</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>This is an asynchronous operation. The copy happens in the background.</remarks>
+    procedure CopyItemByPath(ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.CopyItemByPath(ItemPath, TargetFolderPath, NewName));
+    end;
+
+    /// <summary>
+    /// Moves a drive item (file or folder) to a new location by ID.
+    /// </summary>
+    /// <param name="ItemId">ID of the item to move.</param>
+    /// <param name="TargetFolderId">ID of the target folder (leave empty to only rename).</param>
+    /// <param name="NewName">New name for the moved item (leave empty to keep original name).</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>At least one of TargetFolderId or NewName must be provided.</remarks>
+    procedure MoveItem(ItemId: Text; TargetFolderId: Text; NewName: Text): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.MoveItem(ItemId, TargetFolderId, NewName));
+    end;
+
+    /// <summary>
+    /// Moves a drive item (file or folder) to a new location by path.
+    /// </summary>
+    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
+    /// <param name="TargetFolderPath">Path to the target folder (leave empty to only rename).</param>
+    /// <param name="NewName">New name for the moved item (leave empty to keep original name).</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>At least one of TargetFolderPath or NewName must be provided.</remarks>
+    procedure MoveItemByPath(ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.MoveItemByPath(ItemPath, TargetFolderPath, NewName));
     end;
 
     #endregion

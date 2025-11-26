@@ -5,8 +5,8 @@
 
 namespace System.Integration.Sharepoint;
 
-using System.Utilities;
 using System.Integration.Graph;
+using System.Utilities;
 
 /// <summary>
 /// Provides functionality to build URIs for the Microsoft Graph API for SharePoint.

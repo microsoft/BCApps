@@ -6,6 +6,7 @@
 namespace System.Integration.Sharepoint;
 
 using System.Integration.Graph;
+using System.Utilities;
 using System.Integration.Graph.Authorization;
 using System.RestClient;
 
@@ -24,6 +25,7 @@ codeunit 9123 "SharePoint Graph Req. Helper"
         ApiVersion: Enum "Graph API Version";
         CustomBaseUrl: Text;
         MicrosoftGraphDefaultBaseUrlLbl: Label 'https://graph.microsoft.com/%1', Comment = '%1 = Graph API Version', Locked = true;
+        RangeHeaderLbl: Label 'bytes=%1-%2', Locked = true;
 
     /// <summary>
     /// Initializes the Graph Request Helper with an authorization.
@@ -121,30 +123,64 @@ codeunit 9123 "SharePoint Graph Req. Helper"
     /// Downloads a file from Microsoft Graph API.
     /// </summary>
     /// <param name="Endpoint">The endpoint to request.</param>
-    /// <param name="FileInStream">The stream to write the file content to.</param>
+    /// <param name="TempBlob">The blob to write the file content to.</param>
     /// <returns>True if the request was successful; otherwise false.</returns>
-    procedure DownloadFile(Endpoint: Text; var FileInStream: InStream): Boolean
+    procedure DownloadFile(Endpoint: Text; var TempBlob: Codeunit "Temp Blob"): Boolean
     var
         GraphOptionalParameters: Codeunit "Graph Optional Parameters";
     begin
-        exit(DownloadFile(Endpoint, FileInStream, GraphOptionalParameters));
+        exit(DownloadFile(Endpoint, TempBlob, GraphOptionalParameters));
     end;
 
     /// <summary>
     /// Downloads a file from Microsoft Graph API with optional parameters.
     /// </summary>
     /// <param name="Endpoint">The endpoint to request.</param>
-    /// <param name="FileInStream">The stream to write the file content to.</param>
+    /// <param name="TempBlob">The blob to write the file content to.</param>
     /// <param name="GraphOptionalParameters">Optional parameters for the request.</param>
     /// <returns>True if the request was successful; otherwise false.</returns>
-    procedure DownloadFile(Endpoint: Text; var FileInStream: InStream; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Boolean
+    procedure DownloadFile(Endpoint: Text; var TempBlob: Codeunit "Temp Blob"; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Boolean
     var
         HttpResponseMessage: Codeunit "Http Response Message";
         FinalEndpoint: Text;
     begin
         FinalEndpoint := PrepareEndpoint(Endpoint, GraphOptionalParameters);
         GraphClient.Get(FinalEndpoint, GraphOptionalParameters, HttpResponseMessage);
-        exit(ProcessStreamResponse(HttpResponseMessage, FileInStream));
+        exit(ProcessStreamResponse(HttpResponseMessage, TempBlob));
+    end;
+
+    /// <summary>
+    /// Downloads a chunk of a file using HTTP Range header.
+    /// </summary>
+    /// <param name="Endpoint">The endpoint to request.</param>
+    /// <param name="RangeStart">Starting byte position (0-based, inclusive).</param>
+    /// <param name="RangeEnd">Ending byte position (0-based, inclusive).</param>
+    /// <param name="TempBlob">The blob to receive the chunk content.</param>
+    /// <returns>True if the chunk was downloaded successfully; otherwise false.</returns>
+    procedure DownloadChunk(Endpoint: Text; RangeStart: BigInteger; RangeEnd: BigInteger; var TempBlob: Codeunit "Temp Blob"): Boolean
+    var
+        HttpResponseMessage: Codeunit "Http Response Message";
+        GraphOptionalParameters: Codeunit "Graph Optional Parameters";
+        FinalEndpoint: Text;
+        RangeHeader: Text;
+    begin
+        // Set Range header: "bytes=0-104857599"
+        RangeHeader := StrSubstNo(RangeHeaderLbl, RangeStart, RangeEnd);
+        GraphOptionalParameters.SetRequestHeader(Enum::"Graph Request Header"::Range, RangeHeader);
+
+        FinalEndpoint := PrepareEndpoint(Endpoint, GraphOptionalParameters);
+        GraphClient.Get(FinalEndpoint, GraphOptionalParameters, HttpResponseMessage);
+
+        // Graph API should return 206 Partial Content for Range requests
+        // But we'll accept both 200 (full content) and 206 (partial content)
+        SharePointDiagnostics.SetParameters(HttpResponseMessage.GetIsSuccessStatusCode(),
+            HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetReasonPhrase(),
+            TryGetRetryAfterHeaderValue(HttpResponseMessage), HttpResponseMessage.GetErrorMessage());
+
+        if not HttpResponseMessage.GetIsSuccessStatusCode() then
+            exit(false);
+
+        exit(ProcessStreamResponse(HttpResponseMessage, TempBlob));
     end;
 
     #endregion
@@ -301,7 +337,7 @@ codeunit 9123 "SharePoint Graph Req. Helper"
 
         SharePointDiagnostics.SetParameters(HttpResponseMessage.GetIsSuccessStatusCode(),
             HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetReasonPhrase(),
-            0, HttpResponseMessage.GetErrorMessage());
+            TryGetRetryAfterHeaderValue(HttpResponseMessage), HttpResponseMessage.GetErrorMessage());
 
         if not HttpResponseMessage.GetIsSuccessStatusCode() then
             exit(false);
@@ -470,6 +506,39 @@ codeunit 9123 "SharePoint Graph Req. Helper"
     end;
 
     #endregion
+
+    #region Pagination
+
+    /// <summary>
+    /// Makes a GET request to the Microsoft Graph API with pagination support and returns all pages automatically.
+    /// </summary>
+    /// <param name="Endpoint">The endpoint to request.</param>
+    /// <param name="GraphOptionalParameters">Optional parameters for the request.</param>
+    /// <param name="JsonArray">The JSON array containing all results from all pages.</param>
+    /// <returns>True if the request was successful; otherwise false.</returns>
+    procedure GetAllPages(Endpoint: Text; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; var JsonArray: JsonArray): Boolean
+    var
+        HttpResponseMessage: Codeunit "Http Response Message";
+        FinalEndpoint: Text;
+    begin
+        FinalEndpoint := PrepareEndpoint(Endpoint, GraphOptionalParameters);
+
+        if not GraphClient.GetAllPages(FinalEndpoint, GraphOptionalParameters, HttpResponseMessage, JsonArray) then begin
+            SharePointDiagnostics.SetParameters(HttpResponseMessage.GetIsSuccessStatusCode(),
+                HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetReasonPhrase(),
+                TryGetRetryAfterHeaderValue(HttpResponseMessage), HttpResponseMessage.GetErrorMessage());
+            exit(false);
+        end;
+
+        SharePointDiagnostics.SetParameters(HttpResponseMessage.GetIsSuccessStatusCode(),
+            HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetReasonPhrase(),
+            TryGetRetryAfterHeaderValue(HttpResponseMessage), HttpResponseMessage.GetErrorMessage());
+
+        exit(true);
+    end;
+
+    #endregion
+
     #region Helpers
 
     /// <summary>
@@ -513,7 +582,7 @@ codeunit 9123 "SharePoint Graph Req. Helper"
     begin
         SharePointDiagnostics.SetParameters(HttpResponseMessage.GetIsSuccessStatusCode(),
             HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetReasonPhrase(),
-            0, HttpResponseMessage.GetErrorMessage());
+            TryGetRetryAfterHeaderValue(HttpResponseMessage), HttpResponseMessage.GetErrorMessage());
 
         exit(HttpResponseMessage.GetIsSuccessStatusCode());
     end;
@@ -537,16 +606,29 @@ codeunit 9123 "SharePoint Graph Req. Helper"
     /// Processes an HTTP response and extracts the stream content.
     /// </summary>
     /// <param name="HttpResponseMessage">The HTTP response message.</param>
-    /// <param name="FileInStream">The stream to populate with the response content.</param>
+    /// <param name="TempBlob">The blob to populate with the response content.</param>
     /// <returns>True if the request was successful; otherwise false.</returns>
-    local procedure ProcessStreamResponse(HttpResponseMessage: Codeunit "Http Response Message"; var FileInStream: InStream): Boolean
+    local procedure ProcessStreamResponse(HttpResponseMessage: Codeunit "Http Response Message"; var TempBlob: Codeunit "Temp Blob"): Boolean
     begin
         if not ProcessResponse(HttpResponseMessage) then
             exit(false);
 
-        FileInStream := HttpResponseMessage.GetContent().AsInStream();
+        TempBlob := HttpResponseMessage.GetContent().AsBlob();
 
         exit(true);
+    end;
+
+    local procedure TryGetRetryAfterHeaderValue(HttpResponseMessage: Codeunit "Http Response Message") RetryAfterAsInteger: Integer
+    var
+        Values: array[1] of Text;
+    begin
+        if not HttpResponseMessage.GetHeaders().GetValues('Retry-After', Values) then
+            exit;
+
+        //Since the HTTP Diagnostics interface expects an integer in Retry-After, we must convert the header to a number.
+        //At the same time, the HTTP specification states that there may be a date there.
+        if not Evaluate(RetryAfterAsInteger, Values[1]) then
+            exit(0);
     end;
 
     #endregion
