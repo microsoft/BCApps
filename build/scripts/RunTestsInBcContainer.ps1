@@ -49,8 +49,32 @@ function Invoke-TestsWithReruns {
                 return $false
             } else {
                 Write-Host "Some tests failed. Retrying... (Attempt $($attempt + 1) of $($maxReruns + 1))"
+                CleanUpAfterFailedTests -ContainerName $parameters.ContainerName
             }
         }
+    }
+}
+
+function CleanUpAfterFailedTests {
+    param(
+        [string]$ContainerName
+    )
+    Write-Host "Cleaning up after failed tests in container $ContainerName..."
+    CleanUpPublishedApps -ContainerName $ContainerName
+}
+
+function CleanUpPublishedApps {
+    param(
+        [string]$ContainerName
+    )
+    # Get installed apps in the container published by "Designer" with name "CRM Sync Designer"
+    $appsToUninstall = Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties | Where-Object { $_.Publisher -eq "Designer" -and $_.Name -eq "CRM Sync Designer" }
+    
+    foreach($app in $appsToUninstall) {
+        Write-Host "Uninstalling $($app.Name)"
+        UnInstall-BcContainerApp -containerName $ContainerName -name $app.Name -doNotSaveData -doNotSaveSchema -force
+        Write-Host "Unpublishing $($app.Name)"
+        Unpublish-BcContainerApp -containerName $ContainerName -name $app.Name -unInstall -doNotSaveData -doNotSaveSchema -force
     }
 }
 
