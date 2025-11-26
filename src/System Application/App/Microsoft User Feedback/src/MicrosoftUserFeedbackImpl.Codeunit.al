@@ -31,7 +31,7 @@ codeunit 1589 "Microsoft User Feedback Impl"
             ContextProperties.Add('IsAIFeature', 'true');
 
         if (this.CustomQuestionSet) then
-            Feedback.SetCustomQuestion(this._QuestionText, this._QuestionDisplayText, this._QuestionType, this._RequiredBehavior, this._Options);
+            Feedback.SetCustomQuestion(this.QuestionText, this.QuestionDisplayText, this.QuestionType, this.RequiredBehaviorDictionary, this.Options);
 
         Feedback.RequestFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties);
     end;
@@ -53,7 +53,7 @@ codeunit 1589 "Microsoft User Feedback Impl"
             ContextProperties.Add('IsAIFeature', 'true');
 
         if (this.CustomQuestionSet) then
-            Feedback.SetCustomQuestion(this._QuestionText, this._QuestionDisplayText, this._QuestionType, this._RequiredBehavior, this._Options);
+            Feedback.SetCustomQuestion(this.QuestionText, this.QuestionDisplayText, this.QuestionType, this.RequiredBehaviorDictionary, this.Options);
 
         Feedback.RequestLikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties);
     end;
@@ -75,7 +75,7 @@ codeunit 1589 "Microsoft User Feedback Impl"
             ContextProperties.Add('IsAIFeature', 'true');
 
         if (this.CustomQuestionSet) then
-            Feedback.SetCustomQuestion(this._QuestionText, this._QuestionDisplayText, this._QuestionType, this._RequiredBehavior, this._Options);
+            Feedback.SetCustomQuestion(this.QuestionText, this.QuestionDisplayText, this.QuestionType, this.RequiredBehaviorDictionary, this.Options);
 
         Feedback.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextProperties, ContextFiles);
     end;
@@ -99,7 +99,7 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// <returns>The current instance of the "Microsoft User Feedback Impl" codeunit.</returns>
     procedure WithCustomQuestion(Question: Text; QuestionDisplay: Text): Codeunit "Microsoft User Feedback Impl"
     begin
-        this.SetCustomQuestion(Question, QuestionDisplay, this._QuestionType, this._RequiredBehavior, this._Options);
+        this.SetCustomQuestion(Question, QuestionDisplay, this.QuestionType, this.RequiredBehaviorDictionary, this.Options);
 
         exit(this);
     end;
@@ -107,11 +107,11 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// <summary>
     /// Sets the type of the custom question to be included in the feedback prompt.
     /// </summary>
-    /// <param name="QuestionType">The type of the custom question.</param>
+    /// <param name="Type">The type of the custom question.</param>
     /// <returns>The current instance of the "Microsoft User Feedback Impl" codeunit.</returns>
-    procedure WithCustomQuestionType(QuestionType: Enum FeedbackQuestionType): Codeunit "Microsoft User Feedback Impl"
+    procedure WithCustomQuestionType(Type: Enum FeedbackQuestionType): Codeunit "Microsoft User Feedback Impl"
     begin
-        this.SetCustomQuestion(this._QuestionText, this._QuestionDisplayText, QuestionType, this._RequiredBehavior, this._Options);
+        this.SetCustomQuestion(this.QuestionText, this.QuestionDisplayText, Type, this.RequiredBehaviorDictionary, this.Options);
         exit(this);
     end;
 
@@ -123,13 +123,13 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// <returns>The current instance of the "Microsoft User Feedback Impl" codeunit.</returns>
     procedure WithCustomQuestionRequiredBehavior(RequiredBehavior: Enum FeedbackRequiredBehavior; Enabled: Boolean): Codeunit "Microsoft User Feedback Impl"
     begin
-        if (this._RequiredBehavior.ContainsKey(RequiredBehavior)) then
-            this._RequiredBehavior.Remove(RequiredBehavior);
+        if (this.RequiredBehaviorDictionary.ContainsKey(RequiredBehavior)) then
+            this.RequiredBehaviorDictionary.Remove(RequiredBehavior);
 
         if (Enabled) then
-            this._RequiredBehavior.Add(RequiredBehavior, 'true');
+            this.RequiredBehaviorDictionary.Add(RequiredBehavior, 'true');
 
-        this.SetCustomQuestion(this._QuestionText, this._QuestionDisplayText, this._QuestionType, this._RequiredBehavior, this._Options);
+        this.SetCustomQuestion(this.QuestionText, this.QuestionDisplayText, this.QuestionType, this.RequiredBehaviorDictionary, this.Options);
         exit(this);
     end;
 
@@ -140,7 +140,7 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// <returns>The current instance of the "Microsoft User Feedback Impl" codeunit.</returns>
     procedure WithCustomQuestionRequiredBehavior(RequiredBehavior: Dictionary of [Enum FeedbackRequiredBehavior, Text]): Codeunit "Microsoft User Feedback Impl"
     begin
-        this.SetCustomQuestion(this._QuestionText, this._QuestionDisplayText, this._QuestionType, RequiredBehavior, this._Options);
+        this.SetCustomQuestion(this.QuestionText, this.QuestionDisplayText, this.QuestionType, RequiredBehavior, this.Options);
         exit(this);
     end;
 
@@ -152,8 +152,8 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// <returns>The current instance of the "Microsoft User Feedback Impl" codeunit.</returns>
     procedure WithCustomQuestionAnswerOption(AnswerOption: Text; AnswerDisplayText: Text): Codeunit "Microsoft User Feedback Impl"
     begin
-        this._Options.Add(AnswerOption, AnswerDisplayText);
-        this.SetCustomQuestion(this._QuestionText, this._QuestionDisplayText, this._QuestionType, this._RequiredBehavior, this._Options);
+        this.Options.Add(AnswerOption, AnswerDisplayText);
+        this.SetCustomQuestion(this.QuestionText, this.QuestionDisplayText, this.QuestionType, this.RequiredBehaviorDictionary, this.Options);
         exit(this);
     end;
 
@@ -164,17 +164,17 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// <returns>The current instance of the "Microsoft User Feedback Impl" codeunit.</returns>
     procedure WithCustomQuestionAnswerOptions(AnswerOptions: Dictionary of [Text, Text]): Codeunit "Microsoft User Feedback Impl"
     begin
-        this.SetCustomQuestion(this._QuestionText, this._QuestionDisplayText, this._QuestionType, this._RequiredBehavior, AnswerOptions);
+        this.SetCustomQuestion(this.QuestionText, this.QuestionDisplayText, this.QuestionType, this.RequiredBehaviorDictionary, AnswerOptions);
         exit(this);
     end;
 
-    local procedure SetCustomQuestion(Question: Text; QuestionDisplay: Text; QuestionType: Enum FeedbackQuestionType; RequiredBehavior: Dictionary of [Enum FeedbackRequiredBehavior, Text]; AnswerOptions: Dictionary of [Text, Text]): Codeunit "Microsoft User Feedback Impl"
+    local procedure SetCustomQuestion(Question: Text; QuestionDisplay: Text; Type: Enum FeedbackQuestionType; RequiredBehavior: Dictionary of [Enum FeedbackRequiredBehavior, Text]; AnswerOptions: Dictionary of [Text, Text]): Codeunit "Microsoft User Feedback Impl"
     begin
-        this._QuestionText := Question;
-        this._QuestionDisplayText := QuestionDisplay;
-        this._QuestionType := QuestionType;
-        this._RequiredBehavior := RequiredBehavior;
-        this._Options := AnswerOptions;
+        this.QuestionText := Question;
+        this.QuestionDisplayText := QuestionDisplay;
+        this.QuestionType := Type;
+        this.RequiredBehaviorDictionary := RequiredBehavior;
+        this.Options := AnswerOptions;
         this.CustomQuestionSet := true;
 
         exit(this);
@@ -191,15 +191,15 @@ codeunit 1589 "Microsoft User Feedback Impl"
     begin
         Feedback.ClearCustomQuestion();
         this.CustomQuestionSet := false;
-        this._QuestionText := '';
-        this._QuestionDisplayText := '';
-        this._QuestionType := FeedbackQuestionType::Text;
+        this.QuestionText := '';
+        this.QuestionDisplayText := '';
+        this.QuestionType := FeedbackQuestionType::Text;
 
-        foreach RequiredBehaviorKey in this._RequiredBehavior.Keys do
-            this._RequiredBehavior.Remove(RequiredBehaviorKey);
+        foreach RequiredBehaviorKey in this.RequiredBehaviorDictionary.Keys do
+            this.RequiredBehaviorDictionary.Remove(RequiredBehaviorKey);
 
-        foreach AnswerOptionKey in this._Options.Keys do
-            this._Options.Remove(AnswerOptionKey);
+        foreach AnswerOptionKey in this.Options.Keys do
+            this.Options.Remove(AnswerOptionKey);
 
         exit(this);
     end;
@@ -243,10 +243,10 @@ codeunit 1589 "Microsoft User Feedback Impl"
         Feedback: Codeunit Feedback;
         IsAIFeedback: Boolean;
         CustomQuestionSet: Boolean;
-        _QuestionText: Text;
-        _QuestionDisplayText: Text;
-        _QuestionType: Enum FeedbackQuestionType;
-        _RequiredBehavior: Dictionary of [Enum FeedbackRequiredBehavior, Text];
-        _Options: Dictionary of [Text, Text];
+        QuestionText: Text;
+        QuestionDisplayText: Text;
+        QuestionType: Enum FeedbackQuestionType;
+        RequiredBehaviorDictionary: Dictionary of [Enum FeedbackRequiredBehavior, Text];
+        Options: Dictionary of [Text, Text];
         OnlyMicrosoftAllowedErr: Label 'Only the publisher %1 can collect feedback using this mechanism.', Comment = '%1 is the publisher of the module allowed to use this module.';
 }
