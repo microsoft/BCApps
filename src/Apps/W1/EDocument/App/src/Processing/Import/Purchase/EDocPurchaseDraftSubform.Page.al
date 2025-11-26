@@ -166,7 +166,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                 group("Order Matching")
                 {
                     Caption = 'Order matching';
-                    action(MatchToOrderLines)
+                    action(MatchToOrderLine)
                     {
                         ApplicationArea = All;
                         Caption = 'Match to order line';

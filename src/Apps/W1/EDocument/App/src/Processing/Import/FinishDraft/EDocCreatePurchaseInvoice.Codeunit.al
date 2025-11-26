@@ -236,7 +236,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         EDocRecordLink."Target Table No." := Database::"Purchase Header";
         EDocRecordLink."Target SystemId" := PurchaseHeader.SystemId;
         EDocRecordLink."E-Document Entry No." := EDocumentPurchaseHeader."E-Document Entry No.";
-        if EDocRecordLink.Insert() then;
+        EDocRecordLink.Insert();
     end;
 
     local procedure LinkEDocumentLineToPurchaseLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"; PurchaseLine: Record "Purchase Line")
@@ -248,7 +248,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         EDocRecordLink."Target Table No." := Database::"Purchase Line";
         EDocRecordLink."Target SystemId" := PurchaseLine.SystemId;
         EDocRecordLink."E-Document Entry No." := EDocumentPurchaseLine."E-Document Entry No.";
-        if EDocRecordLink.Insert() then;
+        EDocRecordLink.Insert();
     end;
 
 }
