@@ -146,8 +146,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
             PurchaseHeader.Modify();
         end;
 
-        LinkEDocumentRecords(EDocument, EDocumentPurchaseHeader, PurchaseHeader);
-
+        LinkEDocumentHeaderToPurchaseHeader(EDocumentPurchaseHeader, PurchaseHeader);
         PurchaseLineNo := GetLastLineNumberOnPurchaseInvoice(PurchaseHeader."No."); // We get the last line number, even if this is a new document since recurrent lines get inserted on the header's creation
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
         if EDocumentPurchaseLine.FindSet() then
@@ -182,7 +181,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
                 PurchaseLine.Validate("Shortcut Dimension 2 Code", EDocumentPurchaseLine."[BC] Shortcut Dimension 2 Code");
                 EDocumentPurchaseHistMapping.ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocumentPurchaseLine, PurchaseLine);
                 PurchaseLine.Insert();
-                LinkEDocumentRecords(EDocument, EDocumentPurchaseLine, PurchaseLine);
+                LinkEDocumentLineToPurchaseLine(EDocumentPurchaseLine, PurchaseLine);
             until EDocumentPurchaseLine.Next() = 0;
         PurchaseHeader.Modify();
         PurchCalcDiscByType.ApplyInvDiscBasedOnAmt(EDocumentPurchaseHeader."Total Discount", PurchaseHeader);
@@ -228,26 +227,27 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
             exit(PurchaseLine."Line No.");
     end;
 
-    /// <summary>
-    /// Track header and line mapping between source and target records.
-    /// </summary>
-    local procedure LinkEDocumentRecords(EDocument: Record "E-Document"; SourceRecord: Variant; TargetRecord: Variant)
+    local procedure LinkEDocumentHeaderToPurchaseHeader(EDocumentPurchaseHeader: Record "E-Document Purchase Header"; PurchaseHeader: Record "Purchase Header")
     var
         EDocRecordLink: Record "E-Doc. Record Link";
-        SourceRecordRef, TargetRecordRef : RecordRef;
-        WrongVariantTypeErr: Label 'Only record types are allowed.';
     begin
-        if (not SourceRecord.IsRecord()) or (not TargetRecord.IsRecord()) then
-            Error(WrongVariantTypeErr);
+        EDocRecordLink."Source Table No." := Database::"E-Document Purchase Header";
+        EDocRecordLink."Source SystemId" := EDocumentPurchaseHeader.SystemId;
+        EDocRecordLink."Target Table No." := Database::"Purchase Header";
+        EDocRecordLink."Target SystemId" := PurchaseHeader.SystemId;
+        EDocRecordLink."E-Document Entry No." := EDocumentPurchaseHeader."E-Document Entry No.";
+        if EDocRecordLink.Insert() then;
+    end;
 
-        SourceRecordRef.GetTable(SourceRecord);
-        TargetRecordRef.GetTable(TargetRecord);
-
-        EDocRecordLink."Source Table No." := SourceRecordRef.Number();
-        EDocRecordLink."Source SystemId" := SourceRecordRef.Field(SourceRecordRef.SystemIdNo).Value();
-        EDocRecordLink."Target Table No." := TargetRecordRef.Number();
-        EDocRecordLink."Target SystemId" := TargetRecordRef.Field(TargetRecordRef.SystemIdNo).Value();
-        EDocRecordLink."E-Document Entry No." := EDocument."Entry No";
+    local procedure LinkEDocumentLineToPurchaseLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"; PurchaseLine: Record "Purchase Line")
+    var
+        EDocRecordLink: Record "E-Doc. Record Link";
+    begin
+        EDocRecordLink."Source Table No." := Database::"E-Document Purchase Line";
+        EDocRecordLink."Source SystemId" := EDocumentPurchaseLine.SystemId;
+        EDocRecordLink."Target Table No." := Database::"Purchase Line";
+        EDocRecordLink."Target SystemId" := PurchaseLine.SystemId;
+        EDocRecordLink."E-Document Entry No." := EDocumentPurchaseLine."E-Document Entry No.";
         if EDocRecordLink.Insert() then;
     end;
 
