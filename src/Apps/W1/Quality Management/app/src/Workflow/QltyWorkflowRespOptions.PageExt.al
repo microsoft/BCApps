@@ -405,6 +405,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         ShowMandatory = true;
                         Enabled = QltyShowBinCode;
                         AssistEdit = true;
+
                         trigger OnAssistEdit()
                         var
                             Bin: Record Bin;
