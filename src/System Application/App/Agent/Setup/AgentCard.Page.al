@@ -193,9 +193,11 @@ page 4315 "Agent Card"
     trigger OnOpenPage()
     var
         AgentUtilities: Codeunit "Agent Utilities";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
         AgentUtilities.BlockPageFromBeingOpenedByAgent();
-        if not Rec.WritePermission() then
+
+        if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
             Error(YouDoNotHavePermissionToModifyThisAgentErr);
     end;
 
