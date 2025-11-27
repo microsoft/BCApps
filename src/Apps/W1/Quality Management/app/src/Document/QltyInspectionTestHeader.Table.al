@@ -521,6 +521,7 @@ table 20405 "Qlty. Inspection Test Header"
             ToolTip = 'Specifies the amount that passed inspection.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
+
             trigger OnValidate()
             begin
                 if Rec.IsTemporary() then
