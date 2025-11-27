@@ -36,21 +36,62 @@
       }
     }
   ],
-  "unusedALGoSystemFiles": [
-    "AddExistingAppOrTestApp.yaml",
-    "CreateApp.yaml",
-    "CreateOnlineDevelopmentEnvironment.yaml",
-    "CreatePerformanceTestApp.yaml",
-    "CreateRelease.yaml",
-    "CreateTestApp.yaml",
-    "Current.yaml",
-    "NextMajor.yaml",
-    "NextMinor.yaml",
-    "PublishToEnvironment.yaml",
-    "Test Current.settings.json",
-    "Test Next Minor.settings.json",
-    "Test Next Major.settings.json"
-  ],
+  "customALGoFiles": {
+    "filesToExclude": [
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "AddExistingAppOrTestApp.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "CreateApp.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "CreateOnlineDevelopmentEnvironment.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "CreatePerformanceTestApp.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "CreateRelease.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "CreateTestApp.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "Current.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "NextMajor.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "NextMinor.yaml"
+      },
+      {
+        "sourceFolder": ".github/workflows",
+        "filter": "PublishToEnvironment.yaml"
+      },
+      {
+        "sourceFolder": ".github",
+        "filter": "Test Current.settings.json"
+      },
+      {
+        "sourceFolder": ".github",
+        "filter": "Test Next Minor.settings.json"
+      },
+      {
+        "sourceFolder": ".github",
+        "filter": "Test Next Major.settings.json"
+      }
+    ]
+  },
   "excludeEnvironments": [
     "Official-Build"
   ],
