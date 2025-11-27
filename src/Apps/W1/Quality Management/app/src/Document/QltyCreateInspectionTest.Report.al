@@ -69,6 +69,7 @@ report 20400 "Qlty. Create Inspection Test"
                         Caption = 'Source';
                         ToolTip = 'Specifies a reference to which source should be used.';
                         ShowMandatory = true;
+                        
                         trigger OnLookup(var Text: Text): Boolean
                         var
                             QltyInspectSourceConfigList: Page "Qlty. Ins. Source Config. List";
