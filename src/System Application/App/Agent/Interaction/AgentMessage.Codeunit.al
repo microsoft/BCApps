@@ -5,21 +5,26 @@
 
 namespace System.Agents;
 
+using System.Environment;
+
 codeunit 4307 "Agent Message"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
+
+    var
+        FeatureAccessManagement: Codeunit "Feature Access Management";
 
     /// <summary>
     /// Get the message text for the given agent task message.
     /// </summary>
     /// <param name="AgentTaskMessage">Agent task message.</param>
     /// <returns>The body of the agent task message.</returns>
-    [Scope('OnPrem')]
     procedure GetText(var AgentTaskMessage: Record "Agent Task Message"): Text
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentMessageImpl.GetText(AgentTaskMessage));
     end;
 
@@ -41,11 +46,11 @@ codeunit 4307 "Agent Message"
     /// </summary>
     /// <param name="AgentTaskMessage">Agent task message to verify.</param>
     /// <returns>If it is possible to change the message.</returns>
-    [Scope('OnPrem')]
     procedure IsEditable(var AgentTaskMessage: Record "Agent Task Message"): Boolean
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentMessageImpl.IsEditable(AgentTaskMessage));
     end;
 
@@ -93,11 +98,11 @@ codeunit 4307 "Agent Message"
     /// Downloads the attachments for a specific message.
     /// </summary>
     /// <param name="AgentTaskMessage">Message to download attachments for.</param>
-    [Scope('OnPrem')]
     procedure DownloadAttachments(var AgentTaskMessage: Record "Agent Task Message")
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentMessageImpl.DownloadAttachments(AgentTaskMessage);
     end;
 
@@ -106,11 +111,11 @@ codeunit 4307 "Agent Message"
     /// </summary>
     /// <param name="TaskID">Task ID to download attachments for.</param>
     /// <param name="FileID">File ID to download.</param>
-    [Scope('OnPrem')]
     procedure ShowAttachment(TaskID: BigInteger; FileID: BigInteger)
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentMessageImpl.ShowOrDownloadAttachment(TaskId, FileID, false);
     end;
 
@@ -118,11 +123,11 @@ codeunit 4307 "Agent Message"
     /// Shows the attachments for a specific message. If file is not supported to be shown, it will be downloaded.
     /// </summary>
     /// <param name="AgentTaskFile">Agent file to display.</param>
-    [Scope('OnPrem')]
     procedure ShowAttachment(var AgentTaskFile: Record "Agent Task File")
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentMessageImpl.ShowOrDownloadAttachment(AgentTaskFile, false);
     end;
 
@@ -132,11 +137,11 @@ codeunit 4307 "Agent Message"
     /// <param name="TaskID">Task ID to download attachments for.</param>
     /// <param name="MessageID">Message ID to download attachments for.</param>
     /// <param name="TempAgentTaskFile">Temporary buffer to load the attachments.</param>
-    [Scope('OnPrem')]
     procedure GetAttachments(TaskID: BigInteger; MessageID: Guid; var TempAgentTaskFile: Record "Agent Task File" temporary)
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentMessageImpl.GetAttachments(TaskID, MessageID, TempAgentTaskFile);
     end;
 
@@ -145,11 +150,11 @@ codeunit 4307 "Agent Message"
     /// </summary>
     /// <param name="SizeInBytes">The size in bytes.</param>
     /// <returns>The display text for the file size.</returns>
-    [Scope('OnPrem')]
     procedure GetFileSizeDisplayText(SizeInBytes: Decimal): Text
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentMessageImpl.GetFileSizeDisplayText(SizeInBytes));
     end;
 }
