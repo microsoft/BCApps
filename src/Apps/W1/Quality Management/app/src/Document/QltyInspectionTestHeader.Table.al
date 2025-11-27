@@ -199,6 +199,7 @@ table 20405 "Qlty. Inspection Test Header"
             Caption = 'Quantity (Base)';
             ToolTip = 'Specifies a reference to the quantity involved.';
             DecimalPlaces = 0 : 5;
+
             trigger OnValidate()
             begin
                 if not Rec.IsTemporary() then
