@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
-using System.Threading;
 using Microsoft.EServices.EDocument;
+using System.Threading;
 
 
 /// <summary>
