@@ -9,11 +9,10 @@ using Microsoft.Purchases.Document;
 /// <summary>
 /// Temporary table for sample purchase invoice line data used in PDF generation.
 /// </summary>
-table 5380 "Sample Purch. Inv. Line"
+table 5382 "Sample Purch. Inv. Line"
 {
-    Access = Internal;
-    InherentEntitlements = X;
-    InherentPermissions = X;
+    InherentEntitlements = RMX;
+    InherentPermissions = RMX;
     TableType = Temporary;
     Caption = 'Sample Purch. Inv. Line';
     DataClassification = SystemMetadata;
@@ -47,10 +46,12 @@ table 5380 "Sample Purch. Inv. Line"
         field(7; Quantity; Decimal)
         {
             Caption = 'Quantity';
+            AutoFormatType = 0;
         }
         field(8; "Direct Unit Cost"; Decimal)
         {
             Caption = 'Direct Unit Cost';
+            AutoFormatType = 0;
         }
         field(9; "Deferral Code"; Code[10])
         {

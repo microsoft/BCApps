@@ -9,9 +9,8 @@ namespace Microsoft.eServices.EDocument.DemoData;
 /// </summary>
 table 5379 "Sample Purch. Inv. Header"
 {
-    Access = Internal;
-    InherentEntitlements = X;
-    InherentPermissions = X;
+    InherentEntitlements = RMX;
+    InherentPermissions = RMX;
     TableType = Temporary;
     Caption = 'Sample Purch. Inv. Header';
     DataClassification = SystemMetadata;
@@ -33,6 +32,46 @@ table 5379 "Sample Purch. Inv. Header"
         field(4; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+        }
+        field(5; "Pay-to Vendor No."; Code[20])
+        {
+            Caption = 'Pay-to Vendor No.';
+        }
+        field(6; "Pay-to Name"; Text[100])
+        {
+            Caption = 'Pay-to Name';
+        }
+        field(7; "Pay-to Address"; Text[100])
+        {
+            Caption = 'Pay-to Address';
+        }
+        field(8; "Pay-to Address 2"; Text[50])
+        {
+            Caption = 'Pay-to Address 2';
+        }
+        field(9; "Pay-to City"; Text[30])
+        {
+            Caption = 'Pay-to City';
+        }
+        field(10; "Pay-to Post Code"; Code[20])
+        {
+            Caption = 'Pay-to Post Code';
+        }
+        field(11; "Pay-to County"; Text[30])
+        {
+            Caption = 'Pay-to County';
+        }
+        field(12; "Pay-to Country/Region Code"; Code[10])
+        {
+            Caption = 'Pay-to Country/Region Code';
+        }
+        field(13; "Pay-to Contact"; Text[100])
+        {
+            Caption = 'Pay-to Contact';
+        }
+        field(14; "Responsibility Center"; Code[10])
+        {
+            Caption = 'Responsibility Center';
         }
     }
 
