@@ -22,7 +22,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
 {
     var
         QltyTraversal: Codeunit "Qlty. Traversal";
-        QltySessionHelper: Codeunit "Qlty. Session Helper";
+        QltySessionHelperMfg: Codeunit "Qlty. Session Helper - Mfg.";
         PermissionErr: Label 'User %1 not have permission to modify Quality Inspection Results tables, this will prevent test being updated.', Comment = '%1:User ID';
         ProductionRegisteredLogEventIDTok: Label 'QMERR0002', Locked = true;
         TargetDetailRecordTok: Label 'Target', Locked = true;
@@ -98,7 +98,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        QltySessionHelper.SetProductionOrderBeforeChangingStatus(ProductionOrder);
+        QltySessionHelperMfg.SetProductionOrderBeforeChangingStatus(ProductionOrder);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnAfterChangeStatusOnProdOrder', '', true, true)]
@@ -112,7 +112,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        QltySessionHelper.GetProductionOrderBeforeChangingStatus(OldProductionOrder);
+        QltySessionHelperMfg.GetProductionOrderBeforeChangingStatus(OldProductionOrder);
 
         OnBeforeProductionHandleOnAfterChangeStatusOnProdOrder(OldProductionOrder, ToProdOrder, Handled);
         if Handled then
