@@ -7,6 +7,7 @@ namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
 using System.TestLibraries.Utilities;
+using Microsoft.Inventory.Item;
 
 codeunit 139556 "Shpfy Product Collection Test"
 {
@@ -83,13 +84,16 @@ codeunit 139556 "Shpfy Product Collection Test"
     [Test]
     procedure UnitTestPublishProductWithDefaultProductCollectionsTest()
     var
+        Item: Record Item;
         TempProduct: Record "Shpfy Product" temporary;
         TempShopifyVariant: Record "Shpfy Variant" temporary;
         ShopifyTag: Record "Shpfy Tag";
+        ProductCollection: Record "Shpfy Product Collection";
         ProductAPI: Codeunit "Shpfy Product API";
         ProductCollectionSubs: Codeunit "Shpfy Product Collection Subs.";
         DefaultProductCollection1Id: BigInteger;
         DefaultProductCollection2Id: BigInteger;
+        DefaultProductCollection3Id: BigInteger;
         NonDefaultProductCollectionId: BigInteger;
         ActualQuery: Text;
         ProductId: BigInteger;
@@ -101,15 +105,30 @@ codeunit 139556 "Shpfy Product Collection Test"
 
         // [GIVEN] Product.
         CreateProduct(TempProduct, Any.IntegerInRange(10000, 99999));
+        CreateItem(Item, TempProduct);
         // [GIVEN] Shopify Variant.
         CreateShopifyVariant(TempProduct, TempShopifyVariant, Any.IntegerInRange(10000, 99999));
         // [GIVEN] Default Product Collection.
         DefaultProductCollection1Id := Any.IntegerInRange(10000, 99999);
-        CreateProductCollection(DefaultProductCollection1Id, Any.AlphabeticText(20), true);
+        ProductCollection := CreateProductCollection(DefaultProductCollection1Id, Any.AlphabeticText(20), true);
+        Item.SetRange("No.", Item."No.");
+        ProductCollection.SetItemFilter(Item.GetView());
+#pragma warning disable AA0214
+        ProductCollection.Modify(false);
+#pragma warning restore AA0214
+
         DefaultProductCollection2Id := DefaultProductCollection1Id + 1;
-        CreateProductCollection(DefaultProductCollection2Id, Any.AlphabeticText(20), true);
+        ProductCollection := CreateProductCollection(DefaultProductCollection2Id, Any.AlphabeticText(20), true);
+        Item.SetRange("No.", '');
+        ProductCollection.SetItemFilter(Item.GetView());
+#pragma warning disable AA0214
+        ProductCollection.Modify(false);
+#pragma warning restore AA0214
+
+        DefaultProductCollection3Id := DefaultProductCollection2Id + 1;
+        CreateProductCollection(DefaultProductCollection3Id, Any.AlphabeticText(20), true);
         // [GIVEN] Non-Default Product Collection.
-        NonDefaultProductCollectionId := DefaultProductCollection2Id + 1;
+        NonDefaultProductCollectionId := DefaultProductCollection3Id + 1;
         CreateProductCollection(NonDefaultProductCollectionId, Any.AlphabeticText(20), false);
 
         // [WHEN] Invoking the procedure: ProductAPI.CreateProduct.
@@ -123,10 +142,10 @@ codeunit 139556 "Shpfy Product Collection Test"
         // [THEN] Query for adding product contains default Product Collections.
         ActualQuery := ProductCollectionSubs.GetProductCreateGraphQueryTxt();
         LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(AddProductToCollectionQueryTok, DefaultProductCollection1Id)), 'Product Collection Id is not in the query');
-        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(AddProductToCollectionQueryTok, DefaultProductCollection2Id)), 'Product Collection Id is not in the query');
+        LibraryAssert.IsFalse(ActualQuery.Contains(StrSubstNo(AddProductToCollectionQueryTok, DefaultProductCollection2Id)), 'Product Collection Id is not in the query');
+        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(AddProductToCollectionQueryTok, DefaultProductCollection3Id)), 'Product Collection Id is not in the query');
         // [THEN] Query does not contain non-default Product Collection Id.
         LibraryAssert.IsFalse(ActualQuery.Contains(StrSubstNo(AddProductToCollectionQueryTok, NonDefaultProductCollectionId)), 'Non-default Product Collection Id is in the query')
-
     end;
 
     local procedure Initialize()
@@ -152,7 +171,7 @@ codeunit 139556 "Shpfy Product Collection Test"
         SalesChannel.Insert(false);
     end;
 
-    local procedure CreateProductCollection(CollectionId: BigInteger; CollectionName: Text; IsDefault: Boolean)
+    local procedure CreateProductCollection(CollectionId: BigInteger; CollectionName: Text; IsDefault: Boolean): Record "Shpfy Product Collection"
     var
         ProductCollection: Record "Shpfy Product Collection";
     begin
@@ -162,6 +181,7 @@ codeunit 139556 "Shpfy Product Collection Test"
         ProductCollection.Name := CopyStr(CollectionName, 1, MaxStrLen(ProductCollection.Name));
         ProductCollection.Default := IsDefault;
         ProductCollection.Insert(false);
+        exit(ProductCollection);
     end;
 
     local procedure CreateProduct(var Product: Record "Shpfy Product"; Id: BigInteger)
@@ -170,6 +190,16 @@ codeunit 139556 "Shpfy Product Collection Test"
         Product.Id := Id;
         Product."Shop Code" := Shop.Code;
         Product.Insert(false);
+    end;
+
+    local procedure CreateItem(var Item: Record Item; var Product: Record "Shpfy Product")
+    begin
+        Item.Init();
+        Item."No." := CopyStr(Any.AlphanumericText(20), 1, MaxStrLen(Item."No."));
+        Item.Description := CopyStr(Any.AlphabeticText(30), 1, MaxStrLen(Item.Description));
+        Item.Insert(false);
+        Product."Item SystemId" := Item.SystemId;
+        Product.Modify(false);
     end;
 
     local procedure CreateShopifyVariant(Product: Record "Shpfy Product"; var ShpfyVariant: Record "Shpfy Variant"; Id: BigInteger)
