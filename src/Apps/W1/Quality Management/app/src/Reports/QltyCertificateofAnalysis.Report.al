@@ -255,8 +255,8 @@ report 20401 "Qlty. Certificate of Analysis"
                 DirectorName := '';
 
                 QltyManagementSetup.Get();
-                if QltyManagementSetup."CoA Contact No." <> '' then
-                    if Contact.Get(QltyManagementSetup."CoA Contact No.") then begin
+                if QltyManagementSetup."Certificate Contact No." <> '' then
+                    if Contact.Get(QltyManagementSetup."Certificate Contact No.") then begin
                         DirectorName := Contact.Name;
                         DirectorTitle := Contact."Job Title";
                         FormatAddress.ContactAddr(ContactInformationArray, Contact);

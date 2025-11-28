@@ -84,6 +84,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         CanOnlyBeSetWhenToTypeIsTestErr: Label 'This is only used when the To Type is a test';
         OrderTypeProductionConditionFilterTok: Label 'WHERE(Order Type=FILTER(Production))', Locked = true;
         EntryTypeOutputConditionFilterTok: Label 'WHERE(Entry Type=FILTER(Output))', Locked = true;
+        PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
 
     [Test]
     [HandlerFunctions('LookupTableModalPageHandler_FirstRecord')]
@@ -1412,6 +1413,50 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [THEN] Pass Quantity equals the Source Quantity
         LibraryAssert.AreEqual(QltyInspectionTestHeader."Source Quantity (Base)", QltyInspectionTestHeader."Pass Quantity", 'Pass quantity should be the same as the source quantity');
     end;
+
+    [Test]
+    procedure Table_ValidatePassAndFailDoNotExceedSourceQuantity()
+    var
+        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+    begin
+        // [SCENARIO] Ensure that pass and fail quantity combined do not exceed the source quantity.
+
+        // [GIVEN] A basic template and test instance are created
+        QltyTestsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionTestHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+
+        // [WHEN] Pass Quantity exceeds the source quantity it should fail.
+        ClearLastError();
+        asserterror QltyInspectionTestHeader.Validate("Pass Quantity", QltyInspectionTestHeader."Source Quantity (Base)" + 1);
+
+        // [THEN] An error is thrown indicating the quantities cannot exceed the source quantity.
+        LibraryAssert.ExpectedError(StrSubstNo(PassFailQuantityInvalidErr, QltyInspectionTestHeader.FieldCaption("Pass Quantity"), QltyInspectionTestHeader.FieldCaption("Fail Quantity"), QltyInspectionTestHeader.FieldCaption("Source Quantity (Base)"), 1));
+
+        // [WHEN] Fail Quantity exceeds the source quantity it should fail.
+        ClearLastError();
+        asserterror QltyInspectionTestHeader.Validate("Fail Quantity", QltyInspectionTestHeader."Source Quantity (Base)" + 2);
+
+        // [THEN] An error is thrown indicating the quantities cannot exceed the source quantity.
+        LibraryAssert.ExpectedError(StrSubstNo(PassFailQuantityInvalidErr, QltyInspectionTestHeader.FieldCaption("Pass Quantity"), QltyInspectionTestHeader.FieldCaption("Fail Quantity"), QltyInspectionTestHeader.FieldCaption("Source Quantity (Base)"), 2));
+
+        // [WHEN] The pass and fail quantities combined would exceed the source quantity it should fail.
+        ClearLastError();
+        QltyInspectionTestHeader.Validate("Pass Quantity", 0);
+        asserterror QltyInspectionTestHeader.Validate("Fail Quantity", QltyInspectionTestHeader."Source Quantity (Base)" + 5);
+
+        // [THEN] An error is thrown indicating the quantities cannot exceed the source quantity.
+        LibraryAssert.ExpectedError(StrSubstNo(PassFailQuantityInvalidErr, QltyInspectionTestHeader.FieldCaption("Pass Quantity"), QltyInspectionTestHeader.FieldCaption("Fail Quantity"), QltyInspectionTestHeader.FieldCaption("Source Quantity (Base)"), 5));
+
+        // [WHEN] The pass and fail quantities match exactly the source quantity it should be allowed.
+        ClearLastError();
+        QltyInspectionTestHeader."Source Quantity (Base)" := 3;
+        QltyInspectionTestHeader.Validate("Pass Quantity", 1);
+        QltyInspectionTestHeader.Validate("Fail Quantity", 2);
+
+        // [THEN] An error is thrown indicating the quantities cannot exceed the source quantity.
+        LibraryAssert.AreEqual(QltyInspectionTestHeader."Source Quantity (Base)", QltyInspectionTestHeader."Pass Quantity" + QltyInspectionTestHeader."Fail Quantity", 'The source quantity should match the total of the pass and fail quantity.');
+    end;
+
 
     [Test]
     procedure Table_ValidateFailQuantity()

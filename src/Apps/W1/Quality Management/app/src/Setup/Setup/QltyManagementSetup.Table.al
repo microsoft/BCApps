@@ -58,9 +58,9 @@ table 20400 "Qlty. Management Setup"
             Description = 'When looking for existing tests, this defines what it looks for.';
             ToolTip = 'Specifies what criteria the system looks for when searching for existing tests.';
         }
-        field(6; "CoA Contact No."; Code[20])
+        field(6; "Certificate Contact No."; Code[20])
         {
-            Caption = 'CoA Contact No.';
+            Caption = 'Certificate of Analysis Contact No.';
             Description = 'When supplied, these contact details will appear on the CoA report.';
             TableRelation = Contact."No.";
             ToolTip = 'Specifies the contact details that will appear on the Certificate of Analysis report when supplied.';
