@@ -55,6 +55,7 @@ table 30163 "Shpfy Product Collection"
     var
         OutStream: OutStream;
     begin
+        Clear("Item Filter");
         "Item Filter".CreateOutStream(OutStream);
         OutStream.Write(ItemFilter);
     end;
@@ -64,6 +65,8 @@ table 30163 "Shpfy Product Collection"
         InStream: InStream;
     begin
         CalcFields("Item Filter");
+        if not "Item Filter".HasValue() then
+            exit('');
         "Item Filter".CreateInStream(InStream);
         InStream.Read(ItemFilter);
     end;
