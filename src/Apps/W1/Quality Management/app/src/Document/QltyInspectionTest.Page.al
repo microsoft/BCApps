@@ -18,6 +18,7 @@ using Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions.Transfer;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Warehouse.Structure;
+using System.Device;
 
 /// <summary>
 /// Primary location to enter Quality Inspection Test information.
@@ -507,6 +508,7 @@ page 20406 "Qlty. Inspection Test"
                 Caption = 'Take Picture';
                 Image = Camera;
                 ToolTip = 'Activate the camera on the device.';
+                Visible = CameraAvailable;
 
                 trigger OnAction()
                 begin
@@ -804,6 +806,8 @@ page 20406 "Qlty. Inspection Test"
     protected var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        Camera: Codeunit Camera;
+        CameraAvailable: Boolean;
         CanReopen: Boolean;
         CanFinish: Boolean;
         CanCreateRetest: Boolean;
@@ -826,6 +830,11 @@ page 20406 "Qlty. Inspection Test"
         VisibleSourceSubType: Boolean;
         VisibleSourceType: Boolean;
         CanChangeQuantity: Boolean;
+
+    trigger OnOpenPage()
+    begin
+        CameraAvailable := Camera.IsAvailable();
+    end;
 
     trigger OnAfterGetRecord()
     begin
