@@ -6,6 +6,7 @@
 namespace System.Agents;
 
 using System.Environment.Consumption;
+using System.Feedback;
 
 page 4316 "Agent List"
 {
@@ -99,6 +100,21 @@ page 4316 "Agent List"
                     Page.Run(Page::"Agent Consumption Overview", UserAIConsumptionData);
                 end;
             }
+            action(Feedback)
+            {
+                ApplicationArea = All;
+                Caption = 'Provide Feature Feedback';
+                ToolTip = 'Tell us what you think about Playground and suggest new features or improvements.';
+                Image = Comment;
+
+                trigger OnAction()
+                var
+                    MicrosoftUserFeedback: codeunit "Microsoft User Feedback";
+                begin
+                    MicrosoftUserFeedback.SetIsAIFeedback(true);
+                    MicrosoftUserFeedback.RequestFeedback('Playground', 'Playground', 'Playground');
+                end;
+            }
         }
         area(Promoted)
         {
@@ -108,6 +124,9 @@ page 4316 "Agent List"
                 {
                 }
                 actionref(AgentTasks_Promoted; AgentTasks)
+                {
+                }
+                actionref(Feedback_Promoted; Feedback)
                 {
                 }
             }
