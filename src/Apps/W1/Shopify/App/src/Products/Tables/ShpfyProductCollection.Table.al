@@ -56,7 +56,7 @@ table 30163 "Shpfy Product Collection"
         OutStream: OutStream;
     begin
         Clear("Item Filter");
-        "Item Filter".CreateOutStream(OutStream);
+        "Item Filter".CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.Write(ItemFilter);
     end;
 
