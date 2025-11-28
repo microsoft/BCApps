@@ -76,6 +76,18 @@ page 30145 "Shpfy Refund"
                     ApplicationArea = All;
                     ToolTip = 'Specifies if this refunds already is processed into a Business Central document.';
                 }
+                field(CurrencyCode; Rec."Currency Code")
+                {
+                    ToolTip = 'Specifies the currency code for the refund.';
+                }
+                group(PresentmentCurrency)
+                {
+                    ShowCaption = false;
+                    Visible = PresentmentCurrencyVisible;
+
+                    field("Pres. Tot. Refunded Amount"; Rec."Pres. Tot. Refunded Amount") { }
+                    field("Presentment Currency Code"; Rec."Presentment Currency Code") { }
+                }
             }
             part(Lines; "Shpfy Refund Lines")
             {
@@ -193,9 +205,30 @@ page 30145 "Shpfy Refund"
         HasNote: Boolean;
         CanCreateDocument: Boolean;
 
+        PresentmentCurrencyVisible: Boolean;
+
     trigger OnAfterGetCurrRecord()
     begin
         HasNote := Rec.Note.HasValue();
         CanCreateDocument := Rec.CheckCanCreateDocument();
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        SetPresentmentCurrencyVisibility();
+    end;
+
+    local procedure SetPresentmentCurrencyVisibility()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+    begin
+        if not OrderHeader.Get(Rec."Order Id") then
+            exit;
+
+        PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+        if PresentmentCurrencyVisible then
+            CurrPage.Lines.Page.SetShowPresentmentCurrency(true)
+        else
+            CurrPage.Lines.Page.SetShowPresentmentCurrency(false);
     end;
 }
