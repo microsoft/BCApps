@@ -8,6 +8,8 @@ on:
       - '.github/workflows/*.yaml'
       - '!.github/workflows/CICD.yaml'
     branches: [ 'main', 'releases/*' ]
+  schedule:
+    - cron: '0 2 * * *'
 
 defaults:
   run:

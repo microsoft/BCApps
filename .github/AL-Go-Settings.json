@@ -34,6 +34,16 @@
           "Clean"
         ]
       }
+    },
+    {
+      "workflows": [
+        "CI/CD"
+      ],
+      "settings": {
+        "workflowSchedule": {
+          "cron": "0 2 * * *"
+        }
+      }
     }
   ],
   "unusedALGoSystemFiles": [
@@ -95,7 +105,9 @@
     "pullRequestAutoMerge": true,
     "pullRequestLabels": [
       "Automation"
-    ]
+    ],
+    "createPullRequest": true,
+    "pullRequestMergeMethod": "squash"
   },
   "runNumberOffset": 60000
 }
