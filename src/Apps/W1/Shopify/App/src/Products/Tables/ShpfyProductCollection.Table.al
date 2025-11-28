@@ -67,7 +67,7 @@ table 30163 "Shpfy Product Collection"
         CalcFields("Item Filter");
         if not "Item Filter".HasValue() then
             exit('');
-        "Item Filter".CreateInStream(InStream);
+        "Item Filter".CreateInStream(InStream, TextEncoding::UTF8);
         InStream.Read(ItemFilter);
     end;
 }
