@@ -76,5 +76,8 @@ table 30144 "Shpfy FulFillment Order Line"
         {
             Clustered = true;
         }
+        key(Key1; "Shopify Order Id", "Shopify Variant Id")
+        {
+        }
     }
 }

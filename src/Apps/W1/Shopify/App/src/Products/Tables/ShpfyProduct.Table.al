@@ -165,6 +165,9 @@ table 30127 "Shpfy Product"
         {
             Clustered = true;
         }
+        key(Key1; "Shop Code", "Item SystemId")
+        {
+        }
     }
 
     trigger OnDelete()
