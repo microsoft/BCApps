@@ -62,9 +62,65 @@ xmlport 149031 "AIT Test Suite Import/Export"
                 {
                     Occurrence = Required;
                 }
+                fieldattribute(Capability; "AITSuite"."Copilot Capability")
+                {
+                    Occurrence = Optional;
+                }
+                fieldattribute(Frequency; "AITSuite"."Run Frequency")
+                {
+                    Occurrence = Optional;
+                }
+                textattribute(DefaultLanguage)
+                {
+                    Occurrence = Optional;
+
+                    trigger OnBeforePassVariable()
+                    begin
+                        AITSuite.CalcFields("Language Tag");
+                        DefaultLanguage := AITSuite."Language Tag";
+                    end;
+
+                    trigger OnAfterAssignVariable()
+                    var
+                        AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
+                    begin
+                        AITSuite."Language ID" := AITTestSuiteLanguage.GetLanguageIDByTag(Tag);
+                    end;
+                }
                 fieldattribute(TestRunnerId; "AITSuite"."Test Runner Id")
                 {
                     Occurrence = Optional;
+                }
+                tableelement(AITLanguage; "AIT Test Suite Language")
+                {
+                    LinkFields = "Test Suite Code" = field("Code");
+                    LinkTable = "AITSuite";
+                    MinOccurs = Zero;
+                    XmlName = 'Language';
+
+                    textattribute(Tag)
+                    {
+                        Occurrence = Required;
+
+                        trigger OnBeforePassVariable()
+                        begin
+                            AITLanguage.CalcFields("Language Tag");
+                            Tag := AITLanguage."Language Tag";
+                        end;
+
+                        trigger OnAfterAssignVariable()
+                        var
+                            AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
+                        begin
+                            AITLanguage."Language ID" := AITTestSuiteLanguage.GetLanguageIDByTag(Tag);
+                        end;
+                    }
+
+                    trigger OnAfterInitRecord()
+                    begin
+                        if SkipTestSuites.Contains(AITSuite.Code) then
+                            currXMLport.Skip();
+                    end;
                 }
                 tableelement(AITEvaluator; "AIT Evaluator")
                 {
