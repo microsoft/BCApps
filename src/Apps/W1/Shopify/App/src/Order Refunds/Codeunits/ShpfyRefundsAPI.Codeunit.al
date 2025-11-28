@@ -45,6 +45,7 @@ codeunit 30228 "Shpfy Refunds API"
     local procedure GetRefundHeader(RefundId: BigInteger; UpdatedAt: DateTime; var RefundHeader: Record "Shpfy Refund Header")
     var
         DataCapture: Record "Shpfy Data Capture";
+        ImportOrder: Codeunit "Shpfy Import Order";
         RefundHeaderRecordRef: RecordRef;
         IsNew: Boolean;
         Parameters: Dictionary of [Text, Text];
@@ -78,6 +79,9 @@ codeunit 30228 "Shpfy Refunds API"
         RefundHeaderRecordRef.Modify(false);
         RefundHeaderRecordRef.SetTable(RefundHeader);
         RefundHeaderRecordRef.Close();
+        RefundHeader."Currency Code" := ImportOrder.TranslateCurrencyCode(RefundHeader."Currency Code");
+        RefundHeader."Presentment Currency Code" := ImportOrder.TranslateCurrencyCode(RefundHeader."Presentment Currency Code");
+        RefundHeader.Modify();
         DataCapture.Add(Database::"Shpfy Refund Header", RefundHeader.SystemId, JResponse);
         UpdateTransactions(JRefund, RefundHeader);
     end;

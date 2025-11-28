@@ -66,6 +66,7 @@ codeunit 30194 "Shpfy Transactions"
         OrderTransaction: Record "Shpfy Order Transaction";
         PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
         TransactionGateway: Record "Shpfy Transaction Gateway";
+        ImportOrder: Codeunit "Shpfy Import Order";
         RecordRef: RecordRef;
         Id: BigInteger;
         IsNew: Boolean;
@@ -116,6 +117,11 @@ codeunit 30194 "Shpfy Transactions"
             RecordRef.Modify();
         RecordRef.SetTable(OrderTransaction);
         RecordRef.Close();
+        OrderTransaction.Currency := ImportOrder.TranslateCurrencyCode(OrderTransaction.Currency);
+        OrderTransaction."Presentment Currency" := ImportOrder.TranslateCurrencyCode(OrderTransaction."Presentment Currency");
+        OrderTransaction."Rounding Currency" := ImportOrder.TranslateCurrencyCode(OrderTransaction."Rounding Currency");
+        OrderTransaction."Presentment Rounding Currency" := ImportOrder.TranslateCurrencyCode(OrderTransaction."Presentment Rounding Currency");
+        OrderTransaction.Modify();
         if OrderTransaction.Gateway <> '' then begin
             Clear(TransactionGateway);
             TransactionGateway.SetRange(Name, OrderTransaction.Gateway);

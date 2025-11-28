@@ -117,7 +117,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                     "Shpfy Currency Handling"::"Shop Currency":
                         SalesHeader.Validate("Currency Code", Shop."Currency Code");
                     "Shpfy Currency Handling"::"Presentment Currency":
-                        SalesHeader.Validate("Currency Code", OrderHeader."Presentment Currency Code");
+                        SalesHeader.Validate("Currency Code", RefundHeader."Presentment Currency Code");
                 end;
                 SalesHeader.Validate("Document Date", DT2Date(RefundHeader."Created At"));
                 if OrderMgt.FindTaxArea(OrderHeader, ShopifyTaxArea) and (ShopifyTaxArea."Tax Area Code" <> '') then
