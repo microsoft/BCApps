@@ -573,6 +573,10 @@ codeunit 6196 "E-Doc. PO Matching"
         end;
     end;
 
+    /// <summary>
+    /// If the E-Document has been matched to an order line without specifying receipts, we match with receipt lines for that order line that can cover the E-Document line quantity.
+    /// </summary>
+    /// <param name="EDocumentPurchaseHeader"></param>
     procedure SuggestReceiptsForMatchedOrderLines(EDocumentPurchaseHeader: Record "E-Document Purchase Header")
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
@@ -639,7 +643,11 @@ codeunit 6196 "E-Doc. PO Matching"
         exit(true);
     end;
 
-    procedure TransferPOMatchesFromEDocumentToInvoice(EDocument: Record "E-Document"; PurchaseHeader: Record "Purchase Header")
+    /// <summary>
+    /// Transfer PO matches defined in the e-document to the created purchase invoice
+    /// </summary>
+    /// <param name="EDocument"></param>
+    procedure TransferPOMatchesFromEDocumentToInvoice(EDocument: Record "E-Document")
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         PurchaseLine: Record "Purchase Line";
@@ -661,7 +669,11 @@ codeunit 6196 "E-Doc. PO Matching"
             until EDocumentPurchaseLine.Next() = 0;
     end;
 
-    procedure TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader: Record "Purchase Header"; EDocument: Record "E-Document")
+    /// <summary>
+    /// Transfer PO matches defined in the purchase invoice to the linked e-document
+    /// </summary>
+    /// <param name="PurchaseHeader"></param>
+    procedure TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader: Record "Purchase Header")
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         PurchaseInvoiceLine: Record "Purchase Line";

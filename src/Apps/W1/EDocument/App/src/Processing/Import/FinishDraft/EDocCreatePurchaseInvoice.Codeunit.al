@@ -56,7 +56,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         IEDocumentFinishPurchaseDraft := EDocImportParameters."Processing Customizations";
         PurchaseHeader := IEDocumentFinishPurchaseDraft.CreatePurchaseInvoice(EDocument);
 
-        EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument, PurchaseHeader);
+        EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument);
         PurchaseHeader.SetRecFilter();
         PurchaseHeader.FindFirst();
         PurchaseHeader."Doc. Amount Incl. VAT" := EDocumentPurchaseHeader.Total;
@@ -85,7 +85,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         if not PurchaseHeader.FindFirst() then
             exit;
-        EDocPOMatching.TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader, EDocument);
+        EDocPOMatching.TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader);
         DocumentAttachmentMgt.CopyAttachments(PurchaseHeader, EDocument);
         DocumentAttachmentMgt.DeleteAttachedDocuments(PurchaseHeader);
         PurchaseHeader.TestField("Document Type", "Purchase Document Type"::Invoice);
