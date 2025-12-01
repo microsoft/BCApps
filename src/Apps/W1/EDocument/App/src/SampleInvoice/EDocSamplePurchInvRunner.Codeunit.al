@@ -109,35 +109,4 @@ codeunit 6208 "E-Doc Sample Purch.Inv. Runner"
         SamplePurchaseInvoice.SaveAsPdf(FilePath);
         FileManagement.BLOBImportFromServerFile(TempBlob, FilePath);
     end;
-
-    /// <summary>
-    /// Clears all temporary data from the buffers.
-    /// </summary>
-    procedure Clear()
-    begin
-        TempSamplePurchInvHeader.Reset();
-        TempSamplePurchInvHeader.DeleteAll();
-        TempSamplePurchInvLine.Reset();
-        TempSamplePurchInvLine.DeleteAll();
-        CurrentDocNo := '';
-        LineCounter := 0;
-    end;
-
-    /// <summary>
-    /// Gets the current temporary header buffer.
-    /// </summary>
-    /// <param name="TempHeader">Variable to receive the header records.</param>
-    procedure GetHeaders(var TempHeader: Record "E-Doc Sample Purch.Inv. Hdr." temporary)
-    begin
-        TempHeader.Copy(TempSamplePurchInvHeader, true);
-    end;
-
-    /// <summary>
-    /// Gets the current temporary line buffer.
-    /// </summary>
-    /// <param name="TempLines">Variable to receive the line records.</param>
-    procedure GetLines(var TempLines: Record "E-Doc Sample Purch. Inv. Line" temporary)
-    begin
-        TempLines.Copy(TempSamplePurchInvLine, true);
-    end;
 }
