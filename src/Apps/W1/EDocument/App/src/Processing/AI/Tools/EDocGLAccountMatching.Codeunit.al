@@ -274,15 +274,19 @@ codeunit 6126 "E-Doc. GL Account Matching" implements "AOAI Function", IEDocAISy
     procedure GetSystemPrompt(UserLanguage: Text): SecretText
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
-        EDocumentAIProcessor: Codeunit "E-Doc. AI Tool Processor";
-        PromptSecretText: SecretText;
-        PromptSecretNameTok: Label 'EDocMatchLineToGLAccountV271', Locked = true;
+        SecurityPromptSecretText, CompletePromptSecretText : SecretText;
+        GLAccountMatchingPromptText: Text;
+        GLAccountMatchingPromptTok: Label 'Prompts/GLAccountMatching-SystemPrompt.md', Locked = true;
+        SecurityPromptTok: Label 'GLAccountMatching-SecurityPrompt', Locked = true;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret(PromptSecretNameTok, PromptSecretText) then
-            PromptSecretText := SecretStrSubstNo('');
-
-        PromptSecretText := EDocumentAIProcessor.SetLanguageInPrompt(PromptSecretText, UserLanguage);
-        exit(PromptSecretText);
+        GLAccountMatchingPromptText := NavApp.GetResourceAsText(GLAccountMatchingPromptTok, TextEncoding::UTF8);
+        if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then
+            CompletePromptSecretText := SecretText.SecretStrSubstNo(GLAccountMatchingPromptText, SecurityPromptSecretText, UserLanguage)
+        else begin
+            Session.LogMessage('0000QPZ', 'Failed to retrieve security prompt', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetFeatureName());
+            CompletePromptSecretText := SecretStrSubstNo('');
+        end;
+        exit(CompletePromptSecretText);
     end;
 
     procedure GetTools(): List of [Interface "AOAI Function"]

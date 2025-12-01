@@ -193,6 +193,49 @@ codeunit 3060 Uri
     end;
 
     /// <summary>
+    /// Validates integration URI host from setup table field is the same as the hardcoded integration URI host, returns the hardcoded integration URI if validation fails.
+    /// </summary>
+    /// <param name="FieldValueURL">The integration URL from the setup table field.</param>
+    /// <param name="HardcodedIntegrationURL">The hardcoded integration URL to validate.</param>
+    /// <returns>The integration URL from the setup table if it has the same host; otherwise, the provided integration URL.</returns>
+    procedure ValidateIntegrationURL(FieldValueURL: Text; HardcodedIntegrationURL: Text): Text
+    begin
+        if AreURIsHaveSameHost(FieldValueURL, HardcodedIntegrationURL) then
+            exit(FieldValueURL)
+        else
+            exit(HardcodedIntegrationURL);
+    end;
+
+    /// <summary>
+    /// Verifies whether two URIs have the same host (e.g., both subdomain.example.com\test1 and subdomain.example.com\test2 have the same host subdomain.example.com).
+    /// </summary>
+    /// <param name="UriString1">The first URI string.</param>
+    /// <param name="UriString2">The second URI string.</param>
+    /// <returns>True if both URIs have the same host; otherwise, false.</returns>
+    procedure AreURIsHaveSameHost(UriString1: Text; UriString2: Text): Boolean
+    var
+        Uri1, Uri2 : DotNet Uri;
+    begin
+        Uri1 := Uri1.Uri(UriString1.ToLower());
+        Uri2 := Uri2.Uri(UriString2.ToLower());
+
+        exit(Uri1.Host = Uri2.Host);
+    end;
+
+    /// <summary>
+    /// Verifies whether the URI is in a valid pattern.
+    /// </summary>
+    /// <param name="UriString">The URI string to validate.</param>
+    /// <param name="Pattern">The regular expression pattern to match against.</param>
+    /// <returns>True if the URI string is in a valid pattern; otherwise, false.</returns>
+    procedure IsValidURIPattern(UriString: Text; Pattern: Text): Boolean
+    var
+        RegEx: Codeunit Regex;
+    begin
+        exit(Regex.IsMatch(UriString, Pattern));
+    end;
+
+    /// <summary>
     /// Gets the underlying .Net Uri variable.
     /// </summary>
     /// <param name="OutUri">A .Net object of class Uri that holds the underlying .Net Uri variable.</param>
