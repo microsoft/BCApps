@@ -11,7 +11,7 @@ using System.RestClient;
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
-codeunit 132974 "SharePoint Graph File Test"
+codeunit 132983 "SharePoint Graph File Test"
 {
     Access = Internal;
     InherentEntitlements = X;

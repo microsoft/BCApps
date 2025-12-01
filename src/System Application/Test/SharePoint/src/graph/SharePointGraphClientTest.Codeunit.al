@@ -10,7 +10,7 @@ using System.Integration.Sharepoint;
 using System.RestClient;
 using System.TestLibraries.Utilities;
 
-codeunit 132978 "SharePoint Graph Client Test"
+codeunit 132984 "SharePoint Graph Client Test"
 {
     Access = Internal;
     InherentEntitlements = X;

@@ -11,7 +11,7 @@ using System.RestClient;
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
-codeunit 132971 "SharePoint Graph Advanced Test"
+codeunit 132985 "SharePoint Graph Advanced Test"
 {
     Access = Internal;
     InherentEntitlements = X;
