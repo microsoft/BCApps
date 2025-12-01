@@ -95,6 +95,35 @@ codeunit 135041 "Base64 Convert Test"
     end;
 
     [Test]
+    procedure InStreamToBase64ToOutStreamTest()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        TempBlobOut: Codeunit "Temp Blob";
+        ResultOutStream: OutStream;
+        ResultInStream: InStream;
+        BlobOutStream: OutStream;
+        BlobInStream: InStream;
+        ConvertedText: Text;
+    begin
+        // [SCENARIO] The data from InStream is converted to base-64 string
+
+        // [GIVEN] InStream that contains sample text
+        TempBlob.CreateOutStream(BlobOutStream);
+        BlobOutStream.WriteText(SampleTxt); // WriteText doesn't insert a break at the end of the string
+        TempBlob.CreateInStream(BlobInStream);
+
+        ResultOutStream := TempBlobOut.CreateOutStream();
+        ResultInStream := TempBlobOut.CreateInStream();
+
+        // [WHEN] The data from InStream is converted
+        Base64Convert.ToBase64(BlobInStream, false, ResultOutStream);
+        ConvertedText := ResultInStream.ReadText();
+
+        // [THEN] The converted value is correct
+        Assert.AreEqual(Base64SampleTxt, ConvertedText, ConvertionToBase64Err);
+    end;
+
+    [Test]
     procedure InStreamToBase64WithLineBreaksTest()
     var
         TempBlob: Codeunit "Temp Blob";
@@ -115,6 +144,39 @@ codeunit 135041 "Base64 Convert Test"
 
         // [WHEN] The data from InStream is converted with line breaks
         ConvertedText := Base64Convert.ToBase64(BlobInStream, true);
+
+        // [THEN] The converted value is correct
+        Assert.AreEqual(Base64SampleTextWithLineBreaks, ConvertedText, ConvertionToBase64Err);
+    end;
+
+    [Test]
+    procedure InStreamToBase64WithLineBreaksToOutStreamTest()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        TempBlobOut: Codeunit "Temp Blob";
+        ResultOutStream: OutStream;
+        ResultInStream: InStream;
+        BlobOutStream: OutStream;
+        BlobInStream: InStream;
+        ConvertedText: Text;
+        Base64SampleTextWithLineBreaks: Text;
+    begin
+        // [SCENARIO] The data from InStream is converted to base-64 string with line breaks (every 76 characters)
+
+        // [GIVEN] InStream that contains sample text
+        TempBlob.CreateOutStream(BlobOutStream);
+        BlobOutStream.WriteText(SampleTxt); // WriteText doesn't insert a break at the end of the string
+        TempBlob.CreateInStream(BlobInStream);
+
+        ResultOutStream := TempBlobOut.CreateOutStream();
+        ResultInStream := TempBlobOut.CreateInStream();
+
+        // [GIVEN] The correct base-64 representation with line breaks of sample text
+        Base64SampleTextWithLineBreaks := SplitStringWithLineBreaks(Base64SampleTxt);
+
+        // [WHEN] The data from InStream is converted with line breaks
+        Base64Convert.ToBase64(BlobInStream, true, ResultOutStream);
+        ConvertedText := ResultInStream.ReadText();
 
         // [THEN] The converted value is correct
         Assert.AreEqual(Base64SampleTextWithLineBreaks, ConvertedText, ConvertionToBase64Err);
