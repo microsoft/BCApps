@@ -24,13 +24,11 @@ codeunit 149046 "AIT Test Suite Language"
     begin
         AddLanguagesFromTestSuite(AITTestSuite);
 
-        // Verify language is available for the test suite
         if not AITTestSuiteLanguage.Get(AITTestSuite.Code, AITTestSuite."Language ID") then
             Error(LanguageNotAvailableErr, AITTestSuite."Language ID", AITTestSuite.Code);
 
         AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
 
-        // Update test method lines to use the selected language version
         if AITTestMethodLine.FindSet() then
             repeat
                 UpdateLanguageForTestMethodLine(AITTestMethodLine, AITTestSuiteLanguage);
@@ -49,15 +47,12 @@ codeunit 149046 "AIT Test Suite Language"
         InputDatasetNotFoundErr: Label 'Input Dataset %1 not found in Test Input Groups.', Comment = '%1 - input dataset.';
         NoLocalizedVersionErr: Label 'No localized version found for Input Dataset %1 in Language ID %2.', Comment = '%1 - input dataset, %2 - language ID.';
     begin
-        // Only update test method lines with input datasets
         if AITTestMethodLine."Input Dataset" = '' then
             exit;
 
-        // Verify that the input dataset exists
         if not TestInputGroup.Get(AITTestMethodLine."Input Dataset") then
             Error(InputDatasetNotFoundErr, AITTestMethodLine."Input Dataset");
 
-        // Update input dataset to language version
         TestInputGroupLanguageVersion.SetRange("Group Name", TestInputGroup."Group Name");
         TestInputGroupLanguageVersion.SetRange("Language ID", AITTestSuiteLanguage."Language ID");
         if not TestInputGroupLanguageVersion.FindFirst() then
@@ -80,7 +75,6 @@ codeunit 149046 "AIT Test Suite Language"
     begin
         AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
 
-        // Update available languages based on test method lines in the test suite
         if AITTestMethodLine.FindSet() then
             repeat
                 if AddLanguagesFromTestMethodLine(AITTestMethodLine) then
@@ -179,7 +173,6 @@ codeunit 149046 "AIT Test Suite Language"
     var
         AITTestSuiteLanguage: Record "AIT Test Suite Language";
     begin
-        AITTestSuiteLanguage.Init();
         AITTestSuiteLanguage."Test Suite Code" := TestSuiteCode;
         AITTestSuiteLanguage."Language ID" := LanguageID;
         AITTestSuiteLanguage.Insert(true);

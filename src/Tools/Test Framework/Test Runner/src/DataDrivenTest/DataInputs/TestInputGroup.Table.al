@@ -168,20 +168,17 @@ table 130454 "Test Input Group"
         DefaultGroup: Record "Test Input Group";
         AllGroupsWithSameName: Record "Test Input Group";
     begin
-        // Only update parent groups if this record doesn't already have a parent
         if Rec."Parent Group Code" <> '' then
             exit;
 
-        // Find if there's already a group with the same Group Name
         ExistingGroup.SetRange("Group Name", Rec."Group Name");
         ExistingGroup.SetFilter(Code, '<>%1', Rec.Code);
 
         if not ExistingGroup.FindFirst() then
-            exit; // No existing group with same name, nothing to do
+            exit;
 
         // Check if current record is default language - it should become parent of all
         if Rec."Language ID" = GetDefaultLanguageID() then begin
-            // This is default language, make it the parent of all others with same Group Name
             AllGroupsWithSameName.SetRange("Group Name", Rec."Group Name");
             AllGroupsWithSameName.SetFilter(Code, '<>%1', Rec.Code);
             if AllGroupsWithSameName.FindSet(true) then
@@ -190,13 +187,11 @@ table 130454 "Test Input Group"
                     AllGroupsWithSameName.Modify(true);
                 until AllGroupsWithSameName.Next() = 0;
         end else begin
-            // This is not default language, find the default language group and make it the parent
             DefaultGroup.SetRange("Group Name", Rec."Group Name");
             DefaultGroup.SetRange("Language ID", GetDefaultLanguageID());
             if DefaultGroup.FindFirst() then
                 Validate(Rec."Parent Group Code", DefaultGroup.Code)
             else begin
-                // No default language version exists yet, use the first existing group that has no parent as parent
                 ExistingGroup.SetRange("Group Name", Rec."Group Name");
                 ExistingGroup.SetFilter(Code, '<>%1', Rec.Code);
                 ExistingGroup.SetRange("Parent Group Code", '');

@@ -61,11 +61,6 @@ page 149031 "AIT Test Suite"
                 {
                     ApplicationArea = All;
                 }
-                field("Run Frequency"; Rec."Run Frequency")
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies how frequently the test suite should be run.';
-                }
                 field("Language Tag"; Language)
                 {
                     ApplicationArea = All;

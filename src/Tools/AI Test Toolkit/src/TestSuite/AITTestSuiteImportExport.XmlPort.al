@@ -66,10 +66,6 @@ xmlport 149031 "AIT Test Suite Import/Export"
                 {
                     Occurrence = Optional;
                 }
-                fieldattribute(Frequency; "AITSuite"."Run Frequency")
-                {
-                    Occurrence = Optional;
-                }
                 textattribute(DefaultLanguage)
                 {
                     Occurrence = Optional;

@@ -119,11 +119,6 @@ table 149030 "AIT Test Suite"
             Caption = 'Copilot Capability';
             ToolTip = 'Specifies the Copilot Capability that the test suite tests.';
         }
-        field(15; "Run Frequency"; Enum "AIT Run Frequency")
-        {
-            Caption = 'Run Frequency';
-            ToolTip = 'Specifies how frequently the test suite should be run.';
-        }
         field(16; "Base Version"; Integer)
         {
             Caption = 'Base Version';
