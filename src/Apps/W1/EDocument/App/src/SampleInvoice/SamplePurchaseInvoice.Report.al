@@ -35,6 +35,9 @@ report 6102 "Sample Purchase Invoice"
             column(BuyFromVendorNo; "Buy-from Vendor No.")
             {
             }
+            column(VendorInvoiceNo_Lbl; VendorInvoiceNoLbl)
+            {
+            }
             column(VendorInvoiceNo; "Vendor Invoice No.")
             {
             }
@@ -42,6 +45,12 @@ report 6102 "Sample Purchase Invoice"
             {
             }
             column(PostingDateCaption; PostingDateCaptionLbl)
+            {
+            }
+            column(DueDate; "Due Date")
+            {
+            }
+            column(DueDateCaption; DueDateCaptionLbl)
             {
             }
             column(FromCaption; FromCaptionLbl)
@@ -246,7 +255,8 @@ report 6102 "Sample Purchase Invoice"
         GiroNoCaptionLbl: Label 'Giro No.';
         BankNameCaptionLbl: Label 'Bank';
         BankAccountNoCaptionLbl: Label 'Account No.';
-        PostingDateCaptionLbl: Label 'Date';
+        PostingDateCaptionLbl: Label 'Invoice Date';
+        DueDateCaptionLbl: Label 'Due Date';
         InvoiceCaptionLbl: Label 'INVOICE';
         InvoiceNoCaptionLbl: Label 'Invoice No.';
         DirectUnitCostCaptionLbl: Label 'Unit Cost';
@@ -259,6 +269,7 @@ report 6102 "Sample Purchase Invoice"
         TotalLbl: Label 'Total';
         FromCaptionLbl: Label 'From:';
         BillToCaptionLbl: Label 'Bill To:';
+        VendorInvoiceNoLbl: Label 'Vendor Invoice No.';
 
     /// <summary>
     /// Sets the data for the report from external temporary tables.

@@ -79,6 +79,10 @@ page 6117 "Sample Purch. Inv. Card"
                 {
                     ToolTip = 'Specifies the posting date of the invoice.';
                 }
+                field("Due Date"; Rec."Due Date")
+                {
+                    ToolTip = 'Specifies the due date of the invoice.';
+                }
             }
             group("Pay-to")
             {
@@ -194,8 +198,7 @@ page 6117 "Sample Purch. Inv. Card"
     begin
         DocumentCounter += 1;
         Rec.Init();
-        Rec."No." := Format(DocumentCounter);
-        Rec."Posting Date" := WorkDate();
+        AssignHeaderData();
         Rec.Insert(true);
         CurrPage.Update(false);
     end;
@@ -203,8 +206,15 @@ page 6117 "Sample Purch. Inv. Card"
     local procedure InitializeNewRecord()
     begin
         DocumentCounter += 1;
+        AssignHeaderData();
+    end;
+
+    local procedure AssignHeaderData()
+    begin
         Rec."No." := Format(DocumentCounter);
+        Rec."Vendor Invoice No." := 'INV34689';
         Rec."Posting Date" := WorkDate();
+        Rec."Due Date" := Rec."Posting Date" + 30;
     end;
 
     local procedure GenerateAndViewPDF()

@@ -73,6 +73,10 @@ table 6117 "Sample Purch. Inv. Header"
         {
             Caption = 'Responsibility Center';
         }
+        field(24; "Due Date"; Date)
+        {
+            Caption = 'Due Date';
+        }
     }
 
     keys
