@@ -7,7 +7,7 @@ namespace System.Test.Integration.Sharepoint;
 
 using System.RestClient;
 
-codeunit 132975 "SharePoint Http Client Handler" implements "Http Client Handler"
+codeunit 132981 "SharePoint Http Client Handler" implements "Http Client Handler"
 {
     Access = Internal;
     InherentEntitlements = X;

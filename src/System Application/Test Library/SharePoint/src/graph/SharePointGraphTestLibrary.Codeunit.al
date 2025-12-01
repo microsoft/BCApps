@@ -7,7 +7,7 @@ namespace System.Test.Integration.Sharepoint;
 
 using System.RestClient;
 
-codeunit 132930 "SharePoint Graph Test Library"
+codeunit 132975 "SharePoint Graph Test Library"
 {
     EventSubscriberInstance = Manual;
 
