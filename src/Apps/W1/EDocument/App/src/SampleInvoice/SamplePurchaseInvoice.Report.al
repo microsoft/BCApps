@@ -12,7 +12,7 @@ using Microsoft.Inventory.Location;
 /// Report for generating sample purchase invoice PDFs using temporary tables.
 /// This report is independent from the standard Purchase - Invoice report (Report 406).
 /// </summary>
-report 5392 "Sample Purchase Invoice"
+report 6102 "Sample Purchase Invoice"
 {
     Caption = 'Sample Purchase Invoice';
     DefaultLayout = Word;

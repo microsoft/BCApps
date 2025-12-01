@@ -7,7 +7,7 @@ namespace Microsoft.eServices.EDocument.DemoData;
 /// <summary>
 /// Temporary table for sample purchase invoice header data used in PDF generation.
 /// </summary>
-table 5379 "Sample Purch. Inv. Header"
+table 6117 "Sample Purch. Inv. Header"
 {
     InherentEntitlements = RMX;
     InherentPermissions = RMX;

@@ -11,7 +11,7 @@ using System.Utilities;
 /// Page for creating and managing sample purchase invoices.
 /// Allows users to create invoice data and generate PDF output.
 /// </summary>
-page 5428 "Sample Purch. Inv. Card"
+page 6117 "Sample Purch. Inv. Card"
 {
     ApplicationArea = Basic, Suite;
     UsageCategory = Tasks;

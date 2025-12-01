@@ -7,7 +7,7 @@ namespace Microsoft.eServices.EDocument.DemoData;
 /// <summary>
 /// Subform page for managing sample purchase invoice lines.
 /// </summary>
-page 5424 "Sample Purch. Inv. Subform"
+page 6131 "Sample Purch. Inv. Subform"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Sample Purchase Invoice Lines';

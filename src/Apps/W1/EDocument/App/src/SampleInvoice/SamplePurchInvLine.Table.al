@@ -15,7 +15,7 @@ using Microsoft.Projects.Resources.Resource;
 /// <summary>
 /// Temporary table for sample purchase invoice line data used in PDF generation.
 /// </summary>
-table 5382 "Sample Purch. Inv. Line"
+table 6119 "Sample Purch. Inv. Line"
 {
     InherentEntitlements = RMX;
     InherentPermissions = RMX;

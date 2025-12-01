@@ -12,7 +12,7 @@ using System.IO;
 /// Facade codeunit for managing sample purchase invoice PDF generation.
 /// Provides methods to add header, add lines, and generate PDF using temporary tables.
 /// </summary>
-codeunit 5398 "Sample Purch. Invoice Runner"
+codeunit 6208 "Sample Purch. Invoice Runner"
 {
     Access = Internal;
     InherentEntitlements = X;
