@@ -32,6 +32,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
     var
         QltyTraversal: Codeunit "Qlty. Traversal";
+        QltyTraversalMfg: Codeunit "Qlty. Traversal - Mfg.";
         LibraryAssert: Codeunit "Library Assert";
 
     [Test]
@@ -349,7 +350,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [WHEN] Finding related routing with routing record in variant 2 position
         // [THEN] The traversal function successfully finds the routing and returns the matching routing number
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedRouting(FoundRoutingHeader, EmptyVariant1, RecordRef, EmptyVariant2, EmptyVariant3, EmptyVariant4), 'Should find routing.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedRouting(FoundRoutingHeader, EmptyVariant1, RecordRef, EmptyVariant2, EmptyVariant3, EmptyVariant4), 'Should find routing.');
         LibraryAssert.AreEqual(RoutingHeader."No.", FoundRoutingHeader."No.", 'Should be same routing.');
     end;
 
@@ -380,7 +381,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [WHEN] Finding related routing with routing record in variant 3 position
         // [THEN] The traversal function successfully finds the routing and returns the matching routing number
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedRouting(FoundRoutingHeader, EmptyVariant1, EmptyVariant2, RecordRef, EmptyVariant3, EmptyVariant4), 'Should find routing.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedRouting(FoundRoutingHeader, EmptyVariant1, EmptyVariant2, RecordRef, EmptyVariant3, EmptyVariant4), 'Should find routing.');
         LibraryAssert.AreEqual(RoutingHeader."No.", FoundRoutingHeader."No.", 'Should be same routing.');
     end;
 
@@ -411,7 +412,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [WHEN] Finding related routing with routing record in variant 4 position
         // [THEN] The traversal function successfully finds the routing and returns the matching routing number
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedRouting(FoundRoutingHeader, EmptyVariant1, EmptyVariant2, EmptyVariant3, RecordRef, EmptyVariant4), 'Should find routing.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedRouting(FoundRoutingHeader, EmptyVariant1, EmptyVariant2, EmptyVariant3, RecordRef, EmptyVariant4), 'Should find routing.');
         LibraryAssert.AreEqual(RoutingHeader."No.", FoundRoutingHeader."No.", 'Should be same routing.');
     end;
 
@@ -442,7 +443,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [WHEN] Finding related routing with routing record in variant 5 position
         // [THEN] The traversal function successfully finds the routing and returns the matching routing number
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedRouting(FoundRoutingHeader, EmptyVariant1, EmptyVariant2, EmptyVariant3, EmptyVariant4, RecordRef), 'Should find routing.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedRouting(FoundRoutingHeader, EmptyVariant1, EmptyVariant2, EmptyVariant3, EmptyVariant4, RecordRef), 'Should find routing.');
         LibraryAssert.AreEqual(RoutingHeader."No.", FoundRoutingHeader."No.", 'Should be same routing.');
     end;
 
@@ -469,7 +470,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [WHEN] Finding related BOM with BOM record in variant 2 position
         // [THEN] The traversal function successfully finds the BOM and returns the matching BOM number
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedBillOfMaterial(FundProductionBOMHeader, EmptyVariant1, RecordRef, EmptyVariant2, EmptyVariant3, EmptyVariant4), 'Should find BOM.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedBillOfMaterial(FundProductionBOMHeader, EmptyVariant1, RecordRef, EmptyVariant2, EmptyVariant3, EmptyVariant4), 'Should find BOM.');
         LibraryAssert.AreEqual(ProductionBOMHeader."No.", FundProductionBOMHeader."No.", 'Should be same BOM.');
     end;
 
@@ -496,7 +497,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [WHEN] Finding related BOM with BOM record in variant 3 position
         // [THEN] The traversal function successfully finds the BOM and returns the matching BOM number
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedBillOfMaterial(FundProductionBOMHeader, EmptyVariant1, EmptyVariant2, RecordRef, EmptyVariant3, EmptyVariant4), 'Should find BOM.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedBillOfMaterial(FundProductionBOMHeader, EmptyVariant1, EmptyVariant2, RecordRef, EmptyVariant3, EmptyVariant4), 'Should find BOM.');
         LibraryAssert.AreEqual(ProductionBOMHeader."No.", FundProductionBOMHeader."No.", 'Should be same BOM.');
     end;
 
@@ -523,7 +524,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [WHEN] Finding related BOM with BOM record in variant 4 position
         // [THEN] The traversal function successfully finds the BOM and returns the matching BOM number
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedBillOfMaterial(FundProductionBOMHeader, EmptyVariant1, EmptyVariant2, EmptyVariant3, RecordRef, EmptyVariant4), 'Should find BOM.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedBillOfMaterial(FundProductionBOMHeader, EmptyVariant1, EmptyVariant2, EmptyVariant3, RecordRef, EmptyVariant4), 'Should find BOM.');
         LibraryAssert.AreEqual(ProductionBOMHeader."No.", FundProductionBOMHeader."No.", 'Should be same BOM.');
     end;
 
@@ -550,7 +551,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [WHEN] Finding related BOM with BOM record in variant 5 position
         // [THEN] The traversal function successfully finds the BOM and returns the matching BOM number
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedBillOfMaterial(FundProductionBOMHeader, EmptyVariant1, EmptyVariant2, EmptyVariant3, EmptyVariant4, RecordRef), 'Should find BOM.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedBillOfMaterial(FundProductionBOMHeader, EmptyVariant1, EmptyVariant2, EmptyVariant3, EmptyVariant4, RecordRef), 'Should find BOM.');
         LibraryAssert.AreEqual(ProductionBOMHeader."No.", FundProductionBOMHeader."No.", 'Should be same BOM.');
     end;
 
@@ -604,7 +605,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [THEN] Finding related BOM from the item record using source configuration
         // [THEN] The traversal function successfully finds the BOM and returns the matching BOM number
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedBillOfMaterial(FundProductionBOMHeader, RecordRef, EmptyVariant1, EmptyVariant2, EmptyVariant3, EmptyVariant4), 'Should find BOM.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedBillOfMaterial(FundProductionBOMHeader, RecordRef, EmptyVariant1, EmptyVariant2, EmptyVariant3, EmptyVariant4), 'Should find BOM.');
         LibraryAssert.AreEqual(ProductionBOMHeader."No.", FundProductionBOMHeader."No.", 'Should be same BOM.');
     end;
 
@@ -630,7 +631,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [WHEN] Finding related routing line with routing line record in variant 2 position
         // [THEN] The traversal function successfully finds the routing line with matching key fields
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedProdOrderRoutingLine(FoundProdOrderRoutingLine, EmptyVariant2, RecordRef, EmptyVariant3, EmptyVariant4, EmptyVariant5), 'Should find routing line.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedProdOrderRoutingLine(FoundProdOrderRoutingLine, EmptyVariant2, RecordRef, EmptyVariant3, EmptyVariant4, EmptyVariant5), 'Should find routing line.');
         LibraryAssert.AreEqual(ProdOrderRoutingLine.Status, FoundProdOrderRoutingLine.Status, 'Should be same status');
         LibraryAssert.AreEqual(ProdOrderRoutingLine."No.", FoundProdOrderRoutingLine."No.", 'Should be same No.');
         LibraryAssert.AreEqual(ProdOrderRoutingLine."Prod. Order No.", FoundProdOrderRoutingLine."Prod. Order No.", 'Should be same Prod. Order No.');
@@ -660,7 +661,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [WHEN] Finding related routing line with routing line record in variant 3 position
         // [THEN] The traversal function successfully finds the routing line with matching key fields
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedProdOrderRoutingLine(FoundProdOrderRoutingLine, EmptyVariant2, EmptyVariant3, RecordRef, EmptyVariant4, EmptyVariant5), 'Should find routing line.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedProdOrderRoutingLine(FoundProdOrderRoutingLine, EmptyVariant2, EmptyVariant3, RecordRef, EmptyVariant4, EmptyVariant5), 'Should find routing line.');
         LibraryAssert.AreEqual(ProdOrderRoutingLine.Status, FoundProdOrderRoutingLine.Status, 'Should be same status');
         LibraryAssert.AreEqual(ProdOrderRoutingLine."No.", FoundProdOrderRoutingLine."No.", 'Should be same No.');
         LibraryAssert.AreEqual(ProdOrderRoutingLine."Prod. Order No.", FoundProdOrderRoutingLine."Prod. Order No.", 'Should be same Prod. Order No.');
@@ -690,7 +691,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [WHEN] Finding related routing line with routing line record in variant 4 position
         // [THEN] The traversal function successfully finds the routing line with matching key fields
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedProdOrderRoutingLine(FoundProdOrderRoutingLine, EmptyVariant2, EmptyVariant3, EmptyVariant4, RecordRef, EmptyVariant5), 'Should find routing line.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedProdOrderRoutingLine(FoundProdOrderRoutingLine, EmptyVariant2, EmptyVariant3, EmptyVariant4, RecordRef, EmptyVariant5), 'Should find routing line.');
         LibraryAssert.AreEqual(ProdOrderRoutingLine.Status, FoundProdOrderRoutingLine.Status, 'Should be same status');
         LibraryAssert.AreEqual(ProdOrderRoutingLine."No.", FoundProdOrderRoutingLine."No.", 'Should be same No.');
         LibraryAssert.AreEqual(ProdOrderRoutingLine."Prod. Order No.", FoundProdOrderRoutingLine."Prod. Order No.", 'Should be same Prod. Order No.');
@@ -720,7 +721,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [WHEN] Finding related routing line with routing line record in variant 5 position
         // [THEN] The traversal function successfully finds the routing line with matching key fields
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedProdOrderRoutingLine(FoundProdOrderRoutingLine, EmptyVariant2, EmptyVariant3, EmptyVariant4, EmptyVariant5, RecordRef), 'Should find routing line.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedProdOrderRoutingLine(FoundProdOrderRoutingLine, EmptyVariant2, EmptyVariant3, EmptyVariant4, EmptyVariant5, RecordRef), 'Should find routing line.');
         LibraryAssert.AreEqual(ProdOrderRoutingLine.Status, FoundProdOrderRoutingLine.Status, 'Should be same status');
         LibraryAssert.AreEqual(ProdOrderRoutingLine."No.", FoundProdOrderRoutingLine."No.", 'Should be same No.');
         LibraryAssert.AreEqual(ProdOrderRoutingLine."Prod. Order No.", FoundProdOrderRoutingLine."Prod. Order No.", 'Should be same Prod. Order No.');
@@ -1176,7 +1177,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [WHEN] Finding related routing from production order routing line by traversing to parent production order
         // [THEN] The traversal function finds the routing from the production order
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedRouting(FoundRoutingHeader, RecordRef, EmptyVariant2, EmptyVariant3, EmptyVariant4, EmptyVariant5), 'Should find routing.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedRouting(FoundRoutingHeader, RecordRef, EmptyVariant2, EmptyVariant3, EmptyVariant4, EmptyVariant5), 'Should find routing.');
         LibraryAssert.AreEqual(ProdProductionOrder."Routing No.", FoundRoutingHeader."No.", 'Should be same routing.');
     end;
 
@@ -1279,7 +1280,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [WHEN] Finding related routing line from production order line by chained traversal
         // [THEN] The traversal function finds the routing line with matching key fields
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedProdOrderRoutingLine(FoundProdOrderRoutingLine, RecordRef, EmptyVariant2, EmptyVariant3, EmptyVariant4, EmptyVariant5), 'Should find routing line.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedProdOrderRoutingLine(FoundProdOrderRoutingLine, RecordRef, EmptyVariant2, EmptyVariant3, EmptyVariant4, EmptyVariant5), 'Should find routing line.');
         LibraryAssert.AreEqual(ProdOrderRoutingLine.Status, FoundProdOrderRoutingLine.Status, 'Should be same status');
         LibraryAssert.AreEqual(ProdOrderRoutingLine."No.", FoundProdOrderRoutingLine."No.", 'Should be same No.');
         LibraryAssert.AreEqual(ProdOrderRoutingLine."Prod. Order No.", FoundProdOrderRoutingLine."Prod. Order No.", 'Should be same Prod. Order No.');
@@ -1392,7 +1393,7 @@ codeunit 139968 "Qlty. Tests - Traversal"
 
         // [WHEN] Finding related BOM from production order routing line by chained traversal
         // [THEN] The traversal function finds the BOM from the production order line
-        LibraryAssert.IsTrue(QltyTraversal.FindRelatedBillOfMaterial(FundProductionBOMHeader, RecordRef, EmptyVariant2, EmptyVariant3, EmptyVariant4, EmptyVariant5), 'Should find BOM.');
+        LibraryAssert.IsTrue(QltyTraversalMfg.FindRelatedBillOfMaterial(FundProductionBOMHeader, RecordRef, EmptyVariant2, EmptyVariant3, EmptyVariant4, EmptyVariant5), 'Should find BOM.');
         LibraryAssert.AreEqual(ProdOrderLine."Production BOM No.", FundProductionBOMHeader."No.", 'Should be same BOM.');
     end;
 }
