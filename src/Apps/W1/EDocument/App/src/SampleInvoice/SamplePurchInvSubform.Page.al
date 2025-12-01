@@ -41,7 +41,7 @@ page 6131 "Sample Purch. Inv. Subform"
 
                     trigger OnValidate()
                     begin
-                        Rec."Line Amount" := Rec.Quantity * Rec."Direct Unit Cost";
+                        Rec.Validate(Amount, Rec.Quantity * Rec."Direct Unit Cost");
                     end;
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
@@ -54,13 +54,22 @@ page 6131 "Sample Purch. Inv. Subform"
 
                     trigger OnValidate()
                     begin
-                        Rec."Line Amount" := Rec.Quantity * Rec."Direct Unit Cost";
+                        Rec.Validate(Amount, Rec.Quantity * Rec."Direct Unit Cost");
                     end;
                 }
-                field("Line Amount"; Rec."Line Amount")
+                field(Amount; Rec.Amount)
                 {
                     ToolTip = 'Specifies the line amount (Quantity x Direct Unit Cost).';
                     Editable = false;
+
+                    trigger OnValidate()
+                    begin
+                        Rec."Amount Including VAT" := Rec.Amount;
+                    end;
+                }
+                field("Amount Including VAT"; Rec."Amount Including VAT")
+                {
+                    ToolTip = 'Specifies the line amount including VAT.';
                 }
                 field("Tax Group Code"; Rec."Tax Group Code")
                 {

@@ -81,9 +81,15 @@ table 6119 "Sample Purch. Inv. Line"
         {
             Caption = 'Unit of Measure Code';
         }
-        field(11; "Line Amount"; Decimal)
+        field(29; "Amount"; Decimal)
         {
-            Caption = 'Line Amount';
+            Caption = 'Amount';
+            AutoFormatType = 2;
+            AutoFormatExpression = '';
+        }
+        field(30; "Amount Including VAT"; Decimal)
+        {
+            Caption = 'Amount Including VAT';
             AutoFormatType = 2;
             AutoFormatExpression = '';
         }

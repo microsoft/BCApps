@@ -16,7 +16,7 @@ report 6102 "Sample Purchase Invoice"
 {
     Caption = 'Sample Purchase Invoice';
     DefaultLayout = Word;
-    WordLayout = 'SamplePurchInvoice.docx';
+    WordLayout = './src/SampleInvoice/SamplePurchInvoice.docx';
 
     dataset
     {
@@ -24,6 +24,9 @@ report 6102 "Sample Purchase Invoice"
         {
             UseTemporary = true;
             column(No_; "No.")
+            {
+            }
+            column(InvoiceCaption; InvoiceCaptionLbl)
             {
             }
             column(InvoiceNoCaption; InvoiceNoCaptionLbl)
@@ -131,6 +134,24 @@ report 6102 "Sample Purchase Invoice"
             column(CompanyInfoEMailCaption; EMailCaptionLbl)
             {
             }
+            column(SubTotalCaption; SubTotalLbl)
+            {
+            }
+            column(TaxCaption; TaxLbl)
+            {
+            }
+            column(TotalCaption; TotalLbl)
+            {
+            }
+            column(TotalAmountExclVAT; TotalAmount)
+            {
+            }
+            column(VATAmount; VATAmount)
+            {
+            }
+            column(TotalAmountInclVAT; TotalAmtInclVAT)
+            {
+            }
             dataitem(Line; "Sample Purch. Inv. Line")
             {
                 UseTemporary = true;
@@ -144,13 +165,19 @@ report 6102 "Sample Purchase Invoice"
                 column(Type; Type)
                 {
                 }
-                column(LineNo_; "No.")
+                column(No; "No.")
                 {
                 }
                 column(TaxGroupCode; "Tax Group Code")
                 {
                 }
+                column(ItemDescription_Lbl; ItemDescriptionCaptionLbl)
+                {
+                }
                 column(Description; Description)
+                {
+                }
+                column(ItemQuantity_Lbl; ItemQuantityCaptionLbl)
                 {
                 }
                 column(Quantity; Quantity)
@@ -165,15 +192,25 @@ report 6102 "Sample Purchase Invoice"
                 column(DeferralCode; "Deferral Code")
                 {
                 }
+                column(UOM_PurchLine_Lbl; ItemUnitOfMeasureCaptionLbl)
+                {
+                }
                 column(UnitOfMeasureCode; "Unit of Measure Code")
                 {
                 }
-                column(LineAmount; Quantity * "Direct Unit Cost")
+                column(LineAmount; Amount)
                 {
                 }
                 column(LineAmountCaption; LineAmountCaptionLbl)
                 {
                 }
+
+                trigger OnAfterGetRecord()
+                begin
+                    TotalAmount += Line.Amount;
+                    VATAmount += Line."Amount Including VAT" - Line.Amount;
+                    TotalAmtInclVAT += Line."Amount Including VAT";
+                end;
             }
 
             trigger OnPreDataItem()
@@ -194,6 +231,7 @@ report 6102 "Sample Purchase Invoice"
         CompanyInfo: Record "Company Information";
         RespCenter: Record "Responsibility Center";
         FormatAddr: Codeunit "Format Address";
+        TotalAmount, VATAmount, TotalAmtInclVAT : Decimal;
         VendAddr, CompanyAddr : array[8] of Text[100];
         PhoneNoCaptionLbl: Label 'Phone No.';
         HomePageCaptionLbl: Label 'Home Page';
@@ -202,10 +240,17 @@ report 6102 "Sample Purchase Invoice"
         GiroNoCaptionLbl: Label 'Giro No.';
         BankNameCaptionLbl: Label 'Bank';
         BankAccountNoCaptionLbl: Label 'Account No.';
-        PostingDateCaptionLbl: Label 'Posting Date';
+        PostingDateCaptionLbl: Label 'Date';
+        InvoiceCaptionLbl: Label 'INVOICE';
         InvoiceNoCaptionLbl: Label 'Invoice No.';
-        DirectUnitCostCaptionLbl: Label 'Direct Unit Cost';
+        DirectUnitCostCaptionLbl: Label 'Price';
+        ItemQuantityCaptionLbl: Label 'Quantity';
         LineAmountCaptionLbl: Label 'Line Amount';
+        ItemDescriptionCaptionLbl: Label 'Description';
+        ItemUnitOfMeasureCaptionLbl: Label 'Unit';
+        SubTotalLbl: Label 'Subtotal';
+        TaxLbl: Label 'Tax';
+        TotalLbl: Label 'Total';
 
     /// <summary>
     /// Sets the data for the report from external temporary tables.
