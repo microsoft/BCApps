@@ -17,7 +17,6 @@ codeunit 4111 "Base64 Convert Impl."
     var
         SystemNativeBase64Converter: Codeunit "Base64Convert";
 
-        IsInitialized: Boolean;
         SourceWarningLength: Integer;
         TextLengtWarningTxt: Label 'The input string length (%1) exceeds the maximum suggested length (%2) for Base64 conversion.', Locked = true;
         StreamLengtWarningTxt: Label 'The input stream length (%1) exceeds the maximum suggested length (%2) for Base64 conversion.', Locked = true;
