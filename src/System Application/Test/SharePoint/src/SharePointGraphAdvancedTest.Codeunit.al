@@ -949,28 +949,6 @@ codeunit 132971 "SharePoint Graph Advanced Test"
         exit(ResponseText.ToText());
     end;
 
-    local procedure GetDriveItemResponse(): Text
-    var
-        ResponseText: TextBuilder;
-    begin
-        ResponseText.Append('{');
-        ResponseText.Append('  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#driveItems/$entity",');
-        ResponseText.Append('  "id": "01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ",');
-        ResponseText.Append('  "name": "Report.docx",');
-        ResponseText.Append('  "createdDateTime": "2023-05-10T14:25:37Z",');
-        ResponseText.Append('  "lastModifiedDateTime": "2023-06-20T09:42:13Z",');
-        ResponseText.Append('  "webUrl": "https://contoso.sharepoint.com/sites/test/Shared%20Documents/Report.docx",');
-        ResponseText.Append('  "file": {');
-        ResponseText.Append('    "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",');
-        ResponseText.Append('    "hashes": {');
-        ResponseText.Append('      "quickXorHash": "dF5GC7lcTJbHDrcPKJc8rJtEhCo="');
-        ResponseText.Append('    }');
-        ResponseText.Append('  },');
-        ResponseText.Append('  "size": 45321');
-        ResponseText.Append('}');
-        exit(ResponseText.ToText());
-    end;
-
     local procedure GetNotFoundResponse(): Text
     var
         ResponseText: TextBuilder;
