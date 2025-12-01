@@ -136,9 +136,11 @@ codeunit 30176 "Shpfy Product API"
                 if Item.IsEmpty() then
                     continue;
             end;
+            if CollectionsBuilder.Length > 0 then
+                CollectionsBuilder.Append(', ');
             CollectionsBuilder.Append('\"gid://shopify/Collection/');
             CollectionsBuilder.Append(Format(ProductCollection.Id));
-            CollectionsBuilder.Append('\", ');
+            CollectionsBuilder.Append('\"');
         until ProductCollection.Next() = 0;
 
         if CollectionsBuilder.Length = 0 then
@@ -146,7 +148,6 @@ codeunit 30176 "Shpfy Product API"
 
         GraphQuery.Append(', collectionsToJoin: [');
         GraphQuery.Append(CollectionsBuilder.ToText());
-        GraphQuery.Remove(GraphQuery.Length - 1, 2);
         GraphQuery.Append(']');
     end;
 
