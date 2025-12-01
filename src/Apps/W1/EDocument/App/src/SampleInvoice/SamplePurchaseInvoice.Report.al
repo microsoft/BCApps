@@ -44,6 +44,12 @@ report 6102 "Sample Purchase Invoice"
             column(PostingDateCaption; PostingDateCaptionLbl)
             {
             }
+            column(FromCaption; FromCaptionLbl)
+            {
+            }
+            column(BillToCaption; BillToCaptionLbl)
+            {
+            }
             column(VendAddr1; VendAddr[1])
             {
             }
@@ -195,7 +201,7 @@ report 6102 "Sample Purchase Invoice"
                 column(UOM_PurchLine_Lbl; ItemUnitOfMeasureCaptionLbl)
                 {
                 }
-                column(UnitOfMeasureCode; "Unit of Measure Code")
+                column(UnitOfMeasureCode; "Unit of Measure")
                 {
                 }
                 column(LineAmount; Amount)
@@ -243,14 +249,16 @@ report 6102 "Sample Purchase Invoice"
         PostingDateCaptionLbl: Label 'Date';
         InvoiceCaptionLbl: Label 'INVOICE';
         InvoiceNoCaptionLbl: Label 'Invoice No.';
-        DirectUnitCostCaptionLbl: Label 'Price';
+        DirectUnitCostCaptionLbl: Label 'Unit Cost';
         ItemQuantityCaptionLbl: Label 'Quantity';
-        LineAmountCaptionLbl: Label 'Line Amount';
+        LineAmountCaptionLbl: Label 'Amount';
         ItemDescriptionCaptionLbl: Label 'Description';
         ItemUnitOfMeasureCaptionLbl: Label 'Unit';
         SubTotalLbl: Label 'Subtotal';
         TaxLbl: Label 'Tax';
         TotalLbl: Label 'Total';
+        FromCaptionLbl: Label 'From:';
+        BillToCaptionLbl: Label 'Bill To:';
 
     /// <summary>
     /// Sets the data for the report from external temporary tables.
@@ -266,6 +274,7 @@ report 6102 "Sample Purchase Invoice"
 
     local procedure FormatAddressFields(var SamplePurchInvHeader: Record "Sample Purch. Inv. Header")
     begin
+        CompanyInfo.Get();
         FormatAddr.GetCompanyAddr(SamplePurchInvHeader."Responsibility Center", RespCenter, CompanyInfo, CompanyAddr);
         FormatAddr.FormatAddr(
             VendAddr,

@@ -4,6 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.DemoData;
 
+using Microsoft.Finance.AllocationAccount;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Inventory.Item;
+using Microsoft.Utilities;
+using Microsoft.Foundation.UOM;
+
 /// <summary>
 /// Subform page for managing sample purchase invoice lines.
 /// </summary>
@@ -30,6 +36,93 @@ page 6131 "Sample Purch. Inv. Subform"
                 field("No."; Rec."No.")
                 {
                     ToolTip = 'Specifies the number of the item or G/L account.';
+
+                    trigger OnValidate()
+                    var
+                        Item: Record Item;
+                        GLAccount: Record "G/L Account";
+                        AllocationAccount: Record "Allocation Account";
+                        UnitOfMeasure: Record "Unit of Measure";
+                    begin
+                        case Rec.Type of
+                            Rec.Type::Item:
+                                if Item.Get(Rec."No.") then begin
+                                    Rec.Description := Item.Description;
+                                    if Item."Purch. Unit of Measure" <> '' then
+                                        Rec.Validate("Unit of Measure Code", Item."Purch. Unit of Measure")
+                                    else
+                                        Rec.Validate("Unit of Measure Code", Item."Base Unit of Measure");
+                                end;
+                            Rec.Type::"G/L Account":
+                                if GLAccount.Get(Rec."No.") then
+                                    Rec.Description := GLAccount.Name;
+                            Rec.Type::"Allocation Account":
+                                if AllocationAccount.Get(Rec."No.") then
+                                    Rec.Description := AllocationAccount.Name;
+                        end;
+                        if Rec."Unit of Measure Code" = '' then
+                            Rec."Unit of Measure" := ''
+                        else begin
+                            UnitOfMeasure.Get(Rec."Unit of Measure Code");
+                            Rec."Unit of Measure" := UnitOfMeasure.Description;
+                        end;
+                    end;
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        Item: Record Item;
+                        GLAccount: Record "G/L Account";
+                        AllocationAccount: Record "Allocation Account";
+                        StandardText: Record "Standard Text";
+                        ItemList: Page "Item List";
+                        GLAccountList: Page "G/L Account List";
+                        AllocationAccountList: Page "Allocation Account List";
+                        StandardTextCodes: Page "Standard Text Codes";
+                    begin
+                        case Rec.Type of
+                            Rec.Type::Item:
+                                begin
+                                    ItemList.LookupMode(true);
+                                    if ItemList.RunModal() = Action::LookupOK then begin
+                                        ItemList.GetRecord(Item);
+                                        Rec.Validate("No.", Item."No.");
+                                        exit(true);
+                                    end;
+                                end;
+                            Rec.Type::"G/L Account":
+                                begin
+                                    GLAccount.SetRange("Direct Posting", true);
+                                    GLAccount.SetRange("Account Type", GLAccount."Account Type"::Posting);
+                                    GLAccount.SetRange(Blocked, false);
+                                    GLAccountList.SetTableView(GLAccount);
+                                    GLAccountList.LookupMode(true);
+                                    if GLAccountList.RunModal() = Action::LookupOK then begin
+                                        GLAccountList.GetRecord(GLAccount);
+                                        Rec.Validate("No.", GLAccount."No.");
+                                        exit(true);
+                                    end;
+                                end;
+                            Rec.Type::"Allocation Account":
+                                begin
+                                    AllocationAccountList.LookupMode(true);
+                                    if AllocationAccountList.RunModal() = Action::LookupOK then begin
+                                        AllocationAccountList.GetRecord(AllocationAccount);
+                                        Rec.Validate("No.", AllocationAccount."No.");
+                                        exit(true);
+                                    end;
+                                end;
+                            Rec.Type::" ":
+                                begin
+                                    StandardTextCodes.LookupMode(true);
+                                    if StandardTextCodes.RunModal() = Action::LookupOK then begin
+                                        StandardTextCodes.GetRecord(StandardText);
+                                        Rec.Validate("No.", StandardText.Code);
+                                        exit(true);
+                                    end;
+                                end;
+                        end;
+                        exit(false);
+                    end;
                 }
                 field(Description; Rec.Description)
                 {
@@ -44,9 +137,9 @@ page 6131 "Sample Purch. Inv. Subform"
                         Rec.Validate(Amount, Rec.Quantity * Rec."Direct Unit Cost");
                     end;
                 }
-                field("Unit of Measure Code"; Rec."Unit of Measure Code")
+                field("Unit of Measure"; Rec."Unit of Measure")
                 {
-                    ToolTip = 'Specifies the unit of measure code.';
+                    ToolTip = 'Specifies the unit of measure.';
                 }
                 field("Direct Unit Cost"; Rec."Direct Unit Cost")
                 {
