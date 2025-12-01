@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.eServices.EDocument.DemoData;
+namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.GeneralLedger.Account;
@@ -13,12 +13,12 @@ using Microsoft.Foundation.UOM;
 /// <summary>
 /// Subform page for managing sample purchase invoice lines.
 /// </summary>
-page 6131 "Sample Purch. Inv. Subform"
+page 6131 "E-Doc Sample Purch.Inv. Sub."
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Sample Purchase Invoice Lines';
+    Caption = 'E-Doc Sample Purchase Invoice Lines';
     PageType = ListPart;
-    SourceTable = "Sample Purch. Inv. Line";
+    SourceTable = "E-Doc Sample Purch. Inv. Line";
     SourceTableTemporary = true;
     AutoSplitKey = true;
     DelayedInsert = true;
@@ -187,7 +187,7 @@ page 6131 "Sample Purch. Inv. Subform"
     /// Gets all records from the temporary table.
     /// </summary>
     /// <param name="var TempLines">Variable to receive the line records.</param>
-    procedure GetRecords(var TempLines: Record "Sample Purch. Inv. Line" temporary)
+    procedure GetRecords(var TempLines: Record "E-Doc Sample Purch. Inv. Line" temporary)
     begin
         TempLines.Reset();
         TempLines.DeleteAll();

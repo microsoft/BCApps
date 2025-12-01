@@ -2,17 +2,17 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.eServices.EDocument.DemoData;
+namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
 /// <summary>
 /// Temporary table for sample purchase invoice header data used in PDF generation.
 /// </summary>
-table 6117 "Sample Purch. Inv. Header"
+table 6117 "E-Doc Sample Purch.Inv. Hdr."
 {
     InherentEntitlements = RMX;
     InherentPermissions = RMX;
     TableType = Temporary;
-    Caption = 'Sample Purch. Inv. Header';
+    Caption = 'E-Doc Sample Purch. Inv. Header';
     DataClassification = SystemMetadata;
 
     fields

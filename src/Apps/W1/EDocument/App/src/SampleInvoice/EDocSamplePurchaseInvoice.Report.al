@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.eServices.EDocument.DemoData;
+namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
@@ -12,15 +12,15 @@ using Microsoft.Inventory.Location;
 /// Report for generating sample purchase invoice PDFs using temporary tables.
 /// This report is independent from the standard Purchase - Invoice report (Report 406).
 /// </summary>
-report 6102 "Sample Purchase Invoice"
+report 6102 "E-Doc Sample Purchase Invoice"
 {
-    Caption = 'Sample Purchase Invoice';
+    Caption = 'E-Doc Sample Purchase Invoice';
     DefaultLayout = Word;
-    WordLayout = './src/SampleInvoice/SamplePurchInvoice.docx';
+    WordLayout = './src/SampleInvoice/EDocSamplePurchInvoice.docx';
 
     dataset
     {
-        dataitem(Header; "Sample Purch. Inv. Header")
+        dataitem(Header; "E-Doc Sample Purch.Inv. Hdr.")
         {
             UseTemporary = true;
             column(No_; "No.")
@@ -167,7 +167,7 @@ report 6102 "Sample Purchase Invoice"
             column(TotalAmountInclVAT; TotalAmtInclVAT)
             {
             }
-            dataitem(Line; "Sample Purch. Inv. Line")
+            dataitem(Line; "E-Doc Sample Purch. Inv. Line")
             {
                 UseTemporary = true;
                 DataItemLink = "Document No." = field("No.");
@@ -241,8 +241,8 @@ report 6102 "Sample Purchase Invoice"
     }
 
     var
-        TempSamplePurchInvHeader: Record "Sample Purch. Inv. Header" temporary;
-        TempSamplePurchInvLine: Record "Sample Purch. Inv. Line" temporary;
+        TempSamplePurchInvHeader: Record "E-Doc Sample Purch.Inv. Hdr." temporary;
+        TempSamplePurchInvLine: Record "E-Doc Sample Purch. Inv. Line" temporary;
         CompanyInfo: Record "Company Information";
         RespCenter: Record "Responsibility Center";
         FormatAddr: Codeunit "Format Address";
@@ -276,14 +276,14 @@ report 6102 "Sample Purchase Invoice"
     /// </summary>
     /// <param name="TempHeader">Temporary header record to use.</param>
     /// <param name="TempLines">Temporary line records to use.</param>
-    procedure SetData(var TempHeader: Record "Sample Purch. Inv. Header" temporary; var TempLines: Record "Sample Purch. Inv. Line" temporary)
+    procedure SetData(var TempHeader: Record "E-Doc Sample Purch.Inv. Hdr." temporary; var TempLines: Record "E-Doc Sample Purch. Inv. Line" temporary)
     begin
         TempSamplePurchInvHeader.Copy(TempHeader, true);
         TempSamplePurchInvLine.Copy(TempLines, true);
         Line.Copy(TempSamplePurchInvLine, true);
     end;
 
-    local procedure FormatAddressFields(var SamplePurchInvHeader: Record "Sample Purch. Inv. Header")
+    local procedure FormatAddressFields(var SamplePurchInvHeader: Record "E-Doc Sample Purch.Inv. Hdr.")
     begin
         CompanyInfo.Get();
         FormatAddr.GetCompanyAddr(SamplePurchInvHeader."Responsibility Center", RespCenter, CompanyInfo, CompanyAddr);

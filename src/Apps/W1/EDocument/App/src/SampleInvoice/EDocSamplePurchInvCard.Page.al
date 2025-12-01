@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.eServices.EDocument.DemoData;
+namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.Purchases.Vendor;
 using System.Utilities;
@@ -11,13 +11,13 @@ using System.Utilities;
 /// Page for creating and managing sample purchase invoices.
 /// Allows users to create invoice data and generate PDF output.
 /// </summary>
-page 6117 "Sample Purch. Inv. Card"
+page 6117 "E-Doc Sample Purch. Inv. Card"
 {
     ApplicationArea = Basic, Suite;
     UsageCategory = Tasks;
-    Caption = 'Sample Purchase Invoice';
+    Caption = 'E-Doc Sample Purchase Invoice';
     PageType = Card;
-    SourceTable = "Sample Purch. Inv. Header";
+    SourceTable = "E-Doc Sample Purch.Inv. Hdr.";
     SourceTableTemporary = true;
     InsertAllowed = false;
     DeleteAllowed = true;
@@ -129,7 +129,7 @@ page 6117 "Sample Purch. Inv. Card"
                     Importance = Additional;
                 }
             }
-            part(Lines; "Sample Purch. Inv. Subform")
+            part(Lines; "E-Doc Sample Purch.Inv. Sub.")
             {
                 Caption = 'Lines';
                 SubPageLink = "Document No." = field("No.");
@@ -189,7 +189,7 @@ page 6117 "Sample Purch. Inv. Card"
     end;
 
     var
-        TempSamplePurchInvLine: Record "Sample Purch. Inv. Line" temporary;
+        TempSamplePurchInvLine: Record "E-Doc Sample Purch. Inv. Line" temporary;
         DocumentCounter: Integer;
         FailedToGeneratePDFErr: Label 'Failed to generate the PDF invoice.';
         InvoiceFileNameTxt: Label 'SampleInvoice_%1.pdf', Comment = '%1 = Invoice No.';
@@ -219,7 +219,7 @@ page 6117 "Sample Purch. Inv. Card"
 
     local procedure GenerateAndViewPDF()
     var
-        SamplePurchaseInvoice: Report "Sample Purchase Invoice";
+        SamplePurchaseInvoice: Report "E-Doc Sample Purchase Invoice";
         TempBlob: Codeunit "Temp Blob";
         RecRef: RecordRef;
         InStream: InStream;

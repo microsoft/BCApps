@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.eServices.EDocument.DemoData;
+namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.Purchases.Document;
 using System.Utilities;
@@ -12,15 +12,15 @@ using System.IO;
 /// Facade codeunit for managing sample purchase invoice PDF generation.
 /// Provides methods to add header, add lines, and generate PDF using temporary tables.
 /// </summary>
-codeunit 6208 "Sample Purch. Invoice Runner"
+codeunit 6208 "E-Doc Sample Purch.Inv. Runner"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
     var
-        TempSamplePurchInvHeader: Record "Sample Purch. Inv. Header" temporary;
-        TempSamplePurchInvLine: Record "Sample Purch. Inv. Line" temporary;
+        TempSamplePurchInvHeader: Record "E-Doc Sample Purch.Inv. Hdr." temporary;
+        TempSamplePurchInvLine: Record "E-Doc Sample Purch. Inv. Line" temporary;
         CurrentDocNo: Code[20];
         LineCounter: Integer;
 
@@ -97,7 +97,7 @@ codeunit 6208 "Sample Purch. Invoice Runner"
     /// <returns>TempBlob containing the generated PDF.</returns>
     procedure GeneratePDF() TempBlob: Codeunit "Temp Blob"
     var
-        SamplePurchaseInvoice: Report "Sample Purchase Invoice";
+        SamplePurchaseInvoice: Report "E-Doc Sample Purchase Invoice";
         FileManagement: Codeunit "File Management";
         FilePath: Text[250];
     begin
@@ -127,7 +127,7 @@ codeunit 6208 "Sample Purch. Invoice Runner"
     /// Gets the current temporary header buffer.
     /// </summary>
     /// <param name="TempHeader">Variable to receive the header records.</param>
-    procedure GetHeaders(var TempHeader: Record "Sample Purch. Inv. Header" temporary)
+    procedure GetHeaders(var TempHeader: Record "E-Doc Sample Purch.Inv. Hdr." temporary)
     begin
         TempHeader.Copy(TempSamplePurchInvHeader, true);
     end;
@@ -136,7 +136,7 @@ codeunit 6208 "Sample Purch. Invoice Runner"
     /// Gets the current temporary line buffer.
     /// </summary>
     /// <param name="TempLines">Variable to receive the line records.</param>
-    procedure GetLines(var TempLines: Record "Sample Purch. Inv. Line" temporary)
+    procedure GetLines(var TempLines: Record "E-Doc Sample Purch. Inv. Line" temporary)
     begin
         TempLines.Copy(TempSamplePurchInvLine, true);
     end;
