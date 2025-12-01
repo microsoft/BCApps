@@ -8,7 +8,6 @@ namespace Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.EServices.EDocument.OrderMatch;
 using Microsoft.eServices.EDocument.Service.Participant;
-using Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
 permissionset 6103 "E-Doc. Core - Basic"
 {
@@ -34,8 +33,6 @@ permissionset 6103 "E-Doc. Core - Basic"
         tabledata "E-Doc. Service Supported Type" = im,
         tabledata "E-Doc. Imported Line" = imd,
         tabledata "E-Doc. Order Match" = imd,
-        tabledata "Service Participant" = imd,
-        tabledata "Sample Purch. Inv. Header" = imd,
-        tabledata "Sample Purch. Inv. Line" = imd;
+        tabledata "Service Participant" = imd;
 }
 #endif

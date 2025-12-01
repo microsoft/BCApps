@@ -50,15 +50,13 @@ permissionset 6105 "E-Doc. Core - User"
         tabledata "E-Doc. Vendor Assign. History" = IMD,
         tabledata "E-Doc. Purchase Line History" = IMD,
         tabledata "ED Purchase Line Field Setup" = IMD,
-#if not CLEAN28
-#pragma warning disable AL0432
+        #if not CLEAN28
+        #pragma warning disable AL0432
         tabledata "EDoc Historical Matching Setup" = IMD,
-#pragma warning restore AL0432
-#endif
+        #pragma warning restore AL0432
+        #endif
         tabledata "E-Doc. Record Link" = IMD,
     #endregion Purchase draft
-        tabledata "Gen. Journal Line" = imd,
-        tabledata "Sample Purch. Inv. Header" = IMD,
-        tabledata "Sample Purch. Inv. Line" = IMD;
+        tabledata "Gen. Journal Line" = imd;
 
 }
