@@ -276,6 +276,54 @@ codeunit 132978 "SharePoint Graph Client Test"
     end;
 
     [Test]
+    procedure TestCreateFolderToSpecificDrive()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        HttpContent: Codeunit "Http Content";
+        MockHttpContent: Codeunit "Http Content";
+        MockHttpResponseMessage: Codeunit "Http Response Message";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] Mock response for CreateFolder to specific drive
+        Initialize();
+        MockHttpResponseMessage.SetHttpStatusCode(201);
+        MockHttpContent := HttpContent.Create(GetCreateFolderResponse());
+        MockHttpResponseMessage.SetContent(MockHttpContent);
+        SharePointGraphTestLibrary.SetMockResponse(MockHttpResponseMessage);
+
+        // [WHEN] Calling CreateFolder to a specific drive
+        SharePointGraphResponse := SharePointGraphClient.CreateFolder('b!specificDriveId123', 'Documents', 'New Folder', TempDriveItem);
+
+        // [THEN] Operation should succeed
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'CreateFolder to specific drive should succeed');
+        LibraryAssert.AreEqual('New Folder', TempDriveItem.Name, 'Name should match');
+    end;
+
+    [Test]
+    procedure TestCreateListItemWithTitle()
+    var
+        TempListItem: Record "SharePoint Graph List Item" temporary;
+        HttpContent: Codeunit "Http Content";
+        MockHttpContent: Codeunit "Http Content";
+        MockHttpResponseMessage: Codeunit "Http Response Message";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] Mock response for CreateListItem with title
+        Initialize();
+        MockHttpResponseMessage.SetHttpStatusCode(201);
+        MockHttpContent := HttpContent.Create(GetCreateListItemResponse());
+        MockHttpResponseMessage.SetContent(MockHttpContent);
+        SharePointGraphTestLibrary.SetMockResponse(MockHttpResponseMessage);
+
+        // [WHEN] Calling CreateListItem with simple title
+        SharePointGraphResponse := SharePointGraphClient.CreateListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', 'New Test Item', TempListItem);
+
+        // [THEN] Operation should succeed and return correct data
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'CreateListItem with title should succeed');
+        LibraryAssert.AreEqual('New Test Item', TempListItem.Title, 'Title should match');
+    end;
+
+    [Test]
     procedure TestErrorResponse()
     var
         TempList: Record "SharePoint Graph List" temporary;
@@ -534,4 +582,5 @@ codeunit 132978 "SharePoint Graph Client Test"
         ResponseText.Append('}');
         exit(ResponseText.ToText());
     end;
+
 }
