@@ -1310,7 +1310,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
 
             // Write chunk to output Blob
             ChunkTempBlob.CreateInStream(ChunkInStream);
-            FileOutStream.Write(ChunkInStream);
+            CopyStream(FileOutStream, ChunkInStream);
 
             RangeStart := RangeEnd + 1;
         end;
@@ -1390,7 +1390,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
 
             // Write chunk to output Blob
             ChunkTempBlob.CreateInStream(ChunkInStream);
-            FileOutStream.Write(ChunkInStream);
+            CopyStream(FileOutStream, ChunkInStream);
 
             RangeStart := RangeEnd + 1;
         end;
