@@ -10,24 +10,49 @@
     "tabOrder": 5
   },
   "visual": {
-    "visualType": "clusteredColumnChart",
+    "visualType": "lineChart",
     "query": {
       "queryState": {
         "Category": {
           "projections": [
             {
               "field": {
-                "Column": {
+                "HierarchyLevel": {
                   "Expression": {
-                    "SourceRef": {
-                      "Entity": "Date"
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Month"
                     }
                   },
-                  "Property": "Fiscal Month Year"
+                  "Level": "Fiscal Year"
                 }
               },
-              "queryRef": "Date.Fiscal Month Year",
-              "nativeQueryRef": "Fiscal Month Year",
+              "queryRef": "Date.Fiscal Year-Month.Fiscal Year",
+              "nativeQueryRef": "Fiscal Year-Month Fiscal Year",
+              "active": false
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Month"
+                    }
+                  },
+                  "Level": "Fiscal Month Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year-Month.Fiscal Month Year",
+              "nativeQueryRef": "Fiscal Year-Month Fiscal Month Year",
               "active": true
             }
           ]
@@ -45,7 +70,7 @@
                   "Property": "Total Contract Value"
                 }
               },
-              "queryRef": "Subscription Billing KPIs.TCV",
+              "queryRef": "Subscription Billing KPIs.Total Contract Value",
               "nativeQueryRef": "Total Contract Value1"
             },
             {
@@ -59,7 +84,7 @@
                   "Property": "Total Contract Value PY"
                 }
               },
-              "queryRef": "Subscription Billing KPIs.TCV PY",
+              "queryRef": "Subscription Billing KPIs.Total Contract Value PY",
               "nativeQueryRef": "Total Contract Value PY1"
             }
           ]
@@ -73,41 +98,7 @@
             "concatenateLabels": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "maxMarginFactor": {
-              "expr": {
-                "Literal": {
-                  "Value": "15L"
-                }
-              }
-            },
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "9D"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "legend": [
-        {
-          "properties": {
-            "showGradientLegend": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
+                  "Value": "false"
                 }
               }
             }

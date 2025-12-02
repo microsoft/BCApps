@@ -33,7 +33,7 @@
               },
               "queryRef": "Date.Fiscal Year-Quarter-Month-Week.Fiscal Year",
               "nativeQueryRef": "Fiscal Year-Quarter-Month-Week Fiscal Year",
-              "active": false
+              "active": true
             },
             {
               "field": {
@@ -53,7 +53,7 @@
               },
               "queryRef": "Date.Fiscal Year-Quarter-Month-Week.Fiscal Quarter Year",
               "nativeQueryRef": "Fiscal Year-Quarter-Month-Week Fiscal Quarter Year",
-              "active": false
+              "active": true
             },
             {
               "field": {
@@ -116,66 +116,6 @@
         {
           "properties": {
             "concatenateLabels": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "maxMarginFactor": {
-              "expr": {
-                "Literal": {
-                  "Value": "15L"
-                }
-              }
-            },
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "9D"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "legend": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "legendMarkerRendering": {
-              "expr": {
-                "Literal": {
-                  "Value": "'markerCircleDefault'"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "seriesLabels": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "lineStyles": [
-        {
-          "properties": {
-            "areaShow": {
               "expr": {
                 "Literal": {
                   "Value": "false"

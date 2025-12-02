@@ -113,3 +113,7 @@ relationship dc3dc700-54d2-4b88-1476-3ead61000752
 	fromColumn: 'Customer Contract Line'.'Item No.'
 	toColumn: Item.'Item No.'
 
+relationship ef84c36d-381a-72e3-a1c6-2781bebe6630
+	fromColumn: Item.'Item Category Code'
+	toColumn: 'Item Category'.'Item Category Code'
+
