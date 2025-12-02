@@ -7,9 +7,9 @@ namespace System.Agents;
 
 using System.Environment;
 using System.Environment.Configuration;
+using System.Environment.Consumption;
 using System.Reflection;
 using System.Security.AccessControl;
-using System.Environment.Consumption;
 
 codeunit 4301 "Agent Impl."
 {
