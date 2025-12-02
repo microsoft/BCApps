@@ -61,7 +61,7 @@ table 30139 "Shpfy Fulfillment Line"
         key(Indx001; "Fulfillment Id", "Is Gift Card")
         {
         }
-        key(Indx002; "Order Id", "Is Gift Card")
+        key(Key3; "Order Id", "Is Gift Card")
         {
         }
     }

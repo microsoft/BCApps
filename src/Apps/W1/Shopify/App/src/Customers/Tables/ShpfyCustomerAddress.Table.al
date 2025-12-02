@@ -113,7 +113,7 @@ table 30106 "Shpfy Customer Address"
         {
             Clustered = true;
         }
-        key(Key1; "Customer Id", Default)
+        key(Key2; "Customer Id", Default)
         {
         }
     }

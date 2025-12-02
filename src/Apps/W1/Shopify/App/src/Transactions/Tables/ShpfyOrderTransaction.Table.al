@@ -259,7 +259,7 @@ table 30133 "Shpfy Order Transaction"
         key(Idx003; Type)
         {
         }
-        key(Idx004; "Shopify Order Id", Status)
+        key(Key5; "Shopify Order Id", Status)
         {
         }
     }

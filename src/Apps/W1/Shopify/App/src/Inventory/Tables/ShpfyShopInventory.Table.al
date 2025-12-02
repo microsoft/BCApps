@@ -104,7 +104,7 @@ table 30112 "Shpfy Shop Inventory"
         {
             Clustered = true;
         }
-        key(key1; "Variant Id")
+        key(Key2; "Variant Id")
         {
         }
     }
