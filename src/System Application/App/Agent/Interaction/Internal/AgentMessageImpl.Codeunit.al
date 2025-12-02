@@ -5,6 +5,9 @@
 
 namespace System.Agents;
 
+using System.IO;
+using System.Utilities;
+
 codeunit 4308 "Agent Message Impl."
 {
     Access = Internal;
@@ -13,6 +16,7 @@ codeunit 4308 "Agent Message Impl."
 
     var
         GlobalIgnoreAttachment: Boolean;
+        AttachmentsFilenameLbl: Label 'attachments_task%1_msg%2.zip';
 
     procedure GetText(var AgentTaskMessage: Record "Agent Task Message"): Text
     var
@@ -94,15 +98,47 @@ codeunit 4308 "Agent Message Impl."
     procedure DownloadAttachments(var AgentTaskMessage: Record "Agent Task Message")
     var
         AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
+        AgentTaskFile: Record "Agent Task File";
+        DataCompression: Codeunit "Data Compression";
+        TempBlob: Codeunit "Temp Blob";
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+        FileInStream: InStream;
+        ZipOutStream: OutStream;
+        ZipInStream: InStream;
+        FileName: Text;
+        AttachmentCount: Integer;
+        DownloadDialogTitleLbl: Label 'Download Email Attachment';
     begin
         AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskMessage."Task ID");
         AgentTaskMessageAttachment.SetRange("Message ID", AgentTaskMessage.ID);
         if not AgentTaskMessageAttachment.FindSet() then
             exit;
 
-        repeat
+        // Count attachments
+        AttachmentCount := AgentTaskMessageAttachment.Count();
+
+        // If single file, download directly
+        if AttachmentCount = 1 then begin
             ShowOrDownloadAttachment(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID", true);
+            exit;
+        end;
+
+        // If multiple files, create a zip
+        DataCompression.CreateZipArchive();
+        repeat
+            if AgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then begin
+                AgentTaskFile.CalcFields(Content);
+                AgentTaskFile.Content.CreateInStream(FileInStream, AgentTaskImpl.GetDefaultEncoding());
+                DataCompression.AddEntry(FileInStream, AgentTaskFile."File Name");
+            end;
         until AgentTaskMessageAttachment.Next() = 0;
+
+        TempBlob.CreateOutStream(ZipOutStream);
+        DataCompression.SaveZipArchive(ZipOutStream);
+        DataCompression.CloseZipArchive();
+        TempBlob.CreateInStream(ZipInStream);
+        FileName := StrSubstNo(AttachmentsFilenameLbl, Format(AgentTaskMessage."Task ID"), Format(AgentTaskMessage.ID));
+        File.DownloadFromStream(ZipInStream, DownloadDialogTitleLbl, '', '', FileName);
     end;
 
     procedure ShowOrDownloadAttachment(TaskID: BigInteger; FileID: BigInteger; ForceDownloadAttachment: Boolean)
