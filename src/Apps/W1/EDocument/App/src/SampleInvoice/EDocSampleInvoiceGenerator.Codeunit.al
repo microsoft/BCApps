@@ -43,6 +43,7 @@ codeunit 6209 "E-Doc Sample Invoice Generator"
         TempSamplePurchInvHdr."Pay-to Vendor No." := Vendor."No.";
         TempSamplePurchInvHdr."Pay-to Name" := Vendor.Name;
         TempSamplePurchInvHdr."Pay-to Address" := Vendor.Address;
+        TempSamplePurchInvHdr."Pay-to Country/Region Code" := Vendor."Country/Region Code";
         TempSamplePurchInvHdr."Pay-to City" := Vendor.City;
         TempSamplePurchInvHdr."Pay-to Post Code" := Vendor."Post Code";
         TempSamplePurchInvHdr."Vendor Invoice No." := ExternalDocNo;
@@ -115,6 +116,7 @@ codeunit 6209 "E-Doc Sample Invoice Generator"
         Amount: Decimal;
     begin
         TempSamplePurchInvHdr.TestField("No.");
+        TempSamplePurchInvLine.Init();
         TempSamplePurchInvLine."Document No." := TempSamplePurchInvHdr."No.";
         TempSamplePurchInvLine."Line No." += 10000;
         TempSamplePurchInvLine.Type := LineType;
@@ -150,38 +152,32 @@ codeunit 6209 "E-Doc Sample Invoice Generator"
         TempSamplePurchInvLine.Insert();
     end;
 
+    /// <summary>
+    /// Generates sample invoices in PDF format and stores them in the "E-Doc Sample Purch. Inv File" table.
+    /// </summary>
     procedure Generate()
     var
         SamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
         SamplePurchInvRunner: Codeunit "E-Doc Sample Purch.Inv. Runner";
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
+        GeneratedPdfIsEmptyErr: Label 'Generated PDF is empty';
     begin
         if not TempSamplePurchInvHdr.FindSet() then
             exit;
 
         repeat
             Clear(SamplePurchInvRunner);
-            SamplePurchInvRunner.AddHeader(
-                TempSamplePurchInvHdr."Buy-from Vendor No.",
-                TempSamplePurchInvHdr."Posting Date",
-                TempSamplePurchInvHdr."Vendor Invoice No.");
-
+            SamplePurchInvRunner.AddHeader(TempSamplePurchInvHdr);
             TempSamplePurchInvLine.SetRange("Document No.", TempSamplePurchInvHdr."No.");
             if TempSamplePurchInvLine.FindSet() then
                 repeat
-                    SamplePurchInvRunner.AddLine(
-                        TempSamplePurchInvLine.Type,
-                        TempSamplePurchInvLine."No.",
-                        TempSamplePurchInvLine."Tax Group Code",
-                        TempSamplePurchInvLine.Description,
-                        TempSamplePurchInvLine.Quantity,
-                        TempSamplePurchInvLine."Direct Unit Cost",
-                        TempSamplePurchInvLine."Deferral Code",
-                        TempSamplePurchInvLine."Unit of Measure Code");
+                    SamplePurchInvRunner.AddLine(TempSamplePurchInvLine);
                 until TempSamplePurchInvLine.Next() = 0;
 
             TempBlob := SamplePurchInvRunner.GeneratePDF();
+            if TempBlob.Length() = 0 then
+                error(GeneratedPdfIsEmptyErr);
 
             SamplePurchInvFile.Init();
             SamplePurchInvFile."File Name" := CopyStr(TempSamplePurchInvHdr."Vendor Invoice No.", 1, MaxStrLen(SamplePurchInvFile."File Name"));

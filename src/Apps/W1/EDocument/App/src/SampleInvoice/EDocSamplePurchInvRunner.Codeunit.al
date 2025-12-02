@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
-using Microsoft.Purchases.Document;
 using System.Utilities;
 using System.IO;
 
@@ -21,73 +20,24 @@ codeunit 6208 "E-Doc Sample Purch.Inv. Runner"
     var
         TempSamplePurchInvHeader: Record "E-Doc Sample Purch.Inv. Hdr." temporary;
         TempSamplePurchInvLine: Record "E-Doc Sample Purch. Inv. Line" temporary;
-        CurrentDocNo: Code[20];
-        LineCounter: Integer;
 
     /// <summary>
     /// Adds a new header record to the temporary buffer.
     /// </summary>
-    /// <param name="VendorNo">Buy-from Vendor No.</param>
-    /// <param name="DocumentDate">Posting Date of the document.</param>
-    /// <param name="ExternalDocNo">Vendor Invoice No.</param>
-    procedure AddHeader(VendorNo: Code[20]; DocumentDate: Date; ExternalDocNo: Text[35])
+    /// <param name="NewSamplePurchInvHeader">A new sample invoice header to add.</param>
+    procedure AddHeader(NewSamplePurchInvHeader: Record "E-Doc Sample Purch.Inv. Hdr.")
     begin
-        if TempSamplePurchInvHeader."No." = '' then
-            CurrentDocNo := '1'
-        else
-            CurrentDocNo := IncStr(TempSamplePurchInvHeader."No.");
-
-        TempSamplePurchInvHeader.Init();
-        TempSamplePurchInvHeader."No." := CurrentDocNo;
-        TempSamplePurchInvHeader."Buy-from Vendor No." := VendorNo;
-        TempSamplePurchInvHeader."Vendor Invoice No." := ExternalDocNo;
-        TempSamplePurchInvHeader."Posting Date" := DocumentDate;
+        TempSamplePurchInvHeader := NewSamplePurchInvHeader;
         TempSamplePurchInvHeader.Insert();
-        LineCounter := 0;
     end;
 
     /// <summary>
     /// Adds a new line record to the temporary buffer.
     /// </summary>
-    /// <param name="LineType">Type of the purchase line.</param>
-    /// <param name="No">No. of the item/G/L account etc.</param>
-    /// <param name="LineDescription">Description of the line.</param>
-    /// <param name="LineQuantity">Quantity.</param>
-    /// <param name="UnitCost">Direct Unit Cost.</param>
-    /// <param name="DeferralCode">Deferral Code.</param>
-    /// <param name="UnitOfMeasureCode">Unit of Measure Code.</param>
-    procedure AddLine(LineType: Enum "Purchase Line Type"; No: Code[20]; LineDescription: Text[100]; LineQuantity: Decimal; UnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
+    /// <param name="NewSamplePurchInvLine">A new sample invoice line to add.</param>
+    procedure AddLine(NewSamplePurchInvLine: Record "E-Doc Sample Purch. Inv. Line")
     begin
-        AddLine(LineType, No, '', LineDescription, LineQuantity, UnitCost, DeferralCode, UnitOfMeasureCode);
-    end;
-
-    /// <summary>
-    /// Adds a new line record to the temporary buffer with Tax Group Code.
-    /// </summary>
-    /// <param name="LineType">Type of the purchase line.</param>
-    /// <param name="No">No. of the item/G/L account etc.</param>
-    /// <param name="TaxGroupCode">Tax Group Code.</param>
-    /// <param name="LineDescription">Description of the line.</param>
-    /// <param name="LineQuantity">Quantity.</param>
-    /// <param name="UnitCost">Direct Unit Cost.</param>
-    /// <param name="DeferralCode">Deferral Code.</param>
-    /// <param name="UnitOfMeasureCode">Unit of Measure Code.</param>
-    procedure AddLine(LineType: Enum "Purchase Line Type"; No: Code[20]; TaxGroupCode: Code[20]; LineDescription: Text[100]; LineQuantity: Decimal; UnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
-    begin
-        TempSamplePurchInvHeader.TestField("No.");
-        LineCounter += 10000;
-
-        TempSamplePurchInvLine.Init();
-        TempSamplePurchInvLine."Document No." := CurrentDocNo;
-        TempSamplePurchInvLine."Line No." := LineCounter;
-        TempSamplePurchInvLine.Type := LineType;
-        TempSamplePurchInvLine."No." := No;
-        TempSamplePurchInvLine."Tax Group Code" := TaxGroupCode;
-        TempSamplePurchInvLine.Description := LineDescription;
-        TempSamplePurchInvLine.Quantity := LineQuantity;
-        TempSamplePurchInvLine."Direct Unit Cost" := UnitCost;
-        TempSamplePurchInvLine."Deferral Code" := DeferralCode;
-        TempSamplePurchInvLine."Unit of Measure Code" := UnitOfMeasureCode;
+        TempSamplePurchInvLine := NewSamplePurchInvLine;
         TempSamplePurchInvLine.Insert();
     end;
 

@@ -7,6 +7,7 @@ namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Location;
+using System.Utilities;
 
 /// <summary>
 /// Report for generating sample purchase invoice PDFs using temporary tables.
@@ -158,15 +159,6 @@ report 6102 "E-Doc Sample Purchase Invoice"
             column(TotalCaption; TotalLbl)
             {
             }
-            column(TotalAmountExclVAT; TotalAmount)
-            {
-            }
-            column(VATAmount; VATAmount)
-            {
-            }
-            column(TotalAmountInclVAT; TotalAmtInclVAT)
-            {
-            }
             dataitem(Line; "E-Doc Sample Purch. Inv. Line")
             {
                 UseTemporary = true;
@@ -226,6 +218,19 @@ report 6102 "E-Doc Sample Purchase Invoice"
                     VATAmount += Line."Amount Including VAT" - Line.Amount;
                     TotalAmtInclVAT += Line."Amount Including VAT";
                 end;
+            }
+            dataitem(Totals; "Integer")
+            {
+                DataItemTableView = sorting(Number) where(Number = const(1));
+                column(TotalAmountExclVAT; TotalAmount)
+                {
+                }
+                column(VATAmount; VATAmount)
+                {
+                }
+                column(TotalAmountInclVAT; TotalAmtInclVAT)
+                {
+                }
             }
 
             trigger OnPreDataItem()
