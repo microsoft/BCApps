@@ -184,6 +184,19 @@ page 20400 "Qlty. Management Setup"
                     }
                 }
             }
+            group(SettingsForAssembly)
+            {
+                Caption = 'Assembly';
+                InstructionalText = 'Default assembly related settings are configured in this group.';
+                field("Assembly Trigger"; Rec."Assembly Trigger")
+                {
+                    Caption = 'Assembly - Create Test';
+                    ApplicationArea = Assembly;
+                    ShowCaption = true;
+                    AboutTitle = 'Assembly related trigger';
+                    AboutText = 'Optionally choose an assembly-related trigger to try and create a test.';
+                }
+            }
             group(SettingsForProduction)
             {
                 Caption = 'Production';
@@ -212,14 +225,7 @@ page 20400 "Qlty. Management Setup"
                         AboutTitle = 'Auto Output Configuration';
                         AboutText = 'Provides granular options for when a test should be created automatically during the production process.';
                     }
-                    field("Assembly Trigger"; Rec."Assembly Trigger")
-                    {
-                        Caption = 'Assembly - Create Test';
-                        ApplicationArea = Assembly;
-                        ShowCaption = true;
-                        AboutTitle = 'Assembly related trigger';
-                        AboutText = 'Optionally choose an assembly-related trigger to try and create a test.';
-                    }
+
                     field(ChooseCreateNewRule_Production; 'Click here to create a new generation rule...')
                     {
                         ShowCaption = false;
