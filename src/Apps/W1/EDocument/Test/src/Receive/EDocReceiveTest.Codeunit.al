@@ -55,6 +55,11 @@ codeunit 139628 "E-Doc. Receive Test"
         NullGuid: Guid;
         GetBasicInfoErr: Label 'Test Get Basic Info From Received Document Error.', Locked = true;
         GetCompleteInfoErr: Label 'Test Get Complete Info From Received Document Error.', Locked = true;
+        IncorrectValueErr: Label 'Incorrect number of E-Document returned.';
+        SelfBillingVendorErr: Label 'Inbound E-Document blocked for vendor %1 due to Self-Billing Agreement. Supplier-issued invoices cannot be processed for this vendor.', Comment = '%1 Vendor name (e.g. London Postmaster)';
+        VATRegistrationLbl: Label 'GB123456789';
+        ImportDataExchDefLbl: Label 'EDOCPEPPOLINVIMP';
+        EndpointPathLbl: label '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID';
 
     [Test]
     procedure ReceiveSinglePurchaseInvoice()
@@ -3040,6 +3045,91 @@ codeunit 139628 "E-Doc. Receive Test"
         PurchaseHeader.SetHideValidationDialog(true);
         PurchaseHeader."E-Document Link" := NullGuid;
         PurchaseHeader.Delete(true);
+    end;
+
+    [Test]
+    procedure PurchaseOrderMustNotBeCreatedForSelfBillingInvoice()
+    var
+        EDocService: Record "E-Document Service";
+        VATPostingSetup: Record "VAT Posting Setup";
+        EDocServiceDataExchDef: Record "E-Doc. Service Data Exch. Def.";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        EDocServicePage: TestPage "E-Document Service";
+        EDocumentPage: TestPage "E-Document";
+        Document: Text;
+        XMLInstream: InStream;
+    begin
+        // [SCENARIO 580348] Verify that purchase order is not created for self-billing invoice.
+        Initialize();
+        BindSubscription(EDocImplState);
+
+        // [GIVEN] Create E-Document Service.
+        LibraryEDoc.CreateTestReceiveServiceForEDoc(EDocService, Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] Create vendor with VAT Business Posting Group.
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
+        Vendor.Get(LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+
+        // [GIVEN] Update vendor to be self-billing.
+        Vendor."VAT Registration No." := VATRegistrationLbl;
+        Vendor."Receive E-Document To" := Enum::"E-Document Type"::"Purchase Invoice";
+        Vendor."Country/Region Code" := CountryRegion.Code;
+        Vendor."Self-Billing Agreement" := true;
+        Vendor.Modify();
+
+        // [GIVEN] Create E-Document Service Data Exchange Definition.
+        EDocService."Document Format" := "E-Document Format"::"Data Exchange";
+        EDocService."Lookup Account Mapping" := false;
+        EDocService."Lookup Item GTIN" := false;
+        EDocService."Lookup Item Reference" := true;
+        EDocService."Resolve Unit Of Measure" := false;
+        EDocService."Validate Line Discount" := false;
+        EDocService."Verify Totals" := false;
+        EDocService."Use Batch Processing" := false;
+        EDocService."Validate Receiving Company" := false;
+        EDocService.Modify();
+
+        // [GIVEN] Create E-Document Service Data Exchange Definition.
+        EDocServiceDataExchDef."E-Document Format Code" := EDocService.Code;
+        EDocServiceDataExchDef."Document Type" := EDocServiceDataExchDef."Document Type"::"Purchase Invoice";
+        EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := ImportDataExchDefLbl;
+        EDocServiceDataExchDef.Insert();
+
+        // [GIVEN] Modify XML to have vendor VAT number as EndpointID.
+        TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+#pragma warning disable AA0210
+        TempXMLBuffer.SetRange(Path, EndpointPathLbl);
+#pragma warning restore AA0210
+        TempXMLBuffer.FindFirst();
+        TempXMLBuffer.Value := Vendor."VAT Registration No.";
+        TempXMLBuffer.Modify();
+
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.FindFirst();
+        TempXMLBuffer.Save(TempBlob);
+
+        TempBlob.CreateInStream(XMLInstream, TextEncoding::UTF8);
+        XMLInstream.Read(Document);
+
+        // [GIVEN] Set document in variable storage.
+        LibraryVariableStorage.Clear();
+        LibraryVariableStorage.Enqueue(Document);
+        LibraryVariableStorage.Enqueue(1);
+        EDocImplState.SetVariableStorage(LibraryVariableStorage);
+
+        // [WHEN] Receiving the document.
+        EDocServicePage.OpenView();
+        EDocServicePage.Filter.SetFilter(Code, EDocService.Code);
+        EDocServicePage.Receive.Invoke();
+
+        // [THEN] Verify that no purchase order is created.
+        EDocumentPage.OpenView();
+        EDocumentPage.Last();
+        Assert.AreEqual(Format(Enum::"E-Document Service Status"::"Imported Document Processing Error"), EDocumentPage.InboundEDocFactbox.Status.Value(), IncorrectValueErr);
+        EDocumentPage.ErrorMessagesPart.Description.AssertEquals(StrSubstNo(SelfBillingVendorErr, Vendor."No."));
     end;
 #pragma warning restore AL0432
 #endif
