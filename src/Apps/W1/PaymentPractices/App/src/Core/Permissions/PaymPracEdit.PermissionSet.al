@@ -14,6 +14,7 @@ permissionset 687 "Paym. Prac. Edit"
         tabledata "Payment Period" = IMD,
         tabledata "Payment Practice Data" = IMD,
         tabledata "Payment Practice Line" = IMD,
-        tabledata "Payment Practice Header" = IMD;
+        tabledata "Payment Practice Header" = IMD,
+        tabledata "Payment Practice Pmt. Data" = IMD;
 
 }

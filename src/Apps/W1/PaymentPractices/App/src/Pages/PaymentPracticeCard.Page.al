@@ -13,6 +13,7 @@ page 687 "Payment Practice Card"
     Caption = 'Payment Practice';
     PageType = Card;
     SourceTable = "Payment Practice Header";
+    RefreshOnActivate = true;
 
     layout
     {
@@ -93,6 +94,50 @@ page 687 "Payment Practice Card"
                         ShowHeaderDataLines();
                     end;
                 }
+                field("Total Number of Payments"; Rec."Total Number of Payments")
+                {
+                    ToolTip = 'Specifies the total number of payments made during the reporting period.';
+                    Visible = PaymentDataVisible;
+                    Editable = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        ShowPaymentDataLines();
+                    end;
+                }
+                field("Total Amount of Payments"; Rec."Total Amount of Payments")
+                {
+                    ToolTip = 'Specifies the total value of payments made during the reporting period.';
+                    Visible = PaymentDataVisible;
+                    Editable = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        ShowPaymentDataLines();
+                    end;
+                }
+                field("Total Amt. of Late Payments"; Rec."Total Amt. of Late Payments")
+                {
+                    ToolTip = 'Specifies the total value of payments not made within agreed terms during the reporting period.';
+                    Visible = PaymentDataVisible;
+                    Editable = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        ShowLatePaymentDataLines();
+                    end;
+                }
+                field("Pct Late Due to Dispute"; Rec."Pct Late Due to Dispute")
+                {
+                    ToolTip = 'Specifies the percentage of late payments that were due to disputes.';
+                    Visible = PaymentDataVisible;
+                    Editable = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        ShowLatePaymentDataLines();
+                    end;
+                }
             }
             part(Lines; "Payment Practice Lines")
             {
@@ -160,12 +205,14 @@ page 687 "Payment Practice Card"
     begin
         CurrPage.Update();
         UpdateVisibility();
+        SetPaymentDataVisibility();
     end;
 
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         LinesWillBeDeletedQst: Label 'All previously generated lines will be deleted. Do you want to continue?';
         NoEntriesFoundMsg: Label 'The payment practice generator found no entries corresponding to the header type, starting and ending date.';
+        PaymentDataVisible: Boolean;
 
     local procedure PrepareLayout(PaymentPracticeLinesAggregator: Interface PaymentPracticeLinesAggregator)
     begin
@@ -180,9 +227,31 @@ page 687 "Payment Practice Card"
         Page.RunModal(Page::"Payment Practice Data List", PaymentPracticeData);
     end;
 
+    local procedure ShowPaymentDataLines()
+    var
+        PaymentPracticePmtData: Record "Payment Practice Pmt. Data";
+    begin
+        PaymentPracticePmtData.SetRange("Header No.", Rec."No.");
+        Page.RunModal(Page::"Payment Practice Pmt. Data", PaymentPracticePmtData);
+    end;
+
+    local procedure ShowLatePaymentDataLines()
+    var
+        PaymentPracticePmtData: Record "Payment Practice Pmt. Data";
+    begin
+        PaymentPracticePmtData.SetRange("Header No.", Rec."No.");
+        PaymentPracticePmtData.SetRange("Is Late", true);
+        Page.RunModal(Page::"Payment Practice Pmt. Data", PaymentPracticePmtData);
+    end;
+
     local procedure UpdateVisibility()
     begin
         CurrPage.Lines.Page.UpdateVisibility(Rec."Aggregation Type", Rec."Header Type");
         CurrPage.Update();
+    end;
+
+    local procedure SetPaymentDataVisibility()
+    begin
+        PaymentDataVisible := Rec."Generate Payment Data";
     end;
 }

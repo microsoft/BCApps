@@ -14,6 +14,7 @@ permissionset 685 "Paym. Prac. Objects"
         table "Payment Practice Data" = X,
         table "Payment Practice Line" = X,
         table "Payment Practice Header" = X,
+        table "Payment Practice Pmt. Data" = X,
         report "Payment Practice" = X,
         page "Payment Periods" = X,
         page "Payment Practice Data List" = X,

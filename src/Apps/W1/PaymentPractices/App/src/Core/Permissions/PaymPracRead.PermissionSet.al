@@ -14,6 +14,7 @@ permissionset 686 "Paym. Prac. Read"
         tabledata "Payment Period" = R,
         tabledata "Payment Practice Data" = R,
         tabledata "Payment Practice Line" = R,
-        tabledata "Payment Practice Header" = R;
+        tabledata "Payment Practice Header" = R,
+        tabledata "Payment Practice Pmt. Data" = R;
 
 }

@@ -105,6 +105,37 @@ table 687 "Payment Practice Header"
         {
 
         }
+        field(30; "Total Number of Payments"; Integer)
+        {
+            Caption = 'Total Number of Payments';
+            Editable = false;
+        }
+        field(31; "Total Amount of Payments"; Decimal)
+        {
+            Caption = 'Total Amount of Payments';
+            Editable = false;
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+        }
+        field(32; "Total Amt. of Late Payments"; Decimal)
+        {
+            Caption = 'Total Amount of Late Payments';
+            Editable = false;
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+        }
+        field(33; "Pct Late Due to Dispute"; Decimal)
+        {
+            Caption = 'Pct Late Due to Dispute';
+            Editable = false;
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+        }
+        field(40; "Generate Payment Data"; Boolean)
+        {
+            Caption = 'Generate Payment Data';
+            InitValue = false;
+        }
     }
 
     keys
@@ -142,11 +173,14 @@ table 687 "Payment Practice Header"
     var
         PaymentPracticeLine: Record "Payment Practice Line";
         PaymentPracticeData: Record "Payment Practice Data";
+        PaymentPracticePmtData: Record "Payment Practice Pmt. Data";
     begin
         PaymentPracticeLine.SetRange("Header No.", "No.");
         PaymentPracticeLine.DeleteAll();
         PaymentPracticeData.SetRange("Header No.", "No.");
         PaymentPracticeData.DeleteAll();
+        PaymentPracticePmtData.SetRange("Header No.", "No.");
+        PaymentPracticePmtData.DeleteAll();
         Rec.CalcFields("Lines Exist");
     end;
 

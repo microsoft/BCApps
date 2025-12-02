@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.Analysis;
 
 using Microsoft.Purchases.Payables;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 
 table 686 "Payment Practice Data"
@@ -78,7 +79,19 @@ table 686 "Payment Practice Data"
             AutoFormatType = 1;
             AutoFormatExpression = '';
         }
-
+        field(30; "Dispute Status"; Code[10])
+        {
+            Caption = 'Dispute Status';
+            TableRelation = "Dispute Status";
+        }
+        field(31; "Overdue Due to Dispute"; Boolean)
+        {
+            Caption = 'Overdue Due to Dispute';
+        }
+        field(32; "SCF Payment Date"; Date)
+        {
+            Caption = 'SCF Payment Date';
+        }
     }
 
     keys
@@ -95,6 +108,8 @@ table 686 "Payment Practice Data"
     }
 
     procedure CopyFromInvoiceVendLedgEntry(VendorLedgerEntry: Record "Vendor Ledger Entry")
+    var
+        ClosingVendorLedgerEntry: Record "Vendor Ledger Entry";
     begin
         "Source Type" := "Paym. Prac. Header Type"::"Vendor";
         "Invoice Entry No." := VendorLedgerEntry."Entry No.";
@@ -116,6 +131,12 @@ table 686 "Payment Practice Data"
             "Agreed Payment Days" := "Due Date" - "Invoice Received Date";
         if "Pmt. Posting Date" <> 0D then
             "Actual Payment Days" := "Pmt. Posting Date" - "Invoice Received Date";
+        // "Dispute Status" := VendorLedgerEntry."Dispute Status";      // TODO: uncomment when field added to Vendor Ledger Entry
+        "Overdue Due to Dispute" := VendorLedgerEntry."Overdue Due to Dispute";
+        // Get SCF Payment Date from the closing payment entry
+        if VendorLedgerEntry."Closed by Entry No." <> 0 then
+            if ClosingVendorLedgerEntry.Get(VendorLedgerEntry."Closed by Entry No.") then
+                "SCF Payment Date" := ClosingVendorLedgerEntry."SCF Payment Date";
     end;
 
     procedure CopyFromInvoiceCustLedgEntry(CustLedgerEntry: Record "Cust. Ledger Entry")
@@ -137,6 +158,8 @@ table 686 "Payment Practice Data"
             "Agreed Payment Days" := "Due Date" - "Invoice Received Date";
         if "Pmt. Posting Date" <> 0D then
             "Actual Payment Days" := "Pmt. Posting Date" - "Invoice Received Date";
+        "Dispute Status" := CustLedgerEntry."Dispute Status";
+        "Overdue Due to Dispute" := CustLedgerEntry."Overdue Due to Dispute";
     end;
 
     procedure SetFilterForLine(PaymentPracticeLine: Record "Payment Practice Line")

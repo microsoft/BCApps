@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+using Microsoft.Purchases.Payables;
+using Microsoft.Sales.Receivables;
+
 codeunit 689 "Payment Practices"
 {
     var
@@ -12,12 +15,16 @@ codeunit 689 "Payment Practices"
     procedure Generate(var PaymentPracticeHeader: Record "Payment Practice Header") DataIsNotEmpty: Boolean
     var
         PaymentPracticeData: Record "Payment Practice Data";
+        PaymentPracticePmtData: Record "Payment Practice Pmt. Data";
     begin
         PaymentPracticeHeader.TestField("Starting Date");
         PaymentPracticeHeader.TestField("Ending Date");
         PaymentPracticeData.Reset();
         PaymentPracticeData.SetRange("Header No.", PaymentPracticeHeader."No.");
         PaymentPracticeData.DeleteAll();
+        PaymentPracticePmtData.Reset();
+        PaymentPracticePmtData.SetRange("Header No.", PaymentPracticeHeader."No.");
+        PaymentPracticePmtData.DeleteAll();
         GenerateData(PaymentPracticeData, PaymentPracticeHeader, PaymentPracticeHeader."Header Type");
         DataIsNotEmpty := not PaymentPracticeData.IsEmpty();
         PaymentPracticeHeader."Generated On" := CurrentDateTime();
@@ -33,6 +40,13 @@ codeunit 689 "Payment Practices"
         PaymentPracticeHeader."Average Actual Payment Period" := PaymentPracticeMath.GetAverageActualPaymentTime(PaymentPracticeData);
         PaymentPracticeHeader."Average Agreed Payment Period" := PaymentPracticeMath.GetAverageAgreedPaymentTime(PaymentPracticeData);
         PaymentPracticeHeader."Pct Paid on Time" := PaymentPracticeMath.GetPercentOfOnTimePayments(PaymentPracticeData);
+        if PaymentPracticeHeader."Generate Payment Data" then begin
+            // Use payment-based calculations from Payment Practice Pmt Data table
+            PaymentPracticeHeader."Total Number of Payments" := PaymentPracticeMath.GetTotalNumberOfPayments(PaymentPracticeHeader."No.", PaymentPracticeHeader."Starting Date", PaymentPracticeHeader."Ending Date");
+            PaymentPracticeHeader."Total Amount of Payments" := PaymentPracticeMath.GetTotalAmountOfPayments(PaymentPracticeHeader."No.", PaymentPracticeHeader."Starting Date", PaymentPracticeHeader."Ending Date");
+            PaymentPracticeHeader."Total Amt. of Late Payments" := PaymentPracticeMath.GetTotalAmountOfLatePayments(PaymentPracticeHeader."No.", PaymentPracticeHeader."Starting Date", PaymentPracticeHeader."Ending Date");
+            PaymentPracticeHeader."Pct Late Due to Dispute" := PaymentPracticeMath.GetPctLateDueToDispute(PaymentPracticeHeader."No.", PaymentPracticeHeader."Starting Date", PaymentPracticeHeader."Ending Date");
+        end;
     end;
 
     local procedure GenerateData(var PaymentPracticeData: Record "Payment Practice Data"; PaymentPracticeHeader: Record "Payment Practice Header"; PaymentPracticeDataGenerator: Interface PaymentPracticeDataGenerator)
@@ -43,5 +57,33 @@ codeunit 689 "Payment Practices"
     local procedure GenerateLines(PaymentPracticeLinesAggregator: Interface PaymentPracticeLinesAggregator; var PaymentPracticeData: Record "Payment Practice Data"; PaymentPracticeHeader: Record "Payment Practice Header")
     begin
         PaymentPracticeLinesAggregator.GenerateLines(PaymentPracticeData, PaymentPracticeHeader);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Vend. Entry-Edit", OnBeforeVendLedgEntryModify, '', false, false)]
+    local procedure CopyFieldsOnBeforeVendLedgEntryModify(var VendLedgEntry: Record "Vendor Ledger Entry"; FromVendLedgEntry: Record "Vendor Ledger Entry")
+    begin
+        VendLedgEntry."Overdue Due to Dispute" := FromVendLedgEntry."Overdue Due to Dispute";
+        VendLedgEntry."SCF Payment Date" := FromVendLedgEntry."SCF Payment Date";
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Vend. Entry-Edit", OnAfterLogFieldChanged, '', false, false)]
+    local procedure CheckFieldsOnAfterLogFieldChanged(CurrVendorLedgerEntry: Record "Vendor Ledger Entry"; NewVendorLedgerEntry: Record "Vendor Ledger Entry"; var Changed: Boolean)
+    begin
+        Changed := Changed or
+            (CurrVendorLedgerEntry."Overdue Due to Dispute" <> NewVendorLedgerEntry."Overdue Due to Dispute") or
+            (CurrVendorLedgerEntry."SCF Payment Date" <> NewVendorLedgerEntry."SCF Payment Date");
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cust. Entry-Edit", OnBeforeCustLedgEntryModify, '', false, false)]
+    local procedure CopyFieldsOnBeforeCustLedgEntryModify(var CustLedgEntry: Record "Cust. Ledger Entry"; FromCustLedgEntry: Record "Cust. Ledger Entry")
+    begin
+        CustLedgEntry."Overdue Due to Dispute" := FromCustLedgEntry."Overdue Due to Dispute";
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cust. Entry-Edit", OnAfterLogFieldChanged, '', false, false)]
+    local procedure CheckFieldsOnAfterCustLogFieldChanged(CurrCustLedgerEntry: Record "Cust. Ledger Entry"; NewCustLedgerEntry: Record "Cust. Ledger Entry"; var Changed: Boolean)
+    begin
+        Changed := Changed or
+            (CurrCustLedgerEntry."Overdue Due to Dispute" <> NewCustLedgerEntry."Overdue Due to Dispute");
     end;
 }

@@ -72,4 +72,55 @@ codeunit 693 "Payment Practice Math"
         foreach Number in List do
             Total += Number;
     end;
+
+    procedure GetTotalNumberOfPayments(HeaderNo: Integer; StartingDate: Date; EndingDate: Date) Result: Integer
+    var
+        PaymentPracticePmtData: Record "Payment Practice Pmt. Data";
+    begin
+        // Count payment applications made during the reporting period
+        PaymentPracticePmtData.SetRange("Header No.", HeaderNo);
+        PaymentPracticePmtData.SetRange("Payment Posting Date", StartingDate, EndingDate);
+        Result := PaymentPracticePmtData.Count();
+    end;
+
+    procedure GetTotalAmountOfPayments(HeaderNo: Integer; StartingDate: Date; EndingDate: Date) Result: Decimal
+    var
+        PaymentPracticePmtData: Record "Payment Practice Pmt. Data";
+    begin
+        // Sum of applied amounts for payments made during the reporting period
+        PaymentPracticePmtData.SetRange("Header No.", HeaderNo);
+        PaymentPracticePmtData.SetRange("Payment Posting Date", StartingDate, EndingDate);
+        PaymentPracticePmtData.CalcSums("Applied Amount");
+        Result := PaymentPracticePmtData."Applied Amount";
+    end;
+
+    procedure GetTotalAmountOfLatePayments(HeaderNo: Integer; StartingDate: Date; EndingDate: Date) Result: Decimal
+    var
+        PaymentPracticePmtData: Record "Payment Practice Pmt. Data";
+    begin
+        // Sum of applied amounts for late payments made during the reporting period
+        PaymentPracticePmtData.SetRange("Header No.", HeaderNo);
+        PaymentPracticePmtData.SetRange("Payment Posting Date", StartingDate, EndingDate);
+        PaymentPracticePmtData.SetRange("Is Late", true);
+        PaymentPracticePmtData.CalcSums("Applied Amount");
+        Result := PaymentPracticePmtData."Applied Amount";
+    end;
+
+    procedure GetPctLateDueToDispute(HeaderNo: Integer; StartingDate: Date; EndingDate: Date) Result: Decimal
+    var
+        PaymentPracticePmtData: Record "Payment Practice Pmt. Data";
+        TotalLate: Integer;
+        LateDueToDispute: Integer;
+    begin
+        // Percentage of late payments (during reporting period) that are due to disputes
+        PaymentPracticePmtData.SetRange("Header No.", HeaderNo);
+        PaymentPracticePmtData.SetRange("Payment Posting Date", StartingDate, EndingDate);
+        PaymentPracticePmtData.SetRange("Is Late", true);
+        TotalLate := PaymentPracticePmtData.Count();
+        if TotalLate > 0 then begin
+            PaymentPracticePmtData.SetRange("Late Due to Dispute", true);
+            LateDueToDispute := PaymentPracticePmtData.Count();
+            Result := LateDueToDispute / TotalLate * 100;
+        end;
+    end;
 }

@@ -15,6 +15,7 @@ page 689 "Payment Practice List"
     PageType = List;
     SourceTable = "Payment Practice Header";
     UsageCategory = Lists;
+    RefreshOnActivate = true;
 
     layout
     {
