@@ -16,7 +16,7 @@ codeunit 4308 "Agent Message Impl."
 
     var
         GlobalIgnoreAttachment: Boolean;
-        AttachmentsFilenameLbl: Label 'attachments_task%1_msg%2.zip';
+        AttachmentsFilenameLbl: Label 'attachments_task%1_msg%2.zip', Comment = 'Filename format for downloading multiple attachments as a zip file. %1 = Task ID, %2 = Message ID';
 
     procedure GetText(var AgentTaskMessage: Record "Agent Task Message"): Text
     var
