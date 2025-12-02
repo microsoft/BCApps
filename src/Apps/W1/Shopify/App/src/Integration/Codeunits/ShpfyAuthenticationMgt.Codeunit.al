@@ -174,25 +174,20 @@ codeunit 30199 "Shpfy Authentication Mgt."
     end;
 
     internal procedure AssertValidShopUrl(ShopUrl: Text)
-    begin
-        if not IsValidShopUrl(ShopUrl) then
-            Error(InvalidShopUrlErr);
-    end;
-
-    local procedure IsValidShopUrl(ShopUrl: Text): Boolean
     var
-        Regex: Codeunit Regex;
+        URI: Codeunit Uri;
         PatternLbl: Label '^(https)\:\/\/[a-zA-Z0-9][a-zA-Z0-9\-]*\.myshopify\.com[\/]*$', Locked = true;
     begin
-        exit(Regex.IsMatch(ShopUrl, PatternLbl))
+        if not URI.IsValidURIPattern(ShopUrl, PatternLbl) then
+            Error(InvalidShopUrlErr);
     end;
 
     procedure IsValidHostName(Hostname: Text): Boolean
     var
-        Regex: Codeunit Regex;
+        URI: Codeunit Uri;
         PatternLbl: Label '^[a-zA-Z0-9][a-zA-Z0-9\-]*\.myshopify\.com$', Locked = true;
     begin
-        exit(Regex.IsMatch(Hostname, PatternLbl))
+        exit(URI.IsValidURIPattern(Hostname, PatternLbl));
     end;
 
     procedure CorrectShopUrl(var ShopUrl: Text[250])

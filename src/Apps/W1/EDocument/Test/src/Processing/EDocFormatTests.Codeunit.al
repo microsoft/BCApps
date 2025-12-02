@@ -24,7 +24,7 @@ using Microsoft.Sales.Customer;
 using System.IO;
 using System.TestLibraries.Utilities;
 
-codeunit 139616 "E-Doc. Format Tests"
+codeunit 139519 "E-Doc. Format Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;

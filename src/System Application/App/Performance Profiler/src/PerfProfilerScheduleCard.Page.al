@@ -195,9 +195,12 @@ page 1932 "Perf. Profiler Schedule Card"
                     var
                         User: Record User;
                     begin
+                        if UserName = '' then
+                            Error(UserNameMandatoryErr);
+
                         User.SetRange("User Name", UserName);
-                        if User.FindFirst() then
-                            ScheduledPerfProfiler.ValidateScheduleCreationPermissions(UserSecurityId(), User."User Security ID");
+                        User.FindFirst();
+                        ScheduledPerfProfiler.ValidateScheduleCreationPermissions(UserSecurityId(), User."User Security ID");
                     end;
                 }
                 field(Activity; Activity)
@@ -328,6 +331,7 @@ page 1932 "Perf. Profiler Schedule Card"
         NoRetentionPolicySetupErr: Label 'No retention policy setup found for the performance profiles table.';
         CreateRetentionPolicySetupTxt: Label 'Create a retention policy setup';
         EmptyDescriptionErr: Label 'The description must be filled in.';
+        UserNameMandatoryErr: Label 'User name must be filled in.';
 
     local procedure ValidateRecord()
     begin

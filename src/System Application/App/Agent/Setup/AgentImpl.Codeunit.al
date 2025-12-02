@@ -9,6 +9,7 @@ using System.Environment;
 using System.Environment.Configuration;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Environment.Consumption;
 
 codeunit 4301 "Agent Impl."
 {
@@ -23,7 +24,7 @@ codeunit 4301 "Agent Impl."
                   tabledata User = r,
                   tabledata "User Personalization" = rim;
 
-    procedure CreateAgent(AgentMetadataProvider: Enum "Agent Metadata Provider"; var UserName: Code[50]; AgentUserDisplayName: Text[80]; var TempAgentAccessControl: Record "Agent Access Control" temporary; Initials: Text[4]): Guid
+    procedure CreateAgent(AgentMetadataProvider: Enum "Agent Metadata Provider"; var UserName: Code[50]; AgentUserDisplayName: Text[80]; var TempAgentAccessControl: Record "Agent Access Control" temporary): Guid
     var
         Agent: Record Agent;
     begin
@@ -31,8 +32,6 @@ codeunit 4301 "Agent Impl."
         Agent."User Name" := GenerateUniqueUserName(UserName);
         UserName := Agent."User Name";
         Agent."Display Name" := AgentUserDisplayName;
-        if Initials <> '' then
-            Agent.Initials := Initials;
         Agent.Insert(true);
 
         if TempAgentAccessControl.IsEmpty() then
@@ -281,6 +280,13 @@ codeunit 4301 "Agent Impl."
             exit(true);
         end;
         exit(false);
+    end;
+
+    procedure CanShowMonetizationData(): Boolean
+    var
+        DummyUserAIConsumptionData: Record "User AI Consumption Data";
+    begin
+        exit(DummyUserAIConsumptionData.ReadPermission());
     end;
 
     local procedure UpdateUserSettingsWithProfile(var TempAllProfile: Record "All Profile" temporary; var UserSettingsRec: Record "User Settings")
