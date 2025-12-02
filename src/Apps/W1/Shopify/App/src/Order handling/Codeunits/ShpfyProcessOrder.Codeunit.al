@@ -470,16 +470,16 @@ codeunit 30166 "Shpfy Process Order"
         CashRoundingLbl: Label 'Cash rounding';
     begin
         if PaymentRoundingAmount <> 0 then begin
-            this.ShopifyShop.TestField("Cash Roundings Account");
+            ShopifyShop.TestField("Cash Roundings Account");
             SalesLine.Init();
             SalesLine.SetHideValidationDialog(true);
             SalesLine.Validate("Document Type", SalesHeader."Document Type");
             SalesLine.Validate("Document No.", SalesHeader."No.");
-            SalesLine.Validate("Line No.", this.GetNextLineNo(SalesHeader));
+            SalesLine.Validate("Line No.", GetNextLineNo(SalesHeader));
             SalesLine.Insert(true);
 
             SalesLine.Validate(Type, SalesLine.Type::"G/L Account");
-            SalesLine.Validate("No.", this.ShopifyShop."Cash Roundings Account");
+            SalesLine.Validate("No.", ShopifyShop."Cash Roundings Account");
             SalesLine.Validate(Quantity, 1);
             SalesLine.Validate("Unit Price", PaymentRoundingAmount);
             SalesLine.Validate(Description, CashRoundingLbl);

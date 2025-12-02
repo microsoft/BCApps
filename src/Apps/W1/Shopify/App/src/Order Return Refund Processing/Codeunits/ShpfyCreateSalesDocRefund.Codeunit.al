@@ -148,7 +148,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
             exit(SalesLine."Line No.");
     end;
 
-    local procedure CreateSalesLines(RefundHeader: Record "Shpfy Refund Header"; SalesHeader: Record "Sales Header")
+    local procedure CreateSalesLines(RefundHeader: Record "Shpfy Refund Header"; var SalesHeader: Record "Sales Header")
     var
         SalesLine: Record "Sales Line";
         RefundLine: Record "Shpfy Refund Line";
@@ -343,7 +343,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
         until ReturnLine.Next() = 0;
     end;
 
-    local procedure CreateSalesLinesFromRefundShippingLines(RefundHeader: Record "Shpfy Refund Header"; SalesHeader: Record "Sales Header"; var LineNo: Integer)
+    local procedure CreateSalesLinesFromRefundShippingLines(RefundHeader: Record "Shpfy Refund Header"; var SalesHeader: Record "Sales Header"; var LineNo: Integer)
     var
         RefundShippingLine: Record "Shpfy Refund Shipping Line";
         OrderHeader: Record "Shpfy Order Header";
@@ -386,6 +386,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
 
     local procedure FillRemainingAmountLineFields(RefundHeader: Record "Shpfy Refund Header"; SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var LineNo: Integer)
     begin
+        Shop.TestField("Refund Account");
         LineNo += 10000;
         SalesLine.Init();
         SalesLine.SetHideValidationDialog(true);
@@ -394,13 +395,12 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
         SalesLine.Validate("Line No.", LineNo);
         SalesLine.Insert(true);
         SalesLine.Validate(Type, "Sales Line Type"::"G/L Account");
-        Shop.TestField("Refund Account");
         SalesLine.Validate("No.", Shop."Refund Account");
         SalesLine.Validate(Quantity, 1);
         SalesLine."Shpfy Refund Id" := RefundHeader."Refund Id";
     end;
 
-    local procedure CreateSalesLinesFromRemainingAmount(RefundHeader: Record "Shpfy Refund Header"; SalesHeader: Record "Sales Header"; var LineNo: Integer)
+    local procedure CreateSalesLinesFromRemainingAmount(RefundHeader: Record "Shpfy Refund Header"; var SalesHeader: Record "Sales Header"; var LineNo: Integer)
     var
         SalesLine: Record "Sales Line";
         Currency: Record Currency;
