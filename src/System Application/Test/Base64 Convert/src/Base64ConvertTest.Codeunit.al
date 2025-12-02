@@ -104,6 +104,7 @@ codeunit 135041 "Base64 Convert Test"
         BlobOutStream: OutStream;
         BlobInStream: InStream;
         ConvertedText: Text;
+        ReadLength: Integer;
     begin
         // [SCENARIO] The data from InStream is converted to base-64 string
 
@@ -117,7 +118,8 @@ codeunit 135041 "Base64 Convert Test"
 
         // [WHEN] The data from InStream is converted
         Base64Convert.ToBase64(BlobInStream, false, ResultOutStream);
-        ConvertedText := ResultInStream.ReadText();
+        ReadLength := ResultInStream.ReadText(ConvertedText);
+        Assert.AreEqual(StrLen(Base64SampleTextWithLineBreaks), ReadLength, 'The length of converted text is incorrect.');
 
         // [THEN] The converted value is correct
         Assert.AreEqual(Base64SampleTxt, ConvertedText, ConvertionToBase64Err);
@@ -160,6 +162,7 @@ codeunit 135041 "Base64 Convert Test"
         BlobInStream: InStream;
         ConvertedText: Text;
         Base64SampleTextWithLineBreaks: Text;
+        ReadLength: Integer;
     begin
         // [SCENARIO] The data from InStream is converted to base-64 string with line breaks (every 76 characters)
 
@@ -176,8 +179,8 @@ codeunit 135041 "Base64 Convert Test"
 
         // [WHEN] The data from InStream is converted with line breaks
         Base64Convert.ToBase64(BlobInStream, true, ResultOutStream);
-        ConvertedText := ResultInStream.ReadText();
-
+        ReadLength := ResultInStream.ReadText(ConvertedText);
+        Assert.AreEqual(StrLen(Base64SampleTextWithLineBreaks), ReadLength, 'The length of converted text is incorrect.');
         // [THEN] The converted value is correct
         Assert.AreEqual(Base64SampleTextWithLineBreaks, ConvertedText, ConvertionToBase64Err);
     end;
