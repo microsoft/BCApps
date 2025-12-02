@@ -140,8 +140,8 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         TempPurchHeader.FindSet();
         repeat
             PurchHeader := CreatePurchInvFromTempBuffer();
+            TempBlob := SaveSamplePurchInvReportToPDF(PurchHeader);
             PurchInvHeader := PostPurchaseInvoice(PurchHeader);
-            TempBlob := SavePurchInvReportToPDF(PurchInvHeader);
             EDocument := CreateEDocument(TempBlob, PurchInvHeader, EDocumentService);
             CreateEDocPurchHeaderWithLines(EDocument."Entry No", PurchInvHeader);
             EDocument."Document Record ID" := PurchInvHeader.RecordId();
@@ -248,19 +248,33 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         PurchInvHeader.FindFirst();
     end;
 
-    local procedure SavePurchInvReportToPDF(PurchInvHeader: Record "Purch. Inv. Header") TempBlob: Codeunit "Temp Blob"
+    local procedure SaveSamplePurchInvReportToPDF(PurchHeader: Record "Purchase Header") TempBlob: Codeunit "Temp Blob"
     var
-        PurchaseInvoiceReport: Report "Purchase - Invoice";
+        TempSamplePurchInvHdr: Record "E-Doc Sample Purch.Inv. Hdr." temporary;
+        TempSamplePurchInvLine: Record "E-Doc Sample Purch. Inv. Line" temporary;
+        PurchLine: Record "Purchase Line";
+        EDocSamplePurchaseInvoice: Report "E-Doc Sample Purchase Invoice";
         FileManagement: Codeunit "File Management";
         FilePath: Text[250];
+        CannotGeneratePdfLbl: Label 'Failed to generate PDF for Sample Purchase Invoice %1', Comment = '%1 = Purchase Invoice No.';
     begin
-        PurchInvHeader.SetRecFilter();
-        PurchaseInvoiceReport.SetTableView(PurchInvHeader);
+        TempSamplePurchInvHdr.TransferFields(PurchHeader, true);
+        TempSamplePurchInvHdr.Insert();
+
+        PurchLine.SetRange("Document Type", PurchHeader."Document Type");
+        PurchLine.SetRange("Document No.", PurchHeader."No.");
+        if PurchLine.FindSet() then
+            repeat
+                TempSamplePurchInvLine.TransferFields(PurchLine, true);
+                TempSamplePurchInvLine.Insert();
+            until PurchLine.Next() = 0;
+
+        EDocSamplePurchaseInvoice.SetData(TempSamplePurchInvHdr, TempSamplePurchInvLine);
         FilePath := CopyStr(FileManagement.ServerTempFileName('pdf'), 1, 250);
-        PurchaseInvoiceReport.SaveAsPdf(FilePath);
+        EDocSamplePurchaseInvoice.SaveAsPdf(FilePath);
         FileManagement.BLOBImportFromServerFile(TempBlob, FilePath);
         if TempBlob.Length() = 0 then
-            Error('Failed to generate PDF for Purchase Invoice %1', PurchInvHeader."No.");
+            Error(CannotGeneratePdfLbl, PurchHeader."No.");
     end;
 
     local procedure CreateEDocument(TempBlob: Codeunit "Temp Blob"; PurchInvHeader: Record "Purch. Inv. Header"; EDocumentService: Record "E-Document Service") EDocument: Record "E-Document"

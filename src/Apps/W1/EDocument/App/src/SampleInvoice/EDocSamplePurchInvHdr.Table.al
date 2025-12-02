@@ -17,27 +17,19 @@ table 6117 "E-Doc Sample Purch.Inv. Hdr."
 
     fields
     {
-        field(1; "No."; Code[20])
-        {
-            Caption = 'No.';
-        }
         field(2; "Buy-from Vendor No."; Code[20])
         {
             Caption = 'Buy-from Vendor No.';
         }
-        field(3; "Vendor Invoice No."; Text[35])
+        field(3; "No."; Code[20])
         {
-            Caption = 'Vendor Invoice No.';
+            Caption = 'No.';
         }
-        field(4; "Posting Date"; Date)
-        {
-            Caption = 'Posting Date';
-        }
-        field(5; "Pay-to Vendor No."; Code[20])
+        field(4; "Pay-to Vendor No."; Code[20])
         {
             Caption = 'Pay-to Vendor No.';
         }
-        field(6; "Pay-to Name"; Text[100])
+        field(5; "Pay-to Name"; Text[100])
         {
             Caption = 'Pay-to Name';
         }
@@ -53,29 +45,37 @@ table 6117 "E-Doc Sample Purch.Inv. Hdr."
         {
             Caption = 'Pay-to City';
         }
-        field(10; "Pay-to Post Code"; Code[20])
-        {
-            Caption = 'Pay-to Post Code';
-        }
-        field(11; "Pay-to County"; Text[30])
-        {
-            Caption = 'Pay-to County';
-        }
-        field(12; "Pay-to Country/Region Code"; Code[10])
-        {
-            Caption = 'Pay-to Country/Region Code';
-        }
-        field(13; "Pay-to Contact"; Text[100])
+        field(10; "Pay-to Contact"; Text[100])
         {
             Caption = 'Pay-to Contact';
         }
-        field(14; "Responsibility Center"; Code[10])
+        field(20; "Posting Date"; Date)
         {
-            Caption = 'Responsibility Center';
+            Caption = 'Posting Date';
         }
         field(24; "Due Date"; Date)
         {
             Caption = 'Due Date';
+        }
+        field(68; "Vendor Invoice No."; Text[35])
+        {
+            Caption = 'Vendor Invoice No.';
+        }
+        field(85; "Pay-to Post Code"; Code[20])
+        {
+            Caption = 'Pay-to Post Code';
+        }
+        field(86; "Pay-to County"; Text[30])
+        {
+            Caption = 'Pay-to County';
+        }
+        field(87; "Pay-to Country/Region Code"; Code[10])
+        {
+            Caption = 'Pay-to Country/Region Code';
+        }
+        field(5700; "Responsibility Center"; Code[10])
+        {
+            Caption = 'Responsibility Center';
         }
     }
 

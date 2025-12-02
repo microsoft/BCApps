@@ -19,59 +19,59 @@ table 6119 "E-Doc Sample Purch. Inv. Line"
 
     fields
     {
-        field(1; "Document No."; Code[20])
+        field(3; "Document No."; Code[20])
         {
             Caption = 'Document No.';
         }
-        field(2; "Line No."; Integer)
+        field(4; "Line No."; Integer)
         {
             Caption = 'Line No.';
         }
-        field(3; Type; Enum "Purchase Line Type")
+        field(5; Type; Enum "Purchase Line Type")
         {
             Caption = 'Type';
         }
-        field(4; "No."; Code[20])
+        field(6; "No."; Code[20])
         {
             Caption = 'No.';
         }
-        field(5; "Tax Group Code"; Code[20])
-        {
-            Caption = 'Tax Group Code';
-        }
-        field(6; Description; Text[100])
+        field(11; Description; Text[100])
         {
             Caption = 'Description';
-        }
-        field(7; Quantity; Decimal)
-        {
-            Caption = 'Quantity';
-            AutoFormatType = 0;
-        }
-        field(8; "Direct Unit Cost"; Decimal)
-        {
-            Caption = 'Direct Unit Cost';
-            AutoFormatType = 0;
-        }
-        field(9; "Deferral Code"; Code[10])
-        {
-            Caption = 'Deferral Code';
-        }
-        field(10; "Unit of Measure Code"; Code[10])
-        {
-            Caption = 'Unit of Measure Code';
         }
         field(13; "Unit of Measure"; Text[50])
         {
             Caption = 'Unit of Measure';
         }
-        field(29; "Amount"; Decimal)
+        field(15; Quantity; Decimal)
+        {
+            Caption = 'Quantity';
+            AutoFormatType = 0;
+        }
+        field(22; "Direct Unit Cost"; Decimal)
+        {
+            Caption = 'Direct Unit Cost';
+            AutoFormatType = 0;
+        }
+        field(87; "Tax Group Code"; Code[20])
+        {
+            Caption = 'Tax Group Code';
+        }
+        field(1700; "Deferral Code"; Code[10])
+        {
+            Caption = 'Deferral Code';
+        }
+        field(5407; "Unit of Measure Code"; Code[10])
+        {
+            Caption = 'Unit of Measure Code';
+        }
+        field(9900; "Amount"; Decimal)
         {
             Caption = 'Amount';
             AutoFormatType = 2;
             AutoFormatExpression = '';
         }
-        field(30; "Amount Including VAT"; Decimal)
+        field(9901; "Amount Including VAT"; Decimal)
         {
             Caption = 'Amount Including VAT';
             AutoFormatType = 2;
