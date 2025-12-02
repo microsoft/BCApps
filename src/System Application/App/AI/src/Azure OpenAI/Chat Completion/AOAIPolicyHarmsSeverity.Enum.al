@@ -10,6 +10,7 @@ enum 7788 "AOAI Policy Harms Severity"
     /// </summary>
     value(1; Low)
     {
+        Caption = 'Low', Locked = true;
     }
 
     /// <summary>
@@ -18,5 +19,6 @@ enum 7788 "AOAI Policy Harms Severity"
     /// </summary>
     value(2; Medium)
     {
+        Caption = 'Medium', Locked = true;
     }
 }

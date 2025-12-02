@@ -14,6 +14,7 @@ enum 7787 "AOAI Policy"
     /// </summary>
     value(1; "ConservativeWithXPIA")
     {
+        Caption = 'ConservativeWithXPIA', Locked = true;
     }
 
     /// <summary>
@@ -21,6 +22,7 @@ enum 7787 "AOAI Policy"
     /// </summary>
     value(2; "ConservativeWithoutXPIA")
     {
+        Caption = 'ConservativeWithoutXPIA', Locked = true;
     }
 
     /// <summary>
@@ -28,14 +30,16 @@ enum 7787 "AOAI Policy"
     /// </summary>
     value(3; "MediumWithXPIA")
     {
+        Caption = 'MediumWithXPIA', Locked = true;
     }
 
     /// <summary>
     /// Requests containing harms with a medium severity are blocked.
-    /// This is not the default policy that we recommend but rather this is the Default AOAI policy (Policy ID : 0 ) in CAPI
+    /// This is not the default policy that we recommend but rather this is the Default AOAI policy in CAPI
     /// </summary>
     value(4; "Default")
     {
+        Caption = 'Default', Locked = true;
     }
 
 }
