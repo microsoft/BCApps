@@ -172,6 +172,9 @@ report 6102 "E-Doc Sample Purchase Invoice"
                 column(Type; Type)
                 {
                 }
+                column(NoCaptionLbl; NoCaptionLbl)
+                {
+                }
                 column(No; "No.")
                 {
                 }
@@ -264,6 +267,7 @@ report 6102 "E-Doc Sample Purchase Invoice"
         DueDateCaptionLbl: Label 'Due Date';
         InvoiceCaptionLbl: Label 'INVOICE';
         InvoiceNoCaptionLbl: Label 'Invoice No.';
+        NoCaptionLbl: Label 'No.';
         DirectUnitCostCaptionLbl: Label 'Unit Cost';
         ItemQuantityCaptionLbl: Label 'Quantity';
         LineAmountCaptionLbl: Label 'Amount';

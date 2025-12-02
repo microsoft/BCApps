@@ -121,7 +121,7 @@ codeunit 6209 "E-Doc Sample Invoice Generator"
         TempSamplePurchInvLine."Line No." += 10000;
         TempSamplePurchInvLine.Type := LineType;
         TempSamplePurchInvLine."No." := No;
-        TempSamplePurchInvLine."Tax Group Code" := TaxGroupCode;
+        TempSamplePurchInvLine."Tax Group Code" := TaxGroupCode; // TODO: Looks like i do not need this
         TempSamplePurchInvLine.Description := Description;
         if TempSamplePurchInvLine.Description = '' then
             case LineType of
