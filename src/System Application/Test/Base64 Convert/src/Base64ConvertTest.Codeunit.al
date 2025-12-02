@@ -119,7 +119,7 @@ codeunit 135041 "Base64 Convert Test"
         // [WHEN] The data from InStream is converted
         Base64Convert.ToBase64(BlobInStream, false, ResultOutStream);
         ReadLength := ResultInStream.ReadText(ConvertedText);
-        Assert.AreEqual(StrLen(Base64SampleTextWithLineBreaks), ReadLength, 'The length of converted text is incorrect.');
+        Assert.AreEqual(StrLen(Base64SampleTxt), ReadLength, 'The length of converted text is incorrect.');
 
         // [THEN] The converted value is correct
         Assert.AreEqual(Base64SampleTxt, ConvertedText, ConvertionToBase64Err);
