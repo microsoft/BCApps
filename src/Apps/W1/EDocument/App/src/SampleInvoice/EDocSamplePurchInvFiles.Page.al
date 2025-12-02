@@ -5,7 +5,6 @@
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
 using System.Utilities;
-using System.Environment;
 using System.IO;
 
 /// <summary>
@@ -33,10 +32,6 @@ page 6132 "E-Doc Sample Purch. Inv. Files"
                 field("File Name"; Rec."File Name")
                 {
                     ToolTip = 'Specifies the file name.';
-                }
-                field("File Content"; Rec."File Content")
-                {
-                    ToolTip = 'Specifies the file content.';
                 }
             }
         }
@@ -72,17 +67,13 @@ page 6132 "E-Doc Sample Purch. Inv. Files"
 
     local procedure DownloadAndViewFile()
     var
-        TenantMedia: Record "Tenant Media";
         TempBlob: Codeunit "Temp Blob";
         FileManagement: Codeunit "File Management";
     begin
         Rec.TestField("File Name");
+        Rec.CalcFields("File Content");
         if Rec."File Content".HasValue() then begin
-            TenantMedia.Get(Rec."File Content".MediaId());
-            if not TenantMedia.Content.HasValue() then
-                Error(NoFileContentErr);
-
-            TempBlob.FromRecord(TenantMedia, TenantMedia.FieldNo(Content));
+            TempBlob.FromRecord(Rec, Rec.FieldNo("File Content"));
             FileManagement.BLOBExport(TempBlob, Rec."File Name" + '.pdf', false);
         end else
             Error(NoFileContentErr);

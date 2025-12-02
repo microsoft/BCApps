@@ -161,6 +161,7 @@ codeunit 6209 "E-Doc Sample Invoice Generator"
         SamplePurchInvRunner: Codeunit "E-Doc Sample Purch.Inv. Runner";
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
+        OutStream: OutStream;
         GeneratedPdfIsEmptyErr: Label 'Generated PDF is empty';
     begin
         if not TempSamplePurchInvHdr.FindSet() then
@@ -182,7 +183,8 @@ codeunit 6209 "E-Doc Sample Invoice Generator"
             SamplePurchInvFile.Init();
             SamplePurchInvFile."File Name" := CopyStr(TempSamplePurchInvHdr."Vendor Invoice No.", 1, MaxStrLen(SamplePurchInvFile."File Name"));
             TempBlob.CreateInStream(InStream);
-            SamplePurchInvFile."File Content".ImportStream(InStream, SamplePurchInvFile."File Name");
+            SamplePurchInvFile."File Content".CreateOutStream(OutStream);
+            Copystream(OutStream, InStream);
             SamplePurchInvFile.Insert();
         until TempSamplePurchInvHdr.Next() = 0;
     end;

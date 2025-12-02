@@ -15,7 +15,7 @@ table 6120 "E-Doc Sample Purch. Inv File"
         {
             Caption = 'File Name';
         }
-        field(2; "File Content"; Media)
+        field(2; "File Content"; Blob)
         {
             Caption = 'File Content';
         }
