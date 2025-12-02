@@ -41,4 +41,13 @@ codeunit 3728 "Checklist Banner"
     internal procedure OnOpenChecklistBannerPage(var SkipWelcomeState: Boolean; IsEvaluationCompany: Boolean)
     begin
     end;
+
+    /// <summary>
+    /// Integration Event raised when the "Show new Features" action in an early access preview environment is triggered.
+    /// </summary>
+    /// <param name="IsHandled"> Whether an Early Access Preview feature list was shown.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnShowEarlyAccessPreviewFeatures(var IsHandled: Boolean)
+    begin
+    end;
 }
