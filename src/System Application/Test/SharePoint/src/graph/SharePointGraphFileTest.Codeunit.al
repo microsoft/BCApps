@@ -191,8 +191,6 @@ codeunit 132983 "SharePoint Graph File Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(SharePointGraphTestLibrary);
-
         // Get the mock handler from the test library
         MockHttpClientHandler := SharePointGraphTestLibrary.GetMockHandler();
 

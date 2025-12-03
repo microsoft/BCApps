@@ -681,8 +681,6 @@ codeunit 132985 "SharePoint Graph Advanced Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(SharePointGraphTestLibrary);
-
         // Get the mock handler from the test library
         MockHttpClientHandler := SharePointGraphTestLibrary.GetMockHandler();
 

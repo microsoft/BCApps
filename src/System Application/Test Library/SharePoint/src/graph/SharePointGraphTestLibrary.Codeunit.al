@@ -9,8 +9,6 @@ using System.RestClient;
 
 codeunit 132975 "SharePoint Graph Test Library"
 {
-    EventSubscriberInstance = Manual;
-
     var
         MockHttpClientHandler: Codeunit "SharePoint Http Client Handler";
 
