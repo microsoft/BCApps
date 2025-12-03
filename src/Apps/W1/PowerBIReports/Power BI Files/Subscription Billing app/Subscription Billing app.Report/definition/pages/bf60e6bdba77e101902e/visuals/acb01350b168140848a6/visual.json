@@ -57,6 +57,24 @@
             }
           ]
         },
+        "Tooltips": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Total Contract Value Δ vs. PY"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Total Contract Value Δ vs. PY",
+              "nativeQueryRef": "Total Contract Value Δ vs. PY"
+            }
+          ]
+        },
         "Y": {
           "projections": [
             {
@@ -146,5 +164,89 @@
         }
       ]
     }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "943e19233e9695e9c450",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Month"
+              }
+            },
+            "Level": "Fiscal Year"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "28a0684a4a28a8b5c489",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Month"
+              }
+            },
+            "Level": "Fiscal Month Year"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "69deb4fc9960c266c059",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Subscription Billing KPIs"
+              }
+            },
+            "Property": "Total Contract Value"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "6ee060bf819207d49107",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Subscription Billing KPIs"
+              }
+            },
+            "Property": "Total Contract Value PY"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "21024f60c1d446b5d528",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Subscription Billing KPIs"
+              }
+            },
+            "Property": "Total Contract Value Δ vs. PY"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }
