@@ -18,9 +18,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.UOM;
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
-using System.Environment.Configuration;
-//using Microsoft.Foundation.Reporting;
-using System.Reflection;
 
 /// <summary>
 /// The purpose of the codeunit is to compose entities for generating the e-document invoices
@@ -132,10 +129,8 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         PurchInvHeader: Record "Purch. Inv. Header";
         EDocument: Record "E-Document";
         TempBlob: Codeunit "Temp Blob";
-        LayoutName: Text[250];
     begin
         EDocumentService := GetEDocService();
-        LayoutName := InsertTenantReportLayout();
         TempPurchHeader.Reset();
         TempPurchHeader.FindSet();
         repeat
@@ -151,7 +146,6 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
             EDocument."Import Processing Status" := EDocument."Import Processing Status"::Processed;
             EDocument.Modify();
         until TempPurchHeader.Next() = 0;
-        CleanupTenantReportLayout(LayoutName);
     end;
 
     local procedure CreatePurchInvFromTempBuffer() PurchHeader: Record "Purchase Header"
@@ -201,40 +195,6 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
         FileManagement.BLOBImportFromServerFile(TempBlob, FilePath);
     end;
 #pragma warning restore AA0228
-
-    local procedure InsertTenantReportLayout(): Text[250]
-    var
-        ReportLayoutList: Record "Report Layout List";
-        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
-        EmptyGuid: Guid;
-    begin
-        ReportLayoutList.SetRange("Report ID", Report::"Purchase - Invoice");
-        ReportLayoutList.SetRange(Name, GetLayoutName());
-        ReportLayoutList.FindFirst();
-        if not TenantReportLayoutSelection.Get(ReportLayoutList."Report ID", CompanyName, EmptyGuid) then begin
-            TenantReportLayoutSelection.Init();
-            TenantReportLayoutSelection."App ID" := ReportLayoutList."Application ID";
-            TenantReportLayoutSelection."Company Name" := CopyStr(CompanyName, 1, MaxStrLen(TenantReportLayoutSelection."Company Name"));
-            TenantReportLayoutSelection."Layout Name" := ReportLayoutList.Name;
-            TenantReportLayoutSelection."Report ID" := ReportLayoutList."Report ID";
-            TenantReportLayoutSelection."User ID" := EmptyGuid;
-            TenantReportLayoutSelection.Insert(true);
-        end;
-        exit(TenantReportLayoutSelection."Layout Name");
-    end;
-
-    local procedure GetLayoutName(): Text[250]
-    begin
-        exit('SamplePurchaseInvoice');
-    end;
-
-    local procedure CleanupTenantReportLayout(LayoutName: Text)
-    var
-        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
-    begin
-        TenantReportLayoutSelection.SetRange("Layout Name", LayoutName);
-        TenantReportLayoutSelection.DeleteAll(true);
-    end;
 
     local procedure PostPurchaseInvoice(PurchHeader: Record "Purchase Header") PurchInvHeader: Record "Purch. Inv. Header"
     var
