@@ -333,7 +333,8 @@ codeunit 20599 "Qlty. Misc Helpers"
                     if (TempBufferQltyLookupCode.Description = '') and (TempBufferQltyLookupCode."Custom 1" <> '') then
                         TempBufferQltyLookupCode.Description := TempBufferQltyLookupCode."Custom 1";
 
-                    if TempBufferQltyLookupCode.Insert() then;
+                    if not TempBufferQltyLookupCode.Find() then
+                        TempBufferQltyLookupCode.Insert();
                     if HasAtLeastOne then
                         CSVSimpleText += ',';
                     CSVSimpleText += TempBufferQltyLookupCode."Custom 1";

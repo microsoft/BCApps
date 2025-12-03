@@ -156,7 +156,8 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
 
         ReturnOrderPurchaseHeader.Insert(true);
         TempCreatedBufferPurchaseHeader := ReturnOrderPurchaseHeader;
-        if TempCreatedBufferPurchaseHeader.Insert() then;
+        if not TempCreatedBufferPurchaseHeader.Find() then
+            TempCreatedBufferPurchaseHeader.Insert();
     end;
 
     local procedure CreatePurchaseReturnOrderLine(var QltyInspectionTestHeader: Record "Qlty. Inspection Test Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var PurchRcptLine: Record "Purch. Rcpt. Line"; var ReturnOrderPurchaseHeader: Record "Purchase Header")

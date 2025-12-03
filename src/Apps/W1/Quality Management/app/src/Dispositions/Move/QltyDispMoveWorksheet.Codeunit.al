@@ -160,7 +160,8 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
             QltyInspectionTestHeader.GetFriendlyIdentifier()), 1, MaxStrLen(WkshWhseWorksheetLine.Description));
         WkshWhseWorksheetLine.Insert();
         TempCreatedWhseWorksheetLine := WkshWhseWorksheetLine;
-        if TempCreatedWhseWorksheetLine.Insert() then;
+        if not TempCreatedWhseWorksheetLine.Find() then
+            TempCreatedWhseWorksheetLine.Insert();
 
         if QltyInspectionTestHeader.IsItemTrackingUsed() then begin
             TempWarehouseEntry."Item No." := QltyInspectionTestHeader."Source Item No.";

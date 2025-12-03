@@ -245,7 +245,8 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
                     TempAlreadySearchedsQltyInspectSourceConfig.Reset();
                     if not TempAlreadySearchedsQltyInspectSourceConfig.Get(TempAvailableQltyInspectSourceConfig.Code) then begin
                         TempAlreadySearchedsQltyInspectSourceConfig := TempAvailableQltyInspectSourceConfig;
-                        if TempAlreadySearchedsQltyInspectSourceConfig.Insert() then;
+                        if not TempAlreadySearchedsQltyInspectSourceConfig.Find() then
+                            TempAlreadySearchedsQltyInspectSourceConfig.Insert();
                         if QltyTraversal.FindFromTableLinkedRecordWithToTable(true, false, TempAvailableQltyInspectSourceConfig, TargetRecordRef, FoundLinkRecordRef) then
                             if FindFirstGenerationRuleAndRecordBasedOnRecursive(CurrentRecursionDepth, UseActivationFilter, IsManualCreation, FoundLinkRecordRef, OptionalItem, TempAvailableQltyInspectSourceConfig, TempAlreadySearchedsQltyInspectSourceConfig, OptionalSpecificTemplate, TempQltyInTestGenerationRule) then begin
                                 Found := true;
@@ -295,7 +296,8 @@ codeunit 20405 "Qlty. Generation Rule Mgmt."
         if QltyInTestGenerationRule.FindSet() then
             repeat
                 TempQltyInTestGenerationRule := QltyInTestGenerationRule;
-                if TempQltyInTestGenerationRule.Insert() then;
+                if not TempQltyInTestGenerationRule.Find() then
+                    TempQltyInTestGenerationRule.Insert();
                 Found := true;
             until QltyInTestGenerationRule.Next() = 0;
     end;

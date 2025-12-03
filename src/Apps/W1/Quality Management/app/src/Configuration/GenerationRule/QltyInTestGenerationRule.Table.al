@@ -337,7 +337,8 @@ table 20404 "Qlty. In. Test Generation Rule"
         if Rec."Template Code" = '' then
             Error(ChooseTemplateFirstErr);
         if IsNullGuid(Rec.SystemId) and not Rec.IsTemporary() then
-            if Rec.Insert() then;
+            if not Rec.Find() then
+                Rec.Insert();
         Filter := QltyGenerationRuleMgmt.GetFilterForAvailableConfigurations();
         QltyFilterHelpers.RunModalLookupTable(Rec."Source Table No.", Filter);
         Rec.CalcFields("Table Caption");

@@ -62,6 +62,6 @@ page 20425 "Qlty. Inspection Activities"
     trigger OnInit()
     begin
         if not Rec.Get() then
-            if Rec.Insert() then;
+            Rec.Insert();
     end;
 }
