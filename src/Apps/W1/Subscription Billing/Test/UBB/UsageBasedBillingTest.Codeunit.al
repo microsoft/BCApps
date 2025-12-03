@@ -1195,7 +1195,7 @@ codeunit 148153 "Usage Based Billing Test"
     begin
         //[SCENARIO]: Check that usage data billing is deleted after deleting purchase credit memo
         ResetAll();
-
+        PurchaseInvoiceHeader.DeleteAll(false);
         //[GIVEN] Usage Data import with Usage Data Billing
         CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
