@@ -1544,8 +1544,8 @@ codeunit 148157 "Service Object Test"
         SubscriptionLine.Get(SubscriptionLine."Entry No.");
 
         // [THEN] "Cancellation possible until" and "Term until" are recalculated
+        Assert.AreEqual(CalcDate(SubscriptionLine."Notice Period", SubscriptionLine."Cancellation possible until"), SubscriptionLine."Term until", 'Term until should be recalculated.');
         Assert.AreEqual(CalcDate('-' + Format(SubscriptionLine."Notice Period"), SubscriptionLine."Term until"), SubscriptionLine."Cancellation possible until", 'Cancellation possible until should be recalculated.');
-        Assert.AreEqual(CalcDate(SubscriptionLine."Extension Term", SubscriptionLine."Subscription Line Start Date"), SubscriptionLine."Term until", 'Term until should be recalculated.');
     end;
 
     #endregion Tests

@@ -472,6 +472,7 @@ codeunit 4301 "Agent Impl."
         AgentNamePrefix: Text[50];
         NumberOfAgentDigits: Integer;
         MaximumPrefixLength: Integer;
+        NumberIncrement: Integer;
         AgentNumberSeparatorTok: Label '-', Locked = true;
     begin
         // Check if the user name is already unique
@@ -492,9 +493,17 @@ codeunit 4301 "Agent Impl."
 
         // Generate a unique user name by appending digits
         User.SetFilter("User Name", '%1', AgentNamePrefix + '*');
+        NumberIncrement := User.Count() + 2;
 #pragma warning disable AA0139
-        UniqueUserName := AgentNamePrefix + Format(User.Count() + 2);
+        UniqueUserName := AgentNamePrefix + Format(NumberIncrement);
 #pragma warning restore AA0139
+        User.SetRange("User Name", UniqueUserName);
+
+        while not User.IsEmpty() do begin
+            NumberIncrement += 1;
+            UniqueUserName := AgentNamePrefix + Format(NumberIncrement);
+            User.SetRange("User Name", UniqueUserName);
+        end;
 
         exit(UniqueUserName);
     end;
