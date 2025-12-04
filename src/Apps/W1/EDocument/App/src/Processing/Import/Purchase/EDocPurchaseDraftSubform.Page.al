@@ -166,12 +166,12 @@ page 6183 "E-Doc. Purchase Draft Subform"
                 group("Order Matching")
                 {
                     Caption = 'Order matching';
-                    action(MatchToOrderLines)
+                    action(MatchToOrderLine)
                     {
                         ApplicationArea = All;
-                        Caption = 'Match to order lines';
+                        Caption = 'Match to order line';
                         Image = LinkWithExisting;
-                        ToolTip = 'Match this incoming invoice line to purchase order lines.';
+                        ToolTip = 'Match this incoming invoice line to a purchase order line.';
                         Scope = Repeater;
 
                         trigger OnAction()
@@ -192,9 +192,9 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     action(SpecifyReceiptLines)
                     {
                         ApplicationArea = All;
-                        Caption = 'Specify receipt lines';
+                        Caption = 'Specify receipt line';
                         Image = ReceiptLines;
-                        ToolTip = 'Specify the corresponding receipt lines to the matched order line.';
+                        ToolTip = 'Specify the corresponding receipt line to the matched order line.';
                         Scope = Repeater;
                         Enabled = IsLineMatchedToOrderLine;
 
