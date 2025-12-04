@@ -250,7 +250,7 @@ page 30113 "Shpfy Order"
                     Editable = false;
                     ToolTip = 'Specifies the status of payments associated with the order. Valid values are: pending, authorized, partially paid, paid, partially refunded, refunded, voided.';
                 }
-                group(PresentementCurrency)
+                group(PresentmentCurrency)
                 {
                     ShowCaption = false;
                     Visible = PresentmentVisible;
