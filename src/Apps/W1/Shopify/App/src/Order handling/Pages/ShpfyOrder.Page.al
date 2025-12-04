@@ -1060,9 +1060,6 @@ page 30113 "Shpfy Order"
     begin
         PresentmentVisible := Rec.IsPresentmentCurrencyOrder();
 
-        if PresentmentVisible then
-            CurrPage.ShopifyOrderLines.Page.SetShowPresentmentCurrency(true)
-        else
-            CurrPage.ShopifyOrderLines.Page.SetShowPresentmentCurrency(false);
+        CurrPage.ShopifyOrderLines.Page.SetShowPresentmentCurrency(PresentmentVisible);
     end;
 }
