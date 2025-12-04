@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
+using System.Telemetry;
+
 codeunit 7788 "AOAI Policy Params Impl"
 {
     Access = Internal;
@@ -11,10 +13,12 @@ codeunit 7788 "AOAI Policy Params Impl"
     InherentPermissions = X;
 
     var
+        Telemetry: Codeunit "Telemetry";
         HarmsSeverity: Enum "AOAI Policy Harms Severity";
         IsXPIADetectionEnabled: Boolean;
         CustomAOAIPolicy: Text;
         Initialized: Boolean;
+        TelemetryCouldNotResolveAOAIPolicyParamsLbl: Label 'Unable to resolve the AOAI Policy params. Returned the default AOAI Policy instead.', Locked = true;
 
     procedure GetHarmsSeverity(): Enum "AOAI Policy Harms Severity"
     begin
@@ -94,6 +98,7 @@ codeunit 7788 "AOAI Policy Params Impl"
             'HarmsMedium|XPIADisabled':
                 exit("AOAI Policy"::"MediumWithoutXPIA");
             else
+                Telemetry.LogMessage('0000QRU', TelemetryCouldNotResolveAOAIPolicyParamsLbl, Verbosity::Normal, DataClassification::SystemMetadata);
                 exit("AOAI Policy"::"ConservativeWithXPIA");
         end;
     end;
