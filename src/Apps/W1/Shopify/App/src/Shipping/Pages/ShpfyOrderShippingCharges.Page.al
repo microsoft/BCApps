@@ -48,10 +48,20 @@ page 30128 "Shpfy Order Shipping Charges"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the shipping cost amount.';
                 }
+                field(PresentmentAmount; Rec."Presentment Amount")
+                {
+                    ApplicationArea = All;
+                    Visible = PresentmentCurrencyVisible;
+                }
                 field("Discount Amount"; Rec."Discount Amount")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the shipping cost discount amount.';
+                }
+                field("Presentment Discount Amount"; Rec."Presentment Discount Amount")
+                {
+                    ApplicationArea = All;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field(Source; Rec.Source)
                 {
@@ -100,5 +110,23 @@ page 30128 "Shpfy Order Shipping Charges"
             }
         }
     }
+
+    var
+        PresentmentCurrencyVisible: Boolean;
+
+    trigger OnAfterGetRecord()
+    begin
+        SetShowPresentmentCurrencyVisibility();
+    end;
+
+    local procedure SetShowPresentmentCurrencyVisibility()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+    begin
+        if not OrderHeader.Get(Rec."Shopify Order Id") then
+            exit;
+
+        PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+    end;
 }
 
