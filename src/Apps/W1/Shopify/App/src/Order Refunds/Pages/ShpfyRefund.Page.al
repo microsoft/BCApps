@@ -226,9 +226,6 @@ page 30145 "Shpfy Refund"
             exit;
 
         PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
-        if PresentmentCurrencyVisible then
-            CurrPage.Lines.Page.SetShowPresentmentCurrency(true)
-        else
-            CurrPage.Lines.Page.SetShowPresentmentCurrency(false);
+        CurrPage.Lines.Page.SetShowPresentmentCurrency(PresentmentCurrencyVisible);
     end;
 }
