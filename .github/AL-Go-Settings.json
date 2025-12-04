@@ -138,5 +138,7 @@
       "Automation"
     ]
   },
-  "runNumberOffset": 60000
+  "runNumberOffset": 60000,
+  "MinimumDotNetRuntimeVersionStr": "99.0.0",
+  "MinimumDotNetRuntimeVersionUrl": "https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.416/dotnet-sdk-8.0.416-win-x64.zip"
 }
