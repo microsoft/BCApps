@@ -10,6 +10,7 @@ query 37001 "Purch. Lines - Item Received"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to purchase order lines for items received but not yet invoiced including quantities and amounts pending invoicing. Enables Power BI reports to analyze goods-received-not-invoiced accruals and pending vendor invoices.';
     Caption = 'Power BI Received Not Invd. PO';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

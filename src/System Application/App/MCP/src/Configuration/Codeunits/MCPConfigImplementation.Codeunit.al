@@ -359,6 +359,24 @@ codeunit 8351 "MCP Config Implementation"
         exit(true);
     end;
 
+    internal procedure LookupQueryTools(var QueryMetadata: Record "Query Metadata"): Boolean
+    var
+        MCPQueryConfigToolLookup: Page "MCP Query Config Tool Lookup";
+    begin
+        QueryMetadata.SetFilter(EntityName, '<>%1', '');
+        QueryMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
+        QueryMetadata.SetFilter(ID, '<>%1&<>%2', 5480, 5481); // Exclude beta customer and vendor queries from Base Application, as they are already part of API v2.0
+
+        // MCPQueryConfigToolLookup.LookupMode := true;
+        MCPQueryConfigToolLookup.SetTableView(QueryMetadata);
+        MCPQueryConfigToolLookup.Run();
+        // if MCPQueryConfigToolLookup.RunModal() <> Action::LookupOK then
+        //     exit(false);
+
+        MCPQueryConfigToolLookup.SetSelectionFilter(QueryMetadata);
+        exit(true);
+    end;
+
     internal procedure GetAPIPublishers(var MCPAPIPublisherGroup: Record "MCP API Publisher Group")
     var
         PageMetadata: Record "Page Metadata";

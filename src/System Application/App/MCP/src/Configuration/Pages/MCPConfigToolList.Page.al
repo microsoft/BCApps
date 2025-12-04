@@ -34,8 +34,9 @@ page 8352 "MCP Config Tool List"
                     trigger OnLookup(var Text: Text): Boolean
                     var
                         PageMetadata: Record "Page Metadata";
+                        QueryMetadata: Record "Query Metadata";
                     begin
-                        if not MCPConfigImplementation.LookupAPITools(PageMetadata) then
+                        if not MCPConfigImplementation.LookupQueryTools(QueryMetadata) then
                             exit;
 
                         if not PageMetadata.FindSet() then

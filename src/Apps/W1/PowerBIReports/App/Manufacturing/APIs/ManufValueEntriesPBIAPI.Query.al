@@ -14,6 +14,7 @@ query 37011 "Manuf. Value Entries - PBI API"
     Access = Internal;
     Caption = 'Power BI Manufacturing Value Entries';
     QueryType = API;
+    AboutText = 'Provides access to value entries for production orders including actual and expected costs, cost posted to G/L, and cost components by type. Enables Power BI reports to analyze production costs, WIP valuation, and manufacturing cost variances at the transaction level.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

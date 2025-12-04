@@ -5,6 +5,7 @@ using Microsoft.Purchases.Payables;
 query 30304 "API Fin - Dtld Vend Ledg Entry"
 {
     QueryType = API;
+    AboutText = 'Provides access to detailed vendor ledger entries including entry types, amounts, currency codes, and dimension information. Enables external systems to retrieve granular payables transaction data for payment analysis, vendor account reconciliation, and detailed accounts payable reporting.';
     EntityCaption = 'Detailed Vendor Ledger Entry';
     EntityName = 'detailedVendorLedgerEntry';
     EntitySetName = 'detailedVendorLedgerEntries';

@@ -14,6 +14,7 @@ query 36971 "Prod. Order Comp. - Invt."
     Access = Internal;
     Caption = 'Power BI Qty. on Component Lines';
     QueryType = API;
+    AboutText = 'Provides access to production order component data including item numbers, remaining quantities, due dates, and locations for planned to released orders. Enables Power BI reports to analyze production material requirements and component consumption for inventory availability planning.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

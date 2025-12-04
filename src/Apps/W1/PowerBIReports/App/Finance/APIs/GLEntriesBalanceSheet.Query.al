@@ -11,6 +11,7 @@ query 36955 "G\L Entries - Balance Sheet"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to general ledger entries for balance sheet accounts including assets, liabilities, and equity. Enables Power BI reports to analyze financial position, track account balances over time, and build balance sheet reports with dimensional breakdowns and source tracing.';
     Caption = 'Power BI Balance Sheet G/L Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

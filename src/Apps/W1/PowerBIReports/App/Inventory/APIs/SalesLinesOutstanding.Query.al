@@ -11,6 +11,7 @@ query 36975 "Sales Lines - Outstanding"
     Access = Internal;
     Caption = 'Power BI Sales Lines';
     QueryType = API;
+    AboutText = 'Provides access to outstanding sales order and return order lines for items including quantities, shipment dates, and customers. Enables Power BI reports to analyze pending sales demand and forecast inventory requirements for sales fulfillment.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

@@ -11,6 +11,7 @@ query 36977 "Transfer Lines"
     Access = Internal;
     Caption = 'Power BI Qty. on Transfer Lines';
     QueryType = API;
+    AboutText = 'Provides access to transfer order line data including in-transit quantities, outstanding quantities, shipment and receipt dates, and location codes. Enables Power BI reports to track inventory in transit and analyze inter-location stock movements for logistics planning.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';
