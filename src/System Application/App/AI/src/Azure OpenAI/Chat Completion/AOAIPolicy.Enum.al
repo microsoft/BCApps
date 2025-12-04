@@ -18,7 +18,7 @@ enum 7787 "AOAI Policy"
     }
 
     /// <summary>
-    /// Requests containing harms with a low severity are blocked.
+    /// Requests containing harms with a low severity are blocked and XPIA detection is disabled.
     /// </summary>
     value(2; "ConservativeWithoutXPIA")
     {
@@ -34,10 +34,9 @@ enum 7787 "AOAI Policy"
     }
 
     /// <summary>
-    /// Requests containing harms with a medium severity are blocked.
-    /// This is not the default policy that we recommend but rather this is the Default AOAI policy in CAPI
+    /// Requests containing harms with a medium severity are blocked and XPIA detection is disabled.
     /// </summary>
-    value(4; "Default")
+    value(4; "MediumWithoutXPIA")
     {
         Caption = 'Default', Locked = true;
     }

@@ -91,8 +91,10 @@ codeunit 7788 "AOAI Policy Params Impl"
                 exit("AOAI Policy"::"ConservativeWithoutXPIA");
             'HarmsMedium|XPIAEnabled':
                 exit("AOAI Policy"::"MediumWithXPIA");
+            'HarmsMedium|XPIADisabled':
+                exit("AOAI Policy"::"MediumWithoutXPIA");
             else
-                exit("AOAI Policy"::"Default");
+                exit("AOAI Policy"::"ConservativeWithXPIA");
         end;
     end;
 
