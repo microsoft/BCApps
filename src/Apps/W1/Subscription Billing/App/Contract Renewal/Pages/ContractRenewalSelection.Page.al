@@ -224,6 +224,8 @@ page 8006 "Contract Renewal Selection"
                         StyleExpr = LineFormatStyleExpression;
                         ToolTip = 'Specifies the base amount from which the price will be calculated.';
                         BlankZero = true;
+                        AutoFormatType = 2;
+                        AutoFormatExpression = TempServiceCommitment."Currency Code";
                     }
                     field("Calculation Base %"; TempServiceCommitment."Calculation Base %")
                     {
