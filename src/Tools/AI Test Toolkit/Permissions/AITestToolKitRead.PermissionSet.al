@@ -13,6 +13,7 @@ permissionset 149033 "AI Test Toolkit - Read"
 
     Permissions = tabledata "AIT Run History" = R,
         tabledata "AIT Test Suite" = R,
+        tabledata "AIT Test Suite Language" = R,
         tabledata "AIT Test Method Line" = R,
         tabledata "AIT Log Entry" = R;
 }

@@ -83,6 +83,16 @@ table 149032 "AIT Test Method Line"
             DataClassification = CustomerContent;
             TableRelation = "Test Input Group";
             ToolTip = 'Specifies a dataset that overrides the default dataset for the suite.';
+
+            trigger OnValidate()
+            var
+                AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
+            begin
+                if "Input Dataset" = '' then
+                    exit;
+
+                AITTestSuiteLanguage.AddLanguagesFromTestMethodLine(Rec);
+            end;
         }
         field(9; "Status"; Enum "AIT Line Status")
         {
@@ -248,10 +258,13 @@ table 149032 "AIT Test Method Line"
     trigger OnInsert()
     var
         AITTestSuite: Record "AIT Test Suite";
+        AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
     begin
         if Rec."Input Dataset" = '' then
             if AITTestSuite.Get(Rec."Test Suite Code") then
                 Rec."Input Dataset" := AITTestSuite."Input Dataset";
+
+        AITTestSuiteLanguage.AddLanguagesFromTestMethodLine(Rec);
     end;
 
     trigger OnDelete()
