@@ -43,6 +43,11 @@ page 30146 "Shpfy Refund Lines"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the price of a refunded line item.';
                 }
+                field("Presentment Amount"; Rec."Presentment Amount")
+                {
+                    ApplicationArea = All;
+                    Visible = PresentmentCurrencyVisible;
+                }
                 field(LineDiscount; (Rec.Quantity * Rec.Amount) - Rec."Subtotal Amount")
                 {
                     ApplicationArea = All;
@@ -53,15 +58,36 @@ page 30146 "Shpfy Refund Lines"
                     AutoFormatType = 1;
                     AutoFormatExpression = Rec.OrderCurrencyCode();
                 }
+                field(PresentmentLineDiscount; (Rec.Quantity * Rec."Presentment Amount") - Rec."Presentment Subtotal Amount")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Presentment Line Discount';
+                    ToolTip = 'Specifies the line discount in presentment currency of a refunded line item.';
+                    Editable = false;
+                    BlankZero = true;
+                    Visible = PresentmentCurrencyVisible;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec.PresentmentCurrencyCode();
+                }
                 field("Subtotal Amount"; Rec."Subtotal Amount")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the subtotal price of a refunded line item.';
                 }
+                field("Presentment Subtotal Amount"; Rec."Presentment Subtotal Amount")
+                {
+                    ApplicationArea = All;
+                    Visible = PresentmentCurrencyVisible;
+                }
                 field("Total Tax Amount"; Rec."Total Tax Amount")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the total tax charged on a refunded line item.';
+                }
+                field("Presentment Total Tax Amount"; Rec."Presentment Total Tax Amount")
+                {
+                    ApplicationArea = All;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field("Restock Type"; Rec."Restock Type")
                 {
@@ -100,4 +126,12 @@ page 30146 "Shpfy Refund Lines"
             }
         }
     }
+
+    var
+        PresentmentCurrencyVisible: Boolean;
+
+    internal procedure SetShowPresentmentCurrency(Show: Boolean)
+    begin
+        PresentmentCurrencyVisible := Show;
+    end;
 }
