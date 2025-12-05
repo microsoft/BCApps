@@ -2,7 +2,7 @@ namespace Microsoft.SubscriptionBilling;
 
 using System.Security.User;
 
-tableextension 8011 "User Setup" extends "User Setup"
+tableextension 8012 "User Setup" extends "User Setup"
 {
     fields
     {

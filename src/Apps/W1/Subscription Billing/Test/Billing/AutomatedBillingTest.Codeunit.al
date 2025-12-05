@@ -14,7 +14,6 @@ codeunit 139684 "Automated Billing Test"
     var
         ContractTestLibrary: Codeunit "Contract Test Library";
         Assert: Codeunit Assert;
-        LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
 
@@ -80,7 +79,6 @@ codeunit 139684 "Automated Billing Test"
         SubscriptionHeader: Record "Subscription Header";
         BillingTemplate: Record "Billing Template";
         BillingLine: Record "Billing Line";
-        JobQueueEntry: Record "Job Queue Entry";
         SalesHeader: Record "Sales Header";
     begin
         // [SCENARIO] Verify that automated billing processes contracts correctly for a Billing Template with automation settings

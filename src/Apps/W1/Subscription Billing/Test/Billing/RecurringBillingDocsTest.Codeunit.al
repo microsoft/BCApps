@@ -2078,7 +2078,6 @@ codeunit 139687 "Recurring Billing Docs Test"
     procedure UT_ExpectErrorWhenItemUnitOfMeasureDoesNotExist()
     var
         Item: Record Item;
-        BillingLine: Record "Billing Line";
         MockServiceObject: Record "Subscription Header";
         UnitOfMeasure: Record "Unit of Measure";
         CreateBillingDocumentsCodeunit: Codeunit "Create Billing Documents";
@@ -2251,36 +2250,6 @@ codeunit 139687 "Recurring Billing Docs Test"
             ServiceCommitment.Validate("Subscription Line Start Date", CalcDate('<2M-CM>', WorkDate()));
             ServiceCommitment.Modify(false);
         until CustomerContractLine.Next() = 0;
-    end;
-
-    local procedure CreateDummyContractDocumentsPurchase()
-    var
-        PurchaseDocumentType: Enum "Purchase Document Type";
-        i: Integer;
-    begin
-        for PurchaseDocumentType := PurchaseDocumentType::Invoice to PurchaseDocumentType::"Credit Memo" do
-            for i := 1 to 2 do begin
-                Clear(PurchaseHeader);
-                PurchaseHeader."No." := '';
-                PurchaseHeader."Document Type" := PurchaseDocumentType;
-                PurchaseHeader."Recurring Billing" := true;
-                PurchaseHeader.Insert(true);
-            end;
-    end;
-
-    local procedure CreateDummyContractDocumentsSales()
-    var
-        SalesDocumentType: Enum "Sales Document Type";
-        i: Integer;
-    begin
-        for SalesDocumentType := SalesDocumentType::Invoice to SalesDocumentType::"Credit Memo" do
-            for i := 1 to 2 do begin
-                Clear(SalesHeader);
-                SalesHeader."No." := '';
-                SalesHeader."Document Type" := SalesDocumentType;
-                SalesHeader."Recurring Billing" := true;
-                SalesHeader.Insert(true);
-            end;
     end;
 
     local procedure DeletePurchaseContractDocuments(): Integer
