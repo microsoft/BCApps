@@ -61,14 +61,14 @@ codeunit 1589 "Microsoft User Feedback Impl"
     /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
     /// <param name="CallerModuleInfo">Information about the module making the request.</param>
-    procedure RequestDislikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextProperties: Dictionary of [Text, Text]; ContextFiles: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
+    procedure RequestDislikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextFiles: Dictionary of [Text, Text]; ContextProperties: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
     begin
         this.CheckFeedbackCollectionAllowed(CallerModuleInfo);
 
         if (this.IsAIFeedback) then
             ContextProperties.Add('IsAIFeature', 'true');
 
-        Feedback.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextProperties, ContextFiles);
+        Feedback.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties);
     end;
 
     /// <summary>
