@@ -42,7 +42,11 @@
   "idRanges": [
     {
       "from": 132972,
-      "to": 132975
+      "to": 132976
+    },
+    {
+    "from": 132981,
+    "to": 132982
     }
   ],
   "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/",

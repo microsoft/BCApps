@@ -55,6 +55,10 @@
     {
       "from": 132970,
       "to": 132971
+    },
+    {
+    "from": 132983,
+    "to": 132985
     }
   ],
   "contextSensitiveHelpUrl": "https://docs.microsoft.com/dynamics365/business-central/",
