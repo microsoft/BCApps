@@ -29,7 +29,7 @@ codeunit 139958 "Qlty. Test Receiving Integr."
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = IntegrationTest;
+    TestType = Uncategorized;
 
     var
         LibraryAssert: Codeunit "Library Assert";
