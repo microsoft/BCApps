@@ -804,21 +804,22 @@ table 8059 "Subscription Line"
     end;
 
     internal procedure UpdateTermUntilUsingExtensionTerm(): Boolean
+    var
+        PreviousTermUntil: Date;
     begin
-        if (IsExtensionTermEmpty() or
-            (("Term Until" = 0D) and ("Subscription Line Start Date" = 0D))) then
+        if IsExtensionTermEmpty() or
+            (("Term Until" = 0D) and ("Subscription Line Start Date" = 0D))
+        then
             exit(false);
-        if "Term Until" <> 0D then begin
-            if DateTimeManagement.IsLastDayOfMonth("Term until") then begin
-                "Term Until" := CalcDate("Extension Term", "Term Until");
-                DateTimeManagement.MoveDateToLastDayOfMonth("Term until");
-            end else
-                "Term Until" := CalcDate("Extension Term", "Term Until");
-        end else begin
-            "Term Until" := CalcDate("Extension Term", "Subscription Line Start Date");
-            if DateTimeManagement.IsLastDayOfMonth("Subscription Line Start Date") then
-                DateTimeManagement.MoveDateToLastDayOfMonth("Term until");
+        if "Term Until" <> 0D then
+            PreviousTermUntil := "Term Until"
+        else begin
+            PreviousTermUntil := "Subscription Line Start Date";
+            PreviousTermUntil := CalcDate('<-1D>', PreviousTermUntil);
         end;
+        "Term Until" := CalcDate("Extension Term", PreviousTermUntil);
+        if DateTimeManagement.IsLastDayOfMonth(PreviousTermUntil) then
+            DateTimeManagement.MoveDateToLastDayOfMonth("Term until");
         exit(true);
     end;
 
