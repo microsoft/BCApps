@@ -23,12 +23,20 @@ table 'Is Released'
 
 		annotation SummarizationSetBy = Automatic
 
+	column 'Is Released Value'
+		dataType: string
+		lineageTag: 924163c9-a51f-430e-89bf-b9cf3920703b
+		summarizeBy: none
+		sourceColumn: Is Released Value
+
+		annotation SummarizationSetBy = Automatic
+
 	partition 'Is Released' = m
 		mode: import
 		queryGroup: 'Dimension Tables'
 		source =
 				let
-				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WKikqTVXSUQoBUbE60UppiTnFIAEIHRsLAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Is Released" = _t, #"Is Released Key" = _t]),
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WKikqTVXSUQqBUIZKsTrRSmmJOcUgHow2UIqNBQA=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Is Released" = _t, #"Is Released Key" = _t, #"Is Released Value" = _t]),
 				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Is Released", type logical}, {"Is Released Key", type logical}})
 				in
 				    #"Changed Type"

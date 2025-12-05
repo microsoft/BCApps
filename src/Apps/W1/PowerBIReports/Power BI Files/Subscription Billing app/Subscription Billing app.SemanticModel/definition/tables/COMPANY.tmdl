@@ -1,0 +1,26 @@
+table COMPANY
+	isHidden
+	lineageTag: 004b5b9a-792f-4610-8f60-53d447a01056
+
+	column COMPANY
+		dataType: string
+		isHidden
+		lineageTag: d8745bdd-241f-4273-9fa8-aa847b0a7cff
+		summarizeBy: none
+		sourceColumn: COMPANY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition COMPANY = m
+		mode: import
+		queryGroup: 'Parameters and Functions\Connection Parameters'
+		source = "CRONUS USA, Inc." meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+

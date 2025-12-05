@@ -10,29 +10,54 @@
     "tabOrder": 10
   },
   "visual": {
-    "visualType": "lineStackedColumnComboChart",
+    "visualType": "lineChart",
     "query": {
       "queryState": {
         "Category": {
           "projections": [
             {
               "field": {
-                "Column": {
+                "HierarchyLevel": {
                   "Expression": {
-                    "SourceRef": {
-                      "Entity": "Date"
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Month"
                     }
                   },
-                  "Property": "Fiscal Month Year"
+                  "Level": "Fiscal Year"
                 }
               },
-              "queryRef": "Date.Fiscal Month Year",
-              "nativeQueryRef": "Fiscal Month Year",
+              "queryRef": "Date.Fiscal Year-Month.Fiscal Year",
+              "nativeQueryRef": "Fiscal Year-Month Fiscal Year",
+              "active": true
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Month"
+                    }
+                  },
+                  "Level": "Fiscal Month Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year-Month.Fiscal Month Year",
+              "nativeQueryRef": "Fiscal Year-Month Fiscal Month Year",
               "active": true
             }
           ]
         },
-        "Y": {
+        "Tooltips": {
           "projections": [
             {
               "field": {
@@ -45,7 +70,7 @@
                   "Property": "Churn (-)"
                 }
               },
-              "queryRef": "Subscription Billing KPIs.Churn",
+              "queryRef": "Subscription Billing KPIs.Churn (-)",
               "nativeQueryRef": "Churn1"
             },
             {
@@ -59,7 +84,7 @@
                   "Property": "Downgrade (-)"
                 }
               },
-              "queryRef": "Subscription Billing KPIs.Downgrade",
+              "queryRef": "Subscription Billing KPIs.Downgrade (-)",
               "nativeQueryRef": "Downgrade1"
             },
             {
@@ -70,11 +95,11 @@
                       "Entity": "Subscription Billing KPIs"
                     }
                   },
-                  "Property": "Usage Based Billing Change"
+                  "Property": "New"
                 }
               },
-              "queryRef": "Subscription Billing KPIs.Usage Based Billing Change",
-              "nativeQueryRef": "Usage Based Billing Change1"
+              "queryRef": "Subscription Billing KPIs.New",
+              "nativeQueryRef": "New1"
             },
             {
               "field": {
@@ -98,15 +123,15 @@
                       "Entity": "Subscription Billing KPIs"
                     }
                   },
-                  "Property": "New"
+                  "Property": "Usage Based Billing Change"
                 }
               },
-              "queryRef": "Subscription Billing KPIs.New",
-              "nativeQueryRef": "New1"
+              "queryRef": "Subscription Billing KPIs.Usage Based Billing Change",
+              "nativeQueryRef": "Usage Based Billing Change1"
             }
           ]
         },
-        "Y2": {
+        "Y": {
           "projections": [
             {
               "field": {
@@ -119,7 +144,7 @@
                   "Property": "Total Change"
                 }
               },
-              "queryRef": "Subscription Billing KPIs.Overall Change",
+              "queryRef": "Subscription Billing KPIs.Total Change",
               "nativeQueryRef": "Total Change"
             }
           ]
@@ -127,231 +152,29 @@
       }
     },
     "objects": {
-      "legend": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "position": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Top'"
-                }
-              }
-            },
-            "labelColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "ThemeDataColor": {
-                      "ColorId": 1,
-                      "Percent": 0
-                    }
-                  }
-                }
-              }
-            },
-            "legendMarkerRendering": {
-              "expr": {
-                "Literal": {
-                  "Value": "'markerOnly'"
-                }
-              }
-            },
-            "matchLineColor": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "showTitle": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          }
-        }
-      ],
       "categoryAxis": [
         {
           "properties": {
-            "maxMarginFactor": {
-              "expr": {
-                "Literal": {
-                  "Value": "15L"
-                }
-              }
-            },
             "concatenateLabels": {
               "expr": {
                 "Literal": {
                   "Value": "false"
                 }
               }
-            },
-            "showAxisTitle": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
             }
-          }
-        }
-      ],
-      "valueAxis": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "showAxisTitle": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "labels": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            }
-          }
-        },
-        {
-          "properties": {
-            "showSeries": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "Subscription Billing KPIs.Churn"
-          }
-        },
-        {
-          "properties": {
-            "showSeries": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "Subscription Billing KPIs.Downgrade"
-          }
-        },
-        {
-          "properties": {
-            "showSeries": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "Subscription Billing KPIs.Usage Based Billing Change"
-          }
-        },
-        {
-          "properties": {
-            "showSeries": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "Subscription Billing KPIs.Upgrade"
-          }
-        },
-        {
-          "properties": {
-            "showSeries": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "enableBackground": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "Subscription Billing KPIs.New"
-          }
-        },
-        {
-          "properties": {
-            "enableBackground": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "bold": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "color": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#505c6d'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "Subscription Billing KPIs.Overall Change"
           }
         }
       ],
       "lineStyles": [
         {
           "properties": {
+            "lineChartType": {
+              "expr": {
+                "Literal": {
+                  "Value": "'smooth'"
+                }
+              }
+            },
             "strokeWidth": {
               "expr": {
                 "Literal": {
@@ -359,17 +182,10 @@
                 }
               }
             },
-            "showMarker": {
+            "interpolationSmooth": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "markerSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "3D"
+                  "Value": "'monotoneX'"
                 }
               }
             }
@@ -383,98 +199,9 @@
               "solid": {
                 "color": {
                   "expr": {
-                    "Literal": {
-                      "Value": "'#00b7c3'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "Subscription Billing KPIs.New"
-          }
-        },
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#99e2e7'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "Subscription Billing KPIs.Upgrade"
-          }
-        },
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#c9c472'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "Subscription Billing KPIs.Usage Based Billing Change"
-          }
-        },
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#f2ada4'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "Subscription Billing KPIs.Downgrade"
-          }
-        },
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#e97768'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "Subscription Billing KPIs.Churn"
-          }
-        },
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#505c6d'"
+                    "ThemeDataColor": {
+                      "ColorId": 2,
+                      "Percent": 0.6
                     }
                   }
                 }

@@ -1,11 +1,3 @@
-expression ENVIRONMENT = "CLASSROOM" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
-	lineageTag: 7c230b36-e498-4262-9d5c-f42421097eed
-	queryGroup: 'Parameters and Functions\Connection Parameters'
-
-	annotation PBI_ResultType = Text
-
-	annotation PBI_NavigationStepName = Navigation
-
 expression Dimensions =
 		let
 		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
@@ -434,14 +426,6 @@ expression ContractLineBase = ```
 
 expression API_ENDPOINT_SUBSCR_BILLING = "microsoft/subsBilling/v1.0" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
 	lineageTag: 552e550a-53c0-4c25-848b-daf684594e00
-	queryGroup: 'Parameters and Functions\Connection Parameters'
-
-	annotation PBI_NavigationStepName = Navigation
-
-	annotation PBI_ResultType = Text
-
-expression COMPANY = "PBI Demo US" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
-	lineageTag: e10f9ee9-59dd-48a2-9ac9-80866bcf123e
 	queryGroup: 'Parameters and Functions\Connection Parameters'
 
 	annotation PBI_NavigationStepName = Navigation

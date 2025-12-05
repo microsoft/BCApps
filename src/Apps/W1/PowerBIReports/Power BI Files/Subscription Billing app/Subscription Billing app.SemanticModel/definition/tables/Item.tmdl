@@ -20,17 +20,23 @@ table Item
 
 	column 'Item Category Code'
 		dataType: string
+		isHidden
 		lineageTag: 9579f121-c85e-497b-a169-78aa8e482153
 		summarizeBy: none
 		sourceColumn: Item Category Code
+
+		changedProperty = IsHidden
 
 		annotation SummarizationSetBy = Automatic
 
 	column 'Item Category Description'
 		dataType: string
+		isHidden
 		lineageTag: 956c91d4-c21c-49ab-964a-1cb86262eb1a
 		summarizeBy: none
 		sourceColumn: Item Category Description
+
+		changedProperty = IsHidden
 
 		annotation SummarizationSetBy = Automatic
 

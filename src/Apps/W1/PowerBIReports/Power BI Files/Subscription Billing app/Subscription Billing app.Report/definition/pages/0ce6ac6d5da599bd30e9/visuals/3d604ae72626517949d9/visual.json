@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
   "name": "3d604ae72626517949d9",
   "position": {
-    "x": 25.802047781569964,
-    "y": 61.43344709897611,
+    "x": 25.545041317358088,
+    "y": 59.932596936878596,
     "z": 1000,
-    "height": 307,
-    "width": 1228.0546075085324,
-    "tabOrder": 5
+    "height": 304.57549263003875,
+    "width": 602.27347413617338,
+    "tabOrder": 1000
   },
   "visual": {
     "visualType": "clusteredColumnChart",
@@ -45,7 +45,7 @@
                   "Property": "Mon. Recurring Revenue"
                 }
               },
-              "queryRef": "Subscription Billing KPIs.MRR",
+              "queryRef": "Subscription Billing KPIs.Mon. Recurring Revenue",
               "nativeQueryRef": "Mon. Recurring Revenue1"
             }
           ]
