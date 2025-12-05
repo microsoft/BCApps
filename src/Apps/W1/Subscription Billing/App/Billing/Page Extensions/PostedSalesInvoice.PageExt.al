@@ -11,8 +11,11 @@ pageextension 8068 "Posted Sales Invoice" extends "Posted Sales Invoice"
             field("Contract Detail Overview"; Rec."Sub. Contract Detail Overview")
             {
                 ApplicationArea = Basic, Suite;
-                Editable = false;
-                ToolTip = 'Specifies whether to automatically print the billing details for this document. This is only relevant if you are using Subscription Billing functionalities.';
+            }
+            field("Auto Contract Billing"; Rec."Auto Contract Billing")
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
             }
         }
     }
