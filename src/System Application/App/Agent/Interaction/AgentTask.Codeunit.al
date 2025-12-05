@@ -39,7 +39,9 @@ codeunit 4303 "Agent Task"
         AgentTask: Record "Agent Task";
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        AgentTask.Get(AgentUserSecurityId, ExternalId);
+        AgentTask.SetRange("Agent User Security ID", AgentUserSecurityId);
+        AgentTask.SetRange("External ID", ExternalId);
+        AgentTask.FindFirst();
         exit(AgentTask);
     end;
 

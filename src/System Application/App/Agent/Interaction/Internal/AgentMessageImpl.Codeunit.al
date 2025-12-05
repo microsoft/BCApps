@@ -42,7 +42,7 @@ codeunit 4308 "Agent Message Impl."
         if AgentTaskMessage.Type <> AgentTaskMessage.Type::Output then
             exit(false);
 
-        exit(AgentTaskMessage.Status = AgentTaskMessage.Status::Draft);
+        exit((AgentTaskMessage.Status = AgentTaskMessage.Status::Draft) or (AgentTaskMessage.Status = AgentTaskMessage.Status::" "));
     end;
 
     procedure SetStatusToSent(var AgentTaskMessage: Record "Agent Task Message")
@@ -132,7 +132,7 @@ codeunit 4308 "Agent Message Impl."
         File.DownloadFromStream(InStream, DownloadDialogTitleLbl, '', '', FileName);
     end;
 
-    procedure GetAttachments(TaskID: BigInteger; MessageID: Guid; TempAgentTaskFile: Record "Agent Task File" temporary)
+    procedure GetAttachments(TaskID: BigInteger; MessageID: Guid; var TempAgentTaskFile: Record "Agent Task File" temporary)
     var
         AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
         AgentTaskFile: Record "Agent Task File";
