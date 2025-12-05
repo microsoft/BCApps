@@ -57,7 +57,7 @@ codeunit 1996 "Checklist Banner Impl."
         BannerDescriptionCompletedEvaluationLbl: Label 'Continue exploring the Cronus demo company to learn more.​', MaxLength = 125, Comment = '*Onboarding Checklist*';
         EarlyAccessPreviewBannerTitleLbl: Label 'Welcome to the early access preview!', MaxLength = 50, Comment = '*Onboarding Checklist*';
         EarlyAccessPreviewBannerHeaderLbl: Label 'Are you ready to explore the newest features? 💡', MaxLength = 60, Comment = '*Onboarding Checklist*';
-        EarlyAccessPreviewBannerHeaderCollapsedLbl: Label 'Check out the latest enhancements', MaxLength = 60, Comment = '*Onboarding Checklist*';
+        EarlyAccessPreviewBannerHeaderCollapsedLbl: Label 'Check out the latest enhancements.', MaxLength = 60, Comment = '*Onboarding Checklist*';
         EarlyAccessPreviewBannerDescriptionLbl: Label 'Check out the latest enhancements and provide your feedback to help us improve. We hope you''ll love what we have built!', MaxLength = 125, Comment = '*Onboarding Checklist*';
         UserChecklistStatusUpdateLbl: Label 'User checklist status updated: %1 to %2', Locked = true;
         ChecklistItemStatusUpdateLbl: Label 'Checklist item status updated: %1 to %2', Locked = true;

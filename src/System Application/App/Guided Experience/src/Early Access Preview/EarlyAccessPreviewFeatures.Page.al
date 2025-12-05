@@ -25,7 +25,7 @@ page 1965 "Early Access Preview Features"
     {
         area(Content)
         {
-            usercontrol(BannerImage; BannerPicture)
+            usercontrol(BannerImage; EarlyAccessPreviewBanner)
             {
                 ApplicationArea = All;
             }
@@ -34,7 +34,7 @@ page 1965 "Early Access Preview Features"
                 field("Feature Name"; Rec."Short Title")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the name of the new feature.', Locked = false;
+                    ToolTip = 'Specifies the name of the new feature.';
 
                     trigger OnDrillDown()
                     begin
@@ -45,18 +45,18 @@ page 1965 "Early Access Preview Features"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies a description of the new feature.', Locked = false;
+                    ToolTip = 'Specifies a description of the new feature.';
                 }
                 field("Help URL"; Rec."Help URL")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the URL to the help documentation for this feature.', Locked = false;
+                    ToolTip = 'Specifies the URL to the help documentation for this feature.';
                     Visible = false;
                 }
                 field("Video URL"; WatchVideoLbl)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the URL to a video demonstrating this feature.', Locked = false;
+                    ToolTip = 'Specifies the URL to a video demonstrating this feature.';
                     Caption = 'Video';
 
                     trigger OnDrillDown()
@@ -107,7 +107,7 @@ page 1965 "Early Access Preview Features"
             {
                 ApplicationArea = All;
                 Caption = 'View Help';
-                ToolTip = 'Open the help documentation for this feature.', Locked = false;
+                ToolTip = 'Open the help documentation for this feature.';
                 Image = Help;
 
                 trigger OnAction()
@@ -122,7 +122,7 @@ page 1965 "Early Access Preview Features"
             {
                 ApplicationArea = All;
                 Caption = 'Watch Video';
-                ToolTip = 'Watch a video demonstrating this feature.', Locked = false;
+                ToolTip = 'Watch a video demonstrating this feature.';
                 Image = Picture;
 
                 trigger OnAction()
@@ -171,13 +171,3 @@ page 1965 "Early Access Preview Features"
         NoHelpAvailableMsg: Label 'No help is available for this feature.';
 }
 
-#pragma warning disable AA0215
-controladdin BannerPicture
-{
-    Images = 'Resources/EarlyAccessPreview/EAPBanner.png';
-    VerticalStretch = false;
-    HorizontalStretch = true;
-    RequestedHeight = 150;
-    StartupScript = 'startup.js';
-}
-#pragma warning restore AA0215
