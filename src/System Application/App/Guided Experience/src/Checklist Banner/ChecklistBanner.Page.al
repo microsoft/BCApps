@@ -149,8 +149,8 @@ page 1990 "Checklist Banner"
             action(ShowEarlyAccessPreviewFeatures)
             {
                 ApplicationArea = All;
-                Caption = 'Show new Features';
-                ToolTip = 'Show a list of new features in the early access preview.';
+                Caption = 'Show new Features and provide Feedback';
+                ToolTip = 'Show a list of new features in the early access preview and provide feedback.';
                 Visible = IsEarlyAccessPreview;
                 Image = AssessFinanceCharges;
 
@@ -365,7 +365,6 @@ page 1990 "Checklist Banner"
         HeaderCollapsedTxt: Text;
         DescriptionTxt: Text;
         SkipSetupConfirmLbl: Label 'Are you sure that you want to skip the remaining steps of the checklist?';
-        NoFeatureListAvailableErr: Label 'No Early Access Preview feature list is available.';
         ChecklistCompletionCount: Integer;
         ChecklistSkipCount: Integer;
         ChecklistTotalCount: Integer;
@@ -471,14 +470,8 @@ page 1990 "Checklist Banner"
     end;
 
     local procedure OnShowEarlyAccessPreviewFeatures()
-    var
-        ChecklistBanner: Codeunit "Checklist Banner";
-        IsHandled: Boolean;
     begin
-        IsHandled := false;
-        ChecklistBanner.OnShowEarlyAccessPreviewFeatures(IsHandled);
-        if not IsHandled then
-            Error(NoFeatureListAvailableErr);
+        Page.Run(Page::"Early Access Preview Features");
     end;
 
     local procedure SetChecklistRecord()
