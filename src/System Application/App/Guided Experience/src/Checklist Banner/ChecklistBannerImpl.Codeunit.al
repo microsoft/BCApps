@@ -219,27 +219,25 @@ codeunit 1996 "Checklist Banner Impl."
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
-        case true of
-            IsEvaluationCompany:
-                begin
-                    TitleTxt := BannerTitleLbl;
-                    TitleCollapsedTxt := CollapsedBannerTitleLbl;
-                    UpdateBannerLabelsForEvaluationCompany(HeaderTxt, HeaderCollapsedTxt, DescriptionTxt, IsSetupStarted, AreAllItemsSkippedOrCompleted)
-                end;
-            EnvironmentInformation.IsEarlyPreview():
-                begin
-                    TitleTxt := EarlyAccessPreviewBannerTitleLbl;
-                    TitleCollapsedTxt := EarlyAccessPreviewBannerTitleLbl;
-                    HeaderTxt := EarlyAccessPreviewBannerHeaderLbl;
-                    HeaderCollapsedTxt := EarlyAccessPreviewBannerHeaderCollapsedLbl;
-                    DescriptionTxt := EarlyAccessPreviewBannerDescriptionLbl;
-                end;
-            else begin
-                TitleTxt := BannerTitleLbl;
-                TitleCollapsedTxt := CollapsedBannerTitleLbl;
-                UpdateBannerLabelsForNonEvaluationCompany(ChecklistItemBuffer, HeaderTxt, HeaderCollapsedTxt, DescriptionTxt, IsSetupStarted, AreAllItemsSkippedOrCompleted);
-            end;
+        if EnvironmentInformation.IsEarlyPreview() then begin
+            TitleTxt := EarlyAccessPreviewBannerTitleLbl;
+            TitleCollapsedTxt := EarlyAccessPreviewBannerTitleLbl;
+            HeaderTxt := EarlyAccessPreviewBannerHeaderLbl;
+            HeaderCollapsedTxt := EarlyAccessPreviewBannerHeaderCollapsedLbl;
+            DescriptionTxt := EarlyAccessPreviewBannerDescriptionLbl;
+            exit;
         end;
+
+        if IsEvaluationCompany then begin
+            TitleTxt := BannerTitleLbl;
+            TitleCollapsedTxt := CollapsedBannerTitleLbl;
+            UpdateBannerLabelsForEvaluationCompany(HeaderTxt, HeaderCollapsedTxt, DescriptionTxt, IsSetupStarted, AreAllItemsSkippedOrCompleted);
+            exit;
+        end;
+
+        TitleTxt := BannerTitleLbl;
+        TitleCollapsedTxt := CollapsedBannerTitleLbl;
+        UpdateBannerLabelsForNonEvaluationCompany(ChecklistItemBuffer, HeaderTxt, HeaderCollapsedTxt, DescriptionTxt, IsSetupStarted, AreAllItemsSkippedOrCompleted);
     end;
 
     local procedure UpdateBannerLabelsForNonEvaluationCompany(var ChecklistItemBuffer: Record "Checklist Item Buffer"; var HeaderTxt: Text; var HeaderCollapsedTxt: Text; var DescriptionTxt: Text; IsSetupStarted: Boolean; AreAllItemsSkippedOrCompleted: Boolean)
