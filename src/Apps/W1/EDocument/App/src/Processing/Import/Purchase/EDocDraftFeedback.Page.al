@@ -11,6 +11,7 @@ page 6185 "E-Doc. Draft Feedback"
     ApplicationArea = All;
     UsageCategory = None;
     Caption = 'E-Document Draft Feedback';
+    Extensible = false;
 
     layout
     {
