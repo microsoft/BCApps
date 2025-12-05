@@ -13,8 +13,8 @@ using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
 
 codeunit 133508 "E-Doc. PO Matching Unit Tests"
 {

@@ -13,7 +13,6 @@ using Microsoft.eServices.EDocument.Integration;
 #pragma warning restore AL0897
 using System.Utilities;
 #endif
-
 codeunit 6146 "Send Runner"
 {
     Access = Internal;

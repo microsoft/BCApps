@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
-using System.Text;
 using System.Reflection;
+using System.Text;
 codeunit 6423 "ForNAV Peppol Oauth Token"
 {
     Access = Internal;

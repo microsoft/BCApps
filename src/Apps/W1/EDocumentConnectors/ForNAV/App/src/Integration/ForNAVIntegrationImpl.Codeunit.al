@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
-using System.Utilities;
 using Microsoft.EServices.EDocument;
 using Microsoft.eServices.EDocument.Integration.Interfaces;
 using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Integration.Send;
 using System.Privacy;
+using System.Utilities;
 
 codeunit 6418 "ForNAV Integration Impl." implements IDocumentSender, IDocumentResponseHandler, IDocumentReceiver, ISentDocumentActions, IConsentManager
 {
