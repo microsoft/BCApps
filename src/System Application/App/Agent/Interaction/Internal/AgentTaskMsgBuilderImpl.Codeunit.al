@@ -184,13 +184,17 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure GetAttachments(var TempAttachments: record "Agent Task File" temporary)
+    procedure GetAttachments(var TempAttachments: record "Agent Task File" temporary): Boolean
     begin
-        TempAgentTaskFileToAttach.FindSet();
+        if not TempAgentTaskFileToAttach.FindSet() then
+            exit(false);
+
         repeat
             TempAgentTaskFileToAttach.Copy(TempAttachments);
             TempAttachments.Insert();
         until TempAgentTaskFileToAttach.Next() = 0;
+
+        exit(true);
     end;
 
     local procedure VerifyMandatoryFieldsSet()
