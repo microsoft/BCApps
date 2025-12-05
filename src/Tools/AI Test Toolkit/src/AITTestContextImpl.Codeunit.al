@@ -411,7 +411,7 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
-    /// Sets the token consumption for the run. Useful if external calls are made outside of AI toolkit.
+    /// Sets the token consumption for the method line run. Useful if external calls are made outside of AI toolkit.
     /// </summary>
     /// <param name="TokensUsed">Number of tokens used externally.</param>
     internal procedure SetTokenConsumption(TokensUsed: Integer)
