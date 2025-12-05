@@ -248,7 +248,7 @@ codeunit 4316 "Agent Task Message Builder"
     procedure GetAttachments(var TempAttachments: Record "Agent Task File" temporary): Boolean
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        AgentTaskMsgBuilderImpl.GetAttachments(TempAttachments);
+        exit(AgentTaskMsgBuilderImpl.GetAttachments(TempAttachments));
     end;
 #pragma warning restore AS0102
 }
