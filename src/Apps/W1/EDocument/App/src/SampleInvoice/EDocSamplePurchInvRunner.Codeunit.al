@@ -5,6 +5,7 @@
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
 using System.Utilities;
+using Microsoft.Purchases.Document;
 using System.IO;
 
 /// <summary>
@@ -38,6 +39,26 @@ codeunit 6208 "E-Doc Sample Purch.Inv. Runner"
     procedure AddLine(NewSamplePurchInvLine: Record "E-Doc Sample Purch. Inv. Line")
     begin
         TempSamplePurchInvLine := NewSamplePurchInvLine;
+        TempSamplePurchInvLine.Insert();
+    end;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="PurchHeader"></param>
+    procedure TransferFromPurchHeader(PurchHeader: Record "Purchase Header")
+    begin
+        TempSamplePurchInvHeader.TransferFields(PurchHeader, true);
+        TempSamplePurchInvHeader.Insert();
+    end;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="PurchLine"></param>
+    procedure TransferFromPurchLine(PurchLine: Record "Purchase Line")
+    begin
+        TempSamplePurchInvLine.TransferFields(PurchLine, true);
         TempSamplePurchInvLine.Insert();
     end;
 

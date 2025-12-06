@@ -210,29 +210,20 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
 
     local procedure SaveSamplePurchInvReportToPDF(PurchHeader: Record "Purchase Header") TempBlob: Codeunit "Temp Blob"
     var
-        TempSamplePurchInvHdr: Record "E-Doc Sample Purch.Inv. Hdr." temporary;
-        TempSamplePurchInvLine: Record "E-Doc Sample Purch. Inv. Line" temporary;
         PurchLine: Record "Purchase Line";
-        EDocSamplePurchaseInvoice: Report "E-Doc Sample Purchase Invoice";
-        FileManagement: Codeunit "File Management";
-        FilePath: Text[250];
+        EDocSamplePurchInvRunner: Codeunit "E-Doc Sample Purch.Inv. Runner";
         CannotGeneratePdfLbl: Label 'Failed to generate PDF for Sample Purchase Invoice %1', Comment = '%1 = Purchase Invoice No.';
     begin
-        TempSamplePurchInvHdr.TransferFields(PurchHeader, true);
-        TempSamplePurchInvHdr.Insert();
+        EDocSamplePurchInvRunner.TransferFromPurchHeader(PurchHeader);
 
         PurchLine.SetRange("Document Type", PurchHeader."Document Type");
         PurchLine.SetRange("Document No.", PurchHeader."No.");
         if PurchLine.FindSet() then
             repeat
-                TempSamplePurchInvLine.TransferFields(PurchLine, true);
-                TempSamplePurchInvLine.Insert();
+                EDocSamplePurchInvRunner.TransferFromPurchLine(PurchLine);
             until PurchLine.Next() = 0;
 
-        EDocSamplePurchaseInvoice.SetData(TempSamplePurchInvHdr, TempSamplePurchInvLine);
-        FilePath := CopyStr(FileManagement.ServerTempFileName('pdf'), 1, 250);
-        EDocSamplePurchaseInvoice.SaveAsPdf(FilePath);
-        FileManagement.BLOBImportFromServerFile(TempBlob, FilePath);
+        TempBlob := EDocSamplePurchInvRunner.GeneratePDF();
         if TempBlob.Length() = 0 then
             Error(CannotGeneratePdfLbl, PurchHeader."No.");
     end;
@@ -320,7 +311,6 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
             end;
             EDocPurchaseLine."E-Document Entry No." := EDocEntryNo;
             EDocPurchaseLine."Line No." := PurchInvLine."Line No.";
-            // EDocumentPurchaseLine."Product Code" := '????' // TODO: Update
             EDocPurchaseLine.Description := PurchInvLine.Description;
             EDocPurchaseLine.Quantity := PurchInvLine.Quantity;
             if PurchInvLine."Unit of Measure Code" <> '' then
