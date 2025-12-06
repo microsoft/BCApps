@@ -10,6 +10,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Vendor;
 using System.Telemetry;
 using System.Utilities;
+using System.Feedback;
 
 page 6181 "E-Document Purchase Draft"
 {
@@ -327,6 +328,18 @@ page 6181 "E-Document Purchase Draft"
                     EDocImport.ViewExtractedData(Rec);
                 end;
             }
+            action(GetFeedback)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Provide feedback';
+                ToolTip = 'Provide feedback on the Payables Agent experience.';
+                Image = Help;
+
+                trigger OnAction()
+                begin
+                    ProvideFeedback();
+                end;
+            }
         }
         area(Navigation)
         {
@@ -385,6 +398,9 @@ page 6181 "E-Document Purchase Draft"
                 {
                 }
                 actionref(Promoted_ViewFile; ViewFile)
+                {
+                }
+                actionref(Promoted_GetFeedback; GetFeedback)
                 {
                 }
             }
@@ -611,6 +627,15 @@ page 6181 "E-Document Purchase Draft"
         Rec.Get(Rec."Entry No");
         if GuiAllowed() then
             Progress.Close();
+    end;
+
+    local procedure ProvideFeedback()
+    var
+        MicrosoftUserFeedback: Codeunit "Microsoft User Feedback";
+        EDocDraftFeedback: Page "E-Doc. Draft Feedback";
+    begin
+        if EDocDraftFeedback.RunModal() = Action::Yes then
+            MicrosoftUserFeedback.SetIsAIFeedback(true).RequestFeedback('Payables Agent Draft', 'PayablesAgent', 'Payables Agent');
     end;
 
     var
