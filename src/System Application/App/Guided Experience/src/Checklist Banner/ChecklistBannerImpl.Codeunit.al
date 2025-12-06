@@ -55,6 +55,10 @@ codeunit 1996 "Checklist Banner Impl."
         BannerDescriptionInProgressEvaluationLbl: Label 'The Cronus company data you are using is for demonstration, evaluation, and training purposes.', MaxLength = 125, Comment = '*Onboarding Checklist*';
         BannerDescriptionCompletedLbl: Label 'Start exploring Business Central now. You can revisit the checklist later and enable additional features as you need them.', MaxLength = 125, Comment = '*Onboarding Checklist*';
         BannerDescriptionCompletedEvaluationLbl: Label 'Continue exploring the Cronus demo company to learn more.​', MaxLength = 125, Comment = '*Onboarding Checklist*';
+        EarlyAccessPreviewBannerTitleLbl: Label 'Welcome to the early access preview!', MaxLength = 50, Comment = '*Onboarding Checklist*';
+        EarlyAccessPreviewBannerHeaderLbl: Label 'Are you ready to explore the newest features? 💡', MaxLength = 60, Comment = '*Onboarding Checklist*';
+        EarlyAccessPreviewBannerHeaderCollapsedLbl: Label 'Check out the latest enhancements.', MaxLength = 60, Comment = '*Onboarding Checklist*';
+        EarlyAccessPreviewBannerDescriptionLbl: Label 'Check out the latest enhancements and provide your feedback to help us improve. We hope you''ll love what we have built!', MaxLength = 125, Comment = '*Onboarding Checklist*';
         UserChecklistStatusUpdateLbl: Label 'User checklist status updated: %1 to %2', Locked = true;
         ChecklistItemStatusUpdateLbl: Label 'Checklist item status updated: %1 to %2', Locked = true;
 
@@ -212,16 +216,28 @@ codeunit 1996 "Checklist Banner Impl."
     end;
 
     procedure UpdateBannerLabels(IsEvaluationCompany: Boolean; var ChecklistItemBuffer: Record "Checklist Item Buffer"; var TitleTxt: Text; var TitleCollapsedTxt: Text; var HeaderTxt: Text; var HeaderCollapsedTxt: Text; var DescriptionTxt: Text; IsSetupStarted: Boolean; AreAllItemsSkippedOrCompleted: Boolean)
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
+        if EnvironmentInformation.IsEarlyPreview() then begin
+            TitleTxt := EarlyAccessPreviewBannerTitleLbl;
+            TitleCollapsedTxt := EarlyAccessPreviewBannerTitleLbl;
+            HeaderTxt := EarlyAccessPreviewBannerHeaderLbl;
+            HeaderCollapsedTxt := EarlyAccessPreviewBannerHeaderCollapsedLbl;
+            DescriptionTxt := EarlyAccessPreviewBannerDescriptionLbl;
+            exit;
+        end;
+
+        if IsEvaluationCompany then begin
+            TitleTxt := BannerTitleLbl;
+            TitleCollapsedTxt := CollapsedBannerTitleLbl;
+            UpdateBannerLabelsForEvaluationCompany(HeaderTxt, HeaderCollapsedTxt, DescriptionTxt, IsSetupStarted, AreAllItemsSkippedOrCompleted);
+            exit;
+        end;
+
         TitleTxt := BannerTitleLbl;
         TitleCollapsedTxt := CollapsedBannerTitleLbl;
-
-        if IsEvaluationCompany then
-            UpdateBannerLabelsForEvaluationCompany(HeaderTxt, HeaderCollapsedTxt, DescriptionTxt,
-                IsSetupStarted, AreAllItemsSkippedOrCompleted)
-        else
-            UpdateBannerLabelsForNonEvaluationCompany(ChecklistItemBuffer, HeaderTxt, HeaderCollapsedTxt,
-                DescriptionTxt, IsSetupStarted, AreAllItemsSkippedOrCompleted);
+        UpdateBannerLabelsForNonEvaluationCompany(ChecklistItemBuffer, HeaderTxt, HeaderCollapsedTxt, DescriptionTxt, IsSetupStarted, AreAllItemsSkippedOrCompleted);
     end;
 
     local procedure UpdateBannerLabelsForNonEvaluationCompany(var ChecklistItemBuffer: Record "Checklist Item Buffer"; var HeaderTxt: Text; var HeaderCollapsedTxt: Text; var DescriptionTxt: Text; IsSetupStarted: Boolean; AreAllItemsSkippedOrCompleted: Boolean)
