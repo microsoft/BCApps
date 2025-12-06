@@ -9,6 +9,7 @@ using System.Utilities;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Inventory.Item;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Foundation.Period;
 using Microsoft.Foundation.UOM;
 
 /// <summary>
@@ -24,13 +25,26 @@ codeunit 6209 "E-Doc Sample Invoice Generator"
         TempSamplePurchInvLine: Record "E-Doc Sample Purch. Inv. Line" temporary;
 
     /// <summary>
+    /// 
+    /// </summary>
+    procedure GetSampleInvoicePostingDate(): Date
+    var
+        AccountingPeriod: Record "Accounting Period";
+    begin
+        AccountingPeriod.SetRange(Closed, false);
+        AccountingPeriod.SetRange("New Fiscal Year", true);
+        AccountingPeriod.FindFirst();
+        exit(AccountingPeriod."Starting Date");
+    end;
+
+    /// <summary>
     /// Adds a sample purchase invoice header.
     /// </summary>
     /// <param name="VendorNo">The vendor number.</param>
     /// <param name="DocumentDate">The document date.</param>
     /// <param name="DueDate">The due date.</param>
     /// <param name="ExternalDocNo">The external document number.</param>
-    procedure AddSamplePurchaseHeader(VendorNo: Code[20]; DocumentDate: Date; DueDate: Date; ExternalDocNo: Text[35])
+    procedure AddSamplePurchaseHeader(VendorNo: Code[20]; ExternalDocNo: Text[35])
     var
         Vendor: Record Vendor;
     begin
@@ -47,8 +61,8 @@ codeunit 6209 "E-Doc Sample Invoice Generator"
         TempSamplePurchInvHdr."Pay-to City" := Vendor.City;
         TempSamplePurchInvHdr."Pay-to Post Code" := Vendor."Post Code";
         TempSamplePurchInvHdr."Vendor Invoice No." := ExternalDocNo;
-        TempSamplePurchInvHdr."Posting Date" := DocumentDate;
-        TempSamplePurchInvHdr."Due Date" := DueDate;
+        TempSamplePurchInvHdr."Posting Date" := GetSampleInvoicePostingDate();
+        TempSamplePurchInvHdr."Due Date" := GetSampleInvoicePostingDate();
         TempSamplePurchInvHdr.Insert();
         Clear(TempSamplePurchInvLine);
     end;
