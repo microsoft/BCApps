@@ -20,9 +20,9 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 
 /// <summary>
-/// The purpose of the codeunit is to compose entities for generating the e-document invoices
+/// The purpose of the codeunit is to generate demo E-Document invoices
 /// </summary>
-codeunit 5429 "E-Doc. Inv. Contoso Composer"
+codeunit 5429 "E-Doc. Inv. Contoso Generator"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -122,7 +122,7 @@ codeunit 5429 "E-Doc. Inv. Contoso Composer"
     /// <summary>
     /// 
     /// </summary>
-    procedure ProcessComposedEntries()
+    procedure Generate()
     var
         EDocumentService: Record "E-Document Service";
         PurchHeader: Record "Purchase Header";
