@@ -266,7 +266,7 @@ codeunit 9014 "Azure AD Graph Impl."
         ServerSetting: Codeunit "Server Setting";
         Handled: Boolean;
     begin
-        if not EnvironmentInformation.IsSaaS() or ServerSetting.GetEnableEntraGroupsOnPrem() then
+        if not (EnvironmentInformation.IsSaaS() or ServerSetting.GetEnableEntraGroupsOnPrem()) then
             exit(false);
 
         if IsGraphInitialized then
