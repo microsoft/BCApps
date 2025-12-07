@@ -22,30 +22,27 @@ using Microsoft.eServices.EDocument.Processing.Import;
 /// <summary>
 /// The purpose of the codeunit is to generate demo E-Document invoices
 /// </summary>
-codeunit 5429 "E-Doc. Inv. Contoso Generator"
+codeunit 5429 "Contoso Inbound E-Document"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
     var
-        TempPurchHeader: Record "Purchase Header" temporary;
-        TempPurchLine: Record "Purchase Line" temporary;
+        PurchHeader: Record "Purchase Header";
 
     /// <summary>
     /// 
     /// </summary>
     procedure AddEDocPurchaseHeader(VendorNo: Code[20]; DocumentDate: Date; ExternalDocNo: Text[35])
     begin
-        if TempPurchHeader."No." = '' then
-            TempPurchHeader."No." := '1'
-        else
-            TempPurchHeader."No." := IncStr(TempPurchHeader."No.");
-        TempPurchHeader."Buy-from Vendor No." := VendorNo;
-        TempPurchHeader."Vendor Invoice No." := ExternalDocNo;
-        TempPurchHeader."Posting Date" := DocumentDate;
-        TempPurchHeader.Insert();
-        Clear(TempPurchLine);
+        Clear(PurchHeader);
+        PurchHeader."Document Type" := PurchHeader."Document Type"::Invoice;
+        PurchHeader.Insert(true);
+        PurchHeader.Validate("Buy-from Vendor No.", VendorNo);
+        PurchHeader.Validate("Posting Date", DocumentDate);
+        PurchHeader.Validate("Vendor Invoice No.", ExternalDocNo);
+        PurchHeader.Modify(true);
     end;
 
     /// <summary>
@@ -104,19 +101,33 @@ codeunit 5429 "E-Doc. Inv. Contoso Generator"
     /// <param name="DeferralCode"></param>
     /// <param name="UnitOfMeasureCode"></param>
     procedure AddEDocPurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; TaxGroupCode: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
+    var
+        PurchLine: Record "Purchase Line";
+        LineNo: Integer;
     begin
-        TempPurchHeader.TestField("No.");
-        TempPurchLine."Document No." := TempPurchHeader."No.";
-        TempPurchLine."Line No." += 10000;
-        TempPurchLine.Type := LineType;
-        TempPurchLine."No." := No;
-        TempPurchLine."Tax Group Code" := TaxGroupCode;
-        TempPurchLine.Description := Description;
-        TempPurchLine.Quantity := Quantity;
-        TempPurchLine."Direct Unit Cost" := DirectUnitCost;
-        TempPurchLine."Deferral Code" := DeferralCode;
-        TempPurchLine."Unit of Measure Code" := UnitOfMeasureCode;
-        TempPurchLine.Insert();
+        PurchHeader.TestField("No.");
+
+        PurchLine.SetRange("Document Type", PurchHeader."Document Type");
+        PurchLine.SetRange("Document No.", PurchHeader."No.");
+        if PurchLine.FindLast() then
+            LineNo := PurchLine."Line No.";
+        LineNo += 10000;
+
+        PurchLine."Document Type" := PurchLine."Document Type"::Invoice;
+        PurchLine."Document No." := PurchHeader."No.";
+        PurchLine."Line No." := LineNo;
+        PurchLine.Insert(true);
+        PurchLine.Validate(Type, LineType);
+        PurchLine.Validate("No.", No);
+        if TaxGroupCode <> '' then
+            PurchLine.Validate("Tax Group Code", TaxGroupCode);
+        if Description <> '' then
+            PurchLine.Validate(Description, Description);
+        PurchLine.Validate(Quantity, Quantity);
+        PurchLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchLine.Validate("Deferral Code", DeferralCode);
+        PurchLine.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        PurchLine.Modify(true);
     end;
 
     /// <summary>
@@ -124,60 +135,29 @@ codeunit 5429 "E-Doc. Inv. Contoso Generator"
     /// </summary>
     procedure Generate()
     var
+        PurchLine: Record "Purchase Line";
         EDocumentService: Record "E-Document Service";
-        PurchHeader: Record "Purchase Header";
         PurchInvHeader: Record "Purch. Inv. Header";
         EDocument: Record "E-Document";
         TempBlob: Codeunit "Temp Blob";
+        NoLinesAddedLbl: Label 'No lines have been added to the Purchase Header %1', Comment = '%1 = Purchase Header No.';
     begin
+        PurchHeader.TestField("No.");
+        PurchLine.SetRange("Document Type", PurchHeader."Document Type");
+        PurchLine.SetRange("Document No.", PurchHeader."No.");
+        if PurchLine.IsEmpty() then
+            Error(NoLinesAddedLbl, PurchHeader."No.");
         EDocumentService := GetEDocService();
-        TempPurchHeader.Reset();
-        TempPurchHeader.FindSet();
-        repeat
-            PurchHeader := CreatePurchInvFromTempBuffer();
-            TempBlob := SaveSamplePurchInvReportToPDF(PurchHeader);
-            PurchInvHeader := PostPurchaseInvoice(PurchHeader);
-            EDocument := CreateEDocument(TempBlob, PurchInvHeader, EDocumentService);
-            CreateEDocPurchHeaderWithLines(EDocument."Entry No", PurchInvHeader);
-            EDocument."Document Record ID" := PurchInvHeader.RecordId();
-            EDocument."Bill-to/Pay-to No." := PurchInvHeader."Pay-to Vendor No.";
-            EDocument."Bill-to/Pay-to Name" := PurchInvHeader."Pay-to Name";
-            EDocument."Document No." := PurchInvHeader."No.";
-            EDocument."Import Processing Status" := EDocument."Import Processing Status"::Processed;
-            EDocument.Modify();
-        until TempPurchHeader.Next() = 0;
-    end;
-
-    local procedure CreatePurchInvFromTempBuffer() PurchHeader: Record "Purchase Header"
-    var
-        PurchLine: Record "Purchase Line";
-    begin
-        PurchHeader."Document Type" := PurchHeader."Document Type"::Invoice;
-        PurchHeader.Insert(true);
-        PurchHeader.Validate("Buy-from Vendor No.", TempPurchHeader."Buy-from Vendor No.");
-        PurchHeader.Validate("Posting Date", TempPurchHeader."Posting Date");
-        PurchHeader.Validate("Vendor Invoice No.", TempPurchHeader."Vendor Invoice No.");
-        PurchHeader.Modify(true);
-        TempPurchLine.SetRange("Document No.", TempPurchHeader."No.");
-        TempPurchLine.FindSet();
-        repeat
-            clear(PurchLine);
-            PurchLine."Document Type" := PurchLine."Document Type"::Invoice;
-            PurchLine."Document No." := PurchHeader."No.";
-            PurchLine."Line No." := TempPurchLine."Line No.";
-            PurchLine.Insert(true);
-            PurchLine.Validate(Type, TempPurchLine.Type);
-            PurchLine.Validate("No.", TempPurchLine."No.");
-            if TempPurchLine."Tax Group Code" <> '' then
-                PurchLine.Validate("Tax Group Code", TempPurchLine."Tax Group Code");
-            if TempPurchLine.Description <> '' then
-                PurchLine.Validate(Description, TempPurchLine.Description);
-            PurchLine.Validate(Quantity, TempPurchLine.Quantity);
-            PurchLine.Validate("Direct Unit Cost", TempPurchLine."Direct Unit Cost");
-            PurchLine.Validate("Deferral Code", TempPurchLine."Deferral Code");
-            PurchLine.Validate("Unit of Measure Code", TempPurchLine."Unit of Measure Code");
-            PurchLine.Modify(true);
-        until TempPurchLine.Next() = 0;
+        TempBlob := SaveSamplePurchInvReportToPDF();
+        PurchInvHeader := PostPurchaseInvoice();
+        EDocument := CreateEDocument(TempBlob, PurchInvHeader, EDocumentService);
+        CreateEDocPurchHeaderWithLines(EDocument."Entry No", PurchInvHeader);
+        EDocument."Document Record ID" := PurchInvHeader.RecordId();
+        EDocument."Bill-to/Pay-to No." := PurchInvHeader."Pay-to Vendor No.";
+        EDocument."Bill-to/Pay-to Name" := PurchInvHeader."Pay-to Name";
+        EDocument."Document No." := PurchInvHeader."No.";
+        EDocument."Import Processing Status" := EDocument."Import Processing Status"::Processed;
+        EDocument.Modify();
     end;
 
 #pragma warning disable AA0228
@@ -196,7 +176,7 @@ codeunit 5429 "E-Doc. Inv. Contoso Generator"
     end;
 #pragma warning restore AA0228
 
-    local procedure PostPurchaseInvoice(PurchHeader: Record "Purchase Header") PurchInvHeader: Record "Purch. Inv. Header"
+    local procedure PostPurchaseInvoice() PurchInvHeader: Record "Purch. Inv. Header"
     var
         PurchPost: Codeunit "Purch.-Post";
     begin
@@ -208,7 +188,7 @@ codeunit 5429 "E-Doc. Inv. Contoso Generator"
         PurchInvHeader.FindFirst();
     end;
 
-    local procedure SaveSamplePurchInvReportToPDF(PurchHeader: Record "Purchase Header") TempBlob: Codeunit "Temp Blob"
+    local procedure SaveSamplePurchInvReportToPDF() TempBlob: Codeunit "Temp Blob"
     var
         PurchLine: Record "Purchase Line";
         EDocSamplePurchInvRunner: Codeunit "E-Doc Sample Purch.Inv. Runner";
@@ -280,7 +260,7 @@ codeunit 5429 "E-Doc. Inv. Contoso Generator"
                 1, MaxStrLen(EDocPurchaseHeader."Customer Address"));
         EDocPurchaseHeader."Shipping Address" := EDocPurchaseHeader."Customer Address";
         EDocPurchaseHeader."Shipping Address Recipient" := EDocPurchaseHeader."Customer Company Name";
-        EDocPurchaseHeader."Sales Invoice No." := TempPurchHeader."Vendor Invoice No.";
+        EDocPurchaseHeader."Sales Invoice No." := PurchHeader."Vendor Invoice No.";
         EDocPurchaseHeader."Document Date" := PurchInvHeader."Posting Date";
         EDocPurchaseHeader."Due Date" := PurchInvHeader."Due Date";
         Vendor.Get(PurchInvHeader."Buy-from Vendor No.");
