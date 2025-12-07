@@ -62,6 +62,16 @@ page 30134 "Shpfy Transactions"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the currency of the transaction.';
                 }
+                field("Presentment Amount"; Rec."Presentment Amount")
+                {
+                    ApplicationArea = All;
+                    Visible = PresentmentCurrencyVisible;
+                }
+                field("Presentment Currency"; Rec."Presentment Currency")
+                {
+                    ApplicationArea = All;
+                    Visible = PresentmentCurrencyVisible;
+                }
                 field(Test; Rec.Test)
                 {
                     ApplicationArea = All;
@@ -205,5 +215,21 @@ page 30134 "Shpfy Transactions"
     }
 
     var
+        PresentmentCurrencyVisible: Boolean;
         IgnorePostedTransactionsLbl: Label 'You have selected posted Shopify transactions. Do you want to use posted transactions?';
+
+    trigger OnAfterGetRecord()
+    begin
+        SetPresentmentCurrencyVisibility();
+    end;
+
+    local procedure SetPresentmentCurrencyVisibility()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+    begin
+        if not OrderHeader.Get(Rec."Shopify Order Id") then
+            exit;
+
+        PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+    end;
 }
