@@ -15,7 +15,7 @@ page 6105 "Inbound E-Documents"
     RefreshOnActivate = true;
     UsageCategory = Lists;
     Editable = true;
-    Extensible = true;
+    Extensible = false;
     DeleteAllowed = true;
     InsertAllowed = false;
     ModifyAllowed = false;
@@ -131,6 +131,7 @@ page 6105 "Inbound E-Documents"
                 AllowedFileExtensions = '.pdf';
                 AllowMultipleFiles = true;
                 Image = SendAsPDF;
+                Visible = false;
 
                 trigger OnAction(Files: List of [FileUpload])
                 begin
@@ -283,7 +284,6 @@ page 6105 "Inbound E-Documents"
                     Rec.ExportDataStorage();
                 end;
             }
-
         }
         area(Promoted)
         {
@@ -398,8 +398,6 @@ page 6105 "Inbound E-Documents"
         EDocumentService: Record "E-Document Service";
     begin
         EDocumentService.GetPDFReaderService();
-        EDocumentService."Automatic Import Processing" := EDocumentService."Automatic Import Processing"::Yes;
-        EDocumentService.Modify();
         ProcessFilesUploads(EDocumentService, Files, Enum::"E-Doc. File Format"::PDF);
     end;
 

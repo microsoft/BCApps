@@ -33,8 +33,9 @@ codeunit 6209 "E-Doc Sample Invoice Generator"
     begin
         AccountingPeriod.SetRange(Closed, false);
         AccountingPeriod.SetRange("New Fiscal Year", true);
-        AccountingPeriod.FindFirst();
-        exit(AccountingPeriod."Starting Date");
+        if AccountingPeriod.FindFirst() then
+            exit(AccountingPeriod."Starting Date");
+        exit(WorkDate());
     end;
 
     /// <summary>
