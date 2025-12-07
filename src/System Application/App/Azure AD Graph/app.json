@@ -22,6 +22,12 @@
       "name": "DotNet Aliases",
       "publisher": "Microsoft",
       "version": "27.3.0.0"
+    },
+    {
+      "id": "1a023056-d6fe-41af-a16e-da7d678cf266",
+      "name": "Server Settings",
+      "publisher": "Microsoft",
+      "version": "27.3.0.0"
     }
   ],
   "internalsVisibleTo": [
