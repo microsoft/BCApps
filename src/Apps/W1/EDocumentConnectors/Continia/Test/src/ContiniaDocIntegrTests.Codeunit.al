@@ -1137,7 +1137,14 @@ codeunit 148203 "Continia Doc. Integr. Tests"
         EDocumentService.Modify();
 
         CompanyInformation.Get();
+        CompanyInformation.Name := 'Test Company Ltd';
+        CompanyInformation.Address := '1 Test Street';
+        CompanyInformation.City := 'Test City';
+        CompanyInformation."Post Code" := 'DK';
         CompanyInformation."VAT Registration No." := 'GB777777771';
+        CompanyInformation.IBAN := 'TEST1234';
+        CompanyInformation."Bank Branch No." := '1234';
+        CompanyInformation."SWIFT Code" := 'TESTSWIFT';
         CompanyInformation.Modify();
 
         Vendor."VAT Registration No." := 'GB777777772';
