@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/18fe3d5d4fb9940564d80d87201f56992b6ebdff/Actions/.Modules/settings.schema.json",
+  "projectName": "Unit Tests",
+  "gitHubRunner": "self-hosted, 1ES.Pool=GitHub-BCApps",
+  "testFolders": [
+    "../../../src/System Application/Partner Test"
+  ],
+  "memoryLimit": "16G",
+  "doNotRunTests": false,
+  "useCompilerFolder": false,
+  "doNotPublishApps": false,
+  "testType": "UnitTest"
+}

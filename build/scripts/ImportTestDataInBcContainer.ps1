@@ -70,19 +70,6 @@ function Invoke-DemoDataGeneration
 
 }
 
-# Reinstall all the uninstalled apps in the container
-# This is needed to ensure that the various Demo Data apps are installed in the container when we generate demo data
-$allUninstalledApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesFirst | Where-Object { $_.IsInstalled -eq $false }
-# Exclude language apps from being reinstalled
-$allUninstalledApps = $allUninstalledApps | Where-Object { $_.Name -notmatch "^.+ language \(.+\)$" }
-
-$failedToInstallApps = @(Install-AppInContainer -ContainerName $parameters.ContainerName -AppsToInstall $allUninstalledApps.Name)
-
-if ($failedToInstallApps.Count -gt 0) {
-    Write-Host "The following apps failed to install in the container: $($failedToInstallApps -join ", ")"
-    throw "Failed to install apps: $($failedToInstallApps -join ", ")"
-}
-
 # Log all the installed apps
 foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesLast)) {
     Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - $($app.IsInstalled) / $($app.IsPublished)"
