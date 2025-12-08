@@ -101,14 +101,15 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         PurchaseLine: Record "Purchase Line";
-        EDocumentPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
-        DimensionManagement: Codeunit DimensionManagement;
+        EDocRecordLink: Record "E-Doc. Record Link";
         PurchCalcDiscByType: Codeunit "Purch - Calc Disc. By Type";
-        PurchaseLineCombinedDimensions: array[10] of Integer;
+        EDocLineByReceipt: Query "E-Doc. Line by Receipt";
+        LastReceiptNo: Code[20];
         PurchaseLineNo: Integer;
         StopCreatingPurchaseInvoice: Boolean;
         VendorInvoiceNo: Code[35];
-        GlobalDim1, GlobalDim2 : Code[20];
+        ReceiptNoLbl: Label 'Receipt No. %1:', Comment = '%1 = Receipt No.';
+        NullGuid: Guid;
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         if not AllDraftLinesHaveTypeAndNumberSpecificed(EDocumentPurchaseHeader) then begin
@@ -145,47 +146,84 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
             PurchaseHeader.Validate("Currency Code", EDocumentPurchaseHeader."Currency Code");
             PurchaseHeader.Modify();
         end;
+        EDocRecordLink.InsertEDocumentHeaderLink(EDocumentPurchaseHeader, PurchaseHeader);
 
-        LinkEDocumentHeaderToPurchaseHeader(EDocumentPurchaseHeader, PurchaseHeader);
         PurchaseLineNo := GetLastLineNumberOnPurchaseInvoice(PurchaseHeader."No."); // We get the last line number, even if this is a new document since recurrent lines get inserted on the header's creation
-        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
-        if EDocumentPurchaseLine.FindSet() then
-            repeat
+        // We create first the lines without any PO matches
+        EDocLineByReceipt.SetRange(EDocumentEntryNo, EDocument."Entry No");
+        EDocLineByReceipt.SetRange(ReceiptNo, '');
+        EDocLineByReceipt.SetRange(PurchaseLineSystemId, NullGuid);
+        EDocLineByReceipt.Open();
+        while EDocLineByReceipt.Read() do begin
+            EDocumentPurchaseLine.GetBySystemId(EDocLineByReceipt.SystemId);
+            CreatePurchaseInvoiceLine(PurchaseHeader, EDocumentPurchaseLine, EDocumentPurchaseHeader."Total Discount" > 0, PurchaseLineNo);
+        end;
+        EDocLineByReceipt.Close();
+
+        // Then we create the lines with receipt no., adding comment lines for each receipt no.
+        LastReceiptNo := '';
+        EDocLineByReceipt.SetFilter(ReceiptNo, '<> %1', '');
+        EDocLineByReceipt.SetRange(PurchaseLineSystemId);
+        EDocLineByReceipt.Open();
+        while EDocLineByReceipt.Read() do begin
+            if LastReceiptNo <> EDocLineByReceipt.ReceiptNo then begin // A receipt no. for which we have not created a header comment line yet
                 Clear(PurchaseLine);
                 PurchaseLine."Document Type" := PurchaseHeader."Document Type";
                 PurchaseLine."Document No." := PurchaseHeader."No.";
                 PurchaseLineNo += 10000;
                 PurchaseLine."Line No." := PurchaseLineNo;
-                PurchaseLine."Unit of Measure Code" := CopyStr(EDocumentPurchaseLine."[BC] Unit of Measure", 1, MaxStrLen(PurchaseLine."Unit of Measure Code"));
-                PurchaseLine."Variant Code" := EDocumentPurchaseLine."[BC] Variant Code";
-                PurchaseLine.Type := EDocumentPurchaseLine."[BC] Purchase Line Type";
-                PurchaseLine.Validate("No.", EDocumentPurchaseLine."[BC] Purchase Type No.");
-                if (PurchaseLine.Type = PurchaseLine.Type::"G/L Account") and (EDocumentPurchaseHeader."Total Discount" > 0) then
-                    PurchaseLine.Validate("Allow Invoice Disc.", true);
-                PurchaseLine.Description := EDocumentPurchaseLine.Description;
-
-                if EDocumentPurchaseLine."[BC] Item Reference No." <> '' then
-                    PurchaseLine.Validate("Item Reference No.", EDocumentPurchaseLine."[BC] Item Reference No.");
-
-                PurchaseLine.Validate(Quantity, EDocumentPurchaseLine.Quantity);
-                PurchaseLine.Validate("Direct Unit Cost", EDocumentPurchaseLine."Unit Price");
-                if EDocumentPurchaseLine."Total Discount" > 0 then
-                    PurchaseLine.Validate("Line Discount Amount", EDocumentPurchaseLine."Total Discount");
-                PurchaseLine.Validate("Deferral Code", EDocumentPurchaseLine."[BC] Deferral Code");
-
-                Clear(PurchaseLineCombinedDimensions);
-                PurchaseLineCombinedDimensions[1] := PurchaseLine."Dimension Set ID";
-                PurchaseLineCombinedDimensions[2] := EDocumentPurchaseLine."[BC] Dimension Set ID";
-                PurchaseLine.Validate("Dimension Set ID", DimensionManagement.GetCombinedDimensionSetID(PurchaseLineCombinedDimensions, GlobalDim1, GlobalDim2));
-                PurchaseLine.Validate("Shortcut Dimension 1 Code", EDocumentPurchaseLine."[BC] Shortcut Dimension 1 Code");
-                PurchaseLine.Validate("Shortcut Dimension 2 Code", EDocumentPurchaseLine."[BC] Shortcut Dimension 2 Code");
-                EDocumentPurchaseHistMapping.ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocumentPurchaseLine, PurchaseLine);
+                PurchaseLine.Type := PurchaseLine.Type::" ";
+                PurchaseLine.Description := StrSubstNo(ReceiptNoLbl, EDocLineByReceipt.ReceiptNo);
                 PurchaseLine.Insert();
-                LinkEDocumentLineToPurchaseLine(EDocumentPurchaseLine, PurchaseLine);
-            until EDocumentPurchaseLine.Next() = 0;
+            end;
+            EDocumentPurchaseLine.GetBySystemId(EDocLineByReceipt.SystemId);
+            CreatePurchaseInvoiceLine(PurchaseHeader, EDocumentPurchaseLine, EDocumentPurchaseHeader."Total Discount" > 0, PurchaseLineNo);
+            LastReceiptNo := EDocLineByReceipt.ReceiptNo;
+        end;
+        EDocLineByReceipt.Close();
         PurchaseHeader.Modify();
         PurchCalcDiscByType.ApplyInvDiscBasedOnAmt(EDocumentPurchaseHeader."Total Discount", PurchaseHeader);
         exit(PurchaseHeader);
+    end;
+
+    local procedure CreatePurchaseInvoiceLine(PurchaseHeader: Record "Purchase Header"; EDocumentPurchaseLine: Record "E-Document Purchase Line"; HasTotalDiscount: Boolean; var PurchaseLineNo: Integer)
+    var
+        PurchaseLine: Record "Purchase Line";
+        EDocRecordLink: Record "E-Doc. Record Link";
+        EDocumentPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
+        DimensionManagement: Codeunit DimensionManagement;
+        PurchaseLineCombinedDimensions: array[10] of Integer;
+        GlobalDim1, GlobalDim2 : Code[20];
+    begin
+        PurchaseLine."Document Type" := PurchaseHeader."Document Type";
+        PurchaseLine."Document No." := PurchaseHeader."No.";
+        PurchaseLineNo += 10000;
+        PurchaseLine."Line No." := PurchaseLineNo;
+        PurchaseLine."Unit of Measure Code" := CopyStr(EDocumentPurchaseLine."[BC] Unit of Measure", 1, MaxStrLen(PurchaseLine."Unit of Measure Code"));
+        PurchaseLine."Variant Code" := EDocumentPurchaseLine."[BC] Variant Code";
+        PurchaseLine.Type := EDocumentPurchaseLine."[BC] Purchase Line Type";
+        PurchaseLine.Validate("No.", EDocumentPurchaseLine."[BC] Purchase Type No.");
+        if (PurchaseLine.Type = PurchaseLine.Type::"G/L Account") and HasTotalDiscount then
+            PurchaseLine.Validate("Allow Invoice Disc.", true);
+        PurchaseLine.Description := EDocumentPurchaseLine.Description;
+
+        if EDocumentPurchaseLine."[BC] Item Reference No." <> '' then
+            PurchaseLine.Validate("Item Reference No.", EDocumentPurchaseLine."[BC] Item Reference No.");
+
+        PurchaseLine.Validate(Quantity, EDocumentPurchaseLine.Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", EDocumentPurchaseLine."Unit Price");
+        if EDocumentPurchaseLine."Total Discount" > 0 then
+            PurchaseLine.Validate("Line Discount Amount", EDocumentPurchaseLine."Total Discount");
+        PurchaseLine.Validate("Deferral Code", EDocumentPurchaseLine."[BC] Deferral Code");
+
+        PurchaseLineCombinedDimensions[1] := PurchaseLine."Dimension Set ID";
+        PurchaseLineCombinedDimensions[2] := EDocumentPurchaseLine."[BC] Dimension Set ID";
+        PurchaseLine.Validate("Dimension Set ID", DimensionManagement.GetCombinedDimensionSetID(PurchaseLineCombinedDimensions, GlobalDim1, GlobalDim2));
+        PurchaseLine.Validate("Shortcut Dimension 1 Code", EDocumentPurchaseLine."[BC] Shortcut Dimension 1 Code");
+        PurchaseLine.Validate("Shortcut Dimension 2 Code", EDocumentPurchaseLine."[BC] Shortcut Dimension 2 Code");
+        EDocumentPurchaseHistMapping.ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocumentPurchaseLine, PurchaseLine);
+        PurchaseLine.Insert();
+        EDocRecordLink.InsertEDocumentLineLink(EDocumentPurchaseLine, PurchaseLine);
     end;
 
     [TryFunction]
@@ -225,30 +263,6 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseLine.SetRange("Document No.", DocumentNo);
         if PurchaseLine.FindLast() then
             exit(PurchaseLine."Line No.");
-    end;
-
-    local procedure LinkEDocumentHeaderToPurchaseHeader(EDocumentPurchaseHeader: Record "E-Document Purchase Header"; PurchaseHeader: Record "Purchase Header")
-    var
-        EDocRecordLink: Record "E-Doc. Record Link";
-    begin
-        EDocRecordLink."Source Table No." := Database::"E-Document Purchase Header";
-        EDocRecordLink."Source SystemId" := EDocumentPurchaseHeader.SystemId;
-        EDocRecordLink."Target Table No." := Database::"Purchase Header";
-        EDocRecordLink."Target SystemId" := PurchaseHeader.SystemId;
-        EDocRecordLink."E-Document Entry No." := EDocumentPurchaseHeader."E-Document Entry No.";
-        EDocRecordLink.Insert();
-    end;
-
-    local procedure LinkEDocumentLineToPurchaseLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"; PurchaseLine: Record "Purchase Line")
-    var
-        EDocRecordLink: Record "E-Doc. Record Link";
-    begin
-        EDocRecordLink."Source Table No." := Database::"E-Document Purchase Line";
-        EDocRecordLink."Source SystemId" := EDocumentPurchaseLine.SystemId;
-        EDocRecordLink."Target Table No." := Database::"Purchase Line";
-        EDocRecordLink."Target SystemId" := PurchaseLine.SystemId;
-        EDocRecordLink."E-Document Entry No." := EDocumentPurchaseLine."E-Document Entry No.";
-        EDocRecordLink.Insert();
     end;
 
 }

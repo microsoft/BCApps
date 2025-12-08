@@ -10,7 +10,7 @@ page 6116 "E-Doc. Select PO Lines"
 {
     ApplicationArea = All;
     Caption = 'Available Purchase Order Lines';
-    PageType = Worksheet;
+    PageType = List;
     SourceTable = "Purchase Line";
     SourceTableTemporary = true;
     Editable = false;
