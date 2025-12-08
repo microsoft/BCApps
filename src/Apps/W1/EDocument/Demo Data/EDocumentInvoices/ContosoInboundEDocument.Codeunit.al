@@ -8,7 +8,6 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.History;
 using System.Utilities;
-using System.IO;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Foundation.Company;
@@ -20,7 +19,7 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 
 /// <summary>
-/// The purpose of the codeunit is to generate demo E-Document invoices
+/// The purpose of the codeunit is to generate inbound e-document invoices
 /// </summary>
 codeunit 5429 "Contoso Inbound E-Document"
 {
@@ -32,7 +31,7 @@ codeunit 5429 "Contoso Inbound E-Document"
         PurchHeader: Record "Purchase Header";
 
     /// <summary>
-    /// 
+    /// Adds a purchase header for the inbound e-document invoice to be created.
     /// </summary>
     procedure AddEDocPurchaseHeader(VendorNo: Code[20]; DocumentDate: Date; ExternalDocNo: Text[35])
     begin
@@ -46,60 +45,32 @@ codeunit 5429 "Contoso Inbound E-Document"
     end;
 
     /// <summary>
-    /// 
+    /// Adds a purchase line for the inbound e-document invoice to be created.
     /// </summary>
-    /// <param name="LineType"></param>
-    /// <param name="No"></param>
-    /// <param name="Description"></param>
-    /// <param name="Quantity"></param>
-    /// <param name="DirectUnitCost"></param>
-    /// <param name="DeferralCode"></param>
-    /// <param name="UnitOfMeasureCode"></param>
     procedure AddEDocPurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
     begin
         AddEDocPurchaseLine(LineType, No, '', Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
     end;
 
     /// <summary>
-    /// 
+    /// Adds a purchase line for the inbound e-document invoice to be created.
     /// </summary>
-    /// <param name="LineType"></param>
-    /// <param name="No"></param>
-    /// <param name="Description"></param>
-    /// <param name="Quantity"></param>
-    /// <param name="DirectUnitCost"></param>
-    /// <param name="UnitOfMeasureCode"></param>
     procedure AddEDocPurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; UnitOfMeasureCode: Code[10])
     begin
         AddEDocPurchaseLine(LineType, No, '', Description, Quantity, DirectUnitCost, '', UnitOfMeasureCode);
     end;
 
     /// <summary>
-    /// 
+    /// Adds a purchase line for the inbound e-document invoice to be created.
     /// </summary>
-    /// <param name="LineType"></param>
-    /// <param name="No"></param>
-    /// <param name="TaxGroupCode"></param>
-    /// <param name="Description"></param>
-    /// <param name="Quantity"></param>
-    /// <param name="DirectUnitCost"></param>
-    /// <param name="UnitOfMeasureCode"></param>
     procedure AddEDocPurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; TaxGroupCode: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; UnitOfMeasureCode: Code[10])
     begin
         AddEDocPurchaseLine(LineType, No, TaxGroupCode, Description, Quantity, DirectUnitCost, '', UnitOfMeasureCode);
     end;
 
     /// <summary>
-    /// 
+    /// Adds a purchase line for the inbound e-document invoice to be created.
     /// </summary>
-    /// <param name="LineType"></param>
-    /// <param name="No"></param>
-    /// <param name="TaxGroupCode"></param>
-    /// <param name="Description"></param>
-    /// <param name="Quantity"></param>
-    /// <param name="DirectUnitCost"></param>
-    /// <param name="DeferralCode"></param>
-    /// <param name="UnitOfMeasureCode"></param>
     procedure AddEDocPurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; TaxGroupCode: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
     var
         PurchLine: Record "Purchase Line";
@@ -131,7 +102,7 @@ codeunit 5429 "Contoso Inbound E-Document"
     end;
 
     /// <summary>
-    /// 
+    /// Generates the inbound e-document invoice based on the added header and lines.
     /// </summary>
     procedure Generate()
     var
@@ -151,7 +122,7 @@ codeunit 5429 "Contoso Inbound E-Document"
         TempBlob := SaveSamplePurchInvReportToPDF();
         PurchInvHeader := PostPurchaseInvoice();
         EDocument := CreateEDocument(TempBlob, PurchInvHeader, EDocumentService);
-        CreateEDocPurchHeaderWithLines(EDocument."Entry No", PurchInvHeader);
+        CreateEDocPurchInvoice(EDocument."Entry No", PurchInvHeader);
         EDocument."Document Record ID" := PurchInvHeader.RecordId();
         EDocument."Bill-to/Pay-to No." := PurchInvHeader."Pay-to Vendor No.";
         EDocument."Bill-to/Pay-to Name" := PurchInvHeader."Pay-to Name";
@@ -159,22 +130,6 @@ codeunit 5429 "Contoso Inbound E-Document"
         EDocument."Import Processing Status" := EDocument."Import Processing Status"::Processed;
         EDocument.Modify();
     end;
-
-#pragma warning disable AA0228
-    local procedure GeneratePDFWithCustomLayout(var PurchaseHeader: Record "Purchase Header")
-    var
-        StandardPurchaseOrder: Report "Standard Purchase - Order";
-        TempBlob: Codeunit "Temp Blob";
-        FileManagement: Codeunit "File Management";
-        FilePath: Text;
-    begin
-        PurchaseHeader.SetRecFilter();
-        StandardPurchaseOrder.SetTableView(PurchaseHeader);
-        FilePath := CopyStr(FileManagement.ServerTempFileName('pdf'), 1, 250);
-        StandardPurchaseOrder.SaveAsPdf(FilePath);
-        FileManagement.BLOBImportFromServerFile(TempBlob, FilePath);
-    end;
-#pragma warning restore AA0228
 
     local procedure PostPurchaseInvoice() PurchInvHeader: Record "Purch. Inv. Header"
     var
@@ -237,22 +192,27 @@ codeunit 5429 "Contoso Inbound E-Document"
         exit(EDocumentDataStorage."Entry No.");
     end;
 
-    local procedure CreateEDocPurchHeaderWithLines(EDocEntryNo: Integer; PurchInvHeader: Record "Purch. Inv. Header")
+    local procedure CreateEDocPurchInvoice(EDocEntryNo: Integer; PurchInvHeader: Record "Purch. Inv. Header")
+    var
+        EDocPurchaseHeader: Record "E-Document Purchase Header";
+    begin
+        EDocPurchaseHeader := CreateEDocPurchHeader(EDocEntryNo, PurchInvHeader);
+        CreateEDocRecordLink(EDocEntryNo, Database::"E-Document Purchase Header", EDocPurchaseHeader.SystemId, Database::"Purch. Inv. Header", PurchInvHeader.SystemId);
+        CreateEDocVendorAssignHistory(EDocPurchaseHeader, PurchInvHeader);
+        CreateEDocPurchLines(PurchInvHeader."No.", EDocEntryNo, EDocPurchaseHeader."Currency Code");
+    end;
+
+    local procedure CreateEDocPurchHeader(EDocEntryNo: Integer; PurchInvHeader: Record "Purch. Inv. Header") EDocPurchaseHeader: Record "E-Document Purchase Header"
     var
         CompanyInformation: Record "Company Information";
         GeneralLedgerSetup: Record "General Ledger Setup";
         Vendor: Record Vendor;
         CountryRegion: Record "Country/Region";
-        EDocPurchaseHeader: Record "E-Document Purchase Header";
-        EDocPurchaseLine: Record "E-Document Purchase Line";
-        PurchInvLine: Record "Purch. Inv. Line";
-        UnitOfMeasure: Record "Unit of Measure";
-        AllocAccSystemIds: List of [Guid];
     begin
         EDocPurchaseHeader."E-Document Entry No." := EDocEntryNo;
         CompanyInformation.Get();
         EDocPurchaseHeader."Customer Company Name" := CompanyInformation.Name;
-        EDocPurchaseHeader."Customer Company Id" := CompanyInformation."Bank Account No."; // TODO: Need to double check this, probably ADI return different results
+        EDocPurchaseHeader."Customer Company Id" := CompanyInformation."Bank Account No.";
         CountryRegion.Get(CompanyInformation."Country/Region Code");
         EDocPurchaseHeader."Customer Address" :=
             CopyStr(
@@ -273,10 +233,16 @@ codeunit 5429 "Contoso Inbound E-Document"
         EDocPurchaseHeader.Total := PurchInvHeader."Amount Including VAT";
         EDocPurchaseHeader."[BC] Vendor No." := PurchInvHeader."Buy-from Vendor No.";
         EDocPurchaseHeader.Insert();
-        CreateEDocRecordLink(EDocEntryNo, Database::"E-Document Purchase Header", EDocPurchaseHeader.SystemId, Database::"Purch. Inv. Header", PurchInvHeader.SystemId);
-        CreateEDocVendorAssignHistory(EDocPurchaseHeader, PurchInvHeader);
+    end;
 
-        PurchInvLine.SetRange("Document No.", PurchInvHeader."No.");
+    local procedure CreateEDocPurchLines(InvNo: Code[20]; EDocEntryNo: Integer; CurrencyCode: Code[10])
+    var
+        EDocPurchaseLine: Record "E-Document Purchase Line";
+        PurchInvLine: Record "Purch. Inv. Line";
+        UnitOfMeasure: Record "Unit of Measure";
+        AllocAccSystemIds: List of [Guid];
+    begin
+        PurchInvLine.SetRange("Document No.", InvNo);
         PurchInvLine.Findset();
         repeat
             Clear(EDocPurchaseLine);
@@ -300,7 +266,7 @@ codeunit 5429 "Contoso Inbound E-Document"
             EDocPurchaseLine."Unit of Measure" := UnitOfMeasure.Description;
             EDocPurchaseLine."Unit Price" := PurchInvLine."Direct Unit Cost";
             EDocPurchaseLine."Sub Total" := PurchInvLine."Amount Including VAT";
-            EDocPurchaseLine."Currency Code" := EDocPurchaseHeader."Currency Code";
+            EDocPurchaseLine."Currency Code" := CurrencyCode;
             EDocPurchaseLine."[BC] Deferral Code" := PurchInvLine."Deferral Code";
             EDocPurchaseLine."[BC] Variant Code" := PurchInvLine."Variant Code";
             EDocPurchaseLine.Insert();

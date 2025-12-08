@@ -43,7 +43,7 @@ codeunit 6208 "E-Doc Sample Purch.Inv. PDF"
     end;
 
     /// <summary>
-    /// 
+    /// Transfers fields from a Purchase Header record to the temporary header buffer.
     /// </summary>
     /// <param name="PurchHeader"></param>
     procedure TransferFromPurchHeader(PurchHeader: Record "Purchase Header")
@@ -53,7 +53,7 @@ codeunit 6208 "E-Doc Sample Purch.Inv. PDF"
     end;
 
     /// <summary>
-    /// 
+    /// Transfers fields from a Purchase Line record to the temporary line buffer.
     /// </summary>
     /// <param name="PurchLine"></param>
     procedure TransferFromPurchLine(PurchLine: Record "Purchase Line")

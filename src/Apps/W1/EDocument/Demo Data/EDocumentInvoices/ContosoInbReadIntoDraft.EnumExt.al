@@ -8,13 +8,13 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 
 /// <summary>
-/// Enum extension for E-Document Process Draft with custom demo data implementation
+/// Enum extension for E-Doc. Read into Draft to support Contoso Inbound E-Document invoices.
 /// </summary>
-enumextension 5391 "EDoc Demo Read Into Draft" extends "E-Doc. Read into Draft"
+enumextension 5391 "Contoso Inb. Read Into Draft" extends "E-Doc. Read into Draft"
 {
     value(5370; "Demo Invoice")
     {
         Caption = 'Demo Invoice';
-        Implementation = IStructuredFormatReader = "Demo Invoice Format Reader";
+        Implementation = IStructuredFormatReader = "Contoso Inb.Inv. Format Reader";
     }
 }

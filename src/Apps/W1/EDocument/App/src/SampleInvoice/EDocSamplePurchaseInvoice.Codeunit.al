@@ -13,7 +13,7 @@ using Microsoft.Foundation.Period;
 using Microsoft.Foundation.UOM;
 
 /// <summary>
-/// The purpose of the codeunit is to compose sample purchase invoice data for PDF generation.
+/// The purpose of the codeunit is to generate sample purchase invoices in PDF format.
 /// </summary>
 codeunit 6209 "E-Doc Sample Purchase Invoice"
 {
@@ -25,7 +25,7 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
         TempSamplePurchInvLine: Record "E-Doc Sample Purch. Inv. Line" temporary;
 
     /// <summary>
-    /// 
+    /// Gets the posting date for the sample invoice.
     /// </summary>
     procedure GetSampleInvoicePostingDate(): Date
     var
@@ -41,10 +41,6 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     /// <summary>
     /// Adds a sample purchase invoice header.
     /// </summary>
-    /// <param name="VendorNo">The vendor number.</param>
-    /// <param name="DocumentDate">The document date.</param>
-    /// <param name="DueDate">The due date.</param>
-    /// <param name="ExternalDocNo">The external document number.</param>
     procedure AddSamplePurchaseHeader(VendorNo: Code[20]; ExternalDocNo: Text[35])
     var
         Vendor: Record Vendor;
@@ -71,13 +67,6 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     /// <summary>
     /// Adds a sample purchase invoice line.
     /// </summary>
-    /// <param name="LineType">The line type.</param>
-    /// <param name="No">The item/G/L account number.</param>
-    /// <param name="Description">The description.</param>
-    /// <param name="Quantity">The quantity.</param>
-    /// <param name="DirectUnitCost">The direct unit cost.</param>
-    /// <param name="DeferralCode">The deferral code.</param>
-    /// <param name="UnitOfMeasureCode">The unit of measure code.</param>
     procedure AddSamplePurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
     begin
         AddSamplePurchaseLine(LineType, No, '', Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
@@ -86,12 +75,6 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     /// <summary>
     /// Adds a sample purchase invoice line.
     /// </summary>
-    /// <param name="LineType">The line type.</param>
-    /// <param name="No">The item/G/L account number.</param>
-    /// <param name="Description">The description.</param>
-    /// <param name="Quantity">The quantity.</param>
-    /// <param name="DirectUnitCost">The direct unit cost.</param>
-    /// <param name="UnitOfMeasureCode">The unit of measure code.</param>
     procedure AddSamplePurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; UnitOfMeasureCode: Code[10])
     begin
         AddSamplePurchaseLine(LineType, No, '', Description, Quantity, DirectUnitCost, '', UnitOfMeasureCode);
@@ -100,13 +83,6 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     /// <summary>
     /// Adds a sample purchase invoice line.
     /// </summary>
-    /// <param name="LineType">The line type.</param>
-    /// <param name="No">The item/G/L account number.</param>
-    /// <param name="TaxGroupCode">The tax group code.</param>
-    /// <param name="Description">The description.</param>
-    /// <param name="Quantity">The quantity.</param>
-    /// <param name="DirectUnitCost">The direct unit cost.</param>
-    /// <param name="UnitOfMeasureCode">The unit of measure code.</param>
     procedure AddSamplePurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; TaxGroupCode: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; UnitOfMeasureCode: Code[10])
     begin
         AddSamplePurchaseLine(LineType, No, TaxGroupCode, Description, Quantity, DirectUnitCost, '', UnitOfMeasureCode);
@@ -115,14 +91,6 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     /// <summary>
     /// Adds a sample purchase invoice line.
     /// </summary>
-    /// <param name="LineType">The line type.</param>
-    /// <param name="No">The item/G/L account number.</param>
-    /// <param name="TaxGroupCode">The tax group code.</param>
-    /// <param name="Description">The description.</param>
-    /// <param name="Quantity">The quantity.</param>
-    /// <param name="DirectUnitCost">The direct unit cost.</param>
-    /// <param name="DeferralCode">The deferral code.</param>
-    /// <param name="UnitOfMeasureCode">The unit of measure code.</param>
     procedure AddSamplePurchaseLine(LineType: Enum "Purchase Line Type"; No: Code[20]; TaxGroupCode: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
     var
         Item: Record Item;
@@ -136,7 +104,7 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
         TempSamplePurchInvLine."Line No." += 10000;
         TempSamplePurchInvLine.Type := LineType;
         TempSamplePurchInvLine."No." := No;
-        TempSamplePurchInvLine."Tax Group Code" := TaxGroupCode; // TODO: Looks like i do not need this
+        TempSamplePurchInvLine."Tax Group Code" := TaxGroupCode;
         TempSamplePurchInvLine.Description := Description;
         if TempSamplePurchInvLine.Description = '' then
             case LineType of
@@ -168,7 +136,7 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     end;
 
     /// <summary>
-    /// Generates sample invoices in PDF format and stores them in the "E-Doc Sample Purch. Inv File" table.
+    /// Generates sample invoices in PDF format based on added headers and lines and stores them in the "E-Doc Sample Purch. Inv File" table.
     /// </summary>
     procedure Generate()
     var

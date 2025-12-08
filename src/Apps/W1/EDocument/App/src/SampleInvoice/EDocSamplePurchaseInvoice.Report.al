@@ -10,8 +10,7 @@ using Microsoft.Inventory.Location;
 using System.Utilities;
 
 /// <summary>
-/// Report for generating sample purchase invoice PDFs using temporary tables.
-/// This report is independent from the standard Purchase - Invoice report (Report 406).
+/// Report for generating sample purchase invoice PDFs
 /// </summary>
 report 6102 "E-Doc Sample Purchase Invoice"
 {
@@ -281,7 +280,7 @@ report 6102 "E-Doc Sample Purchase Invoice"
         VendorInvoiceNoLbl: Label 'Vendor Invoice No.';
 
     /// <summary>
-    /// Sets the data for the report from external temporary tables.
+    /// Sets the data for the report from temporary tables.
     /// </summary>
     /// <param name="TempHeader">Temporary header record to use.</param>
     /// <param name="TempLines">Temporary line records to use.</param>

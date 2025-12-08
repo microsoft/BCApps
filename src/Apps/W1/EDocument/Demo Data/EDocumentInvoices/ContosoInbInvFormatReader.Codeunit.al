@@ -11,10 +11,9 @@ using System.Utilities;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 /// <summary>
-/// Custom implementation of IStructuredFormatReader interface for demo data
-/// This codeunit demonstrates how to read structured e-document data and populate draft records
+/// Implementation of IStructuredFormatReader for Contoso Inbound E-Document invoices.
 /// </summary>
-codeunit 5392 "Demo Invoice Format Reader" implements IStructuredFormatReader
+codeunit 5392 "Contoso Inb.Inv. Format Reader" implements IStructuredFormatReader
 {
     Access = Internal;
     InherentEntitlements = X;
