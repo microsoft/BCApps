@@ -107,17 +107,15 @@ page 4315 "Agent Card"
                     end;
                 }
             }
-
             part(Permissions; "User Subform")
             {
-                Editable = ControlsEditable;
+                Editable = false;
                 ApplicationArea = Basic, Suite;
-                Caption = 'Agent Permission Sets';
+                Caption = 'Agent Permissions';
                 SubPageLink = "User Security ID" = field("User Security ID");
             }
             part(UserAccess; "Agent Access Control")
             {
-                Editable = ControlsEditable;
                 ApplicationArea = Basic, Suite;
                 Caption = 'User Access';
                 SubPageLink = "Agent User Security ID" = field("User Security ID");
@@ -209,8 +207,6 @@ page 4315 "Agent Card"
             UserSettings.GetUserSettings(Rec."User Security ID", UserSettingsRecord);
             ProfileDisplayName := UserSettings.GetProfileName(UserSettingsRecord);
         end;
-
-        ControlsEditable := Rec.State = Rec.State::Disabled;
     end;
 
     local procedure ChangeState()
@@ -252,7 +248,6 @@ page 4315 "Agent Card"
         UserSettingsRecord: Record "User Settings";
         Language: Codeunit Language;
         ProfileDisplayName: Text;
-        ControlsEditable: Boolean;
         ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions.\\Do you want to continue?';
         OpenConfigurationPageQst: Label 'To activate the agent, use the setup page. Would you like to open this page now?';
         YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to set up and activate the agent.';

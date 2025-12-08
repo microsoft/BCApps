@@ -44,6 +44,12 @@ page 4321 "Select Agent Access Control"
                     ToolTip = 'Specifies the Full Name of the User that can access the agent.';
                     Editable = false;
                 }
+                field(Company; CompanyName)
+                {
+                    Caption = 'Company';
+                    ToolTip = 'Specifies the company in which the user can access the agent.';
+                    Visible = ShowCompanyField;
+                }
                 field(CanConfigureAgent; Rec."Can Configure Agent")
                 {
                     Caption = 'Can configure';
@@ -55,6 +61,33 @@ page 4321 "Select Agent Access Control"
                             VerifyOwnerExists();
                     end;
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(AgentShowHideCompany)
+            {
+                ApplicationArea = All;
+                Caption = 'Show/hide company';
+                Image = CompanyInformation;
+                ToolTip = 'Show or hide the company name.';
+
+                trigger OnAction()
+                begin
+                    // if (not ShowCompanyField and (GlobalSingleCompanyName <> '')) then
+                    //     // A confirmation dialog is raised when the user shows the company field
+                    //     // for an agent that operates in a single company.
+                    //     if not Confirm(ShowSingleCompanyQst, false) then
+                    //         exit;
+
+                    // ShowCompanyFieldOverride := true;
+                    ShowCompanyField := not ShowCompanyField;
+                    CurrPage.Update(false);
+                end;
             }
         }
     }
@@ -172,8 +205,10 @@ page 4321 "Select Agent Access Control"
     end;
 
     var
+        CompanyName: Text[50]; // TEMP
         UserFullName: Text[80];
         UserName: Code[50];
+        ShowCompanyField: Boolean;
         AgentUserSecurityID: Guid;
         OneOwnerMustBeDefinedForAgentErr: Label 'One owner must be defined for the agent.';
 }
