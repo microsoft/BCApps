@@ -94,6 +94,7 @@ table 30141 "Shpfy Return Line"
         field(13; "Presentment Disc. Total Amt."; Decimal)
         {
             Caption = 'Presentment Discounted Total Amount';
+            ToolTip = 'Specifies the total line price in the presentment currency after all discounts on the line item, including both line item level discounts and code-based line item discounts, are applied.';
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
