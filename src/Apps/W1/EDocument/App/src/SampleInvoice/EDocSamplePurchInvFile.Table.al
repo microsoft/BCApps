@@ -8,6 +8,8 @@ table 6120 "E-Doc Sample Purch. Inv File"
 {
     Caption = 'E-Doc Sample Purchase Invoice File';
     DataClassification = CustomerContent;
+    LookupPageId = "E-Doc Sample Purch. Inv. Files";
+    DrillDownPageId = "E-Doc Sample Purch. Inv. Files";
 
     fields
     {
@@ -18,6 +20,15 @@ table 6120 "E-Doc Sample Purch. Inv File"
         field(2; "File Content"; Blob)
         {
             Caption = 'File Content';
+        }
+        field(3; Scenario; Text[2048])
+        {
+            Caption = 'Scenario';
+        }
+        field(4; "Vendor Name"; Text[1024])
+        {
+            Caption = 'Vendor Name';
+            ToolTip = 'Specifies the name of the vendor associated with the demo file.';
         }
     }
 }

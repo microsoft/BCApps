@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -72,3 +73,4 @@ codeunit 5428 "E-Doc ADI Handler Mock" implements IStructureReceivedEDocument, I
     end;
 
 }
+#endif

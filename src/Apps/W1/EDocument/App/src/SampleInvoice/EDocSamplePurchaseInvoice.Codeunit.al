@@ -39,11 +39,12 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     end;
 
     /// <summary>
-    /// Adds a sample purchase invoice header.
+    /// Adds a sample purchase invoice.
     /// </summary>
-    procedure AddSamplePurchaseHeader(VendorNo: Code[20]; ExternalDocNo: Text[35])
+    procedure AddSamplePurchaseInvoice(VendorNo: Code[20]; ExternalDocNo: Text[35]; Scenario: Text[2048])
     var
         Vendor: Record Vendor;
+        SamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
     begin
         if TempSamplePurchInvHdr."No." = '' then
             TempSamplePurchInvHdr."No." := '1'
@@ -61,6 +62,9 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
         TempSamplePurchInvHdr."Posting Date" := GetSampleInvoicePostingDate();
         TempSamplePurchInvHdr."Due Date" := GetSampleInvoicePostingDate();
         TempSamplePurchInvHdr.Insert();
+        SamplePurchInvFile."File Name" := GetSamplePurchInvFileName();
+        SamplePurchInvFile.Scenario := Scenario;
+        SamplePurchInvFile.Insert();
         Clear(TempSamplePurchInvLine);
     end;
 
@@ -163,12 +167,18 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
             if TempBlob.Length() = 0 then
                 error(GeneratedPdfIsEmptyErr);
 
-            SamplePurchInvFile.Init();
-            SamplePurchInvFile."File Name" := CopyStr(TempSamplePurchInvHdr."Vendor Invoice No.", 1, MaxStrLen(SamplePurchInvFile."File Name"));
+            SamplePurchInvFile.Get(GetSamplePurchInvFileName());
             TempBlob.CreateInStream(InStream);
             SamplePurchInvFile."File Content".CreateOutStream(OutStream);
             Copystream(OutStream, InStream);
-            SamplePurchInvFile.Insert();
+            SamplePurchInvFile.Modify();
         until TempSamplePurchInvHdr.Next() = 0;
+    end;
+
+    local procedure GetSamplePurchInvFileName(): Text[100]
+    var
+        SamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
+    begin
+        exit(CopyStr(TempSamplePurchInvHdr."Vendor Invoice No.", 1, MaxStrLen(SamplePurchInvFile."File Name")))
     end;
 }
