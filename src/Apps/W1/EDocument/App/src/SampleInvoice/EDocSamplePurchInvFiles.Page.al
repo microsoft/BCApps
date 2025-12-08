@@ -4,9 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
-using System.Utilities;
-using System.IO;
-
 /// <summary>
 /// Page for viewing and downloading sample purchase invoice files.
 /// </summary>
@@ -29,13 +26,20 @@ page 6132 "E-Doc Sample Purch. Inv. Files"
             repeater(General)
             {
                 Caption = 'General';
-                field("File Name"; Rec."File Name")
+                field("Vendor Name"; Rec."Vendor Name")
                 {
-                    ToolTip = 'Specifies the file name.';
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the name of the vendor associated with the demo file.';
                 }
                 field(Scenario; Rec.Scenario)
                 {
+                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the scenario.';
+                }
+                field("File Name"; Rec."File Name")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the file name.';
                 }
             }
         }
@@ -71,15 +75,16 @@ page 6132 "E-Doc Sample Purch. Inv. Files"
 
     local procedure DownloadAndViewFile()
     var
-        TempBlob: Codeunit "Temp Blob";
-        FileManagement: Codeunit "File Management";
+        InStream: InStream;
+        FileName: Text;
+        DownloadingSampleFileLbl: Label 'Downloading sample file...';
     begin
         Rec.TestField("File Name");
         Rec.CalcFields("File Content");
-        if Rec."File Content".HasValue() then begin
-            TempBlob.FromRecord(Rec, Rec.FieldNo("File Content"));
-            FileManagement.BLOBExport(TempBlob, Rec."File Name" + '.pdf', false);
-        end else
-            Error(NoFileContentErr);
+        if not Rec."File Content".HasValue() then
+            error(NoFileContentErr);
+        Rec."File Content".CreateInStream(InStream);
+        FileName := Rec."File Name" + '.pdf';
+        DownloadFromStream(InStream, DownloadingSampleFileLbl, '', '', FileName);
     end;
 }

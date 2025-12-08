@@ -64,6 +64,7 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
         TempSamplePurchInvHdr.Insert();
         SamplePurchInvFile."File Name" := GetSamplePurchInvFileName();
         SamplePurchInvFile.Scenario := Scenario;
+        SamplePurchInvFile."Vendor Name" := TempSamplePurchInvHdr."Pay-to Name";
         SamplePurchInvFile.Insert();
         Clear(TempSamplePurchInvLine);
     end;
