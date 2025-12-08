@@ -191,19 +191,19 @@ codeunit 5429 "Contoso Inbound E-Document"
     local procedure SaveSamplePurchInvReportToPDF() TempBlob: Codeunit "Temp Blob"
     var
         PurchLine: Record "Purchase Line";
-        EDocSamplePurchInvRunner: Codeunit "E-Doc Sample Purch.Inv. Runner";
+        EDocSamplePurchInvPDF: Codeunit "E-Doc Sample Purch.Inv. PDF";
         CannotGeneratePdfLbl: Label 'Failed to generate PDF for Sample Purchase Invoice %1', Comment = '%1 = Purchase Invoice No.';
     begin
-        EDocSamplePurchInvRunner.TransferFromPurchHeader(PurchHeader);
+        EDocSamplePurchInvPDF.TransferFromPurchHeader(PurchHeader);
 
         PurchLine.SetRange("Document Type", PurchHeader."Document Type");
         PurchLine.SetRange("Document No.", PurchHeader."No.");
         if PurchLine.FindSet() then
             repeat
-                EDocSamplePurchInvRunner.TransferFromPurchLine(PurchLine);
+                EDocSamplePurchInvPDF.TransferFromPurchLine(PurchLine);
             until PurchLine.Next() = 0;
 
-        TempBlob := EDocSamplePurchInvRunner.GeneratePDF();
+        TempBlob := EDocSamplePurchInvPDF.GeneratePDF();
         if TempBlob.Length() = 0 then
             Error(CannotGeneratePdfLbl, PurchHeader."No.");
     end;

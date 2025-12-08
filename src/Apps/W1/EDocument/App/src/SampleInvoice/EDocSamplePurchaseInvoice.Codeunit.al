@@ -15,7 +15,7 @@ using Microsoft.Foundation.UOM;
 /// <summary>
 /// The purpose of the codeunit is to compose sample purchase invoice data for PDF generation.
 /// </summary>
-codeunit 6209 "E-Doc Sample Invoice Generator"
+codeunit 6209 "E-Doc Sample Purchase Invoice"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -173,7 +173,7 @@ codeunit 6209 "E-Doc Sample Invoice Generator"
     procedure Generate()
     var
         SamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
-        SamplePurchInvRunner: Codeunit "E-Doc Sample Purch.Inv. Runner";
+        SamplePurchInvPDF: Codeunit "E-Doc Sample Purch.Inv. PDF";
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
         OutStream: OutStream;
@@ -183,15 +183,15 @@ codeunit 6209 "E-Doc Sample Invoice Generator"
             exit;
 
         repeat
-            Clear(SamplePurchInvRunner);
-            SamplePurchInvRunner.AddHeader(TempSamplePurchInvHdr);
+            Clear(SamplePurchInvPDF);
+            SamplePurchInvPDF.AddHeader(TempSamplePurchInvHdr);
             TempSamplePurchInvLine.SetRange("Document No.", TempSamplePurchInvHdr."No.");
             if TempSamplePurchInvLine.FindSet() then
                 repeat
-                    SamplePurchInvRunner.AddLine(TempSamplePurchInvLine);
+                    SamplePurchInvPDF.AddLine(TempSamplePurchInvLine);
                 until TempSamplePurchInvLine.Next() = 0;
 
-            TempBlob := SamplePurchInvRunner.GeneratePDF();
+            TempBlob := SamplePurchInvPDF.GeneratePDF();
             if TempBlob.Length() = 0 then
                 error(GeneratedPdfIsEmptyErr);
 
