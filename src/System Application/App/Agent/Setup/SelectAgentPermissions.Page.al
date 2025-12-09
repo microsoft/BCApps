@@ -24,7 +24,7 @@ page 4322 "Select Agent Permissions"
             group(Info)
             {
                 ShowCaption = false;
-                InstructionalText = 'During task execution, the agent permissions are intersected with the permissions of the user creating or approving the task. The agent can then only operate within the boundaries of both permission sets.';
+                InstructionalText = 'Agent tasks use permissions shared by both the agent and the task creator/approver.';
             }
 
             part(Permissions; "User Subform")
@@ -35,9 +35,4 @@ page 4322 "Select Agent Permissions"
             }
         }
     }
-
-    trigger OnOpenPage()
-    begin
-        CurrPage.Permissions.Page.SetAgentPermissionEditMode();
-    end;
 }

@@ -107,7 +107,7 @@ page 4315 "Agent Card"
                     end;
                 }
             }
-            part(Permissions; "User Subform")
+            part(Permissions; "Show Agent Permissions")
             {
                 Editable = false;
                 ApplicationArea = Basic, Suite;

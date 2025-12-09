@@ -24,38 +24,6 @@ pageextension 4318 "Agent User Subform" extends "User Subform"
     {
         addlast(Processing)
         {
-            action(EditPermissions)
-            {
-                ApplicationArea = All;
-                Caption = 'Edit agent permissions';
-                Enabled = IsAgent and (not IsAgentPermissionEditMode);
-                Image = Edit;
-                ToolTip = 'Edit the permission sets assigned to this agent.';
-                Visible = IsAgent and (not IsAgentPermissionEditMode);
-
-                trigger OnAction()
-                var
-                    Agent: Record Agent;
-                    SelectAgentPermissions: Page "Select Agent Permissions";
-                begin
-                    if not Agent.Get(Rec."User Security ID") then
-                        exit;
-
-                    if Agent.State <> Agent.State::Disabled then
-                        if not Confirm(DeactivateAgentToEditPermissionsQst, false) then
-                            exit
-                        else begin
-                            Agent.State := Agent.State::Disabled;
-                            Agent.Modify(true);
-                            Commit();
-                        end;
-
-                    SelectAgentPermissions.SetRecord(Agent);
-                    SelectAgentPermissions.RunModal();
-                    CurrPage.Update(false);
-                end;
-            }
-
             action(AgentShowHideCompany)
             {
                 ApplicationArea = All;
@@ -67,7 +35,7 @@ pageextension 4318 "Agent User Subform" extends "User Subform"
 
                 trigger OnAction()
                 begin
-                    if IsAgentPermissionEditMode and (not ShowCompanyField and (GlobalSingleCompanyName <> '')) then
+                    if (not ShowCompanyField and (GlobalSingleCompanyName <> '')) then
                         // A confirmation dialog is raised when the user shows the company field
                         // for an agent that operates in a single company.
                         if not Confirm(ShowSingleCompanyQst, false) then
@@ -111,11 +79,6 @@ pageextension 4318 "Agent User Subform" extends "User Subform"
         end;
     end;
 
-    internal procedure SetAgentPermissionEditMode()
-    begin
-        IsAgentPermissionEditMode := true;
-    end;
-
     local procedure UpdateGlobalVariables()
     var
         User: Record User;
@@ -149,10 +112,8 @@ pageextension 4318 "Agent User Subform" extends "User Subform"
 
     var
         IsAgent: Boolean;
-        IsAgentPermissionEditMode: Boolean;
         ShowCompanyField: Boolean;
         ShowCompanyFieldOverride: Boolean;
         GlobalSingleCompanyName: Text[30];
         ShowSingleCompanyQst: Label 'This agent currently has permissions in only one company. By showing the Company field, you will be able to assign permissions in other companies, making the agent available there. The agent may not have been designed to work cross companies.\\Do you want to continue?';
-        DeactivateAgentToEditPermissionsQst: Label 'Permissions can only be edited for inactive agents. Do you want to make the agent inactive now?';
 }
