@@ -38,6 +38,6 @@ page 4322 "Select Agent Permissions"
 
     trigger OnOpenPage()
     begin
-        CurrPage.Permissions.Page.HideEditPermissionsAction();
+        CurrPage.Permissions.Page.SetAgentPermissionEditMode();
     end;
 }

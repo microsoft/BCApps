@@ -27,11 +27,11 @@ pageextension 4318 "Agent User Subform" extends "User Subform"
             action(EditPermissions)
             {
                 ApplicationArea = All;
-                Caption = 'Edit Permissions';
-                Enabled = IsAgent and ShowEditPermissionsAction;
+                Caption = 'Edit agent permissions';
+                Enabled = IsAgent and (not IsAgentPermissionEditMode);
                 Image = Edit;
-                ToolTip = 'Edit the permission sets assigned to this user.';
-                Visible = IsAgent and ShowEditPermissionsAction;
+                ToolTip = 'Edit the permission sets assigned to this agent.';
+                Visible = IsAgent and (not IsAgentPermissionEditMode);
 
                 trigger OnAction()
                 var
@@ -67,7 +67,7 @@ pageextension 4318 "Agent User Subform" extends "User Subform"
 
                 trigger OnAction()
                 begin
-                    if (not ShowCompanyField and (GlobalSingleCompanyName <> '')) and not ShowEditPermissionsAction then
+                    if IsAgentPermissionEditMode and (not ShowCompanyField and (GlobalSingleCompanyName <> '')) then
                         // A confirmation dialog is raised when the user shows the company field
                         // for an agent that operates in a single company.
                         if not Confirm(ShowSingleCompanyQst, false) then
@@ -111,10 +111,9 @@ pageextension 4318 "Agent User Subform" extends "User Subform"
         end;
     end;
 
-    internal procedure HideEditPermissionsAction()
+    internal procedure SetAgentPermissionEditMode()
     begin
-        ShowEditPermissionsAction := false;
-        EditPermissionsActionHidden := true;
+        IsAgentPermissionEditMode := true;
     end;
 
     local procedure UpdateGlobalVariables()
@@ -125,9 +124,6 @@ pageextension 4318 "Agent User Subform" extends "User Subform"
             IsAgent := User."License Type" = User."License Type"::Agent
         else
             IsAgent := false;
-
-        if not EditPermissionsActionHidden then
-            ShowEditPermissionsAction := IsAgent;
 
         if not ShowCompanyFieldOverride then begin
             ShowCompanyField := not AccessControlForSingleCompany(GlobalSingleCompanyName);
@@ -153,8 +149,7 @@ pageextension 4318 "Agent User Subform" extends "User Subform"
 
     var
         IsAgent: Boolean;
-        ShowEditPermissionsAction: Boolean;
-        EditPermissionsActionHidden: Boolean;
+        IsAgentPermissionEditMode: Boolean;
         ShowCompanyField: Boolean;
         ShowCompanyFieldOverride: Boolean;
         GlobalSingleCompanyName: Text[30];
