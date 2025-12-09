@@ -1,0 +1,151 @@
+table 'Warehouse Journal Lines (From Bin)'
+	isHidden
+	lineageTag: d19e50a3-bb68-476a-a857-3028252f6a6d
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: b2d1e481-d829-4388-bcb5-1a8dede1d4da
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: 2730f2f8-2b61-456a-913c-7197fe543222
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column qtyBase
+		dataType: double
+		isHidden
+		lineageTag: 306e93c3-0cab-4427-b1af-7cc6ede890e1
+		summarizeBy: sum
+		sourceColumn: qtyBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'From Bin Key'
+		dataType: string
+		isHidden
+		lineageTag: 51413068-ddd9-4357-8cdc-51cdd64f7888
+		summarizeBy: none
+		sourceColumn: From Bin Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Zone Key'
+		dataType: string
+		isHidden
+		lineageTag: 14d3e780-d5f2-4251-90d9-8ccd9ae5e59d
+		summarizeBy: none
+		sourceColumn: Zone Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Lot Key'
+		dataType: string
+		isHidden
+		lineageTag: f0f67a11-d2b3-4093-810e-37ec72cf4e3f
+		summarizeBy: none
+		sourceColumn: Lot Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Serial Key'
+		dataType: string
+		isHidden
+		lineageTag: e1c96676-0106-44a8-873d-4aa8ac9a2172
+		summarizeBy: none
+		sourceColumn: Serial Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column qtyPerUnitOfMeasure
+		dataType: double
+		lineageTag: a8ed8da5-5b63-4534-a536-fd065f222cd0
+		summarizeBy: sum
+		sourceColumn: qtyPerUnitOfMeasure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column unitOfMeasureCode
+		dataType: string
+		lineageTag: 3d1b30e2-2cc1-4413-986b-ce1ec9d9e6c3
+		summarizeBy: none
+		sourceColumn: unitOfMeasureCode
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Warehouse Journal Lines (From Bin)' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="fromBinWarehouseJournalLines",Signature="table"]}[Data],
+				    #"Removed Columns" = Table.RemoveColumns(TableData, {"ETag"}),
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        #"Removed Columns",
+				        {
+				            {"fromBinCode", type text},
+				            {"itemNo", type text},
+				            {"locationCode", type text},
+				            {"qtyBase", type number},
+				            {"lotNo", type text},
+				            {"serialNo", type text},
+				            {"fromZoneCode", type text},
+				            {"qtyPerUnitOfMeasure", type number},
+				            {"unitOfMeasureCode", type text}
+				        }
+				    ),
+				    #"Added Bin Key" = Table.AddColumn(
+				        #"Changed Type",
+				        "From Bin Key",
+				        each if [fromBinCode] = "" then "" else [fromBinCode] & "(" & [locationCode] & ")",
+				        type text
+				    ),
+				    #"Added Zone Key" = Table.AddColumn(
+				        #"Added Bin Key",
+				        "Zone Key",
+				        each if [fromZoneCode] = "" then "" else [fromZoneCode] & "(" & [locationCode] & ")",
+				        type text
+				    ),
+				    #"Added Lot Key" = Table.AddColumn(
+				        #"Added Zone Key", "Lot Key", each if [lotNo] = "" then "" else [itemNo] & [lotNo], type text
+				    ),
+				    #"Added Serial Key" = Table.AddColumn(
+				        #"Added Lot Key", "Serial Key", each if [serialNo] = "" then "" else [itemNo] & [serialNo], type text
+				    ),
+				    #"Removed Columns2" = Table.RemoveColumns(
+				        #"Added Serial Key", {"lotNo", "serialNo", "fromBinCode", "fromZoneCode"}
+				    )
+				in
+				    #"Removed Columns2"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

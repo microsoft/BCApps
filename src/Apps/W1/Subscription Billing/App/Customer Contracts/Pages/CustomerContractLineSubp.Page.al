@@ -138,6 +138,7 @@ page 8068 "Customer Contract Line Subp."
                     Caption = 'Quantity';
                     ToolTip = 'Specifies the number of units of Subscription.';
                     AutoFormatType = 0;
+                    DecimalPlaces = 0 : 5;
 
                     trigger OnValidate()
                     begin

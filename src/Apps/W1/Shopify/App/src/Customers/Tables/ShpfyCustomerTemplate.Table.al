@@ -5,8 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using System.IO;
 using Microsoft.Sales.Customer;
+using System.IO;
 
 /// <summary>
 /// Table Shpfy Customer Template (ID 30107).

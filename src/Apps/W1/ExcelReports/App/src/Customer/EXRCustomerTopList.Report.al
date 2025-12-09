@@ -5,8 +5,8 @@
 
 namespace Microsoft.Sales.ExcelReports;
 
-using Microsoft.Sales.Customer;
 using Microsoft.ExcelReports;
+using Microsoft.Sales.Customer;
 
 report 4409 "EXR Customer Top List"
 {

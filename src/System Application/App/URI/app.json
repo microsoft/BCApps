@@ -16,6 +16,12 @@
       "name": "DotNet Aliases",
       "publisher": "Microsoft",
       "version": "28.0.0.0"
+    },
+    {
+      "id": "b185fd4a-677b-48d3-a701-768de7563df0",
+      "name": "Regex",
+      "publisher": "Microsoft",
+      "version": "28.0.0.0"
     }
   ],
   "screenshots": [],

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
-using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.EServices.EDocument.Format;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
 
 enumextension 5405 "ADI Mock Struct Receive E-Doc." extends "Structure Received E-Doc."
 {

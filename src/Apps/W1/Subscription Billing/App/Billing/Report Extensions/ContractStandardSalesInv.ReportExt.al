@@ -1,10 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Sales.History;
-using System.Utilities;
-using System.Text;
 using Microsoft.Projects.Project.Ledger;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.History;
+using System.Text;
+using System.Utilities;
 
 reportextension 8008 "Contract Standard Sales Inv." extends "Standard Sales - Invoice"
 {

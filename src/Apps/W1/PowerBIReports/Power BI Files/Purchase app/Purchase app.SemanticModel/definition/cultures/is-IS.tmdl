@@ -1,0 +1,1501 @@
+cultureInfo is-IS
+	translations
+		model Model
+			table Item
+				caption: Vara
+				column 'Item No. & Description'
+					caption: Vörunr. og lýsing
+				column 'Item No.'
+					caption: Vörunr.
+				column 'Item Description'
+					caption: Lýsing atriðis
+				column 'Item Base Unit of Measure'
+					caption: Grunnmælieining
+				column 'Item Unit Cost (LCY)'
+					caption: Kostn.verð vöru (SGM)
+				column 'Item Inventory Posting Group'
+					caption: Birgðabókunarflokkur
+				column 'Item Category Code'
+					caption: Vöruflokkskóði
+				column 'Item Category Description'
+					caption: Lýsing vöruflokks
+			table Location
+				caption: Staðsetning
+				column 'Location Code'
+					caption: Staðsetningarkóði
+				column 'Location Name'
+					caption: Heiti staðsetningar
+				column 'Location Adjustment Bin Code'
+					caption: Hólfakóði staðsetningarleiðréttingar
+			table Vendor
+				caption: Lánardrottinn
+				column 'Vendor No. & Name'
+					caption: Númer og nafn lánardrottins
+				column 'Vendor No.'
+					caption: Nr. lánardrottins
+				column 'Vendor Name'
+					caption: Nafn lánardrottins
+				column 'Vendor Address'
+					caption: Heimilisfang lánardrottins
+				column 'Vendor Address 2'
+					caption: Annað aðsetur lánardr.
+				column 'Vendor City'
+					caption: Borg lánardr.
+				column 'Vendor Post Code'
+					caption: Póstnúmer lánardr.
+				column 'Vendor State'
+					caption: Staða lánardrottins
+				column 'Vendor Country/Region Code'
+					caption: Lands-/svæðiskóði lánardr.
+				column 'Vendor Posting Group'
+					caption: Bókunarflokkur lánardr.
+			table Purchaser
+				caption: Innkaupaaðili
+				column 'Purchaser Code'
+					caption: Kóði innkaupaaðila
+				column 'Purchaser Name'
+					caption: Nafn kaupanda
+			table 'Dimension Sets'
+				caption: Víddasamstæður
+				column 'Global Dimension 1'
+					caption: Altæk vídd 1
+				column 'Global Dimension 2'
+					caption: Altæk vídd 2
+				column 'Shortcut Dimension 3'
+					caption: Flýtivídd 3
+				column 'Shortcut Dimension 4'
+					caption: Flýtivídd 4
+				column 'Shortcut Dimension 5'
+					caption: Flýtivídd 5
+				column 'Shortcut Dimension 6'
+					caption: Flýtivídd 6
+				column 'Shortcut Dimension 7'
+					caption: Flýtivídd 7
+				column 'Shortcut Dimension 8'
+					caption: Flýtivídd 8
+				column id
+					caption: auðkenni
+			table 'Purchase Budget'
+				caption: Innkaupaáætlun
+				column 'Entry No.'
+					caption: Færslunr.
+				column 'Budget Name'
+					caption: Heiti áætlunar
+				column Date
+					caption: Dagsetning
+				measure 'Budget Amount'
+					caption: Upphæð áætlunar
+				measure 'Budget Quantity'
+					caption: Áætlað magn
+				measure 'Budget Quantity Variance'
+					caption: Áætlað magn Frávik
+				measure 'Budget Amount Variance'
+					caption: Áætluð upphæð Frávik
+				measure 'Budget Amount Variance %'
+					caption: Áætluð upphæð Frávik %
+				measure 'Budget Quantity Variance %'
+					caption: Áætlað magn Frávik %
+			table Date
+				caption: Dagsetning
+				column 'Week Day'
+					caption: Vikudagur
+				column 'Calendar Year'
+					caption: Almanaksár
+				column 'Calendar Quarter'
+					caption: Dagatal Ársfjórðungur
+				column 'Calendar Quarter Year'
+					caption: Dagatal Ársfjórðungur Ár
+				column 'Calendar Month'
+					caption: Almanaksmánuður
+				column 'Calendar Month Year'
+					caption: Almanaksmánuður Ár
+				column 'Calendar Week'
+					caption: Almanaksvika
+				column 'Calendar Week Year'
+					caption: Almanaksvika Ár
+				column 'Calendar RelativeWeekPos'
+					caption: Dagatal TengtVikaJákv
+				column 'Calendar RelativeMonthPos'
+					caption: Dagatal TengtMánuðurJákv
+				column 'Calendar RelativeQuarterPos'
+					caption: Dagatal TengtÁrsfjórðungurJákv
+				column 'Calendar RelativeYearPos'
+					caption: Dagatal TengtÁrJákv
+				column 'Calendar StartOfMonth'
+					caption: Dagatal Upphafmánaðar
+				column 'Calendar EndOfMonth'
+					caption: Dagatal Mánaðarlok
+				column 'Calendar StartOfQuarter'
+					caption: Dagatal UpphafÁrsfjórðungs
+				column 'Calendar EndOfQuarter'
+					caption: Dagatal Ársfjórðungslok
+				column 'Calendar StartOfYear'
+					caption: Dagatal Upphafárs
+				column 'Calendar EndOfYear'
+					caption: Dagatal Árslok
+				column 'Calendar MonthDays'
+					caption: Dagatal MánuðurDagur
+				column 'Calendar QuarterDays'
+					caption: Dagatal ÁrsfjórðungurDagar
+				column 'Calendar YearDays'
+					caption: Dagatal ÁrDagar
+				column 'Calendar DayOfMonthNumber'
+					caption: Dagatal MánaðardagurNúmer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Dagatal DagurÁrsfjórðungurNúmer
+				column 'Calendar DayOfYearNumber'
+					caption: Dagatal DagurÁrsNúmer
+				column 'Calendar DatePreviousWeek'
+					caption: Dagatal DagsetningFyrriVika
+				column 'Calendar DatePreviousMonth'
+					caption: Dagatal DagasetningFyrriMánuður
+				column 'Calendar DatePreviousQuarter'
+					caption: Dagatal DagsetningFyrriFjórðungur
+				column 'Calendar DatePreviousYear'
+					caption: Dagatal DagsetningFyrraÁr
+				column 'Fiscal Year'
+					caption: Reikningsár
+				column 'Fiscal Quarter'
+					caption: Fjórðungur fjárhagsárs
+				column 'Fiscal Quarter Year'
+					caption: Fjárhagsfjórðungur Ár
+				column 'Fiscal Month'
+					caption: Mánuður fjárhagsárs
+				column 'Fiscal Month Year'
+					caption: Reikningsmánuður Ár
+				column 'Fiscal Week'
+					caption: Vika fjárhagsárs
+				column 'Fiscal Week Year'
+					caption: Fjárhagsvik Ár
+				column 'Fiscal RelativeWeekPos'
+					caption: Fjárhagur TengtVikaJákv
+				column 'Fiscal RelativeMonthPos'
+					caption: Fjárhagur TengtMánuðurJákv
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fjárhagur TengtÁrsfjórðungurJákv
+				column 'Fiscal RelativeYearPos'
+					caption: Fjárhagur TengtÁrJákv
+				column 'Fiscal StartOfMonth'
+					caption: Fjárhagur Upphafmánaðar
+				column 'Fiscal EndOfMonth'
+					caption: Fjárhagur Mánaðarlok
+				column 'Fiscal StartOfQuarter'
+					caption: Fjárhagur UpphafÁrsfjórðungs
+				column 'Fiscal EndOfQuarter'
+					caption: Fjárhagur Ársfjórðungslok
+				column 'Fiscal StartOfYear'
+					caption: Fjárhagur Upphafárs
+				column 'Fiscal EndOfYear'
+					caption: Fjárhagur Árslok
+				column 'Fiscal MonthDays'
+					caption: Fjárhagur MánuðurDagur
+				column 'Fiscal QuarterDays'
+					caption: Fjárhagur ÁrsfjórðungurDagar
+				column 'Fiscal YearDays'
+					caption: Reikningsár ÁrDagar
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fjárhagur MánaðardagurNúmer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fjárhagur DagurÁrsfjórðungsNúmer
+				column 'Fiscal DayOfYearNumber'
+					caption: Fjárhagur DagurÁrsNúmer
+				column 'Fiscal DatePreviousWeek'
+					caption: Fjárhagur DagsetningFyrriVika
+				column 'Fiscal DatePreviousMonth'
+					caption: Fjárhagur DagsetningFyrriMánuður
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fjárhagur DagsetningFyrriÁrsfjórðungur
+				column 'Fiscal DatePreviousYear'
+					caption: Fjárhagur DagsetningFyrraÁr
+				column 'FW Year'
+					caption: Fjárhagsvika Ár
+				column 'FW Quarter'
+					caption: Fjárhagsvika Ársfjórðungur
+				column 'FW Quarter Year'
+					caption: Fjárhagsvika Ársfjórðungur Ár
+				column 'FW Month'
+					caption: Fjárhagsvika Mánuður
+				column 'FW Month Year'
+					caption: Fjárhagsvika Mánuður Ár
+				column 'FW Week'
+					caption: Fjárhagsvika Vika
+				column 'FW Period'
+					caption: Fjárhagsvika Tímabil
+				column 'FW Week Year'
+					caption: Fjárhagsvika Vika Ár
+				column 'FW StartOfWeek'
+					caption: Fjárhagsvika UpphafViku
+				column 'FW EndOfWeek'
+					caption: Fjárhagsvika Vikulok
+				column 'FW RelativeWeekPos'
+					caption: Fjárhagsvika TengtVikaJákv
+				column 'FW RelativeMonthPos'
+					caption: Fjárhagsvika TengtMánuðurJákv
+				column 'FW RelativeQuarterPos'
+					caption: Fjárhagsvika TengtÁrsfjórðungurJákv
+				column 'FW RelativeYearPos'
+					caption: Fjárhagsvika TengtÁrJákv
+				column 'FW StartOfMonth'
+					caption: Fjárhagsvika Upphafmánaðar
+				column 'FW EndOfMonth'
+					caption: Fjárhagsvika Mánaðarlok
+				column 'FW StartOfQuarter'
+					caption: Fjárhagsvika UpphafÁrsfjórðungs
+				column 'FW EndOfQuarter'
+					caption: Fjárhagsvika Ársfjórðungslok
+				column 'FW StartOfYear'
+					caption: Fjárhagsvika Upphafárs
+				column 'FW EndOfYear'
+					caption: Fjárhagsvika Árslok
+				column 'FW MonthDays'
+					caption: Fjárhagsvika MánuðurDagar
+				column 'FW QuarterDays'
+					caption: Fjárhagsvika ÁrsfjórðungurDagar
+				column 'FW YearDays'
+					caption: Fjárhagsvika ÁrDagar
+				column 'FW DatePreviousWeek'
+					caption: Fjárhagsvika DagsetningFyrriVika
+				column 'FW DatePreviousMonth'
+					caption: Fjárhagsvika DagsetningFyrriMánuður
+				column 'FW DatePreviousQuarter'
+					caption: Fjárhagsvika DagsetningFyrriÁrsfjórðungur
+				column 'FW DatePreviousYear'
+					caption: Fjárhagsvika DagsetningFyrraÁr
+				column 'Holiday Name'
+					caption: Heiti frídags
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Dagsgerð
+				column 'Relative Day'
+					caption: Tengdur dagur
+				hierarchy 'Fiscal Year-Month'
+					caption: Reikningsár-mánuður
+					level 'Fiscal Year'
+						caption: Reikningsár
+					level 'Fiscal Month Year'
+						caption: Reikningsmánuður Ár
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Reikningsár Ár-Ársfjórðungur-Mánuður-Vika
+					level 'Fiscal Year'
+						caption: Reikningsár
+					level 'Fiscal Quarter Year'
+						caption: Fjárhagsfjórðungur Ár
+					level 'Fiscal Month Year'
+						caption: Reikningsmánuður Ár
+					level 'Fiscal Week Year'
+						caption: Fjárhagsvik Ár
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Reikningsár-Mánuður-Vika
+					level 'Fiscal Year'
+						caption: Reikningsár
+					level 'Fiscal Month Year'
+						caption: Reikningsmánuður Ár
+					level 'Fiscal Week Year'
+						caption: Fjárhagsvik Ár
+				hierarchy 'Calendar Year-Month'
+					caption: Dagatal Ár-Mánuður
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Month Year'
+						caption: Almanaksmánuður Ár
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Dagatal Ár-Ársfjórðungur-Mánuður-Vika
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Quarter Year'
+						caption: Dagatal Ársfjórðungur Ár
+					level 'Calendar Month Year'
+						caption: Almanaksmánuður Ár
+					level 'Calendar Week Year'
+						caption: Almanaksvika Ár
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Dagatal Ár-Mánuður-Vika
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Month Year'
+						caption: Almanaksmánuður Ár
+					level 'Calendar Week Year'
+						caption: Almanaksvika Ár
+				hierarchy 'FW Year-Month-Week'
+					caption: Fjárhagsvika Ár-Mánuður-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Month Year'
+						caption: Fjárhagsvika Mánuður Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Fjárhagsvika Ár-Ársfjórðungur-Mánuður-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Quarter Year'
+						caption: Fjárhagsvika Ársfjórðungur Ár
+					level 'FW Month Year'
+						caption: Fjárhagsvika Mánuður Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Week'
+					caption: Fjárhagsvika Ár-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Fjárhagsvika Ár-Ársfjórðungur-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Quarter Year'
+						caption: Fjárhagsvika Ársfjórðungur Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+			table 'Standard Calendar Time Intelligence'
+				caption: Tímagreind staðlaðs dagatals
+				measure 'Purchase Amount YTD'
+					caption: Innkaupaupphæð Árið til dagsins í dag
+				measure 'Purchase Amount PY'
+					caption: Innkaupaupphæð Fyrra ár
+				measure 'Purchase Amount PYTD'
+					caption: Innkaupaupphæð Fyrra ár til dagsins í dag
+				measure 'Purchase Amount PQTD'
+					caption: Innkaupaupphæð Frá síðasta ársfjórðungi til dagsins í dag
+				measure 'Purchase Amount QTD'
+					caption: Innkaupaupphæð Ársfjórðungur til dagsins í dag
+				measure 'Purchase Amount MTD'
+					caption: Innkaupaupphæð Frá upphafi mánaðar
+				measure 'Purchase Amount YOY %'
+					caption: Innkaupaupphæð Samanburður milli ára %
+				measure 'Purchase Amount YOY'
+					caption: Innkaupaupphæð Samanburður milli ára
+				measure 'Purchase Amount PQ'
+					caption: Innkaupaupphæð Fyrri ársfjórðungur
+				measure 'Purchase Amount QOQ'
+					caption: Innkaupaupphæð Samanburður milli ársfjórðunga
+				measure 'Purchase Amount PM'
+					caption: Innkaupaupphæð Fyrri mánuður
+				measure 'Purchase Amount QOQ %'
+					caption: Innkaupaupphæð Samanburður milli ársfjórðunga %
+				measure 'Purchase Amount MOM'
+					caption: Innkaupaupphæð Samanburður mánaða
+				measure 'Purchase Amount MOM %'
+					caption: Innkaupaupphæð Samanburður mánaða %
+				measure 'Purchase Amount MAT'
+					caption: Innkaupaupphæð Hlaupandi alls yfir árið
+				measure 'Purchase Amount PYMAT'
+					caption: Innkaupaupphæð Fyrra ár hlaupandi heildarsala
+				measure 'Purchase Amount YOYTD'
+					caption: Innkaupaupphæð á milli ára til dagsins í dag
+				measure 'Purchase Amount YOYTD %'
+					caption: Innkaupaupphæð á milli ára til dagsins í dag í %
+				measure 'Purchase Amount PYC'
+					caption: Innkaupaupphæð frá lokum fyrra árs
+				measure 'Purchase Amount YTDOPY'
+					caption: Innkaupaupphæð Frá upphafi árs samanborið við fyrra ár
+				measure 'Purchase Amount YTDOPY %'
+					caption: Innkaupaupphæð Frá upphafi árs samanborið við fyrra ár %
+				measure 'Purchase Amount QOQTD'
+					caption: Innkaupaupphæð á milli ársfjórðunga til dagsins í dag
+				measure 'Purchase Amount QOQTD %'
+					caption: Innkaupaupphæð á milli ársfjórðunga til dagsins í dag í %
+				measure 'Purchase Amount PQC'
+					caption: Innkaupaupphæð frá lokum fyrri ársfjórðungs
+				measure 'Purchase Amount QTDOPQ'
+					caption: Innkaupaupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs
+				measure 'Purchase Amount QTDOPQ %'
+					caption: Innkaupaupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs %
+				measure 'Purchase Amount PMTD'
+					caption: Innkaupaupphæð Frá síðasta mánuði til dagsins í dag
+				measure 'Purchase Amount MOMTD'
+					caption: Innkaupaupphæð á milli mánaða til dagsins í dag
+				measure 'Purchase Amount MOMTD %'
+					caption: Innkaupaupphæð á milli mánaða til dagsins í dag í %
+				measure 'Purchase Amount PMC'
+					caption: Innkaupaupphæð frá lokum fyrri mánaðar
+				measure 'Purchase Amount MTDOPM'
+					caption: Innkaupaupphæð Frá upphafi mánaðar í samanburði við fyrri mánuð
+				measure 'Purchase Amount MTDOPM %'
+					caption: Innkaupaupphæð Frá upphafi mánaðar í samanburði við fyrri mánuð %
+				measure 'Purchase Amount AVG 30D'
+					caption: Innkaupaupphæð Meðaltal 30D
+				measure 'Purchase Amount AVG 3M'
+					caption: Innkaupaupphæð Meðaltal 3M
+				measure 'Purchase Amount AVG 1Y'
+					caption: Innkaupaupphæð Meðaltal 1Á
+				measure 'Purchase Amount MATG'
+					caption: Innkaupaupphæð Hlaupandi vöxtur alls yfir árið
+				measure 'Purchase Amount MATG %'
+					caption: Innkaupaupphæð Hlaupandi vöxtur alls yfir árið %
+				measure 'Purchase Amount PP'
+					caption: Innkaupaupphæð Fyrra tímabil
+				measure 'Purchase Amount POP'
+					caption: Innkaupaupphæð Samanburður milli tímabila
+				measure 'Purchase Amount POP %'
+					caption: Innkaupaupphæð Samanburður milli tímabila %
+				measure 'Purchase Quantity YTD'
+					caption: Innkaupamagn Árið til dagsins í dag
+				measure 'Purchase Quantity PY'
+					caption: Innkaupamagn Fyrra ár
+				measure 'Purchase Quantity PYTD'
+					caption: Innkaupamagn Fyrra ár til dagsins í dag
+				measure 'Purchase Quantity PQTD'
+					caption: Innkaupamagn Frá síðasta ársfjórðungi til dagsins í dag
+				measure 'Purchase Quantity QTD'
+					caption: Innkaupamagn Ársfjórðungur til dagsins í dag
+				measure 'Purchase Quantity MTD'
+					caption: Innkaupamagn Frá upphafi mánaðar
+				measure 'Purchase Quantity YOY %'
+					caption: Innkaupamagn Samanburður milli ára %
+				measure 'Purchase Quantity YOY'
+					caption: Innkaupamagn Samanburður milli ára
+				measure 'Purchase Quantity PQ'
+					caption: Innkaupamagn Fyrri ársfjórðungur
+				measure 'Purchase Quantity QOQ'
+					caption: Innkaupamagn Samanburður milli ársfjórðunga
+				measure 'Purchase Quantity PM'
+					caption: Innkaupamagn Fyrri mánuður
+				measure 'Purchase Quantity QOQ %'
+					caption: Innkaupamagn Samanburður milli ársfjórðunga %
+				measure 'Purchase Quantity MOM'
+					caption: Innkaupamagn Samanburður mánaða
+				measure 'Purchase Quantity MOM %'
+					caption: Innkaupamagn Samanburður mánaða %
+				measure 'Purchase Quantity MAT'
+					caption: Innkaupamagn Hlaupandi alls yfir árið
+				measure 'Purchase Quantity PYMAT'
+					caption: Innkaupamagn Fyrra ár hlaupandi heildarsala
+				measure 'Purchase Quantity YOYTD'
+					caption: Innkaupamagn á milli ára til dagsins í dag
+				measure 'Purchase Quantity YOYTD %'
+					caption: Innkaupamagn á milli ára til dagsins í dag í %
+				measure 'Purchase Quantity PYC'
+					caption: Innkaupamagn frá lokum fyrra árs
+				measure 'Purchase Quantity YTDOPY'
+					caption: Innkaupamagn Frá upphafi árs samanborið við fyrra ár
+				measure 'Purchase Quantity YTDOPY %'
+					caption: Innkaupamagn Frá upphafi árs samanborið við fyrra ár %
+				measure 'Purchase Quantity QOQTD'
+					caption: Innkaupamagn á milli ársfjórðunga til dagsins í dag
+				measure 'Purchase Quantity QOQTD %'
+					caption: Innkaupamagn á milli ársfjórðunga til dagsins í dag í %
+				measure 'Purchase Quantity PQC'
+					caption: Innkaupamagn frá lokum fyrri ársfjórðungs
+				measure 'Purchase Quantity QTDOPQ'
+					caption: Innkaupamagn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs
+				measure 'Purchase Quantity QTDOPQ %'
+					caption: Innkaupamagn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs %
+				measure 'Purchase Quantity PMTD'
+					caption: Innkaupamagn Frá síðasta mánuði til dagsins í dag
+				measure 'Purchase Quantity MOMTD'
+					caption: Innkaupamagn á milli mánaða til dagsins í dag
+				measure 'Purchase Quantity MOMTD %'
+					caption: Innkaupamagn á milli mánaða til dagsins í dag í %
+				measure 'Purchase Quantity PMC'
+					caption: Innkaupamagn frá lokum fyrri mánaðar
+				measure 'Purchase Quantity MTDOPM'
+					caption: Innkaupamagn Upphaf mánaðar samanborið við fyrri mánuð
+				measure 'Purchase Quantity MTDOPM %'
+					caption: Innkaupamagn Upphaf mánaðar samanborið við fyrri mánuð %
+				measure 'Purchase Quantity AVG 30D'
+					caption: Innkaupamagn Meðaltal 30D
+				measure 'Purchase Quantity AVG 3M'
+					caption: Innkaupamagn Meðaltal 3M
+				measure 'Purchase Quantity AVG 1Y'
+					caption: Innkaupamagn Meðaltal 1Á
+				measure 'Purchase Quantity MATG'
+					caption: Innkaupamagn Hlaupandi vöxtur alls yfir árið
+				measure 'Purchase Quantity MATG %'
+					caption: Innkaupamagn Hlaupandi vöxtur alls yfir árið %
+				measure 'Purchase Quantity PP'
+					caption: Innkaupamagn Fyrra tímabil
+				measure 'Purchase Quantity POP'
+					caption: Innkaupamagn Samanburður milli tímabila
+				measure 'Purchase Quantity POP %'
+					caption: Innkaupamagn Samanburður milli tímabila %
+				measure 'Budget Amount YTD'
+					caption: Áætluð upphæð Ár til dagsins í dag
+				measure 'Budget Amount QTD'
+					caption: Áætluð upphæð Ársfjórðungur til dagsins í dag
+				measure 'Budget Amount MTD'
+					caption: Áætluð upphæð Frá upphafi mánaðar
+				measure 'Budget Amount PY'
+					caption: Áætluð upphæð Fyrra ár
+				measure 'Budget Amount YOY %'
+					caption: Áætluð upphæð Samanburður milli ára %
+				measure 'Budget Amount YOY'
+					caption: Áætluð upphæð Samanburður milli ára
+				measure 'Budget Amount PQ'
+					caption: Áætluð upphæð Fyrri ársfjórðungur
+				measure 'Budget Amount QOQ'
+					caption: Áætluð upphæð Samanburður milli ársfjórðunga
+				measure 'Budget Amount PM'
+					caption: Áætluð upphæð Fyrri mánuður
+				measure 'Budget Amount QOQ %'
+					caption: Áætluð upphæð Samanburður milli ársfjórðunga %
+				measure 'Budget Amount MOM'
+					caption: Áætluð upphæð Samanburður mánaða
+				measure 'Budget Amount MOM %'
+					caption: Áætluð upphæð Samanburður mánaða %
+				measure 'Budget Amount PP'
+					caption: Áætluð upphæð Fyrra tímabil
+				measure 'Budget Amount POP'
+					caption: Áætluð upphæð Samanburður milli tímabila
+				measure 'Budget Amount POP %'
+					caption: Áætluð upphæð Samanburður milli tímabila %
+				measure 'Budget Amount PYTD'
+					caption: Áætluð upphæð Fyrra ár til dagsins í dag
+				measure 'Budget Amount PQTD'
+					caption: Áætluð upphæð Frá síðasta ársfjórðungi til dagsins í dag
+				measure 'Budget Amount YOYTD'
+					caption: Áætluð upphæð á milli ára til dagsins í dag
+				measure 'Budget Amount YOYTD %'
+					caption: Áætluð upphæð á milli ára til dagsins í dag í %
+				measure 'Budget Amount QOQTD'
+					caption: Áætluð upphæð á milli ársfjórðunga til dagsins í dag
+				measure 'Budget Amount QOQTD %'
+					caption: Áætluð upphæð á milli ársfjórðunga til dagsins í dag í %
+				measure 'Budget Amount PMTD'
+					caption: Áætluð upphæð Frá síðasta mánuði til dagsins í dag
+				measure 'Budget Amount MOMTD'
+					caption: Áætluð upphæð á milli mánaða til dagsins í dag
+				measure 'Budget Amount MOMTD %'
+					caption: Áætluð upphæð á milli mánaða til dagsins í dag í %
+				measure 'Budget Amount MAT'
+					caption: Áætluð upphæð Síðasta ár alls
+				measure 'Budget Amount PYMAT'
+					caption: Áætluð upphæð Fyrra ár hlaupandi heildarsala
+				measure 'Budget Amount MATG'
+					caption: Áætluð upphæð Hlaupandi vöxtur alls yfir árið
+				measure 'Budget Amount MATG %'
+					caption: Áætluð upphæð Hlaupandi vöxtur alls yfir árið %
+				measure 'Budget Amount PYC'
+					caption: Áætluð upphæð frá lokum fyrra árs
+				measure 'Budget Amount YTDOPY'
+					caption: Áætluð upphæð Frá upphafi árs samanborið við fyrra ár
+				measure 'Budget Amount YTDOPY %'
+					caption: Áætluð upphæð Frá upphafi árs samanborið við fyrra ár %
+				measure 'Budget Amount PQC'
+					caption: Áætluð upphæð frá lokum fyrri ársfjórðungs
+				measure 'Budget Amount QTDOPQ'
+					caption: Áætluð upphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs
+				measure 'Budget Amount QTDOPQ %'
+					caption: Áætluð upphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs %
+				measure 'Budget Amount PMC'
+					caption: Áætluð upphæð frá lokum fyrri mánaðar
+				measure 'Budget Amount MTDOPM'
+					caption: Áætluð upphæð Upphaf mánaðar samanborið við fyrri mánuð
+				measure 'Budget Amount MTDOPM %'
+					caption: Áætluð upphæð Upphaf mánaðar samanborið við fyrri mánuð %
+				measure 'Budget Amount AVG 30D'
+					caption: Áætluð upphæð MEÐALTAL 30D
+				measure 'Budget Amount AVG 3M'
+					caption: Áætluð upphæð MEÐALTAL 3M
+				measure 'Budget Amount AVG 1Y'
+					caption: Áætluð upphæð MEÐALTAL 1Á
+				measure 'Budget Quantity YTD'
+					caption: Áætlað magn Árið til dagsins í dag
+				measure 'Budget Quantity QTD'
+					caption: Áætlað magn Ársfjórðungur til dagsins í dag
+				measure 'Budget Quantity MTD'
+					caption: Áætlað magn Frá upphafi mánaðar
+				measure 'Budget Quantity PY'
+					caption: Áætlað magn Fyrra ár
+				measure 'Budget Quantity YOY %'
+					caption: Áætlað magn Samanburður milli ára %
+				measure 'Budget Quantity YOY'
+					caption: Áætlað magn Samanburður milli ára
+				measure 'Budget Quantity PQ'
+					caption: Áætlað magn Fyrri ársfjórðungur
+				measure 'Budget Quantity QOQ'
+					caption: Áætlað magn Samanburður milli ársfjórðunga
+				measure 'Budget Quantity PM'
+					caption: Áætlað magn Fyrri mánuður
+				measure 'Budget Quantity QOQ %'
+					caption: Áætlað magn Samanburður milli ársfjórðunga %
+				measure 'Budget Quantity MOM'
+					caption: Áætlað magn Samanburður mánaða
+				measure 'Budget Quantity MOM %'
+					caption: Áætlað magn Samanburður mánaða %
+				measure 'Budget Quantity PP'
+					caption: Áætlað magn Fyrra tímabil
+				measure 'Budget Quantity POP'
+					caption: Áætlað magn Samanburður milli tímabila
+				measure 'Budget Quantity POP %'
+					caption: Áætlað magn Samanburður milli tímabila %
+				measure 'Budget Quantity PYTD'
+					caption: Áætlað magn Fyrra ár til dagsins í dag
+				measure 'Budget Quantity PQTD'
+					caption: Áætlað magn Frá síðasta ársfjórðungi til dagsins í dag
+				measure 'Budget Quantity YOYTD'
+					caption: Áætlað magn á milli ára til dagsins í dag
+				measure 'Budget Quantity YOYTD %'
+					caption: Áætlað magn á milli ára til dagsins í dag í %
+				measure 'Budget Quantity QOQTD'
+					caption: Áætlað magn á milli ársfjórðunga til dagsins í dag
+				measure 'Budget Quantity QOQTD %'
+					caption: Áætlað magn á milli ársfjórðunga til dagsins í dag í %
+				measure 'Budget Quantity PMTD'
+					caption: Áætlað magn Frá síðasta mánuði til dagsins í dag
+				measure 'Budget Quantity MOMTD'
+					caption: Áætlað magn á milli mánaða til dagsins í dag
+				measure 'Budget Quantity MOMTD %'
+					caption: Áætlað magn á milli mánaða til dagsins í dag í %
+				measure 'Budget Quantity MAT'
+					caption: Áætlað magn Hlaupandi alls yfir árið
+				measure 'Budget Quantity PYMAT'
+					caption: Áætlað magn Fyrra ár hlaupandi heildarsala
+				measure 'Budget Quantity MATG'
+					caption: Áætlað magn Hlaupandi vöxtur alls yfir árið
+				measure 'Budget Quantity MATG %'
+					caption: Áætlað magn Hlaupandi vöxtur alls yfir árið %
+				measure 'Budget Quantity PYC'
+					caption: Áætlað magn frá lokum fyrra árs
+				measure 'Budget Quantity YTDOPY'
+					caption: Áætlað magn Frá upphafi árs samanborið við fyrra ár
+				measure 'Budget Quantity YTDOPY %'
+					caption: Áætlað magn Frá upphafi árs samanborið við fyrra ár %
+				measure 'Budget Quantity PQC'
+					caption: Áætlað magn frá lokum fyrri ársfjórðungs
+				measure 'Budget Quantity QTDOPQ'
+					caption: Áætlað magn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs
+				measure 'Budget Quantity QTDOPQ %'
+					caption: Áætlað magn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs %
+				measure 'Budget Quantity PMC'
+					caption: Áætlað magn frá lokum fyrri mánaðar
+				measure 'Budget Quantity MTDOPM'
+					caption: Áætlað magn Frá upphafi mánaðar í samanburði við fyrri mánuð
+				measure 'Budget Quantity MTDOPM %'
+					caption: Áætlað magn Frá upphafi mánaðar í samanburði við fyrri mánuð %
+				measure 'Budget Quantity AVG 30D'
+					caption: Áætlað magn MEÐALTAL 30D
+				measure 'Budget Quantity AVG 3M'
+					caption: Áætlað magn MEÐALTAL 3M
+				measure 'Budget Quantity AVG 1Y'
+					caption: Áætlað magn MEÐALTAL 1Á
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Tímagreind fjárhagsdagatals
+				measure 'Purchase Amount YTD (Fiscal)'
+					caption: Innkaupaupphæð Árið til dagsins í dag (Fjárhagur)
+				measure 'Purchase Amount QTD (Fiscal)'
+					caption: Innkaupaupphæð Ársfjórðungur til dagsins í dag (Fjárhagur)
+				measure 'Purchase Amount MTD (Fiscal)'
+					caption: Innkaupaupphæð Frá upphafi mánaðar (Fjárhagur)
+				measure 'Purchase Amount PY (Fiscal)'
+					caption: Innkaupaupphæð Fyrra ár (Fjárhagur)
+				measure 'Purchase Amount YOY % (Fiscal)'
+					caption: Innkaupaupphæð Samanburður milli ára % (Fjárhagur)
+				measure 'Purchase Amount YOY (Fiscal)'
+					caption: Innkaupaupphæð Samanburður milli ára (Fjárhagur)
+				measure 'Purchase Amount PQ (Fiscal)'
+					caption: Innkaupaupphæð Fyrri ársfjórðungur (Fjárhagur)
+				measure 'Purchase Amount QOQ (Fiscal)'
+					caption: Innkaupaupphæð Samanburður milli ársfjórðunga (Fjárhagur)
+				measure 'Purchase Amount QOQ % (Fiscal)'
+					caption: Innkaupaupphæð Samanburður milli ársfjórðunga % (Fjárhagur)
+				measure 'Purchase Amount PM (Fiscal)'
+					caption: Innkaupaupphæð Fyrri mánuður (Fjárhagur)
+				measure 'Purchase Amount MOM (Fiscal)'
+					caption: Innkaupaupphæð Samanburður mánaða (Fjárhagur)
+				measure 'Purchase Amount MOM % (Fiscal)'
+					caption: Innkaupaupphæð Samanburður mánaða % (Fjárhagur)
+				measure 'Purchase Amount PP (Fiscal)'
+					caption: Innkaupaupphæð Fyrra tímabil (Fjárhagur)
+				measure 'Purchase Amount POP (Fiscal)'
+					caption: Innkaupaupphæð Samanburður milli tímabila (Fjárhagur)
+				measure 'Purchase Amount POP % (Fiscal)'
+					caption: Innkaupaupphæð Samanburður milli tímabila % (Fjárhagur)
+				measure 'Purchase Amount PYTD (Fiscal)'
+					caption: Innkaupaupphæð Fyrra ár til dagsins í dag (Fjárhagur)
+				measure 'Purchase Amount PQTD (Fiscal)'
+					caption: Innkaupaupphæð Frá síðasta ársfjórðungi til dagsins í dag (Fjárhagur)
+				measure 'Purchase Amount YOYTD (Fiscal)'
+					caption: Innkaupaupphæð á milli ára til dagsins í dag (Fjárhagur)
+				measure 'Purchase Amount YOYTD % (Fiscal)'
+					caption: Innkaupaupphæð á milli ára til dagsins í dag í % (Fjárhagur)
+				measure 'Purchase Amount QOQTD (Fiscal)'
+					caption: Innkaupaupphæð á milli ársfjórðunga til dagsins í dag (Fjárhagur)
+				measure 'Purchase Amount QOQTD % (Fiscal)'
+					caption: Innkaupaupphæð á milli ársfjórðunga til dagsins í dag í % (Fjárhagur)
+				measure 'Purchase Amount PMTD (Fiscal)'
+					caption: Innkaupaupphæð Frá síðasta mánuði til dagsins í dag (Fjárhagur)
+				measure 'Purchase Amount MOMTD % (Fiscal)'
+					caption: Innkaupaupphæð á milli mánaða til dagsins í dag í % (Fjárhagur)
+				measure 'Purchase Amount MOMTD (Fiscal)'
+					caption: Innkaupaupphæð á milli mánaða til dagsins í dag (Fjárhagur)
+				measure 'Purchase Amount MAT (Fiscal)'
+					caption: Innkaupaupphæð Hlaupandi alls yfir árið (Fjárhagur)
+				measure 'Purchase Amount PYMAT (Fiscal)'
+					caption: Innkaupaupphæð Fyrra ár hlaupandi heildarsala (Fjárhagur)
+				measure 'Purchase Amount MATG (Fiscal)'
+					caption: Innkaupaupphæð Hlaupandi vöxtur alls yfir árið (Fjárhagur)
+				measure 'Purchase Amount MATG % (Fiscal)'
+					caption: Innkaupaupphæð Hlaupandi vöxtur alls yfir árið % (Fjárhagur)
+				measure 'Purchase Amount MAT (364) (Fiscal)'
+					caption: Innkaupaupphæð Hlaupandi alls yfir árið (364) (Fjárhagur)
+				measure 'Purchase PYMAT (364) (Fiscal)'
+					caption: Purchase Fyrra ár hlaupandi heildarsala (364) (Fjárhagur)
+				measure 'Purchase Amount PYC (Fiscal)'
+					caption: Innkaupaupphæð frá lokum fyrra árs (Fjárhagur)
+				measure 'Purchase Amount YTDOPY (Fiscal)'
+					caption: Innkaupaupphæð Frá upphafi árs samanborið við fyrra ár (Fjárhagur)
+				measure 'Purchase Amount YTDOPY % (Fiscal)'
+					caption: Innkaupaupphæð Frá upphafi árs samanborið við fyrra ár % (Fjárhagur)
+				measure 'Purchase Amount PQC (Fiscal)'
+					caption: Innkaupaupphæð frá lokum fyrri ársfjórðungs (Fjárhagur)
+				measure 'Purchase Amount QTDOPQ (Fiscal)'
+					caption: Innkaupaupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (Fjárhagur)
+				measure 'Purchase Amount QTDOPQ % (Fiscal)'
+					caption: Innkaupaupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (Fjárhagur)
+				measure 'Purchase Amount PMC (Fiscal)'
+					caption: Innkaupaupphæð frá lokum fyrri mánaðar (Fjárhagur)
+				measure 'Purchase Amount MTDOPM (Fiscal)'
+					caption: Innkaupaupphæð Upphaf mánaðar samanborið við fyrri mánuð (Fjárhagur)
+				measure 'Purchase Amount MTDOPM % (Fiscal)'
+					caption: Innkaupaupphæð Upphaf mánaðar samanborið við fyrri mánuð % (Fjárhagur)
+				measure 'Purchase Amount AVG 30D (Fiscal)'
+					caption: Innkaupaupphæð Meðaltal 30D (Fjárhagur)
+				measure 'Purchase Amount AVG 3M (Fiscal)'
+					caption: Innkaupaupphæð Meðaltal 3M (Fjárhagur)
+				measure 'Purchase Amount AVG 1Y (Fiscal)'
+					caption: Innkaupaupphæð Meðaltal 1Á (Fjárhagur)
+				measure 'Purchases Quantity YTD (Fiscal)'
+					caption: Magn innkaupa Árið til dagsins í dag (Fjárhagur)
+				measure 'Purchases Quantity QTD (Fiscal)'
+					caption: Magn innkaupa Ársfjórðungur til dagsins í dag (Fjárhagur)
+				measure 'Purchases Quantity MTD (Fiscal)'
+					caption: Magn innkaupa Frá upphafi mánaðar (Fjárhagur)
+				measure 'Purchase Quantity PY (Fiscal)'
+					caption: Innkaupamagn Fyrra ár (Fjárhagur)
+				measure 'Purchase Quantity YOY % (Fiscal)'
+					caption: Innkaupamagn Samanburður milli ára % (Fjárhagur)
+				measure 'Purchase Quantity YOY (Fiscal)'
+					caption: Innkaupamagn Samanburður milli ára (Fjárhagur)
+				measure 'Purchase Quantity PQ (Fiscal)'
+					caption: Innkaupamagn Fyrri ársfjórðungur (Fjárhagur)
+				measure 'Purchase Quantity QOQ (Fiscal)'
+					caption: Innkaupamagn Samanburður milli ársfjórðunga (Fjárhagur)
+				measure 'Purchase Quantity QOQ % (Fiscal)'
+					caption: Innkaupamagn Samanburður milli ársfjórðunga % (Fjárhagur)
+				measure 'Purchase Quantity PM (Fiscal)'
+					caption: Innkaupamagn Fyrri mánuður (Fjárhagur)
+				measure 'Purchase Quantity MOM (Fiscal)'
+					caption: Innkaupamagn Samanburður mánaða (Fjárhagur)
+				measure 'Purchase Quantity MOM % (Fiscal)'
+					caption: Innkaupamagn Samanburður mánaða % (Fjárhagur)
+				measure 'Purchase Quantity PP (Fiscal)'
+					caption: Innkaupamagn Fyrra tímabil (Fjárhagur)
+				measure 'Purchase Quantity POP (Fiscal)'
+					caption: Innkaupamagn Samanburður milli tímabila (Fjárhagur)
+				measure 'Purchase Quantity POP % (Fiscal)'
+					caption: Innkaupamagn Samanburður milli tímabila % (Fjárhagur)
+				measure 'Purchase Quantity PYTD (Fiscal)'
+					caption: Innkaupamagn Fyrra ár til dagsins í dag (Fjárhagur)
+				measure 'Purchase Quantity PQTD (Fiscal)'
+					caption: Innkaupamagn Frá síðasta ársfjórðungi til dagsins í dag (Fjárhagur)
+				measure 'Purchase Quantity YOYTD (Fiscal)'
+					caption: Innkaupamagn á milli ára til dagsins í dag (Fjárhagur)
+				measure 'Purchase Quantity YOYTD % (Fiscal)'
+					caption: Innkaupamagn á milli ára til dagsins í dag í % (Fjárhagur)
+				measure 'Purchase Quantity QOQTD (Fiscal)'
+					caption: Innkaupamagn á milli ársfjórðunga til dagsins í dag (Fjárhagur)
+				measure 'Purchase Quantity QOQTD % (Fiscal)'
+					caption: Innkaupamagn á milli ársfjórðunga til dagsins í dag í % (Fjárhagur)
+				measure 'Purchase Quantity PMTD (Fiscal)'
+					caption: Innkaupamagn Frá síðasta mánuði til dagsins í dag (Fjárhagur)
+				measure 'Purchase Quantity MOMTD % (Fiscal)'
+					caption: Innkaupamagn á milli mánaða til dagsins í dag í % (Fjárhagur)
+				measure 'Purchase Quantity MOMTD (Fiscal)'
+					caption: Innkaupamagn á milli mánaða til dagsins í dag (Fjárhagur)
+				measure 'Purchase Quantity MAT (Fiscal)'
+					caption: Innkaupamagn Hlaupandi alls yfir árið (Fjárhagur)
+				measure 'Purchase Quantity PYMAT (Fiscal)'
+					caption: Innkaupamagn Fyrra ár hlaupandi heildarsala (Fjárhagur)
+				measure 'Purchase Quantity MATG (Fiscal)'
+					caption: Innkaupamagn Hlaupandi vöxtur alls yfir árið (Fjárhagur)
+				measure 'Purchase Quantity MATG % (Fiscal)'
+					caption: Innkaupamagn Hlaupandi vöxtur alls yfir árið % (Fjárhagur)
+				measure 'Purchase Quantity PYC (Fiscal)'
+					caption: Innkaupamagn frá lokum fyrra árs (Fjárhagur)
+				measure 'Purchase Quantity YTDOPY (Fiscal)'
+					caption: Innkaupamagn Frá upphafi árs samanborið við fyrra ár (Fjárhagur)
+				measure 'Purchase Quantity YTDOPY % (Fiscal)'
+					caption: Innkaupamagn Frá upphafi árs samanborið við fyrra ár % (Fjárhagur)
+				measure 'Purchase Quantity PQC (Fiscal)'
+					caption: Innkaupamagn frá lokum fyrri ársfjórðungs (Fjárhagur)
+				measure 'Purchase Quantity QTDOPQ (Fiscal)'
+					caption: Innkaupamagn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (Fjárhagur)
+				measure 'Purchase Quantity QTDOPQ % (Fiscal)'
+					caption: Innkaupamagn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (Fjárhagur)
+				measure 'Purchase Quantity PMC (Fiscal)'
+					caption: Innkaupamagn frá lokum fyrri mánaðar (Fjárhagur)
+				measure 'Purchase Quantity MTDOPM (Fiscal)'
+					caption: Innkaupamagn Upphaf mánaðar samanborið við fyrri mánuð (Fjárhagur)
+				measure 'Purchase Quantity MTDOPM % (Fiscal)'
+					caption: Innkaupamagn Upphaf mánaðar samanborið við fyrri mánuð % (Fjárhagur)
+				measure 'Purchase Quantity AVG 30D (Fiscal)'
+					caption: Innkaupamagn Meðaltal 30D (Fjárhagur)
+				measure 'Purchase Quantity AVG 3M (Fiscal)'
+					caption: Innkaupamagn MEÐALT 3M (fjárhagur)
+				measure 'Purchase Quantity AVG 1Y (Fiscal)'
+					caption: Innkaupamagn Meðaltal 1Á (Fjárhagur)
+				measure 'Budget Amount YTD (Fiscal)'
+					caption: Áætluð upphæð Árið til dagsins í dag (Fjárhagur)
+				measure 'Budget Amount QTD (Fiscal)'
+					caption: Áætluð upphæð Ársfjórðungur til dagsins í dag (Fjárhagur)
+				measure 'Budget Amount MTD (Fiscal)'
+					caption: Áætluð upphæð Frá upphafi mánaðar (Fjárhagur)
+				measure 'Budget Amount PY (Fiscal)'
+					caption: Áætluð upphæð Fyrra ár (Fjárhagur)
+				measure 'Budget Amount YOY % (Fiscal)'
+					caption: Áætluð upphæð Samanburður milli ára % (Fjárhagur)
+				measure 'Budget Amount YOY (Fiscal)'
+					caption: Áætluð upphæð Samanburður milli ára (Fjárhagur)
+				measure 'Budget Amount PQ (Fiscal)'
+					caption: Áætluð upphæð Fyrri ársfjórðungur (Fjárhagur)
+				measure 'Budget Amount QOQ (Fiscal)'
+					caption: Áætluð upphæð Samanburður milli ársfjórðunga (Fjárhagur)
+				measure 'Budget Amount QOQ % (Fiscal)'
+					caption: Áætluð upphæð Samanburður milli ársfjórðunga % (Fjárhagur)
+				measure 'Budget Amount PM (Fiscal)'
+					caption: Áætluð upphæð Fyrri mánuður (Fjárhagur)
+				measure 'Budget Amount MOM (Fiscal)'
+					caption: Áætluð upphæð Samanburður mánaða (Fjárhagur)
+				measure 'Budget Amount MOM % (Fiscal)'
+					caption: Áætluð upphæð Samanburður mánaða % (Fjárhagur)
+				measure 'Budget Amount PP (Fiscal)'
+					caption: Áætluð upphæð Fyrra tímabil (Fjárhagur)
+				measure 'Budget Amount POP (Fiscal)'
+					caption: Áætluð upphæð Samanburður milli tímabila (Fjárhagur)
+				measure 'Budget Amount POP % (Fiscal)'
+					caption: Áætluð upphæð Samanburður milli tímabila % (Fjárhagur)
+				measure 'Budget Amount PYTD (Fiscal)'
+					caption: Áætluð upphæð Fyrra ár til dagsins í dag (Fjárhagur)
+				measure 'Budget Amount PQTD (Fiscal)'
+					caption: Áætluð upphæð Frá síðasta ársfjórðungi til dagsins í dag (Fjárhagur)
+				measure 'Budget Amount YOYTD (Fiscal)'
+					caption: Áætluð upphæð á milli ára til dagsins í dag (Fjárhagur)
+				measure 'Budget Amount YOYTD % (Fiscal)'
+					caption: Áætluð upphæð á milli ára til dagsins í dag í % (Fjárhagur)
+				measure 'Budget Amount QOQTD (Fiscal)'
+					caption: Áætluð upphæð á milli ársfjórðunga til dagsins í dag (Fjárhagur)
+				measure 'Budget Amount QOQTD % (Fiscal)'
+					caption: Áætluð upphæð á milli ársfjórðunga til dagsins í dag í % (Fjárhagur)
+				measure 'Budget Amount PMTD (Fiscal)'
+					caption: Áætluð upphæð Frá síðasta mánuði til dagsins í dag (Fjárhagur)
+				measure 'Budget Amount MOMTD % (Fiscal)'
+					caption: Áætluð upphæð á milli mánaða til dagsins í dag í % (Fjárhagur)
+				measure 'Budget Amount MOMTD (Fiscal)'
+					caption: Áætluð upphæð á milli mánaða til dagsins í dag (Fjárhagur)
+				measure 'Budget Amount MAT (Fiscal)'
+					caption: Áætluð upphæð Síðasta ár alls (Fjárhagur)
+				measure 'Budget Amount PYMAT (Fiscal)'
+					caption: Áætluð upphæð Fyrra ár hlaupandi heildarsala (Fjárhagur)
+				measure 'Budget Amount MATG (Fiscal)'
+					caption: Áætluð upphæð Hlaupandi vöxtur alls yfir árið (Fjárhagur)
+				measure 'Budget Amount MATG % (Fiscal)'
+					caption: Áætluð upphæð Hlaupandi vöxtur alls yfir árið % (Fjárhagur)
+				measure 'Budget Amount MAT (364) (Fiscal)'
+					caption: Áætluð upphæð Síðasta ár alls (364) (Fjárhagur)
+				measure 'Budget PYMAT (364) (Fiscal)'
+					caption: Budget Fyrra ár hlaupandi heildarsala (364) (Fjárhagur)
+				measure 'Budget Amount PYC (Fiscal)'
+					caption: Áætluð upphæð frá lokum fyrra árs (Fjárhagur)
+				measure 'Budget Amount YTDOPY (Fiscal)'
+					caption: Áætluð upphæð Frá upphafi árs samanborið við fyrra ár (Fjárhagur)
+				measure 'Budget Amount YTDOPY % (Fiscal)'
+					caption: Áætluð upphæð Frá upphafi árs samanborið við fyrra ár % (Fjárhagur)
+				measure 'Budget Amount PQC (Fiscal)'
+					caption: Áætluð upphæð frá lokum fyrri ársfjórðungs (Fjárhagur)
+				measure 'Budget Amount QTDOPQ (Fiscal)'
+					caption: Áætluð upphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (Fjárhagur)
+				measure 'Budget Amount QTDOPQ % (Fiscal)'
+					caption: Áætluð upphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (Fjárhagur)
+				measure 'Budget Amount PMC (Fiscal)'
+					caption: Áætluð upphæð frá lokum fyrri mánaðar (Fjárhagur)
+				measure 'Budget Amount MTDOPM (Fiscal)'
+					caption: Áætluð upphæð Upphaf mánaðar samanborið við fyrri mánuð (Fjárhagur)
+				measure 'Budget Amount MTDOPM % (Fiscal)'
+					caption: Áætluð upphæð Upphaf mánaðar samanborið við fyrri mánuð % (Fjárhagur)
+				measure 'Budget Amount AVG 30D (Fiscal)'
+					caption: Áætluð upphæð MEÐALTAL 30D (Fjárhagur)
+				measure 'Budget Amount AVG 3M (Fiscal)'
+					caption: Áætluð upphæð MEÐALTAL 3M (Fjárhagur)
+				measure 'Budget Amount AVG 1Y (Fiscal)'
+					caption: Áætluð upphæð MEÐALTAL 1Á (Fjárhagur)
+				measure 'Budget Quantity YTD (Fiscal)'
+					caption: Áætlað magn Árið til dagsins í dag (Fjárhagur)
+				measure 'Budget Quantity QTD (Fiscal)'
+					caption: Áætlað magn Ársfjórðungur til dagsins í dag (Fjárhagur)
+				measure 'Budget Quantity MTD (Fiscal)'
+					caption: Áætlað magn Frá upphafi mánaðar (Fjárhagur)
+				measure 'Budget Quantity PY (Fiscal)'
+					caption: Áætlað magn Fyrra ár (Fjárhagur)
+				measure 'Budget Quantity YOY % (Fiscal)'
+					caption: Áætlað magn Samanburður milli ára % (Fjárhagur)
+				measure 'Budget Quantity YOY (Fiscal)'
+					caption: Áætlað magn Samanburður milli ára (Fjárhagur)
+				measure 'Budget Quantity PQ (Fiscal)'
+					caption: Áætlað magn Fyrri ársfjórðungur (Fjárhagur)
+				measure 'Budget Quantity QOQ (Fiscal)'
+					caption: Áætlað magn Samanburður milli ársfjórðunga (Fjárhagur)
+				measure 'Budget Quantity QOQ % (Fiscal)'
+					caption: Áætlað magn Samanburður milli ársfjórðunga % (Fjárhagur)
+				measure 'Budget Quantity PM (Fiscal)'
+					caption: Áætlað magn Fyrri mánuður (Fjárhagur)
+				measure 'Budget Quantity MOM (Fiscal)'
+					caption: Áætlað magn Samanburður mánaða (Fjárhagur)
+				measure 'Budget Quantity MOM % (Fiscal)'
+					caption: Áætlað magn Samanburður mánaða % (Fjárhagur)
+				measure 'Budget Quantity PP (Fiscal)'
+					caption: Áætlað magn Fyrra tímabil (Fjárhagur)
+				measure 'Budget Quantity POP (Fiscal)'
+					caption: Áætlað magn Samanburður milli tímabila (Fjárhagur)
+				measure 'Budget Quantity POP % (Fiscal)'
+					caption: Áætlað magn Samanburður milli tímabila % (Fjárhagur)
+				measure 'Budget Quantity PYTD (Fiscal)'
+					caption: Áætlað magn Fyrra ár til dagsins í dag (Fjárhagur)
+				measure 'Budget Quantity PQTD (Fiscal)'
+					caption: Áætlað magn Frá síðasta ársfjórðungi til dagsins í dag (Fjárhagur)
+				measure 'Budget Quantity YOYTD (Fiscal)'
+					caption: Áætlað magn á milli ára til dagsins í dag (Fjárhagur)
+				measure 'Budget Quantity YOYTD % (Fiscal)'
+					caption: Áætlað magn á milli ára til dagsins í dag í % (Fjárhagur)
+				measure 'Budget Quantity QOQTD (Fiscal)'
+					caption: Áætlað magn á milli ársfjórðunga til dagsins í dag (Fjárhagur)
+				measure 'Budget Quantity QOQTD % (Fiscal)'
+					caption: Áætlað magn á milli ársfjórðunga til dagsins í dag í % (Fjárhagur)
+				measure 'Budget Quantity PMTD (Fiscal)'
+					caption: Áætlað magn Frá síðasta mánuði til dagsins í dag (Fjárhagur)
+				measure 'Budget Quantity MOMTD % (Fiscal)'
+					caption: Áætlað magn á milli mánaða til dagsins í dag í % (Fjárhagur)
+				measure 'Budget Quantity MOMTD (Fiscal)'
+					caption: Áætlað magn á milli mánaða til dagsins í dag (Fjárhagur)
+				measure 'Budget Quantity MAT (Fiscal)'
+					caption: Áætlað magn Hlaupandi alls yfir árið (Fjárhagur)
+				measure 'Budget Quantity PYMAT (Fiscal)'
+					caption: Áætlað magn Fyrra ár hlaupandi heildarsala (Fjárhagur)
+				measure 'Budget Quantity MATG (Fiscal)'
+					caption: Áætlað magn Hlaupandi vöxtur alls yfir árið (Fjárhagur)
+				measure 'Budget Quantity MATG % (Fiscal)'
+					caption: Áætlað magn Hlaupandi vöxtur alls yfir árið % (Fjárhagur)
+				measure 'Budget Quantity PYC (Fiscal)'
+					caption: Áætlað magn frá lokum fyrra árs (Fjárhagur)
+				measure 'Budget Quantity YTDOPY (Fiscal)'
+					caption: Áætlað magn Frá upphafi árs samanborið við fyrra ár (Fjárhagur)
+				measure 'Budget Quantity YTDOPY % (Fiscal)'
+					caption: Áætlað magn Frá upphafi árs samanborið við fyrra ár % (Fjárhagur)
+				measure 'Budget Quantity PQC (Fiscal)'
+					caption: Áætlað magn frá lokum fyrri ársfjórðungs (Fjárhagur)
+				measure 'Budget Quantity QTDOPQ (Fiscal)'
+					caption: Áætlað magn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (Fjárhagur)
+				measure 'Budget Quantity QTDOPQ % (Fiscal)'
+					caption: Áætlað magn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (Fjárhagur)
+				measure 'Budget Quantity PMC (Fiscal)'
+					caption: Áætlað magn frá lokum fyrri mánaðar (Fjárhagur)
+				measure 'Budget Quantity MTDOPM (Fiscal)'
+					caption: Áætlað magn Upphaf mánaðar samanborið við fyrri mánuð (Fjárhagur)
+				measure 'Budget Quantity MTDOPM % (Fiscal)'
+					caption: Áætlað magn Upphaf mánaðar samanborið við fyrri mánuð % (Fjárhagur)
+				measure 'Budget Quantity AVG 30D (Fiscal)'
+					caption: Áætlað magn MEÐALTAL 30D (Fjárhagur)
+				measure 'Budget Quantity AVG 3M (Fiscal)'
+					caption: Áætlað magn MEÐALTAL 3M (Fjárhagur)
+				measure 'Budget Quantity AVG 1Y (Fiscal)'
+					caption: Áætlað magn MEÐALTAL 1Á (Fjárhagur)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Tímagreind vikudagatals
+				measure 'Purchase Amount YTD (Weekly)'
+					caption: Innkaupaupphæð Árið til dagsins í dag (Vikulega)
+				measure 'Purchase Amount QTD (Weekly)'
+					caption: Innkaupaupphæð Ársfjórðungur til dagsins í dag (Vikulega)
+				measure 'Purchase Amount MTD (Weekly)'
+					caption: Innkaupaupphæð Frá upphafi mánaðar (Vikulega)
+				measure 'Purchase Amount WTD (Weekly)'
+					caption: Innkaupaupphæð Frá upphafi viku (Vikulega)
+				measure 'Purchase Amount PY (Weekly)'
+					caption: Innkaupaupphæð Fyrra ár (Vikulega)
+				measure 'Purchase Amount YOY % (Weekly)'
+					caption: Innkaupaupphæð Samanburður milli ára % (Vikulega)
+				measure 'Purchase Amount YOY (Weekly)'
+					caption: Innkaupaupphæð Samanburður milli ára (Vikulega)
+				measure 'Purchase Amount PQ (Weekly)'
+					caption: Innkaupaupphæð Fyrri ársfjórðungur (Vikulega)
+				measure 'Purchase Amount QOQ (Weekly)'
+					caption: Innkaupaupphæð Samanburður milli ársfjórðunga (Vikulega)
+				measure 'Purchase Amount QOQ % (Weekly)'
+					caption: Innkaupaupphæð Samanburður milli ársfjórðunga % (Vikulega)
+				measure 'Purchase Amount PW (Weekly)'
+					caption: Innkaupaupphæð Fyrri vika (Vikulega)
+				measure 'Purchase Amount WOW (Weekly)'
+					caption: Innkaupaupphæð Samanburður milli vikna (Vikulega)
+				measure 'Purchase Amount WOW % (Weekly)'
+					caption: Innkaupaupphæð Samanburður milli vikna % (Vikulega)
+				measure 'Purchase Amount PP (Weekly)'
+					caption: Innkaupaupphæð Fyrra tímabil (Vikulega)
+				measure 'Purchase Amount POP (Weekly)'
+					caption: Innkaupaupphæð Samanburður milli tímabila (Vikulega)
+				measure 'Purchase Amount POP % (Weekly)'
+					caption: Innkaupaupphæð Samanburður milli tímabila % (Vikulega)
+				measure 'Purchase Amount PYTD (Weekly)'
+					caption: Innkaupaupphæð Fyrra ár til dagsins í dag (Vikulega)
+				measure 'Purchase Amount PQTD (Weekly)'
+					caption: Innkaupaupphæð Frá síðasta ársfjórðungi til dagsins í dag (Vikulega)
+				measure 'Purchase Amount YOYTD (Weekly)'
+					caption: Innkaupaupphæð á milli ára til dagsins í dag (Vikulega)
+				measure 'Purchase Amount YOYTD % (Weekly)'
+					caption: Innkaupaupphæð á milli ára til dagsins í dag í % (Vikulega)
+				measure 'Purchase Amount QOQTD (Weekly)'
+					caption: Innkaupaupphæð á milli ársfjórðunga til dagsins í dag (Vikulega)
+				measure 'Purchase Amount QOQTD % (Weekly)'
+					caption: Innkaupaupphæð á milli ársfjórðunga til dagsins í dag í % (Vikulega)
+				measure 'Purchase Amount PWTD (Weekly)'
+					caption: Innkaupaupphæð Frá síðustu viku til dagsins í dag (Vikulega)
+				measure 'Purchase Amount WOWTD (Weekly)'
+					caption: Innkaupaupphæð á milli vikna til dagsins í dag (Vikulega)
+				measure 'Purchase Amount WOWTD % (Weekly)'
+					caption: Innkaupaupphæð á milli vikna til dagsins í dag í % (Vikulega)
+				measure 'Purchase Amount MAT (364) (Weekly)'
+					caption: Innkaupaupphæð Hlaupandi alls yfir árið (364) (Vikulega)
+				measure 'Purchase Amount PYMAT (364) (Weekly)'
+					caption: Innkaupaupphæð Fyrra ár hlaupandi heildarsala (364) (Vikulega)
+				measure 'Purchase Amount MATG (Weekly)'
+					caption: Innkaupaupphæð Hlaupandi vöxtur alls yfir árið (Vikulega)
+				measure 'Purchase Amount MATG % (Weekly)'
+					caption: Innkaupaupphæð Hlaupandi vöxtur alls yfir árið % (Vikulega)
+				measure 'Purchase Amount PYC (Weekly)'
+					caption: Innkaupaupphæð frá lokum fyrra árs (Vikulega)
+				measure 'Purchase Amount YTDOPY (Weekly)'
+					caption: Innkaupaupphæð Frá upphafi árs samanborið við fyrra ár (Vikulega)
+				measure 'Purchase Amount YTDOPY % (Weekly)'
+					caption: Innkaupaupphæð Frá upphafi árs samanborið við fyrra ár % (Vikulega)
+				measure 'Purchase Amount PQC (Weekly)'
+					caption: Innkaupaupphæð frá lokum fyrri ársfjórðungs (Vikulega)
+				measure 'Purchase Amount QTDOPQ (Weekly)'
+					caption: Innkaupaupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (Vikulega)
+				measure 'Purchase Amount QTDOPQ % (Weekly)'
+					caption: Innkaupaupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (Vikulega)
+				measure 'Purchase Amount PWC (Weekly)'
+					caption: Innkaupaupphæð frá lokum fyrri viku (Vikulega)
+				measure 'Purchase Amount WTDOPW (Weekly)'
+					caption: Innkaupaupphæð Frá upphafi viku samanburður fyrri viku (Vikulega)
+				measure 'Purchase Amount WTDOPW % (Weekly)'
+					caption: Innkaupaupphæð Frá upphafi viku samanburður fyrri viku % (Vikulega)
+				measure 'Purchase Amount AVG 4W (Weekly)'
+					caption: Innkaupaupphæð Meðaltal 4W (Vikulega)
+				measure 'Purchase Amount AVG 1Q (Weekly)'
+					caption: Innkaupaupphæð Meðaltal 1F (Vikulega)
+				measure 'Purchase Amount AVG 1Y (Weekly)'
+					caption: Innkaupaupphæð Meðaltal 1Á (Vikulega)
+				measure 'Purchase Quantity YTD (Weekly)'
+					caption: Innkaupamagn Árið til dagsins í dag (Vikulega)
+				measure 'Purchase Quantity QTD (Weekly)'
+					caption: Innkaupamagn Ársfjórðungur til dagsins í dag (Vikulega)
+				measure 'Purchase Quantity MTD (Weekly)'
+					caption: Innkaupamagn Frá upphafi mánaðar (Vikulega)
+				measure 'Purchase Quantity WTD (Weekly)'
+					caption: Innkaupamagn Frá upphafi viku (Vikulega)
+				measure 'Purchase Quantity PY (Weekly)'
+					caption: Innkaupamagn Fyrra ár (Vikulega)
+				measure 'Purchase Quantity YOY % (Weekly)'
+					caption: Innkaupamagn Samanburður milli ára % (Vikulega)
+				measure 'Purchase Quantity YOY (Weekly)'
+					caption: Innkaupamagn Samanburður milli ára (Vikulega)
+				measure 'Purchase Quantity PQ (Weekly)'
+					caption: Innkaupamagn Fyrri ársfjórðungur (Vikulega)
+				measure 'Purchase Quantity QOQ (Weekly)'
+					caption: Innkaupamagn Samanburður milli ársfjórðunga (Vikulega)
+				measure 'Purchase Quantity QOQ % (Weekly)'
+					caption: Innkaupamagn Samanburður milli ársfjórðunga % (Vikulega)
+				measure 'Purchase Quantity PW (Weekly)'
+					caption: Innkaupamagn Fyrri vika (Vikulega)
+				measure 'Purchase Quantity WOW (Weekly)'
+					caption: Innkaupamagn Samanburður milli vikna (Vikulega)
+				measure 'Purchase Quantity WOW % (Weekly)'
+					caption: Innkaupamagn Samanburður milli vikna % (Vikulega)
+				measure 'Purchase Quantity PP (Weekly)'
+					caption: Innkaupamagn Fyrra tímabil (Vikulega)
+				measure 'Purchase Quantity POP (Weekly)'
+					caption: Innkaupamagn Samanburður milli tímabila (Vikulega)
+				measure 'Purchase Quantity POP % (Weekly)'
+					caption: Innkaupamagn Samanburður milli tímabila % (Vikulega)
+				measure 'Purchase Quantity PYTD (Weekly)'
+					caption: Innkaupamagn Fyrra ár til dagsins í dag (Vikulega)
+				measure 'Purchase Quantity PQTD (Weekly)'
+					caption: Innkaupamagn Frá síðasta ársfjórðungi til dagsins í dag (Vikulega)
+				measure 'Purchase Quantity YOYTD (Weekly)'
+					caption: Innkaupamagn á milli ára til dagsins í dag (Vikulega)
+				measure 'Purchase Quantity YOYTD % (Weekly)'
+					caption: Innkaupamagn á milli ára til dagsins í dag í % (Vikulega)
+				measure 'Purchase Quantity QOQTD (Weekly)'
+					caption: Innkaupamagn á milli ársfjórðunga til dagsins í dag (Vikulega)
+				measure 'Purchase Quantity QOQTD % (Weekly)'
+					caption: Innkaupamagn á milli ársfjórðunga til dagsins í dag í % (Vikulega)
+				measure 'Purchase Quantity PWTD (Weekly)'
+					caption: Innkaupamagn Frá síðustu viku til dagsins í dag (Vikulega)
+				measure 'Purchase Quantity WOWTD (Weekly)'
+					caption: Innkaupamagn á milli vikna til dagsins í dag (Vikulega)
+				measure 'Purchase Quantity WOWTD % (Weekly)'
+					caption: Innkaupamagn á milli vikna til dagsins í dag í % (Vikulega)
+				measure 'Purchase Quantity MAT (364) (Weekly)'
+					caption: Innkaupamagn Hlaupandi alls yfir árið (364) (Vikulega)
+				measure 'Purchase Quantity PYMAT (364) (Weekly)'
+					caption: Innkaupamagn Fyrra ár hlaupandi heildarsala (364) (Vikulega)
+				measure 'Purchase Quantity MATG (Weekly)'
+					caption: Innkaupamagn Hlaupandi vöxtur alls yfir árið (Vikulega)
+				measure 'Purchase Quantity MATG % (Weekly)'
+					caption: Innkaupamagn Hlaupandi vöxtur alls yfir árið % (Vikulega)
+				measure 'Purchase Quantity PYC (Weekly)'
+					caption: Innkaupamagn frá lokum fyrra árs (Vikulega)
+				measure 'Purchase Quantity YTDOPY (Weekly)'
+					caption: Innkaupamagn Frá upphafi árs samanborið við fyrra ár (Vikulega)
+				measure 'Purchase Quantity YTDOPY  % (Weekly)'
+					caption: Innkaupamagn Frá upphafi árs samanborið við fyrra ár % (Vikulega)
+				measure 'Purchase Quantity PQC (Weekly)'
+					caption: Innkaupamagn frá lokum fyrri ársfjórðungs (Vikulega)
+				measure 'Purchase Quantity QTDOPQ (Weekly)'
+					caption: Innkaupamagn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (Vikulega)
+				measure 'Purchase Quantity QTDOPQ % (Weekly)'
+					caption: Innkaupamagn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (Vikulega)
+				measure 'Purchase Quantity PWC (Weekly)'
+					caption: Innkaupamagn frá lokum fyrri viku (Vikulega)
+				measure 'Purchase Quantity WTDOPW (Weekly)'
+					caption: Innkaupamagn Frá upphafi viku samanburður fyrri viku (Vikulega)
+				measure 'Purchase Quantity WTDOPW % (Weekly)'
+					caption: Innkaupamagn Frá upphafi viku samanburður fyrri viku % (Vikulega)
+				measure 'Purchase Quantity AVG 4W (Weekly)'
+					caption: Innkaupamagn Meðaltal 4W (Vikulega)
+				measure 'Purchase Quantity AVG 1Q (Weekly)'
+					caption: Innkaupamagn Meðaltal 1F (Vikulega)
+				measure 'Purchase Quantity AVG 1Y (Weekly)'
+					caption: Innkaupamagn Meðaltal 1Á (Vikulega)
+				measure 'Budget Quantity YTD (Weekly)'
+					caption: Áætlað magn Árið til dagsins í dag (Vikulega)
+				measure 'Budget Quantity QTD (Weekly)'
+					caption: Áætlað magn Ársfjórðungur til dagsins í dag (Vikulega)
+				measure 'Budget Quantity MTD (Weekly)'
+					caption: Áætlað magn Frá upphafi mánaðar (Vikulega)
+				measure 'Budget Quantity WTD (Weekly)'
+					caption: Áætlað magn Frá upphafi viku (Vikulega)
+				measure 'Budget Quantity PY (Weekly)'
+					caption: Áætlað magn Fyrra ár (Vikulega)
+				measure 'Budget Quantity YOY % (Weekly)'
+					caption: Áætlað magn Samanburður milli ára % (Vikulega)
+				measure 'Budget Quantity YOY (Weekly)'
+					caption: Áætlað magn Samanburður milli ára (Vikulega)
+				measure 'Budget Quantity PQ (Weekly)'
+					caption: Áætlað magn Fyrri ársfjórðungur (Vikulega)
+				measure 'Budget Quantity QOQ (Weekly)'
+					caption: Áætlað magn Samanburður milli ársfjórðunga (Vikulega)
+				measure 'Budget Quantity QOQ % (Weekly)'
+					caption: Áætlað magn Samanburður milli ársfjórðunga % (Vikulega)
+				measure 'Budget Quantity PW (Weekly)'
+					caption: Áætlað magn Fyrri vika (Vikulega)
+				measure 'Budget Quantity WOW (Weekly)'
+					caption: Áætlað magn Samanburður milli vikna (Vikulega)
+				measure 'Budget Quantity WOW % (Weekly)'
+					caption: Áætlað magn Samanburður milli vikna % (Vikulega)
+				measure 'Budget Quantity PP (Weekly)'
+					caption: Áætlað magn Fyrra tímabil (Vikulega)
+				measure 'Budget Quantity POP (Weekly)'
+					caption: Áætlað magn Samanburður milli tímabila (Vikulega)
+				measure 'Budget Quantity POP % (Weekly)'
+					caption: Áætlað magn Samanburður milli tímabila % (Vikulega)
+				measure 'Budget Quantity PYTD (Weekly)'
+					caption: Áætlað magn Fyrra ár til dagsins í dag (Vikulega)
+				measure 'Budget Quantity PQTD (Weekly)'
+					caption: Áætlað magn Frá síðasta ársfjórðungi til dagsins í dag (Vikulega)
+				measure 'Budget Quantity YOYTD (Weekly)'
+					caption: Áætlað magn á milli ára til dagsins í dag (Vikulega)
+				measure 'Budget Quantity YOYTD % (Weekly)'
+					caption: Áætlað magn á milli ára til dagsins í dag í % (Vikulega)
+				measure 'Budget Quantity QOQTD (Weekly)'
+					caption: Áætlað magn á milli ársfjórðunga til dagsins í dag (Vikulega)
+				measure 'Budget Quantity QOQTD % (Weekly)'
+					caption: Áætlað magn á milli ársfjórðunga til dagsins í dag í % (Vikulega)
+				measure 'Budget Quantity PWTD (Weekly)'
+					caption: Áætlað magn Frá síðustu viku til dagsins í dag (Vikulega)
+				measure 'Budget Quantity WOWTD (Weekly)'
+					caption: Áætlað magn á milli vikna til dagsins í dag (Vikulega)
+				measure 'Budget Quantity WOWTD % (Weekly)'
+					caption: Áætlað magn á milli vikna til dagsins í dag í % (Vikulega)
+				measure 'Budget Quantity MAT (364) (Weekly)'
+					caption: Áætlað magn Hlaupandi alls yfir árið (364) (Vikulega)
+				measure 'Budget Quantity PYMAT (364) (Weekly)'
+					caption: Áætlað magn Fyrra ár hlaupandi heildarsala (364) (Vikulega)
+				measure 'Budget Quantity MATG (Weekly)'
+					caption: Áætlað magn Hlaupandi vöxtur alls yfir árið (Vikulega)
+				measure 'Budget Quantity MATG % (Weekly)'
+					caption: Áætlað magn Hlaupandi vöxtur alls yfir árið % (Vikulega)
+				measure 'Budget Quantity PYC (Weekly)'
+					caption: Áætlað magn frá lokum fyrra árs (Vikulega)
+				measure 'Budget Quantity YTDOPY (Weekly)'
+					caption: Áætlað magn Frá upphafi árs samanborið við fyrra ár (Vikulega)
+				measure 'Budget Quantity YTDOPY  % (Weekly)'
+					caption: Áætlað magn Frá upphafi árs samanborið við fyrra ár % (Vikulega)
+				measure 'Budget Quantity PQC (Weekly)'
+					caption: Áætlað magn frá lokum fyrri ársfjórðungs (Vikulega)
+				measure 'Budget Quantity QTDOPQ (Weekly)'
+					caption: Áætlað magn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (Vikulega)
+				measure 'Budget Quantity QTDOPQ % (Weekly)'
+					caption: Áætlað magn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (Vikulega)
+				measure 'Budget Quantity PWC (Weekly)'
+					caption: Áætlað magn frá lokum fyrri viku (Vikulega)
+				measure 'Budget Quantity WTDOPW (Weekly)'
+					caption: Áætlað magn Frá upphafi viku samanburður fyrri viku (Vikulega)
+				measure 'Budget Quantity WTDOPW % (Weekly)'
+					caption: Áætlað magn Frá upphafi viku samanburður fyrri viku % (Vikulega)
+				measure 'Budget Quantity AVG 4W (Weekly)'
+					caption: Áætlað magn MEÐALTAL 4W (Vikulega)
+				measure 'Budget Quantity AVG 1Q (Weekly)'
+					caption: Áætlað magn Meðaltal 1F (Vikulega)
+				measure 'Budget Quantity AVG 1Y (Weekly)'
+					caption: Áætlað magn MEÐALTAL 1Á (Vikulega)
+				measure 'Budget Amount YTD (Weekly)'
+					caption: Áætluð upphæð Árið til dagsins í dag (Vikulega)
+				measure 'Budget Amount QTD (Weekly)'
+					caption: Áætluð upphæð Ársfjórðungur til dagsins í dag (Vikulega)
+				measure 'Budget Amount MTD (Weekly)'
+					caption: Áætluð upphæð Frá upphafi mánaðar (Vikulega)
+				measure 'Budget Amount WTD (Weekly)'
+					caption: Áætluð upphæð Frá upphafi viku (Vikulega)
+				measure 'Budget Amount PY (Weekly)'
+					caption: Upphæð fjárhagsáætlunar Fyrra ár (Vikulega)
+				measure 'Budget Amount YOY % (Weekly)'
+					caption: Áætluð upphæð Samanburður milli ára % (Vikulega)
+				measure 'Budget Amount YOY (Weekly)'
+					caption: Áætluð upphæð Samanburður milli ára (Vikulega)
+				measure 'Budget Amount PQ (Weekly)'
+					caption: Áætluð upphæð Fyrri ársfjórðungur (Vikulega)
+				measure 'Budget Amount QOQ (Weekly)'
+					caption: Áætluð upphæð Samanburður milli ársfjórðunga (Vikulega)
+				measure 'Budget Amount QOQ % (Weekly)'
+					caption: Áætluð upphæð Samanburður milli ársfjórðunga % (Vikulega)
+				measure 'Budget Amount PW (Weekly)'
+					caption: Áætluð upphæð Fyrri vika (Vikulega)
+				measure 'Budget Amount WOW (Weekly)'
+					caption: Áætluð upphæð Samanburður milli vikna (Vikulega)
+				measure 'Budget Amount WOW % (Weekly)'
+					caption: Áætluð upphæð Samanburður milli vikna % (Vikulega)
+				measure 'Budget Amount PP (Weekly)'
+					caption: Áætluð upphæð Fyrra tímabil (Vikulega)
+				measure 'Budget Amount POP (Weekly)'
+					caption: Áætluð upphæð Samanburður milli tímabila (Vikulega)
+				measure 'Budget Amount POP % (Weekly)'
+					caption: Áætluð upphæð Samanburður milli tímabila % (Vikulega)
+				measure 'Budget Amount PYTD (Weekly)'
+					caption: Áætluð upphæð Fyrra ár til dagsins í dag (Vikulega)
+				measure 'Budget Amount PQTD (Weekly)'
+					caption: Áætluð upphæð Frá síðasta ársfjórðungi til dagsins í dag (Vikulega)
+				measure 'Budget Amount YOYTD (Weekly)'
+					caption: Áætluð upphæð á milli ára til dagsins í dag (Vikulega)
+				measure 'Budget Amount YOYTD % (Weekly)'
+					caption: Áætluð upphæð á milli ára til dagsins í dag í % (Vikulega)
+				measure 'Budget Amount QOQTD (Weekly)'
+					caption: Áætluð upphæð á milli ársfjórðunga til dagsins í dag (Vikulega)
+				measure 'Budget Amount QOQTD % (Weekly)'
+					caption: Áætluð upphæð á milli ársfjórðunga til dagsins í dag í % (Vikulega)
+				measure 'Budget Amount PWTD (Weekly)'
+					caption: Áætluð upphæð Frá síðustu viku til dagsins í dag (Vikulega)
+				measure 'Budget Amount WOWTD (Weekly)'
+					caption: Áætluð upphæð á milli vikna til dagsins í dag (Vikulega)
+				measure 'Budget Amount WOWTD % (Weekly)'
+					caption: Áætluð upphæð á milli vikna til dagsins í dag í % (Vikulega)
+				measure 'Budget Amount MAT (364) (Weekly)'
+					caption: Áætluð upphæð Síðasta ár alls (364) (Vikulega)
+				measure 'Budget Amount PYMAT (364) (Weekly)'
+					caption: Áætluð upphæð Fyrra ár hlaupandi heildarsala (364) (Vikulega)
+				measure 'Budget Amount MATG (Weekly)'
+					caption: Áætluð upphæð Hlaupandi vöxtur alls yfir árið (Vikulega)
+				measure 'Budget Amount MATG % (Weekly)'
+					caption: Áætluð upphæð Hlaupandi vöxtur alls yfir árið % (Vikulega)
+				measure 'Budget Amount PYC (Weekly)'
+					caption: Áætluð upphæð frá lokum fyrra árs (Vikulega)
+				measure 'Budget Amount YTDOPY (Weekly)'
+					caption: Áætluð upphæð Frá upphafi árs samanborið við fyrra ár (Vikulega)
+				measure 'Budget Amount YTDOPY % (Weekly)'
+					caption: Áætluð upphæð Frá upphafi árs samanborið við fyrra ár % (Vikulega)
+				measure 'Budget Amount PQC (Weekly)'
+					caption: Áætluð upphæð frá lokum fyrri ársfjórðungs (Vikulega)
+				measure 'Budget Amount QTDOPQ (Weekly)'
+					caption: Áætluð upphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (Vikulega)
+				measure 'Budget Amount QTDOPQ % (Weekly)'
+					caption: Áætluð upphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (Vikulega)
+				measure 'Budget Amount PWC (Weekly)'
+					caption: Áætluð upphæð frá lokum fyrri viku (Vikulega)
+				measure 'Budget Amount WTDOPW (Weekly)'
+					caption: Áætluð upphæð Frá upphafi viku samanburður fyrri viku (Vikulega)
+				measure 'Budget Amount WTDOPW % (Weekly)'
+					caption: Áætluð upphæð Frá upphafi viku samanburður fyrri viku % (Vikulega)
+				measure 'Budget Amount AVG 4W (Weekly)'
+					caption: Áætluð upphæð MEÐALTAL 4W (Vikulega)
+				measure 'Budget Amount AVG 1Q (Weekly)'
+					caption: Áætluð upphæð MEÐALTAL 1Q (Vikulega)
+				measure 'Budget Amount AVG 1Y (Weekly)'
+					caption: Áætluð upphæð MEÐALTAL 1Á (Vikulega)
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Skýrslutitillinn minn
+				measure 'My Button Caption'
+					caption: Texti hnappsins míns
+				measure 'My Visual Title'
+					caption: Sjónræni titillinn minn
+				measure 'Purchases Overview'
+					caption: Yfirlit innkaupa
+				measure 'Purchases Decomposition'
+					caption: Niðurbrot innkaupa
+				measure 'Daily Purchases'
+					caption: Dagleg innkaup
+				measure 'Moving Averages'
+					caption: Hlaupandi meðaltal
+				measure 'Moving Annual Total (MAT)'
+					caption: Hlaupandi alls yfir árið (Hlaupandi alls yfir árið)
+				measure 'Period-Over-Period (POP)'
+					caption: Samanburður milli tímabila (Samanburður milli tímabila)
+				measure 'Year-Over-Year (YOY)'
+					caption: Ár frá ári (YOY)
+				measure 'Purchases by Item'
+					caption: Innkaup eftir vöru
+				measure 'Purchases by Purchaser'
+					caption: Innkaup eftir kaupanda
+				measure 'Purchases by Vendor'
+					caption: Innkaup eftir lánardrottni
+				measure 'Purchases by Location'
+					caption: Innkaup eftir staðsetningu
+				measure 'Actual vs. Budget Quantity'
+					caption: Raunverulegt magn sb. v. áætlað magn
+				measure 'Actual vs. Budget Amount'
+					caption: Raunveruleg upphæð sb. v. áætlaða upphæð
+				measure 'Item Drillthrough'
+					caption: Köfun í atriði
+				measure 'Vendor Drillthrough'
+					caption: Köfun í lánardrottinn
+				measure 'Location Drillthrough'
+					caption: Köfun í staðsetningu
+				measure 'Purchaser Drillthrough'
+					caption: Köfun í innkaupaaðila
+				measure Purchase
+					caption: Innkaup
+				measure 'for Business Central'
+					caption: fyrir Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: TENGDU GÖGNIN ÞÍN
+				measure '1. Download the Purchasing Connector for Power BI'
+					caption: 1. Sæktu innkaupatengilinn fyrir Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Stilla Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: NOTAÐU, BREYTTU OG GERÐU ÞÍNAR EIGIN SKÝRSLUR
+				measure 'Purchasing includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Innkaup innihalda ýmsar tilbúnar skýrslur til að hjálpa þér að sjá gögnin þín strax.
+				measure 'You are able to edit these reports or build your own report from scratch'
+					caption: Þú getur breytt þessum skýrslum eða búið til þína eigin skýrslu frá grunni
+				measure 'HELP AND SUPPORT'
+					caption: HJÁLP OG STUÐNINGUR
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Kynntu þér fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð varðandi nýju skýrsluna þína.
+				measure 'OTHER POWER BI REPORTS'
+					caption: AÐRAR POWER BI SKÝRSLUR
+				measure SALES
+					caption: SALA
+				measure FINANCE
+					caption: FJÁRMÁL
+				measure REBATES
+					caption: EFTIRÁGREIDDIR AFSLÆTTIR
+				measure INVENTORY
+					caption: BIRGÐIR
+				measure JOBS
+					caption: VERK
+				measure 'Purchase Amounts'
+					caption: Upphæðir innkaupa
+				measure 'Purchase Quantity by Item Category'
+					caption: Magn innkaupa eftir vöruflokki
+				measure 'Top 5 Vendors by Amount by Source Type'
+					caption: Fimm efstu söluaðilar eftir upphæð og tegund uppruna
+				measure 'Locations by Quantity'
+					caption: Staðsetningar eftir magni
+				measure 'Document Count'
+					caption: Skjalatalning
+				measure 'Purchase Quantities'
+					caption: Magn innkaupa
+				measure 'Decomposition by Amount'
+					caption: Sundurliðun með upphæð
+				measure 'Purchase Amount and Purchase Amount 30 Days Average (Fiscal) by Fiscal Month Year'
+					caption: Upphæð innkaupa og meðalupphæð innkaupa yfir 30 daga (fjárhagstímabil) eftir mánuði fjárhagsárs
+				measure 'Previous Year & Current Year Moving Annual Total by Fiscal Month Year'
+					caption: Hlaupandi alls yfir fyrra og núverandi ár eftir mánuði fjárhagsárs
+				measure 'Purchase Amount Period-over-Period (Fiscal) and Purchase Amount by Fiscal Month Year'
+					caption: Samanburður á upphæð innkaupa milli tímabila (fjárhagstímabil) og upphæð innkaupa eftir mánuði fjárhagsárs
+				measure 'Current Year and Previous Year (Fiscal) Purchase Amount by Fiscal Month Year'
+					caption: Upphæð innkaupa núverandi og fyrra árs (fjárhagsár) eftir mánuði fjárhagsárs
+				measure 'Last Refreshed'
+					caption: Síðast uppfært
+				measure 'Company Name'
+					caption: Heiti fyrirtækis
+				measure 'Purchase Quantity by Location'
+					caption: Innkaupamagn eftir staðsetningu
+				measure 'Purchase Amounts of Top 5 Vendors'
+					caption: Upphæðir innkaupa fimm efstu söluaðila
+				measure 'Purchase Distribution by Item Category'
+					caption: Dreifing innkaupa eftir vöruflokki
+				measure 'Purchases by Item Category'
+					caption: Innkaup eftir vöruflokki
+				measure 'Purchase Amount by Item Category'
+					caption: Upphæð innkaupa eftir vöruflokki
+				measure 'Actual vs Budget'
+					caption: Raunverulegt samanb. v. áætlun
+				measure 'Actual vs Budget Purchase Analysis by Item Category'
+					caption: Innkaupagreining á rauntölum samanbornum við fjárhagsáætlun eftir vöruflokki
+				measure 'Purchases Drillthrough'
+					caption: Köfun í innkaup
+				measure 'Detailed Purchase Ledger'
+					caption: Ítarlegt innkaupayfirlit
+				measure 'Total Purchase Amount by Fiscal Year'
+					caption: Heildarupphæð innkaupa eftir fjárhagsári
+				measure PROJECTS
+					caption: VERKEFNI
+				measure MANUFACTURING
+					caption: FRAMLEIÐSLA
+				measure 'This card displays key metrics for business analysis. The card shows total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount, and invoiced amount.'
+					caption: Þetta spjald sýnir helstu mæligildi fyrir greiningu á fyrirtæki. Spjaldið sýnir heildarupphæð innkaupa, fjölda fylgiskjala, fjölda útistandandi innkaupapantana, fjölda innkaupareikninga, útistandandi upphæð og reikningsfærða upphæð.
+				measure 'The card displays key metrics for business analysis, including total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount excluding VAT, and invoiced amount.'
+					caption: Spjaldið sýnir helstu mæligildi fyrir greiningu á fyrirtæki, þ.m.t. heildarupphæð innkaupa, fjölda fylgiskjala, fjölda útistandandi innkaupapantana, fjölda innkaupareikninga, útistandandi upphæð auk VSK og reikningsfærða upphæð.
+				measure 'Daily Purchases Details'
+					caption: Upplýsingar um dagleg innkaup
+				measure 'Moving Annual Total (MAT) Details'
+					caption: Upplýsingar um hlaupandi alls yfir árið
+				measure 'Period-Over-Period (POP) Details'
+					caption: Upplýsingar um samanburð milli tímabila
+				measure 'Year-Over-Year (YOY) Details'
+					caption: Upplýsingar milli ára (samanburður milli ára)
+				measure 'Purchases by Item Details'
+					caption: Upplýsingar um innkaup eftir vöru
+				measure 'Purchases by Vendor Details'
+					caption: Upplýsingar um innkaup eftir lánardrottni
+				measure 'Purchases by Purchaser Details'
+					caption: Upplýsingar um innkaup eftir innkaupaaðila
+				measure 'Purchases by Location Details'
+					caption: Upplýsingar um innkaup eftir staðsetningu
+				measure 'Purchases Drillthrough Details'
+					caption: Upplýsingar um köfun í innkaup
+			table COMPANY
+				caption: FYRIRTÆKI
+				measure 'Company Label'
+					caption: Merki fyrirtækis
+			table 'Purchase Budget Name'
+				caption: Heiti innkaupaáætlunar
+				column 'Purchase Budget Description'
+					caption: Lýsing innkaupaáætlunar
+			table 'Item Category'
+				caption: Vöruflokkur
+				column 'Item Category Code'
+					caption: Kóði yfirflokks vöru
+				column 'Item Category Description'
+					caption: Lýsing vöruflokks
+				column 'Item Category Parent Category'
+					caption: Yfirtegund vöruflokks
+				column 'Item Category Code Level 1'
+					caption: Vöruflokkakóði af stigi 1
+				column 'Item Category Code Level 2'
+					caption: Vöruflokkakóði af stigi 2
+				column 'Item Category Code Level 3'
+					caption: Vöruflokkakóði af stigi 3
+

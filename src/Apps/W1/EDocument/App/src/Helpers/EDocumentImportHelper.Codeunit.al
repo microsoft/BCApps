@@ -8,21 +8,21 @@ using Microsoft.Bank.Reconciliation;
 #if not CLEAN26
 using Microsoft.eServices.EDocument.Processing.Import;
 #endif
+using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
-using System.Reflection;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
-using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System.IO;
+using System.Reflection;
 
 codeunit 6109 "E-Document Import Helper"
 {

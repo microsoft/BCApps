@@ -46,10 +46,11 @@ table 30162 "Shpfy Refund Shipping Line"
         field(5; "Presentment Subtotal Amount"; Decimal)
         {
             Caption = 'Presentment Subtotal Amount';
+            ToolTip = 'Specifies the subtotal price of a refund shipping line in the presentment currency.';
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = OrderPresentmentCurrencyCode();
+            AutoFormatExpression = PresentmentCurrencyCode();
         }
         field(6; "Tax Amount"; Decimal)
         {
@@ -62,10 +63,11 @@ table 30162 "Shpfy Refund Shipping Line"
         field(7; "Presentment Tax Amount"; Decimal)
         {
             Caption = 'Presentment Total Tax Amount';
+            ToolTip = 'Specifies the total tax amount of a refund shipping line in the presentment currency.';
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
-            AutoFormatExpression = OrderPresentmentCurrencyCode();
+            AutoFormatExpression = PresentmentCurrencyCode();
         }
     }
     keys
@@ -97,13 +99,11 @@ table 30162 "Shpfy Refund Shipping Line"
                 exit(OrderHeader."Currency Code");
     end;
 
-    local procedure OrderPresentmentCurrencyCode(): Code[10]
+    local procedure PresentmentCurrencyCode(): Code[10]
     var
         RefundHeader: Record "Shpfy Refund Header";
-        OrderHeader: Record "Shpfy Order Header";
     begin
         if RefundHeader.Get("Refund Id") then
-            if OrderHeader.Get(RefundHeader."Order Id") then
-                exit(OrderHeader."Presentment Currency Code");
+            exit(RefundHeader."Presentment Currency Code");
     end;
 }

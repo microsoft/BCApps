@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Setup;
 
 tableextension 8066 "General Posting Setup" extends "General Posting Setup"
 {

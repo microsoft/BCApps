@@ -1,9 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Sales.Document;
-using Microsoft.Sales.History;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
 
 table 8006 "Usage Data Billing"
 {
@@ -160,6 +160,7 @@ table 8006 "Usage Data Billing"
         {
             Caption = 'Quantity';
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(23; "Unit Cost"; Decimal)
         {
@@ -197,6 +198,7 @@ table 8006 "Usage Data Billing"
         {
             Caption = 'Pricing Unit Cost Surcharge %';
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(30; "Billing Line Entry No."; Integer)
         {
@@ -275,6 +277,16 @@ table 8006 "Usage Data Billing"
         {
             Caption = 'Rebilling';
         }
+        field(35; "Product ID"; Text[80])
+        {
+            Caption = 'Product Id';
+            ToolTip = 'Specifies the unique ID of the product for this subscription with the supplier.';
+        }
+        field(36; "Product Name"; Text[100])
+        {
+            Caption = 'Product Name';
+            ToolTip = 'Specifies the vendor''s product name for this subscription.';
+        }
     }
     keys
     {
@@ -347,20 +359,22 @@ table 8006 "Usage Data Billing"
         end;
     end;
 
-    internal procedure InitFrom(UsageDataImportEntryNo: Integer; ServiceObjectNo: Code[20]; BillingPeriodStartDate: Date;
-                        BillingPeriodEndDate: Date; UnitCost: Decimal; NewQuantity: Decimal; CostAmount: Decimal; UnitPrice: Decimal;
-                        NewAmount: Decimal; CurrencyCode: Code[10])
+    internal procedure InitFrom(UsageDataImportEntryNo: Integer; SubscriptionHeaderNo: Code[20]; ProductID: Text[80]; ProductName: Text[100];
+        BillingPeriodStartDate: Date; BillingPeriodEndDate: Date; UnitCost: Decimal; NewQuantity: Decimal; CostAmount: Decimal;
+        UnitPrice: Decimal; NewAmount: Decimal; CurrencyCode: Code[10])
     begin
         Rec.Init();
         Rec."Entry No." := 0;
         Rec."Usage Data Import Entry No." := UsageDataImportEntryNo;
-        Rec."Subscription Header No." := ServiceObjectNo;
+        Rec."Subscription Header No." := SubscriptionHeaderNo;
+        Rec."Product ID" := ProductID;
+        Rec."Product Name" := ProductName;
         Rec."Charge Start Date" := BillingPeriodStartDate;
         Rec."Charge End Date" := BillingPeriodEndDate;
         Rec."Unit Cost" := UnitCost;
         Rec.Quantity := NewQuantity;
         if CostAmount = 0 then
-            Rec."Cost Amount" := NewQuantity * unitCost
+            Rec."Cost Amount" := NewQuantity * UnitCost
         else
             Rec."Cost Amount" := CostAmount;
         Rec."Unit Price" := UnitPrice;
@@ -565,7 +579,7 @@ table 8006 "Usage Data Billing"
         Rec.SetRange("Subscription Contract Line No.", EntryNo);
     end;
 
-    local procedure FilterDocumentWithLine(ServicePartner: Enum "Service Partner"; DocumentType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]; EntryNo: Integer)
+    internal procedure FilterDocumentWithLine(ServicePartner: Enum "Service Partner"; DocumentType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]; EntryNo: Integer)
     begin
         Rec.FilterOnDocumentTypeAndDocumentNo(ServicePartner, DocumentType, DocumentNo);
         Rec.SetRange("Document Line No.", EntryNo);
@@ -694,8 +708,38 @@ table 8006 "Usage Data Billing"
         exit((Rec."Document Type" <> "Usage Based Billing Doc. Type"::None) and (Rec."Document No." <> ''));
     end;
 
+    internal procedure GetPrintoutDescription() Description: Text[100]
+    begin
+        if ShouldPrintProductName() then
+            Description := "Product Name"
+        else
+            Description := "Subscription Description";
+        OnAfterGetPrintoutDescription(Rec, Description);
+    end;
+
+    internal procedure ShouldPrintProductName() Result: Boolean
+    var
+        ServiceContractSetup: Record "Subscription Contract Setup";
+    begin
+        ServiceContractSetup.Get();
+        Result :=
+            ("Usage Base Pricing" = Enum::"Usage Based Pricing"::"Unit Cost Surcharge") and
+            (ServiceContractSetup."Invoice Desc. (Surcharge)" = Enum::"Invoice Detail Origin"::"Product Name (default)");
+        OnAfterShouldPrintProductName(Rec, Result);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterSaveDocumentValues(UsageDateBilling: Record "Usage Data Billing")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetPrintoutDescription(Rec: Record "Usage Data Billing"; var Description: Text[100])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterShouldPrintProductName(Rec: Record "Usage Data Billing"; var Result: Boolean)
     begin
     end;
 

@@ -100,4 +100,12 @@ report 30112 "Shpfy Add Customer to Shopify"
     begin
         ShopCode := ShopifyShop;
     end;
+
+    /// <summary> 
+    /// Returns the Shop value selected on request page.
+    /// </summary>
+    procedure GetShop(): Code[20]
+    begin
+        exit(ShopCode);
+    end;
 }

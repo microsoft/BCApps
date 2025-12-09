@@ -5,8 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using System.Threading;
 using System.Environment.Configuration;
+using System.Threading;
 
 /// <summary>
 /// Codeunit Shpfy Background Syncs (ID 30101).

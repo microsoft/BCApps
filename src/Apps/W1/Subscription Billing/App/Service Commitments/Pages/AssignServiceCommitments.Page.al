@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Sales.Document;
 using Microsoft.Inventory.Item;
+using Microsoft.Sales.Document;
 
 page 8065 "Assign Service Commitments"
 {

@@ -6,11 +6,11 @@
 namespace System.Test.Email;
 
 using System.Email;
-using System.Utilities;
-using System.Text;
 using System.TestLibraries.Email;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
+using System.Text;
+using System.Utilities;
 codeunit 134689 "Email Message Unit Test"
 {
     Subtype = Test;

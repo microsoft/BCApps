@@ -4,8 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.ExcelReports;
-using Microsoft.Finance.RoleCenters;
+
 using Microsoft.Finance.ExcelReports;
+using Microsoft.Finance.RoleCenters;
 
 pageextension 4436 "EXR Acc. Rec. Admin RC" extends "Acc. Receivables Adm. RC"
 {

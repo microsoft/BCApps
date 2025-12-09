@@ -5,12 +5,12 @@
 namespace Microsoft.PowerBIReports.Test;
 
 using Microsoft.Finance.PowerBIReports;
-using Microsoft.PowerBIReports;
-using Microsoft.Sales.PowerBIReports;
+using Microsoft.Inventory.PowerBIReports;
 using Microsoft.Manufacturing.PowerBIReports;
+using Microsoft.PowerBIReports;
 using Microsoft.Projects.PowerBIReports;
 using Microsoft.Purchases.PowerBIReports;
-using Microsoft.Inventory.PowerBIReports;
+using Microsoft.Sales.PowerBIReports;
 
 codeunit 139792 "PowerBI API Requests"
 {

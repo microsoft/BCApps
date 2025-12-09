@@ -4,8 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Sales.ExcelReports;
-using Microsoft.Sales.Document;
+
 using Microsoft.Finance.ExcelReports;
+using Microsoft.Sales.Document;
 
 pageextension 4441 "EXR Sales Credit Memos" extends "Sales Credit Memos"
 {

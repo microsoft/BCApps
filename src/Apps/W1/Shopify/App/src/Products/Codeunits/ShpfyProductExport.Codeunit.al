@@ -8,9 +8,9 @@ namespace Microsoft.Integration.Shopify;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
-using System.Text;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Purchases.Vendor;
+using System.Text;
 
 /// <summary>
 /// Codeunit Shpfy Product Export (ID 30178).
@@ -361,7 +361,7 @@ codeunit 30178 "Shpfy Product Export"
             end;
             ShopifyVariant."Tax Code" := Item."Tax Group Code";
             ShopifyVariant.Taxable := true;
-            ShopifyVariant.Weight := Item."Gross Weight";
+            ShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
             ShopifyVariant."Option 1 Name" := Shop."Option Name for UoM";
             ShopifyVariant."Option 1 Value" := ItemUnitofMeasure.Code;
             ShopifyVariant."Shop Code" := Shop.Code;
@@ -472,7 +472,7 @@ codeunit 30178 "Shpfy Product Export"
             end;
             ShopifyVariant."Tax Code" := Item."Tax Group Code";
             ShopifyVariant.Taxable := true;
-            ShopifyVariant.Weight := Item."Gross Weight";
+            ShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
             ShopifyVariant."Option 1 Name" := 'Variant';
             ShopifyVariant."Option 1 Value" := ItemVariant.Code;
             ShopifyVariant."Option 2 Name" := Shop."Option Name for UoM";

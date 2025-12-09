@@ -5,11 +5,11 @@
 
 namespace System.Test.Security.AccessControl;
 
-using System.Security.User;
 using System.Security.AccessControl;
+using System.Security.User;
 using System.TestLibraries.Environment;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 139146 "User Permissions Test"
 {

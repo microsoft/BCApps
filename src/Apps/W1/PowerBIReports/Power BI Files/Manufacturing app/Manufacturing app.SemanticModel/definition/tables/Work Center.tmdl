@@ -1,0 +1,365 @@
+table 'Work Center'
+	lineageTag: 35c4c490-e6e2-463c-8116-538f2549651e
+
+	measure 'Work Center Availability After Orders' = [Work Center Capacity (Effective)] - [Work Center Allocated Time]
+		formatString: #,0.00
+		displayFolder: _Work Center Measures
+		lineageTag: c3f56ff9-9f97-413c-a3b8-246e737843eb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Work Center Capacity (Effective)' =
+			
+			
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR TimeFactor =
+			    LOOKUPVALUE(
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], SelectedUOM
+			    )
+			VAR TimeFactoredCalendarEntries =
+			    ADDCOLUMNS(
+			        CALCULATETABLE(
+			            'Calendar Entries',
+			            'Calendar Entries'[Capacity Type] = "Work Center"
+			        ),
+			        "@Factored",
+			            DIVIDE(
+			                VAR WCUOM = LOOKUPVALUE(
+			                    'Work Center'[Work Center Unit of Measure Code],
+			                    'Work Center'[Work Center No.], 'Calendar Entries'[Work Center No.]
+			                )
+			                VAR WCUOMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], WCUOM
+			                )
+			                RETURN WCUOMFactor * 'Calendar Entries'[Capacity Effective],
+			                TimeFactor
+			            )
+			    )
+			RETURN
+			    SUMX(
+			        TimeFactoredCalendarEntries,
+			        [@Factored]
+			    )
+		formatString: #,0.00
+		displayFolder: _Work Center Statistics
+		lineageTag: 3865105d-b276-4cd7-915b-5c1e7b3fb1c7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Work Center Load' =
+			
+			DIVIDE('Work Center'[Work Center Allocated Time], [Work Center Capacity (Effective)])
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: _Work Center Measures
+		lineageTag: 3f7aba06-46e5-43c7-a4a9-60847cd8e0ec
+
+	/// Specifies the calculated capacity requirements for production orders at the work center.
+	measure 'Work Center Allocated Time' = ```
+			
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR TimeFactor =
+			    LOOKUPVALUE(
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], SelectedUOM
+			    )
+			VAR TimeFactoredProdOrderCapacityNeed =
+			    ADDCOLUMNS(
+			        CALCULATETABLE(
+			            'Prod Order Capacity Need',
+			            'Prod Order Capacity Need'[Requested Only] = FALSE()
+			        ),
+			        "@Factored",
+			            DIVIDE(
+			                VAR WCUOM = LOOKUPVALUE(
+			                    'Work Center'[Work Center Unit of Measure Code],
+			                    'Work Center'[Work Center No.], 'Prod Order Capacity Need'[workCenterNo]
+			                )
+			                VAR WCUOMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], WCUOM
+			                )
+			                RETURN WCUOMFactor * 'Prod Order Capacity Need'[allocatedTime],
+			                TimeFactor
+			            )
+			    )
+			RETURN
+			    SUMX(
+			        TimeFactoredProdOrderCapacityNeed,
+			        [@Factored]
+			    )
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Work Center Statistics
+		lineageTag: 229d7ed2-5933-4115-aa21-3b2dacbca9f1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Work Center Capacity (Total)' = ```
+			
+			
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR TimeFactor =
+			    LOOKUPVALUE(
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], SelectedUOM
+			    )
+			VAR TimeFactoredCalendarEntries =
+			    ADDCOLUMNS(
+			        CALCULATETABLE(
+			            'Calendar Entries',
+			            'Calendar Entries'[Capacity Type] = "Work Center"
+			        ),
+			        "@Factored",
+			            DIVIDE(
+			                VAR WCUOM = LOOKUPVALUE(
+			                    'Work Center'[Work Center Unit of Measure Code],
+			                    'Work Center'[Work Center No.], 'Calendar Entries'[Work Center No.]
+			                )
+			                VAR WCUOMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], WCUOM
+			                )
+			                RETURN WCUOMFactor * 'Calendar Entries'[Capacity Total],
+			                TimeFactor
+			            )
+			    )
+			RETURN
+			    SUMX(
+			        TimeFactoredCalendarEntries,
+			        [@Factored]
+			    )
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Work Center Statistics
+		lineageTag: 0a041116-ca2a-4b21-8ce8-6efa555cc1cf
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Work Center Expected Efficiency %' = DIVIDE([Work Center Capacity (Effective)],[Work Center Capacity (Total)])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Work Center Statistics
+		lineageTag: cb16a22b-7184-44b6-81ff-31a1d2b1d18d
+
+	measure 'Work Center Actual Total Cost' = [Direct Cost] + [Overhead Cost]
+		formatString: #,0.00
+		displayFolder: _Work Center Statistics
+		lineageTag: a30b1c80-bfa0-4a7d-b992-06b948975975
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Work Center Actual Efficiency %' = DIVIDE([Work Center Actual Need], [Work Center Capacity (Total)])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Work Center Statistics
+		lineageTag: f3906f24-265c-4373-bbd1-79eb07dd0561
+
+	measure 'Work Center Actual Need' =
+			
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR TimeFactor =
+			    LOOKUPVALUE(
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], SelectedUOM
+			    )
+			VAR TimeFactoredCapacityLedgerEntries =
+			    ADDCOLUMNS(
+			        'Capacity Ledger Entries',
+			        "@FactoredStopTime",
+			            DIVIDE(
+			                VAR CapacityUoMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], 'Capacity Ledger Entries'[Capacity Unit of Measure]
+			                )
+			                RETURN CapacityUoMFactor * 'Capacity Ledger Entries'[stopTime],
+			                TimeFactor
+			            ),
+			        "@FactoredSetupTime",
+			            DIVIDE(
+			                VAR CapacityUoMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], 'Capacity Ledger Entries'[Capacity Unit of Measure]
+			                )
+			                RETURN CapacityUoMFactor * 'Capacity Ledger Entries'[setupTime],
+			                TimeFactor
+			            ),
+			        "@FactoredRunTime",
+			            DIVIDE(
+			                VAR CapacityUoMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], 'Capacity Ledger Entries'[Capacity Unit of Measure]
+			                )
+			                RETURN CapacityUoMFactor * 'Capacity Ledger Entries'[runTime],
+			                TimeFactor
+			            )
+			    )
+			RETURN
+			    SUMX(
+			        TimeFactoredCapacityLedgerEntries,
+			        [@FactoredStopTime] + [@FactoredSetupTime] + [@FactoredRunTime]
+			    )
+		formatString: #,0.00
+		displayFolder: _Work Center Statistics
+		lineageTag: d10d6ea3-9d28-425a-a665-5c7de9ef1c51
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Work Center Scrap %' = DIVIDE([Work Center Scrap], [Work Center Output])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Work Center Measures
+		lineageTag: 75f0cd0f-d057-4f84-9e1b-b705dc743233
+
+	measure 'Work Center Scrap' = ```
+			CALCULATE( SUM('Capacity Ledger Entries'[scrapQuantity]), 'Capacity Ledger Entries'[Type] = "Work Center" )
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Work Center Measures
+		lineageTag: c7f4a54f-e6f2-4a66-a70f-b17c9e93e5c1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Work Center Output' = CALCULATE( SUM('Capacity Ledger Entries'[outputQuantity]), 'Capacity Ledger Entries'[Type] = "Work Center")
+		formatString: #,0.00
+		displayFolder: _Work Center Measures
+		lineageTag: 05353d7f-228e-42da-b700-085fa0bea73b
+
+	measure 'Work Center Needed Time' =
+			
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR TimeFactor =
+			    LOOKUPVALUE(
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], SelectedUOM
+			    )
+			VAR TimeFactoredProdOrderCapacityNeed =
+			    ADDCOLUMNS(
+			        CALCULATETABLE(
+			            'Prod Order Capacity Need',
+			            'Prod Order Capacity Need'[Requested Only] = FALSE()
+			        ),
+			        "@Factored",
+			            DIVIDE(
+			                VAR WCUOM = LOOKUPVALUE(
+			                    'Work Center'[Work Center Unit of Measure Code],
+			                    'Work Center'[Work Center No.], 'Prod Order Capacity Need'[workCenterNo]
+			                )
+			                VAR WCUOMFactor = LOOKUPVALUE(
+			                    'Time Factors'[Time Factor],
+			                    'Time Factors'[Cap Unit of Measure Type], WCUOM
+			                )
+			                RETURN WCUOMFactor * 'Prod Order Capacity Need'[neededTime],
+			                TimeFactor
+			            )
+			    )
+			RETURN
+			    SUMX(
+			        TimeFactoredProdOrderCapacityNeed,
+			        [@Factored]
+			    )
+		formatString: #,0.00
+		displayFolder: _Work Center Statistics
+		lineageTag: 3a8fb576-5e5c-46fe-8d93-78edf6a75ccc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Work Center Name'
+		dataType: string
+		lineageTag: e9dc5829-27ba-4dda-96f4-31627ca586a6
+		summarizeBy: none
+		sourceColumn: Work Center Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Center Group Code'
+		dataType: string
+		lineageTag: bf9864d3-6f8d-4203-81ba-bcf1b5038e3e
+		summarizeBy: none
+		sourceColumn: Work Center Group Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Center Group Name'
+		dataType: string
+		lineageTag: b4f750ae-ce6a-4224-a080-a36cf511344b
+		summarizeBy: none
+		sourceColumn: Work Center Group Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Center No.'
+		dataType: string
+		lineageTag: c71a141b-a094-49a9-8735-d2b31b880a8a
+		summarizeBy: none
+		sourceColumn: Work Center No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Center Key'
+		dataType: string
+		isHidden
+		isKey
+		lineageTag: 22d3937c-8e82-49a3-aefd-973cb2d0d845
+		summarizeBy: none
+		sourceColumn: Work Center Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Center Subcontractor No.'
+		dataType: string
+		lineageTag: afa08e1a-4c92-49a8-8f5c-b3508837f639
+		summarizeBy: none
+		sourceColumn: Work Center Subcontractor No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Center Unit of Measure Code'
+		dataType: string
+		lineageTag: 50a98d83-83a8-4563-b613-994595671bb5
+		summarizeBy: none
+		sourceColumn: Work Center Unit of Measure Code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Work Center-b82d66f0-7e4c-4e99-8958-f16b054d3596' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "workCenters", Signature = "table"]}[Data],
+				    #"Removed Columns" = Table.RemoveColumns(TableData, {"ETag"}),
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        #"Removed Columns",
+				        {
+				            {"no", type text},
+				            {"name", type text},
+				            {"workCenterGroupCode", type text},
+				            {"workCenterGroupName", type text}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {
+				            {"no", "Work Center No."},
+				            {"name", "Work Center Name"},
+				            {"workCenterGroupCode", "Work Center Group Code"},
+				            {"workCenterGroupName", "Work Center Group Name"},
+				            {"subcontractorNo", "Work Center Subcontractor No."},
+				            {"unitOfMeasureCode", "Work Center Unit of Measure Code"}
+				        }
+				    ),
+				    #"Added Column" = Table.AddColumn(
+				        #"Renamed Columns", "Work Center Key", each "Work Center" & " " & [#"Work Center No."], type text
+				    )
+				in
+				    #"Added Column"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

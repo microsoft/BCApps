@@ -1,0 +1,8 @@
+[
+    {
+        "bug": "613698",
+        "codeunitId": 139746,
+        "codeunitName": "E-Doc. Email Tests",
+        "method": "TestSendFromPostedSalesInvoice"
+    }
+]

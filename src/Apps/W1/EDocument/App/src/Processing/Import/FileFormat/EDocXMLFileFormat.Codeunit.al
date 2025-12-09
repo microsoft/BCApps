@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Format;
 
-using System.Utilities;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using System.Utilities;
 
 codeunit 6192 "E-Doc. XML File Format" implements IEDocFileFormat
 {

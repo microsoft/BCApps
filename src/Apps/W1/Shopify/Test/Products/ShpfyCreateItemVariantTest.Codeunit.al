@@ -6,8 +6,8 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
 using Microsoft.Inventory.Item;
+using System.TestLibraries.Utilities;
 
 codeunit 139632 "Shpfy Create Item Variant Test"
 {

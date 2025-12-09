@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.PowerBIReports;
+
 using Microsoft.Finance.GeneralLedger.Account;
 
 codeunit 36953 "Finance Installation Handler"

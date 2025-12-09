@@ -6,8 +6,8 @@ namespace Microsoft.eServices.EDocument.API;
 
 using Microsoft.eServices.EDocument;
 using System.IO;
-using System.Utilities;
 using System.Text;
+using System.Utilities;
 
 /// <summary>
 /// Creates a new E-Document.

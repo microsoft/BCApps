@@ -1,20 +1,20 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.CRM.Contact;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Calendar;
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.Currency;
-using System.TestLibraries.Utilities;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
+using Microsoft.Pricing.Asset;
+using Microsoft.Pricing.Calculation;
+using Microsoft.Pricing.PriceList;
+using Microsoft.Pricing.Source;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
-using Microsoft.CRM.Contact;
-using Microsoft.Pricing.Calculation;
-using Microsoft.Pricing.Source;
-using Microsoft.Pricing.Asset;
-using Microsoft.Pricing.PriceList;
+using System.TestLibraries.Utilities;
 
 #pragma warning disable AA0210
 codeunit 148157 "Service Object Test"
@@ -1544,8 +1544,8 @@ codeunit 148157 "Service Object Test"
         SubscriptionLine.Get(SubscriptionLine."Entry No.");
 
         // [THEN] "Cancellation possible until" and "Term until" are recalculated
+        Assert.AreEqual(CalcDate(SubscriptionLine."Notice Period", SubscriptionLine."Cancellation possible until"), SubscriptionLine."Term until", 'Term until should be recalculated.');
         Assert.AreEqual(CalcDate('-' + Format(SubscriptionLine."Notice Period"), SubscriptionLine."Term until"), SubscriptionLine."Cancellation possible until", 'Cancellation possible until should be recalculated.');
-        Assert.AreEqual(CalcDate(SubscriptionLine."Extension Term", SubscriptionLine."Subscription Line Start Date"), SubscriptionLine."Term until", 'Term until should be recalculated.');
     end;
 
     #endregion Tests

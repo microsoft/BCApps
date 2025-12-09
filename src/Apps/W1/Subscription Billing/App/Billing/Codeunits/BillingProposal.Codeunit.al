@@ -1,10 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
-using Microsoft.Sales.Document;
-using Microsoft.Purchases.Document;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
+using System.Utilities;
 
 codeunit 8062 "Billing Proposal"
 {
@@ -315,6 +315,7 @@ codeunit 8062 "Billing Proposal"
         if not BillingLine.Insert(false) then
             BillingLine.Modify(false);
 
+        UpdateUsageDataBillingLineNoWhenBillingProposalIsCreated(BillingLine, ServiceCommitment);
         OnBeforeUpdateNextBillingDateInUpdateBillingLine(ServiceCommitment);
         ServiceCommitment.UpdateNextBillingDate(BillingLine."Billing to");
         ServiceCommitment.Modify(false);
@@ -441,6 +442,18 @@ codeunit 8062 "Billing Proposal"
         ServiceObject.Get(ServiceCommitment."Subscription Header No.");
         BillingLine."Service Object Quantity" := BillingLine.GetSign() * ServiceObject.Quantity;
         OnAfterUpdateBillingLineFromSubscriptionLine(BillingLine, ServiceCommitment);
+    end;
+
+    local procedure UpdateUsageDataBillingLineNoWhenBillingProposalIsCreated(BillingLine: Record "Billing Line"; SubscriptionLine: Record "Subscription Line")
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+    begin
+        if not SubscriptionLine.IsUsageBasedBillingValid() then
+            exit;
+
+        // Find all usage data billing records that overlap with the billing line period
+        SubscriptionLine.SetUsageDataBillingFilters(UsageDataBilling, BillingLine."Billing from", BillingLine."Billing to");
+        UsageDataBilling.ModifyAll("Billing Line Entry No.", BillingLine."Entry No.", false);
     end;
 
     local procedure CalculateBillingPeriod(ServiceCommitment: Record "Subscription Line"; BillingDate: Date; BillToDate: Date; var BillingPeriodStart: Date; var BillingPeriodEnd: Date)

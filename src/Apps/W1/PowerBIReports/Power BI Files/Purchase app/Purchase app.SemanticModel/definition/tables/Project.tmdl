@@ -1,0 +1,143 @@
+table Project
+	lineageTag: e76a9889-6235-4e45-bb1f-5d887e608d9c
+
+	column 'Project No.'
+		dataType: string
+		lineageTag: 0055e249-a119-4840-a84f-7a15c7f2b58e
+		summarizeBy: none
+		sourceColumn: Project No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project Description'
+		dataType: string
+		lineageTag: 3fd702d9-26cd-4bdf-aacf-2ecfe8d80721
+		summarizeBy: none
+		sourceColumn: Project Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project Bill to Customer No.'
+		dataType: string
+		lineageTag: f43dcdbe-1eb0-49eb-80c2-cf758d696e2b
+		summarizeBy: none
+		sourceColumn: Project Bill to Customer No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project Creation Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 0b9ee3cb-de69-4bdd-8229-47c61f0148e8
+		summarizeBy: none
+		sourceColumn: Project Creation Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Project Starting Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 8257dbd7-2ccf-4620-acff-d5346dd2d85c
+		summarizeBy: none
+		sourceColumn: Project Starting Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Project Ending Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a4082adb-1e5f-4cc1-9e0d-9e5341f8d5a7
+		summarizeBy: none
+		sourceColumn: Project Ending Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Project Status'
+		dataType: string
+		lineageTag: e218c398-e1c9-406e-9bb6-3a0ffb662c11
+		summarizeBy: none
+		sourceColumn: Project Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project Posting Group'
+		dataType: string
+		lineageTag: 06cece31-6efe-4d68-8892-8d34e0ce829e
+		summarizeBy: none
+		sourceColumn: Project Posting Group
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project Blocked'
+		dataType: string
+		lineageTag: 2218ff09-2d74-4f83-8eb6-79e51b2a3ca7
+		summarizeBy: none
+		sourceColumn: Project Blocked
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project Project Manager'
+		dataType: string
+		lineageTag: c40af742-e9a4-4a40-8243-ccd9d7550598
+		summarizeBy: none
+		sourceColumn: Project Project Manager
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project Complete'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 00a47beb-bdfe-4cc1-aa60-fb8f3b97a751
+		summarizeBy: none
+		sourceColumn: Project Complete
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project No. & Description'
+		dataType: string
+		lineageTag: b5ffca74-675e-4009-bc03-a315a2a5a092
+		summarizeBy: none
+		sourceColumn: Project No. & Description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Project = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "jobs", Signature = "table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(
+				        TableData,
+				        {
+				            {"creationDate", "Project Creation Date"},
+				            {"startingDate", "Project Starting Date"},
+				            {"endingDate", "Project Ending Date"},
+				            {"jobPostingGroup", "Project Posting Group"},
+				            {"projectManager", "Project Project Manager"},
+				            {"no", "Project No."},
+				            {"billToCustomerNo", "Project Bill to Customer No."},
+				            {"status", "Project Status"},
+				            {"description", "Project Description"},
+				            {"complete", "Project Complete"},
+				            {"blocked", "Project Blocked"}
+				        }
+				    ),
+				    #"Added Custom" = Table.AddColumn(
+				        #"Renamed Columns", "Project No. & Description", each [#"Project No."] & " " & [Project Description], type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Custom", {"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

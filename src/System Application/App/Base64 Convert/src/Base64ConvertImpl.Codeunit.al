@@ -5,7 +5,7 @@
 
 namespace System.Text;
 
-using System;
+using System.Runtime;
 
 codeunit 4111 "Base64 Convert Impl."
 {
@@ -14,95 +14,86 @@ codeunit 4111 "Base64 Convert Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    var
+        SystemNativeBase64Converter: Codeunit "Base64Convert";
+
+        SourceWarningLength: Integer;
+        TextLengtWarningTxt: Label 'The input string length (%1) exceeds the maximum suggested length (%2) for Base64 conversion.', Locked = true;
+        StreamLengtWarningTxt: Label 'The input stream length (%1) exceeds the maximum suggested length (%2) for Base64 conversion.', Locked = true;
+
+    internal procedure EmitLengthWarning(SourceLength: Integer; tag: Text; FormatString: Text)
+    begin
+        if SourceWarningLength <= 0 then
+            SourceWarningLength := 10485760; // 10 * 1024 * 1024 = 10 MB
+
+        if SourceLength > SourceWarningLength then
+            Session.LogMessage(tag, StrSubstNo(FormatString, SourceLength, SourceWarningLength), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'resources', 'memory');
+    end;
+
     procedure ToBase64(String: Text): Text
     begin
-        exit(ToBase64(String, false));
+        exit(this.ToBase64(String, false));
     end;
 
     procedure ToBase64(String: Text; InsertLineBreaks: Boolean): Text
     begin
-        exit(ToBase64(String, InsertLineBreaks, TextEncoding::UTF8, 0));
+        exit(this.ToBase64(String, InsertLineBreaks, TextEncoding::UTF8, 0));
     end;
 
     procedure ToBase64(String: Text; TextEncoding: TextEncoding): Text
     begin
-        exit(ToBase64(String, false, TextEncoding, 0));
+        exit(this.ToBase64(String, false, TextEncoding, 0));
     end;
 
     procedure ToBase64(String: Text; TextEncoding: TextEncoding; Codepage: Integer): Text
     begin
-        exit(ToBase64(String, false, TextEncoding, Codepage));
+        exit(this.ToBase64(String, false, TextEncoding, Codepage));
     end;
 
     procedure ToBase64(String: Text; InsertLineBreaks: Boolean; TextEncoding: TextEncoding): Text
     begin
-        exit(ToBase64(String, InsertLineBreaks, TextEncoding, 0));
+        exit(this.ToBase64(String, InsertLineBreaks, TextEncoding, 0));
     end;
 
     procedure ToBase64(String: Text; InsertLineBreaks: Boolean; TextEncoding: TextEncoding; Codepage: Integer): Text
-    var
-        Convert: DotNet Convert;
-        Encoding: DotNet Encoding;
-        Base64FormattingOptions: DotNet Base64FormattingOptions;
-        Base64String: Text;
     begin
         if String = '' then
             exit('');
 
-        if InsertLineBreaks then
-            Base64FormattingOptions := Base64FormattingOptions.InsertLineBreaks
-        else
-            Base64FormattingOptions := Base64FormattingOptions.None;
-        case TextEncoding of
-            TextEncoding::UTF16:
-                Base64String := Convert.ToBase64String(Encoding.Unicode().GetBytes(String), Base64FormattingOptions);
-            TextEncoding::MSDos,
-            TextEncoding::Windows:
-                Base64String := Convert.ToBase64String(Encoding.GetEncoding(Codepage).GetBytes(String), Base64FormattingOptions);
-            else
-                Base64String := Convert.ToBase64String(Encoding.UTF8().GetBytes(String), Base64FormattingOptions);
-        end;
+        this.EmitLengthWarning(StrLen(String), '0000QN7', TextLengtWarningTxt);
 
-        exit(Base64String);
+        exit(SystemNativeBase64Converter.ToBase64(String, InsertLineBreaks, TextEncoding, Codepage));
     end;
 
     procedure ToBase64(InStream: InStream): Text
     begin
-        exit(ToBase64(InStream, false));
+        exit(this.ToBase64(InStream, false));
     end;
 
     procedure ToBase64(InStream: InStream; InsertLineBreaks: Boolean): Text
-    var
-        Convert: DotNet Convert;
-        MemoryStream: DotNet MemoryStream;
-        InputArray: DotNet Array;
-        Base64FormattingOptions: DotNet Base64FormattingOptions;
-        Base64String: Text;
     begin
-        MemoryStream := MemoryStream.MemoryStream();
-        CopyStream(MemoryStream, InStream);
-        InputArray := MemoryStream.ToArray();
+        if (InStream.Length < 1) or InStream.EOS then
+            exit('');
 
-        if InsertLineBreaks then
-            Base64String := Convert.ToBase64String(InputArray, Base64FormattingOptions.InsertLineBreaks)
-        else
-            Base64String := Convert.ToBase64String(InputArray);
+        this.EmitLengthWarning(InStream.Length, '0000QN8', StreamLengtWarningTxt);
+        exit(SystemNativeBase64Converter.ToBase64(InStream, InsertLineBreaks));
+    end;
 
-        MemoryStream.Close();
-        exit(Base64String);
+    procedure ToBase64(InStream: InStream; InsertLineBreaks: Boolean; OutStream: OutStream)
+    begin
+        if (InStream.Length < 1) or InStream.EOS then
+            exit;
+
+        this.EmitLengthWarning(InStream.Length, '0000QN9', StreamLengtWarningTxt);
+        SystemNativeBase64Converter.ToBase64(InStream, InsertLineBreaks, OutStream)
     end;
 
     [NonDebuggable]
     procedure ToBase64(SecretString: SecretText): SecretText
-    var
-        Convert: DotNet Convert;
-        Encoding: DotNet Encoding;
-        Base64FormattingOptions: DotNet Base64FormattingOptions;
     begin
         if SecretString.IsEmpty() then
             exit;
-        Base64FormattingOptions := Base64FormattingOptions.None;
-        exit(Convert.ToBase64String(Encoding.UTF8().GetBytes(SecretString.Unwrap()), Base64FormattingOptions));
+        exit(SystemNativeBase64Converter.ToBase64(SecretString.Unwrap(), false, TextEncoding::UTF8, 0));
     end;
 
     procedure ToBase64Url(String: Text; TextEncoding: TextEncoding; Codepage: Integer): Text
@@ -110,12 +101,12 @@ codeunit 4111 "Base64 Convert Impl."
         Base64String: Text;
     begin
         Base64String := ToBase64(String, false, TextEncoding, Codepage);
-        exit(RemoveUrlUnsafeChars(Base64String));
+        exit(this.RemoveUrlUnsafeChars(Base64String));
     end;
 
     procedure ToBase64Url(String: Text): Text
     begin
-        exit(ToBase64Url(String, TextEncoding::UTF8, 0));
+        exit(this.ToBase64Url(String, TextEncoding::UTF8, 0));
     end;
 
     procedure ToBase64Url(String: Text; TextEncoding: TextEncoding): Text
@@ -127,8 +118,8 @@ codeunit 4111 "Base64 Convert Impl."
     var
         Base64String: Text;
     begin
-        Base64String := ToBase64(InStream, false);
-        exit(RemoveUrlUnsafeChars(Base64String));
+        Base64String := this.ToBase64(InStream, false);
+        exit(this.RemoveUrlUnsafeChars(Base64String));
     end;
 
     [NonDebuggable]
@@ -137,11 +128,11 @@ codeunit 4111 "Base64 Convert Impl."
         Base64SecretString: SecretText;
         Base64String: Text;
     begin
-        Base64SecretString := ToBase64(SecretString);
+        Base64SecretString := this.ToBase64(SecretString);
         if Base64SecretString.IsEmpty() then
             exit;
         Base64String := Base64SecretString.Unwrap();
-        exit(RemoveUrlUnsafeChars(Base64String));
+        exit(this.RemoveUrlUnsafeChars(Base64String));
     end;
 
     [NonDebuggable]
@@ -167,57 +158,37 @@ codeunit 4111 "Base64 Convert Impl."
 
     procedure FromBase64(Base64String: Text; TextEncoding: TextEncoding): Text
     begin
-        exit(FromBase64(Base64String, TextEncoding, 1252));
+        exit(this.FromBase64(Base64String, TextEncoding, 1252));
     end;
 
     procedure FromBase64(Base64String: Text; TextEncoding: TextEncoding; CodePage: Integer): Text
-    var
-        Convert: DotNet Convert;
-        Encoding: DotNet Encoding;
-        OutputString: Text;
     begin
         if Base64String = '' then
             exit('');
 
-        case TextEncoding of
-            TextEncoding::UTF16:
-                OutputString := Encoding.Unicode().GetString(Convert.FromBase64String(Base64String));
-            TextEncoding::MSDos,
-            TextEncoding::Windows:
-                OutputString := Encoding.GetEncoding(CodePage).GetString(Convert.FromBase64String(Base64String));
-            else
-                OutputString := Encoding.UTF8().GetString(Convert.FromBase64String(Base64String));
-        end;
-        exit(OutputString);
+        this.EmitLengthWarning(StrLen(Base64String), '0000QNA', TextLengtWarningTxt);
+        exit(this.SystemNativeBase64Converter.FromBase64(Base64String, TextEncoding, CodePage));
     end;
 
     procedure FromBase64(Base64String: Text): Text
     begin
-        exit(FromBase64(Base64String, TextEncoding::UTF8, 0));
+        exit(this.FromBase64(Base64String, TextEncoding::UTF8, 0));
     end;
 
     procedure FromBase64(Base64String: Text; OutStream: OutStream)
-    var
-        Convert: DotNet Convert;
-        MemoryStream: DotNet MemoryStream;
-        ConvertedArray: DotNet Array;
     begin
         if Base64String <> '' then begin
-            ConvertedArray := Convert.FromBase64String(Base64String);
-            MemoryStream := MemoryStream.MemoryStream(ConvertedArray);
-            MemoryStream.WriteTo(OutStream);
-            MemoryStream.Close();
+            this.EmitLengthWarning(StrLen(Base64String), '0000QNB', TextLengtWarningTxt);
+            this.SystemNativeBase64Converter.FromBase64(Base64String, OutStream);
         end;
     end;
 
     [NonDebuggable]
     procedure FromBase64(Base64SecretString: SecretText): SecretText
-    var
-        Convert: DotNet Convert;
-        Encoding: DotNet Encoding;
     begin
         if Base64SecretString.IsEmpty() then
             exit;
-        exit(Encoding.UTF8().GetString(Convert.FromBase64String(Base64SecretString.Unwrap())));
+
+        exit(this.SystemNativeBase64Converter.FromBase64(Base64SecretString.Unwrap(), TextEncoding::UTF8, 0));
     end;
 }

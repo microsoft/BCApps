@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Integration.Interfaces;
 
-using System.Utilities;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration.Receive;
+using System.Utilities;
 
 /// <summary>
 /// Interface for receiving E-Documents from E-Document service
