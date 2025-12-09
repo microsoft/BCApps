@@ -24,25 +24,35 @@ table 149035 "AIT Test Suite Language"
         field(2; "Language ID"; Integer)
         {
             Caption = 'Language ID';
-            ToolTip = 'Specifies the Windows Language ID for this test suite language.';
+            ToolTip = 'Specifies the Windows Language ID for the test suite language.';
             TableRelation = "Windows Language"."Language ID";
             ValidateTableRelation = true;
         }
-        field(3; "Language Tag"; Text[80])
+        field(10; "Language Tag"; Text[80])
         {
             Caption = 'Language Tag';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Windows Language"."Language Tag" where("Language ID" = field("Language ID")));
-            ToolTip = 'Specifies the language tag for the Windows Language.';
+            ToolTip = 'Specifies the language tag for the language.';
         }
-        field(4; "Language Name"; Text[80])
+        field(11; "Language Name"; Text[80])
         {
             Caption = 'Language Name';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Windows Language".Name where("Language ID" = field("Language ID")));
-            ToolTip = 'Specifies the name of the Windows Language.';
+            ToolTip = 'Specifies the name of the language.';
+        }
+        field(20; "Run Frequency"; Enum "AIT Run Frequency")
+        {
+            Caption = 'Run Frequency';
+            ToolTip = 'Specifies how frequently the test suite should be run for this language.';
+        }
+        field(21; Validation; Boolean)
+        {
+            Caption = 'Validation';
+            ToolTip = 'Specifies whether this language version is used for validation purposes.';
         }
     }
 

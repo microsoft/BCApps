@@ -31,6 +31,7 @@ table 130454 "Test Input Group"
             trigger OnValidate()
             begin
                 UpdateIndentation();
+                ValidateGroups();
             end;
         }
         field(3; Indentation; Integer)
@@ -45,7 +46,11 @@ table 130454 "Test Input Group"
             DataClassification = CustomerContent;
             TableRelation = "Windows Language"."Language ID";
             ToolTip = 'Specifies the language ID for the test input group.';
-            InitValue = 1033; // en-US
+
+            trigger OnValidate()
+            begin
+                ValidateGroups();
+            end;
         }
         field(6; "Group Name"; Text[250])
         {
@@ -84,7 +89,7 @@ table 130454 "Test Input Group"
         {
             Caption = 'Language';
             FieldClass = FlowField;
-            CalcFormula = lookup("Windows Language".Name where("Language ID" = field("Language ID")));
+            CalcFormula = lookup("Windows Language".Name where("Language Tag" = field("Language Tag")));
             ToolTip = 'Specifies the language name for the test input group.';
             Editable = false;
         }
@@ -94,6 +99,13 @@ table 130454 "Test Input Group"
             FieldClass = FlowField;
             CalcFormula = count("Test Input" where("Test Input Group Code" = field(Code)));
             ToolTip = 'Specifies the number of entries in the dataset.';
+        }
+        field(51; "No. of Languages"; Integer)
+        {
+            Caption = 'No. of Languages';
+            FieldClass = FlowField;
+            CalcFormula = count("Test Input Group" where("Parent Group Code" = field(Code)));
+            ToolTip = 'Specifies the number of language versions for this test input group.';
         }
         field(60; "Imported by AppId"; Guid)
         {
@@ -116,15 +128,21 @@ table 130454 "Test Input Group"
         }
     }
 
+    fieldgroups
+    {
+        fieldgroup(DropDown; "Group Name", Code, "No. of Languages")
+        {
+        }
+    }
+
     trigger OnInsert()
     begin
-        UpdateIndentation();
         UpdateGroup();
     end;
 
     trigger OnModify()
     begin
-        UpdateIndentation();
+        UpdateGroup();
     end;
 
     trigger OnDelete()
@@ -162,58 +180,52 @@ table 130454 "Test Input Group"
             Rec.Indentation := 1;
     end;
 
+    local procedure ValidateGroups()
+    begin
+        if (Rec."Parent Group Code" = '') and (Rec."Language ID" <> 0) then
+            Error(ParentGroupMustHaveNoLanguageErr, Rec."Language ID", Rec.Code, Rec."Group Name");
+
+        if (Rec."Parent Group Code" <> '') and (Rec."Language ID" = 0) then
+            Error(LanguageVersionMustHaveLanguageErr, Rec."Parent Group Code", Rec.Code, Rec."Group Name");
+    end;
+
     local procedure UpdateGroup()
     var
-        ExistingGroup: Record "Test Input Group";
-        DefaultGroup: Record "Test Input Group";
-        AllGroupsWithSameName: Record "Test Input Group";
+        ParentGroup: Record "Test Input Group";
+        ParentGroupCode: Code[100];
     begin
-        if Rec."Parent Group Code" <> '' then
+        if (Rec."Language ID" = 0) or (Rec."Parent Group Code" <> '') or (Rec."Group Name" = '') then
             exit;
 
-        ExistingGroup.SetRange("Group Name", Rec."Group Name");
-        ExistingGroup.SetFilter(Code, '<>%1', Rec.Code);
+        ParentGroupCode := CopyStr(Rec."Group Name", 1, MaxStrLen(ParentGroupCode) - StrLen(ParentGroupSuffixTxt)) + ParentGroupSuffixTxt;
 
-        if not ExistingGroup.FindFirst() then
-            exit;
+        if ParentGroup.Get(ParentGroupCode) then
+            Rec."Parent Group Code" := ParentGroup.Code
+        else begin
+            ParentGroup.Init();
+            ParentGroup.Code := ParentGroupCode;
+            ParentGroup."Group Name" := Rec."Group Name";
+            ParentGroup."Language ID" := 0;
+            ParentGroup.Insert(false);
 
-        // Check if current record is default language - it should become parent of all
-        if Rec."Language ID" = GetDefaultLanguageID() then begin
-            AllGroupsWithSameName.SetRange("Group Name", Rec."Group Name");
-            AllGroupsWithSameName.SetFilter(Code, '<>%1', Rec.Code);
-            if AllGroupsWithSameName.FindSet(true) then
-                repeat
-                    AllGroupsWithSameName."Parent Group Code" := Rec.Code;
-                    AllGroupsWithSameName.Modify(true);
-                until AllGroupsWithSameName.Next() = 0;
-        end else begin
-            DefaultGroup.SetRange("Group Name", Rec."Group Name");
-            DefaultGroup.SetRange("Language ID", GetDefaultLanguageID());
-            if DefaultGroup.FindFirst() then
-                Validate(Rec."Parent Group Code", DefaultGroup.Code)
-            else begin
-                ExistingGroup.SetRange("Group Name", Rec."Group Name");
-                ExistingGroup.SetFilter(Code, '<>%1', Rec.Code);
-                ExistingGroup.SetRange("Parent Group Code", '');
-                if ExistingGroup.FindFirst() then
-                    Validate(Rec."Parent Group Code", ExistingGroup.Code);
-            end;
+            Rec."Parent Group Code" := ParentGroup.Code;
         end;
+
+        UpdateIndentation();
+        ValidateGroups();
     end;
 
-    procedure GetTestInputGroupLanguages(var LanguageVersions: Record "Test Input Group"): Boolean
+    procedure GetTestInputGroupLanguages(TestInputCode: Code[100]; var LanguageVersions: Record "Test Input Group"): Boolean
     begin
         LanguageVersions.Reset();
-        LanguageVersions.SetRange("Group Name", Rec."Group Name");
+        LanguageVersions.SetRange("Parent Group Code", TestInputCode);
         exit(LanguageVersions.FindSet());
-    end;
-
-    local procedure GetDefaultLanguageID(): Integer
-    begin
-        exit(1033); // en-US
     end;
 
     var
         ALTestSuffixTxt: Label '-00000', Locked = true;
+        ParentGroupSuffixTxt: Label '-GROUP', Locked = true;
         ImportedAutomaticallyTxt: Label 'Imported from tool';
+        ParentGroupMustHaveNoLanguageErr: Label 'Parent groups must have no language set (Language ID = 0). Current Language ID: %1, Code: %2, Group Name: %3', Comment = '%1 = Language ID, %2 = Code, %3 = Group Name';
+        LanguageVersionMustHaveLanguageErr: Label 'Language versions must have a Language ID set. Parent Group Code: %1, Code: %2, Group Name: %3', Comment = '%1 = Parent Group Code, %2 = Code, %3 = Group Name';
 }

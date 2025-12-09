@@ -46,8 +46,8 @@ table 149030 "AIT Test Suite"
         field(7; "Input Dataset"; Code[100])
         {
             Caption = 'Input Dataset';
-            TableRelation = "Test Input Group".Code;
-            ValidateTableRelation = true;
+            TableRelation = "Test Input Group".Code where("Parent Group Code" = const(''));
+            ValidateTableRelation = false;
             ToolTip = 'Specifies the dataset to be used by the test suite.';
         }
         field(8; "Ended at"; DateTime)
@@ -118,6 +118,11 @@ table 149030 "AIT Test Suite"
         {
             Caption = 'Copilot Capability';
             ToolTip = 'Specifies the Copilot Capability that the test suite tests.';
+        }
+        field(15; "Run Frequency"; Enum "AIT Run Frequency")
+        {
+            Caption = 'Run Frequency';
+            ToolTip = 'Specifies how frequently the test suite should be run.';
         }
         field(16; "Base Version"; Integer)
         {
@@ -198,13 +203,6 @@ table 149030 "AIT Test Suite"
             TableRelation = "AIT Test Suite Language"."Language ID";
             ValidateTableRelation = true;
             ToolTip = 'Specifies the Windows Language ID for this test suite language.';
-
-            trigger OnValidate()
-            var
-                AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
-            begin
-                AITTestSuiteLanguage.UpdateLanguagesForTestSuite(Rec);
-            end;
         }
         field(41; "Language Tag"; Text[80])
         {
@@ -245,6 +243,16 @@ table 149030 "AIT Test Suite"
             Caption = 'Imported XML''s MD5';
             ToolTip = 'Specifies the MD5 hash of the XML file from which the test suite was imported.';
         }
+        field(80; Validation; Boolean)
+        {
+            Caption = 'Validation';
+            ToolTip = 'Specifies whether this test suite is used for validation purposes.';
+        }
+        field(81; "Test Type"; Enum "AIT Test Type")
+        {
+            Caption = 'Test Type';
+            ToolTip = 'Specifies the type of AI test (Copilot, Agent, or MCP).';
+        }
     }
     keys
     {
@@ -268,6 +276,13 @@ table 149030 "AIT Test Suite"
         TestRunnerMgt: Codeunit "Test Runner - Mgt";
     begin
         Rec."Test Runner Id" := TestRunnerMgt.GetDefaultTestRunner();
+    end;
+
+    internal procedure GetTestInputCode(): Code[100]
+    var
+        AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
+    begin
+        exit(AITTestSuiteLanguage.GetLanguageDataset(Rec."Input Dataset", Rec."Language ID"));
     end;
 
     var

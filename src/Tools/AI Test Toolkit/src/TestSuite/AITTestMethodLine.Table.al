@@ -81,17 +81,18 @@ table 149032 "AIT Test Method Line"
         {
             Caption = 'Input Dataset';
             DataClassification = CustomerContent;
-            TableRelation = "Test Input Group";
+            TableRelation = "Test Input Group" where("Parent Group Code" = const(''));
+            ValidateTableRelation = false;
             ToolTip = 'Specifies a dataset that overrides the default dataset for the suite.';
 
             trigger OnValidate()
             var
                 AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
             begin
-                if "Input Dataset" = '' then
+                if (Rec."Input Dataset" = '') or (Rec."Test Suite Code" = '') then
                     exit;
 
-                AITTestSuiteLanguage.AddLanguagesFromTestMethodLine(Rec);
+                AITTestSuiteLanguage.UpdateLanguagesFromDataset(Rec."Test Suite Code", Rec."Input Dataset");
             end;
         }
         field(9; "Status"; Enum "AIT Line Status")
@@ -247,24 +248,26 @@ table 149032 "AIT Test Method Line"
     internal procedure GetTestInputCode(): Code[100]
     var
         AITTestSuite: Record "AIT Test Suite";
+        AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
+        InputDatasetCode: Code[100];
     begin
-        if Rec."Input Dataset" <> '' then
-            exit(Rec."Input Dataset");
-
         AITTestSuite.Get(Rec."Test Suite Code");
-        exit(AITTestSuite."Input Dataset");
+
+        if Rec."Input Dataset" <> '' then
+            InputDatasetCode := Rec."Input Dataset"
+        else
+            InputDatasetCode := AITTestSuite."Input Dataset";
+
+        exit(AITTestSuiteLanguage.GetLanguageDataset(InputDatasetCode, AITTestSuite."Language ID"));
     end;
 
     trigger OnInsert()
     var
         AITTestSuite: Record "AIT Test Suite";
-        AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
     begin
         if Rec."Input Dataset" = '' then
             if AITTestSuite.Get(Rec."Test Suite Code") then
-                Rec."Input Dataset" := AITTestSuite."Input Dataset";
-
-        AITTestSuiteLanguage.AddLanguagesFromTestMethodLine(Rec);
+                Rec.Validate("Input Dataset", AITTestSuite."Input Dataset");
     end;
 
     trigger OnDelete()

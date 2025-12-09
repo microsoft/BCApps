@@ -264,15 +264,15 @@ codeunit 149037 "AIT AL Test Suite Mgt"
     /// <param name="DatasetInStream">The InStream of the dataset file.</param>
     /// <param name="LanguageID">The language ID to use for the dataset import.</param>
     /// <param name="Name">The name to use for the dataset import.</param>
-    procedure ImportTestInputs(DatasetFileName: Text; var DatasetInStream: InStream; LanguageID: Integer; Name: Text)
+    procedure ImportTestInputs(DatasetFileName: Text; var DatasetInStream: InStream; LanguageID: Integer; GroupName: Text)
     var
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        ImportTestInputs(DatasetFileName, DatasetInStream, CallerModuleInfo, LanguageID, Name);
+        ImportTestInputs(DatasetFileName, DatasetInStream, CallerModuleInfo, LanguageID, GroupName);
     end;
 
-    local procedure ImportTestInputs(DatasetFileName: Text; var DatasetInStream: InStream; CallerModuleInfo: ModuleInfo; LanguageID: Integer; Name: Text)
+    local procedure ImportTestInputs(DatasetFileName: Text; var DatasetInStream: InStream; CallerModuleInfo: ModuleInfo; LanguageID: Integer; GroupName: Text)
     var
         TestInputGroup: Record "Test Input Group";
         TestInputsManagement: Codeunit "Test Inputs Management";
@@ -295,7 +295,7 @@ codeunit 149037 "AIT AL Test Suite Mgt"
                         Error(SameDatasetNameErr, DatasetFileName, StrSubstNo(SourceOfTheDatasetIsAppIdLbl, TestInputGroup."Imported by AppId", CallerModuleInfo.Id));
                 end;
 
-        TestInputsManagement.UploadAndImportDataInputs(DatasetFileName, DatasetInStream, CallerModuleInfo.Id, LanguageID, Name);
+        TestInputsManagement.UploadAndImportDataInputs(DatasetFileName, DatasetInStream, CallerModuleInfo.Id, LanguageID, GroupName);
     end;
 
     /// <summary>

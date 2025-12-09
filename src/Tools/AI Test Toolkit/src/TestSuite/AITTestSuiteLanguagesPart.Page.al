@@ -10,6 +10,9 @@ page 149047 "AIT Test Suite Languages Part"
     Caption = 'Languages';
     PageType = ListPart;
     SourceTable = "AIT Test Suite Language";
+    InsertAllowed = false;
+    ModifyAllowed = true;
+    DeleteAllowed = true;
 
     layout
     {
@@ -23,22 +26,22 @@ page 149047 "AIT Test Suite Languages Part"
                     ToolTip = 'Specifies the Windows Language ID.';
                     Visible = false;
                 }
-                field("Language Tag"; Rec."Language Tag")
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies the language tag.';
-                }
                 field("Language Name"; Rec."Language Name")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the language name.';
                 }
+                field("Language Tag"; Rec."Language Tag")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the language tag.';
+                }
+                field("Run Frequency"; Rec."Run Frequency")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies how frequently the test suite should be run for this language.';
+                }
             }
         }
     }
-
-    trigger OnAfterGetRecord()
-    begin
-        Rec.CalcFields("Language Tag", "Language Name");
-    end;
 }

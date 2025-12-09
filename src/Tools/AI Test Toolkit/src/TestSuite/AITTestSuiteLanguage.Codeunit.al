@@ -13,108 +13,26 @@ codeunit 149046 "AIT Test Suite Language"
     Access = Internal;
 
     /// <summary>
-    /// Updates the test method lines of the specified test suite to use the selected language version.
-    /// </summary>
-    /// <param name="AITTestSuite"></param>
-    procedure UpdateLanguagesForTestSuite(AITTestSuite: Record "AIT Test Suite")
-    var
-        AITTestMethodLine: Record "AIT Test Method Line";
-        AITTestSuiteLanguage: Record "AIT Test Suite Language";
-        LanguageNotAvailableErr: Label 'Language ID %1 is not available for Test Suite %2.', Comment = '%1 - language ID, %2 - test suite code.';
-    begin
-        AddLanguagesFromTestSuite(AITTestSuite);
-
-        if not AITTestSuiteLanguage.Get(AITTestSuite.Code, AITTestSuite."Language ID") then
-            Error(LanguageNotAvailableErr, AITTestSuite."Language ID", AITTestSuite.Code);
-
-        AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
-
-        if AITTestMethodLine.FindSet() then
-            repeat
-                UpdateLanguageForTestMethodLine(AITTestMethodLine, AITTestSuiteLanguage);
-            until AITTestMethodLine.Next() = 0;
-    end;
-
-    /// <summary>
-    /// Updates the input dataset of the test method line to the specified language version.
-    /// </summary>
-    /// <param name="AITTestMethodLine">The test method line record to update.</param>
-    /// <param name="AITTestSuiteLanguage">The test suite language record specifying the language to update the input dataset to.</param>
-    procedure UpdateLanguageForTestMethodLine(AITTestMethodLine: Record "AIT Test Method Line"; AITTestSuiteLanguage: Record "AIT Test Suite Language")
-    var
-        TestInputGroup: Record "Test Input Group";
-        TestInputGroupLanguageVersion: Record "Test Input Group";
-        InputDatasetNotFoundErr: Label 'Input Dataset %1 not found in Test Input Groups.', Comment = '%1 - input dataset.';
-        NoLocalizedVersionErr: Label 'No localized version found for Input Dataset %1 in Language ID %2.', Comment = '%1 - input dataset, %2 - language ID.';
-    begin
-        if AITTestMethodLine."Input Dataset" = '' then
-            exit;
-
-        if not TestInputGroup.Get(AITTestMethodLine."Input Dataset") then
-            Error(InputDatasetNotFoundErr, AITTestMethodLine."Input Dataset");
-
-        TestInputGroupLanguageVersion.SetRange("Group Name", TestInputGroup."Group Name");
-        TestInputGroupLanguageVersion.SetRange("Language ID", AITTestSuiteLanguage."Language ID");
-        if not TestInputGroupLanguageVersion.FindFirst() then
-            Error(NoLocalizedVersionErr, AITTestMethodLine."Input Dataset", AITTestSuiteLanguage."Language ID");
-
-        AITTestMethodLine."Input Dataset" := TestInputGroupLanguageVersion.Code;
-        AITTestMethodLine.Modify();
-    end;
-
-
-    /// <summary>
     /// Updates the test suite languages by adding all available language versions from the test input groups.
+    /// Languages that are no longer part of any dataset will be removed.
     /// </summary>
-    /// <param name="AITTestSuite">The test suite record to update languages for.</param>
-    /// <returns>True if languages were updated; otherwise, false.</returns>
-    procedure AddLanguagesFromTestSuite(AITTestSuite: Record "AIT Test Suite"): Boolean
+    /// <param name="TestSuiteCode">The test suite code to update languages for.</param>
+    /// <param name="TestInputGroupCode">The test input group code to get languages from.</param>
+    procedure UpdateLanguagesFromDataset(TestSuiteCode: Code[100]; TestInputGroupCode: Code[100])
     var
-        AITTestMethodLine: Record "AIT Test Method Line";
-        Updated: Boolean;
-    begin
-        AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
-
-        if AITTestMethodLine.FindSet() then
-            repeat
-                if AddLanguagesFromTestMethodLine(AITTestMethodLine) then
-                    Updated := true;
-            until AITTestMethodLine.Next() = 0;
-
-        exit(Updated);
-    end;
-
-    /// <summary>
-    /// Updates the test suite languages by adding all available language versions from the test input groups.
-    /// </summary>
-    /// <param name="AITTestMethodLine">The test method line record to update language for.</param>
-    /// <returns>True if languages were updated; otherwise, false.</returns>
-    procedure AddLanguagesFromTestMethodLine(AITTestMethodLine: Record "AIT Test Method Line"): Boolean
-    var
-        AITTestSuiteLanguage: Record "AIT Test Suite Language";
         TestInputGroup: Record "Test Input Group";
         TestInputGroupLanguageVersions: Record "Test Input Group";
-        LanguageIDs: List of [Integer];
-        Updated: Boolean;
+        SeenLanguages: Dictionary of [Integer, Boolean];
     begin
-        if not TestInputGroup.Get(AITTestMethodLine.GetTestInputCode()) then
-            exit(false);
+        if not TestInputGroup.Get(TestInputGroupCode) then
+            exit;
 
-        if not TestInputGroup.GetTestInputGroupLanguages(TestInputGroupLanguageVersions) then
-            exit(false);
+        AddLanguage(TestSuiteCode, TestInputGroup."Language ID", SeenLanguages);
 
-        repeat
-            if not LanguageIDs.Contains(TestInputGroupLanguageVersions."Language ID") then begin
-                LanguageIDs.Add(TestInputGroupLanguageVersions."Language ID");
-
-                if not AITTestSuiteLanguage.Get(AITTestMethodLine."Test Suite Code", TestInputGroupLanguageVersions."Language ID") then begin
-                    AddLanguage(CopyStr(AITTestMethodLine."Test Suite Code", 1, StrLen(AITTestMethodLine."Test Suite Code")), TestInputGroupLanguageVersions."Language ID");
-                    Updated := true;
-                end;
-            end;
-        until TestInputGroupLanguageVersions.Next() = 0;
-
-        exit(Updated);
+        if TestInputGroup.GetTestInputGroupLanguages(TestInputGroupCode, TestInputGroupLanguageVersions) then
+            repeat
+                AddLanguage(TestSuiteCode, TestInputGroupLanguageVersions."Language ID", SeenLanguages);
+            until TestInputGroupLanguageVersions.Next() = 0;
     end;
 
     /// <summary>
@@ -125,11 +43,12 @@ codeunit 149046 "AIT Test Suite Language"
     procedure GetLanguageDisplayName(LanguageID: Integer): Text
     var
         WindowsLanguage: Record "Windows Language";
+        NoneLbl: Label 'None';
     begin
         if WindowsLanguage.Get(LanguageID) then
-            exit(WindowsLanguage."Language Tag");
+            exit(WindowsLanguage.Name);
 
-        exit('');
+        exit(NoneLbl);
     end;
 
     /// <summary>
@@ -156,24 +75,89 @@ codeunit 149046 "AIT Test Suite Language"
     procedure AssistEditTestSuiteLanguage(AITTestSuite: Record "AIT Test Suite")
     var
         AITTestSuiteLanguage: Record "AIT Test Suite Language";
-        AITTestSuiteLanguages: Page "AIT Test Suite Languages";
+        TempAITTestSuiteLanguage: Record "AIT Test Suite Language" temporary;
+        AITTestSuiteLanguages: Page "AIT Test Suite Language Lookup";
     begin
+        TempAITTestSuiteLanguage."Test Suite Code" := AITTestSuite.Code;
+        TempAITTestSuiteLanguage."Language ID" := 0;
+        TempAITTestSuiteLanguage.Insert();
+
         AITTestSuiteLanguage.SetRange("Test Suite Code", AITTestSuite.Code);
-        AITTestSuiteLanguages.SetTableView(AITTestSuiteLanguage);
+        if AITTestSuiteLanguage.FindSet() then
+            repeat
+                TempAITTestSuiteLanguage.TransferFields(AITTestSuiteLanguage);
+                TempAITTestSuiteLanguage.Insert();
+            until AITTestSuiteLanguage.Next() = 0;
+
+        AITTestSuiteLanguages.SetRecords(TempAITTestSuiteLanguage);
         AITTestSuiteLanguages.LookupMode := true;
 
         if AITTestSuiteLanguages.RunModal() = Action::LookupOK then begin
-            AITTestSuiteLanguages.GetRecord(AITTestSuiteLanguage);
-            AITTestSuite.Validate("Language ID", AITTestSuiteLanguage."Language ID");
+            AITTestSuiteLanguages.GetRecord(TempAITTestSuiteLanguage);
+            AITTestSuite.Validate("Language ID", TempAITTestSuiteLanguage."Language ID");
             AITTestSuite.Modify(true);
         end;
     end;
 
-    local procedure AddLanguage(TestSuiteCode: Code[10]; LanguageID: Integer)
+    /// <summary>
+    /// Gets the language-specific version of a dataset based on the test suite's language setting.
+    /// </summary>
+    /// <param name="InputDatasetCode">The base input dataset code.</param>
+    /// <param name="LanguageID">The language ID from the test suite.</param>
+    /// <returns>The language-specific dataset code.</returns>
+    procedure GetLanguageDataset(InputDatasetCode: Code[100]; LanguageID: Integer): Code[100]
+    var
+        TestInputGroup: Record "Test Input Group";
+        LanguageDatasetCode: Code[100];
+        LanguageVersionNotFoundErr: Label 'No language version found for dataset %1 with language %2.', Comment = '%1 = Dataset Code, %2 = Language Name';
+    begin
+        if not TestInputGroup.Get(InputDatasetCode) then
+            exit(InputDatasetCode);
+
+        if TestInputGroup."Parent Group Code" <> '' then
+            exit(InputDatasetCode);
+
+        if LanguageID = 0 then
+            if GetLanguageDatasetCode(TestInputGroup."Group Name", 1033, LanguageDatasetCode) then
+                exit(LanguageDatasetCode)
+            else
+                exit(InputDatasetCode);
+
+        if not GetLanguageDatasetCode(TestInputGroup."Group Name", LanguageID, LanguageDatasetCode) then
+            Error(LanguageVersionNotFoundErr, InputDatasetCode, GetLanguageDisplayName(LanguageID));
+
+        exit(LanguageDatasetCode);
+    end;
+
+    local procedure GetLanguageDatasetCode(GroupName: Text[250]; LanguageID: Integer; var LanguageDatasetCode: Code[100]): Boolean
+    var
+        LanguageVersionGroup: Record "Test Input Group";
+    begin
+        LanguageVersionGroup.SetRange("Group Name", GroupName);
+        LanguageVersionGroup.SetRange("Language ID", LanguageID);
+        if not LanguageVersionGroup.FindFirst() then
+            exit(false);
+
+        LanguageDatasetCode := LanguageVersionGroup.Code;
+        exit(true);
+    end;
+
+    local procedure AddLanguage(TestSuiteCode: Code[100]; LanguageID: Integer; SeenLanguages: Dictionary of [Integer, Boolean])
     var
         AITTestSuiteLanguage: Record "AIT Test Suite Language";
     begin
-        AITTestSuiteLanguage."Test Suite Code" := TestSuiteCode;
+        if LanguageID = 0 then
+            exit;
+
+        if SeenLanguages.ContainsKey(LanguageID) then
+            exit;
+
+        SeenLanguages.Add(LanguageID, true);
+
+        if AITTestSuiteLanguage.Get(TestSuiteCode, LanguageID) then
+            exit;
+
+        AITTestSuiteLanguage."Test Suite Code" := CopyStr(TestSuiteCode, 1, MaxStrLen(AITTestSuiteLanguage."Test Suite Code"));
         AITTestSuiteLanguage."Language ID" := LanguageID;
         AITTestSuiteLanguage.Insert(true);
     end;
