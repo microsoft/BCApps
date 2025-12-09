@@ -10,7 +10,7 @@ using System.Environment.Configuration;
 using System.Security.AccessControl;
 
 
-page 4323 "Show Agent Permissions"
+page 4334 "Show Agent Permissions"
 {
     Caption = 'Agent Permission Sets';
     PageType = ListPart;

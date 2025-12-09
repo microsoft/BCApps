@@ -7,7 +7,7 @@ namespace System.Agents;
 
 using System.Security.User;
 
-page 4322 "Select Agent Permissions"
+page 4336 "Select Agent Permissions"
 {
     PageType = StandardDialog;
     ApplicationArea = All;
