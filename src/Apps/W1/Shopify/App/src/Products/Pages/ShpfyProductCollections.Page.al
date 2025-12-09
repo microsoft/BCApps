@@ -5,6 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.Inventory.Item;
+
 page 30175 "Shpfy Product Collections"
 {
     ApplicationArea = All;
@@ -12,7 +14,6 @@ page 30175 "Shpfy Product Collections"
     PageType = List;
     SourceTable = "Shpfy Product Collection";
     InsertAllowed = false;
-    DeleteAllowed = false;
     UsageCategory = None;
 
     layout
@@ -24,6 +25,25 @@ page 30175 "Shpfy Product Collections"
                 field(Id; Rec.Id) { }
                 field(Name; Rec.Name) { }
                 field(Default; Rec.Default) { }
+                field(ItemFilter; ItemFilter)
+                {
+                    Caption = 'Item Filter';
+                    ToolTip = 'Specifies the filter criteria for the items in the product collection.';
+
+                    trigger OnAssistEdit()
+                    var
+                        Item: Record Item;
+                        FilterPageBuilder: FilterPageBuilder;
+                    begin
+                        FilterPageBuilder.AddTable(Item.TableCaption(), Database::Item);
+                        if ItemFilter <> '' then
+                            FilterPageBuilder.SetView(Item.TableCaption(), ItemFilter);
+                        if FilterPageBuilder.RunModal() then begin
+                            ItemFilter := FilterPageBuilder.GetView(Item.TableCaption(), false);
+                            Rec.SetItemFilter(ItemFilter);
+                        end;
+                    end;
+                }
             }
         }
     }
@@ -51,4 +71,12 @@ page 30175 "Shpfy Product Collections"
             actionref(PromotedGetProductCollections; GetProductCollections) { }
         }
     }
+
+    trigger OnAfterGetRecord()
+    begin
+        ItemFilter := Rec.GetItemFilter();
+    end;
+
+    var
+        ItemFilter: Text;
 }

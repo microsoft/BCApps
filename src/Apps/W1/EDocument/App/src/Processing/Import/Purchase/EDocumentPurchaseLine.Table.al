@@ -12,6 +12,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.UOM;
+using Microsoft.eServices.EDocument.Processing;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Projects.Resources.Resource;
@@ -334,6 +335,31 @@ table 6101 "E-Document Purchase Line"
             "[BC] Shortcut Dimension 1 Code", "[BC] Shortcut Dimension 2 Code");
         DimMgt.UpdateGlobalDimFromDimSetID("[BC] Dimension Set ID", "[BC] Shortcut Dimension 1 Code", "[BC] Shortcut Dimension 2 Code");
         exit(OldDimSetID <> "[BC] Dimension Set ID");
+    end;
+
+    internal procedure GetFromLinkedPurchaseLine(PurchaseLine: Record "Purchase Line"): Boolean
+    var
+        EDocumentRecordLink: Record "E-Doc. Record Link";
+    begin
+        Clear(Rec);
+        EDocumentRecordLink.SetRange("Source Table No.", Database::"E-Document Purchase Line");
+        EDocumentRecordLink.SetRange("Target Table No.", Database::"Purchase Line");
+        EDocumentRecordLink.SetRange("Target SystemId", PurchaseLine.SystemId);
+        if EDocumentRecordLink.FindFirst() then
+            exit(Rec.GetBySystemId(EDocumentRecordLink."Source SystemId"));
+    end;
+
+    internal procedure GetLinkedPurchaseLine(): Record "Purchase Line"
+    var
+        EDocumentRecordLink: Record "E-Doc. Record Link";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        EDocumentRecordLink.SetRange("Source Table No.", Database::"E-Document Purchase Line");
+        EDocumentRecordLink.SetRange("Target Table No.", Database::"Purchase Line");
+        EDocumentRecordLink.SetRange("Source SystemId", Rec.SystemId);
+        if EDocumentRecordLink.FindFirst() then
+            if PurchaseLine.GetBySystemId(EDocumentRecordLink."Target SystemId") then
+                exit(PurchaseLine);
     end;
 
     procedure GetEDocumentPurchaseHeader() EDocumentPurchaseHeader: Record "E-Document Purchase Header"

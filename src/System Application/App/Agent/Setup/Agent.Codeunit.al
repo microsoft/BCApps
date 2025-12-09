@@ -31,28 +31,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        exit(AgentImpl.CreateAgent(AgentMetadataProvider, UserName, UserDisplayName, TempAgentAccessControl, ''));
-    end;
-
-    /// <summary>
-    /// Creates a new agent.
-    /// The agent will be in the disabled state, with the users that can interact with the agent setup.
-    /// </summary>
-    /// <param name="AgentMetadataProvider">The metadata provider of the agent.</param>
-    /// <param name="UserName">User name for the agent.</param>
-    /// <param name="UserDisplayName">Display name for the agent.</param>
-    /// <param name="Instructions">Instructions for the agent that will be used to complete the tasks.</param>
-    /// <param name="TempAgentAccessControl">The list of users that can configure or interact with the agent.</param>
-    /// <param name="Initials">Initials for the agent badge.</param>
-    /// <returns>The security ID of the agent.</returns>
-#pragma warning disable AS0026
-    [Scope('OnPrem')]
-    procedure Create(AgentMetadataProvider: Enum "Agent Metadata Provider"; var UserName: Code[50]; UserDisplayName: Text[80]; var TempAgentAccessControl: Record "Agent Access Control" temporary; Initials: Text[4]): Guid
-#pragma warning restore AS0026
-    var
-        AgentImpl: Codeunit "Agent Impl.";
-    begin
-        exit(AgentImpl.CreateAgent(AgentMetadataProvider, UserName, UserDisplayName, TempAgentAccessControl, Initials));
+        exit(AgentImpl.CreateAgent(AgentMetadataProvider, UserName, UserDisplayName, TempAgentAccessControl));
     end;
 
     /// <summary>
