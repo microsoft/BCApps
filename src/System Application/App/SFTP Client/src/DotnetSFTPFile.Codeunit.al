@@ -5,6 +5,7 @@
 
 namespace System.SFTPClient;
 
+using System;
 codeunit 9761 "Dotnet SFTP File" implements "ISFTP File"
 {
     Access = Internal;
