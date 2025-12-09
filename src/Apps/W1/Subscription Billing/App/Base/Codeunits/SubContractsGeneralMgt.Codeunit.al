@@ -1,12 +1,12 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Foundation.Attachment;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Purchases.Document;
-using Microsoft.Purchases.History;
-using Microsoft.Foundation.Attachment;
 
 codeunit 8059 "Sub. Contracts General Mgt."
 {
@@ -501,6 +501,10 @@ codeunit 8059 "Sub. Contracts General Mgt."
     begin
         if Rec.IsTemporary() then
             exit;
+
+        if not RunTrigger then
+            exit;
+
         CustomerContract.SetRange("Sell-to Customer No.", Rec."No.");
         if not CustomerContract.IsEmpty() then
             Error(CustomerContractExistErr, Rec.TableCaption, Rec."No.");
@@ -518,6 +522,10 @@ codeunit 8059 "Sub. Contracts General Mgt."
     begin
         if Rec.IsTemporary() then
             exit;
+
+        if not RunTrigger then
+            exit;
+
         VendorContract.SetRange("Buy-from Vendor No.", Rec."No.");
         if not VendorContract.IsEmpty() then
             Error(VendorContractExistErr, Rec.TableCaption, Rec."No.");

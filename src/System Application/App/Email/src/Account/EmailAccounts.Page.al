@@ -178,7 +178,7 @@ page 8887 "Email Accounts"
                 Image = Add;
                 Caption = 'Add an email account';
                 ToolTip = 'Add an email account.';
-                Visible = (not IsLookupMode) and CanUserManageEmailSetup;
+                Visible = ((not IsLookupMode) or ShowCreateAccount) and CanUserManageEmailSetup;
 
                 trigger OnAction()
                 begin
@@ -531,6 +531,15 @@ page 8887 "Email Accounts"
     end;
 
     /// <summary>
+    /// Sets whether the action to create a new email account is shown.
+    /// </summary>
+    /// <param name="Show">True to show the create account action, false to hide it</param>
+    procedure SetShowCreateAccount(Show: Boolean)
+    begin
+        ShowCreateAccount := Show;
+    end;
+
+    /// <summary>
     /// Filters the email accounts to only show accounts that are using the Email Connector v2 or v3.
     /// </summary>
     /// <param name="Filter">True to filter the email accounts, false to show all email accounts</param>
@@ -581,6 +590,7 @@ page 8887 "Email Accounts"
         DefaultTxt: Text;
         UpdateAccounts: Boolean;
         IsLookupMode: Boolean;
+        ShowCreateAccount: Boolean;
         HasEmailAccount: Boolean;
         V2V3Filter, V3Filter : Boolean;
         V4Filter: Boolean;

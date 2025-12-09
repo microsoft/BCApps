@@ -2,13 +2,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-
+#if not CLEANSCHEMA31
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Finance.SalesTax;
-using System.IO;
-using Microsoft.Inventory.Item;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Inventory.Item;
+using System.IO;
 
 /// <summary>
 /// Table Shpfy Shop Collection Map (ID 30128).
@@ -18,6 +18,15 @@ table 30128 "Shpfy Shop Collection Map"
     Access = Internal;
     Caption = 'Shopify Shop Collection';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'This table is not used.';
+#if not CLEAN28
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '31.0';
+#endif
+
     fields
     {
         field(1; Id; Integer)
@@ -86,7 +95,7 @@ table 30128 "Shpfy Shop Collection Map"
         {
             Caption = 'Default for Export';
             DataClassification = CustomerContent;
-
+#if not CLEAN28
             trigger OnValidate()
             var
                 Collection: Record "Shpfy Shop Collection Map";
@@ -101,6 +110,7 @@ table 30128 "Shpfy Shop Collection Map"
                     if "Default for Export" then
                         Collection.ModifyAll("Default for Export", false, false);
             end;
+#endif
         }
         field(9; Version; BigInteger)
         {
@@ -136,3 +146,4 @@ table 30128 "Shpfy Shop Collection Map"
         Validate("Default for Export");
     end;
 }
+#endif

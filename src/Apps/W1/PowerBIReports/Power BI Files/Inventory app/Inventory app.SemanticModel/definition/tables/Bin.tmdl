@@ -1,0 +1,262 @@
+table Bin
+	lineageTag: 1f87b7f3-9737-4264-b80c-47ff181ba603
+
+	/// This measure calculates the quantity of an item that is available to be picked. It subtracts the Pick Quantity (Base), ATO Components Pick Qty., and Negative Adjmt. Qty. (Base) measures from Warehouse Quantity, but only for the bins that are not marked as adjustment bins.
+	measure 'Available Qty. to Take' = ```
+			
+			VAR NonAdjustmentBins =
+			    CALCULATETABLE ( Bin, Bin[Adjustment Bin] = FALSE () )
+			VAR RESULT =
+			    CALCULATE (
+			        [Warehouse Quantity] 
+			        - [Pick Quantity (Base)]
+			        - [ATO Components Pick Qty.] 
+			        - [Negative Adjmt. Qty. (Base)]
+			        ,NonAdjustmentBins
+			    )
+			RETURN
+			    RESULT
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Bin Measures
+		lineageTag: 0b9df803-8416-40c2-86af-ea45496a0ac9
+
+	/// This measure calculates the total quantity located in bins that are marked as adjustment bins. It first identifies the bins flagged as adjustment bins by creating a filtered table (AdjustmentBins). Then, it sums the Qty. (Base) values from the Warehouse Entries table, applying this filter to include only adjustment bins. The measure ensures the quantity reflects only the specified adjustment bins by removing other bin filters.
+	measure 'Quantity in Adjustment Bin' =
+			
+			VAR AdjustmentBins =
+			    CALCULATETABLE ( Bin, Bin[Adjustment Bin] = TRUE () )
+			VAR Result =
+			    CALCULATE ( SUM ( 'Warehouse Entries'[Qty. (Base)] ), ALL(Bin), AdjustmentBins )
+			RETURN Result
+		formatString: #,0.00
+		displayFolder: _Bin Measures
+		lineageTag: d58b3154-c046-47de-85a7-603b30f92bd3
+
+	/// This measure calculates the total quantity of an item that has been added to the warehouse due to adjustments. This includes any adjustments that result in inventory increases in the Warehouse Journal Line table.
+	measure 'Positive Adjmt. Qty. (Base)' = ```
+			
+			CALCULATE(SUM('Warehouse Journal Lines (To Bin)'[qtyBase]),KEEPFILTERS(Bin))
+			
+			
+			```
+		formatString: 0.00
+		displayFolder: _Bin Measures
+		lineageTag: deb1052a-437e-4c8b-a1d5-c9d0009c58f9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure calculates the total quantity of an item that has been removed from the warehouse due to adjustments. This includes any adjustments that result in inventory decreases in the Warehouse Journal Line table.
+	measure 'Negative Adjmt. Qty. (Base)' =
+			
+			CALCULATE(SUM('Warehouse Journal Lines (From Bin)'[qtyBase]),KEEPFILTERS(Bin))
+		formatString: 0.00
+		displayFolder: _Bin Measures
+		lineageTag: 0970e4c3-c122-4bb8-849f-a29c987033a1
+
+	/// This measure calculates the total quantity of an item that is currently in the warehouse by summing the base quantity from the Warehouse Entry table.
+	measure 'Warehouse Quantity' = ```
+			SUM('Warehouse Entries'[Qty. (Base)])
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Bin Measures
+		lineageTag: cd751454-b225-45e1-af64-e33a75754419
+
+		changedProperty = IsHidden
+
+	/// This measure calculates the total quantity taken from the warehouse for "Assemble to Order" components by summing the qtyBase from Warehouse Activity Lines where actionType is Take, assembleToOrder is TRUE, and atoComponent is TRUE. This measure captures only the quantities picked specifically for assembling made-to-order products.
+	measure 'ATO Components Pick Qty.' =
+			
+			CALCULATE(
+			    SUM('Warehouse Activity Lines'[qtyBase]),
+			    'Warehouse Activity Lines'[actionType] = "Take",
+			    'Warehouse Activity Lines'[assembleToOrder] = TRUE(),
+			    'Warehouse Activity Lines'[atoComponent] = TRUE()
+			)
+		formatString: 0.00
+		displayFolder: _Bin Measures
+		lineageTag: e6f664f2-be20-4ef4-904a-96d70792f9c6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure calculates the total quantity of an item that has been placed in the warehouse for storage. It only includes the quantity that has been put away, not picked or moved within the warehouse.
+	measure 'Put-away Quantity (Base)' =
+			
+			CALCULATE(
+			    SUM('Warehouse Activity Lines'[qtyBase]),
+			    'Warehouse Activity Lines'[actionType] = "Place"
+			)
+		formatString: 0.00
+		displayFolder: _Bin Measures
+		lineageTag: 00e809fc-6d62-4cad-9f76-8d2c9811d331
+
+	/// This measure calculates the total quantity of an item that has been picked from the warehouse for sales or transfer orders. It only includes the quantity that has been picked, not received or moved within the warehouse.
+	measure 'Pick Quantity (Base)' =
+			
+			CALCULATE(
+			    SUM('Warehouse Activity Lines'[qtyBase]),
+			    'Warehouse Activity Lines'[actionType] = "Take",
+			    'Warehouse Activity Lines'[assembleToOrder] = FALSE()
+			)
+		formatString: 0.00
+		displayFolder: _Bin Measures
+		lineageTag: c2bb1b06-1432-4a81-a9a1-b97060301307
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Warehouse Entries Link' =
+			
+			VAR Endpoint = "&page=7318&"
+			VAR BaseLink = [Base Link] & Endpoint
+			// Filter Context
+			VAR Items = CONCATENATEX(VALUES('Warehouse Entries'[Item No.]),'Warehouse Entries'[Item No.], "|")
+			VAR BinCode = SELECTEDVALUE('Bin'[Bin Code])
+			VAR LocationCode = SELECTEDVALUE(Bin[Bin Location Code])
+			
+			VAR BinCodeFilter = "filter='Warehouse Entry'.'Bin Code' IS '" & BinCode & "'"
+			VAR ItemFilter = " AND 'Warehouse Entry'.'Item No.' IS '" & Items & "'"
+			VAR LocationFilter = " AND 'Warehouse Entry'.'Location Code' IS '" & LocationCode & "'"
+			
+			RETURN
+			BaseLink & BinCodeFilter & ItemFilter & LocationFilter
+		lineageTag: 0d8d0644-43c7-4675-bbc9-c23b96954f4c
+
+	measure 'Pick Quantity Link' =
+			
+			VAR Endpoint = "&page=5785&"
+			VAR BaseLink = [Base Link] & Endpoint
+			// Filter Context
+			VAR Items = CONCATENATEX(VALUES('Warehouse Activity Lines'[itemNo]),'Warehouse Activity Lines'[itemNo], "|")
+			VAR BinCode = SELECTEDVALUE('Bin'[Bin Code])
+			VAR LocationCode = SELECTEDVALUE(Bin[Bin Location Code])
+			
+			VAR BinCodeFilter = "filter='Warehouse Activity Line'.'Bin Code' IS '" & BinCode & "'"
+			VAR ItemFilter = " AND 'Warehouse Activity Line'.'Item No.' IS '" & Items & "'"
+			VAR LocationFilter = " AND 'Warehouse Activity Line'.'Location Code' IS '" & LocationCode & "'"
+			
+			RETURN
+			BaseLink & BinCodeFilter & ItemFilter & LocationFilter
+		lineageTag: 37053bd0-f109-4bb0-a5ee-8d0351d2cc82
+
+	measure 'Warehouse Journal Link' =
+			
+			VAR Endpoint = "&page=7319&"
+			VAR BaseLink = [Base Link] & Endpoint
+			// Filter Context
+			VAR Items = CONCATENATEX(VALUES('Warehouse Journal Lines (From Bin)'[itemNo]),'Warehouse Journal Lines (From Bin)'[itemNo], "|")
+			VAR BinCode = SELECTEDVALUE('Bin'[Bin Code])
+			VAR LocationCode = SELECTEDVALUE(Bin[Bin Location Code])
+			
+			VAR BinCodeFilter = "filter='Warehouse Journal Line'.'Bin Code' IS '" & BinCode & "'"
+			VAR ItemFilter = " AND 'Warehouse Journal Line'.'Item No.' IS '" & Items & "'"
+			VAR LocationFilter = " AND 'Warehouse Journal Line'.'Location Code' IS '" & LocationCode & "'"
+			
+			RETURN
+			BaseLink & BinCodeFilter & ItemFilter & LocationFilter
+		displayFolder: _Bin Measures
+		lineageTag: 7982ebca-d5e6-4981-8626-7925caaabf6c
+
+	column 'Bin Description'
+		dataType: string
+		lineageTag: 626e5642-9fb5-40f5-a779-8851482d8b8e
+		summarizeBy: none
+		sourceColumn: Bin Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Bin Type Code'
+		dataType: string
+		lineageTag: e64b393d-90c4-49c4-8df3-308f863bf7d2
+		summarizeBy: none
+		sourceColumn: Bin Type Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Bin Code'
+		dataType: string
+		lineageTag: 989c68e4-1501-4e53-8893-f1715cf1cdf2
+		summarizeBy: none
+		sourceColumn: Bin Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Bin Location Code'
+		dataType: string
+		isHidden
+		lineageTag: 3083b81f-c3fc-4483-867d-63e6a377ce38
+		summarizeBy: none
+		sourceColumn: Bin Location Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Adjustment Bin' = ```
+			
+			IF (
+			    ISBLANK (
+			        LOOKUPVALUE (
+			            Location[Location Adjustment Bin Code],
+			            Location[Location Adjustment Bin Code], Bin[Bin Key]
+			        )
+			    ),
+			    FALSE (),
+			    TRUE ()
+			)
+			
+			```
+		lineageTag: d246fa2f-cd43-4d0a-bf41-2070cd0e0dd6
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Bin Zone Code'
+		dataType: string
+		lineageTag: b27650e8-c8ce-4c8f-952d-84bdb63b26d2
+		summarizeBy: none
+		sourceColumn: Bin Zone Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Bin Key'
+		dataType: string
+		isHidden
+		lineageTag: abfd5e5d-dc8c-4fde-91b3-68883899b19e
+		summarizeBy: none
+		sourceColumn: Bin Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Bin = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="bins",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"binCode", type text},
+				            {"description", type text},
+				            {"locationCode", type text},
+				            {"binType", type text},
+				            {"zoneCode", type text}
+				        }
+				    ),
+				    #"Added Custom" = Table.AddColumn(
+				        #"Changed Type", "Bin Key", each [binCode] & "(" & [locationCode] & ")", type text
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(#"Added Custom",{{"description", "Bin Description"}, {"binType", "Bin Type Code"}, {"binCode", "Bin Code"}, {"zoneCode", "Bin Zone Code"}, {"locationCode", "Bin Location Code"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

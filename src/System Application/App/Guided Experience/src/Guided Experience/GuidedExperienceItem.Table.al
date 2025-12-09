@@ -5,8 +5,8 @@
 
 namespace System.Environment.Configuration;
 
-using System.Media;
 using System.Apps;
+using System.Media;
 
 table 1990 "Guided Experience Item"
 {

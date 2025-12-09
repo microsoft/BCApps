@@ -7,8 +7,8 @@ namespace System.Test.Integration;
 
 using System.Integration;
 using System.TestLibraries.Integration;
-using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 132548 "Page Summary Provider Test"
 {

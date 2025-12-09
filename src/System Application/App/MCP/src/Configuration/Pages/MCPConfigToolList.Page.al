@@ -10,10 +10,10 @@ using System.Reflection;
 
 page 8352 "MCP Config Tool List"
 {
+    Caption = 'Available Tools';
     ApplicationArea = All;
     PageType = ListPart;
     SourceTable = "MCP Configuration Tool";
-    Caption = 'MCP Configuration Tools';
     DelayedInsert = true;
     MultipleNewLines = true;
     Extensible = false;
@@ -27,13 +27,9 @@ page 8352 "MCP Config Tool List"
             repeater(Control1)
             {
                 ShowCaption = false;
-                field("Object Type"; Rec."Object Type")
-                {
-                    ToolTip = 'Specifies the type of the object.';
-                }
+                field("Object Type"; Rec."Object Type") { }
                 field("Object Id"; Rec."Object Id")
                 {
-                    ToolTip = 'Specifies the ID of the object.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -56,7 +52,7 @@ page 8352 "MCP Config Tool List"
 
                     trigger OnValidate()
                     begin
-                        MCPConfigImplementation.ValidateAPITool(Rec."Object Id");
+                        MCPConfigImplementation.ValidateAPITool(Rec."Object Id", true);
                         SetPermissions();
                     end;
                 }
@@ -66,29 +62,22 @@ page 8352 "MCP Config Tool List"
                     Editable = false;
                     ToolTip = 'Specifies the name of the object.';
                 }
-                field("Allow Read"; Rec."Allow Read")
-                {
-                    ToolTip = 'Specifies whether read operations are allowed for this tool.';
-                }
+                field("Allow Read"; Rec."Allow Read") { }
                 field("Allow Create"; Rec."Allow Create")
                 {
-                    Editable = AllowCreateEditable and (IsSandbox or AllowProdChanges);
-                    ToolTip = 'Specifies whether create operations are allowed for this tool.';
+                    Editable = AllowCreateEditable and (IsSandbox or AllowCreateUpdateDeleteTools);
                 }
                 field("Allow Modify"; Rec."Allow Modify")
                 {
-                    Editable = AllowModifyEditable and (IsSandbox or AllowProdChanges);
-                    ToolTip = 'Specifies whether modify operations are allowed for this tool.';
+                    Editable = AllowModifyEditable and (IsSandbox or AllowCreateUpdateDeleteTools);
                 }
                 field("Allow Delete"; Rec."Allow Delete")
                 {
-                    Editable = AllowDeleteEditable and (IsSandbox or AllowProdChanges);
-                    ToolTip = 'Specifies whether delete operations are allowed for this tool.';
+                    Editable = AllowDeleteEditable and (IsSandbox or AllowCreateUpdateDeleteTools);
                 }
                 field("Allow Bound Actions"; Rec."Allow Bound Actions")
                 {
-                    Editable = IsSandbox or AllowProdChanges;
-                    ToolTip = 'Specifies whether bound actions are allowed for this tool.';
+                    Editable = IsSandbox or AllowCreateUpdateDeleteTools;
                 }
             }
         }
@@ -112,9 +101,9 @@ page 8352 "MCP Config Tool List"
             }
             action(AddStandardAPITools)
             {
-                Caption = 'Add Standard API Tools';
+                Caption = 'Add All Standard APIs as Tools';
                 Image = ResourceGroup;
-                ToolTip = 'Adds standard API v2.0  tools to the configuration.';
+                ToolTip = 'Adds tools for all standard API v2.0 to the configuration.';
 
                 trigger OnAction()
                 begin
@@ -128,13 +117,13 @@ page 8352 "MCP Config Tool List"
     trigger OnAfterGetRecord()
     begin
         SetPermissions();
-        GetAllowProdChanges();
+        GetAllowCreateUpdateDeleteTools();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
         SetPermissions();
-        GetAllowProdChanges();
+        GetAllowCreateUpdateDeleteTools();
     end;
 
     trigger OnOpenPage()
@@ -142,7 +131,7 @@ page 8352 "MCP Config Tool List"
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         IsSandbox := EnvironmentInformation.IsSandbox();
-        GetAllowProdChanges();
+        GetAllowCreateUpdateDeleteTools();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -157,7 +146,7 @@ page 8352 "MCP Config Tool List"
         AllowCreateEditable: Boolean;
         AllowModifyEditable: Boolean;
         AllowDeleteEditable: Boolean;
-        AllowProdChanges: Boolean;
+        AllowCreateUpdateDeleteTools: Boolean;
 
     local procedure SetPermissions()
     var
@@ -171,11 +160,11 @@ page 8352 "MCP Config Tool List"
         AllowDeleteEditable := PageMetadata.DeleteAllowed;
     end;
 
-    local procedure GetAllowProdChanges(): Boolean
+    local procedure GetAllowCreateUpdateDeleteTools(): Boolean
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
         if MCPConfiguration.GetBySystemId(Rec.ID) then
-            AllowProdChanges := MCPConfiguration.AllowProdChanges;
+            AllowCreateUpdateDeleteTools := MCPConfiguration.AllowProdChanges;
     end;
 }

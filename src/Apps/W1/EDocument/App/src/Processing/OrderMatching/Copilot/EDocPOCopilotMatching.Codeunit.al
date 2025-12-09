@@ -1,12 +1,12 @@
 namespace Microsoft.eServices.EDocument.OrderMatch.Copilot;
 
-using System.Azure.KeyVault;
-using System.AI;
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.OrderMatch;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
-using Microsoft.eServices.EDocument.OrderMatch;
+using System.AI;
+using System.Azure.KeyVault;
 using System.Environment;
-using Microsoft.eServices.EDocument;
 using System.Telemetry;
 
 codeunit 6163 "E-Doc. PO Copilot Matching"

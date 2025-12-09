@@ -5,12 +5,12 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using System.Environment;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
-using Microsoft.Finance.GeneralLedger.Account;
+using System.Environment;
 using System.Environment.Configuration;
-using Microsoft.Foundation.Company;
 using System.Telemetry;
 using System.Utilities;
 

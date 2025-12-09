@@ -6,10 +6,10 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
-using System.TestLibraries.Environment;
-using System.TestLibraries.Azure.KeyVault;
 using System.Test.Library;
+using System.TestLibraries.Azure.KeyVault;
+using System.TestLibraries.Environment;
+using System.TestLibraries.Utilities;
 
 codeunit 139563 "Shpfy Test Shopify"
 {

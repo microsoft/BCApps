@@ -1,0 +1,599 @@
+cultureInfo sv-SE
+	translations
+		model Model
+			table 'Project Ledger Entry'
+				caption: Projekttransaktion
+				column 'No. & Description'
+					caption: Antal och beskrivning
+				column 'Project No.'
+					caption: Projektnummer
+				column 'Task No.'
+					caption: Uppgiftsnummer
+				column 'Posting Date'
+					caption: Bokföringsdatum
+				column 'Entry Type'
+					caption: Transaktionstyp
+				column Type
+					caption: Typ
+				column 'No.'
+					caption: Nummer
+				column Description
+					caption: Beskrivning
+				column Location
+					caption: Lagerställe
+				column 'Unit of Measure Code'
+					caption: Enhetskod
+				column 'Unit Cost (LCY)'
+					caption: Styckkostnad (BVA)
+				column 'Unit Price (LCY)'
+					caption: Enhetspris (BVA)
+				measure 'Project Ledger Entry Quantity'
+					caption: Antal
+				measure 'Invoiced (Total Cost)'
+					caption: Fakturerat (total kostnad)
+				measure 'Total Price'
+					caption: Totalpris
+				measure 'Actual (Total Price)'
+					caption: Faktiskt (totalpris)
+				measure 'Billable (Invoiced Price)'
+					caption: Fakturerbart (fakturerat pris)
+				measure 'Actual (Total Cost)'
+					caption: Faktisk (totalkostnad)
+				measure 'Gen. Journal Usage (Total Cost)'
+					caption: Användning i redovisningsjournal (totalkostnad)
+				measure 'Labour Usage (Total Cost)'
+					caption: Arbetsanvändning (totalkostnad)
+				measure 'Material Usage (Total Cost)'
+					caption: Materialanvändning (totalkostnad)
+				measure 'Invoiced (Total Price)'
+					caption: Fakturerat (totalt pris)
+			table Project
+				caption: Projekt
+				column 'Project No.'
+					caption: Projektnummer
+				column 'Project Description'
+					caption: Projektbeskrivning
+				column 'Project Bill to Customer No.'
+					caption: Projektets faktureringskundnummer
+				column 'Project Creation Date'
+					caption: Skapandedatum för projekt
+				column 'Project Starting Date'
+					caption: Projektets startdatum
+				column 'Project Ending Date'
+					caption: Projektets slutdatum
+				column 'Project Status'
+					caption: Projektstatus
+				column 'Project Posting Group'
+					caption: Projektbokföringsmall
+				column 'Project Blocked'
+					caption: Projektet spärrat
+				column 'Project Project Manager'
+					caption: Projektets projektchef
+				column 'Project Complete'
+					caption: Projektet slutfört
+				column 'Project No. & Description'
+					caption: Projektnummer och beskrivning
+				measure 'Project Count'
+					caption: Antal projekt
+				measure 'Actual Profit'
+					caption: Faktisk vinst
+				measure 'Actual Profit Margin (%)'
+					caption: Faktisk vinstmarginal (%)
+				measure 'Project Duration (Days)'
+					caption: Varaktighet (dagar)
+				measure 'Budget Profit'
+					caption: Budgeterad vinst
+				measure 'Budget Profit Margin (%)'
+					caption: Budgeterad vinstmarginal (%)
+				measure 'Completed (%)'
+					caption: Slutfört (%)
+				measure 'Invoiced (%)'
+					caption: Fakturerat (%)
+				measure 'Tasks Count'
+					caption: Antal uppgifter
+				measure 'Realization (%)'
+					caption: Genomfört (%)
+				measure 'Realization Variance'
+					caption: Avvikelse genomförande
+				measure 'Base Link'
+					caption: Baslänk
+				measure 'Project Planning Lines Back Link'
+					caption: Bakåtlänk för projektplaneringsrader
+			table 'Project Planning Line'
+				caption: Projektplaneringsrad
+				column 'Project No.'
+					caption: Projektnummer
+				column 'Task No.'
+					caption: Uppgiftsnummer
+				column 'Line No.'
+					caption: Radnummer.
+				column Type
+					caption: Typ
+				column 'Line Type'
+					caption: Typ av rad
+				column 'No.'
+					caption: Nummer
+				column Description
+					caption: Beskrivning
+				column 'Unit Cost (LCY)'
+					caption: Styckkostnad (BVA)
+				column 'Unit Price (LCY)'
+					caption: Enhetspris (BVA)
+				column 'Planning Date'
+					caption: Planeringsdatum
+				measure 'Planning Line Quantity'
+					caption: Antal på planeringsrad
+				measure 'Planning Line Total Cost (LCY)'
+					caption: Planeringsradens totalkostnad (BVA)
+				measure 'Planning Line Total Price (LCY)'
+					caption: Planeringsradens totalpris (BVA)
+				measure 'Budget (Total Cost)'
+					caption: Budget (totalkostnad)
+				measure 'Billable (Total Price)'
+					caption: Fakturerbart (totalt pris)
+				measure 'Total Cost Variance to Budget'
+					caption: Total kostnadsavvikelse mot budget
+				measure 'Total Cost Variance to Budget %'
+					caption: Total kostnadsavvikelse mot budget (%)
+				measure 'Billable (Total Cost)'
+					caption: Fakturerbart (totalkostnad)
+				measure 'Budget (Total Price)'
+					caption: Budget (totalpris)
+			table Customer
+				caption: Kund
+				column 'Customer No. & Name'
+					caption: Kundnummer och -namn
+				column 'Customer No.'
+					caption: Kundnummer
+				column 'Customer Name'
+					caption: Kundnamn
+				column 'Customer Address'
+					caption: Kundadress
+				column 'Customer Address 2'
+					caption: Kundadress 2
+				column 'Customer City'
+					caption: Kundens ort
+				column 'Customer Post Code'
+					caption: Kundens postnummer
+				column 'Customer State'
+					caption: Kundens delstat
+				column 'Customer Country/Region Code'
+					caption: Lands-/regionskod för kund
+				column 'Customer Posting Group'
+					caption: Kundbokföringsmall
+				column 'Customer Price Group'
+					caption: Kundprisgrupp
+				column 'Customer Discount Group'
+					caption: Kundrabattgrupp
+			table Tasks
+				caption: Uppgifter
+				column 'Task Project No.'
+					caption: Uppgiftens projektnummer
+				column 'Task No.'
+					caption: Uppgiftsnummer
+				column 'Task Description'
+					caption: Uppgiftsbeskrivning
+				column 'Task Type'
+					caption: Uppgiftstyp
+				column 'Task Project No. & Task No.'
+					caption: Uppgiftens projektnummer och uppgiftsnummer
+				column 'Task Project Task & Description'
+					caption: Uppgiftens projektuppgift och beskrivning
+				column 'Project Task Starting Date'
+					caption: Projektuppgiftens startdatum
+				column 'Project Task Ending Date'
+					caption: Projektuppgiftens slutdatum
+			table 'Dimension Sets'
+				caption: Dimensionsuppsättningar
+				column 'Global Dimension 1'
+					caption: Global dimension 1
+				column 'Global Dimension 2'
+					caption: Global dimension 2
+				column 'Shortcut Dimension 3'
+					caption: Genväg dimension 3
+				column 'Shortcut Dimension 4'
+					caption: Genväg dimension 4
+				column 'Shortcut Dimension 5'
+					caption: Genväg dimension 5
+				column 'Shortcut Dimension 6'
+					caption: Genväg dimension 6
+				column 'Shortcut Dimension 7'
+					caption: Genväg dimension 7
+				column 'Shortcut Dimension 8'
+					caption: Genväg dimension 8
+				column id
+					caption: ID
+			table Date
+				caption: Datum
+				column Date
+					caption: Bokföringsdatum
+				column 'Week Day'
+					caption: Vecka Dag
+				column 'Relative Day'
+					caption: Relativt Dag
+				column 'Calendar YearNumber'
+					caption: Kalender ÅrNummer
+				column 'Calendar Year'
+					caption: Kalender År
+				column 'Calendar QuarterNumber'
+					caption: Kalender KvartalNummer
+				column 'Calendar Quarter'
+					caption: Kalender Kvartal
+				column 'Calendar YearQuarterNumber'
+					caption: Kalender ÅrKvartalNummer
+				column 'Calendar Quarter Year'
+					caption: Kalender Kvartal År
+				column 'Calendar MonthNumber'
+					caption: Kalender MånadNummer
+				column 'Calendar Month'
+					caption: Kalender Månad
+				column 'Calendar YearMonthNumber'
+					caption: Kalender ÅrMånadNummer
+				column 'Calendar Month Year'
+					caption: Kalender Månad År
+				column 'Calendar WeekNumber'
+					caption: Kalender VeckaNummer
+				column 'Calendar Week'
+					caption: Kalender Vecka
+				column 'Calendar YearWeekNumber'
+					caption: Kalender ÅrVeckaNummer
+				column 'Calendar Week Year'
+					caption: Kalender Vecka År
+				column 'Calendar WeekYearOrder'
+					caption: Kalender VeckaÅrOrdning
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativtVeckaPos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativtMånadPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelativtKvartalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativtÅrPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender StartPåMånad
+				column 'Calendar EndOfMonth'
+					caption: Kalender SlutPåMånad
+				column 'Calendar StartOfQuarter'
+					caption: Kalender StartPåKvartal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender SlutPåKvartal
+				column 'Calendar StartOfYear'
+					caption: Kalender StartPåÅr
+				column 'Calendar EndOfYear'
+					caption: Kalender Årsslut
+				column 'Calendar MonthDays'
+					caption: Kalender MånadDagar
+				column 'Calendar QuarterDays'
+					caption: Kalender KvartalDagar
+				column 'Calendar YearDays'
+					caption: Kalender ÅrDagar
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagIMånadNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagIKvartalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagIÅrNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumFöregåendeVecka
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumFöregåendeMånad
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumFöregåendeKvartal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumFöregåendeÅr
+				column 'Fiscal Year'
+					caption: Räkenskapsår
+				column 'Fiscal YearNumber'
+					caption: Räkenskapskalender ÅrNummer
+				column 'Fiscal QuarterNumber'
+					caption: Räkenskapskalender KvartalNummer
+				column 'Fiscal Quarter'
+					caption: Räkenskapskalender Kvartal
+				column 'Fiscal YearQuarterNumber'
+					caption: Räkenskapskalender ÅrKvartalNummer
+				column 'Fiscal Quarter Year'
+					caption: Räkenskapskalender Kvartal År
+				column 'Fiscal MonthNumber'
+					caption: Räkenskapskalender MÅnadNummer
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Räkenskapskalender MånadIKvartalNummer
+				column 'Fiscal Month'
+					caption: Räkenskapskalender Månad
+				column 'Fiscal YearMonthNumber'
+					caption: Räkenskapskalender ÅrMÅnadNummer
+				column 'Fiscal Month Year'
+					caption: Räkenskapskalender Månad År
+				column 'Fiscal WeekNumber'
+					caption: Räkenskapskalender Veckonummer
+				column 'Fiscal Week'
+					caption: Räkenskapskalender Vecka
+				column 'Fiscal YearWeekNumber'
+					caption: RäkenskapsårVeckonummer
+				column 'Fiscal Week Year'
+					caption: Räkenskapskalender År Vecka
+				column 'Fiscal WeekYearOrder'
+					caption: Räkenskapskalender VeckaÅrOrdning
+				column 'Fiscal RelativeWeekPos'
+					caption: Räkenskapskalender RelativtVeckaPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Räkenskapskalender: RelativtMånadPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Räkenskapskalender RelativtKvartalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Räkenskapskalender RelativtÅrPos
+				column 'Fiscal StartOfMonth'
+					caption: Räkenskapskalender StartPåMånad
+				column 'Fiscal EndOfMonth'
+					caption: Räkenskapskalender SlutPåMånad
+				column 'Fiscal StartOfQuarter'
+					caption: Räkenskapskalender StartPåKvartal
+				column 'Fiscal EndOfQuarter'
+					caption: Räkenskapskalender SlutPåKvartal
+				column 'Fiscal StartOfYear'
+					caption: Räkenskapskalender StartPåÅr
+				column 'Fiscal EndOfYear'
+					caption: Räkenskapskalender Årsslut
+				column 'Fiscal MonthDays'
+					caption: Räkenskapskalender MånadDagar
+				column 'Fiscal QuarterDays'
+					caption: Räkenskapskalender KvartalDagar
+				column 'Fiscal YearDays'
+					caption: Räkenskapskalender ÅrDagar
+				column 'Fiscal DayOfMonthNumber'
+					caption: Räkenskapskalender DagIMÅnadNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Räkenskapskalender DagIKvartalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Räkenskapskalender DagIÅrNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Räkenskapskalender DatumFöregåendeVecka
+				column 'Fiscal DatePreviousMonth'
+					caption: Räkenskapskalender DatumFöregåendeMånad
+				column 'Fiscal DatePreviousQuarter'
+					caption: Räkenskapskalender DatumFöregåendeKvartal
+				column 'Fiscal DatePreviousYear'
+					caption: Räkenskapskalender DatumFöregåendeÅr
+				column 'FW YearNumber'
+					caption: RV ÅrNummer
+				column 'FW Year'
+					caption: RV År
+				column 'FW QuarterNumber'
+					caption: RV KvartalNummer
+				column 'FW Quarter'
+					caption: RV Kvartal
+				column 'FW YearQuarterNumber'
+					caption: RV ÅrKvartalNummer
+				column 'FW Quarter Year'
+					caption: RV Kvartal År
+				column 'FW MonthNumber'
+					caption: RV MånadNummer
+				column 'FW Month'
+					caption: RV Månad
+				column 'FW YearMonthNumber'
+					caption: RV ÅrMånadNummer
+				column 'FW Month Year'
+					caption: RV Månad År
+				column 'FW WeekNumber'
+					caption: RV VeckaNummer
+				column 'FW Week'
+					caption: RV Vecka
+				column 'FW PeriodNumber'
+					caption: RV PeriodNummer
+				column 'FW Period'
+					caption: RV Period
+				column 'FW YearWeekNumber'
+					caption: RV ÅrVeckaNummer
+				column 'FW Week Year'
+					caption: RV Vecka År
+				column 'FW StartOfWeek'
+					caption: RV StartPåVecka
+				column 'FW EndOfWeek'
+					caption: RV SlutPåVecka
+				column 'FW RelativeWeekPos'
+					caption: RV RelativtVeckaPos
+				column 'FW RelativeMonthPos'
+					caption: RV RelativtMånPos
+				column 'FW RelativeQuarterPos'
+					caption: RV RelativtKvartalPos
+				column 'FW RelativeYearPos'
+					caption: RV RelativtÅrPos
+				column 'FW StartOfMonth'
+					caption: RV StartPåMånad
+				column 'FW EndOfMonth'
+					caption: RV SlutPå Månad
+				column 'FW StartOfQuarter'
+					caption: RV StartPåKvartal
+				column 'FW EndOfQuarter'
+					caption: RV SlutPåKvartal
+				column 'FW StartOfYear'
+					caption: RV StartPåÅr
+				column 'FW EndOfYear'
+					caption: RV Årsslut
+				column 'FW MonthDays'
+					caption: RV MånadDagar
+				column 'FW QuarterDays'
+					caption: RV KvartalDagar
+				column 'FW YearDays'
+					caption: RV ÅrDagar
+				column 'FW DayOfMonthNumber'
+					caption: RV DagPåMånadNummer
+				column 'FW DayOfQuarterNumber'
+					caption: RV DagIKvartalNummer
+				column 'FW DayOfYearNumber'
+					caption: RV DagIÅrNummer
+				column 'FW DatePreviousWeek'
+					caption: RV DatumFöregåendeVecka
+				column 'FW DatePreviousMonth'
+					caption: RV DatumFöregåendeMånad
+				column 'FW DatePreviousQuarter'
+					caption: RV DatumFöregåendeKvartal
+				column 'FW DatePreviousYear'
+					caption: RV DatumFöregåendeÅr
+				column 'Day Type'
+					caption: Typ av dag
+			table Purchases
+				caption: Inköp
+				column 'Quantity (Base)'
+					caption: Antal (bas)
+				column 'Amount (LCY)'
+					caption: Belopp (LV)
+				column 'Expected Receipt Date'
+					caption: Förväntat inleveransdatum
+				column 'Source Type'
+					caption: Källtyp
+				column 'Document Type'
+					caption: Dokumenttyp
+				column 'Line No.'
+					caption: Radnummer
+				column 'Document No.'
+					caption: Dokumentnummer
+				column 'No.'
+					caption: Nummer
+				column Type
+					caption: Typ
+				column Description
+					caption: Beskrivning
+				column 'Project No'
+					caption: Projektnummer
+				column 'Task No'
+					caption: Uppgiftsnummer
+				column 'Project No Task No'
+					caption: Projektnummer Uppgiftsnummer
+				measure 'Quantity on PO'
+					caption: Antal på inköpsorder
+				measure 'Amount on PO'
+					caption: Belopp på inköpsorder
+				measure 'Amount Rcvd. Not Invoiced'
+					caption: Mottaget belopp, ej fakturerat
+				measure 'Outstanding Amt. on PO'
+					caption: Utestående belopp på inköpsorder
+				measure 'Purchase Order Count'
+					caption: Antal inköpsorder
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Min rapportrubrik
+				measure 'My Button Caption'
+					caption: Min knapprubrik
+				measure 'My Visual Title'
+					caption: Min visuella rubrik
+				measure 'Projects Overview'
+					caption: Projektöversikt
+				measure 'Project Tasks'
+					caption: Projektuppgifter
+				measure 'Project Profitability'
+					caption: Projektlönsamhet
+				measure 'Project Realization'
+					caption: Genomförande av projekt
+				measure 'Project Performance to Budget'
+					caption: Projektresultat mot budget
+				measure 'Project Invoiced Sales by Type'
+					caption: Fakturerad försäljning för projekt per typ
+				measure 'Project Invoiced Sales by Customer'
+					caption: Fakturerad försäljning för projekt per kund
+				measure 'Project Ledger Entry Drill Through'
+					caption: Detaljerad analys av projekttransaktioner
+				measure 'Purchase Order Drill Through'
+					caption: Detaljerad analys av inköpsorder
+				measure 'Project Planning Line Drill Through'
+					caption: Detaljerad analys av projektplaneringsrad
+				measure 'Project KPIs'
+					caption: KPI:er för projekt
+				measure 'Actual Costs (Total Cost) vs. Budget (Total Cost)'
+					caption: Faktiska kostnader (total kostnad) kontra budget (total kostnad)
+				measure 'Actual Profit by Project'
+					caption: Faktisk vinst per projekt
+				measure 'Projects by Project Manager'
+					caption: Projekt per projektchef
+				measure 'Realization by Projects'
+					caption: Genomförande per projekt
+				measure 'Actual Profit vs. Initial Profit'
+					caption: Faktisk vinst kontra initial vinst
+				measure Actuals
+					caption: Faktiska värden
+				measure Budgeted
+					caption: Budgeterat
+				measure 'Realization KPIs'
+					caption: KPI:er för genomförande
+				measure 'Realization by Project Manager'
+					caption: Genomförande per projektchef
+				measure 'Actual Total Cost to Budget'
+					caption: Faktisk total kostnad mot budget
+				measure 'Performance KPIs'
+					caption: KPI:er för resultat
+				measure 'Invoiced Sales KPIs'
+					caption: KPI:er för fakturerad försäljning
+				measure Projects
+					caption: Projekt
+				measure 'for Business Central'
+					caption: för Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: ANSLUT DINA DATA
+				measure '1. Download the Projects Connector for Power BI'
+					caption: 1. Ladda ned anslutningsprogrammet för projekt för Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurera Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: ANVÄND, REDIGERA OCH SKAPA EGNA RAPPORTER
+				measure 'Projects includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Projekt innehåller en mängd fördefinierade rapporter som gör att du kan visa data omedelbart.
+				measure 'You are able to edit these reports or build your own report from scratch'
+					caption: Du kan redigera dessa rapporter eller skapa en egen rapport från grunden
+				measure 'HELP AND SUPPORT'
+					caption: HJÄLP OCH SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Hjälp och support med den nya rapporten finns i översiktsdokumentationen för Analys.
+				measure 'OTHER POWER BI REPORTS'
+					caption: ÖVRIGA POWER BI-RAPPORTER
+				measure PURCHASE
+					caption: INKÖP
+				measure FINANCE
+					caption: EKONOMI
+				measure INVENTORY
+					caption: LAGER
+				measure SALES
+					caption: FÖRSÄLJNING
+				measure MANUFACTURING
+					caption: PRODUKTION
+				measure 'The project tasks shows project number and description, budget (total cost), actual cost (total cost), billable (total price), billable (invoiced price), actual (total price), realization percentage, actual profit, and actual profit margin percentage.'
+					caption: Projektaktiviteter visar projektnummer och beskrivning, budget (total kostnad), faktisk kostnad (total kostnad), fakturerbart (totalt pris), fakturerbart (fakturerat pris), faktiskt (totalt pris), genomförandeprocent, faktisk vinst och faktisk vinstmarginal i procent.
+				measure 'The project profitability shows project number, type, number and description, actual (total cost), billable (invoiced price), actual profit margin percentage, and actual profit.'
+					caption: Projektlönsamhet visar projektnummer, typ, antal och beskrivning, faktiskt värde (total kostnad), fakturerbart (fakturerat pris), faktisk vinstmarginal i procent och faktisk vinst.
+				measure 'The project realization shows project number, type, number and description, billable (invoiced price), actual (total price), and realization percentage.'
+					caption: Projektgenomförande visar projektnummer, typ, antal och beskrivning, fakturerbart (fakturerat pris), faktiskt (totalt pris) och genomförande i procent.
+				measure 'The project performance to budget shows project number and description, status, budget (total cost), actual (total cost), total cost variance to budget, and total cost variance to budget percentage.'
+					caption: Projektresultat mot budget visar projektnummer och beskrivning, status, budget (total kostnad), faktiskt (total kostnad), total kostnadsavvikelse mot budget och total kostnadsavvikelse mot budget i procent.
+				measure 'The project invoiced sales by type shows type, number and description, project number, unit of measure, quantity, unit price (local currency), and billable (invoiced price).'
+					caption: Fakturerad försäljning för projekt per typ visar antal och beskrivning, projektnummer, måttenhet, kvantitet, enhetspris (lokal valuta) och fakturerbart (fakturerat pris).
+				measure 'The project invoiced sales by customer shows customer number and name, project number, type, number and description, quantity, unit price (local currency), and billable (invoiced price).'
+					caption: Fakturerad försäljning för projekt per kund visar kundnummer och -namn, projektnummer, typ, antal och beskrivning, kvantitet, enhetspris (lokal valuta) och fakturerbart (fakturerat pris).
+				measure 'The project ledger entry drill through shows posting date, project number, task number, task entry type, type, number, description, unit of measure, quantity, unit cost, unit price, total cost, and total price.'
+					caption: Detaljerad analys av projekttransaktioner visar bokföringsdatum, projektnummer, uppgiftsnummer, uppgiftstransaktionstyp, typ, antal, beskrivning, måttenhet, kvantitet, styckkostnad, enhetspris, totalkostnad och totalpris.
+				measure 'The project order drill through shows project number, task number, source type,entry type, type, number, description, document number, quantity (base), amount (local currency), expected receipt date, outstanding amount on purchase order, amount received not invoiced, and document type.'
+					caption: Detaljerad analys av produktionsorder visar projektnummer, uppgiftsnummer, källtyp, transaktionstyp, typ, antal, beskrivning, dokumentnummer, kvantitet (bas), belopp (lokal valuta), förväntat inleveransdatum, utestående belopp på inköpsorder, mottaget belopp, ej fakturerat samt dokumenttyp.
+				measure 'The project planning drill through shows project number, task number, line number, type, number, description, line type, planning line quantity, unit cost, unit price, planning line total cost, and planning line total price.'
+					caption: Detaljerad analys av projektplanering visar bokföringsdatum, projektnummer, uppgiftsnummer, radnummer, typ, antal, beskrivning, radtyp, kvantitet på planeringsrad, styckkostnad, enhetspris, totalkostnad för planeringsrad och totalpris för planeringsrad.
+				measure 'Company Name'
+					caption: Företagsnamn
+				measure 'Last Refreshed'
+					caption: Uppdaterades senast
+				measure 'Actual Profit Margin % vs Budget Profit Margin %'
+					caption: Faktisk vinstmarginal i procent jämfört med budgeterad vinstmarginal i procent
+				measure 'Billable (Invoiced Price) and Actual (Total Price) by Project No. & Description'
+					caption: Fakturerbart (fakturerat pris) och faktiskt (totalt pris) per projektnummer och beskrivning
+				measure 'Billable (Invoiced Price) by Type'
+					caption: Fakturerbart (fakturerat pris) per typ
+				measure 'Profit Margin vs Budget Profit Margin'
+					caption: Vinstmarginal jämfört med budgeterad vinstmarginal
+				measure 'Project Tasks by Project'
+					caption: Projektuppgifter per projekt
+				measure 'Project Timeline'
+					caption: Projektets tidslinje
+				measure 'Project Tasks Duration'
+					caption: Varaktighet för projektuppgift
+				measure 'Project Task Details'
+					caption: Information om projektuppgift
+			table COMPANY
+				caption: FÖRETAG
+				measure 'Company Label'
+					caption: Företagsetikett
+

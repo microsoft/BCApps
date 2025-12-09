@@ -2711,7 +2711,8 @@
         },
         {
             "id": "AL0678",
-            "action": "Error"
+            "action": "None",
+            "justification": "Information diagnostic reported on obsolete symbols contributing to metadata name conflicts, ex: 'My Page' and 'My_Page'."
         },
         {
             "id": "AL0679",
@@ -3186,8 +3187,9 @@
             "action": "Error"
         },
         {
-            "id": "AL0797",
-            "action": "Error"
+        "id": "AL0797",
+        "action": "None",
+        "justification": "Tables are moved from BaseApp to BCApps."
         },
         {
             "id": "AL0798",

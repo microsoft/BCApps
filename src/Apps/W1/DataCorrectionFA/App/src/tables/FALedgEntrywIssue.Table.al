@@ -1,9 +1,9 @@
 namespace Microsoft.FixedAssets.Repair;
 
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.FixedAssets.Ledger;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Ledger;
 
 table 6090 "FA Ledg. Entry w. Issue"
 {

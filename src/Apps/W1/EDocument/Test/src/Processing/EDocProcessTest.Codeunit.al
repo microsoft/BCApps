@@ -4,26 +4,26 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Test;
 
-using Microsoft.eServices.EDocument.Integration;
-using Microsoft.Sales.Customer;
+using Microsoft.Bank.Reconciliation;
 using Microsoft.eServices.EDocument;
-using Microsoft.Purchases.Vendor;
-using System.TestLibraries.Utilities;
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
-using Microsoft.Purchases.Document;
-using Microsoft.Foundation.Company;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Bank.Reconciliation;
-using Microsoft.eServices.EDocument.Processing;
-using Microsoft.Purchases.History;
-using Microsoft.Inventory.Location;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
-using System.IO;
+using Microsoft.Inventory.Location;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.Currency;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using System.IO;
+using System.TestLibraries.Utilities;
 
 codeunit 139883 "E-Doc Process Test"
 {

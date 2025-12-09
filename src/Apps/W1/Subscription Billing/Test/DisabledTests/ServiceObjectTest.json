@@ -1,0 +1,8 @@
+[
+    {
+        "bug": "615089",
+        "codeunitId": 148157,
+        "CodeunitName": "Service Object Test",
+        "Method": "UT_UpdateServiceDatesDoesNotCalculateCancellationPossibleUntilAndTermUntilWhenNoticePeriodIsEmpty"
+    }
+]

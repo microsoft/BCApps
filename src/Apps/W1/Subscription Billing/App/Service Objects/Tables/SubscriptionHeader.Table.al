@@ -1,21 +1,21 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
-using System.EMail;
-using System.Environment.Configuration;
+using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Contact;
+using Microsoft.CRM.Outlook;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
-using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Attribute;
+using Microsoft.Purchases.Document;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
-using Microsoft.Purchases.Document;
-using Microsoft.CRM.Contact;
-using Microsoft.CRM.BusinessRelation;
-using Microsoft.CRM.Outlook;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Item.Attribute;
+using System.EMail;
+using System.Environment.Configuration;
+using System.Utilities;
 
 table 8057 "Subscription Header"
 {
@@ -371,6 +371,7 @@ table 8057 "Subscription Header"
             InitValue = 1;
             NotBlank = true;
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
             begin

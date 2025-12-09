@@ -5,20 +5,23 @@
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Finance.Dimension;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Deferral;
-using Microsoft.Foundation.UOM;
-using Microsoft.Utilities;
-using Microsoft.Purchases.Document;
+using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.Foundation.UOM;
+using Microsoft.eServices.EDocument.Processing;
 using Microsoft.Inventory.Item;
-using Microsoft.Finance.AllocationAccount;
-using Microsoft.Projects.Resources.Resource;
-using Microsoft.eServices.EDocument.Processing.Import;
-using System.Reflection;
-using Microsoft.Purchases.History;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Utilities;
+using System.Reflection;
+using System.Utilities;
 
 table 6101 "E-Document Purchase Line"
 {
@@ -114,6 +117,12 @@ table 6101 "E-Document Purchase Line"
         {
             Caption = 'Type';
             ToolTip = 'Specifies the type of entity that will be posted for this purchase line, such as Item, Resource, or G/L Account.';
+
+            trigger OnValidate()
+            begin
+                POMatchingValidation();
+                Rec."[BC] Purchase Type No." := '';
+            end;
         }
         field(102; "[BC] Purchase Type No."; Code[20])
         {
@@ -135,7 +144,8 @@ table 6101 "E-Document Purchase Line"
 
             trigger OnValidate()
             begin
-                ValidateNoField();
+                SetDescriptionFromLineTypeNo();
+                POMatchingValidation();
             end;
         }
         field(103; "[BC] Unit of Measure"; Code[20])
@@ -221,10 +231,17 @@ table 6101 "E-Document Purchase Line"
         }
     }
 
+    trigger OnDelete()
+    var
+        EDocPOMatching: Codeunit "E-Doc. PO Matching";
+    begin
+        EDocPOMatching.RemoveAllMatchesForEDocumentLine(Rec);
+    end;
+
     var
         DimMgt: Codeunit DimensionManagement;
 
-    local procedure ValidateNoField()
+    local procedure SetDescriptionFromLineTypeNo()
     var
         Item: Record Item;
         GLAccount: Record "G/L Account";
@@ -256,6 +273,19 @@ table 6101 "E-Document Purchase Line"
                 if ItemCharge.Get(Rec."[BC] Purchase Type No.") then
                     Rec.Description := ItemCharge.Description;
         end;
+    end;
+
+    local procedure POMatchingValidation()
+    var
+        EDocPOMatching: Codeunit "E-Doc. PO Matching";
+        ConfirmMgt: Codeunit "Confirm Management";
+        LineMatchedMsg: Label 'This e-document line is already matched to a purchase order line. Do you want to continue? This will remove the match(es).';
+    begin
+        if not EDocPOMatching.IsEDocumentLineMatchedToAnyPOLine(Rec) then
+            exit;
+        if not ConfirmMgt.GetResponse(LineMatchedMsg) then
+            Error('');
+        EDocPOMatching.RemoveAllMatchesForEDocumentLine(Rec);
     end;
 
     internal procedure GetNextLineNo(EDocumentEntryNo: Integer): Integer
@@ -305,6 +335,41 @@ table 6101 "E-Document Purchase Line"
             "[BC] Shortcut Dimension 1 Code", "[BC] Shortcut Dimension 2 Code");
         DimMgt.UpdateGlobalDimFromDimSetID("[BC] Dimension Set ID", "[BC] Shortcut Dimension 1 Code", "[BC] Shortcut Dimension 2 Code");
         exit(OldDimSetID <> "[BC] Dimension Set ID");
+    end;
+
+    internal procedure GetFromLinkedPurchaseLine(PurchaseLine: Record "Purchase Line"): Boolean
+    var
+        EDocumentRecordLink: Record "E-Doc. Record Link";
+    begin
+        Clear(Rec);
+        EDocumentRecordLink.SetRange("Source Table No.", Database::"E-Document Purchase Line");
+        EDocumentRecordLink.SetRange("Target Table No.", Database::"Purchase Line");
+        EDocumentRecordLink.SetRange("Target SystemId", PurchaseLine.SystemId);
+        if EDocumentRecordLink.FindFirst() then
+            exit(Rec.GetBySystemId(EDocumentRecordLink."Source SystemId"));
+    end;
+
+    internal procedure GetLinkedPurchaseLine(): Record "Purchase Line"
+    var
+        EDocumentRecordLink: Record "E-Doc. Record Link";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        EDocumentRecordLink.SetRange("Source Table No.", Database::"E-Document Purchase Line");
+        EDocumentRecordLink.SetRange("Target Table No.", Database::"Purchase Line");
+        EDocumentRecordLink.SetRange("Source SystemId", Rec.SystemId);
+        if EDocumentRecordLink.FindFirst() then
+            if PurchaseLine.GetBySystemId(EDocumentRecordLink."Target SystemId") then
+                exit(PurchaseLine);
+    end;
+
+    procedure GetEDocumentPurchaseHeader() EDocumentPurchaseHeader: Record "E-Document Purchase Header"
+    begin
+        if EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then;
+    end;
+
+    procedure GetBCVendor(): Record Vendor
+    begin
+        exit(GetEDocumentPurchaseHeader().GetBCVendor());
     end;
 
 }

@@ -1,21 +1,21 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
-using System.Security.User;
-using System.Reflection;
-using System.Environment.Configuration;
-using Microsoft.Foundation.PaymentTerms;
-using Microsoft.Foundation.Address;
-using Microsoft.Foundation.NoSeries;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.Purchases.Vendor;
-using Microsoft.CRM.Contact;
-using Microsoft.CRM.Team;
-using Microsoft.CRM.BusinessRelation;
-using Microsoft.CRM.Outlook;
-using Microsoft.Finance.Dimension;
-using Microsoft.Finance.Currency;
 using Microsoft.Bank.BankAccount;
+using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Contact;
+using Microsoft.CRM.Outlook;
+using Microsoft.CRM.Team;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Purchases.Vendor;
+using System.Environment.Configuration;
+using System.Reflection;
+using System.Security.User;
+using System.Utilities;
 
 table 8063 "Vendor Subscription Contract"
 {

@@ -1,9 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Foundation.Address;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Purchases.Document;
 using Microsoft.Finance.Dimension;
+using Microsoft.Foundation.Address;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 
 page 8070 "Vendor Contract"
 {

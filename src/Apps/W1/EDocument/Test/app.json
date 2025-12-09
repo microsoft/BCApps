@@ -71,7 +71,12 @@
     {
       "from": 133710,
       "to": 133721
+    },
+    {
+      "from": 135575,
+      "to": 135575
     }
+
   ],
   "resourceExposurePolicy": {
     "allowDebugging": true,

@@ -6,8 +6,8 @@
 namespace Microsoft.ExcelReports;
 
 using Microsoft.Finance.ExcelReports;
-using Microsoft.Sales.ExcelReports;
 using Microsoft.Purchases.ExcelReports;
+using Microsoft.Sales.ExcelReports;
 
 permissionset 4401 "Excel Reports - Objects"
 {

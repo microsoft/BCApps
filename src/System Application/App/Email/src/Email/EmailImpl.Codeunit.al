@@ -5,10 +5,10 @@
 
 namespace System.Email;
 
-using System.Telemetry;
 using System.Globalization;
-using System.Security.AccessControl;
 using System.Reflection;
+using System.Security.AccessControl;
+using System.Telemetry;
 
 codeunit 8900 "Email Impl"
 {
@@ -48,6 +48,7 @@ codeunit 8900 "Email Impl"
         TelemetryRetrieveEmailsUsedTxt: Label 'Retrieving emails is used', Locked = true;
         ErrorCallStackNotFoundErr: Label 'Error call stack not found for the email message with ID %1.', Locked = true;
         EmailOutboxDoesNotExistErr: Label 'The email outbox does not exist for the email message with ID %1.', Locked = true;
+        StuckInProcessingErrorMsg: Label 'The email with subject "%1" is stuck in processing state. Please try resending the email or contact your administrator.', Comment = '%1=the email subject.';
 
     #region API
 
@@ -1009,6 +1010,25 @@ codeunit 8900 "Email Impl"
     procedure OpenEmailViewPoliciesPage(AdminViewPolicyInEffectNotification: Notification)
     begin
         Page.Run(Page::"Email View Policy List");
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Email Outbox", 'rm')]
+    internal procedure UpdateFailedEmailOutboxStatusToError() UpdatedEmailCount: Integer
+    var
+        EmailOutbox: Record "Email Outbox";
+    begin
+        EmailOutbox.SetRange("Is Background Task", true);
+        EmailOutbox.SetRange(Status, Enum::"Email Status"::Processing);
+        EmailOutbox.SetRange("Date Sending", 0DT, CurrentDateTime() - 1000 * 60 * 60); // Emails stuck in processing for more than an hour
+        if EmailOutbox.FindSet() then begin
+            UpdatedEmailCount := EmailOutbox.Count();
+            repeat
+                EmailOutbox.Status := Enum::"Email Status"::Failed;
+                EmailOutbox."Error Message" := StuckInProcessingErrorMsg;
+                EmailOutbox.Modify();
+            until EmailOutbox.Next() = 0;
+        end;
+        exit(UpdatedEmailCount);
     end;
 
     #region Telemetry

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Finance.ExcelReports;
+
 using Microsoft.FixedAssets.FixedAsset;
 
 pageextension 4422 "EXR Fixed Asset Card" extends "Fixed Asset Card"

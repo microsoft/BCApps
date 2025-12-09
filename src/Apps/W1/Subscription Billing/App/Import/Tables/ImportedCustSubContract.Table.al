@@ -1,15 +1,15 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.CRM.Contact;
-using Microsoft.CRM.BusinessRelation;
-using Microsoft.Sales.Customer;
-using Microsoft.CRM.Team;
-using System.Security.User;
-using Microsoft.Projects.Project.Job;
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Bank.BankAccount;
-using Microsoft.Finance.Dimension;
+using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Contact;
+using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
+using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Projects.Project.Job;
+using Microsoft.Sales.Customer;
+using System.Security.User;
 
 table 8010 "Imported Cust. Sub. Contract"
 {

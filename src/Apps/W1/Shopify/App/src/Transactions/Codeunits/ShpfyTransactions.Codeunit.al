@@ -66,6 +66,7 @@ codeunit 30194 "Shpfy Transactions"
         OrderTransaction: Record "Shpfy Order Transaction";
         PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
         TransactionGateway: Record "Shpfy Transaction Gateway";
+        ImportOrder: Codeunit "Shpfy Import Order";
         RecordRef: RecordRef;
         Id: BigInteger;
         IsNew: Boolean;
@@ -81,6 +82,7 @@ codeunit 30194 "Shpfy Transactions"
         OrderTransaction.Status := ConvertToTransactionStatus(JsonHelper.GetValueAsText(JOrderTransaction, 'status'));
         OrderTransaction.Type := ConvertToTransactionType(JsonHelper.GetValueAsText(JOrderTransaction, 'kind'));
         OrderTransaction."Shopify Order Id" := OrderHeader."Shopify Order Id";
+        OrderTransaction."Shop" := OrderHeader."Shop Code";
         RecordRef.GetTable(OrderTransaction);
         JsonHelper.GetValueIntoField(JOrderTransaction, 'gateway', RecordRef, OrderTransaction.FieldNo(Gateway));
         JsonHelper.GetValueIntoField(JOrderTransaction, 'formattedGateway', RecordRef, OrderTransaction.FieldNo(Message));
@@ -91,9 +93,12 @@ codeunit 30194 "Shpfy Transactions"
         JsonHelper.GetValueIntoField(JOrderTransaction, 'errorCode', RecordRef, OrderTransaction.FieldNo("Error Code"));
         JsonHelper.GetValueIntoField(JOrderTransaction, 'paymentId', RecordRef, OrderTransaction.FieldNo("Payment Id"));
         JsonHelper.GetValueIntoField(JOrderTransaction, 'amountSet.shopMoney.amount', RecordRef, OrderTransaction.FieldNo(Amount));
-        JsonHelper.GetValueIntoField(JOrderTransaction, 'amountSet.shopMoney.currencyCode', RecordRef, OrderTransaction.FieldNo(Currency));
+        JsonHelper.GetValueIntoField(JOrderTransaction, 'amountSet.presentmentMoney.amount', RecordRef, OrderTransaction.FieldNo("Presentment Amount"));
+        JsonHelper.GetValueIntoField(JOrderTransaction, 'amountSet.presentmentMoney.currencyCode', RecordRef, OrderTransaction.FieldNo("Presentment Currency"));
         JsonHelper.GetValueIntoField(JOrderTransaction, 'amountRoundingSet.shopMoney.amount', RecordRef, OrderTransaction.FieldNo("Rounding Amount"));
         JsonHelper.GetValueIntoField(JOrderTransaction, 'amountRoundingSet.shopMoney.currencyCode', RecordRef, OrderTransaction.FieldNo("Rounding Currency"));
+        JsonHelper.GetValueIntoField(JOrderTransaction, 'amountRoundingSet.presentmentMoney.amount', RecordRef, OrderTransaction.FieldNo("Presentment Rounding Amount"));
+        JsonHelper.GetValueIntoField(JOrderTransaction, 'amountRoundingSet.presentmentMoney.currencyCode', RecordRef, OrderTransaction.FieldNo("Presentment Rounding Currency"));
 
         ReceiptJson := JsonHelper.GetValueAsText(JOrderTransaction, 'receiptJson');
         if JObject.ReadFrom(ReceiptJson) then
@@ -112,6 +117,11 @@ codeunit 30194 "Shpfy Transactions"
             RecordRef.Modify();
         RecordRef.SetTable(OrderTransaction);
         RecordRef.Close();
+        OrderTransaction.Currency := ImportOrder.TranslateCurrencyCode(OrderTransaction.Currency);
+        OrderTransaction."Presentment Currency" := ImportOrder.TranslateCurrencyCode(OrderTransaction."Presentment Currency");
+        OrderTransaction."Rounding Currency" := ImportOrder.TranslateCurrencyCode(OrderTransaction."Rounding Currency");
+        OrderTransaction."Presentment Rounding Currency" := ImportOrder.TranslateCurrencyCode(OrderTransaction."Presentment Rounding Currency");
+        OrderTransaction.Modify();
         if OrderTransaction.Gateway <> '' then begin
             Clear(TransactionGateway);
             TransactionGateway.SetRange(Name, OrderTransaction.Gateway);

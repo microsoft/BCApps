@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Dimension;
-using Microsoft.eServices.EDocument;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 
 page 6183 "E-Doc. Purchase Draft Subform"
 {
@@ -26,13 +28,26 @@ page 6183 "E-Doc. Purchase Draft Subform"
         {
             repeater(DocumentLines)
             {
+                field(OrderMatched; OrderMatchedCaption)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Order matched';
+                    Editable = false;
+                    Visible = IsEDocumentMatchedToAnyPOLine;
+                    ToolTip = 'Specifies whether this line is matched to a purchase order line.';
+                }
+                field(MatchWarnings; MatchWarningsCaption)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Order match warnings';
+                    Editable = false;
+                    Visible = HasEDocumentOrderMatchWarnings;
+                    StyleExpr = MatchWarningsStyleExpr;
+                    ToolTip = 'Specifies any warnings related to matching this line to a purchase order line.';
+                }
                 field("Line Type"; Rec."[BC] Purchase Line Type")
                 {
                     ApplicationArea = All;
-                    trigger OnValidate()
-                    begin
-                        Rec."[BC] Purchase Type No." := '';
-                    end;
                 }
                 field("No."; Rec."[BC] Purchase Type No.")
                 {
@@ -148,7 +163,111 @@ page 6183 "E-Doc. Purchase Draft Subform"
             {
                 Caption = '&Line';
                 Image = Line;
+                group("Order Matching")
+                {
+                    Caption = 'Order matching';
+                    action(MatchToOrderLine)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Match to order line';
+                        Image = LinkWithExisting;
+                        ToolTip = 'Match this incoming invoice line to a purchase order line.';
+                        Scope = Repeater;
 
+                        trigger OnAction()
+                        var
+                            TempSelectedPOLines: Record "Purchase Line" temporary;
+                            EDocPOMatching: Codeunit "E-Doc. PO Matching";
+                            EDocSelectPOLinesPage: Page "E-Doc. Select PO Lines";
+                        begin
+                            EDocSelectPOLinesPage.SetEDocumentPurchaseLine(Rec);
+                            EDocSelectPOLinesPage.LookupMode := true;
+                            if EDocSelectPOLinesPage.RunModal() <> Action::LookupOK then
+                                exit;
+                            EDocSelectPOLinesPage.GetSelectedPOLines(TempSelectedPOLines);
+                            EDocPOMatching.MatchPOLinesToEDocumentLine(TempSelectedPOLines, Rec);
+                            CurrPage.Update();
+                        end;
+                    }
+                    action(SpecifyReceiptLines)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Specify receipt line';
+                        Image = ReceiptLines;
+                        ToolTip = 'Specify the corresponding receipt line to the matched order line.';
+                        Scope = Repeater;
+                        Enabled = IsLineMatchedToOrderLine;
+
+                        trigger OnAction()
+                        var
+                            TempSelectedReceiptLines: Record "Purch. Rcpt. Line" temporary;
+                            EDocPOMatching: Codeunit "E-Doc. PO Matching";
+                            EDocSelectReceiptLinesPage: Page "E-Doc. Select Receipt Lines";
+                        begin
+                            EDocSelectReceiptLinesPage.SetEDocumentPurchaseLine(Rec);
+                            EDocSelectReceiptLinesPage.LookupMode := true;
+                            if EDocSelectReceiptLinesPage.RunModal() <> Action::LookupOK then
+                                exit;
+                            EDocSelectReceiptLinesPage.GetSelectedReceiptLines(TempSelectedReceiptLines);
+                            EDocPOMatching.MatchReceiptLinesToEDocumentLine(TempSelectedReceiptLines, Rec);
+                            CurrPage.Update();
+                        end;
+                    }
+                    action(OpenMatchedOrder)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Open matched order';
+                        Image = ViewOrder;
+                        ToolTip = 'Opens the matched purchase order.';
+                        Scope = Repeater;
+                        Enabled = IsLineMatchedToOrderLine;
+
+                        trigger OnAction()
+                        var
+                            TempPurchaseOrders: Record "Purchase Header" temporary;
+                            EDocPOMatching: Codeunit "E-Doc. PO Matching";
+                            CountPOs: Integer;
+                        begin
+                            EDocPOMatching.LoadPOsMatchedToEDocumentLine(Rec, TempPurchaseOrders);
+                            CountPOs := TempPurchaseOrders.Count();
+                            if CountPOs = 0 then
+                                exit;
+                            if CountPOs = 1 then begin
+                                TempPurchaseOrders.FindFirst();
+                                Page.Run(Page::"Purchase Order", TempPurchaseOrders);
+                                exit;
+                            end;
+                            Page.Run(Page::"Purchase Orders", TempPurchaseOrders);
+                        end;
+                    }
+                    action(OpenMatchedReceipt)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Open matched receipt';
+                        Image = PostedReceipt;
+                        ToolTip = 'Opens the matched purchase receipt.';
+                        Scope = Repeater;
+                        Enabled = IsLineMatchedToReceiptLine;
+
+                        trigger OnAction()
+                        var
+                            TempPostedReceipts: Record "Purch. Rcpt. Header" temporary;
+                            EDocPOMatching: Codeunit "E-Doc. PO Matching";
+                            CountReceipts: Integer;
+                        begin
+                            EDocPOMatching.LoadReceiptsMatchedToEDocumentLine(Rec, TempPostedReceipts);
+                            CountReceipts := TempPostedReceipts.Count();
+                            if CountReceipts = 0 then
+                                exit;
+                            if CountReceipts = 1 then begin
+                                TempPostedReceipts.FindFirst();
+                                Page.Run(Page::"Posted Purchase Receipt", TempPostedReceipts);
+                                exit;
+                            end;
+                            Page.Run(Page::"Posted Purchase Receipts", TempPostedReceipts);
+                        end;
+                    }
+                }
                 group("Related Information")
                 {
                     Caption = 'Related Information';
@@ -172,16 +291,20 @@ page 6183 "E-Doc. Purchase Draft Subform"
     }
 
     var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocumentPOMatchWarnings: Record "E-Doc PO Match Warning";
         EDocPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
-        AdditionalColumns: Text;
+        EDocPOMatching: Codeunit "E-Doc. PO Matching";
+        AdditionalColumns, OrderMatchedCaption, MatchWarningsCaption, MatchWarningsStyleExpr : Text;
         LineAmount: Decimal;
-        DimVisible1, DimVisible2, HasAdditionalColumns : Boolean;
+        DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings : Boolean;
         HistoryCantBeRetrievedErr: Label 'The purchase invoice that matched historically with this line can''t be opened.';
 
     trigger OnOpenPage()
     begin
         SetDimensionsVisibility();
+        UpdatePOMatching();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -189,13 +312,46 @@ page 6183 "E-Doc. Purchase Draft Subform"
         Clear(LineAmount);
     end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdatePOMatching();
+    end;
+
     trigger OnAfterGetRecord()
+    var
+        MissingInfoLbl: Label 'Missing information for match';
+        NotYetReceivedLbl: Label 'Not yet received';
+        QuantityMismatchLbl: Label 'Quantity mismatch';
+        NoWarningsLbl: Label 'No warnings';
+        NotMatchedLbl: Label 'Not matched';
     begin
         if EDocumentPurchaseLine.Get(Rec."E-Document Entry No.", Rec."Line No.") then;
         AdditionalColumns := Rec.AdditionalColumnsDisplayText();
-
         SetHasAdditionalColumns();
         UpdateCalculatedAmounts(false);
+        IsLineMatchedToOrderLine := EDocPOMatching.IsEDocumentLineMatchedToAnyPOLine(EDocumentPurchaseLine);
+        IsLineMatchedToReceiptLine := EDocPOMatching.IsEDocumentLineMatchedToAnyReceiptLine(EDocumentPurchaseLine);
+        OrderMatchedCaption := IsLineMatchedToOrderLine ? GetSummaryOfMatchedOrders() : NotMatchedLbl;
+        MatchWarningsStyleExpr := 'None';
+        EDocumentPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", Rec.SystemId);
+        if EDocumentPOMatchWarnings.FindFirst() then begin
+            case EDocumentPOMatchWarnings."Warning Type" of
+                Enum::"E-Doc PO Match Warning"::MissingInformationForMatch:
+                    MatchWarningsCaption := MissingInfoLbl;
+                Enum::"E-Doc PO Match Warning"::NotYetReceived:
+                    MatchWarningsCaption := NotYetReceivedLbl;
+                Enum::"E-Doc PO Match Warning"::QuantityMismatch:
+                    MatchWarningsCaption := QuantityMismatchLbl;
+            end;
+            MatchWarningsStyleExpr := 'Ambiguous';
+        end
+        else
+            MatchWarningsCaption := NoWarningsLbl;
+    end;
+
+    internal procedure SetEDocumentPurchaseHeader(EDocPurchHeader: Record "E-Document Purchase Header")
+    begin
+        EDocumentPurchaseHeader := EDocPurchHeader;
     end;
 
     local procedure SetDimensionsVisibility()
@@ -212,7 +368,6 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
     local procedure UpdateCalculatedAmounts(UpdateParentRecord: Boolean)
     var
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         TotalEDocPurchaseLine: Record "E-Document Purchase Line";
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
         LineSubtotal: Decimal;
@@ -245,14 +400,12 @@ page 6183 "E-Doc. Purchase Draft Subform"
     local procedure SetHasAdditionalColumns()
     var
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
     begin
         if EDocPurchLineFieldSetup.IsEmpty() then begin
             HasAdditionalColumns := false;
             exit;
         end;
 
-        EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.");
         if EDocumentPurchaseHeader."[BC] Vendor No." = '' then begin
             HasAdditionalColumns := false;
             exit;
@@ -264,6 +417,37 @@ page 6183 "E-Doc. Purchase Draft Subform"
         end;
 
         HasAdditionalColumns := true;
+    end;
+
+    local procedure UpdatePOMatching()
+    begin
+        IsEDocumentMatchedToAnyPOLine := EDocPOMatching.IsEDocumentMatchedToAnyPOLine(EDocumentPurchaseHeader);
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, EDocumentPOMatchWarnings);
+        HasEDocumentOrderMatchWarnings := not EDocumentPOMatchWarnings.IsEmpty();
+    end;
+
+    local procedure GetSummaryOfMatchedOrders(): Text
+    var
+        TempLinkedPurchaseLines: Record "Purchase Line" temporary;
+        MatchedPO: Code[20];
+        MatchedToSingleOrderLbl: Label 'Matched to order %1 %2', Comment = '%1 - Document No., %2 - Description';
+        MatchedToSingleOrderMultipleLinesLbl: Label 'Matched to order %1 (multiple)', Comment = '%1 - Document No.';
+        MatchedToMultipleOrdersLbl: Label 'Matched to orders %1, %2, ...', Comment = '%1 - First Document No., %2 - Second Document No.';
+    begin
+        EDocPOMatching.LoadPOLinesMatchedToEDocumentLine(EDocumentPurchaseLine, TempLinkedPurchaseLines);
+        if not TempLinkedPurchaseLines.FindFirst() then
+            exit('');
+
+        if TempLinkedPurchaseLines.Count() = 1 then
+            exit(StrSubstNo(MatchedToSingleOrderLbl, TempLinkedPurchaseLines."Document No.", TempLinkedPurchaseLines.Description));
+
+        MatchedPO := TempLinkedPurchaseLines."Document No.";
+        TempLinkedPurchaseLines.SetFilter("Document No.", '<>%1', MatchedPO);
+
+        if TempLinkedPurchaseLines.FindFirst() then
+            exit(StrSubstNo(MatchedToMultipleOrdersLbl, MatchedPO, TempLinkedPurchaseLines."Document No."));
+
+        exit(StrSubstNo(MatchedToSingleOrderMultipleLinesLbl, MatchedPO));
     end;
 
 }

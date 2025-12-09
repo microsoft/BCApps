@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.PowerBIReports;
 
-using System.Environment;
-using System.DateTime;
 using Microsoft.Finance.PowerBIReports;
+using System.DateTime;
+using System.Environment;
 
 page 36951 "PowerBI Reports Setup"
 {

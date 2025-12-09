@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.PowerBIReports;
 
-using Microsoft.Purchases.PowerBIReports;
-using Microsoft.Sales.PowerBIReports;
 using Microsoft.Finance.PowerBIReports;
+using Microsoft.Inventory.PowerBIReports;
 using Microsoft.Manufacturing.PowerBIReports;
 using Microsoft.Projects.PowerBIReports;
-using Microsoft.Inventory.PowerBIReports;
+using Microsoft.Purchases.PowerBIReports;
+using Microsoft.Sales.PowerBIReports;
 
 permissionset 36951 "PowerBi Report Basic"
 {
@@ -42,11 +42,6 @@ permissionset 36951 "PowerBi Report Basic"
         page "Item Category - PBI API" = X,
         page Locations = X,
         page "Power BI Selection Lookup" = X,
-#if not CLEAN25
-#pragma warning disable AL0432
-        page "Purchasing Scorecard" = X,
-#pragma warning restore AL0432
-#endif
         page "Return Reason Code - PBI API" = X,
         page "Salesperson/Purchasers" = X,
         page "PowerBI Reports Setup" = X,
@@ -69,11 +64,6 @@ permissionset 36951 "PowerBi Report Basic"
         query "G/L Accounts" = X,
         query "G/L Budget Entries - PBI API" = X,
         query "G/L Budgets" = X,
-#if not CLEAN25
-#pragma warning disable AL0432
-        query "G/L Entries - Closing" = X,
-#pragma warning restore AL0432
-#endif
 #if not CLEAN26
 #pragma warning disable AL0432
         query "G/L Entries - Income Statement" = X,

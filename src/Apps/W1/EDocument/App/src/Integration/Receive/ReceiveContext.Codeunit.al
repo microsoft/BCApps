@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Integration.Receive;
 
-using System.Utilities;
-using Microsoft.eServices.EDocument.Integration.Action;
-using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Integration.Action;
+using System.Utilities;
 
 codeunit 6186 ReceiveContext
 {

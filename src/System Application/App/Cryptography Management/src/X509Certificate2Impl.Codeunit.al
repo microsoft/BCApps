@@ -137,6 +137,26 @@ codeunit 1285 "X509Certificate2 Impl."
     end;
 
     [NonDebuggable]
+    procedure GetCertificatePublicKeyAsBase64String(CertBase64Value: Text; Password: SecretText): Text
+    var
+        X509Certificate2: DotNet X509Certificate2;
+        Convert: DotNet Convert;
+    begin
+        InitializeX509Certificate(CertBase64Value, Password, X509Certificate2);
+        exit(Convert.ToBase64String(X509Certificate2.GetPublicKey()));
+    end;
+
+    [NonDebuggable]
+    procedure GetRawCertDataAsBase64String(CertBase64Value: Text; Password: SecretText): Text
+    var
+        X509Certificate2: DotNet X509Certificate2;
+        Convert: DotNet Convert;
+    begin
+        InitializeX509Certificate(CertBase64Value, Password, X509Certificate2);
+        exit(Convert.ToBase64String(X509Certificate2.GetRawCertData()));
+    end;
+
+    [NonDebuggable]
     [TryFunction]
     local procedure TryInitializeCertificate(CertBase64Value: Text; Password: SecretText; var X509Certificate2: DotNet X509Certificate2)
     var

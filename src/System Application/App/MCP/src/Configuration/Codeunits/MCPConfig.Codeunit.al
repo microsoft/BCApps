@@ -49,23 +49,13 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
-    /// Allows create, update and delete tools for the specified MCP configuration.
+    /// Allows create, update and delete tools for the specified MCP configuration. Disallowing this will make the tools read-only.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="Allow">True to allow create, update and delete tools, false to disallow.</param>
     procedure AllowCreateUpdateDeleteTools(ConfigId: Guid; Allow: Boolean)
     begin
-        MCPConfigImplementation.AllowProdChanges(ConfigId, Allow);
-    end;
-
-    /// <summary>
-    /// Allows production changes for the specified MCP configuration.
-    /// </summary>
-    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
-    /// <param name="Allow">True to allow production changes, false to disallow.</param>
-    procedure AllowProdChanges(ConfigId: Guid; Allow: Boolean)
-    begin
-        MCPConfigImplementation.AllowProdChanges(ConfigId, Allow);
+        MCPConfigImplementation.AllowCreateUpdateDeleteTools(ConfigId, Allow);
     end;
 
     /// <summary>
@@ -116,7 +106,19 @@ codeunit 8350 "MCP Config"
     /// <returns>The SystemId (GUID) of the created tool.</returns>
     procedure CreateAPITool(ConfigId: Guid; APIPageId: Integer): Guid
     begin
-        exit(MCPConfigImplementation.CreateAPITool(ConfigId, APIPageId));
+        exit(MCPConfigImplementation.CreateAPITool(ConfigId, APIPageId, true));
+    end;
+
+    /// <summary>
+    /// Creates a new API tool for the specified configuration and API page.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="APIPageId">The ID of the API page.</param>
+    /// <param name="ValidateAPIPublisher">True to validate the API publisher, false to skip validation.</param>
+    /// <returns>The SystemId (GUID) of the created tool.</returns>
+    procedure CreateAPITool(ConfigId: Guid; APIPageId: Integer; ValidateAPIPublisher: Boolean): Guid
+    begin
+        exit(MCPConfigImplementation.CreateAPITool(ConfigId, APIPageId, ValidateAPIPublisher));
     end;
 
     /// <summary>

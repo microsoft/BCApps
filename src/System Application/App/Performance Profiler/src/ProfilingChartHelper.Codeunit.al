@@ -5,8 +5,8 @@
 
 namespace System.Tooling;
 
-using System.Visualization;
 using System.Integration;
+using System.Visualization;
 
 codeunit 1926 "Profiling Chart Helper"
 {

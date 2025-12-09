@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -10,6 +11,16 @@ table 6113 "EDoc Historical Matching Setup"
     Access = Internal;
     Extensible = false;
     ReplicateData = false;
+    ObsoleteReason = 'Replaced with experiment-based matching.';
+#pragma warning disable AS0072 // this change is backported to 27.x
+#if not CLEAN27
+    ObsoleteTag = '27.0';
+    ObsoleteState = Pending;
+#else
+    ObsoleteTag = '30.0';
+    ObsoleteState = Removed;
+#endif
+#pragma warning restore AS0072
 
     fields
     {
@@ -17,6 +28,7 @@ table 6113 "EDoc Historical Matching Setup"
         {
             DataClassification = SystemMetadata;
         }
+        #pragma warning disable AS0105
         field(2; "Vendor Matching Scope"; Enum "EDoc Vendor Matching Scope")
         {
             DataClassification = SystemMetadata;
@@ -27,6 +39,7 @@ table 6113 "EDoc Historical Matching Setup"
             DataClassification = SystemMetadata;
             InitValue = "Same Product Description";
         }
+        #pragma warning restore AS0105
     }
     keys
     {
@@ -36,6 +49,7 @@ table 6113 "EDoc Historical Matching Setup"
         }
     }
 
+    #pragma warning disable AS0105
     internal procedure GetSetup()
     begin
         if Rec.FindFirst() then
@@ -45,4 +59,6 @@ table 6113 "EDoc Historical Matching Setup"
         Rec."Vendor Matching Scope" := "EDoc Vendor Matching Scope"::"Same Vendor";
         Rec.Insert();
     end;
+    #pragma warning restore AS0105
 }
+#endif

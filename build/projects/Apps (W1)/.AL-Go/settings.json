@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/55f06533726d052e7603277236f2bcbcd67fa6cf/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v8.1/.Modules/settings.schema.json",
   "projectName": "Apps (W1)",
   "appFolders": [
     "../../../src/Apps/W1/*/App",
@@ -16,8 +16,65 @@
   "installOnlyReferencedApps": false,
   "doNotRunPageScriptingTests": true,
   "doNotRunBcptTests": true,
-  "buildModes": [ "CH","CZ","DK","ES","GB","IN","NO","US" ],
+  "testType": "IntegrationTest",
+  "buildModes": [
+    "AT",
+    "AU",
+    "BE",
+    "CA",
+    "CH",
+    "CZ",
+    "DE",
+    "DK",
+    "ES",
+    "FI",
+    "FR",
+    "GB",
+    "IN",
+    "IS",
+    "IT",
+    "MX",
+    "NL",
+    "NO",
+    "NZ",
+    "SE",
+    "US",
+    "UnitTests",
+    "UncategorizedTests"
+  ],
   "ConditionalSettings": [
+    {
+      "buildModes": [
+        "AT"
+      ],
+      "settings": {
+        "country": "at"
+      }
+    },
+    {
+      "buildModes": [
+        "AU"
+      ],
+      "settings": {
+        "country": "au"
+      }
+    },
+    {
+      "buildModes": [
+        "BE"
+      ],
+      "settings": {
+        "country": "be"
+      }
+    },
+    {
+      "buildModes": [
+        "CA"
+      ],
+      "settings": {
+        "country": "ca"
+      }
+    },
     {
       "buildModes": [
         "CH"
@@ -37,11 +94,18 @@
     },
     {
       "buildModes": [
+        "DE"
+      ],
+      "settings": {
+        "country": "de"
+      }
+    },
+    {
+      "buildModes": [
         "DK"
       ],
       "settings": {
-        "country": "dk",
-        "doNotRunTests": true
+        "country": "dk"
       }
     },
     {
@@ -54,11 +118,26 @@
     },
     {
       "buildModes": [
+        "FI"
+      ],
+      "settings": {
+        "country": "fi"
+      }
+    },
+    {
+      "buildModes": [
+        "FR"
+      ],
+      "settings": {
+        "country": "fr"
+      }
+    },
+    {
+      "buildModes": [
         "GB"
       ],
       "settings": {
-        "country": "gb",
-        "doNotRunTests": true
+        "country": "gb"
       }
     },
     {
@@ -71,11 +150,58 @@
     },
     {
       "buildModes": [
+        "IS"
+      ],
+      "settings": {
+        "country": "is"
+      }
+    },
+    {
+      "buildModes": [
+        "IT"
+      ],
+      "settings": {
+        "country": "it"
+      }
+    },
+    {
+      "buildModes": [
+        "MX"
+      ],
+      "settings": {
+        "country": "mx"
+      }
+    },
+    {
+      "buildModes": [
+        "NL"
+      ],
+      "settings": {
+        "country": "nl"
+      }
+    },
+    {
+      "buildModes": [
         "NO"
       ],
       "settings": {
-        "country": "no",
-        "doNotRunTests": true
+        "country": "no"
+      }
+    },
+    {
+      "buildModes": [
+        "NZ"
+      ],
+      "settings": {
+        "country": "nz"
+      }
+    },
+    {
+      "buildModes": [
+        "SE"
+      ],
+      "settings": {
+        "country": "se"
       }
     },
     {
@@ -94,6 +220,22 @@
         "doNotRunTests": true,
         "useCompilerFolder": true,
         "doNotPublishApps": true
+      }
+    },
+    {
+      "buildModes": [
+        "UnitTests"
+      ],
+      "settings": {
+        "testType": "UnitTest"
+      }
+    },
+    {
+      "buildModes": [
+        "UncategorizedTests"
+      ],
+      "settings": {
+        "testType": "Uncategorized"
       }
     },
     {

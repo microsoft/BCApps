@@ -37,26 +37,8 @@ table 30101 "Shpfy Metafield"
             Caption = 'Owner Resource';
             DataClassification = SystemMetadata;
             ObsoleteReason = 'Owner Resource is obsolete. Use Owner Type instead.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#endif
-#if not CLEAN25
-            trigger OnValidate()
-            begin
-                case "Owner Resource" of
-                    'Customer':
-                        Validate("Owner Type", "Owner Type"::Customer);
-                    'Product':
-                        Validate("Owner Type", "Owner Type"::Product);
-                    'Variant':
-                        Validate("Owner Type", "Owner Type"::ProductVariant);
-                end;
-            end;
-#endif
         }
 #endif
 
@@ -80,13 +62,8 @@ table 30101 "Shpfy Metafield"
             Caption = 'Value Type';
             DataClassification = CustomerContent;
             ObsoleteReason = 'Value Type is obsolete in Shopify API. Use Type instead.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#endif
         }
 #endif
 #pragma warning restore AS0105,AL0432

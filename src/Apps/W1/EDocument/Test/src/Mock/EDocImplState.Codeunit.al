@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Test;
 
+using Microsoft.eServices.EDocument;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
 using System.TestLibraries.Utilities;
-using Microsoft.eServices.EDocument;
 using System.Utilities;
-using Microsoft.Foundation.Company;
-using Microsoft.Finance.GeneralLedger.Setup;
 
 codeunit 139630 "E-Doc. Impl. State"
 {

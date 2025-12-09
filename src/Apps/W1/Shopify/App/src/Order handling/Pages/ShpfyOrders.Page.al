@@ -5,8 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Sales.Document;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 
 /// <summary>
 /// Page Shpfy Orders (ID 30115).
@@ -42,17 +42,6 @@ page 30115 "Shpfy Orders"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the Shopify Shop from which the order originated.';
                 }
-#if not CLEAN25
-                field(RiskLevel; Rec."Risk Level")
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies the risk level from the Shopify order.';
-                    Visible = false;
-                    ObsoleteReason = 'This field is not imported.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-#endif
                 field("High Risk"; Rec."High Risk")
                 {
                     ApplicationArea = All;
@@ -156,6 +145,12 @@ page 30115 "Shpfy Orders"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the name of the app used by the channel where you sell your products. A channel can be a platform or a marketplace such as an online store or POS.';
+                    Visible = false;
+                }
+                field("Channel Liable Taxes"; Rec."Channel Liable Taxes")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies if any tax line on the order is liable to be charged by the channel.';
                     Visible = false;
                 }
                 field(CancelReason; Rec."Cancel Reason")
@@ -459,4 +454,3 @@ page 30115 "Shpfy Orders"
     var
         ConfirmLbl: Label 'Create sales document(s) from the selected Shopify order(s)?';
 }
-

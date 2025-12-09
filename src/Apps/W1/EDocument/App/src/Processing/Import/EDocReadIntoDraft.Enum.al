@@ -3,8 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import;
-using Microsoft.eServices.EDocument.Processing.Interfaces;
+
 using Microsoft.eServices.EDocument.Format;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
 
 /// <summary>
 /// Specifies how a structured data type should be interpreted and read into a draft.

@@ -1,14 +1,14 @@
 namespace Microsoft.Bank.StatementImport;
 
-using System.Utilities;
+using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.Reconciliation;
+using Microsoft.Bank.Setup;
+using Microsoft.Foundation.Company;
 using System.Environment;
 using System.IO;
 using System.Reflection;
-using Microsoft.Bank.BankAccount;
-using Microsoft.Foundation.Company;
 using System.Telemetry;
-using Microsoft.Bank.Setup;
-using Microsoft.Bank.Reconciliation;
+using System.Utilities;
 
 page 8850 "Bank Statement File Wizard"
 {
