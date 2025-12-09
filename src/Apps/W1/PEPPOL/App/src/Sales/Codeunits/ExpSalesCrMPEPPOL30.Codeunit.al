@@ -17,7 +17,7 @@ codeunit 37205 "Exp. Sales CrM. PEPPOL30"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         CompanyInformation: Record "Company Information";
         RecordRef: RecordRef;
-        PEPPOL30Validation: Interface "PEPPOL30 Validation1";
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
         OutStr: OutStream;
     begin
         RecordRef.Get(Rec.RecordID);

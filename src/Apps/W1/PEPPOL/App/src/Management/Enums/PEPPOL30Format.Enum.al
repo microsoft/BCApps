@@ -13,7 +13,7 @@ enum 37200 "PEPPOL 3.0 Format" implements "PEPPOL Attachment Handler",
                                             "PEPPOL Payment Info Provider",
                                             "PEPPOL Posted Document Iterator",
                                             "PEPPOL Tax Info Provider",
-                                            "PEPPOL30 Validation1",
+                                            "PEPPOL30 Validation",
                                             "PEPPOL30 Export Management"
 {
     DefaultImplementation = "PEPPOL Attachment Handler" = "PEPPOL30 Management",
@@ -30,13 +30,13 @@ enum 37200 "PEPPOL 3.0 Format" implements "PEPPOL Attachment Handler",
     value(0; "PEPPOL 3.0 - Sales")
     {
         Caption = 'PEPPOL 3.0 - Sales';
-        Implementation = "PEPPOL30 Validation1" = "PEPPOL30 Sales Validation",
+        Implementation = "PEPPOL30 Validation" = "PEPPOL30 Sales Validation",
                             "PEPPOL30 Export Management" = "PEPPOL30 Sales Export Mgmt.";
     }
     value(1; "PEPPOL 3.0 - Service")
     {
         Caption = 'PEPPOL 3.0 - Service';
-        Implementation = "PEPPOL30 Validation1" = "PEPPOL30 Service Validation",
+        Implementation = "PEPPOL30 Validation" = "PEPPOL30 Service Validation",
                             "PEPPOL30 Export Management" = "PEPPOL30 Services Export Mgmt.";
     }
 }

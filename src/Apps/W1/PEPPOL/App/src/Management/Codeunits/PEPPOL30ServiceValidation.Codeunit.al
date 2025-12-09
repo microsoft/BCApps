@@ -6,7 +6,7 @@ namespace Microsoft.Peppol;
 
 using Microsoft.Service.Document;
 
-codeunit 37219 "PEPPOL30 Service Validation" implements "PEPPOL30 Validation1"
+codeunit 37219 "PEPPOL30 Service Validation" implements "PEPPOL30 Validation"
 {
     TableNo = "Service Header";
 
@@ -74,6 +74,18 @@ codeunit 37219 "PEPPOL30 Service Validation" implements "PEPPOL30 Validation1"
         PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
     begin
         PEPPOL30ValidationImpl.CheckServiceInvoice(RecordVariant);
+    end;
+
+    /// <summary>
+    /// Validates the service line
+    /// </summary>
+    /// <param name="RecordVariant"></param>
+    /// <returns></returns>
+    procedure ValidateLineTypeAndDescription(RecordVariant: Variant): Boolean
+    var
+        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
+    begin
+        exit(PEPPOL30ValidationImpl.CheckServiceLineTypeAndDescription(RecordVariant));
     end;
 
 

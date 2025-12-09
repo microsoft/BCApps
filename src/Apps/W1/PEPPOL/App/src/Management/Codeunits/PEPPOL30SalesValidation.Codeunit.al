@@ -6,7 +6,7 @@ namespace Microsoft.Peppol;
 
 using Microsoft.Sales.Document;
 
-codeunit 37216 "PEPPOL30 Sales Validation" implements "PEPPOL30 Validation1"
+codeunit 37216 "PEPPOL30 Sales Validation" implements "PEPPOL30 Validation"
 {
     TableNo = "Sales Header";
 
@@ -76,5 +76,17 @@ codeunit 37216 "PEPPOL30 Sales Validation" implements "PEPPOL30 Validation1"
         PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
     begin
         PEPPOL30ValidationImpl.CheckSalesCreditMemo(RecordVariant);
+    end;
+
+    /// <summary>
+    /// Validates the sales line
+    /// </summary>
+    /// <param name="RecordVariant"></param>
+    /// <returns></returns>
+    procedure ValidateLineTypeAndDescription(RecordVariant: Variant): Boolean
+    var
+        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
+    begin
+        exit(PEPPOL30ValidationImpl.CheckSalesLineTypeAndDescription(RecordVariant));
     end;
 }

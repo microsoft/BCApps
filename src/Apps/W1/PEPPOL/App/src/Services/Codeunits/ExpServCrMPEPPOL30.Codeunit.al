@@ -17,7 +17,7 @@ codeunit 37211 "Exp. Serv.CrM. PEPPOL30"
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         CompanyInformation: Record "Company Information";
         RecordRef: RecordRef;
-        PEPPOL30Validation: Interface "PEPPOL30 Validation1";
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
         OutStr: OutStream;
     begin
         RecordRef.Get(Rec.RecordID);

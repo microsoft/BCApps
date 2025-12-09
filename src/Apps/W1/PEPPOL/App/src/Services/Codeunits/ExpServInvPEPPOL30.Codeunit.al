@@ -17,7 +17,7 @@ codeunit 37212 "Exp. Serv.Inv. PEPPOL30"
         ServiceInvoiceHeader: Record "Service Invoice Header";
         CompanyInformation: Record "Company Information";
         RecordRef: RecordRef;
-        PEPPOL30Validation: Interface "PEPPOL30 Validation1";
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
         OutStr: OutStream;
     begin
         RecordRef.Get(Rec.RecordID);

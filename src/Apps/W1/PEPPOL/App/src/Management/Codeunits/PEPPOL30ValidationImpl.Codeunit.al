@@ -347,6 +347,15 @@ codeunit 37203 "PEPPOL30 Validation Impl."
             OutsideScopeVATBreakdowns.Add(BreakdownKey, Format(SalesLine."VAT %"));
     end;
 
+    procedure CheckServiceLineTypeAndDescription(ServiceLine: Record "Service Line"): Boolean
+    var
+        SalesLine: Record "Sales Line";
+        PEPPOL30Management: Codeunit "PEPPOL30 Management";
+    begin
+        PEPPOL30Management.TransferLineToSalesLine(ServiceLine, SalesLine);
+        exit(CheckSalesLineTypeAndDescription(SalesLine));
+    end;
+
     procedure CheckSalesLineTypeAndDescription(SalesLine: Record "Sales Line"): Boolean
     begin
         if (SalesLine.Type <> SalesLine.Type::" ") and (SalesLine.Description = '') then

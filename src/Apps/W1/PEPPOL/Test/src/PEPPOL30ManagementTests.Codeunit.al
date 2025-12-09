@@ -3223,7 +3223,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         XML := PEPPOLXMLExport(SalesInvoiceHeader, GetPEPPOLFormat());
 
         // [VERIFY] Invoice Successfully send the electronically in PEPPOL transmission.
-        Assert.IsFalse(XML <> '', InvoiceElectronicallySendPEPPOLFormatTxt);
+        Assert.IsTrue(XML <> '', InvoiceElectronicallySendPEPPOLFormatTxt);
     end;
 
     [Test]
