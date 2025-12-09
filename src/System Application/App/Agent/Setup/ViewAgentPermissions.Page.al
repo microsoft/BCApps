@@ -128,9 +128,9 @@ page 4334 "View Agent Permissions"
     begin
         PermissionScope := Format(Rec.Scope);
 
-        PermissionSetNotFound := Rec."Role ID" in ['SUPER', 'SECURITY']
-            ? false
-            : not AggregatePermissionSet.Get(Rec.Scope, Rec."App ID", Rec."Role ID");
+        PermissionSetNotFound := false;
+        if not (Rec."Role ID" in ['SUPER', 'SECURITY']) then
+            PermissionSetNotFound := not AggregatePermissionSet.Get(Rec.Scope, Rec."App ID", Rec."Role ID");
 
         if not ShowCompanyFieldOverride then begin
             ShowCompanyField := not AccessControlForSingleCompany(GlobalSingleCompanyName);
