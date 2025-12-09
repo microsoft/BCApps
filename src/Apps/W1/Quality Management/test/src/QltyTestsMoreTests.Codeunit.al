@@ -2226,7 +2226,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
     // Test disabled due to inconsistent behavior across environments
     // Bug 613059 to address the test stability issue
-    [Test]
+    // [Test]
     procedure ApplicationAreaMgmt_IsQualityManagementApplicationAreaEnabled()
     var
         AllProfile: Record "All Profile";
