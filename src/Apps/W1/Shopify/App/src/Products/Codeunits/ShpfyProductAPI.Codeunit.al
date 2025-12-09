@@ -117,20 +117,37 @@ codeunit 30176 "Shpfy Product API"
 
     local procedure AddDefaultCollectionsToGraphQuery(ShopifyProduct: Record "Shpfy Product"; var GraphQuery: TextBuilder)
     var
+        Item: Record Item;
         ProductCollection: Record "Shpfy Product Collection";
+        CollectionsBuilder: TextBuilder;
+        ItemFilter: Text;
     begin
         ProductCollection.SetRange("Shop Code", ShopifyProduct."Shop Code");
         ProductCollection.SetRange(Default, true);
         if not ProductCollection.FindSet() then
             exit;
 
-        GraphQuery.Append(', collectionsToJoin: [');
         repeat
-            GraphQuery.Append('\"gid://shopify/Collection/');
-            GraphQuery.Append(Format(ProductCollection.Id));
-            GraphQuery.Append('\", ');
+            ItemFilter := ProductCollection.GetItemFilter();
+            if ItemFilter <> '' then begin
+                Item.Reset();
+                Item.SetView(ItemFilter);
+                Item.SetRange(SystemId, ShopifyProduct."Item SystemId");
+                if Item.IsEmpty() then
+                    continue;
+            end;
+            if CollectionsBuilder.Length > 0 then
+                CollectionsBuilder.Append(', ');
+            CollectionsBuilder.Append('\"gid://shopify/Collection/');
+            CollectionsBuilder.Append(Format(ProductCollection.Id));
+            CollectionsBuilder.Append('\"');
         until ProductCollection.Next() = 0;
-        GraphQuery.Remove(GraphQuery.Length - 1, 2);
+
+        if CollectionsBuilder.Length = 0 then
+            exit;
+
+        GraphQuery.Append(', collectionsToJoin: [');
+        GraphQuery.Append(CollectionsBuilder.ToText());
         GraphQuery.Append(']');
     end;
 

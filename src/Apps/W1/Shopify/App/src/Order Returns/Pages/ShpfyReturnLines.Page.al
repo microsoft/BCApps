@@ -62,6 +62,11 @@ page 30149 "Shpfy Return Lines"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the total line price after all discounts on the line item, including both line item level discounts and code-based line item discounts, are applied.';
                 }
+                field("Presentment Disc. Total Amt."; Rec."Presentment Disc. Total Amt.")
+                {
+                    ApplicationArea = All;
+                    Visible = PresentmentCurrencyVisible;
+                }
                 field(Weight; Rec.Weight)
                 {
                     ApplicationArea = All;
@@ -134,10 +139,16 @@ page 30149 "Shpfy Return Lines"
     var
         ReturnReasonNoteVisible: Boolean;
         CustomerNoteVisible: Boolean;
+        PresentmentCurrencyVisible: Boolean;
 
     trigger OnAfterGetCurrRecord()
     begin
         ReturnReasonNoteVisible := Rec."Return Reason Note".HasValue();
         CustomerNoteVisible := Rec."Customer Note".HasValue();
+    end;
+
+    internal procedure ShowPresentmentCurrency(Visible: Boolean)
+    begin
+        PresentmentCurrencyVisible := Visible;
     end;
 }

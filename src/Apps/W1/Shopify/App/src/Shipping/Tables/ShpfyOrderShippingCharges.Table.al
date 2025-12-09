@@ -58,6 +58,7 @@ table 30130 "Shpfy Order Shipping Charges"
         field(8; "Presentment Amount"; Decimal)
         {
             Caption = 'Presentment Amount';
+            ToolTip = 'Specifies the shipping cost amount in presentment currency.';
             DataClassification = SystemMetadata;
             AutoFormatType = 1;
             AutoFormatExpression = OrderPresentmentCurrencyCode();
@@ -65,6 +66,7 @@ table 30130 "Shpfy Order Shipping Charges"
         field(9; "Presentment Discount Amount"; Decimal)
         {
             Caption = 'Presentment Discount Amount';
+            ToolTip = 'Specifies the shipping cost discount amount in presentment currency.';
             DataClassification = SystemMetadata;
             AutoFormatType = 1;
             AutoFormatExpression = OrderPresentmentCurrencyCode();
@@ -81,6 +83,9 @@ table 30130 "Shpfy Order Shipping Charges"
         key(Key1; "Shopify Shipping Line Id")
         {
             Clustered = true;
+        }
+        key(Key2; "Shopify Order Id")
+        {
         }
     }
 

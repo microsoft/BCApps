@@ -41,6 +41,13 @@ page 30168 "Shpfy Order Tax Lines"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the amount of the tax line.';
                 }
+                field("Presentment Amount"; Rec."Presentment Amount")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Presentment Amount';
+                    ToolTip = 'Specifies the amount of the tax line in presentment currency.';
+                    Visible = PresentmentCurrencyVisible;
+                }
                 field("Rate %"; Rec."Rate %")
                 {
                     ApplicationArea = All;
@@ -54,4 +61,26 @@ page 30168 "Shpfy Order Tax Lines"
             }
         }
     }
+
+    var
+        PresentmentCurrencyVisible: Boolean;
+
+    trigger OnAfterGetRecord()
+    begin
+        this.SetShowPresentmentCurrencyVisibility();
+    end;
+
+    local procedure SetShowPresentmentCurrencyVisibility()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderLine: Record "Shpfy Order Line";
+    begin
+        OrderLine.SetRange("Line Id", Rec."Parent Id");
+        if not OrderLine.FindFirst() then
+            exit;
+        if not OrderHeader.Get(OrderLine."Shopify Order Id") then
+            exit;
+
+        PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+    end;
 }
