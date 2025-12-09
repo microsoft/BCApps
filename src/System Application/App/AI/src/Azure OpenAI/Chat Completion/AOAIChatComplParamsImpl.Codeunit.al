@@ -19,7 +19,6 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         MaxHistory: Integer;
         PresencePenalty: Decimal;
         FrequencyPenalty: Decimal;
-
         TemperatureErr: Label 'Temperature must be between 0.0 and 2.0.';
         PresencePenaltyErr: Label 'Presence penalty must be between -2.0 and 2.0.';
         FrequencyPenaltyErr: Label 'Frequency penalty must be between -2.0 and 2.0.';
