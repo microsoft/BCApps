@@ -1,18 +1,18 @@
 namespace Microsoft.EServices.EDocumentConnector.Continia;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Sales.Customer;
-using Microsoft.Inventory.Item;
-using Microsoft.Foundation.UOM;
-using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Foundation.Company;
-using System.TestLibraries.Environment;
-using Microsoft.Purchases.Document;
-using System.Threading;
 using Microsoft.eServices.EDocument.Integration;
-using Microsoft.Finance.VAT.Setup;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using System.TestLibraries.Environment;
+using System.Threading;
 
 codeunit 148203 "Continia Doc. Integr. Tests"
 {

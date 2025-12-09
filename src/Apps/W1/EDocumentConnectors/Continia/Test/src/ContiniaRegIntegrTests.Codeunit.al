@@ -1,10 +1,10 @@
 namespace Microsoft.EServices.EDocumentConnector.Continia;
 
 using Microsoft.eServices.EDocument;
-using System.TestLibraries.Environment;
-using Microsoft.Sales.Customer;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Foundation.Company;
+using Microsoft.Sales.Customer;
+using System.TestLibraries.Environment;
 
 codeunit 148204 "Continia Reg. Integr. Tests"
 {

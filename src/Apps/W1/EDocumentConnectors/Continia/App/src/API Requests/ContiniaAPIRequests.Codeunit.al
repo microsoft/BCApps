@@ -5,12 +5,12 @@
 namespace Microsoft.EServices.EDocumentConnector.Continia;
 
 using Microsoft.eServices.EDocument;
-using System.Utilities;
-using System.Text;
+using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
-using Microsoft.eServices.EDocument.Integration.Receive;
+using System.Text;
+using System.Utilities;
 
 codeunit 6393 "Continia Api Requests"
 {
