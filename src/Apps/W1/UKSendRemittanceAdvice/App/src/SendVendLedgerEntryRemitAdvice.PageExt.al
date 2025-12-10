@@ -26,7 +26,7 @@ pageextension 4023 SendVendLedgerEntryRemitAdvice extends "Vendor Ledger Entries
     actions
     {
 #if CLEAN28
-        addafter(SuggestVendorPayments)
+        addafter("Create Payment")
         {
             action("UKPrintRemittanceAdvice")
             {
