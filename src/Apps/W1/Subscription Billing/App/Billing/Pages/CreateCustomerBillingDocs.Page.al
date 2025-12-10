@@ -43,10 +43,8 @@ page 8072 "Create Customer Billing Docs"
 
     trigger OnOpenPage()
     begin
-        if DocumentDate = 0D then
-            DocumentDate := WorkDate();
-        if PostingDate = 0D then
-            PostingDate := WorkDate();
+        DocumentDate := WorkDate();
+        PostingDate := WorkDate();
     end;
 
     var
@@ -61,14 +59,6 @@ page 8072 "Create Customer Billing Docs"
         NewPostingDate := PostingDate;
         NewGroupingType := Grouping;
         NewPostDocuments := PostDocuments;
-    end;
-
-    internal procedure SetData(NewDocumentDate: Date; NewPostingDate: Date; NewGroupingType: Enum "Customer Rec. Billing Grouping"; NewPostDocuments: Boolean)
-    begin
-        DocumentDate := NewDocumentDate;
-        PostingDate := NewPostingDate;
-        Grouping := NewGroupingType;
-        PostDocuments := NewPostDocuments;
     end;
 
 }

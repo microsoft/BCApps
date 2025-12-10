@@ -50,6 +50,5 @@ permissionset 8054 "Sub. Billing Basic"
         tabledata "Usage Data Supplier" = R,
         tabledata "Vend. Sub. Contract Deferral" = R,
         tabledata "Vend. Sub. Contract Line" = R,
-        tabledata "Vendor Subscription Contract" = R,
-        tabledata "Contract Billing Err. Log" = R;
+        tabledata "Vendor Subscription Contract" = R;
 }

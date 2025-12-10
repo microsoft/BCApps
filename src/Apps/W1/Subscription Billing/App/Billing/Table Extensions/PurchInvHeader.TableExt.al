@@ -10,7 +10,6 @@ tableextension 8062 "Purch. Inv. Header" extends "Purch. Inv. Header"
         {
             DataClassification = CustomerContent;
             Caption = 'Recurring Billing';
-            ToolTip = 'Specifies whether the document was created by Subscription Billing.';
         }
     }
 }

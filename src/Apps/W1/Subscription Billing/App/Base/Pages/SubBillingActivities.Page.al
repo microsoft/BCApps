@@ -169,14 +169,6 @@ page 8085 "Sub. Billing Activities"
                     ToolTip = 'Specifies the Balance between posted Contract Invoices and Contract Credit Memos for Vendor Subscription Contracts in previous Month.';
                 }
             }
-            cuegroup(Errors)
-            {
-                Caption = 'Errors';
-                field("Errors Automated Billing"; Rec."Errors Automated Billing")
-                {
-                    Image = Info;
-                }
-            }
         }
     }
 
@@ -208,6 +200,7 @@ page 8085 "Sub. Billing Activities"
 
                 trigger OnAction()
                 begin
+                    SetMyJobsFilter();
                     CurrPage.Update();
                 end;
             }
@@ -243,6 +236,7 @@ page 8085 "Sub. Billing Activities"
             Rec.Insert(false);
         end;
 
+        SetMyJobsFilter();
         RoleCenterNotificationMgt.ShowNotifications();
     end;
 
@@ -261,6 +255,11 @@ page 8085 "Sub. Billing Activities"
                 Commit();
 
         CurrPage.Update();
+    end;
+
+    local procedure SetMyJobsFilter()
+    begin
+        Rec.SetFilter("Job No. Filter", SubBillingActivitiesCue.GetMyJobsFilter());
     end;
 
     var

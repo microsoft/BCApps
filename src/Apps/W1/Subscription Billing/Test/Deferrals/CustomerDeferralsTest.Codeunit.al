@@ -296,7 +296,6 @@ codeunit 139912 "Customer Deferrals Test"
         GetGLEntryAmountFromAccountNo(GLAmountAfterInvoicing, GeneralPostingSetup."Cust. Sub. Contr. Def Account");
 
         // Expect Amount on GL Account to be decreased by Released Customer Deferral
-        Commit(); // close transaction before report is called
         ContractDeferralsRelease.Run();  // ContractDeferralsReleaseRequestPageHandler
         GetGLEntryAmountFromAccountNo(GLAmountAfterRelease, GeneralPostingSetup."Cust. Sub. Contr. Def Account");
         Assert.AreEqual(GLAmountAfterInvoicing - CustomerContractDeferral.Amount, GLAmountAfterRelease, 'Amount was not moved from Deferrals Account to Contract Account');
@@ -351,7 +350,6 @@ codeunit 139912 "Customer Deferrals Test"
         Assert.AreEqual(0, GLLineDiscountAmountAfterInvoicing, 'There should not be amount posted into Sales Line Discount Account.');
 
         // Expect Amount on GL Account to be decreased by Released Customer Deferral
-        Commit(); // close transaction before report is called
         ContractDeferralsRelease.Run(); // ContractDeferralsReleaseRequestPageHandler
         GetGLEntryAmountFromAccountNo(GLAmountAfterRelease, GeneralPostingSetup."Cust. Sub. Contr. Def Account");
         Assert.AreEqual(GLAmountAfterInvoicing - CustomerContractDeferral.Amount, GLAmountAfterRelease, 'Amount was not moved from Deferrals Account to Contract Account');
@@ -377,7 +375,6 @@ codeunit 139912 "Customer Deferrals Test"
         // Release only first Customer Subscription Contract Deferral
         PostSalesDocumentAndFetchDeferrals();
         PostingDate := CustomerContractDeferral."Posting Date";
-        Commit(); // close transaction before report is called
         ContractDeferralsRelease.Run();  // ContractDeferralsReleaseRequestPageHandler
 
         SalesInvoiceHeader.Get(PostedDocumentNo);
@@ -508,7 +505,6 @@ codeunit 139912 "Customer Deferrals Test"
         PostSalesDocumentAndFetchDeferrals();
 
         PostingDate := CustomerContractDeferral."Posting Date"; // Used in request page handler
-        Commit(); // close transaction before report is called
         ContractDeferralsRelease.Run(); // ContractDeferralsReleaseRequestPageHandler
         SalesInvoiceHeader.Get(PostedDocumentNo);
         CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesCrMemoHeader);
@@ -589,7 +585,6 @@ codeunit 139912 "Customer Deferrals Test"
         // [THEN] Releasing each deferral entry should be correct
         repeat
             PostingDate := CustomerContractDeferral."Posting Date";
-            Commit(); // close transaction before report is called
             ContractDeferralsRelease.Run();  // ContractDeferralsReleaseRequestPageHandler
             CustomerContractDeferral.Get(CustomerContractDeferral."Entry No.");
             GLEntry.Get(CustomerContractDeferral."G/L Entry No.");
@@ -619,7 +614,6 @@ codeunit 139912 "Customer Deferrals Test"
         // [THEN] Releasing each deferral entry should be correct
         repeat
             PostingDate := CustomerContractDeferral."Posting Date";
-            Commit(); // close transaction before report is called
             ContractDeferralsRelease.Run();  // ContractDeferralsReleaseRequestPageHandler
             CustomerContractDeferral.Get(CustomerContractDeferral."Entry No.");
             GLEntry.Get(CustomerContractDeferral."G/L Entry No.");

@@ -39,10 +39,8 @@ page 8077 "Create Vendor Billing Docs"
 
     trigger OnOpenPage()
     begin
-        if DocumentDate = 0D then
-            DocumentDate := WorkDate();
-        if PostingDate = 0D then
-            PostingDate := WorkDate();
+        DocumentDate := WorkDate();
+        PostingDate := WorkDate();
     end;
 
     var
@@ -57,10 +55,4 @@ page 8077 "Create Vendor Billing Docs"
         NewGroupingType := Grouping;
     end;
 
-    internal procedure SetData(NewDocumentDate: Date; NewPostingDate: Date; NewGroupingType: Enum "Vendor Rec. Billing Grouping")
-    begin
-        DocumentDate := NewDocumentDate;
-        PostingDate := NewPostingDate;
-        Grouping := NewGroupingType;
-    end;
 }

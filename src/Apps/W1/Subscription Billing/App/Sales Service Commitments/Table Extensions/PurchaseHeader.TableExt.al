@@ -10,8 +10,6 @@ tableextension 8061 "Purchase Header" extends "Purchase Header"
         {
             DataClassification = CustomerContent;
             Caption = 'Recurring Billing';
-            ToolTip = 'Specifies whether the document was created by Subscription Billing.';
-            Editable = false;
         }
     }
 
