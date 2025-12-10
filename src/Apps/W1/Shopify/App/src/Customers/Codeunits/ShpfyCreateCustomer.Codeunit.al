@@ -172,8 +172,7 @@ codeunit 30110 "Shpfy Create Customer"
 
         Customer.Modify();
 
-        ShopifyCustomer.SetRange(Id, TempShopifyCustomer.Id);
-        if ShopifyCustomer.IsEmpty() then begin
+        if not ShopifyCustomer.Get(TempShopifyCustomer.Id) then begin
             ShopifyCustomer.Copy(TempShopifyCustomer);
             ShopifyCustomer."Customer SystemId" := Customer.SystemId;
             ShopifyCustomer.Insert();
