@@ -99,7 +99,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesInvoiceHeader.Get(SalesInvoiceNo);
         SalesHeader.TransferFields(SalesInvoiceHeader);
 
-        PEPPOLDocumentInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLDocumentInfoProvider := GetFormat();
         PEPPOLDocumentInfoProvider.GetGeneralInfo(
           SalesHeader,
           ID,
@@ -138,7 +138,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Initialize();
 
         // Exercise
-        PEPPOLDocumentInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLDocumentInfoProvider := GetFormat();
         PEPPOLDocumentInfoProvider.GetInvoicePeriodInfo(StartDate, EndDate);
 
         // Verify
@@ -171,7 +171,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // Exercise
-        PEPPOLDocumentInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLDocumentInfoProvider := GetFormat();
         PEPPOLDocumentInfoProvider.GetOrderReferenceInfo(SalesHeader, OrderReferenceID);
 
         // Verify
@@ -206,7 +206,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // Exercise
-        PEPPOLDocumentInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLDocumentInfoProvider := GetFormat();
         PEPPOLDocumentInfoProvider.GetContractDocRefInfo(
           SalesHeader, ContractDocumentReferenceID, DocumentTypeCode, ContractRefDocTypeCodeListID, DocumentType);
 
@@ -232,7 +232,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Initialize();
 
         // Exercise
-        PEPPOLAttachmentHandler := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLAttachmentHandler := GetFormat();
         PEPPOLAttachmentHandler.GetAdditionalDocRefInfo(
           SalesHeader, AdditionalDocumentReferenceID, AdditionalDocRefDocumentType, URI, MimeCode, EmbeddedDocumentBinaryObject, 0);
 
@@ -266,7 +266,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CompanyInfo.Modify(false);
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingSupplierPartyInfo(SupplierEndpointID, SupplierSchemeID, SupplierName);
 
         // Verify
@@ -297,7 +297,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CountryRegion.Modify(false);
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingSupplierPartyInfo(SupplierEndpointID, SupplierSchemeID, SupplierName);
 
         // Verify
@@ -335,7 +335,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CompanyInfo.Modify(false);
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingSupplierPartyPostalAddr(
           DummySalesHeader, StreetName, SupplierAdditionalStreetName, CityName, PostalZone, CountrySubentity, IdentificationCode, ListID);
 
@@ -386,7 +386,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         DummySalesHeader."Responsibility Center" := RespCenter.Code;
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingSupplierPartyPostalAddr(
           DummySalesHeader, StreetName, SupplierAdditionalStreetName, CityName, PostalZone, CountrySubentity, IdentificationCode, ListID);
 
@@ -427,7 +427,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CountryRegion.Modify(false);
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingSupplierPartyTaxScheme(CompanyID, CompanyIDSchemeID, TaxSchemeID);
 
         // Verify
@@ -457,7 +457,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CompanyInfo.Modify(false);
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingSupplierPartyLegalEntity(
           PartyLegalEntityRegName, PartyLegalEntityCompanyID, PartyLegalEntitySchemeID, SupplierRegAddrCityName,
           SupplierRegAddrCountryIdCode, SupplRegAddrCountryIdListId);
@@ -500,7 +500,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CompanyInfo.Modify(false);
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingSupplierPartyLegalEntity(
           PartyLegalEntityRegName, PartyLegalEntityCompanyID, PartyLegalEntitySchemeID, SupplierRegAddrCityName,
           SupplierRegAddrCountryIdCode, SupplRegAddrCountryIdListId);
@@ -546,7 +546,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         DummySalesHeader."Salesperson Code" := Salesperson.Code;
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingSupplierPartyContact(DummySalesHeader, ContactID, ContactName, Telephone, Telefax, ElectronicMail);
 
         // Verify
@@ -584,7 +584,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         DummySalesHeader."Bill-to Name" := Cust.Name;
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingCustomerPartyInfo(
           DummySalesHeader, CustomerEndpointID, CustomerSchemeID, CustomerPartyIdentificationID, CustomerPartyIDSchemeID, CustomerName);
 
@@ -623,7 +623,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CountryRegion.Get(CompanyInfo."Country/Region Code");
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingCustomerPartyInfo(
           DummySalesHeader, CustomerEndpointID, CustomerSchemeID, CustomerPartyIdentificationID, CustomerPartyIDSchemeID, CustomerName);
 
@@ -662,7 +662,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesHeader."Bill-to Country/Region Code" := CountryRegion.Code;
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingCustomerPartyPostalAddr(
           SalesHeader, CustomerStreetName, CustomerAdditionalStreetName, CustomerCityName, CustomerPostalZone, CustomerCountrySubentity,
           CustomerIdentificationCode, CustomerListID);
@@ -700,7 +700,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         DummySalesHeader."VAT Registration No." := LibraryUtility.GenerateGUID();
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingCustomerPartyTaxScheme(
           DummySalesHeader, CustPartyTaxSchemeCompanyID, CustPartyTaxSchemeCompIDSchID, CustTaxSchemeID);
 
@@ -733,7 +733,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         DummySalesHeader.Validate("Bill-to Customer No.", Cust."No.");
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingCustomerPartyLegalEntity(
           DummySalesHeader, CustPartyLegalEntityRegName, CustPartyLegalEntityCompanyID, CustPartyLegalEntityIDSchemeID);
 
@@ -768,7 +768,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         DummySalesHeader.Validate("VAT Registration No.", Cust."VAT Registration No.");
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingCustomerPartyLegalEntity(
           DummySalesHeader, CustPartyLegalEntityRegName, CustPartyLegalEntityCompanyID, CustPartyLegalEntityIDSchemeID);
 
@@ -803,7 +803,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         DummySalesHeader."Bill-to Customer No." := Customer."No.";
         DummySalesHeader."Bill-to Name" := LibraryUtility.GenerateGUID();
 
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingCustomerPartyContact(
           DummySalesHeader, CustContactID, CustContactName, CustContactTelephone, CustContactTelefax, CustContactElectronicMail);
 
@@ -830,7 +830,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         DummySalesHeader."Bill-to Name" := LibraryUtility.GenerateGUID();
         DummySalesHeader."Bill-to Contact" := LibraryUtility.GenerateGUID();
 
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingCustomerPartyContact(
           DummySalesHeader, CustContactID, CustContactName, CustContactTelephone, CustContactTelefax, CustContactElectronicMail);
 
@@ -874,7 +874,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CountryRegion.Get(CompanyInfo."Country/Region Code");
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetPayeePartyInfo(
           PayeePartyID, PayeePartyIDSchemeID, PayeePartyNameName, PayeePartyLegalEntityCompanyID, PayeePartyLegalCompIDSchemeID);
 
@@ -899,7 +899,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Initialize();
 
         // Exercise
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetTaxRepresentativePartyInfo(
           TaxRepPartyNameName, PayeePartyTaxSchemeCompanyID, PayeePartyTaxSchCompIDSchemeID, PayeePartyTaxSchemeTaxSchemeID);
 
@@ -922,7 +922,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Initialize();
 
         // Exercise
-        PEPPOLDeliveryInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLDeliveryInfoProvider := GetFormat();
         PEPPOLDeliveryInfoProvider.GetDeliveryInfo(ActualDeliveryDate, DeliveryID, DeliveryIDSchemeID);
 
         // Verify
@@ -957,7 +957,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         DummySalesHeader."Ship-to Country/Region Code" := CountryRegion.Code;
 
         // Exercise
-        PEPPOLDeliveryInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLDeliveryInfoProvider := GetFormat();
         PEPPOLDeliveryInfoProvider.GetDeliveryAddress(
           DummySalesHeader, DeliveryStreetName, DeliveryAdditionalStreetName, DeliveryCityName, DeliveryPostalZone, DeliveryCountrySubentity,
           DeliveryCountryIdCode, DeliveryCountryListID);
@@ -991,7 +991,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         DummySalesHeader."Due Date" := LibraryRandom.RandDate(10);
 
         // Exercise
-        PEPPOLPaymentInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPaymentInfoProvider := GetFormat();
         PEPPOLPaymentInfoProvider.GetPaymentMeansInfo(
           DummySalesHeader, PaymentMeansCode, PaymentMeansListID, PaymentDueDate, PaymentChannelCode, PaymentID,
           PrimaryAccountNumberID, NetworkID);
@@ -1029,7 +1029,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CompanyInfo.Modify(false);
 
         // Exercise
-        PEPPOLPaymentInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPaymentInfoProvider := GetFormat();
         PEPPOLPaymentInfoProvider.GetPaymentMeansPayeeFinancialAcc(
           PayeeFinancialAccountID, PaymentMeansSchemeID, FinancialInstitutionBranchID, FinancialInstitutionID,
           FinancialInstitutionSchemeID, FinancialInstitutionName);
@@ -1066,7 +1066,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CompanyInfo.Modify(false);
 
         // Exercise
-        PEPPOLPaymentInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPaymentInfoProvider := GetFormat();
         PEPPOLPaymentInfoProvider.GetPaymentMeansPayeeFinancialAcc(
           PayeeFinancialAccountID, PaymentMeansSchemeID, FinancialInstitutionBranchID, FinancialInstitutionID,
           FinancialInstitutionSchemeID, FinancialInstitutionName);
@@ -1102,7 +1102,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CompanyInfo.Modify(false);
 
         // Exercise
-        PEPPOLPaymentInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPaymentInfoProvider := GetFormat();
         PEPPOLPaymentInfoProvider.GetPaymentMeansPayeeFinancialAcc(
           PayeeFinancialAccountID, PaymentMeansSchemeID, FinancialInstitutionBranchID, FinancialInstitutionID,
           FinancialInstitutionSchemeID, FinancialInstitutionName);
@@ -1132,7 +1132,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Initialize();
 
         // Exercise
-        PEPPOLPaymentInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPaymentInfoProvider := GetFormat();
         PEPPOLPaymentInfoProvider.GetPaymentMeansFinancialInstitutionAddr(
           FinancialInstitutionStreetName, AdditionalStreetName, FinancialInstitutionCityName, FinancialInstitutionPostalZone,
           FinancialInstCountrySubentity, FinancialInstCountryIdCode, FinancialInstCountryListID);
@@ -1166,7 +1166,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         DummySalesHeader."Due Date" := LibraryRandom.RandDate(10);
 
         // Exercise
-        PEPPOLPaymentInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPaymentInfoProvider := GetFormat();
         PEPPOLPaymentInfoProvider.GetPaymentMeansInfo(
           DummySalesHeader, PaymentMeansCode, PaymentMeansListID, PaymentDueDate, PaymentChannelCode,
           PaymentID, PrimaryAccountNumberID, NetworkID);
@@ -1229,7 +1229,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // Exercise
-        PEPPOLTaxInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLTaxInfoProvider := GetFormat();
         PEPPOLTaxInfoProvider.GetAllowanceChargeInfo(
           TempVATAmtLine, SalesHeader, ChargeIndicator, AllowanceChargeReasonCode, AllowanceChargeListID,
           AllowanceChargeReason, Amount, AllowanceChargeCurrencyID, TaxCategoryID, TaxCategorySchemeID,
@@ -1280,7 +1280,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // Exercise
-        PEPPOLTaxInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLTaxInfoProvider := GetFormat();
         PEPPOLTaxInfoProvider.GetTaxExchangeRateInfo(
           SalesHeader, SourceCurrencyCode, SourceCurrencyCodeListID, TargetCurrencyCode, TargetCurrencyCodeListID,
           CalculationRate, MathematicOperatorCode, Date);
@@ -1336,7 +1336,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // Exercise
-        PEPPOLTaxInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLTaxInfoProvider := GetFormat();
         PEPPOLTaxInfoProvider.GetTaxTotalInfo(SalesHeader, TempVATAmtLine, TaxAmount, TaxTotalCurrencyID);
 
         // Verify
@@ -1366,7 +1366,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
         SalesHeader."No." := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
-        PEPPOLTaxInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLTaxInfoProvider := GetFormat();
         PEPPOLTaxInfoProvider.GetTaxTotalInfoLCY(SalesHeader, TaxAmount, TaxCurrencyID, TaxTotalCurrencyID);
 
         Assert.AreEqual('', TaxAmount, '');
@@ -1399,7 +1399,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
         SalesHeader."No." := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
-        PEPPOLTaxInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLTaxInfoProvider := GetFormat();
         PEPPOLTaxInfoProvider.GetTaxTotalInfoLCY(SalesHeader, TaxAmount, TaxCurrencyID, TaxTotalCurrencyID);
 
         VATEntry.SetRange("Document No.", SalesHeader."No.");
@@ -1434,7 +1434,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
         SalesHeader."No." := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
-        PEPPOLTaxInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLTaxInfoProvider := GetFormat();
         PEPPOLTaxInfoProvider.GetTaxTotalInfoLCY(SalesHeader, TaxAmount, TaxCurrencyID, TaxTotalCurrencyID);
 
         VATEntry.SetRange("Document No.", SalesHeader."No.");
@@ -1493,7 +1493,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // Exercise
-        PEPPOLTaxInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLTaxInfoProvider := GetFormat();
         PEPPOLTaxInfoProvider.GetTaxSubtotalInfo(
           TempVATAmtLine,
           SalesHeader,
@@ -1568,7 +1568,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.SetRange("Document Type", SalesHeader."Document Type"::Invoice);
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         SalesLine.FindSet();
-        PEPPOLTaxInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLTaxInfoProvider := GetFormat();
         repeat
             PEPPOLTaxInfoProvider.GetTotals(SalesLine, TempVATAmountLine);
             TempVATAmountLine.TestField("VAT %", SalesLine."VAT %");
@@ -1612,7 +1612,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.SetRange("Document Type", SalesHeader."Document Type"::Invoice);
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         SalesLine.FindSet();
-        PEPPOLTaxInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLTaxInfoProvider := GetFormat();
         repeat
             PEPPOLTaxInfoProvider.GetTotals(SalesLine, TempVATAmountLine);
             TempVATAmountLine.TestField("VAT %", SalesLine."VAT %");
@@ -1723,7 +1723,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Initialize();
 
         // Exercise
-        PEPPOLLineInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLLineInfoProvider := GetFormat();
         PEPPOLLineInfoProvider.GetLineInvoicePeriodInfo(InvLineInvoicePeriodStartDate, InvLineInvoicePeriodEndDate);
 
         // Verify
@@ -1743,7 +1743,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Initialize();
 
         // Exercise
-        PEPPOLLineInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLLineInfoProvider := GetFormat();
         PEPPOLLineInfoProvider.GetLineDeliveryInfo(InvoiceLineActualDeliveryDate, InvoiceLineDeliveryID, InvoiceLineDeliveryIDSchemeID);
 
         // Verify
@@ -1798,7 +1798,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.TransferFields(SalesInvoiceLine);
 
         // Exercise
-        PEPPOLLineInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLLineInfoProvider := GetFormat();
         PEPPOLLineInfoProvider.GetLineAllowanceChargeInfo(
           SalesLine, SalesHeader, InvLnAllowanceChargeIndicator, InvLnAllowanceChargeReason, InvLnAllowanceChargeAmount,
           InvLnAllowanceChargeAmtCurrID);
@@ -1839,7 +1839,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.TransferFields(SalesInvoiceLine);
 
         // Exercise
-        PEPPOLLineInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLLineInfoProvider := GetFormat();
         PEPPOLLineInfoProvider.GetLineTaxTotal(SalesLine, SalesHeader, InvoiceLineTaxAmount, currencyID);
 
         // Verify
@@ -1881,7 +1881,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.TransferFields(SalesInvoiceLine);
 
         // Exercise
-        PEPPOLLineInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLLineInfoProvider := GetFormat();
         PEPPOLLineInfoProvider.GetLineItemInfo(
           SalesLine, Description, Name, SellersItemIdentificationID, StandardItemIdentificationID, StdItemIdIDSchemeID,
           OriginCountryIdCode, OriginCountryIdCodeListID);
@@ -1938,7 +1938,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.TransferFields(SalesInvoiceLine);
 
         // Exercise
-        PEPPOLLineInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLLineInfoProvider := GetFormat();
         PEPPOLLineInfoProvider.GetLineItemInfo(
           SalesLine, Description, Name, SellersItemIdentificationID, StandardItemIdentificationID, StdItemIdIDSchemeID,
           OriginCountryIdCode, OriginCountryIdCodeListID);
@@ -1999,7 +1999,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.TransferFields(SalesInvoiceLine);
 
         // Exercise
-        PEPPOLLineInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLLineInfoProvider := GetFormat();
         PEPPOLLineInfoProvider.GetLineItemInfo(
           SalesLine, Description, Name, SellersItemIdentificationID, StandardItemIdentificationID, StdItemIdIDSchemeID,
           OriginCountryIdCode, OriginCountryIdCodeListID);
@@ -2057,7 +2057,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.TransferFields(SalesInvoiceLine);
 
         // Exercise
-        PEPPOLLineInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLLineInfoProvider := GetFormat();
         PEPPOLLineInfoProvider.GetLineItemInfo(
           SalesLine, Description, Name, SellersItemIdentificationID, StandardItemIdentificationID, StdItemIdIDSchemeID,
           OriginCountryIdCode, OriginCountryIdCodeListID);
@@ -2103,7 +2103,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.TransferFields(SalesInvoiceLine);
 
         // Exercise
-        PEPPOLLineInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLLineInfoProvider := GetFormat();
         PEPPOLLineInfoProvider.GetLineItemCommodityClassificationInfo(
           CommodityCode, CommodityCodeListID, ItemClassificationCode, ItemClassificationCodeListID);
 
@@ -2146,7 +2146,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.TransferFields(SalesInvoiceLine);
 
         // Exercise
-        PEPPOLLineInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLLineInfoProvider := GetFormat();
         PEPPOLLineInfoProvider.GetLineItemClassifiedTaxCategory(
           SalesLine, ClassifiedTaxCategoryID, ItemSchemeID, InvoiceLineTaxPercent, ClassifiedTaxCategorySchemeID);
 
@@ -2187,7 +2187,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.TransferFields(SalesInvoiceLine);
 
         // Exercise
-        PEPPOLLineInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLLineInfoProvider := GetFormat();
         PEPPOLLineInfoProvider.GetLineAdditionalItemPropertyInfo(SalesLine, AdditionalItemPropertyName, AdditionalItemPropertyValue);
 
         // Verify
@@ -2227,7 +2227,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.TransferFields(SalesInvoiceLine);
 
         // Exercise
-        PEPPOLLineInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLLineInfoProvider := GetFormat();
         PEPPOLLineInfoProvider.GetLinePriceInfo(SalesLine, SalesHeader, InvoiceLinePriceAmount, InvLinePriceAmountCurrencyID, BaseQuantity, UnitCode);
 
         // Verify
@@ -2251,7 +2251,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Initialize();
 
         // Exercise
-        PEPPOLLineInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLLineInfoProvider := GetFormat();
         PEPPOLLineInfoProvider.GetLinePriceAllowanceChargeInfo(
           PriceChargeIndicator, PriceAllowanceChargeAmount, PriceAllowanceAmountCurrencyID, PriceAllowanceChargeBaseAmount,
           PriceAllowChargeBaseAmtCurrID);
@@ -2284,7 +2284,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, false, false));
 
         // Exercise
-        PEPPOLDocumentInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLDocumentInfoProvider := GetFormat();
         PEPPOLDocumentInfoProvider.GetCrMemoBillingReferenceInfo(
           SalesCrMemoHeader,
           InvoiceDocRefID,
@@ -2326,7 +2326,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, false, false));
 
         // Exercise
-        PEPPOLDocumentInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLDocumentInfoProvider := GetFormat();
         PEPPOLDocumentInfoProvider.GetCrMemoBillingReferenceInfo(
           SalesCrMemoHeader,
           InvoiceDocRefID,
@@ -2367,7 +2367,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader1, false, false));
 
         // Exercise
-        PEPPOLDocumentInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLDocumentInfoProvider := GetFormat();
         PEPPOLDocumentInfoProvider.GetCrMemoBillingReferenceInfo(
           SalesCrMemoHeader,
           InvoiceDocRefID,
@@ -2411,7 +2411,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesInvoiceHeader.Delete(false); // Applies-to-doc no longer exists
 
         // Exercise
-        PEPPOLDocumentInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLDocumentInfoProvider := GetFormat();
         PEPPOLDocumentInfoProvider.GetCrMemoBillingReferenceInfo(
           SalesCrMemoHeader,
           InvoiceDocRefID,
@@ -3236,7 +3236,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
 #pragma warning disable AL0432
         TempVATAmtLine: Record "VAT Amount Line" temporary;
 #pragma warning restore AL0432
-        PEPPOLMgt: Codeunit "PEPPOL30 Management";
+        PEPPOLMgt: Codeunit "PEPPOL30";
         PEPPOLPartyInfoProvider: Interface "PEPPOL Party Info Provider";
         CustPartyTaxSchemeCompanyID: Text;
         CustPartyTaxSchemeCompIDSchID: Text;
@@ -3257,7 +3257,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // [WHEN] Excute GetAccountingCustomerPartyTaxSchemeBIS30
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingCustomerPartyTaxSchemeBIS30(
             SalesHeader,
             CustPartyTaxSchemeCompanyID,
@@ -3305,7 +3305,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         TempVATAmtLine.Modify(false);
 
         // [WHEN] Excute GetAccountingCustomerPartyTaxSchemeBIS30
-        PEPPOLPartyInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLPartyInfoProvider := GetFormat();
         PEPPOLPartyInfoProvider.GetAccountingCustomerPartyTaxSchemeBIS30(
             SalesHeader,
             CustPartyTaxSchemeCompanyID,
@@ -3332,8 +3332,6 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CompanyInformation.Validate(IBAN, 'GB29NWBK60161331926819');
         CompanyInformation.Validate("SWIFT Code", 'MIDLGB22Z0K');
         CompanyInformation.Validate("Bank Branch No.", '1234');
-        CompanyInformation.Validate("PEPPOL 3.0 Sales Format", Enum::"PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales");
-        CompanyInformation.Validate("PEPPOL 3.0 Service Format", Enum::"PEPPOL 3.0 Format"::"PEPPOL 3.0 - Service");
 
         if CompanyInformation."VAT Registration No." = '' then
             CompanyInformation."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo(CompanyInformation."Country/Region Code");
@@ -3705,6 +3703,10 @@ codeunit 139235 "PEPPOL30 Management Tests"
         exit('PEPPOL30');
     end;
 
+    local procedure GetFormat(): Enum "PEPPOL 3.0 Format";
+    begin
+        exit(Enum::"PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales");
+    end;
 
     local procedure PEPPOLXMLExport(DocumentVariant: Variant; FormatCode: Code[20]) Data: Text
     var
@@ -3748,7 +3750,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         DeliveryID: Text;
         DeliveryIDSchemeID: Text;
     begin
-        PEPPOLDeliveryInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLDeliveryInfoProvider := GetFormat();
         PEPPOLDeliveryInfoProvider.GetGLNDeliveryInfo(SalesHeader, ActualDeliveryDate, DeliveryID, DeliveryIDSchemeID);
         Assert.AreEqual(ExpectedActualDeliveryDate, ActualDeliveryDate, 'ActualDeliveryDate');
         Assert.AreEqual(ExpectedDeliveryID, DeliveryID, 'DeliveryID');
@@ -3760,7 +3762,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         PEPPOLDeliveryInfoProvider: Interface "PEPPOL Delivery Info Provider";
         ActualGLN: Code[13];
     begin
-        PEPPOLDeliveryInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLDeliveryInfoProvider := GetFormat();
         ActualGLN := PEPPOLDeliveryInfoProvider.GetGLNForHeader(SalesHeader);
         Assert.AreEqual(ExpectedGLN, ActualGLN, 'Incorrect GLN');
     end;
@@ -3802,7 +3804,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.TestField("Inv. Discount Amount");
         GetVATAmt(SalesLine, TempVATAmtLine);
 
-        PEPPOLMonetaryInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLMonetaryInfoProvider := GetFormat();
         PEPPOLMonetaryInfoProvider.GetLegalMonetaryInfo(
           SalesHeader,
           TempSalesLineInvRounding,
@@ -3867,7 +3869,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesInvoiceLine.FindFirst();
         SalesLine.TransferFields(SalesInvoiceLine);
 
-        PEPPOLLineInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLLineInfoProvider := GetFormat();
         PEPPOLLineInfoProvider.GetLinePriceInfo(SalesLine, SalesHeader, InvoiceLinePriceAmount, InvLinePriceAmountCurrencyID, BaseQuantity, UnitCode);
         Assert.AreEqual(ExpectedLinePrice, InvoiceLinePriceAmount, '');
     end;
@@ -3898,7 +3900,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.TestField("Inv. Discount Amount");
         UnitOfMeasure.Get(SalesInvoiceLine."Unit of Measure");
 
-        PEPPOLLineInfoProvider := CompanyInformation."PEPPOL 3.0 Sales Format";
+        PEPPOLLineInfoProvider := GetFormat();
         PEPPOLLineInfoProvider.GetLineGeneralInfo(
           SalesLine, SalesHeader, InvoiceLineID, InvoiceLineNote, InvoicedQuantity,
           InvoiceLineExtensionAmount, LineExtensionAmountCurrencyID, InvoiceLineAccountingCost);

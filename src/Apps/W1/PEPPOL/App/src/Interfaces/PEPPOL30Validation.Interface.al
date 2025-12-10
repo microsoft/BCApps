@@ -30,21 +30,15 @@ interface "PEPPOL30 Validation"
     procedure ValidateDocumentLine(RecordVariant: Variant)
 
     /// <summary>
-    /// Validates a posted sales credit memo for PEPPOL compliance.
-    /// Performs validation checks on the credit memo header and related data.
-    /// </summary>
-    procedure ValidateInvoice(RecordVariant: Variant)
-
-    /// <summary>
-    /// Validates a posted sales credit memo for PEPPOL compliance.
-    /// Performs validation checks on the credit memo header and related data.
-    /// </summary>
-    procedure ValidateCreditMemo(RecordVariant: Variant)
-
-    /// <summary>
     /// Checks if a line has the required type and description for PEPPOL electronic documents.
     /// Validates that the line type and description meet PEPPOL requirements.
     /// </summary>
     procedure ValidateLineTypeAndDescription(RecordVariant: Variant): Boolean
+
+    /// <summary>
+    /// Validates a posted sales credit memo for PEPPOL compliance.
+    /// Performs validation checks on the credit memo header and related data.
+    /// </summary>
+    procedure ValidatePostedDocument(RecordVariant: Variant)
 
 }

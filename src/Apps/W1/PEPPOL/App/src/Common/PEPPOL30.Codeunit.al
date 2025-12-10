@@ -12,18 +12,17 @@ using Microsoft.Sales.History;
 using Microsoft.Service.History;
 using Microsoft.Service.Document;
 
-codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
+codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Handler"
                                             , "PEPPOL Delivery Info Provider"
                                             , "PEPPOL Document Info Provider"
                                             , "PEPPOL Line Info Provider"
                                             , "PEPPOL Monetary Info Provider"
                                             , "PEPPOL Party Info Provider"
                                             , "PEPPOL Payment Info Provider"
-                                            , "PEPPOL Posted Document Iterator"
                                             , "PEPPOL Tax Info Provider"
 {
     var
-        PEPPOLManagementImpl: Codeunit "PEPPOL30 Management Impl.";
+        PEPPOLManagementImpl: Codeunit "PEPPOL30 Impl.";
 
     /// <summary>
     /// Gets general invoice information including ID, issue date, invoice type, currency codes, and accounting cost.
@@ -1100,102 +1099,6 @@ codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
     end;
 
     /// <summary>
-    /// Finds the next sales invoice record and transfers its data to a sales header record.
-    /// </summary>
-    /// <param name="SalesInvoiceHeader">The sales invoice header record to search from.</param>
-    /// <param name="SalesHeader">Returns the sales header with transferred data.</param>
-    /// <param name="Position">The position/index for finding the next record.</param>
-    /// <returns>True if a next record was found, false otherwise.</returns>
-    procedure FindNextSalesInvoiceRec(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header"; Position: Integer): Boolean
-    begin
-        exit(PEPPOLManagementImpl.FindNextSalesInvoiceRec(SalesInvoiceHeader, SalesHeader, Position));
-    end;
-
-    /// <summary>
-    /// Finds the next sales invoice line record and transfers its data to a sales line record.
-    /// </summary>
-    /// <param name="SalesInvoiceLine">The sales invoice line record to search from.</param>
-    /// <param name="SalesLine">Returns the sales line with transferred data.</param>
-    /// <param name="Position">The position/index for finding the next record.</param>
-    /// <returns>True if a next record was found, false otherwise.</returns>
-    procedure FindNextSalesInvoiceLineRec(var SalesInvoiceLine: Record "Sales Invoice Line"; var SalesLine: Record "Sales Line"; Position: Integer): Boolean
-    begin
-        exit(PEPPOLManagementImpl.FindNextSalesInvoiceLineRec(SalesInvoiceLine, SalesLine, Position));
-    end;
-
-    /// <summary>
-    /// Finds the next sales credit memo record and transfers its data to a sales header record.
-    /// </summary>
-    /// <param name="SalesCrMemoHeader">The sales credit memo header record to search from.</param>
-    /// <param name="SalesHeader">Returns the sales header with transferred data.</param>
-    /// <param name="Position">The position/index for finding the next record.</param>
-    /// <returns>True if a next record was found, false otherwise.</returns>
-    procedure FindNextSalesCreditMemoRec(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesHeader: Record "Sales Header"; Position: Integer): Boolean
-    begin
-        exit(PEPPOLManagementImpl.FindNextSalesCreditMemoRec(SalesCrMemoHeader, SalesHeader, Position));
-    end;
-
-    /// <summary>
-    /// Finds the next sales credit memo line record and transfers its data to a sales line record.
-    /// </summary>
-    /// <param name="SalesCrMemoLine">The sales credit memo line record to search from.</param>
-    /// <param name="SalesLine">Returns the sales line with transferred data.</param>
-    /// <param name="Position">The position/index for finding the next record.</param>
-    /// <returns>True if a next record was found, false otherwise.</returns>
-    procedure FindNextSalesCreditMemoLineRec(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var SalesLine: Record "Sales Line"; Position: Integer): Boolean
-    begin
-        exit(PEPPOLManagementImpl.FindNextSalesCreditMemoLineRec(SalesCrMemoLine, SalesLine, Position));
-    end;
-
-    /// <summary>
-    /// Finds the next service invoice record and transfers its data to a sales header record.
-    /// </summary>
-    /// <param name="ServiceInvoiceHeader">The service invoice header record to search from.</param>
-    /// <param name="SalesHeader">Returns the sales header with transferred data.</param>
-    /// <param name="Position">The position/index for finding the next record.</param>
-    /// <returns>True if a next record was found, false otherwise.</returns>
-    procedure FindNextServiceInvoiceRec(var ServiceInvoiceHeader: Record "Service Invoice Header"; var SalesHeader: Record "Sales Header"; Position: Integer): Boolean
-    begin
-        exit(PEPPOLManagementImpl.FindNextServiceInvoiceRec(ServiceInvoiceHeader, SalesHeader, Position));
-    end;
-
-    /// <summary>
-    /// Finds the next service invoice line record and transfers its data to a sales line record.
-    /// </summary>
-    /// <param name="ServiceInvoiceLine">The service invoice line record to search from.</param>
-    /// <param name="SalesLine">Returns the sales line with transferred data.</param>
-    /// <param name="Position">The position/index for finding the next record.</param>
-    /// <returns>True if a next record was found, false otherwise.</returns>
-    procedure FindNextServiceInvoiceLineRec(var ServiceInvoiceLine: Record Microsoft.Service.History."Service Invoice Line"; var SalesLine: Record "Sales Line"; Position: Integer): Boolean
-    begin
-        exit(PEPPOLManagementImpl.FindNextServiceInvoiceLineRec(ServiceInvoiceLine, SalesLine, Position));
-    end;
-
-    /// <summary>
-    /// Finds the next service credit memo record and transfers its data to a sales header record.
-    /// </summary>
-    /// <param name="ServiceCrMemoHeader">The service credit memo header record to search from.</param>
-    /// <param name="SalesHeader">Returns the sales header with transferred data.</param>
-    /// <param name="Position">The position/index for finding the next record.</param>
-    /// <returns>True if a next record was found, false otherwise.</returns>
-    procedure FindNextServiceCreditMemoRec(var ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var SalesHeader: Record "Sales Header"; Position: Integer): Boolean
-    begin
-        exit(PEPPOLManagementImpl.FindNextServiceCreditMemoRec(ServiceCrMemoHeader, SalesHeader, Position));
-    end;
-
-    /// <summary>
-    /// Finds the next service credit memo line record and transfers its data to a sales line record.
-    /// </summary>
-    /// <param name="ServiceCrMemoLine">The service credit memo line record to search from.</param>
-    /// <param name="SalesLine">Returns the sales line with transferred data.</param>
-    /// <param name="Position">The position/index for finding the next record.</param>
-    /// <returns>True if a next record was found, false otherwise.</returns>
-    procedure FindNextServiceCreditMemoLineRec(var ServiceCrMemoLine: Record "Service Cr.Memo Line"; var SalesLine: Record "Sales Line"; Position: Integer): Boolean
-    begin
-        exit(PEPPOLManagementImpl.FindNextServiceCreditMemoLineRec(ServiceCrMemoLine, SalesLine, Position));
-    end;
-
-    /// <summary>
     /// Maps service line types to corresponding sales line types for PEPPOL export.
     /// </summary>
     /// <param name="ServiceLineType">The service line type to map.</param>
@@ -1204,4 +1107,6 @@ codeunit 37200 "PEPPOL30 Management" implements "PEPPOL Attachment Handler"
     begin
         exit(PEPPOLManagementImpl.MapServiceLineTypeToSalesLineType(ServiceLineType));
     end;
+
+
 }

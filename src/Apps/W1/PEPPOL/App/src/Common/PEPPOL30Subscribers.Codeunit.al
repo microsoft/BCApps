@@ -4,15 +4,22 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
-codeunit 37215 "PEPPOL30 Install"
+using Microsoft.Foundation.Company;
+
+codeunit 37217 "PEPPOL 3.0 Subscribers"
 {
+    InherentEntitlements = X;
+    InherentPermissions = X;
     Access = Internal;
-    Subtype = Install;
-    
-    trigger OnInstallAppPerCompany()
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", OnAfterInitElectronicFormats, '', false, false)]
+    local procedure CompanyInitialize_OnAfterInitElectronicFormats()
     var
         PEPPOL30Initialize: Codeunit "PEPPOL30 Initialize";
     begin
         PEPPOL30Initialize.CreateElectronicDocumentFormats();
     end;
+
+
+
 }

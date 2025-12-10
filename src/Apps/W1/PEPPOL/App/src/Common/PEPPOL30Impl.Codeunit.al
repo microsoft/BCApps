@@ -26,7 +26,7 @@ using System.Text;
 using System.Utilities;
 using Microsoft.Service.Document;
 
-codeunit 37201 "PEPPOL30 Management Impl." implements "PEPPOL Posted Document Iterator"
+codeunit 37201 "PEPPOL30 Impl."
 {
     Access = Internal;
 
@@ -1378,101 +1378,6 @@ codeunit 37201 "PEPPOL30 Management Impl." implements "PEPPOL Posted Document It
             exit;
 
         ToFieldRef.Value := FromFieldRef.Value();
-    end;
-
-    procedure FindNextSalesInvoiceRec(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header"; Position: Integer) Found: Boolean
-    begin
-        if Position = 1 then
-            Found := SalesInvoiceHeader.Find('-')
-        else
-            Found := SalesInvoiceHeader.Next() <> 0;
-        if Found then
-            SalesHeader.TransferFields(SalesInvoiceHeader);
-        SalesHeader."Document Type" := SalesHeader."Document Type"::Invoice;
-    end;
-
-    procedure FindNextSalesInvoiceLineRec(var SalesInvoiceLine: Record "Sales Invoice Line"; var SalesLine: Record "Sales Line"; Position: Integer) Found: Boolean
-    begin
-        if Position = 1 then
-            Found := SalesInvoiceLine.Find('-')
-        else
-            Found := SalesInvoiceLine.Next() <> 0;
-        if Found then
-            SalesLine.TransferFields(SalesInvoiceLine);
-
-        exit(Found);
-    end;
-
-    procedure FindNextSalesCreditMemoRec(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesHeader: Record "Sales Header"; Position: Integer) Found: Boolean
-    begin
-        if Position = 1 then
-            Found := SalesCrMemoHeader.Find('-')
-        else
-            Found := SalesCrMemoHeader.Next() <> 0;
-        if Found then
-            SalesHeader.TransferFields(SalesCrMemoHeader);
-
-        SalesHeader."Document Type" := SalesHeader."Document Type"::"Credit Memo";
-    end;
-
-    procedure FindNextSalesCreditMemoLineRec(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var SalesLine: Record "Sales Line"; Position: Integer) Found: Boolean
-    begin
-        if Position = 1 then
-            Found := SalesCrMemoLine.Find('-')
-        else
-            Found := SalesCrMemoLine.Next() <> 0;
-        if Found then
-            SalesLine.TransferFields(SalesCrMemoLine);
-    end;
-
-    procedure FindNextServiceInvoiceRec(var ServiceInvoiceHeader: Record "Service Invoice Header"; var SalesHeader: Record "Sales Header"; Position: Integer) Found: Boolean
-    begin
-        if Position = 1 then
-            Found := ServiceInvoiceHeader.Find('-')
-        else
-            Found := ServiceInvoiceHeader.Next() <> 0;
-        if Found then
-            TransferHeaderToSalesHeader(ServiceInvoiceHeader, SalesHeader);
-        SalesHeader."Document Type" := SalesHeader."Document Type"::Invoice;
-    end;
-
-
-    procedure FindNextServiceInvoiceLineRec(var ServiceInvoiceLine: Record Microsoft.Service.History."Service Invoice Line"; var SalesLine: Record "Sales Line"; Position: Integer) Found: Boolean
-    begin
-        if Position = 1 then
-            Found := ServiceInvoiceLine.Find('-')
-        else
-            Found := ServiceInvoiceLine.Next() <> 0;
-        if Found then begin
-            TransferLineToSalesLine(ServiceInvoiceLine, SalesLine);
-            SalesLine.Type := MapServiceLineTypeToSalesLineType(ServiceInvoiceLine.Type);
-        end;
-
-        exit(Found);
-    end;
-
-    procedure FindNextServiceCreditMemoRec(var ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var SalesHeader: Record "Sales Header"; Position: Integer) Found: Boolean
-    begin
-        if Position = 1 then
-            Found := ServiceCrMemoHeader.Find('-')
-        else
-            Found := ServiceCrMemoHeader.Next() <> 0;
-        if Found then
-            TransferHeaderToSalesHeader(ServiceCrMemoHeader, SalesHeader);
-
-        SalesHeader."Document Type" := SalesHeader."Document Type"::"Credit Memo";
-    end;
-
-    procedure FindNextServiceCreditMemoLineRec(var ServiceCrMemoLine: Record "Service Cr.Memo Line"; var SalesLine: Record "Sales Line"; Position: Integer) Found: Boolean
-    begin
-        if Position = 1 then
-            Found := ServiceCrMemoLine.Find('-')
-        else
-            Found := ServiceCrMemoLine.Next() <> 0;
-        if Found then begin
-            TransferLineToSalesLine(ServiceCrMemoLine, SalesLine);
-            SalesLine.Type := MapServiceLineTypeToSalesLineType(ServiceCrMemoLine.Type);
-        end;
     end;
 
     procedure MapServiceLineTypeToSalesLineType(ServiceLineType: Enum "Service Line Type"): Enum "Sales Line Type"

@@ -2177,10 +2177,12 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
     end;
 
     local procedure GetFormat(): Enum "PEPPOL 3.0 Format"
+    var
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
     begin
         if not IsFormatSet then begin
-            CompanyInformation.GetRecordOnce();
-            PEPPOL30Format := CompanyInformation."PEPPOL 3.0 Sales Format";
+            PeppolSetup.GetSetup();
+            PEPPOL30Format := PeppolSetup."PEPPOL 3.0 Sales Format";
         end;
         exit(PEPPOL30Format);
     end;

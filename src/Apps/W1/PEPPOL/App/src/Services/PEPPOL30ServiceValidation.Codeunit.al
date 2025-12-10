@@ -23,7 +23,7 @@ codeunit 37219 "PEPPOL30 Service Validation" implements "PEPPOL30 Validation"
     /// <param name="RecordVariant">The service credit memo header record to validate.</param>
     procedure ValidateDocument(RecordVariant: Variant)
     var
-        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
+        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Serv. Validation Impl";
     begin
         PEPPOL30ValidationImpl.CheckServiceDocument(RecordVariant);
     end;
@@ -35,7 +35,7 @@ codeunit 37219 "PEPPOL30 Service Validation" implements "PEPPOL30 Validation"
     /// <param name="RecordVariant">The service credit memo header record whose lines should be validated.</param>
     procedure ValidateDocumentLines(RecordVariant: Variant)
     var
-        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
+        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Serv. Validation Impl";
     begin
         PEPPOL30ValidationImpl.CheckServiceDocumentLines(RecordVariant);
     end;
@@ -47,33 +47,21 @@ codeunit 37219 "PEPPOL30 Service Validation" implements "PEPPOL30 Validation"
     /// <param name="RecordVariant">The service credit memo line record to validate.</param>
     procedure ValidateDocumentLine(RecordVariant: Variant)
     var
-        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
+        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Serv. Validation Impl";
     begin
         PEPPOL30ValidationImpl.CheckServiceDocumentLine(RecordVariant);
     end;
 
     /// <summary>
-    /// Validates a posted service credit memo against PEPPOL 3.0 requirements.
-    /// Checks the posted credit memo for compliance before export or transmission.
+    /// Validates a posted service document against PEPPOL 3.0 requirements.
+    /// Validates the posted document for compliance before export or transmission.
     /// </summary>
-    /// <param name="RecordVariant">The posted service credit memo record to validate.</param>
-    procedure ValidateCreditMemo(RecordVariant: Variant)
+    /// <param name="RecordVariant">The posted service document record to validate.</param>
+    procedure ValidatePostedDocument(RecordVariant: Variant)
     var
-        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
+        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Serv. Validation Impl";
     begin
-        PEPPOL30ValidationImpl.CheckServiceCreditMemo(RecordVariant);
-    end;
-
-    /// <summary>
-    /// Validates a posted service invoice against PEPPOL 3.0 requirements.
-    /// Checks the posted invoice for compliance before export or transmission.
-    /// </summary>
-    /// <param name="RecordVariant">The posted service invoice record to validate.</param>
-    procedure ValidateInvoice(RecordVariant: Variant)
-    var
-        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
-    begin
-        PEPPOL30ValidationImpl.CheckServiceInvoice(RecordVariant);
+        PEPPOL30ValidationImpl.CheckPostedDocument(RecordVariant);
     end;
 
     /// <summary>
@@ -83,10 +71,9 @@ codeunit 37219 "PEPPOL30 Service Validation" implements "PEPPOL30 Validation"
     /// <returns></returns>
     procedure ValidateLineTypeAndDescription(RecordVariant: Variant): Boolean
     var
-        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
+        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Serv. Validation Impl";
     begin
         exit(PEPPOL30ValidationImpl.CheckServiceLineTypeAndDescription(RecordVariant));
     end;
-
 
 }

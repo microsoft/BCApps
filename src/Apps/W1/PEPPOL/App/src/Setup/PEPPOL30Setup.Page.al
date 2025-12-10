@@ -4,31 +4,44 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
-using Microsoft.Foundation.Company;
-
 /// <summary>
-/// Page extension for Company Information to add PEPPOL e-document format configuration.
-/// Extends the Company Information page with controls for selecting electronic document formats.
+/// Page for PEPPOL 3.0 Setup to configure e-document format settings.
+/// Provides a user interface for selecting electronic document formats for sales and service documents.
 /// </summary>
-pageextension 37200 "Company Information" extends "Company Information"
+page 37202 "PEPPOL 3.0 Setup"
 {
+    Caption = 'PEPPOL 3.0 Setup';
+    PageType = Card;
+    ApplicationArea = All;
+    UsageCategory = Administration;
+    SourceTable = "PEPPOL 3.0 Setup";
+    DeleteAllowed = false;
+    InsertAllowed = false;
+
     layout
     {
-        addlast(content)
+        area(Content)
         {
-            group("PEPPOL")
+            group(General)
             {
-                Caption = 'PEPPOL 3.0';
+                Caption = 'General';
 
                 field("PEPPOL 3.0 Sales Format"; Rec."PEPPOL 3.0 Sales Format")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'Specifies the PEPPOL 3.0 format to be used for electronic documents of type sales.';
                 }
                 field("PEPPOL 3.0 Service Format"; Rec."PEPPOL 3.0 Service Format")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'Specifies the PEPPOL 3.0 format to be used for electronic documents of type service.';
                 }
             }
         }
     }
+
+    trigger OnOpenPage()
+    begin
+        Rec.GetSetup();
+    end;
 }

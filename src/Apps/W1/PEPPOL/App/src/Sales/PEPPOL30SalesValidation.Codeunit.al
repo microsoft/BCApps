@@ -23,9 +23,9 @@ codeunit 37216 "PEPPOL30 Sales Validation" implements "PEPPOL30 Validation"
     /// <param name="RecordVariant">The sales header record to validate.</param>
     procedure ValidateDocument(RecordVariant: Variant)
     var
-        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
+        PEPPOL30SalesValidationImpl: Codeunit "PEPPOL30 Sales Validation Impl";
     begin
-        PEPPOL30ValidationImpl.CheckSalesDocument(RecordVariant);
+        PEPPOL30SalesValidationImpl.CheckSalesDocument(RecordVariant);
     end;
 
     /// <summary>
@@ -35,9 +35,9 @@ codeunit 37216 "PEPPOL30 Sales Validation" implements "PEPPOL30 Validation"
     /// <param name="RecordVariant">The sales header record whose lines should be validated.</param>
     procedure ValidateDocumentLines(RecordVariant: Variant)
     var
-        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
+        PEPPOL30SalesValidationImpl: Codeunit "PEPPOL30 Sales Validation Impl";
     begin
-        PEPPOL30ValidationImpl.CheckSalesDocumentLines(RecordVariant);
+        PEPPOL30SalesValidationImpl.CheckSalesDocumentLines(RecordVariant);
     end;
 
     /// <summary>
@@ -47,35 +47,21 @@ codeunit 37216 "PEPPOL30 Sales Validation" implements "PEPPOL30 Validation"
     /// <param name="RecordVariant">The sales line record to validate.</param>
     procedure ValidateDocumentLine(RecordVariant: Variant)
     var
-        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
+        PEPPOL30SalesValidationImpl: Codeunit "PEPPOL30 Sales Validation Impl";
     begin
-        PEPPOL30ValidationImpl.CheckSalesDocumentLine(RecordVariant);
+        PEPPOL30SalesValidationImpl.CheckSalesDocumentLine(RecordVariant);
     end;
 
     /// <summary>
-    /// Validates a posted sales invoice against PEPPOL 3.0 requirements.
+    /// Validates a posted sales document against PEPPOL 3.0 requirements.
     /// Validates the posted document for compliance before export or transmission.
     /// </summary>
-    /// <param name="RecordVariant">The posted sales invoice record to validate.</param>
+    /// <param name="RecordVariant">The posted sales document record to validate.</param>
     procedure ValidatePostedDocument(RecordVariant: Variant)
     var
-        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
+        PEPPOL30SalesValidationImpl: Codeunit "PEPPOL30 Sales Validation Impl";
     begin
-        PEPPOL30ValidationImpl.CheckSalesInvoice(RecordVariant);
-    end;
-
-    procedure ValidateInvoice(RecordVariant: Variant)
-    var
-        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
-    begin
-        PEPPOL30ValidationImpl.CheckSalesInvoice(RecordVariant);
-    end;
-
-    procedure ValidateCreditMemo(RecordVariant: Variant)
-    var
-        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
-    begin
-        PEPPOL30ValidationImpl.CheckSalesCreditMemo(RecordVariant);
+        PEPPOL30SalesValidationImpl.CheckPostedDocument(RecordVariant);
     end;
 
     /// <summary>
@@ -85,8 +71,8 @@ codeunit 37216 "PEPPOL30 Sales Validation" implements "PEPPOL30 Validation"
     /// <returns></returns>
     procedure ValidateLineTypeAndDescription(RecordVariant: Variant): Boolean
     var
-        PEPPOL30ValidationImpl: Codeunit "PEPPOL30 Validation Impl.";
+        PEPPOL30SalesValidationImpl: Codeunit "PEPPOL30 Sales Validation Impl";
     begin
-        exit(PEPPOL30ValidationImpl.CheckSalesLineTypeAndDescription(RecordVariant));
+        exit(PEPPOL30SalesValidationImpl.CheckSalesLineTypeAndDescription(RecordVariant));
     end;
 }

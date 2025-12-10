@@ -4,48 +4,45 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
-using Microsoft.Service.History;
 using Microsoft.Foundation.Company;
+using Microsoft.Sales.History;
 using System.IO;
 
-codeunit 37212 "Exp. Serv.Inv. PEPPOL30"
+codeunit 37206 "Exp. Sales Inv. PEPPOL30"
 {
     TableNo = "Record Export Buffer";
 
     trigger OnRun()
     var
-        ServiceInvoiceHeader: Record "Service Invoice Header";
-        CompanyInformation: Record "Company Information";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
         RecordRef: RecordRef;
         PEPPOL30Validation: Interface "PEPPOL30 Validation";
         OutStr: OutStream;
     begin
         RecordRef.Get(Rec.RecordID);
-        RecordRef.SetTable(ServiceInvoiceHeader);
-        CompanyInformation.Get();
+        RecordRef.SetTable(SalesInvoiceHeader);
 
-        PEPPOL30Validation := CompanyInformation."PEPPOL 3.0 Service Format";
-        PEPPOL30Validation.ValidateInvoice(ServiceInvoiceHeader);
+        PeppolSetup.GetSetup();
+        PEPPOL30Validation := PeppolSetup."PEPPOL 3.0 Sales Format";
+        PEPPOL30Validation.ValidatePostedDocument(SalesInvoiceHeader);
 
         Rec."File Content".CreateOutStream(OutStr);
-
-        GenerateXMLFile(ServiceInvoiceHeader, OutStr, CompanyInformation."PEPPOL 3.0 Service Format");
-
-        Rec.Modify();
+        GenerateXMLFile(SalesInvoiceHeader, OutStr, PeppolSetup."PEPPOL 3.0 Sales Format");
+        Rec.Modify(false);
     end;
 
     /// <summary>
-    /// Generates the XML file for a PEPPOL 3.0 service invoice.
+    /// Generates the XML file for a PEPPOL 3.0 sales invoice.
     /// </summary>
-    /// <param name="VariantRec">The record containing the service invoice data.</param>
+    /// <param name="VariantRec">The record containing the sales invoice data.</param>
     /// <param name="OutStr">The output stream to write the XML data to.</param>
-    procedure GenerateXMLFile(VariantRec: Variant; var OutStr: OutStream; PEPPOL30Format: Enum "PEPPOL 3.0 Format")
+    procedure GenerateXMLFile(VariantRec: Variant; var OutStr: OutStream; Format: Enum "PEPPOL 3.0 Format")
     var
         SalesInvoicePEPPOLBIS30: XMLport "Sales Invoice - PEPPOL30";
     begin
-        SalesInvoicePEPPOLBIS30.Initialize(VariantRec, PEPPOL30Format);
+        SalesInvoicePEPPOLBIS30.Initialize(VariantRec, Format);
         SalesInvoicePEPPOLBIS30.SetDestination(OutStr);
         SalesInvoicePEPPOLBIS30.Export();
     end;
 }
-

@@ -16,27 +16,28 @@ enum 37200 "PEPPOL 3.0 Format" implements "PEPPOL Attachment Handler",
                                             "PEPPOL30 Validation",
                                             "PEPPOL30 Export Management"
 {
-    DefaultImplementation = "PEPPOL Attachment Handler" = "PEPPOL30 Management",
-                            "PEPPOL Delivery Info Provider" = "PEPPOL30 Management",
-                            "PEPPOL Document Info Provider" = "PEPPOL30 Management",
-                            "PEPPOL Line Info Provider" = "PEPPOL30 Management",
-                            "PEPPOL Monetary Info Provider" = "PEPPOL30 Management",
-                            "PEPPOL Party Info Provider" = "PEPPOL30 Management",
-                            "PEPPOL Payment Info Provider" = "PEPPOL30 Management",
-                            "PEPPOL Posted Document Iterator" = "PEPPOL30 Management",
-                            "PEPPOL Tax Info Provider" = "PEPPOL30 Management";
+    DefaultImplementation = "PEPPOL Attachment Handler" = "PEPPOL30",
+                            "PEPPOL Delivery Info Provider" = "PEPPOL30",
+                            "PEPPOL Document Info Provider" = "PEPPOL30",
+                            "PEPPOL Line Info Provider" = "PEPPOL30",
+                            "PEPPOL Monetary Info Provider" = "PEPPOL30",
+                            "PEPPOL Party Info Provider" = "PEPPOL30",
+                            "PEPPOL Payment Info Provider" = "PEPPOL30",
+                            "PEPPOL Tax Info Provider" = "PEPPOL30";
     Extensible = true;
 
     value(0; "PEPPOL 3.0 - Sales")
     {
         Caption = 'PEPPOL 3.0 - Sales';
         Implementation = "PEPPOL30 Validation" = "PEPPOL30 Sales Validation",
-                            "PEPPOL30 Export Management" = "PEPPOL30 Sales Export Mgmt.";
+                        "PEPPOL30 Export Management" = "PEPPOL30 Sales Export Mgmt.",
+                        "PEPPOL Posted Document Iterator" = "PEPPOL30 Sales Export Mgmt.";
     }
     value(1; "PEPPOL 3.0 - Service")
     {
         Caption = 'PEPPOL 3.0 - Service';
         Implementation = "PEPPOL30 Validation" = "PEPPOL30 Service Validation",
-                            "PEPPOL30 Export Management" = "PEPPOL30 Services Export Mgmt.";
+                        "PEPPOL30 Export Management" = "PEPPOL30 Services Export Mgmt.",
+                        "PEPPOL Posted Document Iterator" = "PEPPOL30 Services Export Mgmt.";
     }
 }

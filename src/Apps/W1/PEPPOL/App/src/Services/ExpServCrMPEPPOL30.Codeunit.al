@@ -5,45 +5,46 @@
 namespace Microsoft.Peppol;
 
 using Microsoft.Foundation.Company;
-using Microsoft.Sales.History;
+using Microsoft.Service.History;
 using System.IO;
 
-codeunit 37205 "Exp. Sales CrM. PEPPOL30"
+codeunit 37211 "Exp. Serv.CrM. PEPPOL30"
 {
     TableNo = "Record Export Buffer";
 
     trigger OnRun()
     var
-        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
-        CompanyInformation: Record "Company Information";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
         RecordRef: RecordRef;
         PEPPOL30Validation: Interface "PEPPOL30 Validation";
         OutStr: OutStream;
     begin
         RecordRef.Get(Rec.RecordID);
-        RecordRef.SetTable(SalesCrMemoHeader);
-        CompanyInformation.Get();
+        RecordRef.SetTable(ServiceCrMemoHeader);
 
-        PEPPOL30Validation := CompanyInformation."PEPPOL 3.0 Sales Format";
-        PEPPOL30Validation.ValidateCreditMemo(SalesCrMemoHeader);
+        PeppolSetup.GetSetup();
+        PEPPOL30Validation := PeppolSetup."PEPPOL 3.0 Service Format";
+        PEPPOL30Validation.ValidatePostedDocument(ServiceCrMemoHeader);
 
         Rec."File Content".CreateOutStream(OutStr);
-        GenerateXMLFile(SalesCrMemoHeader, OutStr, CompanyInformation."PEPPOL 3.0 Sales Format");
+        GenerateXMLFile(ServiceCrMemoHeader, OutStr, PeppolSetup."PEPPOL 3.0 Service Format");
 
         Rec.Modify(false);
     end;
 
     /// <summary>
-    /// Generates the XML file for a PEPPOL 3.0 sales credit memo.
+    /// Generates the XML file for a PEPPOL 3.0 sales invoice.
     /// </summary>
-    /// <param name="VariantRec">The record containing the sales credit memo data.</param>
+    /// <param name="VariantRec">The record containing the sales invoice data.</param>
     /// <param name="OutStr">The output stream to write the XML data to.</param>
-    procedure GenerateXMLFile(VariantRec: Variant; var OutStr: OutStream; Format: Enum "PEPPOL 3.0 Format")
+    procedure GenerateXMLFile(VariantRec: Variant; var OutStr: OutStream; PEPPOL30Format: Enum "PEPPOL 3.0 Format")
     var
         SalesCrMemoPEPPOLBIS30: XMLport "Sales Cr.Memo - PEPPOL30";
     begin
-        SalesCrMemoPEPPOLBIS30.Initialize(VariantRec, Format);
+        SalesCrMemoPEPPOLBIS30.Initialize(VariantRec, PEPPOL30Format);
         SalesCrMemoPEPPOLBIS30.SetDestination(OutStr);
         SalesCrMemoPEPPOLBIS30.Export();
     end;
 }
+
