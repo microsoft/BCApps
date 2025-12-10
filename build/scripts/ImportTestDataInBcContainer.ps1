@@ -70,6 +70,13 @@ function Invoke-DemoDataGeneration
 
 }
 
+# Delete existing companies in the container
+$existingCompanies = Get-CompanyInBcContainer -containerName $parameters.ContainerName
+foreach ($company in $existingCompanies) {
+    Write-Host "Deleting company $($company.CompanyName) in container $($parameters.ContainerName)"
+    Remove-CompanyInBcContainer -containerName $parameters.ContainerName -companyName $company.CompanyName
+}
+
 # Reinstall all the uninstalled apps in the container
 # This is needed to ensure that the various Demo Data apps are installed in the container when we generate demo data
 $allUninstalledApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesFirst | Where-Object { $_.IsInstalled -eq $false }
@@ -87,5 +94,8 @@ if ($failedToInstallApps.Count -gt 0) {
 foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesLast)) {
     Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - $($app.IsInstalled) / $($app.IsPublished)"
 }
+
+Write-Host "Creating new test company in container $($parameters.ContainerName)"
+New-CompanyInBcContainer -containerName $parameters.ContainerName -companyName "CRONUS TestCompany" -evaluationCompany
 
 Invoke-DemoDataGeneration -ContainerName $parameters.ContainerName -TestType (Get-ALGoSetting -Key "testType")

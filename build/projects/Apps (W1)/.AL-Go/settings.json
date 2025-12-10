@@ -16,6 +16,7 @@
   "installOnlyReferencedApps": false,
   "doNotRunPageScriptingTests": true,
   "doNotRunBcptTests": true,
+  "companyName": "CRONUS TestCompany",
   "testType": "IntegrationTest",
   "buildModes": [
     "AT",
