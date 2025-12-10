@@ -4,8 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.ExcelReports;
-using Microsoft.Finance.RoleCenters;
+
 using Microsoft.Finance.ExcelReports;
+using Microsoft.Finance.RoleCenters;
 
 pageextension 4437 "EXR Acc. Pay. Coordinator RC" extends "Acc. Payables Coordinator RC"
 {

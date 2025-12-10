@@ -1,15 +1,15 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.Processing.Import;
-using Microsoft.Foundation.Reporting;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Inventory.Transfer;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
@@ -20,8 +20,8 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Reminder;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
-using System.Reflection;
 using System.Automation;
+using System.Reflection;
 using System.Utilities;
 
 codeunit 6108 "E-Document Processing"
@@ -170,6 +170,7 @@ codeunit 6108 "E-Document Processing"
         TempBlobList: Codeunit "Temp Blob List";
         TypeHelper: Codeunit "Type Helper";
         SourceReference: RecordRef;
+        ExtensionList: List of [Text];
     begin
         // Email if attachment is E-Document or PDF & E-Document
         TypeHelper.CopyRecVariantToRecRef(RecordVariant, SourceReference);
@@ -184,11 +185,13 @@ codeunit 6108 "E-Document Processing"
         if EDocumentService.FindSet() then
             repeat
                 Clear(TempBlob);
-                if EDocumentLog.GetDocumentBlobFromLog(EDocument, EDocumentService, TempBlob, Enum::"E-Document Service Status"::Exported) then
+                if EDocumentLog.GetDocumentBlobFromLog(EDocument, EDocumentService, TempBlob, Enum::"E-Document Service Status"::Exported) then begin
                     TempBlobList.Add(TempBlob);
+                    ExtensionList.Add(EDocumentService.GetDefaultFileExtension());
+                end;
             until EDocumentService.Next() = 0;
 
-        EDocumentEmailing.SetAttachments(TempBlobList);
+        EDocumentEmailing.SetAttachments(TempBlobList, ExtensionList);
         EDocumentEmailing.SendEDocumentEmail(DocumentSendingProfile, ReportUsage, RecordVariant, DocNo, DocName, ToCust, ShowDialog);
     end;
 
@@ -292,44 +295,97 @@ codeunit 6108 "E-Document Processing"
         end;
     end;
 
-    procedure GetTypeFromPostedSourceDocument(RecordVariant: Variant): Enum "E-Document Type"
+    procedure GetTypeFromSourceDocument(RecordVariant: Variant) Type: Enum "E-Document Type"
     var
+        SalesHeader: Record "Sales Header";
+        ServiceHeader: Record "Service Header";
+        PurchHeader: Record "Purchase Header";
         TypeHelper: Codeunit "Type Helper";
         RecordRef: RecordRef;
-        EDocumentType: Enum "E-Document Type";
+        SalesDocumentType: Enum "Sales Document Type";
+        ServiceDocumentType: Enum "Service Document Type";
+        PurchDocumentType: Enum "Purchase Document Type";
     begin
-        if not RecordVariant.IsRecord() then
+        if not (RecordVariant.IsRecord() or RecordVariant.IsRecordRef()) then
             exit(Enum::"E-Document Type"::None);
 
         TypeHelper.CopyRecVariantToRecRef(RecordVariant, RecordRef);
         case RecordRef.Number() of
             Database::"Sales Invoice Header":
-                exit(EDocumentType::"Sales Invoice");
+                exit(Type::"Sales Invoice");
             Database::"Sales Cr.Memo Header":
-                exit(EDocumentType::"Sales Credit Memo");
+                exit(Type::"Sales Credit Memo");
             Database::"Purch. Inv. Header":
-                exit(EDocumentType::"Purchase Invoice");
+                exit(Type::"Purchase Invoice");
             Database::"Purch. Cr. Memo Hdr.":
-                exit(EDocumentType::"Purchase Credit Memo");
+                exit(Type::"Purchase Credit Memo");
             Database::"Service Invoice Header":
-                exit(EDocumentType::"Service Invoice");
+                exit(Type::"Service Invoice");
             Database::"Service Cr.Memo Header":
-                exit(EDocumentType::"Service Credit Memo");
+                exit(Type::"Service Credit Memo");
             Database::"Issued Fin. Charge Memo Header":
-                exit(EDocumentType::"Issued Finance Charge Memo");
+                exit(Type::"Issued Finance Charge Memo");
             Database::"Issued Reminder Header":
-                exit(EDocumentType::"Issued Reminder");
+                exit(Type::"Issued Reminder");
             Database::"Gen. Journal Line":
-                exit(EDocumentType::"General Journal");
+                exit(Type::"General Journal");
             Database::"G/L Entry":
-                exit(EDocumentType::"G/L Entry");
+                exit(Type::"G/L Entry");
             Database::"Sales Shipment Header":
-                exit(EDocumentType::"Sales Shipment");
+                exit(Type::"Sales Shipment");
             Database::"Transfer Shipment Header":
-                exit(EDocumentType::"Transfer Shipment");
+                exit(Type::"Transfer Shipment");
+            Database::"Sales Header":
+                begin
+                    SalesDocumentType := RecordRef.Field(SalesHeader.FieldNo("Document Type")).Value;
+                    case SalesDocumentType of
+                        SalesHeader."Document Type"::Quote:
+                            exit("E-Document Type"::"Sales Quote");
+                        SalesHeader."Document Type"::Order:
+                            exit("E-Document Type"::"Sales Order");
+                        SalesHeader."Document Type"::Invoice:
+                            exit("E-Document Type"::"Sales Invoice");
+                        SalesHeader."Document Type"::"Return Order":
+                            exit("E-Document Type"::"Sales Return Order");
+                        SalesHeader."Document Type"::"Credit Memo":
+                            exit("E-Document Type"::"Sales Credit Memo");
+                    end;
+                end;
+            Database::"Service Header":
+                begin
+                    ServiceDocumentType := RecordRef.Field(ServiceHeader.FieldNo("Document Type")).Value;
+                    case ServiceDocumentType of
+                        ServiceHeader."Document Type"::Order:
+                            exit("E-Document Type"::"Service Order");
+                        ServiceHeader."Document Type"::Invoice:
+                            exit("E-Document Type"::"Service Invoice");
+                        ServiceHeader."Document Type"::"Credit Memo":
+                            exit("E-Document Type"::"Service Credit Memo");
+                    end;
+                end;
+            Database::"Finance Charge Memo Header":
+                exit("E-Document Type"::"Finance Charge Memo");
+            Database::"Reminder Header":
+                exit("E-Document Type"::"Reminder");
+            Database::"Purchase Header":
+                begin
+                    PurchDocumentType := RecordRef.Field(PurchHeader.FieldNo("Document Type")).Value;
+                    case PurchDocumentType of
+                        PurchHeader."Document Type"::Quote:
+                            exit("E-Document Type"::"Purchase Quote");
+                        PurchHeader."Document Type"::Order:
+                            exit("E-Document Type"::"Purchase Order");
+                        PurchHeader."Document Type"::Invoice:
+                            exit("E-Document Type"::"Purchase Invoice");
+                        PurchHeader."Document Type"::"Return Order":
+                            exit("E-Document Type"::"Purchase Return Order");
+                        PurchHeader."Document Type"::"Credit Memo":
+                            exit("E-Document Type"::"Purchase Credit Memo");
+                    end;
+                end;
         end;
-        OnAfterGetTypeFromPostedSourceDocument(RecordVariant, EDocumentType);
-        exit(EDocumentType);
+        OnAfterGetTypeFromSourceDocument(RecordVariant, Type);
+        exit(Type);
     end;
 
     procedure GetEDocumentCount(Status: Enum "E-Document Status"; Direction: Enum "E-Document Direction"): Integer
@@ -632,7 +688,7 @@ codeunit 6108 "E-Document Processing"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterGetTypeFromPostedSourceDocument(RecordVariant: Variant; var EDocumentType: Enum "E-Document Type")
+    local procedure OnAfterGetTypeFromSourceDocument(RecordVariant: Variant; var EDocumentType: Enum "E-Document Type")
     begin
     end;
 

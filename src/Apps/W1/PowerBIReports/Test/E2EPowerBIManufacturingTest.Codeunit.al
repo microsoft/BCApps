@@ -1,5 +1,6 @@
 #if not CLEAN28
 #pragma warning disable AL0801
+#pragma warning disable AL0432
 #endif
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -7,23 +8,23 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.PowerBIReports.Test;
 
-using System.Utilities;
 using Microsoft.Inventory.Costing;
-using Microsoft.Manufacturing.Capacity;
-using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Item;
-using Microsoft.Manufacturing.Journal;
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Journal;
+using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
-using System.Text;
-using Microsoft.Inventory.Location;
-using System.TestLibraries.Security.AccessControl;
+using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.PowerBIReports.Test;
+using System.TestLibraries.Security.AccessControl;
+using System.Text;
+using System.Utilities;
 
 /// <summary>
 /// E2E tests for Power BI Manufacturing reports

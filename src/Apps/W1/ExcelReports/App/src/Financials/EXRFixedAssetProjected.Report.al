@@ -1,11 +1,11 @@
 namespace Microsoft.Finance.ExcelReports;
 
-using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.ExcelReports;
 using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Setup;
 using Microsoft.Foundation.Period;
-using Microsoft.FixedAssets.Ledger;
-using Microsoft.ExcelReports;
 
 report 4413 "EXR Fixed Asset Projected"
 {

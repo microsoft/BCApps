@@ -1,0 +1,180 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "d07c7ef373ca320a2d78",
+  "position": {
+    "x": 26,
+    "y": 64,
+    "z": 0,
+    "height": 630,
+    "width": 1228,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Entry No."
+                }
+              },
+              "queryRef": "G/L Entries.Entry No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Posting Date"
+                }
+              },
+              "queryRef": "G/L Entries.Posting Date",
+              "nativeQueryRef": "Posting Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Account"
+                    }
+                  },
+                  "Property": "G/L Account No."
+                }
+              },
+              "queryRef": "G/L Account.G/L Account No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Description"
+                }
+              },
+              "queryRef": "G/L Entries.Description"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Source Type"
+                }
+              },
+              "queryRef": "G/L Entries.Source Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Source No."
+                }
+              },
+              "queryRef": "G/L Entries.Source No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Source Code"
+                }
+              },
+              "queryRef": "G/L Entries.Source Code"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Net Change"
+                }
+              },
+              "queryRef": "G/L Entries.Net Change"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "G/L Entries"
+                  }
+                },
+                "Property": "Entry No."
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "urlIcon": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Income Statement Drill Through Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

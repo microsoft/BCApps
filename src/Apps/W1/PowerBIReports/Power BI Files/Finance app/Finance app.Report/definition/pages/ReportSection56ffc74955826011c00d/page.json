@@ -1,0 +1,116 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "ReportSection56ffc74955826011c00d",
+  "displayName": "Liabilities Drill Through",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filter54680f7100a84a44d988",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "G/L Account"
+              }
+            },
+            "Property": "G/L Account No."
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "g",
+              "Entity": "G/L Account",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "g"
+                          }
+                        },
+                        "Property": "G/L Account No."
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'2250'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filter8e19ca2cd4a416edc6bd",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "G/L Account"
+              }
+            },
+            "Property": "G/L Account No./Name"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "Pod1",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "Param_Filter54680f7100a84a44d988",
+        "boundFilter": "Filter54680f7100a84a44d988",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "G/L Account"
+              }
+            },
+            "Property": "G/L Account No."
+          }
+        }
+      },
+      {
+        "name": "Param_Filter8e19ca2cd4a416edc6bd",
+        "boundFilter": "Filter8e19ca2cd4a416edc6bd",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "G/L Account"
+              }
+            },
+            "Property": "G/L Account No./Name"
+          }
+        }
+      }
+    ]
+  },
+  "visibility": "HiddenInViewMode"
+}

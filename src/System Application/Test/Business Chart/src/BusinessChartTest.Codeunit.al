@@ -5,10 +5,10 @@
 
 namespace System.Test.Visualization;
 
-using System.Visualization;
-using System.TestLibraries.Visualization;
 using System;
 using System.TestLibraries.Utilities;
+using System.TestLibraries.Visualization;
+using System.Visualization;
 
 codeunit 135012 "Business Chart Test"
 {

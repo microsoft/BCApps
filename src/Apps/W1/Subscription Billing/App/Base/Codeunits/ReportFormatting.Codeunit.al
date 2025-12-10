@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Text;
 using Microsoft.Utilities;
+using System.Text;
 
 codeunit 8015 "Report Formatting"
 {

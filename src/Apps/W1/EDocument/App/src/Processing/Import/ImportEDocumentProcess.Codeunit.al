@@ -5,11 +5,11 @@
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Interfaces;
-using System.Utilities;
-using System.IO;
-using Microsoft.Purchases.Vendor;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.Purchases.Vendor;
+using System.IO;
+using System.Utilities;
 
 /// <summary>
 /// This codeunit executes a single step of the import process, it can be configured with the step to run, whether to undo the step or not, and the E-Document to process.

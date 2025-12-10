@@ -1,0 +1,2255 @@
+cultureInfo is-IS
+	translations
+		model Model
+			table Item
+				caption: Vara
+				column 'Item No. & Description'
+					caption: Vörunr. og lýsing
+				column 'Item No.'
+					caption: Vörunr.
+				column 'Item Description'
+					caption: Lýsing atriðis
+				column 'Item Base Unit of Measure'
+					caption: Grunnmælieining vöru
+				column 'Item Unit Cost (LCY)'
+					caption: Kostn.verð vöru (SGM)
+				column 'Item Inventory Posting Group'
+					caption: Bókunarflokkur vörubirgða
+				column 'Item Category Code'
+					caption: Vöruflokkskóði
+				column 'Item Category Description'
+					caption: Lýsing vöruflokks
+				column 'Item Routing No.'
+					caption: routingNo
+				column 'Item Production BOM No.'
+					caption: productionBomNo
+				column 'Item Replenishment System'
+					caption: replenishmentSystem
+				column 'Item Single-Level Cap. Ovhd Cost'
+					caption: singleLevelCapOvhdCost
+				column 'Item Single-Level Capacity Cost'
+					caption: singleLevelCapacityCost
+				column 'Item Single-Level Material Cost'
+					caption: singleLevelMaterialCost
+				column 'Item Single-Level Mfg. Ovhd Cost'
+					caption: singleLevelMfgOvhdCost
+				column 'Item Single-Level Subcontrd. Cost'
+					caption: singleLevelSubcontrdCost
+				column 'Item Single-Lvl Mat. Non-Invt. Cost'
+					caption: singleLvlMatNonInvtCost
+				column 'Item Rolled-up Cap. Overhead Cost'
+					caption: rolledUpCapOverheadCost
+				column 'Item Rolled-up Capacity Cost'
+					caption: rolledUpCapacityCost
+				column 'Item Rolled-up Mat. Non-Invt. Cost'
+					caption: rolledUpMatNonInvtCost
+				column 'Item Rolled-up Material Cost'
+					caption: rolledUpMaterialCost
+				column 'Item Rolled-up Mfg. Ovhd Cost'
+					caption: rolledUpMfgOvhdCost
+				column 'Item Rolled-up Subcontracted Cost'
+					caption: rolledUpSubcontractedCost
+				column 'Item Scrap %'
+					caption: scrapPrc
+			table Location
+				caption: Staðsetning
+				column 'Location Code'
+					caption: Staðsetningarkóði
+				column 'Location Name'
+					caption: Heiti staðsetningar
+			table Customer
+				caption: Viðskiptavinur
+				column 'Customer No. & Name'
+					caption: Nr. og nafn viðskiptavinar
+				column 'Customer No.'
+					caption: Nr. viðskiptamanns
+				column 'Customer Name'
+					caption: Nafn viðskiptamanns
+				column 'Customer Address'
+					caption: Aðsetur viðskiptavinar
+				column 'Customer Address 2'
+					caption: Utanáskrift 2
+				column 'Customer City'
+					caption: Bær viðskiptamanns
+				column 'Customer County'
+					caption: Sýsla viðskiptamanns
+				column 'Customer Country/Region Code'
+					caption: Lands-/svæðiskóði viðskiptamanns
+				column 'Customer Posting Group'
+					caption: Bókunarflokkur viðskiptavinar
+				column 'Customer Price Group'
+					caption: Verðflokkur viðskiptamanns
+				column 'Customer Discount Group'
+					caption: Afsláttarflokkur viðskm.
+				column 'Customer Post Code'
+					caption: Póstnúmer viðskiptamanns
+				measure 'No. of New Customers'
+					caption: Fj. nýrra viðskiptavina
+				measure 'No. of Lost Customers'
+					caption: Fj. glataðra viðskiptavina
+				measure 'Sales New Customers'
+					caption: Sala Nýir viðskiptavinir
+				measure 'No. of Returning Customers'
+					caption: Fj. reglubundinna viðskiptavina
+				measure 'Sales Returning Customers'
+					caption: Sala reglubundnir viðskiptavinir
+				measure 'No. of Recovered Customers'
+					caption: Fj. endurheimtra viðskiptavina
+				measure 'Sales Recovered Customers'
+					caption: Sala endurheimtir viðskiptavinir
+				measure 'Sales Lost Customers (12M)'
+					caption: Sala glataðir viðskiptavinir (12M)
+				measure 'No. of Customers'
+					caption: Fj. viðskiptavina
+			table Salesperson
+				caption: Sölumaður
+				column 'Salesperson Code'
+					caption: Kóði sölumanns
+				column 'Salesperson Name'
+					caption: Nafn sölumanns
+			table 'Standard Calendar Time Intelligence'
+				caption: Tímagreind staðlaðs dagatals
+				measure 'Sales Amount YTD'
+					caption: Söluupphæð Ár til dagsins í dag
+				measure 'Sales Amount PY'
+					caption: Söluupphæð Fyrra ár
+				measure 'Sales Amount PYTD'
+					caption: Söluupphæð Fyrra ár til dagsins í dag
+				measure 'Sales Amount PQTD'
+					caption: Söluupphæð Frá síðasta ársfjórðungi til dagsins í dag
+				measure 'Sales Amount QTD'
+					caption: Söluupphæð Ársfjórðungur til dagsins í dag
+				measure 'Sales Amount MTD'
+					caption: Söluupphæð Frá upphafi mánaðar
+				measure 'Sales Amount YOY %'
+					caption: Söluupphæð Samanburður milli ára %
+				measure 'Sales Amount YOY'
+					caption: Söluupphæð Samanburður milli ára
+				measure 'Sales Amount PQ'
+					caption: Söluupphæð Fyrri ársfjórðungur
+				measure 'Sales Amount QOQ'
+					caption: Söluupphæð Samanburður milli ársfjórðunga
+				measure 'Sales Amount PM'
+					caption: Söluupphæð Fyrri mánuður
+				measure 'Sales Amount QOQ %'
+					caption: Söluupphæð Samanburður milli ársfjórðunga %
+				measure 'Sales Amount MOM'
+					caption: Söluupphæð Samanburður mánaða
+				measure 'Sales Amount MOM %'
+					caption: Söluupphæð Samanburður mánaða %
+				measure 'Sales Amount MAT'
+					caption: Söluupphæð Hlaupandi alls yfir árið
+				measure 'Sales Amount PYMAT'
+					caption: Söluupphæð Fyrra ár hlaupandi heildarsala
+				measure 'Sales Amount YOYTD'
+					caption: Söluupphæð á milli ára til dagsins í dag
+				measure 'Sales Amount YOYTD %'
+					caption: Söluupphæð á milli ára til dagsins í dag í %
+				measure 'Sales Amount PYC'
+					caption: Söluupphæð frá lokum fyrra árs
+				measure 'Sales Amount YTDOPY'
+					caption: Söluupphæð Ár til dagsins í dag samanburður fyrra árs
+				measure 'Sales Amount YTDOPY %'
+					caption: Söluupphæð Ár til dagsins í dag samanburður fyrra árs %
+				measure 'Sales Amount QOQTD'
+					caption: Söluupphæð á milli ársfjórðunga til dagsins í dag
+				measure 'Sales Amount QOQTD %'
+					caption: Söluupphæð á milli ársfjórðunga til dagsins í dag í %
+				measure 'Sales Amount PQC'
+					caption: Söluupphæð frá lokum fyrri ársfjórðungs
+				measure 'Sales Amount QTDOPQ'
+					caption: Söluupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs
+				measure 'Sales Amount QTDOPQ %'
+					caption: Söluupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs %
+				measure 'Sales Amount PMTD'
+					caption: Söluupphæð Frá síðasta mánuði til dagsins í dag
+				measure 'Sales Amount MOMTD'
+					caption: Söluupphæð á milli mánaða til dagsins í dag
+				measure 'Sales Amount MOMTD %'
+					caption: Söluupphæð á milli mánaða til dagsins í dag í %
+				measure 'Sales Amount PMC'
+					caption: Söluupphæð frá lokum fyrri mánaðar
+				measure 'Sales Amount MTDOPM'
+					caption: Söluupphæð Frá upphafi mánaðar samanburður við fyrri mánuð
+				measure 'Sales Amount MTDOPM %'
+					caption: Söluupphæð Frá upphafi mánaðar samanburður við fyrri mánuð %
+				measure 'Sales Amount AVG 30D'
+					caption: Söluupphæð Meðaltal 30D
+				measure 'Sales Amount AVG 3M'
+					caption: Söluupphæð Meðaltal 3M
+				measure 'Sales Amount AVG 1Y'
+					caption: Söluupphæð Meðaltal 1Á
+				measure 'Sales Amount MATG'
+					caption: Söluupphæð Hlaupandi vöxtur alls yfir árið
+				measure 'Sales Amount MATG %'
+					caption: Söluupphæð Hlaupandi vöxtur alls yfir árið %
+				measure 'Sales Amount PP'
+					caption: Söluupphæð Fyrra tímabil
+				measure 'Sales Amount POP'
+					caption: Söluupphæð Samanburður milli tímabila
+				measure 'Sales Amount POP %'
+					caption: Söluupphæð Samanburður milli tímabila %
+				measure 'Sales Quantity YTD'
+					caption: Sölumagn Ár til dagsins í dag
+				measure 'Sales Quantity PY'
+					caption: Sölumagn Fyrra ár
+				measure 'Sales Quantity PYTD'
+					caption: Sölumagn Fyrra ár til dagsins í dag
+				measure 'Sales Quantity PQTD'
+					caption: Sölumagn Frá síðasta ársfjórðungi til dagsins í dag
+				measure 'Sales Quantity QTD'
+					caption: Sölumagn Ársfjórðungur til dagsins í dag
+				measure 'Sales Quantity MTD'
+					caption: Sölumagn Frá upphafi mánaðar
+				measure 'Sales Quantity YOY %'
+					caption: Sölumagn Samanburður milli ára %
+				measure 'Sales Quantity YOY'
+					caption: Sölumagn Samanburður milli ára
+				measure 'Sales Quantity PQ'
+					caption: Sölumagn Fyrri ársfjórðungur
+				measure 'Sales Quantity QOQ'
+					caption: Sölumagn Samanburður milli ársfjórðunga
+				measure 'Sales Quantity PM'
+					caption: Sölumagn Fyrri mánuður
+				measure 'Sales Quantity QOQ %'
+					caption: Sölumagn Samanburður milli ársfjórðunga %
+				measure 'Sales Quantity MOM'
+					caption: Sölumagn Samanburður mánaða
+				measure 'Sales Quantity MOM %'
+					caption: Sölumagn Samanburður mánaða %
+				measure 'Sales Quantity MAT'
+					caption: Sölumagn Hlaupandi alls yfir árið
+				measure 'Sales Quantity PYMAT'
+					caption: Sölumagn Fyrra ár hlaupandi heildarsala
+				measure 'Sales Quantity YOYTD'
+					caption: Sölumagn á milli ára til dagsins í dag
+				measure 'Sales Quantity YOYTD %'
+					caption: Sölumagn á milli ára til dagsins í dag í %
+				measure 'Sales Quantity PYC'
+					caption: Sölumagn frá lokum fyrra árs
+				measure 'Sales Quantity YTDOPY'
+					caption: Sölumagn Ár til dagsins í dag samanburður fyrra árs
+				measure 'Sales Quantity YTDOPY %'
+					caption: Sölumagn Ár til dagsins í dag samanburður fyrra árs %
+				measure 'Sales Quantity QOQTD'
+					caption: Sölumagn á milli ársfjórðunga til dagsins í dag
+				measure 'Sales Quantity QOQTD %'
+					caption: Sölumagn á milli ársfjórðunga til dagsins í dag í %
+				measure 'Sales Quantity PQC'
+					caption: Sölumagn frá lokum fyrri ársfjórðungs
+				measure 'Sales Quantity QTDOPQ'
+					caption: Sölumagn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs
+				measure 'Sales Quantity QTDOPQ %'
+					caption: Sölumagn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs %
+				measure 'Sales Quantity PMTD'
+					caption: Sölumagn Frá síðasta mánuði til dagsins í dag
+				measure 'Sales Quantity MOMTD'
+					caption: Sölumagn á milli mánaða til dagsins í dag
+				measure 'Sales Quantity MOMTD %'
+					caption: Sölumagn á milli mánaða til dagsins í dag í %
+				measure 'Sales Quantity PMC'
+					caption: Sölumagn frá lokum fyrri mánaðar
+				measure 'Sales Quantity MTDOPM'
+					caption: Sölumagn Frá upphafi mánaðar samanburður við fyrri mánuð
+				measure 'Sales Quantity MTDOPM %'
+					caption: Sölumagn Frá upphafi mánaðar samanburður við fyrri mánuð %
+				measure 'Sales Quantity AVG 30D'
+					caption: Sölumagn Meðaltal 30D
+				measure 'Sales Quantity AVG 3M'
+					caption: Sölumagn Meðaltal 3M
+				measure 'Sales Quantity AVG 1Y'
+					caption: Sölumagn Meðaltal 1Á
+				measure 'Sales Quantity MATG'
+					caption: Sölumagn Hlaupandi vöxtur alls yfir árið
+				measure 'Sales Quantity MATG %'
+					caption: Sölumagn Hlaupandi vöxtur alls yfir árið %
+				measure 'Sales Quantity PP'
+					caption: Sölumagn Fyrra tímabil
+				measure 'Sales Quantity POP'
+					caption: Sölumagn Samanburður milli tímabila
+				measure 'Sales Quantity POP %'
+					caption: Sölumagn Samanburður milli tímabila %
+				measure 'Gross Profit YTD'
+					caption: Brúttóframlegð Ár til dagsins í dag
+				measure 'Gross Profit PY'
+					caption: Brúttóhagnaður Fyrra ár
+				measure 'Gross Profit PYTD'
+					caption: Brúttóhagnaður Fyrra ár til dagsins í dag
+				measure 'Gross Profit PQTD'
+					caption: Brúttóhagnaður Frá síðasta ársfjórðungi til dagsins í dag
+				measure 'Gross Profit QTD'
+					caption: Brúttóhagnaður Ársfjórðungur til dagsins í dag
+				measure 'Gross Profit MTD'
+					caption: Brúttóhagnaður Frá upphafi mánaðar
+				measure 'Gross Profit YOY %'
+					caption: Brúttóhagnaður Samanburður milli ára %
+				measure 'Gross Profit YOY'
+					caption: Brúttóhagnaður Samanburður milli ára
+				measure 'Gross Profit PQ'
+					caption: Brúttóhagnaður Fyrri ársfjórðungur
+				measure 'Gross Profit QOQ'
+					caption: Brúttóhagnaður Samanburður milli ársfjórðunga
+				measure 'Gross Profit PM'
+					caption: Brúttóhagnaður Fyrri mánuður
+				measure 'Gross Profit QOQ %'
+					caption: Brúttóhagnaður Samanburður milli ársfjórðunga %
+				measure 'Gross Profit MOM'
+					caption: Brúttóhagnaður Samanburður mánaða
+				measure 'Gross Profit MOM %'
+					caption: Brúttóhagnaður Samanburður mánaða %
+				measure 'Gross Profit MAT'
+					caption: Brúttóhagnaður Hlaupandi alls yfir árið
+				measure 'Gross Profit PYMAT'
+					caption: Brúttóhagnaður Fyrra ár hlaupandi heildarsala
+				measure 'Gross Profit YOYTD'
+					caption: Brúttóhagnaður á milli ára til dagsins í dag
+				measure 'Gross Profit YOYTD %'
+					caption: Brúttóhagnaður á milli ára til dagsins í dag í %
+				measure 'Gross Profit PYC'
+					caption: Brúttóhagnaður frá lokum fyrra árs
+				measure 'Gross Profit YTDOPY'
+					caption: Brúttóhagnaður Ár til dagsins í dag samanburður fyrra árs
+				measure 'Gross Profit YTDOPY %'
+					caption: Brúttóhagnaður Ár til dagsins í dag samanburður fyrra árs %
+				measure 'Gross Profit QOQTD'
+					caption: Brúttóhagnaður á milli ársfjórðunga til dagsins í dag
+				measure 'Gross Profit QOQTD %'
+					caption: Brúttóhagnaður á milli ársfjórðunga til dagsins í dag í %
+				measure 'Gross Profit PQC'
+					caption: Brúttóhagnaður frá lokum fyrri ársfjórðungs
+				measure 'Gross Profit QTDOPQ'
+					caption: Brúttóhagnaður Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs
+				measure 'Gross Profit QTDOPQ %'
+					caption: Brúttóhagnaður Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs %
+				measure 'Gross Profit PMTD'
+					caption: Brúttóhagnaður Frá síðasta mánuði til dagsins í dag
+				measure 'Gross Profit MOMTD'
+					caption: Brúttóhagnaður á milli mánaða til dagsins í dag
+				measure 'Gross Profit MOMTD %'
+					caption: Brúttóhagnaður á milli mánaða til dagsins í dag í %
+				measure 'Gross Profit PMC'
+					caption: Brúttóhagnaður frá lokum fyrri mánaðar
+				measure 'Gross Profit MTDOPM'
+					caption: Brúttóhagnaður Frá upphafi mánaðar samanburður við fyrri mánuð
+				measure 'Gross Profit MTDOPM %'
+					caption: Brúttóhagnaður Frá upphafi mánaðar samanburður við fyrri mánuð %
+				measure 'Gross Profit AVG 30D'
+					caption: Brúttóhagnaður Meðaltal 30D
+				measure 'Gross Profit AVG 3M'
+					caption: Brúttóhagnaður Meðaltal 3M
+				measure 'Gross Profit AVG 1Y'
+					caption: Brúttóhagnaður Meðaltal 1Á
+				measure 'Gross Profit MATG'
+					caption: Brúttóhagnaður Hlaupandi vöxtur alls yfir árið
+				measure 'Gross Profit MATG %'
+					caption: Brúttóhagnaður Hlaupandi vöxtur alls yfir árið %
+				measure 'Gross Profit PP'
+					caption: Brúttóhagnaður Fyrra tímabil
+				measure 'Gross Profit POP'
+					caption: Brúttóhagnaður Samanburður milli tímabila
+				measure 'Gross Profit POP %'
+					caption: Brúttóhagnaður Samanburður milli tímabila %
+				measure 'Gross Profit Margin YTD'
+					caption: Brúttó hagnaðarhlutfall Ár til dagsins í dag
+				measure 'Gross Profit Margin PY'
+					caption: Brúttó hagnaðarhlutfall Fyrra ár
+				measure 'Gross Profit Margin PYTD'
+					caption: Brúttó hagnaðarhlutfall Fyrra ár til dagsins í dag
+				measure 'Gross Profit Margin PQTD'
+					caption: Brúttó hagnaðarhlutfall Frá síðasta ársfjórðungi til dagsins í dag
+				measure 'Gross Profit Margin QTD'
+					caption: Brúttó hagnaðarhlutfall Ársfjórðungur til dagsins í dag
+				measure 'Gross Profit Margin MTD'
+					caption: Brúttó hagnaðarhlutfall Frá upphafi mánaðar
+				measure 'Gross Profit Margin YOY %'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli ára %
+				measure 'Gross Profit Margin YOY'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli ára
+				measure 'Gross Profit Margin PQ'
+					caption: Brúttó hagnaðarhlutfall Fyrri ársfjórðungur
+				measure 'Gross Profit Margin QOQ'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli ársfjórðunga
+				measure 'Gross Profit Margin PM'
+					caption: Brúttó hagnaðarhlutfall Fyrri mánuður
+				measure 'Gross Profit Margin QOQ %'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli ársfjórðunga %
+				measure 'Gross Profit Margin MOM'
+					caption: Brúttó hagnaðarhlutfall Samanburður mánaða
+				measure 'Gross Profit Margin MOM %'
+					caption: Brúttó hagnaðarhlutfall Samanburður mánaða %
+				measure 'Gross Profit Margin MAT'
+					caption: Brúttó hagnaðarhlutfall Hlaupandi alls yfir árið
+				measure 'Gross Profit Margin PYMAT'
+					caption: Brúttó hagnaðarhlutfall Fyrra ár hlaupandi heildarsala
+				measure 'Gross Profit Margin YOYTD'
+					caption: Brúttó hagnaðarhlutfall á milli ára til dagsins í dag
+				measure 'Gross Profit Margin YOYTD %'
+					caption: Brúttó hagnaðarhlutfall á milli ára til dagsins í dag í %
+				measure 'Gross Profit Margin PYC'
+					caption: Brúttó hagnaðarhlutfall frá lokum fyrra árs
+				measure 'Gross Profit Margin YTDOPY'
+					caption: Brúttó hagnaðarhlutfall Ár til dagsins í dag samanburður fyrra árs
+				measure 'Gross Profit Margin YTDOPY %'
+					caption: Brúttó hagnaðarhlutfall Ár til dagsins í dag samanburður fyrra árs %
+				measure 'Gross Profit Margin QOQTD'
+					caption: Brúttó hagnaðarhlutfall á milli ársfjórðunga til dagsins í dag
+				measure 'Gross Profit Margin QOQTD %'
+					caption: Brúttó hagnaðarhlutfall á milli ársfjórðunga til dagsins í dag í %
+				measure 'Gross Profit Margin PQC'
+					caption: Brúttó hagnaðarhlutfall frá lokum fyrri ársfjórðungs
+				measure 'Gross Profit Margin QTDOPQ'
+					caption: Brúttó hagnaðarhlutfall Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs
+				measure 'Gross Profit Margin QTDOPQ %'
+					caption: Brúttó hagnaðarhlutfall Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs %
+				measure 'Gross Profit Margin PMTD'
+					caption: Brúttó hagnaðarhlutfall Frá síðasta mánuði til dagsins í dag
+				measure 'Gross Profit Margin MOMTD'
+					caption: Brúttó hagnaðarhlutfall á milli mánaða til dagsins í dag
+				measure 'Gross Profit Margin MOMTD %'
+					caption: Brúttó hagnaðarhlutfall á milli mánaða til dagsins í dag í %
+				measure 'Gross Profit Margin PMC'
+					caption: Brúttó hagnaðarhlutfall frá lokum fyrri mánaðar
+				measure 'Gross Profit Margin MTDOPM'
+					caption: Brúttó hagnaðarhlutfall Frá upphafi mánaðar samanburður við fyrri mánuð
+				measure 'Gross Profit Margin MTDOPM %'
+					caption: Brúttó hagnaðarhlutfall Frá upphafi mánaðar samanburður við fyrri mánuð %
+				measure 'Gross Profit Margin AVG 30D'
+					caption: Brúttó hagnaðarhlutfall Meðaltal 30D
+				measure 'Gross Profit Margin AVG 3M'
+					caption: Brúttó hagnaðarhlutfall Meðaltal 3M
+				measure 'Gross Profit Margin AVG 1Y'
+					caption: Brúttó hagnaðarhlutfall Meðaltal 1F
+				measure 'Gross Profit Margin MATG'
+					caption: Brúttó hagnaðarhlutfall Hlaupandi vöxtur alls yfir árið
+				measure 'Gross Profit Margin MATG %'
+					caption: Brúttó hagnaðarhlutfall Hlaupandi vöxtur alls yfir árið %
+				measure 'Gross Profit Margin PP'
+					caption: Brúttó hagnaðarhlutfall Fyrra tímabil
+				measure 'Gross Profit Margin POP'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli tímabila
+				measure 'Gross Profit Margin POP %'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli tímabila %
+				measure 'Cost Amount YTD'
+					caption: Kostnaðarupphæð Ár til dagsins í dag
+				measure 'Cost Amount PY'
+					caption: Kostnaðarupphæð Fyrra ár
+				measure 'Cost Amount PYTD'
+					caption: Kostnaðarupphæð Fyrra ár til dagsins í dag
+				measure 'Cost Amount PQTD'
+					caption: Kostnaðarupphæð Frá síðasta ársfjórðungi til dagsins í dag
+				measure 'Cost Amount QTD'
+					caption: Kostnaðarupphæð Ársfjórðungur til dagsins í dag
+				measure 'Cost Amount MTD'
+					caption: Kostnaðarupphæð Frá upphafi mánaðar
+				measure 'Cost Amount YOY %'
+					caption: Kostnaðarupphæð Samanburður milli ára %
+				measure 'Cost Amount YOY'
+					caption: Kostnaðarupphæð Samanburður milli ára
+				measure 'Cost Amount PQ'
+					caption: Kostnaðarupphæð Fyrri ársfjórðungur
+				measure 'Cost Amount QOQ'
+					caption: Kostnaðarupphæð Samanburður milli ársfjórðunga
+				measure 'Cost Amount PM'
+					caption: Kostnaðarupphæð Fyrri mánuður
+				measure 'Cost Amount QOQ %'
+					caption: Kostnaðarupphæð Samanburður milli ársfjórðunga %
+				measure 'Cost Amount MOM'
+					caption: Kostnaðarupphæð Samanburður mánaða
+				measure 'Cost Amount MOM %'
+					caption: Kostnaðarupphæð Samanburður mánaða %
+				measure 'Cost Amount MAT'
+					caption: Kostnaðarupphæð Hlaupandi alls yfir árið
+				measure 'Cost Amount PYMAT'
+					caption: Kostnaðarupphæð Fyrra ár hlaupandi heildarsala
+				measure 'Cost Amount YOYTD'
+					caption: Kostnaðarupphæð á milli ára til dagsins í dag
+				measure 'Cost Amount YOYTD %'
+					caption: Kostnaðarupphæð á milli ára til dagsins í dag í %
+				measure 'Cost Amount PYC'
+					caption: Kostnaðarupphæð frá lokum fyrra árs
+				measure 'Cost Amount YTDOPY'
+					caption: Kostnaðarupphæð Ár til dagsins í dag samanburður fyrra árs
+				measure 'Cost Amount YTDOPY %'
+					caption: Kostnaðarupphæð Ár til dagsins í dag samanburður fyrra árs %
+				measure 'Cost Amount QOQTD'
+					caption: Kostnaðarupphæð á milli ársfjórðunga til dagsins í dag
+				measure 'Cost Amount QOQTD %'
+					caption: Kostnaðarupphæð á milli ársfjórðunga til dagsins í dag í %
+				measure 'Cost Amount PQC'
+					caption: Kostnaðarupphæð frá lokum fyrri ársfjórðungs
+				measure 'Cost Amount QTDOPQ'
+					caption: Kostnaðarupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs
+				measure 'Cost Amount QTDOPQ %'
+					caption: Kostnaðarupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs %
+				measure 'Cost Amount PMTD'
+					caption: Kostnaðarupphæð Frá síðasta mánuði til dagsins í dag
+				measure 'Cost Amount MOMTD'
+					caption: Kostnaðarupphæð á milli mánaða til dagsins í dag
+				measure 'Cost Amount MOMTD %'
+					caption: Kostnaðarupphæð á milli mánaða til dagsins í dag í %
+				measure 'Cost Amount PMC'
+					caption: Kostnaðarupphæð frá lokum fyrri mánaðar
+				measure 'Cost Amount MTDOPM'
+					caption: Kostnaðarupphæð Frá upphafi mánaðar samanburður við fyrri mánuð
+				measure 'Cost Amount MTDOPM %'
+					caption: Kostnaðarupphæð Frá upphafi mánaðar samanburður við fyrri mánuð %
+				measure 'Cost Amount AVG 30D'
+					caption: Kostnaðarupphæð Meðaltal 30D
+				measure 'Cost Amount AVG 3M'
+					caption: Kostnaðarupphæð Meðaltal 3M
+				measure 'Cost Amount AVG 1Y'
+					caption: Kostnaðarupphæð Meðaltal 1Á
+				measure 'Cost Amount MATG'
+					caption: Kostnaðarupphæð Hlaupandi vöxtur alls yfir árið
+				measure 'Cost Amount MATG %'
+					caption: Kostnaðarupphæð Hlaupandi vöxtur alls yfir árið %
+				measure 'Cost Amount PP'
+					caption: Kostnaðarupphæð Fyrra tímabil
+				measure 'Cost Amount POP'
+					caption: Kostnaðarupphæð Samanburður milli tímabila
+				measure 'Cost Amount POP %'
+					caption: Kostnaðarupphæð Samanburður milli tímabila %
+				measure 'Cost Amount Non-Inv YTD'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ár til dagsins í dag
+				measure 'Cost Amount Non-Inv PY'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrra ár
+				measure 'Cost Amount Non-Inv PYTD'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrra ár til dagsins í dag
+				measure 'Cost Amount Non-Inv PQTD'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá síðasta ársfjórðungi til dagsins í dag
+				measure 'Cost Amount Non-Inv QTD'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ársfjórðungur til dagsins í dag
+				measure 'Cost Amount Non-Inv MTD'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá upphafi mánaðar
+				measure 'Cost Amount Non-Inv YOY %'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli ára %
+				measure 'Cost Amount Non-Inv YOY'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli ára
+				measure 'Cost Amount Non-Inv PQ'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrri ársfjórðungur
+				measure 'Cost Amount Non-Inv QOQ'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli ársfjórðunga
+				measure 'Cost Amount Non-Inv PM'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrri mánuður
+				measure 'Cost Amount Non-Inv QOQ %'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli ársfjórðunga %
+				measure 'Cost Amount Non-Inv MOM'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður mánaða
+				measure 'Cost Amount Non-Inv MOM %'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður mánaða %
+				measure 'Cost Amount Non-Inv MAT'
+					caption: Kostnaðarupphæð óbirgðafæranleg Hlaupandi alls yfir árið
+				measure 'Cost Amount Non-Inv PYMAT'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrra ár hlaupandi heildarsala
+				measure 'Cost Amount Non-Inv YOYTD'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli ára til dagsins í dag
+				measure 'Cost Amount Non-Inv YOYTD %'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli ára til dagsins í dag í %
+				measure 'Cost Amount Non-Inv PYC'
+					caption: Kostnaðarupphæð óbirgðafæranleg frá lokum fyrra árs
+				measure 'Cost Amount Non-Inv YTDOPY'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ár til dagsins í dag samanburður fyrra árs
+				measure 'Cost Amount Non-Inv YTDOPY %'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ár til dagsins í dag samanburður fyrra árs %
+				measure 'Cost Amount Non-Inv QOQTD'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli ársfjórðunga til dagsins í dag
+				measure 'Cost Amount Non-Inv QOQTD %'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli ársfjórðunga til dagsins í dag í %
+				measure 'Cost Amount Non-Inv PQC'
+					caption: Kostnaðarupphæð óbirgðafæranleg frá lokum fyrri ársfjórðungs
+				measure 'Cost Amount Non-Inv QTDOPQ'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs
+				measure 'Cost Amount Non-Inv QTDOPQ %'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs %
+				measure 'Cost Amount Non-Inv PMTD'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá síðasta mánuði til dagsins í dag
+				measure 'Cost Amount Non-Inv MOMTD'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli mánaða til dagsins í dag
+				measure 'Cost Amount Non-Inv MOMTD %'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli mánaða til dagsins í dag í %
+				measure 'Cost Amount Non-Inv PMC'
+					caption: Kostnaðarupphæð óbirgðafæranleg frá lokum fyrri mánaðar
+				measure 'Cost Amount Non-Inv MTDOPM'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá upphafi mánaðar samanburður við fyrri mánuð
+				measure 'Cost Amount Non-Inv MTDOPM %'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá upphafi mánaðar samanburður við fyrri mánuð %
+				measure 'Cost Amount Non-Inv AVG 30D'
+					caption: Kostnaðarupphæð óbirgðafæranleg Meðaltal 30D
+				measure 'Cost Amount Non-Inv AVG 3M'
+					caption: Kostnaðarupphæð óbirgðafæranleg Meðaltal 3M
+				measure 'Cost Amount Non-Inv AVG 1Y'
+					caption: Kostnaðarupphæð óbirgðafæranleg Meðaltal 1Á
+				measure 'Cost Amount Non-Inv MATG'
+					caption: Kostnaðarupphæð óbirgðafæranleg Hlaupandi vöxtur alls yfir árið
+				measure 'Cost Amount Non-Inv MATG %'
+					caption: Kostnaðarupphæð óbirgðafæranleg Hlaupandi vöxtur alls yfir árið %
+				measure 'Cost Amount Non-Inv PP'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrra tímabil
+				measure 'Cost Amount Non-Inv POP'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli tímabila
+				measure 'Cost Amount Non-Inv POP %'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli tímabila %
+			table 'Dimension Sets'
+				caption: Víddasamstæður
+				column 'Global Dimension 1'
+					caption: Altæk vídd 1
+				column 'Global Dimension 2'
+					caption: Altæk vídd 2
+				column 'Shortcut Dimension 3'
+					caption: Flýtivídd 3
+				column 'Shortcut Dimension 4'
+					caption: Flýtivídd 4
+				column 'Shortcut Dimension 5'
+					caption: Flýtivídd 5
+				column 'Shortcut Dimension 6'
+					caption: Flýtivídd 6
+				column 'Shortcut Dimension 7'
+					caption: Flýtivídd 7
+				column 'Shortcut Dimension 8'
+					caption: Flýtivídd 8
+				column id
+					caption: auðkenni
+			table 'Sales Budget'
+				caption: Söluáætlun
+				column 'Entry No.'
+					caption: Færslunr.
+				column 'Budget Name'
+					caption: Heiti áætlunar
+				column 'Item No.'
+					caption: Vörunr.
+				column 'Location Code'
+					caption: Staðsetningarkóði
+				measure 'Budget Amount'
+					caption: Upphæð áætlunar
+				measure 'Budget Amount Variance'
+					caption: Áætluð upphæð Frávik
+				measure 'Budget Quantity'
+					caption: Áætlað magn
+				measure 'Budget Quantity Variance'
+					caption: Áætlað magn Frávik
+				measure 'Budget Amount Variance %'
+					caption: Áætluð upphæð Frávik %
+				measure 'Budget Quantity Variance %'
+					caption: Áætlað magn Frávik %
+				measure 'Budget Back Link'
+					caption: Baktengill fjárhagsáætlunar
+			table Date
+				caption: Dagsetning
+				column 'Week Day'
+					caption: Vikudagur
+				column 'Calendar Year'
+					caption: Almanaksár
+				column 'Calendar Quarter'
+					caption: Dagatal Ársfjórðungur
+				column 'Calendar Quarter Year'
+					caption: Dagatal Ársfjórðungur Ár
+				column 'Calendar Month'
+					caption: Almanaksmánuður
+				column 'Calendar Month Year'
+					caption: Almanaksmánuður Ár
+				column 'Calendar Week'
+					caption: Almanaksvika
+				column 'Calendar Week Year'
+					caption: Almanaksvika Ár
+				column 'Calendar RelativeWeekPos'
+					caption: Dagatal TengtVikaJákv
+				column 'Calendar RelativeMonthPos'
+					caption: Dagatal TengtMánuðurJákv
+				column 'Calendar RelativeQuarterPos'
+					caption: Dagatal TengtÁrsfjórðungurJákv
+				column 'Calendar RelativeYearPos'
+					caption: Dagatal TengtÁrJákv
+				column 'Calendar StartOfMonth'
+					caption: Dagatal Upphafmánaðar
+				column 'Calendar EndOfMonth'
+					caption: Dagatal Mánaðarlok
+				column 'Calendar StartOfQuarter'
+					caption: Dagatal UpphafÁrsfjórðungs
+				column 'Calendar EndOfQuarter'
+					caption: Dagatal Ársfjórðungslok
+				column 'Calendar StartOfYear'
+					caption: Dagatal Upphafsárs
+				column 'Calendar EndOfYear'
+					caption: Dagatal Árslok
+				column 'Calendar MonthDays'
+					caption: Dagatal MánuðurDagar
+				column 'Calendar QuarterDays'
+					caption: Dagatal ÁrsfjórðungurDagar
+				column 'Calendar YearDays'
+					caption: Dagatal ÁrDagar
+				column 'Calendar DayOfMonthNumber'
+					caption: Dagatal MánaðardagurNúmer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Dagatal DagurÁrsfjórðungurNúmer
+				column 'Calendar DayOfYearNumber'
+					caption: Dagatal DagurÁrsNúmer
+				column 'Calendar DatePreviousWeek'
+					caption: Dagatal DagsetningFyrriVika
+				column 'Calendar DatePreviousMonth'
+					caption: Dagatal DagsetningFyrriMánuður
+				column 'Calendar DatePreviousQuarter'
+					caption: Dagatal DagsetningFyrriÁrsfjórðungur
+				column 'Calendar DatePreviousYear'
+					caption: Dagatal DagsetningFyrraÁr
+				column 'Fiscal Year'
+					caption: Reikningsár
+				column 'Fiscal Quarter'
+					caption: Fjórðungur fjárhagsárs
+				column 'Fiscal Quarter Year'
+					caption: Fjárhagsfjórðungur Ár
+				column 'Fiscal Month'
+					caption: Mánuður fjárhagsárs
+				column 'Fiscal Month Year'
+					caption: Reikningsmánuður Ár
+				column 'Fiscal Week'
+					caption: Vika fjárhagsárs
+				column 'Fiscal Week Year'
+					caption: Fjárhagsvik Ár
+				column 'Fiscal RelativeWeekPos'
+					caption: Fjárhagur TengtVikaJákv
+				column 'Fiscal RelativeMonthPos'
+					caption: Fjárhagur TengtMánuðurJákv
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fjárhagur TengtÁrsfjórðungurJákv
+				column 'Fiscal RelativeYearPos'
+					caption: Fjárhagur TengtÁrJákv
+				column 'Fiscal StartOfMonth'
+					caption: Fjárhagur Upphafmánaðar
+				column 'Fiscal EndOfMonth'
+					caption: Fjárhagur Mánaðarlok
+				column 'Fiscal StartOfQuarter'
+					caption: Fjárhagur UpphafÁrsfjórðungs
+				column 'Fiscal EndOfQuarter'
+					caption: Fjárhagur Ársfjórðungslok
+				column 'Fiscal StartOfYear'
+					caption: Fjárhagur Upphafárs
+				column 'Fiscal EndOfYear'
+					caption: Fjárhagur Árslok
+				column 'Fiscal MonthDays'
+					caption: Fjárhagur MánuðurDagur
+				column 'Fiscal QuarterDays'
+					caption: Fjárhagur ÁrsfjórðungurDagar
+				column 'Fiscal YearDays'
+					caption: ReikningsárDagar
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fjárhagur MánaðardagurNúmer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fjárhagur DagurÁrsfjórðungurNúmer
+				column 'Fiscal DayOfYearNumber'
+					caption: Fjárhagur DagurÁrsNúmer
+				column 'Fiscal DatePreviousWeek'
+					caption: Fjárhagur DagsetningFyrriVika
+				column 'Fiscal DatePreviousMonth'
+					caption: Fjárhagur DagsetningFyrriMánuður
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fjárhagur DagsetningFyrriÁrsfjórðungur
+				column 'Fiscal DatePreviousYear'
+					caption: Fjárhagur DagsetningFyrraÁr
+				column 'FW Year'
+					caption: Fjárhagsvika Ár
+				column 'FW Quarter'
+					caption: Fjárhagsvika Ársfjórðungur
+				column 'FW Quarter Year'
+					caption: Fjárhagsvika Ársfjórðungur Ár
+				column 'FW Month'
+					caption: Fjárhagsvika Mánuður
+				column 'FW Month Year'
+					caption: Fjárhagsvika Mánuður Ár
+				column 'FW Week'
+					caption: Fjárhagsvika Vika
+				column 'FW Period'
+					caption: Fjárhagsvika Tímabil
+				column 'FW Week Year'
+					caption: Fjárhagsvika Vika Ár
+				column 'FW StartOfWeek'
+					caption: Fjárhagsvika UpphafViku
+				column 'FW EndOfWeek'
+					caption: Fjárhagsvika Vikulok
+				column 'FW RelativeWeekPos'
+					caption: Fjárhagsvika TengtVikaJákv
+				column 'FW RelativeMonthPos'
+					caption: Fjárhagsvika TengtMánuðurJákv
+				column 'FW RelativeQuarterPos'
+					caption: Fjárhagsvika TengtÁrsfjórðungurJákv
+				column 'FW RelativeYearPos'
+					caption: Fjárhagsvika TengtÁrJákv
+				column 'FW StartOfMonth'
+					caption: Fjárhagsvika Upphafmánaðar
+				column 'FW EndOfMonth'
+					caption: Fjárhagsvika Mánaðarlok
+				column 'FW StartOfQuarter'
+					caption: Fjárhagsvika UpphafÁrsfjórðungs
+				column 'FW EndOfQuarter'
+					caption: Fjárhagsvika Ársfjórðungslok
+				column 'FW StartOfYear'
+					caption: Fjárhagsvika Upphafárs
+				column 'FW EndOfYear'
+					caption: Fjárhagsvika Árslok
+				column 'FW MonthDays'
+					caption: Fjárhagsvika MánuðurDagar
+				column 'FW QuarterDays'
+					caption: Fjárhagsvika ÁrsfjórðungurDagar
+				column 'FW YearDays'
+					caption: Fjárhagsvika ÁrDagar
+				column 'FW DatePreviousWeek'
+					caption: Fjárhagsvika DagsetningFyrriVika
+				column 'FW DatePreviousMonth'
+					caption: Fjárhagsvika DagsetningFyrriMánuður
+				column 'FW DatePreviousQuarter'
+					caption: Fjárhagsvika DagsetningFyrriÁrsfjórðungur
+				column 'FW DatePreviousYear'
+					caption: Fjárhagsvika DagsetningFyrraÁr
+				column 'Holiday Name'
+					caption: Heiti frídags
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Dagsgerð
+				column 'Relative Day'
+					caption: Tengdur dagur
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Reikningsár-Ársfjórðungur-Mánuður-Vika
+					level 'Fiscal Year'
+						caption: Reikningsár
+					level 'Fiscal Quarter Year'
+						caption: Fjárhagsfjórðungur Ár
+					level 'Fiscal Month Year'
+						caption: Reikningsmánuður Ár
+					level 'Fiscal Week Year'
+						caption: Fjárhagsvik Ár
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Dagatal Ár-Ársfjórðungur-Mánuður-Vika
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Quarter Year'
+						caption: Dagatal Ársfjórðungur Ár
+					level 'Calendar Month Year'
+						caption: Almanaksmánuður Ár
+					level 'Calendar Week Year'
+						caption: Almanaksvika Ár
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Fjárhagsvika Ár-Ársfjórðungur-Mánuður-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Quarter Year'
+						caption: Fjárhagsvika Ársfjórðungur Ár
+					level 'FW Month Year'
+						caption: Fjárhagsvika Mánuður Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Week'
+					caption: Fjárhagsvika Ár-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Month-Week'
+					caption: Fjárhagsvika Ár-Mánuður-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Month Year'
+						caption: Fjárhagsvika Mánuður Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Fjárhagsvika Ár-Ársfjórðungur-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Quarter Year'
+						caption: Fjárhagsvika Ársfjórðungur Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Dagatal Ár-Mánuður-Vika
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Month Year'
+						caption: Almanaksmánuður Ár
+					level 'Calendar Week Year'
+						caption: Almanaksvika Ár
+				hierarchy 'Calendar Year-Month'
+					caption: Dagatal Ár-Mánuður
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Month Year'
+						caption: Almanaksmánuður Ár
+				hierarchy 'Fiscal Year-Month'
+					caption: Reikningsár-mánuður
+					level 'Fiscal Year'
+						caption: Reikningsár
+					level 'Fiscal Month Year'
+						caption: Reikningsmánuður Ár
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Reikningsár-Mánuður-Vika
+					level 'Fiscal Year'
+						caption: Reikningsár
+					level 'Fiscal Month Year'
+						caption: Reikningsmánuður Ár
+					level 'Fiscal Week Year'
+						caption: Fjárhagsvik Ár
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Tímagreind fjárhagsdagatals
+				measure 'Sales Amount YTD (Fiscal)'
+					caption: Söluupphæð Ár til dagsins í dag (fjárhagur)
+				measure 'Sales Amount PY (Fiscal)'
+					caption: Söluupphæð Fyrra ár (fjárhagur)
+				measure 'Sales Amount PYTD (Fiscal)'
+					caption: Söluupphæð Fyrra ár til dagsins í dag (fjárhagur)
+				measure 'Sales Amount PQTD (Fiscal)'
+					caption: Söluupphæð Frá síðasta ársfjórðungi til dagsins í dag (fjárhagur)
+				measure 'Sales Amount QTD (Fiscal)'
+					caption: Söluupphæð Ársfjórðungur til dagsins í dag (fjárhagur)
+				measure 'Sales Amount MTD (Fiscal)'
+					caption: Söluupphæð Frá upphafi mánaðar (fjárhagur)
+				measure 'Sales Amount YOY % (Fiscal)'
+					caption: Söluupphæð Samanburður milli ára % (fjárhagur)
+				measure 'Sales Amount YOY (Fiscal)'
+					caption: Söluupphæð Samanburður milli ára (fjárhagur)
+				measure 'Sales Amount PQ (Fiscal)'
+					caption: Söluupphæð Fyrri ársfjórðungur (fjárhagur)
+				measure 'Sales Amount QOQ (Fiscal)'
+					caption: Söluupphæð Samanburður milli ársfjórðunga (fjárhagur)
+				measure 'Sales Amount QOQ % (Fiscal)'
+					caption: Söluupphæð Samanburður milli ársfjórðunga % (fjárhagur)
+				measure 'Sales Amount PM (Fiscal)'
+					caption: Söluupphæð Fyrri mánuður (fjárhagur)
+				measure 'Sales Amount MOM (Fiscal)'
+					caption: Söluupphæð Samanburður mánaða (fjárhagur)
+				measure 'Sales Amount MOM % (Fiscal)'
+					caption: Söluupphæð Samanburður mánaða % (fjárhagur)
+				measure 'Sales Amount MAT (Fiscal)'
+					caption: Söluupphæð Hlaupandi alls yfir árið (fjárhagur)
+				measure 'Sales Amount PYMAT (Fiscal)'
+					caption: Söluupphæð Fyrra ár hlaupandi heildarsala (fjárhagur)
+				measure 'Sales Amount YOYTD (Fiscal)'
+					caption: Söluupphæð á milli ára til dagsins í dag (fjárhagur)
+				measure 'Sales Amount YOYTD % (Fiscal)'
+					caption: Söluupphæð á milli ára til dagsins í dag í % (fjárhagur)
+				measure 'Sales Amount PYC (Fiscal)'
+					caption: Söluupphæð frá lokum fyrra árs (fjárhagur)
+				measure 'Sales Amount YTDOPY (Fiscal)'
+					caption: Söluupphæð Ár til dagsins í dag samanburður fyrra árs (fjárhagur)
+				measure 'Sales Amount YTDOPY % (Fiscal)'
+					caption: Söluupphæð Ár til dagsins í dag samanburður fyrra árs % (fjárhagur)
+				measure 'Sales Amount QOQTD (Fiscal)'
+					caption: Söluupphæð á milli ársfjórðunga til dagsins í dag (fjárhagur)
+				measure 'Sales Amount QOQTD % (Fiscal)'
+					caption: Söluupphæð á milli ársfjórðunga til dagsins í dag í % (fjárhagur)
+				measure 'Sales Amount PQC (Fiscal)'
+					caption: Söluupphæð frá lokum fyrri ársfjórðungs (fjárhagur)
+				measure 'Sales Amount QTDOPQ (Fiscal)'
+					caption: Söluupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (fjárhagur)
+				measure 'Sales Amount QTDOPQ % (Fiscal)'
+					caption: Söluupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (fjárhagur)
+				measure 'Sales Amount PMTD (Fiscal)'
+					caption: Söluupphæð Frá síðasta mánuði til dagsins í dag (fjárhagur)
+				measure 'Sales Amount MOMTD % (Fiscal)'
+					caption: Söluupphæð á milli mánaða til dagsins í dag í % (fjárhagur)
+				measure 'Sales Amount MOMTD (Fiscal)'
+					caption: Söluupphæð á milli mánaða til dagsins í dag (fjárhagur)
+				measure 'Sales Amount PMC (Fiscal)'
+					caption: Söluupphæð frá lokum fyrri mánaðar (fjárhagur)
+				measure 'Sales Amount MTDOPM (Fiscal)'
+					caption: Söluupphæð Frá upphafi mánaðar samanburður við fyrri mánuð (fjárhagur)
+				measure 'Sales Amount MTDOPM % (Fiscal)'
+					caption: Söluupphæð Frá upphafi mánaðar samanburður við fyrri mánuð % (fjárhagur)
+				measure 'Sales Amount AVG 30D (Fiscal)'
+					caption: Söluupphæð Meðaltal 30D (fjárhagur)
+				measure 'Sales Amount AVG 3M (Fiscal)'
+					caption: Söluupphæð Meðaltal 3M (fjárhagur)
+				measure 'Sales Amount AVG 1Y (Fiscal)'
+					caption: Söluupphæð Meðaltal 1F (fjárhagur)
+				measure 'Sales Amount MATG (Fiscal)'
+					caption: Söluupphæð Hlaupandi vöxtur alls yfir árið (fjárhagur)
+				measure 'Sales Amount MATG % (Fiscal)'
+					caption: Söluupphæð Hlaupandi vöxtur alls yfir árið % (fjárhagur)
+				measure 'Sales Amount PP (Fiscal)'
+					caption: Söluupphæð Fyrra tímabil (fjárhagur)
+				measure 'Sales Amount POP (Fiscal)'
+					caption: Söluupphæð Samanburður milli tímabila (fjárhagur)
+				measure 'Sales Amount POP % (Fiscal)'
+					caption: Söluupphæð Samanburður milli tímabila % (fjárhagur)
+				measure 'Sales Amount MAT (364) (Fiscal)'
+					caption: Söluupphæð Hlaupandi alls yfir árið (364) (fjárhagur)
+				measure 'Sales PYMAT (364) (Fiscal)'
+					caption: Sala Fyrra ár hlaupandi heildarsala (364) (fjárhagur)
+				measure 'Sales Quantity YTD (Fiscal)'
+					caption: Sölumagn Ár til dagsins í dag (fjárhagur)
+				measure 'Sales Quantity PY (Fiscal)'
+					caption: Sölumagn Fyrra ár (fjárhagur)
+				measure 'Sales Quantity PYTD (Fiscal)'
+					caption: Sölumagn Fyrra ár til dagsins í dag (fjárhagur)
+				measure 'Sales Quantity PQTD (Fiscal)'
+					caption: Sölumagn Frá síðasta ársfjórðungi til dagsins í dag (fjárhagur)
+				measure 'Sales Quantity QTD (Fiscal)'
+					caption: Sölumagn Ársfjórðungur til dagsins í dag (fjárhagur)
+				measure 'Sales Quantity MTD (Fiscal)'
+					caption: Sölumagn Frá upphafi mánaðar (fjárhagur)
+				measure 'Sales Quantity YOY % (Fiscal)'
+					caption: Sölumagn Samanburður milli ára % (fjárhagur)
+				measure 'Sales Quantity YOY (Fiscal)'
+					caption: Sölumagn Samanburður milli ára (fjárhagur)
+				measure 'Sales Quantity PQ (Fiscal)'
+					caption: Sölumagn Fyrri ársfjórðungur (fjárhagur)
+				measure 'Sales Quantity QOQ (Fiscal)'
+					caption: Sölumagn Samanburður milli ársfjórðunga (fjárhagur)
+				measure 'Sales Quantity QOQ % (Fiscal)'
+					caption: Sölumagn Samanburður milli ársfjórðunga % (fjárhagur)
+				measure 'Sales Quantity PM (Fiscal)'
+					caption: Sölumagn Fyrri mánuður (fjárhagur)
+				measure 'Sales Quantity MOM (Fiscal)'
+					caption: Sölumagn Samanburður mánaða (fjárhagur)
+				measure 'Sales Quantity MOM % (Fiscal)'
+					caption: Sölumagn Samanburður mánaða % (fjárhagur)
+				measure 'Sales Quantity MAT (Fiscal)'
+					caption: Sölumagn Hlaupandi alls yfir árið (fjárhagur)
+				measure 'Sales Quantity PYMAT (Fiscal)'
+					caption: Sölumagn Fyrra ár hlaupandi heildarsala (fjárhagur)
+				measure 'Sales Quantity YOYTD (Fiscal)'
+					caption: Sölumagn á milli ára til dagsins í dag (fjárhagur)
+				measure 'Sales Quantity YOYTD % (Fiscal)'
+					caption: Sölumagn á milli ára til dagsins í dag í % (fjárhagur)
+				measure 'Sales Quantity PYC (Fiscal)'
+					caption: Sölumagn frá lokum fyrra árs (fjárhagur)
+				measure 'Sales Quantity YTDOPY (Fiscal)'
+					caption: Sölumagn Ár til dagsins í dag samanburður fyrra árs (fjárhagur)
+				measure 'Sales Quantity YTDOPY % (Fiscal)'
+					caption: Sölumagn Ár til dagsins í dag samanburður fyrra árs % (fjárhagur)
+				measure 'Sales Quantity QOQTD (Fiscal)'
+					caption: Sölumagn á milli ársfjórðunga til dagsins í dag (fjárhagur)
+				measure 'Sales Quantity QOQTD % (Fiscal)'
+					caption: Sölumagn á milli ársfjórðunga til dagsins í dag í % (fjárhagur)
+				measure 'Sales Quantity PQC (Fiscal)'
+					caption: Sölumagn frá lokum fyrri ársfjórðungs (fjárhagur)
+				measure 'Sales Quantity QTDOPQ (Fiscal)'
+					caption: Sölumagn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (fjárhagur)
+				measure 'Sales Quantity QTDOPQ % (Fiscal)'
+					caption: Sölumagn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (fjárhagur)
+				measure 'Sales Quantity PMTD (Fiscal)'
+					caption: Sölumagn Frá síðasta mánuði til dagsins í dag (fjárhagur)
+				measure 'Sales Quantity MOMTD % (Fiscal)'
+					caption: Sölumagn á milli mánaða til dagsins í dag í % (fjárhagur)
+				measure 'Sales Quantity MOMTD (Fiscal)'
+					caption: Sölumagn á milli mánaða til dagsins í dag (fjárhagur)
+				measure 'Sales Quantity PMC (Fiscal)'
+					caption: Sölumagn frá lokum fyrri mánaðar (fjárhagur)
+				measure 'Sales Quantity MTDOPM (Fiscal)'
+					caption: Sölumagn Frá upphafi mánaðar samanburður við fyrri mánuð (fjárhagur)
+				measure 'Sales Quantity MTDOPM % (Fiscal)'
+					caption: Sölumagn Frá upphafi mánaðar samanburður við fyrri mánuð % (fjárhagur)
+				measure 'Sales Quantity AVG 30D (Fiscal)'
+					caption: Sölumagn Meðaltal 30D (fjárhagur)
+				measure 'Sales Quantity AVG 3M (Fiscal)'
+					caption: Sölumagn Meðaltal 3M (fjárhagur)
+				measure 'Sales Quantity AVG 1Y (Fiscal)'
+					caption: Sölumagn Meðaltal 1Á (fjárhagur)
+				measure 'Sales Quantity MATG (Fiscal)'
+					caption: Sölumagn Hlaupandi vöxtur alls yfir árið (fjárhagur)
+				measure 'Sales Quantity MATG % (Fiscal)'
+					caption: Sölumagn Hlaupandi vöxtur alls yfir árið % (fjárhagur)
+				measure 'Sales Quantity PP (Fiscal)'
+					caption: Sölumagn Fyrra tímabil (fjárhagur)
+				measure 'Sales Quantity POP (Fiscal)'
+					caption: Sölumagn Samanburður milli tímabila (fjárhagur)
+				measure 'Sales Quantity POP % (Fiscal)'
+					caption: Sölumagn Samanburður milli tímabila % (fjárhagur)
+				measure 'Cost Amount YTD (Fiscal)'
+					caption: Kostnaðarupphæð Ár til dagsins í dag (fjárhagur)
+				measure 'Cost Amount PY (Fiscal)'
+					caption: Kostnaðarupphæð Fyrra ár (fjárhagur)
+				measure 'Cost Amount QTD (Fiscal)'
+					caption: Kostnaðarupphæð Ársfjórðungur til dagsins í dag (fjárhagur)
+				measure 'Cost Amount MTD (Fiscal)'
+					caption: Kostnaðarupphæð Frá upphafi mánaðar (fjárhagur)
+				measure 'Cost Amount YOY % (Fiscal)'
+					caption: Kostnaðarupphæð Samanburður milli ára % (fjárhagur)
+				measure 'Cost Amount YOY (Fiscal)'
+					caption: Kostnaðarupphæð Samanburður milli ára (fjárhagur)
+				measure 'Cost Amount PQ (Fiscal)'
+					caption: Kostnaðarupphæð Fyrri ársfjórðungur (fjárhagur)
+				measure 'Cost Amount QOQ (Fiscal)'
+					caption: Kostnaðarupphæð Samanburður milli ársfjórðunga (fjárhagur)
+				measure 'Cost Amount QOQ % (Fiscal)'
+					caption: Kostnaðarupphæð Samanburður milli ársfjórðunga % (fjárhagur)
+				measure 'Cost Amount PM (Fiscal)'
+					caption: Kostnaðarupphæð Fyrri mánuður (fjárhagur)
+				measure 'Cost Amount MOM (Fiscal)'
+					caption: Kostnaðarupphæð Samanburður mánaða (fjárhagur)
+				measure 'Cost Amount MOM % (Fiscal)'
+					caption: Kostnaðarupphæð Samanburður mánaða % (fjárhagur)
+				measure 'Cost Amount PP (Fiscal)'
+					caption: Kostnaðarupphæð Fyrra tímabil (fjárhagur)
+				measure 'Cost Amount POP (Fiscal)'
+					caption: Kostnaðarupphæð Samanburður milli tímabila (fjárhagur)
+				measure 'Cost Amount POP % (Fiscal)'
+					caption: Kostnaðarupphæð Samanburður milli tímabila % (fjárhagur)
+				measure 'Cost Amount PYTD (Fiscal)'
+					caption: Kostnaðarupphæð Fyrra ár til dagsins í dag (fjárhagur)
+				measure 'Cost Amount PQTD (Fiscal)'
+					caption: Kostnaðarupphæð Frá síðasta ársfjórðungi til dagsins í dag (fjárhagur)
+				measure 'Cost Amount YOYTD (Fiscal)'
+					caption: Kostnaðarupphæð á milli ára til dagsins í dag (fjárhagur)
+				measure 'Cost Amount YOYTD % (Fiscal)'
+					caption: Kostnaðarupphæð á milli ára til dagsins í dag í % (fjárhagur)
+				measure 'Cost Amount QOQTD (Fiscal)'
+					caption: Kostnaðarupphæð á milli ársfjórðunga til dagsins í dag (skattframtal)
+				measure 'Cost Amount QOQTD % (Fiscal)'
+					caption: Kostnaðarupphæð á milli ársfjórðunga til dagsins í dag í % (skattframtal)
+				measure 'Cost Amount PMTD (Fiscal)'
+					caption: Kostnaðarupphæð Frá síðasta mánuði til dagsins í dag (fjárhagur)
+				measure 'Cost Amount MOMTD % (Fiscal)'
+					caption: Kostnaðarupphæð á milli mánaða til dagsins í dag í % (fjárhagur)
+				measure 'Cost Amount MOMTD (Fiscal)'
+					caption: Kostnaðarupphæð á milli mánaða til dagsins í dag (fjárhagur)
+				measure 'Cost Amount MAT (Fiscal)'
+					caption: Kostnaðarupphæð Hlaupandi alls yfir árið (fjárhagur)
+				measure 'Cost Amount PYMAT (Fiscal)'
+					caption: Kostnaðarupphæð Fyrra ár hlaupandi heildarsala (fjárhagur)
+				measure 'Cost Amount MATG (Fiscal)'
+					caption: Kostnaðarupphæð Hlaupandi vöxtur alls yfir árið (fjárhagur)
+				measure 'Cost Amount MATG % (Fiscal)'
+					caption: Kostnaðarupphæð Hlaupandi vöxtur alls yfir árið % (fjárhagur)
+				measure 'Cost Amount MAT (364) (Fiscal)'
+					caption: Kostnaðarupphæð Hlaupandi alls yfir árið (364) (fjárhagur)
+				measure 'Cost PYMAT (364) (Fiscal)'
+					caption: Kostnaður Fyrra ár hlaupandi heildarsala (364) (fjárhagur)
+				measure 'Cost Amount PYC (Fiscal)'
+					caption: Kostnaðarupphæð frá lokum fyrra árs (fjárhagur)
+				measure 'Cost Amount YTDOPY (Fiscal)'
+					caption: Kostnaðarupphæð Ár til dagsins í dag samanburður fyrra árs (fjárhagur)
+				measure 'Cost Amount YTDOPY % (Fiscal)'
+					caption: Kostnaðarupphæð Ár til dagsins í dag samanburður fyrra árs % (fjárhagur)
+				measure 'Cost Amount PQC (Fiscal)'
+					caption: Kostnaðarupphæð frá lokum fyrri ársfjórðungs (fjárhagur)
+				measure 'Cost Amount QTDOPQ (Fiscal)'
+					caption: Kostnaðarupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (fjárhagur)
+				measure 'Cost Amount QTDOPQ % (Fiscal)'
+					caption: Kostnaðarupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (fjárhagur)
+				measure 'Cost Amount PMC (Fiscal)'
+					caption: Kostnaðarupphæð frá lokum fyrri mánaðar (fjárhagur)
+				measure 'Cost Amount MTDOPM (Fiscal)'
+					caption: Kostnaðarupphæð Frá upphafi mánaðar samanburður við fyrri mánuð (fjárhagur)
+				measure 'Cost Amount MTDOPM % (Fiscal)'
+					caption: Kostnaðarupphæð Frá upphafi mánaðar samanburður við fyrri mánuð % (fjárhagur)
+				measure 'Cost Amount AVG 30D (Fiscal)'
+					caption: Kostnaðarupphæð Meðaltal 30D (fjárhagur)
+				measure 'Cost Amount AVG 3M (Fiscal)'
+					caption: Kostnaðarupphæð Meðaltal 3M (fjárhagur)
+				measure 'Cost Amount AVG 1Y (Fiscal)'
+					caption: Kostnaðarupphæð Meðaltal 1Á (fjárhagur)
+				measure 'Cost Amount Non-Inv YTD (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ár til dagsins í dag (fjárhagur)
+				measure 'Cost Amount Non-Inv QTD (Fiscal)'
+					caption: Kostnaðarupphæð Óbirgðarfæranleg Ársfjórðungur til dagsins í dag (fjárhagur)
+				measure 'Cost Amount Non-Inv MTD (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá upphafi mánaðar (fjárhagur)
+				measure 'Cost Amount Non-Inv PY (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrra ár (fjárhagur)
+				measure 'Cost Amount Non-Inv YOY % (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli ára % (fjárhagur)
+				measure 'Cost Amount Non-Inv YOY (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli ára (fjárhagur)
+				measure 'Cost Amount Non-Inv PQ (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrri ársfjórðungur (fjárhagur)
+				measure 'Cost Amount Non-Inv QOQ (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli ársfjórðunga (fjárhagur)
+				measure 'Cost Amount Non-Inv QOQ % (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli ársfjórðunga % (fjárhagur)
+				measure 'Cost Amount Non-Inv PM (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrri mánuður (fjárhagur)
+				measure 'Cost Amount Non-Inv MOM (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður mánaða (fjárhagur)
+				measure 'Cost Amount Non-Inv MOM % (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður mánaða % (fjárhagur)
+				measure 'Cost Amount Non-Inv PP (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrra tímabil (fjárhagur)
+				measure 'Cost Amount Non-Inv POP (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli tímabila (fjárhagur)
+				measure 'Cost Amount Non-Inv POP % (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli tímabila % (fjárhagur)
+				measure 'Cost Amount Non-Inv PYTD (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrra ár til dagsins í dag (fjárhagur)
+				measure 'Cost Amount Non-Inv PQTD (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá síðasta ársfjórðungi til dagsins í dag (fjárhagur)
+				measure 'Cost Amount Non-Inv YOYTD (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli ára til dagsins í dag (fjárhagur)
+				measure 'Cost Amount Non-Inv YOYTD % (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli ára til dagsins í dag í % (fjárhagur)
+				measure 'Cost Amount Non-Inv QOQTD (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli ársfjórðunga til dagsins í dag (fjárhagur)
+				measure 'Cost Amount Non-Inv QOQTD % (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli ársfjórðunga til dagsins í dag í % (fjárhagur)
+				measure 'Cost Amount Non-Inv PMTD (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá síðasta mánuði til dagsins í dag (fjárhagur)
+				measure 'Cost Amount Non-Inv MOMTD % (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli mánaða til dagsins í dag í % (fjárhagur)
+				measure 'Cost Amount Non-Inv MOMTD (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli mánaða til dagsins í dag (fjárhagur)
+				measure 'Cost Amount Non-Inv MAT (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Hlaupandi alls yfir árið (fjárhagur)
+				measure 'Cost Amount Non-Inv PYMAT (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrra ár hlaupandi heildarsala (fjárhagur)
+				measure 'Cost Amount Non-Inv MATG (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Hlaupandi vöxtur alls yfir árið (fjárhagur)
+				measure 'Cost Amount Non-Inv MATG % (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Hlaupandi vöxtur alls yfir árið % (fjárhagur)
+				measure 'Cost Amount Non-Inv PYC (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg frá lokum fyrra árs (fjárhagur)
+				measure 'Cost Amount Non-Inv YTDOPY (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ár til dagsins í dag samanburður fyrra árs (fjárhagur)
+				measure 'Cost Amount Non-Inv YTDOPY % (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ár til dagsins í dag samanburður fyrra árs % (fjárhagur)
+				measure 'Cost Amount Non-Inv PQC (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg frá lokum fyrri ársfjórðungs (fjárhagur)
+				measure 'Cost Amount Non-Inv QTDOPQ (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (fjárhagur)
+				measure 'Cost Amount Non-Inv QTDOPQ % (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (fjárhagur)
+				measure 'Cost Amount Non-Inv PMC (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg frá lokum fyrri mánaðar (fjárhagur)
+				measure 'Cost Amount Non-Inv MTDOPM (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá upphafi mánaðar samanburður við fyrri mánuð (fjárhagur)
+				measure 'Cost Amount Non-Inv MTDOPM % (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá upphafi mánaðar samanburður við fyrri mánuð % (fjárhagur)
+				measure 'Cost Amount Non-Inv AVG 30D (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Meðaltal 30D (fjárhagur)
+				measure 'Cost Amount Non-Inv AVG 3M (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Meðaltal 3M (fjárhagur)
+				measure 'Cost Amount Non-Inv AVG 1Y (Fiscal)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Meðaltal 1Á (fjárhagur)
+				measure 'Gross Profit YTD (Fiscal)'
+					caption: Brúttóframlegð Ár til dagsins í dag (fjárhagur)
+				measure 'Gross Profit QTD (Fiscal)'
+					caption: Brúttóhagnaður Ársfjórðungur til dagsins í dag (fjárhagur)
+				measure 'Gross Profit MTD (Fiscal)'
+					caption: Brúttóhagnaður Frá upphafi mánaðar (fjárhagur)
+				measure 'Gross Profit PY (Fiscal)'
+					caption: Brúttóhagnaður Fyrra ár (fjárhagur)
+				measure 'Gross Profit YOY % (Fiscal)'
+					caption: Brúttóhagnaður Samanburður milli ára % (fjárhagur)
+				measure 'Gross Profit YOY (Fiscal)'
+					caption: Brúttóhagnaður Samanburður milli ára (fjárhagur)
+				measure 'Gross Profit PQ (Fiscal)'
+					caption: Brúttóhagnaður Fyrri ársfjórðungur (fjárhagur)
+				measure 'Gross Profit QOQ (Fiscal)'
+					caption: Brúttóhagnaður Samanburður milli ársfjórðunga (fjárhagur)
+				measure 'Gross Profit QOQ % (Fiscal)'
+					caption: Brúttóhagnaður Samanburður milli ársfjórðunga % (fjárhagur)
+				measure 'Gross Profit PM (Fiscal)'
+					caption: Brúttóhagnaður Fyrri mánuður (fjárhagur)
+				measure 'Gross Profit MOM (Fiscal)'
+					caption: Brúttóhagnaður Samanburður mánaða (fjárhagur)
+				measure 'Gross Profit MOM % (Fiscal)'
+					caption: Brúttóhagnaður Samanburður mánaða % (fjárhagur)
+				measure 'Gross Profit PP (Fiscal)'
+					caption: Brúttóhagnaður Fyrra tímabil (fjárhagur)
+				measure 'Gross Profit POP (Fiscal)'
+					caption: Brúttóhagnaður Samanburður milli tímabila (fjárhagur)
+				measure 'Gross Profit POP % (Fiscal)'
+					caption: Brúttóhagnaður Samanburður milli tímabila % (fjárhagur)
+				measure 'Gross Profit PYTD (Fiscal)'
+					caption: Brúttóhagnaður Fyrra ár til dagsins í dag (fjárhagur)
+				measure 'Gross Profit PQTD (Fiscal)'
+					caption: Brúttóhagnaður Frá síðasta ársfjórðungi til dagsins í dag (fjárhagur)
+				measure 'Gross Profit YOYTD (Fiscal)'
+					caption: Brúttóhagnaður á milli ára til dagsins í dag (fjárhagur)
+				measure 'Gross Profit YOYTD % (Fiscal)'
+					caption: Brúttóhagnaður á milli ára til dagsins í dag í % (fjárhagur)
+				measure 'Gross Profit QOQTD (Fiscal)'
+					caption: Brúttóhagnaður á milli ársfjórðunga til dagsins í dag (fjárhagur)
+				measure 'Gross Profit  QOQTD % (Fiscal)'
+					caption: Brúttóhagnaður á milli ársfjórðunga til dagsins í dag í % (fjárhagur)
+				measure 'Gross Profit PMTD (Fiscal)'
+					caption: Brúttóhagnaður Frá síðasta mánuði til dagsins í dag (fjárhagur)
+				measure 'Gross Profit MOMTD % (Fiscal)'
+					caption: Brúttóhagnaður á milli mánaða til dagsins í dag í % (fjárhagur)
+				measure 'Gross Profit MOMTD (Fiscal)'
+					caption: Brúttóhagnaður á milli mánaða til dagsins í dag (fjárhagur)
+				measure 'Gross Profit MAT (Fiscal)'
+					caption: Brúttóhagnaður Hlaupandi alls yfir árið (fjárhagur)
+				measure 'Gross Profit PYMAT (Fiscal)'
+					caption: Brúttóhagnaður Fyrra ár hlaupandi heildarsala (fjárhagur)
+				measure 'Gross Profit MATG (Fiscal)'
+					caption: Brúttóhagnaður Hlaupandi vöxtur alls yfir árið (fjárhagur)
+				measure 'Gross Profit MATG % (Fiscal)'
+					caption: Brúttóhagnaður Hlaupandi vöxtur alls yfir árið % (fjárhagur)
+				measure 'Gross Profit MAT (364) (Fiscal)'
+					caption: Brúttóhagnaður Hlaupandi alls yfir árið (364) (fjárhagur)
+				measure 'Gross Profit PYMAT (364) (Fiscal)'
+					caption: Brúttóhagnaður Fyrra ár hlaupandi heildarsala (364) (fjárhagur)
+				measure 'Gross Profit PYC (Fiscal)'
+					caption: Brúttóhagnaður frá lokum fyrra árs (fjárhagur)
+				measure 'Gross Profit YTDOPY (Fiscal)'
+					caption: Brúttóhagnaður Ár til dagsins í dag samanburður fyrra árs (fjárhagur)
+				measure 'Gross Profit YTDOPY % (Fiscal)'
+					caption: Brúttóhagnaður Ár til dagsins í dag samanburður fyrra árs % (fjárhagur)
+				measure 'Gross Profit PQC (Fiscal)'
+					caption: Brúttóhagnaður frá lokum fyrri ársfjórðungs (fjárhagur)
+				measure 'Gross Profit QTDOPQ (Fiscal)'
+					caption: Brúttóhagnaður Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (fjárhagur)
+				measure 'Gross Profit QTDOPQ % (Fiscal)'
+					caption: Brúttóhagnaður Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (fjárhagur)
+				measure 'Gross Profit PMC (Fiscal)'
+					caption: Brúttóhagnaður frá lokum fyrri mánaðar (fjárhagur)
+				measure 'Gross Profit MTDOPM (Fiscal)'
+					caption: Brúttóhagnaður Frá upphafi mánaðar samanburður við fyrri mánuð (fjárhagur)
+				measure 'Gross Profit MTDOPM % (Fiscal)'
+					caption: Brúttóhagnaður Frá upphafi mánaðar samanburður við fyrri mánuð % (fjárhagur)
+				measure 'Gross Profit AVG 30D (Fiscal)'
+					caption: Brúttóhagnaður Meðaltal 30D (fjárhagur)
+				measure 'Gross Profit AVG 3M (Fiscal)'
+					caption: Brúttóhagnaður Meðaltal 3M (fjárhagur)
+				measure 'Gross Profit AVG 1Y (Fiscal)'
+					caption: Brúttóhagnaður Meðaltal 1Á (fjárhagur)
+				measure 'Gross Profit Margin AVG 30D (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Meðaltal 30D (fjárhagur)
+				measure 'Gross Profit Margin AVG 3M (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Meðaltal 3M (fjárhagur)
+				measure 'Gross Profit Margin AVG 1Y (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Meðaltal 1Á (fjárhagur)
+				measure 'Gross Profit Margin PYC (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall frá lokum fyrra árs (fjárhagur)
+				measure 'Gross Profit Margin YTDOPY (Fiscal)'
+					caption: Brúttóhagnaðarhlutfall Ár til dagsins í dag samanburður fyrra árs (fjárhagur)
+				measure 'Gross Profit Margin YTDOPY % (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Ár til dagsins í dag samanburður fyrra árs % (fjárhagur)
+				measure 'Gross Profit Margin PQC (Fiscal)'
+					caption: Brúttóhagnaðarhlutfall frá lokum fyrri ársfjórðungs (fjárhagur)
+				measure 'Gross Profit Margin QTDOPQ (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (fjárhagur)
+				measure 'Gross Profit Margin QTDOPQ % (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (fjárhagur)
+				measure 'Gross Profit Margin PMC (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall frá lokum fyrri mánaðar (fjárhagur)
+				measure 'Gross Profit Margin MTDOPM (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Frá upphafi mánaðar samanburður við fyrri mánuð (fjárhagur)
+				measure 'Gross Profit Margin MTDOPM % (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Frá upphafi mánaðar samanburður við fyrri mánuð % (fjárhagur)
+				measure 'Gross Profit Margin MAT (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Hlaupandi alls yfir árið (fjárhagur)
+				measure 'Gross Profit Margin PYMAT (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Fyrra ár hlaupandi heildarsala (fjárhagur)
+				measure 'Gross Profit Margin MATG (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Hlaupandi vöxtur alls yfir árið (fjárhagur)
+				measure 'Gross Profit Margin MATG % (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Hlaupandi vöxtur alls yfir árið % (fjárhagur)
+				measure 'Gross Profit Margin MAT (364) (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Hlaupandi alls yfir árið (364) (fjárhagur)
+				measure 'Gross Profit Margin PYMAT (364) (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Fyrra ár hlaupandi heildarsala (364) (fjárhagur)
+				measure 'Gross Profit Margin PYTD (Fiscal)'
+					caption: Brúttóhagnaðarhlutfall Fyrra ár til dagsins í dag (fjárhagur)
+				measure 'Gross Profit Margin PQTD (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Frá síðasta ársfjórðungi til dagsins í dag (fjárhagur)
+				measure 'Gross Profit Margin YOYTD (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall á milli ára til dagsins í dag (fjárhagur)
+				measure 'Gross Profit Margin YOYTD % (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall á milli ára til dagsins í dag í % (fjárhagur)
+				measure 'Gross Profit Margin QOQTD (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall á milli ársfjórðunga til dagsins í dag (fjárhagur)
+				measure 'Gross Profit Margin QOQTD % (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall á milli ársfjórðunga til dagsins í dag í % (fjárhagur)
+				measure 'Gross Profit Margin PMTD (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Frá síðasta mánuði til dagsins í dag (fjárhagur)
+				measure 'Gross Profit Margin MOMTD % (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall á milli mánaða til dagsins í dag í % (fjárhagur)
+				measure 'Gross Profit Margin MOMTD (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall á milli mánaða til dagsins í dag (fjárhagur)
+				measure 'Gross Profit Margin PY (Fiscal)'
+					caption: Brúttóhagnaðarhlutfall Fyrra ár (fjárhagur)
+				measure 'Gross Profit Margin YOY % (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli ára % (fjárhagur)
+				measure 'Gross Profit Margin YOY (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli ára (fjárhagur)
+				measure 'Gross Profit Margin PQ (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Fyrri ársfjórðungur (fjárhagur)
+				measure 'Gross Profit Margin QOQ (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli ársfjórðunga (fjárhagur)
+				measure 'Gross Profit Margin QOQ % (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli ársfjórðunga % (fjárhagur)
+				measure 'Gross Profit Margin PM (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Fyrri mánuður (fjárhagur)
+				measure 'Gross Profit Margin MOM (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Samanburður mánaða (fjárhagur)
+				measure 'Gross Profit Margin MOM % (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Samanburður mánaða % (fjárhagur)
+				measure 'Gross Profit Margin PP (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Fyrra tímabil (fjárhagur)
+				measure 'Gross Profit Margin POP (Fiscal)'
+					caption: Brúttóhagnaðarhlutfall Samanburður milli tímabila (fjárhagur)
+				measure 'Gross Profit Margin POP % (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli tímabila % (fjárhagur)
+				measure 'Gross Profit Margin YTD (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Ár til dagsins í dag (fjárhagur)
+				measure 'Gross Profit Margin QTD (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Ársfjórðungur til dagsins í dag (fjárhagur)
+				measure 'Gross Profit Margin MTD (Fiscal)'
+					caption: Brúttó hagnaðarhlutfall Frá upphafi mánaðar (fjárhagur)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Tímagreind vikudagatals
+				measure 'Sales Amount YTD (Weekly)'
+					caption: Söluupphæð Ár til dagsins í dag (vikulega)
+				measure 'Sales Amount PY (Weekly)'
+					caption: Söluupphæð Fyrra ár (vikulega)
+				measure 'Sales Amount PYTD (Weekly)'
+					caption: Söluupphæð Fyrra ár til dagsins í dag (vikulega)
+				measure 'Sales Amount PQTD (Weekly)'
+					caption: Söluupphæð Frá síðasta ársfjórðungi til dagsins í dag (vikulega)
+				measure 'Sales Amount QTD (Weekly)'
+					caption: Söluupphæð Ársfjórðungur til dagsins í dag (vikulega)
+				measure 'Sales Amount MTD (Weekly)'
+					caption: Söluupphæð Frá upphafi mánaðar (vikulega)
+				measure 'Sales Amount YOY % (Weekly)'
+					caption: Söluupphæð Samanburður milli ára % (vikulega)
+				measure 'Sales Amount YOY (Weekly)'
+					caption: Söluupphæð Samanburður milli ára (vikulega)
+				measure 'Sales Amount PQ (Weekly)'
+					caption: Söluupphæð Fyrri ársfjórðungur (vikulega)
+				measure 'Sales Amount QOQ (Weekly)'
+					caption: Söluupphæð Samanburður milli ársfjórðunga (vikulega)
+				measure 'Sales Amount QOQ % (Weekly)'
+					caption: Söluupphæð Samanburður milli ársfjórðunga % (vikulega)
+				measure 'Sales Amount PW (Weekly)'
+					caption: Söluupphæð Fyrri vika (vikulega)
+				measure 'Sales Amount WOW (Weekly)'
+					caption: Söluupphæð Samanburður milli vikna (vikulega)
+				measure 'Sales Amount WOW % (Weekly)'
+					caption: Söluupphæð Samanburður milli vikna % (vikulega)
+				measure 'Sales Amount MAT (364) (Weekly)'
+					caption: Söluupphæð Hlaupandi alls yfir árið (364) (vikulega)
+				measure 'Sales Amount PYMAT (364) (Weekly)'
+					caption: Söluupphæð Fyrra ár hlaupandi heildarsala (364) (vikulega)
+				measure 'Sales Amount YOYTD (Weekly)'
+					caption: Söluupphæð á milli ára til dagsins í dag (vikulega)
+				measure 'Sales Amount YOYTD % (Weekly)'
+					caption: Söluupphæð á milli ára til dagsins í dag í % (vikulega)
+				measure 'Sales Amount PYC (Weekly)'
+					caption: Söluupphæð frá lokum fyrra árs (vikulega)
+				measure 'Sales Amount YTDOPY (Weekly)'
+					caption: Söluupphæð Ár til dagsins í dag samanburður fyrra árs (vikulega)
+				measure 'Sales Amount YTDOPY % (Weekly)'
+					caption: Söluupphæð Ár til dagsins í dag samanburður fyrra árs % (vikulega)
+				measure 'Sales Amount QOQTD (Weekly)'
+					caption: Söluupphæð á milli ársfjórðunga til dagsins í dag (vikulega)
+				measure 'Sales Amount QOQTD % (Weekly)'
+					caption: Söluupphæð á milli ársfjórðunga til dagsins í dag í % (vikulega)
+				measure 'Sales Amount PQC (Weekly)'
+					caption: Söluupphæð frá lokum fyrri ársfjórðungs (vikulega)
+				measure 'Sales Amount QTDOPQ (Weekly)'
+					caption: Söluupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (vikulega)
+				measure 'Sales Amount QTDOPQ % (Weekly)'
+					caption: Söluupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (vikulega)
+				measure 'Sales Amount PWTD (Weekly)'
+					caption: Söluupphæð Frá síðustu viku til dagsins í dag (vikulega)
+				measure 'Sales Amount WOWTD (Weekly)'
+					caption: Söluupphæð á milli vikna til dagsins í dag (vikulega)
+				measure 'Sales Amount WOWTD % (Weekly)'
+					caption: Söluupphæð á milli vikna til dagsins í dag í % (vikulega)
+				measure 'Sales Amount PWC (Weekly)'
+					caption: Söluupphæð frá lokum fyrri viku (vikulega)
+				measure 'Sales Amount WTDOPW (Weekly)'
+					caption: Söluupphæð Frá upphafi viku samanburður fyrri viku (vikulega)
+				measure 'Sales Amount WTDOPW % (Weekly)'
+					caption: Söluupphæð Frá upphafi viku samanburður fyrri viku % (vikulega)
+				measure 'Sales Amount AVG 4W (Weekly)'
+					caption: Söluupphæð Meðaltal 4V (vikulega)
+				measure 'Sales Amount AVG 1Q (Weekly)'
+					caption: Söluupphæð Meðaltal 1F (vikulega)
+				measure 'Sales Amount AVG 1Y (Weekly)'
+					caption: Söluupphæð MEÐ 1Á (vikulega)
+				measure 'Sales Amount MATG (Weekly)'
+					caption: Söluupphæð Hlaupandi vöxtur alls yfir árið (vikulega)
+				measure 'Sales Amount MATG % (Weekly)'
+					caption: Söluupphæð Hlaupandi vöxtur alls yfir árið % (vikulega)
+				measure 'Sales Amount PP (Weekly)'
+					caption: Söluupphæð Fyrra tímabil (vikulega)
+				measure 'Sales Amount POP (Weekly)'
+					caption: Söluupphæð Samanburður milli tímabila (vikulega)
+				measure 'Sales Amount POP % (Weekly)'
+					caption: Söluupphæð Samanburður milli tímabila % (vikulega)
+				measure 'Sales Amount WTD (Weekly)'
+					caption: Söluupphæð Frá upphafi viku (vikulega)
+				measure 'Sales Quantity YTD (Weekly)'
+					caption: Sölumagn Ár til dagsins í dag (vikulega)
+				measure 'Sales Quantity PY (Weekly)'
+					caption: Sölumagn Fyrra ár (vikulega)
+				measure 'Sales Quantity PYTD (Weekly)'
+					caption: Sölumagn Fyrra ár til dagsins í dag (vikulega)
+				measure 'Sales Quantity QTD (Weekly)'
+					caption: Sölumagn Ársfjórðungur til dagsins í dag (vikulega)
+				measure 'Sales Quantity PQTD (Weekly)'
+					caption: Sölumagn Frá síðasta ársfjórðungi til dagsins í dag (vikulega)
+				measure 'Sales Quantity MTD (Weekly)'
+					caption: Sölumagn Frá upphafi mánaðar (vikulega)
+				measure 'Sales Quantity YOY % (Weekly)'
+					caption: Sölumagn Samanburður milli ára % (vikulega)
+				measure 'Sales Quantity YOY (Weekly)'
+					caption: Sölumagn Samanburður milli ára (Vikulega)
+				measure 'Sales Quantity PQ (Weekly)'
+					caption: Sölumagn Fyrri ársfjórðungur (vikulega)
+				measure 'Sales Quantity QOQ (Weekly)'
+					caption: Sölumagn Samanburður milli ársfjórðunga (vikulega)
+				measure 'Sales Quantity QOQ % (Weekly)'
+					caption: Sölumagn Samanburður milli ársfjórðunga % (vikulega)
+				measure 'Sales Quantity PW (Weekly)'
+					caption: Sölumagn Fyrri vika (vikulega)
+				measure 'Sales Quantity WOW (Weekly)'
+					caption: Sölumagn Samanburður milli vikna (vikulega)
+				measure 'Sales Quantity WOW % (Weekly)'
+					caption: Sölumagn Samanburður milli vikna % (vikulega)
+				measure 'Sales Quantity MAT (364) (Weekly)'
+					caption: Sölumagn Hlaupandi alls yfir árið (364) (vikulega)
+				measure 'Sales Quantity PYMAT (364) (Weekly)'
+					caption: Sölumagn Fyrra ár hlaupandi heildarsala (364) (vikulega)
+				measure 'Sales Quantity YOYTD (Weekly)'
+					caption: Sölumagn á milli ára til dagsins í dag (vikulega)
+				measure 'Sales Quantity YOYTD % (Weekly)'
+					caption: Sölumagn á milli ára til dagsins í dag í % (vikulega)
+				measure 'Sales Quantity PYC (Weekly)'
+					caption: Sölumagn frá lokum fyrra árs (vikulega)
+				measure 'Sales Quantity YTDOPY (Weekly)'
+					caption: Sölumagn Ár til dagsins í dag samanburður fyrra árs (vikulega)
+				measure 'Sales Quantity YTDOPY  % (Weekly)'
+					caption: Sölumagn Ár til dagsins í dag samanburður fyrra árs % (vikulega)
+				measure 'Sales Quantity QOQTD (Weekly)'
+					caption: Sölumagn á milli ársfjórðunga til dagsins í dag (vikulega)
+				measure 'Sales Quantity QOQTD % (Weekly)'
+					caption: Sölumagn á milli ársfjórðunga til dagsins í dag í % (vikulega)
+				measure 'Sales Quantity PQC (Weekly)'
+					caption: Sölumagn frá lokum fyrri ársfjórðungs (vikulega)
+				measure 'Sales Quantity QTDOPQ (Weekly)'
+					caption: Sölumagn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (vikulega)
+				measure 'Sales Quantity QTDOPQ % (Weekly)'
+					caption: Sölumagn Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (vikulega)
+				measure 'Sales Quantity PWTD (Weekly)'
+					caption: Sölumagn Frá síðustu viku til dagsins í dag (vikulega)
+				measure 'Sales Quantity WOWTD (Weekly)'
+					caption: Sölumagn á milli vikna til dagsins í dag (vikulega)
+				measure 'Sales Quantity WOWTD % (Weekly)'
+					caption: Sölumagn á milli vikna til dagsins í dag í % (vikulega)
+				measure 'Sales Quantity PWC (Weekly)'
+					caption: Sölumagn frá lokum fyrri viku (vikulega)
+				measure 'Sales Quantity WTDOPW (Weekly)'
+					caption: Sölumagn Frá upphafi viku samanburður fyrri viku (vikulega)
+				measure 'Sales Quantity WTDOPW % (Weekly)'
+					caption: Sölumagn Frá upphafi viku samanburður fyrri viku % (vikulega)
+				measure 'Sales Quantity AVG 4W (Weekly)'
+					caption: Sölumagn Meðaltal 4V (vikulega)
+				measure 'Sales Quantity AVG 1Q (Weekly)'
+					caption: Sölumagn Meðaltal 1F (vikulega)
+				measure 'Sales Quantity AVG 1Y (Weekly)'
+					caption: Sölumagn Meðaltal 1Á (vikulega)
+				measure 'Sales Quantity MATG (Weekly)'
+					caption: Sölumagn Hlaupandi vöxtur alls yfir árið (vikulega)
+				measure 'Sales Quantity MATG % (Weekly)'
+					caption: Sölumagn Hlaupandi vöxtur alls yfir árið % (vikulega)
+				measure 'Sales Quantity PP (Weekly)'
+					caption: Sölumagn Fyrra tímabil (vikulega)
+				measure 'Sales Quantity POP (Weekly)'
+					caption: Sölumagn Samanburður milli tímabila (Vikulega)
+				measure 'Sales Quantity POP % (Weekly)'
+					caption: Sölumagn Samanburður milli tímabila % (vikulega)
+				measure 'Sales Quantity WTD (Weekly)'
+					caption: Sölumagn Frá upphafi viku (vikulega)
+				measure 'Gross Profit YTD (Weekly)'
+					caption: Brúttóhagnaður Árið til dagsins í dag (vikulega)
+				measure 'Gross Profit PY (Weekly)'
+					caption: Brúttóhagnaður Fyrra ár (vikulega)
+				measure 'Gross Profit PYTD (Weekly)'
+					caption: Brúttóhagnaður Fyrra ár til dagsins í dag (vikulega)
+				measure 'Gross Profit QTD (Weekly)'
+					caption: Brúttóhagnaður Ársfjórðungur til dagsins í dag (vikulega)
+				measure 'Gross Profit PQTD (Weekly)'
+					caption: Brúttóhagnaður Frá síðasta ársfjórðungi til dagsins í dag (vikulega)
+				measure 'Gross Profit MTD (Weekly)'
+					caption: Brúttóhagnaður Frá upphafi mánaðar (vikulega)
+				measure 'Gross Profit YOY % (Weekly)'
+					caption: Brúttóhagnaður Samanburður milli ára % (vikulega)
+				measure 'Gross Profit YOY (Weekly)'
+					caption: Brúttóhagnaður Samanburður milli ára (vikulega)
+				measure 'Gross Profit PQ (Weekly)'
+					caption: Brúttóhagnaður Fyrri ársfjórðungur (vikulega)
+				measure 'Gross Profit QOQ (Weekly)'
+					caption: Brúttóhagnaður Samanburður milli ársfjórðunga (vikulega)
+				measure 'Gross Profit QOQ % (Weekly)'
+					caption: Brúttóhagnaður Samanburður milli ársfjórðunga % (vikulega)
+				measure 'Gross Profit PW (Weekly)'
+					caption: Brúttóhagnaður Fyrri vika (vikulega)
+				measure 'Gross Profit WOW (Weekly)'
+					caption: Brúttóhagnaður Samanburður milli vikna (vikulega)
+				measure 'Gross Profit WOW % (Weekly)'
+					caption: Brúttóhagnaður Samanburður milli vikna % (vikulega)
+				measure 'Gross Profit MAT (364) (Weekly)'
+					caption: Brúttóhagnaður Hlaupandi alls yfir árið (364) (vikulega)
+				measure 'Gross Profit PYMAT (364) (Weekly)'
+					caption: Brúttóhagnaður Fyrra ár hlaupandi heildarsala (364) (vikulega)
+				measure 'Gross Profit YOYTD (Weekly)'
+					caption: Brúttóhagnaður á milli ára til dagsins í dag (vikulega)
+				measure 'Gross Profit YOYTD % (Weekly)'
+					caption: Brúttóhagnaður á milli ára til dagsins í dag í % (vikulega)
+				measure 'Gross Profit PYC (Weekly)'
+					caption: Brúttóhagnaður frá lokum fyrra árs (vikulega)
+				measure 'Gross Profit YTDOPY (Weekly)'
+					caption: Brúttóhagnaður Ár til dagsins í dag samanburður fyrra árs (vikulega)
+				measure 'Gross Profit YTDOPY % (Weekly)'
+					caption: Brúttóhagnaður Ár til dagsins í dag samanburður fyrra árs % (vikulega)
+				measure 'Gross Profit QOQTD (Weekly)'
+					caption: Brúttóhagnaður á milli ársfjórðunga til dagsins í dag (vikulega)
+				measure 'Gross Profit QOQTD % (Weekly)'
+					caption: Brúttóhagnaður á milli ársfjórðunga til dagsins í dag í % (vikulega)
+				measure 'Gross Profit PQC (Weekly)'
+					caption: Brúttóhagnaður frá lokum fyrri ársfjórðungs (vikulega)
+				measure 'Gross Profit QTDOPQ (Weekly)'
+					caption: Brúttóhagnaður Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (vikulega)
+				measure 'Gross Profit QTDOPQ % (Weekly)'
+					caption: Brúttóhagnaður Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (vikulega)
+				measure 'Gross Profit PWTD (Weekly)'
+					caption: Brúttóhagnaður Frá síðustu viku til dagsins í dag (vikulega)
+				measure 'Gross Profit WOWTD (Weekly)'
+					caption: Brúttó hagnaður á milli vikna til dagsins í dag (vikulega)
+				measure 'Gross Profit WOWTD % (Weekly)'
+					caption: Brúttóhagnaður á milli vikna til dagsins í dag í % (vikulega)
+				measure 'Gross Profit PWC (Weekly)'
+					caption: Brúttóhagnaður frá lokum fyrri viku (vikulega)
+				measure 'Gross Profit WTDOPW (Weekly)'
+					caption: Brúttóhagnaður Frá upphafi viku samanburður fyrri viku (vikulega)
+				measure 'Gross Profit WTDOPW % (Weekly)'
+					caption: Brúttóhagnaður Frá upphafi viku samanburður fyrri viku % (vikulega)
+				measure 'Gross Profit AVG 4W (Weekly)'
+					caption: Brúttóhagnaður Meðaltal 4V (vikulega)
+				measure 'Gross Profit AVG 1Q (Weekly)'
+					caption: Brúttóhagnaður Meðaltal 1F (vikulega)
+				measure 'Gross Profit AVG 1Y (Weekly)'
+					caption: Brúttóhagnaður Meðaltal 1Á (vikulega)
+				measure 'Gross Profit MATG (Weekly)'
+					caption: Brúttóhagnaður Hlaupandi vöxtur alls yfir árið (vikulega)
+				measure 'Gross Profit MATG % (Weekly)'
+					caption: Brúttóhagnaður Hlaupandi vöxtur alls yfir árið % (vikulega)
+				measure 'Gross Profit PP (Weekly)'
+					caption: Brúttóhagnaður Fyrra tímabil (vikulega)
+				measure 'Gross Profit POP (Weekly)'
+					caption: Brúttóhagnaður Samanburður milli tímabila (vikulega)
+				measure 'Gross Profit POP % (Weekly)'
+					caption: Brúttóhagnaður Samanburður milli tímabila % (vikulega)
+				measure 'Gross Profit WTD (Weekly)'
+					caption: Brúttóhagnaður Frá upphafi viku (vikulega)
+				measure 'Gross Profit Margin YTD (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Ár til dagsins í dag (vikulega)
+				measure 'Gross Profit Margin QTD (Weekly)'
+					caption: Brúttóhagnaðarhlutfall Ársfjórðungur til dagsins í dag (vikulega)
+				measure 'Gross Profit Margin MTD (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Frá upphafi mánaðar (vikulega)
+				measure 'Gross Profit Margin WTD (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Frá upphafi viku (vikulega)
+				measure 'Gross Profit Margin PY (Weekly)'
+					caption: Brúttóhagnaðarhlutfall Fyrra ár (vikulega)
+				measure 'Gross Profit Margin YOY % (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli ára % (vikulega)
+				measure 'Gross Profit Margin YOY (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli ára (vikulega)
+				measure 'Gross Profit Margin PQ (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Fyrri ársfjórðungur (vikulega)
+				measure 'Gross Profit Margin QOQ (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli ársfjórðunga (vikulega)
+				measure 'Gross Profit Margin QOQ % (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli ársfjórðunga % (vikulega)
+				measure 'Gross Profit Margin PW (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Fyrri vika (vikulega)
+				measure 'Gross Profit Margin WOW (Weekly)'
+					caption: Brúttóhagnaðarhlutfall Samanburður milli vikna (vikulega)
+				measure 'Gross Profit Margin WOW % (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli vikna % (vikulega)
+				measure 'Gross Profit Margin PP (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Fyrra tímabil (vikulega)
+				measure 'Gross Profit Margin POP (Weekly)'
+					caption: Brúttóhagnaðarhlutfall Samanburður milli tímabila (vikulega)
+				measure 'Gross Profit Margin POP % (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Samanburður milli tímabila % (vikulega)
+				measure 'Gross Profit Margin PYTD (Weekly)'
+					caption: Brúttóhagnaðarhlutfall Fyrra ár til dagsins í dag (vikulega)
+				measure 'Gross Profit Margin PQTD (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Frá síðasta ársfjórðungi til dagsins í dag (vikulega)
+				measure 'Gross Profit Margin YOYTD (Weekly)'
+					caption: Brúttó hagnaðarhlutfall á milli ára til dagsins í dag (vikulega)
+				measure 'Gross Profit Margin YOYTD % (Weekly)'
+					caption: Brúttó hagnaðarhlutfall á milli ára til dagsins í dag í % (vikulega)
+				measure 'Gross Profit Margin QOQTD (Weekly)'
+					caption: Brúttó hagnaðarhlutfall á milli ársfjórðunga til dagsins í dag (vikulega)
+				measure 'Gross Profit Margin QOQTD % (Weekly)'
+					caption: Brúttó hagnaðarhlutfall á milli ársfjórðunga til dagsins í dag í % (vikulega)
+				measure 'Gross Profit Margin PWTD (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Frá síðustu viku til dagsins í dag (vikulega)
+				measure 'Gross Profit Margin WOWTD (Weekly)'
+					caption: Brúttó hagnaðarhlutfall á milli vikna til dagsins í dag (vikulega)
+				measure 'Gross Profit Margin WOWTD % (Weekly)'
+					caption: Brúttóhagnaðarhlutfall á milli vikna til dagsins í dag í % (vikulega)
+				measure 'Gross Profit Margin MAT (364) (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Hlaupandi alls yfir árið (364) (vikulega)
+				measure 'Gross Profit Margin PYMAT (364) (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Fyrra ár hlaupandi heildarsala (364) (vikulega)
+				measure 'Gross Profit Margin MATG (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Hlaupandi vöxtur alls yfir árið (vikulega)
+				measure 'Gross Profit Margin MATG % (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Hlaupandi vöxtur alls yfir árið % (vikulega)
+				measure 'Gross Profit Margin PYC (Weekly)'
+					caption: Brúttó hagnaðarhlutfall frá lokum fyrra árs (vikulega)
+				measure 'Gross Profit Margin YTDOPY (Weekly)'
+					caption: Brúttóhagnaðarhlutfall Ár til dagsins í dag samanburður fyrra árs (vikulega)
+				measure 'Gross Profit Margin YTDOPY % (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Ár til dagsins í dag samanburður fyrra árs % (vikulega)
+				measure 'Gross Profit Margin PQC (Weekly)'
+					caption: Brúttóhagnaðarhlutfall frá lokum fyrri ársfjórðungs (vikulega)
+				measure 'Gross Profit Margin QTDOPQ (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (vikulega)
+				measure 'Gross Profit Margin QTDOPQ % (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (vikulega)
+				measure 'Gross Profit Margin PWC (Weekly)'
+					caption: Brúttó hagnaðarhlutfall frá lokum fyrri viku (vikulega)
+				measure 'Gross Profit Margin WTDOPW (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Frá upphafi viku samanburður fyrri viku (vikulega)
+				measure 'Gross Profit Margin WTDOPW % (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Frá upphafi viku samanburður fyrri viku % (vikulega)
+				measure 'Gross Profit Margin AVG 4W (Weekly'
+					caption: Brúttó hagnaðarhlutfall Meðaltal 4V (vikulega)
+				measure 'Gross Profit Margin AVG 1Q (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Meðaltal 1F (vikulega)
+				measure 'Gross Profit Margin AVG 1Y (Weekly)'
+					caption: Brúttó hagnaðarhlutfall Meðaltal 1Á (vikulega)
+				measure 'Cost Amount YTD (Weekly)'
+					caption: Kostnaðarupphæð Ár til dagsins í dag (vikulega)
+				measure 'Cost Amount QTD (Weekly)'
+					caption: KOstnaðarupphæð Ársfjórðungur til dagsins í dag (vikulega)
+				measure 'Cost Amount MTD (Weekly)'
+					caption: Kostnaðarupphæð Frá upphafi mánaðar (vikulega)
+				measure 'Cost Amount WTD (Weekly)'
+					caption: Kostnaðarupphæð Frá upphafi viku (vikulega)
+				measure 'Cost Amount PY (Weekly)'
+					caption: Kostnaðarupphæð Fyrra ár (vikulega)
+				measure 'Cost Amount YOY % (Weekly)'
+					caption: Kostnaðarupphæð Samanburður milli ára % (vikulega)
+				measure 'Cost Amount YOY (Weekly)'
+					caption: Kostnaðarupphæð Samanburður milli ára (vikulega)
+				measure 'Cost Amount PQ (Weekly)'
+					caption: Kostnaðarupphæð Fyrri ársfjórðungur (vikulega)
+				measure 'Cost Amount QOQ (Weekly)'
+					caption: Kostnaðarupphæð Samanburður milli ársfjórðunga (vikulega)
+				measure 'Cost Amount QOQ % (Weekly)'
+					caption: Kostnaðarupphæð Samanburður milli ársfjórðunga % (vikulega)
+				measure 'Cost Amount PW (Weekly)'
+					caption: Kostnaðarupphæð Fyrri vika (vikulega)
+				measure 'Cost Amount WOW (Weekly)'
+					caption: Kostnaðarupphæð Samanburður milli vikna (vikulega)
+				measure 'Cost Amount WOW % (Weekly)'
+					caption: Kostnaðarupphæð Samanburður milli vikna % (vikulega)
+				measure 'Cost Amount PP (Weekly)'
+					caption: Kostnaðarupphæð Fyrra tímabil (vikulega)
+				measure 'Cost Amount POP (Weekly)'
+					caption: Kostnaðarupphæð Samanburður milli tímabila (vikulega)
+				measure 'Cost Amount POP % (Weekly)'
+					caption: Kostnaðarupphæð Samanburður milli tímabila % (vikulega)
+				measure 'Cost Amount PYTD (Weekly)'
+					caption: Kostnaðarupphæð Fyrra ár til dagsins í dag (vikulega)
+				measure 'Cost Amount PQTD (Weekly)'
+					caption: Kostnaðarupphæð Frá síðasta ársfjórðungi til dagsins í dag (vikulega)
+				measure 'Cost Amount YOYTD (Weekly)'
+					caption: Kostnaðarupphæð á milli ára til dagsins í dag (vikulega)
+				measure 'Cost Amount YOYTD % (Weekly)'
+					caption: Kostnaðarupphæð á milli ára til dagsins í dag í % (vikulega)
+				measure 'Cost Amount QOQTD (Weekly)'
+					caption: Kostnaðarupphæð á milli ársfjórðunga til dagsins í dag (vikulega)
+				measure 'Cost Amount QOQTD % (Weekly)'
+					caption: Kostnaðarupphæð á milli ársfjórðunga til dagsins í dag í % (vikulega)
+				measure 'Cost Amount PWTD (Weekly)'
+					caption: Kostnaðarupphæð Frá síðustu viku til dagsins í dag (vikulega)
+				measure 'Cost Amount WOWTD (Weekly)'
+					caption: Kostnaðarupphæð á milli vikna til dagsins í dag (vikulega)
+				measure 'Cost Amount WOWTD % (Weekly)'
+					caption: Kostnaðarupphæð á milli vikna til dagsins í dag í % (vikulega)
+				measure 'Cost Amount MAT (364) (Weekly)'
+					caption: Kostnaðarupphæð Hlaupandi alls yfir árið (364) (vikulega)
+				measure 'Cost Amount PYMAT (364) (Weekly)'
+					caption: Kostnaðarupphæð Fyrra ár hlaupandi heildarsala (364) (vikulega)
+				measure 'Cost Amount MATG (Weekly)'
+					caption: Kostnaðarupphæð Hlaupandi vöxtur alls yfir árið (vikulega)
+				measure 'Cost Amount MATG % (Weekly)'
+					caption: Kostnaðarupphæð Hlaupandi vöxtur alls yfir árið % (vikulega)
+				measure 'Cost Amount PYC (Weekly)'
+					caption: Kostnaðarupphæð frá lokum fyrra árs (vikulega)
+				measure 'Cost Amount YTDOPY (Weekly)'
+					caption: Kostnaðarupphæð Ár til dagsins í dag samanburður fyrra árs (vikulega)
+				measure 'Cost Amount YTDOPY % (Weekly)'
+					caption: Kostnaðarupphæð Ár til dagsins í dag samanburður fyrra árs % (vikulega)
+				measure 'Cost Amount PQC (Weekly)'
+					caption: Kostnaðarupphæð frá lokum fyrri ársfjórðungs (vikulega)
+				measure 'Cost Amount QTDOPQ (Weekly)'
+					caption: Kostnaðarupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (vikulega)
+				measure 'Cost Amount QTDOPQ % (Weekly)'
+					caption: Kostnaðarupphæð Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (vikulega)
+				measure 'Cost Amount PWC (Weekly)'
+					caption: Kostnaðarupphæð frá lokum fyrri viku (vikulega)
+				measure 'Cost Amount WTDOPW (Weekly)'
+					caption: Kostnaðarupphæð Frá upphafi viku samanburður fyrri viku (vikulega)
+				measure 'Cost Amount WTDOPW % (Weekly)'
+					caption: Kostnaðarupphæð Frá upphafi viku samanburður fyrri viku % (vikulega)
+				measure 'Cost Amount AVG 4W (Weekly)'
+					caption: Kostnaðarupphæð Meðaltal 4V (vikulega)
+				measure 'Cost Amount AVG 1Q (Weekly)'
+					caption: Kostnaðarupphæð Meðaltal 1F (vikulega)
+				measure 'Cost Amount AVG 1Y (Weekly)'
+					caption: Kostnaðarupphæð Meðaltal 1Á (vikulega)
+				measure 'Cost Amount Non-Inv PY (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrra ár (vikulega)
+				measure 'Cost Amount Non-Inv YOY % (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli ára % (vikulega)
+				measure 'Cost Amount Non-Inv YOY (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli ára (vikulega)
+				measure 'Cost Amount Non-Inv PQ (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrri ársfjórðungur (vikulega)
+				measure 'Cost Amount Non-Inv QOQ (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli ársfjórðunga (vikulega)
+				measure 'Cost Amount Non-Inv QOQ % (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli ársfjórðunga % (vikulega)
+				measure 'Cost Amount Non-Inv PW (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrri vika (vikulega)
+				measure 'Cost Amount Non-Inv WOW (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli vikna (vikulega)
+				measure 'Cost Amount Non-Inv WOW % (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli vikna % (vikulega)
+				measure 'Cost Amount Non-Inv PP (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrra tímabil (vikulega)
+				measure 'Cost Amount Non-Inv POP (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli tímabila (vikulega)
+				measure 'Cost Amount Non-Inv POP % (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Samanburður milli tímabila % (vikulega)
+				measure 'Cost Amount Non-Inv PYTD (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrra ár til dagsins í dag (vikulega)
+				measure 'Cost Amount Non-Inv PQTD (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá síðasta ársfjórðungi til dagsins í dag (vikulega)
+				measure 'Cost Amount Non-Inv YOYTD (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli ára til dagsins í dag (vikulega)
+				measure 'Cost Amount Non-Inv YOYTD % (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli ára til dagsins í dag í % (vikulega)
+				measure 'Cost Amount Non-Inv QOQTD (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli ársfjórðunga til dagsins í dag (vikulega)
+				measure 'Cost Amount Non-Inv QOQTD % (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli ársfjórðunga til dagsins í dag í % (vikulega)
+				measure 'Cost Amount Non-Inv PWTD (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá síðustu viku til dagsins í dag (vikulega)
+				measure 'Cost Amount Non-Inv WOWTD (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli vikna til dagsins í dag (vikulega)
+				measure 'Cost Amount Non-Inv WOWTD % (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg á milli vikna til dagsins í dag í % (vikulega)
+				measure 'Cost Amount Non-Inv MAT (364) (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Hlaupandi alls yfir árið (364) (vikulega)
+				measure 'Cost Amount Non-Inv PYMAT (364) (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Fyrra ár hlaupandi heildarsala (364) (vikulega)
+				measure 'Cost Amount Non-Inv MATG (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Hlaupandi vöxtur alls yfir árið (vikulega)
+				measure 'Cost Amount Non-Inv MATG % (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Hlaupandi vöxtur alls yfir árið % (vikulega)
+				measure 'Cost Amount Non-Inv PYC (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg frá lokum fyrra árs (vikulega)
+				measure 'Cost Amount Non-Inv YTDOPY (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ár til dagsins í dag samanburður fyrra árs (vikulega)
+				measure 'Cost Amount Non-Inv YTDOPY % (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ár til dagsins í dag samanburður fyrra árs % (vikulega)
+				measure 'Cost Amount Non-Inv PQC (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg frá lokum fyrri ársfjórðungs (vikulega)
+				measure 'Cost Amount Non-Inv QTDOPQ (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (vikulega)
+				measure 'Cost Amount Non-Inv QTDOPQ % (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (vikulega)
+				measure 'Cost Amount Non-Inv PWC (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg frá lokum fyrri viku (vikulega)
+				measure 'Cost Amount Non-Inv WTDOPW (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá upphafi viku samanburður fyrri viku (vikulega)
+				measure 'Cost Amount Non-Inv WTDOPW % (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá upphafi viku samanburður fyrri viku % (vikulega)
+				measure 'Cost Amount Non-Inv AVG 4W (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Meðaltal 4V (vikulega)
+				measure 'Cost Amount Non-Inv AVG 1Q (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Meðaltal 1F (vikulega)
+				measure 'Cost Amount Non-Inv AVG 1Y (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Meðaltal 1Á (vikulega)
+				measure 'Cost Amount Non-Inv YTD (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Ár til dagsins í dag (vikulega)
+				measure 'Cost Amount Non-Inv QTD (Weekly)'
+					caption: Kostnaðarupphæð Óbirgðarfæranleg Ársfjórðungur til dagsins í dag (vikulega)
+				measure 'Cost Amount Non-Inv MTD (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá upphafi mánaðar (vikulega)
+				measure 'Cost Amount Non-Inv WTD (Weekly)'
+					caption: Kostnaðarupphæð óbirgðafæranleg Frá upphafi viku (vikulega)
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Skýrslutitillinn minn
+				measure 'My Button Caption'
+					caption: Texti hnappsins míns
+				measure 'My Visual Title'
+					caption: Sjónræni titillinn minn
+				measure 'Top 5 Items Gross Profit'
+					caption: Brúttóhagnaður af 5 söluhæstu vörunum
+				measure 'Top 5 Salesperson'
+					caption: Efstu 5 sölumenn
+				measure 'Top 5 Customers'
+					caption: Efstu 5 viðskiptavinir
+				measure 'Document Value'
+					caption: Gildi skjals
+				measure 'Document Count'
+					caption: Skjalatalning
+				measure 'Sales Amount and Sales Amount AVG 30D (Fiscal) by Fiscal Month Year'
+					caption: Söluupphæð og söluupphæð 30 daga meðaltal (fjárhagur) eftir fjárhagsmánuði Ári
+				measure 'Sales Overview'
+					caption: Söluyfirlit
+				measure 'Daily Sales'
+					caption: Dagleg sala
+				measure 'Moving Averages'
+					caption: Hlaupandi meðaltal
+				measure 'Moving Annual Total'
+					caption: Hlaupandi alls yfir árið
+				measure 'Previous Year MAT and MAT by Fiscal Month Year'
+					caption: Hlaupandi alls yfir fyrra ár og Hlaupandi alls yfir árið eftir fjárhagsmánuði Ári
+				measure 'Period-Over-Period Growth'
+					caption: Vöxtur milli tímabila
+				measure Month-To-Date
+					caption: Mánuður dagsetningar
+				measure '% Share of Sales'
+					caption: % hlutfall af sölu
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Item Category Code'
+					caption: Söluupphæð, sölumagn og brúttóframlegð eftir vöruflokkakóða
+				measure 'Sales by Item'
+					caption: Sala eftir vöru
+				measure 'Sales by Customer'
+					caption: Sala eftir viðskiptavini
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Customer Name'
+					caption: Söluupphæð, sölumagn og brúttóframlegð eftir nafni viðskiptavinar
+				measure 'Sales by Salesperson'
+					caption: Sala eftir sölumanni
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Salesperson Code'
+					caption: Söluupphæð, sölumagn og brúttóframlegð eftir kóða sölumanns
+				measure 'Actual vs Budget Quantity'
+					caption: Raunverulegt magn sb. v. áætlað magn
+				measure 'Actual vs Budget Amount'
+					caption: Raunveruleg upphæð sb. v. áætlaða upphæð
+				measure Sales
+					caption: Sala
+				measure 'for Business Central'
+					caption: fyrir Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: NOTAÐU, BREYTTU OG GERÐU ÞÍNAR EIGIN SKÝRSLUR
+				measure 'Sales includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Sala býður upp á innbyggðar skýrslur til að skoða gögn samstundis. Hægt er að breyta skýrslunum eða búa til eigin skýrslur frá grunni.
+				measure 'CONNECT YOUR DATA'
+					caption: TENGDU GÖGNIN ÞÍN
+				measure '1. Download the Sales Connector for Power BI'
+					caption: 1. Sækja Sales Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Stilla Dynamics 365 Business Central
+				measure 'HELP AND SUPPORT'
+					caption: HJÁLP OG STUÐNINGUR
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Kynntu þér fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð varðandi nýju skýrsluna þína.
+				measure 'OTHER POWER BI REPORTS'
+					caption: AÐRAR POWER BI SKÝRSLUR
+				measure PURCHASE
+					caption: INNKAUP
+				measure FINANCE
+					caption: FJÁRMÁL
+				measure REBATES
+					caption: EFTIRÁGREIDDIR AFSLÆTTIR
+				measure INVENTORY
+					caption: BIRGÐIR
+				measure JOBS
+					caption: VERK
+				measure 'SALES '
+					caption: "SALA "
+				measure 'Sales Amount '
+					caption: "Söluupphæð "
+				measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Month Year'
+					caption: Upphæð sölu og meðalupphæð sölu yfir 30 daga (fjárhagstímabil) eftir mánuði fjárhagsárs
+				measure 'Previous Year and Current Moving Annual Total by Fiscal Month Year'
+					caption: Hlaupandi alls yfir fyrra og núverandi ár eftir mánuði fjárhagsárs
+				measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Month Year'
+					caption: Samanburður á upphæð sölu milli tímabila (fjárhagstímabil) og upphæð sölu eftir mánuði fjárhagsárs
+				measure 'Sales Amount Month-to-Date (Fiscal) by Date'
+					caption: Upphæð sölu þennan mánuð til dagsins í dag (fjárhagstímabil) eftir dagsetningu
+				measure 'Last Refreshed'
+					caption: Síðast uppfært
+				measure 'Company Name'
+					caption: Heiti fyrirtækis
+				measure 'Sales Amount by Salesperson'
+					caption: Upphæð sölu eftir sölumanni
+				measure 'Gross Profit by Item'
+					caption: Brúttóhagnaður eftir vöru
+				measure 'Sales Amount by Customer'
+					caption: Upphæð sölu eftir viðskiptavini
+				measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Year'
+					caption: Upphæð sölu og meðalupphæð sölu yfir 30 daga (fjárhagstímabil) eftir fjárhagsári
+				measure 'Monthly Comparison of Previous Year and Current Year Moving Annual Totals'
+					caption: Mánaðarlegur samanburður á hlaupandi alls yfir fyrra og núverandi ár
+				measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Year'
+					caption: Samanburður á upphæð sölu milli tímabila (fjárhagstímabil) og upphæð sölu eftir fjárhagsári
+				measure 'Sales Amount by Item Category'
+					caption: Upphæð sölu eftir vöruflokki
+				measure 'Sales Metrics by Salesperson'
+					caption: Mælingar á sölu eftir sölumanni
+				measure 'Sales by Location'
+					caption: Sala eftir staðsetningu
+				measure 'Sales Amount by Location'
+					caption: Upphæð sölu eftir staðsetningu
+				measure 'Actual vs Budget'
+					caption: Raunverulegt samanb. v. áætlun
+				measure 'Actual vs Budget Purchase Analysis by Item Category'
+					caption: Innkaupagreining á rauntölum samanbornum við fjárhagsáætlun eftir vöruflokki
+				measure 'Sales Drillthrough'
+					caption: Köfun í sölu
+				measure 'Detailed Sales Ledger'
+					caption: Ítarlegt söluyfirlit
+				measure 'Sales Amount by Month'
+					caption: Upphæð sölu eftir mánuði
+				measure PROJECTS
+					caption: VERKEFNI
+				measure MANUFACTURING
+					caption: FRAMLEIÐSLA
+				measure 'Month-To-Date Sales Performance'
+					caption: Söluárangur þennan mánuð til dagsins í dag
+				measure 'Top Customer Sales Contributions'
+					caption: Söluframlög helstu viðskiptavina
+				measure 'Daily Sales by Date'
+					caption: Dagleg sala eftir dagsetningu
+				measure 'Daily Sales by Entry No'
+					caption: Dagleg sala eftir færslunr.
+				measure 'Daily Sales Details'
+					caption: Upplýsingar um daglega sölu
+				measure 'Moving Annual Total Details'
+					caption: Upplýsingar um hlaupandi alls yfir árið
+				measure 'Period-Over-Period Growth Details'
+					caption: Upplýsingar um vöxt milli tímabila
+				measure 'Month-To-Date Details'
+					caption: Upplýsingar um samanburð milli mánaða
+				measure 'Sales by Item Category Over Time'
+					caption: Sala eftir vöruflokkum yfir tíma
+				measure 'Sales by Item Details'
+					caption: Sala eftir vöruupplýsingum
+				measure 'Profitability by Item Category'
+					caption: Arðsemi eftir vöruflokki
+				measure 'Gross Profit Pareto Analysis by Customer'
+					caption: Pareto-greining brúttóhagnaðar eftir viðskiptavini
+				measure 'Sales by Customer Details'
+					caption: Upplýsingar um sölu eftir viðskiptavini
+				measure 'Estimated Opportunity Value'
+					caption: Áætlað gildi tækifæris
+				measure 'Sales by Salesperson Details'
+					caption: Upplýsingar um sölu eftir sölumanni
+				measure 'Profitability by Salesperson'
+					caption: Arðsemi eftir sölumanni
+				measure 'Sales Amount by Customer Location'
+					caption: Upphæð sölu eftir staðsetningu viðskiptavinar
+				measure 'Sales by Location Details'
+					caption: Upplýsingar um sölu eftir staðsetningu
+				measure 'Sales Demographics'
+					caption: Lýðfræði sölu
+				measure 'Sales Metrics by Item Category'
+					caption: Söluupplýsingar eftir vöruflokkum
+				measure 'Sales by Customer Posting Group'
+					caption: Sala eftir bókunarflokki viðskiptavinar
+				measure 'Sales by Document Type'
+					caption: Sala eftir skjalagerð
+				measure 'No. of Customers by Location'
+					caption: Fjöldi viðskiptavina eftir staðsetningu
+				measure 'Sales Decomposition'
+					caption: Sundurliðun sölu
+				measure 'Sales Amount by Item Category Description'
+					caption: Lýsing á upphæð sölu eftir vöruflokki
+				measure 'Sales Quantity by Salesperson Name'
+					caption: Sölumagn eftir nafni sölumanns
+				measure 'Key Sales Influencers'
+					caption: Helstu áhrifavaldar sölu
+				measure 'Sales Amount by Item Category Code'
+					caption: Kóði upphæðar sölu eftir vöruflokki
+				measure 'Opportunity Overview'
+					caption: Yfirlit yfir tækifæri
+				measure 'Opportunity Value by Status'
+					caption: Gildi tækifæris eftir stöðu
+				measure 'Open Opportunities by Sales Cycle'
+					caption: Opin tækifæri eftir söluferli
+				measure 'Open Opportunities by Sales Cycle Stage'
+					caption: Opin tækifæri eftir stigi söluferlis
+				measure 'Estimated Value by Salesperson'
+					caption: Áætlað gildi eftir sölumanni
+				measure 'Estimated Value by Contact Location'
+					caption: Áætlað gildi eftir staðsetningu tengiliðar
+				measure 'Sales Quote Overview'
+					caption: Yfirlit sölutilboðs
+				measure 'Sales Quotes by Customer Details'
+					caption: Sölutilboð eftir upplýsingum um viðskiptavin
+				measure 'Sales Quote Amount by Salesperson'
+					caption: Upphæð sölutilboðs eftir sölumanni
+				measure 'Sales Quote Amount Over Time'
+					caption: Upphæð sölutilboðs yfir tíma
+				measure 'Sales Quote Amount by Item Category Code'
+					caption: Upphæð sölutilboðs eftir vöruflokkskóða
+				measure 'Sales Returns Overview'
+					caption: Yfirlit söluvöruskila
+				measure 'Sales Returns by Customer'
+					caption: Söluvöruskil eftir viðskiptavini
+				measure 'Sales Return Amount by Reason Code'
+					caption: Upphæð söluskila eftir ástæðukóða
+				measure 'Sales Return Amount Over Time'
+					caption: Upphæð söluskila yfir tíma
+				measure 'Sales Return Amount by Item Category Code'
+					caption: Upphæð söluskila eftir vöruflokkskóða
+				measure 'Sales Opportunity Analysis'
+					caption: Greining sölutækifæra
+				measure 'Estimated Value by Opportunity'
+					caption: Metið gildi eftir tækifæri
+				measure 'Opportunities by Closed Opportunity Code'
+					caption: Tækifæri eftir kóða lokunar tækifæris
+				measure 'Opportunities by Salesperson Details'
+					caption: Tækifæri eftir upplýsingum um sölumann
+				measure 'Opportunities by Closed Status'
+					caption: Tækifæri eftir lokaðri stöðu
+				measure 'Sales Drillthrough Details'
+					caption: Upplýsingar um köfun í sölu
+			table COMPANY
+				caption: FYRIRTÆKI
+				measure 'Company Label'
+					caption: Merki fyrirtækis
+			table 'Sales Budget Name'
+				caption: Heiti söluáætlunar
+				column 'Sales Budget Description'
+					caption: Lýsing söluáætlunar
+			table Opportunities
+				caption: Tækifæri
+				column 'Opportunity No.'
+					caption: Númer tækifæris
+				column 'Opportunity Description'
+					caption: Lýsing
+				column 'Opportunity Creation Date'
+					caption: Stofnunardagsetning tækifæris
+				column 'Opportunity Status'
+					caption: Staða
+				column 'Opportunity Closed'
+					caption: Lokað
+				column 'Opportunity Sales Document No.'
+					caption: Nr. söluskjals
+				column 'Opportunity Sales Document Type'
+					caption: Tegund söluskjals
+				measure 'Opportunity Sales Quote Amount'
+					caption: Upphæð sölutilboðs tækifæris
+			table 'Opportunity Entries'
+				caption: Tækifærisfærslur
+				column 'Opportunity No.'
+					caption: Númer tækifæris
+				column 'Opportunity Entry No.'
+					caption: Tækifærisfærsla nr.
+				column Active
+					caption: Virkt
+				column 'Action Taken'
+					caption: Tekin aðgerð
+				column 'Date of Change'
+					caption: Dags. breytingar
+				column 'Estimated Close Date'
+					caption: Væntanleg lokunardagsetning
+				column 'Completed (%)'
+					caption: Lokið (%)
+				column 'Chances of Success (%)'
+					caption: Líkur á árangri (%)
+				column 'Probability (%)'
+					caption: Líkindi (%)
+				column 'Contact No.'
+					caption: Nr. tengiliðar
+				measure 'Calculated Current Value'
+					caption: Reiknað núverandi virði
+				measure 'Estimated Value'
+					caption: Áætlað virði
+				measure 'No. of Opportunities'
+					caption: Fjöldi tækifæra
+				measure 'Active Calculated Current Value'
+					caption: Virkt reiknað núverandi virði
+				measure 'Active Estimated Value'
+					caption: Virkt áætlað gildi
+				measure 'Average Chance of Success %'
+					caption: Meðallíkur á árangri %
+				measure 'Average Completed %'
+					caption: Meðaltal lokið %
+				measure 'Average Probability %'
+					caption: Meðaltalslíkur %
+				measure 'Opportunity Entries Back Link'
+					caption: Baktengill tækifærisfærslna
+				measure 'No. of Won Opportunities'
+					caption: Fjöldi unnina tækifæra
+				measure 'No. of Lost Opportunities'
+					caption: Fjöldi tapaðra tækifæra
+				measure 'Win/Loss %'
+					caption: Sigur/tap %
+				measure 'Active Chance of Success %'
+					caption: Virkar líkur á árangri %
+			table Contacts
+				caption: Tengiliðir
+				column 'Contact No.'
+					caption: Nr. tengiliðar
+				column 'Contact Name'
+					caption: Nafn tengiliðar
+				column 'Contact Company No.'
+					caption: Fyrirtækisnr.
+				column 'Contact Company Name'
+					caption: Heiti fyrirtækis
+				column 'Contact Address'
+					caption: Netfang tengiliðar
+				column 'Contact Address 2'
+					caption: Aðsetur tengiliðar 2
+				column 'Contact City'
+					caption: Tengiliðaborg
+				column 'Contact Post Code'
+					caption: Póstnúmer tengiliðar
+				column 'Contact County'
+					caption: Tengiliðasýsla
+				column 'Contact Country/Region Code'
+					caption: Lands/svæðiskóði tengiliðar
+				column 'Contact No. & Name'
+					caption: Tengiliðanr. & nafn
+				column 'Contact Type'
+					caption: Gerð tengiliðar
+			table 'Reason Codes'
+				caption: Ástæðukóðar
+				column 'Return Reason Code'
+					caption: Ástæðukóði vöruskila
+				column 'Return Reason Description'
+					caption: Skila skal ástæðulýsingu
+			table 'Item Category'
+				caption: Vöruflokkur
+				column 'Item Category Code'
+					caption: Kóði yfirflokks vöru
+				column 'Item Category Description'
+					caption: Lýsing vöruflokks
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Stigveldi vöruflokkskóða
+					level 'Item Category Code Level 1'
+						caption: Vöruflokkakóði af stigi 1
+					level 'Item Category Code Level 2'
+						caption: Vöruflokkakóði af stigi 2
+					level 'Item Category Code Level 3'
+						caption: Vöruflokkakóði af stigi 3
+					level 'Item Category Code'
+						caption: Kóði yfirflokks vöru
+			table 'Pareto Scale'
+				caption: Pareto-kvarði
+				column Value
+					caption: Gildi
+			table 'Sales Cycle Stages'
+				caption: Söluferlisþrep
+				column 'Sales Cycle Code'
+					caption: Kóði söluferlis
+				column 'Sales Cycle Stage'
+					caption: Söluferlisþrep
+				column 'Sales Cycle Stage Description'
+					caption: Lýsing söluferlisþreps
+			table 'Close Opportunity Codes'
+				caption: Kóðar lokunar tækifæris
+				column 'Close Opportunity Code'
+					caption: Kóði lokunar tækifæris
+				column 'Close Opportunity Type'
+					caption: Lokunargerð tækifæris
+				column 'Close Opportunity Description'
+					caption: Lýsing lokunar tækifæris
+

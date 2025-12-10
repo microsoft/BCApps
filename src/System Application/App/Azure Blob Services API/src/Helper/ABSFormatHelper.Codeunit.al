@@ -6,8 +6,8 @@
 namespace System.Azure.Storage;
 
 using System;
-using System.Utilities;
 using System.Text;
+using System.Utilities;
 
 codeunit 9044 "ABS Format Helper"
 {

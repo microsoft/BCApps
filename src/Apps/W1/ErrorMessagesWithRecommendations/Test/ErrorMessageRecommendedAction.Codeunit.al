@@ -5,10 +5,10 @@
 
 namespace Microsoft.Test.Shared.Error;
 
-using Microsoft.Shared.Error;
+using Microsoft.Finance.Dimension;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Finance.Dimension;
+using Microsoft.Shared.Error;
 using System.TestLibraries.Utilities;
 using System.Utilities;
 

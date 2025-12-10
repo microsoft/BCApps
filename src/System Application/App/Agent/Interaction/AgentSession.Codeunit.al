@@ -17,23 +17,21 @@ codeunit 4312 "Agent Session"
     /// <returns>
     /// True if the current session is an agent session, false otherwise.
     /// </returns>
-    [Scope('OnPrem')]
     procedure IsAgentSession(var ActiveAgentMetadataProvider: Enum "Agent Metadata Provider"): Boolean
     var
-        AgentSessionImpl: Codeunit "Agent Session Impl.";
+        AgentUtilities: Codeunit "Agent Utilities";
     begin
-        exit(AgentSessionImpl.IsAgentSession(ActiveAgentMetadataProvider));
+        exit(AgentUtilities.IsAgentSession(ActiveAgentMetadataProvider));
     end;
 
     /// <summary>
     /// Get the agent task ID related to the current session, if any, -1 otherwise.
     /// </summary>
     /// <returns>The agent task ID, if any, -1 otherwise.</returns>
-    [Scope('OnPrem')]
     procedure GetCurrentSessionAgentTaskId(): BigInteger
     var
-        AgentSessionImpl: Codeunit "Agent Session Impl.";
+        AgentUtilities: Codeunit "Agent Utilities";
     begin
-        exit(AgentSessionImpl.GetCurrentSessionAgentTaskId());
+        exit(AgentUtilities.GetCurrentSessionAgentTaskId());
     end;
 }

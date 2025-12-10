@@ -1,13 +1,13 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
-using Microsoft.Finance.Dimension;
-using Microsoft.Finance.Currency;
-using Microsoft.Finance.GeneralLedger.Account;
+using System.Utilities;
 
 table 8059 "Subscription Line"
 {
@@ -397,6 +397,7 @@ table 8059 "Subscription Line"
             FieldClass = FlowField;
             CalcFormula = lookup("Subscription Header".Quantity where("No." = field("Subscription Header No.")));
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(40; "Create Contract Deferrals"; Enum "Create Contract Deferrals")
         {
@@ -539,6 +540,7 @@ table 8059 "Subscription Line"
             DataClassification = CustomerContent;
             Editable = false;
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(8003; "Supplier Reference Entry No."; Integer)
         {
@@ -802,21 +804,22 @@ table 8059 "Subscription Line"
     end;
 
     internal procedure UpdateTermUntilUsingExtensionTerm(): Boolean
+    var
+        PreviousTermUntil: Date;
     begin
-        if (IsExtensionTermEmpty() or
-            (("Term Until" = 0D) and ("Subscription Line Start Date" = 0D))) then
+        if IsExtensionTermEmpty() or
+            (("Term Until" = 0D) and ("Subscription Line Start Date" = 0D))
+        then
             exit(false);
-        if "Term Until" <> 0D then begin
-            if DateTimeManagement.IsLastDayOfMonth("Term until") then begin
-                "Term Until" := CalcDate("Extension Term", "Term Until");
-                DateTimeManagement.MoveDateToLastDayOfMonth("Term until");
-            end else
-                "Term Until" := CalcDate("Extension Term", "Term Until");
-        end else begin
-            "Term Until" := CalcDate("Extension Term", "Subscription Line Start Date");
-            if DateTimeManagement.IsLastDayOfMonth("Subscription Line Start Date") then
-                DateTimeManagement.MoveDateToLastDayOfMonth("Term until");
+        if "Term Until" <> 0D then
+            PreviousTermUntil := "Term Until"
+        else begin
+            PreviousTermUntil := "Subscription Line Start Date";
+            PreviousTermUntil := CalcDate('<-1D>', PreviousTermUntil);
         end;
+        "Term Until" := CalcDate("Extension Term", PreviousTermUntil);
+        if DateTimeManagement.IsLastDayOfMonth(PreviousTermUntil) then
+            DateTimeManagement.MoveDateToLastDayOfMonth("Term until");
         exit(true);
     end;
 
@@ -1684,6 +1687,7 @@ table 8059 "Subscription Line"
         Rec.Modify(true);
         Rec.SetSkipArchiving(false);
         Rec.CreateServiceCommitmentArchive(ServiceCommitmentArchive, xServiceCommitment, CalcDate('<-1D>', ContractPriceUpdateLine."Perform Update On"), Enum::"Type Of Price Update"::"Price Update");
+        OnAfterUpdateServiceCommitmentFromContractPriceUpdateLine(Rec, ContractPriceUpdateLine);
     end;
 
     internal procedure ServiceCommitmentArchiveExistsForPeriodExists(var ServiceCommitmentArchive: Record "Subscription Line Archive"; RecurringBillingFrom: Date; RecurringBillingTo: Date): Boolean
@@ -1769,7 +1773,7 @@ table 8059 "Subscription Line"
         exit(not UsageDataBilling.IsEmpty());
     end;
 
-    local procedure SetUsageDataBillingFilters(var UsageDataBilling: Record "Usage Data Billing"; BillingFromDate: Date; BillingToDate: Date)
+    internal procedure SetUsageDataBillingFilters(var UsageDataBilling: Record "Usage Data Billing"; BillingFromDate: Date; BillingToDate: Date)
     begin
         UsageDataBilling.SetRange("Subscription Header No.", Rec."Subscription Header No.");
         UsageDataBilling.SetRange("Subscription Line Entry No.", Rec."Entry No.");
@@ -2078,6 +2082,11 @@ table 8059 "Subscription Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckServiceDates(ServiceStartDate: Date; ServiceEndDate: Date; NextBillingDate: Date; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdateServiceCommitmentFromContractPriceUpdateLine(var SubscriptionLine: Record "Subscription Line"; SubContractPriceUpdateLine: Record "Sub. Contr. Price Update Line")
     begin
     end;
 }

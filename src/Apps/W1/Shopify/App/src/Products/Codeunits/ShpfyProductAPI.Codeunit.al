@@ -89,6 +89,7 @@ codeunit 30176 "Shpfy Product API"
             end;
             GraphQuery.Append(']');
         end;
+        AddDefaultCollectionsToGraphQuery(ShopifyProduct, GraphQuery);
         GraphQuery.Append('}) ');
         GraphQuery.Append('{product {legacyResourceId, onlineStoreUrl, onlineStorePreviewUrl, createdAt, updatedAt, tags}, userErrors {field, message}}');
         GraphQuery.Append('}"}');
@@ -112,6 +113,42 @@ codeunit 30176 "Shpfy Product API"
         PublishProduct(NewShopifyProduct);
 
         exit(NewShopifyProduct.Id);
+    end;
+
+    local procedure AddDefaultCollectionsToGraphQuery(ShopifyProduct: Record "Shpfy Product"; var GraphQuery: TextBuilder)
+    var
+        Item: Record Item;
+        ProductCollection: Record "Shpfy Product Collection";
+        CollectionsBuilder: TextBuilder;
+        ItemFilter: Text;
+    begin
+        ProductCollection.SetRange("Shop Code", ShopifyProduct."Shop Code");
+        ProductCollection.SetRange(Default, true);
+        if not ProductCollection.FindSet() then
+            exit;
+
+        repeat
+            ItemFilter := ProductCollection.GetItemFilter();
+            if ItemFilter <> '' then begin
+                Item.Reset();
+                Item.SetView(ItemFilter);
+                Item.SetRange(SystemId, ShopifyProduct."Item SystemId");
+                if Item.IsEmpty() then
+                    continue;
+            end;
+            if CollectionsBuilder.Length > 0 then
+                CollectionsBuilder.Append(', ');
+            CollectionsBuilder.Append('\"gid://shopify/Collection/');
+            CollectionsBuilder.Append(Format(ProductCollection.Id));
+            CollectionsBuilder.Append('\"');
+        until ProductCollection.Next() = 0;
+
+        if CollectionsBuilder.Length = 0 then
+            exit;
+
+        GraphQuery.Append(', collectionsToJoin: [');
+        GraphQuery.Append(CollectionsBuilder.ToText());
+        GraphQuery.Append(']');
     end;
 
     local procedure CreateImageUploadUrl(Item: Record Item; var Url: Text; var ResourceUrl: Text; var TenantMedia: Record "Tenant Media"): boolean

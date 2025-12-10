@@ -5,7 +5,6 @@
 
 namespace System.MCP;
 
-using System.Environment;
 #if not CLEAN28
 using System.Environment.Configuration;
 #endif
@@ -18,11 +17,24 @@ codeunit 8351 "MCP Config Implementation"
     InherentPermissions = X;
 
     var
+        DefaultConfigCannotBeDeactivatedErr: Label 'The default configuration cannot be deactivated.';
+        DefaultConfigCannotBeDeletedErr: Label 'The default configuration cannot be deleted.';
+        DynamicToolModeCannotBeDisabledErr: Label 'Dynamic tool mode cannot be disabled for the default configuration.';
+        DiscoverReadOnlyObjectsCannotBeDisabledErr: Label 'Access to all read-only objects cannot be disabled for the default configuration.';
+        CreateUpdateDeleteNotAllowedErr: Label 'Create, update and delete tools are not allowed for this MCP configuration.';
+        ToolsCannotBeAddedToDefaultConfigErr: Label 'Tools cannot be added to the default configuration.';
+        PageNotFoundErr: Label 'Page not found.';
+        InvalidPageTypeErr: Label 'Only API pages are supported.';
+        InvalidAPIVersionErr: Label 'Only API v2.0 pages are supported.';
+        DefaultMCPConfigurationDescriptionLbl: Label 'Default MCP configuration';
+        DynamicToolModeRequiredErr: Label 'Dynamic tool mode needs to be enabled to discover read-only objects.';
         SettingConfigurationActiveLbl: Label 'Setting MCP configuration %1 Active to %2', Comment = '%1 - configuration ID, %2 - active', Locked = true;
         SettingConfigurationAllowProdChangesLbl: Label 'Setting MCP configuration %1 AllowProdChanges to %2', Comment = '%1 - configuration ID, %2 - allow production changes', Locked = true;
         DeletedConfigurationLbl: Label 'Deleted MCP configuration %1', Comment = '%1 - configuration ID', Locked = true;
         SettingConfigurationEnableDynamicToolModeLbl: Label 'Setting MCP configuration %1 EnableDynamicToolMode to %2', Comment = '%1 - configuration ID, %2 - enable dynamic tool mode', Locked = true;
+        SettingConfigurationDiscoverReadOnlyObjectsLbl: Label 'Setting MCP configuration %1 DiscoverReadOnlyObjects to %2', Comment = '%1 - configuration ID, %2 - allow read-only API discovery', Locked = true;
 
+    #region Configurations
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -51,21 +63,41 @@ codeunit 8351 "MCP Config Implementation"
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             exit;
 
+        if not Active and IsDefaultConfiguration(MCPConfiguration) then
+            Error(DefaultConfigCannotBeDeactivatedErr);
+
         MCPConfiguration.Active := Active;
         MCPConfiguration.Modify();
         Session.LogMessage('0000QE9', StrSubstNo(SettingConfigurationActiveLbl, ConfigId, Active), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
     end;
 
-    internal procedure AllowProdChanges(ConfigId: Guid; Allow: Boolean)
+    internal procedure AllowCreateUpdateDeleteTools(ConfigId: Guid; Allow: Boolean)
     var
         MCPConfiguration: Record "MCP Configuration";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             exit;
 
+        if not Allow then
+            DisableCreateUpdateDeleteToolsInConfig(ConfigId);
+
         MCPConfiguration.AllowProdChanges := Allow;
         MCPConfiguration.Modify();
         Session.LogMessage('0000QEA', StrSubstNo(SettingConfigurationAllowProdChangesLbl, ConfigId, Allow), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
+    end;
+
+    internal procedure DisableCreateUpdateDeleteToolsInConfig(ConfigId: Guid)
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+    begin
+        MCPConfigurationTool.SetRange(ID, ConfigId);
+        if MCPConfigurationTool.IsEmpty() then
+            exit;
+
+        MCPConfigurationTool.ModifyAll("Allow Create", false);
+        MCPConfigurationTool.ModifyAll("Allow Modify", false);
+        MCPConfigurationTool.ModifyAll("Allow Delete", false);
+        MCPConfigurationTool.ModifyAll("Allow Bound Actions", false);
     end;
 
     internal procedure DeleteConfiguration(ConfigId: Guid)
@@ -74,6 +106,9 @@ codeunit 8351 "MCP Config Implementation"
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
             exit;
+
+        if IsDefaultConfiguration(MCPConfiguration) then
+            Error(DefaultConfigCannotBeDeletedErr);
 
         MCPConfiguration.Delete();
         Session.LogMessage('0000QEB', StrSubstNo(DeletedConfigurationLbl, ConfigId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
@@ -129,11 +164,88 @@ codeunit 8351 "MCP Config Implementation"
         until SourceMCPConfigurationTool.Next() = 0;
     end;
 
-    internal procedure CreateAPITool(ConfigId: Guid; APIPageId: Integer): Guid
+    internal procedure EnableDynamicToolMode(ConfigId: Guid; Enable: Boolean)
     var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            exit;
+
+        if not Enable and IsDefaultConfiguration(MCPConfiguration) then
+            Error(DynamicToolModeCannotBeDisabledErr);
+
+        MCPConfiguration.EnableDynamicToolMode := Enable;
+        if not Enable then
+            MCPConfiguration.DiscoverReadOnlyObjects := false;
+        MCPConfiguration.Modify();
+        Session.LogMessage('0000QEC', StrSubstNo(SettingConfigurationEnableDynamicToolModeLbl, ConfigId, Enable), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
+    end;
+
+    internal procedure EnableDiscoverReadOnlyObjects(ConfigId: Guid; Enable: Boolean)
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            exit;
+
+        if not Enable and IsDefaultConfiguration(MCPConfiguration) then
+            Error(DiscoverReadOnlyObjectsCannotBeDisabledErr);
+
+        if Enable and not MCPConfiguration.EnableDynamicToolMode then
+            Error(DynamicToolModeRequiredErr);
+
+        MCPConfiguration.DiscoverReadOnlyObjects := Enable;
+        MCPConfiguration.Modify();
+        Session.LogMessage('0000QED', StrSubstNo(SettingConfigurationDiscoverReadOnlyObjectsLbl, ConfigId, Enable), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
+    end;
+
+    local procedure CheckAllowCreateUpdateDeleteTools(ConfigId: Guid)
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            exit;
+
+        if not MCPConfiguration.AllowProdChanges then
+            Error(CreateUpdateDeleteNotAllowedErr);
+    end;
+
+    internal procedure CreateDefaultConfiguration()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if not IsNullGuid(GetConfigurationIdByName('')) then
+            exit;
+
+        MCPConfiguration.Name := '';
+        MCPConfiguration.Description := DefaultMCPConfigurationDescriptionLbl;
+        MCPConfiguration.Active := true;
+        MCPConfiguration.EnableDynamicToolMode := true;
+        MCPConfiguration.DiscoverReadOnlyObjects := true;
+        MCPConfiguration.AllowProdChanges := true;
+        MCPConfiguration.Insert();
+    end;
+
+    internal procedure IsDefaultConfiguration(MCPConfiguration: Record "MCP Configuration"): Boolean
+    begin
+        exit(MCPConfiguration.Name = '');
+    end;
+    #endregion
+
+    #region Tools
+    internal procedure CreateAPITool(ConfigId: Guid; APIPageId: Integer; ValidateAPIPublisher: Boolean): Guid
+    var
+        MCPConfiguration: Record "MCP Configuration";
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
-        ValidateAPITool(APIPageId);
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            exit;
+
+        if IsDefaultConfiguration(MCPConfiguration) then
+            Error(ToolsCannotBeAddedToDefaultConfigErr);
+
+        ValidateAPITool(APIPageId, ValidateAPIPublisher);
+
         MCPConfigurationTool.ID := ConfigId;
         MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
         MCPConfigurationTool."Object ID" := APIPageId;
@@ -151,18 +263,6 @@ codeunit 8351 "MCP Config Implementation"
             exit(MCPConfigurationTool.SystemId);
 
         exit(EmptyGuid);
-    end;
-
-    internal procedure EnableDynamicToolMode(ConfigId: Guid; Enable: Boolean)
-    var
-        MCPConfiguration: Record "MCP Configuration";
-    begin
-        if not MCPConfiguration.GetBySystemId(ConfigId) then
-            exit;
-
-        MCPConfiguration.EnableDynamicToolMode := Enable;
-        MCPConfiguration.Modify();
-        Session.LogMessage('0000QEC', StrSubstNo(SettingConfigurationEnableDynamicToolModeLbl, ConfigId, Enable), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());
     end;
 
     internal procedure DeleteTool(ToolId: Guid)
@@ -194,7 +294,7 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         if Allow then
-            CheckAllowProdChanges(MCPConfigurationTool.ID);
+            CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
 
         MCPConfigurationTool."Allow Create" := Allow;
         MCPConfigurationTool.Modify();
@@ -208,7 +308,7 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         if Allow then
-            CheckAllowProdChanges(MCPConfigurationTool.ID);
+            CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
 
         MCPConfigurationTool."Allow Modify" := Allow;
         MCPConfigurationTool.Modify();
@@ -222,7 +322,7 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         if Allow then
-            CheckAllowProdChanges(MCPConfigurationTool.ID);
+            CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
 
         MCPConfigurationTool."Allow Delete" := Allow;
         MCPConfigurationTool.Modify();
@@ -236,36 +336,78 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         if Allow then
-            CheckAllowProdChanges(MCPConfigurationTool.ID);
+            CheckAllowCreateUpdateDeleteTools(MCPConfigurationTool.ID);
 
         MCPConfigurationTool."Allow Bound Actions" := Allow;
         MCPConfigurationTool.Modify();
     end;
 
-    internal procedure LookupAPITools(var PageId: Integer)
+    internal procedure LookupAPITools(var PageMetadata: Record "Page Metadata"): Boolean
     var
-        PageMetadata: Record "Page Metadata";
+        MCPAPIConfigToolLookup: Page "MCP API Config Tool Lookup";
     begin
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
         PageMetadata.SetFilter(APIPublisher, '<>%1', 'microsoft');
         PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
 
-        if Page.RunModal(Page::"MCP API Config Tool Lookup", PageMetadata) = Action::LookupOK then
-            PageId := PageMetadata.ID;
+        MCPAPIConfigToolLookup.LookupMode := true;
+        MCPAPIConfigToolLookup.SetTableView(PageMetadata);
+        if MCPAPIConfigToolLookup.RunModal() <> Action::LookupOK then
+            exit(false);
+
+        MCPAPIConfigToolLookup.SetSelectionFilter(PageMetadata);
+        exit(true);
     end;
 
-    internal procedure ValidateAPITool(PageId: Integer)
+    internal procedure GetAPIPublishers(var MCPAPIPublisherGroup: Record "MCP API Publisher Group")
     var
         PageMetadata: Record "Page Metadata";
-        PageNotFoundErr: Label 'Page not found.';
-        InvalidPageTypeErr: Label 'Only API pages are supported.';
-        InvalidAPIVersionErr: Label 'Only standard v2.0 APIs and custom APIs are supported.';
+    begin
+        PageMetadata.SetLoadFields(PageType, APIPublisher, APIGroup);
+        PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
+        PageMetadata.SetFilter(APIPublisher, '<>%1&<>%2', '', 'microsoft');
+        if not PageMetadata.FindSet() then
+            exit;
+
+        repeat
+            if MCPAPIPublisherGroup.Get(PageMetadata.APIPublisher, PageMetadata.APIGroup) then
+                continue;
+            MCPAPIPublisherGroup."API Publisher" := PageMetadata.APIPublisher;
+            MCPAPIPublisherGroup."API Group" := PageMetadata.APIGroup;
+            MCPAPIPublisherGroup.Insert();
+        until PageMetadata.Next() = 0;
+    end;
+
+    internal procedure LookupAPIPublisher(var MCPAPIPublisherGroup: Record "MCP API Publisher Group"; var APIPublisher: Text; var APIGroup: Text)
+    begin
+        if Page.RunModal(Page::"MCP API Publisher Lookup", MCPAPIPublisherGroup) = Action::LookupOK then begin
+            APIPublisher := MCPAPIPublisherGroup."API Publisher";
+            APIGroup := MCPAPIPublisherGroup."API Group";
+        end;
+    end;
+
+    internal procedure LookupAPIGroup(var MCPAPIPublisherGroup: Record "MCP API Publisher Group"; APIPublisher: Text; var APIGroup: Text)
+    begin
+        MCPAPIPublisherGroup.SetRange("API Publisher", APIPublisher);
+        if MCPAPIPublisherGroup.IsEmpty() then
+            exit;
+
+        if Page.RunModal(Page::"MCP API Publisher Lookup", MCPAPIPublisherGroup) = Action::LookupOK then
+            APIGroup := MCPAPIPublisherGroup."API Group";
+    end;
+
+    internal procedure ValidateAPITool(PageId: Integer; ValidateAPIPublisher: Boolean)
+    var
+        PageMetadata: Record "Page Metadata";
     begin
         if not PageMetadata.Get(PageId) then
             Error(PageNotFoundErr);
 
         if PageMetadata.PageType <> PageMetadata.PageType::API then
             Error(InvalidPageTypeErr);
+
+        if not ValidateAPIPublisher then
+            exit;
 
         if PageMetadata.APIPublisher = 'microsoft' then
             Error(InvalidAPIVersionErr);
@@ -301,7 +443,9 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         repeat
-            CreateAPITool(ConfigId, PageMetadata.ID);
+            if CheckAPIToolExists(ConfigId, PageMetadata.ID) then
+                continue;
+            CreateAPITool(ConfigId, PageMetadata.ID, false);
         until PageMetadata.Next() = 0;
     end;
 
@@ -317,8 +461,20 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         repeat
-            CreateAPITool(ConfigId, PageMetadata.ID);
+            if CheckAPIToolExists(ConfigId, PageMetadata.ID) then
+                continue;
+            CreateAPITool(ConfigId, PageMetadata.ID, false);
         until PageMetadata.Next() = 0;
+    end;
+
+    local procedure CheckAPIToolExists(ConfigId: Guid; PageId: Integer): Boolean
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+    begin
+        MCPConfigurationTool.SetRange(ID, ConfigId);
+        MCPConfigurationTool.SetRange("Object Type", MCPConfigurationTool."Object Type"::Page);
+        MCPConfigurationTool.SetRange("Object ID", PageId);
+        exit(not MCPConfigurationTool.IsEmpty());
     end;
 
     internal procedure GetObjectCaption(ToolId: Guid): Text[100]
@@ -337,22 +493,7 @@ codeunit 8351 "MCP Config Implementation"
             exit(CopyStr(AllObjWithCaption."Object Name", 1, 100));
         exit('');
     end;
-
-    local procedure CheckAllowProdChanges(ConfigId: Guid)
-    var
-        MCPConfiguration: Record "MCP Configuration";
-        EnvironmentInformation: Codeunit "Environment Information";
-        ProdChangesNotAllowedErr: Label 'Production changes are not allowed for this MCP configuration.';
-    begin
-        if not MCPConfiguration.GetBySystemId(ConfigId) then
-            exit;
-
-        if EnvironmentInformation.IsSandbox() then
-            exit;
-
-        if not MCPConfiguration.AllowProdChanges then
-            Error(ProdChangesNotAllowedErr);
-    end;
+    #endregion
 
 #if not CLEAN28
     internal procedure IsFeatureEnabled(): Boolean

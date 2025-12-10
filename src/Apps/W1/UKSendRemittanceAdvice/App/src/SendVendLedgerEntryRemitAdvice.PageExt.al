@@ -5,8 +5,8 @@
 
 namespace Microsoft.Purchases.Vendor.RemittanceAdvice;
 
-using Microsoft.Purchases.Payables;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Purchases.Payables;
 #if CLEAN28
 using Microsoft.Finance.GeneralLedger.Journal;
 #endif

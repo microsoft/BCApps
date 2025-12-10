@@ -5,14 +5,14 @@
 namespace Microsoft.EServices.EDocument.Format;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.eServices.EDocument.Helpers;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
-using Microsoft.eServices.EDocument.Helpers;
-using System.Utilities;
-using System.Text;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
 using System.AI;
 using System.AI.DocumentIntelligence;
+using System.Text;
+using System.Utilities;
 
 codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, IStructuredFormatReader, IStructuredDataType
 {

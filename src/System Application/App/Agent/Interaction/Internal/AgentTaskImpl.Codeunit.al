@@ -5,8 +5,8 @@
 
 namespace System.Agents;
 
-using System.Integration;
 using System.Environment;
+using System.Integration;
 
 codeunit 4300 "Agent Task Impl."
 {
@@ -191,6 +191,21 @@ codeunit 4300 "Agent Task Impl."
         exit((AgentTask.Status = AgentTask.Status::Paused) or (AgentTask.Status = AgentTask.Status::Completed));
     end;
 
+    procedure IsTaskRunning(var AgentTask: Record "Agent Task"): Boolean
+    begin
+        exit(AgentTask.Status = AgentTask.Status::Running);
+    end;
+
+    procedure IsTaskCompleted(var AgentTask: Record "Agent Task"): Boolean
+    begin
+        exit(AgentTask.Status = AgentTask.Status::Completed);
+    end;
+
+    procedure IsTaskStopped(var AgentTask: Record "Agent Task"): Boolean
+    begin
+        exit((AgentTask.Status = AgentTask.Status::"Stopped by User") or (AgentTask.Status = AgentTask.Status::"Stopped by System"));
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetAgentTaskMessagePageId, '', true, true)]
     local procedure OnGetAgentTaskMessagePageId(var PageId: Integer)
     begin
@@ -214,13 +229,6 @@ codeunit 4300 "Agent Task Impl."
 #pragma warning restore AA0139
         PageSummaryParameters."Include Binary Data" := false;
         Summary := PageSummaryProvider.GetPageSummary(PageSummaryParameters);
-    end;
-
-    procedure GetSessionAgentTaskId(): BigInteger
-    var
-        AgentALFunctions: DotNet AgentALFunctions;
-    begin
-        exit(AgentALFunctions.GetSessionAgentTaskId());
     end;
 
     var

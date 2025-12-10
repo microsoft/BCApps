@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System;
+
 codeunit 4311 "Agent Task Msg. Builder Impl."
 {
     Access = Internal;
@@ -21,6 +23,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         GlobalMessageText: Text;
         GlobalRequiresReview: Boolean;
         GlobalIgnoreAttachment: Boolean;
+        GlobalSkipSanitizeMessage: Boolean;
 
     [Scope('OnPrem')]
     procedure Initialize(MessageText: Text): codeunit "Agent Task Msg. Builder Impl."
@@ -34,10 +37,10 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     [Scope('OnPrem')]
     procedure Initialize(From: Text[250]; MessageText: Text): codeunit "Agent Task Msg. Builder Impl."
     begin
-        GlobalFrom := From;
-        GlobalMessageText := MessageText;
         GlobalRequiresReview := true;
         GlobalIgnoreAttachment := false;
+        GlobalFrom := From;
+        GlobalMessageText := MessageText;
         exit(this);
     end;
 
@@ -52,6 +55,13 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     procedure SetIgnoreAttachment(IgnoreAttachment: Boolean): codeunit "Agent Task Msg. Builder Impl."
     begin
         GlobalIgnoreAttachment := IgnoreAttachment;
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
+    procedure SetSkipMessageSanitization(SkipSanitizeMessage: Boolean): codeunit "Agent Task Msg. Builder Impl."
+    begin
+        GlobalSkipSanitizeMessage := SkipSanitizeMessage;
         exit(this);
     end;
 
@@ -85,9 +95,12 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         AgentMessageImpl: Codeunit "Agent Message Impl.";
         IgnoreAttachment: Boolean;
+        MessageText: Text;
     begin
         VerifyMandatoryFieldsSet();
-        GlobalAgentTaskMessage := AgentTaskImpl.AddMessage(GlobalFrom, GlobalMessageText, GlobalMessageExternalID, GlobalAgentTask, GlobalRequiresReview);
+
+        MessageText := GlobalSkipSanitizeMessage ? GlobalMessageText : SanitizeMessage(GlobalMessageText);
+        GlobalAgentTaskMessage := AgentTaskImpl.AddMessage(GlobalFrom, MessageText, GlobalMessageExternalID, GlobalAgentTask, GlobalRequiresReview);
         TempAgentTaskFileToAttach.Reset();
         TempAgentTaskFileToAttach.SetAutoCalcFields(Content);
         if TempAgentTaskFileToAttach.FindSet() then
@@ -170,6 +183,20 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         exit(TempAgentTaskFileToAttach);
     end;
 
+    [Scope('OnPrem')]
+    procedure GetAttachments(var TempAttachments: record "Agent Task File" temporary): Boolean
+    begin
+        if not TempAgentTaskFileToAttach.FindSet() then
+            exit(false);
+
+        repeat
+            TempAgentTaskFileToAttach.Copy(TempAttachments);
+            TempAttachments.Insert();
+        until TempAgentTaskFileToAttach.Next() = 0;
+
+        exit(true);
+    end;
+
     local procedure VerifyMandatoryFieldsSet()
     var
         GlobalFromIsMandatoryErr: Label 'The From field is mandatory. Please set it before creating the task message.';
@@ -248,5 +275,13 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         if FileName.EndsWith('.txt') then
             exit('text/plain');
         exit('');
+    end;
+
+    internal procedure SanitizeMessage(MessageBody: Text): Text
+    var
+        AppHTMLSanitizer: DotNet AppHtmlSanitizer;
+    begin
+        AppHTMLSanitizer := AppHTMLSanitizer.AppHtmlSanitizer();
+        exit(AppHTMLSanitizer.SanitizeEmail(MessageBody));
     end;
 }

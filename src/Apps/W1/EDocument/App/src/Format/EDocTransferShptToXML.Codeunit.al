@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Format;
 
-using System.Utilities;
-using Microsoft.Inventory.Transfer;
-using System.Xml;
-using Microsoft.Foundation.Company;
-using System.Text;
 using Microsoft.eServices.EDocument;
+using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Inventory.Transfer;
+using System.Text;
+using System.Utilities;
+using System.Xml;
 
 codeunit 6127 "E-Doc. Transfer Shpt. To XML"
 {

@@ -6,8 +6,8 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
 using Microsoft.Sales.Customer;
+using System.TestLibraries.Utilities;
 
 codeunit 139645 "Shpfy Catalog API Test"
 {

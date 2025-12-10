@@ -1,0 +1,235 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "376fe19892261ce57800",
+  "position": {
+    "x": 26.588769879909119,
+    "y": 62.040463053121279,
+    "z": 1000,
+    "height": 632.22186158895011,
+    "width": 1226.0377222402537,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "keyDriversVisual",
+    "query": {
+      "queryState": {
+        "ExplainBy": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Emission Fees"
+                    }
+                  },
+                  "Property": "Country Region Code"
+                }
+              },
+              "queryRef": "Emission Fees.Country Region Code",
+              "nativeQueryRef": "Country Region Code"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Responsibility Centre"
+                    }
+                  },
+                  "Property": "Responsibility Centre Code"
+                }
+              },
+              "queryRef": "Responsibility Centre.Responsibility Centre Code",
+              "nativeQueryRef": "Responsibility Centre Code"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Account Category"
+                    }
+                  },
+                  "Property": "Sustainability Account Category Code"
+                }
+              },
+              "queryRef": "Sustainability Account Category.Sustainability Account Category Code",
+              "nativeQueryRef": "Sustainability Account Category Code"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Account Category"
+                    }
+                  },
+                  "Property": "Sustainability Account Category  Emission Scope"
+                }
+              },
+              "queryRef": "Sustainability Account Category.Sustainability Account Category  Emission Scope",
+              "nativeQueryRef": "Sustainability Account Category  Emission Scope"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Accounts"
+                    }
+                  },
+                  "Property": "Sustainability Account Category"
+                }
+              },
+              "queryRef": "Sustainability Accounts.Sustainability Account Category",
+              "nativeQueryRef": "Sustainability Account Category"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Accounts"
+                    }
+                  },
+                  "Property": "Sustainability Account Name"
+                }
+              },
+              "queryRef": "Sustainability Accounts.Sustainability Account Name",
+              "nativeQueryRef": "Sustainability Account Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Accounts"
+                    }
+                  },
+                  "Property": "Sustainability Account No."
+                }
+              },
+              "queryRef": "Sustainability Accounts.Sustainability Account No.",
+              "nativeQueryRef": "Sustainability Account No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Accounts"
+                    }
+                  },
+                  "Property": "Sustainability Account Sub-Category"
+                }
+              },
+              "queryRef": "Sustainability Accounts.Sustainability Account Sub-Category",
+              "nativeQueryRef": "Sustainability Account Sub-Category"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Goals"
+                    }
+                  },
+                  "Property": "Score Card No."
+                }
+              },
+              "queryRef": "Sustainability Goals.Score Card No.",
+              "nativeQueryRef": "Score Card No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Sub-Account Categories"
+                    }
+                  },
+                  "Property": "Renewable Energy"
+                }
+              },
+              "queryRef": "Sustainability Sub-Account Categories.Renewable Energy",
+              "nativeQueryRef": "Renewable Energy"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Sub-Account Categories"
+                    }
+                  },
+                  "Property": "Sub-Category Code"
+                }
+              },
+              "queryRef": "Sustainability Sub-Account Categories.Sub-Category Code",
+              "nativeQueryRef": "Sub-Category Code"
+            }
+          ]
+        },
+        "Target": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Ledger Entries"
+                    }
+                  },
+                  "Property": "CO2e Emissions"
+                }
+              },
+              "queryRef": "Sustainability Ledger Entries.Net Change CO2e Emissions",
+              "nativeQueryRef": "Net Change CO2e Emissions"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Sustainability Ledger Entries"
+                  }
+                },
+                "Property": "CO2e Emissions"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "keyDrivers": [
+        {
+          "properties": {
+            "selectedAnalysis": {
+              "expr": {
+                "Literal": {
+                  "Value": "'keyInfluencers'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {}
+        }
+      ]
+    }
+  }
+}

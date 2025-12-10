@@ -1,5 +1,6 @@
 #if not CLEAN28
 #pragma warning disable AL0801
+#pragma warning disable AL0432
 #endif
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -7,34 +8,34 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.PowerBIReports.Test;
 
-using System.Utilities;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Sales.Document;
-using Microsoft.Purchases.Document;
-using Microsoft.Inventory.Requisition;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Transfer;
-using Microsoft.Service.Document;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Warehouse.Activity;
-using Microsoft.Warehouse.Ledger;
-using Microsoft.Warehouse.Journal;
 using Microsoft.Assembly.Document;
-using Microsoft.Projects.Project.Planning;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Inventory.Planning;
-using System.Text;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Projects.Project.Job;
-using Microsoft.Inventory.Location;
-using Microsoft.Warehouse.Setup;
-using Microsoft.Warehouse.Document;
-using Microsoft.Service.Item;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Sales.Setup;
-using Microsoft.Service.Test;
-using System.TestLibraries.Security.AccessControl;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.PowerBIReports.Test;
+using Microsoft.Projects.Project.Job;
+using Microsoft.Projects.Project.Planning;
+using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Setup;
+using Microsoft.Service.Document;
+using Microsoft.Service.Item;
+using Microsoft.Service.Test;
+using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Document;
+using Microsoft.Warehouse.Journal;
+using Microsoft.Warehouse.Ledger;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
+using System.TestLibraries.Security.AccessControl;
+using System.Text;
+using System.Utilities;
 
 /// <summary>
 /// E2E tests for Power BI Inventory reports

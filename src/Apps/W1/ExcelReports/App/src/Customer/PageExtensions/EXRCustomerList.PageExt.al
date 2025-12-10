@@ -5,8 +5,8 @@
 
 namespace Microsoft.Sales.ExcelReports;
 
-using Microsoft.Sales.Customer;
 using Microsoft.Finance.ExcelReports;
+using Microsoft.Sales.Customer;
 
 pageextension 4438 "EXR Customer List" extends "Customer List"
 {

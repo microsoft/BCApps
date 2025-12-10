@@ -50,11 +50,16 @@ codeunit 139629 "Library - E-Document"
 #endif
 
     procedure SetupStandardSalesScenario(var Customer: Record Customer; var EDocService: Record "E-Document Service"; EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration")
+    begin
+        SetupStandardSalesScenario(Customer, EDocService, EDocDocumentFormat, EDocIntegration, Enum::"E-Document Import Process"::"Version 1.0");
+    end;
+
+    procedure SetupStandardSalesScenario(var Customer: Record Customer; var EDocService: Record "E-Document Service"; EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration"; EDocImportProcess: Enum "E-Document Import Process")
     var
         ServiceCode: Code[20];
     begin
         // Create standard service and simple workflow
-        ServiceCode := CreateService(EDocDocumentFormat, EDocIntegration);
+        ServiceCode := CreateService(EDocDocumentFormat, EDocIntegration, EDocImportProcess);
         EDocService.Get(ServiceCode);
         SetupStandardSalesScenario(Customer, EDocService);
     end;
@@ -128,12 +133,17 @@ codeunit 139629 "Library - E-Document"
 #endif
 
     procedure SetupStandardPurchaseScenario(var Vendor: Record Vendor; var EDocService: Record "E-Document Service"; EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration")
+    begin
+        SetupStandardPurchaseScenario(Vendor, EDocService, EDocDocumentFormat, EDocIntegration, Enum::"E-Document Import Process"::"Version 1.0");
+    end;
+
+    procedure SetupStandardPurchaseScenario(var Vendor: Record Vendor; var EDocService: Record "E-Document Service"; EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration"; EDocImportProcess: Enum "E-Document Import Process")
     var
         ServiceCode: Code[20];
     begin
         // Create standard service and simple workflow
         if EDocService.Code = '' then begin
-            ServiceCode := CreateService(EDocDocumentFormat, EDocIntegration);
+            ServiceCode := CreateService(EDocDocumentFormat, EDocIntegration, EDocImportProcess);
             EDocService.Get(ServiceCode);
         end;
         SetupStandardPurchaseScenario(Vendor, EDocService);
@@ -154,6 +164,7 @@ codeunit 139629 "Library - E-Document"
 
         // Create Customer for sales scenario
         LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.SetOrderNoSeriesInSetup();
         LibraryERM.FindCountryRegion(CountryRegion);
         Vendor.Validate(Address, LibraryUtility.GenerateRandomCode(Vendor.FieldNo(Address), DATABASE::Vendor));
         Vendor.Validate("Country/Region Code", CountryRegion.Code);
@@ -225,15 +236,30 @@ codeunit 139629 "Library - E-Document"
 
     procedure CreateInboundEDocument(var EDocument: Record "E-Document"; EDocService: Record "E-Document Service")
     var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentServiceStatus: Record "E-Document Service Status";
+        EntryNo: Integer;
     begin
+        if EDocument."Entry No" = 0 then begin
+            // We assign the largest entry no from both tables to avoid PK violation, in case some test didn't clean up properly
+            if EDocument.FindLast() then;
+            if EDocumentPurchaseHeader.FindLast() then;
+            if EDocument."Entry No" > EDocumentPurchaseHeader."E-Document Entry No." then
+                EntryNo := EDocument."Entry No" + 1
+            else
+                EntryNo := EDocumentPurchaseHeader."E-Document Entry No." + 1;
+            Clear(EDocument);
+        end
+        else
+            EntryNo := EDocument."Entry No";
+        EDocument."Entry No" := EntryNo;
         EDocument.Insert();
-        EDocumentServiceStatus."E-Document Entry No" := EDocument."Entry No";
+        EDocumentServiceStatus."E-Document Entry No" := EntryNo;
         EDocumentServiceStatus."E-Document Service Code" := EDocService.Code;
         EDocumentServiceStatus.Insert();
     end;
 
-    procedure MockPurchaseDraftPrepared(EDocument: Record "E-Document")
+    internal procedure MockPurchaseDraftPrepared(EDocument: Record "E-Document"): Record "E-Document Purchase Header"
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentProcessing: Codeunit "E-Document Processing";
@@ -246,6 +272,19 @@ codeunit 139629 "Library - E-Document"
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
         EDocument."Document Type" := "E-Document Type"::"Purchase Invoice";
         EDocument.Modify();
+        exit(EDocumentPurchaseHeader);
+    end;
+
+    internal procedure InsertPurchaseDraftLine(EDocument: Record "E-Document"): Record "E-Document Purchase Line"
+    var
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+    begin
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        if EDocumentPurchaseLine.FindLast() then;
+        EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseLine."Line No." += 10000;
+        EDocumentPurchaseLine.Insert();
+        exit(EDocumentPurchaseLine);
     end;
 
     procedure CreateInboundPEPPOLDocumentToState(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; FileName: Text; EDocImportParams: Record "E-Doc. Import Parameters"): Boolean
@@ -330,6 +369,7 @@ codeunit 139629 "Library - E-Document"
             until WorkflowStep.Next() = 0;
 
         LibraryWorkflow.CreateWorkflow(Workflow);
+        Workflow.Category := 'EDOC';
         EDocCreatedEventID := LibraryWorkflow.InsertEntryPointEventStep(Workflow, EDocWorkflowSetup.EDocCreated());
         SendEDocResponseEventID := LibraryWorkflow.InsertResponseStep(Workflow, EDocWorkflowSetup.EDocSendEDocResponseCode(), EDocCreatedEventID);
 
@@ -386,23 +426,9 @@ codeunit 139629 "Library - E-Document"
     end;
 
     procedure CreateGenericItem(var Item: Record Item)
-    var
-        UOM: Record "Unit of Measure";
-        ItemUOM: Record "Item Unit of Measure";
-        QtyPerUnit: Integer;
     begin
-        QtyPerUnit := LibraryRandom.RandInt(10);
-
-        LibraryInvt.CreateUnitOfMeasureCode(UOM);
-        UOM.Validate("International Standard Code",
-          LibraryUtility.GenerateRandomCode(UOM.FieldNo("International Standard Code"), DATABASE::"Unit of Measure"));
-        UOM.Modify(true);
-
         CreateItemWithPrice(Item, LibraryRandom.RandInt(10));
-
-        LibraryInvt.CreateItemUnitOfMeasure(ItemUOM, Item."No.", UOM.Code, QtyPerUnit);
-
-        Item.Validate("Sales Unit of Measure", UOM.Code);
+        Item.Validate("Sales Unit of Measure", Item."Base Unit of Measure");
         Item.Modify(true);
     end;
 
@@ -801,6 +827,11 @@ codeunit 139629 "Library - E-Document"
 #endif
 
     procedure CreateService(EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration"): Code[20]
+    begin
+        exit(CreateService(EDocDocumentFormat, EDocIntegration, Enum::"E-Document Import Process"::"Version 1.0"));
+    end;
+
+    procedure CreateService(EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration"; EDocImportProcess: Enum "E-Document Import Process"): Code[20]
     var
         EDocService: Record "E-Document Service";
     begin
@@ -808,6 +839,7 @@ codeunit 139629 "Library - E-Document"
         EDocService.Code := LibraryUtility.GenerateRandomCode20(EDocService.FieldNo(Code), Database::"E-Document Service");
         EDocService."Document Format" := EDocDocumentFormat;
         EDocService."Service Integration V2" := EDocIntegration;
+        EDocService."Import Process" := EDocImportProcess;
         EDocService.Insert();
 
         CreateSupportedDocTypes(EDocService);
@@ -1113,7 +1145,7 @@ codeunit 139629 "Library - E-Document"
             until EDocLog.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Export", 'OnAfterCreateEDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Export", OnAfterCreateEDocument, '', false, false)]
     local procedure OnAfterCreateEDocument(var EDocument: Record "E-Document")
     begin
         LibraryVariableStorage.Enqueue(EDocument);

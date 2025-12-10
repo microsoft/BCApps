@@ -5,8 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Sales.History;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Sales.History;
 
 /// <summary>
 /// Codeunit Shpfy Posted Invoice Export" (ID 30316).
@@ -319,7 +319,7 @@ codeunit 30362 "Shpfy Posted Invoice Export"
         TempOrderLine."Gift Card" := false;
         TempOrderLine.Taxable := false;
         TempOrderLine."Unit Price" := SalesInvoiceLine."Unit Price";
-        TempOrderLine.Weight := SalesInvoiceLine."Net Weight";
+        TempOrderLine.Weight := SalesInvoiceLine."Gross Weight";
         TempOrderHeader."Discount Amount" += SalesInvoiceLine."Line Discount Amount";
         TempOrderHeader.Modify(false);
 

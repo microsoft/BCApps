@@ -2,28 +2,28 @@ namespace Microsoft.SubscriptionBilling;
 
 #region Using
 
-using System.Reflection;
-using System.Environment.Configuration;
-using System.Globalization;
+using Microsoft.CRM.Contact;
+using Microsoft.CRM.Team;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
-using Microsoft.Inventory.BOM;
-using Microsoft.CRM.Team;
-using Microsoft.CRM.Contact;
-using Microsoft.Sales.Setup;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
-using Microsoft.Purchases.Document;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.Dimension;
-using Microsoft.Finance.Currency;
-using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Foundation.AuditCodes;
+using Microsoft.Sales.Setup;
 using Microsoft.TestLibraries.Foundation.NoSeries;
+using System.Environment.Configuration;
+using System.Globalization;
+using System.Reflection;
 using System.TestLibraries.Utilities;
 
 #endregion Using
@@ -707,7 +707,7 @@ codeunit 139685 "Contract Test Library"
         ServiceObject."Provision Start Date" := WorkDate();
         if ServiceObject.IsItem() then
             if not SNSpecificTracking then
-                ServiceObject.Quantity := LibraryRandom.RandDec(10, 2)
+                ServiceObject.Quantity := LibraryRandom.RandDec(10, 5)
             else
                 ServiceObject."Serial No." := CopyStr(LibraryRandom.RandText(MaxStrLen(ServiceObject."Serial No.")), 1, MaxStrLen(ServiceObject."Serial No."));
 
@@ -1374,7 +1374,7 @@ codeunit 139685 "Contract Test Library"
             CreateServiceObjectForItem(ServiceObject, Item, false);
             ServiceObject.SetHideValidationDialog(true);
             ServiceObject.Validate("End-User Customer Name", Customer.Name);
-            ServiceObject.Quantity := LibraryRandom.RandDec(10, 2);
+            ServiceObject.Quantity := LibraryRandom.RandDec(10, 5);
             ServiceObject.Modify(false);
         end;
         UpdateItemUnitCostAndPrice(Item, LibraryRandom.RandDec(1000, 2), LibraryRandom.RandDec(1000, 2), false);

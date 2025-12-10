@@ -1,0 +1,261 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "ReportSection83efd78c5625e0b0a650",
+  "displayName": "Prod. Order Components Drill through",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filter151888f53a886d27d68c",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item No."
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filterf8e765c855d16c0218dd",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item No. & Description"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filterb3d6dee80d06d5a69c8c",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Location"
+              }
+            },
+            "Property": "Location Code"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filter80b84ead5b10f7a14b13",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Production Order Lines"
+              }
+            },
+            "Property": "Document No."
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filtere5fbe0ec61909a46d9e8",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Location"
+              }
+            },
+            "Property": "Location Name"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "f974f9aa7b41ff69ae74",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item Category Code"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "cbbba9dc9a2e4c72ea2e",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item Category Description"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "i",
+              "Entity": "Item",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "i"
+                          }
+                        },
+                        "Property": "Item Category Description"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Parts'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "Drillthrough"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "Pod25",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "Param_Filter151888f53a886d27d68c",
+        "boundFilter": "Filter151888f53a886d27d68c",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item No."
+          }
+        }
+      },
+      {
+        "name": "Param_Filterf8e765c855d16c0218dd",
+        "boundFilter": "Filterf8e765c855d16c0218dd",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item No. & Description"
+          }
+        }
+      },
+      {
+        "name": "Param_Filterb3d6dee80d06d5a69c8c",
+        "boundFilter": "Filterb3d6dee80d06d5a69c8c",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Location"
+              }
+            },
+            "Property": "Location Code"
+          }
+        }
+      },
+      {
+        "name": "Param_Filter80b84ead5b10f7a14b13",
+        "boundFilter": "Filter80b84ead5b10f7a14b13",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Production Order Lines"
+              }
+            },
+            "Property": "Document No."
+          }
+        }
+      },
+      {
+        "name": "Param_Filtere5fbe0ec61909a46d9e8",
+        "boundFilter": "Filtere5fbe0ec61909a46d9e8",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Location"
+              }
+            },
+            "Property": "Location Name"
+          }
+        }
+      },
+      {
+        "name": "d1bb78e3d0f26bae0aa0",
+        "boundFilter": "f974f9aa7b41ff69ae74",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item Category Code"
+          }
+        }
+      },
+      {
+        "name": "ba1dbf31fd69184fa184",
+        "boundFilter": "cbbba9dc9a2e4c72ea2e",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item Category Description"
+          }
+        }
+      }
+    ]
+  },
+  "visibility": "HiddenInViewMode"
+}

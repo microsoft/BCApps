@@ -6,8 +6,8 @@
 namespace Microsoft.Shared.Error;
 
 using Microsoft.Finance.Dimension;
-using System.Utilities;
 using System.Reflection;
+using System.Utilities;
 codeunit 7903 "Dimension Code Same Error" implements ErrorMessageFix
 {
     Access = Internal;

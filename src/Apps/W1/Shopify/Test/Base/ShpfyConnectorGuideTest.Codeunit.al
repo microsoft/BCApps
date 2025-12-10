@@ -6,9 +6,9 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
-using System.TestLibraries.Environment.Configuration;
 using System.Environment;
+using System.TestLibraries.Environment.Configuration;
+using System.TestLibraries.Utilities;
 
 codeunit 139588 "Shpfy Connector Guide Test"
 {

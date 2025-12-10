@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Sales.ExcelReports;
+
 using Microsoft.Sales.RoleCenters;
 
 pageextension 4412 "EXR Order Processor RC" extends "Order Processor Role Center"

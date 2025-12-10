@@ -5,11 +5,11 @@
 
 namespace System.Test.Apps.ExtensionGeneration;
 
-using System.Reflection;
-using System.TestLibraries.Utilities;
 using System.Apps;
 using System.Apps.ExtensionGeneration;
+using System.Reflection;
 using System.TestLibraries.Apps.ExtensionGeneration;
+using System.TestLibraries.Utilities;
 
 codeunit 133103 "Dataverse Table Builder Test"
 {

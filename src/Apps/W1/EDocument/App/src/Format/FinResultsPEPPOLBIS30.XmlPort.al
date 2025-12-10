@@ -1,12 +1,12 @@
 namespace Microsoft.EServices.EDocument.IO.Peppol;
 
-using System.Utilities;
-using Microsoft.Sales.Document;
-using Microsoft.Sales.Reminder;
-using Microsoft.Sales.Peppol;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
+using Microsoft.Sales.Peppol;
+using Microsoft.Sales.Reminder;
+using System.Utilities;
 
 xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
 {

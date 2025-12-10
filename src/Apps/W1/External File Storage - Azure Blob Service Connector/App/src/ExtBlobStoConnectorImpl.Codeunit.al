@@ -5,10 +5,10 @@
 
 namespace System.ExternalFileStorage;
 
-using System.Text;
-using System.Utilities;
 using System.Azure.Storage;
 using System.DataAdministration;
+using System.Text;
+using System.Utilities;
 
 codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage Connector"
 {
@@ -201,7 +201,7 @@ codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage
         ValidateListingResponse(FilePaginationData, ABSOperationResponse);
 
         ABSContainerContent.SetRange("Parent Directory", Path);
-        ABSContainerContent.SetRange("Blob Type", '');
+        ABSContainerContent.SetRange("Resource Type", ABSContainerContent."Resource Type"::Directory);
         if not ABSContainerContent.FindSet() then
             exit;
 
@@ -469,6 +469,7 @@ codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage
     local procedure InitOptionalParameters(Path: Text; var FilePaginationData: Codeunit "File Pagination Data"; var ABSOptionalParameters: Codeunit "ABS Optional Parameters")
     begin
         ABSOptionalParameters.Prefix(Path);
+        ABSOptionalParameters.Delimiter('/');
         ABSOptionalParameters.MaxResults(500);
         ABSOptionalParameters.NextMarker(FilePaginationData.GetMarker());
     end;

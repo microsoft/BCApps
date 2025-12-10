@@ -4,12 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
-using System.Utilities;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Vendor;
 using System.Telemetry;
+using System.Utilities;
+using System.Feedback;
 
 page 6181 "E-Document Purchase Draft"
 {
@@ -239,7 +240,7 @@ page 6181 "E-Document Purchase Draft"
             }
             part(InboundEDocPicture; "Inbound E-Doc. Picture")
             {
-                Caption = 'E-Document Pdf Preview';
+                Caption = 'Preview';
                 SubPageLink = "Entry No." = field("Unstructured Data Entry No."),
                             "File Format" = const("E-Doc. File Format"::PDF);
                 ShowFilter = false;
@@ -327,18 +328,47 @@ page 6181 "E-Document Purchase Draft"
                     EDocImport.ViewExtractedData(Rec);
                 end;
             }
+            action(GetFeedback)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Provide feedback';
+                ToolTip = 'Provide feedback on the Payables Agent experience.';
+                Image = Help;
+
+                trigger OnAction()
+                begin
+                    ProvideFeedback();
+                end;
+            }
         }
         area(Navigation)
         {
             group(Vendors)
             {
-                Visible = false;
+                action(HistoricalVendorMatches)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Historical Vendor Matches';
+                    ToolTip = 'Opens Vendor Assignment History to see names and addresses matched to vendors based on received e-documents.';
+                    Image = History;
+                    RunObject = page "E-Doc. Vendor Assignment Hist.";
+                    RunPageMode = View;
+                }
+                action(OpenVendorList)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Vendor List';
+                    ToolTip = 'Opens the Vendor List.';
+                    Image = Vendor;
+                    RunObject = page "Vendor List";
+                    RunPageMode = View;
+                }
                 action(CreateVendorAction)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Create Vendor';
                     ToolTip = 'Creates a vendor based on the invoice details.';
-                    Image = Vendor;
+                    Image = AddContacts;
 
                     trigger OnAction()
                     var
@@ -370,6 +400,9 @@ page 6181 "E-Document Purchase Draft"
                 actionref(Promoted_ViewFile; ViewFile)
                 {
                 }
+                actionref(Promoted_GetFeedback; GetFeedback)
+                {
+                }
             }
         }
     }
@@ -378,11 +411,17 @@ page 6181 "E-Document Purchase Draft"
     var
         EDocumentsSetup: Record "E-Documents Setup";
         EDocumentNotification: Codeunit "E-Document Notification";
+        EDocPOMatching: Codeunit "E-Doc. PO Matching";
+        MatchesRemovedMsg: Label 'This e-document was matched to purchase order lines, but the matches are no longer consistent with the current data. The matches have been removed';
     begin
         if not EDocumentsSetup.IsNewEDocumentExperienceActive() then
             Error('');
-
         if EDocumentPurchaseHeader.Get(Rec."Entry No") then;
+        if not EDocPOMatching.IsPOMatchConsistent(EDocumentPurchaseHeader) then begin
+            EDocPOMatching.RemoveAllMatchesForEDocument(EDocumentPurchaseHeader);
+            Message(MatchesRemovedMsg);
+        end;
+        CurrPage.Lines.Page.SetEDocumentPurchaseHeader(EDocumentPurchaseHeader);
         HasPDFSource := Rec."Read into Draft Impl." = "E-Doc. Read into Draft"::ADI;
         EDocumentServiceStatus := Rec.GetEDocumentServiceStatus();
         HasErrorsOrWarnings := false;
@@ -496,6 +535,9 @@ page 6181 "E-Document Purchase Draft"
         ErrorMessage: Record "Error Message";
         EDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
+        Telemetry: Codeunit Telemetry;
+        CustomDimensions: Dictionary of [Text, Text];
     begin
         Session.LogMessage('0000PCO', FinalizeDraftInvokedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EDocumentPurchaseHeader.FeatureName());
 
@@ -516,9 +558,13 @@ page 6181 "E-Document Purchase Draft"
         PageEditable := IsEditable();
         CurrPage.Lines.Page.Update();
         CurrPage.Update();
-        Session.LogMessage('0000PCP', FinalizeDraftPerformedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EDocumentPurchaseHeader.FeatureName());
-        FeatureTelemetry.LogUsage('0000PCU', EDocumentPurchaseHeader.FeatureName(), 'Finalize draft');
-        Rec.ShowRecord();
+        if Rec.Status = Rec.Status::Processed then begin
+            CustomDimensions.Set('Category', EDocumentPurchaseHeader.FeatureName());
+            CustomDimensions.Set('SystemId', EDocImpSessionTelemetry.CreateSystemIdText(Rec.SystemId));
+            Telemetry.LogMessage('0000PCP', FinalizeDraftPerformedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+            FeatureTelemetry.LogUsage('0000PCU', EDocumentPurchaseHeader.FeatureName(), 'Finalize draft');
+            Rec.ShowRecord();
+        end;
     end;
 
     local procedure ResetDraft()
@@ -586,6 +632,15 @@ page 6181 "E-Document Purchase Draft"
         Rec.Get(Rec."Entry No");
         if GuiAllowed() then
             Progress.Close();
+    end;
+
+    local procedure ProvideFeedback()
+    var
+        MicrosoftUserFeedback: Codeunit "Microsoft User Feedback";
+        EDocDraftFeedback: Page "E-Doc. Draft Feedback";
+    begin
+        if EDocDraftFeedback.RunModal() = Action::Yes then
+            MicrosoftUserFeedback.SetIsAIFeedback(true).RequestFeedback('Payables Agent Draft', 'PayablesAgent', 'Payables Agent');
     end;
 
     var

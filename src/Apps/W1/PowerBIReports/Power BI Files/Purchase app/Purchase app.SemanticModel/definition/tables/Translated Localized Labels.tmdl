@@ -1,0 +1,2326 @@
+table 'Translated Localized Labels'
+	isHidden
+	lineageTag: 7d9f169e-2d01-488e-b83f-6946b457e08d
+
+	measure 'My Report Title Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Min rapporttitel",
+			   "de-DE", "Titel meines Berichts",
+			   "es-ES", "Título del informe",
+			   "fr-FR", "Titre de l’état",
+			   "cs-CZ", "Můj nadpis sestavy",
+			   "de-AT", "Titel meines Berichts",
+			   "de-CH", "Titel meines Berichts",
+			   "en-AU", "My Report Title",
+			   "en-CA", "My Report Title",
+			   "en-GB", "My Report Title",
+			   "en-NZ", "My Report Title",
+			   "es-MX", "Título del informe",
+			   "fi-FI", "Oman raportin otsikko",
+			   "fr-BE", "Titre de l’état",
+			   "fr-CA", "Titre du rapport",
+			   "fr-CH", "Titre de l’état",
+			   "is-IS", "Skýrslutitillinn minn",
+			   "it-CH", "Titolo report personale",
+			   "it-IT", "Titolo report personale",
+			   "nb-NO", "Min rapporttittel",
+			   "nl-BE", "Mijn rapporttitel",
+			   "nl-NL", "Mijn rapporttitel",
+			   "sv-SE", "Min rapportrubrik",
+			   "My Report Title"
+			)
+		isHidden
+		lineageTag: bb6e87c1-c522-4202-a339-b972c80b56ec
+
+	measure 'My Button Caption Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Min knaptitel",
+			   "de-DE", "Beschriftung Meine Schaltfläche",
+			   "es-ES", "Título de botón",
+			   "fr-FR", "Légende de mon bouton",
+			   "cs-CZ", "Popisek mého tlačítka",
+			   "de-AT", "Beschriftung Meine Schaltfläche",
+			   "de-CH", "Beschriftung Meine Schaltfläche",
+			   "en-AU", "My Button Caption",
+			   "en-CA", "My Button Caption",
+			   "en-GB", "My Button Caption",
+			   "en-NZ", "My Button Caption",
+			   "es-MX", "Título de botón",
+			   "fi-FI", "Oma painikkeen otsikko",
+			   "fr-BE", "Légende de mon bouton",
+			   "fr-CA", "Légende de mon bouton",
+			   "fr-CH", "Légende de mon bouton",
+			   "is-IS", "Texti hnappsins míns",
+			   "it-CH", "Didascalia pulsante personale",
+			   "it-IT", "Didascalia pulsante personale",
+			   "nb-NO", "Min knappetittel",
+			   "nl-BE", "Bijschrift van mijn knop",
+			   "nl-NL", "Bijschrift van mijn knop",
+			   "sv-SE", "Min knapprubrik",
+			   "My Button Caption"
+			)
+		isHidden
+		lineageTag: d611995e-bfb7-49c8-b931-70ef9dd97ae6
+
+	measure 'My Visual Title Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Min visuelle titel",
+			   "de-DE", "Titel meines Visuals",
+			   "es-ES", "Título visual",
+			   "fr-FR", "Mon titre visuel",
+			   "cs-CZ", "Název mého vizuálu",
+			   "de-AT", "Titel meines Visuals",
+			   "de-CH", "Titel meines Visuals",
+			   "en-AU", "My Visual Title",
+			   "en-CA", "My Visual Title",
+			   "en-GB", "My Visual Title",
+			   "en-NZ", "My Visual Title",
+			   "es-MX", "Título visual",
+			   "fi-FI", "Oma visuaalinen otsikko",
+			   "fr-BE", "Mon titre visuel",
+			   "fr-CA", "Mon titre visuel",
+			   "fr-CH", "Mon titre visuel",
+			   "is-IS", "Sjónræni titillinn minn",
+			   "it-CH", "Titolo visivo personale",
+			   "it-IT", "Titolo visivo personale",
+			   "nb-NO", "Min visuelle tittel",
+			   "nl-BE", "Mijn visuele titel",
+			   "nl-NL", "Mijn visuele titel",
+			   "sv-SE", "Min visuella rubrik",
+			   "My Visual Title"
+			)
+		isHidden
+		lineageTag: 65aca80b-cb8b-4a08-9d81-f971b4456540
+
+	measure 'Purchases Overview Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Oversigt over køb",
+			   "de-DE", "Einkäufe Übersicht",
+			   "es-ES", "Información general de compras",
+			   "fr-FR", "Vue d’ensemble d’Achats",
+			   "cs-CZ", "Přehled nákupů",
+			   "de-AT", "Einkäufe Übersicht",
+			   "de-CH", "Einkäufe Übersicht",
+			   "en-AU", "Purchases Overview",
+			   "en-CA", "Purchases Overview",
+			   "en-GB", "Purchases Overview",
+			   "en-NZ", "Purchases Overview",
+			   "es-MX", "Información general de compras",
+			   "fi-FI", "Ostojen yleiskatsaus",
+			   "fr-BE", "Vue d’ensemble d’Achats",
+			   "fr-CA", "Vue d’ensemble d’Achats",
+			   "fr-CH", "Vue d’ensemble d’Achats",
+			   "is-IS", "Yfirlit innkaupa",
+			   "it-CH", "Panoramica acquisti",
+			   "it-IT", "Panoramica acquisti",
+			   "nb-NO", "Oversikt over kjøp",
+			   "nl-BE", "Inkoopoverzicht",
+			   "nl-NL", "Inkoopoverzicht",
+			   "sv-SE", "Inköpsöversikt",
+			   "Purchases Overview"
+			)
+		isHidden
+		lineageTag: 5392cdd4-93da-4ca2-b0c7-2a3ac2867c06
+
+	measure 'Purchases Decomposition Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Nedbrydning af køb",
+			   "de-DE", "Einkäufe Aufschlüsselung",
+			   "es-ES", "Descomposición de compras",
+			   "fr-FR", "Décomposition des achats",
+			   "cs-CZ", "Dekompozice nákupů",
+			   "de-AT", "Einkäufe Aufschlüsselung",
+			   "de-CH", "Einkäufe Aufschlüsselung",
+			   "en-AU", "Purchases Decomposition",
+			   "en-CA", "Purchases Decomposition",
+			   "en-GB", "Purchases Decomposition",
+			   "en-NZ", "Purchases Decomposition",
+			   "es-MX", "Descomposición de compras",
+			   "fi-FI", "Ostojen purkaminen",
+			   "fr-BE", "Décomposition des achats",
+			   "fr-CA", "Décomposition des achats",
+			   "fr-CH", "Décomposition des achats",
+			   "is-IS", "Niðurbrot innkaupa",
+			   "it-CH", "Scomposizione acquisti",
+			   "it-IT", "Scomposizione acquisti",
+			   "nb-NO", "Nedbryting av kjøp",
+			   "nl-BE", "Uitsplitsing inkopen",
+			   "nl-NL", "Uitsplitsing inkopen",
+			   "sv-SE", "Uppdelning inköp",
+			   "Purchases Decomposition"
+			)
+		isHidden
+		lineageTag: 0f36d96c-00c2-4c9b-a96c-4bfea94afe06
+
+	measure 'Daily Purchases Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Daglige køb",
+			   "de-DE", "Tägliche Einkäufe",
+			   "es-ES", "Compras diarias",
+			   "fr-FR", "Achats quotidiens",
+			   "cs-CZ", "Denní nákupy",
+			   "de-AT", "Tägliche Einkäufe",
+			   "de-CH", "Tägliche Einkäufe",
+			   "en-AU", "Daily Purchases",
+			   "en-CA", "Daily Purchases",
+			   "en-GB", "Daily Purchases",
+			   "en-NZ", "Daily Purchases",
+			   "es-MX", "Compras diarias",
+			   "fi-FI", "Päivittäiset ostot",
+			   "fr-BE", "Achats quotidiens",
+			   "fr-CA", "Achats quotidiens",
+			   "fr-CH", "Achats quotidiens",
+			   "is-IS", "Dagleg innkaup",
+			   "it-CH", "Acquisti giornalieri",
+			   "it-IT", "Acquisti giornalieri",
+			   "nb-NO", "Daglige kjøp",
+			   "nl-BE", "Dagelijkse inkopen",
+			   "nl-NL", "Dagelijkse inkopen",
+			   "sv-SE", "Dagliga inköp",
+			   "Daily Purchases"
+			)
+		isHidden
+		lineageTag: f0df3d12-36e9-4e68-a2d3-d521af9ddf8d
+
+	measure 'Moving Averages Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Glidende gennemsnit",
+			   "de-DE", "Gleitender Durchschnitt",
+			   "es-ES", "Medias móviles",
+			   "fr-FR", "Moyennes mobiles",
+			   "cs-CZ", "Klouzavé průměry",
+			   "de-AT", "Gleitender Durchschnitt",
+			   "de-CH", "Gleitender Durchschnitt",
+			   "en-AU", "Moving Averages",
+			   "en-CA", "Moving Averages",
+			   "en-GB", "Moving Averages",
+			   "en-NZ", "Moving Averages",
+			   "es-MX", "Medias móviles",
+			   "fi-FI", "Liukuvat keskiarvot",
+			   "fr-BE", "Moyennes mobiles",
+			   "fr-CA", "Moyennes mobiles",
+			   "fr-CH", "Moyennes mobiles",
+			   "is-IS", "Hlaupandi meðaltal",
+			   "it-CH", "Medie mobili",
+			   "it-IT", "Medie mobili",
+			   "nb-NO", "Glidende gjennomsnitt",
+			   "nl-BE", "Voortschrijdende gemiddelden",
+			   "nl-NL", "Voortschrijdende gemiddelden",
+			   "sv-SE", "Glidande medelvärde",
+			   "Moving Averages"
+			)
+		isHidden
+		lineageTag: 77c7df44-f36a-4f9f-ac9c-424725a6694e
+
+	measure 'Moving Annual Total (MAT) Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Flytning af årligt total (FÅT)",
+			   "de-DE", "Gleitend Jahr Gesamt (GJG)",
+			   "es-ES", "Total anual móvil (TAM)",
+			   "fr-FR", "Total annuel mobile (TAM)",
+			   "cs-CZ", "Roční pohyblivý součet (RPS)",
+			   "de-AT", "Gleitend Jahr Gesamt (GJG)",
+			   "de-CH", "Gleitend Jahr Gesamt (GJG)",
+			   "en-AU", "Moving Annual Total (MAT)",
+			   "en-CA", "Moving Annual Total (MAT)",
+			   "en-GB", "Moving Annual Total (MAT)",
+			   "en-NZ", "Moving Annual Total (MAT)",
+			   "es-MX", "Total anual móvil (TAM)",
+			   "fi-FI", "Liukuva vuosittainen kokonaissumma (LVK)",
+			   "fr-BE", "Total annuel mobile (TAM)",
+			   "fr-CA", "Total annuel mobile (TAM)",
+			   "fr-CH", "Total annuel mobile (TAM)",
+			   "is-IS", "Hlaupandi alls yfir árið (Hlaupandi alls yfir árið)",
+			   "it-CH", "Totale annuo mobile (MAT)",
+			   "it-IT", "Totale annuo mobile (MAT)",
+			   "nb-NO", "Glidende årssum (MAT)",
+			   "nl-BE", "Voortschrijdend jaarlijks totaal (VJT)",
+			   "nl-NL", "Voortschrijdend jaarlijks totaal (VJT)",
+			   "sv-SE", "Glidande årssumma (GÅS)",
+			   "Moving Annual Total (MAT)"
+			)
+		isHidden
+		lineageTag: 8a650432-487e-406b-a8a3-456f54342b1b
+
+	measure 'Period-Over-Period (POP) Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Periode over periode (POP)",
+			   "de-DE", "Periodenvergleich (ZGZ)",
+			   "es-ES", "Periodo tras periodo (PTP)",
+			   "fr-FR", "Période sur période (PSP)",
+			   "cs-CZ", "Mezi obdobími (MO)",
+			   "de-AT", "Periodenvergleich (ZGZ)",
+			   "de-CH", "Periodenvergleich (ZGZ)",
+			   "en-AU", "Period-Over-Period (POP)",
+			   "en-CA", "Period-Over-Period (POP)",
+			   "en-GB", "Period-Over-Period (POP)",
+			   "en-NZ", "Period-Over-Period (POP)",
+			   "es-MX", "Periodo tras periodo (PTP)",
+			   "fi-FI", "Kaudesta toiseen (K-K)",
+			   "fr-BE", "Période sur période (PSP)",
+			   "fr-CA", "Période sur période (PSP)",
+			   "fr-CH", "Période sur période (PSP)",
+			   "is-IS", "Samanburður milli tímabila (Samanburður milli tímabila)",
+			   "it-CH", "Periodo su periodo (POP)",
+			   "it-IT", "Periodo su periodo (POP)",
+			   "nb-NO", "Periode for periode (POP)",
+			   "nl-BE", "Periode-tot-periode (PTP)",
+			   "nl-NL", "Periode-tot-periode (PTP)",
+			   "sv-SE", "Period-för-period (PFP)",
+			   "Period-Over-Period (POP)"
+			)
+		isHidden
+		lineageTag: 948acde3-1923-4bd9-a0dd-b98c9ab546e1
+
+	measure 'Year-Over-Year (YOY) Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "År over år (ÅOÅ)",
+			   "de-DE", "Im Jahresverlauf (GJG)",
+			   "es-ES", "Año tras año (ATA)",
+			   "fr-FR", "Année après année (AAA)",
+			   "cs-CZ", "Meziročně (MR)",
+			   "de-AT", "Im Jahresverlauf (GJG)",
+			   "de-CH", "Im Jahresverlauf (GJG)",
+			   "en-AU", "Year-Over-Year (YOY)",
+			   "en-CA", "Year-Over-Year (YOY)",
+			   "en-GB", "Year-Over-Year (YOY)",
+			   "en-NZ", "Year-Over-Year (YOY)",
+			   "es-MX", "Año tras año (ATA)",
+			   "fi-FI", "Vuosi vuodelta (VV)",
+			   "fr-BE", "Année après année (AAA)",
+			   "fr-CA", "Année après année (AAA)",
+			   "fr-CH", "Année après année (AAA)",
+			   "is-IS", "Ár frá ári (YOY)",
+			   "it-CH", "Anno su anno (YOY)",
+			   "it-IT", "Anno su anno (YOY)",
+			   "nb-NO", "År til år (YOY)",
+			   "nl-BE", "Jaar-tot-jaar (JTJ)",
+			   "nl-NL", "Jaar-tot-jaar (JTJ)",
+			   "sv-SE", "År-För-År (ÅFÅ)",
+			   "Year-Over-Year (YOY)"
+			)
+		isHidden
+		lineageTag: b3cdb7d1-0da7-4beb-b272-00dab90dd522
+
+	measure 'Purchases by Item Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Køb efter vare",
+			   "de-DE", "Einkäufe nach Artikel",
+			   "es-ES", "Compras por producto",
+			   "fr-FR", "Achats par article",
+			   "cs-CZ", "Nákupy podle zboží",
+			   "de-AT", "Einkäufe nach Artikel",
+			   "de-CH", "Einkäufe nach Artikel",
+			   "en-AU", "Purchases by Item",
+			   "en-CA", "Purchases by Item",
+			   "en-GB", "Purchases by Item",
+			   "en-NZ", "Purchases by Item",
+			   "es-MX", "Compras por producto",
+			   "fi-FI", "Ostot nimikkeen mukaan",
+			   "fr-BE", "Achats par article",
+			   "fr-CA", "Achats par article",
+			   "fr-CH", "Achats par article",
+			   "is-IS", "Innkaup eftir vöru",
+			   "it-CH", "Acquisti per articolo",
+			   "it-IT", "Acquisti per articolo",
+			   "nb-NO", "Kjøp etter vare",
+			   "nl-BE", "Inkopen per artikel",
+			   "nl-NL", "Inkopen per artikel",
+			   "sv-SE", "Inköp per artikel",
+			   "Purchases by Item"
+			)
+		isHidden
+		lineageTag: a56fb1e9-09a5-4b54-830d-21aa013189b2
+
+	measure 'Purchases by Purchaser Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Køb efter køber",
+			   "de-DE", "Einkäufe nach Einkäufer",
+			   "es-ES", "Compras por comprador",
+			   "fr-FR", "Achats par acheteur",
+			   "cs-CZ", "Nákupy podle kupujícího",
+			   "de-AT", "Einkäufe nach Einkäufer",
+			   "de-CH", "Einkäufe nach Einkäufer",
+			   "en-AU", "Purchases by Purchaser",
+			   "en-CA", "Purchases by Purchaser",
+			   "en-GB", "Purchases by Purchaser",
+			   "en-NZ", "Purchases by Purchaser",
+			   "es-MX", "Compras por comprador",
+			   "fi-FI", "Ostot ostajan mukaan",
+			   "fr-BE", "Achats par acheteur",
+			   "fr-CA", "Achats par acheteur",
+			   "fr-CH", "Achats par acheteur",
+			   "is-IS", "Innkaup eftir kaupanda",
+			   "it-CH", "Acquisti per addetto acquisti",
+			   "it-IT", "Acquisti per addetto acquisti",
+			   "nb-NO", "Kjøp etter innkjøper",
+			   "nl-BE", "Inkopen per inkoper",
+			   "nl-NL", "Inkopen per inkoper",
+			   "sv-SE", "Inköp per köpare",
+			   "Purchases by Purchaser"
+			)
+		isHidden
+		lineageTag: 6e745017-a711-4d06-bb7e-92a3ce7b8159
+
+	measure 'Purchases by Vendor Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Køb efter kreditor",
+			   "de-DE", "Einkäufe nach Kreditor",
+			   "es-ES", "Compras por proveedor",
+			   "fr-FR", "Achats par fournisseur",
+			   "cs-CZ", "Nákupy podle dodavatele",
+			   "de-AT", "Einkäufe nach Kreditor",
+			   "de-CH", "Einkäufe nach Kreditor",
+			   "en-AU", "Purchases by Vendor",
+			   "en-CA", "Purchases by Vendor",
+			   "en-GB", "Purchases by Vendor",
+			   "en-NZ", "Purchases by Vendor",
+			   "es-MX", "Compras por proveedor",
+			   "fi-FI", "Ostot toimittajan mukaan",
+			   "fr-BE", "Achats par fournisseur",
+			   "fr-CA", "Achats par fournisseur",
+			   "fr-CH", "Achats par fournisseur",
+			   "is-IS", "Innkaup eftir lánardrottni",
+			   "it-CH", "Acquisti per fornitore",
+			   "it-IT", "Acquisti per fornitore",
+			   "nb-NO", "Kjøp etter leverandør",
+			   "nl-BE", "Inkopen per leverancier",
+			   "nl-NL", "Inkopen per leverancier",
+			   "sv-SE", "Inköp per leverantör",
+			   "Purchases by Vendor"
+			)
+		isHidden
+		lineageTag: c35be1c0-2ad4-4f79-9da7-b3db0cd28f33
+
+	measure 'Purchases by Location Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Køb efter placering",
+			   "de-DE", "Einkauf nach Lagerort",
+			   "es-ES", "Compras por almacén",
+			   "fr-FR", "Achats par magasin",
+			   "cs-CZ", "Nákupy podle lokality",
+			   "de-AT", "Einkauf nach Lagerort",
+			   "de-CH", "Einkauf nach Lagerort",
+			   "en-AU", "Purchases by Location",
+			   "en-CA", "Purchases by Location",
+			   "en-GB", "Purchases by Location",
+			   "en-NZ", "Purchases by Location",
+			   "es-MX", "Compras por almacén",
+			   "fi-FI", "Ostot sijainneittain",
+			   "fr-BE", "Achats par magasin",
+			   "fr-CA", "Achats par emplacement",
+			   "fr-CH", "Achats par magasin",
+			   "is-IS", "Innkaup eftir staðsetningu",
+			   "it-CH", "Acquisti per ubicazione",
+			   "it-IT", "Acquisti per ubicazione",
+			   "nb-NO", "Kjøp etter lokasjon",
+			   "nl-BE", "Inkopen per locatie",
+			   "nl-NL", "Inkopen per locatie",
+			   "sv-SE", "Inköp per lagerställe",
+			   "Purchases by Location"
+			)
+		isHidden
+		lineageTag: 70c07169-9e46-4c19-bd69-72068245422d
+
+	measure 'Actual vs. Budget Quantity Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Faktisk vs. budgetantal",
+			   "de-DE", "Budgetvergleich",
+			   "es-ES", "Cantidad real vs. ppto",
+			   "fr-FR", "Quantité réelle par rapport au budget",
+			   "cs-CZ", "Skutečné vs. rozpočtové množství",
+			   "de-AT", "Budgetvergleich",
+			   "de-CH", "Budgetvergleich",
+			   "en-AU", "Actual vs. Budget Quantity",
+			   "en-CA", "Actual vs. Budget Quantity",
+			   "en-GB", "Actual vs. Budget Quantity",
+			   "en-NZ", "Actual vs. Budget Quantity",
+			   "es-MX", "Cantidad real vs. ppto",
+			   "fi-FI", "Toteutunut vrt. budjetoitu määrä",
+			   "fr-BE", "Quantité réelle par rapport au budget",
+			   "fr-CA", "Quantité réelle par rapport au budget",
+			   "fr-CH", "Quantité réelle par rapport au budget",
+			   "is-IS", "Raunverulegt magn sb. v. áætlað magn",
+			   "it-CH", "Quantità - Effettiva/in budget",
+			   "it-IT", "Quantità - Effettiva/in budget",
+			   "nb-NO", "Faktisk antall kontra budsjettantall",
+			   "nl-BE", "Werkelijk versus budgetaantal",
+			   "nl-NL", "Werkelijk versus budgetaantal",
+			   "sv-SE", "Faktiskt vs. budgeterat antal",
+			   "Actual vs. Budget Quantity"
+			)
+		isHidden
+		lineageTag: b86b31f2-779d-49d0-9c5d-9e664e6e02c2
+
+	measure 'Actual vs. Budget Amount Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Faktisk vs. budgetbeløb",
+			   "de-DE", "Tatsächlicher vs Budgetbetrag",
+			   "es-ES", "Importe real vs. ppto",
+			   "fr-FR", "Montant réel par rapport au budget",
+			   "cs-CZ", "Skutečná vs. rozpočtovaná částka",
+			   "de-AT", "Tatsächlicher vs Budgetbetrag",
+			   "de-CH", "Tatsächlicher vs Budgetbetrag",
+			   "en-AU", "Actual vs. Budget Amount",
+			   "en-CA", "Actual vs. Budget Amount",
+			   "en-GB", "Actual vs. Budget Amount",
+			   "en-NZ", "Actual vs. Budget Amount",
+			   "es-MX", "Importe real vs. ppto",
+			   "fi-FI", "Toteutunut vrt. budjetoitu summa",
+			   "fr-BE", "Montant réel par rapport au budget",
+			   "fr-CA", "Montant réel par rapport au budget",
+			   "fr-CH", "Montant réel par rapport au budget",
+			   "is-IS", "Raunveruleg upphæð sb. v. áætlaða upphæð",
+			   "it-CH", "Importo - Effettivo/in budget",
+			   "it-IT", "Importo - Effettivo/in budget",
+			   "nb-NO", "Faktisk beløp kontra budsjettbeløp",
+			   "nl-BE", "Werkelijk versus budgetbedrag",
+			   "nl-NL", "Werkelijk versus budgetbedrag",
+			   "sv-SE", "Faktiskt vs. budgeterat belopp",
+			   "Actual vs. Budget Amount"
+			)
+		isHidden
+		lineageTag: 5a4d1a3f-e594-4788-b48e-0b70f8e987e7
+
+	measure 'Item Drillthrough Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Detaljeudledning af vare",
+			   "de-DE", "Artikel-Drillthrough",
+			   "es-ES", "Análisis detallado de productos",
+			   "fr-FR", "Extraction article",
+			   "cs-CZ", "Podrobné procházení zboží",
+			   "de-AT", "Artikel-Drillthrough",
+			   "de-CH", "Artikel-Drillthrough",
+			   "en-AU", "Item Drillthrough",
+			   "en-CA", "Item Drillthrough",
+			   "en-GB", "Item Drillthrough",
+			   "en-NZ", "Item Drillthrough",
+			   "es-MX", "Análisis detallado de productos",
+			   "fi-FI", "Nimikkeeseen porautuminen",
+			   "fr-BE", "Extraction article",
+			   "fr-CA", "Extraction article",
+			   "fr-CH", "Extraction article",
+			   "is-IS", "Köfun í atriði",
+			   "it-CH", "Drill-through articolo",
+			   "it-IT", "Drill-through articolo",
+			   "nb-NO", "Gjennomgang av vare",
+			   "nl-BE", "Detailanalyse artikel",
+			   "nl-NL", "Detailanalyse artikel",
+			   "sv-SE", "Detaljerad analys av artiklar",
+			   "Item Drillthrough"
+			)
+		isHidden
+		lineageTag: 185e6047-db91-43b5-82de-2e04ba57a8c3
+
+	measure 'Vendor Drillthrough Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Detaljeudledning af kreditor",
+			   "de-DE", "Kreditoren-Drillthrough",
+			   "es-ES", "Análisis detallado de proveedor",
+			   "fr-FR", "Extraction fournisseur",
+			   "cs-CZ", "Podrobné procházení dodavatelů",
+			   "de-AT", "Kreditoren-Drillthrough",
+			   "de-CH", "Kreditoren-Drillthrough",
+			   "en-AU", "Vendor Drillthrough",
+			   "en-CA", "Vendor Drillthrough",
+			   "en-GB", "Vendor Drillthrough",
+			   "en-NZ", "Vendor Drillthrough",
+			   "es-MX", "Análisis detallado de proveedor",
+			   "fi-FI", "Toimittajaan porautuminen",
+			   "fr-BE", "Extraction fournisseur",
+			   "fr-CA", "Extraction fournisseur",
+			   "fr-CH", "Extraction fournisseur",
+			   "is-IS", "Köfun í lánardrottinn",
+			   "it-CH", "Drill-through fornitore",
+			   "it-IT", "Drill-through fornitore",
+			   "nb-NO", "Gjennomgang av leverandør",
+			   "nl-BE", "Detailanalyse leverancier",
+			   "nl-NL", "Detailanalyse leverancier",
+			   "sv-SE", "Detaljerad analys av leverantörer",
+			   "Vendor Drillthrough"
+			)
+		isHidden
+		lineageTag: 7faf8deb-28dd-4a62-b369-b257356df299
+
+	measure 'Location Drillthrough Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Detaljeudledning af placering",
+			   "de-DE", "Standort-Drillthrough",
+			   "es-ES", "Análisis detallado de almacén",
+			   "fr-FR", "Extraction du magasin",
+			   "cs-CZ", "Podrobné procházení lokací",
+			   "de-AT", "Standort-Drillthrough",
+			   "de-CH", "Standort-Drillthrough",
+			   "en-AU", "Location Drillthrough",
+			   "en-CA", "Location Drillthrough",
+			   "en-GB", "Location Drillthrough",
+			   "en-NZ", "Location Drillthrough",
+			   "es-MX", "Análisis detallado de almacén",
+			   "fi-FI", "Sijaintiin porautuminen",
+			   "fr-BE", "Extraction du magasin",
+			   "fr-CA", "Exploration des emplacements",
+			   "fr-CH", "Extraction du magasin",
+			   "is-IS", "Köfun í staðsetningu",
+			   "it-CH", "Drill-through ubicazione",
+			   "it-IT", "Drill-through ubicazione",
+			   "nb-NO", "Gjennomgang av lokasjon",
+			   "nl-BE", "Detailanalyse locatie",
+			   "nl-NL", "Detailanalyse locatie",
+			   "sv-SE", "Detaljerad analys av lagerställe",
+			   "Location Drillthrough"
+			)
+		isHidden
+		lineageTag: ecb0ede8-07dd-4078-b993-fea1364dce76
+
+	measure 'Purchaser Drillthrough Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Detaljeudledning af køber",
+			   "de-DE", "Einkäufer-Drillthrough",
+			   "es-ES", "Análisis detallado de comprador",
+			   "fr-FR", "Extraction de l’acheteur",
+			   "cs-CZ", "Podrobné procházení nakupujících",
+			   "de-AT", "Einkäufer-Drillthrough",
+			   "de-CH", "Einkäufer-Drillthrough",
+			   "en-AU", "Purchaser Drillthrough",
+			   "en-CA", "Purchaser Drillthrough",
+			   "en-GB", "Purchaser Drillthrough",
+			   "en-NZ", "Purchaser Drillthrough",
+			   "es-MX", "Análisis detallado de comprador",
+			   "fi-FI", "Ostajaan porautuminen",
+			   "fr-BE", "Extraction de l’acheteur",
+			   "fr-CA", "Extraction de l’acheteur",
+			   "fr-CH", "Extraction de l’acheteur",
+			   "is-IS", "Köfun í innkaupaaðila",
+			   "it-CH", "Drill-through addetto acquisti",
+			   "it-IT", "Drill-through addetto acquisti",
+			   "nb-NO", "Gjennomgang av innkjøper",
+			   "nl-BE", "Detailanalyse inkoper",
+			   "nl-NL", "Detailanalyse inkoper",
+			   "sv-SE", "Detaljerad analys av inköpare",
+			   "Purchaser Drillthrough"
+			)
+		isHidden
+		lineageTag: b4d1f237-6921-43be-ac59-2f8aac349b7d
+
+	measure 'Purchase Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Indkøb",
+			   "de-DE", "Einkauf",
+			   "es-ES", "Compra",
+			   "fr-FR", "Achat",
+			   "cs-CZ", "Nákup",
+			   "de-AT", "Einkauf",
+			   "de-CH", "Einkauf",
+			   "en-AU", "Purchase",
+			   "en-CA", "Purchase",
+			   "en-GB", "Purchase",
+			   "en-NZ", "Purchase",
+			   "es-MX", "Compra",
+			   "fi-FI", "Osta",
+			   "fr-BE", "Achat",
+			   "fr-CA", "Achat",
+			   "fr-CH", "Achat",
+			   "is-IS", "Innkaup",
+			   "it-CH", "Acquisti",
+			   "it-IT", "Acquisti",
+			   "nb-NO", "Kjøp",
+			   "nl-BE", "Inkoop",
+			   "nl-NL", "Inkoop",
+			   "sv-SE", "Inköp",
+			   "Purchase"
+			)
+		isHidden
+		lineageTag: 7cec6767-58d3-4704-addd-c36ddd3dd609
+
+	measure 'for Business Central Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "til Business Central",
+			   "de-DE", "für Business Central",
+			   "es-ES", "para Business Central",
+			   "fr-FR", "pour Business Central",
+			   "cs-CZ", "pro Business Central",
+			   "de-AT", "für Business Central",
+			   "de-CH", "für Business Central",
+			   "en-AU", "for Business Central",
+			   "en-CA", "for Business Central",
+			   "en-GB", "for Business Central",
+			   "en-NZ", "for Business Central",
+			   "es-MX", "para Business Central",
+			   "fi-FI", "Business Centralille",
+			   "fr-BE", "pour Business Central",
+			   "fr-CA", "pour Business Central",
+			   "fr-CH", "pour Business Central",
+			   "is-IS", "fyrir Business Central",
+			   "it-CH", "per Business Central",
+			   "it-IT", "per Business Central",
+			   "nb-NO", "for Business Central",
+			   "nl-BE", "voor Business Central",
+			   "nl-NL", "voor Business Central",
+			   "sv-SE", "för Business Central",
+			   "for Business Central"
+			)
+		isHidden
+		lineageTag: 4fafefbe-6ed7-49b1-be75-30fe06fe32e8
+
+	measure 'CONNECT YOUR DATA Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "FORBIND DINE DATA",
+			   "de-DE", "MIT EIGENEN DATEN VERBINDEN",
+			   "es-ES", "CONECTAR LOS DATOS",
+			   "fr-FR", "CONNECTER VOS DONNÉES",
+			   "cs-CZ", "PŘIPOJENÍ DAT",
+			   "de-AT", "MIT EIGENEN DATEN VERBINDEN",
+			   "de-CH", "MIT EIGENEN DATEN VERBINDEN",
+			   "en-AU", "CONNECT YOUR DATA",
+			   "en-CA", "CONNECT YOUR DATA",
+			   "en-GB", "CONNECT YOUR DATA",
+			   "en-NZ", "CONNECT YOUR DATA",
+			   "es-MX", "CONECTAR LOS DATOS",
+			   "fi-FI", "YHDISTÄ TIETOSI",
+			   "fr-BE", "CONNECTER VOS DONNÉES",
+			   "fr-CA", "CONNECTER VOS DONNÉES",
+			   "fr-CH", "CONNECTER VOS DONNÉES",
+			   "is-IS", "TENGDU GÖGNIN ÞÍN",
+			   "it-CH", "CONNETTI I DATI",
+			   "it-IT", "CONNETTI I DATI",
+			   "nb-NO", "KOBLE TIL DATAENE",
+			   "nl-BE", "UW GEGEVENS VERBINDEN",
+			   "nl-NL", "UW GEGEVENS VERBINDEN",
+			   "sv-SE", "ANSLUT DINA DATA",
+			   "CONNECT YOUR DATA"
+			)
+		isHidden
+		lineageTag: a4bc3756-b43a-438b-bf4f-53ed0454d97f
+
+	measure '1. Download the Purchasing Connector for Power BI Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "1. Download Purchasing Connector for Power BI",
+			   "de-DE", "1. Purchasing Connector for Power BI herunterladen",
+			   "es-ES", "1. Descargar Purchasing Connector for Power BI",
+			   "fr-FR", "1. Téléchargez le connecteur d’achat pour Power BI",
+			   "cs-CZ", "1. Stažení řešení Purchasing Connector for Power BI",
+			   "de-AT", "1. Purchasing Connector for Power BI herunterladen",
+			   "de-CH", "1. Purchasing Connector for Power BI herunterladen",
+			   "en-AU", "1. Download the Purchasing Connector for Power BI",
+			   "en-CA", "1. Download the Purchasing Connector for Power BI",
+			   "en-GB", "1. Download the Purchasing Connector for Power BI",
+			   "en-NZ", "1. Download the Purchasing Connector for Power BI",
+			   "es-MX", "1. Descargar Purchasing Connector for Power BI",
+			   "fi-FI", "1. Lataa Purchasing Connector for Power BI",
+			   "fr-BE", "1. Téléchargez le connecteur d’achat pour Power BI",
+			   "fr-CA", "1. Téléchargez le connecteur d’achat pour Power BI",
+			   "fr-CH", "1. Téléchargez le connecteur d’achat pour Power BI",
+			   "is-IS", "1. Sæktu innkaupatengilinn fyrir Power BI",
+			   "it-CH", "1. Scaricare Purchasing Connector for Power BI",
+			   "it-IT", "1. Scaricare Purchasing Connector for Power BI",
+			   "nb-NO", "1. Last ned Purchasing Connector for Power BI",
+			   "nl-BE", "1. Download de Purchasing Connector for Power BI",
+			   "nl-NL", "1. Download de Purchasing Connector for Power BI",
+			   "sv-SE", "1. Ladda ned anslutningsprogrammet för inköp för Power BI",
+			   "1. Download the Purchasing Connector for Power BI"
+			)
+		isHidden
+		lineageTag: 18dcc5a9-7eb4-40a8-ae6a-9219d5eed753
+
+	measure '2. Configure Dynamics 365 Business Central Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "2. Konfigurer Dynamics 365 Business Central",
+			   "de-DE", "2. Dynamics 365 Business Central konfigurieren",
+			   "es-ES", "2. Configurar Dynamics 365 Business Central",
+			   "fr-FR", "2. Configurez Dynamics 365 Business Central",
+			   "cs-CZ", "2. Konfigurace Dynamics 365 Business Central",
+			   "de-AT", "2. Dynamics 365 Business Central konfigurieren",
+			   "de-CH", "2. Dynamics 365 Business Central konfigurieren",
+			   "en-AU", "2. Configure Dynamics 365 Business Central",
+			   "en-CA", "2. Configure Dynamics 365 Business Central",
+			   "en-GB", "2. Configure Dynamics 365 Business Central",
+			   "en-NZ", "2. Configure Dynamics 365 Business Central",
+			   "es-MX", "2. Configurar Dynamics 365 Business Central",
+			   "fi-FI", "2. Määritä Dynamics 365 Business Central",
+			   "fr-BE", "2. Configurez Dynamics 365 Business Central",
+			   "fr-CA", "2. Configurez Dynamics 365 Business Central",
+			   "fr-CH", "2. Configurez Dynamics 365 Business Central",
+			   "is-IS", "2. Stilla Dynamics 365 Business Central",
+			   "it-CH", "2. Configurare Dynamics 365 Business Central",
+			   "it-IT", "2. Configurare Dynamics 365 Business Central",
+			   "nb-NO", "2. Konfigurer Dynamics 365 Business Central",
+			   "nl-BE", "2. Dynamics 365 Business Central configureren",
+			   "nl-NL", "2. Dynamics 365 Business Central configureren",
+			   "sv-SE", "2. Konfigurera Dynamics 365 Business Central",
+			   "2. Configure Dynamics 365 Business Central"
+			)
+		isHidden
+		lineageTag: 02850208-ca15-4057-96a4-175875f3ca49
+
+	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "BRUG, REDIGER OG OPRET DINE EGNE RAPPORTER",
+			   "de-DE", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "es-ES", "USAR, EDITAR Y CREAR SUS PROPIOS INFORMES",
+			   "fr-FR", "UTILISEZ, MODIFIEZ ET CRÉEZ VOS PROPRES ÉTATS",
+			   "cs-CZ", "POUŽÍVÁNÍ, ÚPRAVA A TVORBA VLASTNÍCH SESTAV",
+			   "de-AT", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "de-CH", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "en-AU", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-CA", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-GB", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-NZ", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "es-MX", "USAR, EDITAR Y CREAR SUS PROPIOS INFORMES",
+			   "fi-FI", "KÄYTÄ, MUOKKAA JA LUO OMIA RAPORTTEJA",
+			   "fr-BE", "UTILISEZ, MODIFIEZ ET CRÉEZ VOS PROPRES ÉTATS",
+			   "fr-CA", "UTILISEZ, MODIFIEZ ET CRÉEZ VOS PROPRES RAPPORTS",
+			   "fr-CH", "UTILISEZ, MODIFIEZ ET CRÉEZ VOS PROPRES ÉTATS",
+			   "is-IS", "NOTAÐU, BREYTTU OG GERÐU ÞÍNAR EIGIN SKÝRSLUR",
+			   "it-CH", "USA, MODIFICA E CREA I TUOI REPORT",
+			   "it-IT", "USA, MODIFICA E CREA I TUOI REPORT",
+			   "nb-NO", "BRUK, REDIGER OG BYGG DINE EGNE RAPPORTER",
+			   "nl-BE", "UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN",
+			   "nl-NL", "UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN",
+			   "sv-SE", "ANVÄND, REDIGERA OCH SKAPA EGNA RAPPORTER",
+			   "USE, EDIT AND BUILD YOUR OWN REPORTS"
+			)
+		isHidden
+		lineageTag: 59e4f8ff-2bc3-4a0f-8d2b-a9397d905c30
+
+	measure 'Purchasing includes a variety of pre-built reports to help you see your data immediately. Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Indkøb omfatter en række forudbyggede rapporter, der hjælper dig med at få vist dine data med det samme.",
+			   "de-DE", "Einkauf enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.",
+			   "es-ES", "Compras incluye una variedad de informes prediseñados para ayudarlo a ver sus datos de inmediato.",
+			   "fr-FR", "Achats comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "cs-CZ", "Nakupování obsahuje řadu předpřipravených sestav, které vám pomohou okamžitě zobrazit vaše data.",
+			   "de-AT", "Einkauf enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.",
+			   "de-CH", "Einkauf enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.",
+			   "en-AU", "Purchasing includes a variety of pre-built reports to help you see your data immediately.",
+			   "en-CA", "Purchasing includes a variety of pre-built reports to help you see your data immediately.",
+			   "en-GB", "Purchasing includes a variety of pre-built reports to help you see your data immediately.",
+			   "en-NZ", "Purchasing includes a variety of pre-built reports to help you see your data immediately.",
+			   "es-MX", "Compras incluye una variedad de informes prediseñados para ayudarlo a ver sus datos de inmediato.",
+			   "fi-FI", "Ostaminen sisältää erilaisia etukäteen luotuja raportteja, joiden avulla voit tarkastella tietoja heti.",
+			   "fr-BE", "Achats comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "fr-CA", "Achats comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "fr-CH", "Achats comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "is-IS", "Innkaup innihalda ýmsar tilbúnar skýrslur til að hjálpa þér að sjá gögnin þín strax.",
+			   "it-CH", "Gli acquisti includono una serie di report predefiniti che consentono di visualizzare immediatamente i dati.",
+			   "it-IT", "Gli acquisti includono una serie di report predefiniti che consentono di visualizzare immediatamente i dati.",
+			   "nb-NO", "Innkjøp inkluderer en rekke forhåndsbygde rapporter for å hjelpe deg med å se dataene umiddelbart.",
+			   "nl-BE", "Inkoop bevat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.",
+			   "nl-NL", "Inkoop bevat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.",
+			   "sv-SE", "Inköp innehåller en mängd fördefinierade rapporter som gör att du kan visa data omedelbart.",
+			   "Purchasing includes a variety of pre-built reports to help you see your data immediately."
+			)
+		isHidden
+		lineageTag: 4ccab44d-8f1b-4384-bca0-4af219a33388
+
+	measure 'You are able to edit these reports or build your own report from scratch Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Du kan redigere disse rapporter eller oprette din egen rapport fra bunden",
+			   "de-DE", "Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "es-ES", "Puede editar estos informes o crear el suyo propio desde cero",
+			   "fr-FR", "Vous pouvez modifier ces états ou créer votre propre état à partir de zéro",
+			   "cs-CZ", "Tyto sestavy můžete upravovat nebo si vytvořit vlastní sestavu od základu.",
+			   "de-AT", "Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "de-CH", "Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "en-AU", "You are able to edit these reports or build your own report from scratch",
+			   "en-CA", "You are able to edit these reports or build your own report from scratch",
+			   "en-GB", "You are able to edit these reports or build your own report from scratch",
+			   "en-NZ", "You are able to edit these reports or build your own report from scratch",
+			   "es-MX", "Puede editar estos informes o crear el suyo propio desde cero",
+			   "fi-FI", "Voit muokata näitä raportteja tai luoda oman raportin alusta alkaen.",
+			   "fr-BE", "Vous pouvez modifier ces états ou créer votre propre état à partir de zéro",
+			   "fr-CA", "Vous pouvez modifier ces rapports ou créer votre propre rapport à partir de zéro",
+			   "fr-CH", "Vous pouvez modifier ces états ou créer votre propre état à partir de zéro",
+			   "is-IS", "Þú getur breytt þessum skýrslum eða búið til þína eigin skýrslu frá grunni",
+			   "it-CH", "È possibile modificare questi report o creare il proprio report da zero",
+			   "it-IT", "È possibile modificare questi report o creare il proprio report da zero",
+			   "nb-NO", "Du kan redigere disse rapportene eller lage din egen rapport fra bunnen av",
+			   "nl-BE", "U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken",
+			   "nl-NL", "U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken",
+			   "sv-SE", "Du kan redigera dessa rapporter eller skapa en egen rapport från grunden",
+			   "You are able to edit these reports or build your own report from scratch"
+			)
+		isHidden
+		lineageTag: 5147ada8-5e0f-485c-9d56-0b90eb68a6a7
+
+	measure 'HELP AND SUPPORT Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "HJÆLP OG SUPPORT",
+			   "de-DE", "HILFE UND SUPPORT",
+			   "es-ES", "AYUDA Y SOPORTE",
+			   "fr-FR", "AIDE ET SUPPORT",
+			   "cs-CZ", "POMOC A PODPORA",
+			   "de-AT", "HILFE UND SUPPORT",
+			   "de-CH", "HILFE UND SUPPORT",
+			   "en-AU", "HELP AND SUPPORT",
+			   "en-CA", "HELP AND SUPPORT",
+			   "en-GB", "HELP AND SUPPORT",
+			   "en-NZ", "HELP AND SUPPORT",
+			   "es-MX", "AYUDA Y SOPORTE",
+			   "fi-FI", "OHJE JA TUKI",
+			   "fr-BE", "AIDE ET SUPPORT",
+			   "fr-CA", "AIDE ET SUPPORT",
+			   "fr-CH", "AIDE ET SUPPORT",
+			   "is-IS", "HJÁLP OG STUÐNINGUR",
+			   "it-CH", "GUIDA E SUPPORTO",
+			   "it-IT", "GUIDA E SUPPORTO",
+			   "nb-NO", "HJELP OG KUNDESTØTTE",
+			   "nl-BE", "HELP EN ONDERSTEUNING",
+			   "nl-NL", "HELP EN ONDERSTEUNING",
+			   "sv-SE", "HJÄLP OCH SUPPORT",
+			   "HELP AND SUPPORT"
+			)
+		isHidden
+		lineageTag: 08a20fa0-b4c8-4651-a83e-904daa3e4eaa
+
+	measure 'For help and support with your new report please visit the Analytics overview documentation. Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Du kan få hjælp og support til din nye rapport i dokumentationen til analyseoversigten.",
+			   "de-DE", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "es-ES", "Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.",
+			   "fr-FR", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "cs-CZ", "Nápovědu a podporu k nové sestavě naleznete v dokumentaci k přehledu Analytics.",
+			   "de-AT", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "de-CH", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "en-AU", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-CA", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-GB", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-NZ", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "es-MX", "Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.",
+			   "fi-FI", "Lisätietoja ja tukea uudelle raportillesi löydät analytiikan yleiskuvauksesta.",
+			   "fr-BE", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-CA", "Pour obtenir de l’aide et de l’assistance concernant votre nouveau rapport, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-CH", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "is-IS", "Kynntu þér fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð varðandi nýju skýrsluna þína.",
+			   "it-CH", "Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.",
+			   "it-IT", "Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.",
+			   "nb-NO", "Hvis du vil ha hjelp og støtte med den nye rapporten, kan du gå til dokumentasjonen for analyseoversikten.",
+			   "nl-BE", "Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.",
+			   "nl-NL", "Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.",
+			   "sv-SE", "Hjälp och support med den nya rapporten finns i översiktsdokumentationen för Analys.",
+			   "For help and support with your new report please visit the Analytics overview documentation."
+			)
+		isHidden
+		lineageTag: de5f976f-543e-4bbe-9004-41ffe79cab38
+
+	measure 'OTHER POWER BI REPORTS Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "ANDRE POWER BI-RAPPORTER",
+			   "de-DE", "SONSTIGE POWER BI-BERICHTE",
+			   "es-ES", "OTROS INFORMES DE POWER BI",
+			   "fr-FR", "AUTRES ÉTATS POWER BI",
+			   "cs-CZ", "DALŠÍ SESTAVY POWER BI",
+			   "de-AT", "SONSTIGE POWER BI-BERICHTE",
+			   "de-CH", "SONSTIGE POWER BI-BERICHTE",
+			   "en-AU", "OTHER POWER BI REPORTS",
+			   "en-CA", "OTHER POWER BI REPORTS",
+			   "en-GB", "OTHER POWER BI REPORTS",
+			   "en-NZ", "OTHER POWER BI REPORTS",
+			   "es-MX", "OTROS INFORMES DE POWER BI",
+			   "fi-FI", "MUUT POWER BI -RAPORTIT",
+			   "fr-BE", "AUTRES ÉTATS POWER BI",
+			   "fr-CA", "AUTRES RAPPORTS POWER BI",
+			   "fr-CH", "AUTRES ÉTATS POWER BI",
+			   "is-IS", "AÐRAR POWER BI SKÝRSLUR",
+			   "it-CH", "ALTRI REPORT DI POWER BI",
+			   "it-IT", "ALTRI REPORT DI POWER BI",
+			   "nb-NO", "ANDRE POWER BI-RAPPORTER",
+			   "nl-BE", "OVERIGE POWER BI-RAPPORTEN",
+			   "nl-NL", "OVERIGE POWER BI-RAPPORTEN",
+			   "sv-SE", "ÖVRIGA POWER BI-RAPPORTER",
+			   "OTHER POWER BI REPORTS"
+			)
+		isHidden
+		lineageTag: de11292a-7b2c-4613-a640-e860af54bdc6
+
+	measure 'SALES Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "SALG",
+			   "de-DE", "VERKAUF",
+			   "es-ES", "VENTAS",
+			   "fr-FR", "VENTES",
+			   "cs-CZ", "PRODEJ",
+			   "de-AT", "VERKAUF",
+			   "de-CH", "VERKAUF",
+			   "en-AU", "SALES",
+			   "en-CA", "SALES",
+			   "en-GB", "SALES",
+			   "en-NZ", "SALES",
+			   "es-MX", "VENTAS",
+			   "fi-FI", "MYYNTI",
+			   "fr-BE", "VENTES",
+			   "fr-CA", "VENTES",
+			   "fr-CH", "VENTES",
+			   "is-IS", "SALA",
+			   "it-CH", "VENDITE",
+			   "it-IT", "VENDITE",
+			   "nb-NO", "SALG",
+			   "nl-BE", "VERKOPEN",
+			   "nl-NL", "VERKOPEN",
+			   "sv-SE", "FÖRSÄLJNING",
+			   "SALES"
+			)
+		isHidden
+		lineageTag: 71bc01ba-104c-43d6-a0e8-bd17c564ebcc
+
+	measure 'FINANCE Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "FINANS",
+			   "de-DE", "FINANZEN",
+			   "es-ES", "FINANZAS",
+			   "fr-FR", "FINANCE",
+			   "cs-CZ", "FINANCE",
+			   "de-AT", "FINANZEN",
+			   "de-CH", "FINANZEN",
+			   "en-AU", "FINANCE",
+			   "en-CA", "FINANCE",
+			   "en-GB", "FINANCE",
+			   "en-NZ", "FINANCE",
+			   "es-MX", "FINANZAS",
+			   "fi-FI", "TALOUSHALLINTO",
+			   "fr-BE", "FINANCE",
+			   "fr-CA", "FINANCE",
+			   "fr-CH", "FINANCE",
+			   "is-IS", "FJÁRMÁL",
+			   "it-CH", "DATI FINANZIARI",
+			   "it-IT", "DATI FINANZIARI",
+			   "nb-NO", "FINANS",
+			   "nl-BE", "FINANCIËN",
+			   "nl-NL", "FINANCIËN",
+			   "sv-SE", "EKONOMI",
+			   "FINANCE"
+			)
+		isHidden
+		lineageTag: 3aadb44d-0627-4eb0-941d-31b3a2dd3cac
+
+	measure 'REBATES Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "RABATTER",
+			   "de-DE", "RÜCKVERGÜTUNGEN",
+			   "es-ES", "DEVOLUCIONES",
+			   "fr-FR", "REMISES",
+			   "cs-CZ", "RABATY",
+			   "de-AT", "RÜCKVERGÜTUNGEN",
+			   "de-CH", "RÜCKVERGÜTUNGEN",
+			   "en-AU", "REBATES",
+			   "en-CA", "REBATES",
+			   "en-GB", "REBATES",
+			   "en-NZ", "REBATES",
+			   "es-MX", "DEVOLUCIONES",
+			   "fi-FI", "HYVITYKSET",
+			   "fr-BE", "REMISES",
+			   "fr-CA", "REMISES",
+			   "fr-CH", "REMISES",
+			   "is-IS", "EFTIRÁGREIDDIR AFSLÆTTIR",
+			   "it-CH", "SCONTI",
+			   "it-IT", "SCONTI",
+			   "nb-NO", "RABATTER",
+			   "nl-BE", "KORTINGEN",
+			   "nl-NL", "KORTINGEN",
+			   "sv-SE", "RABATTER",
+			   "REBATES"
+			)
+		isHidden
+		lineageTag: 3b603afc-d72a-41e7-940d-92484e167b75
+
+	measure 'INVENTORY Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "LAGERBEHOLDNING",
+			   "de-DE", "LAGERBESTAND",
+			   "es-ES", "INVENTARIO",
+			   "fr-FR", "STOCK",
+			   "cs-CZ", "ZÁSOBY",
+			   "de-AT", "LAGERBESTAND",
+			   "de-CH", "LAGERBESTAND",
+			   "en-AU", "INVENTORY",
+			   "en-CA", "INVENTORY",
+			   "en-GB", "INVENTORY",
+			   "en-NZ", "INVENTORY",
+			   "es-MX", "INVENTARIO",
+			   "fi-FI", "VARASTO",
+			   "fr-BE", "STOCK",
+			   "fr-CA", "INVENTAIRE",
+			   "fr-CH", "STOCK",
+			   "is-IS", "BIRGÐIR",
+			   "it-CH", "INVENTARIO",
+			   "it-IT", "INVENTARIO",
+			   "nb-NO", "BEHOLDNING",
+			   "nl-BE", "VOORRAAD",
+			   "nl-NL", "VOORRAAD",
+			   "sv-SE", "LAGER",
+			   "INVENTORY"
+			)
+		isHidden
+		lineageTag: f1a2e965-d38f-4771-b6ae-dc0a09df7d75
+
+	measure 'JOBS Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "JOB",
+			   "de-DE", "PROJEKTE",
+			   "es-ES", "PROYECTOS",
+			   "fr-FR", "PROJETS",
+			   "cs-CZ", "ÚLOHY",
+			   "de-AT", "PROJEKTE",
+			   "de-CH", "PROJEKTE",
+			   "en-AU", "JOBS",
+			   "en-CA", "JOBS",
+			   "en-GB", "JOBS",
+			   "en-NZ", "JOBS",
+			   "es-MX", "PROYECTOS",
+			   "fi-FI", "TYÖT",
+			   "fr-BE", "PROJETS",
+			   "fr-CA", "PROJETS",
+			   "fr-CH", "PROJETS",
+			   "is-IS", "VERK",
+			   "it-CH", "COMMESSE",
+			   "it-IT", "COMMESSE",
+			   "nb-NO", "PROSJEKTER",
+			   "nl-BE", "PROJECTEN",
+			   "nl-NL", "PROJECTEN",
+			   "sv-SE", "PROJEKT",
+			   "JOBS"
+			)
+		isHidden
+		lineageTag: bbab0610-bbdf-4293-bf82-5b8bc3d4c9ac
+
+	measure 'Purchase Amounts Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Købsbeløb",
+			   "de-DE", "Einkaufsbeträge",
+			   "es-ES", "Importes compra",
+			   "fr-FR", "Montants achat",
+			   "cs-CZ", "Částky nákupů",
+			   "de-AT", "Einkaufsbeträge",
+			   "de-CH", "Einkaufsbeträge",
+			   "en-AU", "Purchase Amounts",
+			   "en-CA", "Purchase Amounts",
+			   "en-GB", "Purchase Amounts",
+			   "en-NZ", "Purchase Amounts",
+			   "es-MX", "Importes compra",
+			   "fi-FI", "Ostosummat",
+			   "fr-BE", "Montants achat",
+			   "fr-CA", "Montants achat",
+			   "fr-CH", "Montants achat",
+			   "is-IS", "Upphæðir innkaupa",
+			   "it-CH", "Importi acquisti",
+			   "it-IT", "Importi acquisti",
+			   "nb-NO", "Kjøpsbeløp",
+			   "nl-BE", "Inkoopbedragen",
+			   "nl-NL", "Inkoopbedragen",
+			   "sv-SE", "Inköpsbelopp",
+			   "Purchase Amounts"
+			)
+		isHidden
+		lineageTag: 5ccf0231-b74a-4f3e-8c99-62eb38dc6bb7
+
+	measure 'Purchase Quantity by Item Category Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Købsantal efter varekategori",
+			   "de-DE", "Einkaufsmenge nach Artikelkategorie",
+			   "es-ES", "Cantidad de compra por categoría de producto",
+			   "fr-FR", "Quantité achat par catégorie d’article",
+			   "cs-CZ", "Nákupní množství podle kategorie zboží",
+			   "de-AT", "Einkaufsmenge nach Artikelkategorie",
+			   "de-CH", "Einkaufsmenge nach Artikelkategorie",
+			   "en-AU", "Purchase Quantity by Item Category",
+			   "en-CA", "Purchase Quantity by Item Category",
+			   "en-GB", "Purchase Quantity by Item Category",
+			   "en-NZ", "Purchase Quantity by Item Category",
+			   "es-MX", "Cantidad de compra por categoría de producto",
+			   "fi-FI", "Ostomäärä nimikeluokan mukaan",
+			   "fr-BE", "Quantité achat par catégorie d’article",
+			   "fr-CA", "Quantité achat par catégorie d’article",
+			   "fr-CH", "Quantité achat par catégorie d’article",
+			   "is-IS", "Magn innkaupa eftir vöruflokki",
+			   "it-CH", "Quantità acquisti per categoria articolo",
+			   "it-IT", "Quantità acquisti per categoria articolo",
+			   "nb-NO", "Kjøpsantall etter varekategori",
+			   "nl-BE", "Inkoopaantal per artikelcategorie",
+			   "nl-NL", "Inkoopaantal per artikelcategorie",
+			   "sv-SE", "Inköpsantal per artikelkategori",
+			   "Purchase Quantity by Item Category"
+			)
+		isHidden
+		lineageTag: 40e06a6e-8934-4a99-b5c8-1d32dc0512ee
+
+	measure 'Top 5 Vendors by Amount by Source Type Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Top 5 kreditorer efter beløb efter kildetype",
+			   "de-DE", "Top 5-Kreditoren nach Betrag nach Herkunftsart",
+			   "es-ES", "5 proveedores principales por importe por tipo procedencia mov.",
+			   "fr-FR", "5 premiers fournisseurs par montant par type origine",
+			   "cs-CZ", "5 nejlepších dodavatelů podle množství podle typu původu",
+			   "de-AT", "Top 5-Kreditoren nach Betrag nach Herkunftsart",
+			   "de-CH", "Top 5-Kreditoren nach Betrag nach Herkunftsart",
+			   "en-AU", "Top 5 Vendors by Amount by Source Type",
+			   "en-CA", "Top 5 Vendors by Amount by Source Type",
+			   "en-GB", "Top 5 Vendors by Amount by Source Type",
+			   "en-NZ", "Top 5 Vendors by Amount by Source Type",
+			   "es-MX", "5 proveedores principales por importe por tipo procedencia mov.",
+			   "fi-FI", "Viisi suurinta toimittajaa summan mukaan lähdetyypin perusteella",
+			   "fr-BE", "5 premiers fournisseurs par montant par type origine",
+			   "fr-CA", "5 premiers fournisseurs par montant par type origine",
+			   "fr-CH", "5 premiers fournisseurs par montant par type origine",
+			   "is-IS", "Fimm efstu söluaðilar eftir upphæð og tegund uppruna",
+			   "it-CH", "Primi 5 fornitori per importo per tipo di origine",
+			   "it-IT", "Primi 5 fornitori per importo per tipo di origine",
+			   "nb-NO", "Topp fem leverandører etter beløp etter kildetype",
+			   "nl-BE", "Top 5 leveranciers per bedrag per bronsoort",
+			   "nl-NL", "Top 5 leveranciers per bedrag per bronsoort",
+			   "sv-SE", "5 bästa leverantörer per belopp per källtyp",
+			   "Top 5 Vendors by Amount by Source Type"
+			)
+		isHidden
+		lineageTag: a241f067-9ecf-4620-ada6-0c0a38c78481
+
+	measure 'Locations by Quantity Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Placeringer efter antal",
+			   "de-DE", "Menge nach Lagerorten",
+			   "es-ES", "Almacenes por cantidad",
+			   "fr-FR", "Magasins par quantité",
+			   "cs-CZ", "Lokace podle množství",
+			   "de-AT", "Menge nach Lagerorten",
+			   "de-CH", "Menge nach Lagerorten",
+			   "en-AU", "Locations by Quantity",
+			   "en-CA", "Locations by Quantity",
+			   "en-GB", "Locations by Quantity",
+			   "en-NZ", "Locations by Quantity",
+			   "es-MX", "Almacenes por cantidad",
+			   "fi-FI", "Sijainnit määrän mukaan",
+			   "fr-BE", "Magasins par quantité",
+			   "fr-CA", "Emplacements par quantité",
+			   "fr-CH", "Magasins par quantité",
+			   "is-IS", "Staðsetningar eftir magni",
+			   "it-CH", "Ubicazioni per quantità",
+			   "it-IT", "Ubicazioni per quantità",
+			   "nb-NO", "Lokasjoner etter antall",
+			   "nl-BE", "Locaties per aantal",
+			   "nl-NL", "Locaties per aantal",
+			   "sv-SE", "Lagerställen per antal",
+			   "Locations by Quantity"
+			)
+		isHidden
+		lineageTag: fc85466e-ca11-487a-87c3-14f30ce4f07b
+
+	measure 'Document Count Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Dokumentantal",
+			   "de-DE", "Anzahl der Belege",
+			   "es-ES", "Número de documentos",
+			   "fr-FR", "Nombre de documents",
+			   "cs-CZ", "Počet dokladů",
+			   "de-AT", "Anzahl der Belege",
+			   "de-CH", "Anzahl der Belege",
+			   "en-AU", "Document Count",
+			   "en-CA", "Document Count",
+			   "en-GB", "Document Count",
+			   "en-NZ", "Document Count",
+			   "es-MX", "Número de documentos",
+			   "fi-FI", "Asiakirjamäärä",
+			   "fr-BE", "Nombre de documents",
+			   "fr-CA", "Nombre de documents",
+			   "fr-CH", "Nombre de documents",
+			   "is-IS", "Skjalatalning",
+			   "it-CH", "Numero documenti",
+			   "it-IT", "Numero documenti",
+			   "nb-NO", "Dokumentantall",
+			   "nl-BE", "Aantal documenten",
+			   "nl-NL", "Aantal documenten",
+			   "sv-SE", "Antal dokument",
+			   "Document Count"
+			)
+		isHidden
+		lineageTag: 2896c96c-47c2-44d5-8ae9-75f0ef088119
+
+	measure 'Purchase Quantities Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Købsantal",
+			   "de-DE", "Einkaufsmengen",
+			   "es-ES", "Cantidades compra",
+			   "fr-FR", "Quantités achat",
+			   "cs-CZ", "Nakoupená množství",
+			   "de-AT", "Einkaufsmengen",
+			   "de-CH", "Einkaufsmengen",
+			   "en-AU", "Purchase Quantities",
+			   "en-CA", "Purchase Quantities",
+			   "en-GB", "Purchase Quantities",
+			   "en-NZ", "Purchase Quantities",
+			   "es-MX", "Cantidades compra",
+			   "fi-FI", "Ostomäärät",
+			   "fr-BE", "Quantités achat",
+			   "fr-CA", "Quantités achat",
+			   "fr-CH", "Quantités achat",
+			   "is-IS", "Magn innkaupa",
+			   "it-CH", "Quantità acquisti",
+			   "it-IT", "Quantità acquisti",
+			   "nb-NO", "Kjøpsantall",
+			   "nl-BE", "Inkoopaantallen",
+			   "nl-NL", "Inkoopaantallen",
+			   "sv-SE", "Inköpsantal",
+			   "Purchase Quantities"
+			)
+		isHidden
+		lineageTag: 6dd35c1f-36f8-4b91-b5f8-147d4d8433e8
+
+	measure 'Decomposition by Amount Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Nedbrydning efter beløb",
+			   "de-DE", "Aufschlüsselung nach Betrag",
+			   "es-ES", "Descomposición por importe",
+			   "fr-FR", "Décomposition par montant",
+			   "cs-CZ", "Dekompozice podle množství",
+			   "de-AT", "Aufschlüsselung nach Betrag",
+			   "de-CH", "Aufschlüsselung nach Betrag",
+			   "en-AU", "Decomposition by Amount",
+			   "en-CA", "Decomposition by Amount",
+			   "en-GB", "Decomposition by Amount",
+			   "en-NZ", "Decomposition by Amount",
+			   "es-MX", "Descomposición por importe",
+			   "fi-FI", "Purkaminen summan mukaan",
+			   "fr-BE", "Décomposition par montant",
+			   "fr-CA", "Décomposition par montant",
+			   "fr-CH", "Décomposition par montant",
+			   "is-IS", "Sundurliðun með upphæð",
+			   "it-CH", "Scomposizione per importo",
+			   "it-IT", "Scomposizione per importo",
+			   "nb-NO", "Nedbryting etter beløp",
+			   "nl-BE", "Uitsplitsing per bedrag",
+			   "nl-NL", "Uitsplitsing per bedrag",
+			   "sv-SE", "Uppdelning per belopp",
+			   "Decomposition by Amount"
+			)
+		isHidden
+		lineageTag: 6e4b55d1-deaf-437e-8738-7e5e2a9f8b47
+
+	measure 'Purchase Amount and Purchase Amount 30 Days Average (Fiscal) by Fiscal Month Year Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Købsbeløb og købsbeløb i 30 dages gennemsnit (regnskab) pr. regnskabsmåned år",
+			   "de-DE", "Einkaufsbetrag und Einkaufsbetragsdurchschnitt 30 Tage (Geschäftlich) nach Geschäftlich Monat Jahr",
+			   "es-ES", "Importe de compra e importe de compra media de 30 días (fiscal) por mes año fiscal",
+			   "fr-FR", "Montant achat et montant achat moyen 30 jours (fiscal) par mois et année d’exercice",
+			   "cs-CZ", "Průměrná částka nákupu za 30 dní (fiskální) a částka nákupu podle fiskálního měsíce a roku",
+			   "de-AT", "Einkaufsbetrag und Einkaufsbetragsdurchschnitt 30 Tage (Geschäftlich) nach Geschäftlich Monat Jahr",
+			   "de-CH", "Einkaufsbetrag und Einkaufsbetragsdurchschnitt 30 Tage (Geschäftlich) nach Geschäftlich Monat Jahr",
+			   "en-AU", "Purchase Amount and Purchase Amount 30 Days Average (Fiscal) by Fiscal Month Year",
+			   "en-CA", "Purchase Amount and Purchase Amount 30 Days Average (Fiscal) by Fiscal Month Year",
+			   "en-GB", "Purchase Amount and Purchase Amount 30 Days Average (Fiscal) by Fiscal Month Year",
+			   "en-NZ", "Purchase Amount and Purchase Amount 30 Days Average (Fiscal) by Fiscal Month Year",
+			   "es-MX", "Importe de compra e importe de compra media de 30 días (fiscal) por mes año fiscal",
+			   "fi-FI", "Ostosumma ja Ostosumman keskiarvo 30 päivän ajalta (kirjanpito) kirjanpitokuukauden vuoden mukaan",
+			   "fr-BE", "Montant achat et montant achat moyen 30 jours (fiscal) par mois et année d’exercice",
+			   "fr-CA", "Montant achat et montant achat moyen 30 jours (fiscal) par mois et année d’exercice",
+			   "fr-CH", "Montant achat et montant achat moyen 30 jours (fiscal) par mois et année d’exercice",
+			   "is-IS", "Upphæð innkaupa og meðalupphæð innkaupa yfir 30 daga (fjárhagstímabil) eftir mánuði fjárhagsárs",
+			   "it-CH", "Importo acquisti e media importo acquisti 30 giorni (fiscale) per mese e anno fiscale",
+			   "it-IT", "Importo acquisti e media importo acquisti 30 giorni (fiscale) per mese e anno fiscale",
+			   "nb-NO", "Kjøpsbeløp og kjøpsbeløp, 30 dagers gjennomsnitt (regnskap) etter Regnskap Måned År",
+			   "nl-BE", "Inkoopbedrag en inkoopbedrag gemiddeld 30 dagen (fiscaal) op fiscale maand/jaar",
+			   "nl-NL", "Inkoopbedrag en inkoopbedrag gemiddeld 30 dagen (fiscaal) op fiscale maand/jaar",
+			   "sv-SE", "Inköpsbelopp och Inköpsbelopp 30 dagar genomsnitt (räkenskapskalender) per Räkenskapskalender Månad År",
+			   "Purchase Amount and Purchase Amount 30 Days Average (Fiscal) by Fiscal Month Year"
+			)
+		isHidden
+		lineageTag: a6013c2d-5aed-4ed5-a48a-27f83b234932
+
+	measure 'Previous Year & Current Year Moving Annual Total by Fiscal Month Year Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Forrige år og indeværende år glidende årlig total efter regnskabsmåned år",
+			   "de-DE", "Gleitend Jahr Gesamt des Vorjahres und des aktuellen Jahres nach Geschäftlich Monat Jahr",
+			   "es-ES", "Total anual móvil de año actual y año anterior por mes año fiscal",
+			   "fr-FR", "Total annuel mobile année précédente et année en cours par mois et année d’exercice",
+			   "cs-CZ", "Předchozí rok a aktuální rok – roční pohyblivý součet podle fiskálního měsíce a roku",
+			   "de-AT", "Gleitend Jahr Gesamt des Vorjahres und des aktuellen Jahres nach Geschäftlich Monat Jahr",
+			   "de-CH", "Gleitend Jahr Gesamt des Vorjahres und des aktuellen Jahres nach Geschäftlich Monat Jahr",
+			   "en-AU", "Previous Year & Current Year Moving Annual Total by Fiscal Month Year",
+			   "en-CA", "Previous Year & Current Year Moving Annual Total by Fiscal Month Year",
+			   "en-GB", "Previous Year & Current Year Moving Annual Total by Fiscal Month Year",
+			   "en-NZ", "Previous Year & Current Year Moving Annual Total by Fiscal Month Year",
+			   "es-MX", "Total anual móvil de año actual y año anterior por mes año fiscal",
+			   "fi-FI", "Edellisen vuoden ja nykyisen vuoden liukuva vuosittainen kokonaissumma kirjanpitokuukauden vuoden mukaan",
+			   "fr-BE", "Total annuel mobile année précédente et année en cours par mois et année d’exercice",
+			   "fr-CA", "Total annuel mobile année précédente et année en cours par mois et année d’exercice",
+			   "fr-CH", "Total annuel mobile année précédente et année en cours par mois et année d’exercice",
+			   "is-IS", "Hlaupandi alls yfir fyrra og núverandi ár eftir mánuði fjárhagsárs",
+			   "it-CH", "Totale annuo mobile anno precedente e corrente per mese e anno fiscale",
+			   "it-IT", "Totale annuo mobile anno precedente e corrente per mese e anno fiscale",
+			   "nb-NO", "Forrige år og inneværende år, glidende årssum etter Regnskap Måned År",
+			   "nl-BE", "Vorig jaar en huidig jaar voortschrijdend jaarlijks totaal op fiscale maand/jaar",
+			   "nl-NL", "Vorig jaar en huidig jaar voortschrijdend jaarlijks totaal op fiscale maand/jaar",
+			   "sv-SE", "Föregående år och innevarande år Glidande årssumma per Räkenskapskalender Månad År",
+			   "Previous Year & Current Year Moving Annual Total by Fiscal Month Year"
+			)
+		isHidden
+		lineageTag: 7164f98f-82e2-496c-8596-c0dfee169651
+
+	measure 'Purchase Amount Period-over-Period (Fiscal) and Purchase Amount by Fiscal Month Year Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Købsbeløb periode-over-periode (regnskab) og købsbeløb pr. regnskabsmåned år",
+			   "de-DE", "Einkaufsbetrag Zeitraum-gegenüber-Zeitraum (Geschäftlich) und Einkaufsbetrag nach Geschäftlich Monat Jahr",
+			   "es-ES", "Importe de compra de periodo tras periodo (fiscal) e importe de compra por mes año fiscal",
+			   "fr-FR", "Montant achat période sur période (fiscal) et montant achat par mois et année d’exercice",
+			   "cs-CZ", "Částka nákupu mezi dvěma obdobími (fiskální) a částka nákupu podle fiskálního měsíce a roku",
+			   "de-AT", "Einkaufsbetrag Zeitraum-gegenüber-Zeitraum (Geschäftlich) und Einkaufsbetrag nach Geschäftlich Monat Jahr",
+			   "de-CH", "Einkaufsbetrag Zeitraum-gegenüber-Zeitraum (Geschäftlich) und Einkaufsbetrag nach Geschäftlich Monat Jahr",
+			   "en-AU", "Purchase Amount Period-over-Period (Fiscal) and Purchase Amount by Fiscal Month Year",
+			   "en-CA", "Purchase Amount Period-over-Period (Fiscal) and Purchase Amount by Fiscal Month Year",
+			   "en-GB", "Purchase Amount Period-over-Period (Fiscal) and Purchase Amount by Fiscal Month Year",
+			   "en-NZ", "Purchase Amount Period-over-Period (Fiscal) and Purchase Amount by Fiscal Month Year",
+			   "es-MX", "Importe de compra de periodo tras periodo (fiscal) e importe de compra por mes año fiscal",
+			   "fi-FI", "Ostosumma kaudesta toiseen (kirjanpito) ja Ostosumma kirjanpitokuukauden vuoden mukaan",
+			   "fr-BE", "Montant achat période sur période (fiscal) et montant achat par mois et année d’exercice",
+			   "fr-CA", "Montant achat période sur période (fiscal) et montant achat par mois et année d’exercice",
+			   "fr-CH", "Montant achat période sur période (fiscal) et montant achat par mois et année d’exercice",
+			   "is-IS", "Samanburður á upphæð innkaupa milli tímabila (fjárhagstímabil) og upphæð innkaupa eftir mánuði fjárhagsárs",
+			   "it-CH", "Confronto importo acquisti su periodi (fiscale) e importo acquisti per mese e anno fiscale",
+			   "it-IT", "Confronto importo acquisti su periodi (fiscale) e importo acquisti per mese e anno fiscale",
+			   "nb-NO", "Kjøpsbeløp periode for periode (regnskap) og kjøpsbeløp etter Regnskap Måned År",
+			   "nl-BE", "Inkoopbedrag periode tot periode (fiscaal) en inkoopbedrag op fiscale maand/jaar",
+			   "nl-NL", "Inkoopbedrag periode tot periode (fiscaal) en inkoopbedrag op fiscale maand/jaar",
+			   "sv-SE", "Inköpsbelopp period för period (räkenskapskalender) Inköpsbelopp per Räkenskapskalender Månad År",
+			   "Purchase Amount Period-over-Period (Fiscal) and Purchase Amount by Fiscal Month Year"
+			)
+		isHidden
+		lineageTag: c3e2f235-6d2b-4d7e-b027-754367722ca5
+
+	measure 'Current Year and Previous Year (Fiscal) Purchase Amount by Fiscal Month Year Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Indeværende år og forrige år (regnskab) købsbeløb efter regnskabsmåned år",
+			   "de-DE", "Einkaufsbetrags des aktuellen Jahres und des Vorjahres nach Geschäftlich Monat Jahr",
+			   "es-ES", "Importe de compra de año actual y año anterior (fiscal) por mes año fiscal",
+			   "fr-FR", "Année en cours et année précédente (fiscal), montant achat par mois et année d’exercice",
+			   "cs-CZ", "Aktuální rok a předchozí rok (fiskální) – částka nákupu podle fiskálního měsíce a roku",
+			   "de-AT", "Einkaufsbetrags des aktuellen Jahres und des Vorjahres nach Geschäftlich Monat Jahr",
+			   "de-CH", "Einkaufsbetrags des aktuellen Jahres und des Vorjahres nach Geschäftlich Monat Jahr",
+			   "en-AU", "Current Year and Previous Year (Fiscal) Purchase Amount by Fiscal Month Year",
+			   "en-CA", "Current Year and Previous Year (Fiscal) Purchase Amount by Fiscal Month Year",
+			   "en-GB", "Current Year and Previous Year (Fiscal) Purchase Amount by Fiscal Month Year",
+			   "en-NZ", "Current Year and Previous Year (Fiscal) Purchase Amount by Fiscal Month Year",
+			   "es-MX", "Importe de compra de año actual y año anterior (fiscal) por mes año fiscal",
+			   "fi-FI", "Nykyisen vuoden ja edellisen vuoden (kirjanpito) ostosumma kirjanpitokuukauden vuoden mukaan",
+			   "fr-BE", "Année en cours et année précédente (fiscal), montant achat par mois et année d’exercice",
+			   "fr-CA", "Année en cours et année précédente (fiscal), montant achat par mois et année d’exercice",
+			   "fr-CH", "Année en cours et année précédente (fiscal), montant achat par mois et année d’exercice",
+			   "is-IS", "Upphæð innkaupa núverandi og fyrra árs (fjárhagsár) eftir mánuði fjárhagsárs",
+			   "it-CH", "Importo acquisti anno corrente e anno precedente (fiscale) per mese e anno fiscale",
+			   "it-IT", "Importo acquisti anno corrente e anno precedente (fiscale) per mese e anno fiscale",
+			   "nb-NO", "Kjøpsbeløp for inneværende år og forrige år (regnskap) etter Regnskap Måned År",
+			   "nl-BE", "Inkoopbedrag huidig jaar en vorig jaar (fiscaal) op fiscale maand/jaar",
+			   "nl-NL", "Inkoopbedrag huidig jaar en vorig jaar (fiscaal) op fiscale maand/jaar",
+			   "sv-SE", "Innevarande år och föregående år (räkenskapskalender) Inköpsbelopp per Räkenskapskalender Månad År",
+			   "Current Year and Previous Year (Fiscal) Purchase Amount by Fiscal Month Year"
+			)
+		isHidden
+		lineageTag: 13dcb110-46f5-4185-85c3-3d1e0fe2ce2e
+
+	measure 'Last Refreshed Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Sidst opdateret",
+			   "de-DE", "Zuletzt aktualisiert",
+			   "es-ES", "Última actualización",
+			   "fr-FR", "Dernière actualisation",
+			   "cs-CZ", "Naposledy aktualizováno",
+			   "de-AT", "Zuletzt aktualisiert",
+			   "de-CH", "Zuletzt aktualisiert",
+			   "en-AU", "Last Refreshed",
+			   "en-CA", "Last Refreshed",
+			   "en-GB", "Last Refreshed",
+			   "en-NZ", "Last Refreshed",
+			   "es-MX", "Última actualización",
+			   "fi-FI", "Päivitetty viimeksi",
+			   "fr-BE", "Dernière actualisation",
+			   "fr-CA", "Dernière actualisation",
+			   "fr-CH", "Dernière actualisation",
+			   "is-IS", "Síðast uppfært",
+			   "it-CH", "Ultimo aggiornamento",
+			   "it-IT", "Ultimo aggiornamento",
+			   "nb-NO", "Sist oppdatert",
+			   "nl-BE", "Laatst vernieuwd",
+			   "nl-NL", "Laatst vernieuwd",
+			   "sv-SE", "Uppdaterades senast",
+			   "Last Refreshed"
+			)
+		isHidden
+		lineageTag: ee8ed83b-b9f8-4868-9945-d3589c5abc41
+
+	measure 'Company Name Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Virksomhedsnavn",
+			   "de-DE", "Mandantenname",
+			   "es-ES", "Nombre empresa",
+			   "fr-FR", "Nom de la société",
+			   "cs-CZ", "Název společnosti",
+			   "de-AT", "Mandantenname",
+			   "de-CH", "Mandantenname",
+			   "en-AU", "Company Name",
+			   "en-CA", "Company Name",
+			   "en-GB", "Company Name",
+			   "en-NZ", "Company Name",
+			   "es-MX", "Nombre empresa",
+			   "fi-FI", "Yrityksen nimi",
+			   "fr-BE", "Nom de la société",
+			   "fr-CA", "Nom de la compagnie",
+			   "fr-CH", "Nom de la société",
+			   "is-IS", "Heiti fyrirtækis",
+			   "it-CH", "Nome società",
+			   "it-IT", "Nome società",
+			   "nb-NO", "Selskapsnavn",
+			   "nl-BE", "Bedrijfsnaam",
+			   "nl-NL", "Bedrijfsnaam",
+			   "sv-SE", "Företagsnamn",
+			   "Company Name"
+			)
+		isHidden
+		lineageTag: 90363109-dbbc-4125-a981-d854bd068ab6
+
+	measure 'Purchase Quantity by Location Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Købsantal efter placering",
+			   "de-DE", "Einkaufsmenge nach Lagerort",
+			   "es-ES", "Cantidad compra por almacén",
+			   "fr-FR", "Quantité achat par magasin",
+			   "cs-CZ", "Nakoupené množství podle lokace",
+			   "de-AT", "Einkaufsmenge nach Lagerort",
+			   "de-CH", "Einkaufsmenge nach Lagerort",
+			   "en-AU", "Purchase Quantity by Location",
+			   "en-CA", "Purchase Quantity by Location",
+			   "en-GB", "Purchase Quantity by Location",
+			   "en-NZ", "Purchase Quantity by Location",
+			   "es-MX", "Cantidad compra por almacén",
+			   "fi-FI", "Ostomäärä sijainnin mukaan",
+			   "fr-BE", "Quantité achat par magasin",
+			   "fr-CA", "Quantité achat par emplacement",
+			   "fr-CH", "Quantité achat par magasin",
+			   "is-IS", "Innkaupamagn eftir staðsetningu",
+			   "it-CH", "Quantità acquisti per ubicazione",
+			   "it-IT", "Quantità acquisti per ubicazione",
+			   "nb-NO", "Kjøpsantall etter lokasjon",
+			   "nl-BE", "Inkoopaantal per locatie",
+			   "nl-NL", "Inkoopaantal per locatie",
+			   "sv-SE", "Inköpskvantitet per lagerställe",
+			   "Purchase Quantity by Location"
+			)
+		isHidden
+		lineageTag: 53961471-f024-413c-a2ae-447645647e44
+
+	measure 'Purchase Amounts of Top 5 Vendors Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Købsbeløb for top 5-kreditorer",
+			   "de-DE", "Einkaufsbeträge von Top-5-Kreditoren",
+			   "es-ES", "Importes de compra de los 5 principales proveedores",
+			   "fr-FR", "Montants achats des 5 premiers fournisseurs",
+			   "cs-CZ", "Částky nákupů 5 nejlepších dodavatelů",
+			   "de-AT", "Einkaufsbeträge von Top-5-Kreditoren",
+			   "de-CH", "Einkaufsbeträge von Top-5-Kreditoren",
+			   "en-AU", "Purchase Amounts of Top 5 Vendors",
+			   "en-CA", "Purchase Amounts of Top 5 Vendors",
+			   "en-GB", "Purchase Amounts of Top 5 Vendors",
+			   "en-NZ", "Purchase Amounts of Top 5 Vendors",
+			   "es-MX", "Importes de compra de los 5 principales proveedores",
+			   "fi-FI", "Viiden suurimman toimittajan ostosummat",
+			   "fr-BE", "Montants achats des 5 premiers fournisseurs",
+			   "fr-CA", "Montants achats des 5 premiers fournisseurs",
+			   "fr-CH", "Montants achats des 5 premiers fournisseurs",
+			   "is-IS", "Upphæðir innkaupa fimm efstu söluaðila",
+			   "it-CH", "Importi acquisti dei primi 5 fornitori",
+			   "it-IT", "Importi acquisti dei primi 5 fornitori",
+			   "nb-NO", "Kjøpsbeløp for de fem beste leverandørene",
+			   "nl-BE", "Inkoopbedragen van top 5 leveranciers",
+			   "nl-NL", "Inkoopbedragen van top 5 leveranciers",
+			   "sv-SE", "Inköpsbelopp för 5 bästa leverantörer",
+			   "Purchase Amounts of Top 5 Vendors"
+			)
+		isHidden
+		lineageTag: 1569a478-1543-454e-8693-5ee0a509b158
+
+	measure 'Purchase Distribution by Item Category Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Købsfordeling efter varekategori",
+			   "de-DE", "Einkaufsverteilung nach Artikelkategorie",
+			   "es-ES", "Distribución de compras por categoría de producto",
+			   "fr-FR", "Distribution achats par catégorie d’article",
+			   "cs-CZ", "Distribuce nákupů podle kategorie zboží",
+			   "de-AT", "Einkaufsverteilung nach Artikelkategorie",
+			   "de-CH", "Einkaufsverteilung nach Artikelkategorie",
+			   "en-AU", "Purchase Distribution by Item Category",
+			   "en-CA", "Purchase Distribution by Item Category",
+			   "en-GB", "Purchase Distribution by Item Category",
+			   "en-NZ", "Purchase Distribution by Item Category",
+			   "es-MX", "Distribución de compras por categoría de producto",
+			   "fi-FI", "Ostojakauma nimikeluokan mukaan",
+			   "fr-BE", "Distribution achats par catégorie d’article",
+			   "fr-CA", "Distribution achats par catégorie d’article",
+			   "fr-CH", "Distribution achats par catégorie d’article",
+			   "is-IS", "Dreifing innkaupa eftir vöruflokki",
+			   "it-CH", "Distribuzione acquisti per categoria articolo",
+			   "it-IT", "Distribuzione acquisti per categoria articolo",
+			   "nb-NO", "Kjøpsdistribusjon etter varekategori",
+			   "nl-BE", "Inkoopverdeling per artikelcategorie",
+			   "nl-NL", "Inkoopverdeling per artikelcategorie",
+			   "sv-SE", "Inköpsfördelning per artikelkategori",
+			   "Purchase Distribution by Item Category"
+			)
+		isHidden
+		lineageTag: ea46683b-c86f-488f-a714-c08f98a33994
+
+	measure 'Purchases by Item Category Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Køb efter varekategori",
+			   "de-DE", "Einkäufe nach Artikelkategorie",
+			   "es-ES", "Compras por categoría de producto",
+			   "fr-FR", "Achats par catégorie d’article",
+			   "cs-CZ", "Nákupy podle kategorie zboží",
+			   "de-AT", "Einkäufe nach Artikelkategorie",
+			   "de-CH", "Einkäufe nach Artikelkategorie",
+			   "en-AU", "Purchases by Item Category",
+			   "en-CA", "Purchases by Item Category",
+			   "en-GB", "Purchases by Item Category",
+			   "en-NZ", "Purchases by Item Category",
+			   "es-MX", "Compras por categoría de producto",
+			   "fi-FI", "Ostot nimikeluokan mukaan",
+			   "fr-BE", "Achats par catégorie d’article",
+			   "fr-CA", "Achats par catégorie d’article",
+			   "fr-CH", "Achats par catégorie d’article",
+			   "is-IS", "Innkaup eftir vöruflokki",
+			   "it-CH", "Acquisti per categoria articolo",
+			   "it-IT", "Acquisti per categoria articolo",
+			   "nb-NO", "Kjøp etter varekategori",
+			   "nl-BE", "Inkopen per artikelcategorie",
+			   "nl-NL", "Inkopen per artikelcategorie",
+			   "sv-SE", "Inköp per artikelkategori",
+			   "Purchases by Item Category"
+			)
+		isHidden
+		lineageTag: 7f12e5e6-65ab-4133-92b7-f09a202fab0a
+
+	measure 'Purchase Amount by Item Category Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Købsbeløb efter varekategori",
+			   "de-DE", "Einkaufsbetrag nach Artikelkategorie",
+			   "es-ES", "Importe de compra por categoría de producto",
+			   "fr-FR", "Montant achat par catégorie d’article",
+			   "cs-CZ", "Částka nákupu podle kategorie zboží",
+			   "de-AT", "Einkaufsbetrag nach Artikelkategorie",
+			   "de-CH", "Einkaufsbetrag nach Artikelkategorie",
+			   "en-AU", "Purchase Amount by Item Category",
+			   "en-CA", "Purchase Amount by Item Category",
+			   "en-GB", "Purchase Amount by Item Category",
+			   "en-NZ", "Purchase Amount by Item Category",
+			   "es-MX", "Importe de compra por categoría de producto",
+			   "fi-FI", "Ostosumma nimikeluokan mukaan",
+			   "fr-BE", "Montant achat par catégorie d’article",
+			   "fr-CA", "Montant achat par catégorie d’article",
+			   "fr-CH", "Montant achat par catégorie d’article",
+			   "is-IS", "Upphæð innkaupa eftir vöruflokki",
+			   "it-CH", "Importo acquisti per categoria articolo",
+			   "it-IT", "Importo acquisti per categoria articolo",
+			   "nb-NO", "Kjøpsbeløp etter varekategori",
+			   "nl-BE", "Inkoopbedrag per artikelcategorie",
+			   "nl-NL", "Inkoopbedrag per artikelcategorie",
+			   "sv-SE", "Inköpsbelopp per artikelkategori",
+			   "Purchase Amount by Item Category"
+			)
+		isHidden
+		lineageTag: 250025b3-1f49-4531-9c68-75589aa67d43
+
+	measure 'Actual vs Budget Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Faktisk i forhold til budget",
+			   "de-DE", "Istwert vs. Budget",
+			   "es-ES", "Valor real frente a presupuesto",
+			   "fr-FR", "Comparatif Réel/Budget",
+			   "cs-CZ", "Skutečnost vs. rozpočet",
+			   "de-AT", "Istwert vs. Budget",
+			   "de-CH", "Istwert vs. Budget",
+			   "en-AU", "Actual vs Budget",
+			   "en-CA", "Actual vs Budget",
+			   "en-GB", "Actual vs Budget",
+			   "en-NZ", "Actual vs Budget",
+			   "es-MX", "Valor real frente a presupuesto",
+			   "fi-FI", "Toteutunut vrt. budjetoitu",
+			   "fr-BE", "Comparatif Réel/Budget",
+			   "fr-CA", "Comparatif Réel/Budget",
+			   "fr-CH", "Comparatif Réel/Budget",
+			   "is-IS", "Raunverulegt samanb. v. áætlun",
+			   "it-CH", "Effettivo rispetto al budget",
+			   "it-IT", "Effettivo rispetto al budget",
+			   "nb-NO", "Faktisk i forhold til budsjett",
+			   "nl-BE", "Werkelijk vs. budget",
+			   "nl-NL", "Werkelijk vs. budget",
+			   "sv-SE", "Utfall kontra budget",
+			   "Actual vs Budget"
+			)
+		isHidden
+		lineageTag: 9f12d79f-2d39-49b3-937a-2917b7d966b6
+
+	measure 'Actual vs Budget Purchase Analysis by Item Category Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Faktisk i forhold til budgetkøbsanalyse efter varekategori",
+			   "de-DE", "Istwert vs. Budget – Einkaufsanalyse nach Artikelkategorie",
+			   "es-ES", "Análisis de compras reales frente a presupuestadas por categoría de producto",
+			   "fr-FR", "Analyse des achats réels par rapport au budget par catégorie d’article",
+			   "cs-CZ", "Analýza skutečného a rozpočtového nákupu podle kategorie zboží",
+			   "de-AT", "Istwert vs. Budget – Einkaufsanalyse nach Artikelkategorie",
+			   "de-CH", "Istwert vs. Budget – Einkaufsanalyse nach Artikelkategorie",
+			   "en-AU", "Actual vs Budget Purchase Analysis by Item Category",
+			   "en-CA", "Actual vs Budget Purchase Analysis by Item Category",
+			   "en-GB", "Actual vs Budget Purchase Analysis by Item Category",
+			   "en-NZ", "Actual vs Budget Purchase Analysis by Item Category",
+			   "es-MX", "Análisis de compras reales frente a presupuestadas por categoría de producto",
+			   "fi-FI", "Toteutunut vrt. budjetin oston analyysi nimikeluokan mukaan",
+			   "fr-BE", "Analyse des achats réels par rapport au budget par catégorie d’article",
+			   "fr-CA", "Analyse des achats réels par rapport au budget par catégorie d’article",
+			   "fr-CH", "Analyse des achats réels par rapport au budget par catégorie d’article",
+			   "is-IS", "Innkaupagreining á rauntölum samanbornum við fjárhagsáætlun eftir vöruflokki",
+			   "it-CH", "Analisi degli acquisti effettivi rispetto al budget per categoria articolo",
+			   "it-IT", "Analisi degli acquisti effettivi rispetto al budget per categoria articolo",
+			   "nb-NO", "Kjøpsanalyse av faktisk i forhold til budsjett etter varekategori",
+			   "nl-BE", "Analyse van werkelijke inkoop versus budgetinkoop per artikelcategorie",
+			   "nl-NL", "Analyse van werkelijke inkoop versus budgetinkoop per artikelcategorie",
+			   "sv-SE", "Analys av faktiska kontra budgeterade inköp per artikelkategori",
+			   "Actual vs Budget Purchase Analysis by Item Category"
+			)
+		isHidden
+		lineageTag: 84db05dc-4477-4bb0-94c8-551cdd2fc75b
+
+	measure 'Purchases Drillthrough Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Detaljeudledning af køb",
+			   "de-DE", "Einkaufs-Drillthrough",
+			   "es-ES", "Análisis detallado de compras",
+			   "fr-FR", "Extraction des achats",
+			   "cs-CZ", "Podrobné procházení nákupů",
+			   "de-AT", "Einkaufs-Drillthrough",
+			   "de-CH", "Einkaufs-Drillthrough",
+			   "en-AU", "Purchases Drillthrough",
+			   "en-CA", "Purchases Drillthrough",
+			   "en-GB", "Purchases Drillthrough",
+			   "en-NZ", "Purchases Drillthrough",
+			   "es-MX", "Análisis detallado de compras",
+			   "fi-FI", "Ostoihin porautuminen",
+			   "fr-BE", "Extraction des achats",
+			   "fr-CA", "Extraction des achats",
+			   "fr-CH", "Extraction des achats",
+			   "is-IS", "Köfun í innkaup",
+			   "it-CH", "Drill-through acquisti",
+			   "it-IT", "Drill-through acquisti",
+			   "nb-NO", "Gjennomgang av kjøp",
+			   "nl-BE", "Detailanalyse inkopen",
+			   "nl-NL", "Detailanalyse inkopen",
+			   "sv-SE", "Detaljerad analys av inköp",
+			   "Purchases Drillthrough"
+			)
+		isHidden
+		lineageTag: f59da9e9-ade3-4411-beca-c624853e8686
+
+	measure 'Detailed Purchase Ledger Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Detaljeret købsfinanskonto",
+			   "de-DE", "Detaillierter Einkaufsposten",
+			   "es-ES", "Movimientos detallados compras",
+			   "fr-FR", "Comptabilité achat détaillée",
+			   "cs-CZ", "Podrobná položka nákupů",
+			   "de-AT", "Detaillierter Einkaufsposten",
+			   "de-CH", "Detaillierter Einkaufsposten",
+			   "en-AU", "Detailed Purchase Ledger",
+			   "en-CA", "Detailed Purchase Ledger",
+			   "en-GB", "Detailed Purchase Ledger",
+			   "en-NZ", "Detailed Purchase Ledger",
+			   "es-MX", "Movimientos detallados compras",
+			   "fi-FI", "Yksityiskohtainen ostokirjanpito",
+			   "fr-BE", "Comptabilité achat détaillée",
+			   "fr-CA", "Comptabilité achat détaillée",
+			   "fr-CH", "Comptabilité achat détaillée",
+			   "is-IS", "Ítarlegt innkaupayfirlit",
+			   "it-CH", "Movimenti contabili acquisti dettagliati",
+			   "it-IT", "Movimenti contabili acquisti dettagliati",
+			   "nb-NO", "Detaljert kjøpspost",
+			   "nl-BE", "Gedetailleerd inkoopboek",
+			   "nl-NL", "Gedetailleerd inkoopboek",
+			   "sv-SE", "Detaljerat inköpsredovisning",
+			   "Detailed Purchase Ledger"
+			)
+		isHidden
+		lineageTag: e7635bba-9b29-47f2-a129-e672ff29b3c1
+
+	measure 'Total Purchase Amount by Fiscal Year Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Samlet købsbeløb efter regnskabsår",
+			   "de-DE", "Gesamteinkaufsbetrag nach Geschäftsjahr",
+			   "es-ES", "Importe total de la compra por ejercicio",
+			   "fr-FR", "Montant total de l’achat par exercice",
+			   "cs-CZ", "Celková částka nákupu podle fiskálního roku",
+			   "de-AT", "Gesamteinkaufsbetrag nach Geschäftsjahr",
+			   "de-CH", "Gesamteinkaufsbetrag nach Geschäftsjahr",
+			   "en-AU", "Total Purchase Amount by Fiscal Year",
+			   "en-CA", "Total Purchase Amount by Fiscal Year",
+			   "en-GB", "Total Purchase Amount by Fiscal Year",
+			   "en-NZ", "Total Purchase Amount by Fiscal Year",
+			   "es-MX", "Importe total de la compra por ejercicio",
+			   "fi-FI", "Ostosumma yhteensä tilikauden mukaan",
+			   "fr-BE", "Montant total de l’achat par exercice",
+			   "fr-CA", "Montant achat total par exercice financier",
+			   "fr-CH", "Montant total de l’achat par exercice",
+			   "is-IS", "Heildarupphæð innkaupa eftir fjárhagsári",
+			   "it-CH", "Importo totale acquisti per anno fiscale",
+			   "it-IT", "Importo totale acquisti per anno fiscale",
+			   "nb-NO", "Totalt kjøpsbeløp etter regnskapsår",
+			   "nl-BE", "Totaal inkoopbedrag per boekjaar",
+			   "nl-NL", "Totaal inkoopbedrag per boekjaar",
+			   "sv-SE", "Totalt inköpsbelopp per räkenskapsår",
+			   "Total Purchase Amount by Fiscal Year"
+			)
+		isHidden
+		lineageTag: ec5dbedf-00ec-486b-9d27-37b883a6422a
+
+	measure 'PROJECTS Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "PROJEKTER",
+			   "de-DE", "PROJEKTE",
+			   "es-ES", "PROYECTOS",
+			   "fr-FR", "PROJETS",
+			   "cs-CZ", "PROJEKTY",
+			   "de-AT", "PROJEKTE",
+			   "de-CH", "PROJEKTE",
+			   "en-AU", "PROJECTS",
+			   "en-CA", "PROJECTS",
+			   "en-GB", "PROJECTS",
+			   "en-NZ", "PROJECTS",
+			   "es-MX", "PROYECTOS",
+			   "fi-FI", "PROJEKTIT",
+			   "fr-BE", "PROJETS",
+			   "fr-CA", "PROJETS",
+			   "fr-CH", "PROJETS",
+			   "is-IS", "VERKEFNI",
+			   "it-CH", "PROGETTI",
+			   "it-IT", "PROGETTI",
+			   "nb-NO", "PROSJEKTER",
+			   "nl-BE", "PROJECTEN",
+			   "nl-NL", "PROJECTEN",
+			   "sv-SE", "PROJEKT",
+			   "PROJECTS"
+			)
+		isHidden
+		lineageTag: 4f5757dc-ecd2-406c-b351-3fc046ae79fa
+
+	measure 'MANUFACTURING Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "PRODUKTION",
+			   "de-DE", "PRODUKTION",
+			   "es-ES", "FABRICACIÓN",
+			   "fr-FR", "FABRICATION",
+			   "cs-CZ", "VÝROBA",
+			   "de-AT", "PRODUKTION",
+			   "de-CH", "PRODUKTION",
+			   "en-AU", "MANUFACTURING",
+			   "en-CA", "MANUFACTURING",
+			   "en-GB", "MANUFACTURING",
+			   "en-NZ", "MANUFACTURING",
+			   "es-MX", "FABRICACIÓN",
+			   "fi-FI", "TUOTANTO",
+			   "fr-BE", "FABRICATION",
+			   "fr-CA", "FABRICATION",
+			   "fr-CH", "FABRICATION",
+			   "is-IS", "FRAMLEIÐSLA",
+			   "it-CH", "PRODUZIONE",
+			   "it-IT", "PRODUZIONE",
+			   "nb-NO", "PRODUKSJON",
+			   "nl-BE", "PRODUCTIE",
+			   "nl-NL", "PRODUCTIE",
+			   "sv-SE", "PRODUKTION",
+			   "MANUFACTURING"
+			)
+		isHidden
+		lineageTag: 06b6069f-4957-46b2-96b5-8272e5945a34
+
+	measure 'This card displays key metrics for business analysis. The card shows total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount, and invoiced amount. Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Dette kort viser vigtige målepunkter til forretningsanalyse. Kortet viser det samlede købsbeløb, antallet af dokumenter, antallet af udestående købsordrer, antallet af købsfakturaer, det udestående beløb og det fakturerede beløb.",
+			   "de-DE", "Auf dieser Karte werden wichtige Kennzahlen für die Geschäftsanalyse angezeigt. Die Karte zeigt den Gesamtkaufbetrag, die Anzahl der Belege, die Anzahl der ausstehenden Bestellungen, die Anzahl der Einkaufsrechnungen, den ausstehenden Betrag und den fakturierten Betrag an.",
+			   "es-ES", "En esta ficha se muestran métricas clave para el análisis empresarial. En ella se muestran el importe total de la compra, el número de documentos, el número de pedidos de compra pendientes, el número de facturas de compra, el importe pendiente y el importe facturado.",
+			   "fr-FR", "Cette fiche affiche les mesures clés pour l’analyse commerciale. La fiche indique le montant achat total, le nombre de documents, le nombre de commandes achat ouvertes, le nombre de factures achat, le montant dû et le montant facturé.",
+			   "cs-CZ", "Tato karta zobrazuje klíčové metriky pro obchodní analýzu. Karta zobrazuje celkovou částku nákupu, počet dokladů, počet nevyřízených nákupních objednávek, počet nákupních faktur, zůstatek a fakturovanou částku.",
+			   "de-AT", "Auf dieser Karte werden wichtige Kennzahlen für die Geschäftsanalyse angezeigt. Die Karte zeigt den Gesamtkaufbetrag, die Anzahl der Belege, die Anzahl der ausstehenden Bestellungen, die Anzahl der Einkaufsrechnungen, den ausstehenden Betrag und den fakturierten Betrag an.",
+			   "de-CH", "Auf dieser Karte werden wichtige Kennzahlen für die Geschäftsanalyse angezeigt. Die Karte zeigt den Gesamtkaufbetrag, die Anzahl der Belege, die Anzahl der ausstehenden Bestellungen, die Anzahl der Einkaufsrechnungen, den ausstehenden Betrag und den fakturierten Betrag an.",
+			   "en-AU", "This card displays key metrics for business analysis. The card shows total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount, and invoiced amount.",
+			   "en-CA", "This card displays key metrics for business analysis. The card shows total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount, and invoiced amount.",
+			   "en-GB", "This card displays key metrics for business analysis. The card shows total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount, and invoiced amount.",
+			   "en-NZ", "This card displays key metrics for business analysis. The card shows total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount, and invoiced amount.",
+			   "es-MX", "En esta ficha se muestran métricas clave para el análisis empresarial. En ella se muestran el importe total de la compra, el número de documentos, el número de pedidos de compra pendientes, el número de facturas de compra, el importe pendiente y el importe facturado.",
+			   "fi-FI", "Tämä kortti näyttää liiketoiminta-analyysin keskeiset mittarit. Kortissa näkyy ostojen kokonaissumma, asiakirjamäärä, avointen ostotilausten määrä, ostolaskujen määrä, avoin summa ja laskutettu summa.",
+			   "fr-BE", "Cette fiche affiche les mesures clés pour l’analyse commerciale. La fiche indique le montant achat total, le nombre de documents, le nombre de commandes achat ouvertes, le nombre de factures achat, le montant dû et le montant facturé.",
+			   "fr-CA", "Cette fiche affiche les mesures clés pour l’analyse commerciale. La fiche indique le montant achat total, le nombre de documents, le nombre de bons de commande ouverts, le nombre de factures achat, le montant dû et le montant facturé.",
+			   "fr-CH", "Cette fiche affiche les mesures clés pour l’analyse commerciale. La fiche indique le montant achat total, le nombre de documents, le nombre de commandes achat ouvertes, le nombre de factures achat, le montant dû et le montant facturé.",
+			   "is-IS", "Þetta spjald sýnir helstu mæligildi fyrir greiningu á fyrirtæki. Spjaldið sýnir heildarupphæð innkaupa, fjölda fylgiskjala, fjölda útistandandi innkaupapantana, fjölda innkaupareikninga, útistandandi upphæð og reikningsfærða upphæð.",
+			   "it-CH", "Questa scheda visualizza le metriche chiave per l'analisi aziendale. La scheda mostra l'importo totale di acquisto, il numero di documenti, di ordini di acquisto inevasi e di fatture di acquisto nonché l'importo inevaso e quello fatturato.",
+			   "it-IT", "Questa scheda visualizza le metriche chiave per l'analisi aziendale. La scheda mostra l'importo totale di acquisto, il numero di documenti, di ordini di acquisto inevasi e di fatture di acquisto nonché l'importo inevaso e quello fatturato.",
+			   "nb-NO", "Dette kortet viser viktige måleverdier for forretningsanalyse. Kortet viser totalt kjøpsbeløp, dokumentantall, antall utestående bestillinger, antall kjøpsfakturaer, utestående beløp og fakturert beløp.",
+			   "nl-BE", "Op deze kaart worden belangrijke metrische gegevens voor bedrijfsanalyse weergegeven. De kaart bevat totaal inkoopbedrag, aantal documenten, aantal openstaande inkooporders, aantal inkoopfacturen, openstaand bedrag en gefactureerd bedrag.",
+			   "nl-NL", "Op deze kaart worden belangrijke metrische gegevens voor bedrijfsanalyse weergegeven. De kaart bevat totaal inkoopbedrag, aantal documenten, aantal openstaande inkooporders, aantal inkoopfacturen, openstaand bedrag en gefactureerd bedrag.",
+			   "sv-SE", "Det här kortet visar nyckeltal för affärsanalys. Kortet visar totalt inköpsbelopp, dokumentantal, antal utestående inköpsorder, antal inköpsfakturor, utestående belopp och fakturerat belopp.",
+			   "This card displays key metrics for business analysis. The card shows total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount, and invoiced amount."
+			)
+		isHidden
+		lineageTag: 214fdf19-fe7a-4008-bbd2-ac2a3bf42428
+
+	measure 'The card displays key metrics for business analysis, including total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount excluding VAT, and invoiced amount. Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Kortet viser vigtige målepunkter til forretningsanalyse, herunder det samlede købsbeløb, antallet af dokumenter, antallet af udestående købsordrer, antallet af købsfakturaer, det udestående beløb excl. moms og det fakturerede beløb.",
+			   "de-DE", "Die Karte zeigt wichtige Kennzahlen für die Geschäftsanalyse an, wie z. B. den Gesamtkaufbetrag, die Anzahl der Belege, die Anzahl der ausstehenden Bestellungen, die Anzahl der Einkaufsrechnungen, den ausstehenden Betrag ausgenommen MwSt. und den fakturierten Betrag an.",
+			   "es-ES", "En esta ficha se muestran métricas clave para el análisis empresarial, como, por ejemplo, el importe total de la compra, el número de documentos, el número de pedidos de compra pendientes, el número de facturas de compra, el importe pendiente sin incluir el IVA y el importe facturado.",
+			   "fr-FR", "La fiche affiche les mesures clés pour l’analyse commerciale, y compris le montant achat total, le nombre de documents, le nombre de commandes achat ouvertes, le nombre de factures achat, le montant HT dû et le montant facturé.",
+			   "cs-CZ", "Karta zobrazuje klíčové metriky pro obchodní analýzu včetně celkové částky nákupu, počtu dokladů, počtu nevyřízených nákupních objednávek, počtu nákupních faktur, zůstatku bez DPH a fakturované částky.",
+			   "de-AT", "Die Karte zeigt wichtige Kennzahlen für die Geschäftsanalyse an, wie z. B. den Gesamtkaufbetrag, die Anzahl der Belege, die Anzahl der ausstehenden Bestellungen, die Anzahl der Einkaufsrechnungen, den ausstehenden Betrag ausgenommen MwSt. und den fakturierten Betrag an.",
+			   "de-CH", "Die Karte zeigt wichtige Kennzahlen für die Geschäftsanalyse an, wie z. B. den Gesamtkaufbetrag, die Anzahl der Belege, die Anzahl der ausstehenden Bestellungen, die Anzahl der Einkaufsrechnungen, den ausstehenden Betrag ausgenommen MWST und den fakturierten Betrag.",
+			   "en-AU", "The card displays key metrics for business analysis, including total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount excluding GST, and invoiced amount.",
+			   "en-CA", "The card displays key metrics for business analysis, including total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount excluding tax, and invoiced amount.",
+			   "en-GB", "The card displays key metrics for business analysis, including total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount excluding VAT, and invoiced amount.",
+			   "en-NZ", "The card displays key metrics for business analysis, including total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount excluding GST, and invoiced amount.",
+			   "es-MX", "En esta ficha se muestran métricas clave para el análisis empresarial, como, por ejemplo, el importe total de la compra, el número de documentos, el número de pedidos de compra pendientes, el número de facturas de compra, el importe pendiente sin incluir el IVA y el importe facturado.",
+			   "fi-FI", "Kortti näyttää liiketoiminta-analyysin keskeiset mittarit, kuten ostojen kokonaissumman, asiakirjamäärän, avointen ostotilausten määrän, ostolaskujen määrän, avoimen summan ja laskutetun summan.",
+			   "fr-BE", "La fiche affiche les mesures clés pour l’analyse commerciale, y compris le montant achat total, le nombre de documents, le nombre de commandes achat ouvertes, le nombre de factures achat, le montant dû hors TVA et le montant facturé.",
+			   "fr-CA", "La fiche affiche les mesures clés pour l’analyse commerciale, y compris le montant achat total, le nombre de documents, le nombre de bons de commande ouverts, le nombre de factures achat, le montant dû hors TVA et le montant facturé.",
+			   "fr-CH", "La fiche affiche les mesures clés pour l’analyse commerciale, y compris le montant achat total, le nombre de documents, le nombre de commandes achat ouvertes, le nombre de factures achat, le montant dû hors TVA et le montant facturé.",
+			   "is-IS", "Spjaldið sýnir helstu mæligildi fyrir greiningu á fyrirtæki, þ.m.t. heildarupphæð innkaupa, fjölda fylgiskjala, fjölda útistandandi innkaupapantana, fjölda innkaupareikninga, útistandandi upphæð auk VSK og reikningsfærða upphæð.",
+			   "it-CH", "Questa scheda visualizza le metriche chiave per l'analisi aziendale, ad esempio l'importo totale di acquisto, il numero di documenti, di ordini di acquisto inevasi e di fatture di acquisto nonché l'importo inevaso, IVA esclusa, e quello fatturato.",
+			   "it-IT", "Questa scheda visualizza le metriche chiave per l'analisi aziendale, ad esempio l'importo totale di acquisto, il numero di documenti, di ordini di acquisto inevasi e di fatture di acquisto nonché l'importo inevaso, IVA esclusa, e quello fatturato.",
+			   "nb-NO", "Kortet viser viktige måleverdier for forretningsanalyse, inkludert totalt kjøpsbeløp, dokumentantall, antall utestående bestillinger, antall kjøpsfakturaer, utestående beløp ekskludert mva. og fakturert beløp.",
+			   "nl-BE", "Op de kaart worden belangrijke metrische gegevens voor bedrijfsanalyse weergegeven, inclusief totaal inkoopbedrag, aantal documenten, aantal openstaande inkooporders, aantal inkoopfacturen, openstaand bedrag exclusief btw en gefactureerd bedrag.",
+			   "nl-NL", "Op de kaart worden belangrijke metrische gegevens voor bedrijfsanalyse weergegeven, inclusief totaal inkoopbedrag, aantal documenten, aantal openstaande inkooporders, aantal inkoopfacturen, openstaand bedrag exclusief btw en gefactureerd bedrag.",
+			   "sv-SE", "Det här kortet visar nyckeltal för affärsanalys, inklusive totalt inköpsbelopp, dokumentantal, antal utestående inköpsorder, antal inköpsfakturor, utestående belopp exklusive moms och fakturerat belopp.",
+			   "The card displays key metrics for business analysis, including total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount excluding VAT, and invoiced amount."
+			)
+		isHidden
+		lineageTag: b88b69e2-8482-4486-960c-0ea09c23eea0
+
+	measure 'Daily Purchases Details Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Detaljer om Daglige køb",
+			   "de-DE", "Tägliche Einkäufe – Details",
+			   "es-ES", "Detalles de compras diarias",
+			   "fr-FR", "Détails achats quotidiens",
+			   "cs-CZ", "Denní nákupy – podrobnosti",
+			   "de-AT", "Tägliche Einkäufe – Details",
+			   "de-CH", "Tägliche Einkäufe – Details",
+			   "en-AU", "Daily Purchases Details",
+			   "en-CA", "Daily Purchases Details",
+			   "en-GB", "Daily Purchases Details",
+			   "en-NZ", "Daily Purchases Details",
+			   "es-MX", "Detalles de compras diarias",
+			   "fi-FI", "Päivittäiset ostot – Tiedot",
+			   "fr-BE", "Détails achats quotidiens",
+			   "fr-CA", "Détails achats quotidiens",
+			   "fr-CH", "Détails achats quotidiens",
+			   "is-IS", "Upplýsingar um dagleg innkaup",
+			   "it-CH", "Dettagli acquisti giornalieri",
+			   "it-IT", "Dettagli acquisti giornalieri",
+			   "nb-NO", "Detaljer om daglige kjøp",
+			   "nl-BE", "Details van dagelijkse inkopen",
+			   "nl-NL", "Details van dagelijkse inkopen",
+			   "sv-SE", "Information om Dagliga inköp",
+			   "Daily Purchases Details"
+			)
+		isHidden
+		lineageTag: cdeddba9-53d2-46ee-b565-b183eaab6a8c
+
+	measure 'Moving Annual Total (MAT) Details Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Detaljer om glidende årlig total (GÅT)",
+			   "de-DE", "Gleitend Jahr Gesamt (GJG) – Details",
+			   "es-ES", "Detalles totales anuales móviles (TAM)",
+			   "fr-FR", "Détails total annuel mobile (TAM)",
+			   "cs-CZ", "Roční pohyblivý součet (RPS) – podrobnosti",
+			   "de-AT", "Gleitend Jahr Gesamt (GJG) – Details",
+			   "de-CH", "Gleitend Jahr Gesamt (GJG) – Details",
+			   "en-AU", "Moving Annual Total (MAT) Details",
+			   "en-CA", "Moving Annual Total (MAT) Details",
+			   "en-GB", "Moving Annual Total (MAT) Details",
+			   "en-NZ", "Moving Annual Total (MAT) Details",
+			   "es-MX", "Detalles totales anuales móviles (TAM)",
+			   "fi-FI", "Liukuva vuosittainen kokonaissumma (MAT) – Tiedot",
+			   "fr-BE", "Détails total annuel mobile (TAM)",
+			   "fr-CA", "Détails total annuel mobile (TAM)",
+			   "fr-CH", "Détails total annuel mobile (TAM)",
+			   "is-IS", "Upplýsingar um hlaupandi alls yfir árið",
+			   "it-CH", "Dettagli totale annuo mobile (MAT)",
+			   "it-IT", "Dettagli totale annuo mobile (MAT)",
+			   "nb-NO", "Detaljer om glidende årssum (MAT)",
+			   "nl-BE", "Details van voortschrijdend jaarlijks totaal (VJT)",
+			   "nl-NL", "Details van voortschrijdend jaarlijks totaal (VJT)",
+			   "sv-SE", "Information om glidande årssumma (GÅS)",
+			   "Moving Annual Total (MAT) Details"
+			)
+		isHidden
+		lineageTag: 0d2b939e-1271-4df3-8677-7fa049eb8f72
+
+	measure 'Period-Over-Period (POP) Details Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Detaljer om periode-til-periode vækst (PTP)",
+			   "de-DE", "Periodenvergleich (ZGZ) – Details",
+			   "es-ES", "Detalles periodo tras periodo (PTP)",
+			   "fr-FR", "Détails croissance d’une période à l’autre (PSP)",
+			   "cs-CZ", "Mezi obdobími (MO) – podrobnosti",
+			   "de-AT", "Periodenvergleich (ZGZ) – Details",
+			   "de-CH", "Periodenvergleich (ZGZ) – Details",
+			   "en-AU", "Period-Over-Period (POP) Details",
+			   "en-CA", "Period-Over-Period (POP) Details",
+			   "en-GB", "Period-Over-Period (POP) Details",
+			   "en-NZ", "Period-Over-Period (POP) Details",
+			   "es-MX", "Detalles periodo tras periodo (PTP)",
+			   "fi-FI", "Kasvu kaudesta toiseen (K-K) – Tiedot",
+			   "fr-BE", "Détails croissance d’une période à l’autre (PSP)",
+			   "fr-CA", "Détails croissance d’une période à l’autre (PSP)",
+			   "fr-CH", "Détails croissance d’une période à l’autre (PSP)",
+			   "is-IS", "Upplýsingar um samanburð milli tímabila",
+			   "it-CH", "Dettagli crescita su periodi (POP)",
+			   "it-IT", "Dettagli crescita su periodi (POP)",
+			   "nb-NO", "Detaljer om periode for periode (POP)",
+			   "nl-BE", "Details van periode-tot-periode (PTP)",
+			   "nl-NL", "Details van periode-tot-periode (PTP)",
+			   "sv-SE", "Information om period-för-period (PFP)",
+			   "Period-Over-Period (POP) Details"
+			)
+		isHidden
+		lineageTag: eeb071b5-c644-4927-9417-854b00ae73b5
+
+	measure 'Year-Over-Year (YOY) Details Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Detaljer om år over år (ÅOÅ)",
+			   "de-DE", "Im Jahresverlauf (GJG) – Details",
+			   "es-ES", "Detalles de año tras año (ATA)",
+			   "fr-FR", "Détails année après année (AAA)",
+			   "cs-CZ", "Meziročně (MR) – podrobnosti",
+			   "de-AT", "Im Jahresverlauf (GJG) – Details",
+			   "de-CH", "Im Jahresverlauf (GJG) – Details",
+			   "en-AU", "Year-Over-Year (YOY) Details",
+			   "en-CA", "Year-Over-Year (YOY) Details",
+			   "en-GB", "Year-Over-Year (YOY) Details",
+			   "en-NZ", "Year-Over-Year (YOY) Details",
+			   "es-MX", "Detalles de año tras año (ATA)",
+			   "fi-FI", "Vuosi vuodelta (VV) – Tiedot",
+			   "fr-BE", "Détails année après année (AAA)",
+			   "fr-CA", "Détails année après année (AAA)",
+			   "fr-CH", "Détails année après année (AAA)",
+			   "is-IS", "Upplýsingar milli ára (samanburður milli ára)",
+			   "it-CH", "Dettagli anno su anno (YOY)",
+			   "it-IT", "Dettagli anno su anno (YOY)",
+			   "nb-NO", "Detaljer om år for år (YOY)",
+			   "nl-BE", "Details van jaar-tot-jaar (JTJ)",
+			   "nl-NL", "Details van jaar-tot-jaar (JTJ)",
+			   "sv-SE", "Information om År-För-År (ÅFÅ)",
+			   "Year-Over-Year (YOY) Details"
+			)
+		isHidden
+		lineageTag: c16a0555-bcb8-4f5b-9879-c83f050991ec
+
+	measure 'Purchases by Item Details Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Detaljer om køb efter vare",
+			   "de-DE", "Einkäufe nach Artikel – Details",
+			   "es-ES", "Detalles de compras por producto",
+			   "fr-FR", "Détails achats par article",
+			   "cs-CZ", "Nákupy podle zboží – podrobnosti",
+			   "de-AT", "Einkäufe nach Artikel – Details",
+			   "de-CH", "Einkäufe nach Artikel – Details",
+			   "en-AU", "Purchases by Item Details",
+			   "en-CA", "Purchases by Item Details",
+			   "en-GB", "Purchases by Item Details",
+			   "en-NZ", "Purchases by Item Details",
+			   "es-MX", "Detalles de compras por producto",
+			   "fi-FI", "Ostot nimikkeittäin – Tiedot",
+			   "fr-BE", "Détails achats par article",
+			   "fr-CA", "Détails achats par article",
+			   "fr-CH", "Détails achats par article",
+			   "is-IS", "Upplýsingar um innkaup eftir vöru",
+			   "it-CH", "Dettagli acquisti per articolo",
+			   "it-IT", "Dettagli acquisti per articolo",
+			   "nb-NO", "Detaljer om kjøp etter vare",
+			   "nl-BE", "Details van inkopen per artikel",
+			   "nl-NL", "Details van inkopen per artikel",
+			   "sv-SE", "Information om Inköp per artikel",
+			   "Purchases by Item Details"
+			)
+		isHidden
+		lineageTag: 046c1da6-37f8-474f-abab-0e006c5f57fe
+
+	measure 'Purchases by Vendor Details Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Detaljer om Køb efter kreditor",
+			   "de-DE", "Einkäufe nach Kreditor – Details",
+			   "es-ES", "Detalles de compras por proveedor",
+			   "fr-FR", "Détails achats par fournisseur",
+			   "cs-CZ", "Nákupy podle dodavatele – podrobnosti",
+			   "de-AT", "Einkäufe nach Kreditor – Details",
+			   "de-CH", "Einkäufe nach Kreditor – Details",
+			   "en-AU", "Purchases by Vendor Details",
+			   "en-CA", "Purchases by Vendor Details",
+			   "en-GB", "Purchases by Vendor Details",
+			   "en-NZ", "Purchases by Vendor Details",
+			   "es-MX", "Detalles de compras por proveedor",
+			   "fi-FI", "Ostot toimittajan mukaan – Tiedot",
+			   "fr-BE", "Détails achats par fournisseur",
+			   "fr-CA", "Détails achats par fournisseur",
+			   "fr-CH", "Détails achats par fournisseur",
+			   "is-IS", "Upplýsingar um innkaup eftir lánardrottni",
+			   "it-CH", "Dettagli acquisti per fornitore",
+			   "it-IT", "Dettagli acquisti per fornitore",
+			   "nb-NO", "Detaljer om kjøp etter leverandør",
+			   "nl-BE", "Details van inkopen per leverancier",
+			   "nl-NL", "Details van inkopen per leverancier",
+			   "sv-SE", "Information om Inköp per leverantör",
+			   "Purchases by Vendor Details"
+			)
+		isHidden
+		lineageTag: cf1e3f23-d340-494c-822b-4c8ff69fd7da
+
+	measure 'Purchases by Purchaser Details Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Detaljer om Køb efter indkøber",
+			   "de-DE", "Einkäufe nach Einkäufer – Details",
+			   "es-ES", "Detalles de compras por comprador",
+			   "fr-FR", "Détails achats par acheteur",
+			   "cs-CZ", "Nákupy podle kupujícího – podrobnosti",
+			   "de-AT", "Einkäufe nach Einkäufer – Details",
+			   "de-CH", "Einkäufe nach Einkäufer – Details",
+			   "en-AU", "Purchases by Purchaser Details",
+			   "en-CA", "Purchases by Purchaser Details",
+			   "en-GB", "Purchases by Purchaser Details",
+			   "en-NZ", "Purchases by Purchaser Details",
+			   "es-MX", "Detalles de compras por comprador",
+			   "fi-FI", "Ostot ostajan mukaan – Tiedot",
+			   "fr-BE", "Détails achats par acheteur",
+			   "fr-CA", "Détails achats par acheteur",
+			   "fr-CH", "Détails achats par acheteur",
+			   "is-IS", "Upplýsingar um innkaup eftir innkaupaaðila",
+			   "it-CH", "Dettagli acquisti per addetto acquisti",
+			   "it-IT", "Dettagli acquisti per addetto acquisti",
+			   "nb-NO", "Detaljer om kjøp etter innkjøper",
+			   "nl-BE", "Details van inkopen per inkoper",
+			   "nl-NL", "Details van inkopen per inkoper",
+			   "sv-SE", "Information om Inköp per köpare",
+			   "Purchases by Purchaser Details"
+			)
+		isHidden
+		lineageTag: d18a6af9-13cd-420c-9691-bba98f96b386
+
+	measure 'Purchases by Location Details Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Detaljer om køb efter placering",
+			   "de-DE", "Einkäufe nach Lagerort – Details",
+			   "es-ES", "Detalles de compras por almacén",
+			   "fr-FR", "Détails achats par magasin",
+			   "cs-CZ", "Nákupy podle lokace – podrobnosti",
+			   "de-AT", "Einkäufe nach Lagerort – Details",
+			   "de-CH", "Einkäufe nach Lagerort – Details",
+			   "en-AU", "Purchases by Location Details",
+			   "en-CA", "Purchases by Location Details",
+			   "en-GB", "Purchases by Location Details",
+			   "en-NZ", "Purchases by Location Details",
+			   "es-MX", "Detalles de compras por almacén",
+			   "fi-FI", "Ostot sijainneittain – Tiedot",
+			   "fr-BE", "Détails achats par magasin",
+			   "fr-CA", "Détails des achats par emplacement",
+			   "fr-CH", "Détails achats par magasin",
+			   "is-IS", "Upplýsingar um innkaup eftir staðsetningu",
+			   "it-CH", "Dettagli acquisti per ubicazione",
+			   "it-IT", "Dettagli acquisti per ubicazione",
+			   "nb-NO", "Detaljer om kjøp etter lokasjon",
+			   "nl-BE", "Details van inkopen per locatie",
+			   "nl-NL", "Details van inkopen per locatie",
+			   "sv-SE", "Information om Inköp per lagerställe",
+			   "Purchases by Location Details"
+			)
+		isHidden
+		lineageTag: 9a9d168b-ca6e-48ca-8a89-4cd8ebdd490a
+
+	measure 'Purchases Drillthrough Details Label' =
+			SWITCH(USERCULTURE(),
+			   "da-DK", "Detaljeudledninger for køb",
+			   "de-DE", "Einkaufs-Drillthrough – Details",
+			   "es-ES", "Detalles de análisis detallado de compras",
+			   "fr-FR", "Détails extraction des achats",
+			   "cs-CZ", "Podrobné procházení nákupů – podrobnosti",
+			   "de-AT", "Einkaufs-Drillthrough – Details",
+			   "de-CH", "Einkaufs-Drillthrough – Details",
+			   "en-AU", "Purchases Drillthrough Details",
+			   "en-CA", "Purchases Drillthrough Details",
+			   "en-GB", "Purchases Drillthrough Details",
+			   "en-NZ", "Purchases Drillthrough Details",
+			   "es-MX", "Detalles de análisis detallado de compras",
+			   "fi-FI", "Ostoihin porautuminen – Tiedot",
+			   "fr-BE", "Détails extraction des achats",
+			   "fr-CA", "Détails extraction des achats",
+			   "fr-CH", "Détails extraction des achats",
+			   "is-IS", "Upplýsingar um köfun í innkaup",
+			   "it-CH", "Dettagli drill-through acquisti",
+			   "it-IT", "Dettagli drill-through acquisti",
+			   "nb-NO", "Detaljer om gjennomgang av kjøp",
+			   "nl-BE", "Details van detailanalyse inkopen",
+			   "nl-NL", "Details van detailanalyse inkopen",
+			   "sv-SE", "Information om detaljerad analys av inköp",
+			   "Purchases Drillthrough Details"
+			)
+		isHidden
+		lineageTag: 97987c87-b39a-45df-9b98-43da70da7db8
+
+	measure 'Purchase Amount by Item No. Label' = "Purchase Amount by Item No."
+		isHidden
+		lineageTag: 02e27424-23aa-4628-92de-ceb8651aaee8
+
+	measure 'Purchase Value by Fiscal Year and Item Category Label' = "Purchase Value by Fiscal Year and Item Category"
+		isHidden
+		lineageTag: 2077930b-83a4-4759-a585-7950030c93b5
+
+	measure 'Purchase Value by Item Category Label' = "Purchase Value by Item Category"
+		isHidden
+		lineageTag: 66b6be9f-da99-4b49-8093-2b0967e3dce4
+
+	measure 'Purchase Amount Analysis by Vendor Label' = "Purchase Amount Analysis by Vendor"
+		isHidden
+		lineageTag: c494d9f5-d620-44e8-ac68-b05aa869c65b
+
+	measure 'Purchase (LCY) by Vendor City Label' = "Purchase (LCY) by Vendor City"
+		isHidden
+		lineageTag: ca6df41c-985d-459a-8ed6-198e16a19125
+
+	measure 'Purchase Metrics by Purchaser Label' = "Purchase Metrics by Purchaser"
+		isHidden
+		lineageTag: b64f09c7-6116-4b6c-bcbc-ad45c53670d2
+
+	measure 'Purchase Value by Purchaser Label' = "Purchase Value by Purchaser"
+		isHidden
+		lineageTag: 95f0f885-fd0c-453a-ad2e-8fadd1355f7e
+
+	measure 'Purchases by Warehouse Location Label' = "Purchases by Warehouse Location"
+		isHidden
+		lineageTag: 9e0b8fec-044e-4b70-b3d0-4290775a059c
+
+	measure 'Purchases by Vendor Location Label' = "Purchases by Vendor Location"
+		isHidden
+		lineageTag: e61c44c0-5b53-43db-903a-51c687283a98
+
+	measure 'Purchase Details by Warehouse Location Label' = "Purchase Details by Warehouse Location"
+		isHidden
+		lineageTag: 7f3e4c5f-6601-4570-9843-bfdfcbc0a9e5
+
+	measure 'Actual vs Budget Over Period Label' = "Actual vs Budget Over Period"
+		isHidden
+		lineageTag: 13c02d18-6a2b-4bc5-8303-d9ee67ed6686
+
+	measure 'Purchase Returns Overview Label' = "Purchase Returns Overview"
+		isHidden
+		lineageTag: c13520c4-0883-4126-a421-43b5d9bac0e8
+
+	measure 'Total Credit (Amount) by Type and No. Label' = "Total Credit (Amount) by Type and No."
+		isHidden
+		lineageTag: ce540558-1518-4246-9757-456132df1614
+
+	measure 'Return Rate (Amount) by Vendor Label' = "Return Rate (Amount) by Vendor"
+		isHidden
+		lineageTag: 92a1bd64-27f7-46ee-9865-d2e8b6d30f35
+
+	measure 'Total Credit Amount by Return Reason Code Label' = "Total Credit Amount by Return Reason Code"
+		isHidden
+		lineageTag: 8578a8a2-2f05-4659-aad8-8ea9fb50fb9a
+
+	measure 'Total Credit (Amount) Over Time Label' = "Total Credit (Amount) Over Time"
+		isHidden
+		lineageTag: bc2f94a7-2fd4-4fff-b60b-05335683f670
+
+	measure 'Purchase Quote Overview Label' = "Purchase Quote Overview"
+		isHidden
+		lineageTag: 990220f6-5be7-466d-826c-8b789ba3479a
+
+	measure 'Purchase Quotes by Vendor Details Label' = "Purchase Quotes by Vendor Details"
+		isHidden
+		lineageTag: d819b55f-f540-4f28-937c-fb3b7d2d81d9
+
+	measure 'Purchase Quotes by Purchaser Label' = "Purchase Quotes by Purchaser"
+		isHidden
+		lineageTag: 9db5e944-c36b-4498-8097-9a9ed9d9f9aa
+
+	measure 'Purchase Quotes by Item Category Code Label' = "Purchase Quotes by Item Category Code"
+		isHidden
+		lineageTag: 2a95180b-3c01-4af1-b122-d4c4a9580204
+
+	measure 'Purchase Quotes Over Time Label' = "Purchase Quotes Over Time"
+		isHidden
+		lineageTag: 87754a27-3421-4955-ad07-7bc668bd6cd2
+
+	measure 'Key Purchase Influencers Label' = "Key Purchase Influencers"
+		isHidden
+		lineageTag: 9145cb5f-ada9-4f5a-b21c-7b377fdb7a75
+
+	measure 'Purchase Quantity by Purchaser Label' = "Purchase Quantity by Purchaser"
+		isHidden
+		lineageTag: b895f0a0-56cf-414b-be5c-89ec65ff2bd1
+
+	measure 'Purchase Forecasting Label' = "Purchase Forecasting"
+		isHidden
+		lineageTag: 16f21b72-0eb0-4f37-9156-84c359c3fae6
+
+	measure 'Purchase (LCY) Forecasting Label' = "Purchase (LCY) Forecasting"
+		isHidden
+		lineageTag: c4906ac5-857b-4f54-bba8-9791e50fd430
+
+	measure 'Purchase (LCY) by Purchaser Label' = "Purchase (LCY) by Purchaser"
+		isHidden
+		lineageTag: 3b1012db-f8ba-4db6-afad-5eac0e6add9b
+
+	measure 'Purchase (LCY) by Document Type Label' = "Purchase (LCY) by Document Type"
+		isHidden
+		lineageTag: e8dc20f8-9408-4d23-b26c-eafd92934035
+
+	measure 'Purchase (LCY) by Item Category Label' = "Purchase (LCY) by Item Category"
+		isHidden
+		lineageTag: 453be5f2-383a-4fcb-9230-c518875211b4
+
+	measure 'Purchase (LCY) by Vendor Label' = "Purchase (LCY) by Vendor"
+		isHidden
+		lineageTag: fb322a6c-fcc5-4d22-aa59-2aac126f0b63
+
+	measure 'Vendor Quality Analysis Label' = "Vendor Quality Analysis"
+		isHidden
+		lineageTag: 5d4ea240-2af8-4b1c-8041-0c1552cc0fa4
+
+	measure 'Vendor Analysis Details Label' = "Vendor Analysis Details"
+		isHidden
+		lineageTag: 331a5162-50cd-4dbb-9cea-e5c2ddb7ba2f
+
+	measure 'Vendor Reliance Analysis Label' = "Vendor Reliance Analysis"
+		isHidden
+		lineageTag: 990dcd8b-d322-473f-b525-2d1338af3df2
+
+	measure 'Purchase Discount Amount Over Time Label' = "Purchase Discount Amount Over Time"
+		isHidden
+		lineageTag: 48a82bf2-a42c-4b85-9cd8-adecbb2539a2
+
+	measure 'Purchase Quantity Label Label' = "Purchase Quantity Label"
+		isHidden
+		lineageTag: 7e6b1291-b4ba-4183-95bc-d67da933c703
+
+	measure 'Purchase (LCY) Label Label' = "Purchase (LCY)"
+		isHidden
+		lineageTag: a589afe8-8138-41b2-b6b6-a4b6377f5dfe
+
+	measure 'Purchase (LCY) by Dimension  Label' = "Purchase (LCY) by Dimension "
+		isHidden
+		lineageTag: 7f49261c-14a9-4125-86af-022e58ceb63f
+
+	measure 'Year-To-Date Purchase (LCY) Over Time Label' = "Year-To-Date Purchase (LCY) Over Time"
+		isHidden
+		lineageTag: 584146d0-f3cc-4f11-8bc4-452a258495a6
+
+	measure 'Actual vs. Budget Amount by Item Label' = "Actual vs. Budget Amount by Item"
+		isHidden
+		lineageTag: 2f93a69c-ade5-4711-9077-b7a93d0a0167
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: 31affdd5-9425-441d-9623-de1028879b39
+		isNameInferred
+		sourceColumn: [unused]
+
+	partition Partition = calculated
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

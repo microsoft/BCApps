@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
-using Microsoft.Foundation.Attachment;
 using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.Foundation.Attachment;
 
 page 6105 "Inbound E-Documents"
 {
@@ -217,7 +217,8 @@ page 6105 "Inbound E-Documents"
                     EDocImport: Codeunit "E-Doc. Import";
                     ImportEDocumentProcess: Codeunit "Import E-Document Process";
                 begin
-                    EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare Draft";
+                    EDocImportParameters := Rec.GetEDocumentService().GetDefaultImportParameters();
+                    EDocImportParameters."Desired E-Document Status" := EDocImportParameters."Desired E-Document Status"::"Draft Ready";
                     EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
                     if ImportEDocumentProcess.IsEDocumentInStateGE(Rec, Enum::"Import E-Doc. Proc. Status"::"Ready for draft") then
                         EDocumentHelper.OpenDraftPage(Rec)
@@ -410,7 +411,7 @@ page 6105 "Inbound E-Documents"
         ProcessFilesUploads(EDocumentService, Files, Enum::"E-Doc. File Format"::XML);
     end;
 
-    local procedure ProcessFilesUploads(EDocumentService: Record "E-Document Service"; Files: List of [FileUpload]; Type: Enum "E-Doc. File Format")
+    internal procedure ProcessFilesUploads(EDocumentService: Record "E-Document Service"; Files: List of [FileUpload]; Type: Enum "E-Doc. File Format")
     var
         EDocument: Record "E-Document";
         EDocImport: Codeunit "E-Doc. Import";

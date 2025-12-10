@@ -5,8 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using System.Reflection;
 using Microsoft.Utilities;
+using System.Reflection;
 
 /// <summary>
 /// Table Shpfy Skipped Record (ID 30159).

@@ -1,0 +1,68 @@
+table Routing
+	lineageTag: 1e4ae15e-fafd-484d-bf9a-a85aa6218ec9
+
+	column 'Routing No.'
+		dataType: string
+		lineageTag: 71f18f3e-53f1-4c56-9835-a35681c2979a
+		summarizeBy: none
+		sourceColumn: Routing No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Routing Type'
+		dataType: string
+		lineageTag: 1d71c6ad-c2d9-478f-9032-bb84422bdc81
+		summarizeBy: none
+		sourceColumn: Routing Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Routing Status'
+		dataType: string
+		lineageTag: e0aad47a-84c6-4a6b-a73a-4e85fec32553
+		summarizeBy: none
+		sourceColumn: Routing Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Routing Description'
+		dataType: string
+		lineageTag: 68cb7bd6-fa47-4645-a5c8-d83bf1e87550
+		summarizeBy: none
+		sourceColumn: Routing Description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Routing = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="routings",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"no", type text},
+				            {"type", type text},
+				            {"status", type text},
+				            {"description", type text}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {
+				            {"no", "Routing No."},
+				            {"type", "Routing Type"},
+				            {"status", "Routing Status"},
+				            {"description", "Routing Description"}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
