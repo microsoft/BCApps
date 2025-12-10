@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Document;
 
 table 6114 "E-Doc. Purchase Line PO Match"
 {
@@ -17,18 +19,21 @@ table 6114 "E-Doc. Purchase Line PO Match"
         {
             DataClassification = SystemMetadata;
             Caption = 'E-Doc. Purchase Line SystemId';
+            TableRelation = "E-Document Purchase Line".SystemId;
             Editable = false;
         }
         field(2; "Purchase Line SystemId"; Guid)
         {
             DataClassification = SystemMetadata;
             Caption = 'Purchase Line SystemId';
+            TableRelation = "Purchase Line".SystemId;
             Editable = false;
         }
         field(3; "Receipt Line SystemId"; Guid)
         {
             DataClassification = SystemMetadata;
             Caption = 'Receipt Line SystemId';
+            TableRelation = "Purch. Rcpt. Line".SystemId;
             Editable = false;
         }
     }

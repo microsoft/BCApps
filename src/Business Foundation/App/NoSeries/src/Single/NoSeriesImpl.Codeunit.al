@@ -28,7 +28,7 @@ codeunit 304 "No. Series - Impl."
     var
         NoSeries: Record "No. Series";
     begin
-        TestManualInternal(NoSeriesCode, StrSubstNo(CannotAssignManuallyErr, NoSeries.FieldCaption("Manual Nos."), NoSeries.TableCaption(), NoSeries.Code));
+        TestManualInternal(NoSeriesCode, StrSubstNo(CannotAssignManuallyErr, NoSeries.FieldCaption("Manual Nos."), NoSeries.TableCaption(), NoSeriesCode));
     end;
 
     procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20])

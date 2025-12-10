@@ -1516,6 +1516,9 @@ codeunit 148157 "Service Object Test"
         Item: Record Item;
         SubscriptionHeader: Record "Subscription Header";
         SubscriptionLine: Record "Subscription Line";
+        DateTimeManagement: Codeunit "Date Time Management";
+        ExpectedCancellationPossibleUntil: Date;
+        ExpectedTermUntil: Date;
     begin
         // [SCENARIO] When "Notice Period" is empty, the action "Update Service Dates" does not calculate "Cancellation possible until" and "Term until"
 
@@ -1524,7 +1527,7 @@ codeunit 148157 "Service Object Test"
         SetupServiceObjectWithServiceCommitment(Item, SubscriptionHeader, false, false);
         SubscriptionLine.SetRange("Subscription Header No.", SubscriptionHeader."No.");
         SubscriptionLine.FindFirst();
-        SubscriptionLine.Validate("Subscription Line Start Date", CalcDate('<-CY>', Today()));
+        SubscriptionLine.Validate("Subscription Line Start Date", CalcDate('<-CM>', Today()));
         SubscriptionLine.Validate("Cancellation possible until", CalcDate('<+1D>', SubscriptionLine."Subscription Line Start Date"));
         Evaluate(SubscriptionLine."Extension Term", '<1Y>');
         SubscriptionLine.Modify(false);
@@ -1533,8 +1536,10 @@ codeunit 148157 "Service Object Test"
         SubscriptionHeader.UpdateServicesDates();
 
         // [THEN] "Cancellation possible until" and "Term until" are not recalculated
-        Assert.AreEqual(SubscriptionLine."Cancellation possible until", SubscriptionLine."Cancellation possible until", 'Cancellation possible until should not be recalculated.');
-        Assert.AreEqual(SubscriptionLine."Term until", SubscriptionLine."Term until", 'Term until should not be recalculated.');
+        ExpectedTermUntil := SubscriptionLine."Term until";
+        ExpectedCancellationPossibleUntil := SubscriptionLine."Cancellation possible until";
+        Assert.AreEqual(ExpectedTermUntil, SubscriptionLine."Term until", 'Term until should not be recalculated.');
+        Assert.AreEqual(ExpectedCancellationPossibleUntil, SubscriptionLine."Cancellation possible until", 'Cancellation possible until should not be recalculated.');
 
         // [WHEN] Run action Update Service Dates from Service Object when "Notice Period" is not empty
         Evaluate(SubscriptionLine."Notice Period", '<1M>');
@@ -1544,8 +1549,14 @@ codeunit 148157 "Service Object Test"
         SubscriptionLine.Get(SubscriptionLine."Entry No.");
 
         // [THEN] "Cancellation possible until" and "Term until" are recalculated
-        Assert.AreEqual(CalcDate(SubscriptionLine."Notice Period", SubscriptionLine."Cancellation possible until"), SubscriptionLine."Term until", 'Term until should be recalculated.');
-        Assert.AreEqual(CalcDate('-' + Format(SubscriptionLine."Notice Period"), SubscriptionLine."Term until"), SubscriptionLine."Cancellation possible until", 'Cancellation possible until should be recalculated.');
+        ExpectedTermUntil := CalcDate(SubscriptionLine."Extension Term", SubscriptionLine."Subscription Line Start Date" - 1);
+        if DateTimeManagement.IsLastDayOfMonth(SubscriptionLine."Subscription Line Start Date" - 1) then
+            DateTimeManagement.MoveDateToLastDayOfMonth(ExpectedTermUntil);
+        ExpectedCancellationPossibleUntil := CalcDate('-' + Format(SubscriptionLine."Notice Period"), SubscriptionLine."Term until");
+        if DateTimeManagement.IsLastDayOfMonth(ExpectedTermUntil) then
+            DateTimeManagement.MoveDateToLastDayOfMonth(ExpectedCancellationPossibleUntil);
+        Assert.AreEqual(ExpectedTermUntil, SubscriptionLine."Term until", 'Term until should be recalculated.');
+        Assert.AreEqual(ExpectedCancellationPossibleUntil, SubscriptionLine."Cancellation possible until", 'Cancellation possible until should be recalculated.');
     end;
 
     #endregion Tests
