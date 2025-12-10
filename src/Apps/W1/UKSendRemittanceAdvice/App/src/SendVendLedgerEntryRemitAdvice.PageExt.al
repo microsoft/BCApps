@@ -25,6 +25,19 @@ using Microsoft.Foundation.Reporting;
 using Microsoft.Finance.GeneralLedger.Journal;
 #endif
 
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Purchases.Vendor.RemittanceAdvice;
+
+using Microsoft.Purchases.Payables;
+using Microsoft.Foundation.Reporting;
+#if CLEAN28
+using Microsoft.Finance.GeneralLedger.Journal;
+#endif
+
 pageextension 4023 SendVendLedgerEntryRemitAdvice extends "Vendor Ledger Entries"
 {
     layout
