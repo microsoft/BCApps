@@ -258,7 +258,7 @@ table 149032 "AIT Test Method Line"
         else
             InputDatasetCode := AITTestSuite."Input Dataset";
 
-        exit(AITTestSuiteLanguage.GetLanguageDataset(InputDatasetCode, AITTestSuite."Language ID"));
+        exit(AITTestSuiteLanguage.GetLanguageDataset(InputDatasetCode, AITTestSuite."Run Language ID"));
     end;
 
     trigger OnInsert()

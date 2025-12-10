@@ -197,26 +197,26 @@ table 149030 "AIT Test Suite"
             FieldClass = FlowField;
             CalcFormula = count("AIT Column Mapping" where("Test Suite Code" = field("Code")));
         }
-        field(40; "Language ID"; Integer)
+        field(40; "Run Language ID"; Integer)
         {
             Caption = 'Language ID';
             TableRelation = "AIT Test Suite Language"."Language ID";
             ValidateTableRelation = true;
-            ToolTip = 'Specifies the Windows Language ID for this test suite language.';
+            ToolTip = 'Specifies the language in which the test suite should be run.';
         }
-        field(41; "Language Tag"; Text[80])
+        field(41; "Run Language Tag"; Text[80])
         {
             Caption = 'Language Tag';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = lookup("AIT Test Suite Language"."Language Tag" where("Test Suite Code" = field("Code"), "Language ID" = field("Language ID")));
+            CalcFormula = lookup("AIT Test Suite Language"."Language Tag" where("Test Suite Code" = field("Code"), "Language ID" = field("Run Language ID")));
         }
-        field(42; "Language Name"; Text[80])
+        field(42; "Run Language Name"; Text[80])
         {
             Caption = 'Language Name';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = lookup("AIT Test Suite Language"."Language Name" where("Test Suite Code" = field("Code"), "Language ID" = field("Language ID")));
+            CalcFormula = lookup("AIT Test Suite Language"."Language Name" where("Test Suite Code" = field("Code"), "Language ID" = field("Run Language ID")));
         }
         field(50; "Test Runner Id"; Integer)
         {
@@ -282,7 +282,7 @@ table 149030 "AIT Test Suite"
     var
         AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
     begin
-        exit(AITTestSuiteLanguage.GetLanguageDataset(Rec."Input Dataset", Rec."Language ID"));
+        exit(AITTestSuiteLanguage.GetLanguageDataset(Rec."Input Dataset", Rec."Run Language ID"));
     end;
 
     var

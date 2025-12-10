@@ -189,7 +189,7 @@ codeunit 149034 "AIT Test Suite Mgt."
             DatasetName := AITTestMethodLine.GetTestInputCode();
             // Validate test line dataset
             if (DatasetName <> '') and (not ValidDatasets.Contains(DatasetName)) then begin
-                ValidateTestLineDataset(AITTestMethodLine, DatasetName, AITTestSuite."Language ID");
+                ValidateTestLineDataset(AITTestMethodLine, DatasetName, AITTestSuite."Run Language ID");
                 ValidDatasets.Add(DatasetName);
             end;
 

@@ -61,7 +61,7 @@ page 149042 "AIT CommandLine Card"
 
                         Clear(LineNoFilter);
 
-                        AITTestSuite.Validate("Language ID", AITTestSuiteLanguage.GetLanguageIDByTag(LanguageTagFilter));
+                        AITTestSuite.Validate("Run Language ID", AITTestSuiteLanguage.GetLanguageIDByTag(LanguageTagFilter));
                         AITTestSuite.Modify(true);
 
                         UpdateAITestMethodLines();

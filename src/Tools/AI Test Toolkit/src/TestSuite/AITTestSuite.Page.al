@@ -437,7 +437,7 @@ page 149031 "AIT Test Suite"
     begin
         UpdateTotalDuration();
         UpdateAverages();
-        Language := AITTestSuiteLanguage.GetLanguageDisplayName(Rec."Language ID");
+        Language := AITTestSuiteLanguage.GetLanguageDisplayName(Rec."Run Language ID");
         TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner Id");
         EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(Rec.Code, 0);
     end;

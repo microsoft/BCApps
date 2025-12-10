@@ -94,7 +94,7 @@ codeunit 149046 "AIT Test Suite Language"
 
         if AITTestSuiteLanguages.RunModal() = Action::LookupOK then begin
             AITTestSuiteLanguages.GetRecord(TempAITTestSuiteLanguage);
-            AITTestSuite.Validate("Language ID", TempAITTestSuiteLanguage."Language ID");
+            AITTestSuite.Validate("Run Language ID", TempAITTestSuiteLanguage."Language ID");
             AITTestSuite.Modify(true);
         end;
     end;
