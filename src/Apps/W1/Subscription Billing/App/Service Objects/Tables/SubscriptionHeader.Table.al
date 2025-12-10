@@ -371,7 +371,7 @@ table 8057 "Subscription Header"
             InitValue = 1;
             NotBlank = true;
             AutoFormatType = 0;
-            DecimalPlaces = 0:5;
+            DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
             begin
