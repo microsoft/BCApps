@@ -3,6 +3,7 @@ namespace Microsoft.EServices.EDocumentConnector.Continia;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.UOM;
@@ -1112,6 +1113,7 @@ codeunit 148203 "Continia Doc. Integr. Tests"
         ContiniaConnectionSetup: Record "Continia Connection Setup";
         PurchaseHeader: Record "Purchase Header";
         Currency: Record Currency;
+        GeneralLedgerSetup: Record "General Ledger Setup";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
     begin
         LibraryPermission.SetOutsideO365Scope();
@@ -1120,6 +1122,10 @@ codeunit 148203 "Continia Doc. Integr. Tests"
         ContiniaConnectionSetup.DeleteAll();
         ContiniaConnectionSetup.Init();
         ContiniaConnectionSetup.Insert(true);
+
+        GeneralLedgerSetup.GetRecordOnce();
+        GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
+        GeneralLedgerSetup.Modify();
 
         PurchaseHeader.DeleteAll();
 
