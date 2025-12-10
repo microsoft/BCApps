@@ -56,7 +56,6 @@ table 149032 "AIT Test Method Line"
                 CodeunitMetadata.Get("Codeunit ID");
                 CalcFields("Codeunit Name");
 
-
                 if ("Codeunit ID" = Codeunit::"AIT Test Run Iteration") or not (CodeunitMetadata.TableNo in [0, Database::"AIT Test Method Line"]) then
                     if not (CodeunitMetadata.SubType = CodeunitMetadata.SubType::Test) then
                         Error(NotSupportedCodeunitErr, "Codeunit Name");
