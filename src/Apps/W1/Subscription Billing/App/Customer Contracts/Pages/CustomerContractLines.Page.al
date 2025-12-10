@@ -76,7 +76,9 @@ page 8075 "Customer Contract Lines"
                 field("Service Object Quantity"; Rec."Service Object Quantity")
                 {
                     ToolTip = 'Specifies the number of units of Subscription.';
-
+                    AutoFormatType = 0;
+                    DecimalPlaces = 0 : 5;
+                    
                     trigger OnDrillDown()
                     begin
                         Rec.OpenServiceObjectCard();

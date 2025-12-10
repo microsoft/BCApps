@@ -197,6 +197,7 @@ table 8006 "Usage Data Billing"
         {
             Caption = 'Pricing Unit Cost Surcharge %';
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(30; "Billing Line Entry No."; Integer)
         {
