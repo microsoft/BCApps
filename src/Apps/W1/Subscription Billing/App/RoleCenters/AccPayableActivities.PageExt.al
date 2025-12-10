@@ -6,7 +6,7 @@ namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.RoleCenters;
 
-pageextension 8014 "Acc. Payable Activities" extends "Acc. Payable Activities"
+pageextension 8015 "Acc. Payable Activities" extends "Acc. Payable Activities"
 {
     layout
     {

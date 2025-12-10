@@ -6,7 +6,7 @@ namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.RoleCenters;
 
-pageextension 8011 "Acc. Payable Administrator RC" extends "Acc. Payable Administrator RC"
+pageextension 8015 "Acc. Payable Administrator RC" extends "Acc. Payable Administrator RC"
 {
     actions
     {
