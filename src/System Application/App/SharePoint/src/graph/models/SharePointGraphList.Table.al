@@ -13,6 +13,8 @@ table 9130 "SharePoint Graph List"
     Access = Public;
     TableType = Temporary;
     DataClassification = SystemMetadata; // Data classification is SystemMetadata as the table is temporary
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     fields
     {

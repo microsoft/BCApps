@@ -13,6 +13,8 @@ table 9131 "SharePoint Graph List Item"
     Access = Public;
     TableType = Temporary;
     DataClassification = CustomerContent;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     fields
     {

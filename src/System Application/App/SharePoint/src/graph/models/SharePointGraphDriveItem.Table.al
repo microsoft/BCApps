@@ -13,6 +13,8 @@ table 9132 "SharePoint Graph Drive Item"
     Access = Public;
     TableType = Temporary;
     DataClassification = SystemMetadata; // Data classification is SystemMetadata as the table is temporary
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     fields
     {
