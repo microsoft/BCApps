@@ -871,10 +871,13 @@ table Customer
 			
 			```
 		formatString: #,0.00
+		isHidden
 		displayFolder: _Customer Measures
 		lineageTag: 7dbe219b-90ac-4775-bd18-5e1d8e2c3920
 
 		changedProperty = FormatString
+
+		changedProperty = IsHidden
 
 	/// Specifies the distinct count of customers
 	/// 
@@ -914,6 +917,65 @@ table Customer
 		formatString: #,0
 		displayFolder: _Customer Measures
 		lineageTag: 31585bf3-8301-4088-b857-2e4e689dc218
+
+	/// This measure calculates the total sales lost over the past 12 months due to customers who stopped purchasing ("lost" customers). It first identifies the most recent "lost" date, then filters customers who were lost before that date. It gets the sales from the previous 12 months for these lost customers and calculates the total revenue they generated before they stopped purchasing.
+	measure 'Sales Lost Customers' = ```
+			
+			VAR PeriodStart = MIN ( 'Date'[Date] )
+			VAR PeriodEnd   = MAX ( 'Date'[Date] )
+			
+			-- Identify the customers whose LostDate falls within the selected period
+			VAR LostCustomersInPeriod =
+			    FILTER (
+			        VALUES ( Customer[Customer No.] ),
+			        VAR LastPurchaseDate =
+			            MAXX (
+			                {
+			                    -- Sales Value Entries
+			                    CALCULATE (
+			                        MAX ( 'Sales Value Entries'[postingDate] ),
+			                        REMOVEFILTERS ( 'Date' ),
+			                        'Sales Value Entries'[Document Type] = "Posted Sales Invoice"
+			                    ),
+			                    -- Sales Invoice Lines
+			                    CALCULATE (
+			                        MAX ( 'Sales Invoice Lines'[postingDate] ),
+			                        REMOVEFILTERS ( 'Date' ),
+			                        'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice"
+			                    ),
+			                    -- Project Ledger Entries
+			                    CALCULATE (
+			                        MAX ( 'Project Ledger Entries'[postingDate] ),
+			                        REMOVEFILTERS ( 'Date' ),
+			                        'Project Ledger Entries'[Document Type] = "Posted Sales Invoice"
+			                    )
+			                },
+			                [Value]
+			            )
+			        VAR LostDate =
+			            IF (
+			                NOT ISBLANK ( LastPurchaseDate ),
+			                EDATE ( LastPurchaseDate, 'Lost Customer Month Range'[Lost Customer Month Range Value] )
+			            )
+			        RETURN NOT ISBLANK ( LostDate ) && LostDate >= PeriodStart && LostDate <= PeriodEnd
+			    )
+			
+			-- 12 months prior to the start of the selected period (exclusive of current period)
+			VAR WindowStart = EDATE ( PeriodStart, -12 )
+			VAR WindowEnd   = PeriodStart - 1
+			
+			RETURN
+			CALCULATE (
+			    [Sales (LCY)],   -- your base sales amount measure
+			    DATESBETWEEN ( 'Date'[Date], WindowStart, WindowEnd ),
+			    KEEPFILTERS ( TREATAS ( LostCustomersInPeriod, Customer[Customer No.] ) )
+			)
+			
+			```
+		displayFolder: _Customer Measures
+		lineageTag: 451f2bb2-89b8-47d1-8827-337416603e10
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
 	column 'Customer No. & Name'
 		dataType: string

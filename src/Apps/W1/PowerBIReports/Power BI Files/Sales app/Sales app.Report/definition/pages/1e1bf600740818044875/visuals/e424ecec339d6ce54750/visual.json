@@ -95,7 +95,7 @@
                           [
                             {
                               "Literal": {
-                                "Value": "12L"
+                                "Value": "6L"
                               }
                             }
                           ]
@@ -453,23 +453,5 @@
         }
       ]
     }
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "d5f660e31b084430ac85",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Lost Customer Month Range"
-              }
-            },
-            "Property": "Lost Customer Month Range"
-          }
-        },
-        "type": "Advanced"
-      }
-    ]
   }
 }

@@ -214,7 +214,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'[Temp Title] Customer Retention Year-To-Date'"
+                  "Value": "'[Temp Title] Customer Retention'"
                 }
               }
             }
@@ -251,45 +251,11 @@
           }
         },
         "type": "Advanced",
-        "filter": {
-          "Version": 2,
-          "From": [
-            {
-              "Name": "d",
-              "Entity": "Date",
-              "Type": 0
-            }
-          ],
-          "Where": [
-            {
-              "Condition": {
-                "Comparison": {
-                  "ComparisonKind": 0,
-                  "Left": {
-                    "Column": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Source": "d"
-                        }
-                      },
-                      "Property": "Fiscal RelativeYearPos"
-                    }
-                  },
-                  "Right": {
-                    "Literal": {
-                      "Value": "0L"
-                    }
-                  }
-                }
-              }
-            }
-          ]
-        },
         "howCreated": "User",
         "isLockedInViewMode": true
       },
       {
-        "name": "62af7a7e8280d76cbacc",
+        "name": "88f372552d9636f9d6a4",
         "field": {
           "Measure": {
             "Expression": {
@@ -303,7 +269,7 @@
         "type": "Advanced"
       },
       {
-        "name": "1cad81eca53c2debb7de",
+        "name": "531457f97cb554902305",
         "field": {
           "Measure": {
             "Expression": {
@@ -317,7 +283,7 @@
         "type": "Advanced"
       },
       {
-        "name": "c612753b2ba601ef08ed",
+        "name": "bdcae99b28eba3e816fd",
         "field": {
           "Measure": {
             "Expression": {
@@ -331,7 +297,7 @@
         "type": "Advanced"
       },
       {
-        "name": "36fa2a235cff83528edf",
+        "name": "6e6b52d96ed36001dad7",
         "field": {
           "Measure": {
             "Expression": {

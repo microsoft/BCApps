@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
   "name": "028cc6f330730ea532d0",
   "position": {
-    "x": 26.712075649432993,
-    "y": 463.99864739200274,
+    "x": 26.670307396633024,
+    "y": 146.25652443314885,
     "z": 3000,
-    "height": 230.51531949325511,
-    "width": 601,
+    "height": 300.25604133628792,
+    "width": 601.37241516924144,
     "tabOrder": 1000
   },
   "visual": {
@@ -33,7 +33,7 @@
               },
               "queryRef": "Date.Fiscal Year-Quarter-Month-Week.Fiscal Year",
               "nativeQueryRef": "Fiscal Year-Quarter-Month-Week Fiscal Year",
-              "active": true
+              "active": false
             },
             {
               "field": {
@@ -73,7 +73,7 @@
               },
               "queryRef": "Date.Fiscal Year-Quarter-Month-Week.Fiscal Month Year",
               "nativeQueryRef": "Fiscal Year-Quarter-Month-Week Fiscal Month Year",
-              "active": false
+              "active": true
             },
             {
               "field": {
@@ -194,7 +194,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'[Temp Title] Customer Loyalty Over Time'"
+                  "Value": "'[Temp Title] Customer Retention Over Time'"
                 }
               }
             }
@@ -202,5 +202,127 @@
         }
       ]
     }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "a4d53c8873d632ecc9b9",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+              }
+            },
+            "Level": "Fiscal Year"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "c2c4b03c4b80b2c317a8",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+              }
+            },
+            "Level": "Fiscal Quarter Year"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "339565af700acfb034a8",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+              }
+            },
+            "Level": "Fiscal Month Year"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "124920ff577a607530eb",
+        "field": {
+          "HierarchyLevel": {
+            "Expression": {
+              "Hierarchy": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Date"
+                  }
+                },
+                "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+              }
+            },
+            "Level": "Fiscal Week Year"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "0db9b794b61f46c83b46",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Sales New Customers"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "cb86ed6809edb9139673",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Sales Returning Customers"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "c5c555f7c75d09066c7f",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Sales Recovered Customers"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

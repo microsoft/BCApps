@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
   "name": "b013c3ce701c288a5b5d",
   "position": {
-    "x": 26.666666666666664,
-    "y": 146.66666666666666,
+    "x": 651.27169997584519,
+    "y": 146.25652443314885,
     "z": 6000,
-    "height": 300,
-    "width": 601.11111111111109,
+    "height": 300.25604133628792,
+    "width": 601.37241516924144,
     "tabOrder": 7000
   },
   "visual": {
@@ -559,44 +559,10 @@
           }
         },
         "type": "Advanced",
-        "filter": {
-          "Version": 2,
-          "From": [
-            {
-              "Name": "d",
-              "Entity": "Date",
-              "Type": 0
-            }
-          ],
-          "Where": [
-            {
-              "Condition": {
-                "Comparison": {
-                  "ComparisonKind": 0,
-                  "Left": {
-                    "Column": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Source": "d"
-                        }
-                      },
-                      "Property": "Fiscal RelativeYearPos"
-                    }
-                  },
-                  "Right": {
-                    "Literal": {
-                      "Value": "0L"
-                    }
-                  }
-                }
-              }
-            }
-          ]
-        },
         "howCreated": "User"
       },
       {
-        "name": "e6184a160105bcb34ee9",
+        "name": "0cdc57ba7477fdb04e92",
         "field": {
           "Column": {
             "Expression": {
@@ -610,7 +576,7 @@
         "type": "Categorical"
       },
       {
-        "name": "79f49b4e221cc468a4e6",
+        "name": "3fb9ac2a8ab9538d8788",
         "field": {
           "Column": {
             "Expression": {
@@ -624,7 +590,7 @@
         "type": "Categorical"
       },
       {
-        "name": "7ec534e98faf923d72c1",
+        "name": "e3460c6eb8b654df346e",
         "field": {
           "Column": {
             "Expression": {
@@ -638,7 +604,7 @@
         "type": "Categorical"
       },
       {
-        "name": "1852a9206f2678816627",
+        "name": "08c45986bb4208c1bd0f",
         "field": {
           "Column": {
             "Expression": {
@@ -652,7 +618,7 @@
         "type": "Categorical"
       },
       {
-        "name": "a06fcb5a4e6013045c75",
+        "name": "c433630a62446642f347",
         "field": {
           "Column": {
             "Expression": {
@@ -666,49 +632,7 @@
         "type": "Categorical"
       },
       {
-        "name": "d24e106b8258a98e5c22",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Customer"
-              }
-            },
-            "Property": "Sales Recovered Customers"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "0f4fd43e8d738a0a8805",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Customer"
-              }
-            },
-            "Property": "Sales Returning Customers"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "99bb02c5e51f5c554985",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Customer"
-              }
-            },
-            "Property": "Sales Lost Customers (12M)"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "32c3fdc27379a9c9b427",
+        "name": "54db3e91a38f25534e57",
         "field": {
           "Measure": {
             "Expression": {
@@ -722,7 +646,7 @@
         "type": "Advanced"
       },
       {
-        "name": "612d3dd9cd0a678dab40",
+        "name": "23de1bb4a9626f9d7edf",
         "field": {
           "Measure": {
             "Expression": {
@@ -731,6 +655,48 @@
               }
             },
             "Property": "Sales New Customers"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "ce782e2f755b4062be6a",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Sales Recovered Customers"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "d4ad8b371ce0d9984ae0",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Sales Returning Customers"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "b16e201d6bcc1c48b37a",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Sales Lost Customers (12M)"
           }
         },
         "type": "Advanced"

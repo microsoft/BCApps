@@ -65,11 +65,11 @@
                       "Entity": "Customer"
                     }
                   },
-                  "Property": "Sales Lost Customers (12M)"
+                  "Property": "Sales Lost Customers"
                 }
               },
-              "queryRef": "Customer.Sales Lost Customers (12M)",
-              "nativeQueryRef": "Sales Lost Customers (12M)"
+              "queryRef": "Customer.Sales Lost Customers",
+              "nativeQueryRef": "Sales Lost Customers"
             }
           ]
         }
@@ -299,41 +299,49 @@
           }
         },
         "type": "Advanced",
-        "filter": {
-          "Version": 2,
-          "From": [
-            {
-              "Name": "d",
-              "Entity": "Date",
-              "Type": 0
-            }
-          ],
-          "Where": [
-            {
-              "Condition": {
-                "Comparison": {
-                  "ComparisonKind": 0,
-                  "Left": {
-                    "Column": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Source": "d"
-                        }
-                      },
-                      "Property": "Fiscal RelativeYearPos"
-                    }
-                  },
-                  "Right": {
-                    "Literal": {
-                      "Value": "0L"
-                    }
-                  }
-                }
-              }
-            }
-          ]
-        },
         "howCreated": "User"
+      },
+      {
+        "name": "1f229698140c32c25241",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Sales New Customers"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "56c3c7006d64c0f34d92",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Sales Recovered Customers"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "f45039a6896966c49905",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer"
+              }
+            },
+            "Property": "Sales Returning Customers"
+          }
+        },
+        "type": "Advanced"
       }
     ]
   }
