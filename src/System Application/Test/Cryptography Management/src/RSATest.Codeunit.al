@@ -222,14 +222,19 @@ codeunit 132617 "RSA Test"
         EncryptingOutStream: OutStream;
         EncryptedInStream: InStream;
         EncryptedOutStream: OutStream;
+        DecryptedInStream: InStream;
         DecryptedOutStream: OutStream;
+        PlainText: Text;
+        DecryptedText: Text;
+        DecryptionFailed: Boolean;
     begin
         // [SCENARIO] Decrypt text encrypted with use of PKCS#1 padding, using OAEP padding.
+        // [SCENARIO] Due to random padding, decryption may occasionally not throw but returns garbage data.
         Initialize();
 
         // [GIVEN] With RSA pair of keys, plain text and encryption stream
         EncryptingTempBlob.CreateOutStream(EncryptingOutStream);
-        SaveRandomTextToOutStream(EncryptingOutStream);
+        PlainText := SaveRandomTextToOutStream(EncryptingOutStream);
         EncryptingTempBlob.CreateInStream(EncryptingInStream);
         EncryptedTempBlob.CreateOutStream(EncryptedOutStream);
         RSA.Encrypt(PrivateKeyXmlStringSecret, EncryptingInStream, false, EncryptedOutStream);
@@ -237,7 +242,15 @@ codeunit 132617 "RSA Test"
 
         // [WHEN] Decrypt encrypted text stream using OAEP Padding
         DecryptingTempBlob.CreateOutStream(DecryptedOutStream);
-        asserterror RSA.Decrypt(PrivateKeyXmlStringSecret, EncryptedInStream, true, DecryptedOutStream);
+        DecryptionFailed := not TryDecryptWithOaepPadding(RSA, PrivateKeyXmlStringSecret, EncryptedInStream, DecryptedOutStream);
+
+        // [THEN] Either decryption fails with an exception, or the decrypted text is garbage (not equal to plaintext)
+        if not DecryptionFailed then begin
+            DecryptingTempBlob.CreateInStream(DecryptedInStream);
+            DecryptedText := Base64Convert.FromBase64(Base64Convert.ToBase64(DecryptedInStream));
+            LibraryAssert.AreNotEqual(PlainText, DecryptedText, 'Decryption failed with garbage data.');
+        end else
+            LibraryAssert.IsTrue(DecryptionFailed, 'Decryption failed with wrong padding.');
     end;
 
     [Test]
@@ -251,14 +264,19 @@ codeunit 132617 "RSA Test"
         EncryptingOutStream: OutStream;
         EncryptedInStream: InStream;
         EncryptedOutStream: OutStream;
+        DecryptedInStream: InStream;
         DecryptedOutStream: OutStream;
+        PlainText: Text;
+        DecryptedText: Text;
+        DecryptionFailed: Boolean;
     begin
         // [SCENARIO] Decrypt text encrypted with use of OAEP padding, using PKCS#1 padding.
+        // [SCENARIO] Due to random padding, decryption may occasionally not throw but returns garbage data.
         Initialize();
 
         // [GIVEN] With RSA pair of keys, plain text, padding and encryption stream
         EncryptingTempBlob.CreateOutStream(EncryptingOutStream);
-        SaveRandomTextToOutStream(EncryptingOutStream);
+        PlainText := SaveRandomTextToOutStream(EncryptingOutStream);
         EncryptingTempBlob.CreateInStream(EncryptingInStream);
         EncryptedTempBlob.CreateOutStream(EncryptedOutStream);
         RSA.Encrypt(PrivateKeyXmlStringSecret, EncryptingInStream, true, EncryptedOutStream);
@@ -266,7 +284,27 @@ codeunit 132617 "RSA Test"
 
         // [WHEN] Decrypt encrypted text stream using PKCS#1 padding.
         DecryptingTempBlob.CreateOutStream(DecryptedOutStream);
-        asserterror RSA.Decrypt(PrivateKeyXmlStringSecret, EncryptedInStream, false, DecryptedOutStream);
+        DecryptionFailed := not TryDecrypt(RSA, PrivateKeyXmlStringSecret, EncryptedInStream, DecryptedOutStream);
+
+        // [THEN] Either decryption fails with an exception, or the decrypted text is garbage (not equal to plaintext)
+        if not DecryptionFailed then begin
+            DecryptingTempBlob.CreateInStream(DecryptedInStream);
+            DecryptedText := Base64Convert.FromBase64(Base64Convert.ToBase64(DecryptedInStream));
+            LibraryAssert.AreNotEqual(PlainText, DecryptedText, 'Decryption failed with garbage data.');
+        end else
+            LibraryAssert.IsTrue(DecryptionFailed, 'Decryption failed with wrong padding.');
+    end;
+
+    [TryFunction]
+    local procedure TryDecryptWithOaepPadding(RSA: Codeunit RSA; XmlString: SecretText; EncryptedInStream: InStream; DecryptedOutStream: OutStream)
+    begin
+        RSA.Decrypt(XmlString, EncryptedInStream, true, DecryptedOutStream);
+    end;
+
+    [TryFunction]
+    local procedure TryDecrypt(RSA: Codeunit RSA; XmlString: SecretText; EncryptedInStream: InStream; DecryptedOutStream: OutStream)
+    begin
+        RSA.Decrypt(XmlString, EncryptedInStream, false, DecryptedOutStream);
     end;
 
     local procedure SaveRandomTextToOutStream(OutStream: OutStream) PlainText: Text
