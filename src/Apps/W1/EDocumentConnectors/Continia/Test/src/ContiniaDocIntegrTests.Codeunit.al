@@ -29,6 +29,18 @@ codeunit 148203 "Continia Doc. Integr. Tests"
     /// it validates that the e-Document logs contain the correct status entries.
     /// </summary>
 
+
+    [Test]
+    procedure TestEmptyCompanyInfo()
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        CompanyInformation.Get();
+        if CompanyInformation."Registration No." <> '' then
+            Error(CompanyInformation."Registration No.");
+    end;
+
+
     [Test]
     [HandlerFunctions('HttpClientHandler')]
     procedure SubmitDocument()
