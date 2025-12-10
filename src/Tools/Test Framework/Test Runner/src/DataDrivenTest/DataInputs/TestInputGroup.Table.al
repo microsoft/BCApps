@@ -126,6 +126,9 @@ table 130454 "Test Input Group"
         key(Key3; "Group Name", "Language ID")
         {
         }
+        key(Key4; "Group Name", Indentation, Code)
+        {
+        }
     }
 
     fieldgroups
