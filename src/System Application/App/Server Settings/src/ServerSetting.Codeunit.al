@@ -35,6 +35,14 @@ codeunit 6723 "Server Setting"
         exit(ServerSettingImpl.GetIsSaasExcelAddinEnabled());
     end;
 
+    /// <summary>Checks whether Entra Groups are enabled on-premises.</summary>
+    /// <returns>True if enabled; otherwise, false.</returns>
+    /// <remarks>Gets the value of the server setting EnableEntraGroupsOnPrem.</remarks>
+    procedure GetEnableEntraGroupsOnPrem(): Boolean
+    begin
+        exit(ServerSettingImpl.GetEnableEntraGroupsOnPrem());
+    end;
+
     /// <summary>Checks whether the API Services are enabled.</summary>
     /// <returns>True if enabled; otherwise, false.</returns>
     /// <remarks>Gets the value of the server setting ApiServicesEnabled.</remarks>
