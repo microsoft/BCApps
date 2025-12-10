@@ -214,9 +214,26 @@ codeunit 9044 "ABS Format Helper"
         NewDateTime := 0DT;
         // PropertyValue is something like the following: 'Mon, 24 May 2021 12:25:27 GMT'
         // 'Evaluate' converts these correctly
-        if Evaluate(NewDateTime, PropertyValue) then;
-        exit(NewDateTime);
+        if Evaluate(NewDateTime, PropertyValue) then
+            exit(NewDateTime);
+        exit(EvaluateWithDotNetDateTime(PropertyValue));
     end;
+
+    local procedure EvaluateWithDotNetDateTime(var NewDateTime: DateTime; PropertyValue: Text)
+    var
+        DotNet_DateTime: Codeunit DotNet_DateTime;
+        DotNet_CultureInfo: Codeunit DotNet_CultureInfo;
+        DotNet_DateTimeStyles: Codeunit DotNet_DateTimeStyles;
+        DatePart: Date;
+    begin
+        if DotNet_DateTime.TryParse(DateTimeText, DotNet_CultureInfo, DotNet_DateTimeStyles) then
+            exit(DotNet_DateTime.ToDateTime());
+
+        Evaluate(DatePart, DateTimeText);
+        exit(CreateDateTime(DatePart, 0T));
+    end;
+
+
 
     procedure ConvertToInteger(PropertyValue: Text): Integer
     var
