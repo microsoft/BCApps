@@ -1,0 +1,74 @@
+[
+    {
+        "bug": "613698",
+        "codeunitId": 148203,
+        "codeunitName": "Continia Doc. Integr. Tests",
+        "method": "SubmitDocument"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 148203,
+        "codeunitName": "Continia Doc. Integr. Tests",
+        "method": "SubmitDocumentCdnServiceDown"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 148203,
+        "codeunitName": "Continia Doc. Integr. Tests",
+        "method": "SubmitDocument_ResponseServerDown_Sent"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 148203,
+        "codeunitName": "Continia Doc. Integr. Tests",
+        "method": "SubmitDocument_Pending_Sent"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 148203,
+        "codeunitName": "Continia Doc. Integr. Tests",
+        "method": "SubmitDocument_Error_Sent"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 148203,
+        "codeunitName": "Continia Doc. Integr. Tests",
+        "method": "SubmitDocument_NoApproval"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 148203,
+        "codeunitName": "Continia Doc. Integr. Tests",
+        "method": "SubmitDocument_StatusInfo"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 148203,
+        "codeunitName": "Continia Doc. Integr. Tests",
+        "method": "SubmitDocument_Approved"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 148203,
+        "codeunitName": "Continia Doc. Integr. Tests",
+        "method": "SubmitDocument_Rejected"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 148203,
+        "codeunitName": "Continia Doc. Integr. Tests",
+        "method": "SubmitDocument_GetApprovalServiceDown"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 148203,
+        "codeunitName": "Continia Doc. Integr. Tests",
+        "method": "ReceiveDocuments_SingleDocument"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 148203,
+        "codeunitName": "Continia Doc. Integr. Tests",
+        "method": "ReceiveDocuments_Peppol_MultipleEdocServices"
+    }
+]
