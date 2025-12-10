@@ -160,6 +160,7 @@ table 8006 "Usage Data Billing"
         {
             Caption = 'Quantity';
             AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
         }
         field(23; "Unit Cost"; Decimal)
         {
