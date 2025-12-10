@@ -40,8 +40,10 @@ codeunit 8034 "Sub. Billing Background Jobs"
     var
         JobQueueEntry: Record "Job Queue Entry";
     begin
-        if JobQueueEntry.Get(BillingTemplate."Batch Recurrent Job Id") then
-            JobQueueEntry.Delete();
+        if not JobQueueEntry.Get(BillingTemplate."Batch Recurrent Job Id") then
+            exit;
+
+        JobQueueEntry.Delete();
         Clear(BillingTemplate."Batch Recurrent Job Id");
         BillingTemplate.Modify();
     end;
