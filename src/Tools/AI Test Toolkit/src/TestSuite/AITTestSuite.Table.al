@@ -116,8 +116,8 @@ table 149030 "AIT Test Suite"
         }
         field(14; "Copilot Capability"; Enum "Copilot Capability")
         {
-            Caption = 'Copilot Capability';
-            ToolTip = 'Specifies the Copilot Capability that the test suite tests.';
+            Caption = 'Capability';
+            ToolTip = 'Specifies the capability that the test suite tests.';
         }
         field(15; "Run Frequency"; Enum "AIT Run Frequency")
         {
