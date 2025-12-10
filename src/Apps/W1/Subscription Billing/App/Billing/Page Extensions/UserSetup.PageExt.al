@@ -2,7 +2,7 @@ namespace Microsoft.SubscriptionBilling;
 
 using System.Security.User;
 
-pageextension 8016 "User Setup" extends "User Setup"
+pageextension 8017 "User Setup" extends "User Setup"
 {
     layout
     {
