@@ -74,7 +74,7 @@ page 20400 "Qlty. Management Setup"
                 {
                     Caption = 'Miscellaneous';
 
-                    field("CoA Contact No."; Rec."CoA Contact No.")
+                    field("CoA Contact No."; Rec."Certificate Contact No.")
                     {
                         ApplicationArea = All;
                         AboutTitle = 'Certificate of Analysis Contact';
