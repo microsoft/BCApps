@@ -1148,6 +1148,7 @@ codeunit 148203 "Continia Doc. Integr. Tests"
         CompanyInformation.City := 'Test City';
         CompanyInformation."Post Code" := 'DK';
         CompanyInformation."VAT Registration No." := 'GB777777771';
+        CompanyInformation."Registration No." := '777777771';
         CompanyInformation.IBAN := 'TEST1234';
         CompanyInformation."Bank Branch No." := '1234';
         CompanyInformation."SWIFT Code" := 'TESTSWIFT';
