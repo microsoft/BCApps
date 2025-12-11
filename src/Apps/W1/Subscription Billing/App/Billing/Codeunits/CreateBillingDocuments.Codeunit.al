@@ -14,26 +14,19 @@ codeunit 8060 "Create Billing Documents"
     trigger OnRun()
     var
         BillingLine: Record "Billing Line";
-        PartnerFilter: Text;
-        ShowNotification: Boolean;
     begin
         BillingLine.Copy(Rec);
-        PartnerFilter := BillingLine.GetFilter(Partner);
-        ShowNotification := PartnerFilter <> BillingLine.GetFilters();
-        BillingLine.Reset();
-        BillingLine.SetFilter(Partner, PartnerFilter);
         BillingLine.SetRange("Document Type", Enum::"Rec. Billing Document Type"::None);
         if CreateContractInvoice then
             BillingLine.SetRange("Billing Template Code", '');
         CreateBillingDocuments(BillingLine);
-        if ShowNotification and (not CreateContractInvoice) then
-            ShowFiltersIgnoredNotification();
     end;
 
     local procedure CreateBillingDocuments(var BillingLine: Record "Billing Line")
     begin
         OnBeforeCreateBillingDocuments(BillingLine);
-        CheckBillingLines(BillingLine);
+        if not CheckBillingLines(BillingLine) then
+            exit;
 
         if not SkipRequestPageSelection then
             if not RequestPageSelectionConfirmed() then
@@ -41,6 +34,11 @@ codeunit 8060 "Create Billing Documents"
 
         Window.Open(ProgressTxt);
         Window.Update();
+        if AutomatedBilling then
+            BillingLine.SetRange("Billing Error Log Entry No.", 0)
+        else
+            BillingLine.ModifyAll("Billing Error Log Entry No.", 0);
+
         ProcessBillingLines(BillingLine);
         Window.Close();
         if PostDocuments then
@@ -252,8 +250,6 @@ codeunit 8060 "Create Billing Documents"
                     ServiceObject.TestField("Variant Code");
         end;
         SubContractsItemManagement.SetAllowInsertOfInvoicingItem(false);
-        if SalesLine.Type = SalesLine.Type::Item then
-            ErrorIfItemUnitOfMeasureCodeDoesNotExist(SalesLine."No.", ServiceObject);
         SalesLine.Validate("Unit of Measure Code", ServiceObject."Unit of Measure");
         SalesLine.Validate(Quantity, TempBillingLine.GetSign() * ServiceObject.Quantity);
         SalesLine.Validate("Unit Price", SalesLine.GetSalesDocumentSign() * TempBillingLine."Unit Price");
@@ -594,6 +590,7 @@ codeunit 8060 "Create Billing Documents"
         SalesHeader."Posting Description" := CustomerContractLbl + ' ' + CustomerContract."No.";
         TranslationHelper.RestoreGlobalLanguage();
         DocumentChangeManagement.SetSkipContractSalesHeaderModifyCheck(true);
+        SalesHeader."Auto Contract Billing" := AutomatedBilling;
         OnAfterCreateSalesHeaderFromContract(CustomerContract, SalesHeader);
         SalesHeader.Modify(false);
         if PostDocuments then begin
@@ -744,6 +741,7 @@ codeunit 8060 "Create Billing Documents"
                     TempBillingLine.Init();
                     LineNo += 1;
                     TempBillingLine."Entry No." := LineNo;
+                    TempBillingLine."Billing Template Code" := BillingLine."Billing Template Code";
                     TempBillingLine."Partner No." := PartnerNo;
                     TempBillingLine.Partner := BillingLine.Partner;
                     TempBillingLine."Subscription Contract No." := BillingLine."Subscription Contract No.";
@@ -793,26 +791,33 @@ codeunit 8060 "Create Billing Documents"
         CreateVendorBillingDocs: Page "Create Vendor Billing Docs";
     begin
         if CustomerBillingLinesFound then begin
+            CreateCustomerBillingDocs.SetData(DocumentDate, PostingDate, CustomerRecurringBillingGrouping, PostDocuments);
             if CreateCustomerBillingDocs.RunModal() = Action::OK then begin
                 CreateCustomerBillingDocs.GetData(DocumentDate, PostingDate, CustomerRecurringBillingGrouping, PostDocuments);
                 exit(true);
             end;
-        end
-        else
-            if VendorBillingLinesFound then
+        end else
+            if VendorBillingLinesFound then begin
+                CreateVendorBillingDocs.SetData(DocumentDate, PostingDate, VendorRecurringBillingGrouping);
                 if CreateVendorBillingDocs.RunModal() = Action::OK then begin
                     CreateVendorBillingDocs.GetData(DocumentDate, PostingDate, VendorRecurringBillingGrouping);
                     exit(true);
                 end;
+            end;
     end;
 
-    local procedure CheckBillingLines(var BillingLine: Record "Billing Line")
+    local procedure CheckBillingLines(var BillingLine: Record "Billing Line"): Boolean
     begin
-        CheckNoUpdateRequired(BillingLine);
-        CheckOnlyOneServicePartnerType(BillingLine);
+        if not CheckOnlyOneServicePartnerType(BillingLine) then
+            exit(false);
+        if not CheckNoUpdateRequired(BillingLine) then
+            exit(false);
+        CheckServiceCommitmentDataConsistency(BillingLine);
+        CheckItemUnitOfMeasureForInvoicingItems(BillingLine);
+        exit(true);
     end;
 
-    local procedure CheckOnlyOneServicePartnerType(var BillingLine: Record "Billing Line")
+    local procedure CheckOnlyOneServicePartnerType(var BillingLine: Record "Billing Line"): Boolean
     begin
         if BillingLine.FindSet() then
             repeat
@@ -824,16 +829,182 @@ codeunit 8060 "Create Billing Documents"
                 end;
             until BillingLine.Next() = 0;
 
-        if (CustomerBillingLinesFound and VendorBillingLinesFound) then
-            Error(OnlyOneServicePartnerErr);
+        if (CustomerBillingLinesFound and VendorBillingLinesFound) then begin
+            DisplayOrLogUnspecificError(OnlyOneServicePartnerErr);
+            exit(false);
+        end;
+
+        exit(true);
     end;
 
-    local procedure CheckNoUpdateRequired(var BillingLine: Record "Billing Line")
+    local procedure CheckNoUpdateRequired(var BillingLine: Record "Billing Line"): Boolean
     begin
         BillingLine.SetRange("Update Required", true);
-        if not BillingLine.IsEmpty() then
-            Error(UpdateRequiredErr);
+        if BillingLine.FindFirst() then begin
+            DisplayOrLogErrorFromBillingTemplate(BillingLine."Billing Template Code", UpdateRequiredErr);
+            exit(false);
+        end;
         BillingLine.SetRange("Update Required");
+        exit(true);
+    end;
+
+    local procedure CheckServiceCommitmentDataConsistency(var BillingLine: Record "Billing Line")
+    var
+        CheckedServiceCommitments: List of [Text];
+    begin
+        if BillingLine.FindSet() then
+            repeat
+                ValidateServiceCommitmentConsistency(BillingLine, CheckedServiceCommitments);
+            until BillingLine.Next() = 0;
+    end;
+
+    local procedure ValidateServiceCommitmentConsistency(var BillingLine: Record "Billing Line"; var CheckedServiceCommitments: List of [Text])
+    begin
+        if not CheckedServiceCommitments.Contains(Format(BillingLine."Subscription Line Entry No.")) then begin
+            CheckedServiceCommitments.Add(Format(BillingLine."Subscription Line Entry No."));
+            ValidateFilteredVsTotalBillingLineCount(BillingLine);
+        end;
+    end;
+
+    local procedure ValidateFilteredVsTotalBillingLineCount(var BillingLine: Record "Billing Line")
+    var
+        FilteredCount: Integer;
+        TotalCount: Integer;
+    begin
+        FilteredCount := GetFilteredBillingLineCount(BillingLine);
+        TotalCount := GetTotalBillingLineCount(BillingLine);
+
+        if FilteredCount <> TotalCount then
+            ThrowSubscriptionLineConsistencyError(BillingLine, FilteredCount, TotalCount);
+    end;
+
+    local procedure GetFilteredBillingLineCount(var BillingLine: Record "Billing Line"): Integer
+    var
+        FilteredBillingLine: Record "Billing Line";
+    begin
+        FilteredBillingLine.CopyFilters(BillingLine);
+        FilteredBillingLine.FilterGroup(2);
+        FilteredBillingLine.SetCurrentKey("Subscription Header No.", "Subscription Line Entry No.", "Billing to");
+        FilteredBillingLine.SetRange("Subscription Header No.", BillingLine."Subscription Header No.");
+        FilteredBillingLine.SetRange("Subscription Line Entry No.", BillingLine."Subscription Line Entry No.");
+        exit(FilteredBillingLine.Count());
+    end;
+
+    local procedure GetTotalBillingLineCount(var BillingLine: Record "Billing Line"): Integer
+    var
+        AllBillingLine: Record "Billing Line";
+    begin
+        AllBillingLine.SetCurrentKey("Subscription Header No.", "Subscription Line Entry No.", "Billing to");
+        AllBillingLine.SetRange("Subscription Header No.", BillingLine."Subscription Header No.");
+        AllBillingLine.SetRange("Subscription Line Entry No.", BillingLine."Subscription Line Entry No.");
+        exit(AllBillingLine.Count());
+    end;
+
+    local procedure ThrowSubscriptionLineConsistencyError(var BillingLine: Record "Billing Line"; FilteredCount: Integer; TotalCount: Integer)
+    var
+        ConsistencyErr: Label 'The number of filtered billing lines for Subscription Line %1 %2 (%3) does not match the total number of billing lines for this Subscription Line (%4). Adjust the page filters so that there are no gaps in the billing period.', Comment = '%1 = Subscription Header No., %2 = Subscription Line Entry No., %3 = Filtered Count, %4 = Total Count';
+    begin
+        DisplayOrLogErrorFromBillingLine(BillingLine, StrSubstNo(ConsistencyErr, BillingLine."Subscription Header No.", BillingLine."Subscription Line Entry No.", FilteredCount, TotalCount));
+    end;
+
+    local procedure CheckItemUnitOfMeasureForInvoicingItems(var BillingLine: Record "Billing Line")
+    var
+        SubscriptionHeader: Record "Subscription Header";
+        SubscriptionLine: Record "Subscription Line";
+        CheckedServiceCommitments: List of [Text];
+        InvoicingItemNo: Code[20];
+    begin
+        if BillingLine.FindSet() then
+            repeat
+                if not CheckedServiceCommitments.Contains(Format(BillingLine."Subscription Line Entry No.")) then begin
+                    CheckedServiceCommitments.Add(Format(BillingLine."Subscription Line Entry No."));
+                    SubscriptionHeader.Get(BillingLine."Subscription Header No.");
+                    if SubscriptionHeader.Type = SubscriptionHeader.Type::Item then begin
+                        SubscriptionLine.Get(BillingLine."Subscription Line Entry No.");
+                        if SubscriptionLine."Invoicing Item No." = '' then
+                            InvoicingItemNo := SubscriptionHeader."Source No."
+                        else
+                            InvoicingItemNo := SubscriptionLine."Invoicing Item No.";
+                        ErrorIfItemUnitOfMeasureCodeDoesNotExist(BillingLine, InvoicingItemNo, SubscriptionHeader);
+                    end;
+                end;
+            until BillingLine.Next() = 0;
+    end;
+
+    internal procedure ErrorIfItemUnitOfMeasureCodeDoesNotExist(BillingLine: Record "Billing Line"; InvoicingItemNo: Code[20]; SubscriptionHeader: Record "Subscription Header")
+    var
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        ItemUOMDoesNotExistErr: Label 'The Unit of Measure of the Subscription (%1) contains a value (%2) that cannot be found in the Item Unit of Measure of the corresponding Invoicing Item (%3).', Comment = '%1 = Subscription No., %2 = Unit Of Measure Code, %3 = Item No.';
+    begin
+        ItemUnitOfMeasure.SetRange("Item No.", InvoicingItemNo);
+        ItemUnitOfMeasure.SetRange(Code, SubscriptionHeader."Unit of Measure");
+        if ItemUnitOfMeasure.IsEmpty() then
+            DisplayOrLogErrorFromBillingLine(BillingLine, StrSubstNo(ItemUOMDoesNotExistErr, SubscriptionHeader."No.", SubscriptionHeader."Unit of Measure", InvoicingItemNo));
+    end;
+
+    local procedure DisplayOrLogUnspecificError(ErrorText: Text)
+    var
+        ContractBillingErrLog: Record "Contract Billing Err. Log";
+        ErrorTextInfo: ErrorInfo;
+    begin
+        if AutomatedBilling then
+            ContractBillingErrLog.InsertUnspecificLog(CopyStr(ErrorText, 1, 250))
+        else begin
+            ErrorTextInfo.ErrorType := ErrorType::Client;
+            ErrorTextInfo.Message := ErrorText;
+            ErrorTextInfo.Verbosity := Verbosity::Error;
+            Error(ErrorTextInfo);
+        end;
+    end;
+
+    local procedure DisplayOrLogErrorFromBillingTemplate(BillingTemplateCode: Code[20]; ErrorText: Text)
+    var
+        ContractBillingErrLog: Record "Contract Billing Err. Log";
+        BillingTemplate: Record "Billing Template";
+        ErrorTextInfo: ErrorInfo;
+    begin
+        if AutomatedBilling then
+            ContractBillingErrLog.InsertLogFromBillingTemplate(
+                BillingTemplateCode,
+                CopyStr(ErrorText, 1, 250))
+        else begin
+            ErrorTextInfo.ErrorType := ErrorType::Client;
+            ErrorTextInfo.Message := ErrorText;
+            if BillingTemplate.Get(BillingTemplateCode) then begin
+                ErrorTextInfo.RecordId := BillingTemplate.RecordId;
+                ErrorTextInfo.SystemId := BillingTemplate.SystemId;
+                ErrorTextInfo.TableId := Database::"Billing Template";
+            end;
+            ErrorTextInfo.Verbosity := Verbosity::Error;
+            Error(ErrorText);
+        end;
+    end;
+
+    local procedure DisplayOrLogErrorFromBillingLine(BillingLine: Record "Billing Line"; ErrorText: Text)
+    var
+        ContractBillingErrLog: Record "Contract Billing Err. Log";
+        SubscriptionLine: Record "Subscription Line";
+        FilteredBillingLine: Record "Billing Line";
+        ErrorTextInfo: ErrorInfo;
+    begin
+        if AutomatedBilling then begin
+            BillingLine.GetServiceCommitment(SubscriptionLine);
+            ContractBillingErrLog.InsertLogFromSubscriptionLine(
+                BillingLine."Billing Template Code",
+                SubscriptionLine,
+                CopyStr(ErrorText, 1, 250));
+            FilteredBillingLine.SetRange("Subscription Header No.", BillingLine."Subscription Header No.");
+            FilteredBillingLine.SetRange("Subscription Line Entry No.", BillingLine."Subscription Line Entry No.");
+            FilteredBillingLine.ModifyAll("Billing Error Log Entry No.", ContractBillingErrLog."Entry No.", false);
+        end else begin
+            ErrorTextInfo.ErrorType := ErrorType::Client;
+            ErrorTextInfo.Message := ErrorText;
+            ErrorTextInfo.RecordId := BillingLine.RecordId;
+            ErrorTextInfo.SystemId := BillingLine.SystemId;
+            ErrorTextInfo.TableId := Database::"Billing Line";
+            ErrorTextInfo.Verbosity := Verbosity::Error;
+            Error(ErrorText);
+        end;
     end;
 
     local procedure ProcessingFinishedMessage()
@@ -920,12 +1091,24 @@ codeunit 8060 "Create Billing Documents"
         CreateContractInvoice := CreateContractInvoiceValue;
     end;
 
+    internal procedure SetAutomatedBilling(NewAutomatedBilling: Boolean)
+    begin
+        AutomatedBilling := NewAutomatedBilling;
+        SetHideProcessingFinishedMessage();
+        SetSkipRequestPageSelection(true);
+    end;
+
     procedure SetBillingGroupingPerContract(ServicePartner: Enum "Service Partner")
     begin
         if ServicePartner = "Service Partner"::Vendor then
             VendorRecurringBillingGrouping := "Vendor Rec. Billing Grouping"::Contract
         else
             CustomerRecurringBillingGrouping := "Customer Rec. Billing Grouping"::Contract;
+    end;
+
+    procedure SetCustomerRecurringBillingGrouping(NewCustomerRecurringBillingGrouping: Enum "Customer Rec. Billing Grouping")
+    begin
+        CustomerRecurringBillingGrouping := NewCustomerRecurringBillingGrouping;
     end;
 
     procedure GetBillingPeriodDescriptionTxt() DescriptionText: Text
@@ -1038,28 +1221,6 @@ codeunit 8060 "Create Billing Documents"
         CreateNewHeader := TempBillingLine."Subscription Contract No." <> PreviousSubContractNo;
 
         OnAfterIsNewHeaderNeededPerContract(CreateNewHeader, TempBillingLine, PreviousSubContractNo);
-    end;
-
-    local procedure ShowFiltersIgnoredNotification()
-    var
-        FiltersIgnoredNotification: Notification;
-        FiltersIgnoredMsg: Label 'You have set filters on the Recurring Billing page. The filters were ignored to maintain data consistency.';
-    begin
-        FiltersIgnoredNotification.Message(FiltersIgnoredMsg);
-        FiltersIgnoredNotification.Scope := NotificationScope::LocalScope;
-        FiltersIgnoredNotification.Send();
-    end;
-
-
-    internal procedure ErrorIfItemUnitOfMeasureCodeDoesNotExist(ItemNo: Code[20]; ServiceObject: Record "Subscription Header")
-    var
-        ItemUnitOfMeasure: Record "Item Unit of Measure";
-        ItemUOMDoesNotExistErr: Label 'The Unit of Measure of the Subscription (%1) contains a value (%2) that cannot be found in the Item Unit of Measure of the corresponding Invoicing Item (%3).', Comment = '%1 = Subscription No., %2 = Unit Of Measure Code, %3 = Item No.';
-    begin
-        ItemUnitOfMeasure.SetRange("Item No.", ItemNo);
-        ItemUnitOfMeasure.SetRange(Code, ServiceObject."Unit of Measure");
-        if ItemUnitOfMeasure.IsEmpty() then
-            Error(ItemUOMDoesNotExistErr, ServiceObject."No.", ServiceObject."Unit of Measure", ItemNo);
     end;
 
     [IntegrationEvent(false, false)]
@@ -1236,4 +1397,5 @@ codeunit 8060 "Create Billing Documents"
         CreateContractInvoice: Boolean;
         ServiceContractSetupFetched: Boolean;
         CreateOnlyPurchaseInvoiceLines: Boolean;
+        AutomatedBilling: Boolean;
 }

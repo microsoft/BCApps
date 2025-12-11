@@ -11,6 +11,7 @@ using System.TestLibraries.Globalization;
 using System.TestLibraries.Integration;
 using System.TestLibraries.Integration.Excel;
 using System.TestLibraries.Media;
+using System.TestLibraries.MCP;
 using System.TestLibraries.Reflection;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Visualization;
@@ -23,6 +24,7 @@ permissionset 132585 "System Application Test Tables"
     Permissions = tabledata "Cues And KPIs Test 1 Cue" = RIMD,
                   tabledata "Cues And KPIs Test 2 Cue" = RIMD,
                   tabledata "Edit In Excel Test Table" = RIMD,
+                  tabledata "Mock API" = RIMD,
                   tabledata "My Video Source" = RIMD,
                   tabledata "Page Action Provider Test" = RIMD,
                   tabledata "Page Provider Summary Test" = RIMD,

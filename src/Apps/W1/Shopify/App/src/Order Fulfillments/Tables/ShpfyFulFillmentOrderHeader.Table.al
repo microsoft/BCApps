@@ -73,6 +73,9 @@ table 30143 "Shpfy FulFillment Order Header"
         {
             Clustered = true;
         }
+        key(Key2; "Shopify Order Id")
+        {
+        }
     }
 
     trigger OnDelete()
