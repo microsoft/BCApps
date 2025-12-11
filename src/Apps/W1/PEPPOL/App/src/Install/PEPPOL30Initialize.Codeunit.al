@@ -14,8 +14,6 @@ codeunit 37204 "PEPPOL30 Initialize"
     InherentPermissions = X;
     Access = Internal;
 
-
-
     internal procedure CreateElectronicDocumentFormats()
     var
         ElectronicDocumentFormat: Record "Electronic Document Format";
@@ -34,16 +32,16 @@ codeunit 37204 "PEPPOL30 Initialize"
             PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
             Codeunit::"PEPPOL30 Sales Validation", 0, ElectronicDocumentFormat.Usage::"Sales Validation".AsInteger());
 
-        // ElectronicDocumentFormat.InsertElectronicFormat(
-        //     PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
-        //     Codeunit::"Exp. Serv.Inv. PEPPOL30", 0, ElectronicDocumentFormat.Usage::"Service Invoice".AsInteger());
+        ElectronicDocumentFormat.InsertElectronicFormat(
+            PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
+            Codeunit::"Exp. Serv.Inv. PEPPOL30", 0, ElectronicDocumentFormat.Usage::"Service Invoice".AsInteger());
 
-        // ElectronicDocumentFormat.InsertElectronicFormat(
-        //     PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
-        //     Codeunit::"Exp. Serv.CrM. PEPPOL30", 0, ElectronicDocumentFormat.Usage::"Service Credit Memo".AsInteger());
+        ElectronicDocumentFormat.InsertElectronicFormat(
+            PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
+            Codeunit::"Exp. Serv.CrM. PEPPOL30", 0, ElectronicDocumentFormat.Usage::"Service Credit Memo".AsInteger());
 
-        // ElectronicDocumentFormat.InsertElectronicFormat(
-        //     PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
-        //     Codeunit::"PEPPOL30 Service Validation", 0, ElectronicDocumentFormat.Usage::"Service Validation".AsInteger());
+        ElectronicDocumentFormat.InsertElectronicFormat(
+            PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
+            Codeunit::"PEPPOL30 Service Validation", 0, ElectronicDocumentFormat.Usage::"Service Validation".AsInteger());
     end;
 }

@@ -12,6 +12,10 @@ using Microsoft.Sales.History;
 
 codeunit 37213 "PEPPOL30 Sales Export Mgmt." implements "PEPPOL30 Export Management", "PEPPOL Posted Document Iterator"
 {
+
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
     var
         GlobalSalesHeader: Record "Sales Header";
         GlobalSalesLine: Record "Sales Line";

@@ -9,7 +9,6 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Service.History;
 using Microsoft.Service.Document;
 
 codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Handler"
@@ -21,6 +20,10 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Handler"
                                             , "PEPPOL Payment Info Provider"
                                             , "PEPPOL Tax Info Provider"
 {
+
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
     var
         PEPPOLManagementImpl: Codeunit "PEPPOL30 Impl.";
 

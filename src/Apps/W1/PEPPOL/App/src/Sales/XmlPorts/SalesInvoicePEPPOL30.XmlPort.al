@@ -22,6 +22,8 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
     Direction = Export;
     Encoding = UTF8;
     Namespaces = "" = 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', cac = 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', cbc = 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', ccts = 'urn:un:unece:uncefact:documentation:2', qdt = 'urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2', udt = 'urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2';
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     schema
     {

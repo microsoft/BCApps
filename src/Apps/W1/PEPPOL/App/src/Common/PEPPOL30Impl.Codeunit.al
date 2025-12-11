@@ -20,14 +20,15 @@ using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Service.History;
+using Microsoft.Service.Document;
 using System.Telemetry;
 using System.Text;
 using System.Utilities;
-using Microsoft.Service.Document;
 
 codeunit 37201 "PEPPOL30 Impl."
 {
+    InherentEntitlements = X;
+    InherentPermissions = X;
     Access = Internal;
 
     var
@@ -52,7 +53,7 @@ codeunit 37201 "PEPPOL30 Impl."
         GLSetup: Record "General Ledger Setup";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('0000KOS', GetPeppolTelemetryTok(), Enum::"Feature Uptake Status"::Used);
+        FeatureTelemetry.LogUsage('', GetPeppolTelemetryTok(), 'GetGeneralInfo');
 
         ID := SalesHeader."No.";
 

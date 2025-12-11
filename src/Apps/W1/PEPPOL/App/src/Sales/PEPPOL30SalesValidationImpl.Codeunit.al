@@ -13,14 +13,14 @@ using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using System.Utilities;
-using Microsoft.Inventory.Analysis;
-using Microsoft.Utilities;
 using System.Reflection;
+using System.Utilities;
 
 codeunit 37203 "PEPPOL30 Sales Validation Impl"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         ConfirmManagement: Codeunit "Confirm Management";

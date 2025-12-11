@@ -17,6 +17,8 @@ page 37202 "PEPPOL 3.0 Setup"
     SourceTable = "PEPPOL 3.0 Setup";
     DeleteAllowed = false;
     InsertAllowed = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

@@ -12,6 +12,8 @@ using System.Reflection;
 codeunit 37220 "PEPPOL30 Serv. Validation Impl"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     procedure CheckServiceDocument(ServiceHeader: Record "Service Header")
     var

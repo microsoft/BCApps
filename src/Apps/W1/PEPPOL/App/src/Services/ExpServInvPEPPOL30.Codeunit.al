@@ -11,6 +11,8 @@ using System.IO;
 codeunit 37212 "Exp. Serv.Inv. PEPPOL30"
 {
     TableNo = "Record Export Buffer";
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     trigger OnRun()
     var

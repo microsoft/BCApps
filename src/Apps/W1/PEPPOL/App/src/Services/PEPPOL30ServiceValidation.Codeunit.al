@@ -9,6 +9,8 @@ using Microsoft.Service.Document;
 codeunit 37219 "PEPPOL30 Service Validation" implements "PEPPOL30 Validation"
 {
     TableNo = "Service Header";
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     trigger OnRun()
     begin

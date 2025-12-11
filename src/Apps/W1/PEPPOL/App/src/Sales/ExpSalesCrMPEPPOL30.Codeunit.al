@@ -11,6 +11,8 @@ using System.IO;
 codeunit 37205 "Exp. Sales CrM. PEPPOL30"
 {
     TableNo = "Record Export Buffer";
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     trigger OnRun()
     var

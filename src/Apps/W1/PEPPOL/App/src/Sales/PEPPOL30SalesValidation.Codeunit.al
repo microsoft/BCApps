@@ -9,6 +9,8 @@ using Microsoft.Sales.Document;
 codeunit 37216 "PEPPOL30 Sales Validation" implements "PEPPOL30 Validation"
 {
     TableNo = "Sales Header";
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     trigger OnRun()
     begin
