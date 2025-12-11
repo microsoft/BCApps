@@ -34,7 +34,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    TestType = UnitTest;
+    TestType = IntegrationTest;
 
     var
         CompanyInformation: Record "Company Information";
