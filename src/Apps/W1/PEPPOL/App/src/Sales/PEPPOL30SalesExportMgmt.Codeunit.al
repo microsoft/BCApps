@@ -231,13 +231,13 @@ codeunit 37213 "PEPPOL30 Sales Export Mgmt." implements "PEPPOL30 Export Managem
 
         if Found then
             case PostedRecLine.Number() of
-                Database::"Sales Invoice Header":
+                Database::"Sales Invoice Line":
                     begin
                         PostedRecLine.SetTable(SalesInvoiceLine);
                         SalesLine.TransferFields(SalesInvoiceLine);
                         SalesLine."Document Type" := SalesLine."Document Type"::Invoice;
                     end;
-                Database::"Sales Cr.Memo Header":
+                Database::"Sales Cr.Memo Line":
                     begin
                         PostedRecLine.SetTable(SalesCrMemoLine);
                         SalesLine.TransferFields(SalesCrMemoLine);

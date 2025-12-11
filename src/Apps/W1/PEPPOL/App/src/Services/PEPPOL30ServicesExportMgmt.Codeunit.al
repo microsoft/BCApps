@@ -150,12 +150,12 @@ codeunit 37214 "PEPPOL30 Services Export Mgmt." implements "PEPPOL30 Export Mana
                 end;
             Database::"Service Cr.Memo Header":
                 begin
-                    GlobalPostedDocumentLine.SetTable(ServiceInvoiceLine);
+                    GlobalPostedDocumentLine.SetTable(ServiceCrMemoLine);
                     ServiceCrMemoLine.SetRange("Document No.", DocumentNo);
                     if ServiceCrMemoLine.FindSet() then
                         repeat
                             GlobalSalesLine.TransferFields(ServiceCrMemoLine);
-                            GlobalSalesLine.Type := PEPPOL30Management.MapServiceLineTypeToSalesLineType(ServiceInvoiceLine.Type);
+                            GlobalSalesLine.Type := PEPPOL30Management.MapServiceLineTypeToSalesLineType(ServiceCrMemoLine.Type);
                             PEPPOLTaxInfoProvider := PEPPOL30Setup."PEPPOL 3.0 Service Format";
                             PEPPOLTaxInfoProvider.GetTotals(GlobalSalesLine, TempVATAmtLine);
                             PEPPOLTaxInfoProvider.GetTaxCategories(GlobalSalesLine, TempVATProductPostingGroup);
@@ -216,14 +216,14 @@ codeunit 37214 "PEPPOL30 Services Export Mgmt." implements "PEPPOL30 Export Mana
 
         if Found then
             case PostedRecLine.Number() of
-                Database::"Service Invoice Header":
+                Database::"Service Invoice Line":
                     begin
                         PostedRecLine.SetTable(ServiceInvoiceLine);
                         Peppol30.TransferLineToSalesLine(ServiceInvoiceLine, SalesLine);
                         SalesLine.Type := Peppol30.MapServiceLineTypeToSalesLineType(ServiceInvoiceLine.Type);
                         SalesLine."Document Type" := SalesLine."Document Type"::Invoice;
                     end;
-                Database::"Service Cr.Memo Header":
+                Database::"Service Cr.Memo LIne":
                     begin
                         PostedRecLine.SetTable(ServiceCrMemoLine);
                         Peppol30.TransferLineToSalesLine(ServiceCrMemoLine, SalesLine);
