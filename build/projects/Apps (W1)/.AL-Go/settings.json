@@ -17,6 +17,7 @@
   "doNotRunPageScriptingTests": true,
   "doNotRunBcptTests": true,
   "testType": "IntegrationTest",
+  "companyName": "CRONUS TestCompany",
   "buildModes": [
     "AT",
     "AU",
