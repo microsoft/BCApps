@@ -5,8 +5,6 @@
 namespace Microsoft.Peppol;
 
 using Microsoft.Sales.Document;
-using Microsoft.Sales.History;
-using Microsoft.Service.History;
 
 /// <summary>
 /// Provides iteration over posted PEPPOL documents needed during export.

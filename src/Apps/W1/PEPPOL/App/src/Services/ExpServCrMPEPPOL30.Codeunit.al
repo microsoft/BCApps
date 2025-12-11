@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
-using Microsoft.Foundation.Company;
 using Microsoft.Service.History;
 using System.IO;
 

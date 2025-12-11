@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
-using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
 
 codeunit 37204 "PEPPOL30 Initialize"
