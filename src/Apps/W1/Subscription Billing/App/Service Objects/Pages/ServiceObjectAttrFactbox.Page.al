@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Environment;
 using Microsoft.Inventory.Item.Attribute;
+using System.Environment;
 
 page 8012 "Service Object Attr. Factbox"
 {

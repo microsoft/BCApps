@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Finance.ExcelReports;
+
 using Microsoft.Finance.GeneralLedger.Journal;
 
 pageextension 4429 "EXR General Journal Batches" extends "General Journal Batches"

@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Document;
-using Microsoft.Finance.Dimension;
 
 tableextension 8054 "Sales Line" extends "Sales Line"
 {
@@ -295,10 +295,15 @@ tableextension 8054 "Sales Line" extends "Sales Line"
     var
         SalesLine: Record "Sales Line";
     begin
-        SalesLine.InitFromSalesHeader(SourceSalesHeader);
-        SalesLine."Attached to Line No." := AttachedToLineNo;
-        SalesLine.Description := CopyStr(NewDescription, 1, MaxStrLen(SalesLine.Description));
-        SalesLine.Insert(false);
+        SalesLine.CreateAttachedSalesLine(SourceSalesHeader, NewDescription, AttachedToLineNo);
+    end;
+
+    internal procedure CreateAttachedSalesLine(SourceSalesHeader: Record "Sales Header"; NewDescription: Text; AttachedToLineNo: Integer)
+    begin
+        Rec.InitFromSalesHeader(SourceSalesHeader);
+        Rec."Attached to Line No." := AttachedToLineNo;
+        Rec.Description := CopyStr(NewDescription, 1, MaxStrLen(Rec.Description));
+        Rec.Insert(false);
     end;
 
     internal procedure RetrieveFirstContractNo(ServicePartner: Enum "Service Partner"; Process: Enum Process): Code[20]

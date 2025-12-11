@@ -5,8 +5,8 @@
 
 namespace System.TestLibraries.Security.AccessControl;
 
-using System.Security.AccessControl;
 using System;
+using System.Security.AccessControl;
 
 /// <summary>
 /// Test library for the Security Groups module.

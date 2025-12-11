@@ -5,8 +5,8 @@
 namespace Microsoft.eServices.EDocument.Integration.Interfaces;
 
 using Microsoft.eServices.EDocument;
-using System.Utilities;
 using Microsoft.eServices.EDocument.Integration.Receive;
+using System.Utilities;
 
 /// <summary>
 /// Interface for marking received E-Documents fetched from the E-Document service.

@@ -11,6 +11,7 @@ table 6116 "E-Doc. PO Matching Setup"
     Access = Internal;
     InherentEntitlements = RID;
     InherentPermissions = RID;
+    ReplicateData = false;
 
     fields
     {

@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.AI;
 
-using Microsoft.Purchases.Document;
 using Microsoft.Finance.Deferral;
-using Microsoft.Foundation.UOM;
 using Microsoft.Finance.Dimension;
+using Microsoft.Foundation.UOM;
+using Microsoft.Purchases.Document;
 table 6129 "EDoc Historical Match Buffer"
 {
     Access = Internal;
@@ -53,6 +53,10 @@ table 6129 "EDoc Historical Match Buffer"
         field(30; "Match Reason"; Text[250])
         {
             Caption = 'Match Reason';
+        }
+        field(31; "Match Type"; Text[100])
+        {
+            Caption = 'Match Type';
         }
         field(40; "Confidence Score"; Decimal)
         {

@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.Processing.Import;
 using System.Telemetry;
 using System.Utilities;
-using Microsoft.eServices.EDocument.Processing.Import;
 
 codeunit 6132 "E-Document Log"
 {
@@ -206,11 +206,6 @@ codeunit 6132 "E-Document Log"
         EDocumentIntegrationLog.Validate("E-Doc. Entry No", EDocument."Entry No");
         EDocumentIntegrationLog.Validate("Service Code", EDocumentService.Code);
         EDocumentIntegrationLog.Validate("Response Status", HttpResponse.HttpStatusCode());
-#if not CLEAN25
-#pragma warning disable AL0432
-        EDocumentIntegrationLog.Validate("Url", CopyStr(HttpRequest.GetRequestUri(), 1, 250));
-#pragma warning restore AL0432
-#endif
         EDocumentIntegrationLog.Validate("Request URL", HttpRequest.GetRequestUri());
         EDocumentIntegrationLog.Validate(Method, HttpRequest.Method());
         EDocumentIntegrationLog.Insert();

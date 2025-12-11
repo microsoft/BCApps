@@ -5,10 +5,10 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Sales.Customer;
-using Microsoft.Finance.Dimension;
 using Microsoft.CRM.BusinessRelation;
+using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
+using Microsoft.Sales.Customer;
 
 /// <summary>
 /// Codeunit Shpfy Create Customer (ID 30110).

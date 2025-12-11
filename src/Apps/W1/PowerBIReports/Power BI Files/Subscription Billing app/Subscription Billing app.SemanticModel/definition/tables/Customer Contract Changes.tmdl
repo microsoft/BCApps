@@ -1,0 +1,175 @@
+table 'Customer Contract Changes'
+	lineageTag: a52c7d2e-c3c5-4330-9695-131023bbf63e
+
+	column 'Customer Contract Line Key'
+		lineageTag: 43a7ecaa-2e0d-4ca9-ae48-1eb7691f259b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Customer Contract Line Key]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		formatString: General Date
+		lineageTag: 34d8f42d-2120-4d00-9756-07562cb6134a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Change Type'
+		lineageTag: d78985d9-4abb-4c2c-8cef-a9df72b0c297
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Change Type]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'MRR Delta'
+		lineageTag: d5ed6ba1-e2b1-4a38-bc21-a8953119f31c
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [MRR Delta]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Customer Contract Changes' = calculated
+		mode: import
+		source = ```
+				
+				VAR __base_Information =
+				    ADDCOLUMNS (
+				        FILTER (
+				            'Customer Contract Line',
+				            'Customer Contract Line'[Line Active] = TRUE
+				        ),
+				        "MMR Previous Month",
+				            CALCULATE (
+				                SUM ( 'Customer Contract Line'[Monthly Recurring Revenue LCY] ),
+				                ALLEXCEPT (
+				                    'Customer Contract Line',
+				                    'Customer Contract Line'[Customer Contract Line No.],
+				                    'Customer Contract Line'[Customer Contract No.],
+				                    'Customer Contract Line'[Analysis Date]
+				                ),
+				                FILTER (
+				                    ALLNOBLANKROW ( 'Customer Contract Line'[Line Active] ),
+				                    'Customer Contract Line'[Line Active] = TRUE
+				                ),
+				                OFFSET (
+				                    -1,
+				                    ALLNOBLANKROW ( 'Customer Contract Line'[Analysis Date] ),
+				                    ORDERBY ( [Analysis Date] )
+				                )
+				            ),
+				        "Is Initial Version", RELATED ( 'Analysis Date'[is initial Version] )
+				    )
+				VAR __addNewService =
+				    ADDCOLUMNS (
+				        __base_Information,
+				        "Is New Service",
+				            IF (
+				                [is initial Version],
+				                IF (
+				                    EOMONTH ( [Subscription Start Date], 0 ) = EOMONTH ( [Analysis Date], 0 ),
+				                    TRUE,
+				                    FALSE
+				                ),
+				                IF ( ISBLANK ( [MMR Previous Month] ), TRUE, FALSE )
+				            )
+				    )
+				VAR __add_MRR_Delta =
+				    ADDCOLUMNS (
+				        __addNewService,
+				        "MRR Delta", [Monthly Recurring Revenue LCY] - [MMR Previous Month]
+				    )
+				VAR __add_Change_Type =
+				    ADDCOLUMNS (
+				        __Add_MRR_Delta,
+				        "Change Type",
+				            SWITCH (
+				                TRUE,
+				                [Is New Service], "New",
+				                [MRR Delta] <> 0
+				                    && [Is Usage Based Billing], "UBB",
+				                [MRR Delta] < 0, "Downgrade",
+				                [MRR Delta] > 0, "Upgrade",
+				                "None"
+				            )
+				    ) //Values are not filtered to Change Type <> None to to display 0 values without enabling "show items without values"
+				VAR __result_changes =
+				    SELECTCOLUMNS (
+				        __add_Change_Type,
+				        "Customer Contract Line Key", [Customer Contract Line Key],
+				        "Date", [Analysis Date],
+				        "Change Type", [Change Type],
+				        "MRR Delta", [MRR Delta]
+				    )
+				VAR __churn_base_Information =
+				    ADDCOLUMNS (
+				        'Customer Contract Line',
+				            
+				        "MMR Next Month",
+				            CALCULATE (
+				                SUM ( 'Customer Contract Line'[Monthly Recurring Revenue LCY] ),
+				                ALLEXCEPT (
+				                    'Customer Contract Line',
+				                    'Customer Contract Line'[Customer Contract Line No.],
+				                    'Customer Contract Line'[Customer Contract No.],
+				                    'Customer Contract Line'[Analysis Date]
+				                ),
+				                FILTER (
+				                    ALLNOBLANKROW ( 'Customer Contract Line'[Line Active] ),
+				                    'Customer Contract Line'[Line Active] = TRUE
+				                ),
+				                OFFSET (
+				                    1,
+				                    ALLNOBLANKROW ( 'Customer Contract Line'[Analysis Date] ),
+				                    ORDERBY ( [Analysis Date] )
+				                )
+				            ),
+				        "Is Current Version", RELATED ( 'Analysis Date'[Is Current Version] ),
+				        "Is Initial Version", RELATED ( 'Analysis Date'[is initial Version] )
+				    )
+				VAR __filter_is_churn =
+				    FILTER (
+				        __churn_base_Information,
+				
+				            (
+				                [Is Current Version] = FALSE
+				                && [Line Active] = TRUE
+				                    && ISBLANK ( [MMR Next Month] )
+				            )
+				            || (
+				                [Line Active] = FALSE  //Line is already inactice in the initial version endet in previous month
+				                && [Is Initial Version]  = True 
+				                    && EOMONTH ( 'Customer Contract Line'[Subscription End Date], 1 ) 
+				                    = EOMONTH ( 'Customer Contract Line'[Analysis Date], 0 )
+				            )
+				    )
+				VAR __churn_add_Change_Type =
+				    ADDCOLUMNS ( __filter_is_churn, "Change Type", "Churn" )
+				VAR __churn_add_Date =
+				    ADDCOLUMNS ( __churn_add_Change_Type, "Date", if([Is Initial Version]  = True
+				    , EDATE ( [Analysis Date], 0 ), //speciall case above: line is already inactive in the initial version and was cancelled in previous month, analysis date should not be shifted
+				    EDATE ( [Analysis Date], 1 ) ))
+				VAR __churn_add_MRR_Delta =
+				    ADDCOLUMNS ( __churn_add_Date, "MRR Delta", - [Monthly Recurring Revenue LCY] )
+				VAR __result_churn =
+				    SELECTCOLUMNS (
+				        __churn_add_MRR_Delta,
+				        "Customer Contract Line Key", [Customer Contract Line Key],
+				        "Date", [Date],
+				        "Change Type", [Change Type],
+				        "MRR Delta", [MRR Delta]
+				    )
+				RETURN
+				    -- __result_changes
+				    UNION ( __result_churn, __result_changes )
+				```
+
+	annotation PBI_Id = e106299b806b448e8bb02e3de664065f
+

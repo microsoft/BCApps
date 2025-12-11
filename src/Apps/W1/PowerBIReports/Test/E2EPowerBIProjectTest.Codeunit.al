@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.PowerBIReports.Test;
 
-using System.Utilities;
+using Microsoft.Inventory.Item;
+using Microsoft.PowerBIReports.Test;
 using Microsoft.Projects.Project.Job;
-using System.Text;
-using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Project.Journal;
 using Microsoft.Projects.Project.Ledger;
+using Microsoft.Projects.Project.Planning;
 using Microsoft.Purchases.Document;
-using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Vendor;
-using Microsoft.PowerBIReports.Test;
+using System.Text;
+using System.Utilities;
 
 /// <summary>
 /// E2E tests for Power BI Projects reports
@@ -306,6 +306,7 @@ codeunit 139879 "E2E PowerBI Project Test"
     local procedure VerifyOutstandingPOLine(Response: Text; PurchaseLine: Record "Purchase Line")
     var
         JsonMgt: Codeunit "JSON Management";
+        OutstandingAmountLCY: Decimal;
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(PurchaseLine."No.") + ''')]'), 'Outstanding PO line not found.');
@@ -314,7 +315,8 @@ codeunit 139879 "E2E PowerBI Project Test"
         Assert.AreEqual(PurchaseLine."No.", JsonMgt.GetValue('no'), 'No. did not match.');
         Assert.AreEqual(Format(PurchaseLine.Type), JsonMgt.GetValue('type'), 'Type did not match.');
         Assert.AreEqual(Format(PurchaseLine."Outstanding Qty. (Base)", 0, 9), JsonMgt.GetValue('outstandingQtyBase'), 'Outstanding quantity (base) did not match.');
-        Assert.AreEqual(Format(PurchaseLine."Outstanding Amount (LCY)", 0, 9), JsonMgt.GetValue('outstandingAmountLCY'), 'Outstanding amount (LCY) did not match.');
+        OutstandingAmountLCY := PurchaseLine."Outstanding Amount (LCY)";
+        Assert.AreEqual(Format(OutstandingAmountLCY, 0, 9), JsonMgt.GetValue('outstandingAmountLCY'), 'Outstanding amount (LCY) did not match.');
         Assert.AreEqual(PurchaseLine."Job No.", JsonMgt.GetValue('jobNo'), 'Job no. did not match.');
         Assert.AreEqual(PurchaseLine."Job Task No.", JsonMgt.GetValue('jobTaskNo'), 'Job task no. did not match.');
         Assert.AreEqual(Format(PurchaseLine."Expected Receipt Date", 0, 9), JsonMgt.GetValue('expectedReceiptDate'), 'Expected receipt date did not match.');

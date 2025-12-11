@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.IO;
 
-using System.Utilities;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 
 codeunit 132601 "PDF Document Test"

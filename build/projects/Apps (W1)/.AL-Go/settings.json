@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/13868260bf008b56d26fd739c1f764b2bb2c8239/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v8.1/.Modules/settings.schema.json",
   "projectName": "Apps (W1)",
   "appFolders": [
     "../../../src/Apps/W1/*/App",
@@ -88,8 +88,7 @@
         "CZ"
       ],
       "settings": {
-        "country": "cz",
-        "doNotRunTests": true
+        "country": "cz"
       }
     },
     {

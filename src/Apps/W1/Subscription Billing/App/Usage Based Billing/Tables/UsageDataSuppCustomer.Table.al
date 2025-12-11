@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Globalization;
 using Microsoft.Sales.Customer;
+using System.Globalization;
 
 table 8012 "Usage Data Supp. Customer"
 {

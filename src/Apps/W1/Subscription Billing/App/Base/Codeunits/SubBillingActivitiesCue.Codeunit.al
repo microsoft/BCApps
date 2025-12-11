@@ -2,7 +2,6 @@ namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Sales.History;
 using Microsoft.Purchases.History;
-using Microsoft.Projects.Project.Job;
 
 codeunit 8071 "Sub. Billing Activities Cue"
 {
@@ -79,19 +78,6 @@ codeunit 8071 "Sub. Billing Activities Cue"
     begin
         TemporaryOverdueServiceCommitments.FillOverdueServiceCommitments();
         Page.Run(Page::"Overdue Service Commitments", TemporaryOverdueServiceCommitments);
-    end;
-
-    internal procedure GetMyJobsFilter() FilterText: Text
-    var
-        MyJobs: Record "My Job";
-    begin
-        MyJobs.SetRange("User ID", UserId);
-        if MyJobs.FindSet() then
-            repeat
-                if FilterText <> '' then
-                    FilterText += '|';
-                FilterText += MyJobs."Job No.";
-            until MyJobs.Next() = 0;
     end;
 
     local procedure RevenueCurrentMonth(): Decimal

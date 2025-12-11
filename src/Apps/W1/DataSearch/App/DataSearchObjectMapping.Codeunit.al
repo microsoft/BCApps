@@ -1,12 +1,12 @@
 namespace Microsoft.Foundation.DataSearch;
 
 using Microsoft.Assembly.Document;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Projects.Project.Job;
-using Microsoft.Utilities;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
@@ -18,9 +18,9 @@ using Microsoft.Sales.Reminder;
 using Microsoft.Service.Contract;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
+using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Activity.History;
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
 using System.Reflection;

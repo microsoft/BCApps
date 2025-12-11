@@ -5,11 +5,11 @@
 
 namespace Microsoft.Finance.ExcelReports;
 
-using Microsoft.Purchases.Vendor;
-using Microsoft.Purchases.Payables;
+using Microsoft.ExcelReports;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.ExcelReports;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Vendor;
 
 report 4403 "EXR Aged Acc Payable Excel"
 {
@@ -292,12 +292,6 @@ report 4403 "EXR Aged Acc Payable Excel"
         PeriodEnds: List of [Date];
         PeriodStarts: List of [Date];
         CurrencyCodeDisplayCode: Code[20];
-#if not CLEAN25
-#pragma warning disable AA0137
-        [Obsolete('Will be deleted', '25.0')]
-        AgingBy: Option "Due Date","Posting Date","Document Date";
-#pragma warning restore AA0137
-#endif
 
     trigger OnPreReport()
     begin
@@ -377,4 +371,3 @@ report 4403 "EXR Aged Acc Payable Excel"
         AgingData.Insert(true);
     end;
 }
-

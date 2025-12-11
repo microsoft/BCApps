@@ -1,4 +1,5 @@
 namespace Microsoft.eServices.EDocument;
+
 using Microsoft.Foundation.Attachment;
 
 pageextension 6102 EDocDocumentAttachmentDetails extends "Document Attachment Details"

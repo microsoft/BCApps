@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "09265a1f12b30ff3c924",
+  "position": {
+    "x": 859.090909090909,
+    "y": 463.63636363636363,
+    "z": 3000,
+    "height": 229.99999999999997,
+    "width": 394.5454545454545,
+    "tabOrder": 4000
+  },
+  "visualGroup": {
+    "displayName": "EBITDA Group",
+    "groupMode": "ScaleMode",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'EBITDA. Operating Profit - BIT, Depreciation and Amortization.'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

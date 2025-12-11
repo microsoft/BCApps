@@ -1,10 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Text;
-using Microsoft.Utilities;
-using Microsoft.Sales.Document;
-using Microsoft.Inventory.Item;
 using Microsoft.Finance.Currency;
+using Microsoft.Inventory.Item;
+using Microsoft.Sales.Document;
+using Microsoft.Utilities;
+using System.Text;
 codeunit 8073 "Sales Report Printout Mgmt."
 {
     SingleInstance = true;

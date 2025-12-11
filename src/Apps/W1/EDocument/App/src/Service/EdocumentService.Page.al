@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
-using System.Telemetry;
 using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument.Processing.Import;
+using System.Telemetry;
 page 6133 "E-Document Service"
 {
     ApplicationArea = Basic, Suite;

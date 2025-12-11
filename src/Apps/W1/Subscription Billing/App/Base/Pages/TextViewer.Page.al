@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
 using System.Integration;
+using System.Utilities;
 
 page 8029 "Text Viewer"
 {

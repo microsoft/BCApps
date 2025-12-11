@@ -1,0 +1,409 @@
+cultureInfo en-NZ
+	translations
+		model Model
+			table Item
+				caption: Item
+				column 'Item No. & Description'
+					caption: Item No. & Description
+				column 'Item No.'
+					caption: Item No.
+				column 'Item Description'
+					caption: Item Description
+				column 'Item Base Unit of Measure'
+					caption: Item Base Unit of Measure
+				column 'Item Unit Cost (LCY)'
+					caption: Unit Cost (LCY)
+				column 'Item Inventory Posting Group'
+					caption: Item Inventory Posting Group
+				column 'Item Category Code'
+					caption: Item Category Code
+				column 'Item Category Description'
+					caption: Item Category Description
+			table Location
+				caption: Location
+				column 'Location Code'
+					caption: Location Code
+				column 'Location Name'
+					caption: Location Name
+				column 'Location Adjustment Bin Code'
+					caption: Location Adjustment Bin Code
+			table 'Value Entries'
+				caption: Value Entries
+				column 'Entry No.'
+					caption: Entry No.
+				column 'Valuation Date'
+					caption: Valuation Date
+				column 'Item Ledger Entry Type'
+					caption: Item Ledger Entry Type
+				column 'Document Type'
+					caption: Document Type
+				column Type
+					caption: Type
+				measure 'As of Beg. Date Label'
+					caption: As of Beg. Date Label
+				measure 'As of End Date Label'
+					caption: As of End Date Label
+				measure 'Beginning Balance Cost Posted to G/L'
+					caption: Beginning Balance Cost Posted to G/L
+				measure 'Beginning Balance Expected Cost Posted to G/L'
+					caption: Beginning Balance Expected Cost Posted to G/L
+				measure 'Beginning Balance Qty'
+					caption: Beginning Balance Qty
+				measure 'Beginning Balance Cost Amount (Actual)'
+					caption: Beginning Balance Cost Amount (Actual)
+				measure 'Beginning Balance Cost Amount (Expected)'
+					caption: Beginning Balance Cost Amount (Expected)
+				measure 'Beginning Balance Cost Amount (Incl. Exp Cost)'
+					caption: Beginning Balance Cost Amount (Incl. Exp Cost)
+				measure 'Cost Amount (Actual)'
+					caption: Cost Amount (Actual)
+				measure 'Cost Amount (Expected)'
+					caption: Cost Amount (Expected)
+				measure 'Cost Posted to G/L'
+					caption: Cost Posted to G/L
+				measure 'Expected Cost Posted to G/L'
+					caption: Expected Cost Posted to G/L
+				measure 'Decrease Qty.'
+					caption: Decrease Qty.
+				measure 'Decrease Value'
+					caption: Decrease Value
+				measure 'Decrease Value (Expected)'
+					caption: Decrease Value (Expected)
+				measure 'Decrease Value Expected Cost Included'
+					caption: Decrease Value Expected Cost Included
+				measure 'Ending Balance Cost Amount (Incl. Exp Cost)'
+					caption: Ending Balance Cost Amount (Incl. Exp Cost)
+				measure 'Ending Balance Cost Posted to G/L'
+					caption: Ending Balance Cost Posted to G/L
+				measure 'Ending Balance Qty.'
+					caption: Ending Balance Qty.
+				measure 'Ending Balance Cost Amount (Actual)'
+					caption: Ending Balance Cost Amount (Actual)
+				measure 'Ending Balance Cost Amount (Expected)'
+					caption: Ending Balance Cost Amount (Expected)
+				measure 'Ending Balance Expected Cost Posted to G/L'
+					caption: Ending Balance Expected Cost Posted to G/L
+				measure 'Increase Value Expected Cost Included'
+					caption: Increase Value Expected Cost Included
+				measure 'Increases Qty.'
+					caption: Increases Qty.
+				measure 'Increases Value'
+					caption: Increases Value
+				measure 'Increases Value (Expected)'
+					caption: Increases Value (Expected)
+				measure 'Invoiced Quantity'
+					caption: Invoiced Quantity
+				measure 'Cost Amount (Incl. Exp Cost)'
+					caption: Cost Amount (Incl. Exp Cost)
+				measure 'Variance Cost Posted to G/L'
+					caption: Variane Cost Posted to G/L
+				measure 'Base Link'
+					caption: Base Link
+				measure 'Value Entry Back Link'
+					caption: Value Entry Back Link
+			table 'Dimension Sets'
+				caption: Dimension Sets
+				column 'Global Dimension 1'
+					caption: Global Dimension 1
+				column 'Global Dimension 2'
+					caption: Global Dimension 2
+				column 'Shortcut Dimension 3'
+					caption: Shortcut Dimension 3
+				column 'Shortcut Dimension 4'
+					caption: Shortcut Dimension 4
+				column 'Shortcut Dimension 5'
+					caption: Shortcut Dimension 5
+				column 'Shortcut Dimension 6'
+					caption: Shortcut Dimension 6
+				column 'Shortcut Dimension 7'
+					caption: Shortcut Dimension 7
+				column 'Shortcut Dimension 8'
+					caption: Shortcut Dimension 8
+			table Date
+				caption: Date
+				column 'Week Day'
+					caption: Week Day
+				column 'Relative Day'
+					caption: Relative Day
+				column 'Calendar Year'
+					caption: Calendar Year
+				column 'Calendar Quarter'
+					caption: Calendar Quarter
+				column 'Calendar Quarter Year'
+					caption: Calendar Quarter Year
+				column 'Calendar Month'
+					caption: Calendar Month
+				column 'Calendar Month Year'
+					caption: Calendar Month Year
+				column 'Calendar Week'
+					caption: Calendar Week
+				column 'Calendar Week Year'
+					caption: Calendar Week Year
+				column 'Calendar WeekYearOrder'
+					caption: Calendar WeekYearOrder
+				column 'Calendar RelativeWeekPos'
+					caption: Calendar RelativeWeekPos
+				column 'Calendar RelativeMonthPos'
+					caption: Calendar RelativeMonthPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Calendar RelativeQuarterPos
+				column 'Calendar RelativeYearPos'
+					caption: Calendar RelativeYearPos
+				column 'Calendar StartOfMonth'
+					caption: Calendar StartOfMonth
+				column 'Calendar EndOfMonth'
+					caption: Calendar EndOfMonth
+				column 'Calendar StartOfQuarter'
+					caption: Calendar StartOfQuarter
+				column 'Calendar EndOfQuarter'
+					caption: Calendar EndOfQuarter
+				column 'Calendar StartOfYear'
+					caption: Calendar StartOfYear
+				column 'Calendar EndOfYear'
+					caption: Calendar EndOfYear
+				column 'Calendar MonthDays'
+					caption: Calendar MonthDays
+				column 'Calendar QuarterDays'
+					caption: Calendar QuarterDays
+				column 'Calendar YearDays'
+					caption: Calendar YearDays
+				column 'Calendar DayOfMonthNumber'
+					caption: Calendar DayOfMonthNumber
+				column 'Calendar DayOfQuarterNumber'
+					caption: Calendar DayOfQuarterNumber
+				column 'Calendar DayOfYearNumber'
+					caption: Calendar DayOfYearNumber
+				column 'Calendar DatePreviousWeek'
+					caption: Calendar DatePreviousWeek
+				column 'Calendar DatePreviousMonth'
+					caption: Calendar DatePreviousMonth
+				column 'Calendar DatePreviousQuarter'
+					caption: Calendar DatePreviousQuarter
+				column 'Calendar DatePreviousYear'
+					caption: Calendar DatePreviousYear
+				column 'Fiscal Year'
+					caption: Fiscal Year
+				column 'Fiscal QuarterNumber'
+					caption: Fiscal QuarterNumber
+				column 'Fiscal Quarter'
+					caption: Fiscal Quarter
+				column 'Fiscal Quarter Year'
+					caption: Fiscal Quarter Year
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Fiscal MonthInQuarterNumber
+				column 'Fiscal Month'
+					caption: Fiscal Month
+				column 'Fiscal Month Year'
+					caption: Fiscal Month Year
+				column 'Fiscal WeekNumber'
+					caption: Fiscal WeekNumber
+				column 'Fiscal Week'
+					caption: Fiscal Week
+				column 'Fiscal Week Year'
+					caption: Fiscal Week Year
+				column 'Fiscal WeekYearOrder'
+					caption: Fiscal WeekYearOrder
+				column 'Fiscal RelativeWeekPos'
+					caption: Fiscal RelativeWeekPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Fiscal RelativeMonthPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fiscal RelativeQuarterPos
+				column 'Fiscal RelativeYearPos'
+					caption: Fiscal RelativeYearPos
+				column 'Fiscal StartOfMonth'
+					caption: Fiscal StartOfMonth
+				column 'Fiscal EndOfMonth'
+					caption: Fiscal EndOfMonth
+				column 'Fiscal StartOfQuarter'
+					caption: Fiscal StartOfQuarter
+				column 'Fiscal EndOfQuarter'
+					caption: Fiscal EndOfQuarter
+				column 'Fiscal StartOfYear'
+					caption: Fiscal StartOfYear
+				column 'Fiscal EndOfYear'
+					caption: Fiscal EndOfYear
+				column 'Fiscal MonthDays'
+					caption: Fiscal MonthDays
+				column 'Fiscal QuarterDays'
+					caption: Fiscal QuarterDays
+				column 'Fiscal YearDays'
+					caption: Fiscal YearDays
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fiscal DayOfMonthNumber
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fiscal DayOfQuarterNumber
+				column 'Fiscal DayOfYearNumber'
+					caption: Fiscal DayOfYearNumber
+				column 'Fiscal DatePreviousWeek'
+					caption: Fiscal DatePreviousWeek
+				column 'Fiscal DatePreviousMonth'
+					caption: Fiscal DatePreviousMonth
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fiscal DatePreviousQuarter
+				column 'Fiscal DatePreviousYear'
+					caption: Fiscal DatePreviousYear
+				column 'FW Year'
+					caption: FW Year
+				column 'FW Quarter'
+					caption: FW Quarter
+				column 'FW Quarter Year'
+					caption: FW Quarter Year
+				column 'FW Month'
+					caption: FW Month
+				column 'FW Month Year'
+					caption: FW Month Year
+				column 'FW Week'
+					caption: FW Week
+				column 'FW Period'
+					caption: FW Period
+				column 'FW Week Year'
+					caption: FW Week Year
+				column 'FW StartOfWeek'
+					caption: FW StartOfWeek
+				column 'FW EndOfWeek'
+					caption: FW EndOfWeek
+				column 'FW RelativeWeekPos'
+					caption: FW RelativeWeekPos
+				column 'FW RelativeMonthPos'
+					caption: FW RelativeMonthPos
+				column 'FW RelativeQuarterPos'
+					caption: FW RelativeQuarterPos
+				column 'FW RelativeYearPos'
+					caption: FW RelativeYearPos
+				column 'FW StartOfMonth'
+					caption: FW StartOfMonth
+				column 'FW EndOfMonth'
+					caption: FW EndOfMonth
+				column 'FW StartOfQuarter'
+					caption: FW StartOfQuarter
+				column 'FW EndOfQuarter'
+					caption: FW EndOfQuarter
+				column 'FW StartOfYear'
+					caption: FW StartOfYear
+				column 'FW EndOfYear'
+					caption: FW EndOfYear
+				column 'FW MonthDays'
+					caption: FW MonthDays
+				column 'FW QuarterDays'
+					caption: FW QuarterDays
+				column 'FW YearDays'
+					caption: FW YearDays
+				column 'FW DayOfMonthNumber'
+					caption: FW DayOfMonthNumber
+				column 'FW DayOfQuarterNumber'
+					caption: FW DayOfQuarterNumber
+				column 'FW DayOfYearNumber'
+					caption: FW DayOfYearNumber
+				column 'FW DatePreviousWeek'
+					caption: FW DatePreviousWeek
+				column 'FW DatePreviousMonth'
+					caption: FW DatePreviousMonth
+				column 'FW DatePreviousQuarter'
+					caption: FW DatePreviousQuarter
+				column 'FW DatePreviousYear'
+					caption: FW DatePreviousYear
+				column 'Holiday Name'
+					caption: Holiday Name
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Day Type
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: My Report Title
+				measure 'My Button Caption'
+					caption: My Button Caption
+				measure 'My Visual Title'
+					caption: My Visual Title
+				measure 'Inventory Valuation'
+					caption: Inventory Valuation
+				measure 'for Business Central'
+					caption: for Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: CONNECT YOUR DATA
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Download the Inventory Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Configure Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: USE, EDIT AND BUILD YOUR OWN REPORTS
+				measure 'Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: You are able to edit these reports or build your own report from scratch.
+				measure 'HELP AND SUPPORT'
+					caption: HELP AND SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: For help and support with your new report please visit the Analytics overview documentation.
+				measure 'OTHER POWER BI REPORTS'
+					caption: OTHER POWER BI REPORTS
+				measure PURCHASE
+					caption: PURCHASE
+				measure FINANCE
+					caption: FINANCE
+				measure PROJECTS
+					caption: PROJECTS
+				measure INVENTORY
+					caption: INVENTORY
+				measure SALES
+					caption: SALES
+				measure 'Inventory Valuation Overview'
+					caption: Inventory Valuation Overview
+				measure 'Inventory Value & Cost Posted to G/L by Month Year'
+					caption: Inventory Value & Cost Posted to G/L by Month Year
+				measure 'Inventory Value by Location'
+					caption: Inventory Value by Location
+				measure 'Inventory Quantity'
+					caption: Inventory Quantity
+				measure 'Inventory Valuation by Item'
+					caption: Inventory Valuation by Item
+				measure 'Inventory Valuation by Location'
+					caption: Inventory Valuation by Location
+				measure 'Detailed Inventory Valuation'
+					caption: Detailed Inventory Valuation
+				measure 'The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.
+				measure 'The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.
+				measure 'The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).'
+					caption: The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).
+				measure 'The inventory valuation by location shows location and ending balance value.'
+					caption: The inventory valuation by location shows location and ending balance value.
+				measure 'The inventory valuation by item shows item category and ending balance quantity.'
+					caption: The inventory valuation by item shows item category and ending balance quantity.
+				measure 'Last Refreshed'
+					caption: Last Refreshed
+				measure 'Company Name'
+					caption: Company Name
+				measure 'Inventory value as of '
+					caption: "Inventory value as of "
+				measure 'Ending Balance Value and Invoiced Quantity by Location Code'
+					caption: Ending Balance Value and Invoiced Quantity by Location Code
+				measure 'Ending Balance Value, Ending Balance Posted to G/L and Variance by Month'
+					caption: Ending Balance Value, Ending Balance Posted to G/L and Variance by Month
+				measure 'Ending Balance Quantity by Item Category Code'
+					caption: Ending Balance Quantity by Item Category Code
+				measure 'Ending Balance Value by Location Name'
+					caption: Ending Balance Value by Location Name
+			table COMPANY
+				caption: COMPANY
+				measure 'Company Label'
+					caption: Company Label
+			table 'Item Category'
+				caption: Item Category
+				column 'Item Category Code'
+					caption: Item Category Code
+				column 'Item Category Description'
+					caption: Item Category Description
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Item Category Code Hierarchy
+					level 'Item Category Code Level 1'
+						caption: Item Category Code Level 1
+					level 'Item Category Code Level 2'
+						caption: Item Category Code Level 2
+					level 'Item Category Code Level 3'
+						caption: Item Category Code Level 3
+					level 'Item Category Code'
+						caption: Item Category Code
+

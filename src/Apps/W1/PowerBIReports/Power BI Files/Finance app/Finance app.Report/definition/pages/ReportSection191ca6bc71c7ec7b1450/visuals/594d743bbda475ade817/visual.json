@@ -1,0 +1,170 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "594d743bbda475ade817",
+  "position": {
+    "x": 26,
+    "y": 64,
+    "z": 0,
+    "height": 630,
+    "width": 1228,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Date"
+                }
+              },
+              "queryRef": "Date.Date",
+              "nativeQueryRef": "Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor Ledger Entries"
+                    }
+                  },
+                  "Property": "Entry Type"
+                }
+              },
+              "queryRef": "Vendor Ledger Entries.Entry Type",
+              "nativeQueryRef": "Entry Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor Ledger Entries"
+                    }
+                  },
+                  "Property": "Document Type"
+                }
+              },
+              "queryRef": "Vendor Ledger Entries.Document Type",
+              "nativeQueryRef": "Document Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor Ledger Entries"
+                    }
+                  },
+                  "Property": "Document No."
+                }
+              },
+              "queryRef": "Vendor Ledger Entries.Document No.",
+              "nativeQueryRef": "Document No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendors"
+                    }
+                  },
+                  "Property": "Vendor No."
+                }
+              },
+              "queryRef": "Vendors.Vendor No.",
+              "nativeQueryRef": "Vendor No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor Ledger Entries"
+                    }
+                  },
+                  "Property": "DVLE Initial Entry Due Date"
+                }
+              },
+              "queryRef": "Vendor Ledger Entries.DVLE Initial Entry Due Date",
+              "nativeQueryRef": "Initial Entry Due Date",
+              "displayName": "Initial Entry Due Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor Ledger Entries"
+                    }
+                  },
+                  "Property": "VLE Entry No."
+                }
+              },
+              "queryRef": "Vendor Ledger Entries.VLE Entry No.",
+              "nativeQueryRef": "VLE Entry No."
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor Ledger Entries"
+                    }
+                  },
+                  "Property": "Amount Payable (LCY)"
+                }
+              },
+              "queryRef": "Vendor Ledger Entries.Amount Payable (LCY)"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "urlIcon": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Vendor Ledger Entries Drill Through Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

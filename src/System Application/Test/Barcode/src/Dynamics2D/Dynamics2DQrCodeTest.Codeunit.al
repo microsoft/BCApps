@@ -5,9 +5,9 @@
 
 namespace System.Test.Text;
 
-using System.Utilities;
-using System.Text;
 using System.TestLibraries.Utilities;
+using System.Text;
+using System.Utilities;
 
 codeunit 135061 "Dynamics 2D QR Code Test"
 {

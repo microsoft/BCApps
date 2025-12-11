@@ -67,6 +67,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         NoContractLinesFoundErr: Label 'No contract lines were found that can be billed with the specified parameters.', Locked = true;
+        StrMenuHandlerStep: Integer;
 
     #region Tests
 
@@ -117,40 +118,36 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     [Test]
-    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,CreateVendorBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,CreateVendorBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler,StrMenuHandlerDeleteDocuments')]
     procedure CheckBatchDeleteAllContractDocuments()
     begin
+        // [SCENARIO] multiple Sales  and Purchase Contract Documents can be batch-deleted by using the function from the recurring billing page
         Initialize();
         LibrarySetupStorage.Save(Database::"Subscription Contract Setup");
 
-        // [SCENARIO] multiple Sales- and Purchase-Contract Documents can be batch-deleted by using the function from the recurring billing page
+        // [GIVEN] Two Sales Contract Documents exist
+        DeleteSalesContractDocuments();
         InitAndCreateBillingDocument(Enum::"Service Partner"::Customer);
         InitAndCreateBillingDocument(Enum::"Service Partner"::Customer);
+
+        // [WHEN] Delete all Sales Contract Documents from Recurring Billing Page
+        StrMenuHandlerStep := 1;
+        BillingProposal.DeleteBillingDocuments(BillingTemplate.Code);
+
+        // [THEN] Verify that all Sales Contract Documents have been deleted
+        Assert.AreEqual(0, GetNumberOfContractDocumentsSales(), 'Failed to delete all Sales Documents');
+
+        // [GIVEN] Two Purchase Contract Documents exist
+        DeletePurchaseContractDocuments();
         InitAndCreateBillingDocument(Enum::"Service Partner"::Vendor);
         InitAndCreateBillingDocument(Enum::"Service Partner"::Vendor);
 
-        BillingProposal.DeleteBillingDocuments(1, false); // Selection: 1 = "All Documents"
+        // [WHEN] Delete all Purchase Contract Documents from Recurring Billing Page
+        StrMenuHandlerStep := 1;
+        BillingProposal.DeleteBillingDocuments(BillingTemplate.Code);
 
-        Assert.AreEqual(0, GetNumberOfContractDocumentsSales(Enum::"Sales Document Type"::Invoice), 'Failed to delete all Sales Contract Invoices');
-        Assert.AreEqual(0, GetNumberOfContractDocumentsSales(Enum::"Sales Document Type"::"Credit Memo"), 'Failed to delete all Sales Contract Credit Memos');
-        Assert.AreEqual(0, GetNumberOfContractDocumentsPurchase(Enum::"Purchase Document Type"::Invoice), 'Failed to delete all Purchase Contract Invoices');
-        Assert.AreEqual(0, GetNumberOfContractDocumentsPurchase(Enum::"Purchase Document Type"::"Credit Memo"), 'Failed to delete all Purchase Contract Credit Memos');
-    end;
-
-    [Test]
-    procedure CheckBatchDeleteSelectedContractDocuments()
-    begin
-        Initialize();
-
-        // [SCENARIO] multiple Sales- and Purchase-Contract Invoices can be batch-deleted depending on the selected document type
-        // Selection: 2 = "All Sales Invoices"
-        CreateAndDeleteDummyContractDocuments(2, 0, 2, 2, 2);
-        // Selection: 3 = "All Sales Credit Memos"
-        CreateAndDeleteDummyContractDocuments(3, 2, 0, 2, 2);
-        // Selection: 4 = "All Purchase Invoices"
-        CreateAndDeleteDummyContractDocuments(4, 2, 2, 0, 2);
-        // Selection: 5 = "All Purchase Credit Memos"
-        CreateAndDeleteDummyContractDocuments(5, 2, 2, 2, 0);
+        // [THEN] Verify that all Purchase Contract Documents have been deleted
+        Assert.AreEqual(0, GetNumberOfContractDocumentsPurchase(), 'Failed to delete all Purchase Documents');
     end;
 
     [Test]
@@ -236,8 +233,8 @@ codeunit 139687 "Recurring Billing Docs Test"
         SalesLine2.SetRange("Attached to Line No.", SalesLine."Line No.");
         Assert.AreEqual(5, SalesLine2.Count, 'Setup-failure: expected five attached Lines.');
         SalesLine2.FindSet();
-        // 1st line: Service Period
-        Assert.IsSubstring(SalesLine2.Description, 'Subscription period');
+        // 1st line: Billing Period
+        Assert.IsSubstring(SalesLine2.Description, 'Billing period');
         ParentSalesLine.Get(SalesLine2."Document Type", SalesLine2."Document No.", SalesLine2."Attached to Line No.");
         SalesLine2.Next();
         // 2nd line: Subscription Description
@@ -2095,7 +2092,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         MockServiceObject."Unit of Measure" := UnitOfMeasure.Code;
 
         // [THEN] Throw error if Item Unit of Measure for Invoicing Item No. does not exist
-        asserterror CreateBillingDocumentsCodeunit.ErrorIfItemUnitOfMeasureCodeDoesNotExist(Item."No.", MockServiceObject);
+        asserterror CreateBillingDocumentsCodeunit.ErrorIfItemUnitOfMeasureCodeDoesNotExist(BillingLine, Item."No.", MockServiceObject);
         Assert.ExpectedError(StrSubstNo(ItemUOMDoesNotExistErr, MockServiceObject."No.", MockServiceObject."Unit of Measure", Item."No."));
     end;
 
@@ -2203,26 +2200,6 @@ codeunit 139687 "Recurring Billing Docs Test"
         exit(BillingArchiveLine.Count());
     end;
 
-    local procedure CreateAndDeleteDummyContractDocuments(Selection: Integer; NoOfSalesInvoices: Integer; NoOfSalesCrMemos: Integer; NoOfPurchaseInvoices: Integer; NoOfPurchaseCrMemos: Integer)
-    begin
-        SalesHeader.Reset();
-        SalesHeader.SetFilter("Document Type", '%1|%2', SalesHeader."Document Type"::Invoice, SalesHeader."Document Type"::"Credit Memo");
-        if not SalesHeader.IsEmpty() then
-            SalesHeader.ModifyAll("Recurring Billing", false, false);
-        PurchaseHeader.Reset();
-        PurchaseHeader.SetFilter("Document Type", '%1|%2', PurchaseHeader."Document Type"::Invoice, PurchaseHeader."Document Type"::"Credit Memo");
-        if not PurchaseHeader.IsEmpty() then
-            PurchaseHeader.ModifyAll("Recurring Billing", false, false);
-
-        CreateDummyContractDocumentsSales();
-        CreateDummyContractDocumentsPurchase();
-        BillingProposal.DeleteBillingDocuments(Selection, false);
-
-        Assert.AreEqual(NoOfSalesInvoices, GetNumberOfContractDocumentsSales(Enum::"Sales Document Type"::Invoice), 'Unexpected No. of Sales Invoices after batch-deletion');
-        Assert.AreEqual(NoOfSalesCrMemos, GetNumberOfContractDocumentsSales(Enum::"Sales Document Type"::"Credit Memo"), 'Unexpected No. of Sales Credit Memos after batch-deletion');
-        Assert.AreEqual(NoOfPurchaseInvoices, GetNumberOfContractDocumentsPurchase(Enum::"Purchase Document Type"::Invoice), 'Unexpected No. of Purchase Invoices after batch-deletion');
-        Assert.AreEqual(NoOfPurchaseCrMemos, GetNumberOfContractDocumentsPurchase(Enum::"Purchase Document Type"::"Credit Memo"), 'Unexpected No. of Purchase Credit Memos after batch-deletion');
-    end;
 
     local procedure CreateAndPostSimpleSalesDocument(ItemNo: Code[20])
     begin
@@ -2275,34 +2252,18 @@ codeunit 139687 "Recurring Billing Docs Test"
         until CustomerContractLine.Next() = 0;
     end;
 
-    local procedure CreateDummyContractDocumentsPurchase()
-    var
-        PurchaseDocumentType: Enum "Purchase Document Type";
-        i: Integer;
+    local procedure DeletePurchaseContractDocuments(): Integer
     begin
-        for PurchaseDocumentType := PurchaseDocumentType::Invoice to PurchaseDocumentType::"Credit Memo" do
-            for i := 1 to 2 do begin
-                Clear(PurchaseHeader);
-                PurchaseHeader."No." := '';
-                PurchaseHeader."Document Type" := PurchaseDocumentType;
-                PurchaseHeader."Recurring Billing" := true;
-                PurchaseHeader.Insert(true);
-            end;
+        PurchaseHeader.Reset();
+        PurchaseHeader.SetRange("Recurring Billing", true);
+        PurchaseHeader.DeleteAll();
     end;
 
-    local procedure CreateDummyContractDocumentsSales()
-    var
-        SalesDocumentType: Enum "Sales Document Type";
-        i: Integer;
+    local procedure DeleteSalesContractDocuments(): Integer
     begin
-        for SalesDocumentType := SalesDocumentType::Invoice to SalesDocumentType::"Credit Memo" do
-            for i := 1 to 2 do begin
-                Clear(SalesHeader);
-                SalesHeader."No." := '';
-                SalesHeader."Document Type" := SalesDocumentType;
-                SalesHeader."Recurring Billing" := true;
-                SalesHeader.Insert(true);
-            end;
+        SalesHeader.Reset();
+        SalesHeader.SetRange("Recurring Billing", true);
+        SalesHeader.DeleteAll();
     end;
 
     local procedure FilterPurchaseLineOnDocumentLine(PurchaseDocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20]; LineNo: Integer)
@@ -2340,18 +2301,16 @@ codeunit 139687 "Recurring Billing Docs Test"
         exit(SalesLine.Count());
     end;
 
-    local procedure GetNumberOfContractDocumentsPurchase(DocumentType: Enum "Purchase Document Type"): Integer
+    local procedure GetNumberOfContractDocumentsPurchase(): Integer
     begin
         PurchaseHeader.Reset();
-        PurchaseHeader.SetRange("Document Type", DocumentType);
         PurchaseHeader.SetRange("Recurring Billing", true);
         exit(PurchaseHeader.Count());
     end;
 
-    local procedure GetNumberOfContractDocumentsSales(DocumentType: Enum "Sales Document Type"): Integer
+    local procedure GetNumberOfContractDocumentsSales(): Integer
     begin
         SalesHeader.Reset();
-        SalesHeader.SetRange("Document Type", DocumentType);
         SalesHeader.SetRange("Recurring Billing", true);
         exit(SalesHeader.Count());
     end;
@@ -2826,6 +2785,19 @@ codeunit 139687 "Recurring Billing Docs Test"
     [MessageHandler]
     procedure MessageHandler(Message: Text[1024])
     begin
+    end;
+
+    [StrMenuHandler]
+    procedure StrMenuHandlerDeleteDocuments(Option: Text[1024]; var Choice: Integer; Instruction: Text[1024])
+    begin
+        case StrMenuHandlerStep of
+            1:
+                Choice := 1;
+            2:
+                Choice := 2;
+            else
+                Choice := 0;
+        end;
     end;
 
     #endregion Handlers

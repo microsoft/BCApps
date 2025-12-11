@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -65,21 +65,11 @@ codeunit 6144 "E-Document Get Response"
         GotResponse := RunGetResponse(EDocument, EDocumentService, EDocumentServiceStatus, SendContext);
         Success := EDocumentErrorHelper.ErrorMessageCount(EDocument) = ErrorCount;
 
-#if not CLEAN25
-        EDocServiceStatus := GetServiceStatusFromResponse(
-            Success,
-            GotResponse,
-            EDocument,
-            EDocumentService,
-            SendContext
-        );
-#else 
         EDocServiceStatus := GetServiceStatusFromResponse(
             Success,
             GotResponse,
             SendContext
         );
-#endif
 
         EDocumentLog.InsertLog(EDocument, EDocumentService, EDocServiceStatus);
         EDocumentLog.InsertIntegrationLog(EDocument, EDocumentService, SendContext.Http().GetHttpRequestMessage(), SendContext.Http().GetHttpResponseMessage());
@@ -87,31 +77,6 @@ codeunit 6144 "E-Document Get Response"
         EDocumentProcessing.ModifyEDocumentStatus(EDocument);
     end;
 
-#if not CLEAN25
-    local procedure GetServiceStatusFromResponse(Success: Boolean; GotResponse: Boolean; var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; SendContext: Codeunit SendContext) EDocServiceStatus: Enum "E-Document Service Status";
-    var
-        EDocumentServiceStatus2: Record "E-Document Service Status";
-        IsHandled: Boolean;
-    begin
-        if not Success then
-            exit(Enum::"E-Document Service Status"::"Sending Error");
-
-        if GotResponse then
-            exit(SendContext.Status().GetStatus())
-        else begin
-#pragma warning disable AL0432
-            OnGetEdocumentResponseReturnsFalse(EDocument, EDocumentService, SendContext.Http().GetHttpRequestMessage(), SendContext.Http().GetHttpResponseMessage(), IsHandled);
-#pragma warning restore AL0432
-            if not IsHandled then
-                EDocServiceStatus := Enum::"E-Document Service Status"::"Pending Response"
-            else begin
-                EDocumentServiceStatus2.Get(EDocument."Entry No", EDocumentService.Code);
-                EDocServiceStatus := EDocumentServiceStatus2.Status;
-            end;
-        end
-
-    end;
-#else
     local procedure GetServiceStatusFromResponse(Success: Boolean; GotResponse: Boolean; SendContext: Codeunit SendContext): Enum "E-Document Service Status";
     begin
         if not Success then
@@ -122,7 +87,6 @@ codeunit 6144 "E-Document Get Response"
         else
             exit(Enum::"E-Document Service Status"::"Pending Response");
     end;
-#endif
 
     local procedure RunGetResponse(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var EDocumentServiceStatus: Record "E-Document Service Status"; SendContext: Codeunit SendContext) Result: Boolean
     var
@@ -168,11 +132,4 @@ codeunit 6144 "E-Document Get Response"
         EDocTelemetryGetResponseScopeStartLbl: Label 'E-Document Get Response: Start Scope', Locked = true;
         EDocTelemetryGetResponseScopeEndLbl: Label 'E-Document Get Response: End Scope', Locked = true;
 
-#if not CLEAN25
-    [Obsolete('OnGetEdocumentResponseReturnsFalse is removed since framework now counts error to detect failure in GetResponse', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGetEdocumentResponseReturnsFalse(EDocuments: Record "E-Document"; EDocumentService: Record "E-Document Service"; HttpRequest: HttpRequestMessage; HttpResponse: HttpResponseMessage; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 }

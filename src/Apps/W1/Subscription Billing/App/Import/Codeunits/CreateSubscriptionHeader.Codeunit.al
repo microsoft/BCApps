@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Inventory.Item;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Inventory.Item;
 
 codeunit 8005 "Create Subscription Header"
 {

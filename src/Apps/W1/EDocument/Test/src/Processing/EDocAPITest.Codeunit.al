@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Test;
 
-using Microsoft.Purchases.Document;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.API;
+using Microsoft.Purchases.Document;
 using System.TestLibraries.Utilities;
 
 

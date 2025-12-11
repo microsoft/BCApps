@@ -1,9 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
-using Microsoft.Foundation.NoSeries;
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Foundation.NoSeries;
+using System.Utilities;
 
 table 8051 "Subscription Contract Setup"
 {
@@ -75,6 +75,10 @@ table 8051 "Subscription Contract Setup"
         {
             Caption = 'Dimension Code for Customer Subscription Contract';
             TableRelation = Dimension;
+        }
+        field(30; "Invoice Desc. (Surcharge)"; Enum "Invoice Detail Origin")
+        {
+            Caption = 'Invoice Description (Surcharge)';
         }
         field(59; "Default Period Calculation"; enum "Period Calculation")
         {

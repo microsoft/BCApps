@@ -6,12 +6,13 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
 using Microsoft.Sales.History;
+using System.TestLibraries.Utilities;
 
 codeunit 139606 "Shpfy Shipping Test"
 {
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
     TestHttpRequestPolicy = BlockOutboundRequests;
 
@@ -153,6 +154,36 @@ codeunit 139606 "Shpfy Shipping Test"
         LibraryAssert.IsTrue(FulfillmentRequest.Contains(StrSubstNo(QuantityLbl, SalesShipmentLine.Quantity)), 'quantity check');
     end;
 
+    [Test]
+    procedure UnitTestExportShipmentThirdParty()
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        FulfillmentOrderHeader: Record "Shpfy FulFillment Order Header";
+        ExportShipments: Codeunit "Shpfy Export Shipments";
+        ShippingHelper: Codeunit "Shpfy Shipping Helper";
+        DeliveryMethodType: Enum "Shpfy Delivery Method Type";
+        FulfillmentRequests: List of [Text];
+        AssignedFulfillmentOrderIds: Dictionary of [BigInteger, Code[20]];
+        ShopifyOrderId: BigInteger;
+        LocationId: BigInteger;
+    begin
+        // [SCENARIO] Export a Sales Shipment record into a Json token that contains the shipping info for a third-party fulfillment service
+        // [GIVEN] A random Sales Shipment, a random LocationId for a third-party fulfillment location, a random Shop
+        Initialize();
+        LocationId := Any.IntegerInRange(10000, 99999);
+        CreateThirdPartyFulfillmentLocation(Shop, LocationId);
+        DeliveryMethodType := DeliveryMethodType::Shipping;
+        ShopifyOrderId := ShippingHelper.CreateRandomShopifyOrder(LocationId, DeliveryMethodType);
+        FulfillmentOrderHeader := ShippingHelper.CreateShopifyFulfillmentOrder(ShopifyOrderId, DeliveryMethodType);
+        ShippingHelper.CreateRandomSalesShipment(SalesShipmentHeader, ShopifyOrderId);
+
+        // [WHEN] Invoke the function CreateFulfillmentOrderRequest()
+        FulfillmentRequests := ExportShipments.CreateFulfillmentOrderRequest(SalesShipmentHeader, Shop, LocationId, DeliveryMethodType, AssignedFulfillmentOrderIds);
+
+        // [THEN] We must find no fulfilment data in the json token as the location is for a third-party fulfillment service
+        LibraryAssert.AreEqual(0, FulfillmentRequests.Count, 'FulfillmentRequest count check');
+    end;
+
     local procedure Initialize()
     var
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
@@ -185,6 +216,17 @@ codeunit 139606 "Shpfy Shipping Test"
         InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Shpfy Shipping Test");
+    end;
+
+    local procedure CreateThirdPartyFulfillmentLocation(ShopifyShop: Record "Shpfy Shop"; LocationId: BigInteger)
+    var
+        ShopLocation: Record "Shpfy Shop Location";
+    begin
+        ShopLocation."Shop Code" := ShopifyShop.Code;
+        ShopLocation.Id := LocationId;
+        ShopLocation.Name := 'Third-Party Fulfillment Service';
+        ShopLocation."Is Fulfillment Service" := true;
+        ShopLocation.Insert();
     end;
 
     [HttpClientHandler]
