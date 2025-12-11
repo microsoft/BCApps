@@ -4,7 +4,7 @@ Param(
 )
 
 $parameters.multitenant = $false
-$parameters.RunSandboxAsOnPrem = $true
+$parameters.RunSandboxAsOnPrem = $false
 if ("$env:GITHUB_RUN_ID" -eq "") {
     $parameters.includeAL = $true
     $parameters.doNotExportObjectsToText = $true
