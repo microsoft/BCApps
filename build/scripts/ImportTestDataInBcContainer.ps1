@@ -79,7 +79,7 @@ foreach ($company in $existingCompanies) {
 
 
 Write-Host "Creating new test company in container $($parameters.ContainerName)"
-New-CompanyInBcContainer -containerName $parameters.ContainerName -companyName "CRONUS TestCompany" -evaluationCompany
+New-CompanyInBcContainer -containerName $parameters.ContainerName -companyName "CRONUS TestCompany"
 
 
 # Reinstall all the uninstalled apps in the container
