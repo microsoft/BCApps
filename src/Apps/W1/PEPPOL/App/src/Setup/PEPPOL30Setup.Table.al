@@ -59,7 +59,7 @@ table 37202 "PEPPOL 3.0 Setup"
         Peppol30Impl: Codeunit "PEPPOL30 Impl.";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('', Peppol30Impl.GetPeppolTelemetryTok(), Enum::"Feature Uptake Status"::Used);
+        FeatureTelemetry.LogUptake('0000QTW', Peppol30Impl.GetPeppolTelemetryTok(), Enum::"Feature Uptake Status"::Used);
         if not Get() then begin
             Init();
             Insert(true);

@@ -53,7 +53,7 @@ codeunit 37201 "PEPPOL30 Impl."
         GLSetup: Record "General Ledger Setup";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUsage('', GetPeppolTelemetryTok(), 'GetGeneralInfo');
+        FeatureTelemetry.LogUsage('0000QTV', GetPeppolTelemetryTok(), 'GetGeneralInfo');
 
         ID := SalesHeader."No.";
 
