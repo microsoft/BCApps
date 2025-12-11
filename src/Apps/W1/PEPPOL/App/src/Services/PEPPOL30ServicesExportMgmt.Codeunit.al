@@ -19,9 +19,9 @@ codeunit 37214 "PEPPOL30 Services Export Mgmt." implements "PEPPOL30 Export Mana
     var
         GlobalSalesHeader: Record "Sales Header";
         GlobalSalesLine: Record "Sales Line";
-        GlobalPostedDocumentHeader, GlobalPostedDocumentLine : RecordRef;
-        Peppol30: Codeunit "PEPPOL30";
         PEPPOL30Setup: Record "PEPPOL 3.0 Setup";
+        Peppol30: Codeunit "PEPPOL30";
+        GlobalPostedDocumentHeader, GlobalPostedDocumentLine : RecordRef;
         DocumentNo: Code[20];
         UnsupportedDocumentErr: Label 'The service document type is not supported for PEPPOL 3.0 export.';
 
@@ -184,8 +184,7 @@ codeunit 37214 "PEPPOL30 Services Export Mgmt." implements "PEPPOL30 Export Mana
         else
             Found := PostedRec.Next() <> 0;
 
-        if Found then begin
-
+        if Found then
             case PostedRec.Number() of
                 Database::"Service Invoice Header":
                     begin
@@ -202,7 +201,6 @@ codeunit 37214 "PEPPOL30 Services Export Mgmt." implements "PEPPOL30 Export Mana
                 else
                     Error(UnsupportedDocumentErr);
             end;
-        end;
         exit(Found);
     end;
 
@@ -216,7 +214,7 @@ codeunit 37214 "PEPPOL30 Services Export Mgmt." implements "PEPPOL30 Export Mana
         else
             Found := PostedRecLine.Next() <> 0;
 
-        if Found then begin
+        if Found then
             case PostedRecLine.Number() of
                 Database::"Service Invoice Header":
                     begin
@@ -235,7 +233,6 @@ codeunit 37214 "PEPPOL30 Services Export Mgmt." implements "PEPPOL30 Export Mana
                 else
                     Error(UnsupportedDocumentErr);
             end;
-        end;
         exit(Found);
     end;
 

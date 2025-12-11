@@ -199,7 +199,7 @@ codeunit 37213 "PEPPOL30 Sales Export Mgmt." implements "PEPPOL30 Export Managem
         else
             Found := PostedRec.Next() <> 0;
 
-        if Found then begin
+        if Found then
             case PostedRec.Number() of
                 Database::"Sales Invoice Header":
                     begin
@@ -216,7 +216,6 @@ codeunit 37213 "PEPPOL30 Sales Export Mgmt." implements "PEPPOL30 Export Managem
                 else
                     Error(UnsupportedDocumentErr);
             end;
-        end;
         exit(Found);
     end;
 
@@ -230,7 +229,7 @@ codeunit 37213 "PEPPOL30 Sales Export Mgmt." implements "PEPPOL30 Export Managem
         else
             Found := PostedRecLine.Next() <> 0;
 
-        if Found then begin
+        if Found then
             case PostedRecLine.Number() of
                 Database::"Sales Invoice Header":
                     begin
@@ -247,7 +246,6 @@ codeunit 37213 "PEPPOL30 Sales Export Mgmt." implements "PEPPOL30 Export Managem
                 else
                     Error(UnsupportedDocumentErr);
             end;
-        end;
         exit(Found);
     end;
 
