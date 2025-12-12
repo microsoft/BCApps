@@ -33,7 +33,6 @@ page 149041 "AIT Test Data"
         }
     }
 
-
     procedure SetTestData(Text: Text)
     begin
         TestDataText := Text;

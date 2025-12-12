@@ -13,6 +13,7 @@ permissionset 149031 "AI Test Toolkit - Obj"
     Permissions = table "AIT Run History" = X,
         table "AIT Test Suite" = X,
         table "AIT Test Method Line" = X,
+        table "AIT Test Suite Language" = X,
         table "AIT Log Entry" = X,
         codeunit "AIT AL Test Suite Mgt" = X,
         codeunit "AIT Install" = X,
@@ -36,5 +37,6 @@ permissionset 149031 "AI Test Toolkit - Obj"
         page "AIT Log Entry API" = X,
         page "AIT Test Suite" = X,
         page "AIT Test Suite List" = X,
+        page "AIT Test Suite Language Lookup" = X,
         page "AIT Run History" = X;
 }

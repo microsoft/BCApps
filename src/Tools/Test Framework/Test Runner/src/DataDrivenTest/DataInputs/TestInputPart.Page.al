@@ -28,6 +28,13 @@ page 130459 "Test Input Part"
                 field(TestInputCode; Rec.Code)
                 {
                 }
+                field("Language Tag"; Rec."Language Tag")
+                {
+                }
+                field("Language Name"; Rec."Language Name")
+                {
+                    Visible = false;
+                }
                 field(Description; Rec.Description)
                 {
                 }
@@ -65,6 +72,7 @@ page 130459 "Test Input Part"
     }
     trigger OnAfterGetRecord()
     begin
+        Rec.CalcFields("Language Tag", "Language Name");
         TestInputText := Rec.GetInput(Rec);
         if Rec.IsSensitive() then
             TestInputDisplayText := ClickToShowLbl

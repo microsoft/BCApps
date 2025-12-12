@@ -56,7 +56,6 @@ table 149032 "AIT Test Method Line"
                 CodeunitMetadata.Get("Codeunit ID");
                 CalcFields("Codeunit Name");
 
-
                 if ("Codeunit ID" = Codeunit::"AIT Test Run Iteration") or not (CodeunitMetadata.TableNo in [0, Database::"AIT Test Method Line"]) then
                     if not (CodeunitMetadata.SubType = CodeunitMetadata.SubType::Test) then
                         Error(NotSupportedCodeunitErr, "Codeunit Name");
@@ -81,8 +80,19 @@ table 149032 "AIT Test Method Line"
         {
             Caption = 'Input Dataset';
             DataClassification = CustomerContent;
-            TableRelation = "Test Input Group";
+            TableRelation = "Test Input Group" where("Parent Group Code" = const(''));
+            ValidateTableRelation = false;
             ToolTip = 'Specifies a dataset that overrides the default dataset for the suite.';
+
+            trigger OnValidate()
+            var
+                AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
+            begin
+                if (Rec."Input Dataset" = '') or (Rec."Test Suite Code" = '') then
+                    exit;
+
+                AITTestSuiteLanguage.UpdateLanguagesFromDataset(Rec."Test Suite Code", Rec."Input Dataset");
+            end;
         }
         field(9; "Status"; Enum "AIT Line Status")
         {
@@ -237,12 +247,17 @@ table 149032 "AIT Test Method Line"
     internal procedure GetTestInputCode(): Code[100]
     var
         AITTestSuite: Record "AIT Test Suite";
+        AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
+        InputDatasetCode: Code[100];
     begin
-        if Rec."Input Dataset" <> '' then
-            exit(Rec."Input Dataset");
-
         AITTestSuite.Get(Rec."Test Suite Code");
-        exit(AITTestSuite."Input Dataset");
+
+        if Rec."Input Dataset" <> '' then
+            InputDatasetCode := Rec."Input Dataset"
+        else
+            InputDatasetCode := AITTestSuite."Input Dataset";
+
+        exit(AITTestSuiteLanguage.GetLanguageDataset(InputDatasetCode, AITTestSuite."Run Language ID"));
     end;
 
     trigger OnInsert()
@@ -251,7 +266,7 @@ table 149032 "AIT Test Method Line"
     begin
         if Rec."Input Dataset" = '' then
             if AITTestSuite.Get(Rec."Test Suite Code") then
-                Rec."Input Dataset" := AITTestSuite."Input Dataset";
+                Rec.Validate("Input Dataset", AITTestSuite."Input Dataset");
     end;
 
     trigger OnDelete()

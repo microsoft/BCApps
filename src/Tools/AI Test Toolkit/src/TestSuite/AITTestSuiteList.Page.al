@@ -31,6 +31,11 @@ page 149040 "AIT Test Suite List"
                 field(Description; Rec.Description)
                 {
                 }
+                field("Copilot Capability"; CopilotCapabilityText)
+                {
+                    Caption = 'Capability';
+                    ToolTip = 'Specifies the capability that the test suite tests.';
+                }
                 field(Started; Rec."Started at")
                 {
                 }
@@ -113,9 +118,19 @@ page 149040 "AIT Test Suite List"
 
     var
         ValidRecord: Boolean;
+        CopilotCapabilityText: Text;
+        UnspecifiedLbl: Label 'Unspecified';
 
     trigger OnAfterGetCurrRecord()
     begin
         ValidRecord := Rec.Code <> '';
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        if Format(Rec."Copilot Capability") = '' then
+            CopilotCapabilityText := UnspecifiedLbl
+        else
+            CopilotCapabilityText := Format(Rec."Copilot Capability");
     end;
 }

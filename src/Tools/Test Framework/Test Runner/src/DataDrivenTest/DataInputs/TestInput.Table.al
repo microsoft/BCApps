@@ -5,6 +5,8 @@
 
 namespace System.TestTools.TestRunner;
 
+using System.Globalization;
+
 table 130452 "Test Input"
 {
     DataClassification = CustomerContent;
@@ -25,6 +27,13 @@ table 130452 "Test Input"
             Tooltip = 'Specifies the code of the test input.';
             DataClassification = CustomerContent;
         }
+        field(5; "Language ID"; Integer)
+        {
+            Caption = 'Language ID';
+            Tooltip = 'Specifies the language ID for the test input.';
+            DataClassification = CustomerContent;
+            TableRelation = "Windows Language"."Language ID";
+        }
         field(10; Description; Text[2048])
         {
             Caption = 'Description';
@@ -42,6 +51,22 @@ table 130452 "Test Input"
             Caption = 'Test Input';
             Tooltip = 'Specifies the test input.';
             DataClassification = CustomerContent;
+        }
+        field(40; "Language Tag"; Text[80])
+        {
+            Caption = 'Language';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Windows Language"."Language Tag" where("Language ID" = field("Language ID")));
+            ToolTip = 'Specifies the language tag for the test input.';
+            Editable = false;
+        }
+        field(41; "Language Name"; Text[80])
+        {
+            Caption = 'Language Name';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Windows Language".Name where("Language ID" = field("Language ID")));
+            ToolTip = 'Specifies the language name for the test input.';
+            Editable = false;
         }
     }
 
