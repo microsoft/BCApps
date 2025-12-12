@@ -162,6 +162,26 @@ page 20416 "Qlty. Inspection Grade List"
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action(CopyGradesToAllTemplates)
+            {
+                ApplicationArea = QualityManagement;
+                Caption = 'Copy Grades to Existing Templates';
+                ToolTip = 'Use this to add newly created grades configured to Automatically Copy on to existing fields and existing templates.';
+                Image = Copy;
+                trigger OnAction()
+                var
+                    QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
+                begin
+                    QltyGradeConditionMgmt.CopyGradeConditionsFromDefaultToAllTemplates();
+                end;
+            }
+        }
+    }
+
     var
         MustChangePriorityErr: Label 'Evaluation Sequence must be unique, you cannot have two grades with the same evaluation sequence. Grade [%1/%2] already has the same evaluation sequence.', Comment = '%1=The grade code, %2=the grade condition';
 

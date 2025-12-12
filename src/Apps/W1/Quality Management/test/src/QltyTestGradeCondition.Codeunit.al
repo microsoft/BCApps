@@ -515,6 +515,75 @@ codeunit 139956 "Qlty. Test Grade Condition"
     end;
 
     [Test]
+    procedure CopyGradeConditionsFromDefaultToAllTemplates_WithNewGradeConfiguredToCopy()
+    var
+        QltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyField: Record "Qlty. Field";
+        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        ConfigurationToLoadSecondQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        ConfigurationToLoadSecondQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        ToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        ToLoadSecondQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        FieldCode: Text;
+        BeforeNewGradeCountConditions: Integer;
+    begin
+        // [SCENARIO] Supports issue 5503, allows a scenario of adding a new grade with 'automatically copy' configured after existing grades are and adds those conditions.
+
+        Initialize();
+
+        // [GIVEN] Quality Management setup is initialized
+        QltyTestsUtility.EnsureSetup();
+
+        // [GIVEN] A first quality inspection template is created with a custom grade condition
+        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        Clear(ToLoadQltyField);
+        ToLoadQltyField.Init();
+        QltyTestsUtility.GenerateRandomCharacters(MaxStrLen(ToLoadQltyField.Code), FieldCode);
+        ToLoadQltyField.Code := CopyStr(FieldCode, 1, MaxStrLen(ToLoadQltyField.Code));
+        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
+        ToLoadQltyField.Insert();
+
+        ConfigurationToLoadQltyInspectionTemplateLine.Init();
+        ConfigurationToLoadQltyInspectionTemplateLine."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
+        ConfigurationToLoadQltyInspectionTemplateLine.InitLineNoIfNeeded();
+        ConfigurationToLoadQltyInspectionTemplateLine.Validate("Field Code", ToLoadQltyField.Code);
+        ConfigurationToLoadQltyInspectionTemplateLine.Insert();
+        ConfigurationToLoadQltyInspectionTemplateLine.EnsureGrades(false);
+        ToLoadQltyIGradeConditionConf.Get(ToLoadQltyIGradeConditionConf."Condition Type"::Template, ConfigurationToLoadQltyInspectionTemplateHdr.Code, 0, 10000, ToLoadQltyField.Code, DefaultGrade2PassCodeTok);
+        ToLoadQltyIGradeConditionConf.Condition := InitialConditionTok;
+        ToLoadQltyIGradeConditionConf.Modify();
+
+        // This is not testing the scenario, this is just validating the preconditions.
+        QltyInspectionGrade.SetRange("Copy Behavior", QltyInspectionGrade."Copy Behavior"::"Automatically copy the grade");
+        LibraryAssert.IsTrue(QltyInspectionGrade.Count() > 0, 'Validating preconditions. There must be n>0 grades that copy for this test to be valid.');
+        ToLoadQltyIGradeConditionConf.SetRecFilter();
+        ToLoadQltyIGradeConditionConf.SetRange("Grade Code");
+        BeforeNewGradeCountConditions := QltyInspectionGrade.Count();
+        LibraryAssert.AreEqual(BeforeNewGradeCountConditions, ToLoadQltyIGradeConditionConf.Count(), 'Validating preconditions. Grade.Count(where copy is on) should equal the grade count for a given template line.');
+
+        // [GIVEN] Another net new grade with a copy behavior.
+        QltyInspectionGrade.Init();
+        QltyInspectionGrade.Code := 'AUTOMATEDTEST';
+        QltyInspectionGrade.Description := 'Automated test.';
+        QltyInspectionGrade."Copy Behavior" := QltyInspectionGrade."Copy Behavior"::"Automatically copy the grade";
+        QltyInspectionGrade.Insert(true);
+
+        // [WHEN] We ask the system to copy the new grades to all templates
+        CondManagementQltyGradeConditionMgmt.CopyGradeConditionsFromDefaultToAllTemplates();
+
+        // [THEN] The grade condition count should now be one higher.
+        QltyInspectionGrade.SetRange("Copy Behavior", QltyInspectionGrade."Copy Behavior"::"Automatically copy the grade");
+        LibraryAssert.AreEqual(BeforeNewGradeCountConditions + 1, ToLoadQltyIGradeConditionConf.Count(), 'The grade conditions should have increased by one.');
+
+        // clean up the artifacts
+        ToLoadQltyIGradeConditionConf.Reset();
+        ToLoadQltyIGradeConditionConf.SetRange("Grade Code", QltyInspectionGrade.Code);
+        ToLoadQltyIGradeConditionConf.DeleteAll(false);
+        QltyInspectionGrade.Delete(); // remove the grade.
+    end;
+
+    [Test]
     procedure CopyGradeConditionsFromTemplateLineToTest_NoExistingConfigLine()
     var
         Location: Record Location;
