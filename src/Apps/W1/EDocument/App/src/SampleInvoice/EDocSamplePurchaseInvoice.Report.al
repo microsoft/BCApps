@@ -8,6 +8,7 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Location;
 using System.Utilities;
+using Microsoft.Purchases.Vendor;
 
 /// <summary>
 /// Report for generating sample purchase invoice PDFs
@@ -20,10 +21,10 @@ report 6102 "E-Doc Sample Purchase Invoice"
 
     dataset
     {
-        dataitem(Header; "E-Doc Sample Purch.Inv. Hdr.")
+        dataitem(Header; "E-Document Purchase Header")
         {
             UseTemporary = true;
-            column(No_; "No.")
+            column(No_; "Sales Invoice No.")
             {
             }
             column(InvoiceCaption; InvoiceCaptionLbl)
@@ -32,16 +33,16 @@ report 6102 "E-Doc Sample Purchase Invoice"
             column(InvoiceNoCaption; InvoiceNoCaptionLbl)
             {
             }
-            column(BuyFromVendorNo; "Buy-from Vendor No.")
+            column(BuyFromVendorNo; "[BC] Vendor No.")
             {
             }
             column(VendorInvoiceNo_Lbl; VendorInvoiceNoLbl)
             {
             }
-            column(VendorInvoiceNo; "Vendor Invoice No.")
+            column(VendorInvoiceNo; "Sales Invoice No.") // TODO: Figure out what to do for "No." control
             {
             }
-            column(PostingDate; "Posting Date")
+            column(PostingDate; "Document Date")
             {
             }
             column(PostingDateCaption; PostingDateCaptionLbl)
@@ -158,26 +159,21 @@ report 6102 "E-Doc Sample Purchase Invoice"
             column(TotalCaption; TotalLbl)
             {
             }
-            dataitem(Line; "E-Doc Sample Purch. Inv. Line")
+
+            dataitem(Line; "E-Document Purchase Line")
             {
                 UseTemporary = true;
-                DataItemLink = "Document No." = field("No.");
-                column(DocumentNo; "Document No.")
-                {
-                }
+                DataItemLink = "E-Document Entry No." = field("E-Document Entry No.");
                 column(LineNo; "Line No.")
                 {
                 }
-                column(Type; Type)
+                column(Type; "[BC] Purchase Line Type")
                 {
                 }
                 column(NoCaptionLbl; NoCaptionLbl)
                 {
                 }
-                column(No; "No.")
-                {
-                }
-                column(TaxGroupCode; "Tax Group Code")
+                column(No; "[BC] Purchase Type No.")
                 {
                 }
                 column(ItemDescription_Lbl; ItemDescriptionCaptionLbl)
@@ -192,13 +188,13 @@ report 6102 "E-Doc Sample Purchase Invoice"
                 column(Quantity; Quantity)
                 {
                 }
-                column(DirectUnitCost; "Direct Unit Cost")
+                column(DirectUnitCost; "Unit Price")
                 {
                 }
                 column(DirectUnitCostCaption; DirectUnitCostCaptionLbl)
                 {
                 }
-                column(DeferralCode; "Deferral Code")
+                column(DeferralCode; "[BC] Deferral Code")
                 {
                 }
                 column(UOM_PurchLine_Lbl; ItemUnitOfMeasureCaptionLbl)
@@ -207,7 +203,7 @@ report 6102 "E-Doc Sample Purchase Invoice"
                 column(UnitOfMeasureCode; "Unit of Measure")
                 {
                 }
-                column(LineAmount; Amount)
+                column(LineAmount; "Sub Total")
                 {
                 }
                 column(LineAmountCaption; LineAmountCaptionLbl)
@@ -216,11 +212,11 @@ report 6102 "E-Doc Sample Purchase Invoice"
 
                 trigger OnAfterGetRecord()
                 begin
-                    TotalAmount += Line.Amount;
-                    VATAmount += Line."Amount Including VAT" - Line.Amount;
-                    TotalAmtInclVAT += Line."Amount Including VAT";
+                    TotalAmount += Line."Sub Total";
+                    TotalAmtInclVAT += Line."Sub Total";
                 end;
             }
+
             dataitem(Totals; "Integer")
             {
                 DataItemTableView = sorting(Number) where(Number = const(1));
@@ -235,21 +231,16 @@ report 6102 "E-Doc Sample Purchase Invoice"
                 }
             }
 
-            trigger OnPreDataItem()
-            begin
-                Header.Copy(TempSamplePurchInvHeader, true);
-            end;
-
             trigger OnAfterGetRecord()
             begin
                 FormatAddressFields(Header);
+                VATAmount := Header."Total VAT";
             end;
         }
     }
 
     var
-        TempSamplePurchInvHeader: Record "E-Doc Sample Purch.Inv. Hdr." temporary;
-        TempSamplePurchInvLine: Record "E-Doc Sample Purch. Inv. Line" temporary;
+
         CompanyInfo: Record "Company Information";
         RespCenter: Record "Responsibility Center";
         FormatAddr: Codeunit "Format Address";
@@ -282,29 +273,20 @@ report 6102 "E-Doc Sample Purchase Invoice"
     /// <summary>
     /// Sets the data for the report from temporary tables.
     /// </summary>
-    /// <param name="TempHeader">Temporary header record to use.</param>
-    /// <param name="TempLines">Temporary line records to use.</param>
-    procedure SetData(var TempHeader: Record "E-Doc Sample Purch.Inv. Hdr." temporary; var TempLines: Record "E-Doc Sample Purch. Inv. Line" temporary)
+    internal procedure SetData(var TempHeader: Record "E-Document Purchase Header" temporary; var TempLine: Record "E-Document Purchase Line" temporary)
     begin
-        TempSamplePurchInvHeader.Copy(TempHeader, true);
-        TempSamplePurchInvLine.Copy(TempLines, true);
-        Line.Copy(TempSamplePurchInvLine, true);
+        Header.Copy(TempHeader, true);
+        Line.Copy(TempLine, true);
     end;
 
-    local procedure FormatAddressFields(var SamplePurchInvHeader: Record "E-Doc Sample Purch.Inv. Hdr.")
+    local procedure FormatAddressFields(var EDocPurchHeader: Record "E-Document Purchase Header")
+    var
+        Vendor: Record Vendor;
     begin
         CompanyInfo.Get();
-        FormatAddr.GetCompanyAddr(SamplePurchInvHeader."Responsibility Center", RespCenter, CompanyInfo, CompanyAddr);
+        FormatAddr.GetCompanyAddr('', RespCenter, CompanyInfo, CompanyAddr);
+        Vendor.Get(EDocPurchHeader."[BC] Vendor No.");
         FormatAddr.FormatAddr(
-            VendAddr,
-            SamplePurchInvHeader."Pay-to Name",
-            '',
-            SamplePurchInvHeader."Pay-to Contact",
-            SamplePurchInvHeader."Pay-to Address",
-            SamplePurchInvHeader."Pay-to Address 2",
-            SamplePurchInvHeader."Pay-to City",
-            SamplePurchInvHeader."Pay-to Post Code",
-            SamplePurchInvHeader."Pay-to County",
-            SamplePurchInvHeader."Pay-to Country/Region Code");
+            VendAddr, Vendor.Name, '', Vendor.Contact, Vendor.Address, Vendor."Address 2", Vendor.City, Vendor."Post Code", Vendor.County, Vendor."Country/Region Code");
     end;
 }

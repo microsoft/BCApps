@@ -5,7 +5,6 @@
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
 using System.Utilities;
-using Microsoft.Purchases.Document;
 using System.IO;
 
 /// <summary>
@@ -19,47 +18,25 @@ codeunit 6208 "E-Doc Sample Purch.Inv. PDF"
     InherentPermissions = X;
 
     var
-        TempSamplePurchInvHeader: Record "E-Doc Sample Purch.Inv. Hdr." temporary;
-        TempSamplePurchInvLine: Record "E-Doc Sample Purch. Inv. Line" temporary;
+        TempEDocPurchHeader: Record "E-Document Purchase Header" temporary;
+        TempEDocPurchLine: Record "E-Document Purchase Line" temporary;
 
     /// <summary>
     /// Adds a new header record to the temporary buffer.
     /// </summary>
-    /// <param name="NewSamplePurchInvHeader">A new sample invoice header to add.</param>
-    procedure AddHeader(NewSamplePurchInvHeader: Record "E-Doc Sample Purch.Inv. Hdr.")
+    procedure AddHeader(NewEDocPurchHeader: Record "E-Document Purchase Header")
     begin
-        TempSamplePurchInvHeader := NewSamplePurchInvHeader;
-        TempSamplePurchInvHeader.Insert();
+        TempEDocPurchHeader := NewEDocPurchHeader;
+        TempEDocPurchHeader.Insert();
     end;
 
     /// <summary>
     /// Adds a new line record to the temporary buffer.
     /// </summary>
-    /// <param name="NewSamplePurchInvLine">A new sample invoice line to add.</param>
-    procedure AddLine(NewSamplePurchInvLine: Record "E-Doc Sample Purch. Inv. Line")
+    procedure AddLine(NewEDocPurchLine: Record "E-Document Purchase Line")
     begin
-        TempSamplePurchInvLine := NewSamplePurchInvLine;
-        TempSamplePurchInvLine.Insert();
-    end;
-
-    /// <summary>
-    /// Transfers fields from a Purchase Header record to the temporary header buffer.
-    /// </summary>
-    /// <param name="PurchHeader"></param>
-    procedure TransferFromPurchHeader(PurchHeader: Record "Purchase Header")
-    begin
-        TempSamplePurchInvHeader.TransferFields(PurchHeader, true);
-        TempSamplePurchInvHeader.Insert();
-    end;
-
-    /// <summary>
-    /// Transfers fields from a Purchase Line record to the temporary line buffer.
-    /// </summary>
-    /// <param name="PurchLine"></param>
-    procedure TransferFromPurchLine(PurchLine: Record "Purchase Line")
-    begin
-        TempSamplePurchInvLine.TransferFields(PurchLine, true);
-        TempSamplePurchInvLine.Insert();
+        TempEDocPurchLine := NewEDocPurchLine;
+        TempEDocPurchLine.Insert();
     end;
 
     /// <summary>
@@ -72,10 +49,28 @@ codeunit 6208 "E-Doc Sample Purch.Inv. PDF"
         FileManagement: Codeunit "File Management";
         FilePath: Text[250];
     begin
-        TempSamplePurchInvHeader.Reset();
-        TempSamplePurchInvLine.Reset();
+        TempEDocPurchHeader.Reset();
+        TempEDocPurchLine.Reset();
 
-        SamplePurchaseInvoice.SetData(TempSamplePurchInvHeader, TempSamplePurchInvLine);
+        SamplePurchaseInvoice.SetData(TempEDocPurchHeader, TempEDocPurchLine);
+        FilePath := CopyStr(FileManagement.ServerTempFileName('pdf'), 1, MaxStrLen(FilePath));
+        SamplePurchaseInvoice.SaveAsPdf(FilePath);
+        FileManagement.BLOBImportFromServerFile(TempBlob, FilePath);
+    end;
+
+    /// <summary>
+    /// Generates a PDF from the passed header and lines buffer
+    /// </summary>
+    /// <param name="TempPassedEDocPurchHeader"></param>
+    /// <param name="TempPassedEDocPurchLine"></param>
+    /// <returns></returns>
+    procedure GeneratePDF(var TempPassedEDocPurchHeader: Record "E-Document Purchase Header" temporary; var TempPassedEDocPurchLine: Record "E-Document Purchase Line" temporary) TempBlob: Codeunit "Temp Blob"
+    var
+        SamplePurchaseInvoice: Report "E-Doc Sample Purchase Invoice";
+        FileManagement: Codeunit "File Management";
+        FilePath: Text[250];
+    begin
+        SamplePurchaseInvoice.SetData(TempPassedEDocPurchHeader, TempPassedEDocPurchLine);
         FilePath := CopyStr(FileManagement.ServerTempFileName('pdf'), 1, MaxStrLen(FilePath));
         SamplePurchaseInvoice.SaveAsPdf(FilePath);
         FileManagement.BLOBImportFromServerFile(TempBlob, FilePath);
