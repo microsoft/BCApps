@@ -114,6 +114,7 @@ This structured reasoning format ensures each explanation clearly communicates *
 
 %1
 
+
 ## **Execution Requirement**
 After analyzing all invoice lines:
 * Make one `match_gl_account` tool call **per qualifying line**.
