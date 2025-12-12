@@ -125,4 +125,9 @@ codeunit 8116 "Create Sub. Bill. Serv. Obj."
     begin
         exit('SUB100018');
     end;
+
+    procedure SUB100019(): Code[20]
+    begin
+        exit('SUB100018');
+    end;
 }

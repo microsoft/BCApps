@@ -45,33 +45,34 @@ codeunit 8117 "Create Sub. Bill. Cust. Contr."
 
         ContosoSubscriptionBilling.InsertCustomerContract(CSC100009(), HardwareMaintenanceLbl, CreateCustomer.EUAlpineSkiHouse(), CreateSubBillContrTypes.MaintenanceCode());
         ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100009(), CreateSubBillServObj.SUB100009());
+        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100009(), CreateSubBillServObj.SUB100010());
 
         ContosoSubscriptionBilling.InsertCustomerContract(CSC100010(), NewspaperLbl, CreateCustomer.ExportSchoolofArt(), CreateSubBillContrTypes.MiscellaneousCode());
-        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100010(), CreateSubBillServObj.SUB100010());
+        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100010(), CreateSubBillServObj.SUB100011());
 
         ContosoSubscriptionBilling.InsertCustomerContract(CSC100011(), SupportLbl, CreateCustomer.EUAlpineSkiHouse(), CreateSubBillContrTypes.SupportCode());
-        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100011(), CreateSubBillServObj.SUB100011());
+        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100011(), CreateSubBillServObj.SUB100012());
 
         ContosoSubscriptionBilling.InsertCustomerContract(CSC100012(), SupportLbl, CreateCustomer.EUAlpineSkiHouse(), CreateSubBillContrTypes.SupportCode());
-        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100012(), CreateSubBillServObj.SUB100012());
+        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100012(), CreateSubBillServObj.SUB100013());
 
         ContosoSubscriptionBilling.InsertCustomerContract(CSC100013(), SupportLbl, CreateCustomer.DomesticRelecloud(), CreateSubBillContrTypes.SupportCode());
-        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100013(), CreateSubBillServObj.SUB100013());
+        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100013(), CreateSubBillServObj.SUB100014());
 
         ContosoSubscriptionBilling.InsertCustomerContract(CSC100014(), UsageDataLbl, CreateCustomer.DomesticAdatumCorporation(), CreateSubBillContrTypes.UsageDataCode());
-        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100014(), CreateSubBillServObj.SUB100014());
+        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100014(), CreateSubBillServObj.SUB100015());
 
         ContosoSubscriptionBilling.InsertCustomerContract(CSC100015(), UsageDataLbl, CreateCustomer.DomesticTreyResearch(), CreateSubBillContrTypes.UsageDataCode());
-        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100015(), CreateSubBillServObj.SUB100015());
+        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100015(), CreateSubBillServObj.SUB100016());
 
         ContosoSubscriptionBilling.InsertCustomerContract(CSC100016(), UsageDataLbl, CreateCustomer.ExportSchoolofArt(), CreateSubBillContrTypes.UsageDataCode());
-        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100016(), CreateSubBillServObj.SUB100016());
+        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100016(), CreateSubBillServObj.SUB100017());
 
         ContosoSubscriptionBilling.InsertCustomerContract(CSC100017(), UsageDataLbl, CreateCustomer.DomesticRelecloud(), CreateSubBillContrTypes.UsageDataCode());
-        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100017(), CreateSubBillServObj.SUB100017());
+        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100017(), CreateSubBillServObj.SUB100018());
 
         ContosoSubscriptionBilling.InsertCustomerContract(CSC100018(), UsageDataLbl, CreateCustomer.EUAlpineSkiHouse(), CreateSubBillContrTypes.UsageDataCode());
-        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100018(), CreateSubBillServObj.SUB100018());
+        ContosoSubscriptionBilling.InsertCustomerContractLine(CSC100018(), CreateSubBillServObj.SUB100019());
     end;
 
     var
