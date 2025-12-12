@@ -194,6 +194,7 @@ page 20408 "Qlty. Inspection Test List"
                 begin
                     QltyCreateInspectionTest.InitializeReportParameters(Rec."Template Code");
                     QltyCreateInspectionTest.RunModal();
+                    CurrPage.Update(false); // after creating a test from a blank list this helps make sure the actions stay updated.
                 end;
             }
             action(CreateRetest)
@@ -216,6 +217,7 @@ page 20408 "Qlty. Inspection Test List"
             action(TakePicture)
             {
                 Caption = 'Take Picture';
+                Enabled = RowActionsAreEnabled;
                 Image = Camera;
                 ToolTip = 'Activate the camera on the device.';
 
@@ -321,6 +323,7 @@ page 20408 "Qlty. Inspection Test List"
             action(MoveToBin)
             {
                 Caption = 'Move Inventory';
+                Enabled = RowActionsAreEnabled;
                 Image = CreateMovement;
                 ToolTip = 'Move related inventory to a different Bin. Use this to quarantine into a specific bin.';
 
@@ -336,6 +339,7 @@ page 20408 "Qlty. Inspection Test List"
             action(CreateInternalPutAway)
             {
                 Caption = 'Create Internal Put-away';
+                Enabled = RowActionsAreEnabled;
                 Image = CreatePutAway;
                 ToolTip = 'Creates an Internal Put-away document.';
 
@@ -351,6 +355,7 @@ page 20408 "Qlty. Inspection Test List"
             action(Transfer)
             {
                 Caption = 'Create Transfer Order';
+                Enabled = RowActionsAreEnabled;
                 Image = NewShipment;
                 ToolTip = 'Transfer related inventory to a different location.';
 
@@ -366,6 +371,7 @@ page 20408 "Qlty. Inspection Test List"
             action(CreateNegativeAdjustment)
             {
                 Caption = 'Create Negative Adjustment';
+                Enabled = RowActionsAreEnabled;
                 Image = CalculateWarehouseAdjustment;
                 ToolTip = 'Reduce inventory quantity, for disposal after performing destructive testing or doing a stock write-off for damage or spoilage.';
 
@@ -381,6 +387,7 @@ page 20408 "Qlty. Inspection Test List"
             action(ChangeItemTracking)
             {
                 Caption = 'Change Item Tracking';
+                Enabled = RowActionsAreEnabled;
                 Image = CalculateWarehouseAdjustment;
                 ToolTip = 'Change Item Tracking Information.';
 
@@ -396,6 +403,7 @@ page 20408 "Qlty. Inspection Test List"
             action(CreatePurchaseReturnOrder)
             {
                 Caption = 'Create Purchase Return Order';
+                Enabled = RowActionsAreEnabled;
                 Image = PurchaseCreditMemo;
                 ToolTip = 'Create a purchase Return Order.';
 
@@ -414,6 +422,7 @@ page 20408 "Qlty. Inspection Test List"
             action(CertificateOfAnalysis)
             {
                 Caption = 'Certificate of Analysis';
+                Enabled = RowActionsAreEnabled;
                 ToolTip = 'Certificate of Analysis (CoA) for this test.';
                 Image = Certificate;
                 Scope = Repeater;
@@ -436,6 +445,7 @@ page 20408 "Qlty. Inspection Test List"
             {
                 PromotedCategory = Report;
                 Caption = 'Non Conformance Report';
+                Enabled = RowActionsAreEnabled;
                 ToolTip = 'Specifies the Non Conformance Report has a layout suitable for quality inspection templates that typically contain Non Conformance Report questions.';
                 Image = Certificate;
                 Promoted = true;
@@ -456,6 +466,7 @@ page 20408 "Qlty. Inspection Test List"
             {
                 PromotedCategory = Report;
                 Caption = 'Inspection Report';
+                Enabled = RowActionsAreEnabled;
                 ToolTip = 'General purpose inspection report.';
                 Image = Certificate;
                 Promoted = true;
@@ -478,6 +489,7 @@ page 20408 "Qlty. Inspection Test List"
             action(Attachments)
             {
                 Caption = 'Attachments';
+                Enabled = RowActionsAreEnabled;
                 Image = Attach;
                 ToolTip = 'Add a file as an attachment. You can attach images as well as documents.';
 
@@ -494,6 +506,7 @@ page 20408 "Qlty. Inspection Test List"
             action(OpenSourceDocument)
             {
                 Caption = 'Open Source Document';
+                Enabled = RowActionsAreEnabled;
                 Image = ViewSourceDocumentLine;
                 ToolTip = 'Opens the related source document.';
 
@@ -508,6 +521,7 @@ page 20408 "Qlty. Inspection Test List"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Find entries...';
+                Enabled = RowActionsAreEnabled;
                 Image = Navigate;
                 ShortCutKey = 'Ctrl+Alt+Q';
                 ToolTip = 'Find entries and documents that exist for the document number.';
@@ -522,11 +536,13 @@ page 20408 "Qlty. Inspection Test List"
             group(SettingsForItemAvailabilityBy)
             {
                 Caption = 'Item Availability by';
+                Enabled = RowActionsAreEnabled;
                 Image = ItemAvailability;
                 action(tItemAvailabilityByEvent)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Event';
+                    Enabled = RowActionsAreEnabled;
                     Image = "Event";
                     ToolTip = 'View how the actual and the projected available balance of an item will develop over time according to supply and demand events.';
 
@@ -543,6 +559,7 @@ page 20408 "Qlty. Inspection Test List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Period';
+                    Enabled = RowActionsAreEnabled;
                     Image = Period;
                     RunObject = Page "Item Availability by Periods";
                     RunPageLink = "No." = field("Source Item No."),
@@ -554,6 +571,7 @@ page 20408 "Qlty. Inspection Test List"
                 {
                     ApplicationArea = Planning;
                     Caption = 'Variant';
+                    Enabled = RowActionsAreEnabled;
                     Image = ItemVariant;
                     RunObject = Page "Item Availability by Variant";
                     RunPageLink = "No." = field("Source Item No."),
@@ -565,6 +583,7 @@ page 20408 "Qlty. Inspection Test List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Location';
+                    Enabled = RowActionsAreEnabled;
                     Image = Warehouse;
                     RunObject = Page "Item Availability by Location";
                     RunPageLink = "No." = field("Source Item No."),
@@ -576,6 +595,7 @@ page 20408 "Qlty. Inspection Test List"
                 {
                     ApplicationArea = ItemTracking;
                     Caption = 'Lot';
+                    Enabled = RowActionsAreEnabled;
                     Image = LotInfo;
                     RunObject = Page "Item Availability by Lot No.";
                     RunPageLink = "No." = field("Source Item No.");
@@ -585,6 +605,7 @@ page 20408 "Qlty. Inspection Test List"
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Bin Contents';
+                    Enabled = RowActionsAreEnabled;
                     Image = BinContent;
                     RunObject = Page "Bin Content";
                     RunPageLink = "Item No." = field("Source Item No.");
@@ -661,29 +682,31 @@ page 20408 "Qlty. Inspection Test List"
         CanUnassign: Boolean;
         CanFinish: Boolean;
         CanReopen: Boolean;
+        RowActionsAreEnabled: Boolean;
 
     trigger OnOpenPage()
     begin
+        RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
         CanCreateTest := QltyPermissionMgmt.CanCreateManualTest();
-        CanReopen := QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentRetest();
-        CanFinish := QltyPermissionMgmt.CanFinishTest() and not (Rec.Status = Rec.Status::Finished);
-
-        CanCreateRetest := QltyPermissionMgmt.CanCreateReTest();
+        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentRetest();
+        CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishTest() and not (Rec.Status = Rec.Status::Finished);
+        CanCreateRetest := RowActionsAreEnabled and QltyPermissionMgmt.CanCreateReTest();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
         CanAssignToSelf := false;
         CanUnassign := false;
-        CanReopen := QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentRetest();
-        CanFinish := QltyPermissionMgmt.CanFinishTest() and not (Rec.Status = Rec.Status::Finished);
+        RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
+        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenTest() and not Rec.HasMoreRecentRetest();
+        CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishTest() and not (Rec.Status = Rec.Status::Finished);
 
         if (Rec."Assigned User ID" = '') or ((Rec."Assigned User ID" <> UserId()) and QltyPermissionMgmt.CanChangeOthersTests()) then
-            CanAssignToSelf := true;
+            CanAssignToSelf := RowActionsAreEnabled;
 
         if (Rec."Assigned User ID" = UserId()) or (((Rec."Assigned User ID" <> '') and QltyPermissionMgmt.CanChangeOthersTests()))
          then
-            CanUnassign := true;
+            CanUnassign := RowActionsAreEnabled;
     end;
 
     procedure RunModalSourceDocumentFilterWithRecord(RecordVariant: Variant) ResultAction: Action

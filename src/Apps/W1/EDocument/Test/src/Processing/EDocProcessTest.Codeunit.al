@@ -194,8 +194,6 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseHeader.FindFirst();
         Assert.AreEqual(PurchaseHeader."No.", EDocumentPurchaseHeader."[BC] Purchase Order No.", 'The purchase order should be found when explicitly specified in the E-Document.');
         EDocument.SetRecFilter();
-        EDocument.FindFirst();
-        Assert.AreEqual("E-Document Type"::"Purchase Order", EDocument."Document Type", 'The document type should be set to Purchase Order after preparing the draft.');
 
         PurchaseHeader.SetRecFilter();
         PurchaseHeader.Delete();

@@ -41,6 +41,11 @@ page 4303 "Agent Task Log Entry List"
                     Visible = false;
                     Caption = 'Task ID';
                 }
+                field(Level; Rec.Level)
+                {
+                    Caption = 'Level';
+                    StyleExpr = TypeStyle;
+                }
                 field(Type; Rec.Type)
                 {
                     Caption = 'Type';
