@@ -198,6 +198,7 @@ table 20405 "Qlty. Inspection Test Header"
             AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             ToolTip = 'Specifies a reference to the quantity involved.';
+            DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
             begin
@@ -208,6 +209,7 @@ table 20405 "Qlty. Inspection Test Header"
                 if Rec."Source Quantity (Base)" < 0 then
                     Rec."Source Quantity (Base)" := Abs(Rec."Source Quantity (Base)");
 
+                VerifyPassAndFailQuantities();
                 UpdateSampleSize();
             end;
         }
@@ -512,11 +514,13 @@ table 20405 "Qlty. Inspection Test Header"
         }
         field(72; "Pass Quantity"; Decimal)
         {
-            Caption = 'Acceptable Quality Limit';
+            Caption = 'Pass Quantity';
             Description = 'A manually entered field for non-sampling tests, or derived from the quantity of passed sampling lines for sampling tests.';
             AutoFormatType = 10;
             AutoFormatExpression = '<precision, 0:0><standard format,0>';
             ToolTip = 'Specifies the amount that passed inspection.';
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
 
             trigger OnValidate()
             begin
@@ -524,23 +528,29 @@ table 20405 "Qlty. Inspection Test Header"
                     exit;
 
                 if not Rec.GetIsCreating() then
-                    QltyPermissionMgmt.TestCanChangeSourceQuantity()
+                    QltyPermissionMgmt.TestCanChangeSourceQuantity();
+
+                VerifyPassAndFailQuantities();
             end;
         }
         field(73; "Fail Quantity"; Decimal)
         {
-            Caption = 'Acceptable Quality Limit';
+            Caption = 'Fail Quantity';
             Description = 'A manually entered field for non-sampling tests, or derived from the quantity of failed sampling lines for sampling tests.';
             AutoFormatType = 10;
             AutoFormatExpression = '<precision, 0:0><standard format,0>';
             ToolTip = 'Specifies the amount that failed inspection.';
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
 
             trigger OnValidate()
             begin
                 if Rec.IsTemporary() then
                     exit;
                 if not Rec.GetIsCreating() then
-                    QltyPermissionMgmt.TestCanChangeSourceQuantity()
+                    QltyPermissionMgmt.TestCanChangeSourceQuantity();
+
+                VerifyPassAndFailQuantities();
             end;
         }
 
@@ -640,6 +650,7 @@ table 20405 "Qlty. Inspection Test Header"
         CannotFinishTestBecauseTheTestIsInGradeErr: Label 'Cannot finish the test %1 because the test currently has the grade %2, which is configured to disallow finishing.', Comment = '%1=the test, %2=the grade code.';
         MimeTypeTok: Label 'image/jpeg', Locked = true;
         AttachmentNameTok: Label '%1.%2', Locked = true, Comment = '%1=name,%2=extension';
+        PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
 
     trigger OnDelete()
     var
@@ -1689,6 +1700,16 @@ table 20405 "Qlty. Inspection Test Header"
     procedure GetFriendlyIdentifier(): Text
     begin
         exit((Rec."Retest No." = 0) ? Rec."No." : StrSubstNo(TestLbl, Rec."No.", Rec."Retest No."));
+    end;
+
+    local procedure VerifyPassAndFailQuantities()
+    var
+        DifferenceInPassFailQuantity: Decimal;
+    begin
+        if (Rec."Pass Quantity" + Rec."Fail Quantity") > Rec."Source Quantity (Base)" then begin
+            DifferenceInPassFailQuantity := Rec."Pass Quantity" + Rec."Fail Quantity" - Rec."Source Quantity (Base)";
+            Error(PassFailQuantityInvalidErr, Rec.FieldCaption("Pass Quantity"), Rec.FieldCaption("Fail Quantity"), Rec.FieldCaption("Source Quantity (Base)"), DifferenceInPassFailQuantity);
+        end;
     end;
 
     /// <summary>
