@@ -55,4 +55,74 @@ codeunit 8116 "Create Sub. Bill. Serv. Obj."
     begin
         exit('SUB100004');
     end;
+
+    procedure SUB100005(): Code[20]
+    begin
+        exit('SUB100005');
+    end;
+
+    procedure SUB100006(): Code[20]
+    begin
+        exit('SUB100006');
+    end;
+
+    procedure SUB100007(): Code[20]
+    begin
+        exit('SUB100007');
+    end;
+
+    procedure SUB100008(): Code[20]
+    begin
+        exit('SUB100008');
+    end;
+
+    procedure SUB100009(): Code[20]
+    begin
+        exit('SUB100009');
+    end;
+
+    procedure SUB100010(): Code[20]
+    begin
+        exit('SUB100010');
+    end;
+
+    procedure SUB100011(): Code[20]
+    begin
+        exit('SUB100011');
+    end;
+
+    procedure SUB100012(): Code[20]
+    begin
+        exit('SUB100012');
+    end;
+
+    procedure SUB100013(): Code[20]
+    begin
+        exit('SUB100013');
+    end;
+
+    procedure SUB100014(): Code[20]
+    begin
+        exit('SUB100014');
+    end;
+
+    procedure SUB100015(): Code[20]
+    begin
+        exit('SUB100015');
+    end;
+
+    procedure SUB100016(): Code[20]
+    begin
+        exit('SUB100016');
+    end;
+
+    procedure SUB100017(): Code[20]
+    begin
+        exit('SUB100017');
+    end;
+
+    procedure SUB100018(): Code[20]
+    begin
+        exit('SUB100018');
+    end;
 }
