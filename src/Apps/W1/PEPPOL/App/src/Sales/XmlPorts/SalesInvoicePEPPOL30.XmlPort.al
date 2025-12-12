@@ -2073,7 +2073,6 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
 
                 trigger OnAfterGetRecord()
                 var
-                    IPEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
                     IPEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                 begin
                     if not PostedLineIterator.GetNextPostedLineAsSalesLine(PostedSourceLineRecRef, SalesLine) then
