@@ -291,13 +291,7 @@ codeunit 37201 "PEPPOL30 Impl."
         TaxSchemeID := VATTxt;
     end;
 
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetAccountingSupplierPartyTaxSchemeBIS(var VATAmtLine: Record "VAT Amount Line"; var CompanyID: Text; var CompanyIDSchemeID: Text; var TaxSchemeID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         VATAmtLine.SetFilter("Tax Category", '<>%1', GetTaxCategoryO());
         if not VATAmtLine.IsEmpty() then
@@ -426,13 +420,7 @@ codeunit 37201 "PEPPOL30 Impl."
     /// <param name="CustPartyTaxSchemeCompIDSchID">Return value: The customer company ID's scheme ID</param>
     /// <param name="CustTaxSchemeID">Return value: The customer tax scheme ID</param>
     /// <param name="TempVATAmountLine">The temporary VAT amount line used for PEPPOL file creation</param>
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetAccountingCustomerPartyTaxSchemeBIS30(SalesHeader: Record "Sales Header"; var CustPartyTaxSchemeCompanyID: Text; var CustPartyTaxSchemeCompIDSchID: Text; var CustTaxSchemeID: Text; var TempVATAmountLine: Record "VAT Amount Line" temporary)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         TempVATAmountLine.SetFilter("Tax Category", '<>%1', GetTaxCategoryO());
         if not TempVATAmountLine.IsEmpty() then
@@ -632,13 +620,7 @@ codeunit 37201 "PEPPOL30 Impl."
         PaymentTermsNote := PmtTerms.Description;
     end;
 
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetAllowanceChargeInfo(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var ChargeIndicator: Text; var AllowanceChargeReasonCode: Text; var AllowanceChargeListID: Text; var AllowanceChargeReason: Text; var Amount: Text; var AllowanceChargeCurrencyID: Text; var TaxCategoryID: Text; var TaxCategorySchemeID: Text; var Percent: Text; var AllowanceChargeTaxSchemeID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         if VATAmtLine."Invoice Discount Amount" = 0 then begin
             ChargeIndicator := '';
@@ -657,13 +639,7 @@ codeunit 37201 "PEPPOL30 Impl."
         AllowanceChargeTaxSchemeID := VATTxt;
     end;
 
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetAllowanceChargeInfoBIS(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var ChargeIndicator: Text; var AllowanceChargeReasonCode: Text; var AllowanceChargeListID: Text; var AllowanceChargeReason: Text; var Amount: Text; var AllowanceChargeCurrencyID: Text; var TaxCategoryID: Text; var TaxCategorySchemeID: Text; var Percent: Text; var AllowanceChargeTaxSchemeID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         GetAllowanceChargeInfo(
           VATAmtLine, SalesHeader, ChargeIndicator, AllowanceChargeReasonCode, AllowanceChargeListID, AllowanceChargeReason,
@@ -689,26 +665,14 @@ codeunit 37201 "PEPPOL30 Impl."
         Date := Format(SalesHeader."Posting Date", 0, 9);
     end;
 
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetTaxTotalInfo(SalesHeader: Record "Sales Header"; var VATAmtLine: Record "VAT Amount Line"; var TaxAmount: Text; var TaxTotalCurrencyID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         VATAmtLine.CalcSums(VATAmtLine."VAT Amount");
         TaxAmount := Format(VATAmtLine."VAT Amount", 0, 9);
         TaxTotalCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
     end;
 
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetTaxSubtotalInfo(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var TaxableAmount: Text; var TaxAmountCurrencyID: Text; var SubtotalTaxAmount: Text; var TaxSubtotalCurrencyID: Text; var TransactionCurrencyTaxAmount: Text; var TransCurrTaxAmtCurrencyID: Text; var TaxTotalTaxCategoryID: Text; var SchemeID: Text; var TaxCategoryPercent: Text; var TaxTotalTaxSchemeID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     var
         GLSetup: Record "General Ledger Setup";
     begin
@@ -784,13 +748,7 @@ codeunit 37201 "PEPPOL30 Impl."
         end;
     end;
 
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetLegalMonetaryDocAmounts(SalesHeader: Record "Sales Header"; var VATAmtLine: Record "VAT Amount Line"; var LineExtensionAmount: Text; var LegalMonetaryTotalCurrencyID: Text; var TaxExclusiveAmount: Text; var TaxExclusiveAmountCurrencyID: Text; var TaxInclusiveAmount: Text; var TaxInclusiveAmountCurrencyID: Text; var AllowanceTotalAmount: Text; var AllowanceTotalAmountCurrencyID: Text; var ChargeTotalAmount: Text; var ChargeTotalAmountCurrencyID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         LineExtensionAmount := Format(Round(VATAmtLine."VAT Base", 0.01) + Round(VATAmtLine."Invoice Discount Amount", 0.01), 0, 9);
         LegalMonetaryTotalCurrencyID := GetSalesDocCurrencyCode(SalesHeader);

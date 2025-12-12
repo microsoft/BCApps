@@ -552,13 +552,7 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     /// <param name="TaxCategorySchemeID">Returns the tax category scheme ID.</param>
     /// <param name="Percent">Returns the tax percentage.</param>
     /// <param name="AllowanceChargeTaxSchemeID">Returns the allowance/charge tax scheme ID.</param>
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetAllowanceChargeInfo(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var ChargeIndicator: Text; var AllowanceChargeReasonCode: Text; var AllowanceChargeListID: Text; var AllowanceChargeReason: Text; var Amount: Text; var AllowanceChargeCurrencyID: Text; var TaxCategoryID: Text; var TaxCategorySchemeID: Text; var Percent: Text; var AllowanceChargeTaxSchemeID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         PEPPOLManagementImpl.GetAllowanceChargeInfo(VATAmtLine, SalesHeader, ChargeIndicator, AllowanceChargeReasonCode, AllowanceChargeListID, AllowanceChargeReason, Amount, AllowanceChargeCurrencyID, TaxCategoryID, TaxCategorySchemeID, Percent, AllowanceChargeTaxSchemeID);
     end;
@@ -578,13 +572,7 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     /// <param name="TaxCategorySchemeID">Returns the tax category scheme ID.</param>
     /// <param name="Percent">Returns the tax percentage.</param>
     /// <param name="AllowanceChargeTaxSchemeID">Returns the allowance/charge tax scheme ID.</param>
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetAllowanceChargeInfoBIS(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var ChargeIndicator: Text; var AllowanceChargeReasonCode: Text; var AllowanceChargeListID: Text; var AllowanceChargeReason: Text; var Amount: Text; var AllowanceChargeCurrencyID: Text; var TaxCategoryID: Text; var TaxCategorySchemeID: Text; var Percent: Text; var AllowanceChargeTaxSchemeID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         PEPPOLManagementImpl.GetAllowanceChargeInfoBIS(VATAmtLine, SalesHeader, ChargeIndicator, AllowanceChargeReasonCode, AllowanceChargeListID, AllowanceChargeReason, Amount, AllowanceChargeCurrencyID, TaxCategoryID, TaxCategorySchemeID, Percent, AllowanceChargeTaxSchemeID);
     end;
@@ -612,13 +600,7 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     /// <param name="VATAmtLine">The VAT amount line record containing tax totals.</param>
     /// <param name="TaxAmount">Returns the total tax amount.</param>
     /// <param name="TaxTotalCurrencyID">Returns the tax total currency ID.</param>
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetTaxTotalInfo(SalesHeader: Record "Sales Header"; var VATAmtLine: Record "VAT Amount Line"; var TaxAmount: Text; var TaxTotalCurrencyID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         PEPPOLManagementImpl.GetTaxTotalInfo(SalesHeader, VATAmtLine, TaxAmount, TaxTotalCurrencyID);
     end;
@@ -638,13 +620,7 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     /// <param name="schemeID">Returns the scheme ID.</param>
     /// <param name="TaxCategoryPercent">Returns the tax category percentage.</param>
     /// <param name="TaxTotalTaxSchemeID">Returns the tax total tax scheme ID.</param>
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetTaxSubtotalInfo(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var TaxableAmount: Text; var TaxAmountCurrencyID: Text; var SubtotalTaxAmount: Text; var TaxSubtotalCurrencyID: Text; var TransactionCurrencyTaxAmount: Text; var TransCurrTaxAmtCurrencyID: Text; var TaxTotalTaxCategoryID: Text; var schemeID: Text; var TaxCategoryPercent: Text; var TaxTotalTaxSchemeID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         PEPPOLManagementImpl.GetTaxSubtotalInfo(VATAmtLine, SalesHeader, TaxableAmount, TaxAmountCurrencyID, SubtotalTaxAmount, TaxSubtotalCurrencyID, TransactionCurrencyTaxAmount, TransCurrTaxAmtCurrencyID, TaxTotalTaxCategoryID, schemeID, TaxCategoryPercent, TaxTotalTaxSchemeID);
     end;
@@ -683,13 +659,7 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     /// <param name="PayableRndingAmountCurrencyID">Returns the payable rounding amount currency ID.</param>
     /// <param name="PayableAmount">Returns the final payable amount.</param>
     /// <param name="PayableAmountCurrencyID">Returns the payable amount currency ID.</param>
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetLegalMonetaryInfo(SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; var VATAmtLine: Record "VAT Amount Line"; var LineExtensionAmount: Text; var LegalMonetaryTotalCurrencyID: Text; var TaxExclusiveAmount: Text; var TaxExclusiveAmountCurrencyID: Text; var TaxInclusiveAmount: Text; var TaxInclusiveAmountCurrencyID: Text; var AllowanceTotalAmount: Text; var AllowanceTotalAmountCurrencyID: Text; var ChargeTotalAmount: Text; var ChargeTotalAmountCurrencyID: Text; var PrepaidAmount: Text; var PrepaidCurrencyID: Text; var PayableRoundingAmount: Text; var PayableRndingAmountCurrencyID: Text; var PayableAmount: Text; var PayableAmountCurrencyID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         PEPPOLManagementImpl.GetLegalMonetaryInfo(SalesHeader, TempSalesLine, VATAmtLine, LineExtensionAmount, LegalMonetaryTotalCurrencyID, TaxExclusiveAmount, TaxExclusiveAmountCurrencyID, TaxInclusiveAmount, TaxInclusiveAmountCurrencyID, AllowanceTotalAmount, AllowanceTotalAmountCurrencyID, ChargeTotalAmount, ChargeTotalAmountCurrencyID, PrepaidAmount, PrepaidCurrencyID, PayableRoundingAmount, PayableRndingAmountCurrencyID, PayableAmount, PayableAmountCurrencyID);
     end;
@@ -709,13 +679,7 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     /// <param name="AllowanceTotalAmountCurrencyID">Returns the allowance total amount currency ID.</param>
     /// <param name="ChargeTotalAmount">Returns the total charge amount.</param>
     /// <param name="ChargeTotalAmountCurrencyID">Returns the charge total amount currency ID.</param>
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetLegalMonetaryDocAmounts(SalesHeader: Record "Sales Header"; var VATAmtLine: Record "VAT Amount Line"; var LineExtensionAmount: Text; var LegalMonetaryTotalCurrencyID: Text; var TaxExclusiveAmount: Text; var TaxExclusiveAmountCurrencyID: Text; var TaxInclusiveAmount: Text; var TaxInclusiveAmountCurrencyID: Text; var AllowanceTotalAmount: Text; var AllowanceTotalAmountCurrencyID: Text; var ChargeTotalAmount: Text; var ChargeTotalAmountCurrencyID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         PEPPOLManagementImpl.GetLegalMonetaryDocAmounts(SalesHeader, VATAmtLine, LineExtensionAmount, LegalMonetaryTotalCurrencyID, TaxExclusiveAmount, TaxExclusiveAmountCurrencyID, TaxInclusiveAmount, TaxInclusiveAmountCurrencyID, AllowanceTotalAmount, AllowanceTotalAmountCurrencyID, ChargeTotalAmount, ChargeTotalAmountCurrencyID);
     end;

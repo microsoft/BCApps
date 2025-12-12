@@ -31,13 +31,7 @@ interface "PEPPOL Monetary Info Provider"
     /// <param name="PayableRndingAmountCurrencyID">Return value: Currency identifier for the payable rounding amount.</param>
     /// <param name="PayableAmount">Return value: Final payable amount after all adjustments.</param>
     /// <param name="PayableAmountCurrencyID">Return value: Currency identifier for the payable amount.</param>
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetLegalMonetaryInfo(SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; var VATAmtLine: Record "VAT Amount Line"; var LineExtensionAmount: Text; var LegalMonetaryTotalCurrencyID: Text; var TaxExclusiveAmount: Text; var TaxExclusiveAmountCurrencyID: Text; var TaxInclusiveAmount: Text; var TaxInclusiveAmountCurrencyID: Text; var AllowanceTotalAmount: Text; var AllowanceTotalAmountCurrencyID: Text; var ChargeTotalAmount: Text; var ChargeTotalAmountCurrencyID: Text; var PrepaidAmount: Text; var PrepaidCurrencyID: Text; var PayableRoundingAmount: Text; var PayableRndingAmountCurrencyID: Text; var PayableAmount: Text; var PayableAmountCurrencyID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
 
 /// <summary>
 /// Gets legal monetary document amounts for PEPPOL documents.
@@ -54,13 +48,7 @@ interface "PEPPOL Monetary Info Provider"
 /// <param name="AllowanceTotalAmountCurrencyID">Return value: Allowance total amount currency ID.</param>
 /// <param name="ChargeTotalAmount">Return value: Charge total amount.</param>
 /// <param name="ChargeTotalAmountCurrencyID">Return value: Charge total amount currency ID.</param>
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
 procedure GetLegalMonetaryDocAmounts(SalesHeader: Record "Sales Header"; var VATAmtLine: Record "VAT Amount Line"; var LineExtensionAmount: Text; var LegalMonetaryTotalCurrencyID: Text; var TaxExclusiveAmount: Text; var TaxExclusiveAmountCurrencyID: Text; var TaxInclusiveAmount: Text; var TaxInclusiveAmountCurrencyID: Text; var AllowanceTotalAmount: Text; var AllowanceTotalAmountCurrencyID: Text; var ChargeTotalAmount: Text; var ChargeTotalAmountCurrencyID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
 
     /// <summary>
     /// Gets invoice rounding line information for PEPPOL documents.
