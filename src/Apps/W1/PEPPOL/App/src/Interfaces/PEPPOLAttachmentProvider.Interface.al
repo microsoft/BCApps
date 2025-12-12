@@ -12,7 +12,7 @@ using Microsoft.Sales.Document;
 /// Provides methods for processing document attachments, generating additional document references,
 /// and creating PDF attachments for inclusion in PEPPOL XML documents according to UBL standards.
 /// </summary>
-interface "PEPPOL Attachment Handler"
+interface "PEPPOL Attachment Provider"
 {
     /// <summary>
     /// Gets additional document reference information from document attachments.

@@ -321,7 +321,7 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
 
                 trigger OnAfterGetRecord()
                 var
-                    PEPPOLAttachmentHandler: Interface "PEPPOL Attachment Handler";
+                    PEPPOLAttachmentHandler: Interface "PEPPOL Attachment Provider";
                     NewProcessedDocType: Option Sales,Service;
                 begin
                     PEPPOLAttachmentHandler := GetFormat();
@@ -2165,12 +2165,13 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
 
                 trigger OnAfterGetRecord()
                 var
+                    PostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
                     PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                 begin
-                    if not FindNextCreditMemoLineRec(CreditMemoLineLoop.Number) then
+                    PostedDocumentIterator := GetFormat();
+                    if not PostedDocumentIterator.GetNextPostedLineAsSalesLine(PostedSourceLineRecRef, CreditMemoLineLoop.Number, SalesLine) then
                         currXMLport.Break();
 
-                    GetCreditMemoLineRec();
 
                     PEPPOLLineInfoProvider := GetFormat();
                     PEPPOLLineInfoProvider.GetLineGeneralInfo(
@@ -2189,16 +2190,18 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
 
             trigger OnAfterGetRecord()
             var
-                PEPPOLDocumentInfoProvider: Interface "PEPPOL Document Info Provider";
+                PEPPOL30Common: Codeunit "PEPPOL30 Common";
+                IPEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
+                IPEPPOLDocumentInfoProvider: Interface "PEPPOL Document Info Provider";
             begin
-                if not FindNextCreditMemoRec(CrMemoHeaderLoop.Number) then
+                IPEPPOLPostedDocumentIterator := GetFormat();
+                if not IPEPPOLPostedDocumentIterator.GetNextPostedHeaderAsSalesHeader(PostedSourceRecRef, CrMemoHeaderLoop.Number, SalesHeader) then
                     currXMLport.Break();
 
-                GetCreditMemoRec();
-                GetTotals();
+                PEPPOL30Common.GetTotals(PostedSourceRecRef, PostedSourceLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, GetFormat());
 
-                PEPPOLDocumentInfoProvider := GetFormat();
-                PEPPOLDocumentInfoProvider.GetGeneralInfoBIS(
+                IPEPPOLDocumentInfoProvider := GetFormat();
+                IPEPPOLDocumentInfoProvider.GetGeneralInfoBIS(
                   SalesHeader,
                   ID,
                   IssueDate,
@@ -2248,13 +2251,7 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
 
     var
         GLSetup: Record "General Ledger Setup";
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
         TempVATAmtLine: Record "VAT Amount Line" temporary;
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -2262,12 +2259,11 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
         TempSalesLineRounding: Record "Sales Line" temporary;
         DocumentAttachments: Record "Document Attachment";
         CompanyInformation: Record "Company Information";
-        SourceRecRef: RecordRef;
+        PostedSourceRecRef, PostedSourceLineRecRef : RecordRef;
         DummyVar: Text;
         IsFormatSet: Boolean;
         PEPPOL30Format: Enum "PEPPOL 3.0 Format";
         GeneratePDF: Boolean;
-        PEPPOL30ExportManagement: Interface "PEPPOL30 Export Management";
 
     procedure SetFormat(Format: Enum "PEPPOL 3.0 Format")
     begin
@@ -2286,38 +2282,7 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
         exit(PEPPOL30Format);
     end;
 
-    local procedure GetTotals()
-    begin
-        PEPPOL30ExportManagement.GetTotals(TempVATAmtLine, TempVATProductPostingGroup);
-    end;
-
-    local procedure FindNextCreditMemoRec(Position: Integer): Boolean
-    begin
-        exit(PEPPOL30ExportManagement.FindNextRec(Position, GetFormat()));
-    end;
-
-    local procedure FindNextCreditMemoLineRec(Position: Integer): Boolean
-    begin
-        exit(PEPPOL30ExportManagement.FindNextLineRec(Position, GetFormat()));
-    end;
-
-    local procedure GetCreditMemoRec()
-    begin
-        SalesHeader := PEPPOL30ExportManagement.GetRec();
-    end;
-
-    local procedure GetCreditMemoLineRec()
-    begin
-        SalesLine := PEPPOL30ExportManagement.GetLineRec();
-    end;
-
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     local procedure FindNextVATAmtRec(var VATAmtLine: Record "VAT Amount Line"; Position: Integer): Boolean
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         if Position = 1 then
             exit(VATAmtLine.Find('-'));
@@ -2325,12 +2290,16 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
     end;
 
     procedure Initialize(DocVariant: Variant; Format: Enum "PEPPOL 3.0 Format")
+    var
+        PEPPOL30Common: Codeunit "PEPPOL30 Common";
+        DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
     begin
         SetFormat(Format);
-        SourceRecRef.GetTable(DocVariant);
-        if SourceRecRef.Number <> 0 then begin
-            PEPPOL30ExportManagement := GetFormat();
-            PEPPOL30ExportManagement.Init(SourceRecRef, TempSalesLineRounding, DocumentAttachments);
+        PostedSourceRecRef.GetTable(DocVariant);
+        if PostedSourceRecRef.Number <> 0 then begin
+            DocumentAttachmentMgt.SetDocumentAttachmentFiltersForRecRef(DocumentAttachments, PostedSourceRecRef);
+            PEPPOL30Common.GetInvoiceRoundingLine(PostedSourceRecRef, TempSalesLineRounding, GetFormat());
+            PEPPOL30Common.SetFilters(PostedSourceRecRef, PostedSourceLineRecRef, TempSalesLineRounding);
         end;
     end;
 

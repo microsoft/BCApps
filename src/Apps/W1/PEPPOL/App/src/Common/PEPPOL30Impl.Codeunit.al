@@ -124,11 +124,12 @@ codeunit 37201 "PEPPOL30 Impl."
         if DocumentAttachments.FindSet() then begin
             DocumentAttachments.Next(AttachmentNumber - 1);
 
+            Clear(TempBlob);
             TempBlob.CreateOutStream(OutStream);
             DocumentAttachments.ExportToStream(OutStream);
             TempBlob.CreateInStream(InStream);
 
-            Filename := DocumentAttachments."File Name" + '.' + DocumentAttachments."File Extension";
+            Filename := DocumentAttachments."File Name" + '.' + LowerCase(DocumentAttachments."File Extension");
             AdditionalDocumentReferenceID := DocumentAttachments."No.";
             EmbeddedDocumentBinaryObject := Base64Convert.ToBase64(InStream);
             case DocumentAttachments."File Type" of
@@ -704,7 +705,7 @@ codeunit 37201 "PEPPOL30 Impl."
 #if not CLEAN25
 #pragma warning disable AL0432
 #endif
-    procedure GetTaxSubtotalInfo(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var TaxableAmount: Text; var TaxAmountCurrencyID: Text; var SubtotalTaxAmount: Text; var TaxSubtotalCurrencyID: Text; var TransactionCurrencyTaxAmount: Text; var TransCurrTaxAmtCurrencyID: Text; var TaxTotalTaxCategoryID: Text; var schemeID: Text; var TaxCategoryPercent: Text; var TaxTotalTaxSchemeID: Text)
+    procedure GetTaxSubtotalInfo(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var TaxableAmount: Text; var TaxAmountCurrencyID: Text; var SubtotalTaxAmount: Text; var TaxSubtotalCurrencyID: Text; var TransactionCurrencyTaxAmount: Text; var TransCurrTaxAmtCurrencyID: Text; var TaxTotalTaxCategoryID: Text; var SchemeID: Text; var TaxCategoryPercent: Text; var TaxTotalTaxSchemeID: Text)
 #if not CLEAN25
 #pragma warning restore AL0432
 #endif
@@ -726,7 +727,7 @@ codeunit 37201 "PEPPOL30 Impl."
             TransCurrTaxAmtCurrencyID := GLSetup."LCY Code";
         end;
         TaxTotalTaxCategoryID := VATAmtLine."Tax Category";
-        schemeID := '';
+        SchemeID := '';
         TaxCategoryPercent := Format(VATAmtLine."VAT %", 0, 9);
         TaxTotalTaxSchemeID := VATTxt;
     end;
@@ -754,13 +755,7 @@ codeunit 37201 "PEPPOL30 Impl."
         TaxAmount := Format(Abs(VATEntry.Amount), 0, 9);
     end;
 
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetLegalMonetaryInfo(SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; var VATAmtLine: Record "VAT Amount Line"; var LineExtensionAmount: Text; var LegalMonetaryTotalCurrencyID: Text; var TaxExclusiveAmount: Text; var TaxExclusiveAmountCurrencyID: Text; var TaxInclusiveAmount: Text; var TaxInclusiveAmountCurrencyID: Text; var AllowanceTotalAmount: Text; var AllowanceTotalAmountCurrencyID: Text; var ChargeTotalAmount: Text; var ChargeTotalAmountCurrencyID: Text; var PrepaidAmount: Text; var PrepaidCurrencyID: Text; var PayableRoundingAmount: Text; var PayableRndingAmountCurrencyID: Text; var PayableAmount: Text; var PayableAmountCurrencyID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         VATAmtLine.Reset();
         VATAmtLine.CalcSums("Line Amount", "VAT Base", "Amount Including VAT", "Invoice Discount Amount");
@@ -824,29 +819,29 @@ codeunit 37201 "PEPPOL30 Impl."
         InvoiceLineAccountingCost := '';
     end;
 
-    procedure GetLineUnitCodeInfo(SalesLine: Record "Sales Line"; var unitCode: Text; var unitCodeListID: Text)
+    procedure GetLineUnitCodeInfo(SalesLine: Record "Sales Line"; var UnitCode: Text; var UnitCodeListID: Text)
     var
         UOM: Record "Unit of Measure";
     begin
-        unitCode := '';
-        unitCodeListID := GetUNECERec20ListID();
+        UnitCode := '';
+        UnitCodeListID := GetUNECERec20ListID();
 
         if SalesLine.Quantity = 0 then begin
-            unitCode := UoMforPieceINUNECERec20ListIDTxt; // unitCode is required
+            UnitCode := UoMforPieceINUNECERec20ListIDTxt; // unitCode is required
             exit;
         end;
 
         case SalesLine.Type of
             SalesLine.Type::Item, SalesLine.Type::Resource:
                 if UOM.Get(SalesLine."Unit of Measure Code") then
-                    unitCode := UOM."International Standard Code"
+                    UnitCode := UOM."International Standard Code"
                 else
                     Error(NoUnitOfMeasureErr, SalesLine."Document Type", SalesLine."Document No.", SalesLine.FieldCaption("Unit of Measure Code"));
             SalesLine.Type::"G/L Account", SalesLine.Type::"Fixed Asset", SalesLine.Type::"Charge (Item)":
                 if UOM.Get(SalesLine."Unit of Measure Code") then
-                    unitCode := UOM."International Standard Code"
+                    UnitCode := UOM."International Standard Code"
                 else
-                    unitCode := UoMforPieceINUNECERec20ListIDTxt;
+                    UnitCode := UoMforPieceINUNECERec20ListIDTxt;
         end;
     end;
 
@@ -854,10 +849,6 @@ codeunit 37201 "PEPPOL30 Impl."
     begin
         InvLineInvoicePeriodStartDate := '';
         InvLineInvoicePeriodEndDate := '';
-    end;
-
-    procedure GetLineOrderLineRefInfo()
-    begin
     end;
 
     procedure GetLineDeliveryInfo(var InvoiceLineActualDeliveryDate: Text; var InvoiceLineDeliveryID: Text; var InvoiceLineDeliveryIDSchemeID: Text)
@@ -1044,13 +1035,7 @@ codeunit 37201 "PEPPOL30 Impl."
         exit(CountryRegion."ISO Code");
     end;
 
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
-    procedure GetTotals(SalesLine: Record "Sales Line"; var VATAmtLine: Record "VAT Amount Line")
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
+    procedure GetTaxTotals(SalesLine: Record "Sales Line"; var VATAmtLine: Record "VAT Amount Line")
     var
         VATPostingSetup: Record "VAT Posting Setup";
     begin

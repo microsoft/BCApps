@@ -221,7 +221,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
     procedure GetAdditionalDocRefInfo()
     var
         SalesHeader: Record "Sales Header";
-        PEPPOLAttachmentHandler: Interface "PEPPOL Attachment Handler";
+        PEPPOLAttachmentProvider: Interface "PEPPOL Attachment Provider";
         AdditionalDocRefDocumentType: Text;
         AdditionalDocumentReferenceID: Text;
         EmbeddedDocumentBinaryObject: Text;
@@ -232,8 +232,8 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Initialize();
 
         // Exercise
-        PEPPOLAttachmentHandler := GetFormat();
-        PEPPOLAttachmentHandler.GetAdditionalDocRefInfo(
+        PEPPOLAttachmentProvider := GetFormat();
+        PEPPOLAttachmentProvider.GetAdditionalDocRefInfo(
           SalesHeader, AdditionalDocumentReferenceID, AdditionalDocRefDocumentType, URI, MimeCode, EmbeddedDocumentBinaryObject, 0);
 
         // Verify
@@ -1570,7 +1570,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.FindSet();
         PEPPOLTaxInfoProvider := GetFormat();
         repeat
-            PEPPOLTaxInfoProvider.GetTotals(SalesLine, TempVATAmountLine);
+            PEPPOLTaxInfoProvider.GetTaxTotals(SalesLine, TempVATAmountLine);
             TempVATAmountLine.TestField("VAT %", SalesLine."VAT %");
             TempVATAmountLine.TestField("VAT Identifier", Format(SalesLine."VAT %"));
         until SalesLine.Next() = 0;
@@ -1614,7 +1614,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.FindSet();
         PEPPOLTaxInfoProvider := GetFormat();
         repeat
-            PEPPOLTaxInfoProvider.GetTotals(SalesLine, TempVATAmountLine);
+            PEPPOLTaxInfoProvider.GetTaxTotals(SalesLine, TempVATAmountLine);
             TempVATAmountLine.TestField("VAT %", SalesLine."VAT %");
             TempVATAmountLine.TestField("VAT Identifier", Format(SalesLine."VAT %"));
         until SalesLine.Next() = 0;

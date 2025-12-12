@@ -11,7 +11,7 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Service.Document;
 
-codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Handler"
+codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
                                             , "PEPPOL Delivery Info Provider"
                                             , "PEPPOL Document Info Provider"
                                             , "PEPPOL Line Info Provider"
@@ -221,13 +221,7 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Handler"
     /// <param name="CompanyID">Returns the company VAT registration ID.</param>
     /// <param name="CompanyIDSchemeID">Returns the company ID scheme ID.</param>
     /// <param name="TaxSchemeID">Returns the tax scheme ID (e.g., VAT).</param>
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetAccountingSupplierPartyTaxSchemeBIS(var VATAmtLine: Record "VAT Amount Line"; var CompanyID: Text; var CompanyIDSchemeID: Text; var TaxSchemeID: Text)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         PEPPOLManagementImpl.GetAccountingSupplierPartyTaxSchemeBIS(VATAmtLine, CompanyID, CompanyIDSchemeID, TaxSchemeID);
     end;
@@ -360,13 +354,7 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Handler"
     /// <param name="CustPartyTaxSchemeCompIDSchID">Returns the customer party tax scheme company ID scheme ID.</param>
     /// <param name="CustTaxSchemeID">Returns the customer tax scheme ID.</param>
     /// <param name="TempVATAmountLine">The temporary VAT amount line record.</param>
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
     procedure GetAccountingCustomerPartyTaxSchemeBIS30(SalesHeader: Record "Sales Header"; var CustPartyTaxSchemeCompanyID: Text; var CustPartyTaxSchemeCompIDSchID: Text; var CustTaxSchemeID: Text; var TempVATAmountLine: Record "VAT Amount Line" temporary)
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
     begin
         PEPPOLManagementImpl.GetAccountingCustomerPartyTaxSchemeBIS30(SalesHeader, CustPartyTaxSchemeCompanyID, CustPartyTaxSchemeCompIDSchID, CustTaxSchemeID, TempVATAmountLine);
     end;
@@ -939,15 +927,9 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Handler"
     /// </summary>
     /// <param name="SalesLine">The sales line record to calculate totals from.</param>
     /// <param name="VATAmtLine">Returns the calculated VAT amount line totals.</param>
-#if not CLEAN25
-#pragma warning disable AL0432
-#endif
-    procedure GetTotals(SalesLine: Record "Sales Line"; var VATAmtLine: Record "VAT Amount Line")
-#if not CLEAN25
-#pragma warning restore AL0432
-#endif
+    procedure GetTaxTotals(SalesLine: Record "Sales Line"; var VATAmtLine: Record "VAT Amount Line")
     begin
-        PEPPOLManagementImpl.GetTotals(SalesLine, VATAmtLine);
+        PEPPOLManagementImpl.GetTaxTotals(SalesLine, VATAmtLine);
     end;
 
     /// <summary>

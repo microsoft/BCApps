@@ -130,7 +130,7 @@ interface "PEPPOL Tax Info Provider"
 #if not CLEAN25
 #pragma warning disable AL0432
 #endif
-    procedure GetTotals(SalesLine: Record "Sales Line"; var VATAmtLine: Record "VAT Amount Line");
+    procedure GetTaxTotals(SalesLine: Record "Sales Line"; var VATAmtLine: Record "VAT Amount Line");
 #if not CLEAN25
 #pragma warning restore AL0432
 #endif

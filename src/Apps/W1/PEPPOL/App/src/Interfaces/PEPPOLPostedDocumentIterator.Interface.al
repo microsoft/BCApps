@@ -14,20 +14,20 @@ using Microsoft.Sales.Document;
 interface "PEPPOL Posted Document Iterator"
 {
     /// <summary>
-    /// Finds the next posted document header record and transfers its fields to a Sales Header buffer.
+    /// Gets the next posted document header record and transfers its fields to a Sales Header buffer.
     /// </summary>
-    /// <param name="PostedRec">The RecordRef for the posted document header (e.g., Sales Invoice Header or Sales Cr.Memo Header).</param>
-    /// <param name="SalesHeader">Return value: The Sales Header record populated with fields from the posted document.</param>
+    /// <param name="PostedRecRef">The RecordRef for the posted document header (e.g., Sales Invoice Header or Sales Cr.Memo Header).</param>
     /// <param name="Position">The position indicator: 1 to find the first record, otherwise finds the next record.</param>
+    /// <param name="SalesHeader">Return value: The Sales Header record populated with fields from the posted document.</param>
     /// <returns>True if a record was found; otherwise, false.</returns>
-    procedure FindNextPostedRec(var PostedRec: RecordRef; var SalesHeader: Record "Sales Header"; Position: Integer) Found: Boolean;
+    procedure GetNextPostedHeaderAsSalesHeader(var PostedRecRef: RecordRef; Position: Integer; var SalesHeader: Record "Sales Header") Found: Boolean;
 
     /// <summary>
-    /// Finds the next posted document line record and transfers its fields to a Sales Line buffer.
+    /// Gets the next posted document line record and transfers its fields to a Sales Line buffer.
     /// </summary>
-    /// <param name="PostedRecLine">The RecordRef for the posted document line (e.g., Sales Invoice Line or Sales Cr.Memo Line).</param>
-    /// <param name="SalesLine">Return value: The Sales Line record populated with fields from the posted document line.</param>
+    /// <param name="PostedLineRecRef">The RecordRef for the posted document line (e.g., Sales Invoice Line or Sales Cr.Memo Line).</param>
     /// <param name="Position">The position indicator: 1 to find the first record, otherwise finds the next record.</param>
+    /// <param name="SalesLine">Return value: The Sales Line record populated with fields from the posted document line.</param>
     /// <returns>True if a record was found; otherwise, false.</returns>
-    procedure FindNextPostedLineRec(var PostedRecLine: RecordRef; var SalesLine: Record "Sales Line"; Position: Integer) Found: Boolean
+    procedure GetNextPostedLineAsSalesLine(var PostedLineRecRef: RecordRef; Position: Integer; var SalesLine: Record "Sales Line") Found: Boolean
 }
