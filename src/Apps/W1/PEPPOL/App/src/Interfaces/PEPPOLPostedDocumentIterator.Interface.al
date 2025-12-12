@@ -20,7 +20,7 @@ interface "PEPPOL Posted Document Iterator"
     /// <param name="Position">The position indicator: 1 to find the first record, otherwise finds the next record.</param>
     /// <param name="SalesHeader">Return value: The Sales Header record populated with fields from the posted document.</param>
     /// <returns>True if a record was found; otherwise, false.</returns>
-    procedure GetNextPostedHeaderAsSalesHeader(var PostedRecRef: RecordRef; Position: Integer; var SalesHeader: Record "Sales Header") Found: Boolean;
+    procedure GetNextPostedHeaderAsSalesHeader(var PostedRecRef: RecordRef; var SalesHeader: Record "Sales Header") Found: Boolean;
 
     /// <summary>
     /// Gets the next posted document line record and transfers its fields to a Sales Line buffer.
@@ -29,5 +29,5 @@ interface "PEPPOL Posted Document Iterator"
     /// <param name="Position">The position indicator: 1 to find the first record, otherwise finds the next record.</param>
     /// <param name="SalesLine">Return value: The Sales Line record populated with fields from the posted document line.</param>
     /// <returns>True if a record was found; otherwise, false.</returns>
-    procedure GetNextPostedLineAsSalesLine(var PostedLineRecRef: RecordRef; Position: Integer; var SalesLine: Record "Sales Line") Found: Boolean
+    procedure GetNextPostedLineAsSalesLine(var PostedLineRecRef: RecordRef; var SalesLine: Record "Sales Line") Found: Boolean
 }

@@ -2165,11 +2165,9 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
 
                 trigger OnAfterGetRecord()
                 var
-                    PostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
                     PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                 begin
-                    PostedDocumentIterator := GetFormat();
-                    if not PostedDocumentIterator.GetNextPostedLineAsSalesLine(PostedSourceLineRecRef, CreditMemoLineLoop.Number, SalesLine) then
+                    if not PostedLineIterator.GetNextPostedLineAsSalesLine(PostedSourceLineRecRef, SalesLine) then
                         currXMLport.Break();
 
 
@@ -2191,11 +2189,9 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
             trigger OnAfterGetRecord()
             var
                 PEPPOL30Common: Codeunit "PEPPOL30 Common";
-                IPEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
                 IPEPPOLDocumentInfoProvider: Interface "PEPPOL Document Info Provider";
             begin
-                IPEPPOLPostedDocumentIterator := GetFormat();
-                if not IPEPPOLPostedDocumentIterator.GetNextPostedHeaderAsSalesHeader(PostedSourceRecRef, CrMemoHeaderLoop.Number, SalesHeader) then
+                if not PostedHeaderIterator.GetNextPostedHeaderAsSalesHeader(PostedSourceRecRef, SalesHeader) then
                     currXMLport.Break();
 
                 PEPPOL30Common.GetTotals(PostedSourceRecRef, PostedSourceLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, GetFormat());
@@ -2260,6 +2256,7 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
         DocumentAttachments: Record "Document Attachment";
         CompanyInformation: Record "Company Information";
         PostedSourceRecRef, PostedSourceLineRecRef : RecordRef;
+        PostedHeaderIterator, PostedLineIterator : Interface "PEPPOL Posted Document Iterator";
         DummyVar: Text;
         IsFormatSet: Boolean;
         PEPPOL30Format: Enum "PEPPOL 3.0 Format";
@@ -2300,6 +2297,9 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
             DocumentAttachmentMgt.SetDocumentAttachmentFiltersForRecRef(DocumentAttachments, PostedSourceRecRef);
             PEPPOL30Common.GetInvoiceRoundingLine(PostedSourceRecRef, TempSalesLineRounding, GetFormat());
             PEPPOL30Common.SetFilters(PostedSourceRecRef, PostedSourceLineRecRef, TempSalesLineRounding);
+
+            PostedHeaderIterator := GetFormat();
+            PostedLineIterator := GetFormat();
         end;
     end;
 

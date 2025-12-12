@@ -12,11 +12,14 @@ codeunit 37213 "PEPPOL30 Sales Iterator" implements "PEPPOL Posted Document Iter
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    procedure GetNextPostedHeaderAsSalesHeader(var PostedRecRef: RecordRef; Position: Integer; var SalesHeader: Record "Sales Header") Found: Boolean
+    var
+        HeaderPosition, LinePosition : Integer;
+
+    procedure GetNextPostedHeaderAsSalesHeader(var PostedRecRef: RecordRef; var SalesHeader: Record "Sales Header") Found: Boolean
     var
         PEPPOL30DocumentConverter: Codeunit "PEPPOL30 Common";
     begin
-        if Position = 1 then
+        if HeaderPosition = 0 then
             Found := PostedRecRef.Find('-')
         else
             Found := PostedRecRef.Next() <> 0;
@@ -24,14 +27,15 @@ codeunit 37213 "PEPPOL30 Sales Iterator" implements "PEPPOL Posted Document Iter
         if Found then
             PEPPOL30DocumentConverter.ConvertPostedHeaderToSalesHeader(PostedRecRef, SalesHeader);
 
+        HeaderPosition += 1;
         exit(Found);
     end;
 
-    procedure GetNextPostedLineAsSalesLine(var PostedLineRecRef: RecordRef; Position: Integer; var SalesLine: Record "Sales Line") Found: Boolean
+    procedure GetNextPostedLineAsSalesLine(var PostedLineRecRef: RecordRef; var SalesLine: Record "Sales Line") Found: Boolean
     var
         PEPPOL30DocumentConverter: Codeunit "PEPPOL30 Common";
     begin
-        if Position = 1 then
+        if LinePosition = 0 then
             Found := PostedLineRecRef.Find('-')
         else
             Found := PostedLineRecRef.Next() <> 0;
@@ -39,6 +43,7 @@ codeunit 37213 "PEPPOL30 Sales Iterator" implements "PEPPOL Posted Document Iter
         if Found then
             PEPPOL30DocumentConverter.ConvertPostedLineToSalesLine(PostedLineRecRef, SalesLine);
 
+        LinePosition += 1;
         exit(Found);
     end;
 

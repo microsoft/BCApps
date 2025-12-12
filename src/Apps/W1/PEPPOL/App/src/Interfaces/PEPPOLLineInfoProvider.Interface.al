@@ -27,7 +27,7 @@ interface "PEPPOL Line Info Provider"
     /// <param name="SalesLine">The sales line record.</param>
     /// <param name="unitCode">Return value: Unit code.</param>
     /// <param name="unitCodeListID">Return value: Unit code list ID.</param>
-    procedure GetLineUnitCodeInfo(SalesLine: Record "Sales Line"; var unitCode: Text; var unitCodeListID: Text)
+    procedure GetLineUnitCodeInfo(SalesLine: Record "Sales Line"; var UnitCode: Text; var UnitCodeListID: Text)
 
     /// <summary>
     /// Gets line invoice period information for PEPPOL documents.

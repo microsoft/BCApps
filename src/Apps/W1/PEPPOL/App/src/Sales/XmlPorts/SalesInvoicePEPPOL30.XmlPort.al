@@ -2076,8 +2076,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                     IPEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
                     IPEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
                 begin
-                    IPEPPOLPostedDocumentIterator := GetFormat();
-                    if not IPEPPOLPostedDocumentIterator.GetNextPostedLineAsSalesLine(PostedSourceLineRecRef, InvoiceLineLoop.Number, SalesLine) then
+                    if not PostedLineIterator.GetNextPostedLineAsSalesLine(PostedSourceLineRecRef, SalesLine) then
                         currXMLport.Break();
 
                     IPEPPOLLineInfoProvider := GetFormat();
@@ -2098,11 +2097,9 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
             trigger OnAfterGetRecord()
             var
                 PEPPOL30Common: Codeunit "PEPPOL30 Common";
-                IPEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
                 IPEPPOLDocumentInfoProvider: Interface "PEPPOL Document Info Provider";
             begin
-                IPEPPOLPostedDocumentIterator := GetFormat();
-                if not IPEPPOLPostedDocumentIterator.GetNextPostedHeaderAsSalesHeader(PostedSourceRecRef, InvoiceHeaderLoop.Number, SalesHeader) then
+                if not PostedHeaderIterator.GetNextPostedHeaderAsSalesHeader(PostedSourceRecRef, SalesHeader) then
                     currXMLport.Break();
 
                 PEPPOL30Common.GetTotals(PostedSourceRecRef, PostedSourceLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, GetFormat());
@@ -2161,6 +2158,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
         DocumentAttachments: Record "Document Attachment";
         CompanyInformation: Record "Company Information";
         PostedSourceRecRef, PostedSourceLineRecRef : RecordRef;
+        PostedHeaderIterator, PostedLineIterator : Interface "PEPPOL Posted Document Iterator";
         PEPPOL30Format: Enum "PEPPOL 3.0 Format";
         DummyVar: Text;
         IsFormatSet, IsFormatInitialized : Boolean;
@@ -2202,6 +2200,9 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
             DocumentAttachmentMgt.SetDocumentAttachmentFiltersForRecRef(DocumentAttachments, PostedSourceRecRef);
             PEPPOL30Common.GetInvoiceRoundingLine(PostedSourceRecRef, TempSalesLineRounding, GetFormat());
             PEPPOL30Common.SetFilters(PostedSourceRecRef, PostedSourceLineRecRef, TempSalesLineRounding);
+
+            PostedHeaderIterator := GetFormat();
+            PostedLineIterator := GetFormat();
         end;
     end;
 
