@@ -9,8 +9,8 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using System.Utilities;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 #pragma warning disable AA0210
 codeunit 139688 "Recurring Billing Test"

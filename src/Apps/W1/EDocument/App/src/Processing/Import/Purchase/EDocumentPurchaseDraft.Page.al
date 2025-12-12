@@ -8,9 +8,9 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Vendor;
+using System.Feedback;
 using System.Telemetry;
 using System.Utilities;
-using System.Feedback;
 
 page 6181 "E-Document Purchase Draft"
 {

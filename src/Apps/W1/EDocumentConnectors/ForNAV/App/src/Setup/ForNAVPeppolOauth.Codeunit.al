@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
-using System.Environment;
-using System.Azure.Identity;
-using System.Security.AccessControl;
 using Microsoft.eServices.EDocument.Integration.Send;
+using System.Azure.Identity;
+using System.Environment;
 using System.Reflection;
+using System.Security.AccessControl;
 
 codeunit 6422 "ForNAV Peppol Oauth"
 {
